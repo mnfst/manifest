@@ -50,4 +50,9 @@ describe('sanitizeProviderError', () => {
     const body = JSON.stringify({ error: { message: '' } });
     expect(sanitizeProviderError(500, body)).toBe('Upstream provider internal error');
   });
+
+  it('returns generic message in production mode even when JSON has message', () => {
+    const body = JSON.stringify({ error: { message: 'Detailed internal error' } });
+    expect(sanitizeProviderError(500, body, 'production')).toBe('Upstream provider internal error');
+  });
 });

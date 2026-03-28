@@ -6,26 +6,36 @@ const logger = {
   warn: (msg: string) => console.warn(`[Email] ${msg}`),
 };
 
-function resolveConfig(): EmailProviderConfig | null {
-  const isLocal = process.env['MANIFEST_MODE'] === 'local';
+export interface SendEmailEnvConfig {
+  manifestMode?: string;
+  mailgunApiKey?: string;
+  mailgunDomain?: string;
+  notificationFromEmail?: string;
+}
+
+function resolveConfig(env?: SendEmailEnvConfig): EmailProviderConfig | null {
+  const isLocal = (env?.manifestMode ?? process.env['MANIFEST_MODE']) === 'local';
 
   if (!isLocal) {
-    const apiKey = process.env['MAILGUN_API_KEY'] ?? '';
-    const domain = process.env['MAILGUN_DOMAIN'] ?? '';
+    const apiKey = env?.mailgunApiKey ?? process.env['MAILGUN_API_KEY'] ?? '';
+    const domain = env?.mailgunDomain ?? process.env['MAILGUN_DOMAIN'] ?? '';
     if (!apiKey || !domain) return null;
     return {
       provider: 'mailgun',
       apiKey,
       domain,
-      fromEmail: process.env['NOTIFICATION_FROM_EMAIL'],
+      fromEmail: env?.notificationFromEmail ?? process.env['NOTIFICATION_FROM_EMAIL'],
     };
   }
 
   return readLocalEmailConfig();
 }
 
-export async function sendEmail(opts: SendEmailOptions): Promise<boolean> {
-  const config = resolveConfig();
+export async function sendEmail(
+  opts: SendEmailOptions,
+  env?: SendEmailEnvConfig,
+): Promise<boolean> {
+  const config = resolveConfig(env);
   if (!config) {
     logger.warn('No email provider configured — skipping email send');
     return false;

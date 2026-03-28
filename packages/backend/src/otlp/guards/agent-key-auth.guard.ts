@@ -6,6 +6,7 @@ import {
   OnModuleDestroy,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { createHash } from 'crypto';
@@ -44,10 +45,16 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleDestroy {
   private readonly MAX_CACHE_SIZE = 10_000;
   private readonly cleanupTimer: ReturnType<typeof setInterval>;
 
+  private readonly isLocalMode: boolean;
+  private readonly isDev: boolean;
+
   constructor(
     @InjectRepository(AgentApiKey)
     private readonly keyRepo: Repository<AgentApiKey>,
+    private readonly configService: ConfigService,
   ) {
+    this.isLocalMode = this.configService.get<string>('app.manifestMode') === 'local';
+    this.isDev = this.configService.get<string>('app.nodeEnv') === 'development';
     this.cleanupTimer = setInterval(() => this.evictExpired(), 60_000);
     if (typeof this.cleanupTimer === 'object' && 'unref' in this.cleanupTimer) {
       this.cleanupTimer.unref();
@@ -64,8 +71,8 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleDestroy {
 
     const ip = request.ip ?? '';
     const loopback = isLoopbackIp(ip);
-    const isLocal = process.env['MANIFEST_MODE'] === 'local' && isAllowedLocalIp(ip);
-    const isDevLoopback = process.env['NODE_ENV'] === 'development' && loopback;
+    const isLocal = this.isLocalMode && isAllowedLocalIp(ip);
+    const isDevLoopback = this.isDev && loopback;
 
     // In local mode, trust loopback connections without requiring an API key.
     // Also handles dev-mode gateways that send a dummy/non-mnfst token.

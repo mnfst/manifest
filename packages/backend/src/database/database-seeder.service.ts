@@ -32,13 +32,13 @@ export class DatabaseSeederService implements OnModuleInit {
 
   async onModuleInit() {
     // In local mode, LocalBootstrapService handles initialization
-    if (process.env['MANIFEST_MODE'] === 'local') return;
+    if (this.configService.get<string>('app.manifestMode') === 'local') return;
 
     await this.runBetterAuthMigrations();
 
     const env = this.configService.get<string>('app.nodeEnv', 'production');
-    const shouldSeed =
-      (env === 'development' || env === 'test') && process.env['SEED_DATA'] === 'true';
+    const seedData = this.configService.get<string>('SEED_DATA');
+    const shouldSeed = (env === 'development' || env === 'test') && seedData === 'true';
     if (shouldSeed) {
       await this.seedAdminUser();
       await this.seedApiKey();

@@ -368,7 +368,7 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `SEED_DATA` — Set `true` to seed demo data on startup.
 - `MANIFEST_MODE` — `local` or `cloud` (default: `cloud`). Switches between SQLite/loopback auth and PostgreSQL/Better Auth.
 - `MANIFEST_DB_PATH` — SQLite file path for local mode (default: in-memory).
-- `MANIFEST_TELEMETRY_OPTOUT` — Set `1` to disable local-mode npm version checks.
+- `MANIFEST_UPDATE_CHECK_OPTOUT` — Set `1` to disable local-mode npm version checks.
 
 ## Domain Terminology
 

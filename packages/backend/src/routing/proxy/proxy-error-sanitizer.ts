@@ -12,11 +12,11 @@ const KNOWN_ERROR_MESSAGES: Record<number, string> = {
   504: 'Upstream provider gateway timeout',
 };
 
-export function sanitizeProviderError(status: number, rawBody: string): string {
+export function sanitizeProviderError(status: number, rawBody: string, nodeEnv?: string): string {
   const generic = KNOWN_ERROR_MESSAGES[status] ?? `Upstream provider returned HTTP ${status}`;
 
   // In production, only return generic error messages to avoid leaking provider internals
-  if (process.env['NODE_ENV'] === 'production') return generic;
+  if (nodeEnv === 'production') return generic;
 
   try {
     const parsed = JSON.parse(rawBody) as Record<string, unknown>;

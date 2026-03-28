@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import { HealthController } from './health.controller';
 import { VersionCheckService } from './version-check.service';
 
@@ -12,15 +13,24 @@ function createMockVersionCheck(overrides: Partial<VersionCheckService> = {}): V
   } as unknown as VersionCheckService;
 }
 
+function createMockConfig(overrides: Record<string, string> = {}): ConfigService {
+  const values: Record<string, string> = {
+    'app.manifestMode': 'cloud',
+    'app.nodeEnv': 'development',
+    ...overrides,
+  };
+  return {
+    get: (key: string, fallback?: string) => values[key] ?? fallback,
+  } as unknown as ConfigService;
+}
+
 describe('HealthController', () => {
   let controller: HealthController;
   let mockVersionCheck: VersionCheckService;
 
   beforeEach(() => {
-    delete process.env['MANIFEST_MODE'];
-    delete process.env['NODE_ENV'];
     mockVersionCheck = createMockVersionCheck();
-    controller = new HealthController(mockVersionCheck);
+    controller = new HealthController(mockVersionCheck, createMockConfig());
   });
 
   it('returns healthy status', () => {
@@ -29,13 +39,15 @@ describe('HealthController', () => {
   });
 
   it('returns plugin version in local mode', () => {
-    process.env['MANIFEST_MODE'] = 'local';
+    controller = new HealthController(
+      mockVersionCheck,
+      createMockConfig({ 'app.manifestMode': 'local' }),
+    );
     const result = controller.getHealth();
     expect(result.version).toBe('5.20.0');
   });
 
   it('omits version in cloud mode', () => {
-    delete process.env['MANIFEST_MODE'];
     const result = controller.getHealth();
     expect(result).not.toHaveProperty('version');
   });
@@ -47,13 +59,15 @@ describe('HealthController', () => {
   });
 
   it('returns cloud mode by default', () => {
-    delete process.env['MANIFEST_MODE'];
     const result = controller.getHealth();
     expect(result.mode).toBe('cloud');
   });
 
-  it('returns local mode when MANIFEST_MODE=local', () => {
-    process.env['MANIFEST_MODE'] = 'local';
+  it('returns local mode when manifestMode=local', () => {
+    controller = new HealthController(
+      mockVersionCheck,
+      createMockConfig({ 'app.manifestMode': 'local' }),
+    );
     const result = controller.getHealth();
     expect(result.mode).toBe('local');
   });
@@ -65,7 +79,7 @@ describe('HealthController', () => {
         updateAvailable: true,
       }),
     });
-    controller = new HealthController(mockVersionCheck);
+    controller = new HealthController(mockVersionCheck, createMockConfig());
     const result = controller.getHealth();
     expect(result.latestVersion).toBe('2.0.0');
     expect(result.updateAvailable).toBe(true);
@@ -77,20 +91,26 @@ describe('HealthController', () => {
     expect(result).not.toHaveProperty('updateAvailable');
   });
 
-  it('returns devMode true when NODE_ENV is not production', () => {
-    process.env['NODE_ENV'] = 'development';
+  it('returns devMode true when nodeEnv is not production', () => {
+    controller = new HealthController(
+      mockVersionCheck,
+      createMockConfig({ 'app.nodeEnv': 'development' }),
+    );
     const result = controller.getHealth();
     expect(result.devMode).toBe(true);
   });
 
-  it('returns devMode false when NODE_ENV is production', () => {
-    process.env['NODE_ENV'] = 'production';
+  it('returns devMode false when nodeEnv is production', () => {
+    controller = new HealthController(
+      mockVersionCheck,
+      createMockConfig({ 'app.nodeEnv': 'production' }),
+    );
     const result = controller.getHealth();
     expect(result.devMode).toBe(false);
   });
 
-  it('returns devMode true when NODE_ENV is unset', () => {
-    delete process.env['NODE_ENV'];
+  it('returns devMode true when nodeEnv is unset', () => {
+    controller = new HealthController(mockVersionCheck, createMockConfig());
     const result = controller.getHealth();
     expect(result.devMode).toBe(true);
   });

@@ -20,15 +20,26 @@ jest.mock('../emails/threshold-alert', () => ({
   ThresholdAlertEmail: jest.fn(() => 'mock-element'),
 }));
 
+import { ConfigService } from '@nestjs/config';
 import { NotificationEmailService } from './notification-email.service';
 import { sendEmail } from './email-providers/send-email';
 import { createProvider } from './email-providers/resolve-provider';
+
+function createMockConfig(overrides: Record<string, string> = {}): ConfigService {
+  const values: Record<string, string> = {
+    'app.notificationFromEmail': 'noreply@manifest.build',
+    ...overrides,
+  };
+  return {
+    get: (key: string, fallback?: string) => values[key] ?? fallback,
+  } as unknown as ConfigService;
+}
 
 describe('NotificationEmailService', () => {
   let service: NotificationEmailService;
 
   beforeEach(() => {
-    service = new NotificationEmailService();
+    service = new NotificationEmailService(createMockConfig());
     jest.clearAllMocks();
   });
 

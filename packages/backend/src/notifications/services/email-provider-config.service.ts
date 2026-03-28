@@ -1,4 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { render } from '@react-email/render';
@@ -27,9 +28,17 @@ export interface EmailProviderFullConfig {
 @Injectable()
 export class EmailProviderConfigService {
   private readonly dialect: DbDialect;
+  private readonly fromEmail: string;
 
-  constructor(private readonly ds: DataSource) {
+  constructor(
+    private readonly ds: DataSource,
+    private readonly configService: ConfigService,
+  ) {
     this.dialect = detectDialect(ds.options.type as string);
+    this.fromEmail = this.configService.get<string>(
+      'app.notificationFromEmail',
+      'noreply@manifest.build',
+    );
   }
 
   private sql(query: string): string {
@@ -235,9 +244,7 @@ export class EmailProviderConfigService {
       const emailProvider = createProvider(config);
       const html = await render(TestEmail());
       const text = await render(TestEmail(), { plainText: true });
-      const from = domain
-        ? `Manifest <noreply@${domain}>`
-        : `Manifest <${process.env['NOTIFICATION_FROM_EMAIL'] ?? 'noreply@manifest.build'}>`;
+      const from = domain ? `Manifest <noreply@${domain}>` : `Manifest <${this.fromEmail}>`;
       const sent = await emailProvider.send({
         to: toEmail,
         subject: 'Manifest — Test Email',

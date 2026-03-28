@@ -2,7 +2,7 @@ import { buildAnthropicShortModelIdVariants } from '../common/utils/anthropic-mo
 import { OPENROUTER_PREFIX_TO_PROVIDER } from '../common/constants/providers';
 
 /**
- * Resolves variant model names (from telemetry) to canonical pricing names.
+ * Resolves variant model names (from ingested messages) to canonical pricing names.
  *
  * Strategies (tried in order):
  *  1. Exact match against canonical names
@@ -40,18 +40,13 @@ const KNOWN_ALIASES: ReadonlyArray<readonly [string, string]> = [
   ['codestral', 'codestral-latest'],
 ];
 
-// Extra prefixes from non-routing providers that telemetry may send.
+// Extra prefixes from non-routing providers that ingested messages may contain.
 // Multi-segment prefixes must come first so they match before shorter ones.
-const EXTRA_TELEMETRY_PREFIXES = [
-  'accounts/fireworks/models/',
-  'amazon/',
-  'fireworks/',
-  'together/',
-];
+const EXTRA_INGEST_PREFIXES = ['accounts/fireworks/models/', 'amazon/', 'fireworks/', 'together/'];
 
-/** Derived from the provider registry + extra telemetry prefixes. */
+/** Derived from the provider registry + extra ingest prefixes. */
 const PROVIDER_PREFIXES: readonly string[] = [
-  ...EXTRA_TELEMETRY_PREFIXES,
+  ...EXTRA_INGEST_PREFIXES,
   ...[...OPENROUTER_PREFIX_TO_PROVIDER.keys()].map((p) => `${p}/`),
 ];
 

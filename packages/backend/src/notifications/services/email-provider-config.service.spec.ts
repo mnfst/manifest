@@ -22,8 +22,14 @@ jest.mock('../../common/utils/crypto.util', () => ({
 }));
 
 import { BadRequestException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { EmailProviderConfigService } from './email-provider-config.service';
 import { createProvider } from './email-providers/resolve-provider';
+
+const mockConfigService = {
+  get: (key: string, fallback?: string) =>
+    ({ 'app.notificationFromEmail': 'noreply@manifest.build' })[key] ?? fallback,
+} as unknown as ConfigService;
 
 function createMockDataSource(rows: Record<string, unknown>[][] = [[]]) {
   let callIndex = 0;
@@ -46,7 +52,7 @@ describe('EmailProviderConfigService', () => {
   describe('getConfig', () => {
     it('returns null when no config exists', async () => {
       const ds = createMockDataSource([[]]);
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       const result = await service.getConfig('user-1');
       expect(result).toBeNull();
     });
@@ -63,7 +69,7 @@ describe('EmailProviderConfigService', () => {
           },
         ],
       ]);
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       const result = await service.getConfig('user-1');
       expect(result).toEqual({
         provider: 'resend',
@@ -86,7 +92,7 @@ describe('EmailProviderConfigService', () => {
           },
         ],
       ]);
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       const result = await service.getConfig('user-1');
       expect(result!.domain).toBeNull();
       expect(result!.notificationEmail).toBeNull();
@@ -104,7 +110,7 @@ describe('EmailProviderConfigService', () => {
           },
         ],
       ]);
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       const result = await service.getConfig('user-1');
       expect(result!.keyPrefix).toBe('****');
     });
@@ -117,7 +123,7 @@ describe('EmailProviderConfigService', () => {
         [], // SELECT existing
         [], // INSERT
       ]);
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       const result = await service.upsert('user-1', {
         provider: 'resend',
         apiKey: 're_testkey12345678',
@@ -135,7 +141,7 @@ describe('EmailProviderConfigService', () => {
         [{ id: 'existing-id', api_key_encrypted: 're_oldkey12345678' }], // SELECT existing
         [], // UPDATE
       ]);
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       const result = await service.upsert('user-1', {
         provider: 'resend',
         apiKey: 're_newkey12345678',
@@ -149,7 +155,7 @@ describe('EmailProviderConfigService', () => {
         [{ id: 'existing-id', api_key_encrypted: 'ENC:re_existingkey123', key_prefix: 're_exist' }],
         [], // UPDATE
       ]);
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       const result = await service.upsert('user-1', {
         provider: 'resend',
         notificationEmail: 'new@test.com',
@@ -163,7 +169,7 @@ describe('EmailProviderConfigService', () => {
       const ds = createMockDataSource([
         [{ id: 'existing-id', api_key_encrypted: 'ENC:short' }], // existing with short key
       ]);
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       await expect(service.upsert('user-1', { provider: 'mailgun' })).rejects.toThrow(
         BadRequestException,
       );
@@ -173,7 +179,7 @@ describe('EmailProviderConfigService', () => {
       const ds = createMockDataSource([
         [], // no existing
       ]);
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       await expect(service.upsert('user-1', { provider: 'resend' })).rejects.toThrow(
         BadRequestException,
       );
@@ -181,7 +187,7 @@ describe('EmailProviderConfigService', () => {
 
     it('throws on invalid provider config', async () => {
       const ds = createMockDataSource([[]]);
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       await expect(
         service.upsert('user-1', { provider: 'resend', apiKey: 'invalid' }),
       ).rejects.toThrow(BadRequestException);
@@ -189,7 +195,7 @@ describe('EmailProviderConfigService', () => {
 
     it('normalizes notification email', async () => {
       const ds = createMockDataSource([[], []]);
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       const result = await service.upsert('user-1', {
         provider: 'resend',
         apiKey: 're_testkey12345678',
@@ -200,7 +206,7 @@ describe('EmailProviderConfigService', () => {
 
     it('handles mailgun with domain', async () => {
       const ds = createMockDataSource([[], []]);
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       const result = await service.upsert('user-1', {
         provider: 'mailgun',
         apiKey: 'key-1234567890abc',
@@ -215,7 +221,7 @@ describe('EmailProviderConfigService', () => {
   describe('remove', () => {
     it('deletes config for user', async () => {
       const ds = createMockDataSource([[]]);
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       await service.remove('user-1');
       expect(ds.query).toHaveBeenCalledTimes(1);
     });
@@ -225,7 +231,7 @@ describe('EmailProviderConfigService', () => {
   describe('getFullConfig', () => {
     it('returns null when no active config', async () => {
       const ds = createMockDataSource([[]]);
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       const result = await service.getFullConfig('user-1');
       expect(result).toBeNull();
     });
@@ -241,7 +247,7 @@ describe('EmailProviderConfigService', () => {
           },
         ],
       ]);
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       const result = await service.getFullConfig('user-1');
       expect(result).toEqual({
         provider: 'resend',
@@ -262,7 +268,7 @@ describe('EmailProviderConfigService', () => {
           },
         ],
       ]);
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       const result = await service.getFullConfig('user-1');
       expect(result!.apiKey).toBe('re_plaintext_legacy_key');
     });
@@ -278,7 +284,7 @@ describe('EmailProviderConfigService', () => {
           },
         ],
       ]);
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       const result = await service.getFullConfig('user-1');
       expect(result!.domain).toBeNull();
       expect(result!.notificationEmail).toBeNull();
@@ -289,14 +295,14 @@ describe('EmailProviderConfigService', () => {
   describe('getNotificationEmail', () => {
     it('returns null when no config exists', async () => {
       const ds = createMockDataSource([[]]);
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       const result = await service.getNotificationEmail('user-1');
       expect(result).toBeNull();
     });
 
     it('returns notification email when set', async () => {
       const ds = createMockDataSource([[{ notification_email: 'alerts@test.com' }]]);
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       const result = await service.getNotificationEmail('user-1');
       expect(result).toBe('alerts@test.com');
     });
@@ -309,14 +315,14 @@ describe('EmailProviderConfigService', () => {
         [{ id: 'existing-id' }], // SELECT existing
         [], // UPDATE
       ]);
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       await service.setNotificationEmail('user-1', 'New@Email.COM');
       expect(ds.query).toHaveBeenCalledTimes(2);
     });
 
     it('does nothing when no config exists', async () => {
       const ds = createMockDataSource([[]]);
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       await service.setNotificationEmail('user-1', 'test@test.com');
       expect(ds.query).toHaveBeenCalledTimes(1); // only the SELECT
     });
@@ -326,7 +332,7 @@ describe('EmailProviderConfigService', () => {
   describe('testSavedConfig', () => {
     it('returns error when no config exists', async () => {
       const ds = createMockDataSource([[]]);
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       const result = await service.testSavedConfig('user-1', 'test@test.com');
       expect(result).toEqual({ success: false, error: 'No email provider configured' });
     });
@@ -342,7 +348,7 @@ describe('EmailProviderConfigService', () => {
           },
         ],
       ]);
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       const result = await service.testSavedConfig('user-1', 'test@test.com');
       expect(result).toEqual({ success: true });
       expect(createProvider).toHaveBeenCalled();
@@ -353,7 +359,7 @@ describe('EmailProviderConfigService', () => {
   describe('testConfig', () => {
     it('returns success when provider sends', async () => {
       const ds = createMockDataSource();
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       const result = await service.testConfig(
         { provider: 'resend', apiKey: 're_testkey12345678' },
         'test@test.com',
@@ -363,7 +369,7 @@ describe('EmailProviderConfigService', () => {
 
     it('returns error on invalid config', async () => {
       const ds = createMockDataSource();
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       const result = await service.testConfig(
         { provider: 'resend', apiKey: 'bad' },
         'test@test.com',
@@ -377,7 +383,7 @@ describe('EmailProviderConfigService', () => {
         send: jest.fn().mockResolvedValue(false),
       });
       const ds = createMockDataSource();
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       const result = await service.testConfig(
         { provider: 'resend', apiKey: 're_testkey12345678' },
         'test@test.com',
@@ -390,7 +396,7 @@ describe('EmailProviderConfigService', () => {
         send: jest.fn().mockRejectedValue(new Error('Network error')),
       });
       const ds = createMockDataSource();
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       const result = await service.testConfig(
         { provider: 'resend', apiKey: 're_testkey12345678' },
         'test@test.com',
@@ -403,7 +409,7 @@ describe('EmailProviderConfigService', () => {
       const mockSend = jest.fn().mockResolvedValue(true);
       (createProvider as jest.Mock).mockReturnValue({ send: mockSend });
       const ds = createMockDataSource();
-      const service = new EmailProviderConfigService(ds);
+      const service = new EmailProviderConfigService(ds, mockConfigService);
       await service.testConfig(
         { provider: 'mailgun', apiKey: 'key-1234567890abc', domain: 'mg.example.com' },
         'test@test.com',
