@@ -13,7 +13,6 @@ export function registerCommand(api: any, config: ManifestConfig, logger: Plugin
     try {
       const check = await verifyConnection(config);
       const lines = [
-        `Mode: ${config.mode}`,
         `Dev mode: ${config.devMode ? 'yes' : 'no'}`,
         `Endpoint reachable: ${check.endpointReachable ? 'yes' : 'no'}`,
         `Auth valid: ${check.authValid ? 'yes' : 'no'}`,

@@ -39,11 +39,14 @@ export class LocalBootstrapService implements OnModuleInit {
     await this.ensureTenantAndAgent();
     await this.fixupRoutingAgentIds();
     await this.recalculateTiersIfNeeded();
-    await seedAgentMessages(this.messageRepo, LOCAL_USER_ID, this.logger, {
-      tenantId: LOCAL_TENANT_ID,
-      agentId: LOCAL_AGENT_ID,
-      agentName: LOCAL_AGENT_NAME,
-    });
+    // Only seed demo messages for local dev (not embedded plugin installs)
+    if (!process.env['MANIFEST_EMBEDDED']) {
+      await seedAgentMessages(this.messageRepo, LOCAL_USER_ID, this.logger, {
+        tenantId: LOCAL_TENANT_ID,
+        agentId: LOCAL_AGENT_ID,
+        agentName: LOCAL_AGENT_NAME,
+      });
+    }
     this.logger.log('Local mode bootstrap complete');
 
     // Discover models for all active providers in the background

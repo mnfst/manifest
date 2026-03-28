@@ -314,6 +314,34 @@ describe('LocalBootstrapService', () => {
     });
   });
 
+  describe('seed messages', () => {
+    const originalEmbedded = process.env['MANIFEST_EMBEDDED'];
+
+    afterEach(() => {
+      if (originalEmbedded !== undefined) {
+        process.env['MANIFEST_EMBEDDED'] = originalEmbedded;
+      } else {
+        delete process.env['MANIFEST_EMBEDDED'];
+      }
+    });
+
+    it('seeds messages when MANIFEST_EMBEDDED is not set', async () => {
+      delete process.env['MANIFEST_EMBEDDED'];
+      await service.onModuleInit();
+
+      // seedAgentMessages calls messageRepo.count then insert
+      expect(mockMessageRepo.insert).toHaveBeenCalled();
+    });
+
+    it('skips seed messages when MANIFEST_EMBEDDED is set', async () => {
+      process.env['MANIFEST_EMBEDDED'] = '1';
+      await service.onModuleInit();
+
+      // seedAgentMessages should not be called, so no insert on messageRepo
+      expect(mockMessageRepo.insert).not.toHaveBeenCalled();
+    });
+  });
+
   describe('background model discovery', () => {
     it('calls discoverAllForAgent in background after bootstrap', async () => {
       await service.onModuleInit();

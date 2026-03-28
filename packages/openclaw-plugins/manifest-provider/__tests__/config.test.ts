@@ -1,4 +1,4 @@
-import { parseConfig, parseConfigWithDeprecation, validateConfig } from "../src/config";
+import { parseConfig, validateConfig } from "../src/config";
 import { API_KEY_PREFIX, DEFAULTS, ENV } from "../src/constants";
 
 describe("API_KEY_PREFIX constant", () => {
@@ -58,62 +58,44 @@ describe("parseConfig", () => {
     expect(result.endpoint).toBe(DEFAULTS.ENDPOINT);
   });
 
-  it("defaults mode to cloud", () => {
-    const result = parseConfig({ apiKey: "mnfst_abc" });
-    expect(result.mode).toBe("cloud");
-  });
-
-  it("parses explicit mode: cloud", () => {
-    const result = parseConfig({ mode: "cloud", apiKey: "mnfst_abc" });
-    expect(result.mode).toBe("cloud");
-  });
-
-  it("parses explicit mode: local", () => {
-    const result = parseConfig({ mode: "local" });
-    expect(result.mode).toBe("local");
-  });
-
-  it("maps mode: dev to mode: cloud with devMode: true", () => {
+  it("enables devMode for legacy mode: dev", () => {
     const result = parseConfig({ mode: "dev", endpoint: "http://localhost:38238/otlp" });
-    expect(result.mode).toBe("cloud");
     expect(result.devMode).toBe(true);
   });
 
-  it("preserves mode: dev backward compat through nested config wrapper", () => {
+  it("preserves legacy mode: dev through nested config wrapper", () => {
     const result = parseConfig({
       enabled: true,
       config: { mode: "dev", endpoint: "http://localhost:38238/otlp" },
     });
-    expect(result.mode).toBe("cloud");
     expect(result.devMode).toBe(true);
   });
 
-  it("falls back to cloud for unknown mode string", () => {
+  it("ignores unknown mode values", () => {
     const result = parseConfig({ mode: "hybrid" });
-    expect(result.mode).toBe("cloud");
+    expect(result.devMode).toBe(false);
   });
 
-  it("falls back to cloud when mode is a non-string value", () => {
+  it("ignores non-string mode values", () => {
     const result = parseConfig({ mode: 42 });
-    expect(result.mode).toBe("cloud");
+    expect(result.devMode).toBe(false);
   });
 
-  it("defaults to cloud with zero config (empty object)", () => {
+  it("ignores legacy mode: local silently", () => {
+    const result = parseConfig({ mode: "local" });
+    expect(result.devMode).toBe(false);
+  });
+
+  it("works with empty object", () => {
     const result = parseConfig({});
-    expect(result.mode).toBe("cloud");
+    expect(result.devMode).toBe(false);
+    expect(result.endpoint).toBe(DEFAULTS.ENDPOINT);
   });
 
-  it("defaults to cloud with null input", () => {
+  it("works with null input", () => {
     const result = parseConfig(null);
-    expect(result.mode).toBe("cloud");
-  });
-
-  it("preserves mode: cloud through nested config wrapper", () => {
-    const result = parseConfig({
-      enabled: true,
-      config: { mode: "cloud", apiKey: "mnfst_abc" },
-    });
-    expect(result.mode).toBe("cloud");
+    expect(result.devMode).toBe(false);
+    expect(result.endpoint).toBe(DEFAULTS.ENDPOINT);
   });
 
   it("defaults port and host", () => {
@@ -260,43 +242,8 @@ describe("parseConfig — devMode", () => {
   });
 });
 
-describe("parseConfigWithDeprecation", () => {
-  it("sets _deprecatedDevMode when mode is dev", () => {
-    const { _deprecatedDevMode } = parseConfigWithDeprecation({
-      mode: "dev",
-      endpoint: "http://localhost:38238/otlp",
-    });
-    expect(_deprecatedDevMode).toBe(true);
-  });
-
-  it("does not set _deprecatedDevMode for cloud mode", () => {
-    const { _deprecatedDevMode } = parseConfigWithDeprecation({
-      mode: "cloud",
-      apiKey: "mnfst_abc",
-    });
-    expect(_deprecatedDevMode).toBe(false);
-  });
-
-  it("does not set _deprecatedDevMode for local mode", () => {
-    const { _deprecatedDevMode } = parseConfigWithDeprecation({
-      mode: "local",
-    });
-    expect(_deprecatedDevMode).toBe(false);
-  });
-
-  it("does not set _deprecatedDevMode when using devMode: true directly", () => {
-    const { _deprecatedDevMode } = parseConfigWithDeprecation({
-      mode: "cloud",
-      devMode: true,
-      endpoint: "http://localhost:38238/otlp",
-    });
-    expect(_deprecatedDevMode).toBe(false);
-  });
-});
-
 describe("validateConfig", () => {
   const validConfig = {
-    mode: "cloud" as const,
     devMode: false,
     apiKey: "mnfst_abc",
     endpoint: "https://app.manifest.build/otlp",
@@ -306,11 +253,6 @@ describe("validateConfig", () => {
 
   it("accepts valid config", () => {
     expect(validateConfig(validConfig)).toBeNull();
-  });
-
-  it("skips validation in local mode (no apiKey required)", () => {
-    const config = { ...validConfig, mode: "local" as const, apiKey: "" };
-    expect(validateConfig(config)).toBeNull();
   });
 
   it("accepts devMode with valid http endpoint (no apiKey required)", () => {
@@ -345,6 +287,17 @@ describe("validateConfig", () => {
     expect(err).toContain("http://localhost:<PORT>");
   });
 
+  it("uses correct plugin name in devMode endpoint error", () => {
+    const config = {
+      ...validConfig,
+      devMode: true,
+      apiKey: "",
+      endpoint: "not-a-url",
+    };
+    const err = validateConfig(config)!;
+    expect(err).toContain("manifest-provider.config.endpoint");
+  });
+
   it("rejects missing apiKey with actionable fix command", () => {
     const config = { ...validConfig, apiKey: "" };
     const err = validateConfig(config)!;
@@ -353,11 +306,23 @@ describe("validateConfig", () => {
     expect(err).toContain("MANIFEST_API_KEY");
   });
 
+  it("uses correct plugin name in missing apiKey error", () => {
+    const config = { ...validConfig, apiKey: "" };
+    const err = validateConfig(config)!;
+    expect(err).toContain("manifest-provider.config.apiKey");
+  });
+
   it("rejects invalid apiKey prefix with actionable fix command", () => {
     const config = { ...validConfig, apiKey: "wrong_prefix" };
     const err = validateConfig(config)!;
     expect(err).toContain("mnfst_");
     expect(err).toContain("openclaw config set");
+  });
+
+  it("uses correct plugin name in invalid apiKey error", () => {
+    const config = { ...validConfig, apiKey: "wrong_prefix" };
+    const err = validateConfig(config)!;
+    expect(err).toContain("manifest-provider.config.apiKey");
   });
 
   it("rejects keys with old osk_ prefix", () => {
@@ -372,6 +337,12 @@ describe("validateConfig", () => {
     const err = validateConfig(config)!;
     expect(err).toContain("Invalid endpoint URL");
     expect(err).toContain("openclaw config set");
+  });
+
+  it("uses correct plugin name in invalid endpoint error", () => {
+    const config = { ...validConfig, endpoint: "not-a-url" };
+    const err = validateConfig(config)!;
+    expect(err).toContain("manifest-provider.config.endpoint");
   });
 
   it("accepts http endpoint", () => {

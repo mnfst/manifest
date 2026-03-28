@@ -6,6 +6,9 @@ jest.mock("fs", () => ({
   mkdirSync: jest.fn(),
   readdirSync: jest.fn(),
   renameSync: jest.fn(),
+  openSync: jest.fn(),
+  closeSync: jest.fn(),
+  unlinkSync: jest.fn(),
 }));
 
 jest.mock("os", () => ({
@@ -27,7 +30,7 @@ jest.mock("../src/server", () => ({
   version: "1.0.0",
 }));
 
-import { existsSync, writeFileSync, mkdirSync, readdirSync, renameSync } from "fs";
+import { existsSync, writeFileSync, mkdirSync, readdirSync, renameSync, openSync, closeSync, unlinkSync } from "fs";
 import { loadJsonFile } from "../src/json-file";
 import {
   loadOrGenerateApiKey,
@@ -42,6 +45,9 @@ const mockWriteFileSync = writeFileSync as jest.MockedFunction<typeof writeFileS
 const mockMkdirSync = mkdirSync as jest.MockedFunction<typeof mkdirSync>;
 const mockReaddirSync = readdirSync as jest.MockedFunction<typeof readdirSync>;
 const mockRenameSync = renameSync as jest.MockedFunction<typeof renameSync>;
+const mockOpenSync = openSync as jest.MockedFunction<typeof openSync>;
+const mockCloseSync = closeSync as jest.MockedFunction<typeof closeSync>;
+const mockUnlinkSync = unlinkSync as jest.MockedFunction<typeof unlinkSync>;
 const mockLoadJsonFile = loadJsonFile as jest.MockedFunction<typeof loadJsonFile>;
 
 function makeLogger() {
@@ -62,6 +68,11 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockExistsSync.mockReturnValue(false);
   mockLoadJsonFile.mockReturnValue({});
+  // By default, openSync throws (lock can't be acquired) so existing tests
+  // exercise the fallback path. Tests for the lock-acquired path override this.
+  mockOpenSync.mockImplementation(() => {
+    throw new Error("EEXIST");
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -132,6 +143,32 @@ describe("loadOrGenerateApiKey", () => {
     const key = loadOrGenerateApiKey();
 
     expect(key).toMatch(/^mnfst_local_/);
+  });
+
+  it("acquires file lock and cleans up on success", () => {
+    mockOpenSync.mockReturnValue(42);
+    mockExistsSync.mockReturnValue(true);
+    mockLoadJsonFile.mockReturnValue({ apiKey: "mnfst_existing_key_123" });
+
+    const key = loadOrGenerateApiKey();
+
+    expect(key).toBe("mnfst_existing_key_123");
+    expect(mockCloseSync).toHaveBeenCalledWith(42);
+    expect(mockUnlinkSync).toHaveBeenCalled();
+  });
+
+  it("cleans up lock even when unlinkSync throws", () => {
+    mockOpenSync.mockReturnValue(42);
+    mockUnlinkSync.mockImplementation(() => {
+      throw new Error("ENOENT");
+    });
+    mockExistsSync.mockReturnValue(true);
+    mockLoadJsonFile.mockReturnValue({ apiKey: "mnfst_existing_key_123" });
+
+    const key = loadOrGenerateApiKey();
+
+    expect(key).toBe("mnfst_existing_key_123");
+    expect(mockCloseSync).toHaveBeenCalledWith(42);
   });
 
   it("merges new key with existing config data", () => {
@@ -671,8 +708,11 @@ describe("checkExistingServer", () => {
     global.fetch = originalFetch;
   });
 
-  it("returns true when server responds with ok status", async () => {
-    global.fetch = jest.fn().mockResolvedValue({ ok: true });
+  it("returns true when server responds with healthy status", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ status: "healthy" }),
+    });
 
     const result = await checkExistingServer("127.0.0.1", 2099);
 
@@ -681,6 +721,17 @@ describe("checkExistingServer", () => {
       "http://127.0.0.1:2099/api/v1/health",
       { signal: expect.any(AbortSignal) },
     );
+  });
+
+  it("returns false when response is ok but not a Manifest server", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ message: "some other service" }),
+    });
+
+    const result = await checkExistingServer("127.0.0.1", 2099);
+
+    expect(result).toBe(false);
   });
 
   it("returns false when server responds with non-ok status", async () => {
@@ -747,9 +798,7 @@ describe("registerLocalMode", () => {
     expect(logger.debug).toHaveBeenCalledWith(
       "[manifest] Starting embedded server...",
     );
-    expect(logger.info).toHaveBeenCalledWith(
-      `[manifest] Dashboard -> http://${host}:${port}`,
-    );
+    // Dashboard log now appears in start() callback, not synchronously
     expect(api.registerService).toHaveBeenCalledWith({
       id: "manifest",
       start: expect.any(Function),
@@ -770,7 +819,10 @@ describe("registerLocalMode", () => {
     });
 
     it("reuses existing server when health check passes", async () => {
-      global.fetch = jest.fn().mockResolvedValue({ ok: true });
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ status: "healthy" }),
+      });
 
       await startCallback();
 
@@ -781,7 +833,13 @@ describe("registerLocalMode", () => {
     });
 
     it("starts server when no existing server is running", async () => {
-      global.fetch = jest.fn().mockRejectedValue(new Error("ECONNREFUSED"));
+      global.fetch = jest
+        .fn()
+        .mockRejectedValueOnce(new Error("ECONNREFUSED")) // checkExistingServer (pre)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve({ status: "healthy" }),
+        }); // checkExistingServer (post-start verification)
 
       await startCallback();
 
@@ -792,18 +850,52 @@ describe("registerLocalMode", () => {
         quiet: true,
       });
       expect(logger.info).toHaveBeenCalledWith(
-        `[manifest] Server running on http://${host}:${port}`,
+        `[manifest] Dashboard -> http://${host}:${port}`,
       );
       expect(logger.info).toHaveBeenCalledWith(
         `[manifest]   DB: ${CONFIG_DIR}/manifest.db`,
       );
     });
 
+    it("warns when server starts but verification fails", async () => {
+      global.fetch = jest.fn().mockRejectedValue(new Error("ECONNREFUSED"));
+
+      await startCallback();
+
+      expect(mockServerStart).toHaveBeenCalled();
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining("Server started but health check failed"),
+      );
+    });
+
+    it("falls back to logger.info when warn is undefined on verification failure", async () => {
+      global.fetch = jest.fn().mockRejectedValue(new Error("ECONNREFUSED"));
+
+      // Create a logger without warn
+      const noWarnLogger = {
+        info: jest.fn(),
+        debug: jest.fn(),
+        error: jest.fn(),
+      };
+      const api = { config: {}, registerService: jest.fn() };
+      registerLocalMode(api, port, host, noWarnLogger);
+      const cb = api.registerService.mock.calls[0][0].start;
+
+      await cb();
+
+      expect(noWarnLogger.info).toHaveBeenCalledWith(
+        expect.stringContaining("Server started but health check failed"),
+      );
+    });
+
     it("reuses server on EADDRINUSE when health check passes", async () => {
       global.fetch = jest
         .fn()
-        .mockRejectedValueOnce(new Error("ECONNREFUSED"))
-        .mockResolvedValueOnce({ ok: true });
+        .mockRejectedValueOnce(new Error("ECONNREFUSED")) // pre-start check
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve({ status: "healthy" }),
+        }); // EADDRINUSE recovery check
 
       mockServerStart.mockRejectedValue(
         new Error("listen EADDRINUSE: address already in use :::2099"),
@@ -892,6 +984,9 @@ describe("registerLocalMode server module load failures", () => {
       mkdirSync: mockMkdirSync,
       readdirSync: mockReaddirSync,
       renameSync: mockRenameSync,
+      openSync: mockOpenSync,
+      closeSync: mockCloseSync,
+      unlinkSync: mockUnlinkSync,
     }));
     jest.doMock("os", () => ({ homedir: () => "/mock-home" }));
     jest.doMock("crypto", () => ({

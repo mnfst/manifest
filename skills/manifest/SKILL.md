@@ -1,7 +1,7 @@
 ---
 name: manifest
 description: Model Router for OpenClaw. Save up to 70% by routing requests to the right model. Choose LLM fallback to avoid API rate limits, set thresholds and reduce token consumption.
-metadata: {"openclaw":{"requires":{"bins":["openclaw"]},"homepage":"https://github.com/mnfst/manifest"}}
+metadata: {"openclaw":{"requires":{"bins":["openclaw"],"env":["MANIFEST_API_KEY"]},"primaryEnv":"MANIFEST_API_KEY","homepage":"https://github.com/mnfst/manifest"}}
 ---
 
 # Manifest — LLM Router & Observability for OpenClaw
@@ -16,7 +16,7 @@ Source: [github.com/mnfst/manifest](https://github.com/mnfst/manifest) — MIT l
 
 ## Security & Privacy
 
-> **TL;DR** — OTLP telemetry collects only metadata (model, tokens, latency, tool names) — never prompt or response text. When `manifest/auto` routing is active, the last 10 non-system messages are sent to the routing endpoint for tier scoring; set a fixed model to avoid this. The API key (`mnfst_*`) authenticates your telemetry — it is not exfiltration. In local mode, all data stays on your machine.
+> **TL;DR** — OTLP telemetry collects only metadata (model, tokens, latency, tool names) and never prompt or response text. Routing is **opt-in**: the plugin adds `manifest/auto` to the model allowlist but does not change your default model. Only if you manually select `manifest/auto` as your active model will the last 10 non-system messages be sent to the routing endpoint for tier scoring. To avoid this, use any fixed model. The API key (`mnfst_*`) authenticates your telemetry. In local mode, all data stays on your machine.
 
 ### External Endpoints
 
@@ -24,7 +24,7 @@ Source: [github.com/mnfst/manifest](https://github.com/mnfst/manifest) — MIT l
 | ----------------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | `{endpoint}/v1/traces`              | Every LLM call (batched 10-30s)    | OTLP spans (see fields below)                                                                             |
 | `{endpoint}/v1/metrics`             | Every 10-30s                       | Counters: request count, token totals, tool call counts — grouped by model/provider                       |
-| `{endpoint}/api/v1/routing/resolve` | Only when model is `manifest/auto` | Last 10 non-system/non-developer messages (`{role, content}` only)                                        |
+| `{endpoint}/api/v1/routing/resolve` | Only when user selects `manifest/auto` as active model (opt-in) | Last 10 non-system/non-developer messages (`{role, content}` only)                                        |
 
 ### OTLP Span Fields
 
@@ -45,15 +45,17 @@ Exhaustive list of attributes sent per span:
 - `manifest.routing.reason` — routing reason (if routed)
 - Error status: agent errors truncated to 500 chars; tool errors include `event.error.message` untruncated
 
-**Not collected by OTLP telemetry**: user prompts, assistant responses, tool input/output arguments, file contents, or any message body. Note: when `manifest/auto` routing is active, the last 10 non-system messages (`{role, content}` only) are sent to the routing endpoint for tier scoring — see Routing Data below. To avoid this, set a fixed model instead of `manifest/auto`.
+**Not collected by OTLP telemetry**: user prompts, assistant responses, tool input/output arguments, file contents, or any message body. OTLP telemetry never sends message content regardless of model selection. Routing (see below) is a separate, opt-in data flow that only activates when the user manually selects `manifest/auto` as their active model.
 
-### Routing Data
+### Routing Data (opt-in only)
 
-- Only active when model is `manifest/auto`
+Routing is **not active by default.** The plugin adds `manifest/auto` to the model allowlist but does not change your default model. Message content is only sent to the routing endpoint if you manually select `manifest/auto` as your active model.
+
+When active:
 - Excludes messages with `role: "system"` or `role: "developer"`
 - Sends only `{role, content}` — all other message properties are stripped (`routing.ts:77`)
 - 3-second timeout, non-blocking
-- To avoid sending content: disable routing in the dashboard or set a fixed model
+- To stop: switch to any fixed model or disable routing in the dashboard
 
 ### Credential Storage
 
@@ -109,12 +111,12 @@ openclaw gateway restart
 
 The setup wizard prompts for your API key from [app.manifest.build](https://app.manifest.build) → create an account → create an agent → copy the `mnfst_*` key. You can also set `MANIFEST_API_KEY` env var for CI/CD.
 
-After restart, the plugin auto-configures:
+After restart, the plugin registers itself via standard OpenClaw plugin APIs:
 
-- Adds `manifest/auto` to the model allowlist (does not change your current default)
-- Injects the `manifest` provider into `~/.openclaw/openclaw.json`
-- Starts exporting OTLP telemetry to `app.manifest.build`
-- Exposes three agent tools: `manifest_usage`, `manifest_costs`, `manifest_health`
+- Adds `manifest/auto` to the model allowlist — **your current default model is not changed**; you must manually select `manifest/auto` to enable routing
+- Registers the `manifest` provider in `~/.openclaw/openclaw.json` (standard plugin registration, reversed on uninstall)
+- Starts exporting OTLP telemetry (metadata only — no message content) to `app.manifest.build`
+- Exposes three read-only agent tools: `manifest_usage`, `manifest_costs`, `manifest_health`
 
 Dashboard at [app.manifest.build](https://app.manifest.build). Telemetry arrives within 10-30 seconds (batched OTLP export).
 
@@ -128,7 +130,7 @@ Shows: mode, endpoint reachability, auth validity, agent name.
 
 ## Configuration Changes
 
-On plugin registration, Manifest writes to these files:
+On plugin registration, Manifest writes to these files using standard OpenClaw plugin APIs. All changes are reversed by `openclaw plugins uninstall manifest`:
 
 | File                                            | Change                                                                                                      | Reversible                                  |
 | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
@@ -190,7 +192,7 @@ All three tools are read-only — they query the agent's own usage data and neve
 
 ## LLM Routing
 
-When the model is set to `manifest/auto`, the router scores each conversation across 23 dimensions and assigns one of 4 tiers:
+Routing only activates when you manually set your model to `manifest/auto`. When active, the router scores each conversation across 23 dimensions and assigns one of 4 tiers:
 
 | Tier          | Use case                                | Examples                                                |
 | ------------- | --------------------------------------- | ------------------------------------------------------- |

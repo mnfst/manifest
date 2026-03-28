@@ -22,7 +22,6 @@ You can also set the key via environment variable for CI/CD: `export MANIFEST_AP
 - Interactive auth onboarding via `openclaw providers setup manifest-provider`
 - Agent tools: `manifest_usage`, `manifest_costs`, `manifest_health`
 - `/manifest` status command
-- Subscription provider discovery (detects existing OAuth providers)
 
 ## Self-hosted / Local mode
 

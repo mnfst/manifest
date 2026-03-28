@@ -1,5 +1,23 @@
 # manifest
 
+## 5.33.11
+
+### Patch Changes
+
+- a40111d: Set embedded server to production mode, skip seed data for plugin installs, and show dashboard URL on registration
+
+## 5.33.10
+
+### Patch Changes
+
+- 8458afa: Fix local plugin startup diagnostics: validate health response is from Manifest before reusing server, move dashboard URL log to after actual startup, add post-start self-verification
+
+## 5.33.9
+
+### Patch Changes
+
+- 4a3dd09: fix: guard against negative costs, return 410 for removed OTLP endpoints, skip zero-token fallback records, sanitize null content in proxy
+
 ## 5.33.8
 
 ### Patch Changes
