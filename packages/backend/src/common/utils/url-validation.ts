@@ -83,10 +83,23 @@ export async function validatePublicUrl(url: string): Promise<void> {
 
   const hostname = parsed.hostname.replace(/^\[|\]$/g, '');
 
-  // In local mode, still block cloud metadata endpoints but allow private/loopback
+  // In local mode, block cloud metadata endpoints but allow private/loopback
   if (process.env['MANIFEST_MODE'] === 'local') {
     if (isCloudMetadataIp(hostname)) {
       throw new Error('URLs pointing to cloud metadata endpoints are not allowed');
+    }
+    // Also resolve DNS to catch hostnames that point to metadata IPs
+    try {
+      const result = await lookup(hostname, { all: true });
+      const addresses = Array.isArray(result) ? result : [result];
+      for (const entry of addresses) {
+        if (isCloudMetadataIp(entry.address)) {
+          throw new Error('URLs pointing to cloud metadata endpoints are not allowed');
+        }
+      }
+    } catch (err) {
+      if (err instanceof Error && err.message.includes('cloud metadata')) throw err;
+      // DNS failure in local mode is non-fatal (could be a local IP)
     }
     return;
   }

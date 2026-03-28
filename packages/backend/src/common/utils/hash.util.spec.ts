@@ -33,6 +33,10 @@ describe('verifyKey', () => {
     expect(verifyKey('wrong-key', hash)).toBe(false);
   });
 
+  it('returns false for malformed salt:hash (wrong length)', () => {
+    expect(verifyKey('test', 'abcd:0011')).toBe(false);
+  });
+
   it('verifies legacy format (64-char hex without colon)', () => {
     // Legacy format: scrypt with static salt 'manifest-api-key-salt'
     // eslint-disable-next-line @typescript-eslint/no-require-imports

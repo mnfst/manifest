@@ -25,7 +25,7 @@ export function verifyKey(input: string, storedHash: string): boolean {
     const salt = Buffer.from(saltHex, 'hex');
     const expected = Buffer.from(hashHex, 'hex');
     const actual = scryptSync(input, salt, KEY_LENGTH);
-    return timingSafeEqual(actual, expected);
+    return expected.length === KEY_LENGTH && timingSafeEqual(actual, expected);
   }
   // Legacy: static salt, 64-char hex hash
   const legacyHash = scryptSync(input, LEGACY_SALT, KEY_LENGTH).toString('hex');
