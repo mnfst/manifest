@@ -1,5 +1,11 @@
 # manifest
 
+## 5.33.17
+
+### Patch Changes
+
+- 9ff0d35: fix: widen key_hash column to accommodate salted hash format
+
 ## 5.33.16
 
 ### Patch Changes
