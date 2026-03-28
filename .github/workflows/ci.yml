@@ -142,7 +142,7 @@ jobs:
           fail_ci_if_error: false
 
   provider-plugin:
-    name: Plugin (manifest-provider)
+    name: Plugin (manifest-model-router)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
