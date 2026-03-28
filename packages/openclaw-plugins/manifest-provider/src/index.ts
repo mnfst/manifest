@@ -1,4 +1,4 @@
-import { parseConfigWithDeprecation, validateConfig } from './config';
+import { parseConfig, validateConfig } from './config';
 import { PluginLogger } from './types';
 import { registerTools } from './tools';
 import { registerCommand } from './command';
@@ -21,37 +21,20 @@ module.exports = {
       warn: (...args: unknown[]) => console.warn(...args),
     };
 
-    const { config, _deprecatedDevMode } = parseConfigWithDeprecation(api.pluginConfig);
-
-    if (_deprecatedDevMode) {
-      logger.warn?.(
-        '[manifest] mode: "dev" is deprecated. Use mode: "cloud" with devMode: true instead.\n' +
-          '  openclaw config set plugins.entries.manifest.config.mode cloud\n' +
-          '  openclaw config set plugins.entries.manifest.config.devMode true',
-      );
-    }
+    const config = parseConfig(api.pluginConfig);
 
     // Register as a provider plugin with auth onboarding
     registerProvider(api, config.endpoint, logger);
 
-    if (config.mode === 'local') {
-      logger.info(
-        '[manifest-provider] Local mode requires the manifest plugin.\n' +
-          '  Install it with: openclaw plugins install manifest\n' +
-          '  Then restart: openclaw gateway restart',
-      );
-      return;
-    }
-
     const error = validateConfig(config);
     if (error) {
-      if (!config.devMode && config.mode === 'cloud' && !config.apiKey) {
+      if (!config.devMode && !config.apiKey) {
         logger.info(
-          '[manifest] Cloud mode requires an API key.\n\n' +
+          '[manifest] Manifest requires an API key to route requests.\n\n' +
             'Run the setup wizard:\n' +
             '  openclaw providers setup manifest\n\n' +
             'Or set your key manually:\n' +
-            '  openclaw config set plugins.entries.manifest.config.apiKey mnfst_YOUR_KEY\n' +
+            '  openclaw config set plugins.entries.manifest-provider.config.apiKey mnfst_YOUR_KEY\n' +
             '  openclaw gateway restart',
         );
       } else {

@@ -2,7 +2,6 @@ import { verifyConnection, VerifyResult } from "../src/verify";
 import { ManifestConfig } from "../src/config";
 
 const baseConfig: ManifestConfig = {
-  mode: "cloud",
   devMode: false,
   apiKey: "mnfst_test123",
   endpoint: "http://localhost:3001/otlp",
