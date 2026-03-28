@@ -1,5 +1,11 @@
 # manifest
 
+## 5.33.4
+
+### Patch Changes
+
+- cb3b391: Remove stale subscription discovery claim from README and declare MANIFEST_API_KEY in SKILL.md frontmatter to resolve ClawHub security scan metadata mismatch.
+
 ## 5.33.3
 
 ### Patch Changes
