@@ -167,7 +167,14 @@ export async function checkExistingServer(host: string, port: number): Promise<b
     const res = await fetch(`http://${host}:${port}/api/v1/health`, {
       signal: AbortSignal.timeout(HEALTH_TIMEOUT_MS),
     });
-    return res.ok;
+    if (!res.ok) return false;
+    const body: unknown = await res.json();
+    return (
+      body !== null &&
+      typeof body === 'object' &&
+      'status' in body &&
+      (body as Record<string, unknown>).status === 'healthy'
+    );
   } catch {
     return false;
   }
@@ -198,11 +205,10 @@ export function registerLocalMode(api: any, port: number, host: string, logger: 
     return;
   }
 
-  logger.info(`[manifest] Dashboard -> http://${host}:${port}`);
-
   api.registerService({
     id: 'manifest',
     start: async () => {
+      logger.debug('[manifest] Service start callback invoked');
       const alreadyRunning = await checkExistingServer(host, port);
       if (alreadyRunning) {
         logger.info(`[manifest] Reusing existing server at http://${host}:${port}`);
@@ -211,8 +217,18 @@ export function registerLocalMode(api: any, port: number, host: string, logger: 
 
       try {
         await serverModule.start({ port, host, dbPath, quiet: true });
-        logger.info(`[manifest] Server running on http://${host}:${port}`);
-        logger.info(`[manifest]   DB: ${dbPath}`);
+
+        const verified = await checkExistingServer(host, port);
+        if (verified) {
+          logger.info(`[manifest] Dashboard -> http://${host}:${port}`);
+          logger.info(`[manifest]   DB: ${dbPath}`);
+        } else {
+          const warnFn = logger.warn ?? logger.info;
+          warnFn(
+            `[manifest] Server started but health check failed.\n` +
+              `  The dashboard may not be accessible at http://${host}:${port}`,
+          );
+        }
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
         if (msg.includes('EADDRINUSE') || msg.includes('address already in use')) {
