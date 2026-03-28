@@ -1,5 +1,11 @@
 # manifest
 
+## 5.33.3
+
+### Patch Changes
+
+- 6ab224a: Fix wrong plugin name in config instructions and remove legacy mode concept
+
 ## 5.33.2
 
 ### Patch Changes
