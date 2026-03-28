@@ -326,6 +326,89 @@ describe('AgentKeyAuthGuard', () => {
       const { ctx } = makeContext({ authorization: 'Bearer dev-no-auth' }, '8.8.8.8');
       await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
     });
+
+    it('uses prefix-matched agent when mnfst_ key hash fails in local mode', async () => {
+      // Prefix matches a candidate but hash doesn't verify (rotated key)
+      mockGetMany.mockResolvedValue([
+        {
+          id: 'key-stale',
+          tenant_id: 'my-tenant',
+          agent_id: 'my-agent-id',
+          key_hash: 'wrong-hash',
+          agent: { name: 'my-agent' },
+          tenant: { name: 'local-user-001' },
+        },
+      ]);
+
+      const { ctx, req } = makeContext(
+        { authorization: 'Bearer mnfst_stale-or-unknown-key' },
+        '127.0.0.1',
+      );
+      const result = await guard.canActivate(ctx);
+
+      expect(result).toBe(true);
+      expect(req.ingestionContext).toEqual({
+        tenantId: 'my-tenant',
+        agentId: 'my-agent-id',
+        agentName: 'my-agent',
+        userId: 'local-user-001',
+      });
+      // Should NOT call resolveDevContext since prefix matched
+      expect(mockFindOne).not.toHaveBeenCalled();
+    });
+
+    it('falls back to first active agent when no prefix match in local mode', async () => {
+      mockGetMany.mockResolvedValue([]); // no prefix match at all
+      mockFindOne.mockResolvedValue({
+        tenant_id: 'fb-tenant',
+        agent_id: 'fb-agent',
+        agent: { name: 'fallback-agent' },
+        tenant: { name: 'local-user-001' },
+      });
+
+      const { ctx, req } = makeContext(
+        { authorization: 'Bearer mnfst_totally-unknown-key' },
+        '127.0.0.1',
+      );
+      const result = await guard.canActivate(ctx);
+
+      expect(result).toBe(true);
+      expect(req.ingestionContext).toEqual({
+        tenantId: 'fb-tenant',
+        agentId: 'fb-agent',
+        agentName: 'fallback-agent',
+        userId: 'local-user-001',
+      });
+    });
+
+    it('falls back to LOCAL constants when no prefix match and no active agents in local mode', async () => {
+      mockGetMany.mockResolvedValue([]);
+      mockFindOne.mockResolvedValue(null);
+
+      const { ctx, req } = makeContext(
+        { authorization: 'Bearer mnfst_stale-or-unknown-key' },
+        '127.0.0.1',
+      );
+      const result = await guard.canActivate(ctx);
+
+      expect(result).toBe(true);
+      expect(req.ingestionContext).toEqual({
+        tenantId: 'local-tenant-001',
+        agentId: 'local-agent-001',
+        agentName: 'local-agent',
+        userId: 'local-user-001',
+      });
+    });
+
+    it('still rejects unknown mnfst_ key from public IP in local mode', async () => {
+      mockGetMany.mockResolvedValue([]);
+
+      const { ctx } = makeContext(
+        { authorization: 'Bearer mnfst_stale-or-unknown-key' },
+        '8.8.8.8',
+      );
+      await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key');
+    });
   });
 
   it('still requires auth for loopback IPs when not in local mode', async () => {

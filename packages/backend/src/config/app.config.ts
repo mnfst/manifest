@@ -1,9 +1,18 @@
 import { registerAs } from '@nestjs/config';
-import { resolve } from 'path';
+import { resolve, join } from 'path';
+import { homedir } from 'os';
 
 function sanitizeDbPath(raw: string): string {
   if (!raw) return '';
   return resolve(raw);
+}
+
+function resolveLocalDbPath(): string {
+  const explicit = process.env['MANIFEST_DB_PATH'];
+  if (explicit) return sanitizeDbPath(explicit);
+  if (process.env['MANIFEST_MODE'] !== 'local') return '';
+  // Default to persistent file so keys survive dev-server restarts
+  return join(homedir(), '.openclaw', 'manifest', 'manifest.db');
 }
 
 function resolveDatabaseUrl(): string {
@@ -20,7 +29,7 @@ export const appConfig = registerAs('app', () => ({
   nodeEnv: process.env['NODE_ENV'] ?? 'development',
   databaseUrl: resolveDatabaseUrl(),
   manifestMode: process.env['MANIFEST_MODE'] ?? 'cloud',
-  dbPath: sanitizeDbPath(process.env['MANIFEST_DB_PATH'] ?? ''),
+  dbPath: resolveLocalDbPath(),
 
   corsOrigin: process.env['CORS_ORIGIN'] ?? 'http://localhost:3000',
   betterAuthUrl: process.env['BETTER_AUTH_URL'] ?? '',

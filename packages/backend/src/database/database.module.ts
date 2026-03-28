@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
+import { mkdirSync } from 'fs';
+import { dirname } from 'path';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { LlmCall } from '../entities/llm-call.entity';
 import { ToolExecution } from '../entities/tool-execution.entity';
@@ -139,6 +141,9 @@ function buildModeServices() {
       useFactory: (config: ConfigService) => {
         if (isLocalMode) {
           const dbPath = config.get<string>('app.dbPath') || ':memory:';
+          if (dbPath !== ':memory:') {
+            mkdirSync(dirname(dbPath), { recursive: true, mode: 0o700 });
+          }
           return {
             type: 'sqljs' as const,
             location: dbPath === ':memory:' ? undefined : dbPath,

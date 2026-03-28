@@ -46,10 +46,26 @@ describe('appConfig', () => {
     expect(config.dbPath).toMatch(/db\.sqlite$/);
   });
 
-  it('returns empty string for empty MANIFEST_DB_PATH', async () => {
+  it('returns empty string for empty MANIFEST_DB_PATH in cloud mode', async () => {
     delete process.env['MANIFEST_DB_PATH'];
+    delete process.env['MANIFEST_MODE'];
     const config = await loadConfig();
     expect(config.dbPath).toBe('');
+  });
+
+  it('defaults dbPath to persistent file in local mode', async () => {
+    delete process.env['MANIFEST_DB_PATH'];
+    process.env['MANIFEST_MODE'] = 'local';
+    const config = await loadConfig();
+    expect(config.dbPath).toMatch(/manifest\.db$/);
+    expect(config.dbPath).toContain('.openclaw');
+  });
+
+  it('uses explicit MANIFEST_DB_PATH over default in local mode', async () => {
+    process.env['MANIFEST_DB_PATH'] = '/tmp/custom.db';
+    process.env['MANIFEST_MODE'] = 'local';
+    const config = await loadConfig();
+    expect(config.dbPath).toBe('/tmp/custom.db');
   });
 
   it('defaults bindAddress to 127.0.0.1', async () => {
