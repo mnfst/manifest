@@ -105,7 +105,7 @@ jobs:
           if [ "$HAS_MANIFEST" -gt 0 ] || [ "$HAS_PROVIDER" -gt 0 ]; then
             SKILL_VERSION="${MANIFEST_VERSION:-$PROVIDER_VERSION}"
             echo "Publishing manifest-build skill@${SKILL_VERSION} to ClawHub..."
-            npx clawhub@latest publish skills/manifest/SKILL.md \
+            npx clawhub@latest publish skills/manifest \
               --slug manifest-build \
               --version "$SKILL_VERSION" \
               --changelog "Release ${SKILL_VERSION}" || echo "ClawHub skill publish failed (non-fatal)"
