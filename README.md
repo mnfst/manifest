@@ -75,7 +75,7 @@ All routing data (tokens, costs, model, duration) is recorded automatically. You
 | Architecture | Local. Your requests, your providers         | Cloud proxy. All traffic goes through their servers |
 | Cost         | Free                                         | 5% fee on every API call                            |
 | Source code  | MIT, fully open                              | Proprietary                                         |
-| Data privacy | Fully local. Nothing leaves your machine     | Prompts and responses pass through a third party    |
+| Data privacy | Metadata only (cloud) or fully local         | Prompts and responses pass through a third party    |
 | Transparency | Open scoring. You see why a model was chosen | No visibility into routing decisions                |
 
 ## Supported providers
