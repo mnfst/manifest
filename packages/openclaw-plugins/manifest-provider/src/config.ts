@@ -23,16 +23,6 @@ function isValidUrl(endpoint: string): boolean {
   }
 }
 
-function isLoopback(endpoint: string): boolean {
-  try {
-    const url = new URL(endpoint);
-    const host = url.hostname;
-    return host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]';
-  } catch {
-    return false;
-  }
-}
-
 export function parseConfig(raw: unknown): ManifestConfig {
   return parseConfigWithDeprecation(raw).config;
 }

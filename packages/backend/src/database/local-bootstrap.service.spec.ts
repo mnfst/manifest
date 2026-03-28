@@ -181,8 +181,8 @@ describe('LocalBootstrapService', () => {
         JSON.stringify({ apiKey: 'mnfst_test_key_12345' }),
       );
       // Return a candidate whose hash verifies against the API key
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { hashKey } =
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         require('../common/utils/hash.util') as typeof import('../common/utils/hash.util');
       mockAgentKeyRepo.find.mockResolvedValue([
         { key_hash: hashKey('mnfst_test_key_12345'), key_prefix: 'mnfst_test_k' },
