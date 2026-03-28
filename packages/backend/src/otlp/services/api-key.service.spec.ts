@@ -6,7 +6,7 @@ import { Tenant } from '../../entities/tenant.entity';
 import { Agent } from '../../entities/agent.entity';
 import { AgentApiKey } from '../../entities/agent-api-key.entity';
 import { AgentKeyAuthGuard } from '../guards/agent-key-auth.guard';
-import { hashKey, keyPrefix } from '../../common/utils/hash.util';
+import { keyPrefix, verifyKey } from '../../common/utils/hash.util';
 import { API_KEY_PREFIX } from '../../common/constants/api-key.constants';
 
 jest.mock('uuid', () => ({ v4: jest.fn() }));
@@ -182,7 +182,7 @@ describe('ApiKeyGeneratorService', () => {
       const expectedRawKey = 'mnfst_' + Buffer.from('a'.repeat(32), 'utf8').toString('base64url');
 
       expect(insertCall.key).toBeNull();
-      expect(insertCall.key_hash).toBe(hashKey(expectedRawKey));
+      expect(verifyKey(expectedRawKey, insertCall.key_hash)).toBe(true);
       expect(insertCall.key_prefix).toBe(keyPrefix(expectedRawKey));
     });
 
@@ -421,7 +421,7 @@ describe('ApiKeyGeneratorService', () => {
       const expectedRawKey = 'mnfst_' + Buffer.from('a'.repeat(32), 'utf8').toString('base64url');
 
       expect(insertCall.key).toBeNull();
-      expect(insertCall.key_hash).toBe(hashKey(expectedRawKey));
+      expect(verifyKey(expectedRawKey, insertCall.key_hash)).toBe(true);
       expect(insertCall.key_prefix).toBe(keyPrefix(expectedRawKey));
       expect(insertCall.is_active).toBe(true);
       expect(insertCall.tenant_id).toBe('tenant-id-1');

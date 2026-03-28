@@ -150,7 +150,7 @@ function buildModeServices() {
           url: config.get<string>('app.databaseUrl'),
           entities,
           synchronize: false,
-          migrationsRun: config.get<string>('app.nodeEnv') !== 'production',
+          migrationsRun: ['development', 'test'].includes(config.get<string>('app.nodeEnv') ?? ''),
           migrationsTransactionMode: 'all' as const,
           migrations,
           logging: false,

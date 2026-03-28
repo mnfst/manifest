@@ -14,6 +14,15 @@ export interface ParseResult {
   _deprecatedDevMode: boolean;
 }
 
+function isValidUrl(endpoint: string): boolean {
+  try {
+    const url = new URL(endpoint);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 function isLoopback(endpoint: string): boolean {
   try {
     const url = new URL(endpoint);
@@ -68,15 +77,14 @@ export function parseConfigWithDeprecation(raw: unknown): ParseResult {
 
   const host = typeof obj.host === 'string' && obj.host.length > 0 ? obj.host : '127.0.0.1';
 
-  // Determine devMode: explicit > deprecated mode: "dev" > auto-detect
+  // Determine devMode: explicit config only (no auto-detection to avoid fail-open auth)
   let devMode: boolean;
   if (typeof obj.devMode === 'boolean') {
     devMode = obj.devMode;
   } else if (_deprecatedDevMode) {
     devMode = true;
   } else {
-    // Auto-detect: loopback endpoint + no mnfst_ API key
-    devMode = isLoopback(endpoint) && !apiKey.startsWith(API_KEY_PREFIX);
+    devMode = false;
   }
 
   return {
@@ -91,10 +99,10 @@ export function validateConfig(config: ManifestConfig): string | null {
 
   // devMode requires an endpoint but no API key
   if (config.devMode) {
-    if (!config.endpoint.startsWith('http')) {
+    if (!isValidUrl(config.endpoint)) {
       return (
         `Invalid endpoint URL '${config.endpoint}'. ` +
-        'Must start with http:// or https://. Fix it via:\n' +
+        'Must be a valid http:// or https:// URL. Fix it via:\n' +
         '  openclaw config set plugins.entries.manifest.config.endpoint http://localhost:<PORT>'
       );
     }
@@ -115,10 +123,10 @@ export function validateConfig(config: ManifestConfig): string | null {
       `  openclaw config set plugins.entries.manifest.config.apiKey ${API_KEY_PREFIX}YOUR_KEY`
     );
   }
-  if (!config.endpoint.startsWith('http')) {
+  if (!isValidUrl(config.endpoint)) {
     return (
       `Invalid endpoint URL '${config.endpoint}'. ` +
-      'Must start with http:// or https://. Fix it via:\n' +
+      'Must be a valid http:// or https:// URL. Fix it via:\n' +
       '  openclaw config set plugins.entries.manifest.config.endpoint https://app.manifest.build\n\n' +
       'Or run the setup wizard:\n' +
       '  openclaw providers setup manifest'

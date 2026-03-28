@@ -54,8 +54,10 @@ export class NotificationCronService implements OnModuleInit {
   }
 
   @Cron(CronExpression.EVERY_HOUR)
-  async checkThresholds(): Promise<number> {
-    const rules: ActiveRule[] = await this.rulesService.getAllActiveRules();
+  async checkThresholds(userId?: string): Promise<number> {
+    const rules: ActiveRule[] = userId
+      ? await this.rulesService.getActiveRulesForUser(userId)
+      : await this.rulesService.getAllActiveRules();
     if (!rules.length) return 0;
 
     this.logger.log(`Checking ${rules.length} notification rules...`);

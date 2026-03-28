@@ -11,7 +11,7 @@ import { AgentApiKey } from '../entities/agent-api-key.entity';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { UserProvider } from '../entities/user-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
-import { hashKey, keyPrefix } from '../common/utils/hash.util';
+import { hashKey, keyPrefix, verifyKey } from '../common/utils/hash.util';
 import {
   LOCAL_USER_ID,
   LOCAL_EMAIL,
@@ -102,9 +102,12 @@ export class LocalBootstrapService implements OnModuleInit {
   }
 
   private async registerApiKey(apiKey: string) {
+    const prefix = keyPrefix(apiKey);
+    const candidates = await this.agentKeyRepo.find({ where: { key_prefix: prefix } });
+    const alreadyExists = candidates.some((c) => verifyKey(apiKey, c.key_hash));
+    if (alreadyExists) return;
+
     const hash = hashKey(apiKey);
-    const existing = await this.agentKeyRepo.count({ where: { key_hash: hash } });
-    if (existing > 0) return;
 
     await this.agentKeyRepo.upsert(
       {

@@ -13,24 +13,15 @@ describe('ProxyRateLimiter', () => {
   });
 
   describe('checkLimit', () => {
-    it('allows requests when no successes recorded', () => {
-      // checkLimit alone never throws since it does not increment
-      for (let i = 0; i < 300; i++) {
+    it('allows requests within the limit', () => {
+      for (let i = 0; i < 200; i++) {
         expect(() => limiter.checkLimit('user-1')).not.toThrow();
       }
     });
 
-    it('allows requests within the limit', () => {
-      for (let i = 0; i < 200; i++) {
-        limiter.recordSuccess('user-1');
-      }
-      // At exactly 200, the next checkLimit should throw
-      expect(() => limiter.checkLimit('user-1')).toThrow(HttpException);
-    });
-
     it('throws 429 when rate exceeded', () => {
       for (let i = 0; i < 200; i++) {
-        limiter.recordSuccess('user-1');
+        limiter.checkLimit('user-1');
       }
 
       expect(() => limiter.checkLimit('user-1')).toThrow(HttpException);
@@ -38,7 +29,7 @@ describe('ProxyRateLimiter', () => {
 
     it('throws with correct status and message on rate exceeded', () => {
       for (let i = 0; i < 200; i++) {
-        limiter.recordSuccess('user-1');
+        limiter.checkLimit('user-1');
       }
 
       try {
@@ -55,7 +46,7 @@ describe('ProxyRateLimiter', () => {
       jest.useFakeTimers();
 
       for (let i = 0; i < 200; i++) {
-        limiter.recordSuccess('user-1');
+        limiter.checkLimit('user-1');
       }
       expect(() => limiter.checkLimit('user-1')).toThrow(HttpException);
 
@@ -67,27 +58,34 @@ describe('ProxyRateLimiter', () => {
 
     it('isolates different users', () => {
       for (let i = 0; i < 200; i++) {
-        limiter.recordSuccess('user-1');
+        limiter.checkLimit('user-1');
       }
 
       expect(() => limiter.checkLimit('user-1')).toThrow(HttpException);
       expect(() => limiter.checkLimit('user-2')).not.toThrow();
     });
-  });
 
-  describe('recordSuccess', () => {
+    it('counts all requests including those that will fail upstream', () => {
+      // All 200 calls should succeed (not just "successful" ones)
+      for (let i = 0; i < 200; i++) {
+        limiter.checkLimit('user-1');
+      }
+      // 201st request should be blocked
+      expect(() => limiter.checkLimit('user-1')).toThrow(HttpException);
+    });
+
     it('increments count across calls within the same window', () => {
       jest.useFakeTimers();
 
       for (let i = 0; i < 100; i++) {
-        limiter.recordSuccess('user-1');
+        limiter.checkLimit('user-1');
       }
 
       // Advance time but stay within window
       jest.advanceTimersByTime(30_000);
 
       for (let i = 0; i < 100; i++) {
-        limiter.recordSuccess('user-1');
+        limiter.checkLimit('user-1');
       }
 
       // 201st request should be blocked
@@ -96,27 +94,17 @@ describe('ProxyRateLimiter', () => {
       jest.useRealTimers();
     });
 
-    it('does not count failed requests (checkLimit without recordSuccess)', () => {
-      // Simulate 300 failed requests (only checkLimit, no recordSuccess)
-      for (let i = 0; i < 300; i++) {
-        limiter.checkLimit('user-1');
-      }
-
-      // Should still allow because no successes were recorded
-      expect(() => limiter.checkLimit('user-1')).not.toThrow();
-    });
-
     it('resets window after expiry', () => {
       jest.useFakeTimers();
 
       for (let i = 0; i < 200; i++) {
-        limiter.recordSuccess('user-1');
+        limiter.checkLimit('user-1');
       }
       expect(() => limiter.checkLimit('user-1')).toThrow(HttpException);
 
       jest.advanceTimersByTime(60_001);
 
-      limiter.recordSuccess('user-1');
+      limiter.checkLimit('user-1');
       expect(() => limiter.checkLimit('user-1')).not.toThrow();
 
       jest.useRealTimers();
@@ -134,7 +122,7 @@ describe('ProxyRateLimiter', () => {
 
       expect(rates.size).toBe(50_000);
 
-      limiter.recordSuccess('new-user');
+      limiter.checkLimit('new-user');
 
       expect(rates.size).toBeLessThanOrEqual(50_000);
       expect(rates.has('old-user-0')).toBe(false);
@@ -146,12 +134,12 @@ describe('ProxyRateLimiter', () => {
     it('removes expired entries when cleanup timer fires', () => {
       jest.useFakeTimers();
 
-      limiter.recordSuccess('user-1');
-      limiter.recordSuccess('user-2');
+      limiter.checkLimit('user-1');
+      limiter.checkLimit('user-2');
 
       jest.advanceTimersByTime(120_001);
 
-      limiter.recordSuccess('user-3');
+      limiter.checkLimit('user-3');
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const rates = (limiter as any).rates as Map<string, unknown>;
@@ -275,7 +263,7 @@ describe('ProxyRateLimiter', () => {
       const timedLimiter = new ProxyRateLimiter();
 
       // Record some entries
-      timedLimiter.recordSuccess('user-old');
+      timedLimiter.checkLimit('user-old');
 
       // Manually expire the entry by manipulating the internal map
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -285,11 +273,8 @@ describe('ProxyRateLimiter', () => {
       >;
       rates.get('user-old')!.windowStart = Date.now() - 120_000;
 
-      timedLimiter.recordSuccess('user-new');
+      timedLimiter.checkLimit('user-new');
       // Set user-new's windowStart so it survives the 60001ms time advance.
-      // After advancing, Date.now() increases by 60001, so we need:
-      //   (Date.now() + 60001) - windowStart < 60000
-      // Setting windowStart = Date.now() + 2 gives 59999 < 60000.
       rates.get('user-new')!.windowStart = Date.now() + 2;
 
       // Advance past the cleanup interval (60s)

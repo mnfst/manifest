@@ -186,23 +186,31 @@ describe("parseConfig", () => {
 });
 
 describe("parseConfig — devMode", () => {
-  it("auto-detects devMode when endpoint is loopback and no mnfst_ key", () => {
+  it("does not auto-detect devMode (requires explicit opt-in)", () => {
     const result = parseConfig({
       endpoint: "http://localhost:38238/otlp",
     });
-    expect(result.devMode).toBe(true);
+    expect(result.devMode).toBe(false);
   });
 
-  it("auto-detects devMode for 127.0.0.1", () => {
+  it("does not auto-detect devMode for 127.0.0.1", () => {
     const result = parseConfig({
       endpoint: "http://127.0.0.1:38238/otlp",
     });
-    expect(result.devMode).toBe(true);
+    expect(result.devMode).toBe(false);
   });
 
-  it("auto-detects devMode for ::1", () => {
+  it("does not auto-detect devMode for ::1", () => {
     const result = parseConfig({
       endpoint: "http://[::1]:38238/otlp",
+    });
+    expect(result.devMode).toBe(false);
+  });
+
+  it("enables devMode when explicitly set to true", () => {
+    const result = parseConfig({
+      endpoint: "http://localhost:38238/otlp",
+      devMode: true,
     });
     expect(result.devMode).toBe(true);
   });

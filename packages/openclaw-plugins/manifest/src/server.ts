@@ -31,7 +31,7 @@ export async function start(options: StartOptions = {}): Promise<unknown> {
   process.env['PORT'] = String(port);
   process.env['BIND_ADDRESS'] = host;
   process.env['MANIFEST_DB_PATH'] = dbPath;
-  process.env['NODE_ENV'] = 'development';
+  process.env['NODE_ENV'] = process.env['NODE_ENV'] || 'production';
   process.env['MANIFEST_FRONTEND_DIR'] = join(__dirname, '..', 'public');
 
   // Generate a random persistent secret for local mode

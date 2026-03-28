@@ -43,9 +43,32 @@ export function isPrivateIp(ip: string): boolean {
   return PRIVATE_RANGES.some((range) => (addr & range.mask) === range.addr);
 }
 
+const CLOUD_METADATA_RANGES: { addr: bigint; mask: bigint }[] = [
+  cidr('169.254.169.254', 32), // AWS/GCP/Azure metadata
+  cidr('169.254.0.0', 16), // Link-local
+];
+
+const CLOUD_METADATA_V6 = ['fd00::', 'fe80::'];
+
+export function isCloudMetadataIp(ip: string): boolean {
+  const mapped = ip.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/i);
+  const normalizedIp = mapped ? mapped[1] : ip;
+
+  if (normalizedIp.includes(':')) {
+    const lower = normalizedIp.toLowerCase();
+    return CLOUD_METADATA_V6.some((prefix) => lower.startsWith(prefix));
+  }
+
+  const parsed = normalizedIp.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+  if (!parsed) return false;
+
+  const addr = ipv4ToBigInt(normalizedIp);
+  return CLOUD_METADATA_RANGES.some((range) => (addr & range.mask) === range.addr);
+}
+
 export async function validatePublicUrl(url: string): Promise<void> {
-  // Skip SSRF validation in test and local modes
-  if (process.env['NODE_ENV'] === 'test' || process.env['MANIFEST_MODE'] === 'local') return;
+  // Skip SSRF validation in test mode
+  if (process.env['NODE_ENV'] === 'test') return;
 
   let parsed: URL;
   try {
@@ -58,8 +81,17 @@ export async function validatePublicUrl(url: string): Promise<void> {
     throw new Error('Only http and https URLs are allowed');
   }
 
-  // Reject IP literals directly in the URL
   const hostname = parsed.hostname.replace(/^\[|\]$/g, '');
+
+  // In local mode, still block cloud metadata endpoints but allow private/loopback
+  if (process.env['MANIFEST_MODE'] === 'local') {
+    if (isCloudMetadataIp(hostname)) {
+      throw new Error('URLs pointing to cloud metadata endpoints are not allowed');
+    }
+    return;
+  }
+
+  // Reject IP literals directly in the URL
   if (isPrivateIp(hostname)) {
     throw new Error('URLs pointing to private or internal networks are not allowed');
   }

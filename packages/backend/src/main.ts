@@ -40,7 +40,7 @@ export async function bootstrap() {
   const isDev = process.env['NODE_ENV'] !== 'production';
   if (isDev) {
     app.enableCors({
-      origin: process.env['CORS_ORIGIN'] || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/,
+      origin: process.env['CORS_ORIGIN'] || /^https?:\/\/(localhost|127\.0\.0\.1):(3000|3001)$/,
       credentials: true,
     });
   }

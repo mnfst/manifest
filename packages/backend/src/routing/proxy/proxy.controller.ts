@@ -86,8 +86,6 @@ export class ProxyController {
         return;
       }
 
-      this.rateLimiter.recordSuccess(userId);
-
       const fallbackSuccessTs = recordFallbackFailures(
         req.ingestionContext,
         meta,
