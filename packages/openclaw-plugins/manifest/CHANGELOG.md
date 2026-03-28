@@ -1,5 +1,11 @@
 # manifest
 
+## 5.33.9
+
+### Patch Changes
+
+- 4a3dd09: fix: guard against negative costs, return 410 for removed OTLP endpoints, skip zero-token fallback records, sanitize null content in proxy
+
 ## 5.33.8
 
 ### Patch Changes
