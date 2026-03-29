@@ -1,6 +1,6 @@
 {
   "id": "manifest",
-  "name": "Manifest — Self-Hosted LLM Router",
+  "name": "Manifest Self-Hosted LLM Router",
   "version": "5.33.20",
   "description": "Run the Manifest LLM router locally with SQLite. Zero-config dashboard included.",
   "author": "MNFST Inc.",
