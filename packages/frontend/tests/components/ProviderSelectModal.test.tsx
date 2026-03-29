@@ -1947,7 +1947,7 @@ describe('ProviderSelectModal', () => {
       ));
       fireEvent.click(screen.getByText('OpenAI'));
       // Should not have a setup token input field
-      const inputs = document.querySelectorAll("input[type='password']");
+      const inputs = document.querySelectorAll(".provider-detail__input--masked");
       expect(inputs.length).toBe(0);
     });
 
