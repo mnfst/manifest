@@ -1,4 +1,5 @@
 import { BadRequestException, HttpException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import { ProxyService } from '../proxy.service';
 import { ProxyFallbackService } from '../proxy-fallback.service';
@@ -28,6 +29,7 @@ describe('ProxyService', () => {
   let copilotToken: jest.Mocked<CopilotTokenService>;
   let limitCheck: jest.Mocked<LimitCheckService>;
   let pricingCache: jest.Mocked<ModelPricingCacheService>;
+  let configService: jest.Mocked<ConfigService>;
   let fallbackService: ProxyFallbackService;
 
   beforeEach(() => {
@@ -84,6 +86,14 @@ describe('ProxyService', () => {
       getAll: jest.fn().mockReturnValue([]),
     } as unknown as jest.Mocked<ModelPricingCacheService>;
 
+    configService = {
+      get: jest.fn((key: string, fallback?: unknown) => {
+        if (key === 'app.betterAuthUrl') return 'http://localhost:3001';
+        if (key === 'app.port') return 3001;
+        return fallback;
+      }),
+    } as unknown as jest.Mocked<ConfigService>;
+
     fallbackService = new ProxyFallbackService(
       providerKeyService,
       customProviderRepo,
@@ -103,6 +113,7 @@ describe('ProxyService', () => {
       momentum,
       limitCheck,
       fallbackService,
+      configService,
     );
   });
 
@@ -281,6 +292,81 @@ describe('ProxyService', () => {
       confidence: 1,
       reason: 'no_provider',
     });
+  });
+
+  it('includes dashboard URL with agent name in no-provider response', async () => {
+    resolveService.resolve.mockResolvedValue({
+      tier: 'simple',
+      model: null,
+      provider: null,
+      confidence: 0.5,
+      score: -0.1,
+      reason: 'ambiguous',
+    });
+
+    const result = await service.proxyRequest({
+      agentId: 'agent-1',
+      userId: 'user-1',
+      body,
+      sessionKey: 'default',
+      agentName: 'my-agent',
+    });
+
+    const json = (await result.forward.response.json()) as Record<string, unknown>;
+    const choices = json.choices as { message: { content: string } }[];
+    expect(choices[0].message.content).toContain('http://localhost:3001/routing/my-agent');
+  });
+
+  it('uses /routing path when agentName is not provided', async () => {
+    resolveService.resolve.mockResolvedValue({
+      tier: 'simple',
+      model: null,
+      provider: null,
+      confidence: 0.5,
+      score: -0.1,
+      reason: 'ambiguous',
+    });
+
+    const result = await service.proxyRequest({
+      agentId: 'agent-1',
+      userId: 'user-1',
+      body,
+      sessionKey: 'default',
+    });
+
+    const json = (await result.forward.response.json()) as Record<string, unknown>;
+    const choices = json.choices as { message: { content: string } }[];
+    expect(choices[0].message.content).toContain('http://localhost:3001/routing');
+    expect(choices[0].message.content).not.toContain('/routing/');
+  });
+
+  it('falls back to localhost URL when betterAuthUrl is empty', async () => {
+    configService.get.mockImplementation((key: string, fallback?: unknown) => {
+      if (key === 'app.betterAuthUrl') return '';
+      if (key === 'app.port') return 4000;
+      return fallback;
+    });
+
+    resolveService.resolve.mockResolvedValue({
+      tier: 'simple',
+      model: null,
+      provider: null,
+      confidence: 0.5,
+      score: -0.1,
+      reason: 'ambiguous',
+    });
+
+    const result = await service.proxyRequest({
+      agentId: 'agent-1',
+      userId: 'user-1',
+      body,
+      sessionKey: 'default',
+      agentName: 'test-agent',
+    });
+
+    const json = (await result.forward.response.json()) as Record<string, unknown>;
+    const choices = json.choices as { message: { content: string } }[];
+    expect(choices[0].message.content).toContain('http://localhost:4000/routing/test-agent');
   });
 
   it('returns synthetic streaming response when no model is resolved', async () => {
