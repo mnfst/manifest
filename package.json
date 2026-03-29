@@ -1,7 +1,7 @@
 {
   "name": "manifest",
   "private": true,
-  "description": "Open-source observability for AI agents — track costs, tokens, messages, and performance",
+  "description": "Open-source LLM router for OpenClaw — route requests to the right model, cut costs, and track usage",
   "homepage": "https://manifest.build",
   "repository": {
     "type": "git",

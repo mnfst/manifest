@@ -9,7 +9,7 @@ openclaw plugins install manifest
 openclaw gateway restart
 ```
 
-Dashboard opens at **http://127.0.0.1:2099**. The plugin auto-generates an API key, starts the embedded server, and registers `manifest/auto` as a model. No configuration needed.
+Dashboard opens at **http://127.0.0.1:2099**. The plugin auto-generates an API key and starts the embedded server. Open the dashboard to connect a provider and start routing.
 
 ## How it works
 
