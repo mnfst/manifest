@@ -2,6 +2,7 @@ import { HttpException } from '@nestjs/common';
 import { ProxyController } from '../proxy.controller';
 import { ProxyMessageRecorder } from '../proxy-message-recorder';
 import { ProxyMessageDedup } from '../proxy-message-dedup';
+import { IngestEventBusService } from '../../../common/services/ingest-event-bus.service';
 
 function mockResponse(): {
   res: Record<string, jest.Mock | boolean | number>;
@@ -124,6 +125,7 @@ describe('ProxyController', () => {
       mockMessageRepo as never,
       mockPricingCache as never,
       new ProxyMessageDedup(),
+      { emit: jest.fn() } as unknown as IngestEventBusService,
     );
     controller = new ProxyController(
       proxyService as never,
@@ -1622,6 +1624,7 @@ describe('ProxyController', () => {
         mockMessageRepo as never,
         mockPricingCache as never,
         new ProxyMessageDedup(),
+        { emit: jest.fn() } as unknown as IngestEventBusService,
       );
 
       const cooldownMap = (timedRecorder as any).rateLimitCooldown as Map<string, number>;
@@ -1642,6 +1645,7 @@ describe('ProxyController', () => {
         mockMessageRepo as never,
         mockPricingCache as never,
         new ProxyMessageDedup(),
+        { emit: jest.fn() } as unknown as IngestEventBusService,
       );
 
       timedRecorder.onModuleDestroy();

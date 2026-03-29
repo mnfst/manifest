@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
+import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
 import { FailedFallback } from './proxy-fallback.service';
 import { StreamUsage } from './stream-writer';
@@ -22,6 +23,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     private readonly messageRepo: Repository<AgentMessage>,
     private readonly pricingCache: ModelPricingCacheService,
     private readonly dedup: ProxyMessageDedup,
+    private readonly eventBus: IngestEventBusService,
   ) {
     this.cooldownCleanupTimer = setInterval(() => this.evictExpiredCooldowns(), 60_000);
     if (typeof this.cooldownCleanupTimer === 'object' && 'unref' in this.cooldownCleanupTimer) {
@@ -80,6 +82,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       auth_type: authType ?? null,
       user_id: ctx.userId,
     });
+    this.eventBus.emit(ctx.userId);
   }
 
   async recordFailedFallbacks(
@@ -129,6 +132,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         user_id: ctx.userId,
       });
     }
+    this.eventBus.emit(ctx.userId);
   }
 
   async recordPrimaryFailure(
@@ -159,6 +163,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       auth_type: authType ?? null,
       user_id: ctx.userId,
     });
+    this.eventBus.emit(ctx.userId);
   }
 
   async recordFallbackSuccess(
@@ -203,6 +208,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       fallback_index: fallbackIndex ?? null,
       user_id: ctx.userId,
     });
+    this.eventBus.emit(ctx.userId);
   }
 
   async recordSuccessMessage(
@@ -228,6 +234,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
 
     const normalizedSessionKey = this.dedup.normalizeSessionKey(sessionKey);
 
+    let wrote = false;
     await this.dedup.withSuccessWriteLock(
       this.dedup.getSuccessWriteLockKey(ctx, model, traceId, normalizedSessionKey),
       async () => {
@@ -262,6 +269,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
             if (normalizedSessionKey) updatePayload.session_key = normalizedSessionKey;
 
             await messageRepo.update({ id: existing.id }, updatePayload);
+            wrote = true;
             return;
           }
 
@@ -288,9 +296,11 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
             user_id: ctx.userId,
             duration_ms: durationMs ?? null,
           });
+          wrote = true;
         });
       },
     );
+    if (wrote) this.eventBus.emit(ctx.userId);
   }
 
   private evictExpiredCooldowns(): void {
