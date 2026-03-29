@@ -7,12 +7,9 @@
 
 import { randomUUID } from 'crypto';
 
-const DEFAULT_INSTRUCTIONS = 'You are a helpful assistant.';
+import { OpenAIMessage } from './proxy-types';
 
-interface OpenAiMessage {
-  role: string;
-  content: unknown;
-}
+const DEFAULT_INSTRUCTIONS = 'You are a helpful assistant.';
 
 /* ── Request conversion ── */
 
@@ -20,7 +17,7 @@ export function toResponsesRequest(
   body: Record<string, unknown>,
   model: string,
 ): Record<string, unknown> {
-  const messages = (body.messages ?? []) as OpenAiMessage[];
+  const messages = (body.messages ?? []) as OpenAIMessage[];
 
   const input = messages
     .filter((m) => m.role !== 'system' && m.role !== 'developer')
@@ -165,7 +162,7 @@ function convertContent(content: unknown, role: string): unknown {
   });
 }
 
-function extractInstructions(messages: OpenAiMessage[]): string {
+function extractInstructions(messages: OpenAIMessage[]): string {
   const parts: string[] = [];
 
   for (const message of messages) {

@@ -4,7 +4,7 @@ import { registerLocalMode } from './local-mode';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 module.exports = {
   id: 'manifest',
-  name: 'Manifest — Self-Hosted LLM Router',
+  name: 'Manifest Self-Hosted LLM Router',
 
   register(api: any) {
     const logger: PluginLogger = api.logger || {

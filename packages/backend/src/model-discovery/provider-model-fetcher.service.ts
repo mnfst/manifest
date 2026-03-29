@@ -10,6 +10,47 @@ const ANTHROPIC_DEFAULT_CONTEXT = 200000;
 const GEMINI_DEFAULT_CONTEXT = 1000000;
 const MINIMAX_SUBSCRIPTION_MODELS_URL = 'https://api.minimax.io/anthropic/v1/models?limit=100';
 
+/* ── Generic parser factory ── */
+
+interface ModelParserConfig<T> {
+  arrayKey: string;
+  filter: (entry: T) => boolean;
+  getId: (entry: T) => string;
+  getDisplayName: (entry: T, id: string) => string;
+  contextWindow?: number | ((entry: T) => number);
+  inputPricePerToken?: number | null;
+  outputPricePerToken?: number | null;
+  capabilityCode?: boolean;
+  qualityScore?: number;
+}
+
+function createModelParser<T>(
+  config: ModelParserConfig<T>,
+): (body: unknown, provider: string) => DiscoveredModel[] {
+  return (body: unknown, provider: string): DiscoveredModel[] => {
+    const arr = (body as Record<string, unknown>)?.[config.arrayKey];
+    if (!Array.isArray(arr)) return [];
+    return arr
+      .filter((m: unknown) => config.filter(m as T))
+      .map((m: unknown) => {
+        const entry = m as T;
+        const id = config.getId(entry);
+        const ctxVal = config.contextWindow ?? DEFAULT_CONTEXT_WINDOW;
+        return {
+          id,
+          displayName: config.getDisplayName(entry, id),
+          provider,
+          contextWindow: typeof ctxVal === 'function' ? ctxVal(entry) : ctxVal,
+          inputPricePerToken: config.inputPricePerToken ?? null,
+          outputPricePerToken: config.outputPricePerToken ?? null,
+          capabilityReasoning: false,
+          capabilityCode: config.capabilityCode ?? false,
+          qualityScore: config.qualityScore ?? 3,
+        };
+      });
+  };
+}
+
 /* ── Shared OpenAI-compatible parser ── */
 
 interface OpenAIModelEntry {
@@ -18,29 +59,12 @@ interface OpenAIModelEntry {
   owned_by?: string;
 }
 
-function parseOpenAI(body: unknown, provider: string): DiscoveredModel[] {
-  const data = (body as { data?: unknown[] })?.data;
-  if (!Array.isArray(data)) return [];
-  return data
-    .filter((m: unknown) => {
-      const entry = m as OpenAIModelEntry;
-      return typeof entry.id === 'string' && entry.id.length > 0;
-    })
-    .map((m: unknown) => {
-      const entry = m as OpenAIModelEntry;
-      return {
-        id: entry.id,
-        displayName: entry.id,
-        provider,
-        contextWindow: DEFAULT_CONTEXT_WINDOW,
-        inputPricePerToken: null,
-        outputPricePerToken: null,
-        capabilityReasoning: false,
-        capabilityCode: false,
-        qualityScore: 3,
-      };
-    });
-}
+const parseOpenAI = createModelParser<OpenAIModelEntry>({
+  arrayKey: 'data',
+  filter: (entry) => typeof entry.id === 'string' && entry.id.length > 0,
+  getId: (entry) => entry.id,
+  getDisplayName: (_entry, id) => id,
+});
 
 function bearerHeaders(key: string): Record<string, string> {
   return { Authorization: `Bearer ${key}` };
@@ -54,29 +78,13 @@ interface AnthropicModelEntry {
   type?: string;
 }
 
-function parseAnthropic(body: unknown, provider: string): DiscoveredModel[] {
-  const data = (body as { data?: unknown[] })?.data;
-  if (!Array.isArray(data)) return [];
-  return data
-    .filter((m: unknown) => {
-      const entry = m as AnthropicModelEntry;
-      return typeof entry.id === 'string' && entry.type === 'model';
-    })
-    .map((m: unknown) => {
-      const entry = m as AnthropicModelEntry;
-      return {
-        id: entry.id,
-        displayName: entry.display_name || entry.id,
-        provider,
-        contextWindow: ANTHROPIC_DEFAULT_CONTEXT,
-        inputPricePerToken: null,
-        outputPricePerToken: null,
-        capabilityReasoning: false,
-        capabilityCode: false,
-        qualityScore: 3,
-      };
-    });
-}
+const parseAnthropic = createModelParser<AnthropicModelEntry>({
+  arrayKey: 'data',
+  filter: (entry) => typeof entry.id === 'string' && entry.type === 'model',
+  getId: (entry) => entry.id,
+  getDisplayName: (entry, id) => entry.display_name || id,
+  contextWindow: ANTHROPIC_DEFAULT_CONTEXT,
+});
 
 interface GeminiModelEntry {
   name: string;
@@ -157,27 +165,15 @@ interface OllamaModelEntry {
   details?: { family?: string; parameter_size?: string };
 }
 
-function parseOllama(body: unknown, provider: string): DiscoveredModel[] {
-  const models = (body as { models?: unknown[] })?.models;
-  if (!Array.isArray(models)) return [];
-  return models
-    .filter((m: unknown) => typeof (m as OllamaModelEntry).name === 'string')
-    .map((m: unknown) => {
-      const entry = m as OllamaModelEntry;
-      const id = entry.name.replace(/:latest$/, '');
-      return {
-        id,
-        displayName: id,
-        provider,
-        contextWindow: DEFAULT_CONTEXT_WINDOW,
-        inputPricePerToken: 0,
-        outputPricePerToken: 0,
-        capabilityReasoning: false,
-        capabilityCode: false,
-        qualityScore: 2,
-      };
-    });
-}
+const parseOllama = createModelParser<OllamaModelEntry>({
+  arrayKey: 'models',
+  filter: (entry) => typeof entry.name === 'string',
+  getId: (entry) => entry.name.replace(/:latest$/, ''),
+  getDisplayName: (_entry, id) => id,
+  inputPricePerToken: 0,
+  outputPricePerToken: 0,
+  qualityScore: 2,
+});
 
 /* ── OpenAI subscription (Codex CLI models API) ── */
 
@@ -189,57 +185,27 @@ interface OpenAISubscriptionModelEntry {
   supported_in_api?: boolean;
 }
 
-function parseOpenaiSubscription(body: unknown, provider: string): DiscoveredModel[] {
-  const data = (body as { models?: unknown[] })?.models;
-  if (!Array.isArray(data)) return [];
-  return data
-    .filter((m: unknown) => {
-      const entry = m as OpenAISubscriptionModelEntry;
-      return typeof entry.slug === 'string' && entry.visibility === 'list';
-    })
-    .map((m: unknown) => {
-      const entry = m as OpenAISubscriptionModelEntry;
-      return {
-        id: entry.slug,
-        displayName: entry.display_name || entry.slug,
-        provider,
-        contextWindow: entry.context_window ?? 200000,
-        inputPricePerToken: 0,
-        outputPricePerToken: 0,
-        capabilityReasoning: false,
-        capabilityCode: true,
-        qualityScore: 3,
-      };
-    });
-}
+const parseOpenaiSubscription = createModelParser<OpenAISubscriptionModelEntry>({
+  arrayKey: 'models',
+  filter: (entry) => typeof entry.slug === 'string' && entry.visibility === 'list',
+  getId: (entry) => entry.slug,
+  getDisplayName: (entry, id) => entry.display_name || id,
+  contextWindow: (entry) => entry.context_window ?? 200000,
+  inputPricePerToken: 0,
+  outputPricePerToken: 0,
+  capabilityCode: true,
+});
 
 /* ── GitHub Copilot (subscription-only, OpenAI-compatible /models) ── */
 
-function parseCopilot(body: unknown, provider: string): DiscoveredModel[] {
-  const data = (body as { data?: unknown[] })?.data;
-  if (!Array.isArray(data)) return [];
-  return data
-    .filter((m: unknown) => {
-      const entry = m as OpenAIModelEntry;
-      return typeof entry.id === 'string' && entry.id.length > 0;
-    })
-    .map((m: unknown) => {
-      const entry = m as OpenAIModelEntry;
-      // Copilot API returns bare names (e.g. "claude-opus-4.6");
-      // internal convention uses "copilot/" prefix
-      return {
-        id: `copilot/${entry.id}`,
-        displayName: entry.id,
-        provider,
-        contextWindow: DEFAULT_CONTEXT_WINDOW,
-        inputPricePerToken: 0,
-        outputPricePerToken: 0,
-        capabilityReasoning: false,
-        capabilityCode: false,
-        qualityScore: 3,
-      };
-    });
-}
+const parseCopilot = createModelParser<OpenAIModelEntry>({
+  arrayKey: 'data',
+  filter: (entry) => typeof entry.id === 'string' && entry.id.length > 0,
+  getId: (entry) => `copilot/${entry.id}`,
+  getDisplayName: (entry) => entry.id,
+  inputPricePerToken: 0,
+  outputPricePerToken: 0,
+});
 
 /* ── Provider configs ── */
 

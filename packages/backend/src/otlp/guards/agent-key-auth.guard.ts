@@ -65,34 +65,14 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleDestroy {
     const authHeader = request.headers['authorization'];
 
     const ip = request.ip ?? '';
-    const loopback = isLoopbackIp(ip);
     const isLocal =
       this.configService.get<string>('app.manifestMode') === 'local' && isAllowedLocalIp(ip);
     const isDevLoopback =
-      this.configService.get<string>('app.nodeEnv') === 'development' && loopback;
-
-    // In local mode, trust loopback connections without requiring an API key.
-    // Also handles dev-mode gateways that send a dummy/non-mnfst token.
-    if (!authHeader && isLocal) {
-      (request as Request & { ingestionContext: IngestionContext }).ingestionContext = {
-        tenantId: LOCAL_TENANT_ID,
-        agentId: LOCAL_AGENT_ID,
-        agentName: LOCAL_AGENT_NAME,
-        userId: LOCAL_USER_ID,
-      };
-      return true;
-    }
-
-    // In development, trust loopback connections and resolve to first active agent.
-    if (!authHeader && isDevLoopback) {
-      const devCtx = await this.resolveDevContext();
-      if (devCtx) {
-        (request as Request & { ingestionContext: IngestionContext }).ingestionContext = devCtx;
-        return true;
-      }
-    }
+      this.configService.get<string>('app.nodeEnv') === 'development' && isLoopbackIp(ip);
 
     if (!authHeader) {
+      if (this.handleLocalBypass(request, isLocal)) return true;
+      if (await this.handleDevLoopback(request, isDevLoopback)) return true;
       this.logger.warn(`Request without auth from ${request.ip}`);
       throw new UnauthorizedException('Authorization header required');
     }
@@ -103,25 +83,9 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleDestroy {
       throw new UnauthorizedException('Empty token');
     }
 
-    // In local mode, if the token isn't a valid mnfst_ key (e.g. a dev
-    // gateway sending a dummy key), fall through to the loopback bypass.
     if (!token.startsWith(API_KEY_PREFIX)) {
-      if (isLocal) {
-        (request as Request & { ingestionContext: IngestionContext }).ingestionContext = {
-          tenantId: LOCAL_TENANT_ID,
-          agentId: LOCAL_AGENT_ID,
-          agentName: LOCAL_AGENT_NAME,
-          userId: LOCAL_USER_ID,
-        };
-        return true;
-      }
-      if (isDevLoopback) {
-        const devCtx = await this.resolveDevContext();
-        if (devCtx) {
-          (request as Request & { ingestionContext: IngestionContext }).ingestionContext = devCtx;
-          return true;
-        }
-      }
+      if (this.handleLocalBypass(request, isLocal)) return true;
+      if (await this.handleDevLoopback(request, isDevLoopback)) return true;
       throw new UnauthorizedException('Invalid API key format');
     }
 
@@ -129,14 +93,53 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleDestroy {
       throw new UnauthorizedException('Invalid API key format');
     }
 
+    return this.validateMnfstToken(request, token, isLocal);
+  }
+
+  invalidateCache(key: string) {
+    this.cache.delete(cacheKey(key));
+  }
+
+  clearCache() {
+    this.cache.clear();
+  }
+
+  private setContext(request: Request, ctx: IngestionContext): void {
+    (request as Request & { ingestionContext: IngestionContext }).ingestionContext = ctx;
+  }
+
+  private handleLocalBypass(request: Request, isLocal: boolean): boolean {
+    if (!isLocal) return false;
+    this.setContext(request, {
+      tenantId: LOCAL_TENANT_ID,
+      agentId: LOCAL_AGENT_ID,
+      agentName: LOCAL_AGENT_NAME,
+      userId: LOCAL_USER_ID,
+    });
+    return true;
+  }
+
+  private async handleDevLoopback(request: Request, isDevLoopback: boolean): Promise<boolean> {
+    if (!isDevLoopback) return false;
+    const devCtx = await this.resolveDevContext();
+    if (!devCtx) return false;
+    this.setContext(request, devCtx);
+    return true;
+  }
+
+  private async validateMnfstToken(
+    request: Request,
+    token: string,
+    isLocal: boolean,
+  ): Promise<boolean> {
     const cached = this.cache.get(cacheKey(token));
     if (cached && cached.expiresAt > Date.now()) {
-      (request as Request & { ingestionContext: IngestionContext }).ingestionContext = {
+      this.setContext(request, {
         tenantId: cached.tenantId,
         agentId: cached.agentId,
         agentName: cached.agentName,
         userId: cached.userId,
-      };
+      });
       return true;
     }
 
@@ -152,40 +155,7 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleDestroy {
     const keyRecord = candidates.find((c) => verifyKey(token, c.key_hash));
 
     if (!keyRecord) {
-      // In local mode, gracefully fall back instead of rejecting.
-      // This handles stale keys after gateway restarts, race conditions during
-      // startup, or keys created on a different server instance.
-      if (isLocal) {
-        // If the prefix matched a candidate, we know which agent the caller
-        // intended — use that agent even though the hash didn't verify
-        // (the key was likely rotated).
-        if (candidates.length > 0) {
-          const best = candidates[0];
-          (request as Request & { ingestionContext: IngestionContext }).ingestionContext = {
-            tenantId: best.tenant_id,
-            agentId: best.agent_id,
-            agentName: best.agent.name,
-            userId: best.tenant.name,
-          };
-          return true;
-        }
-        // No prefix match — key is from a different server instance.
-        // Try the first active agent, then fall back to LOCAL constants.
-        const fallback = await this.resolveDevContext();
-        if (fallback) {
-          (request as Request & { ingestionContext: IngestionContext }).ingestionContext = fallback;
-          return true;
-        }
-        (request as Request & { ingestionContext: IngestionContext }).ingestionContext = {
-          tenantId: LOCAL_TENANT_ID,
-          agentId: LOCAL_AGENT_ID,
-          agentName: LOCAL_AGENT_NAME,
-          userId: LOCAL_USER_ID,
-        };
-        return true;
-      }
-      this.logger.warn(`Rejected unknown agent key: ${token.substring(0, 8)}...`);
-      throw new UnauthorizedException('Invalid API key');
+      return this.handleUnknownKey(request, token, isLocal, candidates);
     }
 
     if (keyRecord.expires_at && new Date(keyRecord.expires_at) < new Date()) {
@@ -214,22 +184,56 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleDestroy {
       expiresAt: Date.now() + this.CACHE_TTL_MS,
     });
 
-    (request as Request & { ingestionContext: IngestionContext }).ingestionContext = {
+    this.setContext(request, {
       tenantId: keyRecord.tenant_id,
       agentId: keyRecord.agent_id,
       agentName: keyRecord.agent.name,
       userId: keyRecord.tenant.name,
-    };
+    });
 
     return true;
   }
 
-  invalidateCache(key: string) {
-    this.cache.delete(cacheKey(key));
-  }
+  private async handleUnknownKey(
+    request: Request,
+    token: string,
+    isLocal: boolean,
+    candidates: AgentApiKey[],
+  ): Promise<boolean> {
+    if (!isLocal) {
+      this.logger.warn(`Rejected unknown agent key: ${token.substring(0, 8)}...`);
+      throw new UnauthorizedException('Invalid API key');
+    }
 
-  clearCache() {
-    this.cache.clear();
+    // If the prefix matched a candidate, we know which agent the caller
+    // intended -- use that agent even though the hash didn't verify
+    // (the key was likely rotated).
+    if (candidates.length > 0) {
+      const best = candidates[0];
+      this.setContext(request, {
+        tenantId: best.tenant_id,
+        agentId: best.agent_id,
+        agentName: best.agent.name,
+        userId: best.tenant.name,
+      });
+      return true;
+    }
+
+    // No prefix match -- key is from a different server instance.
+    // Try the first active agent, then fall back to LOCAL constants.
+    const fallback = await this.resolveDevContext();
+    if (fallback) {
+      this.setContext(request, fallback);
+      return true;
+    }
+
+    this.setContext(request, {
+      tenantId: LOCAL_TENANT_ID,
+      agentId: LOCAL_AGENT_ID,
+      agentName: LOCAL_AGENT_NAME,
+      userId: LOCAL_USER_ID,
+    });
+    return true;
   }
 
   private async resolveDevContext(): Promise<IngestionContext | null> {

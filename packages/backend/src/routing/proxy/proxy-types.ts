@@ -1,5 +1,17 @@
 import { ProviderEndpoint } from './provider-endpoints';
 
+export interface OpenAIMessage {
+  role: string;
+  content?: unknown;
+  tool_calls?: Array<{
+    id: string;
+    type: string;
+    function: { name: string; arguments: string };
+  }>;
+  tool_call_id?: string;
+  [key: string]: unknown;
+}
+
 /** Options for forwarding a request to a provider via ProviderClient. */
 export interface ForwardOptions {
   provider: string;

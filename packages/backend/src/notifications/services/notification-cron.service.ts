@@ -1,17 +1,11 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { DataSource } from 'typeorm';
-import { v4 as uuid } from 'uuid';
 import { NotificationRulesService } from './notification-rules.service';
 import { NotificationEmailService } from './notification-email.service';
 import { EmailProviderConfigService } from './email-provider-config.service';
+import { NotificationLogService, formatNotificationTimestamp } from './notification-log.service';
 import { ManifestRuntimeService } from '../../common/services/manifest-runtime.service';
-import { detectDialect, portableSql, type DbDialect } from '../../common/utils/sql-dialect';
 import { computePeriodBoundaries } from '../../common/utils/period.util';
-import {
-  LOCAL_EMAIL,
-  readLocalNotificationEmail,
-} from '../../common/constants/local-mode.constants';
 
 interface ActiveRule {
   id: string;
@@ -26,17 +20,14 @@ interface ActiveRule {
 @Injectable()
 export class NotificationCronService implements OnModuleInit {
   private readonly logger = new Logger(NotificationCronService.name);
-  private readonly dialect: DbDialect;
 
   constructor(
-    private readonly ds: DataSource,
     private readonly rulesService: NotificationRulesService,
     private readonly emailService: NotificationEmailService,
     private readonly emailProviderConfigService: EmailProviderConfigService,
     private readonly runtime: ManifestRuntimeService,
-  ) {
-    this.dialect = detectDialect(ds.options.type as string);
-  }
+    private readonly notificationLog: NotificationLogService,
+  ) {}
 
   async onModuleInit(): Promise<void> {
     try {
@@ -47,10 +38,6 @@ export class NotificationCronService implements OnModuleInit {
     } catch (err) {
       this.logger.error(`Startup catch-up failed: ${err}`);
     }
-  }
-
-  private sql(query: string): string {
-    return portableSql(query, this.dialect);
   }
 
   @Cron(CronExpression.EVERY_HOUR)
@@ -117,20 +104,17 @@ export class NotificationCronService implements OnModuleInit {
   private async evaluateRule(rule: ActiveRule, actual: number): Promise<boolean> {
     const { periodStart, periodEnd } = computePeriodBoundaries(rule.period);
 
-    const alreadySent = await this.ds.query(
-      this.sql(`SELECT 1 FROM notification_logs WHERE rule_id = $1 AND period_start = $2`),
-      [rule.id, periodStart],
-    );
-    if (alreadySent.length > 0) return false;
-
+    if (await this.notificationLog.hasAlreadySent(rule.id, periodStart)) return false;
     if (actual < rule.threshold) return false;
 
-    const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
-
-    const email = await this.resolveUserEmail(rule.user_id);
+    const now = formatNotificationTimestamp();
+    const fullConfig = await this.emailProviderConfigService.getFullConfig(rule.user_id);
+    const email = await this.notificationLog.resolveUserEmail(
+      rule.user_id,
+      fullConfig?.notificationEmail,
+    );
     let emailSent = false;
     if (email) {
-      const providerConfig = await this.emailProviderConfigService.getFullConfig(rule.user_id);
       emailSent = await this.emailService.sendThresholdAlert(
         email,
         {
@@ -143,7 +127,7 @@ export class NotificationCronService implements OnModuleInit {
           agentUrl: `${this.runtime.getAuthBaseUrl()}/agents/${encodeURIComponent(rule.agent_name)}`,
           alertType: 'soft',
         },
-        providerConfig ?? undefined,
+        fullConfig ?? undefined,
       );
     } else {
       this.logger.warn(
@@ -152,43 +136,20 @@ export class NotificationCronService implements OnModuleInit {
     }
 
     if (emailSent || !email) {
-      await this.ds.query(
-        this.sql(
-          `INSERT INTO notification_logs
-           (id, rule_id, period_start, period_end, actual_value, threshold_value, metric_type, agent_name, sent_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-        ),
-        [
-          uuid(),
-          rule.id,
-          periodStart,
-          periodEnd,
-          actual,
-          rule.threshold,
-          rule.metric_type,
-          rule.agent_name,
-          now,
-        ],
-      );
+      await this.notificationLog.insertLog({
+        ruleId: rule.id,
+        periodStart,
+        periodEnd,
+        actualValue: actual,
+        thresholdValue: rule.threshold,
+        metricType: rule.metric_type,
+        agentName: rule.agent_name,
+        sentAt: now,
+      });
     } else {
       this.logger.warn(`Failed to send alert for rule ${rule.id}, will retry next cron run`);
     }
 
     return emailSent || !email;
-  }
-
-  private async resolveUserEmail(userId: string): Promise<string | null> {
-    const fullConfig = await this.emailProviderConfigService.getFullConfig(userId);
-    if (fullConfig?.notificationEmail) return fullConfig.notificationEmail;
-
-    if (this.runtime.isLocalMode()) {
-      const configEmail = readLocalNotificationEmail();
-      if (configEmail) return configEmail;
-    }
-
-    const rows = await this.ds.query(this.sql(`SELECT email FROM "user" WHERE id = $1`), [userId]);
-    const email = rows[0]?.email ?? null;
-    if (email === LOCAL_EMAIL) return null;
-    return email;
   }
 }

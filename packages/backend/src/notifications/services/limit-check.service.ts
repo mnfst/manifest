@@ -1,18 +1,12 @@
 import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { DataSource } from 'typeorm';
-import { v4 as uuid } from 'uuid';
 import { Subscription } from 'rxjs';
 import { NotificationRulesService } from './notification-rules.service';
 import { NotificationEmailService } from './notification-email.service';
 import { EmailProviderConfigService } from './email-provider-config.service';
+import { NotificationLogService, formatNotificationTimestamp } from './notification-log.service';
 import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
 import { ManifestRuntimeService } from '../../common/services/manifest-runtime.service';
 import { computePeriodBoundaries, computePeriodResetDate } from '../../common/utils/period.util';
-import { detectDialect, portableSql, type DbDialect } from '../../common/utils/sql-dialect';
-import {
-  LOCAL_EMAIL,
-  readLocalNotificationEmail,
-} from '../../common/constants/local-mode.constants';
 
 interface BlockRule {
   id: string;
@@ -43,21 +37,18 @@ const MAX_CACHE_SIZE = 10_000;
 @Injectable()
 export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(LimitCheckService.name);
-  private readonly dialect: DbDialect;
   private readonly rulesCache = new Map<string, CacheEntry<BlockRule[]>>();
   private readonly consumptionCache = new Map<string, CacheEntry<number>>();
   private ingestSub?: Subscription;
 
   constructor(
-    private readonly ds: DataSource,
     private readonly rulesService: NotificationRulesService,
     private readonly emailService: NotificationEmailService,
     private readonly emailProviderConfig: EmailProviderConfigService,
     private readonly ingestBus: IngestEventBusService,
     private readonly runtime: ManifestRuntimeService,
-  ) {
-    this.dialect = detectDialect(ds.options.type as string);
-  }
+    private readonly notificationLog: NotificationLogService,
+  ) {}
 
   onModuleInit(): void {
     this.ingestSub = this.ingestBus.all().subscribe(() => {
@@ -67,10 +58,6 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
 
   onModuleDestroy(): void {
     this.ingestSub?.unsubscribe();
-  }
-
-  private sql(query: string): string {
-    return portableSql(query, this.dialect);
   }
 
   async checkLimits(tenantId: string, agentName: string): Promise<LimitExceeded | null> {
@@ -115,22 +102,20 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  /** Send email + log (once per rule per period, fire-and-forget). */
   private async notifyLimitExceeded(
     rule: BlockRule,
     actual: number,
     periodStart: string,
     periodEnd: string,
   ): Promise<void> {
-    const alreadySent = await this.ds.query(
-      this.sql(`SELECT 1 FROM notification_logs WHERE rule_id = $1 AND period_start = $2`),
-      [rule.id, periodStart],
-    );
-    if (alreadySent.length > 0) return;
+    if (await this.notificationLog.hasAlreadySent(rule.id, periodStart)) return;
 
-    const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
+    const now = formatNotificationTimestamp();
     const providerConfig = await this.emailProviderConfig.getFullConfig(rule.user_id);
-    const email = await this.resolveUserEmail(rule.user_id, providerConfig);
+    const email = await this.notificationLog.resolveUserEmail(
+      rule.user_id,
+      providerConfig?.notificationEmail,
+    );
     let emailSent = false;
 
     if (email) {
@@ -152,42 +137,17 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
     }
 
     if (emailSent || !email) {
-      await this.ds.query(
-        this.sql(
-          `INSERT INTO notification_logs
-           (id, rule_id, period_start, period_end, actual_value, threshold_value, metric_type, agent_name, sent_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-        ),
-        [
-          uuid(),
-          rule.id,
-          periodStart,
-          periodEnd,
-          actual,
-          rule.threshold,
-          rule.metric_type,
-          rule.agent_name,
-          now,
-        ],
-      );
+      await this.notificationLog.insertLog({
+        ruleId: rule.id,
+        periodStart,
+        periodEnd,
+        actualValue: actual,
+        thresholdValue: rule.threshold,
+        metricType: rule.metric_type,
+        agentName: rule.agent_name,
+        sentAt: now,
+      });
     }
-  }
-
-  private async resolveUserEmail(
-    userId: string,
-    fullConfig?: { notificationEmail?: string | null } | null,
-  ): Promise<string | null> {
-    if (fullConfig?.notificationEmail) return fullConfig.notificationEmail;
-
-    if (this.runtime.isLocalMode()) {
-      const configEmail = readLocalNotificationEmail();
-      if (configEmail) return configEmail;
-    }
-
-    const rows = await this.ds.query(this.sql(`SELECT email FROM "user" WHERE id = $1`), [userId]);
-    const email = rows[0]?.email ?? null;
-    if (email === LOCAL_EMAIL) return null;
-    return email;
   }
 
   private async getCachedRules(tenantId: string, agentName: string): Promise<BlockRule[]> {

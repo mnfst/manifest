@@ -78,8 +78,7 @@ export class ProviderService {
       existing.is_active = true;
       existing.updated_at = new Date().toISOString();
       await this.providerRepo.save(existing);
-      await this.autoAssign.recalculate(agentId);
-      this.routingCache.invalidateAgent(agentId);
+      await this.afterProviderInsert(agentId);
       return { provider: existing, isNew: false };
     }
 
@@ -98,8 +97,7 @@ export class ProviderService {
     });
 
     await this.providerRepo.insert(record);
-    await this.autoAssign.recalculate(agentId);
-    this.routingCache.invalidateAgent(agentId);
+    await this.afterProviderInsert(agentId);
     return { provider: record, isNew: true };
   }
 
@@ -193,10 +191,15 @@ export class ProviderService {
     });
 
     await this.providerRepo.insert(record);
-    await this.autoAssign.recalculate(agentId);
-    this.routingCache.invalidateAgent(agentId);
+    await this.afterProviderInsert(agentId);
     return { isNew: true };
   }
+
+  private async afterProviderInsert(agentId: string): Promise<void> {
+    await this.autoAssign.recalculate(agentId);
+    this.routingCache.invalidateAgent(agentId);
+  }
+
   async removeProvider(
     agentId: string,
     provider: string,

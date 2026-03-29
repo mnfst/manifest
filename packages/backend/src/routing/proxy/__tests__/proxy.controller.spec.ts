@@ -354,29 +354,17 @@ describe('ProxyController', () => {
       }
     ).recordSuccessMessage.bind(recorder);
 
-    const firstWrite = recordSuccessMessage(
-      ctx,
-      'gpt-4o',
-      'simple',
-      'scored',
-      usage,
-      'abcdef1234567890abcdef1234567890',
-      undefined,
-      'sess-1',
-    );
+    const firstWrite = recordSuccessMessage(ctx, 'gpt-4o', 'simple', 'scored', usage, {
+      traceId: 'abcdef1234567890abcdef1234567890',
+      sessionKey: 'sess-1',
+    });
 
     await new Promise((r) => setTimeout(r, 0));
 
-    const secondWrite = recordSuccessMessage(
-      ctx,
-      'gpt-4o',
-      'simple',
-      'scored',
-      usage,
-      'abcdef1234567890abcdef1234567890',
-      undefined,
-      'sess-1',
-    );
+    const secondWrite = recordSuccessMessage(ctx, 'gpt-4o', 'simple', 'scored', usage, {
+      traceId: 'abcdef1234567890abcdef1234567890',
+      sessionKey: 'sess-1',
+    });
 
     await new Promise((r) => setTimeout(r, 0));
     expect(mockMessageRepo.findOne).toHaveBeenCalledTimes(1);
@@ -1660,28 +1648,26 @@ describe('ProxyController', () => {
     });
   });
 
-  describe('seenUsers bounded Set', () => {
-    it('should evict oldest user when MAX_SEEN_USERS is reached', async () => {
-      // Access internal seenUsers set to pre-fill it
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const seenUsers = (controller as any).seenUsers as Set<string>;
+  describe('seenUsers bounded Map with TTL', () => {
+    const makeProxyResult = () => ({
+      forward: {
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      },
+      meta: { tier: 'simple' as const, model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
+    });
 
-      // Pre-fill to MAX_SEEN_USERS - 1 (so next add triggers eviction check)
+    it('should evict oldest user when MAX_SEEN_USERS is reached', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const seenUsers = (controller as any).seenUsers as Map<string, number>;
+
+      const now = Date.now();
       for (let i = 0; i < 9_999; i++) {
-        seenUsers.add(`prefill-user-${i}`);
+        seenUsers.set(`prefill-user-${i}`, now);
       }
 
-      const makeProxyResult = () => ({
-        forward: {
-          response: new Response('{}', { status: 200 }),
-          isGoogle: false,
-          isAnthropic: false,
-          isChatGpt: false,
-        },
-        meta: { tier: 'simple' as const, model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
-      });
-
-      // This request fills the Set to exactly 10K
       proxyService.proxyRequest.mockResolvedValue(makeProxyResult());
       const req1 = mockRequest({ messages: [{ role: 'user', content: 'hi' }] }, 'user-9999');
       const { res: res1 } = mockResponse();
@@ -1689,7 +1675,6 @@ describe('ProxyController', () => {
 
       expect(seenUsers.size).toBe(10_000);
 
-      // Next request should evict the oldest entry
       proxyService.proxyRequest.mockResolvedValue(makeProxyResult());
       const req2 = mockRequest({ messages: [{ role: 'user', content: 'hi' }] }, 'user-10000');
       const { res: res2 } = mockResponse();
@@ -1698,6 +1683,26 @@ describe('ProxyController', () => {
       expect(seenUsers.size).toBe(10_000);
       expect(seenUsers.has('prefill-user-0')).toBe(false);
       expect(seenUsers.has('user-10000')).toBe(true);
+    });
+
+    it('should evict expired entries older than 24 hours', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const seenUsers = (controller as any).seenUsers as Map<string, number>;
+
+      const twentyFiveHoursAgo = Date.now() - 25 * 60 * 60 * 1000;
+      seenUsers.set('old-user-1', twentyFiveHoursAgo);
+      seenUsers.set('old-user-2', twentyFiveHoursAgo);
+      seenUsers.set('recent-user', Date.now());
+
+      proxyService.proxyRequest.mockResolvedValue(makeProxyResult());
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] }, 'new-user');
+      const { res } = mockResponse();
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(seenUsers.has('old-user-1')).toBe(false);
+      expect(seenUsers.has('old-user-2')).toBe(false);
+      expect(seenUsers.has('recent-user')).toBe(true);
+      expect(seenUsers.has('new-user')).toBe(true);
     });
   });
 

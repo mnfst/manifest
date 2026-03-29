@@ -1,16 +1,10 @@
-jest.mock('../../common/constants/local-mode.constants', () => ({
-  LOCAL_EMAIL: 'local@manifest.local',
-  readLocalNotificationEmail: jest.fn().mockReturnValue(null),
-}));
-
 import { Test, TestingModule } from '@nestjs/testing';
-import { DataSource } from 'typeorm';
 import { NotificationCronService } from './notification-cron.service';
 import { NotificationRulesService } from './notification-rules.service';
 import { NotificationEmailService } from './notification-email.service';
 import { EmailProviderConfigService } from './email-provider-config.service';
+import { NotificationLogService } from './notification-log.service';
 import { ManifestRuntimeService } from '../../common/services/manifest-runtime.service';
-import { readLocalNotificationEmail } from '../../common/constants/local-mode.constants';
 
 const activeRule = {
   id: 'rule-1',
@@ -24,17 +18,23 @@ const activeRule = {
 
 describe('NotificationCronService', () => {
   let service: NotificationCronService;
-  let mockQuery: jest.Mock;
   let mockGetAllActiveRules: jest.Mock;
   let mockGetConsumption: jest.Mock;
   let mockSendThresholdAlert: jest.Mock;
+  let mockHasAlreadySent: jest.Mock;
+  let mockInsertLog: jest.Mock;
+  let mockResolveUserEmail: jest.Mock;
+  let mockGetFullConfig: jest.Mock;
   let mockRuntime: { isLocalMode: jest.Mock; getAuthBaseUrl: jest.Mock };
 
   beforeEach(async () => {
-    mockQuery = jest.fn();
     mockGetAllActiveRules = jest.fn();
     mockGetConsumption = jest.fn();
     mockSendThresholdAlert = jest.fn().mockResolvedValue(true);
+    mockHasAlreadySent = jest.fn().mockResolvedValue(false);
+    mockInsertLog = jest.fn().mockResolvedValue(undefined);
+    mockResolveUserEmail = jest.fn().mockResolvedValue(null);
+    mockGetFullConfig = jest.fn().mockResolvedValue(null);
     mockRuntime = {
       isLocalMode: jest.fn().mockReturnValue(false),
       getAuthBaseUrl: jest.fn().mockReturnValue('http://localhost:3001'),
@@ -43,11 +43,11 @@ describe('NotificationCronService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         NotificationCronService,
-        { provide: DataSource, useValue: { query: mockQuery, options: { type: 'postgres' } } },
         {
           provide: NotificationRulesService,
           useValue: {
             getAllActiveRules: mockGetAllActiveRules,
+            getActiveRulesForUser: jest.fn().mockResolvedValue([]),
             getConsumption: mockGetConsumption,
           },
         },
@@ -57,7 +57,15 @@ describe('NotificationCronService', () => {
         },
         {
           provide: EmailProviderConfigService,
-          useValue: { getFullConfig: jest.fn().mockResolvedValue(null) },
+          useValue: { getFullConfig: mockGetFullConfig },
+        },
+        {
+          provide: NotificationLogService,
+          useValue: {
+            hasAlreadySent: mockHasAlreadySent,
+            insertLog: mockInsertLog,
+            resolveUserEmail: mockResolveUserEmail,
+          },
         },
         { provide: ManifestRuntimeService, useValue: mockRuntime },
       ],
@@ -86,11 +94,8 @@ describe('NotificationCronService', () => {
 
   it('onModuleInit logs startup catch-up count when triggers occur', async () => {
     mockGetAllActiveRules.mockResolvedValue([activeRule]);
-    mockQuery
-      .mockResolvedValueOnce([]) // no dedup
-      .mockResolvedValueOnce([{ email: 'user@test.com' }]) // resolve email
-      .mockResolvedValueOnce(undefined); // INSERT log
     mockGetConsumption.mockResolvedValue(200000);
+    mockResolveUserEmail.mockResolvedValue('user@test.com');
 
     const loggerSpy = jest.spyOn(service['logger'], 'log').mockImplementation();
     await service.onModuleInit();
@@ -115,7 +120,7 @@ describe('NotificationCronService', () => {
   it('skips rule when already notified for current period (dedup)', async () => {
     mockGetAllActiveRules.mockResolvedValue([activeRule]);
     mockGetConsumption.mockResolvedValue(200000);
-    mockQuery.mockResolvedValueOnce([{ 1: 1 }]); // dedup check returns existing log
+    mockHasAlreadySent.mockResolvedValue(true);
 
     const result = await service.checkThresholds();
     expect(result).toBe(0);
@@ -123,8 +128,7 @@ describe('NotificationCronService', () => {
 
   it('does not trigger when consumption is below threshold', async () => {
     mockGetAllActiveRules.mockResolvedValue([activeRule]);
-    mockGetConsumption.mockResolvedValue(50000); // below threshold
-    mockQuery.mockResolvedValueOnce([]); // no dedup
+    mockGetConsumption.mockResolvedValue(50000);
 
     const result = await service.checkThresholds();
     expect(result).toBe(0);
@@ -133,17 +137,19 @@ describe('NotificationCronService', () => {
 
   it('triggers notification when consumption exceeds threshold', async () => {
     mockGetAllActiveRules.mockResolvedValue([activeRule]);
-    mockQuery
-      .mockResolvedValueOnce([]) // no dedup
-      .mockResolvedValueOnce([{ email: 'user@test.com' }]) // resolve user email
-      .mockResolvedValueOnce(undefined); // INSERT notification_log
     mockGetConsumption.mockResolvedValue(150000);
+    mockResolveUserEmail.mockResolvedValue('user@test.com');
 
     const result = await service.checkThresholds();
     expect(result).toBe(1);
-    expect(mockQuery).toHaveBeenCalledWith(
-      expect.stringContaining('INSERT INTO notification_logs'),
-      expect.any(Array),
+    expect(mockInsertLog).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ruleId: 'rule-1',
+        actualValue: 150000,
+        thresholdValue: 100000,
+        metricType: 'tokens',
+        agentName: 'my-agent',
+      }),
     );
     expect(mockSendThresholdAlert).toHaveBeenCalledWith(
       'user@test.com',
@@ -160,112 +166,41 @@ describe('NotificationCronService', () => {
 
   it('still records log when user email not found', async () => {
     mockGetAllActiveRules.mockResolvedValue([activeRule]);
-    mockQuery
-      .mockResolvedValueOnce([]) // no dedup
-      .mockResolvedValueOnce([]) // no email
-      .mockResolvedValueOnce(undefined); // INSERT notification_log
     mockGetConsumption.mockResolvedValue(200000);
+    mockResolveUserEmail.mockResolvedValue(null);
 
     const result = await service.checkThresholds();
     expect(result).toBe(1);
     expect(mockSendThresholdAlert).not.toHaveBeenCalled();
+    expect(mockInsertLog).toHaveBeenCalled();
   });
 
   it('does not record log when email send fails (allows retry)', async () => {
     mockGetAllActiveRules.mockResolvedValue([activeRule]);
-    mockQuery
-      .mockResolvedValueOnce([]) // no dedup
-      .mockResolvedValueOnce([{ email: 'user@test.com' }]); // resolve email
     mockGetConsumption.mockResolvedValue(200000);
-    mockSendThresholdAlert.mockResolvedValue(false); // email failed
+    mockResolveUserEmail.mockResolvedValue('user@test.com');
+    mockSendThresholdAlert.mockResolvedValue(false);
 
     const result = await service.checkThresholds();
     expect(result).toBe(0);
-    expect(mockQuery).not.toHaveBeenCalledWith(
-      expect.stringContaining('INSERT INTO notification_logs'),
-      expect.any(Array),
-    );
-  });
-
-  it('uses PostgreSQL numbered params ($1, $2) in dedup query', async () => {
-    mockGetAllActiveRules.mockResolvedValue([activeRule]);
-    mockGetConsumption.mockResolvedValue(200000);
-    mockQuery.mockResolvedValueOnce([{ 1: 1 }]); // dedup hit
-
-    await service.checkThresholds();
-
-    const dedupCall = mockQuery.mock.calls[0];
-    const sql = dedupCall[0] as string;
-    expect(sql).toContain('$1');
-    expect(sql).toContain('$2');
-    expect(sql).toContain('notification_logs');
-  });
-
-  it('uses PostgreSQL numbered params ($1-$9) in INSERT notification_logs', async () => {
-    mockGetAllActiveRules.mockResolvedValue([activeRule]);
-    mockQuery
-      .mockResolvedValueOnce([]) // no dedup
-      .mockResolvedValueOnce([{ email: 'a@b.com' }]) // email
-      .mockResolvedValueOnce(undefined); // INSERT
-    mockGetConsumption.mockResolvedValue(200000);
-
-    await service.checkThresholds();
-
-    const insertCall = mockQuery.mock.calls[2];
-    const sql = insertCall[0] as string;
-    const params = insertCall[1] as unknown[];
-
-    expect(sql).toContain('INSERT INTO notification_logs');
-    expect(sql).toContain('$1');
-    expect(sql).toContain('$9');
-    expect(params).toHaveLength(9);
-  });
-
-  it('uses PostgreSQL $1 in user email lookup', async () => {
-    mockGetAllActiveRules.mockResolvedValue([activeRule]);
-    mockQuery
-      .mockResolvedValueOnce([]) // no dedup
-      .mockResolvedValueOnce([{ email: 'user@test.com' }]) // email
-      .mockResolvedValueOnce(undefined); // INSERT
-    mockGetConsumption.mockResolvedValue(200000);
-
-    await service.checkThresholds();
-
-    const emailCall = mockQuery.mock.calls[1];
-    const sql = emailCall[0] as string;
-    expect(sql).toContain('SELECT email FROM "user" WHERE id = $1');
-    expect(emailCall[1]).toEqual(['user-1']);
+    expect(mockInsertLog).not.toHaveBeenCalled();
   });
 
   it('handles multiple rules and counts only triggered ones', async () => {
     const rule2 = { ...activeRule, id: 'rule-2', threshold: 500000 };
     mockGetAllActiveRules.mockResolvedValue([activeRule, rule2]);
-
-    // Both rules share the same group (same tenant/agent/period/metric)
-    // Consumption fetched once for the group
-    mockGetConsumption.mockResolvedValueOnce(150000); // above 100k, below 500k
-
-    // Rule 1: triggers (150k > 100k)
-    mockQuery
-      .mockResolvedValueOnce([]) // no dedup rule-1
-      .mockResolvedValueOnce([{ email: 'user@test.com' }]) // email rule-1
-      .mockResolvedValueOnce(undefined); // INSERT rule-1
-
-    // Rule 2: does not trigger (150k < 500k)
-    mockQuery.mockResolvedValueOnce([]); // no dedup rule-2
+    mockGetConsumption.mockResolvedValueOnce(150000);
+    mockResolveUserEmail.mockResolvedValue('user@test.com');
 
     const result = await service.checkThresholds();
     expect(result).toBe(1);
   });
 
-  it('triggers notification for hourly period (checks previous hour)', async () => {
+  it('triggers notification for hourly period', async () => {
     const hourlyRule = { ...activeRule, id: 'rule-hour', period: 'hour' as const };
     mockGetAllActiveRules.mockResolvedValue([hourlyRule]);
-    mockQuery
-      .mockResolvedValueOnce([]) // no dedup
-      .mockResolvedValueOnce([{ email: 'user@test.com' }]) // email
-      .mockResolvedValueOnce(undefined); // INSERT
     mockGetConsumption.mockResolvedValue(150000);
+    mockResolveUserEmail.mockResolvedValue('user@test.com');
 
     const result = await service.checkThresholds();
     expect(result).toBe(1);
@@ -275,11 +210,8 @@ describe('NotificationCronService', () => {
   it('triggers notification for weekly period', async () => {
     const weeklyRule = { ...activeRule, id: 'rule-week', period: 'week' as const };
     mockGetAllActiveRules.mockResolvedValue([weeklyRule]);
-    mockQuery
-      .mockResolvedValueOnce([]) // no dedup
-      .mockResolvedValueOnce([{ email: 'user@test.com' }]) // email
-      .mockResolvedValueOnce(undefined); // INSERT
     mockGetConsumption.mockResolvedValue(150000);
+    mockResolveUserEmail.mockResolvedValue('user@test.com');
 
     const result = await service.checkThresholds();
     expect(result).toBe(1);
@@ -288,11 +220,8 @@ describe('NotificationCronService', () => {
   it('triggers notification for monthly period', async () => {
     const monthlyRule = { ...activeRule, id: 'rule-month', period: 'month' as const };
     mockGetAllActiveRules.mockResolvedValue([monthlyRule]);
-    mockQuery
-      .mockResolvedValueOnce([]) // no dedup
-      .mockResolvedValueOnce([{ email: 'user@test.com' }]) // email
-      .mockResolvedValueOnce(undefined); // INSERT
     mockGetConsumption.mockResolvedValue(150000);
+    mockResolveUserEmail.mockResolvedValue('user@test.com');
 
     const result = await service.checkThresholds();
     expect(result).toBe(1);
@@ -301,204 +230,48 @@ describe('NotificationCronService', () => {
   it('continues processing remaining rules when one throws', async () => {
     const rule2 = { ...activeRule, id: 'rule-2' };
     mockGetAllActiveRules.mockResolvedValue([activeRule, rule2]);
-
-    // Both rules share same group; consumption fetched once
     mockGetConsumption.mockResolvedValueOnce(200000);
+    mockResolveUserEmail.mockResolvedValue('user@test.com');
 
-    // Rule 1: dedup query throws
-    mockQuery.mockRejectedValueOnce(new Error('DB down'));
-
-    // Rule 2: triggers
-    mockQuery
-      .mockResolvedValueOnce([]) // no dedup
-      .mockResolvedValueOnce([{ email: 'user@test.com' }]) // email
-      .mockResolvedValueOnce(undefined); // INSERT
+    mockHasAlreadySent.mockRejectedValueOnce(new Error('DB down')).mockResolvedValueOnce(false);
 
     const result = await service.checkThresholds();
     expect(result).toBe(1);
   });
 
-  it('filters out local@manifest.local fake email', async () => {
+  it('passes provider config notificationEmail to resolveUserEmail', async () => {
+    const providerConfig = { notificationEmail: 'custom@test.com' };
+    mockGetFullConfig.mockResolvedValue(providerConfig);
     mockGetAllActiveRules.mockResolvedValue([activeRule]);
-    mockQuery
-      .mockResolvedValueOnce([]) // no dedup
-      .mockResolvedValueOnce([{ email: 'local@manifest.local' }]) // fake email
-      .mockResolvedValueOnce(undefined); // INSERT log (no email, still logs)
     mockGetConsumption.mockResolvedValue(200000);
-
-    const result = await service.checkThresholds();
-    expect(result).toBe(1);
-    expect(mockSendThresholdAlert).not.toHaveBeenCalled();
-  });
-
-  it('uses local config notification email in local mode', async () => {
-    mockRuntime.isLocalMode.mockReturnValue(true);
-    (readLocalNotificationEmail as jest.Mock).mockReturnValue('real@user.com');
-
-    mockGetAllActiveRules.mockResolvedValue([activeRule]);
-    mockQuery
-      .mockResolvedValueOnce([]) // no dedup
-      .mockResolvedValueOnce(undefined); // INSERT log
-    mockGetConsumption.mockResolvedValue(200000);
-
-    const result = await service.checkThresholds();
-    expect(result).toBe(1);
-    expect(mockSendThresholdAlert).toHaveBeenCalledWith(
-      'real@user.com',
-      expect.any(Object),
-      undefined,
-    );
-
-    (readLocalNotificationEmail as jest.Mock).mockReturnValue(null);
-  });
-
-  it('falls back to DB email when local config email not set in local mode', async () => {
-    mockRuntime.isLocalMode.mockReturnValue(true);
-    (readLocalNotificationEmail as jest.Mock).mockReturnValue(null);
-
-    mockGetAllActiveRules.mockResolvedValue([activeRule]);
-    mockQuery
-      .mockResolvedValueOnce([]) // no dedup
-      .mockResolvedValueOnce([{ email: 'real@db.com' }]) // DB email
-      .mockResolvedValueOnce(undefined); // INSERT log
-    mockGetConsumption.mockResolvedValue(200000);
-
-    const result = await service.checkThresholds();
-    expect(result).toBe(1);
-    expect(mockSendThresholdAlert).toHaveBeenCalledWith(
-      'real@db.com',
-      expect.any(Object),
-      undefined,
-    );
-  });
-});
-
-describe('NotificationCronService (sql.js / local mode)', () => {
-  let service: NotificationCronService;
-  let mockQuery: jest.Mock;
-  let mockGetAllActiveRules: jest.Mock;
-  let mockGetConsumption: jest.Mock;
-  let mockSendThresholdAlert: jest.Mock;
-  let mockRuntime: { isLocalMode: jest.Mock; getAuthBaseUrl: jest.Mock };
-
-  const localRule = {
-    id: 'rule-1',
-    tenant_id: 'tenant-1',
-    agent_name: 'my-agent',
-    user_id: 'user-1',
-    metric_type: 'tokens' as const,
-    threshold: 100000,
-    period: 'day' as const,
-  };
-
-  beforeEach(async () => {
-    mockQuery = jest.fn();
-    mockGetAllActiveRules = jest.fn();
-    mockGetConsumption = jest.fn();
-    mockSendThresholdAlert = jest.fn().mockResolvedValue(true);
-    mockRuntime = {
-      isLocalMode: jest.fn().mockReturnValue(false),
-      getAuthBaseUrl: jest.fn().mockReturnValue('http://localhost:3001'),
-    };
-
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        NotificationCronService,
-        { provide: DataSource, useValue: { query: mockQuery, options: { type: 'sqljs' } } },
-        {
-          provide: NotificationRulesService,
-          useValue: {
-            getAllActiveRules: mockGetAllActiveRules,
-            getConsumption: mockGetConsumption,
-          },
-        },
-        {
-          provide: NotificationEmailService,
-          useValue: { sendThresholdAlert: mockSendThresholdAlert },
-        },
-        {
-          provide: EmailProviderConfigService,
-          useValue: { getFullConfig: jest.fn().mockResolvedValue(null) },
-        },
-        { provide: ManifestRuntimeService, useValue: mockRuntime },
-      ],
-    }).compile();
-
-    service = module.get(NotificationCronService);
-  });
-
-  it('uses ? placeholders in dedup query for sql.js', async () => {
-    mockGetAllActiveRules.mockResolvedValue([localRule]);
-    mockGetConsumption.mockResolvedValue(200000);
-    mockQuery.mockResolvedValueOnce([{ 1: 1 }]); // dedup hit
+    mockResolveUserEmail.mockResolvedValue('custom@test.com');
 
     await service.checkThresholds();
-
-    const dedupCall = mockQuery.mock.calls[0];
-    const sql = dedupCall[0] as string;
-    expect(sql).not.toContain('$1');
-    expect(sql).not.toContain('$2');
-    expect(sql).toContain('?');
-    expect(sql).toContain('notification_logs');
+    expect(mockResolveUserEmail).toHaveBeenCalledWith('user-1', 'custom@test.com');
   });
 
-  it('uses ? placeholders in INSERT notification_logs for sql.js', async () => {
-    mockGetAllActiveRules.mockResolvedValue([localRule]);
-    mockQuery
-      .mockResolvedValueOnce([]) // no dedup
-      .mockResolvedValueOnce([{ email: 'a@b.com' }]) // email
-      .mockResolvedValueOnce(undefined); // INSERT
+  it('warns when email send fails', async () => {
+    mockGetAllActiveRules.mockResolvedValue([activeRule]);
     mockGetConsumption.mockResolvedValue(200000);
+    mockResolveUserEmail.mockResolvedValue('user@test.com');
+    mockSendThresholdAlert.mockResolvedValue(false);
 
+    const loggerSpy = jest.spyOn(service['logger'], 'warn').mockImplementation();
     await service.checkThresholds();
-
-    const insertCall = mockQuery.mock.calls[2];
-    const sql = insertCall[0] as string;
-    const params = insertCall[1] as unknown[];
-
-    expect(sql).toContain('INSERT INTO notification_logs');
-    expect(sql).not.toContain('$1');
-    // All 9 params replaced with ?
-    expect((sql.match(/\?/g) ?? []).length).toBe(9);
-    expect(params).toHaveLength(9);
-  });
-
-  it('uses ? placeholder in user email lookup for sql.js', async () => {
-    mockGetAllActiveRules.mockResolvedValue([localRule]);
-    mockQuery
-      .mockResolvedValueOnce([]) // no dedup
-      .mockResolvedValueOnce([{ email: 'user@test.com' }]) // email
-      .mockResolvedValueOnce(undefined); // INSERT
-    mockGetConsumption.mockResolvedValue(200000);
-
-    await service.checkThresholds();
-
-    const emailCall = mockQuery.mock.calls[1];
-    const sql = emailCall[0] as string;
-    expect(sql).toContain('SELECT email FROM "user" WHERE id = ?');
-    expect(emailCall[1]).toEqual(['user-1']);
-  });
-
-  it('triggers notification correctly on sql.js dialect', async () => {
-    mockGetAllActiveRules.mockResolvedValue([localRule]);
-    mockQuery
-      .mockResolvedValueOnce([]) // no dedup
-      .mockResolvedValueOnce([{ email: 'user@test.com' }]) // email
-      .mockResolvedValueOnce(undefined); // INSERT
-    mockGetConsumption.mockResolvedValue(150000);
-
-    const result = await service.checkThresholds();
-    expect(result).toBe(1);
-    expect(mockSendThresholdAlert).toHaveBeenCalledWith(
-      'user@test.com',
-      expect.objectContaining({
-        agentName: 'my-agent',
-        metricType: 'tokens',
-        threshold: 100000,
-        actualValue: 150000,
-        alertType: 'soft',
-      }),
-      undefined,
+    expect(loggerSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Failed to send alert for rule'),
     );
+    loggerSpy.mockRestore();
+  });
+
+  it('warns when no email found for user', async () => {
+    mockGetAllActiveRules.mockResolvedValue([activeRule]);
+    mockGetConsumption.mockResolvedValue(200000);
+    mockResolveUserEmail.mockResolvedValue(null);
+
+    const loggerSpy = jest.spyOn(service['logger'], 'warn').mockImplementation();
+    await service.checkThresholds();
+    expect(loggerSpy).toHaveBeenCalledWith(expect.stringContaining('No email found for user'));
+    loggerSpy.mockRestore();
   });
 });
