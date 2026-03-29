@@ -93,6 +93,7 @@ describe('ModelDiscoveryService', () => {
     registerModels: jest.Mock;
     getConfirmedModels: jest.Mock;
   };
+  let mockModelsDevSync: { lookupModel: jest.Mock; getModelsForProvider: jest.Mock };
   let mockCopilotTokenService: { getCopilotToken: jest.Mock };
 
   beforeEach(() => {
@@ -102,6 +103,10 @@ describe('ModelDiscoveryService', () => {
     mockPricingSync = {
       lookupPricing: jest.fn().mockReturnValue(null),
       getAll: jest.fn().mockReturnValue(new Map()),
+    };
+    mockModelsDevSync = {
+      lookupModel: jest.fn().mockReturnValue(null),
+      getModelsForProvider: jest.fn().mockReturnValue([]),
     };
     mockModelRegistry = {
       registerModels: jest.fn(),
@@ -120,6 +125,7 @@ describe('ModelDiscoveryService', () => {
       customProviderRepo as never,
       fetcher as unknown as ProviderModelFetcherService,
       mockPricingSync as never,
+      mockModelsDevSync as never,
       mockModelRegistry as unknown as ProviderModelRegistryService,
       mockCopilotTokenService as never,
     );
@@ -241,6 +247,7 @@ describe('ModelDiscoveryService', () => {
         null,
         null,
         null,
+        null,
       );
 
       const models = [makeModel({ id: 'some-model' })];
@@ -335,6 +342,7 @@ describe('ModelDiscoveryService', () => {
         customProviderRepo as never,
         fetcher as unknown as ProviderModelFetcherService,
         mockPricingSync as never,
+        mockModelsDevSync as never,
         null,
         null,
       );
@@ -552,8 +560,8 @@ describe('ModelDiscoveryService', () => {
   /* ── enrichModel edge cases via discoverModels ── */
 
   describe('enrichModel (via discoverModels)', () => {
-    it('should use pricingSync lookup when fetcher provided zero pricing', async () => {
-      // inputPricePerToken is 0, which is not > 0, so enrichModel continues to lookup
+    it('should preserve zero pricing from fetcher (free/subscription models)', async () => {
+      // inputPricePerToken is 0 (free/subscription), enrichment should NOT override
       mockPricingSync.lookupPricing.mockImplementation((key: string) => {
         if (key === 'openai/free-model') {
           return { input: 0.001, output: 0.002 };
@@ -567,9 +575,46 @@ describe('ModelDiscoveryService', () => {
       fetcher.fetch.mockResolvedValue(models);
 
       const result = await service.discoverModels(makeProvider());
-      // Should have gone through pricingSync lookup since 0 is not > 0
-      expect(mockPricingSync.lookupPricing).toHaveBeenCalled();
-      expect(result[0].inputPricePerToken).toBe(0.001);
+      // Price=0 means "free/included" — should not be overwritten
+      expect(result[0].inputPricePerToken).toBe(0);
+      expect(result[0].outputPricePerToken).toBe(0);
+    });
+
+    it('should apply capabilities from models.dev even when pricing is already set', async () => {
+      // Copilot/subscription model has price=0 but needs capability flags for scoring
+      mockModelsDevSync.lookupModel.mockImplementation((providerId: string, modelId: string) => {
+        if (modelId === 'copilot-model') {
+          return {
+            id: 'copilot-model',
+            name: 'Copilot Model',
+            inputPricePerToken: 0.000005, // pricing should NOT be applied
+            outputPricePerToken: 0.000025,
+            reasoning: true,
+            toolCall: true,
+          };
+        }
+        return null;
+      });
+
+      const models = [
+        makeModel({
+          id: 'copilot-model',
+          inputPricePerToken: 0,
+          outputPricePerToken: 0,
+          capabilityReasoning: false,
+          capabilityCode: false,
+        }),
+      ];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider());
+
+      // Pricing preserved as 0 (not overwritten)
+      expect(result[0].inputPricePerToken).toBe(0);
+      expect(result[0].outputPricePerToken).toBe(0);
+      // Capabilities applied from models.dev
+      expect(result[0].capabilityReasoning).toBe(true);
+      expect(result[0].capabilityCode).toBe(true);
     });
 
     it('should fall back to exact model ID lookup when prefix lookup misses', async () => {
@@ -612,6 +657,77 @@ describe('ModelDiscoveryService', () => {
       expect(mockPricingSync.lookupPricing).toHaveBeenCalledWith('mistralai/mistral-large');
       expect(result[0].inputPricePerToken).toBe(0.00002);
       expect(result[0].outputPricePerToken).toBe(0.00006);
+    });
+
+    it('should use models.dev pricing before OpenRouter when available', async () => {
+      mockModelsDevSync.lookupModel.mockImplementation((providerId: string, modelId: string) => {
+        if (providerId === 'openai' && modelId === 'gpt-4o') {
+          return {
+            id: 'gpt-4o',
+            name: 'GPT-4o',
+            inputPricePerToken: 0.0000025,
+            outputPricePerToken: 0.00001,
+            contextWindow: 128000,
+            reasoning: false,
+          };
+        }
+        return null;
+      });
+      // OpenRouter also has pricing but should NOT be used
+      mockPricingSync.lookupPricing.mockReturnValue({
+        input: 0.99,
+        output: 0.99,
+        displayName: 'Wrong',
+      });
+
+      const models = [makeModel({ id: 'gpt-4o' })];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider());
+
+      expect(result[0].inputPricePerToken).toBe(0.0000025);
+      expect(result[0].outputPricePerToken).toBe(0.00001);
+      expect(result[0].displayName).toBe('GPT-4o');
+    });
+
+    it('should propagate capabilities from models.dev to quality scoring', async () => {
+      mockModelsDevSync.lookupModel.mockReturnValue({
+        id: 'claude-opus-4-6',
+        name: 'Claude Opus 4.6',
+        inputPricePerToken: 0.000005,
+        outputPricePerToken: 0.000025,
+        contextWindow: 1000000,
+        reasoning: true,
+        toolCall: true,
+      });
+
+      const models = [
+        makeModel({ id: 'claude-opus-4-6', capabilityReasoning: false, capabilityCode: false }),
+      ];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider({ provider: 'anthropic' }));
+
+      expect(result[0].capabilityReasoning).toBe(true);
+      expect(result[0].capabilityCode).toBe(true);
+    });
+
+    it('should fall through to OpenRouter when models.dev has no match', async () => {
+      mockModelsDevSync.lookupModel.mockReturnValue(null);
+      mockPricingSync.lookupPricing.mockImplementation((key: string) => {
+        if (key === 'openai/new-model') {
+          return { input: 0.001, output: 0.002, displayName: 'New Model' };
+        }
+        return null;
+      });
+
+      const models = [makeModel({ id: 'new-model' })];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider());
+
+      expect(result[0].inputPricePerToken).toBe(0.001);
+      expect(result[0].displayName).toBe('New Model');
     });
 
     it('should skip prefix lookup when provider has no OpenRouter prefix', async () => {
@@ -1189,6 +1305,7 @@ describe('ModelDiscoveryService', () => {
         customProviderRepo as never,
         fetcher as unknown as ProviderModelFetcherService,
         mockPricingSync as never,
+        mockModelsDevSync as never,
         mockModelRegistry as unknown as ProviderModelRegistryService,
         null,
       );
@@ -1218,6 +1335,7 @@ describe('ModelDiscoveryService', () => {
         providerRepo as never,
         customProviderRepo as never,
         fetcher as unknown as ProviderModelFetcherService,
+        null,
         null,
         null,
         null,
@@ -1620,6 +1738,267 @@ describe('ModelDiscoveryService', () => {
       expect(result.map((m) => m.id)).toContain('MiniMax-M2.1');
       expect(result.map((m) => m.id)).toContain('MiniMax-M2');
       expect(result.map((m) => m.id)).not.toContain('MiniMax-M2.5');
+    });
+  });
+
+  /* ── applyCapabilities edge cases ── */
+
+  describe('applyCapabilities (via enrichModel)', () => {
+    it('should not apply capabilities when modelsDevSync is null', async () => {
+      const serviceNoMd = new ModelDiscoveryService(
+        providerRepo as never,
+        customProviderRepo as never,
+        fetcher as unknown as ProviderModelFetcherService,
+        mockPricingSync as never,
+        null, // no models.dev sync
+        mockModelRegistry as unknown as ProviderModelRegistryService,
+        null,
+      );
+
+      const models = [
+        makeModel({
+          id: 'free-model',
+          inputPricePerToken: 0,
+          outputPricePerToken: 0,
+          capabilityReasoning: false,
+          capabilityCode: false,
+        }),
+      ];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await serviceNoMd.discoverModels(makeProvider());
+
+      expect(result[0].capabilityReasoning).toBe(false);
+      expect(result[0].capabilityCode).toBe(false);
+    });
+
+    it('should preserve existing capabilities when models.dev has no match', async () => {
+      mockModelsDevSync.lookupModel.mockReturnValue(null);
+
+      const models = [
+        makeModel({
+          id: 'custom-model',
+          inputPricePerToken: 0,
+          outputPricePerToken: 0,
+          capabilityReasoning: true,
+          capabilityCode: true,
+        }),
+      ];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider());
+
+      expect(result[0].capabilityReasoning).toBe(true);
+      expect(result[0].capabilityCode).toBe(true);
+    });
+
+    it('should apply capabilities for OpenRouter-sourced models with positive pricing', async () => {
+      // Model has pricing > 0, so enrichModel skips pricing but applies capabilities
+      mockModelsDevSync.lookupModel.mockReturnValue({
+        id: 'gpt-4o',
+        name: 'GPT-4o',
+        inputPricePerToken: 0.0000025,
+        outputPricePerToken: 0.00001,
+        reasoning: true,
+        toolCall: true,
+      });
+
+      const models = [
+        makeModel({
+          id: 'gpt-4o',
+          inputPricePerToken: 0.0000025, // positive pricing, already set
+          outputPricePerToken: 0.00001,
+          capabilityReasoning: false,
+          capabilityCode: false,
+        }),
+      ];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider());
+
+      // Pricing should be preserved (not overwritten from models.dev)
+      expect(result[0].inputPricePerToken).toBe(0.0000025);
+      expect(result[0].outputPricePerToken).toBe(0.00001);
+      // Capabilities should be applied from models.dev
+      expect(result[0].capabilityReasoning).toBe(true);
+      expect(result[0].capabilityCode).toBe(true);
+    });
+
+    it('should use model default capabilities when models.dev entry has undefined flags', async () => {
+      mockModelsDevSync.lookupModel.mockReturnValue({
+        id: 'model-no-flags',
+        name: 'Model No Flags',
+        inputPricePerToken: 0.001,
+        outputPricePerToken: 0.002,
+        // reasoning and toolCall are undefined
+      });
+
+      const models = [
+        makeModel({
+          id: 'model-no-flags',
+          inputPricePerToken: 0,
+          outputPricePerToken: 0,
+          capabilityReasoning: true,
+          capabilityCode: true,
+        }),
+      ];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider());
+
+      // undefined ?? true = true (model defaults preserved)
+      expect(result[0].capabilityReasoning).toBe(true);
+      expect(result[0].capabilityCode).toBe(true);
+    });
+  });
+
+  /* ── enrichModel pricing boundary conditions ── */
+
+  describe('enrichModel pricing boundary conditions', () => {
+    it('should trigger pricing enrichment when inputPricePerToken is negative', async () => {
+      mockModelsDevSync.lookupModel.mockReturnValue({
+        id: 'neg-model',
+        name: 'Negative Price Model',
+        inputPricePerToken: 0.001,
+        outputPricePerToken: 0.002,
+        contextWindow: 128000,
+      });
+
+      const models = [
+        makeModel({
+          id: 'neg-model',
+          inputPricePerToken: -1,
+          outputPricePerToken: null,
+        }),
+      ];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider());
+
+      // Negative price is < 0, so the >= 0 guard fails, enrichment kicks in
+      expect(result[0].inputPricePerToken).toBe(0.001);
+      expect(result[0].outputPricePerToken).toBe(0.002);
+    });
+
+    it('should trigger pricing enrichment when inputPricePerToken is null', async () => {
+      mockModelsDevSync.lookupModel.mockReturnValue({
+        id: 'null-price',
+        name: 'Null Price',
+        inputPricePerToken: 0.005,
+        outputPricePerToken: 0.01,
+        contextWindow: 64000,
+      });
+
+      const models = [
+        makeModel({
+          id: 'null-price',
+          inputPricePerToken: null,
+          outputPricePerToken: null,
+        }),
+      ];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider());
+
+      expect(result[0].inputPricePerToken).toBe(0.005);
+      expect(result[0].outputPricePerToken).toBe(0.01);
+    });
+
+    it('should skip pricing enrichment but apply capabilities for price=0 models', async () => {
+      mockModelsDevSync.lookupModel.mockReturnValue({
+        id: 'zero-price',
+        name: 'Zero Price Enhanced',
+        inputPricePerToken: 0.003, // should NOT be used
+        outputPricePerToken: 0.006,
+        reasoning: true,
+        toolCall: false,
+      });
+
+      const models = [
+        makeModel({
+          id: 'zero-price',
+          inputPricePerToken: 0,
+          outputPricePerToken: 0,
+          capabilityReasoning: false,
+          capabilityCode: true,
+        }),
+      ];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider());
+
+      // Pricing preserved
+      expect(result[0].inputPricePerToken).toBe(0);
+      expect(result[0].outputPricePerToken).toBe(0);
+      // Capabilities updated from models.dev
+      expect(result[0].capabilityReasoning).toBe(true);
+      expect(result[0].capabilityCode).toBe(false);
+    });
+  });
+
+  /* ── models.dev fallback in discoverModels ── */
+
+  describe('models.dev fallback in discoverModels', () => {
+    it('should try models.dev before OpenRouter when native API returns empty', async () => {
+      fetcher.fetch.mockResolvedValue([]);
+      mockModelsDevSync.getModelsForProvider.mockReturnValue([
+        {
+          id: 'md-model',
+          name: 'MD Model',
+          contextWindow: 128000,
+          inputPricePerToken: 0.001,
+          outputPricePerToken: 0.002,
+          reasoning: true,
+          toolCall: false,
+        },
+      ]);
+
+      const result = await service.discoverModels(makeProvider());
+
+      expect(mockModelsDevSync.getModelsForProvider).toHaveBeenCalledWith('openai');
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('md-model');
+      expect(result[0].capabilityReasoning).toBe(true);
+      // OpenRouter fallback should NOT be called when models.dev has data
+      expect(mockPricingSync.getAll).not.toHaveBeenCalled();
+    });
+
+    it('should fall through to OpenRouter when both native API and models.dev return empty', async () => {
+      fetcher.fetch.mockResolvedValue([]);
+      mockModelsDevSync.getModelsForProvider.mockReturnValue([]);
+      mockPricingSync.getAll.mockReturnValue(
+        new Map([['openai/gpt-4o', { input: 0.01, output: 0.02, displayName: 'GPT-4o' }]]),
+      );
+
+      const result = await service.discoverModels(makeProvider());
+
+      expect(mockModelsDevSync.getModelsForProvider).toHaveBeenCalledWith('openai');
+      expect(mockPricingSync.getAll).toHaveBeenCalled();
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('gpt-4o');
+    });
+
+    it('should skip models.dev fallback when modelsDevSync is null', async () => {
+      const serviceNoMd = new ModelDiscoveryService(
+        providerRepo as never,
+        customProviderRepo as never,
+        fetcher as unknown as ProviderModelFetcherService,
+        mockPricingSync as never,
+        null,
+        mockModelRegistry as unknown as ProviderModelRegistryService,
+        null,
+      );
+
+      fetcher.fetch.mockResolvedValue([]);
+      mockPricingSync.getAll.mockReturnValue(
+        new Map([['openai/gpt-4o', { input: 0.01, output: 0.02, displayName: 'GPT-4o' }]]),
+      );
+
+      const result = await serviceNoMd.discoverModels(makeProvider());
+
+      // Should go straight to OpenRouter fallback
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('gpt-4o');
     });
   });
 });

@@ -151,6 +151,121 @@ describe('ProviderModelFetcherService', () => {
       const result = await service.fetch('openai', 'sk-test');
       expect(result).toEqual([]);
     });
+
+    it('should filter out non-chat OpenAI models', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'gpt-4o' },
+            { id: 'gpt-4.1' },
+            { id: 'text-embedding-3-small' },
+            { id: 'tts-1' },
+            { id: 'tts-1-hd' },
+            { id: 'whisper-1' },
+            { id: 'dall-e-3' },
+            { id: 'text-moderation-latest' },
+            { id: 'gpt-3.5-turbo-instruct' },
+            { id: 'davinci-002' },
+            { id: 'babbage-002' },
+            { id: 'sora-2' },
+            { id: 'sora-2-pro' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('openai', 'sk-test');
+      expect(result.map((m) => m.id)).toEqual(['gpt-4o', 'gpt-4.1']);
+    });
+
+    it('should filter out v1/responses-only models', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'gpt-5-chat-latest' },
+            { id: 'gpt-5-codex' },
+            { id: 'gpt-5-pro' },
+            { id: 'gpt-5.1-codex' },
+            { id: 'gpt-5.1-codex-mini' },
+            { id: 'gpt-5.2-codex' },
+            { id: 'gpt-5.2-pro' },
+            { id: 'gpt-5.4-pro' },
+            { id: 'gpt-5.3-codex' },
+            { id: 'codex-mini-latest' },
+            { id: 'o3' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('openai', 'sk-test');
+      // chat-latest, codex-mini-latest, and o3 should pass; codex and pro should be filtered
+      expect(result.map((m) => m.id)).toEqual(['gpt-5-chat-latest', 'codex-mini-latest', 'o3']);
+    });
+
+    it('should not filter non-OpenAI providers with similar model names', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [{ id: 'deepseek-chat' }, { id: 'deepseek-reasoner' }],
+        }),
+      });
+
+      // DeepSeek uses the generic parseOpenAI (no filtering)
+      const result = await service.fetch('deepseek', 'sk-test');
+      expect(result).toHaveLength(2);
+    });
+
+    it('should keep codex-mini-latest (chat-compatible codex model)', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [{ id: 'codex-mini-latest' }, { id: 'gpt-5-codex' }],
+        }),
+      });
+
+      const result = await service.fetch('openai', 'sk-test');
+      expect(result.map((m) => m.id)).toEqual(['codex-mini-latest']);
+    });
+  });
+
+  /* ── Mistral-specific filter ── */
+
+  describe('parseMistralChatOnly (via mistral provider)', () => {
+    it('should filter out OCR models', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'mistral-large-latest' },
+            { id: 'mistral-ocr-2512' },
+            { id: 'mistral-ocr-latest' },
+            { id: 'mistral-ocr-2503' },
+            { id: 'codestral-latest' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('mistral', 'key');
+      expect(result.map((m) => m.id)).toEqual(['mistral-large-latest', 'codestral-latest']);
+    });
+
+    it('should keep all regular Mistral chat models', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'mistral-medium-latest' },
+            { id: 'magistral-small-latest' },
+            { id: 'devstral-medium-2507' },
+            { id: 'voxtral-small-latest' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('mistral', 'key');
+      expect(result).toHaveLength(4);
+    });
   });
 
   /* ── OpenAI-compatible providers use same parser ── */
@@ -438,6 +553,55 @@ describe('ProviderModelFetcherService', () => {
 
       const result = await service.fetch('gemini', 'key');
       expect(result).toEqual([]);
+    });
+
+    it('should deduplicate versioned models when alias exists', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          models: [
+            {
+              name: 'models/gemini-2.0-flash',
+              displayName: 'Gemini 2.0 Flash',
+              supportedGenerationMethods: ['generateContent'],
+            },
+            {
+              name: 'models/gemini-2.0-flash-001',
+              displayName: 'Gemini 2.0 Flash 001',
+              supportedGenerationMethods: ['generateContent'],
+            },
+            {
+              name: 'models/gemini-2.5-pro',
+              displayName: 'Gemini 2.5 Pro',
+              supportedGenerationMethods: ['generateContent'],
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('gemini', 'key');
+      // gemini-2.0-flash-001 should be dropped because gemini-2.0-flash exists
+      expect(result).toHaveLength(2);
+      expect(result.map((m) => m.id)).toEqual(['gemini-2.0-flash', 'gemini-2.5-pro']);
+    });
+
+    it('should keep versioned model when alias does not exist', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          models: [
+            {
+              name: 'models/gemini-2.0-flash-001',
+              displayName: 'Gemini 2.0 Flash 001',
+              supportedGenerationMethods: ['generateContent'],
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('gemini', 'key');
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('gemini-2.0-flash-001');
     });
 
     it('should embed key in URL and send no headers', async () => {
@@ -988,5 +1152,316 @@ describe('ProviderModelFetcherService', () => {
 
     const result = await service.fetch('gemini', 'secret-key');
     expect(result).toEqual([]);
+  });
+
+  /* ── Mistral-specific filter: edge cases ── */
+
+  describe('parseMistralChatOnly edge cases', () => {
+    it('should preserve voxtral models (speech-capable chat models)', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [{ id: 'voxtral-small-latest' }, { id: 'voxtral-medium-2507' }],
+        }),
+      });
+
+      const result = await service.fetch('mistral', 'key');
+      expect(result).toHaveLength(2);
+      expect(result.map((m) => m.id)).toEqual(['voxtral-small-latest', 'voxtral-medium-2507']);
+    });
+
+    it('should preserve magistral models (reasoning chat models)', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [{ id: 'magistral-small-latest' }, { id: 'magistral-medium-latest' }],
+        }),
+      });
+
+      const result = await service.fetch('mistral', 'key');
+      expect(result).toHaveLength(2);
+      expect(result.map((m) => m.id)).toEqual([
+        'magistral-small-latest',
+        'magistral-medium-latest',
+      ]);
+    });
+
+    it('should preserve devstral models', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [{ id: 'devstral-medium-2507' }],
+        }),
+      });
+
+      const result = await service.fetch('mistral', 'key');
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('devstral-medium-2507');
+    });
+
+    it('should filter out embed models', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [{ id: 'mistral-embed' }, { id: 'mistral-large-latest' }],
+        }),
+      });
+
+      const result = await service.fetch('mistral', 'key');
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('mistral-large-latest');
+    });
+
+    it('should filter out all OCR variants', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'mistral-ocr-2512' },
+            { id: 'mistral-ocr-latest' },
+            { id: 'mistral-ocr-2503' },
+            { id: 'codestral-latest' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('mistral', 'key');
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('codestral-latest');
+    });
+
+    it('should keep model with "ocr" in the middle of the name but not at start', async () => {
+      // The regex is /^mistral-ocr|embed/i — only filters "mistral-ocr-*" prefix, not "ocr" mid-name
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [{ id: 'pixtral-large-latest' }, { id: 'some-ocr-model' }],
+        }),
+      });
+
+      const result = await service.fetch('mistral', 'key');
+      // Both pass: pixtral has no "mistral-ocr" prefix, "some-ocr-model" has "ocr" mid-name not prefix
+      expect(result).toHaveLength(2);
+    });
+  });
+
+  /* ── OpenAI parseOpenAIChatOnly edge cases ── */
+
+  describe('parseOpenAIChatOnly edge cases', () => {
+    it('should filter out realtime models', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [{ id: 'gpt-4o-realtime-preview' }, { id: 'gpt-4o' }],
+        }),
+      });
+
+      const result = await service.fetch('openai', 'sk-test');
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('gpt-4o');
+    });
+
+    it('should filter out transcribe models', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'gpt-4o-audio-transcribe' },
+            { id: 'gpt-4o-mini-audio-transcribe' },
+            { id: 'gpt-4o' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('openai', 'sk-test');
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('gpt-4o');
+    });
+
+    it('should filter out sora models', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [{ id: 'sora-2' }, { id: 'sora-2-pro' }, { id: 'o3' }],
+        }),
+      });
+
+      const result = await service.fetch('openai', 'sk-test');
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('o3');
+    });
+
+    it('should keep codex-mini-latest but filter other codex models', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'codex-mini-latest' },
+            { id: 'gpt-5-codex' },
+            { id: 'gpt-5.1-codex' },
+            { id: 'gpt-5.2-codex' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('openai', 'sk-test');
+      expect(result.map((m) => m.id)).toEqual(['codex-mini-latest']);
+    });
+
+    it('should filter out gpt-5-pro but keep gpt-5-chat-latest', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'gpt-5-pro' },
+            { id: 'gpt-5.2-pro' },
+            { id: 'gpt-5-chat-latest' },
+            { id: 'gpt-5' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('openai', 'sk-test');
+      expect(result.map((m) => m.id)).toEqual(['gpt-5-chat-latest', 'gpt-5']);
+    });
+
+    it('should filter out audio models', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'gpt-4o-audio-preview' },
+            { id: 'gpt-4o-mini-audio-preview' },
+            { id: 'gpt-4o' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('openai', 'sk-test');
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('gpt-4o');
+    });
+
+    it('should filter out text-moderation models', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'text-moderation-latest' },
+            { id: 'text-moderation-stable' },
+            { id: 'gpt-4o' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('openai', 'sk-test');
+      // text-moderation-* matches both the moderation pattern and the text- prefix pattern
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('gpt-4o');
+    });
+  });
+
+  /* ── Gemini dedup edge cases ── */
+
+  describe('parseGemini dedup edge cases', () => {
+    it('should keep multiple versioned models when no alias exists for any', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          models: [
+            {
+              name: 'models/gemini-2.0-flash-001',
+              displayName: 'Flash 001',
+              supportedGenerationMethods: ['generateContent'],
+            },
+            {
+              name: 'models/gemini-2.0-flash-002',
+              displayName: 'Flash 002',
+              supportedGenerationMethods: ['generateContent'],
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('gemini', 'key');
+      // Neither has an alias without -NNN suffix, so both should be kept
+      expect(result).toHaveLength(2);
+      expect(result.map((m) => m.id)).toEqual(['gemini-2.0-flash-001', 'gemini-2.0-flash-002']);
+    });
+
+    it('should keep non-versioned model even when versioned variant exists', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          models: [
+            {
+              name: 'models/gemini-2.5-flash',
+              displayName: 'Flash',
+              supportedGenerationMethods: ['generateContent'],
+            },
+            {
+              name: 'models/gemini-2.5-flash-001',
+              displayName: 'Flash 001',
+              supportedGenerationMethods: ['generateContent'],
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('gemini', 'key');
+      // gemini-2.5-flash-001 has alias gemini-2.5-flash, so it's dropped
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('gemini-2.5-flash');
+    });
+
+    it('should not treat non-3-digit suffixes as version suffixes', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          models: [
+            {
+              name: 'models/gemini-2.5-pro-preview-03-25',
+              displayName: 'Preview',
+              supportedGenerationMethods: ['generateContent'],
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('gemini', 'key');
+      // -03-25 is not a 3-digit version suffix, so the model stays
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('gemini-2.5-pro-preview-03-25');
+    });
+  });
+
+  /* ── MiniMax subscription routing ── */
+
+  it('should route minimax+subscription to minimax-subscription config', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [] }),
+    });
+
+    await service.fetch('minimax', 'token', 'subscription');
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      expect.stringContaining('api.minimax.io'),
+      expect.anything(),
+    );
+  });
+
+  it('should use regular minimax config when authType is not subscription', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [] }),
+    });
+
+    await service.fetch('minimax', 'api-key', 'api_key');
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      expect.stringContaining('api.minimaxi.chat'),
+      expect.anything(),
+    );
   });
 });
