@@ -1,5 +1,11 @@
 # manifest
 
+## 5.33.19
+
+### Patch Changes
+
+- b96f7ad: chore: remove obsolete OpenClaw 2026.3.22+ install workaround from READMEs
+
 ## 5.33.18
 
 ### Patch Changes
