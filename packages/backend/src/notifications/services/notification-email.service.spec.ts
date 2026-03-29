@@ -194,7 +194,7 @@ describe('NotificationEmailService', () => {
     );
   });
 
-  it('uses "Alert:" subject prefix for hard alerts', async () => {
+  it('uses "Blocked:" subject prefix for hard alerts', async () => {
     (sendEmail as jest.Mock).mockResolvedValue(true);
 
     await service.sendThresholdAlert('user@test.com', {
@@ -210,12 +210,12 @@ describe('NotificationEmailService', () => {
 
     expect(sendEmail).toHaveBeenCalledWith(
       expect.objectContaining({
-        subject: 'Alert: demo-agent exceeded cost threshold',
+        subject: 'Blocked: demo-agent reached cost limit',
       }),
     );
   });
 
-  it('defaults to "Alert:" subject when alertType is not set', async () => {
+  it('defaults to "Blocked:" subject when alertType is not set', async () => {
     (sendEmail as jest.Mock).mockResolvedValue(true);
 
     await service.sendThresholdAlert('user@test.com', {
@@ -230,7 +230,7 @@ describe('NotificationEmailService', () => {
 
     expect(sendEmail).toHaveBeenCalledWith(
       expect.objectContaining({
-        subject: 'Alert: demo-agent exceeded tokens threshold',
+        subject: 'Blocked: demo-agent reached tokens limit',
       }),
     );
   });

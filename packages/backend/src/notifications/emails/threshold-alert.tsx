@@ -69,7 +69,9 @@ export function ThresholdAlertEmail(props: ThresholdAlertProps) {
     <Html>
       <Head />
       <Preview>
-        {agentName} exceeded {metricType} threshold ({formatValue(actualValue, metricType)})
+        {isSoft
+          ? `${agentName} exceeded ${metricType} threshold (${formatValue(actualValue, metricType)})`
+          : `${agentName} has been blocked — ${metricType} limit reached (${formatValue(actualValue, metricType)} / ${formatValue(threshold, metricType)})`}
       </Preview>
       <Body style={body}>
         <Container style={container}>
@@ -83,16 +85,30 @@ export function ThresholdAlertEmail(props: ThresholdAlertProps) {
             {/* Alert badge */}
             <Section style={alertBadgeContainer}>
               <Text style={{ ...alertBadge, color: accentColor, backgroundColor: accentBg }}>
-                {isSoft ? 'Warning' : 'Threshold exceeded'}
+                {isSoft ? 'Warning' : 'Agent blocked'}
               </Text>
             </Section>
 
             <Text style={heading}>
-              {agentName} exceeded the {metricType} limit
+              {isSoft
+                ? `${agentName} exceeded the ${metricType} limit`
+                : `${agentName} has been blocked`}
             </Text>
             <Text style={paragraph}>
-              Your agent <strong>{agentName}</strong> has exceeded the <strong>{metricType}</strong>{' '}
-              threshold for the current <strong>{period}</strong> period.
+              {isSoft ? (
+                <>
+                  Your agent <strong>{agentName}</strong> has exceeded the{' '}
+                  <strong>{metricType}</strong> threshold for the current <strong>{period}</strong>{' '}
+                  period.
+                </>
+              ) : (
+                <>
+                  Your agent <strong>{agentName}</strong> has reached the{' '}
+                  <strong>{metricType}</strong> limit of{' '}
+                  <strong>{formatValue(threshold, metricType)}</strong> per{' '}
+                  <strong>{period}</strong>. New requests are blocked to protect your budget.
+                </>
+              )}
             </Text>
 
             {/* Context message */}
@@ -118,7 +134,7 @@ export function ThresholdAlertEmail(props: ThresholdAlertProps) {
               <Section
                 style={{ ...statBoxAlert, backgroundColor: accentBg, borderColor: accentBorder }}
               >
-                <Text style={statLabel}>Actual usage</Text>
+                <Text style={statLabel}>{isSoft ? 'Actual usage' : 'Current usage'}</Text>
                 <Text style={{ ...statValueAlert, color: accentColor }}>
                   {formatValue(actualValue, metricType)}
                 </Text>

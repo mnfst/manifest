@@ -22,6 +22,7 @@ vi.mock("../../src/services/local-mode.js", () => ({
 
 vi.mock("../../src/services/api.js", () => ({
   getNotificationRules: vi.fn(() => Promise.resolve(mockRules)),
+  getNotificationLogs: vi.fn(() => Promise.resolve([])),
   createNotificationRule: vi.fn(() => Promise.resolve({})),
   updateNotificationRule: vi.fn(() => Promise.resolve({})),
   deleteNotificationRule: vi.fn(() => Promise.resolve({})),

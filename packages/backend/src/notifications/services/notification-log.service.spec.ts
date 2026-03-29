@@ -59,6 +59,41 @@ describe('NotificationLogService', () => {
     });
   });
 
+  describe('getLogsForAgent', () => {
+    it('queries logs joined with rules filtered by userId and agentName', async () => {
+      const mockLogs = [
+        {
+          id: 'log-1',
+          sent_at: '2026-01-01 12:00:00',
+          actual_value: 60000,
+          threshold_value: 50000,
+          metric_type: 'tokens',
+          period_start: '2026-01-01',
+          period_end: '2026-01-02',
+          agent_name: 'my-agent',
+        },
+      ];
+      mockQuery.mockResolvedValue(mockLogs);
+
+      const result = await service.getLogsForAgent('user-1', 'my-agent');
+
+      expect(result).toEqual(mockLogs);
+      expect(mockQuery).toHaveBeenCalledTimes(1);
+      const [sql, params] = mockQuery.mock.calls[0];
+      expect(sql).toContain('notification_logs');
+      expect(sql).toContain('JOIN notification_rules');
+      expect(sql).toContain('ORDER BY');
+      expect(sql).toContain('LIMIT 50');
+      expect(params).toEqual(['user-1', 'my-agent']);
+    });
+
+    it('returns empty array when no logs exist', async () => {
+      mockQuery.mockResolvedValue([]);
+      const result = await service.getLogsForAgent('user-1', 'my-agent');
+      expect(result).toEqual([]);
+    });
+  });
+
   describe('resolveUserEmail', () => {
     it('returns notificationEmail when provided', async () => {
       expect(await service.resolveUserEmail('u1', 'custom@test.com')).toBe('custom@test.com');
@@ -131,6 +166,13 @@ describe('NotificationLogService', () => {
         agentName: 'a1',
         sentAt: '2026-01-01 12:00:00',
       });
+      const sql = sqljsQuery.mock.calls[0][0] as string;
+      expect(sql).toContain('?');
+      expect(sql).not.toContain('$1');
+    });
+
+    it('uses ? placeholders for getLogsForAgent', async () => {
+      await sqljsService.getLogsForAgent('u1', 'a1');
       const sql = sqljsQuery.mock.calls[0][0] as string;
       expect(sql).toContain('?');
       expect(sql).not.toContain('$1');

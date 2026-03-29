@@ -175,15 +175,15 @@ describe('NotificationCronService', () => {
     expect(mockInsertLog).toHaveBeenCalled();
   });
 
-  it('does not record log when email send fails (allows retry)', async () => {
+  it('records log even when email send fails', async () => {
     mockGetAllActiveRules.mockResolvedValue([activeRule]);
     mockGetConsumption.mockResolvedValue(200000);
     mockResolveUserEmail.mockResolvedValue('user@test.com');
     mockSendThresholdAlert.mockResolvedValue(false);
 
     const result = await service.checkThresholds();
-    expect(result).toBe(0);
-    expect(mockInsertLog).not.toHaveBeenCalled();
+    expect(result).toBe(1);
+    expect(mockInsertLog).toHaveBeenCalled();
   });
 
   it('handles multiple rules and counts only triggered ones', async () => {

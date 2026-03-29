@@ -116,10 +116,19 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
       rule.user_id,
       providerConfig?.notificationEmail,
     );
-    let emailSent = false;
+    await this.notificationLog.insertLog({
+      ruleId: rule.id,
+      periodStart,
+      periodEnd,
+      actualValue: actual,
+      thresholdValue: rule.threshold,
+      metricType: rule.metric_type,
+      agentName: rule.agent_name,
+      sentAt: now,
+    });
 
     if (email) {
-      emailSent = await this.emailService.sendThresholdAlert(
+      await this.emailService.sendThresholdAlert(
         email,
         {
           agentName: rule.agent_name,
@@ -134,19 +143,6 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
         },
         providerConfig ?? undefined,
       );
-    }
-
-    if (emailSent || !email) {
-      await this.notificationLog.insertLog({
-        ruleId: rule.id,
-        periodStart,
-        periodEnd,
-        actualValue: actual,
-        thresholdValue: rule.threshold,
-        metricType: rule.metric_type,
-        agentName: rule.agent_name,
-        sentAt: now,
-      });
     }
   }
 

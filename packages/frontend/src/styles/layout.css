@@ -94,9 +94,15 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
+  gap: 16px;
   margin-bottom: var(--gap-xl);
   padding-bottom: var(--gap-lg);
   border-bottom: 1px solid hsl(var(--border));
+}
+
+.page-header .btn {
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .page-header h1 {

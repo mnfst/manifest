@@ -113,9 +113,19 @@ export class NotificationCronService implements OnModuleInit {
       rule.user_id,
       fullConfig?.notificationEmail,
     );
-    let emailSent = false;
+    await this.notificationLog.insertLog({
+      ruleId: rule.id,
+      periodStart,
+      periodEnd,
+      actualValue: actual,
+      thresholdValue: rule.threshold,
+      metricType: rule.metric_type,
+      agentName: rule.agent_name,
+      sentAt: now,
+    });
+
     if (email) {
-      emailSent = await this.emailService.sendThresholdAlert(
+      const emailSent = await this.emailService.sendThresholdAlert(
         email,
         {
           agentName: rule.agent_name,
@@ -129,27 +139,15 @@ export class NotificationCronService implements OnModuleInit {
         },
         fullConfig ?? undefined,
       );
+      if (!emailSent) {
+        this.logger.warn(`Failed to send alert for rule ${rule.id}, will retry next cron run`);
+      }
     } else {
       this.logger.warn(
         `No email found for user ${rule.user_id}, skipping alert for rule ${rule.id}`,
       );
     }
 
-    if (emailSent || !email) {
-      await this.notificationLog.insertLog({
-        ruleId: rule.id,
-        periodStart,
-        periodEnd,
-        actualValue: actual,
-        thresholdValue: rule.threshold,
-        metricType: rule.metric_type,
-        agentName: rule.agent_name,
-        sentAt: now,
-      });
-    } else {
-      this.logger.warn(`Failed to send alert for rule ${rule.id}, will retry next cron run`);
-    }
-
-    return emailSent || !email;
+    return true;
   }
 }
