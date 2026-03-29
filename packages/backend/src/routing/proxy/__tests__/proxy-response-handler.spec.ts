@@ -277,7 +277,11 @@ describe('proxy-response-handler', () => {
           }),
         );
       } finally {
-        process.env.NODE_ENV = originalEnv;
+        if (originalEnv === undefined) {
+          delete process.env.NODE_ENV;
+        } else {
+          process.env.NODE_ENV = originalEnv;
+        }
       }
     });
   });
