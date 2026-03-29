@@ -361,7 +361,7 @@ describe("Settings", () => {
     });
   });
 
-  it("shows ErrorState when getAgentKey fails", { retry: 0 } as any, async () => {
+  it("shows warning banner when getAgentKey fails", { retry: 0 } as any, async () => {
     // SolidJS createResource re-throws internally; suppress at both levels
     const suppress = (e: PromiseRejectionEvent) => { e.preventDefault(); e.stopImmediatePropagation(); };
     window.addEventListener("unhandledrejection", suppress, true);
@@ -371,7 +371,7 @@ describe("Settings", () => {
     const { container } = render(() => <Settings />);
     fireEvent.click(screen.getByText("Agent setup"));
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Could not load API key");
+      expect(container.textContent).toContain("Could not load your API key");
     });
     await new Promise((r) => setTimeout(r, 100));
     window.removeEventListener("unhandledrejection", suppress, true);

@@ -1,4 +1,4 @@
-import { createSignal, createResource, Show, For, type Component } from 'solid-js';
+import { createSignal, createResource, Show, For, ErrorBoundary, type Component } from 'solid-js';
 import { useParams, useNavigate, useLocation } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
 import ErrorState from '../components/ErrorState.jsx';
@@ -41,8 +41,10 @@ const Settings: Component = () => {
   const [routingStatus] = createResource(() => agentName(), getRoutingStatus);
   const routingEnabled = () => routingStatus()?.enabled ?? false;
 
+  const keyData = () => (apiKeyData.error ? undefined : apiKeyData());
+
   const baseUrl = () => {
-    const custom = apiKeyData()?.pluginEndpoint;
+    const custom = keyData()?.pluginEndpoint;
     if (custom) return custom;
     const host = window.location.hostname;
     if (host === 'app.manifest.build') return 'https://app.manifest.build/v1';
@@ -193,74 +195,83 @@ const Settings: Component = () => {
 
       {/* -- Tab: Agent setup ------------------------- */}
       <Show when={tab() === 'Agent setup'}>
-        <h3 class="settings-section__title">API Key</h3>
-
-        <div class="settings-card">
-          <div class="settings-card__row">
-            <div class="settings-card__label">
-              <span class="settings-card__label-title">Agent API key</span>
-              <span class="settings-card__label-desc">
-                This key authenticates your agent's requests to Manifest. Rotating it generates a
-                new key and immediately invalidates the current one.
-              </span>
-            </div>
-            <div
-              class="settings-card__control"
-              style="display: flex; align-items: center; gap: 8px;"
-            >
-              <code style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
-                {apiKeyData()?.keyPrefix ?? '...'}...
-              </code>
-              <button class="btn btn--outline btn--sm" onClick={handleRotate} disabled={rotating()}>
-                {rotating() ? (
-                  <>
-                    <span class="spinner" />
-                    <span class="sr-only">Rotating…</span>
-                  </>
-                ) : (
-                  'Rotate key'
-                )}
-              </button>
-            </div>
-          </div>
-          <Show when={rotatedKey()}>
-            <div style="padding: 0 var(--gap-md) var(--gap-md);">
-              <div style="background: hsl(var(--chart-5) / 0.1); border: 1px solid hsl(var(--chart-5) / 0.3); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 12px; font-size: var(--font-size-sm); color: hsl(var(--foreground));">
-                Save this key somewhere safe. You won't see it again.
-              </div>
-              <div style="display: flex; align-items: center; gap: 8px; background: hsl(var(--muted)); border-radius: var(--radius); padding: 10px 14px; font-family: var(--font-mono); font-size: var(--font-size-sm); word-break: break-all;">
-                {rotatedKey()}
-                <CopyButton text={rotatedKey()!} />
-              </div>
-            </div>
-          </Show>
-        </div>
-
-        <h3 class="settings-section__title">Setup</h3>
-
-        <Show
-          when={!apiKeyData.loading}
-          fallback={
-            <div class="setup-steps">
-              <div class="skeleton skeleton--rect" style="width: 100%; height: 200px;" />
-            </div>
-          }
+        <ErrorBoundary
+          fallback={(err, reset) => (
+            <ErrorState
+              error={err}
+              title="Something went wrong"
+              message="An error occurred while rendering setup instructions."
+              onRetry={reset}
+            />
+          )}
         >
+          <h3 class="settings-section__title">API Key</h3>
+
+          <div class="settings-card">
+            <div class="settings-card__row">
+              <div class="settings-card__label">
+                <span class="settings-card__label-title">Agent API key</span>
+                <span class="settings-card__label-desc">
+                  This key authenticates your agent's requests to Manifest. Rotating it generates a
+                  new key and immediately invalidates the current one.
+                </span>
+              </div>
+              <div
+                class="settings-card__control"
+                style="display: flex; align-items: center; gap: 8px;"
+              >
+                <code style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
+                  {keyData()?.keyPrefix ?? '...'}...
+                </code>
+                <button
+                  class="btn btn--outline btn--sm"
+                  onClick={handleRotate}
+                  disabled={rotating()}
+                >
+                  {rotating() ? (
+                    <>
+                      <span class="spinner" />
+                      <span class="sr-only">Rotating…</span>
+                    </>
+                  ) : (
+                    'Rotate key'
+                  )}
+                </button>
+              </div>
+            </div>
+            <Show when={rotatedKey()}>
+              <div style="padding: 0 var(--gap-md) var(--gap-md);">
+                <div style="background: hsl(var(--chart-5) / 0.1); border: 1px solid hsl(var(--chart-5) / 0.3); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 12px; font-size: var(--font-size-sm); color: hsl(var(--foreground));">
+                  Save this key somewhere safe. You won't see it again.
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; background: hsl(var(--muted)); border-radius: var(--radius); padding: 10px 14px; font-family: var(--font-mono); font-size: var(--font-size-sm); word-break: break-all;">
+                  {rotatedKey()}
+                  <CopyButton text={rotatedKey()!} />
+                </div>
+              </div>
+            </Show>
+          </div>
+
+          <h3 class="settings-section__title">Setup</h3>
+
           <Show
-            when={!apiKeyData.error}
+            when={!apiKeyData.loading}
             fallback={
-              <ErrorState
-                error={apiKeyData.error}
-                title="Could not load API key"
-                message="Failed to fetch your agent's API key. Please try again."
-                onRetry={refetchKey}
-              />
+              <div class="setup-steps">
+                <div class="skeleton skeleton--rect" style="width: 100%; height: 200px;" />
+              </div>
             }
           >
+            <Show when={apiKeyData.error}>
+              <div style="background: hsl(var(--chart-5) / 0.1); border: 1px solid hsl(var(--chart-5) / 0.3); border-radius: var(--radius); padding: 10px 14px; margin-bottom: var(--gap-md); font-size: var(--font-size-sm); color: hsl(var(--foreground));">
+                Could not load your API key. Use <strong>Rotate key</strong> above to generate a new
+                one, or follow the setup instructions below with a placeholder key.
+              </div>
+            </Show>
             <div class="settings-card" style="padding: var(--gap-lg);">
               <SetupStepAddProvider
                 apiKey={rotatedKey() ?? null}
-                keyPrefix={apiKeyData()?.keyPrefix ?? null}
+                keyPrefix={keyData()?.keyPrefix ?? null}
                 baseUrl={baseUrl()}
               />
               <Show when={!routingEnabled()}>
@@ -283,7 +294,7 @@ const Settings: Component = () => {
               </Show>
             </div>
           </Show>
-        </Show>
+        </ErrorBoundary>
       </Show>
 
       {/* -- Delete Agent Modal ----------------------- */}
