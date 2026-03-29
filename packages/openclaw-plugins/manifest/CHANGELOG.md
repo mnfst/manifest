@@ -1,5 +1,29 @@
 # manifest
 
+## 5.35.2
+
+### Patch Changes
+
+- 559107a: Prevent Chrome password save prompt on provider API key inputs by using text-security CSS masking instead of type=password.
+- a5b930b: Improve alert configuration UX: replace dual-button rule type selector with a simple toggle, add notification history table, fix dark mode logo, ensure history is always logged on limit trigger, and differentiate email wording for soft alerts vs hard blocks.
+- 7618fb9: Fix HTTP 400 errors from Anthropic API via routing proxy: remove redundant top-level cache_control field and filter empty text content blocks in assistant messages with tool_calls. Surface actual upstream error messages in development mode.
+- bba26ee: fix: deduplicate OpenAI dated model snapshots and add dashboard URL to no-provider message
+- 8b02fdc: fix: fallback chain now tries alternate auth type for same provider (#1272)
+
+  When both subscription and API key credentials exist for the same provider, the fallback chain previously reused the same (failing) auth type instead of trying the alternate credential. This resulted in 424 errors even when a valid API key was available as fallback.
+
+- 9e21d33: fix: resolve $0.00 cost tracking for Google Gemini models
+
+  Fixes an issue where Gemini 2.5 Pro showed $0.00 costs despite active token usage.
+  Root cause: GitHub Copilot's zero-pricing models.dev entries overwrote Google's real pricing
+  in the pricing cache. Also adds daily cache reload and Google variant model name normalization.
+
+- 9681acd: fix: validate inferred provider prefix against active providers before routing (#1383)
+
+  Models from proxy providers (e.g. OpenRouter) carry vendor prefixes like `anthropic/claude-sonnet-4`. The router previously inferred the provider from this prefix without checking if that provider was active, causing requests to fail when the native provider was disabled.
+
+- da231c2: Add native OpenAI subscription Responses adapter support for tool calls, including tool transcript translation, streaming function-call events, and null or multipart content normalization.
+
 ## 5.35.1
 
 ### Patch Changes
