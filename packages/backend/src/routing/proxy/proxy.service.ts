@@ -274,7 +274,7 @@ export class ProxyService {
     return false;
   }
 
-  private getDashboardUrl(agentName?: string): string | null {
+  private getDashboardUrl(agentName?: string): string {
     const baseUrl =
       this.config.get<string>('app.betterAuthUrl') ||
       `http://localhost:${this.config.get<number>('app.port', 3001)}`;
@@ -286,9 +286,7 @@ export class ProxyService {
     const id = `chatcmpl-manifest-${randomUUID()}`;
     const created = Math.floor(Date.now() / 1000);
     const dashboardUrl = this.getDashboardUrl(agentName);
-    const content = dashboardUrl
-      ? `Manifest is connected successfully. To start routing requests, connect a model provider: ${dashboardUrl}`
-      : 'Manifest is connected successfully. To start routing requests, connect a model provider in your Manifest dashboard.';
+    const content = `Manifest is connected successfully. To start routing requests, connect a model provider: ${dashboardUrl}`;
 
     const meta: RoutingMeta = {
       tier: 'simple' as Tier,

@@ -317,6 +317,58 @@ describe('ProxyService', () => {
     expect(choices[0].message.content).toContain('http://localhost:3001/routing/my-agent');
   });
 
+  it('uses /routing path when agentName is not provided', async () => {
+    resolveService.resolve.mockResolvedValue({
+      tier: 'simple',
+      model: null,
+      provider: null,
+      confidence: 0.5,
+      score: -0.1,
+      reason: 'ambiguous',
+    });
+
+    const result = await service.proxyRequest({
+      agentId: 'agent-1',
+      userId: 'user-1',
+      body,
+      sessionKey: 'default',
+    });
+
+    const json = (await result.forward.response.json()) as Record<string, unknown>;
+    const choices = json.choices as { message: { content: string } }[];
+    expect(choices[0].message.content).toContain('http://localhost:3001/routing');
+    expect(choices[0].message.content).not.toContain('/routing/');
+  });
+
+  it('falls back to localhost URL when betterAuthUrl is empty', async () => {
+    configService.get.mockImplementation((key: string, fallback?: unknown) => {
+      if (key === 'app.betterAuthUrl') return '';
+      if (key === 'app.port') return 4000;
+      return fallback;
+    });
+
+    resolveService.resolve.mockResolvedValue({
+      tier: 'simple',
+      model: null,
+      provider: null,
+      confidence: 0.5,
+      score: -0.1,
+      reason: 'ambiguous',
+    });
+
+    const result = await service.proxyRequest({
+      agentId: 'agent-1',
+      userId: 'user-1',
+      body,
+      sessionKey: 'default',
+      agentName: 'test-agent',
+    });
+
+    const json = (await result.forward.response.json()) as Record<string, unknown>;
+    const choices = json.choices as { message: { content: string } }[];
+    expect(choices[0].message.content).toContain('http://localhost:4000/routing/test-agent');
+  });
+
   it('returns synthetic streaming response when no model is resolved', async () => {
     resolveService.resolve.mockResolvedValue({
       tier: 'simple',
