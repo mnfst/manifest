@@ -9,11 +9,13 @@ import EmailProviderSection from '../components/EmailProviderSection.js';
 import LimitRuleModal from '../components/LimitRuleModal.js';
 import type { LimitRuleData } from '../components/LimitRuleModal.js';
 import LimitRuleTable from '../components/LimitRuleTable.js';
+import LimitHistoryTable from '../components/LimitHistoryTable.js';
 import { KebabMenu, DeleteRuleModal, RemoveProviderModal } from '../components/LimitModals.js';
 import { toast } from '../services/toast-store.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import {
   getNotificationRules,
+  getNotificationLogs,
   createNotificationRule,
   updateNotificationRule,
   deleteNotificationRule,
@@ -30,6 +32,10 @@ const Limits: Component = () => {
   const [rules, { refetch: refetchRules }] = createResource(
     () => agentName(),
     (name) => getNotificationRules(name),
+  );
+  const [logs, { refetch: refetchLogs }] = createResource(
+    () => agentName(),
+    (name) => getNotificationLogs(name),
   );
   const [emailProvider, { refetch: refetchProvider }] = createResource(getEmailProvider);
   const [routingStatus] = createResource(() => agentName(), getRoutingStatus);
@@ -242,6 +248,12 @@ const Limits: Component = () => {
         hasProvider={hasProvider()}
         onToggleMenu={toggleMenu}
       />
+
+      <Show when={!logs.loading && (logs() ?? []).length > 0}>
+        <div style="margin-top: var(--gap-lg);">
+          <LimitHistoryTable logs={logs()} loading={false} />
+        </div>
+      </Show>
 
       <KebabMenu
         openMenuId={openMenuId()}

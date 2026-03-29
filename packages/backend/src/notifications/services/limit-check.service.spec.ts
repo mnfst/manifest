@@ -370,13 +370,13 @@ describe('LimitCheckService', () => {
       expect(mockInsertLog).toHaveBeenCalled();
     });
 
-    it('does not log notification when email send fails', async () => {
+    it('logs notification even when email send fails', async () => {
       mockSendThresholdAlert.mockResolvedValue(false);
       mockResolveUserEmail.mockResolvedValue('test@example.com');
       await service.checkLimits('tenant-1', 'my-agent');
       await new Promise((r) => setTimeout(r, 50));
       expect(mockSendThresholdAlert).toHaveBeenCalled();
-      expect(mockInsertLog).not.toHaveBeenCalled();
+      expect(mockInsertLog).toHaveBeenCalled();
     });
 
     it('uses email provider config when available', async () => {

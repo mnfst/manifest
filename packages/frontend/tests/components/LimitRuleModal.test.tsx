@@ -27,74 +27,55 @@ describe("LimitRuleModal", () => {
       <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
     expect(screen.getByRole("dialog")).toBeDefined();
-    expect(screen.getByText("Set up an email alert or hard limit for this agent's usage.")).toBeDefined();
+    expect(screen.getByText("You'll receive an email alert when usage exceeds the threshold.")).toBeDefined();
   });
 
   it("shows description text", () => {
     render(() => (
       <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
-    expect(screen.getByText("Set up an email alert or hard limit for this agent's usage.")).toBeDefined();
+    expect(screen.getByText("You'll receive an email alert when usage exceeds the threshold.")).toBeDefined();
   });
 
-  it("renders Alert and Hard Limit type buttons", () => {
+  it("renders block toggle", () => {
     render(() => (
       <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
-    expect(screen.getByText("Email Alert")).toBeDefined();
-    expect(screen.getByText("Hard Limit")).toBeDefined();
+    expect(screen.getByText("Block requests when exceeded")).toBeDefined();
+    const toggle = q('.limit-block-toggle input[type="checkbox"]') as HTMLInputElement;
+    expect(toggle).not.toBeNull();
+    expect(toggle.checked).toBe(false);
   });
 
-  it("defaults to notify action (Email Alert active)", () => {
+  it("defaults to notify action (block toggle off)", () => {
     render(() => (
       <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
-    const activeButtons = qa(".limit-type-option--active");
-    expect(activeButtons.length).toBe(1);
-    expect(activeButtons[0].textContent).toContain("Email Alert");
+    const toggle = q('.limit-block-toggle input[type="checkbox"]') as HTMLInputElement;
+    expect(toggle.checked).toBe(false);
   });
 
-  it("allows selecting block action by adding then deselecting", () => {
+  it("sets action to both when block toggle is enabled", () => {
     render(() => (
       <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
-    const buttons = qa(".limit-type-option");
 
-    // Click Hard Limit — adds it (now both selected)
-    fireEvent.click(buttons[1]);
-    expect(qa(".limit-type-option--active").length).toBe(2);
+    const toggle = q('.limit-block-toggle input[type="checkbox"]') as HTMLInputElement;
+    fireEvent.click(toggle);
+    expect(toggle.checked).toBe(true);
 
-    // Click Email Alert to deselect — only Hard Limit remains
-    fireEvent.click(buttons[0]);
-    const activeButtons = qa(".limit-type-option--active");
-    expect(activeButtons.length).toBe(1);
-    expect(activeButtons[0].textContent).toContain("Hard Limit");
-  });
+    const input = q('input[type="number"]') as HTMLInputElement;
+    fireEvent.input(input, { target: { value: "10" } });
 
-  it("allows selecting both types", () => {
-    render(() => (
-      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
-    ));
-    const buttons = qa(".limit-type-option");
+    const btn = q(".btn--primary") as HTMLButtonElement;
+    fireEvent.click(btn);
 
-    // Email Alert is already selected, click Hard Limit to add it
-    fireEvent.click(buttons[1]);
-
-    const activeButtons = qa(".limit-type-option--active");
-    expect(activeButtons.length).toBe(2);
-  });
-
-  it("prevents deselecting the last type", () => {
-    render(() => (
-      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
-    ));
-    const buttons = qa(".limit-type-option");
-
-    // Only Email Alert is selected, clicking it again should keep it
-    fireEvent.click(buttons[0]);
-    const activeButtons = qa(".limit-type-option--active");
-    expect(activeButtons.length).toBe(1);
-    expect(activeButtons[0].textContent).toContain("Email Alert");
+    expect(mockOnSave).toHaveBeenCalledWith({
+      metric_type: "tokens",
+      threshold: 10,
+      period: "day",
+      action: "both",
+    });
   });
 
   it("renders metric select with Tokens and Cost options", () => {
@@ -136,7 +117,7 @@ describe("LimitRuleModal", () => {
     expect(btn.disabled).toBe(false);
   });
 
-  it("calls onSave with correct data when Create rule is clicked", () => {
+  it("calls onSave with notify action when block toggle is off", () => {
     render(() => (
       <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
     ));
@@ -152,53 +133,6 @@ describe("LimitRuleModal", () => {
       threshold: 50000,
       period: "day",
       action: "notify",
-    });
-  });
-
-  it("calls onSave with block action when only Hard Limit selected", () => {
-    render(() => (
-      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
-    ));
-
-    const typeButtons = qa(".limit-type-option");
-    // Add Hard Limit then remove Email Alert
-    fireEvent.click(typeButtons[1]);
-    fireEvent.click(typeButtons[0]);
-
-    const input = q('input[type="number"]') as HTMLInputElement;
-    fireEvent.input(input, { target: { value: "10" } });
-
-    const btn = q(".btn--primary") as HTMLButtonElement;
-    fireEvent.click(btn);
-
-    expect(mockOnSave).toHaveBeenCalledWith({
-      metric_type: "tokens",
-      threshold: 10,
-      period: "day",
-      action: "block",
-    });
-  });
-
-  it("calls onSave with both action when both types selected", () => {
-    render(() => (
-      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
-    ));
-
-    // Email Alert is already active, add Hard Limit
-    const typeButtons = qa(".limit-type-option");
-    fireEvent.click(typeButtons[1]);
-
-    const input = q('input[type="number"]') as HTMLInputElement;
-    fireEvent.input(input, { target: { value: "10" } });
-
-    const btn = q(".btn--primary") as HTMLButtonElement;
-    fireEvent.click(btn);
-
-    expect(mockOnSave).toHaveBeenCalledWith({
-      metric_type: "tokens",
-      threshold: 10,
-      period: "day",
-      action: "both",
     });
   });
 
@@ -347,67 +281,34 @@ describe("LimitRuleModal", () => {
     expect((selects[0] as HTMLSelectElement).value).toBe("cost");
     expect((selects[1] as HTMLSelectElement).value).toBe("week");
 
-    const activeButtons = qa(".limit-type-option--active");
-    expect(activeButtons.length).toBe(2);
+    const toggle = q('.limit-block-toggle input[type="checkbox"]') as HTMLInputElement;
+    expect(toggle.checked).toBe(true);
   });
 
-  // --- Checkmark SVG and hasProvider hint tests ---
-
-  it("shows checkmark SVG on selected type button", () => {
+  it("pre-fills block toggle as checked when editData action is block", () => {
     render(() => (
-      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
+      <LimitRuleModal
+        open={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        editData={{ metric_type: "tokens", threshold: 100, period: "day", action: "block" }}
+      />
     ));
-    // Email Alert is selected by default
-    const checks = qa(".limit-type-option__check");
-    expect(checks.length).toBe(1);
-    // The check should be inside the active button
-    const activeBtn = q(".limit-type-option--active")!;
-    expect(activeBtn.querySelector(".limit-type-option__check")).not.toBeNull();
+    const toggle = q('.limit-block-toggle input[type="checkbox"]') as HTMLInputElement;
+    expect(toggle.checked).toBe(true);
   });
 
-  it("shows checkmarks on both buttons when both selected", () => {
+  it("pre-fills block toggle as unchecked when editData action is notify", () => {
     render(() => (
-      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
+      <LimitRuleModal
+        open={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        editData={{ metric_type: "tokens", threshold: 100, period: "day", action: "notify" }}
+      />
     ));
-    const buttons = qa(".limit-type-option");
-    // Add Hard Limit
-    fireEvent.click(buttons[1]);
-    const checks = qa(".limit-type-option__check");
-    expect(checks.length).toBe(2);
-  });
-
-  it("hides checkmark on deselected button", () => {
-    render(() => (
-      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} />
-    ));
-    const buttons = qa(".limit-type-option");
-    // Add Hard Limit (both selected)
-    fireEvent.click(buttons[1]);
-    expect(qa(".limit-type-option__check").length).toBe(2);
-
-    // Deselect Email Alert
-    fireEvent.click(buttons[0]);
-    const checks = qa(".limit-type-option__check");
-    expect(checks.length).toBe(1);
-    // Only Hard Limit button should have the check
-    expect(buttons[1].querySelector(".limit-type-option__check")).not.toBeNull();
-    expect(buttons[0].querySelector(".limit-type-option__check")).toBeNull();
-  });
-
-  it("shows hint when hasProvider is false and notify is selected", () => {
-    render(() => (
-      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} hasProvider={false} />
-    ));
-    const hint = q(".limit-type-hint");
-    expect(hint).not.toBeNull();
-    expect(hint!.textContent).toContain("Email alerts require an email provider");
-  });
-
-  it("does not show hint when hasProvider is true", () => {
-    render(() => (
-      <LimitRuleModal open={true} onClose={mockOnClose} onSave={mockOnSave} hasProvider={true} />
-    ));
-    expect(q(".limit-type-hint")).toBeNull();
+    const toggle = q('.limit-block-toggle input[type="checkbox"]') as HTMLInputElement;
+    expect(toggle.checked).toBe(false);
   });
 
   it("shows Create rule title when editData is null", () => {

@@ -1,4 +1,4 @@
-import type { Component } from "solid-js";
+import type { Component } from 'solid-js';
 
 interface Props {
   size?: number;
@@ -15,8 +15,7 @@ const LimitIcon: Component<Props> = (props) => {
       fill="currentColor"
       aria-hidden="true"
     >
-      <rect x="7" y="10" width="10" height="4" rx="1" ry="1" />
-      <path d="m12,3C7.04,3,3,7.04,3,12s4.04,9,9,9,9-4.04,9-9S16.96,3,12,3Zm0,17c-4.41,0-8-3.59-8-8S7.59,4,12,4s8,3.59,8,8-3.59,8-8,8Z" />
+      <path d="M11.5 2c-5.51 0-10 4.49-10 10s4.49 10 10 10 10-4.49 10-10-4.49-10-10-10m-8 10c0-1.85.63-3.54 1.69-4.9L16.4 18.31A8 8 0 0 1 11.5 20c-4.41 0-8-3.59-8-8m14.31 4.9L6.6 5.69A8 8 0 0 1 11.5 4c4.41 0 8 3.59 8 8 0 1.85-.63 3.54-1.69 4.9" />
     </svg>
   );
 };

@@ -5,7 +5,7 @@ import type { NotificationRule } from '../services/api.js';
 
 function formatThreshold(rule: NotificationRule): string {
   if (rule.metric_type === 'cost') return `$${Number(rule.threshold).toFixed(2)}`;
-  return Number(rule.threshold).toLocaleString();
+  return `${Number(rule.threshold).toLocaleString()} tokens`;
 }
 
 const PERIOD_LABELS: Record<string, string> = {

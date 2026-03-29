@@ -65,6 +65,21 @@ export class NotificationLogService {
     );
   }
 
+  async getLogsForAgent(userId: string, agentName: string) {
+    return this.ds.query(
+      this.sql(
+        `SELECT nl.id, nl.sent_at, nl.actual_value, nl.threshold_value,
+                nl.metric_type, nl.period_start, nl.period_end, nl.agent_name
+         FROM notification_logs nl
+         JOIN notification_rules nr ON nr.id = nl.rule_id
+         WHERE nr.user_id = $1 AND nl.agent_name = $2
+         ORDER BY nl.sent_at DESC
+         LIMIT 50`,
+      ),
+      [userId, agentName],
+    );
+  }
+
   async resolveUserEmail(
     userId: string,
     notificationEmail?: string | null,

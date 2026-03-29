@@ -12,6 +12,21 @@ export interface NotificationRule {
   created_at: string;
 }
 
+export interface NotificationLog {
+  id: string;
+  sent_at: string;
+  actual_value: number;
+  threshold_value: number;
+  metric_type: 'tokens' | 'cost';
+  period_start: string;
+  period_end: string;
+  agent_name: string;
+}
+
+export function getNotificationLogs(agentName: string) {
+  return fetchJson<NotificationLog[]>('/notifications/logs', { agent_name: agentName });
+}
+
 export function getNotificationRules(agentName: string) {
   return fetchJson<NotificationRule[]>('/notifications', { agent_name: agentName });
 }

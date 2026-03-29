@@ -2,6 +2,7 @@ import { Controller, Get, Post, Patch, Delete, Query, Param, Body, Logger } from
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
 import { NotificationRulesService } from './services/notification-rules.service';
+import { NotificationLogService } from './services/notification-log.service';
 import { EmailProviderConfigService } from './services/email-provider-config.service';
 import { NotificationCronService } from './services/notification-cron.service';
 import { LimitCheckService } from './services/limit-check.service';
@@ -18,6 +19,7 @@ export class NotificationsController {
 
   constructor(
     private readonly rulesService: NotificationRulesService,
+    private readonly notificationLog: NotificationLogService,
     private readonly emailProviderConfigService: EmailProviderConfigService,
     private readonly cronService: NotificationCronService,
     private readonly limitCheck: LimitCheckService,
@@ -73,6 +75,11 @@ export class NotificationsController {
     this.logger.log('Manual notification check triggered');
     const triggered = await this.cronService.checkThresholds(user.id);
     return { triggered, message: `${triggered} notification(s) triggered` };
+  }
+
+  @Get('logs')
+  async getLogs(@Query('agent_name') agentName: string, @CurrentUser() user: AuthUser) {
+    return this.notificationLog.getLogsForAgent(user.id, agentName);
   }
 
   @Get()

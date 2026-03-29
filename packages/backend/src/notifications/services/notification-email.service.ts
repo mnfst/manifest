@@ -26,8 +26,10 @@ export class NotificationEmailService {
     const element = ThresholdAlertEmail(props);
     const html = await render(element);
     const text = await render(element, { plainText: true });
-    const prefix = props.alertType === 'soft' ? 'Warning' : 'Alert';
-    const subject = `${prefix}: ${props.agentName} exceeded ${props.metricType} threshold`;
+    const subject =
+      props.alertType === 'soft'
+        ? `Warning: ${props.agentName} exceeded ${props.metricType} threshold`
+        : `Blocked: ${props.agentName} reached ${props.metricType} limit`;
 
     if (providerConfig) {
       const defaultFrom = this.fromEmail;

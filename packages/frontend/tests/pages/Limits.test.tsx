@@ -22,6 +22,7 @@ vi.mock("../../src/services/local-mode.js", () => ({
 
 vi.mock("../../src/services/api.js", () => ({
   getNotificationRules: vi.fn(() => Promise.resolve(mockRules)),
+  getNotificationLogs: vi.fn(() => Promise.resolve([])),
   createNotificationRule: vi.fn(() => Promise.resolve({})),
   updateNotificationRule: vi.fn(() => Promise.resolve({})),
   deleteNotificationRule: vi.fn(() => Promise.resolve({})),
@@ -637,8 +638,7 @@ describe("Limits page", () => {
 
     await vi.waitFor(() => {
       const desc = document.querySelector(".modal-card__desc") as HTMLElement;
-      expect(desc.textContent).toContain("token");
-      expect(desc.textContent).not.toContain("tokens");
+      expect(desc.textContent).toContain("tokens");
     });
   });
 

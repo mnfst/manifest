@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotificationsController } from './notifications.controller';
 import { NotificationRulesService } from './services/notification-rules.service';
+import { NotificationLogService } from './services/notification-log.service';
 import { EmailProviderConfigService } from './services/email-provider-config.service';
 import { NotificationCronService } from './services/notification-cron.service';
 import { LimitCheckService } from './services/limit-check.service';
@@ -39,15 +40,13 @@ describe('NotificationsController', () => {
 
     const mockEmailProviderConfigService = {
       getConfig: jest.fn().mockResolvedValue(null),
-      upsert: jest
-        .fn()
-        .mockResolvedValue({
-          provider: 'resend',
-          domain: null,
-          keyPrefix: 're_test1',
-          is_active: true,
-          notificationEmail: null,
-        }),
+      upsert: jest.fn().mockResolvedValue({
+        provider: 'resend',
+        domain: null,
+        keyPrefix: 're_test1',
+        is_active: true,
+        notificationEmail: null,
+      }),
       remove: jest.fn().mockResolvedValue(undefined),
       testConfig: jest.fn().mockResolvedValue({ success: true }),
       testSavedConfig: jest.fn().mockResolvedValue({ success: true }),
@@ -63,10 +62,15 @@ describe('NotificationsController', () => {
       invalidateCache: jest.fn(),
     };
 
+    const mockNotificationLog = {
+      getLogsForAgent: jest.fn().mockResolvedValue([]),
+    };
+
     module = await Test.createTestingModule({
       controllers: [NotificationsController],
       providers: [
         { provide: NotificationRulesService, useValue: mockRulesService },
+        { provide: NotificationLogService, useValue: mockNotificationLog },
         { provide: EmailProviderConfigService, useValue: mockEmailProviderConfigService },
         { provide: NotificationCronService, useValue: mockCronService },
         { provide: LimitCheckService, useValue: mockLimitCheck },
@@ -76,6 +80,27 @@ describe('NotificationsController', () => {
     controller = module.get(NotificationsController);
     rulesService = module.get(NotificationRulesService);
     emailProviderConfigService = module.get(EmailProviderConfigService);
+  });
+
+  it('returns notification logs for an agent', async () => {
+    const mockLogs = [
+      {
+        id: 'log-1',
+        sent_at: '2026-01-01 12:00:00',
+        actual_value: 60000,
+        threshold_value: 50000,
+        metric_type: 'tokens',
+        period_start: '2026-01-01',
+        period_end: '2026-01-02',
+        agent_name: 'my-agent',
+      },
+    ];
+    const logService = module.get(NotificationLogService) as jest.Mocked<NotificationLogService>;
+    logService.getLogsForAgent.mockResolvedValue(mockLogs);
+
+    const result = await controller.getLogs('my-agent', mockUser);
+    expect(logService.getLogsForAgent).toHaveBeenCalledWith('user-1', 'my-agent');
+    expect(result).toEqual(mockLogs);
   });
 
   it('lists rules for an agent', async () => {
