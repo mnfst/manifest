@@ -1,15 +1,17 @@
 import { Injectable, Logger, OnApplicationBootstrap, Inject, Optional } from '@nestjs/common';
 import { buildAliasMap, resolveModelName } from './model-name-normalizer';
 import { PricingSyncService } from '../database/pricing-sync.service';
+import { ModelsDevSyncService } from '../database/models-dev-sync.service';
 import {
   OPENROUTER_PREFIX_TO_PROVIDER,
+  PROVIDER_BY_ID,
   PROVIDER_BY_ID_OR_ALIAS,
 } from '../common/constants/providers';
 import { ProviderModelRegistryService } from '../model-discovery/provider-model-registry.service';
 
 /**
  * Lightweight pricing entry used for cost calculation and provider detection.
- * No longer backed by a database table — reads from OpenRouter cache + manual ref.
+ * Reads from models.dev (preferred) and OpenRouter cache (fallback).
  */
 export interface PricingEntry {
   model_name: string;
@@ -19,6 +21,8 @@ export interface PricingEntry {
   display_name: string | null;
   /** True if confirmed via provider-native API, false if unverified, undefined if no data. */
   validated?: boolean;
+  /** Data source: models.dev (curated, native IDs) or openrouter (broad coverage). */
+  source?: 'models.dev' | 'openrouter';
 }
 
 @Injectable()
@@ -29,6 +33,9 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
 
   constructor(
     private readonly pricingSync: PricingSyncService,
+    @Optional()
+    @Inject(ModelsDevSyncService)
+    private readonly modelsDevSync: ModelsDevSyncService | null,
     @Optional()
     @Inject(ProviderModelRegistryService)
     private readonly modelRegistry: ProviderModelRegistryService | null,
@@ -41,6 +48,7 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
   async reload(): Promise<void> {
     this.cache.clear();
 
+    // Load OpenRouter data first (broad coverage, will be overridden by models.dev)
     const orCache = this.pricingSync.getAll();
     for (const [fullId, entry] of orCache) {
       const { provider, canonical, providerId } = this.resolveProviderAndName(fullId);
@@ -52,6 +60,7 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
         output_price_per_token: entry.output,
         display_name: entry.displayName ?? null,
         validated: this.resolveValidated(providerId, canonical),
+        source: 'openrouter',
       };
 
       // Store under full OpenRouter ID (e.g. "anthropic/claude-opus-4-6")
@@ -63,6 +72,9 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
         this.cache.set(canonical, pricingEntry);
       }
     }
+
+    // Overlay models.dev entries (curated, native IDs — preferred source)
+    this.loadModelsDevEntries();
 
     this.aliasMap = buildAliasMap([...this.cache.keys()]);
     this.logger.log(`Loaded ${this.cache.size} pricing entries`);
@@ -125,12 +137,53 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
     return { provider: 'OpenRouter', canonical: openRouterId, providerId: null };
   }
 
+  /**
+   * Load models.dev entries into the cache, overriding OpenRouter entries
+   * for the same model. models.dev uses native provider IDs so bare model
+   * names match directly without prefix stripping.
+   */
+  private loadModelsDevEntries(): void {
+    if (!this.modelsDevSync) return;
+
+    let count = 0;
+    for (const [providerId, registryEntry] of PROVIDER_BY_ID) {
+      const models = this.modelsDevSync.getModelsForProvider(providerId);
+      for (const model of models) {
+        if (model.inputPricePerToken === null) continue;
+
+        const pricingEntry: PricingEntry = {
+          model_name: model.id,
+          provider: registryEntry.displayName,
+          input_price_per_token: model.inputPricePerToken,
+          output_price_per_token: model.outputPricePerToken,
+          display_name: model.name || null,
+          validated: this.resolveValidatedForModelsDev(providerId, model.id),
+          source: 'models.dev',
+        };
+
+        // Override any existing entry for this bare model name
+        this.cache.set(model.id, pricingEntry);
+        count++;
+      }
+    }
+
+    if (count > 0) {
+      this.logger.log(`Overlaid ${count} models.dev pricing entries`);
+    }
+  }
+
   private resolveValidated(providerId: string | null, canonical: string): boolean | undefined {
     if (!this.modelRegistry || !providerId) return undefined;
     // Resolve OpenRouter prefix to canonical provider ID (e.g., "google" → "gemini")
     const entry = PROVIDER_BY_ID_OR_ALIAS.get(providerId);
     const canonicalProviderId = entry?.id ?? providerId;
     const result = this.modelRegistry.isModelConfirmed(canonicalProviderId, canonical);
+    return result ?? undefined;
+  }
+
+  private resolveValidatedForModelsDev(providerId: string, modelId: string): boolean | undefined {
+    if (!this.modelRegistry) return undefined;
+    const result = this.modelRegistry.isModelConfirmed(providerId, modelId);
     return result ?? undefined;
   }
 }

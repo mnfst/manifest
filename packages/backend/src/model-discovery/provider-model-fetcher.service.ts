@@ -42,6 +42,38 @@ function parseOpenAI(body: unknown, provider: string): DiscoveredModel[] {
     });
 }
 
+/* ── OpenAI-specific chat model filter ── */
+
+/**
+ * Non-chat models returned by OpenAI's /v1/models that don't work with
+ * /v1/chat/completions. Includes embeddings, TTS, image, audio, moderation,
+ * legacy instruct models, and video models.
+ */
+const OPENAI_NON_CHAT_RE =
+  /(?:embed|tts|whisper|dall-e|moderation|davinci|babbage|^text-|audio|realtime|-transcribe|^sora|^gpt-3\.5-turbo-instruct)/i;
+
+/**
+ * OpenAI models only supported in v1/responses (not v1/chat/completions).
+ * Codex models (except codex-mini-latest) and -pro variants of GPT-5+.
+ */
+const OPENAI_RESPONSES_ONLY_RE = /(?:-codex(?!-mini-latest)|^gpt-5[^/]*-pro(?:-|$))/i;
+
+function parseOpenAIChatOnly(body: unknown, provider: string): DiscoveredModel[] {
+  return parseOpenAI(body, provider).filter(
+    (m) => !OPENAI_NON_CHAT_RE.test(m.id) && !OPENAI_RESPONSES_ONLY_RE.test(m.id),
+  );
+}
+
+/**
+ * Non-chat Mistral models that fail with 400 on /v1/chat/completions.
+ * OCR models require document input, not chat messages.
+ */
+const MISTRAL_NON_CHAT_RE = /(?:^mistral-ocr|embed)/i;
+
+function parseMistralChatOnly(body: unknown, provider: string): DiscoveredModel[] {
+  return parseOpenAI(body, provider).filter((m) => !MISTRAL_NON_CHAT_RE.test(m.id));
+}
+
 function bearerHeaders(key: string): Record<string, string> {
   return { Authorization: `Bearer ${key}` };
 }
@@ -85,10 +117,12 @@ interface GeminiModelEntry {
   inputTokenLimit?: number;
 }
 
+const GEMINI_VERSION_SUFFIX_RE = /-\d{3}$/;
+
 function parseGemini(body: unknown, provider: string): DiscoveredModel[] {
   const models = (body as { models?: unknown[] })?.models;
   if (!Array.isArray(models)) return [];
-  return models
+  const parsed = models
     .filter((m: unknown) => {
       const entry = m as GeminiModelEntry;
       if (typeof entry.name !== 'string') return false;
@@ -111,6 +145,15 @@ function parseGemini(body: unknown, provider: string): DiscoveredModel[] {
         qualityScore: 3,
       };
     });
+
+  // Deduplicate: if both an alias (gemini-2.0-flash) and a versioned
+  // variant (gemini-2.0-flash-001) exist, keep only the alias.
+  const ids = new Set(parsed.map((m) => m.id));
+  return parsed.filter((m) => {
+    if (!GEMINI_VERSION_SUFFIX_RE.test(m.id)) return true;
+    const alias = m.id.replace(GEMINI_VERSION_SUFFIX_RE, '');
+    return !ids.has(alias);
+  });
 }
 
 interface OpenRouterModelEntry {
@@ -247,7 +290,7 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
   openai: {
     endpoint: 'https://api.openai.com/v1/models',
     buildHeaders: bearerHeaders,
-    parse: parseOpenAI,
+    parse: parseOpenAIChatOnly,
   },
   'openai-subscription': {
     endpoint: 'https://chatgpt.com/backend-api/codex/models?client_version=0.99.0',
@@ -267,7 +310,7 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
   mistral: {
     endpoint: 'https://api.mistral.ai/v1/models',
     buildHeaders: bearerHeaders,
-    parse: parseOpenAI,
+    parse: parseMistralChatOnly,
   },
   moonshot: {
     endpoint: 'https://api.moonshot.ai/v1/models',

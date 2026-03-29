@@ -83,6 +83,12 @@ const PASSTHROUGH_PROVIDERS = new Set(['openai', 'openrouter']);
 const MISTRAL_TOOL_CALL_ID_REGEX = /^[A-Za-z0-9]{9}$/;
 const DEEPSEEK_MAX_TOKENS_LIMIT = 8192;
 
+/**
+ * OpenAI models that require `max_completion_tokens` instead of `max_tokens`.
+ * All o-series reasoning models and GPT-5+ models use the new parameter.
+ */
+const OPENAI_MAX_COMPLETION_TOKENS_RE = /^(o[134]|gpt-5)/i;
+
 function supportsReasoningContent(endpointKey: string, model: string): boolean {
   if (endpointKey === 'deepseek') return true;
   if (endpointKey === 'openrouter') return model.toLowerCase().startsWith('deepseek/');
@@ -205,6 +211,13 @@ export function sanitizeOpenAiBody(
 ): Record<string, unknown> {
   const passthroughTopLevel = PASSTHROUGH_PROVIDERS.has(endpointKey);
 
+  // For OpenAI models that require max_completion_tokens, convert before passthrough
+  const convertMaxTokens =
+    endpointKey === 'openai' &&
+    OPENAI_MAX_COMPLETION_TOKENS_RE.test(model) &&
+    'max_tokens' in body &&
+    !('max_completion_tokens' in body);
+
   const cleaned: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(body)) {
     if (key === 'messages') {
@@ -212,6 +225,11 @@ export function sanitizeOpenAiBody(
       continue;
     }
     if (passthroughTopLevel) {
+      // Convert max_tokens → max_completion_tokens for newer OpenAI models
+      if (convertMaxTokens && key === 'max_tokens') {
+        cleaned['max_completion_tokens'] = value;
+        continue;
+      }
       cleaned[key] = value;
       continue;
     }

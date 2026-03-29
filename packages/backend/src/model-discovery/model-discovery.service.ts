@@ -9,6 +9,7 @@ import { DiscoveredModel } from './model-fetcher';
 import { decrypt, getEncryptionSecret } from '../common/utils/crypto.util';
 import { computeQualityScore } from '../database/quality-score.util';
 import { PricingSyncService } from '../database/pricing-sync.service';
+import { ModelsDevSyncService } from '../database/models-dev-sync.service';
 import { parseOAuthTokenBlob } from '../routing/oauth/openai-oauth.types';
 import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../routing/qwen-region';
 import { CopilotTokenService } from '../routing/proxy/copilot-token.service';
@@ -16,6 +17,7 @@ import {
   findOpenRouterPrefix,
   lookupWithVariants,
   buildFallbackModels,
+  buildModelsDevFallback,
   buildSubscriptionFallbackModels,
   supplementWithKnownModels,
 } from './model-fallback';
@@ -41,6 +43,9 @@ export class ModelDiscoveryService {
     @Optional()
     @Inject(PricingSyncService)
     private readonly pricingSync: PricingSyncService | null,
+    @Optional()
+    @Inject(ModelsDevSyncService)
+    private readonly modelsDevSync: ModelsDevSyncService | null,
     @Optional()
     @Inject(ProviderModelRegistryService)
     private readonly modelRegistry: ProviderModelRegistryService | null,
@@ -114,14 +119,23 @@ export class ModelDiscoveryService {
         );
       }
 
-      // If native API returned no models, fall back to OpenRouter filtered by confirmed models
+      // If native API returned no models, try models.dev first (native IDs), then OpenRouter
+      if (raw.length === 0) {
+        raw = buildModelsDevFallback(this.modelsDevSync, provider.provider);
+        if (raw.length > 0) {
+          this.logger.log(
+            `Native API returned 0 models for ${provider.provider} — using ${raw.length} models from models.dev`,
+          );
+        }
+      }
+      // If models.dev also had nothing, fall back to OpenRouter filtered by confirmed models.
       // Qwen is excluded because OpenRouter/pricing ids can diverge from DashScope ids.
       if (raw.length === 0 && !isQwenProvider(provider.provider)) {
         const confirmed = this.modelRegistry?.getConfirmedModels(provider.provider) ?? null;
         raw = buildFallbackModels(this.pricingSync, provider.provider, confirmed);
         if (raw.length > 0) {
           this.logger.log(
-            `Native API returned 0 models for ${provider.provider} — using ${raw.length} models from pricing data`,
+            `No models.dev data for ${provider.provider} — using ${raw.length} models from OpenRouter`,
           );
         }
       }
@@ -233,10 +247,29 @@ export class ModelDiscoveryService {
   }
 
   private enrichModel(model: DiscoveredModel, providerId: string): DiscoveredModel {
-    if (model.inputPricePerToken !== null && model.inputPricePerToken > 0) {
-      return this.computeScore(model);
+    // Skip pricing enrichment when pricing is already set (price=0 for free/subscription)
+    // but still apply capability flags from models.dev for better scoring
+    if (model.inputPricePerToken !== null && model.inputPricePerToken >= 0) {
+      return this.computeScore(this.applyCapabilities(model, providerId));
     }
 
+    // Priority 1: models.dev — uses native provider IDs, no normalization needed
+    if (this.modelsDevSync) {
+      const mdEntry = this.modelsDevSync.lookupModel(providerId, model.id);
+      if (mdEntry && mdEntry.inputPricePerToken !== null) {
+        return this.computeScore({
+          ...model,
+          inputPricePerToken: mdEntry.inputPricePerToken,
+          outputPricePerToken: mdEntry.outputPricePerToken,
+          contextWindow: mdEntry.contextWindow ?? model.contextWindow,
+          displayName: mdEntry.name || model.displayName,
+          capabilityReasoning: mdEntry.reasoning ?? model.capabilityReasoning,
+          capabilityCode: mdEntry.toolCall ?? model.capabilityCode,
+        });
+      }
+    }
+
+    // Priority 2: OpenRouter cache — broader coverage, needs prefix + variant matching
     if (this.pricingSync) {
       const orPrefix = findOpenRouterPrefix(providerId);
       if (orPrefix) {
@@ -264,6 +297,18 @@ export class ModelDiscoveryService {
     }
 
     return this.computeScore(model);
+  }
+
+  /** Merge capability flags from models.dev without touching pricing or display name. */
+  private applyCapabilities(model: DiscoveredModel, providerId: string): DiscoveredModel {
+    if (!this.modelsDevSync) return model;
+    const mdEntry = this.modelsDevSync.lookupModel(providerId, model.id);
+    if (!mdEntry) return model;
+    return {
+      ...model,
+      capabilityReasoning: mdEntry.reasoning ?? model.capabilityReasoning,
+      capabilityCode: mdEntry.toolCall ?? model.capabilityCode,
+    };
   }
 
   private computeScore(model: DiscoveredModel): DiscoveredModel {
