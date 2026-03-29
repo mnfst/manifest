@@ -65,7 +65,7 @@ const modelData = {
 async function renderAndWait() {
   const result = render(() => <ModelPrices />);
   await vi.waitFor(() => {
-    expect(result.container.querySelectorAll(".data-table__sortable").length).toBe(4);
+    expect(result.container.querySelectorAll(".data-table__sortable").length).toBe(5);
   });
   return result;
 }
@@ -129,7 +129,7 @@ describe("ModelPrices", () => {
     const { container } = render(() => <ModelPrices />);
     await vi.waitFor(() => {
       const headers = container.querySelectorAll(".data-table__sortable");
-      expect(headers.length).toBe(4);
+      expect(headers.length).toBe(5);
     });
   });
 
@@ -164,7 +164,7 @@ describe("ModelPrices", () => {
       expect(rows.length).toBe(3);
     });
     const headers = container.querySelectorAll(".data-table__sortable");
-    fireEvent.click(headers[2]); // input price column
+    fireEvent.click(headers[3]); // input price column
     await vi.waitFor(() => {
       const rows = container.querySelectorAll("tbody tr");
       const lastRow = rows[rows.length - 1];
@@ -204,6 +204,36 @@ describe("ModelPrices", () => {
     mockGetModelPrices.mockResolvedValue({ models: [], lastSyncedAt: null });
     render(() => <ModelPrices />);
     expect(await screen.findByText("0 models")).toBeDefined();
+  });
+
+  it("shows Free badge and strips (free) from display name", async () => {
+    const dataWithFree = {
+      models: [
+        { model_name: "nvidia/llama-3.1-nemotron-70b-instruct:free", provider: "OpenRouter", display_name: "Nemotron 3 Super (free)", input_price_per_million: 0, output_price_per_million: 0 },
+        { model_name: "gpt-4o", provider: "OpenAI", display_name: "GPT-4o", input_price_per_million: 2.5, output_price_per_million: 10 },
+      ],
+      lastSyncedAt: null,
+    };
+    mockGetModelPrices.mockResolvedValue(dataWithFree);
+    const { container } = render(() => <ModelPrices />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Nemotron 3 Super");
+      const badge = container.querySelector(".free-tag");
+      expect(badge).not.toBeNull();
+      expect(badge!.textContent).toBe("Free");
+      // "(free)" should not appear as raw text
+      const rows = container.querySelectorAll("tbody tr");
+      const firstRowText = rows[0].textContent!;
+      expect(firstRowText).not.toContain("(free)");
+    });
+  });
+
+  it("does not show Free badge for non-free models", async () => {
+    const { container } = render(() => <ModelPrices />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("gpt-4o");
+      expect(container.querySelector(".free-tag")).toBeNull();
+    });
   });
 });
 

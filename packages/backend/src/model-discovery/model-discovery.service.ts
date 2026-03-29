@@ -9,6 +9,7 @@ import { DiscoveredModel } from './model-fetcher';
 import { decrypt, getEncryptionSecret } from '../common/utils/crypto.util';
 import { computeQualityScore } from '../database/quality-score.util';
 import { PricingSyncService } from '../database/pricing-sync.service';
+import { ModelsDevSyncService } from '../database/models-dev-sync.service';
 import { parseOAuthTokenBlob } from '../routing/oauth/openai-oauth.types';
 import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../routing/qwen-region';
 import { CopilotTokenService } from '../routing/proxy/copilot-token.service';
@@ -47,6 +48,9 @@ export class ModelDiscoveryService {
     @Optional()
     @Inject(CopilotTokenService)
     private readonly copilotTokenService: CopilotTokenService | null,
+    @Optional()
+    @Inject(ModelsDevSyncService)
+    private readonly modelsDevSync: ModelsDevSyncService | null,
   ) {}
 
   async discoverModels(provider: UserProvider): Promise<DiscoveredModel[]> {
@@ -237,6 +241,22 @@ export class ModelDiscoveryService {
       return this.computeScore(model);
     }
 
+    // Primary: models.dev (exact model IDs matching provider-native APIs)
+    if (this.modelsDevSync) {
+      const mdsEntry = this.modelsDevSync.lookupPricing(model.id);
+      if (mdsEntry) {
+        return this.computeScore({
+          ...model,
+          inputPricePerToken: mdsEntry.input,
+          outputPricePerToken: mdsEntry.output,
+          contextWindow: mdsEntry.contextWindow ?? model.contextWindow,
+          displayName: mdsEntry.displayName || model.displayName,
+          capabilityReasoning: mdsEntry.reasoning ?? model.capabilityReasoning,
+        });
+      }
+    }
+
+    // Fallback: OpenRouter
     if (this.pricingSync) {
       const orPrefix = findOpenRouterPrefix(providerId);
       if (orPrefix) {

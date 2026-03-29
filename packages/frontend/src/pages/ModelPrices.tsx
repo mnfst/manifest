@@ -32,7 +32,12 @@ interface ModelPricesData {
   lastSyncedAt: string | null;
 }
 
-type SortKey = 'model_name' | 'provider' | 'input_price_per_million' | 'output_price_per_million';
+type SortKey =
+  | 'display_name'
+  | 'model_name'
+  | 'provider'
+  | 'input_price_per_million'
+  | 'output_price_per_million';
 type SortDir = 'asc' | 'desc';
 
 function formatPrice(price: number | null): string {
@@ -86,12 +91,20 @@ const ModelPrices: Component = () => {
     });
   });
 
+  const resolveDisplayName = (m: ModelPrice) =>
+    (m.display_name || getModelDisplayName(m.model_name)).replace(/\s*\(free\)/i, '');
+
   const sortedModels = createMemo(() => {
     const models = filteredModels();
     if (!models.length) return [];
     const key = sortKey();
     const dir = sortDir();
     return [...models].sort((a, b) => {
+      if (key === 'display_name') {
+        const av = resolveDisplayName(a);
+        const bv = resolveDisplayName(b);
+        return dir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+      }
       const av = a[key];
       const bv = b[key];
       if (typeof av === 'string' && typeof bv === 'string') {
@@ -207,6 +220,7 @@ const ModelPrices: Component = () => {
               <thead>
                 <tr>
                   <th>Model</th>
+                  <th>Model ID</th>
                   <th>Provider</th>
                   <th>Cost to send / 1M tokens</th>
                   <th>Cost to receive / 1M tokens</th>
@@ -218,6 +232,9 @@ const ModelPrices: Component = () => {
                     <tr>
                       <td>
                         <div class="skeleton skeleton--text" style="width: 70%;" />
+                      </td>
+                      <td>
+                        <div class="skeleton skeleton--text" style="width: 60%;" />
                       </td>
                       <td>
                         <div class="skeleton skeleton--text" style="width: 60%;" />
@@ -269,8 +286,11 @@ const ModelPrices: Component = () => {
               <table class="data-table">
                 <thead>
                   <tr>
+                    <th class="data-table__sortable" onClick={() => handleSort('display_name')}>
+                      Model{indicator('display_name')}
+                    </th>
                     <th class="data-table__sortable" onClick={() => handleSort('model_name')}>
-                      Model{indicator('model_name')}
+                      Model ID{indicator('model_name')}
                     </th>
                     <th class="data-table__sortable" onClick={() => handleSort('provider')}>
                       Provider{indicator('provider')}
@@ -294,16 +314,22 @@ const ModelPrices: Component = () => {
                 <tbody>
                   <For each={pager.pageItems()}>
                     {(model) => {
-                      const displayName = () =>
+                      const rawName = () =>
                         model.display_name || getModelDisplayName(model.model_name);
+                      const isFree = () => /\(free\)/i.test(rawName());
+                      const displayName = () => rawName().replace(/\s*\(free\)/i, '');
                       const pid = () => resolveProviderId(model.provider);
                       return (
                         <tr>
-                          <td>
-                            <div style="font-size: var(--font-size-sm);">{displayName()}</div>
-                            <div style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                              {model.model_name}
-                            </div>
+                          <td style="font-size: var(--font-size-sm);">
+                            {displayName()}
+                            <Show when={isFree()}>
+                              {' '}
+                              <span class="free-tag">Free</span>
+                            </Show>
+                          </td>
+                          <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+                            {model.model_name}
                           </td>
                           <td>
                             <span style="display: inline-flex; align-items: center; gap: 6px;">

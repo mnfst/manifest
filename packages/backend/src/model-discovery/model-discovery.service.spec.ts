@@ -94,6 +94,7 @@ describe('ModelDiscoveryService', () => {
     getConfirmedModels: jest.Mock;
   };
   let mockCopilotTokenService: { getCopilotToken: jest.Mock };
+  let mockModelsDevSync: { lookupPricing: jest.Mock };
 
   beforeEach(() => {
     providerRepo = makeMockRepo();
@@ -110,6 +111,9 @@ describe('ModelDiscoveryService', () => {
     mockCopilotTokenService = {
       getCopilotToken: jest.fn().mockResolvedValue('tid=exchanged-copilot-token'),
     };
+    mockModelsDevSync = {
+      lookupPricing: jest.fn().mockReturnValue(null),
+    };
 
     mockDecrypt.mockReturnValue('decrypted-key');
     mockGetSecret.mockReturnValue('secret-32-chars-long-xxxxxxxxxx');
@@ -122,6 +126,7 @@ describe('ModelDiscoveryService', () => {
       mockPricingSync as never,
       mockModelRegistry as unknown as ProviderModelRegistryService,
       mockCopilotTokenService as never,
+      mockModelsDevSync as never,
     );
   });
 
@@ -241,6 +246,7 @@ describe('ModelDiscoveryService', () => {
         null,
         null,
         null,
+        null,
       );
 
       const models = [makeModel({ id: 'some-model' })];
@@ -335,6 +341,7 @@ describe('ModelDiscoveryService', () => {
         customProviderRepo as never,
         fetcher as unknown as ProviderModelFetcherService,
         mockPricingSync as never,
+        null,
         null,
         null,
       );
@@ -1191,6 +1198,7 @@ describe('ModelDiscoveryService', () => {
         mockPricingSync as never,
         mockModelRegistry as unknown as ProviderModelRegistryService,
         null,
+        null,
       );
 
       mockDecrypt.mockReturnValue('ghu_github_token');
@@ -1218,6 +1226,7 @@ describe('ModelDiscoveryService', () => {
         providerRepo as never,
         customProviderRepo as never,
         fetcher as unknown as ProviderModelFetcherService,
+        null,
         null,
         null,
         null,
@@ -1620,6 +1629,107 @@ describe('ModelDiscoveryService', () => {
       expect(result.map((m) => m.id)).toContain('MiniMax-M2.1');
       expect(result.map((m) => m.id)).toContain('MiniMax-M2');
       expect(result.map((m) => m.id)).not.toContain('MiniMax-M2.5');
+    });
+  });
+
+  /* ── models.dev enrichment ── */
+
+  describe('enrichModel with models.dev (via discoverModels)', () => {
+    it('should use models.dev pricing when available', async () => {
+      const models = [makeModel({ id: 'gemini-2.0-flash', provider: 'gemini' })];
+      fetcher.fetch.mockResolvedValue(models);
+      mockModelsDevSync.lookupPricing.mockReturnValue({
+        input: 0.1 / 1_000_000,
+        output: 0.4 / 1_000_000,
+        contextWindow: 1048576,
+        displayName: 'Gemini 2.0 Flash',
+        reasoning: false,
+      });
+
+      const provider = makeProvider({ provider: 'gemini' });
+      const result = await service.discoverModels(provider);
+
+      expect(result[0].inputPricePerToken).toBeCloseTo(0.1 / 1_000_000);
+      expect(result[0].outputPricePerToken).toBeCloseTo(0.4 / 1_000_000);
+      expect(result[0].displayName).toBe('Gemini 2.0 Flash');
+      expect(mockModelsDevSync.lookupPricing).toHaveBeenCalledWith('gemini-2.0-flash');
+    });
+
+    it('should try models.dev before OpenRouter', async () => {
+      const models = [makeModel({ id: 'gemini-2.0-flash', provider: 'gemini' })];
+      fetcher.fetch.mockResolvedValue(models);
+
+      // Both have pricing, but models.dev should win
+      mockModelsDevSync.lookupPricing.mockReturnValue({
+        input: 0.1 / 1_000_000,
+        output: 0.4 / 1_000_000,
+        displayName: 'From ModelsDevSync',
+      });
+      mockPricingSync.lookupPricing.mockReturnValue({
+        input: 0.2 / 1_000_000,
+        output: 0.8 / 1_000_000,
+        displayName: 'From OpenRouter',
+      });
+
+      const provider = makeProvider({ provider: 'gemini' });
+      const result = await service.discoverModels(provider);
+
+      expect(result[0].displayName).toBe('From ModelsDevSync');
+      expect(result[0].inputPricePerToken).toBeCloseTo(0.1 / 1_000_000);
+    });
+
+    it('should fall back to OpenRouter when models.dev has no match', async () => {
+      const models = [makeModel({ id: 'gemini-unknown', provider: 'gemini' })];
+      fetcher.fetch.mockResolvedValue(models);
+
+      mockModelsDevSync.lookupPricing.mockReturnValue(null);
+      mockPricingSync.lookupPricing.mockImplementation((key: string) => {
+        if (key === 'google/gemini-unknown') {
+          return {
+            input: 0.5 / 1_000_000,
+            output: 1.0 / 1_000_000,
+            displayName: 'From OpenRouter',
+          };
+        }
+        return null;
+      });
+
+      const provider = makeProvider({ provider: 'gemini' });
+      const result = await service.discoverModels(provider);
+
+      expect(result[0].displayName).toBe('From OpenRouter');
+    });
+
+    it('should apply reasoning capability from models.dev', async () => {
+      const models = [
+        makeModel({ id: 'gemini-2.5-pro', provider: 'gemini', capabilityReasoning: false }),
+      ];
+      fetcher.fetch.mockResolvedValue(models);
+      mockModelsDevSync.lookupPricing.mockReturnValue({
+        input: 1.25 / 1_000_000,
+        output: 10 / 1_000_000,
+        displayName: 'Gemini 2.5 Pro',
+        reasoning: true,
+      });
+
+      const provider = makeProvider({ provider: 'gemini' });
+      const result = await service.discoverModels(provider);
+
+      expect(mockComputeScore).toHaveBeenCalledWith(
+        expect.objectContaining({ capability_reasoning: true }),
+      );
+    });
+
+    it('should keep null pricing when neither source has a match', async () => {
+      const models = [makeModel({ id: 'gemma-3-1b-it', provider: 'gemini' })];
+      fetcher.fetch.mockResolvedValue(models);
+      mockModelsDevSync.lookupPricing.mockReturnValue(null);
+      mockPricingSync.lookupPricing.mockReturnValue(null);
+
+      const provider = makeProvider({ provider: 'gemini' });
+      const result = await service.discoverModels(provider);
+
+      expect(result[0].inputPricePerToken).toBeNull();
     });
   });
 });

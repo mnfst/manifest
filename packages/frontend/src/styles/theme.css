@@ -495,6 +495,17 @@ h6 {
   color: hsl(var(--destructive));
 }
 
+.free-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: calc(var(--radius) - 4px);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  background: hsl(var(--success));
+  color: hsl(var(--background));
+}
+
 /* ── Security Events ─────────────────────────────── */
 .security-event {
   display: flex;
