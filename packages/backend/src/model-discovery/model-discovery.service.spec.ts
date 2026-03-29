@@ -530,6 +530,86 @@ describe('ModelDiscoveryService', () => {
       const result = await service.getModelsForAgent('agent-1');
       expect(result).toHaveLength(1);
     });
+
+    it('should read capability_reasoning from custom provider model data', async () => {
+      providerRepo.find.mockResolvedValue([]);
+      customProviderRepo.find.mockResolvedValue([
+        makeCustomProvider({
+          models: [
+            {
+              model_name: 'reasoning-model',
+              capability_reasoning: true,
+              capability_code: false,
+            },
+          ],
+        }),
+      ]);
+
+      const result = await service.getModelsForAgent('agent-1');
+      expect(result[0].capabilityReasoning).toBe(true);
+      expect(result[0].capabilityCode).toBe(false);
+    });
+
+    it('should read capability_code from custom provider model data', async () => {
+      providerRepo.find.mockResolvedValue([]);
+      customProviderRepo.find.mockResolvedValue([
+        makeCustomProvider({
+          models: [
+            {
+              model_name: 'code-model',
+              capability_reasoning: false,
+              capability_code: true,
+            },
+          ],
+        }),
+      ]);
+
+      const result = await service.getModelsForAgent('agent-1');
+      expect(result[0].capabilityReasoning).toBe(false);
+      expect(result[0].capabilityCode).toBe(true);
+    });
+
+    it('should default capabilities to false for legacy custom provider models', async () => {
+      providerRepo.find.mockResolvedValue([]);
+      customProviderRepo.find.mockResolvedValue([
+        makeCustomProvider({
+          models: [{ model_name: 'legacy-model' }],
+        }),
+      ]);
+
+      const result = await service.getModelsForAgent('agent-1');
+      expect(result[0].capabilityReasoning).toBe(false);
+      expect(result[0].capabilityCode).toBe(false);
+    });
+
+    it('should compute quality score dynamically for custom provider models', async () => {
+      providerRepo.find.mockResolvedValue([]);
+      customProviderRepo.find.mockResolvedValue([
+        makeCustomProvider({
+          models: [
+            {
+              model_name: 'scored-model',
+              input_price_per_million_tokens: 15,
+              output_price_per_million_tokens: 75,
+              capability_reasoning: true,
+              capability_code: true,
+            },
+          ],
+        }),
+      ]);
+
+      const result = await service.getModelsForAgent('agent-1');
+
+      expect(mockComputeScore).toHaveBeenCalledWith({
+        model_name: 'custom:cp-1/scored-model',
+        input_price_per_token: 15 / 1_000_000,
+        output_price_per_token: 75 / 1_000_000,
+        capability_reasoning: true,
+        capability_code: true,
+        context_window: 128000,
+      });
+      expect(result[0].qualityScore).toBe(3); // mock returns 3
+    });
   });
 
   /* ── getModelForAgent ── */

@@ -105,6 +105,57 @@ describe('CreateCustomProviderDto', () => {
     expect(errors.length).toBeGreaterThan(0);
   });
 
+  it('accepts models with capability flags', async () => {
+    const dto = toDto({
+      name: 'Gateway',
+      base_url: 'https://proxy.example.com/v1',
+      models: [
+        {
+          model_name: 'claude-opus',
+          capability_reasoning: true,
+          capability_code: true,
+        },
+      ],
+    });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+  });
+
+  it('accepts models with only one capability flag', async () => {
+    const dto = toDto({
+      name: 'Gateway',
+      base_url: 'https://proxy.example.com/v1',
+      models: [
+        {
+          model_name: 'deepseek-r1',
+          capability_reasoning: true,
+        },
+      ],
+    });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+  });
+
+  it('rejects non-boolean capability_reasoning', async () => {
+    const dto = toDto({
+      name: 'Test',
+      base_url: 'https://api.example.com/v1',
+      models: [{ model_name: 'model-a', capability_reasoning: 'yes' }],
+    });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
+  it('rejects non-boolean capability_code', async () => {
+    const dto = toDto({
+      name: 'Test',
+      base_url: 'https://api.example.com/v1',
+      models: [{ model_name: 'model-a', capability_code: 42 }],
+    });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
   it('rejects negative pricing', async () => {
     const dto = toDto({
       name: 'Test',

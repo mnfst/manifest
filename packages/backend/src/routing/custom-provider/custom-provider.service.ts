@@ -91,6 +91,8 @@ export class CustomProviderService {
         input_price_per_million_tokens: m.input_price_per_million_tokens,
         output_price_per_million_tokens: m.output_price_per_million_tokens,
         context_window: m.context_window ?? 128000,
+        capability_reasoning: m.capability_reasoning,
+        capability_code: m.capability_code,
       })),
       created_at: new Date().toISOString(),
     });
@@ -138,6 +140,8 @@ export class CustomProviderService {
         input_price_per_million_tokens: m.input_price_per_million_tokens,
         output_price_per_million_tokens: m.output_price_per_million_tokens,
         context_window: m.context_window ?? 128000,
+        capability_reasoning: m.capability_reasoning,
+        capability_code: m.capability_code,
       }));
     }
 

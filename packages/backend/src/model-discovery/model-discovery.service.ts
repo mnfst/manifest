@@ -224,6 +224,8 @@ export class ModelDiscoveryService {
           m.output_price_per_million_tokens != null
             ? m.output_price_per_million_tokens / 1_000_000
             : null;
+        const capReasoning = m.capability_reasoning ?? false;
+        const capCode = m.capability_code ?? false;
         models.push({
           id: modelKey,
           displayName: m.model_name,
@@ -231,9 +233,16 @@ export class ModelDiscoveryService {
           contextWindow: m.context_window ?? 128000,
           inputPricePerToken: inputPerToken,
           outputPricePerToken: outputPerToken,
-          capabilityReasoning: false,
-          capabilityCode: false,
-          qualityScore: 2,
+          capabilityReasoning: capReasoning,
+          capabilityCode: capCode,
+          qualityScore: computeQualityScore({
+            model_name: modelKey,
+            input_price_per_token: inputPerToken,
+            output_price_per_token: outputPerToken,
+            capability_reasoning: capReasoning,
+            capability_code: capCode,
+            context_window: m.context_window ?? 128000,
+          }),
         });
       }
     }
