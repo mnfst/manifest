@@ -161,8 +161,15 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
           source: 'models.dev',
         };
 
-        // Override any existing entry for this bare model name
+        // Override both bare and prefixed keys so getAll() dedup works
         this.cache.set(model.id, pricingEntry);
+        // Also update the OpenRouter-prefixed key if it exists
+        for (const prefix of registryEntry.openRouterPrefixes) {
+          const prefixedKey = `${prefix}/${model.id}`;
+          if (this.cache.has(prefixedKey)) {
+            this.cache.set(prefixedKey, { ...pricingEntry, model_name: prefixedKey });
+          }
+        }
         count++;
       }
     }

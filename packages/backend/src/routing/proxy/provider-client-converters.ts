@@ -211,10 +211,12 @@ export function sanitizeOpenAiBody(
 ): Record<string, unknown> {
   const passthroughTopLevel = PASSTHROUGH_PROVIDERS.has(endpointKey);
 
-  // For OpenAI models that require max_completion_tokens, convert before passthrough
+  // For OpenAI models that require max_completion_tokens, convert before passthrough.
+  // Strip vendor prefix (e.g., "openai/gpt-5" → "gpt-5") before matching.
+  const bareForRegex = model.includes('/') ? model.substring(model.indexOf('/') + 1) : model;
   const convertMaxTokens =
     endpointKey === 'openai' &&
-    OPENAI_MAX_COMPLETION_TOKENS_RE.test(model) &&
+    OPENAI_MAX_COMPLETION_TOKENS_RE.test(bareForRegex) &&
     'max_tokens' in body &&
     !('max_completion_tokens' in body);
 

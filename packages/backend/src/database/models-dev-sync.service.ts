@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { PROVIDER_BY_ID_OR_ALIAS } from '../common/constants/providers';
 
 /**
  * Mapping from our internal provider IDs to models.dev provider directory names.
@@ -20,6 +21,14 @@ const PROVIDER_ID_MAP: Readonly<Record<string, string>> = {
 };
 
 const SUPPORTED_PROVIDERS = new Set(Object.keys(PROVIDER_ID_MAP));
+
+/** Resolve a provider ID or alias to our canonical internal ID (e.g., 'alibaba' → 'qwen'). */
+function resolveProviderId(providerId: string): string {
+  const lower = providerId.toLowerCase();
+  if (SUPPORTED_PROVIDERS.has(lower)) return lower;
+  const entry = PROVIDER_BY_ID_OR_ALIAS.get(lower);
+  return entry?.id ?? lower;
+}
 
 export interface ModelsDevModelEntry {
   id: string;
@@ -129,7 +138,7 @@ export class ModelsDevSyncService implements OnModuleInit {
    *   7. Strip 4-digit short date suffix (-0709 MMDD format)
    */
   lookupModel(providerId: string, modelId: string): ModelsDevModelEntry | null {
-    const providerModels = this.cache.get(providerId.toLowerCase());
+    const providerModels = this.cache.get(resolveProviderId(providerId));
     if (!providerModels) return null;
 
     // 1. Exact match
@@ -174,6 +183,11 @@ export class ModelsDevSyncService implements OnModuleInit {
     if (noShortDate !== modelId) {
       const found = providerModels.get(noShortDate);
       if (found) return found;
+      // 8. Strip short date then append -latest (mistral-small-2603 → mistral-small-latest)
+      if (!noShortDate.endsWith(LATEST_SUFFIX)) {
+        const withLatest = providerModels.get(noShortDate + LATEST_SUFFIX);
+        if (withLatest) return withLatest;
+      }
     }
 
     return null;
@@ -184,14 +198,14 @@ export class ModelsDevSyncService implements OnModuleInit {
    * Returns an empty array if the provider is not found.
    */
   getModelsForProvider(providerId: string): ModelsDevModelEntry[] {
-    const providerModels = this.cache.get(providerId.toLowerCase());
+    const providerModels = this.cache.get(resolveProviderId(providerId));
     if (!providerModels) return [];
     return [...providerModels.values()];
   }
 
   /** Whether a provider ID is mapped for models.dev lookups. */
   isProviderSupported(providerId: string): boolean {
-    return SUPPORTED_PROVIDERS.has(providerId.toLowerCase());
+    return SUPPORTED_PROVIDERS.has(resolveProviderId(providerId));
   }
 
   getLastFetchedAt(): Date | null {

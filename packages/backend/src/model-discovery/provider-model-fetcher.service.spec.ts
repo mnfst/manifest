@@ -1231,17 +1231,17 @@ describe('ProviderModelFetcherService', () => {
     });
 
     it('should keep model with "ocr" in the middle of the name but not at start', async () => {
-      // The regex is /^mistral-ocr|embed/i -- so "some-ocr-model" should pass
+      // The regex is /^mistral-ocr|embed/i — only filters "mistral-ocr-*" prefix, not "ocr" mid-name
       fetchSpy.mockResolvedValue({
         ok: true,
         json: async () => ({
-          data: [{ id: 'pixtral-large-latest' }],
+          data: [{ id: 'pixtral-large-latest' }, { id: 'some-ocr-model' }],
         }),
       });
 
       const result = await service.fetch('mistral', 'key');
-      expect(result).toHaveLength(1);
-      expect(result[0].id).toBe('pixtral-large-latest');
+      // Both pass: pixtral has no "mistral-ocr" prefix, "some-ocr-model" has "ocr" mid-name not prefix
+      expect(result).toHaveLength(2);
     });
   });
 
