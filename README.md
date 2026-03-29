@@ -97,6 +97,7 @@ Works with 300+ models across these providers:
 | [Z.ai (Zhipu)](https://z.ai/)                                                  | `glm-5`, `glm-4.7`, `glm-4.5` + 5 more                               |
 | [OpenRouter](https://openrouter.ai/)                                           | 300+ models from all providers                                       |
 | [Ollama](https://ollama.com/)                                                  | Run any model locally (Llama, Gemma, Mistral, ...)                   |
+| Custom providers                                                               | Any provider with an OpenAI-compatible API endpoint                  |
 
 ## Contributing
 
