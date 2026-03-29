@@ -126,9 +126,14 @@ export class ResolveService {
       return assignment.override_provider;
     }
 
-    // 1. Infer from slash prefix
+    // 1. Infer from slash prefix — but only if that provider is actually connected.
+    //    Models from proxy providers (e.g. OpenRouter) carry vendor prefixes
+    //    like "anthropic/claude-sonnet-4" which would incorrectly resolve to
+    //    the native provider when that provider is disabled (#1383).
     const prefix = inferProviderFromModelName(model);
-    if (prefix) return prefix;
+    if (prefix && (await this.providerKeyService.hasActiveProvider(agentId, prefix))) {
+      return prefix;
+    }
 
     // 2. Check discovered models
     const discovered = await this.discoveryService.getModelForAgent(agentId, model);

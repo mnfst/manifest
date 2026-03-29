@@ -23,6 +23,7 @@ describe('ResolveService', () => {
     mockProviderKeyService = {
       getEffectiveModel: jest.fn(),
       getAuthType: jest.fn().mockResolvedValue('api_key'),
+      hasActiveProvider: jest.fn().mockResolvedValue(true),
     };
     mockPricingCache = {
       getByModel: jest.fn(),
@@ -345,6 +346,44 @@ describe('ResolveService', () => {
 
       expect(result.auth_type).toBeUndefined();
       expect(mockProviderKeyService.getAuthType).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('provider prefix validation (#1383)', () => {
+    it('should fall through to discovered models when inferred prefix provider is inactive', async () => {
+      mockTierService.getTiers.mockResolvedValue([
+        { tier: 'simple', override_model: null, auto_assigned_model: 'anthropic/claude-sonnet-4' },
+      ]);
+      mockProviderKeyService.getEffectiveModel.mockResolvedValue('anthropic/claude-sonnet-4');
+      // Anthropic is disabled — hasActiveProvider returns false
+      mockProviderKeyService.hasActiveProvider.mockResolvedValue(false);
+      // Discovery correctly maps the model to OpenRouter
+      mockDiscoveryService.getModelForAgent.mockResolvedValue({
+        id: 'anthropic/claude-sonnet-4',
+        provider: 'openrouter',
+      });
+
+      const result = await service.resolveForTier('agent-1', 'simple');
+
+      expect(result.provider).toBe('openrouter');
+      expect(mockProviderKeyService.hasActiveProvider).toHaveBeenCalledWith(
+        'agent-1',
+        'anthropic',
+      );
+    });
+
+    it('should use prefix when inferred provider is active', async () => {
+      mockTierService.getTiers.mockResolvedValue([
+        { tier: 'simple', override_model: null, auto_assigned_model: 'anthropic/claude-sonnet-4' },
+      ]);
+      mockProviderKeyService.getEffectiveModel.mockResolvedValue('anthropic/claude-sonnet-4');
+      mockProviderKeyService.hasActiveProvider.mockResolvedValue(true);
+
+      const result = await service.resolveForTier('agent-1', 'simple');
+
+      expect(result.provider).toBe('anthropic');
+      // Discovery should not be called — fast path used
+      expect(mockDiscoveryService.getModelForAgent).not.toHaveBeenCalled();
     });
   });
 

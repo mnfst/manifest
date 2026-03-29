@@ -42,6 +42,7 @@ describe('ProxyService', () => {
       getProviderRegion: jest.fn().mockResolvedValue(null),
       getAuthType: jest.fn().mockResolvedValue('api_key'),
       findProviderForModel: jest.fn().mockResolvedValue(undefined),
+      hasActiveProvider: jest.fn().mockResolvedValue(true),
     } as unknown as jest.Mocked<ProviderKeyService>;
 
     tierService = {
