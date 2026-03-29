@@ -67,7 +67,13 @@ export function createRoutingActions(input: RoutingActionsInput) {
     try {
       await resetAllTiers(input.agentName());
       input.mutateTiers((prev) =>
-        prev?.map((t) => ({ ...t, override_model: null, override_provider: null })),
+        prev?.map((t) => ({
+          ...t,
+          override_model: null,
+          override_provider: null,
+          override_auth_type: null,
+          fallback_models: null,
+        })),
       );
       toast.success('All tiers reset to auto');
     } catch {
@@ -84,7 +90,7 @@ export function createRoutingActions(input: RoutingActionsInput) {
       input.mutateTiers((prev) =>
         prev?.map((t) =>
           t.tier === tierId
-            ? { ...t, override_model: null, override_provider: null, fallback_models: [] }
+            ? { ...t, override_model: null, override_provider: null, override_auth_type: null }
             : t,
         ),
       );
