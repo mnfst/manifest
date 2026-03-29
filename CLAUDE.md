@@ -2,9 +2,26 @@
 
 Last updated: 2026-03-26
 
-## IMPORTANT: Local Mode First
+## IMPORTANT: Cloud Mode Always
 
-When starting the app for development or testing (e.g. `/serve`), **always use `MANIFEST_MODE=local`** unless explicitly asked for cloud mode. Local mode is the primary development target — cloud mode comes second.
+When starting the app for development or testing (e.g. `/serve`), **always use `MANIFEST_MODE=cloud`** (the default). Never use local/SQLite mode — multiple concurrent Claude instances cause SQLite lock conflicts. Every dev session must use a **fresh PostgreSQL database** via Docker:
+
+```bash
+# 1. Ensure the postgres_db container is running
+docker start postgres_db 2>/dev/null || \
+  docker run -d --name postgres_db -e POSTGRES_USER=myuser -e POSTGRES_PASSWORD=mypassword -e POSTGRES_DB=mydatabase -p 5432:5432 postgres:16
+
+# 2. Create a pristine database with a unique name
+DB_NAME="manifest_$(openssl rand -hex 4)"
+docker exec postgres_db psql -U myuser -d postgres -c "CREATE DATABASE $DB_NAME;"
+
+# 3. Update DATABASE_URL in packages/backend/.env to use the new database
+# DATABASE_URL=postgresql://myuser:mypassword@localhost:5432/$DB_NAME
+
+# 4. Ensure SEED_DATA=true in .env so the database is populated on startup
+```
+
+This guarantees each session starts with a clean, isolated database and avoids all cross-instance conflicts.
 
 ## IMPORTANT: Plugin Must Use Cloud+Dev Mode
 
@@ -15,9 +32,9 @@ When configuring the OpenClaw **manifest-model-router** plugin to point at a loc
 When testing the OpenClaw plugin integration (routing), use the **manifest-model-router** plugin in **dev mode** to connect to a local backend without API key management:
 
 ```bash
-# 1. Build and start the backend in local mode
+# 1. Build and start the backend in cloud mode
 npm run build
-MANIFEST_MODE=local PORT=38238 BIND_ADDRESS=127.0.0.1 \
+PORT=38238 BIND_ADDRESS=127.0.0.1 \
   node -r dotenv/config packages/backend/dist/main.js
 
 # 2. Configure the manifest-model-router plugin
