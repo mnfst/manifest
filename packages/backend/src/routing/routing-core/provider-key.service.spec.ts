@@ -315,6 +315,67 @@ describe('ProviderKeyService', () => {
 
       expect(result).toBe('api_key');
     });
+
+    it('should return api_key when subscription is excluded and both exist', async () => {
+      providerService.getProviders.mockResolvedValue([
+        makeProvider({ id: 'p1', auth_type: 'subscription', api_key_encrypted: 'enc-sub' }),
+        makeProvider({ id: 'p2', auth_type: 'api_key', api_key_encrypted: 'enc-api' }),
+      ]);
+
+      const result = await service.getAuthType('agent-1', 'openai', new Set(['subscription']));
+
+      expect(result).toBe('api_key');
+    });
+
+    it('should return subscription when api_key is excluded and both exist', async () => {
+      providerService.getProviders.mockResolvedValue([
+        makeProvider({ id: 'p1', auth_type: 'subscription', api_key_encrypted: 'enc-sub' }),
+        makeProvider({ id: 'p2', auth_type: 'api_key', api_key_encrypted: 'enc-api' }),
+      ]);
+
+      const result = await service.getAuthType('agent-1', 'openai', new Set(['api_key']));
+
+      expect(result).toBe('subscription');
+    });
+
+    it('should fall through to default when all auth types excluded', async () => {
+      providerService.getProviders.mockResolvedValue([
+        makeProvider({ id: 'p1', auth_type: 'subscription', api_key_encrypted: 'enc-sub' }),
+        makeProvider({ id: 'p2', auth_type: 'api_key', api_key_encrypted: 'enc-api' }),
+      ]);
+
+      const result = await service.getAuthType(
+        'agent-1',
+        'openai',
+        new Set(['subscription', 'api_key']),
+      );
+
+      // Falls through because filtered set is empty — original logic applies
+      expect(result).toBe('subscription');
+    });
+
+    it('should ignore exclusions when only one auth type exists', async () => {
+      providerService.getProviders.mockResolvedValue([
+        makeProvider({ id: 'p1', auth_type: 'api_key', api_key_encrypted: 'enc-api' }),
+      ]);
+
+      const result = await service.getAuthType('agent-1', 'openai', new Set(['api_key']));
+
+      // Falls through because filtering leaves empty set
+      expect(result).toBe('api_key');
+    });
+
+    it('should behave the same with empty exclusion set', async () => {
+      providerService.getProviders.mockResolvedValue([
+        makeProvider({ id: 'p1', auth_type: 'subscription', api_key_encrypted: 'enc-sub' }),
+        makeProvider({ id: 'p2', auth_type: 'api_key', api_key_encrypted: 'enc-api' }),
+      ]);
+
+      const result = await service.getAuthType('agent-1', 'openai', new Set());
+
+      // Empty set has size 0, so exclusion logic is skipped — defaults to subscription
+      expect(result).toBe('subscription');
+    });
   });
 
   /* ── findProviderForModel ── */

@@ -43,10 +43,20 @@ export class ProviderKeyService {
     return result;
   }
 
-  async getAuthType(agentId: string, provider: string): Promise<'api_key' | 'subscription'> {
+  async getAuthType(
+    agentId: string,
+    provider: string,
+    excludeAuthTypes?: Set<string>,
+  ): Promise<'api_key' | 'subscription'> {
     const names = expandProviderNames([provider]);
     const records = await this.providerService.getProviders(agentId);
-    const matches = records.filter((r) => r.is_active && names.has(r.provider.toLowerCase()));
+    let matches = records.filter((r) => r.is_active && names.has(r.provider.toLowerCase()));
+    // When the caller knows certain auth types already failed (e.g. during
+    // fallback retries), filter them out so the alternate type is preferred.
+    if (excludeAuthTypes && excludeAuthTypes.size > 0) {
+      const filtered = matches.filter((r) => !excludeAuthTypes.has(r.auth_type));
+      if (filtered.length > 0) matches = filtered;
+    }
     // Prefer subscription if both exist and the subscription record has a usable key
     const subMatch = matches.find((r) => r.auth_type === 'subscription' && r.api_key_encrypted);
     if (subMatch) return 'subscription';

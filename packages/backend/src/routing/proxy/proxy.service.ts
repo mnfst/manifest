@@ -161,6 +161,8 @@ export class ProxyService {
           sessionKey,
           primaryModel,
           signal,
+          resolved.provider ?? undefined,
+          resolved.auth_type,
         );
 
         if (success) {

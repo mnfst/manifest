@@ -2297,8 +2297,8 @@ describe('ProxyService', () => {
         stream: false,
         authType: 'subscription',
       });
-      // getAuthType was called for the fallback provider
-      expect(providerKeyService.getAuthType).toHaveBeenCalledWith('agent-1', 'Anthropic');
+      // getAuthType was called for the fallback provider (different provider, no exclusions)
+      expect(providerKeyService.getAuthType).toHaveBeenCalledWith('agent-1', 'Anthropic', undefined);
       // getProviderApiKey was called with subscription for the fallback
       expect(providerKeyService.getProviderApiKey).toHaveBeenNthCalledWith(
         2,
@@ -2528,9 +2528,9 @@ describe('ProxyService', () => {
       // forward called twice: primary + second fallback (first was skipped)
       expect(providerClient.forward).toHaveBeenCalledTimes(2);
       expect(result.failedFallbacks).toHaveLength(0);
-      // Verify getAuthType was called for both fallback providers
-      expect(providerKeyService.getAuthType).toHaveBeenCalledWith('agent-1', 'Anthropic');
-      expect(providerKeyService.getAuthType).toHaveBeenCalledWith('agent-1', 'DeepSeek');
+      // Verify getAuthType was called for both fallback providers (different from primary, no exclusions)
+      expect(providerKeyService.getAuthType).toHaveBeenCalledWith('agent-1', 'Anthropic', undefined);
+      expect(providerKeyService.getAuthType).toHaveBeenCalledWith('agent-1', 'DeepSeek', undefined);
     });
 
     it('resolves fallback provider via findProviderForModel when pricing and name inference fail', async () => {
@@ -2723,6 +2723,57 @@ describe('ProxyService', () => {
       expect(result.forward.response.status).toBe(424);
       expect(shouldTriggerFallback(result.forward.response.status)).toBe(false);
       expect(result.failedFallbacks).toHaveLength(2);
+    });
+  });
+
+  describe('auth type fallback for same provider (#1272)', () => {
+    it('passes primary provider and auth_type to tryFallbacks', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'claude-sonnet-4',
+        provider: 'anthropic',
+        confidence: 0.9,
+        score: 0.5,
+        reason: 'scored',
+        auth_type: 'subscription',
+      });
+      providerKeyService.getProviderApiKey.mockResolvedValue('sub-token');
+
+      // Primary fails
+      providerClient.forward.mockResolvedValueOnce({
+        response: new Response('error', { status: 401 }),
+        isGoogle: false,
+        isAnthropic: true,
+        isChatGpt: false,
+      });
+
+      tierService.getTiers.mockResolvedValue([
+        { tier: 'standard', fallback_models: ['claude-haiku-3.5'] },
+      ] as never);
+
+      // Fallback also fails so we get 424
+      providerKeyService.getAuthType.mockResolvedValue('api_key');
+      providerClient.forward.mockResolvedValueOnce({
+        response: new Response('also error', { status: 500 }),
+        isGoogle: false,
+        isAnthropic: true,
+        isChatGpt: false,
+      });
+      pricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' } as never);
+
+      await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+      });
+
+      // Verify tryFallbacks receives primary context so it can exclude auth_type
+      expect(providerKeyService.getAuthType).toHaveBeenCalledWith(
+        'agent-1',
+        'Anthropic',
+        new Set(['subscription']),
+      );
     });
   });
 
