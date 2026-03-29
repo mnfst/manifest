@@ -87,7 +87,7 @@ const DEEPSEEK_MAX_TOKENS_LIMIT = 8192;
  * OpenAI models that require `max_completion_tokens` instead of `max_tokens`.
  * All o-series reasoning models and GPT-5+ models use the new parameter.
  */
-const OPENAI_MAX_COMPLETION_TOKENS_RE = /^(o[134]|gpt-5)/i;
+const OPENAI_MAX_COMPLETION_TOKENS_RE = /^(o\d|gpt-5)/i;
 
 function supportsReasoningContent(endpointKey: string, model: string): boolean {
   if (endpointKey === 'deepseek') return true;
