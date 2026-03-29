@@ -386,13 +386,16 @@ describe("Settings", () => {
     mockSetupThrows = true;
     const suppress = (e: ErrorEvent) => { e.preventDefault(); e.stopImmediatePropagation(); };
     window.addEventListener("error", suppress, true);
-    const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Agent setup"));
-    await vi.waitFor(() => {
-      expect(container.textContent).toContain("Something went wrong");
-    });
-    window.removeEventListener("error", suppress, true);
-    mockSetupThrows = false;
+    try {
+      const { container } = render(() => <Settings />);
+      fireEvent.click(screen.getByText("Agent setup"));
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("Something went wrong");
+      });
+    } finally {
+      window.removeEventListener("error", suppress, true);
+      mockSetupThrows = false;
+    }
   });
 
   it("uses custom pluginEndpoint when available", async () => {
