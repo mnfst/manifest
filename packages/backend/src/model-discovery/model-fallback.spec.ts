@@ -1,5 +1,6 @@
 import {
   buildFallbackModels,
+  buildModelsDevFallback,
   buildSubscriptionFallbackModels,
   supplementWithKnownModels,
   findOpenRouterPrefix,
@@ -209,6 +210,14 @@ describe('lookupWithVariants', () => {
     expect(result).toEqual({ input: 0.01, output: 0.02 });
   });
 
+  it('should try :free suffix variant', () => {
+    const cache = new Map([['google/gemma-3n-e2b-it:free', { input: 0, output: 0 }]]);
+
+    const result = lookupWithVariants(makePricingSync(cache), 'google', 'gemma-3n-e2b-it');
+
+    expect(result).toEqual({ input: 0, output: 0 });
+  });
+
   it('should return null when no match found', () => {
     const cache = new Map<string, { input: number; output: number }>();
 
@@ -285,5 +294,199 @@ describe('supplementWithKnownModels', () => {
 
     const opusEntries = result.filter((m) => m.id.startsWith('claude-opus-4'));
     expect(opusEntries).toHaveLength(1);
+  });
+});
+
+describe('buildModelsDevFallback', () => {
+  it('should return models from models.dev sync for a provider', () => {
+    const mockSync = {
+      getModelsForProvider: jest.fn().mockReturnValue([
+        {
+          id: 'claude-opus-4-6',
+          name: 'Claude Opus 4.6',
+          contextWindow: 1000000,
+          inputPricePerToken: 0.000005,
+          outputPricePerToken: 0.000025,
+          reasoning: true,
+          toolCall: true,
+        },
+        {
+          id: 'claude-sonnet-4-6',
+          name: 'Claude Sonnet 4.6',
+          contextWindow: 200000,
+          inputPricePerToken: 0.000003,
+          outputPricePerToken: 0.000015,
+          reasoning: false,
+        },
+      ]),
+    };
+
+    const result = buildModelsDevFallback(mockSync, 'anthropic');
+
+    expect(result).toHaveLength(2);
+    expect(result[0].id).toBe('claude-opus-4-6');
+    expect(result[0].displayName).toBe('Claude Opus 4.6');
+    expect(result[0].provider).toBe('anthropic');
+    expect(result[0].inputPricePerToken).toBe(0.000005);
+    expect(result[0].contextWindow).toBe(1000000);
+    expect(result[0].capabilityReasoning).toBe(true);
+    expect(result[1].capabilityReasoning).toBe(false);
+  });
+
+  it('should return empty when sync is null', () => {
+    expect(buildModelsDevFallback(null, 'anthropic')).toEqual([]);
+  });
+
+  it('should return empty when provider has no models', () => {
+    const mockSync = {
+      getModelsForProvider: jest.fn().mockReturnValue([]),
+    };
+    expect(buildModelsDevFallback(mockSync, 'unknown')).toEqual([]);
+  });
+
+  it('should use default context window when not provided', () => {
+    const mockSync = {
+      getModelsForProvider: jest
+        .fn()
+        .mockReturnValue([
+          { id: 'test-model', name: 'Test', inputPricePerToken: 0.01, outputPricePerToken: 0.02 },
+        ]),
+    };
+
+    const result = buildModelsDevFallback(mockSync, 'openai');
+
+    expect(result[0].contextWindow).toBe(128000);
+  });
+
+  it('should use model id as displayName when name is empty', () => {
+    const mockSync = {
+      getModelsForProvider: jest
+        .fn()
+        .mockReturnValue([
+          { id: 'unnamed-model', name: '', inputPricePerToken: 0.01, outputPricePerToken: 0.02 },
+        ]),
+    };
+
+    const result = buildModelsDevFallback(mockSync, 'openai');
+
+    expect(result[0].displayName).toBe('unnamed-model');
+  });
+
+  it('should propagate toolCall as capabilityCode', () => {
+    const mockSync = {
+      getModelsForProvider: jest.fn().mockReturnValue([
+        {
+          id: 'tool-model',
+          name: 'Tool Model',
+          inputPricePerToken: 0.01,
+          outputPricePerToken: 0.02,
+          reasoning: false,
+          toolCall: true,
+        },
+      ]),
+    };
+
+    const result = buildModelsDevFallback(mockSync, 'openai');
+
+    expect(result[0].capabilityCode).toBe(true);
+    expect(result[0].capabilityReasoning).toBe(false);
+  });
+
+  it('should default reasoning to false when not provided', () => {
+    const mockSync = {
+      getModelsForProvider: jest.fn().mockReturnValue([
+        {
+          id: 'no-caps',
+          name: 'No Caps',
+          inputPricePerToken: 0.01,
+          outputPricePerToken: 0.02,
+          // no reasoning or toolCall
+        },
+      ]),
+    };
+
+    const result = buildModelsDevFallback(mockSync, 'openai');
+
+    expect(result[0].capabilityReasoning).toBe(false);
+    expect(result[0].capabilityCode).toBe(false);
+  });
+
+  it('should include models with null pricing', () => {
+    const mockSync = {
+      getModelsForProvider: jest.fn().mockReturnValue([
+        {
+          id: 'null-price',
+          name: 'Null Price',
+          inputPricePerToken: null,
+          outputPricePerToken: null,
+        },
+      ]),
+    };
+
+    const result = buildModelsDevFallback(mockSync, 'openai');
+
+    expect(result).toHaveLength(1);
+    expect(result[0].inputPricePerToken).toBeNull();
+    expect(result[0].outputPricePerToken).toBeNull();
+  });
+
+  it('should set qualityScore to 3 for all models', () => {
+    const mockSync = {
+      getModelsForProvider: jest.fn().mockReturnValue([
+        { id: 'model-1', name: 'Model 1', inputPricePerToken: 0.01, outputPricePerToken: 0.02 },
+        { id: 'model-2', name: 'Model 2', inputPricePerToken: 0.05, outputPricePerToken: 0.1 },
+      ]),
+    };
+
+    const result = buildModelsDevFallback(mockSync, 'anthropic');
+
+    for (const m of result) {
+      expect(m.qualityScore).toBe(3);
+    }
+  });
+});
+
+describe('lookupWithVariants edge cases', () => {
+  it('should not double-apply dot variant when model already uses dots', () => {
+    const cache = new Map([['openai/gpt-4.1', { input: 0.01, output: 0.02 }]]);
+
+    // Already has a dot, so -(\d+)-(\d) pattern won't match
+    const result = lookupWithVariants(makePricingSync(cache), 'openai', 'gpt-4.1');
+
+    expect(result).toEqual({ input: 0.01, output: 0.02 });
+  });
+
+  it('should prefer exact match over :free suffix', () => {
+    const cache = new Map([
+      ['google/gemma-3n-e2b-it', { input: 0.01, output: 0.02 }],
+      ['google/gemma-3n-e2b-it:free', { input: 0, output: 0 }],
+    ]);
+
+    const result = lookupWithVariants(makePricingSync(cache), 'google', 'gemma-3n-e2b-it');
+
+    // Should return exact match, not :free variant
+    expect(result).toEqual({ input: 0.01, output: 0.02 });
+  });
+
+  it('should handle model names with multiple dashes and digits', () => {
+    const cache = new Map([['anthropic/claude-sonnet-4.5', { input: 0.01, output: 0.02 }]]);
+
+    // claude-sonnet-4-5 -> dot variant: claude-sonnet-4.5
+    const result = lookupWithVariants(makePricingSync(cache), 'anthropic', 'claude-sonnet-4-5');
+
+    expect(result).toEqual({ input: 0.01, output: 0.02 });
+  });
+
+  it('should try date-stripped + dot variant as last resort', () => {
+    const cache = new Map([['anthropic/claude-opus-4.6', { input: 0.015, output: 0.075 }]]);
+
+    // claude-opus-4-6-20260301 -> strip date -> claude-opus-4-6 -> dot variant -> claude-opus-4.6
+    const result = lookupWithVariants(
+      makePricingSync(cache),
+      'anthropic',
+      'claude-opus-4-6-20260301',
+    );
+
+    expect(result).toEqual({ input: 0.015, output: 0.075 });
   });
 });

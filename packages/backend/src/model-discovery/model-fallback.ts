@@ -5,6 +5,7 @@ import {
 } from '../common/constants/providers';
 import { getSubscriptionKnownModels, getSubscriptionCapabilities } from 'manifest-shared';
 import { normalizeAnthropicShortModelId } from '../common/utils/anthropic-model-id';
+import type { ModelsDevSyncService } from '../database/models-dev-sync.service';
 
 interface PricingLookup {
   lookupPricing(key: string): {
@@ -83,7 +84,44 @@ export function lookupWithVariants(
     }
   }
 
+  // Try :free suffix (OpenRouter lists some models as "provider/model:free")
+  const freeResult = pricingSync.lookupPricing(`${prefix}/${modelId}:free`);
+  if (freeResult) return freeResult;
+
   return null;
+}
+
+/**
+ * Build a fallback model list from models.dev cache.
+ * Uses native provider model IDs — no prefix stripping or variant matching needed.
+ */
+export function buildModelsDevFallback(
+  modelsDevSync: {
+    getModelsForProvider(id: string): {
+      id: string;
+      name: string;
+      contextWindow?: number;
+      inputPricePerToken: number | null;
+      outputPricePerToken: number | null;
+      reasoning?: boolean;
+      toolCall?: boolean;
+    }[];
+  } | null,
+  providerId: string,
+): DiscoveredModel[] {
+  if (!modelsDevSync) return [];
+  const entries = modelsDevSync.getModelsForProvider(providerId);
+  return entries.map((e) => ({
+    id: e.id,
+    displayName: e.name || e.id,
+    provider: providerId,
+    contextWindow: e.contextWindow ?? 128000,
+    inputPricePerToken: e.inputPricePerToken,
+    outputPricePerToken: e.outputPricePerToken,
+    capabilityReasoning: e.reasoning ?? false,
+    capabilityCode: e.toolCall ?? false,
+    qualityScore: 3,
+  }));
 }
 
 /**

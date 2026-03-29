@@ -1,5 +1,6 @@
 import { ModelPricingCacheService } from './model-pricing-cache.service';
 import { PricingSyncService, OpenRouterPricingEntry } from '../database/pricing-sync.service';
+import { ModelsDevSyncService } from '../database/models-dev-sync.service';
 import { ProviderModelRegistryService } from '../model-discovery/provider-model-registry.service';
 
 function makeEntry(input: number, output: number): OpenRouterPricingEntry {
@@ -14,17 +15,28 @@ function makeMockRegistry() {
   };
 }
 
+function makeMockModelsDevSync() {
+  return {
+    lookupModel: jest.fn().mockReturnValue(null),
+    getModelsForProvider: jest.fn().mockReturnValue([]),
+    isProviderSupported: jest.fn().mockReturnValue(false),
+  };
+}
+
 describe('ModelPricingCacheService', () => {
   let service: ModelPricingCacheService;
   let mockGetAll: jest.Mock;
   let mockRegistry: ReturnType<typeof makeMockRegistry>;
+  let mockModelsDevSync: ReturnType<typeof makeMockModelsDevSync>;
 
   beforeEach(() => {
     mockGetAll = jest.fn().mockReturnValue(new Map<string, OpenRouterPricingEntry>());
     const mockSync = { getAll: mockGetAll } as unknown as PricingSyncService;
+    mockModelsDevSync = makeMockModelsDevSync();
     mockRegistry = makeMockRegistry();
     service = new ModelPricingCacheService(
       mockSync,
+      mockModelsDevSync as unknown as ModelsDevSyncService,
       mockRegistry as unknown as ProviderModelRegistryService,
     );
   });
@@ -258,7 +270,7 @@ describe('ModelPricingCacheService', () => {
 
     it('should work without registry (null)', async () => {
       const mockSync = { getAll: mockGetAll } as unknown as PricingSyncService;
-      const serviceNoRegistry = new ModelPricingCacheService(mockSync, null);
+      const serviceNoRegistry = new ModelPricingCacheService(mockSync, null, null);
       mockGetAll.mockReturnValue(new Map([['openai/gpt-4o', makeEntry(0.01, 0.02)]]));
       await serviceNoRegistry.reload();
 
@@ -287,6 +299,257 @@ describe('ModelPricingCacheService', () => {
       const entry = service.getByModel('google/gemini-2.5-pro');
       expect(entry!.validated).toBe(true);
       expect(mockRegistry.isModelConfirmed).toHaveBeenCalledWith('gemini', 'gemini-2.5-pro');
+    });
+  });
+
+  describe('models.dev overlay', () => {
+    it('should override OpenRouter entries with models.dev data', async () => {
+      // OpenRouter has slightly different pricing
+      mockGetAll.mockReturnValue(
+        new Map([['anthropic/claude-opus-4-6', makeEntry(0.000015, 0.000075)]]),
+      );
+      // models.dev has correct native-ID pricing
+      mockModelsDevSync.getModelsForProvider.mockImplementation((providerId: string) => {
+        if (providerId === 'anthropic') {
+          return [
+            {
+              id: 'claude-opus-4-6',
+              name: 'Claude Opus 4.6',
+              inputPricePerToken: 0.000005,
+              outputPricePerToken: 0.000025,
+            },
+          ];
+        }
+        return [];
+      });
+
+      await service.reload();
+
+      // Bare model name should resolve to models.dev data
+      const entry = service.getByModel('claude-opus-4-6');
+      expect(entry).toBeDefined();
+      expect(entry!.source).toBe('models.dev');
+      expect(entry!.input_price_per_token).toBe(0.000005);
+      expect(entry!.provider).toBe('Anthropic');
+    });
+
+    it('should set source to openrouter for non-overlaid entries', async () => {
+      mockGetAll.mockReturnValue(new Map([['openai/gpt-4o', makeEntry(0.0025, 0.01)]]));
+      mockModelsDevSync.getModelsForProvider.mockReturnValue([]);
+
+      await service.reload();
+
+      const entry = service.getByModel('openai/gpt-4o');
+      expect(entry!.source).toBe('openrouter');
+    });
+
+    it('should skip models.dev entries without pricing', async () => {
+      mockGetAll.mockReturnValue(new Map([['deepseek/deepseek-chat', makeEntry(0.001, 0.002)]]));
+      mockModelsDevSync.getModelsForProvider.mockImplementation((providerId: string) => {
+        if (providerId === 'deepseek') {
+          return [
+            {
+              id: 'deepseek-chat',
+              name: 'DeepSeek Chat',
+              inputPricePerToken: null,
+              outputPricePerToken: null,
+            },
+          ];
+        }
+        return [];
+      });
+
+      await service.reload();
+
+      // OpenRouter entry should remain since models.dev has null pricing
+      const entry = service.getByModel('deepseek-chat');
+      expect(entry!.source).toBe('openrouter');
+    });
+
+    it('should work when modelsDevSync is null', async () => {
+      const mockSync = { getAll: mockGetAll } as unknown as PricingSyncService;
+      const serviceNoModelsDev = new ModelPricingCacheService(
+        mockSync,
+        null,
+        mockRegistry as unknown as ProviderModelRegistryService,
+      );
+      mockGetAll.mockReturnValue(new Map([['openai/gpt-4o', makeEntry(0.01, 0.02)]]));
+
+      await serviceNoModelsDev.reload();
+
+      expect(serviceNoModelsDev.getByModel('openai/gpt-4o')).toBeDefined();
+    });
+
+    it('should set display_name from models.dev entries', async () => {
+      mockGetAll.mockReturnValue(new Map());
+      mockModelsDevSync.getModelsForProvider.mockImplementation((providerId: string) => {
+        if (providerId === 'openai') {
+          return [
+            {
+              id: 'gpt-4o',
+              name: 'GPT-4o Enhanced',
+              inputPricePerToken: 0.0000025,
+              outputPricePerToken: 0.00001,
+            },
+          ];
+        }
+        return [];
+      });
+
+      await service.reload();
+
+      const entry = service.getByModel('gpt-4o');
+      expect(entry).toBeDefined();
+      expect(entry!.display_name).toBe('GPT-4o Enhanced');
+      expect(entry!.source).toBe('models.dev');
+    });
+
+    it('should set display_name to null when models.dev entry has no name', async () => {
+      mockGetAll.mockReturnValue(new Map());
+      mockModelsDevSync.getModelsForProvider.mockImplementation((providerId: string) => {
+        if (providerId === 'anthropic') {
+          return [
+            {
+              id: 'claude-test',
+              name: '',
+              inputPricePerToken: 0.001,
+              outputPricePerToken: 0.002,
+            },
+          ];
+        }
+        return [];
+      });
+
+      await service.reload();
+
+      const entry = service.getByModel('claude-test');
+      expect(entry).toBeDefined();
+      expect(entry!.display_name).toBeNull();
+    });
+
+    it('should use resolveValidatedForModelsDev for models.dev entries', async () => {
+      mockRegistry.isModelConfirmed.mockImplementation((providerId: string, modelId: string) => {
+        if (providerId === 'openai' && modelId === 'gpt-4o') return true;
+        return null;
+      });
+
+      mockGetAll.mockReturnValue(new Map());
+      mockModelsDevSync.getModelsForProvider.mockImplementation((providerId: string) => {
+        if (providerId === 'openai') {
+          return [
+            {
+              id: 'gpt-4o',
+              name: 'GPT-4o',
+              inputPricePerToken: 0.0000025,
+              outputPricePerToken: 0.00001,
+            },
+          ];
+        }
+        return [];
+      });
+
+      await service.reload();
+
+      const entry = service.getByModel('gpt-4o');
+      expect(entry).toBeDefined();
+      expect(entry!.validated).toBe(true);
+      expect(mockRegistry.isModelConfirmed).toHaveBeenCalledWith('openai', 'gpt-4o');
+    });
+
+    it('should handle models.dev overlay for multiple providers', async () => {
+      mockGetAll.mockReturnValue(new Map());
+      mockModelsDevSync.getModelsForProvider.mockImplementation((providerId: string) => {
+        if (providerId === 'openai') {
+          return [
+            { id: 'gpt-4o', name: 'GPT-4o', inputPricePerToken: 0.001, outputPricePerToken: 0.002 },
+          ];
+        }
+        if (providerId === 'anthropic') {
+          return [
+            {
+              id: 'claude-opus-4-6',
+              name: 'Claude Opus',
+              inputPricePerToken: 0.005,
+              outputPricePerToken: 0.025,
+            },
+          ];
+        }
+        return [];
+      });
+
+      await service.reload();
+
+      const openai = service.getByModel('gpt-4o');
+      const anthropic = service.getByModel('claude-opus-4-6');
+      expect(openai).toBeDefined();
+      expect(openai!.provider).toBe('OpenAI');
+      expect(anthropic).toBeDefined();
+      expect(anthropic!.provider).toBe('Anthropic');
+    });
+
+    it('should not log overlay message when no models.dev entries have pricing', async () => {
+      mockGetAll.mockReturnValue(new Map([['openai/gpt-4o', makeEntry(0.0025, 0.01)]]));
+      mockModelsDevSync.getModelsForProvider.mockReturnValue([
+        { id: 'no-price', name: 'No Price', inputPricePerToken: null, outputPricePerToken: null },
+      ]);
+
+      await service.reload();
+
+      // The entry should be OpenRouter-sourced since models.dev had null pricing
+      const entry = service.getByModel('gpt-4o');
+      expect(entry!.source).toBe('openrouter');
+    });
+  });
+
+  describe('resolveValidatedForModelsDev', () => {
+    it('should return undefined when registry is null', async () => {
+      const mockSync = { getAll: mockGetAll } as unknown as PricingSyncService;
+      const serviceNoRegistry = new ModelPricingCacheService(
+        mockSync,
+        mockModelsDevSync as unknown as ModelsDevSyncService,
+        null,
+      );
+
+      mockGetAll.mockReturnValue(new Map());
+      mockModelsDevSync.getModelsForProvider.mockImplementation((providerId: string) => {
+        if (providerId === 'openai') {
+          return [
+            { id: 'gpt-4o', name: 'GPT-4o', inputPricePerToken: 0.001, outputPricePerToken: 0.002 },
+          ];
+        }
+        return [];
+      });
+
+      await serviceNoRegistry.reload();
+
+      const entry = serviceNoRegistry.getByModel('gpt-4o');
+      expect(entry).toBeDefined();
+      expect(entry!.validated).toBeUndefined();
+    });
+
+    it('should resolve false for unconfirmed models.dev entries', async () => {
+      mockRegistry.isModelConfirmed.mockReturnValue(false);
+
+      mockGetAll.mockReturnValue(new Map());
+      mockModelsDevSync.getModelsForProvider.mockImplementation((providerId: string) => {
+        if (providerId === 'anthropic') {
+          return [
+            {
+              id: 'claude-test',
+              name: 'Test',
+              inputPricePerToken: 0.001,
+              outputPricePerToken: 0.002,
+            },
+          ];
+        }
+        return [];
+      });
+
+      await service.reload();
+
+      const entry = service.getByModel('claude-test');
+      expect(entry).toBeDefined();
+      expect(entry!.validated).toBe(false);
     });
   });
 });
