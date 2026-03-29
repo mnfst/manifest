@@ -1,5 +1,11 @@
 # manifest
 
+## 5.33.20
+
+### Patch Changes
+
+- 2d3846b: Fix dashboard not updating in real-time after LLM calls by emitting SSE events from ProxyMessageRecorder
+
 ## 5.33.19
 
 ### Patch Changes
