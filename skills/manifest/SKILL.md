@@ -73,11 +73,6 @@ openclaw plugins install manifest
 openclaw gateway restart
 ```
 
-> **OpenClaw 2026.3.22+:** If you see `"manifest" is a skill`, install from npm directly:
-> ```bash
-> openclaw plugins install "/tmp/$(npm pack manifest --pack-destination /tmp | tail -1)"
-> ```
-
 Dashboard opens at **http://127.0.0.1:2099**. Data stored locally in `~/.openclaw/manifest/manifest.db`. No account or API key needed.
 
 To expose over Tailscale (requires Tailscale on both devices, only accessible within your Tailnet): `tailscale serve --bg 2099`
