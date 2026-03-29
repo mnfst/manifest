@@ -1,6 +1,7 @@
 import { ProxyMessageRecorder } from '../proxy-message-recorder';
 import { ProxyMessageDedup } from '../proxy-message-dedup';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
+import { IngestEventBusService } from '../../../common/services/ingest-event-bus.service';
 import { IngestionContext } from '../../../otlp/interfaces/ingestion-context.interface';
 
 const ctx: IngestionContext = {
@@ -14,16 +15,19 @@ describe('ProxyMessageRecorder', () => {
   let recorder: ProxyMessageRecorder;
   let insertMock: jest.Mock;
   let getByModelMock: jest.Mock;
+  let emitMock: jest.Mock;
 
   beforeEach(() => {
     insertMock = jest.fn();
     getByModelMock = jest.fn().mockReturnValue(undefined);
+    emitMock = jest.fn();
     const repo = { insert: insertMock } as never;
     const pricingCache = {
       getByModel: getByModelMock,
     } as unknown as ModelPricingCacheService;
     const dedup = {} as ProxyMessageDedup;
-    recorder = new ProxyMessageRecorder(repo, pricingCache, dedup);
+    const eventBus = { emit: emitMock } as unknown as IngestEventBusService;
+    recorder = new ProxyMessageRecorder(repo, pricingCache, dedup, eventBus);
   });
 
   afterEach(() => {
@@ -278,6 +282,124 @@ describe('ProxyMessageRecorder', () => {
       const inserted = insertMock.mock.calls[0][0];
       expect(inserted.cache_read_tokens).toBe(0);
       expect(inserted.cache_creation_tokens).toBe(0);
+    });
+
+    it('emits SSE event after recording', async () => {
+      await recorder.recordFallbackSuccess(ctx, 'gpt-4o', 'standard');
+      expect(emitMock).toHaveBeenCalledWith('user-1');
+    });
+  });
+
+  describe('recordProviderError', () => {
+    it('records error and emits SSE event', async () => {
+      await recorder.recordProviderError(ctx, 500, 'Internal error', 'gpt-4o', 'standard');
+      expect(insertMock).toHaveBeenCalledTimes(1);
+      expect(insertMock.mock.calls[0][0]).toMatchObject({
+        status: 'error',
+        error_message: 'Internal error',
+        model: 'gpt-4o',
+      });
+      expect(emitMock).toHaveBeenCalledWith('user-1');
+    });
+
+    it('records rate_limited status for 429 and emits SSE event', async () => {
+      await recorder.recordProviderError(ctx, 429, 'Rate limited');
+      expect(insertMock).toHaveBeenCalledTimes(1);
+      expect(insertMock.mock.calls[0][0].status).toBe('rate_limited');
+      expect(emitMock).toHaveBeenCalledWith('user-1');
+    });
+
+    it('skips insert during cooldown but does not emit', async () => {
+      await recorder.recordProviderError(ctx, 429, 'Rate limited');
+      insertMock.mockClear();
+      emitMock.mockClear();
+      await recorder.recordProviderError(ctx, 429, 'Rate limited again');
+      expect(insertMock).not.toHaveBeenCalled();
+      expect(emitMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('recordFailedFallbacks', () => {
+    it('records all failures and emits SSE event once', async () => {
+      const failures = [
+        { model: 'gpt-4o', provider: 'openai', status: 500, errorBody: 'fail-1', fallbackIndex: 0 },
+        {
+          model: 'claude-3',
+          provider: 'anthropic',
+          status: 500,
+          errorBody: 'fail-2',
+          fallbackIndex: 1,
+        },
+      ];
+      await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures);
+      expect(insertMock).toHaveBeenCalledTimes(2);
+      expect(emitMock).toHaveBeenCalledTimes(1);
+      expect(emitMock).toHaveBeenCalledWith('user-1');
+    });
+  });
+
+  describe('recordPrimaryFailure', () => {
+    it('records failure and emits SSE event', async () => {
+      await recorder.recordPrimaryFailure(
+        ctx,
+        'standard',
+        'gpt-4o',
+        'upstream error',
+        '2025-01-01T00:00:00.000Z',
+      );
+      expect(insertMock).toHaveBeenCalledTimes(1);
+      expect(insertMock.mock.calls[0][0]).toMatchObject({
+        status: 'fallback_error',
+        model: 'gpt-4o',
+      });
+      expect(emitMock).toHaveBeenCalledWith('user-1');
+    });
+  });
+
+  describe('recordSuccessMessage', () => {
+    let dedupWithLock: ProxyMessageDedup;
+
+    beforeEach(() => {
+      dedupWithLock = {
+        normalizeSessionKey: jest.fn().mockReturnValue(undefined),
+        getSuccessWriteLockKey: jest.fn().mockReturnValue('lock-key'),
+        withSuccessWriteLock: jest
+          .fn()
+          .mockImplementation((_k: string, fn: () => Promise<void>) => fn()),
+        withAgentMessageTransaction: jest
+          .fn()
+          .mockImplementation((_repo: unknown, _ctx: unknown, fn: (r: unknown) => Promise<void>) =>
+            fn({ insert: insertMock, update: jest.fn() }),
+          ),
+        findExistingSuccessMessage: jest.fn().mockResolvedValue(null),
+      } as unknown as ProxyMessageDedup;
+      const repo = { insert: insertMock } as never;
+      const pricingCache = { getByModel: getByModelMock } as unknown as ModelPricingCacheService;
+      const eventBus = { emit: emitMock } as unknown as IngestEventBusService;
+      recorder.onModuleDestroy();
+      recorder = new ProxyMessageRecorder(repo, pricingCache, dedupWithLock, eventBus);
+    });
+
+    afterEach(() => {
+      recorder.onModuleDestroy();
+    });
+
+    it('records success message and emits SSE event', async () => {
+      await recorder.recordSuccessMessage(ctx, 'gpt-4o', 'standard', 'scored', {
+        prompt_tokens: 100,
+        completion_tokens: 50,
+      });
+      expect(insertMock).toHaveBeenCalledTimes(1);
+      expect(emitMock).toHaveBeenCalledWith('user-1');
+    });
+
+    it('does not insert or emit when tokens are zero', async () => {
+      await recorder.recordSuccessMessage(ctx, 'gpt-4o', 'standard', 'scored', {
+        prompt_tokens: 0,
+        completion_tokens: 0,
+      });
+      expect(insertMock).not.toHaveBeenCalled();
+      expect(emitMock).not.toHaveBeenCalled();
     });
   });
 });
