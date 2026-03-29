@@ -66,6 +66,12 @@ export class ProviderKeyService {
     return withKey?.auth_type ?? matches[0]?.auth_type ?? 'api_key';
   }
 
+  async hasActiveProvider(agentId: string, provider: string): Promise<boolean> {
+    const names = expandProviderNames([provider]);
+    const records = await this.providerService.getProviders(agentId);
+    return records.some((r) => r.is_active && names.has(r.provider.toLowerCase()));
+  }
+
   async getProviderRegion(
     agentId: string,
     provider: string,

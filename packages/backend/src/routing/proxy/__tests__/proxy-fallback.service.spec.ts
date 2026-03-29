@@ -28,6 +28,7 @@ describe('ProxyFallbackService', () => {
       getAuthType: jest.fn().mockResolvedValue('api_key'),
       findProviderForModel: jest.fn().mockResolvedValue(undefined),
       getProviderRegion: jest.fn().mockResolvedValue(null),
+      hasActiveProvider: jest.fn().mockResolvedValue(true),
     } as unknown as jest.Mocked<ProviderKeyService>;
 
     customProviderRepo = {
@@ -570,6 +571,35 @@ describe('ProxyFallbackService', () => {
       expect(result.success).toBeNull();
       expect(result.failures).toHaveLength(1);
       expect(providerClient.forward).toHaveBeenCalledTimes(1);
+    });
+
+    it('falls through to findProviderForModel when inferred prefix provider is inactive (#1383)', async () => {
+      // Model has 'anthropic/' prefix but Anthropic is disabled
+      providerKeyService.hasActiveProvider.mockResolvedValue(false);
+      // findProviderForModel correctly maps to OpenRouter
+      providerKeyService.findProviderForModel.mockResolvedValue('openrouter');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-or');
+      pricingCache.getByModel.mockReturnValue(null as never);
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      const result = await service.tryFallbacks(
+        'agent-1',
+        'user-1',
+        ['anthropic/claude-sonnet-4'],
+        body,
+        false,
+        'sess-1',
+        'gpt-4o',
+      );
+
+      expect(result.success).not.toBeNull();
+      expect(result.success!.provider).toBe('openrouter');
+      expect(providerKeyService.hasActiveProvider).toHaveBeenCalledWith('agent-1', 'anthropic');
     });
   });
 

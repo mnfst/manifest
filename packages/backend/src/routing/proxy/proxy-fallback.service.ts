@@ -88,8 +88,11 @@ export class ProxyFallbackService {
         const slashIdx = requestedModel.indexOf('/');
         provider = slashIdx > 0 ? requestedModel.substring(0, slashIdx) : requestedModel;
       } else {
+        const prefix = inferProviderFromModelName(requestedModel);
         provider =
-          inferProviderFromModelName(requestedModel) ??
+          (prefix && (await this.providerKeyService.hasActiveProvider(agentId, prefix))
+            ? prefix
+            : undefined) ??
           pricing?.provider ??
           (await this.providerKeyService.findProviderForModel(agentId, requestedModel));
       }

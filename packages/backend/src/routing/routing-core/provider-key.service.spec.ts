@@ -378,6 +378,40 @@ describe('ProviderKeyService', () => {
     });
   });
 
+  /* ── hasActiveProvider ── */
+
+  describe('hasActiveProvider', () => {
+    it('should return true when active provider exists', async () => {
+      providerService.getProviders.mockResolvedValue([
+        makeProvider({ provider: 'anthropic', is_active: true }),
+      ]);
+
+      expect(await service.hasActiveProvider('agent-1', 'anthropic')).toBe(true);
+    });
+
+    it('should return false when provider is inactive', async () => {
+      providerService.getProviders.mockResolvedValue([
+        makeProvider({ provider: 'anthropic', is_active: false }),
+      ]);
+
+      expect(await service.hasActiveProvider('agent-1', 'anthropic')).toBe(false);
+    });
+
+    it('should return false when provider does not exist', async () => {
+      providerService.getProviders.mockResolvedValue([]);
+
+      expect(await service.hasActiveProvider('agent-1', 'anthropic')).toBe(false);
+    });
+
+    it('should handle provider aliases (gemini/google)', async () => {
+      providerService.getProviders.mockResolvedValue([
+        makeProvider({ provider: 'google', is_active: true }),
+      ]);
+
+      expect(await service.hasActiveProvider('agent-1', 'gemini')).toBe(true);
+    });
+  });
+
   /* ── findProviderForModel ── */
 
   describe('findProviderForModel', () => {
