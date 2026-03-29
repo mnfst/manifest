@@ -133,9 +133,10 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
         <div class="provider-detail__field">
           <label class="provider-detail__label">{fieldLabel()}</label>
           <input
-            class="provider-detail__input"
+            class="provider-detail__input provider-detail__input--masked"
             classList={{ 'provider-detail__input--error': !!props.validationError() }}
-            type="password"
+            type="text"
+            autocomplete="off"
             placeholder={placeholder()}
             aria-label={inputAriaLabel()}
             value={props.keyInput()}
@@ -228,9 +229,10 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
           </Show>
           <Show when={props.editing()}>
             <input
-              class="provider-detail__input"
+              class="provider-detail__input provider-detail__input--masked"
               classList={{ 'provider-detail__input--error': !!props.validationError() }}
-              type="password"
+              type="text"
+              autocomplete="off"
               placeholder={placeholder()}
               aria-label={editAriaLabel()}
               value={props.keyInput()}
