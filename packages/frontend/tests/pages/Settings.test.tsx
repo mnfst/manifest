@@ -44,10 +44,14 @@ vi.mock("../../src/components/SetupStepInstall.jsx", () => ({
   CopyButton: () => <button>Copy</button>,
 }));
 
+let mockSetupThrows = false;
 vi.mock("../../src/components/SetupStepAddProvider.jsx", () => ({
-  default: (props: any) => (
-    <div data-testid="setup-add-provider" data-base-url={props.baseUrl ?? ""} data-key={props.apiKey ?? ""} data-prefix={props.keyPrefix ?? ""} />
-  ),
+  default: (props: any) => {
+    if (mockSetupThrows) throw new Error("render crash");
+    return (
+      <div data-testid="setup-add-provider" data-base-url={props.baseUrl ?? ""} data-key={props.apiKey ?? ""} data-prefix={props.keyPrefix ?? ""} />
+    );
+  },
 }));
 
 vi.mock("../../src/components/SetupStepLocalConfigure.jsx", () => ({
@@ -361,7 +365,7 @@ describe("Settings", () => {
     });
   });
 
-  it("shows ErrorState when getAgentKey fails", { retry: 0 } as any, async () => {
+  it("shows warning banner when getAgentKey fails", { retry: 0 } as any, async () => {
     // SolidJS createResource re-throws internally; suppress at both levels
     const suppress = (e: PromiseRejectionEvent) => { e.preventDefault(); e.stopImmediatePropagation(); };
     window.addEventListener("unhandledrejection", suppress, true);
@@ -371,11 +375,27 @@ describe("Settings", () => {
     const { container } = render(() => <Settings />);
     fireEvent.click(screen.getByText("Agent setup"));
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Could not load API key");
+      expect(container.textContent).toContain("Could not load your API key");
     });
     await new Promise((r) => setTimeout(r, 100));
     window.removeEventListener("unhandledrejection", suppress, true);
     process.removeListener("unhandledRejection", processSup);
+  });
+
+  it("shows ErrorBoundary fallback when child component crashes", async () => {
+    mockSetupThrows = true;
+    const suppress = (e: ErrorEvent) => { e.preventDefault(); e.stopImmediatePropagation(); };
+    window.addEventListener("error", suppress, true);
+    try {
+      const { container } = render(() => <Settings />);
+      fireEvent.click(screen.getByText("Agent setup"));
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("Something went wrong");
+      });
+    } finally {
+      window.removeEventListener("error", suppress, true);
+      mockSetupThrows = false;
+    }
   });
 
   it("uses custom pluginEndpoint when available", async () => {

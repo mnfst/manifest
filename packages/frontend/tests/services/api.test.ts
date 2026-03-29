@@ -1213,28 +1213,21 @@ describe('copilotPollToken', () => {
 });
 
 describe('fetchJson 401 redirect', () => {
-  it('redirects to /login on 401 response', async () => {
+  it('redirects to /login on 401 response and throws', async () => {
     const loc = { origin: 'http://localhost:3000', pathname: '/overview', href: '' };
     vi.stubGlobal('location', loc);
     mockFetch.mockResolvedValueOnce({ ok: false, status: 401 });
 
-    // fetchJson returns a never-resolving promise on 401, so race with a timeout
-    const result = await Promise.race([
-      getHealth().then(() => 'resolved'),
-      new Promise<string>((r) => setTimeout(() => r('pending'), 50)),
-    ]);
-
-    expect(result).toBe('pending');
+    await expect(getHealth()).rejects.toThrow('Session expired');
     expect(loc.href).toBe('/login');
   });
 
-  it('does not redirect if already on /login', async () => {
+  it('does not redirect if already on /login but still throws', async () => {
     const loc = { origin: 'http://localhost:3000', pathname: '/login', href: '' };
     vi.stubGlobal('location', loc);
     mockFetch.mockResolvedValueOnce({ ok: false, status: 401 });
 
-    await Promise.race([getHealth(), new Promise<string>((r) => setTimeout(() => r('done'), 50))]);
-
+    await expect(getHealth()).rejects.toThrow('Session expired');
     expect(loc.href).toBe('');
   });
 });

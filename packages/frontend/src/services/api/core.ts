@@ -19,7 +19,7 @@ export async function fetchJson<T>(
     if (window.location.pathname !== '/login') {
       window.location.href = '/login';
     }
-    return new Promise<T>(() => {}); // hang forever, page is redirecting
+    throw new Error('Session expired');
   }
   if (!res.ok) {
     const body = await res.text().catch(() => '');
