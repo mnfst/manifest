@@ -334,13 +334,18 @@ describe('ProxyMessageRecorder', () => {
       expect(emitMock).toHaveBeenCalledWith('user-1');
     });
 
-    it('does not insert or emit when tokens are zero', async () => {
+    it('records message even when tokens are zero', async () => {
       await recorder.recordSuccessMessage(ctx, 'gpt-4o', 'standard', 'scored', {
         prompt_tokens: 0,
         completion_tokens: 0,
       });
-      expect(insertMock).not.toHaveBeenCalled();
-      expect(emitMock).not.toHaveBeenCalled();
+      expect(insertMock).toHaveBeenCalledTimes(1);
+      expect(insertMock.mock.calls[0][0]).toMatchObject({
+        input_tokens: 0,
+        output_tokens: 0,
+        status: 'ok',
+      });
+      expect(emitMock).toHaveBeenCalledWith('user-1');
     });
 
     it('updates existing zero-token message and emits SSE event', async () => {

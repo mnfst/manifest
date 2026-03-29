@@ -662,14 +662,21 @@ describe('proxy-response-handler', () => {
       );
     });
 
-    it('should not record anything when no fallback and no usage', () => {
+    it('should record with zero-value usage when no fallback and no usage data', () => {
       const recorder = mockRecorder();
       const meta = makeMeta();
 
       recordSuccess(testCtx, meta, null, undefined, recorder as any);
 
       expect(recorder.recordFallbackSuccess).not.toHaveBeenCalled();
-      expect(recorder.recordSuccessMessage).not.toHaveBeenCalled();
+      expect(recorder.recordSuccessMessage).toHaveBeenCalledWith(
+        testCtx,
+        meta.model,
+        meta.tier,
+        meta.reason,
+        { prompt_tokens: 0, completion_tokens: 0 },
+        expect.objectContaining({ authType: meta.auth_type }),
+      );
     });
 
     it('should not record fallback success when fallbackFromModel but no timestamp', () => {

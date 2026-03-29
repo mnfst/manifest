@@ -376,7 +376,7 @@ describe('ProxyController', () => {
     expect(mockMessageRepo.insert).toHaveBeenCalledTimes(1);
   });
 
-  it('should skip recording when response has zero tokens', async () => {
+  it('should record message with zero tokens when response reports zero usage', async () => {
     const responseBody = {
       choices: [{ message: { content: 'hello' } }],
       usage: { prompt_tokens: 0, completion_tokens: 0 },
@@ -408,11 +408,12 @@ describe('ProxyController', () => {
     await controller.chatCompletions(req as never, res as never);
     await new Promise((r) => setTimeout(r, 10));
 
-    // recordSuccessMessage returns early when both tokens are 0
-    expect(mockMessageRepo.insert).not.toHaveBeenCalled();
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({ input_tokens: 0, output_tokens: 0, status: 'ok' }),
+    );
   });
 
-  it('should not record success message when response has no usage', async () => {
+  it('should record message with zero tokens when response has no usage', async () => {
     const responseBody = { choices: [{ message: { content: 'hello' } }] };
     const mockProviderResp = new Response(JSON.stringify(responseBody), {
       status: 200,
@@ -441,7 +442,9 @@ describe('ProxyController', () => {
     await controller.chatCompletions(req as never, res as never);
     await new Promise((r) => setTimeout(r, 10));
 
-    expect(mockMessageRepo.insert).not.toHaveBeenCalled();
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({ input_tokens: 0, output_tokens: 0, status: 'ok', model: 'gpt-4o' }),
+    );
   });
 
   it('should record usage data on fallback success', async () => {
@@ -2120,7 +2123,7 @@ describe('ProxyController', () => {
       );
     });
 
-    it('should not pre-record message when no fallback was used', async () => {
+    it('should record message with zero tokens when response has no usage data', async () => {
       const responseBody = { choices: [{ message: { content: 'hello' } }] };
       const mockProviderResp = new Response(JSON.stringify(responseBody), {
         status: 200,
@@ -2149,7 +2152,14 @@ describe('ProxyController', () => {
       await controller.chatCompletions(req as never, res as never);
       await new Promise((r) => setTimeout(r, 10));
 
-      expect(mockMessageRepo.insert).not.toHaveBeenCalled();
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          input_tokens: 0,
+          output_tokens: 0,
+          status: 'ok',
+          model: 'gpt-4o',
+        }),
+      );
     });
 
     it('should include fallback fields in error recording when fallback was used', async () => {

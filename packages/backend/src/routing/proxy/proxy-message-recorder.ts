@@ -240,8 +240,6 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
   ): Promise<void> {
     const { traceId, authType, sessionKey, durationMs } = opts ?? {};
 
-    if (usage.prompt_tokens === 0 && usage.completion_tokens === 0) return;
-
     const costUsd = computeTokenCost({
       inputTokens: usage.prompt_tokens,
       outputTokens: usage.completion_tokens,
