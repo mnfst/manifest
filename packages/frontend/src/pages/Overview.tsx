@@ -1,27 +1,18 @@
 import { Meta, Title } from '@solidjs/meta';
 import { A, useLocation, useNavigate, useParams } from '@solidjs/router';
-import { createEffect, createResource, createSignal, For, Show, type Component } from 'solid-js';
-import { authBadgeFor, authLabel } from '../components/AuthBadge.js';
-import CostChart from '../components/CostChart.jsx';
+import { createEffect, createResource, createSignal, Show, type Component } from 'solid-js';
+import ChartCard from '../components/ChartCard.jsx';
+import CostByModelTable from '../components/CostByModelTable.jsx';
 import ErrorState from '../components/ErrorState.jsx';
-import InfoTooltip from '../components/InfoTooltip.jsx';
 import MessageTable from '../components/MessageTable.jsx';
-import { providerIcon } from '../components/ProviderIcon.jsx';
+import OverviewSkeleton from '../components/OverviewSkeleton.jsx';
 import Select from '../components/Select.jsx';
 import SetupModal from '../components/SetupModal.jsx';
-import SingleTokenChart from '../components/SingleTokenChart.jsx';
-import TokenChart from '../components/TokenChart.jsx';
 import { COMPACT_COLUMNS, type MessageRow } from '../components/message-table-types.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import { getCustomProviders, getOverview, type CustomProviderData } from '../services/api.js';
-import { customProviderColor, formatCost, formatNumber } from '../services/formatters.js';
-import { getModelDisplayName, preloadModelDisplayNames } from '../services/model-display.js';
+import { preloadModelDisplayNames } from '../services/model-display.js';
 import { isRecentlyCreated } from '../services/recent-agents.js';
-import {
-  inferProviderFromModel,
-  inferProviderName,
-  stripCustomPrefix,
-} from '../services/routing-utils.js';
 import { pingCount } from '../services/sse.js';
 import '../styles/overview.css';
 
@@ -64,8 +55,6 @@ interface OverviewData {
   has_providers?: boolean;
 }
 
-type ActiveView = 'cost' | 'tokens' | 'messages';
-
 const Overview: Component = () => {
   const params = useParams<{ agentName: string }>();
   const location = useLocation<{ newApiKey?: string }>();
@@ -84,7 +73,7 @@ const Overview: Component = () => {
     setUserSelectedRange(true);
     localStorage.setItem(RANGE_STORAGE_KEY, value);
   };
-  const [activeView, setActiveView] = createSignal<ActiveView>('cost');
+  const [activeView, setActiveView] = createSignal<'cost' | 'tokens' | 'messages'>('cost');
   const [setupOpen, setSetupOpen] = createSignal(
     isRecentlyCreated(decodeURIComponent(params.agentName)),
   );
@@ -144,30 +133,6 @@ const Overview: Component = () => {
     setRange(SMART_RANGES[currentIdx + 1]!);
   });
 
-  const trendBadge = (pct: number, value?: number, mode?: 'default' | 'inverted' | 'neutral') => {
-    if (pct === 0) return null;
-    // Don't show trend when the metric value itself is effectively zero
-    if (value !== undefined && Math.abs(value) < 0.005) return null;
-    // Clamp absurd percentages (safety net for floating-point edge cases)
-    const clamped = Math.max(-999, Math.min(999, Math.round(pct)));
-    if (clamped === 0) return null;
-    let cls: string;
-    if (mode === 'neutral') {
-      cls = 'trend trend--neutral';
-    } else if (mode === 'inverted') {
-      cls = clamped > 0 ? 'trend trend--up-bad' : 'trend trend--down-good';
-    } /* v8 ignore next 2 */ else {
-      cls = clamped > 0 ? 'trend trend--up' : 'trend trend--down';
-    }
-    const sign = clamped > 0 ? '+' : '';
-    return (
-      <span class={cls}>
-        {sign}
-        {clamped}%
-      </span>
-    );
-  };
-
   const getMessageChartData = () => {
     const src = data()?.message_usage;
     return src?.map((d) => ({ time: d.hour ?? d.date ?? '', value: d.count })) ?? [];
@@ -207,123 +172,7 @@ const Overview: Component = () => {
         </div>
       </div>
 
-      <Show
-        when={data() !== undefined || !data.loading}
-        fallback={
-          <>
-            <div class="chart-card">
-              <div class="chart-card__header">
-                <div class="chart-card__stat chart-card__stat--active">
-                  <span class="chart-card__label">Cost</span>
-                  <div class="chart-card__value-row">
-                    <div class="skeleton skeleton--text" style="width: 80px; height: 28px;" />
-                  </div>
-                </div>
-                <div class="chart-card__stat">
-                  <span class="chart-card__label">Token usage</span>
-                  <div class="chart-card__value-row">
-                    <div class="skeleton skeleton--text" style="width: 70px; height: 28px;" />
-                  </div>
-                </div>
-                <div class="chart-card__stat">
-                  <span class="chart-card__label">Messages</span>
-                  <div class="chart-card__value-row">
-                    <div class="skeleton skeleton--text" style="width: 50px; height: 28px;" />
-                  </div>
-                </div>
-              </div>
-              <div class="chart-card__body">
-                <div class="skeleton skeleton--rect" style="width: 100%; height: 260px;" />
-              </div>
-            </div>
-            <div class="panel">
-              <div
-                class="panel__title"
-                style="display: flex; justify-content: space-between; align-items: center;"
-              >
-                Recent Messages
-                <span class="view-more-link" style="pointer-events: none; opacity: 0.4;">
-                  View more
-                </span>
-              </div>
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Message</th>
-                    <th>Cost</th>
-                    <th>Model</th>
-                    <th>Tokens</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <For each={[1, 2, 3, 4, 5]}>
-                    {() => (
-                      <tr>
-                        <td>
-                          <div class="skeleton skeleton--text" style="width: 70%;" />
-                        </td>
-                        <td>
-                          <div class="skeleton skeleton--text" style="width: 50%;" />
-                        </td>
-                        <td>
-                          <div class="skeleton skeleton--text" style="width: 50%;" />
-                        </td>
-                        <td>
-                          <div class="skeleton skeleton--text" style="width: 70%;" />
-                        </td>
-                        <td>
-                          <div class="skeleton skeleton--text" style="width: 40%;" />
-                        </td>
-                        <td>
-                          <div class="skeleton skeleton--text" style="width: 50%;" />
-                        </td>
-                      </tr>
-                    )}
-                  </For>
-                </tbody>
-              </table>
-            </div>
-            <div class="panel" style="margin-top: var(--gap-lg);">
-              <div class="panel__title">Cost by Model</div>
-              <p style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin: -8px 0 12px;">
-                How much each AI model is costing you
-              </p>
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Model</th>
-                    <th>Tokens</th>
-                    <th>% of total</th>
-                    <th>Cost</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <For each={[1, 2, 3]}>
-                    {() => (
-                      <tr>
-                        <td>
-                          <div class="skeleton skeleton--text" style="width: 60%;" />
-                        </td>
-                        <td>
-                          <div class="skeleton skeleton--text" style="width: 40%;" />
-                        </td>
-                        <td>
-                          <div class="skeleton skeleton--text" style="width: 50%;" />
-                        </td>
-                        <td>
-                          <div class="skeleton skeleton--text" style="width: 40%;" />
-                        </td>
-                      </tr>
-                    )}
-                  </For>
-                </tbody>
-              </table>
-            </div>
-          </>
-        }
-      >
+      <Show when={data() !== undefined || !data.loading} fallback={<OverviewSkeleton />}>
         <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>
           <Show when={showEmptyState()}>
             <Show
@@ -388,112 +237,20 @@ const Overview: Component = () => {
                       </p>
                     </div>
                   </Show>
-                  {/* Chart card with clickable stats */}
-                  <div class="chart-card">
-                    <div class="chart-card__header">
-                      <div
-                        class="chart-card__stat chart-card__stat--clickable"
-                        classList={{
-                          'chart-card__stat--active': activeView() === 'cost',
-                        }}
-                        onClick={() => setActiveView('cost')}
-                      >
-                        <span class="chart-card__label">Cost</span>
-                        <div class="chart-card__value-row">
-                          <span class="chart-card__value">
-                            {formatCost(d().summary?.cost_today?.value ?? 0) ?? '$0.00'}
-                          </span>
-                          {trendBadge(
-                            d().summary?.cost_today?.trend_pct ?? 0,
-                            d().summary?.cost_today?.value ?? 0,
-                            'inverted',
-                          )}
-                        </div>
-                      </div>
-                      <div
-                        class="chart-card__stat chart-card__stat--clickable"
-                        classList={{
-                          'chart-card__stat--active': activeView() === 'tokens',
-                        }}
-                        onClick={() => setActiveView('tokens')}
-                      >
-                        <span class="chart-card__label">
-                          Token usage
-                          <InfoTooltip text="Tokens are units of text that AI models process. More tokens = higher cost." />
-                        </span>
-                        <div class="chart-card__value-row">
-                          <span class="chart-card__value">
-                            {formatNumber(d().summary?.tokens_today?.value ?? 0)}
-                          </span>
-                          {trendBadge(
-                            d().summary?.tokens_today?.trend_pct ?? 0,
-                            d().summary?.tokens_today?.value ?? 0,
-                            'inverted',
-                          )}
-                        </div>
-                      </div>
-                      <div
-                        class="chart-card__stat chart-card__stat--clickable"
-                        classList={{
-                          'chart-card__stat--active': activeView() === 'messages',
-                        }}
-                        onClick={() => setActiveView('messages')}
-                      >
-                        <span class="chart-card__label">Messages</span>
-                        <div class="chart-card__value-row">
-                          <span class="chart-card__value">{d().summary?.messages?.value ?? 0}</span>
-                          {trendBadge(
-                            d().summary?.messages?.trend_pct ?? 0,
-                            d().summary?.messages?.value ?? 0,
-                            'neutral',
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div class="chart-card__body">
-                      <Show when={activeView() === 'cost'}>
-                        <Show
-                          when={d().cost_usage?.length}
-                          fallback={
-                            <div style="height: 260px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; justify-content: center;">
-                              No cost data for this time range
-                            </div>
-                          }
-                        >
-                          <CostChart data={d().cost_usage} range={range()} />
-                        </Show>
-                      </Show>
-                      <Show when={activeView() === 'tokens'}>
-                        <Show
-                          when={d().token_usage?.length}
-                          fallback={
-                            <div style="height: 260px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; justify-content: center;">
-                              No token data for this time range
-                            </div>
-                          }
-                        >
-                          <TokenChart data={d().token_usage} range={range()} />
-                        </Show>
-                      </Show>
-                      <Show when={activeView() === 'messages'}>
-                        <Show
-                          when={getMessageChartData().length}
-                          fallback={
-                            <div style="height: 260px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; justify-content: center;">
-                              No message data for this time range
-                            </div>
-                          }
-                        >
-                          <SingleTokenChart
-                            data={getMessageChartData()}
-                            label="Messages"
-                            colorVar="--chart-1"
-                            range={range()}
-                          />
-                        </Show>
-                      </Show>
-                    </div>
-                  </div>
+                  <ChartCard
+                    activeView={activeView()}
+                    onViewChange={setActiveView}
+                    costValue={d().summary?.cost_today?.value ?? 0}
+                    costTrendPct={d().summary?.cost_today?.trend_pct ?? 0}
+                    tokensValue={d().summary?.tokens_today?.value ?? 0}
+                    tokensTrendPct={d().summary?.tokens_today?.trend_pct ?? 0}
+                    messagesValue={d().summary?.messages?.value ?? 0}
+                    messagesTrendPct={d().summary?.messages?.trend_pct ?? 0}
+                    costUsage={d().cost_usage}
+                    tokenUsage={d().token_usage}
+                    messageChartData={getMessageChartData()}
+                    range={range()}
+                  />
 
                   {/* Recent Messages */}
                   <div class="panel">
@@ -514,98 +271,10 @@ const Overview: Component = () => {
                     />
                   </div>
 
-                  {/* Cost by Model */}
-                  <div class="panel" style="margin-top: var(--gap-lg);">
-                    <div class="panel__title">Cost by Model</div>
-                    <p style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin: -8px 0 12px;">
-                      How much each model costs you
-                    </p>
-                    <table class="data-table">
-                      <thead>
-                        <tr>
-                          <th>Model</th>
-                          <th>Tokens</th>
-                          <th>% of total</th>
-                          <th>Cost</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <For
-                          each={[...(d().cost_by_model ?? [])].sort(
-                            (a, b) => b.estimated_cost - a.estimated_cost,
-                          )}
-                        >
-                          {(row) => (
-                            <tr>
-                              <td style="font-family: var(--font-mono); font-size: var(--font-size-sm);">
-                                <span style="display: inline-flex; align-items: center; gap: 4px;">
-                                  {row.model && inferProviderFromModel(row.model) === 'custom' ? (
-                                    (() => {
-                                      const provName = customProviderName(row.model);
-                                      const letter = (provName ?? stripCustomPrefix(row.model))
-                                        .charAt(0)
-                                        .toUpperCase();
-                                      return (
-                                        <span
-                                          class="provider-card__logo-letter"
-                                          title={provName}
-                                          style={{
-                                            background: customProviderColor(provName ?? ''),
-                                            width: '16px',
-                                            height: '16px',
-                                            'font-size': '9px',
-                                            'flex-shrink': '0',
-                                            'border-radius': '50%',
-                                          }}
-                                        >
-                                          {letter}
-                                        </span>
-                                      );
-                                    })()
-                                  ) : row.model && inferProviderFromModel(row.model) ? (
-                                    <span
-                                      title={`${inferProviderName(row.model)} (${authLabel(row.auth_type)})`}
-                                      style="display: inline-flex; flex-shrink: 0; position: relative;"
-                                    >
-                                      {/* v8 ignore next 2 */}
-                                      {providerIcon(inferProviderFromModel(row.model)!, 14)}
-                                      {authBadgeFor(row.auth_type, 8)}
-                                    </span>
-                                  ) : null}
-                                  {row.model
-                                    ? row.display_name || getModelDisplayName(row.model)
-                                    : row.model}
-                                </span>
-                              </td>
-                              <td>{formatNumber(row.tokens)}</td>
-                              <td>
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                  <div style="width: 40px; height: 4px; border-radius: 2px; background: hsl(var(--muted)); overflow: hidden;">
-                                    <div
-                                      style={`width: ${row.share_pct}%; height: 100%; background: hsl(var(--chart-1)); border-radius: 2px;`}
-                                    />
-                                  </div>
-                                  <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                                    {Math.round(row.share_pct)}%
-                                  </span>
-                                </div>
-                              </td>
-                              <td
-                                style="font-weight: 600;"
-                                title={
-                                  row.estimated_cost > 0 && row.estimated_cost < 0.01
-                                    ? `$${row.estimated_cost.toFixed(6)}`
-                                    : undefined
-                                }
-                              >
-                                {formatCost(row.estimated_cost) ?? '\u2014'}
-                              </td>
-                            </tr>
-                          )}
-                        </For>
-                      </tbody>
-                    </table>
-                  </div>
+                  <CostByModelTable
+                    rows={d().cost_by_model ?? []}
+                    customProviderName={customProviderName}
+                  />
                 </>
               );
             }}

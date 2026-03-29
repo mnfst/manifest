@@ -18,6 +18,7 @@ import {
 } from './proxy-response-handler';
 
 const MAX_SEEN_USERS = 10_000;
+const SEEN_USER_TTL_MS = 24 * 60 * 60 * 1000;
 
 @Controller('v1')
 @Public()
@@ -25,7 +26,7 @@ const MAX_SEEN_USERS = 10_000;
 @SkipThrottle()
 export class ProxyController {
   private readonly logger = new Logger(ProxyController.name);
-  private readonly seenUsers = new Set<string>();
+  private readonly seenUsers = new Map<string, number>();
 
   constructor(
     private readonly proxyService: ProxyService,
@@ -65,7 +66,7 @@ export class ProxyController {
         signal: clientAbort.signal,
       });
 
-      this.trackFirstProxyRequest(userId, meta);
+      this.trackFirstProxyRequest(userId);
 
       const metaHeaders = buildMetaHeaders(meta);
       const providerResponse = forward.response;
@@ -135,7 +136,7 @@ export class ProxyController {
       this.logger.error(`Proxy error: ${message}`);
 
       this.recorder
-        .recordProviderError(req.ingestionContext, status, message, undefined, undefined, traceId)
+        .recordProviderError(req.ingestionContext, status, message, { traceId })
         .catch((e) => this.logger.warn(`Failed to record provider error: ${e}`));
 
       if (headersSent) {
@@ -159,15 +160,24 @@ export class ProxyController {
     return parts.length >= 2 ? parts[1] : undefined;
   }
 
-  private trackFirstProxyRequest(
-    userId: string,
-    _meta: { provider: string; model: string; tier: string },
-  ): void {
+  private trackFirstProxyRequest(userId: string): void {
+    const now = Date.now();
     if (this.seenUsers.has(userId)) return;
+    this.evictExpiredUsers(now);
     if (this.seenUsers.size >= MAX_SEEN_USERS) {
-      const oldest = this.seenUsers.values().next().value as string;
+      const oldest = this.seenUsers.keys().next().value as string;
       this.seenUsers.delete(oldest);
     }
-    this.seenUsers.add(userId);
+    this.seenUsers.set(userId, now);
+  }
+
+  private evictExpiredUsers(now: number): void {
+    for (const [key, timestamp] of this.seenUsers) {
+      if (now - timestamp > SEEN_USER_TTL_MS) {
+        this.seenUsers.delete(key);
+      } else {
+        break;
+      }
+    }
   }
 }

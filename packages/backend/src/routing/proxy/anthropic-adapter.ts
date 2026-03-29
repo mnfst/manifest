@@ -5,17 +5,7 @@
  */
 import { randomUUID } from 'crypto';
 
-interface OpenAIMessage {
-  role: string;
-  content?: unknown;
-  tool_calls?: Array<{
-    id: string;
-    type: string;
-    function: { name: string; arguments: string };
-  }>;
-  tool_call_id?: string;
-  [key: string]: unknown;
-}
+import { OpenAIMessage } from './proxy-types';
 
 interface ContentBlock {
   type: string;
@@ -36,6 +26,14 @@ interface AnthropicTool {
 }
 
 const CACHE = { type: 'ephemeral' } as const;
+
+function safeParseArgs(args: string | undefined): unknown {
+  try {
+    return JSON.parse(args || '{}');
+  } catch {
+    return {};
+  }
+}
 
 /* ── Request helpers ── */
 
@@ -93,7 +91,7 @@ function convertMessage(
           type: 'tool_use',
           id: tc.id,
           name: tc.function.name,
-          input: JSON.parse(tc.function.arguments || '{}'),
+          input: safeParseArgs(tc.function.arguments),
         });
       }
     }

@@ -121,12 +121,14 @@ describe('proxy-response-handler', () => {
         testCtx,
         500,
         'Internal Server Error',
-        'gpt-4o',
-        'standard',
-        'trace-1',
-        undefined,
-        undefined,
-        undefined,
+        {
+          model: 'gpt-4o',
+          tier: 'standard',
+          traceId: 'trace-1',
+          fallbackFromModel: undefined,
+          fallbackIndex: undefined,
+          authType: undefined,
+        },
       );
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith(
@@ -628,17 +630,14 @@ describe('proxy-response-handler', () => {
         'session-1',
       );
 
-      expect(recorder.recordFallbackSuccess).toHaveBeenCalledWith(
-        testCtx,
-        'gpt-4o',
-        'standard',
-        'trace-1',
-        'gpt-4o',
-        1,
-        '2025-01-01T00:00:00Z',
-        undefined,
+      expect(recorder.recordFallbackSuccess).toHaveBeenCalledWith(testCtx, 'gpt-4o', 'standard', {
+        traceId: 'trace-1',
+        fallbackFromModel: 'gpt-4o',
+        fallbackIndex: 1,
+        timestamp: '2025-01-01T00:00:00Z',
+        authType: undefined,
         usage,
-      );
+      });
     });
 
     it('should record success message when no fallback and usage exists', () => {
@@ -654,10 +653,12 @@ describe('proxy-response-handler', () => {
         'standard',
         'auto',
         usage,
-        'trace-1',
-        undefined,
-        'session-1',
-        expect.any(Number),
+        {
+          traceId: 'trace-1',
+          authType: undefined,
+          sessionKey: 'session-1',
+          durationMs: expect.any(Number),
+        },
       );
     });
 
@@ -700,9 +701,9 @@ describe('proxy-response-handler', () => {
       );
 
       const call = recorder.recordSuccessMessage.mock.calls[0];
-      const durationMs = call[8]; // 9th argument
-      expect(durationMs).toBeGreaterThanOrEqual(400);
-      expect(durationMs).toBeLessThan(1000);
+      const opts = call[5]; // 6th argument (opts object)
+      expect(opts.durationMs).toBeGreaterThanOrEqual(400);
+      expect(opts.durationMs).toBeLessThan(1000);
     });
 
     it('should pass undefined durationMs when startTime is not provided', () => {
@@ -713,8 +714,8 @@ describe('proxy-response-handler', () => {
       recordSuccess(testCtx, meta, usage, undefined, recorder as any);
 
       const call = recorder.recordSuccessMessage.mock.calls[0];
-      const durationMs = call[8];
-      expect(durationMs).toBeUndefined();
+      const opts = call[5]; // 6th argument (opts object)
+      expect(opts.durationMs).toBeUndefined();
     });
 
     it('should pass streamUsage as undefined when null in fallback success', () => {
@@ -723,17 +724,14 @@ describe('proxy-response-handler', () => {
 
       recordSuccess(testCtx, meta, null, '2025-01-01T00:00:00Z', recorder as any);
 
-      expect(recorder.recordFallbackSuccess).toHaveBeenCalledWith(
-        testCtx,
-        'gpt-4o',
-        'standard',
-        undefined,
-        'gpt-4o',
-        0,
-        '2025-01-01T00:00:00Z',
-        undefined,
-        undefined,
-      );
+      expect(recorder.recordFallbackSuccess).toHaveBeenCalledWith(testCtx, 'gpt-4o', 'standard', {
+        traceId: undefined,
+        fallbackFromModel: 'gpt-4o',
+        fallbackIndex: 0,
+        timestamp: '2025-01-01T00:00:00Z',
+        authType: undefined,
+        usage: undefined,
+      });
     });
   });
 });

@@ -368,7 +368,7 @@ describe('MessagesQueryService', () => {
       .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
 
     await service.getMessages({ range: '24h', userId: 'test-user', limit: 20 });
-    const cache = (service as any).modelsCache as Map<string, unknown>;
+    const cache = (service as any).modelsCache;
     expect(cache.size).toBe(1);
 
     // Expire and re-query
@@ -385,9 +385,9 @@ describe('MessagesQueryService', () => {
   });
 
   it('models cache evicts oldest entry when reaching MAX_CACHE_ENTRIES', async () => {
-    const cache = (service as any).modelsCache as Map<string, unknown>;
+    const cache = (service as any).modelsCache;
     for (let i = 0; i < 5_000; i++) {
-      cache.set(`user-${i}::24h`, { models: ['gpt-4o'], expiresAt: Date.now() + 60_000 });
+      cache.set(`user-${i}::24h`, ['gpt-4o']);
     }
     expect(cache.size).toBe(5_000);
 
@@ -406,12 +406,12 @@ describe('MessagesQueryService', () => {
 
   it('models cache does not evict when updating an existing key at capacity', async () => {
     jest.useFakeTimers();
-    const cache = (service as any).modelsCache as Map<string, unknown>;
+    const cache = (service as any).modelsCache;
     for (let i = 0; i < 5_000; i++) {
-      cache.set(`user-${i}::24h`, { models: ['gpt-4o'], expiresAt: Date.now() + 60_000 });
+      cache.set(`user-${i}::24h`, ['gpt-4o']);
     }
     // Overwrite test-user::24h (already exists in our range)
-    cache.set('test-user::24h', { models: ['old'], expiresAt: Date.now() + 60_000 });
+    cache.set('test-user::24h', ['old']);
 
     jest.advanceTimersByTime(60_001);
 
@@ -598,9 +598,9 @@ describe('MessagesQueryService', () => {
   });
 
   it('count cache evicts oldest entry at capacity', async () => {
-    const cache = (service as any).countCache as Map<string, unknown>;
+    const cache = (service as any).countCache;
     for (let i = 0; i < 5_000; i++) {
-      cache.set(`user-${i}:24h::::`, { count: i, expiresAt: Date.now() + 30_000 });
+      cache.set(`user-${i}:24h::::`, i);
     }
     expect(cache.size).toBe(5_000);
 

@@ -6,11 +6,7 @@
 
 import { randomUUID } from 'crypto';
 
-interface OpenAIMessage {
-  role: string;
-  content?: unknown;
-  [key: string]: unknown;
-}
+import { OpenAIMessage } from './proxy-types';
 
 interface GeminiContent {
   role: string;
@@ -74,6 +70,14 @@ function sanitizeSchema(schema: unknown, isPropertiesMap = false): unknown {
   return result;
 }
 
+function safeParseArgs(args: string | undefined): Record<string, unknown> {
+  try {
+    return JSON.parse(args || '{}') as Record<string, unknown>;
+  } catch {
+    return {};
+  }
+}
+
 /* ── Request conversion ── */
 
 function mapRole(role: string): string {
@@ -97,16 +101,13 @@ function messageToContent(msg: OpenAIMessage): GeminiContent | null {
 
   // Handle tool calls from assistant
   if (Array.isArray(msg.tool_calls)) {
-    for (const tc of msg.tool_calls as Array<Record<string, unknown>>) {
-      const fn = tc.function as { name: string; arguments: string } | undefined;
-      if (fn) {
-        parts.push({
-          functionCall: {
-            name: fn.name,
-            args: JSON.parse(fn.arguments || '{}'),
-          },
-        });
-      }
+    for (const tc of msg.tool_calls) {
+      parts.push({
+        functionCall: {
+          name: tc.function.name,
+          args: safeParseArgs(tc.function.arguments),
+        },
+      });
     }
   }
 

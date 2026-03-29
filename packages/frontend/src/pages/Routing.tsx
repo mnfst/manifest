@@ -2,9 +2,7 @@ import { createSignal, createResource, For, Show, type Component } from 'solid-j
 import { useLocation, useParams } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
 import { STAGES } from '../services/providers.js';
-import ProviderSelectModal from '../components/ProviderSelectModal.js';
-import RoutingInstructionModal from '../components/RoutingInstructionModal.js';
-import ModelPickerModal from '../components/ModelPickerModal.js';
+import RoutingModals from '../components/RoutingModals.js';
 import { toast } from '../services/toast-store.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import RoutingTierCard from './RoutingTierCard.js';
@@ -13,21 +11,14 @@ import {
   EnableRoutingCard,
   ActiveProviderIcons,
   RoutingFooter,
-  DisableRoutingModal,
 } from './RoutingPanels.js';
+import { createRoutingActions } from './RoutingActions.js';
 import {
   getTierAssignments,
   getAvailableModels,
   getProviders,
   getCustomProviders,
-  deactivateAllProviders,
-  overrideTier,
-  resetTier,
-  resetAllTiers,
-  setFallbacks,
   refreshModels,
-  type TierAssignment,
-  type AuthType,
 } from '../services/api.js';
 
 const Routing: Component = () => {
@@ -53,162 +44,49 @@ const Routing: Component = () => {
   const [showProviderModal, setShowProviderModal] = createSignal(
     !!(location.state as { openProviders?: boolean } | undefined)?.openProviders,
   );
-  const [disabling, setDisabling] = createSignal(false);
   const [confirmDisable, setConfirmDisable] = createSignal(false);
   const [instructionModal, setInstructionModal] = createSignal<'enable' | 'disable' | null>(null);
   const [instructionProvider, setInstructionProvider] = createSignal<string | null>(null);
-  const [changingTier, setChangingTier] = createSignal<string | null>(null);
-  const [resettingAll, setResettingAll] = createSignal(false);
-  const [resettingTier, setResettingTier] = createSignal<string | null>(null);
-  const [confirmResetTier, setConfirmResetTier] = createSignal<string | null>(null);
   const [fallbackPickerTier, setFallbackPickerTier] = createSignal<string | null>(null);
-  const [addingFallback, setAddingFallback] = createSignal<string | null>(null);
-  const [fallbackOverrides, setFallbackOverrides] = createSignal<Record<string, string[]>>({});
   const [refreshingModels, setRefreshingModels] = createSignal(false);
 
-  const getFallbacksFor = (tierId: string): string[] => {
-    const overrides = fallbackOverrides();
-    if (tierId in overrides) return overrides[tierId]!;
-    return getTier(tierId)?.fallback_models ?? [];
-  };
-  const isEnabled = () => connectedProviders()?.some((p) => p.is_active) ?? false;
-  const hadRouting = () => (connectedProviders()?.length ?? 0) > 0 && !isEnabled();
-  const activeProviders = () => connectedProviders()?.filter((p) => p.is_active) ?? [];
-
-  const getTier = (tierId: string): TierAssignment | undefined =>
-    tiers()?.find((t) => t.tier === tierId);
-  const handleOverride = async (
-    tierId: string,
-    modelName: string,
-    providerId: string,
-    authType?: AuthType,
-  ) => {
-    setDropdownTier(null);
-    setChangingTier(tierId);
-    try {
-      const updated = await overrideTier(agentName(), tierId, modelName, providerId, authType);
-      mutateTiers((prev) => prev?.map((t) => (t.tier === tierId ? updated : t)));
-      toast.success('Routing updated');
-    } catch {
-      // error toast from fetchMutate
-    } finally {
-      setChangingTier(null);
-    }
-  };
-
-  const handleResetAll = async () => {
-    setResettingAll(true);
-    try {
-      await resetAllTiers(agentName());
-      mutateTiers((prev) =>
-        prev?.map((t) => ({ ...t, override_model: null, override_provider: null })),
-      );
-      toast.success('All tiers reset to auto');
-    } catch {
-      // error toast from fetchMutate
-    } finally {
-      setResettingAll(false);
-    }
-  };
-
-  const handleReset = async (tierId: string) => {
-    setConfirmResetTier(null);
-    setResettingTier(tierId);
-    try {
-      await resetTier(agentName(), tierId);
-      mutateTiers((prev) =>
-        prev?.map((t) =>
-          t.tier === tierId
-            ? { ...t, override_model: null, override_provider: null, fallback_models: [] }
-            : t,
-        ),
-      );
-      toast.success('Tier reset to auto');
-    } catch {
-      // error toast from fetchMutate
-    } finally {
-      setResettingTier(null);
-    }
-  };
-
-  const handleAddFallback = async (
-    tierId: string,
-    modelName: string,
-    _providerId: string,
-    _authType?: AuthType,
-  ) => {
-    setFallbackPickerTier(null);
-    const tier = getTier(tierId);
-    const current = tier?.fallback_models ?? [];
-    if (current.includes(modelName)) return;
-    const updated = [...current, modelName];
-    setFallbackOverrides((prev) => ({ ...prev, [tierId]: updated }));
-    setAddingFallback(tierId);
-    try {
-      await setFallbacks(agentName(), tierId, updated);
-      mutateTiers((prev) =>
-        prev?.map((t) => (t.tier === tierId ? { ...t, fallback_models: updated } : t)),
-      );
-      toast.success('Fallback added');
-    } catch {
-      setFallbackOverrides((prev) => {
-        const next = { ...prev };
-        delete next[tierId];
-        return next;
-      });
-    } finally {
-      setAddingFallback(null);
-      setFallbackOverrides((prev) => {
-        const next = { ...prev };
-        delete next[tierId];
-        return next;
-      });
-    }
-  };
-
-  const handleDisable = async () => {
-    setDisabling(true);
-    const prevProviders = connectedProviders();
-    mutateProviders((prev) => prev?.map((p) => ({ ...p, is_active: false })));
-    try {
-      await deactivateAllProviders(agentName());
-    } catch {
-      mutateProviders(prevProviders);
-      setDisabling(false);
-      return;
-    }
-    await Promise.all([
-      refetchProviders(),
-      refetchCustomProviders(),
-      refetchTiers(),
-      refetchModels(),
-    ]).catch(() => {});
-    setInstructionModal('disable');
-    setDisabling(false);
-  };
-
-  const handleProviderUpdate = async () => {
-    const wasEnabled = isEnabled();
+  const refetchAll = async () => {
     await Promise.all([
       refetchProviders(),
       refetchCustomProviders(),
       refetchTiers(),
       refetchModels(),
     ]);
-    // No "activate routing" modal — users already configured manifest/auto during setup
   };
 
-  const handleFallbackUpdate = (tierId: string, updatedFallbacks: string[]) => {
-    setFallbackOverrides((prev) => {
-      const next = { ...prev };
-      delete next[tierId];
-      return next;
-    });
-    mutateTiers((prev) =>
-      prev?.map((t) => (t.tier === tierId ? { ...t, fallback_models: updatedFallbacks } : t)),
-    );
+  const actions = createRoutingActions({
+    agentName,
+    tiers,
+    mutateTiers,
+    connectedProviders,
+    mutateProviders,
+    refetchAll,
+    setInstructionModal,
+  });
+
+  const handleOverride: typeof actions.handleOverride = async (...args) => {
+    setDropdownTier(null);
+    return actions.handleOverride(...args);
   };
+
+  const handleAddFallback: typeof actions.handleAddFallback = async (...args) => {
+    setFallbackPickerTier(null);
+    return actions.handleAddFallback(...args);
+  };
+
+  const isEnabled = () => connectedProviders()?.some((p) => p.is_active) ?? false;
+  const hadRouting = () => (connectedProviders()?.length ?? 0) > 0 && !isEnabled();
+  const activeProviders = () => connectedProviders()?.filter((p) => p.is_active) ?? [];
   const hasOverrides = () => tiers()?.some((t) => t.override_model !== null) ?? false;
+
+  const handleProviderUpdate = async () => {
+    await refetchAll();
+  };
 
   return (
     <div class="container--lg">
@@ -288,22 +166,22 @@ const Routing: Component = () => {
               {(stage) => (
                 <RoutingTierCard
                   stage={stage}
-                  tier={() => getTier(stage.id)}
+                  tier={() => actions.getTier(stage.id)}
                   models={() => models() ?? []}
                   customProviders={() => customProviders() ?? []}
                   activeProviders={activeProviders}
                   tiersLoading={tiers.loading}
-                  changingTier={changingTier}
-                  resettingTier={resettingTier}
-                  resettingAll={resettingAll}
-                  addingFallback={addingFallback}
+                  changingTier={actions.changingTier}
+                  resettingTier={actions.resettingTier}
+                  resettingAll={actions.resettingAll}
+                  addingFallback={actions.addingFallback}
                   agentName={agentName}
                   onDropdownOpen={(tierId) => setDropdownTier(tierId)}
                   onOverride={handleOverride}
-                  onReset={handleReset}
-                  onFallbackUpdate={handleFallbackUpdate}
+                  onReset={actions.handleReset}
+                  onFallbackUpdate={actions.handleFallbackUpdate}
                   onAddFallback={(tierId) => setFallbackPickerTier(tierId)}
-                  getFallbacksFor={getFallbacksFor}
+                  getFallbacksFor={actions.getFallbacksFor}
                   connectedProviders={() => connectedProviders() ?? []}
                 />
               )}
@@ -311,12 +189,12 @@ const Routing: Component = () => {
           </div>
 
           <RoutingFooter
-            disabling={disabling}
+            disabling={actions.disabling}
             hasOverrides={hasOverrides}
-            resettingAll={resettingAll}
-            resettingTier={resettingTier}
+            resettingAll={actions.resettingAll}
+            resettingTier={actions.resettingTier}
             onDisable={() => setConfirmDisable(true)}
-            onResetAll={handleResetAll}
+            onResetAll={actions.handleResetAll}
             onShowInstructions={() => setInstructionModal('enable')}
           />
         </Show>
@@ -334,75 +212,35 @@ const Routing: Component = () => {
         </div>
       </Show>
 
-      <Show when={dropdownTier()}>
-        {(tierId) => (
-          <ModelPickerModal
-            tierId={tierId()}
-            models={models() ?? []}
-            tiers={tiers() ?? []}
-            customProviders={customProviders() ?? []}
-            connectedProviders={connectedProviders() ?? []}
-            onSelect={handleOverride}
-            onClose={() => setDropdownTier(null)}
-          />
-        )}
-      </Show>
-
-      <Show when={fallbackPickerTier()}>
-        {(tierId) => {
-          const currentFallbacks = () => getTier(tierId())?.fallback_models ?? [];
-          const effectiveModel = () => {
-            const t = getTier(tierId());
-            return t ? (t.override_model ?? t.auto_assigned_model) : null;
-          };
-          const filteredModels = () =>
-            (models() ?? []).filter(
-              (m) =>
-                m.model_name !== effectiveModel() && !currentFallbacks().includes(m.model_name),
-            );
-          return (
-            <ModelPickerModal
-              tierId={tierId()}
-              models={filteredModels()}
-              tiers={tiers() ?? []}
-              customProviders={customProviders() ?? []}
-              connectedProviders={connectedProviders() ?? []}
-              onSelect={handleAddFallback}
-              onClose={() => setFallbackPickerTier(null)}
-            />
-          );
-        }}
-      </Show>
-
-      <Show when={showProviderModal()}>
-        <ProviderSelectModal
-          agentName={agentName()}
-          providers={connectedProviders() ?? []}
-          customProviders={customProviders() ?? []}
-          onClose={() => setShowProviderModal(false)}
-          onUpdate={handleProviderUpdate}
-        />
-      </Show>
-
-      <RoutingInstructionModal
-        open={instructionModal() !== null}
-        mode={instructionModal() ?? 'enable'}
-        agentName={agentName()}
-        connectedProvider={instructionProvider()}
-        onClose={() => {
+      <RoutingModals
+        agentName={agentName}
+        dropdownTier={dropdownTier}
+        onDropdownClose={() => setDropdownTier(null)}
+        fallbackPickerTier={fallbackPickerTier}
+        onFallbackPickerClose={() => setFallbackPickerTier(null)}
+        showProviderModal={showProviderModal}
+        onProviderModalClose={() => setShowProviderModal(false)}
+        instructionModal={instructionModal}
+        instructionProvider={instructionProvider}
+        onInstructionClose={() => {
           setInstructionModal(null);
           setInstructionProvider(null);
         }}
-      />
-
-      <DisableRoutingModal
-        open={confirmDisable()}
-        disabling={disabling}
-        onCancel={() => setConfirmDisable(false)}
-        onConfirm={async () => {
+        confirmDisable={confirmDisable}
+        disabling={actions.disabling}
+        onDisableCancel={() => setConfirmDisable(false)}
+        onDisableConfirm={async () => {
           setConfirmDisable(false);
-          await handleDisable();
+          await actions.handleDisable();
         }}
+        models={() => models() ?? []}
+        tiers={() => tiers() ?? []}
+        customProviders={() => customProviders() ?? []}
+        connectedProviders={() => connectedProviders() ?? []}
+        getTier={actions.getTier}
+        onOverride={handleOverride}
+        onAddFallback={handleAddFallback}
+        onProviderUpdate={handleProviderUpdate}
       />
     </div>
   );

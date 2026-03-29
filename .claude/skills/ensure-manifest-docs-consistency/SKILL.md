@@ -104,7 +104,38 @@ Add a **ClawhHub Legitimacy** section to the report:
 
 If any listing is **Suspicious**, add a **WARNING** row to the Dissonance Table with severity HIGH and category "ClawhHub legitimacy". Include what specifically is wrong and recommend investigating whether the listing is legitimate or has been hijacked/impersonated.
 
-### 4. Compare and identify dissonance
+### 4. Check recent PRs for undocumented features
+
+**This step is critical.** Fetch the last 30 merged PRs from the main repo:
+
+```bash
+gh pr list --repo mnfst/manifest --state merged --limit 30 --json number,title,mergedAt,body,headRefName
+```
+
+For each PR that is NOT a version-packages/changeset PR, extract:
+- **New features**: any new user-facing capability (e.g., real-time updates, unified wizard, new env vars)
+- **Breaking changes**: renamed env vars, removed config options, changed defaults, deleted components
+- **New install flows or workarounds**: npm pack fallback, changed onboarding steps
+- **Renamed or removed concepts**: plugin renames, deleted auto-setup behavior
+
+Then check each extracted feature/change against **every documentation material** from step 2. For each feature that is **missing or contradicted** in any material, add a row to the Dissonance Table with:
+- Severity **HIGH** if the material actively contradicts the new behavior (e.g., still documents a removed feature)
+- Severity **MEDIUM** if the material simply omits a new feature that users should know about
+
+Add a dedicated section to the report:
+
+```
+### Recent PR Coverage Gap
+
+| PR | Feature/Change | Documented in | Missing from |
+|----|---------------|---------------|-------------|
+| #1358 | Real-time SSE dashboard updates | README | Website, npm |
+| #1349 | Env var renamed: TELEMETRY_OPTOUT → UPDATE_CHECK_OPTOUT | CLAUDE.md | Website, npm, SKILL.md |
+```
+
+This table should list every significant change from recent PRs and whether each documentation source covers it. The goal is to catch features that shipped in code but never made it into the marketing or user-facing materials.
+
+### 5. Compare and identify dissonance
 
 For each documentation source, compare against the codebase for these categories:
 
@@ -124,7 +155,7 @@ For each documentation source, compare against the codebase for these categories
 | **Tech stack** | Are framework/DB claims accurate? |
 | **Cross-source contradictions** | Do any two docs contradict each other? |
 
-### 5. Generate report
+### 6. Generate report
 
 Output a structured report with these sections:
 

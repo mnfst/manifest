@@ -79,9 +79,8 @@ export async function bootstrap() {
     });
   } else {
     // Rate limit login attempts (Better Auth runs outside NestJS, so ThrottlerGuard doesn't apply)
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const rateLimit = require('express-rate-limit');
-    const loginLimiter = rateLimit.default({
+    const { default: rateLimit } = await import('express-rate-limit');
+    const loginLimiter = rateLimit({
       windowMs: 15 * 60 * 1000,
       max: 20,
       standardHeaders: true,
@@ -91,8 +90,7 @@ export async function bootstrap() {
     expressApp.use('/api/auth/sign-in', loginLimiter);
 
     // Cloud mode: mount Better Auth handler (needs raw body, before express.json)
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { toNodeHandler } = require('better-auth/node');
+    const { toNodeHandler } = await import('better-auth/node');
     expressApp.all('/api/auth/*splat', toNodeHandler(auth!));
   }
 

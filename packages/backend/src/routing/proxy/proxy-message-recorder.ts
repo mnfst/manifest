@@ -11,6 +11,31 @@ import { StreamUsage } from './stream-writer';
 import { ProxyMessageDedup } from './proxy-message-dedup';
 import { computeTokenCost } from '../../common/utils/cost-calculator';
 
+export interface ProviderErrorOpts {
+  model?: string;
+  tier?: string;
+  traceId?: string;
+  fallbackFromModel?: string;
+  fallbackIndex?: number;
+  authType?: string;
+}
+
+export interface FallbackSuccessOpts {
+  traceId?: string;
+  fallbackFromModel?: string;
+  fallbackIndex?: number;
+  timestamp?: string;
+  authType?: string;
+  usage?: StreamUsage;
+}
+
+export interface SuccessMessageOpts {
+  traceId?: string;
+  authType?: string;
+  sessionKey?: string;
+  durationMs?: number;
+}
+
 @Injectable()
 export class ProxyMessageRecorder implements OnModuleDestroy {
   private readonly rateLimitCooldown = new Map<string, number>();
@@ -39,13 +64,10 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     ctx: IngestionContext,
     httpStatus: number,
     errorMessage: string,
-    model?: string,
-    tier?: string,
-    traceId?: string,
-    fallbackFromModel?: string,
-    fallbackIndex?: number,
-    authType?: string,
+    opts?: ProviderErrorOpts,
   ): Promise<void> {
+    const { model, tier, traceId, fallbackFromModel, fallbackIndex, authType } = opts ?? {};
+
     if (httpStatus === 429) {
       const key = `${ctx.tenantId}:${ctx.agentId}`;
       const now = Date.now();
@@ -170,13 +192,10 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     ctx: IngestionContext,
     model: string,
     tier: string,
-    traceId?: string,
-    fallbackFromModel?: string,
-    fallbackIndex?: number,
-    timestamp?: string,
-    authType?: string,
-    usage?: StreamUsage,
+    opts?: FallbackSuccessOpts,
   ): Promise<void> {
+    const { traceId, fallbackFromModel, fallbackIndex, timestamp, authType, usage } = opts ?? {};
+
     const inputTokens = usage?.prompt_tokens ?? 0;
     const outputTokens = usage?.completion_tokens ?? 0;
 
@@ -217,11 +236,10 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     tier: string,
     reason: string,
     usage: StreamUsage,
-    traceId?: string,
-    authType?: string,
-    sessionKey?: string,
-    durationMs?: number,
+    opts?: SuccessMessageOpts,
   ): Promise<void> {
+    const { traceId, authType, sessionKey, durationMs } = opts ?? {};
+
     if (usage.prompt_tokens === 0 && usage.completion_tokens === 0) return;
 
     const costUsd = computeTokenCost({

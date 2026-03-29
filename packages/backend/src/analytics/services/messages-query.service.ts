@@ -13,26 +13,23 @@ import {
   sqlSanitizeCost,
 } from '../../common/utils/sql-dialect';
 import { inferProviderFromModel } from '../../common/utils/provider-inference';
+import { TtlCache } from '../../common/utils/ttl-cache';
 
 const MODELS_CACHE_TTL_MS = 60_000;
 const COUNT_CACHE_TTL_MS = 30_000;
 const MAX_CACHE_ENTRIES = 5_000;
 
-interface CachedModels {
-  models: string[];
-  expiresAt: number;
-}
-
-interface CachedCount {
-  count: number;
-  expiresAt: number;
-}
-
 @Injectable()
 export class MessagesQueryService {
   private readonly dialect: DbDialect;
-  private readonly modelsCache = new Map<string, CachedModels>();
-  private readonly countCache = new Map<string, CachedCount>();
+  private readonly modelsCache = new TtlCache<string, string[]>({
+    maxSize: MAX_CACHE_ENTRIES,
+    ttlMs: MODELS_CACHE_TTL_MS,
+  });
+  private readonly countCache = new TtlCache<string, number>({
+    maxSize: MAX_CACHE_ENTRIES,
+    ttlMs: COUNT_CACHE_TTL_MS,
+  });
 
   constructor(
     @InjectRepository(AgentMessage)
@@ -141,7 +138,7 @@ export class MessagesQueryService {
 
     // Run count, data, and models queries in parallel (count cached on paginated requests)
     const cachedCount = params.cursor ? this.countCache.get(countCacheKey) : undefined;
-    const countHit = cachedCount && cachedCount.expiresAt > Date.now();
+    const countHit = cachedCount !== undefined;
     const [countResult, rows, allModels] = await Promise.all([
       countHit ? null : countQb.getRawOne(),
       dataQb
@@ -154,10 +151,10 @@ export class MessagesQueryService {
 
     let totalCount: number;
     if (countHit) {
-      totalCount = cachedCount.count;
+      totalCount = cachedCount;
     } else {
       totalCount = Number(countResult?.total ?? 0);
-      this.setCountCache(countCacheKey, totalCount);
+      this.countCache.set(countCacheKey, totalCount);
     }
     const hasMore = rows.length > params.limit;
     const items = rows.slice(0, params.limit);
@@ -195,10 +192,7 @@ export class MessagesQueryService {
   ): Promise<string[]> {
     const cacheKey = `${userId}:${agentName ?? ''}:${range ?? 'all'}`;
     const cached = this.modelsCache.get(cacheKey);
-    if (cached && cached.expiresAt > Date.now()) {
-      return cached.models;
-    }
-    if (cached) this.modelsCache.delete(cacheKey);
+    if (cached) return cached;
 
     const cutoff = range ? computeCutoff(rangeToInterval(range)) : undefined;
     const modelsQb = this.turnRepo
@@ -213,11 +207,7 @@ export class MessagesQueryService {
     const modelsResult = await modelsQb.orderBy('at.model', 'ASC').getRawMany();
 
     const models = modelsResult.map((r: Record<string, unknown>) => String(r['model']));
-    if (this.modelsCache.size >= MAX_CACHE_ENTRIES && !this.modelsCache.has(cacheKey)) {
-      const firstKey = this.modelsCache.keys().next().value;
-      if (firstKey !== undefined) this.modelsCache.delete(firstKey);
-    }
-    this.modelsCache.set(cacheKey, { models, expiresAt: Date.now() + MODELS_CACHE_TTL_MS });
+    this.modelsCache.set(cacheKey, models);
     return models;
   }
 
@@ -239,13 +229,5 @@ export class MessagesQueryService {
       params.cost_min ?? '',
       params.cost_max ?? '',
     ].join(':');
-  }
-
-  private setCountCache(key: string, count: number): void {
-    if (this.countCache.size >= MAX_CACHE_ENTRIES && !this.countCache.has(key)) {
-      const firstKey = this.countCache.keys().next().value;
-      if (firstKey !== undefined) this.countCache.delete(firstKey);
-    }
-    this.countCache.set(key, { count, expiresAt: Date.now() + COUNT_CACHE_TTL_MS });
   }
 }

@@ -60,17 +60,14 @@ export async function handleProviderError(
   }
 
   recorder
-    .recordProviderError(
-      ctx,
-      errorStatus,
-      errorBody,
-      meta.model,
-      meta.tier,
+    .recordProviderError(ctx, errorStatus, errorBody, {
+      model: meta.model,
+      tier: meta.tier,
       traceId,
-      meta.fallbackFromModel,
-      meta.fallbackIndex,
-      meta.auth_type,
-    )
+      fallbackFromModel: meta.fallbackFromModel,
+      fallbackIndex: meta.fallbackIndex,
+      authType: meta.auth_type,
+    })
     .catch((e) => logger.warn(`Failed to record provider error: ${e}`));
 
   logger.warn(`Upstream error ${errorStatus}: ${errorBody.slice(0, 200)}`);
@@ -255,32 +252,24 @@ export function recordSuccess(
 ): void {
   if (meta.fallbackFromModel && fallbackSuccessTs) {
     recorder
-      .recordFallbackSuccess(
-        ctx,
-        meta.model,
-        meta.tier,
+      .recordFallbackSuccess(ctx, meta.model, meta.tier, {
         traceId,
-        meta.fallbackFromModel,
-        meta.fallbackIndex ?? 0,
-        fallbackSuccessTs,
-        meta.auth_type,
-        streamUsage ?? undefined,
-      )
+        fallbackFromModel: meta.fallbackFromModel,
+        fallbackIndex: meta.fallbackIndex ?? 0,
+        timestamp: fallbackSuccessTs,
+        authType: meta.auth_type,
+        usage: streamUsage ?? undefined,
+      })
       .catch((e) => logger.warn(`Failed to record fallback success: ${e}`));
   } else if (streamUsage) {
     const durationMs = startTime ? Date.now() - startTime : undefined;
     recorder
-      .recordSuccessMessage(
-        ctx,
-        meta.model,
-        meta.tier,
-        meta.reason,
-        streamUsage,
+      .recordSuccessMessage(ctx, meta.model, meta.tier, meta.reason, streamUsage, {
         traceId,
-        meta.auth_type,
+        authType: meta.auth_type,
         sessionKey,
         durationMs,
-      )
+      })
       .catch((e) => logger.warn(`Failed to record success message: ${e}`));
   }
 }

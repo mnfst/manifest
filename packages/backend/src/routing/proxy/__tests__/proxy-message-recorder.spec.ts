@@ -36,17 +36,13 @@ describe('ProxyMessageRecorder', () => {
 
   describe('recordFallbackSuccess', () => {
     it('records with zero tokens when usage has zero tokens (fallback metadata is still valuable)', async () => {
-      await recorder.recordFallbackSuccess(
-        ctx,
-        'gpt-4o',
-        'standard',
-        undefined,
-        'claude-opus',
-        0,
-        new Date().toISOString(),
-        'api_key',
-        { prompt_tokens: 0, completion_tokens: 0 },
-      );
+      await recorder.recordFallbackSuccess(ctx, 'gpt-4o', 'standard', {
+        fallbackFromModel: 'claude-opus',
+        fallbackIndex: 0,
+        timestamp: new Date().toISOString(),
+        authType: 'api_key',
+        usage: { prompt_tokens: 0, completion_tokens: 0 },
+      });
       expect(insertMock).toHaveBeenCalledTimes(1);
       expect(insertMock.mock.calls[0][0]).toMatchObject({
         status: 'ok',
@@ -57,17 +53,12 @@ describe('ProxyMessageRecorder', () => {
     });
 
     it('records with zero tokens when usage is undefined (fallback chain succeeded)', async () => {
-      await recorder.recordFallbackSuccess(
-        ctx,
-        'gpt-4o',
-        'standard',
-        undefined,
-        'claude-opus',
-        0,
-        new Date().toISOString(),
-        'api_key',
-        undefined,
-      );
+      await recorder.recordFallbackSuccess(ctx, 'gpt-4o', 'standard', {
+        fallbackFromModel: 'claude-opus',
+        fallbackIndex: 0,
+        timestamp: new Date().toISOString(),
+        authType: 'api_key',
+      });
       expect(insertMock).toHaveBeenCalledTimes(1);
       expect(insertMock.mock.calls[0][0]).toMatchObject({
         status: 'ok',
@@ -77,17 +68,14 @@ describe('ProxyMessageRecorder', () => {
     });
 
     it('inserts when only prompt_tokens is non-zero', async () => {
-      await recorder.recordFallbackSuccess(
-        ctx,
-        'gpt-4o',
-        'standard',
-        'trace-1',
-        'claude-opus',
-        1,
-        new Date().toISOString(),
-        'api_key',
-        { prompt_tokens: 200, completion_tokens: 0 },
-      );
+      await recorder.recordFallbackSuccess(ctx, 'gpt-4o', 'standard', {
+        traceId: 'trace-1',
+        fallbackFromModel: 'claude-opus',
+        fallbackIndex: 1,
+        timestamp: new Date().toISOString(),
+        authType: 'api_key',
+        usage: { prompt_tokens: 200, completion_tokens: 0 },
+      });
       expect(insertMock).toHaveBeenCalledTimes(1);
       expect(insertMock.mock.calls[0][0]).toMatchObject({
         input_tokens: 200,
@@ -96,17 +84,13 @@ describe('ProxyMessageRecorder', () => {
     });
 
     it('inserts when only completion_tokens is non-zero', async () => {
-      await recorder.recordFallbackSuccess(
-        ctx,
-        'gpt-4o',
-        'standard',
-        undefined,
-        'claude-opus',
-        0,
-        new Date().toISOString(),
-        'api_key',
-        { prompt_tokens: 0, completion_tokens: 75 },
-      );
+      await recorder.recordFallbackSuccess(ctx, 'gpt-4o', 'standard', {
+        fallbackFromModel: 'claude-opus',
+        fallbackIndex: 0,
+        timestamp: new Date().toISOString(),
+        authType: 'api_key',
+        usage: { prompt_tokens: 0, completion_tokens: 75 },
+      });
       expect(insertMock).toHaveBeenCalledTimes(1);
       expect(insertMock.mock.calls[0][0]).toMatchObject({
         input_tokens: 0,
@@ -115,17 +99,14 @@ describe('ProxyMessageRecorder', () => {
     });
 
     it('inserts a message with status "ok" and correct metadata', async () => {
-      await recorder.recordFallbackSuccess(
-        ctx,
-        'gpt-4o',
-        'standard',
-        'trace-abc',
-        'claude-opus',
-        2,
-        '2025-01-01T00:00:00.000Z',
-        'api_key',
-        { prompt_tokens: 100, completion_tokens: 50 },
-      );
+      await recorder.recordFallbackSuccess(ctx, 'gpt-4o', 'standard', {
+        traceId: 'trace-abc',
+        fallbackFromModel: 'claude-opus',
+        fallbackIndex: 2,
+        timestamp: '2025-01-01T00:00:00.000Z',
+        authType: 'api_key',
+        usage: { prompt_tokens: 100, completion_tokens: 50 },
+      });
       expect(insertMock).toHaveBeenCalledTimes(1);
       const inserted = insertMock.mock.calls[0][0];
       expect(inserted).toMatchObject({
@@ -154,17 +135,10 @@ describe('ProxyMessageRecorder', () => {
         output_price_per_token: 0.00001,
         display_name: 'GPT-4o',
       });
-      await recorder.recordFallbackSuccess(
-        ctx,
-        'gpt-4o',
-        'standard',
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        'api_key',
-        { prompt_tokens: 1000, completion_tokens: 500 },
-      );
+      await recorder.recordFallbackSuccess(ctx, 'gpt-4o', 'standard', {
+        authType: 'api_key',
+        usage: { prompt_tokens: 1000, completion_tokens: 500 },
+      });
       const inserted = insertMock.mock.calls[0][0];
       // 1000 * 0.0000025 + 500 * 0.00001 = 0.0075
       expect(inserted.cost_usd).toBeCloseTo(0.0075, 10);
@@ -178,34 +152,20 @@ describe('ProxyMessageRecorder', () => {
         output_price_per_token: 0.00001,
         display_name: 'GPT-4o',
       });
-      await recorder.recordFallbackSuccess(
-        ctx,
-        'gpt-4o',
-        'standard',
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        'subscription',
-        { prompt_tokens: 1000, completion_tokens: 500 },
-      );
+      await recorder.recordFallbackSuccess(ctx, 'gpt-4o', 'standard', {
+        authType: 'subscription',
+        usage: { prompt_tokens: 1000, completion_tokens: 500 },
+      });
       const inserted = insertMock.mock.calls[0][0];
       expect(inserted.cost_usd).toBe(0);
     });
 
     it('sets cost_usd to null when no pricing data exists', async () => {
       getByModelMock.mockReturnValue(undefined);
-      await recorder.recordFallbackSuccess(
-        ctx,
-        'unknown-model',
-        'standard',
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        'api_key',
-        { prompt_tokens: 100, completion_tokens: 50 },
-      );
+      await recorder.recordFallbackSuccess(ctx, 'unknown-model', 'standard', {
+        authType: 'api_key',
+        usage: { prompt_tokens: 100, completion_tokens: 50 },
+      });
       const inserted = insertMock.mock.calls[0][0];
       expect(inserted.cost_usd).toBeNull();
     });
@@ -224,17 +184,9 @@ describe('ProxyMessageRecorder', () => {
 
     it('uses current timestamp when timestamp is not provided', async () => {
       const before = new Date().toISOString();
-      await recorder.recordFallbackSuccess(
-        ctx,
-        'gpt-4o',
-        'standard',
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        { prompt_tokens: 10, completion_tokens: 5 },
-      );
+      await recorder.recordFallbackSuccess(ctx, 'gpt-4o', 'standard', {
+        usage: { prompt_tokens: 10, completion_tokens: 5 },
+      });
       const after = new Date().toISOString();
       const inserted = insertMock.mock.calls[0][0];
       expect(inserted.timestamp >= before).toBe(true);
@@ -246,39 +198,25 @@ describe('ProxyMessageRecorder', () => {
     });
 
     it('records cache tokens from usage', async () => {
-      await recorder.recordFallbackSuccess(
-        ctx,
-        'gpt-4o',
-        'standard',
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        'api_key',
-        {
+      await recorder.recordFallbackSuccess(ctx, 'gpt-4o', 'standard', {
+        authType: 'api_key',
+        usage: {
           prompt_tokens: 100,
           completion_tokens: 50,
           cache_read_tokens: 30,
           cache_creation_tokens: 20,
         },
-      );
+      });
       const inserted = insertMock.mock.calls[0][0];
       expect(inserted.cache_read_tokens).toBe(30);
       expect(inserted.cache_creation_tokens).toBe(20);
     });
 
     it('defaults cache tokens to 0 when not in usage', async () => {
-      await recorder.recordFallbackSuccess(
-        ctx,
-        'gpt-4o',
-        'standard',
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        'api_key',
-        { prompt_tokens: 100, completion_tokens: 50 },
-      );
+      await recorder.recordFallbackSuccess(ctx, 'gpt-4o', 'standard', {
+        authType: 'api_key',
+        usage: { prompt_tokens: 100, completion_tokens: 50 },
+      });
       const inserted = insertMock.mock.calls[0][0];
       expect(inserted.cache_read_tokens).toBe(0);
       expect(inserted.cache_creation_tokens).toBe(0);
@@ -292,7 +230,10 @@ describe('ProxyMessageRecorder', () => {
 
   describe('recordProviderError', () => {
     it('records error and emits SSE event', async () => {
-      await recorder.recordProviderError(ctx, 500, 'Internal error', 'gpt-4o', 'standard');
+      await recorder.recordProviderError(ctx, 500, 'Internal error', {
+        model: 'gpt-4o',
+        tier: 'standard',
+      });
       expect(insertMock).toHaveBeenCalledTimes(1);
       expect(insertMock.mock.calls[0][0]).toMatchObject({
         status: 'error',
@@ -488,9 +429,7 @@ describe('ProxyMessageRecorder', () => {
         'standard',
         'scored',
         { prompt_tokens: 50, completion_tokens: 25 },
-        undefined,
-        undefined,
-        'session-abc',
+        { sessionKey: 'session-abc' },
       );
 
       expect(updateMock).toHaveBeenCalledTimes(1);
@@ -522,10 +461,7 @@ describe('ProxyMessageRecorder', () => {
         'standard',
         'scored',
         { prompt_tokens: 50, completion_tokens: 25 },
-        undefined,
-        undefined,
-        undefined,
-        1500,
+        { durationMs: 1500 },
       );
 
       expect(updateMock.mock.calls[0][1]).toMatchObject({
