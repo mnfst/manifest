@@ -33,7 +33,7 @@ openclaw plugins install manifest
 
 > **OpenClaw 2026.3.22+:** If you see `"manifest" is a skill`, install from npm directly:
 > ```bash
-> openclaw plugins install "$(npm pack manifest --pack-destination /tmp | tail -1)"
+> openclaw plugins install "/tmp/$(npm pack manifest --pack-destination /tmp | tail -1)"
 > ```
 
 See the [manifest](https://www.npmjs.com/package/manifest) package.
