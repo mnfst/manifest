@@ -101,12 +101,9 @@ jobs:
               --source-commit "$GITHUB_SHA" || echo "ClawHub plugin publish failed (non-fatal)"
           fi
 
-          # Publish skill when manifest or manifest-model-router is released
-          if [ "$HAS_MANIFEST" -gt 0 ] || [ "$HAS_PROVIDER" -gt 0 ]; then
-            SKILL_VERSION="${MANIFEST_VERSION:-$PROVIDER_VERSION}"
-            echo "Publishing manifest-build skill@${SKILL_VERSION} to ClawHub..."
-            npx clawhub@latest publish skills/manifest \
-              --slug manifest-build \
-              --version "$SKILL_VERSION" \
-              --changelog "Release ${SKILL_VERSION}" || echo "ClawHub skill publish failed (non-fatal)"
-          fi
+          # Skill publish disabled: the "manifest" ClawHub skill was deleted to
+          # unblock `openclaw plugins install manifest` on OpenClaw 2026.3.22+
+          # (ClawHub skills shadow npm plugins in the new resolver).
+          # Re-enable once `clawhub package publish` supports plugins in the CLI,
+          # or once OpenClaw fixes the skill-shadows-plugin resolution bug
+          # (openclaw/openclaw#52831, openclaw/openclaw#53241).

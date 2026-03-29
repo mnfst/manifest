@@ -9,6 +9,11 @@ openclaw plugins install manifest
 openclaw gateway restart
 ```
 
+> **OpenClaw 2026.3.22+:** If you see `"manifest" is a skill`, install from npm directly:
+> ```bash
+> openclaw plugins install "$(npm pack manifest --pack-destination /tmp | tail -1)"
+> ```
+
 Dashboard opens at **http://127.0.0.1:2099**. The plugin auto-generates an API key, starts the embedded server, and registers `manifest/auto` as a model. No configuration needed.
 
 ## How it works

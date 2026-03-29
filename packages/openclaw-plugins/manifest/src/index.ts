@@ -24,9 +24,9 @@ module.exports = {
     const host = typeof inner.host === 'string' && inner.host.length > 0 ? inner.host : '127.0.0.1';
 
     logger.info(
-      `[manifest] Dashboard: http://${host}:${port}\n` +
-        '  The plugin starts an embedded server and registers manifest/auto as a model.\n' +
-        '  Open the dashboard to connect a provider and start routing.',
+      `[manifest] 🦚 Dashboard: http://${host}:${port}\n` +
+        '[manifest] 🦚 The plugin starts an embedded server.\n' +
+        '[manifest] 🦚 Open the dashboard to connect a provider and start routing.',
     );
 
     registerLocalMode(api, port, host, logger);
