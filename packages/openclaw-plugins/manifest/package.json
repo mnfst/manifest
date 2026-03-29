@@ -1,6 +1,6 @@
 {
   "name": "manifest",
-  "version": "5.33.17",
+  "version": "5.33.18",
   "description": "Self-hosted Manifest LLM router with embedded server, SQLite database, and dashboard",
   "main": "dist/index.js",
   "license": "MIT",

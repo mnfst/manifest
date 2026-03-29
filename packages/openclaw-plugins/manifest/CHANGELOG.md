@@ -1,5 +1,12 @@
 # manifest
 
+## 5.33.18
+
+### Patch Changes
+
+- 0d5cb03: fix: unblock plugin install on OpenClaw 2026.3.22+ by removing ClawHub skill that shadowed the npm package, add install workaround to READMEs, and improve plugin startup log formatting
+- 3f01324: fix: add local-mode fallback for mnfst\_ key auth failures in AgentKeyAuthGuard
+
 ## 5.33.17
 
 ### Patch Changes
