@@ -234,6 +234,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
 
     const normalizedSessionKey = this.dedup.normalizeSessionKey(sessionKey);
 
+    let wrote = false;
     await this.dedup.withSuccessWriteLock(
       this.dedup.getSuccessWriteLockKey(ctx, model, traceId, normalizedSessionKey),
       async () => {
@@ -268,6 +269,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
             if (normalizedSessionKey) updatePayload.session_key = normalizedSessionKey;
 
             await messageRepo.update({ id: existing.id }, updatePayload);
+            wrote = true;
             return;
           }
 
@@ -294,10 +296,11 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
             user_id: ctx.userId,
             duration_ms: durationMs ?? null,
           });
+          wrote = true;
         });
       },
     );
-    this.eventBus.emit(ctx.userId);
+    if (wrote) this.eventBus.emit(ctx.userId);
   }
 
   private evictExpiredCooldowns(): void {
