@@ -76,6 +76,9 @@ const parseOpenAI = createModelParser<OpenAIModelEntry>({
 const OPENAI_NON_CHAT_RE =
   /(?:embed|tts|whisper|dall-e|moderation|davinci|babbage|^text-|audio|realtime|-transcribe|^sora|^gpt-3\.5-turbo-instruct)/i;
 
+/** Date-suffixed snapshots returned by OpenAI (e.g. gpt-4o-mini-2024-07-18). */
+const OPENAI_DATE_SUFFIX_RE = /-\d{4}-\d{2}-\d{2}$/;
+
 /**
  * OpenAI models only supported in v1/responses (not v1/chat/completions).
  * Codex models (except codex-mini-latest) and -pro variants of GPT-5+.
@@ -83,9 +86,18 @@ const OPENAI_NON_CHAT_RE =
 const OPENAI_RESPONSES_ONLY_RE = /(?:-codex(?!-mini-latest)|^gpt-5[^/]*-pro(?:-|$))/i;
 
 function parseOpenAIChatOnly(body: unknown, provider: string): DiscoveredModel[] {
-  return parseOpenAI(body, provider).filter(
+  const filtered = parseOpenAI(body, provider).filter(
     (m) => !OPENAI_NON_CHAT_RE.test(m.id) && !OPENAI_RESPONSES_ONLY_RE.test(m.id),
   );
+
+  // Deduplicate: if both an alias (gpt-4o-mini) and a dated snapshot
+  // (gpt-4o-mini-2024-07-18) exist, keep only the alias.
+  const ids = new Set(filtered.map((m) => m.id));
+  return filtered.filter((m) => {
+    if (!OPENAI_DATE_SUFFIX_RE.test(m.id)) return true;
+    const alias = m.id.replace(OPENAI_DATE_SUFFIX_RE, '');
+    return !ids.has(alias);
+  });
 }
 
 /**

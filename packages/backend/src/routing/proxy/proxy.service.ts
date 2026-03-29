@@ -1,5 +1,6 @@
 import { randomUUID } from 'crypto';
 import { Injectable, Logger, BadRequestException, HttpException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ResolveService } from '../resolve/resolve.service';
 import { ProviderKeyService } from '../routing-core/provider-key.service';
 import { TierService } from '../routing-core/tier.service';
@@ -61,6 +62,7 @@ export class ProxyService {
     private readonly momentum: SessionMomentumService,
     private readonly limitCheck: LimitCheckService,
     private readonly fallbackService: ProxyFallbackService,
+    private readonly config: ConfigService,
   ) {}
 
   async proxyRequest(opts: ProxyRequestOptions): Promise<ProxyResult> {
@@ -95,7 +97,7 @@ export class ProxyService {
           `tier=${resolved.tier} model=${resolved.model} provider=${resolved.provider} ` +
           `confidence=${resolved.confidence} reason=${resolved.reason}`,
       );
-      return this.buildNoProviderResult(body.stream === true);
+      return this.buildNoProviderResult(body.stream === true, agentName);
     }
 
     let apiKey = await this.providerKeyService.getProviderApiKey(
@@ -272,11 +274,21 @@ export class ProxyService {
     return false;
   }
 
-  private buildNoProviderResult(stream: boolean): ProxyResult {
+  private getDashboardUrl(agentName?: string): string | null {
+    const baseUrl =
+      this.config.get<string>('app.betterAuthUrl') ||
+      `http://localhost:${this.config.get<number>('app.port', 3001)}`;
+    const path = agentName ? `/routing/${encodeURIComponent(agentName)}` : '/routing';
+    return `${baseUrl}${path}`;
+  }
+
+  private buildNoProviderResult(stream: boolean, agentName?: string): ProxyResult {
     const id = `chatcmpl-manifest-${randomUUID()}`;
     const created = Math.floor(Date.now() / 1000);
-    const content =
-      'Manifest is connected successfully. To start routing requests, connect a model provider in your Manifest dashboard.';
+    const dashboardUrl = this.getDashboardUrl(agentName);
+    const content = dashboardUrl
+      ? `Manifest is connected successfully. To start routing requests, connect a model provider: ${dashboardUrl}`
+      : 'Manifest is connected successfully. To start routing requests, connect a model provider in your Manifest dashboard.';
 
     const meta: RoutingMeta = {
       tier: 'simple' as Tier,

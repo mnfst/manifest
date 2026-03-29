@@ -227,6 +227,25 @@ describe('ProviderModelFetcherService', () => {
       const result = await service.fetch('openai', 'sk-test');
       expect(result.map((m) => m.id)).toEqual(['codex-mini-latest']);
     });
+
+    it('should deduplicate dated snapshots when alias exists', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'gpt-4o-mini' },
+            { id: 'gpt-4o-mini-2024-07-18' },
+            { id: 'gpt-4o' },
+            { id: 'gpt-4o-2024-08-06' },
+            { id: 'o3-mini-2025-01-31' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('openai', 'sk-test');
+      // Dated snapshots removed when alias exists; o3-mini-2025-01-31 kept (no alias)
+      expect(result.map((m) => m.id)).toEqual(['gpt-4o-mini', 'gpt-4o', 'o3-mini-2025-01-31']);
+    });
   });
 
   /* ── Mistral-specific filter ── */
