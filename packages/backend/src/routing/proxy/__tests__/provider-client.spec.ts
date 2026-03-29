@@ -220,7 +220,7 @@ describe('ProviderClient', () => {
       expect(headers['anthropic-beta']).toBeUndefined();
     });
 
-    it('includes top-level cache_control in Anthropic request body', async () => {
+    it('does not include top-level cache_control in Anthropic request body', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
       await client.forward({
@@ -232,7 +232,7 @@ describe('ProviderClient', () => {
       });
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.cache_control).toEqual({ type: 'ephemeral' });
+      expect(sentBody.cache_control).toBeUndefined();
     });
 
     it('converts request body to Anthropic format with model', async () => {
@@ -312,7 +312,7 @@ describe('ProviderClient', () => {
       expect(tools[0].cache_control).toBeUndefined();
     });
 
-    it('includes cache_control for regular Anthropic API key auth', async () => {
+    it('includes block-level cache_control for regular Anthropic API key auth', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
       const bodyWithSystem = {
@@ -332,7 +332,7 @@ describe('ProviderClient', () => {
       });
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.cache_control).toEqual({ type: 'ephemeral' });
+      expect(sentBody.cache_control).toBeUndefined();
       const system = sentBody.system as Array<{ cache_control?: unknown }>;
       expect(system[0].cache_control).toEqual({ type: 'ephemeral' });
       const tools = sentBody.tools as Array<{ cache_control?: unknown }>;

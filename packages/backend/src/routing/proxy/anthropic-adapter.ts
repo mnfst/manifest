@@ -55,7 +55,7 @@ function extractSystemBlocks(messages: OpenAIMessage[]): ContentBlock[] {
 }
 
 function toContentBlocks(content: unknown): ContentBlock[] {
-  if (typeof content === 'string') return [{ type: 'text', text: content }];
+  if (typeof content === 'string') return content ? [{ type: 'text', text: content }] : [];
   if (Array.isArray(content)) {
     return (content as Array<Record<string, unknown>>)
       .filter((b) => b.type === 'text' && typeof b.text === 'string')
@@ -138,8 +138,6 @@ export function toAnthropicRequest(
     messages: converted,
     max_tokens: (body.max_tokens as number) || 4096,
   };
-  if (shouldCache) result.cache_control = { type: 'ephemeral' };
-
   if (systemBlocks.length > 0) result.system = systemBlocks;
 
   const tools = convertTools(body.tools as Array<Record<string, unknown>> | undefined);
