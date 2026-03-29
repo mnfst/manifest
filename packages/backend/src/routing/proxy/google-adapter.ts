@@ -15,7 +15,7 @@ interface GeminiContent {
 
 interface GeminiPart {
   text?: string;
-  functionCall?: { name: string; args: Record<string, unknown> };
+  functionCall?: { name: string; args: Record<string, unknown>; [key: string]: unknown };
   functionResponse?: { name: string; response: Record<string, unknown> };
 }
 
@@ -102,12 +102,13 @@ function messageToContent(msg: OpenAIMessage): GeminiContent | null {
   // Handle tool calls from assistant
   if (Array.isArray(msg.tool_calls)) {
     for (const tc of msg.tool_calls) {
-      parts.push({
-        functionCall: {
-          name: tc.function.name,
-          args: safeParseArgs(tc.function.arguments),
-        },
-      });
+      const functionCall: GeminiPart['functionCall'] = {
+        name: tc.function.name,
+        args: safeParseArgs(tc.function.arguments),
+      };
+      const sig = (tc as Record<string, unknown>).thought_signature;
+      if (sig) functionCall!.thought_signature = sig;
+      parts.push({ functionCall });
     }
   }
 
@@ -220,12 +221,18 @@ export function fromGoogleResponse(
   for (const part of parts) {
     if (part.text) textContent += part.text;
     if (part.functionCall) {
-      const fc = part.functionCall as { name: string; args: Record<string, unknown> };
-      toolCalls.push({
+      const fc = part.functionCall as {
+        name: string;
+        args: Record<string, unknown>;
+        thought_signature?: string;
+      };
+      const toolCall: Record<string, unknown> = {
         id: `call_${randomUUID()}`,
         type: 'function',
         function: { name: fc.name, arguments: JSON.stringify(fc.args) },
-      });
+      };
+      if (fc.thought_signature) toolCall.thought_signature = fc.thought_signature;
+      toolCalls.push(toolCall);
     }
   }
 
@@ -289,13 +296,19 @@ export function transformGoogleStreamChunk(chunk: string, model: string): string
   const toolCalls: Record<string, unknown>[] = [];
   for (const part of parts) {
     if (part.functionCall) {
-      const fc = part.functionCall as { name: string; args?: Record<string, unknown> };
-      toolCalls.push({
+      const fc = part.functionCall as {
+        name: string;
+        args?: Record<string, unknown>;
+        thought_signature?: string;
+      };
+      const toolCall: Record<string, unknown> = {
         index: toolCalls.length,
         id: `call_${randomUUID()}`,
         type: 'function',
         function: { name: fc.name, arguments: JSON.stringify(fc.args ?? {}) },
-      });
+      };
+      if (fc.thought_signature) toolCall.thought_signature = fc.thought_signature;
+      toolCalls.push(toolCall);
     }
   }
 

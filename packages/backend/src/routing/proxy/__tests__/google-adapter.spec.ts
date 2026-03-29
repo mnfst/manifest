@@ -419,6 +419,54 @@ describe('Google Adapter', () => {
         args: { query: 'cats' },
       });
     });
+
+    it('passes through thought_signature in tool_calls to functionCall parts', () => {
+      const body = {
+        messages: [
+          { role: 'user', content: 'Read my file' },
+          {
+            role: 'assistant',
+            content: null,
+            tool_calls: [
+              {
+                id: 'call_1',
+                type: 'function',
+                function: { name: 'read_file', arguments: '{"path":"a.txt"}' },
+                thought_signature: 'sig_abc123',
+              },
+            ],
+          },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-3-flash-preview');
+      const contents = result.contents as Array<{ parts: Array<Record<string, unknown>> }>;
+      expect(contents[1].parts[0].functionCall).toEqual({
+        name: 'read_file',
+        args: { path: 'a.txt' },
+        thought_signature: 'sig_abc123',
+      });
+    });
+
+    it('omits thought_signature when not present in tool_calls', () => {
+      const body = {
+        messages: [
+          {
+            role: 'assistant',
+            content: null,
+            tool_calls: [
+              {
+                id: 'call_1',
+                type: 'function',
+                function: { name: 'noop', arguments: '{}' },
+              },
+            ],
+          },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash');
+      const contents = result.contents as Array<{ parts: Array<Record<string, unknown>> }>;
+      expect(contents[0].parts[0].functionCall).toEqual({ name: 'noop', args: {} });
+    });
   });
 
   describe('fromGoogleResponse', () => {
@@ -744,6 +792,51 @@ describe('Google Adapter', () => {
       expect(usage.cache_read_tokens).toBe(0);
     });
 
+    it('preserves thought_signature on function call response', () => {
+      const google = {
+        candidates: [
+          {
+            content: {
+              parts: [
+                {
+                  functionCall: {
+                    name: 'read_file',
+                    args: { path: 'a.txt' },
+                    thought_signature: 'sig_xyz789',
+                  },
+                },
+              ],
+            },
+            finishReason: 'STOP',
+          },
+        ],
+      };
+
+      const result = fromGoogleResponse(google, 'gemini-3-flash-preview');
+      const choices = result.choices as Array<{ message: Record<string, unknown> }>;
+      const toolCalls = choices[0].message.tool_calls as Array<Record<string, unknown>>;
+      expect(toolCalls).toHaveLength(1);
+      expect(toolCalls[0].thought_signature).toBe('sig_xyz789');
+    });
+
+    it('omits thought_signature when not in function call response', () => {
+      const google = {
+        candidates: [
+          {
+            content: {
+              parts: [{ functionCall: { name: 'search', args: { q: 'cats' } } }],
+            },
+            finishReason: 'STOP',
+          },
+        ],
+      };
+
+      const result = fromGoogleResponse(google, 'gemini-2.0-flash');
+      const choices = result.choices as Array<{ message: Record<string, unknown> }>;
+      const toolCalls = choices[0].message.tool_calls as Array<Record<string, unknown>>;
+      expect(toolCalls[0].thought_signature).toBeUndefined();
+    });
+
     it('handles multiple function calls in response', () => {
       const google = {
         candidates: [
@@ -912,6 +1005,29 @@ describe('Google Adapter', () => {
       expect(data.choices[0].delta.tool_calls[0].function.name).toBe('tool_a');
       expect(data.choices[0].delta.tool_calls[1].index).toBe(1);
       expect(data.choices[0].delta.tool_calls[1].function.name).toBe('tool_b');
+    });
+
+    it('preserves thought_signature on streaming functionCall', () => {
+      const chunk = JSON.stringify({
+        candidates: [
+          {
+            content: {
+              parts: [
+                {
+                  functionCall: {
+                    name: 'read_file',
+                    args: { path: 'a.txt' },
+                    thought_signature: 'sig_stream_456',
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      });
+      const result = transformGoogleStreamChunk(chunk, 'gemini-3-flash-preview');
+      const data = JSON.parse(result!.split('\n\n')[0].replace('data: ', ''));
+      expect(data.choices[0].delta.tool_calls[0].thought_signature).toBe('sig_stream_456');
     });
 
     it('handles functionCall with null args', () => {
