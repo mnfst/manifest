@@ -280,7 +280,7 @@ export class ProxyService {
     const baseUrl =
       this.config.get<string>('app.betterAuthUrl') ||
       `http://localhost:${this.config.get<number>('app.port', 3001)}`;
-    const path = agentName ? `/routing/${encodeURIComponent(agentName)}` : '/routing';
+    const path = agentName ? `/agents/${encodeURIComponent(agentName)}` : '/routing';
     return `${baseUrl}${path}`;
   }
 
