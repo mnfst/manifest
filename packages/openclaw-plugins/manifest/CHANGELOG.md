@@ -1,5 +1,15 @@
 # manifest
 
+## 5.34.0
+
+### Minor Changes
+
+- b65cb6f: Code quality improvements: safe JSON parsing in adapters, shared proxy types, options objects for recorder methods, notification service dedup, auth guard decomposition, TtlCache utility, frontend component decomposition, api.ts domain split
+
+### Patch Changes
+
+- 27e1608: Fix messages silently dropped when provider doesn't report usage data in streaming or non-streaming responses
+
 ## 5.33.20
 
 ### Patch Changes
