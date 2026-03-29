@@ -261,10 +261,11 @@ export function recordSuccess(
         usage: streamUsage ?? undefined,
       })
       .catch((e) => logger.warn(`Failed to record fallback success: ${e}`));
-  } else if (streamUsage) {
+  } else {
+    const usage = streamUsage ?? { prompt_tokens: 0, completion_tokens: 0 };
     const durationMs = startTime ? Date.now() - startTime : undefined;
     recorder
-      .recordSuccessMessage(ctx, meta.model, meta.tier, meta.reason, streamUsage, {
+      .recordSuccessMessage(ctx, meta.model, meta.tier, meta.reason, usage, {
         traceId,
         authType: meta.auth_type,
         sessionKey,
