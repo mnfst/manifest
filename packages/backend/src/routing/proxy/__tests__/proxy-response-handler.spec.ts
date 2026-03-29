@@ -250,6 +250,36 @@ describe('proxy-response-handler', () => {
 
       expect(res.status).toHaveBeenCalledWith(500);
     });
+
+    it('should surface actual error message in development mode', async () => {
+      const originalEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'development';
+      try {
+        const { res } = mockResponse();
+        const recorder = mockRecorder();
+        const meta = makeMeta();
+        const metaHeaders = buildMetaHeaders(meta);
+
+        await handleProviderError(
+          res as any,
+          testCtx,
+          meta,
+          metaHeaders,
+          400,
+          JSON.stringify({ error: { message: 'Invalid model' } }),
+          undefined,
+          recorder as any,
+        );
+
+        expect(res.json).toHaveBeenCalledWith(
+          expect.objectContaining({
+            error: expect.objectContaining({ message: 'Invalid model' }),
+          }),
+        );
+      } finally {
+        process.env.NODE_ENV = originalEnv;
+      }
+    });
   });
 
   /* ── recordFallbackFailures ── */

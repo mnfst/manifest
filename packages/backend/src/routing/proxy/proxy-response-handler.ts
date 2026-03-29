@@ -75,7 +75,7 @@ export async function handleProviderError(
   setHeaders(res, metaHeaders);
   res.json({
     error: {
-      message: sanitizeProviderError(errorStatus, errorBody),
+      message: sanitizeProviderError(errorStatus, errorBody, process.env.NODE_ENV),
       type: 'upstream_error',
       status: errorStatus,
     },
@@ -115,7 +115,7 @@ function handleFallbackExhausted(
   res.setHeader('X-Manifest-Fallback-Exhausted', 'true');
   res.json({
     error: {
-      message: sanitizeProviderError(errorStatus, errorBody),
+      message: sanitizeProviderError(errorStatus, errorBody, process.env.NODE_ENV),
       type: 'fallback_exhausted',
       status: errorStatus,
       primary_model: meta.model,

@@ -73,12 +73,12 @@ describe('Anthropic Adapter', () => {
       expect(system[1].cache_control).toEqual({ type: 'ephemeral' });
     });
 
-    it('includes top-level cache_control for automatic caching', () => {
+    it('does not include top-level cache_control', () => {
       const body = {
         messages: [{ role: 'user', content: 'Hello' }],
       };
       const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
-      expect(result.cache_control).toEqual({ type: 'ephemeral' });
+      expect(result.cache_control).toBeUndefined();
     });
 
     it('defaults max_tokens to 4096 when absent', () => {
@@ -257,6 +257,45 @@ describe('Anthropic Adapter', () => {
       expect(messages).toHaveLength(2);
     });
 
+    it('filters empty string content on assistant messages with tool_calls', () => {
+      const body = {
+        messages: [
+          { role: 'user', content: 'Hello' },
+          {
+            role: 'assistant',
+            content: '',
+            tool_calls: [
+              { id: 'tc1', type: 'function', function: { name: 'search', arguments: '{}' } },
+            ],
+          },
+          { role: 'tool', content: 'result', tool_call_id: 'tc1' },
+          { role: 'user', content: 'Thanks' },
+        ],
+      };
+      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
+
+      const messages = result.messages as Array<{ role: string; content: Array<{ type: string }> }>;
+      const assistant = messages.find((m) => m.role === 'assistant');
+      expect(assistant).toBeDefined();
+      expect(assistant!.content).toHaveLength(1);
+      expect(assistant!.content[0].type).toBe('tool_use');
+    });
+
+    it('omits assistant message with empty string content and no tool_calls', () => {
+      const body = {
+        messages: [
+          { role: 'user', content: 'Hello' },
+          { role: 'assistant', content: '' },
+          { role: 'user', content: 'Bye' },
+        ],
+      };
+      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
+
+      const messages = result.messages as Array<{ role: string }>;
+      expect(messages).toHaveLength(2);
+      expect(messages.every((m) => m.role === 'user')).toBe(true);
+    });
+
     it('omits system key when no system messages exist', () => {
       const body = {
         messages: [{ role: 'user', content: 'Hi' }],
@@ -392,7 +431,7 @@ describe('Anthropic Adapter', () => {
       expect(tools[1].cache_control).toBeUndefined();
     });
 
-    it('injects cache_control by default when options is undefined', () => {
+    it('injects cache_control on system blocks and tools by default', () => {
       const body = {
         messages: [
           { role: 'system', content: 'You are helpful.' },
@@ -401,7 +440,7 @@ describe('Anthropic Adapter', () => {
         tools: [{ type: 'function', function: { name: 'a', description: 'tool a' } }],
       };
       const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
-      expect(result.cache_control).toEqual({ type: 'ephemeral' });
+      expect(result.cache_control).toBeUndefined();
       const system = result.system as Array<{ cache_control?: unknown }>;
       expect(system[system.length - 1].cache_control).toEqual({ type: 'ephemeral' });
       const tools = result.tools as Array<{ cache_control?: unknown }>;
