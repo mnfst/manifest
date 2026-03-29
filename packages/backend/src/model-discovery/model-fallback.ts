@@ -97,7 +97,9 @@ export function lookupWithVariants(
  */
 export function buildModelsDevFallback(
   modelsDevSync: {
-    getModelsForProvider(id: string): {
+    getModelsForProvider(
+      id: string,
+    ): {
       id: string;
       name: string;
       contextWindow?: number;
