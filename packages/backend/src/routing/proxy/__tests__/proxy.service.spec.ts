@@ -315,7 +315,7 @@ describe('ProxyService', () => {
 
     const json = (await result.forward.response.json()) as Record<string, unknown>;
     const choices = json.choices as { message: { content: string } }[];
-    expect(choices[0].message.content).toContain('http://localhost:3001/routing/my-agent');
+    expect(choices[0].message.content).toContain('http://localhost:3001/agents/my-agent');
   });
 
   it('uses /routing path when agentName is not provided', async () => {
@@ -367,7 +367,7 @@ describe('ProxyService', () => {
 
     const json = (await result.forward.response.json()) as Record<string, unknown>;
     const choices = json.choices as { message: { content: string } }[];
-    expect(choices[0].message.content).toContain('http://localhost:4000/routing/test-agent');
+    expect(choices[0].message.content).toContain('http://localhost:4000/agents/test-agent');
   });
 
   it('returns synthetic streaming response when no model is resolved', async () => {
@@ -2299,7 +2299,11 @@ describe('ProxyService', () => {
         authType: 'subscription',
       });
       // getAuthType was called for the fallback provider (different provider, no exclusions)
-      expect(providerKeyService.getAuthType).toHaveBeenCalledWith('agent-1', 'Anthropic', undefined);
+      expect(providerKeyService.getAuthType).toHaveBeenCalledWith(
+        'agent-1',
+        'Anthropic',
+        undefined,
+      );
       // getProviderApiKey was called with subscription for the fallback
       expect(providerKeyService.getProviderApiKey).toHaveBeenNthCalledWith(
         2,
@@ -2530,7 +2534,11 @@ describe('ProxyService', () => {
       expect(providerClient.forward).toHaveBeenCalledTimes(2);
       expect(result.failedFallbacks).toHaveLength(0);
       // Verify getAuthType was called for both fallback providers (different from primary, no exclusions)
-      expect(providerKeyService.getAuthType).toHaveBeenCalledWith('agent-1', 'Anthropic', undefined);
+      expect(providerKeyService.getAuthType).toHaveBeenCalledWith(
+        'agent-1',
+        'Anthropic',
+        undefined,
+      );
       expect(providerKeyService.getAuthType).toHaveBeenCalledWith('agent-1', 'DeepSeek', undefined);
     });
 
