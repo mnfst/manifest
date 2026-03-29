@@ -313,6 +313,19 @@ describe('ModelsDevSyncService', () => {
       expect(model!.name).toBe('Mistral Large');
     });
 
+    it('should strip Google preview variant suffix', () => {
+      // Google API returns gemini-2.5-pro-preview-03-25, models.dev has gemini-2.5-pro
+      const model = service.lookupModel('gemini', 'gemini-2.5-pro-preview-03-25');
+      expect(model).not.toBeNull();
+      expect(model!.name).toBe('Gemini 2.5 Pro');
+    });
+
+    it('should strip Google exp variant suffix', () => {
+      const model = service.lookupModel('gemini', 'gemini-2.5-pro-exp-0325');
+      expect(model).not.toBeNull();
+      expect(model!.name).toBe('Gemini 2.5 Pro');
+    });
+
     it('should strip -reasoning suffix (xAI convention)', () => {
       // xAI returns grok-4-1-fast-reasoning, models.dev has grok-4-1-fast
       const model = service.lookupModel('xai', 'grok-4-1-fast-reasoning');

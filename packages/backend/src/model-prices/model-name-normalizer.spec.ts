@@ -4,6 +4,7 @@ import {
   buildAliasMap,
   resolveModelName,
   normalizeDots,
+  stripGoogleVariant,
 } from './model-name-normalizer';
 
 describe('model-name-normalizer', () => {
@@ -79,6 +80,32 @@ describe('model-name-normalizer', () => {
     });
   });
 
+  describe('stripGoogleVariant', () => {
+    it('strips -preview-MM-DD suffix', () => {
+      expect(stripGoogleVariant('gemini-2.5-pro-preview-03-25')).toBe('gemini-2.5-pro');
+    });
+
+    it('strips -preview-YYYY-MM-DD suffix', () => {
+      expect(stripGoogleVariant('gemini-2.5-pro-preview-2025-03-25')).toBe('gemini-2.5-pro');
+    });
+
+    it('strips -exp-MMDD suffix', () => {
+      expect(stripGoogleVariant('gemini-2.5-pro-exp-0325')).toBe('gemini-2.5-pro');
+    });
+
+    it('strips -latest suffix', () => {
+      expect(stripGoogleVariant('gemini-2.5-pro-latest')).toBe('gemini-2.5-pro');
+    });
+
+    it('returns name unchanged for non-Google models', () => {
+      expect(stripGoogleVariant('gpt-4o')).toBe('gpt-4o');
+    });
+
+    it('returns name unchanged for models without variant suffix', () => {
+      expect(stripGoogleVariant('gemini-2.5-pro')).toBe('gemini-2.5-pro');
+    });
+  });
+
   describe('buildAliasMap', () => {
     it('maps canonical names to themselves', () => {
       const map = buildAliasMap(['gpt-4o', 'claude-opus-4-6']);
@@ -123,6 +150,21 @@ describe('model-name-normalizer', () => {
       const map = buildAliasMap(['google/gemini-001']);
       // gemini-001 bare → gemini (suffix stripped), but gemini-001 should also exist
       expect(map.get('gemini-001')).toBe('google/gemini-001');
+    });
+
+    it('indexes short name for canonical names with Google variant suffix', () => {
+      const map = buildAliasMap(['gemini-2.5-pro-preview-03-25']);
+      expect(map.get('gemini-2.5-pro')).toBe('gemini-2.5-pro-preview-03-25');
+    });
+
+    it('indexes short name for vendor-prefixed Google variant', () => {
+      const map = buildAliasMap(['google/gemini-2.5-pro-exp-0325']);
+      expect(map.get('gemini-2.5-pro')).toBe('google/gemini-2.5-pro-exp-0325');
+    });
+
+    it('does not overwrite existing entry when stripping Google variant', () => {
+      const map = buildAliasMap(['gemini-2.5-pro', 'gemini-2.5-pro-preview-03-25']);
+      expect(map.get('gemini-2.5-pro')).toBe('gemini-2.5-pro');
     });
   });
 
@@ -230,6 +272,32 @@ describe('model-name-normalizer', () => {
     it('resolves Anthropic dash variant when canonical name uses dots', () => {
       const map = buildAliasMap(['anthropic/claude-opus-4.6']);
       expect(resolveModelName('claude-opus-4-6', map)).toBe('anthropic/claude-opus-4.6');
+    });
+
+    it('resolves Google preview variant to canonical', () => {
+      expect(resolveModelName('gemini-2.5-pro-preview-03-25', aliasMap)).toBeUndefined();
+      const map = buildAliasMap(['gemini-2.5-pro']);
+      expect(resolveModelName('gemini-2.5-pro-preview-03-25', map)).toBe('gemini-2.5-pro');
+    });
+
+    it('resolves Google exp variant to canonical', () => {
+      const map = buildAliasMap(['gemini-2.5-pro']);
+      expect(resolveModelName('gemini-2.5-pro-exp-0325', map)).toBe('gemini-2.5-pro');
+    });
+
+    it('resolves Google latest variant to canonical', () => {
+      const map = buildAliasMap(['gemini-2.5-pro']);
+      expect(resolveModelName('gemini-2.5-pro-latest', map)).toBe('gemini-2.5-pro');
+    });
+
+    it('resolves prefixed Google preview variant', () => {
+      const map = buildAliasMap(['gemini-2.5-pro']);
+      expect(resolveModelName('google/gemini-2.5-pro-preview-03-25', map)).toBe('gemini-2.5-pro');
+    });
+
+    it('resolves short name when pricing has Google variant canonical', () => {
+      const map = buildAliasMap(['gemini-2.5-pro-preview-03-25']);
+      expect(resolveModelName('gemini-2.5-pro', map)).toBe('gemini-2.5-pro-preview-03-25');
     });
   });
 });

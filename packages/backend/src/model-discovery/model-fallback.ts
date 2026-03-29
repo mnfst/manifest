@@ -5,6 +5,7 @@ import {
 } from '../common/constants/providers';
 import { getSubscriptionKnownModels, getSubscriptionCapabilities } from 'manifest-shared';
 import { normalizeAnthropicShortModelId } from '../common/utils/anthropic-model-id';
+import { GOOGLE_VARIANT_RE } from '../model-prices/model-name-normalizer';
 import type { ModelsDevSyncService } from '../database/models-dev-sync.service';
 
 interface PricingLookup {
@@ -87,6 +88,13 @@ export function lookupWithVariants(
   // Try :free suffix (OpenRouter lists some models as "provider/model:free")
   const freeResult = pricingSync.lookupPricing(`${prefix}/${modelId}:free`);
   if (freeResult) return freeResult;
+
+  // Strip Google variant suffixes: -preview-MM-DD, -exp-MMDD, -latest
+  const noGoogleVariant = modelId.replace(GOOGLE_VARIANT_RE, '');
+  if (noGoogleVariant !== modelId) {
+    const result = pricingSync.lookupPricing(`${prefix}/${noGoogleVariant}`);
+    if (result) return result;
+  }
 
   return null;
 }

@@ -225,6 +225,34 @@ describe('lookupWithVariants', () => {
 
     expect(result).toBeNull();
   });
+
+  it('should strip Google preview variant suffix', () => {
+    const cache = new Map([['google/gemini-2.5-pro', { input: 0.00000125, output: 0.00001 }]]);
+
+    const result = lookupWithVariants(
+      makePricingSync(cache),
+      'google',
+      'gemini-2.5-pro-preview-03-25',
+    );
+
+    expect(result).toEqual({ input: 0.00000125, output: 0.00001 });
+  });
+
+  it('should strip Google exp variant suffix', () => {
+    const cache = new Map([['google/gemini-2.5-pro', { input: 0.00000125, output: 0.00001 }]]);
+
+    const result = lookupWithVariants(makePricingSync(cache), 'google', 'gemini-2.5-pro-exp-0325');
+
+    expect(result).toEqual({ input: 0.00000125, output: 0.00001 });
+  });
+
+  it('should strip Google latest variant suffix', () => {
+    const cache = new Map([['google/gemini-2.5-flash', { input: 0.0000003, output: 0.0000025 }]]);
+
+    const result = lookupWithVariants(makePricingSync(cache), 'google', 'gemini-2.5-flash-latest');
+
+    expect(result).toEqual({ input: 0.0000003, output: 0.0000025 });
+  });
 });
 
 describe('buildSubscriptionFallbackModels', () => {

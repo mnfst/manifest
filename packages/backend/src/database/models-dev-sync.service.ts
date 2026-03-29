@@ -75,6 +75,8 @@ const DATE_SUFFIX_RE = /-\d{4}-?\d{2}-?\d{2}$/;
 const SHORT_DATE_SUFFIX_RE = /-\d{4}$/;
 /** Common suffix aliases: try appending -latest when the base name is not found. */
 const LATEST_SUFFIX = '-latest';
+/** Google variant suffixes: -preview-MM-DD, -preview-YYYY-MM-DD, -exp-MMDD, -latest. */
+const GOOGLE_VARIANT_RE = /-(?:preview(?:-\d{2,4}){1,3}|exp-\d{4}|latest)$/;
 /** xAI reasoning/non-reasoning mode suffixes. */
 const REASONING_SUFFIX_RE = /-(reasoning|non-reasoning)$/;
 
@@ -134,8 +136,9 @@ export class ModelsDevSyncService implements OnModuleInit {
    *   3. Strip date suffix (-20250514 or -2025-04-14)
    *   4. Append -latest (mistral-medium → mistral-medium-latest)
    *   5. Strip date then append -latest
-   *   6. Strip -reasoning / -non-reasoning suffix (xAI convention)
-   *   7. Strip 4-digit short date suffix (-0709 MMDD format)
+   *   6. Strip Google variant suffix (-preview-MM-DD, -exp-MMDD, -latest)
+   *   7. Strip -reasoning / -non-reasoning suffix (xAI convention)
+   *   8. Strip 4-digit short date suffix (-0709 MMDD format)
    */
   lookupModel(providerId: string, modelId: string): ModelsDevModelEntry | null {
     const providerModels = this.cache.get(resolveProviderId(providerId));
@@ -171,19 +174,27 @@ export class ModelsDevSyncService implements OnModuleInit {
       if (found) return found;
     }
 
-    // 6. Strip -reasoning / -non-reasoning suffix (xAI: grok-4-1-fast-reasoning → grok-4-1-fast)
+    // 6. Strip Google variant suffixes: -preview-MM-DD, -exp-MMDD, -latest
+    //    (e.g., gemini-2.5-pro-preview-03-25 → gemini-2.5-pro)
+    const noGoogleVariant = modelId.replace(GOOGLE_VARIANT_RE, '');
+    if (noGoogleVariant !== modelId) {
+      const found = providerModels.get(noGoogleVariant);
+      if (found) return found;
+    }
+
+    // 7. Strip -reasoning / -non-reasoning suffix (xAI: grok-4-1-fast-reasoning → grok-4-1-fast)
     const noReasoning = modelId.replace(REASONING_SUFFIX_RE, '');
     if (noReasoning !== modelId) {
       const found = providerModels.get(noReasoning);
       if (found) return found;
     }
 
-    // 7. Strip 4-digit short date suffix (xAI: grok-4-0709 → grok-4)
+    // 8. Strip 4-digit short date suffix (xAI: grok-4-0709 → grok-4)
     const noShortDate = modelId.replace(SHORT_DATE_SUFFIX_RE, '');
     if (noShortDate !== modelId) {
       const found = providerModels.get(noShortDate);
       if (found) return found;
-      // 8. Strip short date then append -latest (mistral-small-2603 → mistral-small-latest)
+      // 9. Strip short date then append -latest (mistral-small-2603 → mistral-small-latest)
       if (!noShortDate.endsWith(LATEST_SUFFIX)) {
         const withLatest = providerModels.get(noShortDate + LATEST_SUFFIX);
         if (withLatest) return withLatest;
