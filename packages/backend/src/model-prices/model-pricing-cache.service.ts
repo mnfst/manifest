@@ -1,4 +1,5 @@
 import { Injectable, Logger, OnApplicationBootstrap, Inject, Optional } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import { buildAliasMap, resolveModelName } from './model-name-normalizer';
 import { PricingSyncService } from '../database/pricing-sync.service';
 import { ModelsDevSyncService } from '../database/models-dev-sync.service';
@@ -42,6 +43,12 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {
+    await this.reload();
+  }
+
+  /** Rebuild the pricing cache after sync services refresh their data. */
+  @Cron('0 5 * * *')
+  async scheduledReload(): Promise<void> {
     await this.reload();
   }
 
@@ -161,8 +168,17 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
           source: 'models.dev',
         };
 
-        // Override both bare and prefixed keys so getAll() dedup works
-        this.cache.set(model.id, pricingEntry);
+        // Override both bare and prefixed keys so getAll() dedup works.
+        // Don't overwrite real pricing with zero-pricing entries (e.g. Copilot
+        // lists models like gemini-2.5-pro as free, which would erase Google's
+        // actual pricing that was set by an earlier provider in the loop).
+        const existing = this.cache.get(model.id);
+        const hasRealPricing = existing && (existing.input_price_per_token ?? 0) > 0;
+        const isZeroPricing =
+          (model.inputPricePerToken ?? 0) === 0 && (model.outputPricePerToken ?? 0) === 0;
+        if (!hasRealPricing || !isZeroPricing) {
+          this.cache.set(model.id, pricingEntry);
+        }
         // Also update the OpenRouter-prefixed key if it exists
         for (const prefix of registryEntry.openRouterPrefixes) {
           const prefixedKey = `${prefix}/${model.id}`;

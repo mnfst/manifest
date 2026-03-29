@@ -10,8 +10,9 @@ import { OPENROUTER_PREFIX_TO_PROVIDER } from '../common/constants/providers';
  *  3. Strip provider prefix (e.g. "anthropic/claude-opus-4-6" → "claude-opus-4-6")
  *  4. Strip date suffix (e.g. "gpt-4.1-2025-04-14" → "gpt-4.1")
  *  5. Strip both prefix and date suffix
- *  6. Dot-to-dash normalization (e.g. "claude-opus-4.6" → "claude-opus-4-6")
- *  7. Dot-to-dash + strip date suffix
+ *  6. Strip Google variant suffix (e.g. "gemini-2.5-pro-preview-03-25" → "gemini-2.5-pro")
+ *  7. Dot-to-dash normalization (e.g. "claude-opus-4.6" → "claude-opus-4-6")
+ *  8. Dot-to-dash + strip date suffix
  */
 
 const KNOWN_ALIASES: ReadonlyArray<readonly [string, string]> = [
@@ -53,6 +54,13 @@ const PROVIDER_PREFIXES: readonly string[] = [
 const DATE_SUFFIX_RE = /-\d{4}-?\d{2}-?\d{2}$/;
 const VERSION_SUFFIX_RE = /-\d{3}$/;
 
+/** Matches Google-style variant suffixes: -preview-MM-DD, -preview-YYYY-MM-DD, -exp-MMDD, -latest */
+export const GOOGLE_VARIANT_RE = /-(?:preview(?:-\d{2,4}){1,3}|exp-\d{4}|latest)$/;
+
+export function stripGoogleVariant(name: string): string {
+  return name.replace(GOOGLE_VARIANT_RE, '');
+}
+
 export function stripProviderPrefix(name: string): string {
   for (const prefix of PROVIDER_PREFIXES) {
     if (name.startsWith(prefix)) {
@@ -86,6 +94,12 @@ export function buildAliasMap(canonicalNames: ReadonlyArray<string>): Map<string
     const bareNoVersion = bare.replace(VERSION_SUFFIX_RE, '');
     if (bareNoVersion !== bare && !map.has(bareNoVersion)) {
       map.set(bareNoVersion, name);
+    }
+    // Index by bare name without Google variant suffix
+    // (e.g. "gemini-2.5-pro-preview-03-25" → "gemini-2.5-pro")
+    const bareNoVariant = stripGoogleVariant(bare);
+    if (bareNoVariant !== bare && !map.has(bareNoVariant)) {
+      map.set(bareNoVariant, name);
     }
     for (const variant of buildAnthropicShortModelIdVariants(bare)) {
       if (!map.has(variant)) {
@@ -121,6 +135,12 @@ export function resolveModelName(name: string, aliasMap: Map<string, string>): s
   if (noDate !== stripped) {
     const fromNoDate = aliasMap.get(noDate);
     if (fromNoDate) return fromNoDate;
+  }
+
+  const noVariant = stripGoogleVariant(stripped);
+  if (noVariant !== stripped) {
+    const fromNoVariant = aliasMap.get(noVariant);
+    if (fromNoVariant) return fromNoVariant;
   }
 
   const dotNorm = normalizeDots(stripped);

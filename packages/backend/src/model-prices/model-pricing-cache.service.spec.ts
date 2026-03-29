@@ -49,6 +49,14 @@ describe('ModelPricingCacheService', () => {
     });
   });
 
+  describe('scheduledReload', () => {
+    it('should call reload()', async () => {
+      const spy = jest.spyOn(service, 'reload').mockResolvedValue();
+      await service.scheduledReload();
+      expect(spy).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('reload', () => {
     it('should attribute supported providers from OpenRouter data', async () => {
       const orMap = new Map<string, OpenRouterPricingEntry>([
@@ -525,6 +533,66 @@ describe('ModelPricingCacheService', () => {
       const entry = serviceNoRegistry.getByModel('gpt-4o');
       expect(entry).toBeDefined();
       expect(entry!.validated).toBeUndefined();
+    });
+
+    it('should not overwrite real pricing with zero-pricing entry from later provider', async () => {
+      // Gemini provider sets gemini-2.5-pro with real pricing,
+      // then Copilot provider tries to overwrite with $0 pricing.
+      mockGetAll.mockReturnValue(new Map());
+      mockModelsDevSync.getModelsForProvider.mockImplementation((providerId: string) => {
+        if (providerId === 'gemini') {
+          return [
+            {
+              id: 'gemini-2.5-pro',
+              name: 'Gemini 2.5 Pro',
+              inputPricePerToken: 0.00000125,
+              outputPricePerToken: 0.00001,
+            },
+          ];
+        }
+        if (providerId === 'copilot') {
+          return [
+            {
+              id: 'gemini-2.5-pro',
+              name: 'Gemini 2.5 Pro',
+              inputPricePerToken: 0,
+              outputPricePerToken: 0,
+            },
+          ];
+        }
+        return [];
+      });
+
+      await service.reload();
+
+      const entry = service.getByModel('gemini-2.5-pro');
+      expect(entry).toBeDefined();
+      expect(entry!.provider).toBe('Google');
+      expect(entry!.input_price_per_token).toBe(0.00000125);
+    });
+
+    it('should allow zero-pricing entry when no existing entry', async () => {
+      mockGetAll.mockReturnValue(new Map());
+      mockModelsDevSync.getModelsForProvider.mockImplementation((providerId: string) => {
+        if (providerId === 'copilot') {
+          return [
+            {
+              id: 'copilot-only-model',
+              name: 'Copilot Model',
+              inputPricePerToken: 0,
+              outputPricePerToken: 0,
+            },
+          ];
+        }
+        return [];
+      });
+
+      await service.reload();
+
+      const entry = service.getByModel('copilot-only-model');
+      expect(entry).toBeDefined();
+      expect(entry!.provider).toBe('GitHub Copilot');
+      expect(entry!.input_price_per_token).toBe(0);
     });
 
     it('should resolve false for unconfirmed models.dev entries', async () => {
