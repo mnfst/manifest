@@ -58,6 +58,8 @@ export class ProxyFallbackService {
     sessionKey: string,
     primaryModel: string,
     signal?: AbortSignal,
+    primaryProvider?: string,
+    primaryAuthType?: string,
   ): Promise<{
     success: {
       forward: ForwardResult;
@@ -68,6 +70,14 @@ export class ProxyFallbackService {
     failures: FailedFallback[];
   }> {
     const failures: FailedFallback[] = [];
+
+    // Track auth types that already failed per provider so fallbacks for the
+    // same provider try a different credential (fixes #1272).
+    const failedAuthByProvider = new Map<string, Set<string>>();
+    if (primaryProvider && primaryAuthType) {
+      failedAuthByProvider.set(primaryProvider.toLowerCase(), new Set([primaryAuthType]));
+    }
+
     for (let i = 0; i < fallbackModels.length; i++) {
       const requestedModel = fallbackModels[i];
       const pricing = this.pricingCache.getByModel(requestedModel);
@@ -89,7 +99,8 @@ export class ProxyFallbackService {
         continue;
       }
       const model = normalizeProviderModel(provider, requestedModel);
-      const authType = await this.providerKeyService.getAuthType(agentId, provider);
+      const excludeAuth = failedAuthByProvider.get(provider.toLowerCase());
+      const authType = await this.providerKeyService.getAuthType(agentId, provider, excludeAuth);
       let apiKey = await this.providerKeyService.getProviderApiKey(agentId, provider, authType);
       if (apiKey === null) {
         this.logger.debug(
@@ -142,6 +153,15 @@ export class ProxyFallbackService {
         status: forward.response.status,
         errorBody,
       });
+
+      // Record this auth type as failed for the provider so subsequent
+      // fallback models from the same provider try a different credential.
+      // Create a new Set to avoid mutating the reference passed to getAuthType.
+      const existing = failedAuthByProvider.get(provider.toLowerCase());
+      const updated = new Set(existing);
+      updated.add(authType);
+      failedAuthByProvider.set(provider.toLowerCase(), updated);
+
       if (!shouldTriggerFallback(forward.response.status)) break;
     }
     return { success: null, failures };

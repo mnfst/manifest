@@ -415,6 +415,131 @@ describe('ProxyFallbackService', () => {
       expect(result.success!.provider).toBe('custom:cp-1');
     });
 
+    it('tries alternate auth_type for same provider when primary failed (#1272)', async () => {
+      providerKeyService.getAuthType.mockImplementation(
+        async (_agentId: string, _provider: string, exclude?: Set<string>) => {
+          if (exclude && exclude.has('subscription')) return 'api_key';
+          return 'subscription';
+        },
+      );
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-api-key');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: true,
+        isChatGpt: false,
+      });
+      pricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' } as never);
+
+      const result = await service.tryFallbacks(
+        'agent-1',
+        'user-1',
+        ['claude-sonnet-4'],
+        body,
+        false,
+        'sess-1',
+        'gpt-4o',
+        undefined,
+        'anthropic',
+        'subscription',
+      );
+
+      expect(result.success).not.toBeNull();
+      // getAuthType should have been called with the exclusion set
+      expect(providerKeyService.getAuthType).toHaveBeenCalledWith(
+        'agent-1',
+        'Anthropic',
+        new Set(['subscription']),
+      );
+      // getProviderApiKey should use the alternate auth type
+      expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
+        'agent-1',
+        'Anthropic',
+        'api_key',
+      );
+    });
+
+    it('does not exclude auth types for different provider', async () => {
+      providerKeyService.getAuthType.mockResolvedValue('api_key');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      pricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' } as never);
+
+      await service.tryFallbacks(
+        'agent-1',
+        'user-1',
+        ['gpt-4o'],
+        body,
+        false,
+        'sess-1',
+        'claude-sonnet-4',
+        undefined,
+        'anthropic',
+        'subscription',
+      );
+
+      // OpenAI is a different provider, so no exclusion set should be passed
+      expect(providerKeyService.getAuthType).toHaveBeenCalledWith(
+        'agent-1',
+        'OpenAI',
+        undefined,
+      );
+    });
+
+    it('accumulates failed auth types across same-provider fallbacks', async () => {
+      providerKeyService.getAuthType
+        .mockResolvedValueOnce('api_key')
+        .mockResolvedValueOnce('api_key');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerClient.forward
+        .mockResolvedValueOnce({
+          response: new Response('error', { status: 401 }),
+          isGoogle: false,
+          isAnthropic: true,
+          isChatGpt: false,
+        })
+        .mockResolvedValueOnce({
+          response: new Response('error', { status: 401 }),
+          isGoogle: false,
+          isAnthropic: true,
+          isChatGpt: false,
+        });
+      pricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' } as never);
+
+      await service.tryFallbacks(
+        'agent-1',
+        'user-1',
+        ['claude-sonnet-4', 'claude-haiku-3.5'],
+        body,
+        false,
+        'sess-1',
+        'gpt-4o',
+        undefined,
+        'anthropic',
+        'subscription',
+      );
+
+      // First call: exclusion contains 'subscription' (from primary)
+      expect(providerKeyService.getAuthType).toHaveBeenNthCalledWith(
+        1,
+        'agent-1',
+        'Anthropic',
+        new Set(['subscription']),
+      );
+      // Second call: exclusion now also contains 'api_key' (from first fallback failure)
+      expect(providerKeyService.getAuthType).toHaveBeenNthCalledWith(
+        2,
+        'agent-1',
+        'Anthropic',
+        new Set(['subscription', 'api_key']),
+      );
+    });
+
     it('stops chain on non-retriable status (424)', async () => {
       providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward
