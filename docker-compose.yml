@@ -1,0 +1,31 @@
+services:
+  manifest:
+    image: manifestdotbuild/manifest:latest
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgresql://manifest:manifest@postgres:5432/manifest
+      - BETTER_AUTH_SECRET=change-me-to-a-random-32-char-string!!
+      - SEED_DATA=true
+      - NODE_ENV=development
+      - MANIFEST_TRUST_LAN=true
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=manifest
+      - POSTGRES_PASSWORD=manifest
+      - POSTGRES_DB=manifest
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U manifest
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  pgdata:
