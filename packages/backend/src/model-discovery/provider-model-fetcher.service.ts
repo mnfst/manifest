@@ -73,9 +73,11 @@ const OPENAI_DATE_SUFFIX_RE = /-\d{4}-\d{2}-\d{2}$/;
 
 /**
  * OpenAI models only supported in v1/responses (not v1/chat/completions).
- * Codex models (except codex-mini-latest) and -pro variants of GPT-5+.
+ * Codex models (except codex-mini-latest), -pro variants of GPT-5+,
+ * image generation models, o1-pro, and deep-research models.
  */
-const OPENAI_RESPONSES_ONLY_RE = /(?:-codex(?!-mini-latest)|^gpt-5[^/]*-pro(?:-|$))/i;
+const OPENAI_RESPONSES_ONLY_RE =
+  /(?:-codex(?!-mini-latest)|^gpt-5[^/]*-pro(?:-|$)|^gpt-image-|^o1-pro|^o4-mini-deep-research)/i;
 
 function parseOpenAIDeduped(body: unknown, provider: string): DiscoveredModel[] {
   const filtered = parseOpenAI(body, provider).filter((m) => !OPENAI_RESPONSES_ONLY_RE.test(m.id));
