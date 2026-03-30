@@ -9,7 +9,8 @@ on:
     paths:
       - "docker/Dockerfile"
       - ".dockerignore"
-      - "docker-compose.yml"
+      - "docker/docker-compose.yml"
+      - "docker/DOCKER_README.md"
       - "packages/backend/**"
       - "packages/frontend/**"
       - "packages/shared/**"
@@ -82,5 +83,5 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: manifestdotbuild/manifest
-          readme-filepath: ./DOCKER_README.md
+          readme-filepath: ./docker/DOCKER_README.md
           short-description: "Open-source model router and LLM observability for AI agents"
