@@ -279,7 +279,7 @@ describe('ST-07: Soft limit notification', () => {
 /*  ST-08 · Hard limit blocks proxy requests                           */
 /* ------------------------------------------------------------------ */
 describe('ST-08: Hard limit blocks', () => {
-  it('returns 429 when block rule is exceeded', async () => {
+  it('returns friendly limit message when block rule is exceeded', async () => {
     const rule = await auth(api().post('/api/v1/notifications'))
       .send({
         agent_name: smokeAgentName,
