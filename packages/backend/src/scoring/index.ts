@@ -188,21 +188,15 @@ export function scoreRequest(
   const hasTools = tools && tools.length > 0;
   const hasMomentum = momentum?.recentTiers && momentum.recentTiers.length > 0;
   if (lastUserText.length > 0 && lastUserText.length < 50 && !hasTools) {
-    if (!hasMomentum) {
-      return {
-        tier: 'simple',
-        score: -0.3,
-        confidence: 0.9,
-        reason: 'short_message',
-        dimensions: emptyDimensions(config),
-        momentum: null,
-      };
-    }
-    // With momentum: still bypass if the message matches a simple indicator.
-    // This prevents momentum from pulling clearly simple messages (greetings,
-    // factual questions like "where is Paris?") up to higher tiers.
     const lastMatches = trie.scan(lastUserText);
-    if (lastMatches.some((m) => m.dimension === 'simpleIndicators')) {
+    const hasSimpleIndicator = lastMatches.some((m) => m.dimension === 'simpleIndicators');
+    const hasComplexSignal = lastMatches.some(
+      (m) => m.dimension !== 'simpleIndicators' && m.dimension !== 'relay',
+    );
+
+    // Short message with complex keywords → fall through to full scoring
+    // Short message with NO complex keywords → simple (greetings, factual questions)
+    if (!hasComplexSignal && (!hasMomentum || hasSimpleIndicator)) {
       return {
         tier: 'simple',
         score: -0.3,

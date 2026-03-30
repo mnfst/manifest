@@ -118,6 +118,29 @@ describe('scoreRequest — hard overrides', () => {
     expect(result.tier).toBe('simple');
     expect(result.reason).toBe('short_message');
   });
+
+  it('does NOT return short_message for short technical prompts with keywords', () => {
+    const technicalPrompts = [
+      'Implement OAuth PKCE flow in Next.js',
+      'Fix a race condition in a Redis lock',
+      'Debug a flaky Playwright login test',
+      'Write SQL to detect duplicate invoices',
+      'Implement JWT refresh token rotation',
+    ];
+    for (const prompt of technicalPrompts) {
+      const result = scoreRequest({
+        messages: [{ role: 'user', content: prompt }],
+      });
+      expect(result.reason).not.toBe('short_message');
+    }
+  });
+
+  it('routes short technical prompts to standard or higher', () => {
+    const result = scoreRequest({
+      messages: [{ role: 'user', content: 'Implement OAuth PKCE flow in Next.js' }],
+    });
+    expect(result.tier).not.toBe('simple');
+  });
 });
 
 describe('scoreRequest — full pipeline', () => {
