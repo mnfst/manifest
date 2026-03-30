@@ -71,6 +71,13 @@ describe('inferProviderFromModel', () => {
     expect(inferProviderFromModel('stepfun/step-3.5-flash:free')).toBe('openrouter');
   });
 
+  it('does not treat vendor/model:variant as ollama', () => {
+    expect(inferProviderFromModel('anthropic/claude-sonnet-4:thinking')).toBe('openrouter');
+    expect(inferProviderFromModel('nvidia/llama-3.1-nemotron-70b-instruct:extended')).toBe(
+      'openrouter',
+    );
+  });
+
   it('returns undefined for unrecognized models', () => {
     expect(inferProviderFromModel('whisper-large')).toBeUndefined();
     expect(inferProviderFromModel('unknown-model')).toBeUndefined();

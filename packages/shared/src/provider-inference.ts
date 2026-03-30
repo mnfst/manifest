@@ -22,7 +22,7 @@ export { MODEL_PREFIX_MAP };
 
 export function inferProviderFromModel(model: string): string | undefined {
   if (model.startsWith('custom:')) return 'custom';
-  if (/:/.test(model) && !model.endsWith(':free')) return 'ollama';
+  if (!model.includes('/') && /:/.test(model) && !model.endsWith(':free')) return 'ollama';
   const lower = model.toLowerCase();
   for (const [re, id] of MODEL_PREFIX_MAP) {
     if (re.test(lower)) return id;

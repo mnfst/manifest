@@ -167,6 +167,11 @@ describe("inferProviderFromModel", () => {
     expect(inferProviderFromModel("meta-llama/llama-4-maverick")).toBe("openrouter");
   });
 
+  it("does not misclassify OpenRouter colon-variant models as Ollama", () => {
+    expect(inferProviderFromModel("anthropic/claude-sonnet-4:thinking")).toBe("openrouter");
+    expect(inferProviderFromModel("nvidia/llama-3.1-nemotron-70b-instruct:extended")).toBe("openrouter");
+  });
+
   it("returns undefined for unrecognized models", () => {
     expect(inferProviderFromModel("some-random-model")).toBeUndefined();
   });
