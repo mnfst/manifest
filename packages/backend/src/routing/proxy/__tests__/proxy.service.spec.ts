@@ -1,4 +1,4 @@
-import { BadRequestException, HttpException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import { ProxyService } from '../proxy.service';
@@ -396,7 +396,7 @@ describe('ProxyService', () => {
     expect(result.meta.reason).toBe('no_provider');
   });
 
-  it('throws when no API key found for provider', async () => {
+  it('returns friendly response when no API key found for provider', async () => {
     resolveService.resolve.mockResolvedValue({
       tier: 'standard',
       model: 'gpt-4o',
@@ -407,9 +407,21 @@ describe('ProxyService', () => {
     });
     providerKeyService.getProviderApiKey.mockResolvedValue(null);
 
-    await expect(
-      service.proxyRequest({ agentId: 'agent-1', userId: 'user-1', body, sessionKey: 'default' }),
-    ).rejects.toThrow('No API key found');
+    const result = await service.proxyRequest({
+      agentId: 'agent-1',
+      userId: 'user-1',
+      body,
+      sessionKey: 'default',
+      agentName: 'my-agent',
+    });
+
+    expect(result.forward.response.status).toBe(200);
+    const json = (await result.forward.response.json()) as {
+      choices: { message: { content: string } }[];
+    };
+    expect(json.choices[0].message.content).toContain('No API key set for OpenAI');
+    expect(json.choices[0].message.content).toContain('/agents/my-agent');
+    expect(result.meta.reason).toBe('no_provider_key');
   });
 
   it('resolves, forwards, and records momentum on success', async () => {
@@ -1070,7 +1082,7 @@ describe('ProxyService', () => {
       });
     };
 
-    it('throws 429 when limit is exceeded', async () => {
+    it('returns friendly response when limit is exceeded', async () => {
       limitCheck.checkLimits.mockResolvedValue({
         ruleId: 'r1',
         metricType: 'tokens',
@@ -1079,33 +1091,22 @@ describe('ProxyService', () => {
         period: 'day',
       });
 
-      await expect(
-        service.proxyRequest({
-          agentId: 'agent-1',
-          userId: 'user-1',
-          body,
-          sessionKey: 'default',
-          tenantId: 'tenant-1',
-          agentName: 'my-agent',
-        }),
-      ).rejects.toThrow(HttpException);
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+        tenantId: 'tenant-1',
+        agentName: 'my-agent',
+      });
 
-      try {
-        await service.proxyRequest({
-          agentId: 'agent-1',
-          userId: 'user-1',
-          body,
-          sessionKey: 'default',
-          tenantId: 'tenant-1',
-          agentName: 'my-agent',
-        });
-      } catch (err) {
-        expect((err as HttpException).getStatus()).toBe(429);
-        const response = (err as HttpException).getResponse() as Record<string, unknown>;
-        const error = response.error as Record<string, unknown>;
-        expect(error.code).toBe('limit_exceeded');
-        expect(error.type).toBe('rate_limit_exceeded');
-      }
+      expect(result.forward.response.status).toBe(200);
+      const json = (await result.forward.response.json()) as {
+        choices: { message: { content: string } }[];
+      };
+      expect(json.choices[0].message.content).toContain('Usage limit hit');
+      expect(json.choices[0].message.content).toContain('tokens');
+      expect(result.meta.reason).toBe('limit_exceeded');
     });
 
     it('does not check limits when tenantId/agentName are not provided', async () => {
@@ -1167,7 +1168,7 @@ describe('ProxyService', () => {
       expect(result.meta.model).toBe('gpt-4o');
     });
 
-    it('formats cost limit error with dollar sign and 2 decimal places', async () => {
+    it('formats cost limit with dollar sign and 2 decimal places', async () => {
       limitCheck.checkLimits.mockResolvedValue({
         ruleId: 'r2',
         metricType: 'cost',
@@ -1176,26 +1177,24 @@ describe('ProxyService', () => {
         period: 'month',
       });
 
-      try {
-        await service.proxyRequest({
-          agentId: 'agent-1',
-          userId: 'user-1',
-          body,
-          sessionKey: 'default',
-          tenantId: 'tenant-1',
-          agentName: 'my-agent',
-        });
-        fail('Expected HttpException');
-      } catch (err) {
-        const response = (err as HttpException).getResponse() as Record<string, unknown>;
-        const error = response.error as Record<string, unknown>;
-        expect(error.message).toContain('$12.50');
-        expect(error.message).toContain('$10.00');
-        expect(error.message).toContain('per month');
-      }
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+        tenantId: 'tenant-1',
+        agentName: 'my-agent',
+      });
+
+      const json = (await result.forward.response.json()) as {
+        choices: { message: { content: string } }[];
+      };
+      expect(json.choices[0].message.content).toContain('$12.50');
+      expect(json.choices[0].message.content).toContain('$10.00');
+      expect(json.choices[0].message.content).toContain('/month');
     });
 
-    it('formats token limit error with locale string', async () => {
+    it('formats token limit with locale string', async () => {
       limitCheck.checkLimits.mockResolvedValue({
         ruleId: 'r3',
         metricType: 'tokens',
@@ -1204,24 +1203,22 @@ describe('ProxyService', () => {
         period: 'day',
       });
 
-      try {
-        await service.proxyRequest({
-          agentId: 'agent-1',
-          userId: 'user-1',
-          body,
-          sessionKey: 'default',
-          tenantId: 'tenant-1',
-          agentName: 'my-agent',
-        });
-        fail('Expected HttpException');
-      } catch (err) {
-        const response = (err as HttpException).getResponse() as Record<string, unknown>;
-        const error = response.error as Record<string, unknown>;
-        // toLocaleString formats numbers with commas
-        expect(error.message).toContain('105,000');
-        expect(error.message).toContain('100,000');
-        expect(error.message).toContain('per day');
-      }
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+        tenantId: 'tenant-1',
+        agentName: 'my-agent',
+      });
+
+      const json = (await result.forward.response.json()) as {
+        choices: { message: { content: string } }[];
+      };
+      // toLocaleString formats numbers with commas
+      expect(json.choices[0].message.content).toContain('105,000');
+      expect(json.choices[0].message.content).toContain('100,000');
+      expect(json.choices[0].message.content).toContain('/day');
     });
   });
 
@@ -1652,7 +1649,7 @@ describe('ProxyService', () => {
       });
     });
 
-    it('rejects subscription provider without stored token', async () => {
+    it('returns friendly response for subscription provider without stored token', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         model: 'claude-sonnet-4',
@@ -1663,9 +1660,19 @@ describe('ProxyService', () => {
       });
       providerKeyService.getProviderApiKey.mockResolvedValue(null);
 
-      await expect(
-        service.proxyRequest({ agentId: 'agent-1', userId: 'user-1', body, sessionKey: 'sess-1' }),
-      ).rejects.toThrow('No API key found');
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'sess-1',
+      });
+
+      expect(result.forward.response.status).toBe(200);
+      const json = (await result.forward.response.json()) as {
+        choices: { message: { content: string } }[];
+      };
+      expect(json.choices[0].message.content).toContain('No API key set for Anthropic');
+      expect(result.meta.reason).toBe('no_provider_key');
     });
   });
 

@@ -620,7 +620,7 @@ describe('ProxyController', () => {
     });
   });
 
-  it('should handle 500 errors from proxyService', async () => {
+  it('should handle 500 errors from proxyService as friendly chat message', async () => {
     proxyService.proxyRequest.mockRejectedValue(new Error('Internal failure'));
 
     const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] });
@@ -628,13 +628,22 @@ describe('ProxyController', () => {
 
     await controller.chatCompletions(req as never, res as never);
 
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({
-      error: { message: 'Internal proxy error', type: 'proxy_error' },
-    });
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        object: 'chat.completion',
+        choices: expect.arrayContaining([
+          expect.objectContaining({
+            message: expect.objectContaining({
+              content: 'Something broke on our end. Try again shortly.',
+            }),
+          }),
+        ]),
+      }),
+    );
   });
 
-  it('should forward HttpException status and message', async () => {
+  it('should forward HttpException as friendly chat message', async () => {
     proxyService.proxyRequest.mockRejectedValue(
       new HttpException('Bad request: messages required', 400),
     );
@@ -644,18 +653,24 @@ describe('ProxyController', () => {
 
     await controller.chatCompletions(req as never, res as never);
 
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({
-      error: { message: 'Bad request: messages required', type: 'proxy_error' },
-    });
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        object: 'chat.completion',
+        choices: expect.arrayContaining([
+          expect.objectContaining({
+            message: expect.objectContaining({
+              content: 'Bad request: messages required',
+            }),
+          }),
+        ]),
+      }),
+    );
   });
 
   it('should record rate_limited agent_message on 429', async () => {
     proxyService.proxyRequest.mockRejectedValue(
-      new HttpException(
-        { error: { message: 'Limit exceeded: tokens usage (52,000) exceeds 50,000 per day' } },
-        429,
-      ),
+      new HttpException('Too many requests — wait a few seconds and retry.', 429),
     );
 
     const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
@@ -842,6 +857,22 @@ describe('ProxyController', () => {
       expect(res.status).toHaveBeenCalledWith(429);
     });
 
+    it('should wrap string HttpException response in proxy_error envelope on 429', async () => {
+      rateLimiter.checkLimit.mockImplementation(() => {
+        throw new HttpException('Too many requests', 429);
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(res.status).toHaveBeenCalledWith(429);
+      expect(res.json).toHaveBeenCalledWith({
+        error: { message: 'Too many requests', type: 'proxy_error' },
+      });
+    });
+
     it('should NOT releaseSlot when checkLimit throws (slot never acquired)', async () => {
       rateLimiter.checkLimit.mockImplementation(() => {
         throw new HttpException('Rate limit exceeded', 429);
@@ -872,7 +903,7 @@ describe('ProxyController', () => {
 
     it('should record 429 when checkLimit throws with 429', async () => {
       rateLimiter.checkLimit.mockImplementation(() => {
-        throw new HttpException('Rate limit exceeded. Try again later.', 429);
+        throw new HttpException('Too many requests — wait a few seconds and retry.', 429);
       });
 
       const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
@@ -1343,7 +1374,7 @@ describe('ProxyController', () => {
   });
 
   describe('error handling edge cases', () => {
-    it('should mask error message for 500+ status codes', async () => {
+    it('should mask error message for 500+ status codes as friendly chat message', async () => {
       proxyService.proxyRequest.mockRejectedValue(new Error('Sensitive internal error details'));
 
       const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
@@ -1351,13 +1382,22 @@ describe('ProxyController', () => {
 
       await controller.chatCompletions(req as never, res as never);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({
-        error: { message: 'Internal proxy error', type: 'proxy_error' },
-      });
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          object: 'chat.completion',
+          choices: expect.arrayContaining([
+            expect.objectContaining({
+              message: expect.objectContaining({
+                content: 'Something broke on our end. Try again shortly.',
+              }),
+            }),
+          ]),
+        }),
+      );
     });
 
-    it('should expose original message for client errors (4xx)', async () => {
+    it('should expose original message for client errors as friendly chat message', async () => {
       proxyService.proxyRequest.mockRejectedValue(
         new HttpException('messages array is required', 400),
       );
@@ -1367,13 +1407,21 @@ describe('ProxyController', () => {
 
       await controller.chatCompletions(req as never, res as never);
 
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        error: { message: 'messages array is required', type: 'proxy_error' },
-      });
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          choices: expect.arrayContaining([
+            expect.objectContaining({
+              message: expect.objectContaining({
+                content: 'messages array is required',
+              }),
+            }),
+          ]),
+        }),
+      );
     });
 
-    it('should handle non-Error throw as string', async () => {
+    it('should handle non-Error throw as friendly chat message', async () => {
       proxyService.proxyRequest.mockRejectedValue('string error');
 
       const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
@@ -1381,10 +1429,19 @@ describe('ProxyController', () => {
 
       await controller.chatCompletions(req as never, res as never);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({
-        error: { message: 'Internal proxy error', type: 'proxy_error' },
-      });
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          object: 'chat.completion',
+          choices: expect.arrayContaining([
+            expect.objectContaining({
+              message: expect.objectContaining({
+                content: 'Something broke on our end. Try again shortly.',
+              }),
+            }),
+          ]),
+        }),
+      );
     });
 
     it('should forward provider error response and preserve content-type from provider', async () => {
