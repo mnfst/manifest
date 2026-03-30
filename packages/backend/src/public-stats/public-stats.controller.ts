@@ -3,98 +3,98 @@ import { Public } from '../common/decorators/public.decorator';
 import { PUBLIC_STATS_CACHE_TTL_MS } from '../common/constants/cache.constants';
 import { PublicStatsService, TopModel, FreeModel } from './public-stats.service';
 
-interface StatsResponse {
+interface UsageResponse {
   total_messages: number;
   top_models: TopModel[];
   cached_at: string;
 }
 
-interface CatalogResponse {
+interface FreeModelsResponse {
   models: FreeModel[];
   total_models: number;
   cached_at: string;
 }
 
-let cachedStats: StatsResponse | null = null;
-let statsTimestamp = 0;
-let statsInflight: Promise<StatsResponse> | null = null;
+let cachedUsage: UsageResponse | null = null;
+let usageTimestamp = 0;
+let usageInflight: Promise<UsageResponse> | null = null;
 
-let cachedCatalog: CatalogResponse | null = null;
-let catalogTimestamp = 0;
-let catalogInflight: Promise<CatalogResponse> | null = null;
+let cachedFree: FreeModelsResponse | null = null;
+let freeTimestamp = 0;
+let freeInflight: Promise<FreeModelsResponse> | null = null;
 
-@Controller('api/v1')
+@Controller('api/v1/public')
 export class PublicStatsController {
   private readonly logger = new Logger(PublicStatsController.name);
 
   constructor(private readonly service: PublicStatsService) {}
 
   @Public()
-  @Get('public-stats')
-  async getStats(): Promise<StatsResponse> {
-    if (cachedStats && Date.now() - statsTimestamp < PUBLIC_STATS_CACHE_TTL_MS) {
-      return cachedStats;
+  @Get('usage')
+  async getUsage(): Promise<UsageResponse> {
+    if (cachedUsage && Date.now() - usageTimestamp < PUBLIC_STATS_CACHE_TTL_MS) {
+      return cachedUsage;
     }
 
-    if (!statsInflight) {
-      statsInflight = this.refreshStats().finally(() => {
-        statsInflight = null;
+    if (!usageInflight) {
+      usageInflight = this.refreshUsage().finally(() => {
+        usageInflight = null;
       });
     }
 
-    return statsInflight;
+    return usageInflight;
   }
 
   @Public()
-  @Get('public-stats/models')
-  async getModelCatalog(): Promise<CatalogResponse> {
-    if (cachedCatalog && Date.now() - catalogTimestamp < PUBLIC_STATS_CACHE_TTL_MS) {
-      return cachedCatalog;
+  @Get('free-models')
+  async getFreeModels(): Promise<FreeModelsResponse> {
+    if (cachedFree && Date.now() - freeTimestamp < PUBLIC_STATS_CACHE_TTL_MS) {
+      return cachedFree;
     }
 
-    if (!catalogInflight) {
-      catalogInflight = this.refreshCatalog().finally(() => {
-        catalogInflight = null;
+    if (!freeInflight) {
+      freeInflight = this.refreshFreeModels().finally(() => {
+        freeInflight = null;
       });
     }
 
-    return catalogInflight;
+    return freeInflight;
   }
 
-  private async refreshStats(): Promise<StatsResponse> {
+  private async refreshUsage(): Promise<UsageResponse> {
     try {
       const stats = await this.service.getUsageStats();
-      cachedStats = {
+      cachedUsage = {
         total_messages: stats.total_messages,
         top_models: stats.top_models,
         cached_at: new Date().toISOString(),
       };
-      statsTimestamp = Date.now();
+      usageTimestamp = Date.now();
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       this.logger.error(`Failed to fetch usage stats: ${msg}`);
     }
 
     return (
-      cachedStats ?? { total_messages: 0, top_models: [], cached_at: new Date().toISOString() }
+      cachedUsage ?? { total_messages: 0, top_models: [], cached_at: new Date().toISOString() }
     );
   }
 
-  private async refreshCatalog(): Promise<CatalogResponse> {
+  private async refreshFreeModels(): Promise<FreeModelsResponse> {
     try {
       const stats = await this.service.getUsageStats();
       const models = this.service.getFreeModels(stats.token_map);
-      cachedCatalog = {
+      cachedFree = {
         models,
         total_models: models.length,
         cached_at: new Date().toISOString(),
       };
-      catalogTimestamp = Date.now();
+      freeTimestamp = Date.now();
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      this.logger.error(`Failed to fetch model catalog: ${msg}`);
+      this.logger.error(`Failed to fetch free models: ${msg}`);
     }
 
-    return cachedCatalog ?? { models: [], total_models: 0, cached_at: new Date().toISOString() };
+    return cachedFree ?? { models: [], total_models: 0, cached_at: new Date().toISOString() };
   }
 }

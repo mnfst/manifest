@@ -5,6 +5,9 @@ import { AgentMessage } from '../entities/agent-message.entity';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { computeCutoff } from '../common/utils/sql-dialect';
 
+const MAX_RESULTS = 10;
+const EXCLUDED_PROVIDERS = new Set(['Unknown', 'OpenRouter']);
+
 export interface TopModel {
   model: string;
   provider: string;
@@ -24,6 +27,10 @@ export interface FreeModel {
   model_name: string;
   provider: string;
   tokens_7d: number;
+}
+
+function isCustomModel(model: string): boolean {
+  return model.startsWith('custom:');
 }
 
 @Injectable()
@@ -46,7 +53,6 @@ export class PublicStatsService {
         .where('at.model IS NOT NULL')
         .groupBy('at.model')
         .orderBy('usage_count', 'DESC')
-        .limit(20)
         .getRawMany(),
       this.messageRepo
         .createQueryBuilder('at')
@@ -63,12 +69,18 @@ export class PublicStatsService {
       tokenMap.set(r.model as string, Number(r.tokens ?? 0));
     }
 
-    const topModels: TopModel[] = topRows.map((r, i) => {
+    const enriched: TopModel[] = [];
+    for (const r of topRows) {
+      if (enriched.length >= MAX_RESULTS) break;
       const modelName = r.model as string;
+      if (isCustomModel(modelName)) continue;
       const pricing = this.pricingCache.getByModel(modelName);
-      return {
+      const provider = pricing?.provider || 'Unknown';
+      if (EXCLUDED_PROVIDERS.has(provider)) continue;
+
+      enriched.push({
         model: modelName,
-        provider: pricing?.provider || 'Unknown',
+        provider,
         tokens_7d: tokenMap.get(modelName) ?? 0,
         input_price_per_million:
           pricing?.input_price_per_token != null
@@ -78,13 +90,16 @@ export class PublicStatsService {
           pricing?.output_price_per_token != null
             ? Number(pricing.output_price_per_token) * 1_000_000
             : null,
-        usage_rank: i + 1,
-      };
-    });
+        usage_rank: enriched.length + 1,
+      });
+    }
+
+    enriched.sort((a, b) => b.tokens_7d - a.tokens_7d);
+    enriched.forEach((m, i) => (m.usage_rank = i + 1));
 
     return {
       total_messages: Number(countRow?.total ?? 0),
-      top_models: topModels,
+      top_models: enriched,
       token_map: tokenMap,
     };
   }
@@ -92,11 +107,19 @@ export class PublicStatsService {
   getFreeModels(tokenMap: Map<string, number>): FreeModel[] {
     return this.pricingCache
       .getAll()
-      .filter((e) => (e.input_price_per_token ?? 0) === 0 && (e.output_price_per_token ?? 0) === 0)
+      .filter((e) => {
+        if ((e.input_price_per_token ?? 0) !== 0 || (e.output_price_per_token ?? 0) !== 0)
+          return false;
+        const provider = e.provider || 'Unknown';
+        if (EXCLUDED_PROVIDERS.has(provider)) return false;
+        return (tokenMap.get(e.model_name) ?? 0) > 0;
+      })
       .map((e) => ({
         model_name: e.model_name,
         provider: e.provider || 'Unknown',
         tokens_7d: tokenMap.get(e.model_name) ?? 0,
-      }));
+      }))
+      .sort((a, b) => b.tokens_7d - a.tokens_7d)
+      .slice(0, MAX_RESULTS);
   }
 }
