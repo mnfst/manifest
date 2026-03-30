@@ -1,5 +1,4 @@
-import { randomUUID } from 'crypto';
-import { Injectable, Logger, BadRequestException, HttpException } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ResolveService } from '../resolve/resolve.service';
 import { ProviderKeyService } from '../routing-core/provider-key.service';
@@ -19,6 +18,7 @@ import {
 } from './proxy-fallback.service';
 import { ProxyRequestOptions } from './proxy-types';
 import { ThoughtSignatureCache } from './thought-signature-cache';
+import { buildFriendlyResponse, getDashboardUrl } from './proxy-friendly-response';
 
 export { FailedFallback } from './proxy-fallback.service';
 
@@ -75,7 +75,10 @@ export class ProxyService {
     }
     sanitizeNullContent(messages as Record<string, unknown>[]);
 
-    await this.enforceLimits(tenantId, agentName);
+    const limitMessage = await this.enforceLimits(tenantId, agentName);
+    if (limitMessage) {
+      return buildFriendlyResponse(limitMessage, body.stream === true, 'limit_exceeded');
+    }
 
     const scoringMessages = this.filterScoringMessages(messages as ScorerMessage[]);
     const scoringTools = Array.isArray(body.tools) ? body.tools : undefined;
@@ -108,9 +111,9 @@ export class ProxyService {
       resolved.auth_type,
     );
     if (apiKey === null) {
-      throw new BadRequestException(
-        `No API key found for provider: ${resolved.provider}. Re-connect the provider with an API key.`,
-      );
+      const dashboardUrl = getDashboardUrl(this.config, agentName);
+      const content = `No API key set for ${resolved.provider} yet. Add one here: ${dashboardUrl}`;
+      return buildFriendlyResponse(content, body.stream === true, 'no_provider_key');
     }
 
     const resolvedCredentials = await resolveApiKey(
@@ -239,10 +242,10 @@ export class ProxyService {
     };
   }
 
-  private async enforceLimits(tenantId?: string, agentName?: string): Promise<void> {
-    if (!tenantId || !agentName) return;
+  private async enforceLimits(tenantId?: string, agentName?: string): Promise<string | null> {
+    if (!tenantId || !agentName) return null;
     const exceeded = await this.limitCheck.checkLimits(tenantId, agentName);
-    if (!exceeded) return;
+    if (!exceeded) return null;
 
     const fmt =
       exceeded.metricType === 'cost'
@@ -252,16 +255,8 @@ export class ProxyService {
       exceeded.metricType === 'cost'
         ? `$${Number(exceeded.threshold).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
         : Number(exceeded.threshold).toLocaleString(undefined, { maximumFractionDigits: 0 });
-    throw new HttpException(
-      {
-        error: {
-          message: `Limit exceeded: ${exceeded.metricType} usage (${fmt}) exceeds ${threshFmt} per ${exceeded.period}`,
-          type: 'rate_limit_exceeded',
-          code: 'limit_exceeded',
-        },
-      },
-      429,
-    );
+    const dashboardUrl = getDashboardUrl(this.config, agentName);
+    return `Usage limit hit: ${exceeded.metricType} is at ${fmt} (limit: ${threshFmt}/${exceeded.period}). You can adjust it here: ${dashboardUrl}`;
   }
 
   private filterScoringMessages(messages: ScorerMessage[]): ScorerMessage[] {
@@ -282,85 +277,10 @@ export class ProxyService {
     return false;
   }
 
-  private getDashboardUrl(agentName?: string): string {
-    const baseUrl =
-      this.config.get<string>('app.betterAuthUrl') ||
-      `http://localhost:${this.config.get<number>('app.port', 3001)}`;
-    const path = agentName ? `/agents/${encodeURIComponent(agentName)}` : '/routing';
-    return `${baseUrl}${path}`;
-  }
-
   private buildNoProviderResult(stream: boolean, agentName?: string): ProxyResult {
-    const id = `chatcmpl-manifest-${randomUUID()}`;
-    const created = Math.floor(Date.now() / 1000);
-    const dashboardUrl = this.getDashboardUrl(agentName);
+    const dashboardUrl = getDashboardUrl(this.config, agentName);
     const content = `Manifest is connected successfully. To start routing requests, connect a model provider: ${dashboardUrl}`;
-
-    const meta: RoutingMeta = {
-      tier: 'simple' as Tier,
-      model: 'manifest',
-      provider: 'manifest',
-      confidence: 1,
-      reason: 'no_provider',
-    };
-
-    if (stream) {
-      const chunk = {
-        id,
-        object: 'chat.completion.chunk',
-        created,
-        model: 'manifest',
-        choices: [{ index: 0, delta: { role: 'assistant', content }, finish_reason: 'stop' }],
-      };
-      const ssePayload = `data: ${JSON.stringify(chunk)}\n\ndata: [DONE]\n\n`;
-      const encoder = new TextEncoder();
-      const body = new ReadableStream<Uint8Array>({
-        start(controller) {
-          controller.enqueue(encoder.encode(ssePayload));
-          controller.close();
-        },
-      });
-      return {
-        forward: {
-          response: new Response(body, {
-            status: 200,
-            headers: { 'Content-Type': 'text/event-stream' },
-          }),
-          isGoogle: false,
-          isAnthropic: false,
-          isChatGpt: false,
-        },
-        meta,
-      };
-    }
-
-    const responseBody = {
-      id,
-      object: 'chat.completion',
-      created,
-      model: 'manifest',
-      choices: [
-        {
-          index: 0,
-          message: { role: 'assistant', content },
-          finish_reason: 'stop',
-        },
-      ],
-      usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
-    };
-
-    return {
-      forward: {
-        response: new Response(JSON.stringify(responseBody), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        }),
-        isGoogle: false,
-        isAnthropic: false,
-        isChatGpt: false,
-      },
-      meta,
-    };
+    return buildFriendlyResponse(content, stream, 'no_provider');
   }
 }
 

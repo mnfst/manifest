@@ -19,6 +19,7 @@ import { ProxyMessageDedup } from './proxy-message-dedup';
 import { SessionMomentumService } from './session-momentum.service';
 import { CopilotTokenService } from './copilot-token.service';
 import { ThoughtSignatureCache } from './thought-signature-cache';
+import { ProxyExceptionFilter } from './proxy-exception.filter';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { ThoughtSignatureCache } from './thought-signature-cache';
     SessionMomentumService,
     CopilotTokenService,
     ThoughtSignatureCache,
+    ProxyExceptionFilter,
   ],
 })
 export class ProxyModule {}

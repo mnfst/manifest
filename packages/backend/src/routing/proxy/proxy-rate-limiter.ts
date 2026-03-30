@@ -42,7 +42,7 @@ export class ProxyRateLimiter implements OnModuleDestroy {
 
     if (entry.count >= RATE_MAX_REQUESTS) {
       throw new HttpException(
-        'Rate limit exceeded. Try again later.',
+        'Too many requests — wait a few seconds and retry.',
         HttpStatus.TOO_MANY_REQUESTS,
       );
     }
@@ -56,7 +56,7 @@ export class ProxyRateLimiter implements OnModuleDestroy {
     const current = this.concurrency.get(userId) ?? 0;
     if (current >= CONCURRENCY_MAX) {
       throw new HttpException(
-        'Too many concurrent requests. Try again later.',
+        'Too many concurrent requests. Give it a moment.',
         HttpStatus.TOO_MANY_REQUESTS,
       );
     }
