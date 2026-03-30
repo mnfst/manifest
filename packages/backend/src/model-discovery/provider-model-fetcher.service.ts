@@ -111,7 +111,8 @@ export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
     /(?:moderation|davinci|babbage|^text-|realtime|-transcribe|^sora|^gpt-3\.5-turbo-instruct|audio|^chatgpt-image)/i,
   'openai-subscription':
     /(?:moderation|davinci|babbage|^text-|realtime|-transcribe|^sora|audio|^chatgpt-image)/i,
-  gemini: /(?:^aqs-|nano-banana|^deep-research|computer-use|^lyria|^gemini-2\.0-flash-lite$|flash-lite-preview)/i,
+  gemini:
+    /(?:^aqs-|nano-banana|^deep-research|computer-use|^lyria|^gemini-2\.0-flash-lite$|flash-lite-preview)/i,
   mistral: /(?:^mistral-ocr|moderation|voxtral-.*-(?:transcribe|realtime)|^labs-)/i,
   xai: /(?:imagine|multi-agent)/i,
 };
@@ -123,6 +124,9 @@ export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
 export const PROVIDER_BLOCKLIST: Record<string, ReadonlySet<string>> = {
   mistral: new Set([
     'voxtral-mini-2602', // Invalid model returned by API; not a real chat endpoint
+  ]),
+  zai: new Set([
+    'glm-5.1', // Requires Coding Plan subscription + different endpoint; 403 on standard API
   ]),
 };
 
