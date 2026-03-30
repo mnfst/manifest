@@ -38,7 +38,9 @@ describe('ProxyRateLimiter', () => {
       } catch (err) {
         expect(err).toBeInstanceOf(HttpException);
         expect((err as HttpException).getStatus()).toBe(HttpStatus.TOO_MANY_REQUESTS);
-        expect((err as HttpException).message).toBe('Rate limit exceeded. Try again later.');
+        expect((err as HttpException).message).toBe(
+          'Too many requests — wait a few seconds and retry.',
+        );
       }
     });
 
@@ -207,7 +209,7 @@ describe('ProxyRateLimiter', () => {
         expect(err).toBeInstanceOf(HttpException);
         expect((err as HttpException).getStatus()).toBe(HttpStatus.TOO_MANY_REQUESTS);
         expect((err as HttpException).message).toBe(
-          'Too many concurrent requests. Try again later.',
+          'Too many concurrent requests. Give it a moment.',
         );
       }
     });

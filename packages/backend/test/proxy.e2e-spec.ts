@@ -82,28 +82,29 @@ describe('Proxy E2E — /v1/chat/completions', () => {
         });
       return;
     }
-    await api()
+    const res = await api()
       .post('/v1/chat/completions')
       .send({ messages: [{ role: 'user', content: 'hello' }] })
-      .expect(401);
+      .expect(200);
+
+    // Auth errors are returned as friendly chat completion messages
+    expect(res.body.choices[0].message.content).toContain('Missing API key');
   });
 
-  it('returns 400 when messages are missing', async () => {
+  it('returns friendly message when messages are missing', async () => {
     const res = await bearer(api().post('/v1/chat/completions'))
       .send({})
-      .expect(400);
+      .expect(200);
 
-    expect(res.body.error).toBeDefined();
-    expect(res.body.error.message).toContain('messages');
+    expect(res.body.choices[0].message.content).toContain('messages');
   });
 
-  it('returns 400 when messages array is empty', async () => {
+  it('returns friendly message when messages array is empty', async () => {
     const res = await bearer(api().post('/v1/chat/completions'))
       .send({ messages: [] })
-      .expect(400);
+      .expect(200);
 
-    expect(res.body.error).toBeDefined();
-    expect(res.body.error.message).toContain('messages');
+    expect(res.body.choices[0].message.content).toContain('messages');
   });
 
   it('resolves and attempts to forward to provider', async () => {

@@ -18,6 +18,7 @@ import { ProxyMessageRecorder } from './proxy-message-recorder';
 import { ProxyMessageDedup } from './proxy-message-dedup';
 import { SessionMomentumService } from './session-momentum.service';
 import { CopilotTokenService } from './copilot-token.service';
+import { ProxyExceptionFilter } from './proxy-exception.filter';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { CopilotTokenService } from './copilot-token.service';
     ProxyMessageDedup,
     SessionMomentumService,
     CopilotTokenService,
+    ProxyExceptionFilter,
   ],
 })
 export class ProxyModule {}

@@ -1,4 +1,13 @@
-import { Controller, Post, Req, Res, UseGuards, Logger, HttpException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+  UseFilters,
+  Logger,
+  HttpException,
+} from '@nestjs/common';
 import { Request, Response as ExpressResponse } from 'express';
 import { SkipThrottle } from '@nestjs/throttler';
 import { Public } from '../../common/decorators/public.decorator';
@@ -16,6 +25,8 @@ import {
   handleNonStreamResponse,
   recordSuccess,
 } from './proxy-response-handler';
+import { ProxyExceptionFilter } from './proxy-exception.filter';
+import { sendFriendlyResponse } from './proxy-friendly-response';
 
 const MAX_SEEN_USERS = 10_000;
 const SEEN_USER_TTL_MS = 24 * 60 * 60 * 1000;
@@ -23,6 +34,7 @@ const SEEN_USER_TTL_MS = 24 * 60 * 60 * 1000;
 @Controller('v1')
 @Public()
 @UseGuards(AgentKeyAuthGuard)
+@UseFilters(ProxyExceptionFilter)
 @SkipThrottle()
 export class ProxyController {
   private readonly logger = new Logger(ProxyController.name);
@@ -144,10 +156,23 @@ export class ProxyController {
         return;
       }
 
-      const clientMessage = status >= 500 ? 'Internal proxy error' : message;
-      res.status(status).json({
-        error: { message: clientMessage, type: 'proxy_error' },
-      });
+      // Rate limit errors stay as HTTP 429 so clients can backoff
+      if (status === 429) {
+        const response = err instanceof HttpException ? err.getResponse() : message;
+        res
+          .status(429)
+          .json(
+            typeof response === 'string'
+              ? { error: { message: response, type: 'proxy_error' } }
+              : response,
+          );
+        return;
+      }
+
+      const isStream = (req.body as Record<string, unknown>)?.stream === true;
+      const clientMessage =
+        status >= 500 ? 'Something broke on our end. Try again shortly.' : message;
+      sendFriendlyResponse(res, clientMessage, isStream);
     } finally {
       if (slotAcquired) this.rateLimiter.releaseSlot(userId);
     }

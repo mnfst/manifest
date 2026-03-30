@@ -295,9 +295,10 @@ describe('ST-08: Hard limit blocks', () => {
 
     const res = await smokeBearer(api().post('/v1/chat/completions'))
       .send({ messages: [{ role: 'user', content: 'blocked?' }], stream: false })
-      .expect(429);
+      .expect(200);
 
-    expect(res.body.error).toBeDefined();
+    // Limit exceeded returns a friendly chat completion message
+    expect(res.body.choices[0].message.content).toContain('Usage limit hit');
     // Mock server should NOT have been called — blocked before forwarding
     expect(mockCallLog.length).toBe(0);
   });
