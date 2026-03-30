@@ -13,6 +13,7 @@ interface Props {
   apiKey: string | null;
   keyPrefix: string | null;
   baseUrl: string;
+  hideFullKey?: boolean;
 }
 
 const SetupStepAddProvider: Component<Props> = (props) => {
@@ -44,7 +45,10 @@ openclaw gateway restart`;
         to the best provider.
       </p>
 
-      <ApiKeyDisplay apiKey={props.apiKey} keyPrefix={props.keyPrefix} />
+      <ApiKeyDisplay
+        apiKey={props.hideFullKey ? null : props.apiKey}
+        keyPrefix={props.apiKey ? null : props.keyPrefix}
+      />
 
       <div class="setup-info-grid">
         <div class="setup-info-grid__card">

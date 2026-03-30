@@ -1,20 +1,20 @@
-import { createSignal, createResource, Show, For, ErrorBoundary, type Component } from 'solid-js';
-import { useParams, useNavigate, useLocation } from '@solidjs/router';
-import { Title, Meta } from '@solidjs/meta';
+import { Meta, Title } from '@solidjs/meta';
+import { useLocation, useNavigate, useParams } from '@solidjs/router';
+import { createResource, createSignal, ErrorBoundary, For, Show, type Component } from 'solid-js';
 import ErrorState from '../components/ErrorState.jsx';
 import SetupStepAddProvider from '../components/SetupStepAddProvider.jsx';
 import { CopyButton } from '../components/SetupStepInstall.jsx';
+import { agentDisplayName } from '../services/agent-display-name.js';
 import {
-  getAgentKey,
   deleteAgent,
+  getAgentKey,
+  getRoutingStatus,
   renameAgent,
   rotateAgentKey,
-  getRoutingStatus,
 } from '../services/api.js';
-import { toast } from '../services/toast-store.js';
-import { markAgentCreated } from '../services/recent-agents.js';
 import { isLocalMode } from '../services/local-mode.js';
-import { agentDisplayName } from '../services/agent-display-name.js';
+import { markAgentCreated } from '../services/recent-agents.js';
+import { toast } from '../services/toast-store.js';
 
 const Settings: Component = () => {
   const params = useParams<{ agentName: string }>();
@@ -60,14 +60,9 @@ const Settings: Component = () => {
       const result = await renameAgent(agentName(), newName);
       const slug = result?.name ?? newName;
       markAgentCreated(slug);
-      navigate(`/agents/${encodeURIComponent(slug)}/settings`, {
-        replace: true,
-      });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      window.location.replace(`/agents/${encodeURIComponent(slug)}/settings`);
     } catch {
       setName(agentName());
-    } finally {
       setSaving(false);
     }
   };
@@ -240,9 +235,9 @@ const Settings: Component = () => {
               </div>
             </div>
             <Show when={rotatedKey()}>
-              <div style="padding: 0 var(--gap-md) var(--gap-md);">
+              <div style="padding: 0 var(--gap-md) var(--gap-md); margin-top: var(--gap-md);">
                 <div style="background: hsl(var(--chart-5) / 0.1); border: 1px solid hsl(var(--chart-5) / 0.3); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 12px; font-size: var(--font-size-sm); color: hsl(var(--foreground));">
-                  Save this key somewhere safe. You won't see it again.
+                  Save your API key. You won't see it again after closing this dialog.
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px; background: hsl(var(--muted)); border-radius: var(--radius); padding: 10px 14px; font-family: var(--font-mono); font-size: var(--font-size-sm); word-break: break-all;">
                   {rotatedKey()}
@@ -273,6 +268,7 @@ const Settings: Component = () => {
                 apiKey={rotatedKey() ?? null}
                 keyPrefix={keyData()?.keyPrefix ?? null}
                 baseUrl={baseUrl()}
+                hideFullKey
               />
               <Show when={!routingEnabled()}>
                 <div style="margin-top: 0; padding-top: var(--gap-lg); border-top: 1px solid hsl(var(--border)); display: flex; align-items: center; justify-content: space-between;">

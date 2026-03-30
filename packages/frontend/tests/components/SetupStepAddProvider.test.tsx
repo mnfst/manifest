@@ -44,20 +44,32 @@ describe("SetupStepAddProvider", () => {
     expect(container.textContent).toContain("Model");
   });
 
-  it("renders ApiKeyDisplay component", () => {
+  it("shows full API key in ApiKeyDisplay by default", () => {
     const { container } = render(() => (
       <SetupStepAddProvider {...defaultProps} apiKey="mnfst_test_key" />
     ));
     const display = container.querySelector('[data-testid="api-key-display"]');
     expect(display).not.toBeNull();
     expect(display!.getAttribute("data-key")).toBe("mnfst_test_key");
+    expect(display!.getAttribute("data-prefix")).toBe("");
   });
 
-  it("passes keyPrefix to ApiKeyDisplay", () => {
+  it("hides both key and prefix when hideFullKey is set with apiKey", () => {
+    const { container } = render(() => (
+      <SetupStepAddProvider {...defaultProps} apiKey="mnfst_test_key" keyPrefix="mnfst_abc" hideFullKey />
+    ));
+    const display = container.querySelector('[data-testid="api-key-display"]');
+    expect(display).not.toBeNull();
+    expect(display!.getAttribute("data-key")).toBe("");
+    expect(display!.getAttribute("data-prefix")).toBe("");
+  });
+
+  it("shows ApiKeyDisplay with keyPrefix when no full key", () => {
     const { container } = render(() => (
       <SetupStepAddProvider {...defaultProps} keyPrefix="mnfst_abc" />
     ));
     const display = container.querySelector('[data-testid="api-key-display"]');
+    expect(display).not.toBeNull();
     expect(display!.getAttribute("data-prefix")).toBe("mnfst_abc");
   });
 
