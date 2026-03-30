@@ -8,6 +8,7 @@ import { getLocalAuthSecret } from '../common/constants/local-mode.constants';
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
 const port = process.env['PORT'] ?? '3001';
 const isDev = (process.env['NODE_ENV'] ?? '') !== 'production';
+const hasEmailProvider = !!(process.env['MAILGUN_API_KEY'] && process.env['MAILGUN_DOMAIN']);
 
 function createDatabaseConnection() {
   if (isLocalMode) {
@@ -70,7 +71,7 @@ const authInstance = isLocalMode
       emailAndPassword: {
         enabled: true,
         minPasswordLength: 8,
-        requireEmailVerification: !isDev && !isLocalMode,
+        requireEmailVerification: !isDev && !isLocalMode && hasEmailProvider,
         sendResetPassword: async ({ user, url }) => {
           const element = ResetPasswordEmail({
             userName: user.name,
@@ -87,7 +88,7 @@ const authInstance = isLocalMode
         },
       },
       emailVerification: {
-        sendOnSignUp: !isLocalMode,
+        sendOnSignUp: !isLocalMode && hasEmailProvider,
         autoSignInAfterVerification: true,
         sendVerificationEmail: async ({ user, url }) => {
           const element = VerifyEmailEmail({
