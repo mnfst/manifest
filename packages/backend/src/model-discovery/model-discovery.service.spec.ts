@@ -15,7 +15,12 @@ jest.mock('../database/quality-score.util', () => ({
   computeQualityScore: jest.fn().mockReturnValue(3),
 }));
 
+jest.mock('./anthropic-subscription-probe', () => ({
+  filterBySubscriptionAccess: jest.fn().mockImplementation((models: unknown[]) => models),
+}));
+
 import { decrypt, getEncryptionSecret } from '../common/utils/crypto.util';
+import { filterBySubscriptionAccess } from './anthropic-subscription-probe';
 import { computeQualityScore } from '../database/quality-score.util';
 
 const mockDecrypt = decrypt as jest.MockedFunction<typeof decrypt>;
@@ -998,6 +1003,79 @@ describe('ModelDiscoveryService', () => {
       expect(fetcher.fetch).toHaveBeenCalledWith('anthropic', blob, 'subscription', undefined);
     });
 
+    it('should call filterBySubscriptionAccess for Anthropic subscription providers', async () => {
+      const token = 'sk-ant-oat01-test-token';
+      mockDecrypt.mockReturnValue(token);
+
+      const models = [
+        makeModel({ id: 'claude-haiku-4-5-20251001', provider: 'anthropic' }),
+        makeModel({ id: 'claude-sonnet-4-6', provider: 'anthropic' }),
+      ];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const mockFilter = filterBySubscriptionAccess as jest.MockedFunction<
+        typeof filterBySubscriptionAccess
+      >;
+      mockFilter.mockResolvedValue([models[0]]);
+
+      const result = await service.discoverModels(
+        makeProvider({
+          provider: 'anthropic',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted',
+        }),
+      );
+
+      expect(mockFilter).toHaveBeenCalledWith(models, token);
+      expect(result.map((m) => m.id)).toEqual(['claude-haiku-4-5-20251001']);
+    });
+
+    it('should NOT call filterBySubscriptionAccess for Anthropic API key providers', async () => {
+      mockDecrypt.mockReturnValue('sk-ant-api03-test-key');
+
+      fetcher.fetch.mockResolvedValue([
+        makeModel({ id: 'claude-sonnet-4-6', provider: 'anthropic' }),
+      ]);
+
+      const mockFilter = filterBySubscriptionAccess as jest.MockedFunction<
+        typeof filterBySubscriptionAccess
+      >;
+      mockFilter.mockClear();
+
+      await service.discoverModels(
+        makeProvider({
+          provider: 'anthropic',
+          auth_type: 'api_key',
+          api_key_encrypted: 'encrypted',
+        }),
+      );
+
+      expect(mockFilter).not.toHaveBeenCalled();
+    });
+
+    it('should NOT call filterBySubscriptionAccess for non-Anthropic subscription providers', async () => {
+      mockDecrypt.mockReturnValue(
+        JSON.stringify({ t: 'token', r: 'refresh', e: Date.now() + 60000 }),
+      );
+
+      fetcher.fetch.mockResolvedValue([makeModel({ id: 'gpt-4o', provider: 'openai' })]);
+
+      const mockFilter = filterBySubscriptionAccess as jest.MockedFunction<
+        typeof filterBySubscriptionAccess
+      >;
+      mockFilter.mockClear();
+
+      await service.discoverModels(
+        makeProvider({
+          provider: 'openai',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted',
+        }),
+      );
+
+      expect(mockFilter).not.toHaveBeenCalled();
+    });
+
     it('should unwrap MiniMax OAuth blob and forward resource URL for subscription discovery', async () => {
       const blob = JSON.stringify({
         t: 'minimax-access',
@@ -1365,7 +1443,7 @@ describe('ModelDiscoveryService', () => {
   /* ── getModelsForAgent auth-type deduplication ── */
 
   describe('getModelsForAgent (auth-type dedup)', () => {
-    it('should prefer subscription model over api_key duplicate', async () => {
+    it('should keep both auth types as separate entries for the same model', async () => {
       const providers = [
         makeProvider({
           id: 'p1',
@@ -1392,13 +1470,15 @@ describe('ModelDiscoveryService', () => {
 
       const result = await service.getModelsForAgent('agent-1');
 
-      expect(result).toHaveLength(1);
-      expect(result[0].id).toBe('claude-sonnet-4');
-      expect(result[0].authType).toBe('subscription');
-      expect(result[0].contextWindow).toBe(200000);
+      expect(result).toHaveLength(2);
+      const apiKeyEntry = result.find((m) => m.authType === 'api_key');
+      const subEntry = result.find((m) => m.authType === 'subscription');
+      expect(apiKeyEntry).toBeDefined();
+      expect(subEntry).toBeDefined();
+      expect(subEntry!.contextWindow).toBe(200000);
     });
 
-    it('should not replace subscription with api_key duplicate', async () => {
+    it('should deduplicate same model + same auth type from multiple providers', async () => {
       const providers = [
         makeProvider({
           id: 'p1',
@@ -1415,7 +1495,7 @@ describe('ModelDiscoveryService', () => {
           id: 'p2',
           provider: 'anthropic',
           cached_models: [
-            makeModel({ id: 'claude-sonnet-4', provider: 'anthropic', authType: 'api_key' }),
+            makeModel({ id: 'claude-sonnet-4', provider: 'anthropic', authType: 'subscription' }),
           ],
         }),
       ];
@@ -1452,8 +1532,9 @@ describe('ModelDiscoveryService', () => {
 
       const result = await service.getModelsForAgent('agent-1');
 
-      expect(result).toHaveLength(1);
-      // Legacy model from subscription provider should replace the api_key one
+      // Both entries kept — one with inferred api_key, one with inferred subscription
+      expect(result).toHaveLength(2);
+      expect(result.map((m) => m.authType).sort()).toEqual(['api_key', 'subscription']);
     });
   });
 
