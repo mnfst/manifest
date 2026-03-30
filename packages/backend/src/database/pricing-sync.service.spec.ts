@@ -197,7 +197,7 @@ describe('PricingSyncService', () => {
       expect(count).toBe(0);
     });
 
-    it('skips non-chat-compatible models', async () => {
+    it('skips non-chat-compatible models (output-only image)', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,
         json: async () => ({
@@ -206,7 +206,7 @@ describe('PricingSyncService', () => {
               id: 'google/image-gen',
               architecture: {
                 input_modalities: ['text', 'image'],
-                output_modalities: ['text', 'image'],
+                output_modalities: ['image'],
               },
               pricing: { prompt: '0.0000005', completion: '0.000003' },
             },
@@ -476,13 +476,25 @@ describe('PricingSyncService', () => {
       ).toBe(true);
     });
 
-    it('returns false for non-text output modalities', () => {
+    it('returns true for multimodal output that includes text', () => {
       expect(
         service.isChatCompatible({
           id: 'test',
           architecture: {
             input_modalities: ['text', 'image'],
             output_modalities: ['text', 'image'],
+          },
+        }),
+      ).toBe(true);
+    });
+
+    it('returns false for output without text', () => {
+      expect(
+        service.isChatCompatible({
+          id: 'test',
+          architecture: {
+            input_modalities: ['text'],
+            output_modalities: ['image', 'audio'],
           },
         }),
       ).toBe(false);

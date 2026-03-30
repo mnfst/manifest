@@ -54,6 +54,7 @@ export class ProviderClient {
       extraHeaders,
       customEndpoint,
       authType,
+      signatureLookup,
     } = opts;
 
     let endpoint: ProviderEndpoint;
@@ -89,7 +90,7 @@ export class ProviderClient {
       url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}?key=${apiKey}`;
       if (stream) url += '&alt=sse';
       headers = endpoint.buildHeaders(apiKey, authType);
-      requestBody = toGoogleRequest(body, bareModel);
+      requestBody = toGoogleRequest(body, bareModel, signatureLookup);
     } else if (isAnthropic) {
       url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`;
       headers = endpoint.buildHeaders(apiKey, authType);

@@ -17,6 +17,7 @@ import {
   resolveApiKey,
 } from './proxy-fallback.service';
 import { ProxyRequestOptions } from './proxy-types';
+import { ThoughtSignatureCache } from './thought-signature-cache';
 import { buildFriendlyResponse, getDashboardUrl } from './proxy-friendly-response';
 
 export { FailedFallback } from './proxy-fallback.service';
@@ -63,6 +64,7 @@ export class ProxyService {
     private readonly limitCheck: LimitCheckService,
     private readonly fallbackService: ProxyFallbackService,
     private readonly config: ConfigService,
+    private readonly signatureCache: ThoughtSignatureCache,
   ) {}
 
   async proxyRequest(opts: ProxyRequestOptions): Promise<ProxyResult> {
@@ -135,6 +137,8 @@ export class ProxyService {
     );
 
     const stream = body.stream === true;
+    const signatureLookup = (toolCallId: string) =>
+      this.signatureCache.retrieve(sessionKey, toolCallId);
     const forward = await this.fallbackService.tryForwardToProvider({
       provider: resolved.provider,
       apiKey: resolvedCredentials.apiKey,
@@ -146,6 +150,7 @@ export class ProxyService {
       authType: resolved.auth_type,
       resourceUrl: resolvedCredentials.resourceUrl,
       providerRegion,
+      signatureLookup,
     });
 
     if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
@@ -166,6 +171,7 @@ export class ProxyService {
           signal,
           resolved.provider ?? undefined,
           resolved.auth_type,
+          signatureLookup,
         );
 
         if (success) {

@@ -57,6 +57,8 @@ export function createAnthropicTransformer(model: string): (chunk: string) => st
 
 // Re-export adapter functions used by ProviderClient.forward()
 export { toGoogleRequest, toAnthropicRequest, toResponsesRequest };
+export type { ExtractedSignature } from './google-adapter';
+export type { SignatureLookup } from './proxy-types';
 
 // ─── OpenAI body sanitization (used by ProviderClient.forward) ───────────────
 

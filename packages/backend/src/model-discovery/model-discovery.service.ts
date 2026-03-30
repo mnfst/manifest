@@ -153,14 +153,24 @@ export class ModelDiscoveryService {
       authType: authType as 'api_key' | 'subscription',
     }));
 
-    provider.cached_models = enriched;
+    // Filter out models confirmed to lack tool support (models.dev toolCall === false).
+    // In the OpenClaw context every request includes tools, so models without
+    // tool calling are unusable. Only filter when models.dev has data — if no
+    // entry exists we keep the model (we don't know its capabilities).
+    const filtered = enriched.filter((model) => {
+      const mdEntry = this.modelsDevSync?.lookupModel(provider.provider, model.id);
+      if (mdEntry && mdEntry.toolCall === false) return false;
+      return true;
+    });
+
+    provider.cached_models = filtered;
     provider.models_fetched_at = new Date().toISOString();
     await this.providerRepo.save(provider);
 
     this.logger.log(
-      `Discovered ${enriched.length} models for provider ${provider.provider} (agent ${provider.agent_id})`,
+      `Discovered ${filtered.length} models for provider ${provider.provider} (agent ${provider.agent_id})`,
     );
-    return enriched;
+    return filtered;
   }
 
   async discoverAllForAgent(agentId: string): Promise<void> {

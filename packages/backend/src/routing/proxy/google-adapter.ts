@@ -6,7 +6,7 @@
 
 import { randomUUID } from 'crypto';
 
-import { OpenAIMessage } from './proxy-types';
+import { OpenAIMessage, SignatureLookup } from './proxy-types';
 
 interface GeminiContent {
   role: string;
@@ -86,7 +86,10 @@ function mapRole(role: string): string {
   return 'user';
 }
 
-function messageToContent(msg: OpenAIMessage): GeminiContent | null {
+function messageToContent(
+  msg: OpenAIMessage,
+  signatureLookup?: SignatureLookup,
+): GeminiContent | null {
   const parts: GeminiPart[] = [];
 
   if (typeof msg.content === 'string') {
@@ -106,8 +109,14 @@ function messageToContent(msg: OpenAIMessage): GeminiContent | null {
         name: tc.function.name,
         args: safeParseArgs(tc.function.arguments),
       };
+      // Preserve thought_signature from the client, or re-inject from cache
       const sig = (tc as Record<string, unknown>).thought_signature;
-      if (sig) functionCall!.thought_signature = sig;
+      if (sig) {
+        functionCall!.thought_signature = sig;
+      } else if (signatureLookup) {
+        const cached = signatureLookup(tc.id);
+        if (cached) functionCall!.thought_signature = cached;
+      }
       parts.push({ functionCall });
     }
   }
@@ -152,9 +161,16 @@ function convertTools(tools?: Record<string, unknown>[]): Record<string, unknown
   return [{ functionDeclarations: declarations }];
 }
 
+/** Extracted thought_signature entries from a Gemini response. */
+export interface ExtractedSignature {
+  toolCallId: string;
+  signature: string;
+}
+
 export function toGoogleRequest(
   body: Record<string, unknown>,
   _model: string,
+  signatureLookup?: SignatureLookup,
 ): Record<string, unknown> {
   const messages = (body.messages as OpenAIMessage[]) || [];
   const contents: GeminiContent[] = [];
@@ -168,7 +184,7 @@ export function toGoogleRequest(
 
   for (const msg of messages) {
     if (msg.role === 'system') continue;
-    const content = messageToContent(msg);
+    const content = messageToContent(msg, signatureLookup);
     if (content) contents.push(content);
   }
 
@@ -198,7 +214,7 @@ export function toGoogleRequest(
 export function fromGoogleResponse(
   googleResp: Record<string, unknown>,
   model: string,
-): Record<string, unknown> {
+): Record<string, unknown> & { _extractedSignatures?: ExtractedSignature[] } {
   const candidates = (googleResp.candidates as Array<Record<string, unknown>>) || [];
   const candidate = candidates[0];
 
@@ -239,6 +255,17 @@ export function fromGoogleResponse(
   const message: Record<string, unknown> = { role: 'assistant', content: textContent || null };
   if (toolCalls.length > 0) message.tool_calls = toolCalls;
 
+  // Extract thought_signatures for caching
+  const extractedSignatures: ExtractedSignature[] = [];
+  for (const tc of toolCalls) {
+    if (tc.thought_signature && typeof tc.id === 'string') {
+      extractedSignatures.push({
+        toolCallId: tc.id as string,
+        signature: tc.thought_signature as string,
+      });
+    }
+  }
+
   const usage = googleResp.usageMetadata as Record<string, number> | undefined;
 
   return {
@@ -259,6 +286,7 @@ export function fromGoogleResponse(
           cache_creation_tokens: 0,
         }
       : undefined,
+    ...(extractedSignatures.length > 0 ? { _extractedSignatures: extractedSignatures } : {}),
   };
 }
 

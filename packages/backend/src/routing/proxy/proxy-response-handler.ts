@@ -7,6 +7,8 @@ import { ProxyMessageRecorder } from './proxy-message-recorder';
 import { ProviderClient } from './provider-client';
 import { initSseHeaders, pipeStream, StreamUsage } from './stream-writer';
 import { sanitizeProviderError } from './proxy-error-sanitizer';
+import type { ThoughtSignatureCache } from './thought-signature-cache';
+import type { ExtractedSignature } from './google-adapter';
 
 const logger = new Logger('ProxyResponseHandler');
 
@@ -175,13 +177,26 @@ export async function handleStreamResponse(
   meta: RoutingMeta,
   metaHeaders: Record<string, string>,
   providerClient: ProviderClient,
+  signatureCache?: ThoughtSignatureCache,
+  sessionKey?: string,
 ): Promise<StreamUsage | null> {
   initSseHeaders(res, metaHeaders);
 
   if (forward.isGoogle) {
-    return pipeStream(forward.response.body!, res, (chunk) =>
-      providerClient.convertGoogleStreamChunk(chunk, meta.model),
-    );
+    return pipeStream(forward.response.body!, res, (chunk) => {
+      const result = providerClient.convertGoogleStreamChunk(chunk, meta.model);
+      // Cache thought_signatures from streamed tool calls
+      if (signatureCache && sessionKey && result) {
+        const sigRe = /"thought_signature"\s*:\s*"([^"]+)"/g;
+        const idRe = /"id"\s*:\s*"([^"]+)"/g;
+        const ids = [...result.matchAll(idRe)].map((m) => m[1]);
+        const sigs = [...result.matchAll(sigRe)].map((m) => m[1]);
+        for (let i = 0; i < Math.min(ids.length, sigs.length); i++) {
+          signatureCache.store(sessionKey, ids[i], sigs[i]);
+        }
+      }
+      return result;
+    });
   }
   if (forward.isAnthropic) {
     return pipeStream(
@@ -205,12 +220,24 @@ export async function handleNonStreamResponse(
   meta: RoutingMeta,
   metaHeaders: Record<string, string>,
   providerClient: ProviderClient,
+  signatureCache?: ThoughtSignatureCache,
+  sessionKey?: string,
 ): Promise<StreamUsage | null> {
   let responseBody: unknown;
 
   if (forward.isGoogle) {
     const googleData = (await forward.response.json()) as Record<string, unknown>;
     responseBody = providerClient.convertGoogleResponse(googleData, meta.model);
+    // Cache extracted thought_signatures for re-injection on subsequent requests
+    if (signatureCache && sessionKey) {
+      const sigs = (responseBody as Record<string, unknown>)?._extractedSignatures as
+        | ExtractedSignature[]
+        | undefined;
+      if (sigs) {
+        for (const s of sigs) signatureCache.store(sessionKey, s.toolCallId, s.signature);
+        delete (responseBody as Record<string, unknown>)._extractedSignatures;
+      }
+    }
   } else if (forward.isAnthropic) {
     const anthropicData = (await forward.response.json()) as Record<string, unknown>;
     responseBody = providerClient.convertAnthropicResponse(anthropicData, meta.model);

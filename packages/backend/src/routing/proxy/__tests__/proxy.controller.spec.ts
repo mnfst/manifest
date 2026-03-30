@@ -3,6 +3,7 @@ import { ProxyController } from '../proxy.controller';
 import { ProxyMessageRecorder } from '../proxy-message-recorder';
 import { ProxyMessageDedup } from '../proxy-message-dedup';
 import { IngestEventBusService } from '../../../common/services/ingest-event-bus.service';
+import { ThoughtSignatureCache } from '../thought-signature-cache';
 
 function mockResponse(): {
   res: Record<string, jest.Mock | boolean | number>;
@@ -132,6 +133,7 @@ describe('ProxyController', () => {
       rateLimiter as never,
       providerClient as never,
       recorder,
+      new ThoughtSignatureCache(),
     );
   });
 
