@@ -97,6 +97,11 @@ const ModelPickerModal: Component<Props> = (props) => {
     const allowedProviders = hasConnectedProviders ? providerIdsForTab(tab) : undefined;
 
     for (const m of props.models) {
+      // Filter by the model's own auth_type to prevent subscription models
+      // from leaking into the API Keys tab and vice versa (e.g. when the
+      // same provider is connected with both auth types and they have
+      // different model access levels).
+      if (showTabs() && m.auth_type && m.auth_type !== tab) continue;
       if (freeOnly && !isFreeModel(m)) continue;
       const dbProvId = resolveProviderId(m.provider);
       const prefixProvId = inferProviderFromModel(m.model_name);

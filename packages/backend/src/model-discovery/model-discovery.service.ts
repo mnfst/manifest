@@ -13,6 +13,7 @@ import { ModelsDevSyncService } from '../database/models-dev-sync.service';
 import { parseOAuthTokenBlob } from '../routing/oauth/openai-oauth.types';
 import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../routing/qwen-region';
 import { CopilotTokenService } from '../routing/proxy/copilot-token.service';
+import { filterBySubscriptionAccess } from './anthropic-subscription-probe';
 import {
   findOpenRouterPrefix,
   lookupWithVariants,
@@ -147,6 +148,13 @@ export class ModelDiscoveryService {
       raw = supplementWithKnownModels(raw, provider.provider);
     }
 
+    // Anthropic subscription tokens may only access certain model families
+    // (e.g. Pro = haiku only, Team = haiku + sonnet). Probe one model per
+    // family to filter out inaccessible models before showing them to the user.
+    if (lowerProvider === 'anthropic' && provider.auth_type === 'subscription' && apiKey) {
+      raw = await filterBySubscriptionAccess(raw, apiKey);
+    }
+
     const authType = provider.auth_type === 'subscription' ? 'subscription' : 'api_key';
     const enriched = raw.map((model) => ({
       ...this.enrichModel(model, provider.provider),
@@ -203,14 +211,12 @@ export class ModelDiscoveryService {
       const providerAuthType = p.auth_type === 'subscription' ? 'subscription' : 'api_key';
       for (const m of cached) {
         const effectiveAuthType = m.authType ?? providerAuthType;
-        if (!seen.has(m.id)) {
-          seen.set(m.id, models.length);
-          models.push(m);
-        } else if (
-          effectiveAuthType === 'subscription' &&
-          models[seen.get(m.id)!]?.authType !== 'subscription'
-        ) {
-          models[seen.get(m.id)!] = m;
+        // Deduplicate by model ID + auth type so subscription and API key
+        // versions of the same model are kept as independent entries.
+        const dedupeKey = `${m.id}::${effectiveAuthType}`;
+        if (!seen.has(dedupeKey)) {
+          seen.set(dedupeKey, models.length);
+          models.push({ ...m, authType: effectiveAuthType });
         }
       }
     }
