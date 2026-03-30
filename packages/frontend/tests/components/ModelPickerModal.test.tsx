@@ -8,12 +8,13 @@ vi.mock("../../src/components/ProviderIcon.js", () => ({
 vi.mock("../../src/services/routing-utils.js", () => ({
   pricePerM: (v: number) => `$${(v * 1_000_000).toFixed(2)}`,
   resolveProviderId: (provider: string) => {
-    const map: Record<string, string> = { OpenAI: "openai", Anthropic: "anthropic", Google: "google" };
+    const map: Record<string, string> = { OpenAI: "openai", Anthropic: "anthropic", Google: "google", Ollama: "ollama" };
     return map[provider] ?? null;
   },
   inferProviderFromModel: (modelName: string) => {
     const slash = modelName.indexOf("/");
     if (slash !== -1) return modelName.substring(0, slash).toLowerCase();
+    if (modelName.startsWith("mistral-")) return "mistral";
     return null;
   },
 }));
@@ -434,6 +435,27 @@ describe("ModelPickerModal", () => {
     ));
     // The model should render with its raw name as label (no label in PROVIDERS for this model)
     expect(container.textContent).toContain("my-custom-thing");
+  });
+
+  it("groups tagless Ollama models under Ollama even when prefix matches another provider", () => {
+    const models = [
+      { model_name: "mistral-small", provider: "Ollama", display_name: "Mistral Small", input_price_per_token: 0, output_price_per_token: 0, context_window: 32000, capability_reasoning: false, capability_code: true },
+    ];
+    const providers = [
+      { id: "p1", provider: "Ollama", is_active: true, has_api_key: false, auth_type: "api_key" as const, connected_at: "2025-01-01" },
+    ];
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    expect(screen.getByText("Ollama")).toBeDefined();
+    expect(screen.queryByText("Mistral")).toBeNull();
   });
 
   it("resets showFreeOnly when switching to subscription tab", () => {

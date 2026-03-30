@@ -103,9 +103,11 @@ const ModelPickerModal: Component<Props> = (props) => {
       // Prefer prefix-inferred provider (e.g. "anthropic" from "anthropic/claude-sonnet-4")
       // over the DB provider (e.g. "openrouter" when all models come from OpenRouter)
       const provId =
-        prefixProvId && PROVIDERS.find((p) => p.id === prefixProvId)
-          ? prefixProvId
-          : (dbProvId ?? prefixProvId);
+        dbProvId === 'ollama'
+          ? 'ollama'
+          : prefixProvId && PROVIDERS.find((p) => p.id === prefixProvId)
+            ? prefixProvId
+            : (dbProvId ?? prefixProvId);
       if (!provId) continue;
       if (allowedProviders && !allowedProviders.has(provId)) continue;
       if (!groupMap.has(provId)) {
