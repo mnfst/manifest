@@ -177,7 +177,7 @@ export class ProxyController {
 
       const isStream = (req.body as Record<string, unknown>)?.stream === true;
       const clientMessage =
-        status >= 500 ? 'Something broke on our end. Try again shortly.' : message;
+        status >= 500 ? '[Manifest] Something broke on our end. Try again shortly.' : message;
       sendFriendlyResponse(res, clientMessage, isStream);
     } finally {
       if (slotAcquired) this.rateLimiter.releaseSlot(userId);

@@ -637,7 +637,7 @@ describe('ProxyController', () => {
         choices: expect.arrayContaining([
           expect.objectContaining({
             message: expect.objectContaining({
-              content: 'Something broke on our end. Try again shortly.',
+              content: '[Manifest] Something broke on our end. Try again shortly.',
             }),
           }),
         ]),
@@ -1391,7 +1391,7 @@ describe('ProxyController', () => {
           choices: expect.arrayContaining([
             expect.objectContaining({
               message: expect.objectContaining({
-                content: 'Something broke on our end. Try again shortly.',
+                content: '[Manifest] Something broke on our end. Try again shortly.',
               }),
             }),
           ]),
@@ -1438,7 +1438,7 @@ describe('ProxyController', () => {
           choices: expect.arrayContaining([
             expect.objectContaining({
               message: expect.objectContaining({
-                content: 'Something broke on our end. Try again shortly.',
+                content: '[Manifest] Something broke on our end. Try again shortly.',
               }),
             }),
           ]),
