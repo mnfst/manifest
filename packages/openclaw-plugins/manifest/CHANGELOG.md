@@ -1,5 +1,26 @@
 # manifest
 
+## 5.38.0
+
+### Minor Changes
+
+- c32c7a1: Add public API endpoints for live usage stats and model catalog (GET /api/v1/public-stats and GET /api/v1/public-stats/models)
+
+### Patch Changes
+
+- fbad418: Filter non-working models from provider discovery results
+  - Add Mistral-specific parser with metadata filtering (deprecation, capabilities.completion_chat)
+  - Filter Mistral labs-prefixed models (require admin opt-in)
+  - Filter xAI multi-agent models (not chat-compatible)
+  - Filter deprecated Gemini models (gemini-2.0-flash-lite, flash-lite-preview snapshots)
+  - Add per-provider exact-ID blocklist for models with no pattern (voxtral-mini-2602)
+
+- 5102236: Fix non-streaming responses for ChatGPT subscription (Codex) models
+
+  The Codex Responses API always returns SSE even when stream: false is requested.
+  The proxy now collects the SSE events and builds a proper non-streaming OpenAI
+  Chat Completion response instead of failing with a JSON parse error.
+
 ## 5.37.0
 
 ### Minor Changes
