@@ -111,9 +111,19 @@ export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
     /(?:moderation|davinci|babbage|^text-|realtime|-transcribe|^sora|^gpt-3\.5-turbo-instruct|audio|^chatgpt-image)/i,
   'openai-subscription':
     /(?:moderation|davinci|babbage|^text-|realtime|-transcribe|^sora|audio|^chatgpt-image)/i,
-  gemini: /(?:^aqs-|nano-banana|^deep-research|computer-use|^lyria)/i,
-  mistral: /(?:^mistral-ocr|moderation|voxtral-.*-(?:transcribe|realtime))/i,
-  xai: /(?:imagine)/i,
+  gemini: /(?:^aqs-|nano-banana|^deep-research|computer-use|^lyria|^gemini-2\.0-flash-lite$|flash-lite-preview)/i,
+  mistral: /(?:^mistral-ocr|moderation|voxtral-.*-(?:transcribe|realtime)|^labs-)/i,
+  xai: /(?:imagine|multi-agent)/i,
+};
+
+/**
+ * Exact model IDs to block per provider. Use ONLY when no regex pattern
+ * or metadata field can catch the model. Document WHY each entry exists.
+ */
+export const PROVIDER_BLOCKLIST: Record<string, ReadonlySet<string>> = {
+  mistral: new Set([
+    'voxtral-mini-2602', // Invalid model returned by API; not a real chat endpoint
+  ]),
 };
 
 /** Filter models that are not compatible with chat completions. */
@@ -122,9 +132,11 @@ export function filterNonChatModels(
   configKey: string,
 ): DiscoveredModel[] {
   const providerFilter = PROVIDER_NON_CHAT[configKey];
+  const blocklist = PROVIDER_BLOCKLIST[configKey];
   return models.filter((m) => {
     if (UNIVERSAL_NON_CHAT_RE.test(m.id)) return false;
     if (providerFilter && providerFilter.test(m.id)) return false;
+    if (blocklist && blocklist.has(m.id)) return false;
     return true;
   });
 }
@@ -134,6 +146,28 @@ function bearerHeaders(key: string): Record<string, string> {
 }
 
 /* ── Provider-specific parsers ── */
+
+interface MistralModelEntry {
+  id: string;
+  object?: string;
+  owned_by?: string;
+  capabilities?: {
+    completion_chat?: boolean;
+  };
+  deprecation?: string | null;
+}
+
+const parseMistral = createModelParser<MistralModelEntry>({
+  arrayKey: 'data',
+  filter: (entry) => {
+    if (typeof entry.id !== 'string' || entry.id.length === 0) return false;
+    if (entry.deprecation != null) return false;
+    if (entry.capabilities && entry.capabilities.completion_chat === false) return false;
+    return true;
+  },
+  getId: (entry) => entry.id,
+  getDisplayName: (_entry, id) => id,
+});
 
 interface AnthropicModelEntry {
   id: string;
@@ -307,7 +341,7 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
   mistral: {
     endpoint: 'https://api.mistral.ai/v1/models',
     buildHeaders: bearerHeaders,
-    parse: parseOpenAI,
+    parse: parseMistral,
   },
   moonshot: {
     endpoint: 'https://api.moonshot.ai/v1/models',
