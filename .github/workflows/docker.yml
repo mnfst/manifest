@@ -13,7 +13,9 @@ on:
       - "packages/backend/**"
       - "packages/frontend/**"
       - "packages/shared/**"
+      - "package.json"
       - "package-lock.json"
+      - "turbo.json"
 
 permissions:
   contents: read
