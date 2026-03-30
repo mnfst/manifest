@@ -1,5 +1,16 @@
 # manifest
 
+## 5.36.4
+
+### Patch Changes
+
+- 12ede3c: fix: treat upstream HTTP 424 as retriable so the fallback chain is attempted
+
+  Previously, HTTP 424 was reused as an internal sentinel for "all fallbacks exhausted," which meant a real 424 from an upstream provider would skip the fallback chain entirely. The sentinel is now removed — the system relies on the existing `X-Manifest-Fallback-Exhausted` header and `fallback_exhausted` error type instead, and the rebuilt response preserves the primary provider's actual HTTP status.
+
+- 8f11d57: Prefix all Manifest-originated error messages with [Manifest] to distinguish them from upstream provider errors
+- ca4697e: Add HTTP-Referer and X-Title headers to OpenRouter requests for app attribution and free trial model eligibility.
+
 ## 5.36.3
 
 ### Patch Changes
