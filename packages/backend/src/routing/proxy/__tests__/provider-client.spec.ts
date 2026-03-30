@@ -154,6 +154,8 @@ describe('ProviderClient', () => {
           headers: {
             Authorization: 'Bearer sk-or-test',
             'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://manifest.build',
+            'X-Title': 'Manifest',
           },
         }),
       );
