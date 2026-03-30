@@ -5,14 +5,6 @@ vi.stubGlobal("navigator", {
   clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
 });
 
-vi.mock("../../src/components/ApiKeyDisplay.jsx", () => ({
-  default: (props: any) => (
-    <div data-testid="api-key-display" data-key={props.apiKey ?? ""} data-prefix={props.keyPrefix ?? ""}>
-      ApiKeyDisplay
-    </div>
-  ),
-}));
-
 import SetupStepAddProvider from "../../src/components/SetupStepAddProvider";
 
 describe("SetupStepAddProvider", () => {
@@ -44,33 +36,105 @@ describe("SetupStepAddProvider", () => {
     expect(container.textContent).toContain("Model");
   });
 
-  it("shows full API key in ApiKeyDisplay by default", () => {
+  it("shows full API key in CLI snippet by default when provided", () => {
     const { container } = render(() => (
       <SetupStepAddProvider {...defaultProps} apiKey="mnfst_test_key" />
     ));
-    const display = container.querySelector('[data-testid="api-key-display"]');
-    expect(display).not.toBeNull();
-    expect(display!.getAttribute("data-key")).toBe("mnfst_test_key");
-    expect(display!.getAttribute("data-prefix")).toBe("");
+    expect(container.textContent).toContain("mnfst_test_key");
   });
 
-  it("hides both key and prefix when hideFullKey is set with apiKey", () => {
+  it("hides full key in CLI snippet when hideFullKey is set", () => {
     const { container } = render(() => (
-      <SetupStepAddProvider {...defaultProps} apiKey="mnfst_test_key" keyPrefix="mnfst_abc" hideFullKey />
+      <SetupStepAddProvider {...defaultProps} apiKey="mnfst_secret_key" keyPrefix="mnfst_abc" hideFullKey />
     ));
-    const display = container.querySelector('[data-testid="api-key-display"]');
-    expect(display).not.toBeNull();
-    expect(display!.getAttribute("data-key")).toBe("");
-    expect(display!.getAttribute("data-prefix")).toBe("");
+    expect(container.textContent).not.toContain("mnfst_secret_key");
+    expect(container.textContent).toContain("mnfst_abc...");
   });
 
-  it("shows ApiKeyDisplay with keyPrefix when no full key", () => {
+  it("shows eye toggle to reveal key in CLI tab when hideFullKey and apiKey are set", () => {
+    const { container } = render(() => (
+      <SetupStepAddProvider {...defaultProps} apiKey="mnfst_secret_key" keyPrefix="mnfst_abc" hideFullKey />
+    ));
+    const revealBtn = container.querySelector('[aria-label="Reveal API key in snippet"]');
+    expect(revealBtn).not.toBeNull();
+  });
+
+  it("reveals key in CLI snippet when eye toggle is clicked", () => {
+    const { container } = render(() => (
+      <SetupStepAddProvider {...defaultProps} apiKey="mnfst_secret_key" keyPrefix="mnfst_abc" hideFullKey />
+    ));
+    expect(container.textContent).not.toContain("mnfst_secret_key");
+    const revealBtn = container.querySelector('[aria-label="Reveal API key in snippet"]')!;
+    fireEvent.click(revealBtn);
+    expect(container.textContent).toContain("mnfst_secret_key");
+  });
+
+  it("hides key again in CLI snippet when eye toggle is clicked twice", () => {
+    const { container } = render(() => (
+      <SetupStepAddProvider {...defaultProps} apiKey="mnfst_secret_key" keyPrefix="mnfst_abc" hideFullKey />
+    ));
+    const revealBtn = container.querySelector('[aria-label="Reveal API key in snippet"]')!;
+    fireEvent.click(revealBtn);
+    expect(container.textContent).toContain("mnfst_secret_key");
+    const hideBtn = container.querySelector('[aria-label="Hide API key in snippet"]')!;
+    fireEvent.click(hideBtn);
+    expect(container.textContent).not.toContain("mnfst_secret_key");
+    expect(container.textContent).toContain("mnfst_abc...");
+  });
+
+  it("does not show eye toggle when no apiKey is available", () => {
     const { container } = render(() => (
       <SetupStepAddProvider {...defaultProps} keyPrefix="mnfst_abc" />
     ));
-    const display = container.querySelector('[data-testid="api-key-display"]');
-    expect(display).not.toBeNull();
-    expect(display!.getAttribute("data-prefix")).toBe("mnfst_abc");
+    expect(container.querySelector('[aria-label="Reveal API key in snippet"]')).toBeNull();
+    expect(container.querySelector('[aria-label="Hide API key in snippet"]')).toBeNull();
+  });
+
+  it("shows eye toggle in Interactive wizard API Key row", () => {
+    const { container } = render(() => (
+      <SetupStepAddProvider {...defaultProps} apiKey="mnfst_secret_key" keyPrefix="mnfst_abc" hideFullKey />
+    ));
+    const tabs = container.querySelectorAll(".panel__tab");
+    fireEvent.click(tabs[1]);
+    const revealBtn = container.querySelector('[aria-label="Reveal API key in wizard"]');
+    expect(revealBtn).not.toBeNull();
+  });
+
+  it("reveals key in wizard when eye toggle is clicked", () => {
+    const { container } = render(() => (
+      <SetupStepAddProvider {...defaultProps} apiKey="mnfst_secret_key" keyPrefix="mnfst_abc" hideFullKey />
+    ));
+    const tabs = container.querySelectorAll(".panel__tab");
+    fireEvent.click(tabs[1]);
+    expect(container.textContent).not.toContain("mnfst_secret_key");
+    const revealBtn = container.querySelector('[aria-label="Reveal API key in wizard"]')!;
+    fireEvent.click(revealBtn);
+    expect(container.textContent).toContain("mnfst_secret_key");
+  });
+
+  it("does not show eye toggle in wizard when no apiKey", () => {
+    const { container } = render(() => (
+      <SetupStepAddProvider {...defaultProps} keyPrefix="mnfst_abc" />
+    ));
+    const tabs = container.querySelectorAll(".panel__tab");
+    fireEvent.click(tabs[1]);
+    expect(container.querySelector('[aria-label="Reveal API key in wizard"]')).toBeNull();
+  });
+
+  it("shows full key by default in wizard when hideFullKey is not set", () => {
+    const { container } = render(() => (
+      <SetupStepAddProvider {...defaultProps} apiKey="mnfst_visible_key" />
+    ));
+    const tabs = container.querySelectorAll(".panel__tab");
+    fireEvent.click(tabs[1]);
+    expect(container.textContent).toContain("mnfst_visible_key");
+  });
+
+  it("shows keyPrefix in CLI snippet when only prefix is provided", () => {
+    const { container } = render(() => (
+      <SetupStepAddProvider {...defaultProps} keyPrefix="mnfst_abc" />
+    ));
+    expect(container.textContent).toContain("mnfst_abc...");
   });
 
   it("shows CLI configuration tab active by default", () => {
@@ -87,13 +151,6 @@ describe("SetupStepAddProvider", () => {
     expect(container.textContent).toContain("openclaw gateway restart");
   });
 
-  it("CLI snippet includes apiKey when provided", () => {
-    const { container } = render(() => (
-      <SetupStepAddProvider {...defaultProps} apiKey="mnfst_test_key" />
-    ));
-    expect(container.textContent).toContain("mnfst_test_key");
-  });
-
   it("CLI snippet includes baseUrl", () => {
     const { container } = render(() => (
       <SetupStepAddProvider {...defaultProps} baseUrl="https://app.manifest.build/v1" />
@@ -104,13 +161,6 @@ describe("SetupStepAddProvider", () => {
   it("CLI snippet uses placeholder key when no apiKey or keyPrefix", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
     expect(container.textContent).toContain("mnfst_YOUR_KEY");
-  });
-
-  it("CLI snippet uses key prefix when only prefix provided", () => {
-    const { container } = render(() => (
-      <SetupStepAddProvider {...defaultProps} keyPrefix="mnfst_abc" />
-    ));
-    expect(container.textContent).toContain("mnfst_abc...");
   });
 
   it("shows both tab buttons", () => {
@@ -164,11 +214,6 @@ describe("SetupStepAddProvider", () => {
   it("uses setup-info-grid class for info cards", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
     expect(container.querySelector(".setup-info-grid")).not.toBeNull();
-  });
-
-  it("does not show recommended badge", () => {
-    const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
-    expect(container.querySelector(".setup-method__badge")).toBeNull();
   });
 
   it("uses setup-method-tabs container", () => {

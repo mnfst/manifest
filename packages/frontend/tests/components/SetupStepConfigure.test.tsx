@@ -31,7 +31,7 @@ describe("SetupStepConfigure", () => {
   it("shows full API key with warning when provided", () => {
     const { container } = render(() => <SetupStepConfigure apiKey="mnfst_full_key_123" keyPrefix={null} agentName="test-agent" endpoint={null} />);
     expect(container.textContent).toContain("mnfst_full_key_123");
-    expect(container.textContent).toContain("won't be shown again");
+    expect(container.textContent).toContain("always available in agent Settings");
   });
 
   it("shows key prefix when no full key", () => {

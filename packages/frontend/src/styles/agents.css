@@ -75,7 +75,6 @@
   height: 50px;
 }
 
-
 /* ── Account Modal ────────────────────────────────── */
 .account-modal {
   position: fixed;
@@ -179,7 +178,9 @@
   border-radius: var(--radius);
   font-size: var(--font-size-sm);
   font-family: var(--font-family);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .settings-card__input:focus {
@@ -244,6 +245,41 @@
 .settings-card__copy-btn:hover {
   background: hsl(var(--accent));
   color: hsl(var(--foreground));
+}
+
+/* ── API Key Row ─────────────────────────────────── */
+
+.settings-card__key-row {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  margin-top: var(--gap-md);
+  padding: 10px 14px;
+  background: hsl(var(--muted) / 0.5);
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  min-width: 0;
+}
+
+.settings-card__key-value {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: hsl(var(--foreground));
+  word-break: break-all;
+  line-height: 1.5;
+}
+
+.settings-card__key-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.settings-card__key-actions .modal-terminal__copy {
+  position: static;
 }
 
 /* ── Theme Picker ─────────────────────────────────── */

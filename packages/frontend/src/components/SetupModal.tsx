@@ -84,7 +84,7 @@ const SetupModal: Component<{
             }
           >
             <SetupStepAddProvider
-              apiKey={props.apiKey ?? null}
+              apiKey={props.apiKey ?? apiKeyData()?.apiKey ?? null}
               keyPrefix={apiKeyData()?.keyPrefix ?? null}
               baseUrl={baseUrl()}
             />

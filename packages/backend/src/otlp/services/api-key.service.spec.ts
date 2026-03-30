@@ -7,6 +7,7 @@ import { Agent } from '../../entities/agent.entity';
 import { AgentApiKey } from '../../entities/agent-api-key.entity';
 import { AgentKeyAuthGuard } from '../guards/agent-key-auth.guard';
 import { keyPrefix, verifyKey } from '../../common/utils/hash.util';
+import { decrypt } from '../../common/utils/crypto.util';
 import { API_KEY_PREFIX } from '../../common/constants/api-key.constants';
 
 jest.mock('uuid', () => ({ v4: jest.fn() }));
@@ -15,6 +16,15 @@ jest.mock('crypto', () => {
   return {
     ...actual,
     randomBytes: jest.fn(),
+  };
+});
+
+const TEST_SECRET = 'a'.repeat(32);
+jest.mock('../../common/utils/crypto.util', () => {
+  const actual = jest.requireActual('../../common/utils/crypto.util');
+  return {
+    ...actual,
+    getEncryptionSecret: () => TEST_SECRET,
   };
 });
 
@@ -173,7 +183,7 @@ describe('ApiKeyGeneratorService', () => {
       );
     });
 
-    it('should store key_hash and key_prefix, not the raw key', async () => {
+    it('should store encrypted key, key_hash and key_prefix', async () => {
       mockTenantFindOne.mockResolvedValue(null);
 
       await service.onboardAgent(defaultParams);
@@ -181,7 +191,8 @@ describe('ApiKeyGeneratorService', () => {
       const insertCall = mockKeyInsert.mock.calls[0][0];
       const expectedRawKey = 'mnfst_' + Buffer.from('a'.repeat(32), 'utf8').toString('base64url');
 
-      expect(insertCall.key).toBeNull();
+      expect(insertCall.key).not.toBeNull();
+      expect(decrypt(insertCall.key, TEST_SECRET)).toBe(expectedRawKey);
       expect(verifyKey(expectedRawKey, insertCall.key_hash)).toBe(true);
       expect(insertCall.key_prefix).toBe(keyPrefix(expectedRawKey));
     });
@@ -367,18 +378,46 @@ describe('ApiKeyGeneratorService', () => {
       expect(mockKeyQb.andWhere).toHaveBeenCalledWith('k.is_active = true');
     });
 
-    it('should not return the raw key or key_hash', async () => {
+    it('should return fullKey when encrypted key is stored', async () => {
+      const { encrypt } = jest.requireActual('../../common/utils/crypto.util');
+      const encryptedKey = encrypt('mnfst_decrypted_key', TEST_SECRET);
       mockKeyGetOne.mockResolvedValue({
-        key_prefix: 'mnfst_partial__',
+        key_prefix: 'mnfst_partia',
         key_hash: 'secret-hash',
-        key: 'should-not-appear',
+        key: encryptedKey,
       });
 
       const result = await service.getKeyForAgent('user-1', 'agent-a');
 
-      expect(result).toEqual({ keyPrefix: 'mnfst_partial__' });
+      expect(result).toEqual({ keyPrefix: 'mnfst_partia', fullKey: 'mnfst_decrypted_key' });
       expect(result).not.toHaveProperty('key');
       expect(result).not.toHaveProperty('key_hash');
+    });
+
+    it('should return only keyPrefix when key is null (legacy)', async () => {
+      mockKeyGetOne.mockResolvedValue({
+        key_prefix: 'mnfst_legacy_',
+        key_hash: 'secret-hash',
+        key: null,
+      });
+
+      const result = await service.getKeyForAgent('user-1', 'agent-a');
+
+      expect(result).toEqual({ keyPrefix: 'mnfst_legacy_' });
+      expect(result).not.toHaveProperty('fullKey');
+    });
+
+    it('should fall back to keyPrefix when decryption fails', async () => {
+      mockKeyGetOne.mockResolvedValue({
+        key_prefix: 'mnfst_broken_',
+        key_hash: 'secret-hash',
+        key: 'invalid-encrypted-data',
+      });
+
+      const result = await service.getKeyForAgent('user-1', 'agent-a');
+
+      expect(result).toEqual({ keyPrefix: 'mnfst_broken_' });
+      expect(result).not.toHaveProperty('fullKey');
     });
   });
 
@@ -412,7 +451,7 @@ describe('ApiKeyGeneratorService', () => {
       expect(mockKeyDelete).toHaveBeenCalledWith({ agent_id: 'agent-id-1' });
     });
 
-    it('should create a new key with hash and prefix, no plaintext', async () => {
+    it('should create a new key with encrypted key, hash and prefix', async () => {
       mockAgentGetOne.mockResolvedValue(existingAgent);
 
       await service.rotateKey('user-1', 'my-agent');
@@ -420,7 +459,8 @@ describe('ApiKeyGeneratorService', () => {
       const insertCall = mockKeyInsert.mock.calls[0][0];
       const expectedRawKey = 'mnfst_' + Buffer.from('a'.repeat(32), 'utf8').toString('base64url');
 
-      expect(insertCall.key).toBeNull();
+      expect(insertCall.key).not.toBeNull();
+      expect(decrypt(insertCall.key, TEST_SECRET)).toBe(expectedRawKey);
       expect(verifyKey(expectedRawKey, insertCall.key_hash)).toBe(true);
       expect(insertCall.key_prefix).toBe(keyPrefix(expectedRawKey));
       expect(insertCall.is_active).toBe(true);

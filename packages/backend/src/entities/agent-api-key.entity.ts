@@ -8,7 +8,7 @@ export class AgentApiKey {
   @PrimaryColumn('varchar')
   id!: string;
 
-  @Column('varchar', { length: 64, nullable: true })
+  @Column('varchar', { length: 255, nullable: true })
   key!: string | null;
 
   @Index({ unique: true })

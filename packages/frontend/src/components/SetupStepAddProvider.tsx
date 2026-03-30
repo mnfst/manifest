@@ -1,6 +1,5 @@
 import { createSignal, For, Show, type Component } from 'solid-js';
 import CopyButton from './CopyButton.jsx';
-import ApiKeyDisplay from './ApiKeyDisplay.jsx';
 
 type MethodId = 'cli' | 'onboard';
 
@@ -16,23 +15,65 @@ interface Props {
   hideFullKey?: boolean;
 }
 
+const EyeOpen: Component = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+const EyeClosed: Component = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" />
+    <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" />
+    <path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143" />
+    <path d="m2 2 20 20" />
+  </svg>
+);
+
 const SetupStepAddProvider: Component<Props> = (props) => {
   const [activeTab, setActiveTab] = createSignal<MethodId>('cli');
+  const [keyRevealed, setKeyRevealed] = createSignal(!props.hideFullKey);
 
-  const displayKey = () =>
-    props.apiKey ?? (props.keyPrefix ? `${props.keyPrefix}...` : 'mnfst_YOUR_KEY');
+  const hasFullKey = () => !!props.apiKey;
+  const maskedKey = () => (props.keyPrefix ? `${props.keyPrefix}...` : 'mnfst_YOUR_KEY');
+  const copyKey = () => props.apiKey ?? maskedKey();
+  const displayKey = () => {
+    if (!hasFullKey()) return maskedKey();
+    return keyRevealed() ? props.apiKey! : maskedKey();
+  };
 
-  const cliSnippet = () => {
+  const buildCliSnippet = (key: string) => {
     const providerJson = JSON.stringify({
       baseUrl: props.baseUrl,
       api: 'openai-completions',
-      apiKey: displayKey(),
+      apiKey: key,
       models: [{ id: 'auto', name: 'Manifest Auto' }],
     });
     return `openclaw config set models.providers.manifest '${providerJson}'
 openclaw config set agents.defaults.model.primary manifest/auto
 openclaw gateway restart`;
   };
+  const cliSnippet = () => buildCliSnippet(displayKey());
+  const cliSnippetForCopy = () => buildCliSnippet(copyKey());
 
   const onboardSnippet = () => `openclaw onboard`;
 
@@ -44,11 +85,6 @@ openclaw gateway restart`;
         <code class="api-key-display__code">manifest/auto</code> as the model to route each request
         to the best provider.
       </p>
-
-      <ApiKeyDisplay
-        apiKey={props.hideFullKey ? null : props.apiKey}
-        keyPrefix={props.apiKey ? null : props.keyPrefix}
-      />
 
       <div class="setup-info-grid">
         <div class="setup-info-grid__card">
@@ -87,8 +123,26 @@ openclaw gateway restart`;
             <p class="setup-method__hint">
               Set the provider config and default model directly via CLI commands.
             </p>
-            <div class="setup-method__code">
-              <CopyButton text={cliSnippet()} />
+            <div
+              class="setup-method__code"
+              style={hasFullKey() ? 'padding-right: 80px;' : undefined}
+            >
+              <div class="setup-method__actions">
+                <Show when={hasFullKey()}>
+                  <button
+                    class="btn btn--ghost btn--sm"
+                    onClick={() => setKeyRevealed(!keyRevealed())}
+                    aria-label={
+                      keyRevealed() ? 'Hide API key in snippet' : 'Reveal API key in snippet'
+                    }
+                    title={keyRevealed() ? 'Hide key' : 'Reveal key'}
+                    style="padding: 4px;"
+                  >
+                    {keyRevealed() ? <EyeClosed /> : <EyeOpen />}
+                  </button>
+                </Show>
+                <CopyButton text={cliSnippetForCopy()} />
+              </div>
               <pre style="margin: 0; white-space: pre-wrap; word-break: break-all;">
                 {cliSnippet()}
               </pre>
@@ -118,7 +172,19 @@ openclaw gateway restart`;
                 <span class="setup-onboard-fields__label">API Key</span>
                 <span class="setup-onboard-fields__value">
                   {displayKey()}
-                  <CopyButton text={displayKey()} />
+                  <Show when={hasFullKey()}>
+                    <button
+                      class="btn btn--ghost btn--sm"
+                      onClick={() => setKeyRevealed(!keyRevealed())}
+                      aria-label={
+                        keyRevealed() ? 'Hide API key in wizard' : 'Reveal API key in wizard'
+                      }
+                      style="padding: 4px;"
+                    >
+                      {keyRevealed() ? <EyeClosed /> : <EyeOpen />}
+                    </button>
+                  </Show>
+                  <CopyButton text={copyKey()} />
                 </span>
               </div>
               <div class="setup-onboard-fields__row">

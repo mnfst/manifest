@@ -15,13 +15,11 @@ describe("ApiKeyDisplay", () => {
     expect(container.textContent).toBe("");
   });
 
-  it("shows warning message when apiKey is provided", () => {
+  it("does not show warning message when apiKey is provided", () => {
     const { container } = render(() => (
       <ApiKeyDisplay apiKey="mnfst_full_key_123" keyPrefix={null} />
     ));
-    expect(container.textContent).toContain(
-      "Save your API key. You won't see it again after closing this dialog."
-    );
+    expect(container.textContent).not.toContain("Save your API key");
   });
 
   it("shows the full API key value when apiKey is provided", () => {
@@ -65,11 +63,11 @@ describe("ApiKeyDisplay", () => {
     );
   });
 
-  it("renders api-key-display__warning class when apiKey is provided", () => {
+  it("does not render api-key-display__warning class when apiKey is provided", () => {
     const { container } = render(() => (
       <ApiKeyDisplay apiKey="mnfst_key" keyPrefix={null} />
     ));
-    expect(container.querySelector(".api-key-display__warning")).not.toBeNull();
+    expect(container.querySelector(".api-key-display__warning")).toBeNull();
   });
 
   it("renders api-key-display__value class when apiKey is provided", () => {

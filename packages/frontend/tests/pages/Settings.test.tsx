@@ -44,6 +44,10 @@ vi.mock("../../src/components/SetupStepInstall.jsx", () => ({
   CopyButton: () => <button>Copy</button>,
 }));
 
+vi.mock("../../src/components/CopyButton.jsx", () => ({
+  default: () => <button>Copy</button>,
+}));
+
 let mockSetupThrows = false;
 vi.mock("../../src/components/SetupStepAddProvider.jsx", () => ({
   default: (props: any) => {
@@ -132,6 +136,57 @@ describe("Settings", () => {
     await vi.waitFor(() => {
       expect(container.textContent).toContain("mnfst_abc");
     });
+  });
+
+  it("shows reveal button when API returns full key", async () => {
+    mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_abc", apiKey: "mnfst_full_key_123", pluginEndpoint: null });
+    const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Agent setup"));
+    await vi.waitFor(() => {
+      expect(container.querySelector('[aria-label="Reveal API key"]')).not.toBeNull();
+    });
+  });
+
+  it("reveals full key when reveal button is clicked", async () => {
+    mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_abc", apiKey: "mnfst_full_key_123", pluginEndpoint: null });
+    const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Agent setup"));
+    await vi.waitFor(() => {
+      expect(container.querySelector('[aria-label="Reveal API key"]')).not.toBeNull();
+    });
+    fireEvent.click(container.querySelector('[aria-label="Reveal API key"]')!);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("mnfst_full_key_123");
+      expect(container.querySelector('[aria-label="Hide API key"]')).not.toBeNull();
+    });
+  });
+
+  it("hides full key when hide button is clicked", async () => {
+    mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_abc", apiKey: "mnfst_full_key_123", pluginEndpoint: null });
+    const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Agent setup"));
+    await vi.waitFor(() => {
+      expect(container.querySelector('[aria-label="Reveal API key"]')).not.toBeNull();
+    });
+    fireEvent.click(container.querySelector('[aria-label="Reveal API key"]')!);
+    await vi.waitFor(() => {
+      expect(container.querySelector('[aria-label="Hide API key"]')).not.toBeNull();
+    });
+    fireEvent.click(container.querySelector('[aria-label="Hide API key"]')!);
+    await vi.waitFor(() => {
+      expect(container.textContent).not.toContain("mnfst_full_key_123");
+      expect(container.querySelector('[aria-label="Reveal API key"]')).not.toBeNull();
+    });
+  });
+
+  it("does not show reveal button for legacy keys without apiKey", async () => {
+    mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_abc", pluginEndpoint: null });
+    const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Agent setup"));
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("mnfst_abc");
+    });
+    expect(container.querySelector('[aria-label="Reveal API key"]')).toBeNull();
   });
 
   it("opens delete modal on Delete agent click", () => {
@@ -233,7 +288,7 @@ describe("Settings", () => {
     });
   });
 
-  it("shows rotated key after successful rotation", async () => {
+  it("auto-reveals key after successful rotation", async () => {
     mockRotateAgentKey.mockResolvedValue({ apiKey: "mnfst_new_rotated_key" });
     const { container } = render(() => <Settings />);
     fireEvent.click(screen.getByText("Agent setup"));
@@ -245,8 +300,8 @@ describe("Settings", () => {
     )!;
     fireEvent.click(rotateBtn);
     await vi.waitFor(() => {
+      expect(container.querySelector('[aria-label="Hide API key"]')).not.toBeNull();
       expect(container.textContent).toContain("mnfst_new_rotated_key");
-      expect(container.textContent).toContain("won't see it again");
     });
   });
 

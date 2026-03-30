@@ -37,7 +37,7 @@ describe("SetupStepLocalConfigure", () => {
       <SetupStepLocalConfigure {...defaultProps} apiKey="mnfst_test_key_123" />
     ));
     expect(container.textContent).toContain("mnfst_test_key_123");
-    expect(container.textContent).toContain("will not be shown again");
+    expect(container.textContent).toContain("always available in agent Settings");
   });
 
   it("shows key prefix when no full key", () => {

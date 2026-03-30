@@ -35,7 +35,7 @@ const SetupStepConfigure: Component<Props> = (props) => {
 
       <Show when={hasFullKey()}>
         <div style="background: hsl(var(--chart-5) / 0.1); border: 1px solid hsl(var(--chart-5) / 0.3); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 12px; font-size: var(--font-size-sm); color: hsl(var(--foreground));">
-          Copy your API key now — it won't be shown again.
+          Your API key is always available in agent Settings.
         </div>
         <div style="display: flex; align-items: center; gap: 8px; background: hsl(var(--muted)); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 16px; font-family: var(--font-mono); font-size: var(--font-size-sm); word-break: break-all;">
           {props.apiKey}
