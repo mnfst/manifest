@@ -114,7 +114,7 @@ describe("Register", () => {
     expect(container.querySelector('a[href="/reset-password"]')).not.toBeNull();
   });
 
-  it("redirects to home when signup returns a session", async () => {
+  it("redirects to home when signup returns a token", async () => {
     const locationSpy = vi.spyOn(window, "location", "get").mockReturnValue({
       ...window.location,
       href: "",
@@ -123,7 +123,7 @@ describe("Register", () => {
     Object.defineProperty(window.location, "href", { set: hrefSetter, configurable: true });
 
     mockSignUpEmail.mockResolvedValue({
-      data: { session: { token: "tok" }, user: { id: "u1" } },
+      data: { token: "tok", user: { id: "u1" } },
       error: null,
     });
     const { container } = render(() => <Register />);

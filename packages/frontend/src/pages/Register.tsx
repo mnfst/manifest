@@ -51,7 +51,7 @@ const Register: Component = () => {
     }
     setAlreadyExists(false);
 
-    if (data?.session) {
+    if (data?.token) {
       window.location.href = '/';
       return;
     }
