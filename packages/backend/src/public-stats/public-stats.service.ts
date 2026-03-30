@@ -69,16 +69,15 @@ export class PublicStatsService {
       tokenMap.set(r.model as string, Number(r.tokens ?? 0));
     }
 
-    const enriched: TopModel[] = [];
+    const eligible: TopModel[] = [];
     for (const r of topRows) {
-      if (enriched.length >= MAX_RESULTS) break;
       const modelName = r.model as string;
       if (isCustomModel(modelName)) continue;
       const pricing = this.pricingCache.getByModel(modelName);
       const provider = pricing?.provider || 'Unknown';
       if (EXCLUDED_PROVIDERS.has(provider)) continue;
 
-      enriched.push({
+      eligible.push({
         model: modelName,
         provider,
         tokens_7d: tokenMap.get(modelName) ?? 0,
@@ -90,16 +89,17 @@ export class PublicStatsService {
           pricing?.output_price_per_token != null
             ? Number(pricing.output_price_per_token) * 1_000_000
             : null,
-        usage_rank: enriched.length + 1,
+        usage_rank: 0,
       });
     }
 
-    enriched.sort((a, b) => b.tokens_7d - a.tokens_7d);
-    enriched.forEach((m, i) => (m.usage_rank = i + 1));
+    eligible.sort((a, b) => b.tokens_7d - a.tokens_7d);
+    const topModels = eligible.slice(0, MAX_RESULTS);
+    topModels.forEach((m, i) => (m.usage_rank = i + 1));
 
     return {
       total_messages: Number(countRow?.total ?? 0),
-      top_models: enriched,
+      top_models: topModels,
       token_map: tokenMap,
     };
   }
@@ -110,6 +110,7 @@ export class PublicStatsService {
       .filter((e) => {
         if ((e.input_price_per_token ?? 0) !== 0 || (e.output_price_per_token ?? 0) !== 0)
           return false;
+        if (isCustomModel(e.model_name)) return false;
         const provider = e.provider || 'Unknown';
         if (EXCLUDED_PROVIDERS.has(provider)) return false;
         return (tokenMap.get(e.model_name) ?? 0) > 0;

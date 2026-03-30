@@ -101,8 +101,9 @@ describe('PublicStatsService', () => {
       expect((await service.getUsageStats()).total_messages).toBe(0);
     });
 
-    it('excludes custom models', async () => {
+    it('excludes custom models even with known provider', async () => {
       setupQueries({ total: '1' }, [{ model: 'custom:abc/gpt-4o', usage_count: '1' }], []);
+      mockPricingCache.getByModel.mockReturnValue(makePricingEntry({ provider: 'OpenAI' }));
 
       const result = await service.getUsageStats();
 
@@ -244,6 +245,18 @@ describe('PublicStatsService', () => {
           ]),
         ),
       ).toEqual([]);
+    });
+
+    it('excludes custom models', () => {
+      mockPricingCache.getAll.mockReturnValue([
+        makePricingEntry({
+          model_name: 'custom:abc/model',
+          provider: 'OpenAI',
+          input_price_per_token: 0,
+          output_price_per_token: 0,
+        }),
+      ]);
+      expect(service.getFreeModels(new Map([['custom:abc/model', 500]]))).toEqual([]);
     });
 
     it('limits to 10 results', () => {

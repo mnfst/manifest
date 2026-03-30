@@ -58,13 +58,12 @@ describe('GET /api/v1/public/usage', () => {
       .get('/api/v1/public/usage')
       .expect(200);
 
-    if (res.body.top_models.length > 0) {
-      const m = res.body.top_models[0];
-      expect(m).toHaveProperty('model');
-      expect(m).toHaveProperty('provider');
-      expect(m).toHaveProperty('tokens_7d');
-      expect(m).toHaveProperty('usage_rank');
-    }
+    expect(res.body.top_models.length).toBeGreaterThan(0);
+    const m = res.body.top_models[0];
+    expect(m).toHaveProperty('model');
+    expect(m).toHaveProperty('provider');
+    expect(m).toHaveProperty('tokens_7d');
+    expect(m).toHaveProperty('usage_rank');
   });
 });
 
