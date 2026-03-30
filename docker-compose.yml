@@ -6,6 +6,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://manifest:manifest@postgres:5432/manifest
       - BETTER_AUTH_SECRET=change-me-to-a-random-32-char-string!!
+      - BETTER_AUTH_URL=http://localhost:3001
       - SEED_DATA=true
       - NODE_ENV=development
       - MANIFEST_TRUST_LAN=true

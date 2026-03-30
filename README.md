@@ -56,9 +56,22 @@ openclaw gateway restart
 
 Dashboard opens at **http://127.0.0.1:2099**. The plugin starts an embedded server, runs the dashboard locally, and registers itself as a provider automatically. No account or API key needed.
 
+### Docker
+
+Run the full Manifest stack (app + PostgreSQL) with a single command:
+
+```bash
+curl -O https://raw.githubusercontent.com/mnfst/manifest/main/docker-compose.yml
+docker compose up -d
+```
+
+Open **http://localhost:3001** and log in with `admin@manifest.build` / `manifest`.
+
+See the [Docker Hub page](https://hub.docker.com/r/manifestdotbuild/manifest) for more options (custom ports, standalone Docker run, environment variables).
+
 ### Cloud vs local
 
-Pick cloud version for quick setup and multi-device access. Pick local version for keeping all your data on your machine or for using local models like Ollama.
+Pick cloud version for quick setup and multi-device access. Pick local version for keeping all your data on your machine or for using local models like Ollama. Pick Docker for self-hosting on your own infrastructure.
 
 Not sure which one to choose? Start with cloud.
 
