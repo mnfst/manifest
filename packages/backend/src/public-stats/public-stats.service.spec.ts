@@ -46,40 +46,40 @@ describe('PublicStatsService', () => {
     );
   });
 
-  describe('getUsageStats', () => {
-    function setupQueries(count: unknown, top: unknown, tokens: unknown) {
-      mockRepo.createQueryBuilder
-        .mockReturnValueOnce(mockQueryBuilder(count))
-        .mockReturnValueOnce(mockQueryBuilder(top))
-        .mockReturnValueOnce(mockQueryBuilder(tokens));
-    }
+  function setupQueries(count: unknown, top: unknown, tokens: unknown) {
+    mockRepo.createQueryBuilder
+      .mockReturnValueOnce(mockQueryBuilder(count))
+      .mockReturnValueOnce(mockQueryBuilder(top))
+      .mockReturnValueOnce(mockQueryBuilder(tokens));
+  }
 
-    it('returns enriched top models with pricing and tokens_7d', async () => {
+  describe('getUsageStats', () => {
+    it('returns enriched top models sorted by tokens_7d', async () => {
       setupQueries(
         { total: '42' },
-        [{ model: 'gpt-4o', usage_count: '20' }],
-        [{ model: 'gpt-4o', tokens: '5000000' }],
+        [
+          { model: 'gpt-4o', usage_count: '20' },
+          { model: 'claude-opus', usage_count: '15' },
+        ],
+        [
+          { model: 'gpt-4o', tokens: '1000000' },
+          { model: 'claude-opus', tokens: '5000000' },
+        ],
       );
-      mockPricingCache.getByModel.mockReturnValue(
-        makePricingEntry({
-          provider: 'OpenAI',
-          input_price_per_token: 0.0000025,
-          output_price_per_token: 0.00001,
-        }),
-      );
+      mockPricingCache.getByModel.mockImplementation((name: string) => {
+        if (name === 'gpt-4o') return makePricingEntry({ provider: 'OpenAI' });
+        if (name === 'claude-opus') return makePricingEntry({ provider: 'Anthropic' });
+        return null;
+      });
 
       const result = await service.getUsageStats();
 
       expect(result.total_messages).toBe(42);
-      expect(result.top_models[0]).toEqual({
-        model: 'gpt-4o',
-        provider: 'OpenAI',
-        tokens_7d: 5000000,
-        input_price_per_million: 2.5,
-        output_price_per_million: 10,
-        usage_rank: 1,
-      });
-      expect(result.token_map.get('gpt-4o')).toBe(5000000);
+      expect(result.top_models[0].model).toBe('claude-opus');
+      expect(result.top_models[0].tokens_7d).toBe(5000000);
+      expect(result.top_models[0].usage_rank).toBe(1);
+      expect(result.top_models[1].model).toBe('gpt-4o');
+      expect(result.top_models[1].usage_rank).toBe(2);
     });
 
     it('returns zeros when table is empty', async () => {
@@ -89,7 +89,6 @@ describe('PublicStatsService', () => {
 
       expect(result.total_messages).toBe(0);
       expect(result.top_models).toEqual([]);
-      expect(result.token_map.size).toBe(0);
     });
 
     it('handles null count result', async () => {
@@ -102,21 +101,43 @@ describe('PublicStatsService', () => {
       expect((await service.getUsageStats()).total_messages).toBe(0);
     });
 
-    it('uses Unknown provider when pricing has no match', async () => {
-      setupQueries({ total: '1' }, [{ model: 'x', usage_count: '1' }], []);
+    it('excludes custom models even with known provider', async () => {
+      setupQueries({ total: '1' }, [{ model: 'custom:abc/gpt-4o', usage_count: '1' }], []);
+      mockPricingCache.getByModel.mockReturnValue(makePricingEntry({ provider: 'OpenAI' }));
 
       const result = await service.getUsageStats();
 
-      expect(result.top_models[0].provider).toBe('Unknown');
-      expect(result.top_models[0].input_price_per_million).toBeNull();
+      expect(result.top_models).toHaveLength(0);
     });
 
-    it('sets tokens_7d to 0 for models with no recent usage', async () => {
-      setupQueries({ total: '5' }, [{ model: 'old', usage_count: '5' }], []);
+    it('excludes Unknown provider models', async () => {
+      setupQueries({ total: '1' }, [{ model: 'unknown-model', usage_count: '1' }], []);
 
       const result = await service.getUsageStats();
 
-      expect(result.top_models[0].tokens_7d).toBe(0);
+      expect(result.top_models).toHaveLength(0);
+    });
+
+    it('excludes OpenRouter provider models', async () => {
+      setupQueries({ total: '1' }, [{ model: 'openrouter/free', usage_count: '1' }], []);
+      mockPricingCache.getByModel.mockReturnValue(makePricingEntry({ provider: 'OpenRouter' }));
+
+      const result = await service.getUsageStats();
+
+      expect(result.top_models).toHaveLength(0);
+    });
+
+    it('limits to 10 results', async () => {
+      const rows = Array.from({ length: 15 }, (_, i) => ({
+        model: `model-${i}`,
+        usage_count: `${15 - i}`,
+      }));
+      setupQueries({ total: '100' }, rows, []);
+      mockPricingCache.getByModel.mockReturnValue(makePricingEntry({ provider: 'Anthropic' }));
+
+      const result = await service.getUsageStats();
+
+      expect(result.top_models).toHaveLength(10);
     });
 
     it('handles null tokens in token query', async () => {
@@ -125,6 +146,7 @@ describe('PublicStatsService', () => {
         [{ model: 'x', usage_count: '1' }],
         [{ model: 'x', tokens: null }],
       );
+      mockPricingCache.getByModel.mockReturnValue(makePricingEntry({ provider: 'OpenAI' }));
 
       const result = await service.getUsageStats();
 
@@ -145,32 +167,50 @@ describe('PublicStatsService', () => {
         expect.objectContaining({ cutoff: expect.any(String) }),
       );
     });
-
-    it('assigns sequential usage_rank', async () => {
-      setupQueries(
-        { total: '10' },
-        [
-          { model: 'a', usage_count: '7' },
-          { model: 'b', usage_count: '3' },
-        ],
-        [],
-      );
-
-      const result = await service.getUsageStats();
-
-      expect(result.top_models[0].usage_rank).toBe(1);
-      expect(result.top_models[1].usage_rank).toBe(2);
-    });
   });
 
   describe('getFreeModels', () => {
-    it('returns only free models with tokens_7d', () => {
+    it('returns free models with tokens_7d > 0, sorted desc', () => {
       mockPricingCache.getAll.mockReturnValue([
         makePricingEntry({
-          model_name: 'free',
+          model_name: 'a',
+          provider: 'Google',
           input_price_per_token: 0,
           output_price_per_token: 0,
         }),
+        makePricingEntry({
+          model_name: 'b',
+          provider: 'DeepSeek',
+          input_price_per_token: 0,
+          output_price_per_token: 0,
+        }),
+      ]);
+      const tokenMap = new Map([
+        ['a', 1000],
+        ['b', 5000],
+      ]);
+
+      const result = service.getFreeModels(tokenMap);
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({ model_name: 'b', provider: 'DeepSeek', tokens_7d: 5000 });
+      expect(result[1]).toEqual({ model_name: 'a', provider: 'Google', tokens_7d: 1000 });
+    });
+
+    it('excludes models with zero tokens_7d', () => {
+      mockPricingCache.getAll.mockReturnValue([
+        makePricingEntry({
+          model_name: 'no-usage',
+          input_price_per_token: 0,
+          output_price_per_token: 0,
+        }),
+      ]);
+
+      expect(service.getFreeModels(new Map())).toEqual([]);
+    });
+
+    it('excludes paid models', () => {
+      mockPricingCache.getAll.mockReturnValue([
         makePricingEntry({
           model_name: 'paid',
           input_price_per_token: 0.001,
@@ -178,45 +218,75 @@ describe('PublicStatsService', () => {
         }),
       ]);
 
-      const result = service.getFreeModels(new Map([['free', 1000]]));
+      expect(service.getFreeModels(new Map([['paid', 1000]]))).toEqual([]);
+    });
 
-      expect(result).toEqual([{ model_name: 'free', provider: 'TestProvider', tokens_7d: 1000 }]);
+    it('excludes Unknown and OpenRouter providers', () => {
+      mockPricingCache.getAll.mockReturnValue([
+        makePricingEntry({
+          model_name: 'a',
+          provider: 'Unknown',
+          input_price_per_token: 0,
+          output_price_per_token: 0,
+        }),
+        makePricingEntry({
+          model_name: 'b',
+          provider: 'OpenRouter',
+          input_price_per_token: 0,
+          output_price_per_token: 0,
+        }),
+      ]);
+
+      expect(
+        service.getFreeModels(
+          new Map([
+            ['a', 100],
+            ['b', 200],
+          ]),
+        ),
+      ).toEqual([]);
+    });
+
+    it('excludes custom models', () => {
+      mockPricingCache.getAll.mockReturnValue([
+        makePricingEntry({
+          model_name: 'custom:abc/model',
+          provider: 'OpenAI',
+          input_price_per_token: 0,
+          output_price_per_token: 0,
+        }),
+      ]);
+      expect(service.getFreeModels(new Map([['custom:abc/model', 500]]))).toEqual([]);
+    });
+
+    it('limits to 10 results', () => {
+      const entries = Array.from({ length: 15 }, (_, i) =>
+        makePricingEntry({
+          model_name: `m-${i}`,
+          provider: 'Google',
+          input_price_per_token: 0,
+          output_price_per_token: 0,
+        }),
+      );
+      mockPricingCache.getAll.mockReturnValue(entries);
+      const tokenMap = new Map(entries.map((e, i) => [e.model_name, i + 1]));
+
+      expect(service.getFreeModels(tokenMap)).toHaveLength(10);
     });
 
     it('treats null prices as free', () => {
       mockPricingCache.getAll.mockReturnValue([
         makePricingEntry({
           model_name: 'n',
+          provider: 'Google',
           input_price_per_token: null,
           output_price_per_token: null,
         }),
       ]);
 
-      const result = service.getFreeModels(new Map());
+      const result = service.getFreeModels(new Map([['n', 500]]));
 
       expect(result).toHaveLength(1);
-      expect(result[0].tokens_7d).toBe(0);
-    });
-
-    it('excludes models with one non-zero price', () => {
-      mockPricingCache.getAll.mockReturnValue([
-        makePricingEntry({ input_price_per_token: 0, output_price_per_token: 0.001 }),
-      ]);
-      expect(service.getFreeModels(new Map())).toHaveLength(0);
-    });
-
-    it('returns empty when no free models', () => {
-      mockPricingCache.getAll.mockReturnValue([
-        makePricingEntry({ input_price_per_token: 0.001, output_price_per_token: 0.002 }),
-      ]);
-      expect(service.getFreeModels(new Map())).toEqual([]);
-    });
-
-    it('uses Unknown as provider fallback', () => {
-      mockPricingCache.getAll.mockReturnValue([
-        makePricingEntry({ provider: '', input_price_per_token: 0, output_price_per_token: 0 }),
-      ]);
-      expect(service.getFreeModels(new Map())[0].provider).toBe('Unknown');
     });
   });
 });
