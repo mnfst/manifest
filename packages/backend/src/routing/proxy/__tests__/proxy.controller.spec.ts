@@ -2262,7 +2262,7 @@ describe('ProxyController', () => {
 
     it('should record failed fallback attempts as separate messages', async () => {
       const mockProviderResp = new Response('primary error', {
-        status: 424,
+        status: 502,
         headers: { 'Content-Type': 'text/plain' },
       });
 
@@ -2327,7 +2327,7 @@ describe('ProxyController', () => {
       mockMessageRepo.insert.mockRejectedValue(new Error('DB write failed'));
 
       const mockProviderResp = new Response('primary error', {
-        status: 424,
+        status: 502,
         headers: { 'Content-Type': 'text/plain' },
       });
 
@@ -2363,12 +2363,12 @@ describe('ProxyController', () => {
       await controller.chatCompletions(req as never, res as never);
       await new Promise((r) => setTimeout(r, 50));
 
-      expect(res.status).toHaveBeenCalledWith(424);
+      expect(res.status).toHaveBeenCalledWith(502);
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
           error: expect.objectContaining({
             type: 'fallback_exhausted',
-            status: 424,
+            status: 502,
           }),
         }),
       );
@@ -2464,7 +2464,7 @@ describe('ProxyController', () => {
 
     it('should mark intermediate failures as handled when all fallbacks fail', async () => {
       const mockProviderResp = new Response('primary error', {
-        status: 424,
+        status: 502,
         headers: { 'Content-Type': 'text/plain' },
       });
 
@@ -2533,7 +2533,7 @@ describe('ProxyController', () => {
 
   it('should pass authType to recordFailedFallbacks when all fallbacks fail', async () => {
     const mockProviderResp = new Response('primary error', {
-      status: 424,
+      status: 502,
       headers: { 'Content-Type': 'text/plain' },
     });
 
@@ -2586,9 +2586,9 @@ describe('ProxyController', () => {
     );
   });
 
-  it('should return 424 with fallback_exhausted type and X-Manifest-Fallback-Exhausted header', async () => {
+  it('should return primary error status with fallback_exhausted type and X-Manifest-Fallback-Exhausted header', async () => {
     const mockProviderResp = new Response('primary error', {
-      status: 424,
+      status: 502,
       headers: { 'Content-Type': 'text/plain' },
     });
 
@@ -2624,12 +2624,12 @@ describe('ProxyController', () => {
 
     await controller.chatCompletions(req as never, res as never);
 
-    expect(res.status).toHaveBeenCalledWith(424);
+    expect(res.status).toHaveBeenCalledWith(502);
     expect(headers['X-Manifest-Fallback-Exhausted']).toBe('true');
     expect(res.json).toHaveBeenCalledWith({
       error: expect.objectContaining({
         type: 'fallback_exhausted',
-        status: 424,
+        status: 502,
         primary_model: 'gpt-4o',
         primary_provider: 'OpenAI',
         attempted_fallbacks: [

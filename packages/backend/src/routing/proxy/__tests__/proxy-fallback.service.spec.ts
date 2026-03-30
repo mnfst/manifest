@@ -485,11 +485,7 @@ describe('ProxyFallbackService', () => {
       );
 
       // OpenAI is a different provider, so no exclusion set should be passed
-      expect(providerKeyService.getAuthType).toHaveBeenCalledWith(
-        'agent-1',
-        'OpenAI',
-        undefined,
-      );
+      expect(providerKeyService.getAuthType).toHaveBeenCalledWith('agent-1', 'OpenAI', undefined);
     });
 
     it('accumulates failed auth types across same-provider fallbacks', async () => {
@@ -541,11 +537,11 @@ describe('ProxyFallbackService', () => {
       );
     });
 
-    it('stops chain on non-retriable status (424)', async () => {
+    it('continues chain when upstream returns 424 (no longer a sentinel)', async () => {
       providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
       providerClient.forward
         .mockResolvedValueOnce({
-          response: new Response('exhausted', { status: 424 }),
+          response: new Response('upstream 424', { status: 424 }),
           isGoogle: false,
           isAnthropic: false,
           isChatGpt: false,
@@ -568,9 +564,12 @@ describe('ProxyFallbackService', () => {
         'gpt-4o',
       );
 
-      expect(result.success).toBeNull();
+      expect(result.success).not.toBeNull();
+      expect(result.success!.model).toBe('model-b');
+      expect(result.success!.fallbackIndex).toBe(1);
       expect(result.failures).toHaveLength(1);
-      expect(providerClient.forward).toHaveBeenCalledTimes(1);
+      expect(result.failures[0].status).toBe(424);
+      expect(providerClient.forward).toHaveBeenCalledTimes(2);
     });
 
     it('falls through to findProviderForModel when inferred prefix provider is inactive (#1383)', async () => {
