@@ -1,5 +1,11 @@
 # manifest
 
+## 5.36.1
+
+### Patch Changes
+
+- c36a559: Improve signup UX: show actionable error when email already exists, auto-redirect when email verification is not required, and skip email verification when no email provider is configured
+
 ## 5.36.0
 
 ### Minor Changes
