@@ -7,14 +7,15 @@ import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interf
 /** Guard-thrown messages that should become friendly chat responses. */
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
   'Authorization header required':
-    'Missing API key. Set your Manifest key (starts with mnfst_) as the Bearer token.',
+    '[Manifest] Missing API key. Set your Manifest key (starts with mnfst_) as the Bearer token.',
   'Empty token':
-    'Bearer token is empty — paste your Manifest API key into the authorization field.',
+    '[Manifest] Bearer token is empty — paste your Manifest API key into the authorization field.',
   'Invalid API key format':
-    'That doesn\'t look like a Manifest key. They start with "mnfst_" — check your dashboard.',
-  'API key expired': 'This API key expired. Generate a new one from your Manifest dashboard',
+    '[Manifest] That doesn\'t look like a Manifest key. They start with "mnfst_" — check your dashboard.',
+  'API key expired':
+    '[Manifest] This API key expired. Generate a new one from your Manifest dashboard',
   'Invalid API key':
-    "This API key wasn't recognized — it may have been rotated or deleted. Check your dashboard for the current key.",
+    "[Manifest] This API key wasn't recognized — it may have been rotated or deleted. Check your dashboard for the current key.",
 };
 
 /** Status codes that should pass through as normal HTTP errors. */
@@ -63,7 +64,8 @@ export class ProxyExceptionFilter implements ExceptionFilter {
     }
 
     // Other errors (400 bad request, 500, etc.) — send as friendly chat message
-    const content = status >= 500 ? 'Something broke on our end. Try again shortly.' : message;
+    const content =
+      status >= 500 ? '[Manifest] Something broke on our end. Try again shortly.' : message;
     sendFriendlyResponse(res, content, isStream);
   }
 }

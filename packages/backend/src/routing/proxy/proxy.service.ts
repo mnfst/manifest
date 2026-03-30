@@ -112,7 +112,7 @@ export class ProxyService {
     );
     if (apiKey === null) {
       const dashboardUrl = getDashboardUrl(this.config, agentName);
-      const content = `No API key set for ${resolved.provider} yet. Add one here: ${dashboardUrl}`;
+      const content = `[Manifest] No API key set for ${resolved.provider} yet. Add one here: ${dashboardUrl}`;
       return buildFriendlyResponse(content, body.stream === true, 'no_provider_key');
     }
 
@@ -256,7 +256,7 @@ export class ProxyService {
         ? `$${Number(exceeded.threshold).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
         : Number(exceeded.threshold).toLocaleString(undefined, { maximumFractionDigits: 0 });
     const dashboardUrl = getDashboardUrl(this.config, agentName);
-    return `Usage limit hit: ${exceeded.metricType} is at ${fmt} (limit: ${threshFmt}/${exceeded.period}). You can adjust it here: ${dashboardUrl}`;
+    return `[Manifest] Usage limit hit: ${exceeded.metricType} is at ${fmt} (limit: ${threshFmt}/${exceeded.period}). You can adjust it here: ${dashboardUrl}`;
   }
 
   private filterScoringMessages(messages: ScorerMessage[]): ScorerMessage[] {
@@ -279,7 +279,7 @@ export class ProxyService {
 
   private buildNoProviderResult(stream: boolean, agentName?: string): ProxyResult {
     const dashboardUrl = getDashboardUrl(this.config, agentName);
-    const content = `Manifest is connected successfully. To start routing requests, connect a model provider: ${dashboardUrl}`;
+    const content = `[Manifest] Manifest is connected successfully. To start routing requests, connect a model provider: ${dashboardUrl}`;
     return buildFriendlyResponse(content, stream, 'no_provider');
   }
 }

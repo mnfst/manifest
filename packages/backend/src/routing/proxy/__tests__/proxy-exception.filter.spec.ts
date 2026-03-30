@@ -163,7 +163,7 @@ describe('ProxyExceptionFilter', () => {
 
       expect(res.status).toHaveBeenCalledWith(200);
       const content = res.json.mock.calls[0][0].choices[0].message.content;
-      expect(content).toBe('Something broke on our end. Try again shortly.');
+      expect(content).toBe('[Manifest] Something broke on our end. Try again shortly.');
     });
 
     it('converts unknown auth message to friendly message', () => {
