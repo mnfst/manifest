@@ -292,6 +292,89 @@ describe('ProviderModelFetcherService', () => {
     });
   });
 
+  /* ── Mistral metadata filtering ── */
+
+  describe('parseMistral metadata filtering', () => {
+    it('should filter out models with deprecation set', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'mistral-large-latest', capabilities: { completion_chat: true } },
+            { id: 'old-model', capabilities: { completion_chat: true }, deprecation: '2025-12-01' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('mistral', 'key');
+      expect(result.map((m) => m.id)).toEqual(['mistral-large-latest']);
+    });
+
+    it('should filter out models without completion_chat capability', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'mistral-large-latest', capabilities: { completion_chat: true } },
+            { id: 'mistral-ocr-2503', capabilities: { completion_chat: false } },
+            { id: 'labs-leanstral-2603', capabilities: { completion_chat: false } },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('mistral', 'key');
+      expect(result.map((m) => m.id)).toEqual(['mistral-large-latest']);
+    });
+
+    it('should keep models when capabilities field is absent', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'mistral-large-latest' },
+            { id: 'codestral-latest' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('mistral', 'key');
+      expect(result).toHaveLength(2);
+    });
+
+    it('should keep models when completion_chat is true', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'mistral-large-latest', capabilities: { completion_chat: true } },
+            { id: 'codestral-latest', capabilities: { completion_chat: true, completion_fim: true } },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('mistral', 'key');
+      expect(result).toHaveLength(2);
+    });
+
+    it('should filter by both metadata and regex patterns', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'mistral-large-latest', capabilities: { completion_chat: true } },
+            { id: 'deprecated-model', capabilities: { completion_chat: true }, deprecation: '2025-06-01' },
+            { id: 'labs-experimental', capabilities: { completion_chat: true } },
+            { id: 'voxtral-mini-2602', capabilities: { completion_chat: true } },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('mistral', 'key');
+      // deprecated-model filtered by metadata, labs-experimental by regex, voxtral-mini-2602 by blocklist
+      expect(result.map((m) => m.id)).toEqual(['mistral-large-latest']);
+    });
+  });
+
   /* ── OpenAI-compatible providers use same parser ── */
 
   it('should work for deepseek provider', async () => {

@@ -2,6 +2,7 @@ import {
   filterNonChatModels,
   UNIVERSAL_NON_CHAT_RE,
   PROVIDER_NON_CHAT,
+  PROVIDER_BLOCKLIST,
 } from './provider-model-fetcher.service';
 import { DiscoveredModel } from './model-fetcher';
 
@@ -159,6 +160,28 @@ describe('filterNonChatModels', () => {
       expect(result.map((m) => m.id)).toEqual(['gemini-2.5-pro']);
     });
 
+    it('filters deprecated gemini-2.0-flash-lite', () => {
+      const models = [makeModel('gemini-2.0-flash-lite'), makeModel('gemini-2.5-flash')];
+      const result = filterNonChatModels(models, 'gemini');
+      expect(result.map((m) => m.id)).toEqual(['gemini-2.5-flash']);
+    });
+
+    it('filters flash-lite-preview deprecated snapshots', () => {
+      const models = [
+        makeModel('gemini-2.5-flash-lite-preview-09-2025'),
+        makeModel('gemini-3.0-flash-lite-preview-01-2026'),
+        makeModel('gemini-2.5-flash'),
+      ];
+      const result = filterNonChatModels(models, 'gemini');
+      expect(result.map((m) => m.id)).toEqual(['gemini-2.5-flash']);
+    });
+
+    it('keeps non-preview flash-lite models', () => {
+      const models = [makeModel('gemini-2.5-flash-lite'), makeModel('gemini-3.0-flash-lite')];
+      const result = filterNonChatModels(models, 'gemini');
+      expect(result).toHaveLength(2);
+    });
+
     it('keeps gemini-image and gemini-robotics models', () => {
       const models = [
         makeModel('gemini-2.5-flash-image'),
@@ -215,6 +238,34 @@ describe('filterNonChatModels', () => {
       const result = filterNonChatModels(models, 'mistral');
       expect(result).toHaveLength(2);
     });
+
+    it('filters labs-prefixed models', () => {
+      const models = [makeModel('labs-leanstral-2603'), makeModel('mistral-large-latest')];
+      const result = filterNonChatModels(models, 'mistral');
+      expect(result.map((m) => m.id)).toEqual(['mistral-large-latest']);
+    });
+
+    it('filters any future labs-* model', () => {
+      const models = [makeModel('labs-future-model-2707'), makeModel('codestral-latest')];
+      const result = filterNonChatModels(models, 'mistral');
+      expect(result.map((m) => m.id)).toEqual(['codestral-latest']);
+    });
+
+    it('filters blocklisted model voxtral-mini-2602', () => {
+      const models = [makeModel('voxtral-mini-2602'), makeModel('mistral-large-latest')];
+      const result = filterNonChatModels(models, 'mistral');
+      expect(result.map((m) => m.id)).toEqual(['mistral-large-latest']);
+    });
+
+    it('filters all labs- prefixed models including labs-devstral', () => {
+      const models = [
+        makeModel('labs-devstral-small-2512'),
+        makeModel('labs-mistral-small-creative'),
+        makeModel('mistral-large-latest'),
+      ];
+      const result = filterNonChatModels(models, 'mistral');
+      expect(result.map((m) => m.id)).toEqual(['mistral-large-latest']);
+    });
   });
 
   describe('xAI-specific patterns', () => {
@@ -230,6 +281,18 @@ describe('filterNonChatModels', () => {
       const models = [makeModel('grok-3'), makeModel('grok-3-mini')];
       const result = filterNonChatModels(models, 'xai');
       expect(result).toHaveLength(2);
+    });
+
+    it('filters multi-agent models', () => {
+      const models = [makeModel('grok-4.20-multi-agent-0309'), makeModel('grok-3')];
+      const result = filterNonChatModels(models, 'xai');
+      expect(result.map((m) => m.id)).toEqual(['grok-3']);
+    });
+
+    it('filters any future multi-agent model', () => {
+      const models = [makeModel('grok-5-multi-agent-0612'), makeModel('grok-3')];
+      const result = filterNonChatModels(models, 'xai');
+      expect(result.map((m) => m.id)).toEqual(['grok-3']);
     });
   });
 
@@ -254,6 +317,18 @@ describe('filterNonChatModels', () => {
       expect(PROVIDER_NON_CHAT).toHaveProperty('gemini');
       expect(PROVIDER_NON_CHAT).toHaveProperty('mistral');
       expect(PROVIDER_NON_CHAT).toHaveProperty('xai');
+    });
+  });
+
+  describe('PROVIDER_BLOCKLIST', () => {
+    it('has blocklist entry for mistral voxtral-mini-2602', () => {
+      expect(PROVIDER_BLOCKLIST).toHaveProperty('mistral');
+      expect(PROVIDER_BLOCKLIST.mistral.has('voxtral-mini-2602')).toBe(true);
+    });
+
+    it('does not blocklist valid voxtral models', () => {
+      expect(PROVIDER_BLOCKLIST.mistral.has('voxtral-mini-latest')).toBe(false);
+      expect(PROVIDER_BLOCKLIST.mistral.has('voxtral-mini-2507')).toBe(false);
     });
   });
 });
