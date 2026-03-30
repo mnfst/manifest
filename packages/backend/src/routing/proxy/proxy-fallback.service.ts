@@ -25,6 +25,7 @@ import {
   buildTransportErrorResponse,
   describeTransportError,
 } from './proxy-transport';
+import type { SignatureLookup } from './proxy-types';
 
 export interface FailedFallback {
   model: string;
@@ -181,6 +182,7 @@ export class ProxyFallbackService {
     authType?: string;
     resourceUrl?: string;
     providerRegion?: string | null;
+    signatureLookup?: SignatureLookup;
   }): Promise<ForwardResult> {
     try {
       return await this.forwardToProvider(opts);
@@ -214,8 +216,18 @@ export class ProxyFallbackService {
     authType?: string;
     resourceUrl?: string;
     providerRegion?: string | null;
+    signatureLookup?: SignatureLookup;
   }): Promise<ForwardResult> {
-    const { provider, body, stream, signal, authType, resourceUrl, providerRegion } = opts;
+    const {
+      provider,
+      body,
+      stream,
+      signal,
+      authType,
+      resourceUrl,
+      providerRegion,
+      signatureLookup,
+    } = opts;
 
     const extraHeaders: Record<string, string> = {};
     if (provider === 'xai') {
@@ -265,6 +277,7 @@ export class ProxyFallbackService {
       extraHeaders: hasExtraHeaders ? extraHeaders : undefined,
       customEndpoint,
       authType,
+      signatureLookup,
     });
   }
 }

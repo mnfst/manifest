@@ -15,6 +15,7 @@ import { CopilotTokenService } from '../copilot-token.service';
 import { LimitCheckService } from '../../../notifications/services/limit-check.service';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 import { shouldTriggerFallback } from '../fallback-status-codes';
+import { ThoughtSignatureCache } from '../thought-signature-cache';
 
 describe('ProxyService', () => {
   let service: ProxyService;
@@ -115,6 +116,7 @@ describe('ProxyService', () => {
       limitCheck,
       fallbackService,
       configService,
+      new ThoughtSignatureCache(),
     );
   });
 
@@ -450,13 +452,15 @@ describe('ProxyService', () => {
     expect(momentum.getRecentTiers('sess-1')).toEqual(['standard']);
 
     // Verify forward was called correctly (signal is undefined when not provided)
-    expect(providerClient.forward).toHaveBeenCalledWith({
-      provider: 'OpenAI',
-      apiKey: 'sk-test',
-      model: 'gpt-4o',
-      body,
-      stream: false,
-    });
+    expect(providerClient.forward).toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider: 'OpenAI',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body,
+        stream: false,
+      }),
+    );
   });
 
   it('applies the stored Qwen region when resolver returns the Alibaba alias', async () => {
@@ -549,14 +553,16 @@ describe('ProxyService', () => {
     });
 
     expect(result.meta.model).toBe('claude-sonnet-4-6');
-    expect(providerClient.forward).toHaveBeenCalledWith({
-      provider: 'Anthropic',
-      apiKey: 'sk-ant-oat',
-      model: 'claude-sonnet-4-6',
-      body,
-      stream: false,
-      authType: 'subscription',
-    });
+    expect(providerClient.forward).toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider: 'Anthropic',
+        apiKey: 'sk-ant-oat',
+        model: 'claude-sonnet-4-6',
+        body,
+        stream: false,
+        authType: 'subscription',
+      }),
+    );
   });
 
   it('passes tools and tool_choice to the resolver', async () => {
@@ -601,13 +607,15 @@ describe('ProxyService', () => {
     );
 
     // But the full body (with tools) should be forwarded to the provider
-    expect(providerClient.forward).toHaveBeenCalledWith({
-      provider: 'OpenAI',
-      apiKey: 'sk-test',
-      model: 'gpt-4o',
-      body: bodyWithTools,
-      stream: false,
-    });
+    expect(providerClient.forward).toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider: 'OpenAI',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body: bodyWithTools,
+        stream: false,
+      }),
+    );
   });
 
   it('passes AbortSignal through to providerClient.forward', async () => {
@@ -638,14 +646,16 @@ describe('ProxyService', () => {
       signal: abortController.signal,
     });
 
-    expect(providerClient.forward).toHaveBeenCalledWith({
-      provider: 'OpenAI',
-      apiKey: 'sk-test',
-      model: 'gpt-4o',
-      body,
-      stream: false,
-      signal: abortController.signal,
-    });
+    expect(providerClient.forward).toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider: 'OpenAI',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body,
+        stream: false,
+        signal: abortController.signal,
+      }),
+    );
   });
 
   describe('heartbeat detection', () => {
@@ -714,13 +724,15 @@ describe('ProxyService', () => {
         sessionKey: 'sess-1',
       });
 
-      expect(providerClient.forward).toHaveBeenCalledWith({
-        provider: 'OpenAI',
-        apiKey: 'sk-test',
-        model: 'gpt-4o-mini',
-        body: heartbeatBody,
-        stream: false,
-      });
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'OpenAI',
+          apiKey: 'sk-test',
+          model: 'gpt-4o-mini',
+          body: heartbeatBody,
+          stream: false,
+        }),
+      );
     });
 
     it('does NOT detect heartbeat when HEARTBEAT_OK is only in an earlier user message', async () => {
@@ -1015,13 +1027,15 @@ describe('ProxyService', () => {
       });
 
       // Provider should get the FULL body including system messages
-      expect(providerClient.forward).toHaveBeenCalledWith({
-        provider: 'OpenAI',
-        apiKey: 'sk-test',
-        model: 'gpt-4o-mini',
-        body: bodyWithSystem,
-        stream: false,
-      });
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'OpenAI',
+          apiKey: 'sk-test',
+          model: 'gpt-4o-mini',
+          body: bodyWithSystem,
+          stream: false,
+        }),
+      );
     });
 
     it('limits scoring to last 10 non-system messages', async () => {
@@ -1292,14 +1306,16 @@ describe('ProxyService', () => {
         sessionKey: 'my-session',
       });
 
-      expect(providerClient.forward).toHaveBeenCalledWith({
-        provider: 'xai',
-        apiKey: 'sk-xai-test',
-        model: 'grok-2',
-        body,
-        stream: false,
-        extraHeaders: { 'x-grok-conv-id': 'my-session' },
-      });
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'xai',
+          apiKey: 'sk-xai-test',
+          model: 'grok-2',
+          body,
+          stream: false,
+          extraHeaders: { 'x-grok-conv-id': 'my-session' },
+        }),
+      );
     });
   });
 
@@ -1379,13 +1395,15 @@ describe('ProxyService', () => {
       expect(scoredMessages).toEqual([]);
 
       // But the full body is forwarded to the provider
-      expect(providerClient.forward).toHaveBeenCalledWith({
-        provider: 'OpenAI',
-        apiKey: 'sk-test',
-        model: 'gpt-4o-mini',
-        body: bodyWithOnlySystem,
-        stream: false,
-      });
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'OpenAI',
+          apiKey: 'sk-test',
+          model: 'gpt-4o-mini',
+          body: bodyWithOnlySystem,
+          stream: false,
+        }),
+      );
     });
   });
 
@@ -1425,17 +1443,19 @@ describe('ProxyService', () => {
 
       expect(customProviderRepo.findOne).toHaveBeenCalledWith({ where: { id: 'cp-uuid' } });
       // Forward should use the raw model name (without custom prefix)
-      expect(providerClient.forward).toHaveBeenCalledWith({
-        provider: 'custom:cp-uuid',
-        apiKey: 'gsk_test',
-        model: 'llama-3.1-70b',
-        body,
-        stream: false,
-        customEndpoint: expect.objectContaining({
-          baseUrl: 'https://api.groq.com/openai',
-          format: 'openai',
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'custom:cp-uuid',
+          apiKey: 'gsk_test',
+          model: 'llama-3.1-70b',
+          body,
+          stream: false,
+          customEndpoint: expect.objectContaining({
+            baseUrl: 'https://api.groq.com/openai',
+            format: 'openai',
+          }),
         }),
-      });
+      );
       expect(result.meta.provider).toBe('custom:cp-uuid');
     });
 
@@ -1465,13 +1485,15 @@ describe('ProxyService', () => {
       });
 
       // No custom endpoint — forward without it
-      expect(providerClient.forward).toHaveBeenCalledWith({
-        provider: 'custom:cp-missing',
-        apiKey: 'key',
-        model: 'custom:cp-missing/model',
-        body,
-        stream: false,
-      });
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'custom:cp-missing',
+          apiKey: 'key',
+          model: 'custom:cp-missing/model',
+          body,
+          stream: false,
+        }),
+      );
     });
   });
 
@@ -1501,13 +1523,15 @@ describe('ProxyService', () => {
       });
 
       expect(copilotToken.getCopilotToken).toHaveBeenCalledWith('ghu_github_oauth_token');
-      expect(providerClient.forward).toHaveBeenCalledWith({
-        provider: 'copilot',
-        apiKey: 'tid=copilot-session-token',
-        model: 'claude-sonnet-4.6',
-        body,
-        stream: false,
-      });
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'copilot',
+          apiKey: 'tid=copilot-session-token',
+          model: 'claude-sonnet-4.6',
+          body,
+          stream: false,
+        }),
+      );
     });
 
     it('does not strip prefix for copilot models without copilot/ prefix', async () => {
@@ -1534,13 +1558,15 @@ describe('ProxyService', () => {
         sessionKey: 'sess-1',
       });
 
-      expect(providerClient.forward).toHaveBeenCalledWith({
-        provider: 'copilot',
-        apiKey: 'tid=copilot-session-token',
-        model: 'gpt-4o',
-        body,
-        stream: false,
-      });
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'copilot',
+          apiKey: 'tid=copilot-session-token',
+          model: 'gpt-4o',
+          body,
+          stream: false,
+        }),
+      );
     });
 
     it('does not exchange token for non-copilot providers', async () => {
@@ -1568,13 +1594,15 @@ describe('ProxyService', () => {
       });
 
       expect(copilotToken.getCopilotToken).not.toHaveBeenCalled();
-      expect(providerClient.forward).toHaveBeenCalledWith({
-        provider: 'openai',
-        apiKey: 'sk-openai-key',
-        model: 'gpt-4o',
-        body,
-        stream: false,
-      });
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'openai',
+          apiKey: 'sk-openai-key',
+          model: 'gpt-4o',
+          body,
+          stream: false,
+        }),
+      );
     });
   });
 
@@ -1605,13 +1633,15 @@ describe('ProxyService', () => {
       });
 
       expect(result.meta.provider).toBe('Ollama');
-      expect(providerClient.forward).toHaveBeenCalledWith({
-        provider: 'Ollama',
-        apiKey: '',
-        model: 'llama3',
-        body,
-        stream: false,
-      });
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'Ollama',
+          apiKey: '',
+          model: 'llama3',
+          body,
+          stream: false,
+        }),
+      );
     });
   });
 
@@ -1642,14 +1672,16 @@ describe('ProxyService', () => {
       });
 
       expect(result.meta.provider).toBe('Anthropic');
-      expect(providerClient.forward).toHaveBeenCalledWith({
-        provider: 'Anthropic',
-        apiKey: 'skst-token-123',
-        model: 'claude-sonnet-4',
-        body,
-        stream: false,
-        authType: 'subscription',
-      });
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'Anthropic',
+          apiKey: 'skst-token-123',
+          model: 'claude-sonnet-4',
+          body,
+          stream: false,
+          authType: 'subscription',
+        }),
+      );
     });
 
     it('rejects subscription provider without stored token', async () => {
@@ -1864,22 +1896,28 @@ describe('ProxyService', () => {
       expect(result.meta.primaryErrorBody).toBe('{"detail":"Instructions are required"}');
       expect(result.meta.model).toBe('deepseek-chat');
       expect(result.meta.provider).toBe('DeepSeek');
-      expect(providerClient.forward).toHaveBeenNthCalledWith(1, {
-        provider: 'OpenAI',
-        apiKey: 'oauth-openai',
-        model: 'gpt-5.1-codex-mini',
-        body,
-        stream: false,
-        authType: 'subscription',
-      });
-      expect(providerClient.forward).toHaveBeenNthCalledWith(2, {
-        provider: 'DeepSeek',
-        apiKey: 'sk-deepseek',
-        model: 'deepseek-chat',
-        body,
-        stream: false,
-        authType: 'api_key',
-      });
+      expect(providerClient.forward).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          provider: 'OpenAI',
+          apiKey: 'oauth-openai',
+          model: 'gpt-5.1-codex-mini',
+          body,
+          stream: false,
+          authType: 'subscription',
+        }),
+      );
+      expect(providerClient.forward).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          provider: 'DeepSeek',
+          apiKey: 'sk-deepseek',
+          model: 'deepseek-chat',
+          body,
+          stream: false,
+          authType: 'api_key',
+        }),
+      );
     });
 
     it('returns original error when no fallback models configured', async () => {
@@ -2281,23 +2319,29 @@ describe('ProxyService', () => {
       expect(result.meta.provider).toBe('Anthropic');
       expect(result.meta.primaryErrorStatus).toBe(429);
       // Primary was called with api_key auth_type
-      expect(providerClient.forward).toHaveBeenNthCalledWith(1, {
-        provider: 'OpenAI',
-        apiKey: 'sk-openai',
-        model: 'gpt-4o',
-        body,
-        stream: false,
-        authType: 'api_key',
-      });
+      expect(providerClient.forward).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          provider: 'OpenAI',
+          apiKey: 'sk-openai',
+          model: 'gpt-4o',
+          body,
+          stream: false,
+          authType: 'api_key',
+        }),
+      );
       // Fallback resolves auth_type via getAuthType and passes subscription
-      expect(providerClient.forward).toHaveBeenNthCalledWith(2, {
-        provider: 'Anthropic',
-        apiKey: 'skst-anthropic-token',
-        model: 'claude-sonnet-4',
-        body,
-        stream: false,
-        authType: 'subscription',
-      });
+      expect(providerClient.forward).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          provider: 'Anthropic',
+          apiKey: 'skst-anthropic-token',
+          model: 'claude-sonnet-4',
+          body,
+          stream: false,
+          authType: 'subscription',
+        }),
+      );
       // getAuthType was called for the fallback provider (different provider, no exclusions)
       expect(providerKeyService.getAuthType).toHaveBeenCalledWith(
         'agent-1',
@@ -2353,14 +2397,17 @@ describe('ProxyService', () => {
       });
 
       expect(result.meta.model).toBe('claude-sonnet-4-6');
-      expect(providerClient.forward).toHaveBeenNthCalledWith(2, {
-        provider: 'Anthropic',
-        apiKey: 'skst-anthropic-token',
-        model: 'claude-sonnet-4-6',
-        body,
-        stream: false,
-        authType: 'subscription',
-      });
+      expect(providerClient.forward).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          provider: 'Anthropic',
+          apiKey: 'skst-anthropic-token',
+          model: 'claude-sonnet-4-6',
+          body,
+          stream: false,
+          authType: 'subscription',
+        }),
+      );
     });
 
     it('falls back from subscription primary to api_key fallback model', async () => {
@@ -2407,23 +2454,29 @@ describe('ProxyService', () => {
       expect(result.meta.model).toBe('gpt-4o');
       expect(result.meta.provider).toBe('OpenAI');
       // Primary forwarded with subscription auth_type
-      expect(providerClient.forward).toHaveBeenNthCalledWith(1, {
-        provider: 'Anthropic',
-        apiKey: 'skst-token',
-        model: 'claude-sonnet-4',
-        body,
-        stream: false,
-        authType: 'subscription',
-      });
+      expect(providerClient.forward).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          provider: 'Anthropic',
+          apiKey: 'skst-token',
+          model: 'claude-sonnet-4',
+          body,
+          stream: false,
+          authType: 'subscription',
+        }),
+      );
       // Fallback forwarded with api_key auth_type
-      expect(providerClient.forward).toHaveBeenNthCalledWith(2, {
-        provider: 'OpenAI',
-        apiKey: 'sk-openai',
-        model: 'gpt-4o',
-        body,
-        stream: false,
-        authType: 'api_key',
-      });
+      expect(providerClient.forward).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          provider: 'OpenAI',
+          apiKey: 'sk-openai',
+          model: 'gpt-4o',
+          body,
+          stream: false,
+          authType: 'api_key',
+        }),
+      );
     });
 
     it('falls back between two subscription providers', async () => {
@@ -2471,14 +2524,17 @@ describe('ProxyService', () => {
       expect(result.meta.provider).toBe('Google');
       expect(result.meta.fallbackIndex).toBe(0);
       // Fallback forwarded with subscription auth_type
-      expect(providerClient.forward).toHaveBeenNthCalledWith(2, {
-        provider: 'Google',
-        apiKey: 'skst-google',
-        model: 'gemini-2.5-flash',
-        body,
-        stream: false,
-        authType: 'subscription',
-      });
+      expect(providerClient.forward).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          provider: 'Google',
+          apiKey: 'skst-google',
+          model: 'gemini-2.5-flash',
+          body,
+          stream: false,
+          authType: 'subscription',
+        }),
+      );
     });
 
     it('skips fallback model with subscription auth but no stored token', async () => {
@@ -2819,14 +2875,16 @@ describe('ProxyService', () => {
       });
 
       expect(openaiOauth.unwrapToken).toHaveBeenCalledWith(tokenBlob, 'agent-1', 'user-1');
-      expect(providerClient.forward).toHaveBeenCalledWith({
-        provider: 'openai',
-        apiKey: 'access-tok',
-        model: 'gpt-4o',
-        body: expect.any(Object),
-        stream: false,
-        authType: 'subscription',
-      });
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'openai',
+          apiKey: 'access-tok',
+          model: 'gpt-4o',
+          body: expect.any(Object),
+          stream: false,
+          authType: 'subscription',
+        }),
+      );
     });
 
     it('skips unwrap for non-OpenAI subscription providers', async () => {
@@ -2978,18 +3036,20 @@ describe('ProxyService', () => {
       });
 
       expect(minimaxOauth.unwrapToken).toHaveBeenCalledWith(tokenBlob, 'agent-1', 'user-1');
-      expect(providerClient.forward).toHaveBeenCalledWith({
-        provider: 'minimax',
-        apiKey: 'minimax-access',
-        model: 'MiniMax-M2.5',
-        body: expect.any(Object),
-        stream: false,
-        customEndpoint: expect.objectContaining({
-          baseUrl: 'https://api.minimax.io/anthropic',
-          format: 'anthropic',
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'minimax',
+          apiKey: 'minimax-access',
+          model: 'MiniMax-M2.5',
+          body: expect.any(Object),
+          stream: false,
+          customEndpoint: expect.objectContaining({
+            baseUrl: 'https://api.minimax.io/anthropic',
+            format: 'anthropic',
+          }),
+          authType: 'subscription',
         }),
-        authType: 'subscription',
-      });
+      );
     });
 
     it('ignores invalid MiniMax resource URLs when forwarding subscription requests', async () => {
@@ -3029,14 +3089,16 @@ describe('ProxyService', () => {
         sessionKey: 'sess',
       });
 
-      expect(providerClient.forward).toHaveBeenCalledWith({
-        provider: 'minimax',
-        apiKey: 'minimax-access',
-        model: 'MiniMax-M2.5',
-        body: expect.any(Object),
-        stream: false,
-        authType: 'subscription',
-      });
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'minimax',
+          apiKey: 'minimax-access',
+          model: 'MiniMax-M2.5',
+          body: expect.any(Object),
+          stream: false,
+          authType: 'subscription',
+        }),
+      );
     });
   });
 });

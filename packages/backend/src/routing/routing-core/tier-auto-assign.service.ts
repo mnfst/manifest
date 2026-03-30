@@ -126,13 +126,16 @@ export class TierAutoAssignService {
 
       case 'standard': {
         const eligible = byPrice.filter((m) => quality(m) >= 2);
-        picked = eligible.length > 0 ? eligible[0] : byPrice[0];
+        const pool = eligible.length > 0 ? eligible : byPrice;
+        const toolCapable = pool.filter((m) => m.capabilityCode);
+        picked = toolCapable.length > 0 ? toolCapable[0] : pool[0];
         break;
       }
 
       case 'complex': {
         const byQuality = [...byPrice].sort((a, b) => quality(b) - quality(a));
-        picked = byQuality[0];
+        const toolCapable = byQuality.filter((m) => m.capabilityCode);
+        picked = toolCapable.length > 0 ? toolCapable[0] : byQuality[0];
         break;
       }
 
@@ -140,10 +143,12 @@ export class TierAutoAssignService {
         const reasoningModels = byPrice.filter((m) => m.capabilityReasoning);
         if (reasoningModels.length > 0) {
           const byQuality = [...reasoningModels].sort((a, b) => quality(b) - quality(a));
-          picked = byQuality[0];
+          const toolCapable = byQuality.filter((m) => m.capabilityCode);
+          picked = toolCapable.length > 0 ? toolCapable[0] : byQuality[0];
         } else {
           const byQuality = [...byPrice].sort((a, b) => quality(b) - quality(a));
-          picked = byQuality[0];
+          const toolCapable = byQuality.filter((m) => m.capabilityCode);
+          picked = toolCapable.length > 0 ? toolCapable[0] : byQuality[0];
         }
         break;
       }

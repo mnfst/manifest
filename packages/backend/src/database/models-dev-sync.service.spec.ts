@@ -507,7 +507,7 @@ describe('ModelsDevSyncService', () => {
       expect(service.lookupModel('openai', 'image-model')).toBeNull();
     });
 
-    it('should exclude models with mixed text+image output', async () => {
+    it('should include models with mixed text+image output (includes text)', async () => {
       const response = {
         openai: {
           id: 'openai',
@@ -526,7 +526,7 @@ describe('ModelsDevSyncService', () => {
 
       await service.refreshCache();
 
-      expect(service.lookupModel('openai', 'mixed-output')).toBeNull();
+      expect(service.lookupModel('openai', 'mixed-output')).not.toBeNull();
     });
 
     it('should exclude models with audio-only input', async () => {

@@ -1911,7 +1911,7 @@ describe('ModelDiscoveryService', () => {
         inputPricePerToken: 0.003, // should NOT be used
         outputPricePerToken: 0.006,
         reasoning: true,
-        toolCall: false,
+        toolCall: true,
       });
 
       const models = [
@@ -1920,7 +1920,7 @@ describe('ModelDiscoveryService', () => {
           inputPricePerToken: 0,
           outputPricePerToken: 0,
           capabilityReasoning: false,
-          capabilityCode: true,
+          capabilityCode: false,
         }),
       ];
       fetcher.fetch.mockResolvedValue(models);
@@ -1932,7 +1932,7 @@ describe('ModelDiscoveryService', () => {
       expect(result[0].outputPricePerToken).toBe(0);
       // Capabilities updated from models.dev
       expect(result[0].capabilityReasoning).toBe(true);
-      expect(result[0].capabilityCode).toBe(false);
+      expect(result[0].capabilityCode).toBe(true);
     });
   });
 

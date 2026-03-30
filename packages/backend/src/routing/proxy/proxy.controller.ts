@@ -8,6 +8,7 @@ import { ProxyService } from './proxy.service';
 import { ProxyRateLimiter } from './proxy-rate-limiter';
 import { ProviderClient } from './provider-client';
 import { ProxyMessageRecorder } from './proxy-message-recorder';
+import { ThoughtSignatureCache } from './thought-signature-cache';
 import {
   buildMetaHeaders,
   handleProviderError,
@@ -33,6 +34,7 @@ export class ProxyController {
     private readonly rateLimiter: ProxyRateLimiter,
     private readonly providerClient: ProviderClient,
     private readonly recorder: ProxyMessageRecorder,
+    private readonly signatureCache: ThoughtSignatureCache,
   ) {}
 
   @Post('chat/completions')
@@ -112,6 +114,8 @@ export class ProxyController {
           meta,
           metaHeaders,
           this.providerClient,
+          this.signatureCache,
+          sessionKey,
         );
       }
 

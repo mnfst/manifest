@@ -116,6 +116,11 @@ export class PricingSyncService implements OnModuleInit {
     return model.name;
   }
 
+  /**
+   * Filter to models that accept text input and can produce text output.
+   * Uses "includes text" (not "text-only") so multimodal models that
+   * also produce text (e.g. GPT-4o) pass through.
+   */
   isChatCompatible(model: OpenRouterModel): boolean {
     const inputModalities = model.architecture?.input_modalities?.map((m) => m.toLowerCase());
     if (inputModalities && inputModalities.length > 0 && !inputModalities.includes('text')) {
@@ -124,7 +129,7 @@ export class PricingSyncService implements OnModuleInit {
 
     const outputModalities = model.architecture?.output_modalities?.map((m) => m.toLowerCase());
     if (outputModalities && outputModalities.length > 0) {
-      return outputModalities.every((m) => m === 'text');
+      return outputModalities.includes('text');
     }
 
     return true;

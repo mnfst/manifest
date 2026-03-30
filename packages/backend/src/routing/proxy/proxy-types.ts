@@ -1,5 +1,12 @@
 import { ProviderEndpoint } from './provider-endpoints';
 
+/**
+ * Optional lookup to re-inject cached thought_signature values that were
+ * stripped by the client. Called with a tool_call id; returns the cached
+ * signature or null.
+ */
+export type SignatureLookup = (toolCallId: string) => string | null;
+
 export interface OpenAIMessage {
   role: string;
   content?: unknown;
@@ -23,6 +30,8 @@ export interface ForwardOptions {
   extraHeaders?: Record<string, string>;
   customEndpoint?: ProviderEndpoint;
   authType?: string;
+  /** Lookup for re-injecting cached thought_signature values (Google only). */
+  signatureLookup?: SignatureLookup;
 }
 
 /** Options for ProxyService.proxyRequest. */

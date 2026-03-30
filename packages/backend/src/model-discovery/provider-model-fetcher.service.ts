@@ -66,15 +66,7 @@ const parseOpenAI = createModelParser<OpenAIModelEntry>({
   getDisplayName: (_entry, id) => id,
 });
 
-/* ── OpenAI-specific chat model filter ── */
-
-/**
- * Non-chat models returned by OpenAI's /v1/models that don't work with
- * /v1/chat/completions. Includes embeddings, TTS, image, audio, moderation,
- * legacy instruct models, and video models.
- */
-const OPENAI_NON_CHAT_RE =
-  /(?:embed|tts|whisper|dall-e|moderation|davinci|babbage|^text-|audio|realtime|-transcribe|^sora|^gpt-3\.5-turbo-instruct)/i;
+/* ── OpenAI-specific structural filters (not non-chat) ── */
 
 /** Date-suffixed snapshots returned by OpenAI (e.g. gpt-4o-mini-2024-07-18). */
 const OPENAI_DATE_SUFFIX_RE = /-\d{4}-\d{2}-\d{2}$/;
@@ -85,10 +77,8 @@ const OPENAI_DATE_SUFFIX_RE = /-\d{4}-\d{2}-\d{2}$/;
  */
 const OPENAI_RESPONSES_ONLY_RE = /(?:-codex(?!-mini-latest)|^gpt-5[^/]*-pro(?:-|$))/i;
 
-function parseOpenAIChatOnly(body: unknown, provider: string): DiscoveredModel[] {
-  const filtered = parseOpenAI(body, provider).filter(
-    (m) => !OPENAI_NON_CHAT_RE.test(m.id) && !OPENAI_RESPONSES_ONLY_RE.test(m.id),
-  );
+function parseOpenAIDeduped(body: unknown, provider: string): DiscoveredModel[] {
+  const filtered = parseOpenAI(body, provider).filter((m) => !OPENAI_RESPONSES_ONLY_RE.test(m.id));
 
   // Deduplicate: if both an alias (gpt-4o-mini) and a dated snapshot
   // (gpt-4o-mini-2024-07-18) exist, keep only the alias.
@@ -100,14 +90,39 @@ function parseOpenAIChatOnly(body: unknown, provider: string): DiscoveredModel[]
   });
 }
 
-/**
- * Non-chat Mistral models that fail with 400 on /v1/chat/completions.
- * OCR models require document input, not chat messages.
- */
-const MISTRAL_NON_CHAT_RE = /(?:^mistral-ocr|embed)/i;
+/* ── Universal non-chat model filter ── */
 
-function parseMistralChatOnly(body: unknown, provider: string): DiscoveredModel[] {
-  return parseOpenAI(body, provider).filter((m) => !MISTRAL_NON_CHAT_RE.test(m.id));
+/**
+ * Non-chat patterns common across ALL providers. Models matching these
+ * are not compatible with /v1/chat/completions and must be filtered out.
+ * Covers: embeddings, TTS, speech recognition, image generation, audio.
+ */
+export const UNIVERSAL_NON_CHAT_RE =
+  /(?:embed|tts|whisper|dall-e|imagen|cogview|wanx|sambert|paraformer|text-embedding|speech-to|voice-|audio-turbo)/i;
+
+/**
+ * Provider-specific non-chat patterns that supplement the universal filter.
+ * Keyed by the config key used in PROVIDER_CONFIGS.
+ */
+export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
+  openai:
+    /(?:moderation|davinci|babbage|^text-|realtime|-transcribe|^sora|^gpt-3\.5-turbo-instruct|audio)/i,
+  'openai-subscription': /(?:moderation|davinci|babbage|^text-|realtime|-transcribe|^sora|audio)/i,
+  gemini: /(?:^aqs-|nano-banana)/i,
+  mistral: /(?:^mistral-ocr)/i,
+};
+
+/** Filter models that are not compatible with chat completions. */
+export function filterNonChatModels(
+  models: DiscoveredModel[],
+  configKey: string,
+): DiscoveredModel[] {
+  const providerFilter = PROVIDER_NON_CHAT[configKey];
+  return models.filter((m) => {
+    if (UNIVERSAL_NON_CHAT_RE.test(m.id)) return false;
+    if (providerFilter && providerFilter.test(m.id)) return false;
+    return true;
+  });
 }
 
 function bearerHeaders(key: string): Record<string, string> {
@@ -268,7 +283,7 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
   openai: {
     endpoint: 'https://api.openai.com/v1/models',
     buildHeaders: bearerHeaders,
-    parse: parseOpenAIChatOnly,
+    parse: parseOpenAIDeduped,
   },
   'openai-subscription': {
     endpoint: 'https://chatgpt.com/backend-api/codex/models?client_version=0.99.0',
@@ -288,7 +303,7 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
   mistral: {
     endpoint: 'https://api.mistral.ai/v1/models',
     buildHeaders: bearerHeaders,
-    parse: parseMistralChatOnly,
+    parse: parseOpenAI,
   },
   moonshot: {
     endpoint: 'https://api.moonshot.ai/v1/models',
@@ -428,7 +443,7 @@ export class ProviderModelFetcherService {
       }
 
       const body = await res.json();
-      return config.parse(body, providerId);
+      return filterNonChatModels(config.parse(body, providerId), configKey);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       this.logger.warn(`Failed to fetch models from ${providerId}: ${message}`);

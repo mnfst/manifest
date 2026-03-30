@@ -246,7 +246,11 @@ export class ModelsDevSyncService implements OnModuleInit {
     };
   }
 
-  /** Filter to text-in / text-out models only (same logic as PricingSyncService). */
+  /**
+   * Filter to models that accept text input and can produce text output.
+   * Uses "includes text" (not "text-only") so multimodal models that
+   * also produce text (e.g. GPT-4o) pass through.
+   */
   private isChatCompatible(model: RawModelsDevModel): boolean {
     const inputMods = model.modalities?.input?.map((m) => m.toLowerCase());
     if (inputMods && inputMods.length > 0 && !inputMods.includes('text')) {
@@ -254,7 +258,7 @@ export class ModelsDevSyncService implements OnModuleInit {
     }
     const outputMods = model.modalities?.output?.map((m) => m.toLowerCase());
     if (outputMods && outputMods.length > 0) {
-      return outputMods.every((m) => m === 'text');
+      return outputMods.includes('text');
     }
     return true;
   }

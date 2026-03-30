@@ -7,6 +7,8 @@ import { ProxyMessageRecorder } from './proxy-message-recorder';
 import { ProviderClient } from './provider-client';
 import { initSseHeaders, pipeStream, StreamUsage } from './stream-writer';
 import { sanitizeProviderError } from './proxy-error-sanitizer';
+import type { ThoughtSignatureCache } from './thought-signature-cache';
+import type { ExtractedSignature } from './google-adapter';
 
 const logger = new Logger('ProxyResponseHandler');
 
@@ -205,12 +207,24 @@ export async function handleNonStreamResponse(
   meta: RoutingMeta,
   metaHeaders: Record<string, string>,
   providerClient: ProviderClient,
+  signatureCache?: ThoughtSignatureCache,
+  sessionKey?: string,
 ): Promise<StreamUsage | null> {
   let responseBody: unknown;
 
   if (forward.isGoogle) {
     const googleData = (await forward.response.json()) as Record<string, unknown>;
     responseBody = providerClient.convertGoogleResponse(googleData, meta.model);
+    // Cache extracted thought_signatures for re-injection on subsequent requests
+    if (signatureCache && sessionKey) {
+      const sigs = (responseBody as Record<string, unknown>)?._extractedSignatures as
+        | ExtractedSignature[]
+        | undefined;
+      if (sigs) {
+        for (const s of sigs) signatureCache.store(sessionKey, s.toolCallId, s.signature);
+        delete (responseBody as Record<string, unknown>)._extractedSignatures;
+      }
+    }
   } else if (forward.isAnthropic) {
     const anthropicData = (await forward.response.json()) as Record<string, unknown>;
     responseBody = providerClient.convertAnthropicResponse(anthropicData, meta.model);
