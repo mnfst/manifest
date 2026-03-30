@@ -79,6 +79,8 @@ describe('filterNonChatModels', () => {
       'sora-v1',
       'gpt-3.5-turbo-instruct',
       'gpt-4o-audio-preview',
+      'chatgpt-image-latest',
+      'chatgpt-image-i-20250326',
     ];
 
     it.each(openaiNonChat)('filters out "%s" for openai config key', (modelId) => {
@@ -89,6 +91,12 @@ describe('filterNonChatModels', () => {
 
     it('keeps chat models for openai', () => {
       const models = [makeModel('gpt-4o'), makeModel('gpt-4o-mini')];
+      const result = filterNonChatModels(models, 'openai');
+      expect(result).toHaveLength(2);
+    });
+
+    it('keeps search models for openai', () => {
+      const models = [makeModel('gpt-5-search-api'), makeModel('gpt-4o-search-preview')];
       const result = filterNonChatModels(models, 'openai');
       expect(result).toHaveLength(2);
     });
@@ -106,6 +114,12 @@ describe('filterNonChatModels', () => {
       const result = filterNonChatModels(models, 'openai-subscription');
       expect(result.map((m) => m.id)).toEqual(['gpt-4o']);
     });
+
+    it('filters chatgpt-image models for openai-subscription', () => {
+      const models = [makeModel('chatgpt-image-latest'), makeModel('gpt-4o')];
+      const result = filterNonChatModels(models, 'openai-subscription');
+      expect(result.map((m) => m.id)).toEqual(['gpt-4o']);
+    });
   });
 
   describe('Gemini-specific patterns', () => {
@@ -120,6 +134,40 @@ describe('filterNonChatModels', () => {
       const result = filterNonChatModels(models, 'gemini');
       expect(result.map((m) => m.id)).toEqual(['gemini-2.5-pro']);
     });
+
+    it('filters deep-research models', () => {
+      const models = [
+        makeModel('deep-research-pro-preview-12-2025'),
+        makeModel('gemini-2.5-flash'),
+      ];
+      const result = filterNonChatModels(models, 'gemini');
+      expect(result.map((m) => m.id)).toEqual(['gemini-2.5-flash']);
+    });
+
+    it('filters computer-use models', () => {
+      const models = [
+        makeModel('gemini-2.5-computer-use-preview-10-2025'),
+        makeModel('gemini-2.5-flash'),
+      ];
+      const result = filterNonChatModels(models, 'gemini');
+      expect(result.map((m) => m.id)).toEqual(['gemini-2.5-flash']);
+    });
+
+    it('filters lyria models', () => {
+      const models = [makeModel('lyria-3-clip-preview'), makeModel('gemini-2.5-pro')];
+      const result = filterNonChatModels(models, 'gemini');
+      expect(result.map((m) => m.id)).toEqual(['gemini-2.5-pro']);
+    });
+
+    it('keeps gemini-image and gemini-robotics models', () => {
+      const models = [
+        makeModel('gemini-2.5-flash-image'),
+        makeModel('gemini-3-pro-image-preview'),
+        makeModel('gemini-robotics-er-1.5-preview'),
+      ];
+      const result = filterNonChatModels(models, 'gemini');
+      expect(result).toHaveLength(3);
+    });
   });
 
   describe('Mistral-specific patterns', () => {
@@ -127,6 +175,61 @@ describe('filterNonChatModels', () => {
       const models = [makeModel('mistral-ocr'), makeModel('mistral-large-latest')];
       const result = filterNonChatModels(models, 'mistral');
       expect(result.map((m) => m.id)).toEqual(['mistral-large-latest']);
+    });
+
+    it('filters mistral-moderation models', () => {
+      const models = [
+        makeModel('mistral-moderation-latest'),
+        makeModel('mistral-moderation-2411'),
+        makeModel('mistral-large-latest'),
+      ];
+      const result = filterNonChatModels(models, 'mistral');
+      expect(result.map((m) => m.id)).toEqual(['mistral-large-latest']);
+    });
+
+    it('filters voxtral transcribe models', () => {
+      const models = [makeModel('voxtral-mini-transcribe-2507'), makeModel('mistral-large-latest')];
+      const result = filterNonChatModels(models, 'mistral');
+      expect(result.map((m) => m.id)).toEqual(['mistral-large-latest']);
+    });
+
+    it('filters voxtral realtime models', () => {
+      const models = [
+        makeModel('voxtral-mini-realtime-latest'),
+        makeModel('voxtral-mini-realtime-2602'),
+        makeModel('voxtral-mini-transcribe-realtime-2602'),
+        makeModel('mistral-large-latest'),
+      ];
+      const result = filterNonChatModels(models, 'mistral');
+      expect(result.map((m) => m.id)).toEqual(['mistral-large-latest']);
+    });
+
+    it('keeps voxtral chat models', () => {
+      const models = [makeModel('voxtral-mini-latest'), makeModel('voxtral-small-latest')];
+      const result = filterNonChatModels(models, 'mistral');
+      expect(result).toHaveLength(2);
+    });
+
+    it('keeps mistral-vibe-cli models', () => {
+      const models = [makeModel('mistral-vibe-cli-latest'), makeModel('mistral-vibe-cli-fast')];
+      const result = filterNonChatModels(models, 'mistral');
+      expect(result).toHaveLength(2);
+    });
+  });
+
+  describe('xAI-specific patterns', () => {
+    const xaiNonChat = ['grok-imagine-image', 'grok-imagine-image-pro', 'grok-imagine-video'];
+
+    it.each(xaiNonChat)('filters out "%s" for xai config key', (modelId) => {
+      const models = [makeModel(modelId), makeModel('grok-3')];
+      const result = filterNonChatModels(models, 'xai');
+      expect(result.map((m) => m.id)).toEqual(['grok-3']);
+    });
+
+    it('keeps chat models for xai', () => {
+      const models = [makeModel('grok-3'), makeModel('grok-3-mini')];
+      const result = filterNonChatModels(models, 'xai');
+      expect(result).toHaveLength(2);
     });
   });
 
@@ -145,11 +248,12 @@ describe('filterNonChatModels', () => {
   });
 
   describe('PROVIDER_NON_CHAT registry', () => {
-    it('has entries for openai, openai-subscription, gemini, and mistral', () => {
+    it('has entries for openai, openai-subscription, gemini, mistral, and xai', () => {
       expect(PROVIDER_NON_CHAT).toHaveProperty('openai');
       expect(PROVIDER_NON_CHAT).toHaveProperty('openai-subscription');
       expect(PROVIDER_NON_CHAT).toHaveProperty('gemini');
       expect(PROVIDER_NON_CHAT).toHaveProperty('mistral');
+      expect(PROVIDER_NON_CHAT).toHaveProperty('xai');
     });
   });
 });
