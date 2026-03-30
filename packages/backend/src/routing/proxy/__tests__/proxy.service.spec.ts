@@ -14,7 +14,6 @@ import { SessionMomentumService } from '../session-momentum.service';
 import { CopilotTokenService } from '../copilot-token.service';
 import { LimitCheckService } from '../../../notifications/services/limit-check.service';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
-import { shouldTriggerFallback } from '../fallback-status-codes';
 import { ThoughtSignatureCache } from '../thought-signature-cache';
 
 describe('ProxyService', () => {
@@ -2159,7 +2158,7 @@ describe('ProxyService', () => {
       expect(fallbackError.error?.message).toBe('Upstream provider request timed out');
     });
 
-    it('stops fallback chain on 424 (fallback exhausted)', async () => {
+    it('treats upstream 424 as retriable and continues fallback chain', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         model: 'gpt-4o',
@@ -2180,7 +2179,13 @@ describe('ProxyService', () => {
           isChatGpt: false,
         })
         .mockResolvedValueOnce({
-          response: new Response('exhausted', { status: 424 }),
+          response: new Response('upstream 424', { status: 424 }),
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        })
+        .mockResolvedValueOnce({
+          response: new Response('{}', { status: 200 }),
           isGoogle: false,
           isAnthropic: false,
           isChatGpt: false,
@@ -2197,9 +2202,9 @@ describe('ProxyService', () => {
         sessionKey: 'default',
       });
 
-      // Chain stopped at model-a's 424, model-b never tried
-      expect(result.forward.response.ok).toBe(false);
-      expect(providerClient.forward).toHaveBeenCalledTimes(2);
+      // model-a returned 424, model-b was tried and succeeded
+      expect(result.forward.response.ok).toBe(true);
+      expect(providerClient.forward).toHaveBeenCalledTimes(3);
       expect(result.failedFallbacks).toHaveLength(1);
       expect(result.failedFallbacks![0].status).toBe(424);
     });
@@ -2738,7 +2743,7 @@ describe('ProxyService', () => {
       });
 
       expect(result.forward.response.ok).toBe(false);
-      expect(result.forward.response.status).toBe(424);
+      expect(result.forward.response.status).toBe(500);
       expect(result.failedFallbacks).toHaveLength(1);
       expect(result.failedFallbacks![0]).toEqual({
         model: 'deepseek-chat',
@@ -2749,7 +2754,7 @@ describe('ProxyService', () => {
       });
     });
 
-    it('returns non-retriable 424 status when all fallbacks are exhausted', async () => {
+    it('preserves primary provider status when all fallbacks are exhausted', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         model: 'gpt-4o',
@@ -2792,8 +2797,8 @@ describe('ProxyService', () => {
         sessionKey: 'default',
       });
 
-      expect(result.forward.response.status).toBe(424);
-      expect(shouldTriggerFallback(result.forward.response.status)).toBe(false);
+      // Status is the primary provider's actual error (429), not a synthetic 424
+      expect(result.forward.response.status).toBe(429);
       expect(result.failedFallbacks).toHaveLength(2);
     });
   });
@@ -2823,7 +2828,7 @@ describe('ProxyService', () => {
         { tier: 'standard', fallback_models: ['claude-haiku-3.5'] },
       ] as never);
 
-      // Fallback also fails so we get 424
+      // Fallback also fails so we get the primary's 401 status
       providerKeyService.getAuthType.mockResolvedValue('api_key');
       providerClient.forward.mockResolvedValueOnce({
         response: new Response('also error', { status: 500 }),
@@ -3057,6 +3062,55 @@ describe('ProxyService', () => {
           authType: 'subscription',
         }),
       );
+    });
+
+    it('passes signatureLookup that delegates to ThoughtSignatureCache.retrieve', async () => {
+      const cache = new ThoughtSignatureCache();
+      cache.store('sess-sig', 'tc-42', 'cached-sig-value');
+
+      const svcWithCache = new ProxyService(
+        resolveService,
+        providerKeyService,
+        tierService,
+        openaiOauth,
+        minimaxOauth,
+        momentum,
+        limitCheck,
+        fallbackService,
+        configService,
+        cache,
+      );
+
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svcWithCache.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'sess-sig',
+      });
+
+      const callArgs = providerClient.forward.mock.calls[0][0] as unknown as Record<
+        string,
+        unknown
+      >;
+      const lookup = callArgs.signatureLookup as (id: string) => string | null;
+      expect(lookup('tc-42')).toBe('cached-sig-value');
+      expect(lookup('nonexistent')).toBeNull();
     });
 
     it('ignores invalid MiniMax resource URLs when forwarding subscription requests', async () => {

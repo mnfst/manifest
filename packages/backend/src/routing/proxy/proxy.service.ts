@@ -8,7 +8,7 @@ import { MinimaxOauthService } from '../oauth/minimax-oauth.service';
 import { ForwardResult } from './provider-client';
 import { SessionMomentumService } from './session-momentum.service';
 import { LimitCheckService } from '../../notifications/services/limit-check.service';
-import { FALLBACK_EXHAUSTED_STATUS, shouldTriggerFallback } from './fallback-status-codes';
+import { shouldTriggerFallback } from './fallback-status-codes';
 import { Tier, ScorerMessage } from '../../scoring/types';
 import {
   ProxyFallbackService,
@@ -159,6 +159,7 @@ export class ProxyService {
       const fallbackModels = assignment?.fallback_models;
 
       if (fallbackModels && fallbackModels.length > 0) {
+        const primaryStatus = forward.response.status;
         const primaryErrorBody = await forward.response.text();
         const { success, failures } = await this.fallbackService.tryFallbacks(
           agentId,
@@ -187,23 +188,23 @@ export class ProxyService {
               auth_type: resolved.auth_type,
               fallbackFromModel: primaryModel,
               fallbackIndex: success.fallbackIndex,
-              primaryErrorStatus: forward.response.status,
+              primaryErrorStatus: primaryStatus,
               primaryErrorBody: primaryErrorBody,
             },
             failedFallbacks: failures,
           };
         }
 
-        // All fallbacks exhausted -- return non-retriable 424 so the gateway
-        // does not retry the entire chain in an infinite loop.
+        // All fallbacks exhausted — preserve the primary provider's real
+        // HTTP status. The gateway uses the X-Manifest-Fallback-Exhausted
+        // header (set by the response handler) to detect this case.
         const safeHeaders = new Headers(forward.response.headers);
         safeHeaders.delete('content-encoding');
         safeHeaders.delete('content-length');
         safeHeaders.delete('transfer-encoding');
 
         const rebuilt = new Response(primaryErrorBody, {
-          status: FALLBACK_EXHAUSTED_STATUS,
-          statusText: 'Failed Dependency',
+          status: primaryStatus,
           headers: safeHeaders,
         });
         this.momentum.recordTier(sessionKey, resolved.tier as Tier);
