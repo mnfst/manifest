@@ -20,6 +20,7 @@ export interface PricingEntry {
   input_price_per_token: number | null;
   output_price_per_token: number | null;
   display_name: string | null;
+  context_window?: number;
   /** True if confirmed via provider-native API, false if unverified, undefined if no data. */
   validated?: boolean;
   /** Data source: models.dev (curated, native IDs) or openrouter (broad coverage). */
@@ -66,6 +67,7 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
         input_price_per_token: entry.input,
         output_price_per_token: entry.output,
         display_name: entry.displayName ?? null,
+        context_window: entry.contextWindow,
         validated: this.resolveValidated(providerId, canonical),
         source: 'openrouter',
       };
@@ -164,6 +166,7 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
           input_price_per_token: model.inputPricePerToken,
           output_price_per_token: model.outputPricePerToken,
           display_name: model.name || null,
+          context_window: model.contextWindow,
           validated: this.resolveValidatedForModelsDev(providerId, model.id),
           source: 'models.dev',
         };

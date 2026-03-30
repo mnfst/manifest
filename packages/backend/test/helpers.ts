@@ -37,6 +37,7 @@ import { ModelPricesModule } from '../src/model-prices/model-prices.module';
 import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
 import { RoutingModule } from '../src/routing/routing.module';
 import { CommonModule } from '../src/common/common.module';
+import { PublicStatsModule } from '../src/public-stats/public-stats.module';
 
 export const TEST_USER_ID = 'test-user-001';
 export const TEST_API_KEY = 'test-api-key-001';
@@ -157,6 +158,7 @@ export async function createTestApp(): Promise<INestApplication> {
         NotificationsModule,
         ModelPricesModule,
         RoutingModule,
+        PublicStatsModule,
       ],
       providers: [
         { provide: APP_GUARD, useClass: MockSessionGuard },

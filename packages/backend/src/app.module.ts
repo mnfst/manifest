@@ -23,6 +23,7 @@ import { RoutingModule } from './routing/routing.module';
 import { CommonModule } from './common/common.module';
 import { SseModule } from './sse/sse.module';
 import { GithubModule } from './github/github.module';
+import { PublicStatsModule } from './public-stats/public-stats.module';
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
 const sessionGuardClass = isLocalMode ? LocalAuthGuard : SessionGuard;
@@ -72,6 +73,7 @@ const serveStaticImports = frontendPath
     RoutingModule,
     SseModule,
     GithubModule,
+    PublicStatsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: sessionGuardClass },
