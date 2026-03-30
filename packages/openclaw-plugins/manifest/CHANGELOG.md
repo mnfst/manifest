@@ -1,5 +1,11 @@
 # manifest
 
+## 5.38.1
+
+### Patch Changes
+
+- 5b0af44: Block glm-5.1 from Z.AI model discovery (subscription-only model returns 403 on standard API)
+
 ## 5.38.0
 
 ### Minor Changes
