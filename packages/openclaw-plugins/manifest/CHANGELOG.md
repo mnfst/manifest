@@ -1,5 +1,15 @@
 # manifest
 
+## 5.37.0
+
+### Minor Changes
+
+- e931715: Store agent API keys encrypted (AES-256-GCM) so users can view them anytime via a reveal/hide toggle on the Settings page, eliminating the need to rotate keys just to copy them for OpenClaw setup
+
+### Patch Changes
+
+- 38eebf1: Update branding prefix to include peacock emoji in plugin startup logs and proxy error messages
+
 ## 5.36.4
 
 ### Patch Changes
