@@ -18,7 +18,7 @@ This is the easiest way to get started. It runs Manifest with a PostgreSQL datab
 **1. Download the compose file:**
 
 ```bash
-curl -O https://raw.githubusercontent.com/mnfst/manifest/main/docker-compose.yml
+curl -O https://raw.githubusercontent.com/mnfst/manifest/main/docker/docker-compose.yml
 ```
 
 **2. Start the services:**

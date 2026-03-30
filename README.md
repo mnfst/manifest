@@ -61,7 +61,7 @@ Dashboard opens at **http://127.0.0.1:2099**. The plugin starts an embedded serv
 Run the full Manifest stack (app + PostgreSQL) with a single command:
 
 ```bash
-curl -O https://raw.githubusercontent.com/mnfst/manifest/main/docker-compose.yml
+curl -O https://raw.githubusercontent.com/mnfst/manifest/main/docker/docker-compose.yml
 docker compose up -d
 ```
 
