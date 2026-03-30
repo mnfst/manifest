@@ -1,5 +1,23 @@
 # manifest
 
+## 5.36.0
+
+### Minor Changes
+
+- ca5fdd3: Add universal non-chat model filter, tool support filter, and thought signature cache
+  - Filter non-chat models (TTS, embedding, image-gen) across all providers at discovery time
+  - Filter models without tool calling support when models.dev confirms toolCall: false
+  - Prefer tool-capable models in tier auto-assignment for standard/complex/reasoning tiers
+  - Relax output modality check from "text-only" to "includes text" for multimodal models
+  - Add ThoughtSignatureCache to re-inject thought_signature values stripped by clients during Google Gemini round-trips
+
+### Patch Changes
+
+- 10445f2: Return friendly chat completion messages instead of raw HTTP errors on the proxy endpoint. Invalid API keys, missing provider keys, and usage limits now appear as helpful assistant messages in the user's chat instead of cryptic "HTTP 401: Unauthorized" errors.
+- 2fdc30a: Fix Agent setup tab on Settings page not rendering content when API key fetch fails
+- 7d8862f: Fix Google Gemini proxy failing with "missing thought_signature" error on newer models (e.g. Gemini 3 Flash Preview) by preserving the thought_signature field through the OpenAI-compatible format conversion round-trip.
+- f4a08d1: Fix onboarding dashboard URL to point to /agents/:name instead of /routing/:name
+
 ## 5.35.2
 
 ### Patch Changes
