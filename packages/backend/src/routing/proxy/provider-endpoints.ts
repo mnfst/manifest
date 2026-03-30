@@ -139,7 +139,12 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   },
   openrouter: {
     baseUrl: 'https://openrouter.ai',
-    buildHeaders: openaiHeaders,
+    buildHeaders: (apiKey: string) => ({
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://manifest.build',
+      'X-Title': 'Manifest',
+    }),
     buildPath: () => '/api/v1/chat/completions',
     format: 'openai',
   },
