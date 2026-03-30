@@ -177,13 +177,26 @@ export async function handleStreamResponse(
   meta: RoutingMeta,
   metaHeaders: Record<string, string>,
   providerClient: ProviderClient,
+  signatureCache?: ThoughtSignatureCache,
+  sessionKey?: string,
 ): Promise<StreamUsage | null> {
   initSseHeaders(res, metaHeaders);
 
   if (forward.isGoogle) {
-    return pipeStream(forward.response.body!, res, (chunk) =>
-      providerClient.convertGoogleStreamChunk(chunk, meta.model),
-    );
+    return pipeStream(forward.response.body!, res, (chunk) => {
+      const result = providerClient.convertGoogleStreamChunk(chunk, meta.model);
+      // Cache thought_signatures from streamed tool calls
+      if (signatureCache && sessionKey && result) {
+        const sigRe = /"thought_signature"\s*:\s*"([^"]+)"/g;
+        const idRe = /"id"\s*:\s*"([^"]+)"/g;
+        const ids = [...result.matchAll(idRe)].map((m) => m[1]);
+        const sigs = [...result.matchAll(sigRe)].map((m) => m[1]);
+        for (let i = 0; i < Math.min(ids.length, sigs.length); i++) {
+          signatureCache.store(sessionKey, ids[i], sigs[i]);
+        }
+      }
+      return result;
+    });
   }
   if (forward.isAnthropic) {
     return pipeStream(

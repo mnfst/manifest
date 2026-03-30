@@ -168,6 +168,7 @@ export class ProxyService {
           signal,
           resolved.provider ?? undefined,
           resolved.auth_type,
+          signatureLookup,
         );
 
         if (success) {

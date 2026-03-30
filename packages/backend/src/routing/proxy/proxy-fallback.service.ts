@@ -61,6 +61,7 @@ export class ProxyFallbackService {
     signal?: AbortSignal,
     primaryProvider?: string,
     primaryAuthType?: string,
+    signatureLookup?: SignatureLookup,
   ): Promise<{
     success: {
       forward: ForwardResult;
@@ -143,6 +144,7 @@ export class ProxyFallbackService {
         authType,
         resourceUrl: resolvedCredentials.resourceUrl,
         providerRegion,
+        signatureLookup,
       });
 
       if (forward.response.ok) {

@@ -106,6 +106,8 @@ export class ProxyController {
           meta,
           metaHeaders,
           this.providerClient,
+          this.signatureCache,
+          sessionKey,
         );
       } else {
         streamUsage = await handleNonStreamResponse(
