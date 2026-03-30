@@ -1,5 +1,13 @@
 # manifest
 
+## 5.36.2
+
+### Patch Changes
+
+- 6d635ce: Probe Anthropic subscription token access at discovery time to filter out inaccessible model families. Separate model lists by auth type so subscription and API key tabs show independent results.
+- a703d0d: Expand non-chat model filter to catch additional provider-specific models that fail on chat completions: Mistral moderation/transcribe/realtime models, xAI image/video generation models, Gemini deep-research/computer-use/lyria models, and OpenAI chatgpt-image models.
+- 315a08b: fix: prevent OpenRouter colon-variant models from being mis-grouped under Ollama and ensure all Ollama models appear in the routing model picker
+
 ## 5.36.1
 
 ### Patch Changes
