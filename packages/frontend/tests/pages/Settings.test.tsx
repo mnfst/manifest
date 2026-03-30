@@ -169,7 +169,14 @@ describe("Settings", () => {
     expect(saveBtn.disabled).toBe(false);
   });
 
-  it("clicking Save calls renameAgent API then shows Saved", async () => {
+  it("clicking Save calls renameAgent API then reloads to new slug", async () => {
+    const replaceFn = vi.fn();
+    const originalLocation = window.location;
+    Object.defineProperty(window, 'location', {
+      value: { ...originalLocation, replace: replaceFn },
+      writable: true,
+      configurable: true,
+    });
     const { container } = render(() => <Settings />);
     const input = screen.getByLabelText("Agent name") as HTMLInputElement;
     fireEvent.input(input, { target: { value: "new-name" } });
@@ -184,7 +191,12 @@ describe("Settings", () => {
       expect(mockMarkAgentCreated).toHaveBeenCalledWith("new-name");
     });
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Saved");
+      expect(replaceFn).toHaveBeenCalledWith("/agents/new-name/settings");
+    });
+    Object.defineProperty(window, 'location', {
+      value: originalLocation,
+      writable: true,
+      configurable: true,
     });
   });
 
