@@ -193,13 +193,18 @@ describe('ProviderModelFetcherService', () => {
             { id: 'gpt-5.4-pro' },
             { id: 'gpt-5.3-codex' },
             { id: 'codex-mini-latest' },
+            { id: 'gpt-image-1' },
+            { id: 'gpt-image-1-mini' },
+            { id: 'gpt-image-1.5' },
+            { id: 'o1-pro' },
+            { id: 'o4-mini-deep-research' },
             { id: 'o3' },
           ],
         }),
       });
 
       const result = await service.fetch('openai', 'sk-test');
-      // chat-latest, codex-mini-latest, and o3 should pass; codex and pro should be filtered
+      // chat-latest, codex-mini-latest, and o3 should pass; codex, pro, image, and deep-research filtered
       expect(result.map((m) => m.id)).toEqual(['gpt-5-chat-latest', 'codex-mini-latest', 'o3']);
     });
 
