@@ -6,6 +6,7 @@ import {
   toAnthropicRequest,
   toResponsesRequest,
   sanitizeOpenAiBody,
+  collectChatGptSseResponse as chatGptSseCollector,
   convertChatGptResponse as chatGptResponseConverter,
   convertChatGptStreamChunk as chatGptStreamChunkConverter,
   convertGoogleResponse as googleResponseConverter,
@@ -174,5 +175,10 @@ export class ProviderClient {
   /** Create a stateful Anthropic stream transformer that tracks usage across events. */
   createAnthropicStreamTransformer(model: string): (chunk: string) => string | null {
     return createAnthropicTransformer(model);
+  }
+
+  /** Collect a ChatGPT SSE stream into a non-streaming OpenAI response. */
+  collectChatGptSseResponse(sseText: string, model: string): Record<string, unknown> {
+    return chatGptSseCollector(sseText, model);
   }
 }

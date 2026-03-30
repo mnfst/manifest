@@ -242,8 +242,10 @@ export async function handleNonStreamResponse(
     const anthropicData = (await forward.response.json()) as Record<string, unknown>;
     responseBody = providerClient.convertAnthropicResponse(anthropicData, meta.model);
   } else if (forward.isChatGpt) {
-    const chatgptData = (await forward.response.json()) as Record<string, unknown>;
-    responseBody = providerClient.convertChatGptResponse(chatgptData, meta.model);
+    // The Codex Responses API always returns SSE even when stream: false.
+    // Consume the SSE text and build a non-streaming response.
+    const sseText = await forward.response.text();
+    responseBody = providerClient.collectChatGptSseResponse(sseText, meta.model);
   } else {
     responseBody = await forward.response.json();
   }
