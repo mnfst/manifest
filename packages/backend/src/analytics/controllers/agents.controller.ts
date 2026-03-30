@@ -86,10 +86,11 @@ export class AgentsController {
     const keyData = await this.apiKeyGenerator.getKeyForAgent(user.id, agentName);
     const customEndpoint = this.config.get<string>('app.pluginOtlpEndpoint', '');
     const isLocal = this.config.get<string>('MANIFEST_MODE') === 'local';
-    const fullKey = isLocal && agentName === LOCAL_AGENT_NAME ? readLocalApiKey() : undefined;
+    const localKey = isLocal && agentName === LOCAL_AGENT_NAME ? readLocalApiKey() : undefined;
+    const apiKey = localKey ?? keyData.fullKey ?? undefined;
     return {
-      ...keyData,
-      ...(fullKey ? { apiKey: fullKey } : {}),
+      keyPrefix: keyData.keyPrefix,
+      ...(apiKey ? { apiKey } : {}),
       ...(customEndpoint ? { pluginEndpoint: customEndpoint } : {}),
     };
   }

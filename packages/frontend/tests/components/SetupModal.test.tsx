@@ -21,7 +21,7 @@ vi.mock("../../src/components/SetupStepAddProvider.jsx", () => ({
 
 vi.mock("../../src/components/ErrorState.jsx", () => ({
   default: (props: any) => (
-    <div data-testid="error-state">
+    <div data-testid="error-state" data-error={String(props.error ?? "")}>
       {props.title}
       <button data-testid="retry-btn" onClick={() => props.onRetry?.()}>Retry</button>
     </div>
@@ -188,7 +188,9 @@ describe("SetupModal", () => {
       <SetupModal open={true} agentName="fail-agent" onClose={onClose} />
     ));
     await vi.waitFor(() => {
-      expect(container.querySelector('[data-testid="error-state"]')).not.toBeNull();
+      const errorEl = container.querySelector('[data-testid="error-state"]');
+      expect(errorEl).not.toBeNull();
+      expect(errorEl!.textContent).toContain("Could not load API key");
     });
   });
 
@@ -202,6 +204,23 @@ describe("SetupModal", () => {
       const step = container.querySelector('[data-testid="step-add-provider"]');
       expect(step).not.toBeNull();
       expect(step!.getAttribute("data-key")).toBe("mnfst_provided");
+    });
+  });
+
+  it("falls back to apiKeyData apiKey when props.apiKey is not provided", async () => {
+    const { getAgentKey } = await import("../../src/services/api.js");
+    (getAgentKey as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      keyPrefix: "mnfst_abc",
+      apiKey: "mnfst_fetched_key",
+      pluginEndpoint: null,
+    });
+    const { container } = render(() => (
+      <SetupModal open={true} agentName="test-agent" onClose={onClose} />
+    ));
+    await vi.waitFor(() => {
+      const step = container.querySelector('[data-testid="step-add-provider"]');
+      expect(step).not.toBeNull();
+      expect(step!.getAttribute("data-key")).toBe("mnfst_fetched_key");
     });
   });
 });

@@ -413,6 +413,19 @@
   transform: none;
 }
 
+.setup-method__actions {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.setup-method__actions .modal-terminal__copy {
+  position: static;
+}
+
 .dark .setup-method__code {
   background: hsl(222 47% 6%);
   color: hsl(178 75% 50%);

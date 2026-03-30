@@ -7,6 +7,7 @@ import { Tenant } from '../../entities/tenant.entity';
 import { Agent } from '../../entities/agent.entity';
 import { AgentApiKey } from '../../entities/agent-api-key.entity';
 import { hashKey, keyPrefix } from '../../common/utils/hash.util';
+import { encrypt, decrypt, getEncryptionSecret } from '../../common/utils/crypto.util';
 import { API_KEY_PREFIX } from '../../common/constants/api-key.constants';
 import { AgentKeyAuthGuard } from '../guards/agent-key-auth.guard';
 
@@ -66,7 +67,7 @@ export class ApiKeyGeneratorService {
     const keyId = uuidv4();
     await this.keyRepo.insert({
       id: keyId,
-      key: null,
+      key: encrypt(rawKey, getEncryptionSecret()),
       key_hash: hashKey(rawKey),
       key_prefix: keyPrefix(rawKey),
       label: `${params.agentName} ingest key`,
@@ -78,7 +79,10 @@ export class ApiKeyGeneratorService {
     return { tenantId, agentId, apiKey: rawKey };
   }
 
-  async getKeyForAgent(userId: string, agentName: string): Promise<{ keyPrefix: string }> {
+  async getKeyForAgent(
+    userId: string,
+    agentName: string,
+  ): Promise<{ keyPrefix: string; fullKey?: string }> {
     const keyRecord = await this.keyRepo
       .createQueryBuilder('k')
       .leftJoin('k.agent', 'a')
@@ -91,6 +95,16 @@ export class ApiKeyGeneratorService {
     if (!keyRecord) {
       throw new NotFoundException('No active API key found for this agent');
     }
+
+    if (keyRecord.key) {
+      try {
+        const fullKey = decrypt(keyRecord.key, getEncryptionSecret());
+        return { keyPrefix: keyRecord.key_prefix, fullKey };
+      } catch {
+        return { keyPrefix: keyRecord.key_prefix };
+      }
+    }
+
     return { keyPrefix: keyRecord.key_prefix };
   }
 
@@ -110,7 +124,7 @@ export class ApiKeyGeneratorService {
     const keyId = uuidv4();
     await this.keyRepo.insert({
       id: keyId,
-      key: null,
+      key: encrypt(rawKey, getEncryptionSecret()),
       key_hash: hashKey(rawKey),
       key_prefix: keyPrefix(rawKey),
       label: `${agent.name} ingest key (rotated)`,

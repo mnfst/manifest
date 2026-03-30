@@ -1,9 +1,9 @@
 import { Meta, Title } from '@solidjs/meta';
 import { useLocation, useNavigate, useParams } from '@solidjs/router';
 import { createResource, createSignal, ErrorBoundary, For, Show, type Component } from 'solid-js';
+import CopyButton from '../components/CopyButton.jsx';
 import ErrorState from '../components/ErrorState.jsx';
 import SetupStepAddProvider from '../components/SetupStepAddProvider.jsx';
-import { CopyButton } from '../components/SetupStepInstall.jsx';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import {
   deleteAgent,
@@ -41,7 +41,14 @@ const Settings: Component = () => {
   const [routingStatus] = createResource(() => agentName(), getRoutingStatus);
   const routingEnabled = () => routingStatus()?.enabled ?? false;
 
+  const [keyRevealed, setKeyRevealed] = createSignal(false);
   const keyData = () => (apiKeyData.error ? undefined : apiKeyData());
+  const fullKey = () => rotatedKey() ?? keyData()?.apiKey ?? null;
+  const displayedKey = () => {
+    const key = fullKey();
+    if (!key) return `${keyData()?.keyPrefix ?? '...'}...`;
+    return keyRevealed() ? key : `${keyData()?.keyPrefix ?? '...'}...`;
+  };
 
   const baseUrl = () => {
     const custom = keyData()?.pluginEndpoint;
@@ -72,6 +79,7 @@ const Settings: Component = () => {
     try {
       const result = await rotateAgentKey(agentName());
       setRotatedKey(result.apiKey);
+      setKeyRevealed(true);
       toast.success('API key rotated successfully');
       refetchKey();
     } catch {
@@ -203,48 +211,74 @@ const Settings: Component = () => {
           <h3 class="settings-section__title">API Key</h3>
 
           <div class="settings-card">
-            <div class="settings-card__row">
-              <div class="settings-card__label">
-                <span class="settings-card__label-title">Agent API key</span>
-                <span class="settings-card__label-desc">
-                  This key authenticates your agent's requests to Manifest. Rotating it generates a
-                  new key and immediately invalidates the current one.
-                </span>
-              </div>
-              <div
-                class="settings-card__control"
-                style="display: flex; align-items: center; gap: 8px;"
-              >
-                <code style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
-                  {keyData()?.keyPrefix ?? '...'}...
-                </code>
-                <button
-                  class="btn btn--outline btn--sm"
-                  onClick={handleRotate}
-                  disabled={rotating()}
-                >
-                  {rotating() ? (
-                    <>
-                      <span class="spinner" />
-                      <span class="sr-only">Rotating…</span>
-                    </>
-                  ) : (
-                    'Rotate key'
-                  )}
-                </button>
+            <div class="settings-card__body">
+              <span class="settings-card__label-title">Agent API key</span>
+              <span class="settings-card__label-desc">
+                This key authenticates your agent's requests to Manifest. Rotating it generates a
+                new key and immediately invalidates the current one.
+              </span>
+
+              <div class="settings-card__key-row">
+                <code class="settings-card__key-value">{displayedKey()}</code>
+
+                <div class="settings-card__key-actions">
+                  <Show when={fullKey()}>
+                    <button
+                      class="btn btn--ghost btn--sm"
+                      onClick={() => setKeyRevealed(!keyRevealed())}
+                      aria-label={keyRevealed() ? 'Hide API key' : 'Reveal API key'}
+                      title={keyRevealed() ? 'Hide' : 'Reveal'}
+                    >
+                      {keyRevealed() ? (
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" />
+                          <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" />
+                          <path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143" />
+                          <path d="m2 2 20 20" />
+                        </svg>
+                      ) : (
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      )}
+                    </button>
+                  </Show>
+                  <CopyButton text={fullKey() ?? `${keyData()?.keyPrefix ?? '...'}...`} />
+                </div>
               </div>
             </div>
-            <Show when={rotatedKey()}>
-              <div style="padding: 0 var(--gap-md) var(--gap-md); margin-top: var(--gap-md);">
-                <div style="background: hsl(var(--chart-5) / 0.1); border: 1px solid hsl(var(--chart-5) / 0.3); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 12px; font-size: var(--font-size-sm); color: hsl(var(--foreground));">
-                  Save your API key. You won't see it again after closing this dialog.
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px; background: hsl(var(--muted)); border-radius: var(--radius); padding: 10px 14px; font-family: var(--font-mono); font-size: var(--font-size-sm); word-break: break-all;">
-                  {rotatedKey()}
-                  <CopyButton text={rotatedKey()!} />
-                </div>
-              </div>
-            </Show>
+
+            <div class="settings-card__footer">
+              <button class="btn btn--outline btn--sm" onClick={handleRotate} disabled={rotating()}>
+                {rotating() ? (
+                  <>
+                    <span class="spinner" />
+                    <span class="sr-only">Rotating…</span>
+                  </>
+                ) : (
+                  'Rotate key'
+                )}
+              </button>
+            </div>
           </div>
 
           <h3 class="settings-section__title">Setup</h3>
@@ -265,7 +299,7 @@ const Settings: Component = () => {
             </Show>
             <div class="settings-card" style="padding: var(--gap-lg);">
               <SetupStepAddProvider
-                apiKey={rotatedKey() ?? null}
+                apiKey={rotatedKey() ?? keyData()?.apiKey ?? null}
                 keyPrefix={keyData()?.keyPrefix ?? null}
                 baseUrl={baseUrl()}
                 hideFullKey
