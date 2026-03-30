@@ -262,7 +262,9 @@ const Settings: Component = () => {
                       )}
                     </button>
                   </Show>
-                  <CopyButton text={fullKey() ?? `${keyData()?.keyPrefix ?? '...'}...`} />
+                  <Show when={fullKey()}>
+                    <CopyButton text={fullKey()!} />
+                  </Show>
                 </div>
               </div>
             </div>

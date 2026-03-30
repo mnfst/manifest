@@ -27,10 +27,11 @@ describe('WidenApiKeyColumn1774896789000', () => {
     expect(queries[0]).toContain('character varying(255)');
   });
 
-  it('reverts key column to varchar(64)', async () => {
+  it('reverts key column to varchar(64) with USING truncation', async () => {
     await migration.down(mockQueryRunner);
     expect(queries).toHaveLength(1);
     expect(queries[0]).toContain('agent_api_keys');
     expect(queries[0]).toContain('character varying(64)');
+    expect(queries[0]).toContain('USING left');
   });
 });

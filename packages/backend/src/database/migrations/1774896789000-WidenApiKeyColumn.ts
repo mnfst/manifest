@@ -11,7 +11,7 @@ export class WidenApiKeyColumn1774896789000 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE "agent_api_keys" ALTER COLUMN "key" TYPE character varying(64)`,
+      `ALTER TABLE "agent_api_keys" ALTER COLUMN "key" TYPE character varying(64) USING left("key", 64)`,
     );
   }
 }
