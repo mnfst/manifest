@@ -1,16 +1,16 @@
 import { Controller, Get, Logger } from '@nestjs/common';
 import { Public } from '../common/decorators/public.decorator';
 import { PUBLIC_STATS_CACHE_TTL_MS } from '../common/constants/cache.constants';
-import { PublicStatsService, UsageStats, CatalogModel } from './public-stats.service';
+import { PublicStatsService, TopModel, FreeModel } from './public-stats.service';
 
 interface StatsResponse {
   total_messages: number;
-  top_models: { model: string; usage_count: number }[];
+  top_models: TopModel[];
   cached_at: string;
 }
 
 interface CatalogResponse {
-  models: CatalogModel[];
+  models: FreeModel[];
   total_models: number;
   cached_at: string;
 }
@@ -63,7 +63,7 @@ export class PublicStatsController {
 
   private async refreshStats(): Promise<StatsResponse> {
     try {
-      const stats: UsageStats = await this.service.getUsageStats();
+      const stats = await this.service.getUsageStats();
       cachedStats = {
         total_messages: stats.total_messages,
         top_models: stats.top_models,
@@ -83,8 +83,7 @@ export class PublicStatsController {
   private async refreshCatalog(): Promise<CatalogResponse> {
     try {
       const stats = await this.service.getUsageStats();
-      const rankMap = this.service.buildRankMap(stats.top_models);
-      const models = this.service.getModelCatalog(rankMap);
+      const models = this.service.getFreeModels(stats.token_map);
       cachedCatalog = {
         models,
         total_models: models.length,

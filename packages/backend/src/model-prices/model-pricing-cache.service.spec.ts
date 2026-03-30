@@ -3,8 +3,8 @@ import { PricingSyncService, OpenRouterPricingEntry } from '../database/pricing-
 import { ModelsDevSyncService } from '../database/models-dev-sync.service';
 import { ProviderModelRegistryService } from '../model-discovery/provider-model-registry.service';
 
-function makeEntry(input: number, output: number, contextWindow?: number): OpenRouterPricingEntry {
-  return { input, output, contextWindow };
+function makeEntry(input: number, output: number): OpenRouterPricingEntry {
+  return { input, output };
 }
 
 function makeMockRegistry() {
@@ -123,28 +123,6 @@ describe('ModelPricingCacheService', () => {
       expect(entry).toBeDefined();
       expect(entry!.provider).toBe('OpenRouter');
       expect(entry!.model_name).toBe('some-model');
-    });
-
-    it('should propagate context_window from OpenRouter data', async () => {
-      const orMap = new Map<string, OpenRouterPricingEntry>([
-        ['openai/gpt-4o', makeEntry(0.0000025, 0.00001, 128000)],
-      ]);
-      mockGetAll.mockReturnValue(orMap);
-      await service.reload();
-
-      const entry = service.getByModel('openai/gpt-4o');
-      expect(entry!.context_window).toBe(128000);
-    });
-
-    it('should leave context_window undefined when not provided', async () => {
-      const orMap = new Map<string, OpenRouterPricingEntry>([
-        ['openai/gpt-4o', makeEntry(0.0000025, 0.00001)],
-      ]);
-      mockGetAll.mockReturnValue(orMap);
-      await service.reload();
-
-      const entry = service.getByModel('openai/gpt-4o');
-      expect(entry!.context_window).toBeUndefined();
     });
 
     it('should return empty when no OpenRouter data available', async () => {
@@ -615,30 +593,6 @@ describe('ModelPricingCacheService', () => {
       expect(entry).toBeDefined();
       expect(entry!.provider).toBe('GitHub Copilot');
       expect(entry!.input_price_per_token).toBe(0);
-    });
-
-    it('should propagate context_window from models.dev entries', async () => {
-      mockGetAll.mockReturnValue(new Map());
-      mockModelsDevSync.getModelsForProvider.mockImplementation((providerId: string) => {
-        if (providerId === 'openai') {
-          return [
-            {
-              id: 'gpt-4o',
-              name: 'GPT-4o',
-              contextWindow: 128000,
-              inputPricePerToken: 0.0000025,
-              outputPricePerToken: 0.00001,
-            },
-          ];
-        }
-        return [];
-      });
-
-      await service.reload();
-
-      const entry = service.getByModel('gpt-4o');
-      expect(entry).toBeDefined();
-      expect(entry!.context_window).toBe(128000);
     });
 
     it('should resolve false for unconfirmed models.dev entries', async () => {

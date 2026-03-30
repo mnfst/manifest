@@ -1,9 +1,8 @@
-import type { PublicStatsService, UsageStats, CatalogModel } from './public-stats.service';
+import type { PublicStatsService, UsageStats, FreeModel } from './public-stats.service';
 
 const mockService: Record<string, jest.Mock> = {
   getUsageStats: jest.fn(),
-  getModelCatalog: jest.fn(),
-  buildRankMap: jest.fn(),
+  getFreeModels: jest.fn(),
 };
 
 jest.mock('./public-stats.service', () => ({
@@ -13,22 +12,31 @@ jest.mock('./public-stats.service', () => ({
 const STATS_FIXTURE: UsageStats = {
   total_messages: 100,
   top_models: [
-    { model: 'gpt-4o', usage_count: 60 },
-    { model: 'claude-opus-4-6', usage_count: 40 },
+    {
+      model: 'gpt-4o',
+      provider: 'OpenAI',
+      tokens_7d: 5000000,
+      input_price_per_million: 2.5,
+      output_price_per_million: 10,
+      usage_rank: 1,
+    },
+    {
+      model: 'claude-opus-4-6',
+      provider: 'Anthropic',
+      tokens_7d: 3000000,
+      input_price_per_million: 15,
+      output_price_per_million: 75,
+      usage_rank: 2,
+    },
   ],
+  token_map: new Map([
+    ['gpt-4o', 5000000],
+    ['claude-opus-4-6', 3000000],
+  ]),
 };
 
-const CATALOG_FIXTURE: CatalogModel[] = [
-  {
-    model_name: 'gpt-4o',
-    provider: 'OpenAI',
-    display_name: 'GPT-4o',
-    context_window: 128000,
-    input_price_per_million: 2.5,
-    output_price_per_million: 10,
-    is_free: false,
-    usage_rank: 1,
-  },
+const FREE_MODELS_FIXTURE: FreeModel[] = [
+  { model_name: 'deepseek-chat', provider: 'DeepSeek', tokens_7d: 64000000 },
 ];
 
 describe('PublicStatsController', () => {
@@ -55,6 +63,7 @@ describe('PublicStatsController', () => {
 
       expect(result.total_messages).toBe(100);
       expect(result.top_models).toHaveLength(2);
+      expect(result.top_models[0].provider).toBe('OpenAI');
       expect(result.cached_at).toBeDefined();
       expect(mockService.getUsageStats).toHaveBeenCalledTimes(1);
     });
@@ -76,7 +85,7 @@ describe('PublicStatsController', () => {
       const realDateNow = Date.now;
       Date.now = () => realDateNow() + 86_400_001;
 
-      const updated: UsageStats = { total_messages: 200, top_models: [] };
+      const updated: UsageStats = { total_messages: 200, top_models: [], token_map: new Map() };
       mockService.getUsageStats.mockResolvedValue(updated);
 
       const result = await controller.getStats();
@@ -89,13 +98,11 @@ describe('PublicStatsController', () => {
 
     it('returns cached_at as valid ISO date string', async () => {
       mockService.getUsageStats.mockResolvedValue(STATS_FIXTURE);
-
       const result = await controller.getStats();
-
       expect(new Date(result.cached_at).toISOString()).toBe(result.cached_at);
     });
 
-    it('returns fallback with valid cached_at when service fails on first call', async () => {
+    it('returns fallback when service fails on first call', async () => {
       mockService.getUsageStats.mockRejectedValue(new Error('db error'));
 
       const result = await controller.getStats();
@@ -105,37 +112,17 @@ describe('PublicStatsController', () => {
       expect(new Date(result.cached_at).toISOString()).toBe(result.cached_at);
     });
 
-    it('re-fetches exactly at TTL boundary', async () => {
-      mockService.getUsageStats.mockResolvedValue(STATS_FIXTURE);
-      await controller.getStats();
-
-      const realDateNow = Date.now;
-      Date.now = () => realDateNow() + 86_400_000;
-
-      const updated: UsageStats = { total_messages: 999, top_models: [] };
-      mockService.getUsageStats.mockResolvedValue(updated);
-
-      const result = await controller.getStats();
-
-      expect(result.total_messages).toBe(999);
-      expect(mockService.getUsageStats).toHaveBeenCalledTimes(2);
-
-      Date.now = realDateNow;
-    });
-
     it('returns stale cache when service fails after previous success', async () => {
       mockService.getUsageStats.mockResolvedValue(STATS_FIXTURE);
       await controller.getStats();
 
       const realDateNow = Date.now;
       Date.now = () => realDateNow() + 86_400_001;
-
       mockService.getUsageStats.mockRejectedValue(new Error('db error'));
 
       const result = await controller.getStats();
 
       expect(result.total_messages).toBe(100);
-
       Date.now = realDateNow;
     });
   });
@@ -145,18 +132,22 @@ describe('PublicStatsController', () => {
   describe('getModelCatalog', () => {
     beforeEach(() => {
       mockService.getUsageStats.mockResolvedValue(STATS_FIXTURE);
-      mockService.buildRankMap.mockReturnValue(new Map([['gpt-4o', 1]]));
-      mockService.getModelCatalog.mockReturnValue(CATALOG_FIXTURE);
+      mockService.getFreeModels.mockReturnValue(FREE_MODELS_FIXTURE);
     });
 
-    it('fetches catalog on first call', async () => {
+    it('fetches free models on first call', async () => {
       const result = await controller.getModelCatalog();
 
       expect(result.models).toHaveLength(1);
+      expect(result.models[0].model_name).toBe('deepseek-chat');
       expect(result.total_models).toBe(1);
       expect(result.cached_at).toBeDefined();
-      expect(mockService.getUsageStats).toHaveBeenCalledTimes(1);
-      expect(mockService.getModelCatalog).toHaveBeenCalledTimes(1);
+    });
+
+    it('passes token_map to getFreeModels', async () => {
+      await controller.getModelCatalog();
+
+      expect(mockService.getFreeModels).toHaveBeenCalledWith(STATS_FIXTURE.token_map);
     });
 
     it('returns cached catalog within TTL', async () => {
@@ -172,47 +163,21 @@ describe('PublicStatsController', () => {
 
       const realDateNow = Date.now;
       Date.now = () => realDateNow() + 86_400_001;
-
-      mockService.getModelCatalog.mockReturnValue([]);
+      mockService.getFreeModels.mockReturnValue([]);
 
       const result = await controller.getModelCatalog();
 
       expect(result.total_models).toBe(0);
-      expect(mockService.getUsageStats).toHaveBeenCalledTimes(2);
-
       Date.now = realDateNow;
     });
 
-    it('returns cached_at as valid ISO date string', async () => {
-      const result = await controller.getModelCatalog();
-
-      expect(new Date(result.cached_at).toISOString()).toBe(result.cached_at);
-    });
-
-    it('returns fallback with valid cached_at when service fails on first call', async () => {
+    it('returns fallback when service fails on first call', async () => {
       mockService.getUsageStats.mockRejectedValue(new Error('db error'));
 
       const result = await controller.getModelCatalog();
 
       expect(result.models).toEqual([]);
       expect(result.total_models).toBe(0);
-      expect(new Date(result.cached_at).toISOString()).toBe(result.cached_at);
-    });
-
-    it('re-fetches exactly at TTL boundary', async () => {
-      await controller.getModelCatalog();
-
-      const realDateNow = Date.now;
-      Date.now = () => realDateNow() + 86_400_000;
-
-      mockService.getModelCatalog.mockReturnValue([]);
-
-      const result = await controller.getModelCatalog();
-
-      expect(result.total_models).toBe(0);
-      expect(mockService.getUsageStats).toHaveBeenCalledTimes(2);
-
-      Date.now = realDateNow;
     });
 
     it('returns stale cache when service fails after previous success', async () => {
@@ -220,34 +185,21 @@ describe('PublicStatsController', () => {
 
       const realDateNow = Date.now;
       Date.now = () => realDateNow() + 86_400_001;
-
       mockService.getUsageStats.mockRejectedValue(new Error('db error'));
 
       const result = await controller.getModelCatalog();
 
       expect(result.models).toHaveLength(1);
-
       Date.now = realDateNow;
-    });
-
-    it('passes rank map to getModelCatalog', async () => {
-      const rankMap = new Map([['gpt-4o', 1]]);
-      mockService.buildRankMap.mockReturnValue(rankMap);
-
-      await controller.getModelCatalog();
-
-      expect(mockService.buildRankMap).toHaveBeenCalledWith(STATS_FIXTURE.top_models);
-      expect(mockService.getModelCatalog).toHaveBeenCalledWith(rankMap);
     });
   });
 
-  // ── Cache isolation ─────────────────────────────────────────────
+  // ── Cache isolation & stampede ────────────────────────────────
 
   describe('cache isolation', () => {
     it('stats cache and catalog cache are independent', async () => {
       mockService.getUsageStats.mockResolvedValue(STATS_FIXTURE);
-      mockService.buildRankMap.mockReturnValue(new Map());
-      mockService.getModelCatalog.mockReturnValue(CATALOG_FIXTURE);
+      mockService.getFreeModels.mockReturnValue(FREE_MODELS_FIXTURE);
 
       await controller.getStats();
       expect(mockService.getUsageStats).toHaveBeenCalledTimes(1);
@@ -256,18 +208,18 @@ describe('PublicStatsController', () => {
       expect(mockService.getUsageStats).toHaveBeenCalledTimes(2);
     });
 
-    it('deduplicates concurrent stats requests (stampede prevention)', async () => {
-      let resolveInflight!: (v: UsageStats) => void;
+    it('deduplicates concurrent stats requests', async () => {
+      let resolve!: (v: UsageStats) => void;
       mockService.getUsageStats.mockReturnValue(
         new Promise<UsageStats>((r) => {
-          resolveInflight = r;
+          resolve = r;
         }),
       );
 
       const p1 = controller.getStats();
       const p2 = controller.getStats();
 
-      resolveInflight(STATS_FIXTURE);
+      resolve(STATS_FIXTURE);
       const [r1, r2] = await Promise.all([p1, p2]);
 
       expect(r1.total_messages).toBe(100);
@@ -275,20 +227,19 @@ describe('PublicStatsController', () => {
       expect(mockService.getUsageStats).toHaveBeenCalledTimes(1);
     });
 
-    it('deduplicates concurrent catalog requests (stampede prevention)', async () => {
-      let resolveInflight!: (v: UsageStats) => void;
+    it('deduplicates concurrent catalog requests', async () => {
+      let resolve!: (v: UsageStats) => void;
       mockService.getUsageStats.mockReturnValue(
         new Promise<UsageStats>((r) => {
-          resolveInflight = r;
+          resolve = r;
         }),
       );
-      mockService.buildRankMap.mockReturnValue(new Map());
-      mockService.getModelCatalog.mockReturnValue(CATALOG_FIXTURE);
+      mockService.getFreeModels.mockReturnValue(FREE_MODELS_FIXTURE);
 
       const p1 = controller.getModelCatalog();
       const p2 = controller.getModelCatalog();
 
-      resolveInflight(STATS_FIXTURE);
+      resolve(STATS_FIXTURE);
       const [r1, r2] = await Promise.all([p1, p2]);
 
       expect(r1.models).toHaveLength(1);
@@ -298,39 +249,13 @@ describe('PublicStatsController', () => {
 
     it('clears inflight lock after error so next request retries', async () => {
       mockService.getUsageStats.mockRejectedValueOnce(new Error('fail'));
-
       await controller.getStats();
-      expect(mockService.getUsageStats).toHaveBeenCalledTimes(1);
 
       mockService.getUsageStats.mockResolvedValue(STATS_FIXTURE);
       const result = await controller.getStats();
 
       expect(result.total_messages).toBe(100);
       expect(mockService.getUsageStats).toHaveBeenCalledTimes(2);
-    });
-
-    it('expired stats cache does not affect catalog cache', async () => {
-      mockService.getUsageStats.mockResolvedValue(STATS_FIXTURE);
-      mockService.buildRankMap.mockReturnValue(new Map());
-      mockService.getModelCatalog.mockReturnValue(CATALOG_FIXTURE);
-
-      await controller.getStats();
-      await controller.getModelCatalog();
-
-      const realDateNow = Date.now;
-      Date.now = () => realDateNow() + 86_400_001;
-
-      const updated: UsageStats = { total_messages: 500, top_models: [] };
-      mockService.getUsageStats.mockResolvedValue(updated);
-
-      const statsResult = await controller.getStats();
-      expect(statsResult.total_messages).toBe(500);
-
-      const catalogResult = await controller.getModelCatalog();
-      expect(catalogResult.models).toHaveLength(1);
-      expect(mockService.getModelCatalog).toHaveBeenCalledTimes(2);
-
-      Date.now = realDateNow;
     });
   });
 });

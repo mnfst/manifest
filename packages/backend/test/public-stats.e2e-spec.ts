@@ -14,7 +14,6 @@ beforeAll(async () => {
   const sql = (query: string) => portableSql(query, dialect);
   const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
 
-  // Seed messages with different models
   await ds.query(
     sql(
       `INSERT INTO agent_messages (id, tenant_id, agent_id, agent_name, user_id, timestamp, input_tokens, output_tokens, model, status)
@@ -43,7 +42,7 @@ afterAll(async () => {
 });
 
 describe('GET /api/v1/public-stats', () => {
-  it('returns total messages and top models without auth', async () => {
+  it('returns total messages and enriched top models without auth', async () => {
     const res = await request(app.getHttpServer())
       .get('/api/v1/public-stats')
       .expect(200);
@@ -51,25 +50,20 @@ describe('GET /api/v1/public-stats', () => {
     expect(res.body).toHaveProperty('total_messages');
     expect(res.body.total_messages).toBeGreaterThanOrEqual(3);
     expect(res.body).toHaveProperty('top_models');
-    expect(Array.isArray(res.body.top_models)).toBe(true);
     expect(res.body).toHaveProperty('cached_at');
-  });
-
-  it('includes model and usage_count in top models', async () => {
-    const res = await request(app.getHttpServer())
-      .get('/api/v1/public-stats')
-      .expect(200);
 
     const topModels = res.body.top_models;
     expect(topModels.length).toBeGreaterThan(0);
     expect(topModels[0]).toHaveProperty('model');
-    expect(topModels[0]).toHaveProperty('usage_count');
-    expect(typeof topModels[0].usage_count).toBe('number');
+    expect(topModels[0]).toHaveProperty('provider');
+    expect(topModels[0]).toHaveProperty('tokens_7d');
+    expect(topModels[0]).toHaveProperty('usage_rank');
+    expect(typeof topModels[0].tokens_7d).toBe('number');
   });
 });
 
 describe('GET /api/v1/public-stats/models', () => {
-  it('returns model catalog without auth', async () => {
+  it('returns free model catalog without auth', async () => {
     const res = await request(app.getHttpServer())
       .get('/api/v1/public-stats/models')
       .expect(200);
@@ -80,7 +74,7 @@ describe('GET /api/v1/public-stats/models', () => {
     expect(res.body).toHaveProperty('cached_at');
   });
 
-  it('includes expected fields in each model', async () => {
+  it('includes expected fields in each free model', async () => {
     const res = await request(app.getHttpServer())
       .get('/api/v1/public-stats/models')
       .expect(200);
@@ -89,10 +83,7 @@ describe('GET /api/v1/public-stats/models', () => {
       const model = res.body.models[0];
       expect(model).toHaveProperty('model_name');
       expect(model).toHaveProperty('provider');
-      expect(model).toHaveProperty('is_free');
-      expect(model).toHaveProperty('input_price_per_million');
-      expect(model).toHaveProperty('output_price_per_million');
-      expect(model).toHaveProperty('usage_rank');
+      expect(model).toHaveProperty('tokens_7d');
     }
   });
 });
