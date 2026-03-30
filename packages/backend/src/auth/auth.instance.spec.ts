@@ -105,13 +105,26 @@ describe('auth.instance', () => {
     expect(config.emailAndPassword.requireEmailVerification).toBe(false);
   });
 
-  it('requires email verification in production', () => {
+  it('requires email verification in production when email provider is configured', () => {
     process.env['NODE_ENV'] = 'production';
     process.env['BETTER_AUTH_SECRET'] = 'a]3kF9!xLm2@pQzR7^wYu4&vN6*cE0hT';
+    process.env['MAILGUN_API_KEY'] = 'key-test';
+    process.env['MAILGUN_DOMAIN'] = 'mg.example.com';
     loadModule();
 
     const config = mockBetterAuth.mock.calls[0][0];
     expect(config.emailAndPassword.requireEmailVerification).toBe(true);
+  });
+
+  it('does not require email verification in production when no email provider is configured', () => {
+    process.env['NODE_ENV'] = 'production';
+    process.env['BETTER_AUTH_SECRET'] = 'a]3kF9!xLm2@pQzR7^wYu4&vN6*cE0hT';
+    delete process.env['MAILGUN_API_KEY'];
+    delete process.env['MAILGUN_DOMAIN'];
+    loadModule();
+
+    const config = mockBetterAuth.mock.calls[0][0];
+    expect(config.emailAndPassword.requireEmailVerification).toBe(false);
   });
 
   it('does not require email verification in development', () => {
@@ -333,12 +346,24 @@ describe('auth.instance', () => {
       });
     });
 
-    it('sends verification email on sign-up in cloud mode', () => {
+    it('sends verification email on sign-up in cloud mode when email provider is configured', () => {
       delete process.env['MANIFEST_MODE'];
+      process.env['MAILGUN_API_KEY'] = 'key-test';
+      process.env['MAILGUN_DOMAIN'] = 'mg.example.com';
       loadModule();
 
       const config = mockBetterAuth.mock.calls[0][0];
       expect(config.emailVerification.sendOnSignUp).toBe(true);
+    });
+
+    it('does not send verification email on sign-up when no email provider is configured', () => {
+      delete process.env['MANIFEST_MODE'];
+      delete process.env['MAILGUN_API_KEY'];
+      delete process.env['MAILGUN_DOMAIN'];
+      loadModule();
+
+      const config = mockBetterAuth.mock.calls[0][0];
+      expect(config.emailVerification.sendOnSignUp).toBe(false);
     });
 
     it('enables autoSignInAfterVerification', () => {

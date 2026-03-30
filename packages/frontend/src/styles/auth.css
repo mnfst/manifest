@@ -157,6 +157,12 @@
   font-size: var(--font-size-xs);
 }
 
+.auth-form__error-link {
+  color: hsl(var(--destructive));
+  font-weight: 600;
+  text-decoration: underline;
+}
+
 .auth-form__success {
   padding: var(--gap-sm) var(--gap-md);
   background: hsl(142 71% 45% / 0.1);

@@ -85,15 +85,57 @@ describe("Register", () => {
   });
 
   it("shows error on failed registration", async () => {
-    mockSignUpEmail.mockResolvedValue({ error: { message: "Email already exists" } });
+    mockSignUpEmail.mockResolvedValue({ error: { message: "Something went wrong" } });
     const { container } = render(() => <Register />);
     fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: "Test" } });
     fireEvent.input(container.querySelector('input[type="email"]')!, { target: { value: "exists@test.com" } });
     fireEvent.input(container.querySelector('input[type="password"]')!, { target: { value: "pass123" } });
     fireEvent.submit(container.querySelector("form")!);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Email already exists");
+      expect(container.textContent).toContain("Something went wrong");
     });
+    // Should NOT show the "already exists" variant
+    expect(container.textContent).not.toContain("An account with this email already exists");
+  });
+
+  it("shows already-exists error with sign-in and reset links", async () => {
+    mockSignUpEmail.mockResolvedValue({
+      error: { code: "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL", message: "User already exists" },
+    });
+    const { container } = render(() => <Register />);
+    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: "Test" } });
+    fireEvent.input(container.querySelector('input[type="email"]')!, { target: { value: "exists@test.com" } });
+    fireEvent.input(container.querySelector('input[type="password"]')!, { target: { value: "pass123" } });
+    fireEvent.submit(container.querySelector("form")!);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("An account with this email already exists");
+    });
+    expect(container.querySelector('a[href="/login"]')).not.toBeNull();
+    expect(container.querySelector('a[href="/reset-password"]')).not.toBeNull();
+  });
+
+  it("redirects to home when signup returns a session", async () => {
+    const locationSpy = vi.spyOn(window, "location", "get").mockReturnValue({
+      ...window.location,
+      href: "",
+    });
+    const hrefSetter = vi.fn();
+    Object.defineProperty(window.location, "href", { set: hrefSetter, configurable: true });
+
+    mockSignUpEmail.mockResolvedValue({
+      data: { session: { token: "tok" }, user: { id: "u1" } },
+      error: null,
+    });
+    const { container } = render(() => <Register />);
+    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: "Test" } });
+    fireEvent.input(container.querySelector('input[type="email"]')!, { target: { value: "new@test.com" } });
+    fireEvent.input(container.querySelector('input[type="password"]')!, { target: { value: "pass12345" } });
+    fireEvent.submit(container.querySelector("form")!);
+    await vi.waitFor(() => {
+      expect(hrefSetter).toHaveBeenCalledWith("/");
+    });
+
+    locationSpy.mockRestore();
   });
 
   it("shows loading state during submission", async () => {

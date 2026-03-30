@@ -13,6 +13,7 @@ const Register: Component = () => {
   const [error, setError] = createSignal('');
   const [loading, setLoading] = createSignal(false);
   const [emailSent, setEmailSent] = createSignal(false);
+  const [alreadyExists, setAlreadyExists] = createSignal(false);
   const [resendCooldown, setResendCooldown] = createSignal(0);
 
   const startCooldown = () => {
@@ -33,7 +34,7 @@ const Register: Component = () => {
     setError('');
     setLoading(true);
 
-    const { error: authError } = await authClient.signUp.email({
+    const { data, error: authError } = await authClient.signUp.email({
       name: name(),
       email: email(),
       password: password(),
@@ -42,7 +43,16 @@ const Register: Component = () => {
     setLoading(false);
 
     if (authError) {
+      if (authError.code === 'USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL') {
+        setAlreadyExists(true);
+      }
       setError(authError.message ?? 'Registration failed');
+      return;
+    }
+    setAlreadyExists(false);
+
+    if (data?.session) {
+      window.location.href = '/';
       return;
     }
 
@@ -89,7 +99,22 @@ const Register: Component = () => {
             </div>
 
             <form class="auth-form" onSubmit={handleSubmit}>
-              {error() && <div class="auth-form__error">{error()}</div>}
+              <Show when={alreadyExists()}>
+                <div class="auth-form__error">
+                  An account with this email already exists.{' '}
+                  <A href="/login" class="auth-form__error-link">
+                    Sign in
+                  </A>{' '}
+                  or{' '}
+                  <A href="/reset-password" class="auth-form__error-link">
+                    reset your password
+                  </A>
+                  .
+                </div>
+              </Show>
+              <Show when={error() && !alreadyExists()}>
+                <div class="auth-form__error">{error()}</div>
+              </Show>
               <label class="auth-form__label">
                 Name
                 <input
