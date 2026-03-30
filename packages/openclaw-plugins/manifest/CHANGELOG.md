@@ -1,5 +1,12 @@
 # manifest
 
+## 5.36.3
+
+### Patch Changes
+
+- bd5134d: Filter OpenAI responses-only models (gpt-image-\*, o1-pro, o4-mini-deep-research) that fail on /v1/chat/completions.
+- fae3957: Improve Settings page UX: reload page after agent rename, update API key warning text, and show API key display contextually based on key availability
+
 ## 5.36.2
 
 ### Patch Changes
