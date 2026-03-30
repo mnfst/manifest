@@ -184,6 +184,30 @@ describe('ChatGPT Adapter – collectChatGptSseResponse', () => {
     expect(choices[0].message.tool_calls[0].function.arguments).toBe('{"city":"Paris"}');
   });
 
+  it('handles function calls at non-zero output_index (mixed output items)', () => {
+    const sse = [
+      'event: response.output_text.delta\ndata: {"delta":"Let me check."}',
+      'event: response.output_item.added\ndata: {"item":{"type":"function_call","call_id":"call_2","name":"search"},"output_index":1}',
+      'event: response.function_call_arguments.delta\ndata: {"delta":"{\\"q\\":\\"test\\"}","output_index":1}',
+      'event: response.completed\ndata: {"response":{"output":[{"type":"message"},{"type":"function_call"}],"usage":{"input_tokens":8,"output_tokens":4,"total_tokens":12}}}',
+    ].join('\n\n');
+
+    const result = collectChatGptSseResponse(sse, 'gpt-5');
+    const choices = result.choices as {
+      message: {
+        content: string;
+        tool_calls: { id: string; function: { name: string; arguments: string } }[];
+      };
+      finish_reason: string;
+    }[];
+
+    expect(choices[0].message.content).toBe('Let me check.');
+    expect(choices[0].message.tool_calls).toHaveLength(1);
+    expect(choices[0].message.tool_calls[0].id).toBe('call_2');
+    expect(choices[0].message.tool_calls[0].function.arguments).toBe('{"q":"test"}');
+    expect(choices[0].finish_reason).toBe('tool_calls');
+  });
+
   it('handles empty SSE text', () => {
     const result = collectChatGptSseResponse('', 'gpt-5');
     const choices = result.choices as { message: { content: string | null } }[];

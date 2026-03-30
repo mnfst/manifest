@@ -259,8 +259,14 @@ export function collectChatGptSseResponse(
   model: string,
 ): Record<string, unknown> {
   let text = '';
-  const toolCalls: { id: string; type: string; function: { name: string; arguments: string } }[] =
-    [];
+  // Map output_index → tool call to handle mixed output items correctly.
+  // The output_index from the API refers to position in the full output array
+  // (which can include non-function items like messages), so we cannot use a
+  // plain array indexed by push order.
+  const toolCallMap = new Map<
+    number,
+    { id: string; type: string; function: { name: string; arguments: string } }
+  >();
   let usage: Record<string, unknown> | undefined;
   let hasFunctionCalls = false;
 
@@ -283,7 +289,8 @@ export function collectChatGptSseResponse(
     } else if (eventType === 'response.output_item.added') {
       const item = isObjectRecord(data.item) ? data.item : undefined;
       if (item?.type === 'function_call') {
-        toolCalls.push({
+        const idx = typeof data.output_index === 'number' ? data.output_index : toolCallMap.size;
+        toolCallMap.set(idx, {
           id: (item.call_id as string) ?? '',
           type: 'function',
           function: { name: (item.name as string) ?? '', arguments: '' },
@@ -291,8 +298,9 @@ export function collectChatGptSseResponse(
       }
     } else if (eventType === 'response.function_call_arguments.delta') {
       const idx = typeof data.output_index === 'number' ? data.output_index : 0;
-      if (toolCalls[idx]) {
-        toolCalls[idx].function.arguments += typeof data.delta === 'string' ? data.delta : '';
+      const tc = toolCallMap.get(idx);
+      if (tc) {
+        tc.function.arguments += typeof data.delta === 'string' ? data.delta : '';
       }
     } else if (eventType === 'response.completed') {
       const response = isObjectRecord(data.response) ? data.response : undefined;
@@ -314,6 +322,7 @@ export function collectChatGptSseResponse(
     }
   }
 
+  const toolCalls = [...toolCallMap.values()];
   const message: Record<string, unknown> = { role: 'assistant', content: text || null };
   if (toolCalls.length > 0) message.tool_calls = toolCalls;
 
