@@ -7,7 +7,7 @@ const ANTHROPIC_MESSAGES_URL = 'https://api.anthropic.com/v1/messages';
 const PROBE_TIMEOUT_MS = 5000;
 
 /** Extract the model family from an Anthropic model ID (e.g. "claude-sonnet-4-6" → "sonnet"). */
-const FAMILY_RE = /^claude-(?:\d+-)?(\w+)/;
+const FAMILY_RE = /^claude-(?:\d+(?:-\d+)*-)?([a-z]+)/i;
 
 export function extractFamily(modelId: string): string | null {
   const match = FAMILY_RE.exec(modelId);

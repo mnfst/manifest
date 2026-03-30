@@ -32,6 +32,18 @@ describe('extractFamily', () => {
     expect(extractFamily('claude-3-haiku-20240307')).toBe('haiku');
   });
 
+  it('extracts "sonnet" from claude-3-5-sonnet-20241022 (multi-digit version prefix)', () => {
+    expect(extractFamily('claude-3-5-sonnet-20241022')).toBe('sonnet');
+  });
+
+  it('extracts "haiku" from claude-3-5-haiku-20241022', () => {
+    expect(extractFamily('claude-3-5-haiku-20241022')).toBe('haiku');
+  });
+
+  it('extracts "sonnet" from claude-3-7-sonnet-20250219', () => {
+    expect(extractFamily('claude-3-7-sonnet-20250219')).toBe('sonnet');
+  });
+
   it('extracts "opus" from claude-opus-4-5-20251101', () => {
     expect(extractFamily('claude-opus-4-5-20251101')).toBe('opus');
   });
