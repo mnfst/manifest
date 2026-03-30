@@ -106,10 +106,12 @@ export const UNIVERSAL_NON_CHAT_RE =
  */
 export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
   openai:
-    /(?:moderation|davinci|babbage|^text-|realtime|-transcribe|^sora|^gpt-3\.5-turbo-instruct|audio)/i,
-  'openai-subscription': /(?:moderation|davinci|babbage|^text-|realtime|-transcribe|^sora|audio)/i,
-  gemini: /(?:^aqs-|nano-banana)/i,
-  mistral: /(?:^mistral-ocr)/i,
+    /(?:moderation|davinci|babbage|^text-|realtime|-transcribe|^sora|^gpt-3\.5-turbo-instruct|audio|^chatgpt-image)/i,
+  'openai-subscription':
+    /(?:moderation|davinci|babbage|^text-|realtime|-transcribe|^sora|audio|^chatgpt-image)/i,
+  gemini: /(?:^aqs-|nano-banana|^deep-research|computer-use|^lyria)/i,
+  mistral: /(?:^mistral-ocr|moderation|voxtral-.*-(?:transcribe|realtime))/i,
+  xai: /(?:imagine)/i,
 };
 
 /** Filter models that are not compatible with chat completions. */
