@@ -8,7 +8,7 @@ const AUTO_MODEL = {
   input: ['text'],
   cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
   contextWindow: 200000,
-  maxTokens: 16384,
+  maxTokens: 128000,
 };
 
 /**
