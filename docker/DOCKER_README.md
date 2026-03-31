@@ -1,53 +1,80 @@
-# Manifest — Open-Source Model Router & LLM Observability
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mnfst/manifest/HEAD/.github/assets/logo-white.svg" />
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/mnfst/manifest/HEAD/.github/assets/logo-dark.svg" />
+    <img src="https://raw.githubusercontent.com/mnfst/manifest/HEAD/.github/assets/logo-dark.svg" alt="Manifest" height="53" title="Manifest"/>
+  </picture>
+</p>
+<p align="center">
+  <a href="https://github.com/mnfst/manifest/stargazers"><img src="https://img.shields.io/github/stars/mnfst/manifest?style=flat" alt="GitHub stars" /></a>
+  &nbsp;
+  <a href="https://www.npmjs.com/package/manifest"><img src="https://img.shields.io/npm/v/manifest?color=cb3837&label=npm" alt="npm version" /></a>
+  &nbsp;
+  <a href="https://github.com/mnfst/manifest/blob/main/LICENSE"><img src="https://img.shields.io/github/license/mnfst/manifest?color=blue" alt="license" /></a>
+  &nbsp;
+  <a href="https://discord.gg/FepAked3W7"><img src="https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white" alt="Discord" /></a>
+</p>
 
-Manifest is an open-source **model router** and **LLM observability** platform for AI agents. Route requests across providers, track costs, tokens, and performance — all from a single dashboard.
+## What is Manifest?
 
-## Use Cases
+Manifest is a smart model router for OpenClaw. It sits between your agent and your LLM providers, scores each request, and routes it to the cheapest model that can handle it. Simple questions go to fast, cheap models. Hard problems go to expensive ones. You save money without thinking about it.
 
-- **LLM Router / Model Router** — Route AI requests to the best model based on cost, quality, and latency. Automatically tier and score models across providers.
-- **AI Agent Observability** — Monitor your AI agents in real-time. Track token usage, costs, messages, and performance with OpenTelemetry-compatible ingestion.
-- **LLM Proxy** — OpenAI-compatible proxy endpoint (`/v1/chat/completions`) that routes to any provider: OpenAI, Anthropic, Google Gemini, Mistral, xAI, Ollama, and more.
-- **Cost Tracking** — Know exactly how much your AI agents spend. Per-model, per-agent cost breakdowns with alerting thresholds.
+- Route requests to the right model: Cut costs up to 70%
+- Automatic fallbacks: If a model fails, the next one picks up
+- Set limits: Don't exceed your budget
+
+![manifest-gh](https://github.com/user-attachments/assets/7dd74fc2-f7d6-4558-a95a-014ed754a125)
+
+## Supported providers
+
+Works with 300+ models across OpenAI, Anthropic, Google Gemini, DeepSeek, xAI, Mistral, Qwen, MiniMax, Kimi, Amazon Nova, OpenRouter, Ollama, and any provider with an OpenAI-compatible API.
+
+## Manifest vs OpenRouter
+
+|              | Manifest                                     | OpenRouter                                          |
+| ------------ | -------------------------------------------- | --------------------------------------------------- |
+| Architecture | Local. Your requests, your providers         | Cloud proxy. All traffic goes through their servers |
+| Cost         | Free                                         | 5% fee on every API call                            |
+| Source code  | MIT, fully open                              | Proprietary                                         |
+| Data privacy | Metadata only (cloud) or fully local         | Prompts and responses pass through a third party    |
+| Transparency | Open scoring. You see why a model was chosen | No visibility into routing decisions                |
+
+---
 
 ## Installation
 
 ### Option 1: Docker Compose (recommended)
 
-This is the easiest way to get started. It runs Manifest with a PostgreSQL database in a single command.
+Runs Manifest with a PostgreSQL database. One command.
 
-**1. Download the compose file:**
+1. Download the compose file:
 
 ```bash
 curl -O https://raw.githubusercontent.com/mnfst/manifest/main/docker/docker-compose.yml
 ```
 
-**2. Start the services:**
+2. Start it:
 
 ```bash
 docker compose up -d
 ```
 
-**3. Open the dashboard:**
+3. Open [http://localhost:3001](http://localhost:3001) and log in:
+   - Email: `admin@manifest.build`
+   - Password: `manifest`
 
-Go to [http://localhost:3001](http://localhost:3001)
+Connect a provider on the Routing page and you're set.
 
-**4. Log in with the demo account:**
-
-- Email: `admin@manifest.build`
-- Password: `manifest`
-
-That's it! You can now connect your LLM providers and start routing.
-
-**To stop:**
+To stop:
 
 ```bash
-docker compose down       # Stop services (keeps data)
-docker compose down -v    # Stop and delete all data
+docker compose down       # keeps data
+docker compose down -v    # deletes everything
 ```
 
 ### Option 2: Docker Run (bring your own PostgreSQL)
 
-If you already have a PostgreSQL instance, you can run Manifest standalone:
+If you already have PostgreSQL running:
 
 ```bash
 docker run -d \
@@ -60,11 +87,11 @@ docker run -d \
   manifestdotbuild/manifest
 ```
 
-> Set `NODE_ENV=development` so database migrations run automatically on startup.
+`NODE_ENV=development` makes migrations run on startup. Without it you'd need to run them manually.
 
-### Option 3: Local mode (no database required)
+### Option 3: Local mode (no database)
 
-For quick testing without PostgreSQL. Uses SQLite in-memory — data is lost when the container stops unless you mount a volume.
+For quick testing. Uses SQLite in-memory -- data goes away when the container stops unless you mount a volume.
 
 ```bash
 docker run -d \
@@ -76,11 +103,11 @@ docker run -d \
   manifestdotbuild/manifest
 ```
 
-> Local mode has no login page — the dashboard is accessible directly.
+Local mode skips the login page. The dashboard is accessible directly.
 
 ### Custom port
 
-To run on a different port (e.g. 8080), set both the port mapping and `BETTER_AUTH_URL`:
+If port 3001 is taken, change both the mapping and `BETTER_AUTH_URL`:
 
 ```bash
 docker run -d \
@@ -98,38 +125,30 @@ environment:
   - BETTER_AUTH_URL=http://localhost:8080
 ```
 
-## Features
+If you see "Invalid origin" on the login page, `BETTER_AUTH_URL` doesn't match the port you're using.
 
-- **Multi-provider routing** — Connect OpenAI, Anthropic, Google, Mistral, xAI, Ollama, OpenRouter, and more
-- **Tier-based model scoring** — Automatically assign models to quality/cost tiers
-- **Real-time dashboard** — SolidJS frontend with live SSE updates
-- **OpenTelemetry ingestion** — OTLP-compatible endpoint for agent telemetry
-- **Alerting** — Token and cost threshold notifications via email (Mailgun, Resend, SMTP)
-- **API key management** — Per-agent API keys with rotation support
-- **Self-hosted** — Your data stays on your infrastructure
-
-## Environment Variables
+## Environment variables
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `DATABASE_URL` | Yes (cloud mode) | — | PostgreSQL connection string |
-| `BETTER_AUTH_SECRET` | Yes | — | Session signing secret (min 32 chars) |
-| `BETTER_AUTH_URL` | No | `http://localhost:3001` | Public URL of the app (set when using a custom port) |
+| `DATABASE_URL` | Yes (cloud mode) | -- | PostgreSQL connection string |
+| `BETTER_AUTH_SECRET` | Yes | -- | Session signing secret (min 32 chars) |
+| `BETTER_AUTH_URL` | No | `http://localhost:3001` | Public URL. Set this when using a custom port |
 | `PORT` | No | `3001` | Internal server port |
 | `NODE_ENV` | No | `production` | Set `development` for auto-migrations |
 | `MANIFEST_MODE` | No | `cloud` | `cloud` (PostgreSQL) or `local` (SQLite) |
 | `SEED_DATA` | No | `false` | Seed demo data on startup |
-| `MANIFEST_TRUST_LAN` | No | `false` | Trust private network IPs (required for Docker) |
-| `MANIFEST_DB_PATH` | No | `~/.openclaw/manifest/manifest.db` | SQLite path (local mode) |
+| `MANIFEST_TRUST_LAN` | No | `false` | Trust private network IPs (needed in Docker) |
 
-See the [full environment variable reference](https://github.com/mnfst/manifest) for OAuth, email, and advanced configuration.
+Full env var reference: [github.com/mnfst/manifest](https://github.com/mnfst/manifest)
 
 ## Links
 
 - [GitHub](https://github.com/mnfst/manifest)
 - [Website](https://manifest.build)
-- [Documentation](https://manifest.build)
+- [Docs](https://manifest.build/docs)
+- [Discord](https://discord.gg/FepAked3W7)
 
-## Tags
+## License
 
-`model-router` `llm-router` `llm-routing` `ai-routing` `ai-agent-router` `llm-proxy` `ai-observability` `ai-monitoring` `llm-cost-tracking` `opentelemetry` `otlp` `ai-agent` `model-routing` `llm-gateway` `ai-gateway`
+[MIT](https://github.com/mnfst/manifest/blob/main/LICENSE)

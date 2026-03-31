@@ -20,6 +20,14 @@ RUN npx turbo build --filter=manifest-backend --filter=manifest-frontend --filte
 FROM node:22-alpine AS runtime
 WORKDIR /app
 
+LABEL org.opencontainers.image.title="Manifest" \
+      org.opencontainers.image.description="Open-source AI model router. Save up to 70% on LLM costs." \
+      org.opencontainers.image.url="https://manifest.build" \
+      org.opencontainers.image.documentation="https://manifest.build/docs" \
+      org.opencontainers.image.source="https://github.com/mnfst/manifest" \
+      org.opencontainers.image.vendor="MNFST Inc." \
+      org.opencontainers.image.licenses="MIT"
+
 ENV NODE_ENV=production
 ENV BIND_ADDRESS=0.0.0.0
 
