@@ -27,6 +27,18 @@ interface AnthropicTool {
 
 const CACHE = { type: 'ephemeral' } as const;
 
+/**
+ * System prompt required by Anthropic's subscription OAuth API to unlock
+ * sonnet/opus model families. Without it, subscription tokens can only
+ * access haiku. This mirrors how the Copilot integration spoofs
+ * Editor-Version headers to satisfy GitHub's API validation.
+ */
+const SUBSCRIPTION_IDENTITY_BLOCK: ContentBlock = {
+  type: 'text',
+  text: "You are a Claude agent, built on Anthropic's Claude Agent SDK.",
+  cache_control: { type: 'ephemeral' },
+};
+
 function safeParseArgs(args: string | undefined): unknown {
   try {
     return JSON.parse(args || '{}');
@@ -119,6 +131,8 @@ function convertTools(tools?: Array<Record<string, unknown>>): AnthropicTool[] |
 export interface AnthropicRequestOptions {
   /** When false, cache_control fields are omitted from the request. Defaults to true. */
   injectCacheControl?: boolean;
+  /** When true, prepends the Claude Code agent system prompt required for subscription OAuth tokens. */
+  injectSubscriptionIdentity?: boolean;
 }
 
 export function toAnthropicRequest(
@@ -131,6 +145,12 @@ export function toAnthropicRequest(
   const systemBlocks = extractSystemBlocks(messages);
   if (systemBlocks.length > 0 && shouldCache) {
     systemBlocks[systemBlocks.length - 1].cache_control = CACHE;
+  }
+
+  // Subscription OAuth tokens require the Claude Code agent identity as the
+  // first system block to access sonnet/opus models (haiku works without it).
+  if (options?.injectSubscriptionIdentity) {
+    systemBlocks.unshift({ ...SUBSCRIPTION_IDENTITY_BLOCK });
   }
 
   const converted = messages.map(convertMessage).filter(Boolean);

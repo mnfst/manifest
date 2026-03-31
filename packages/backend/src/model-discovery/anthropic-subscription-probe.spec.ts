@@ -215,6 +215,21 @@ describe('filterBySubscriptionAccess', () => {
     expect(callBody.max_tokens).toBe(1);
   });
 
+  it('includes subscription identity system prompt in probe requests', async () => {
+    mockFetchResponses({ haiku: true });
+
+    await filterBySubscriptionAccess([makeModel('claude-haiku-4-5-20251001')], 'my-token');
+
+    const callBody = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+    expect(callBody.system).toEqual([
+      expect.objectContaining({
+        type: 'text',
+        text: expect.stringContaining('Claude agent'),
+        cache_control: { type: 'ephemeral' },
+      }),
+    ]);
+  });
+
   it('returns empty array for empty input', async () => {
     const spy = jest.fn();
     global.fetch = spy;

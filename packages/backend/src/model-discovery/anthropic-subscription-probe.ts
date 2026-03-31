@@ -34,6 +34,13 @@ async function probeModel(apiKey: string, modelId: string): Promise<boolean> {
       body: JSON.stringify({
         model: modelId,
         max_tokens: 1,
+        system: [
+          {
+            type: 'text',
+            text: "You are a Claude agent, built on Anthropic's Claude Agent SDK.",
+            cache_control: { type: 'ephemeral' },
+          },
+        ],
         messages: [{ role: 'user', content: '.' }],
       }),
       signal: controller.signal,
