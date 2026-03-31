@@ -29,7 +29,9 @@ export async function bootstrap() {
           connectSrc: ["'self'"],
           fontSrc: ["'self'"],
           objectSrc: ["'none'"],
-          frameAncestors: ["'none'"],
+          frameAncestors: process.env['FRAME_ANCESTORS']
+            ? process.env['FRAME_ANCESTORS'].split(',')
+            : ["'none'"],
         },
       },
     }),
