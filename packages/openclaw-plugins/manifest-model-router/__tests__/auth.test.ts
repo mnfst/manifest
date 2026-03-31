@@ -209,9 +209,9 @@ describe("buildModelConfig", () => {
     expect(result.models[0].name).toBe("Auto Router");
   });
 
-  it("returns model with contextWindow 200000", () => {
+  it("returns model with contextWindow 2000000", () => {
     const result = buildModelConfig("https://example.com");
-    expect(result.models[0].contextWindow).toBe(200000);
+    expect(result.models[0].contextWindow).toBe(2000000);
   });
 
   it("returns model with maxTokens 128000", () => {

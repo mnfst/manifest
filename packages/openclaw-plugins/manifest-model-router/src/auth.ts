@@ -7,7 +7,7 @@ const AUTO_MODEL = {
   reasoning: false,
   input: ['text'],
   cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
-  contextWindow: 200000,
+  contextWindow: 2000000,
   maxTokens: 128000,
 };
 
