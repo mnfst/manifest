@@ -2,4 +2,4 @@
 'manifest': patch
 ---
 
-Optimize page performance: memoize frontend computations, batch DB inserts in fallback recording, use cached provider lookups on proxy hot path, and parallelize fallback async calls
+Optimize frontend performance: memoize sorted rows in CostByModelTable, message chart data in Overview, and provider filter options in MessageLog with createMemo

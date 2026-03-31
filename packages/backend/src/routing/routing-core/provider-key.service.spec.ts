@@ -18,6 +18,13 @@ jest.mock('../../common/utils/subscription-support', () => ({
 import { decrypt } from '../../common/utils/crypto.util';
 const mockDecrypt = decrypt as jest.MockedFunction<typeof decrypt>;
 
+function makeMockRepo() {
+  return {
+    find: jest.fn().mockResolvedValue([]),
+    findOne: jest.fn().mockResolvedValue(null),
+  };
+}
+
 function makeProvider(overrides: Partial<UserProvider> = {}): UserProvider {
   return Object.assign(new UserProvider(), {
     id: 'prov-1',
@@ -38,6 +45,7 @@ function makeProvider(overrides: Partial<UserProvider> = {}): UserProvider {
 
 describe('ProviderKeyService', () => {
   let service: ProviderKeyService;
+  let providerRepo: ReturnType<typeof makeMockRepo>;
   let pricingCache: { getByModel: jest.Mock };
   let discoveryService: { getModelForAgent: jest.Mock };
   let routingCache: {
@@ -51,6 +59,7 @@ describe('ProviderKeyService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockDecrypt.mockReturnValue('decrypted-key-value');
+    providerRepo = makeMockRepo();
     pricingCache = { getByModel: jest.fn().mockReturnValue(undefined) };
     discoveryService = { getModelForAgent: jest.fn().mockResolvedValue(null) };
     routingCache = {
@@ -62,6 +71,7 @@ describe('ProviderKeyService', () => {
     providerService = { getProviders: jest.fn().mockResolvedValue([]) };
 
     service = new ProviderKeyService(
+      providerRepo as unknown as any,
       pricingCache as unknown as ModelPricingCacheService,
       discoveryService as unknown as ModelDiscoveryService,
       routingCache as unknown as RoutingCacheService,
@@ -85,11 +95,11 @@ describe('ProviderKeyService', () => {
       const result = await service.getProviderApiKey('agent-1', 'openai');
 
       expect(result).toBe('cached-key');
-      expect(providerService.getProviders).not.toHaveBeenCalled();
+      expect(providerRepo.find).not.toHaveBeenCalled();
     });
 
     it('should resolve and cache key from DB', async () => {
-      providerService.getProviders.mockResolvedValue([makeProvider()]);
+      providerRepo.find.mockResolvedValue([makeProvider()]);
 
       const result = await service.getProviderApiKey('agent-1', 'openai');
 
@@ -103,7 +113,7 @@ describe('ProviderKeyService', () => {
     });
 
     it('should pass authType to cache and resolver', async () => {
-      providerService.getProviders.mockResolvedValue([
+      providerRepo.find.mockResolvedValue([
         makeProvider({ auth_type: 'subscription', api_key_encrypted: 'enc-sub' }),
       ]);
 
@@ -119,7 +129,7 @@ describe('ProviderKeyService', () => {
     });
 
     it('should return null when no matching provider found', async () => {
-      providerService.getProviders.mockResolvedValue([]);
+      providerRepo.find.mockResolvedValue([]);
 
       const result = await service.getProviderApiKey('agent-1', 'openai');
 
@@ -131,9 +141,9 @@ describe('ProviderKeyService', () => {
 
   describe('resolveProviderApiKey for custom: providers', () => {
     it('should handle custom provider with encrypted key', async () => {
-      providerService.getProviders.mockResolvedValue([
+      providerRepo.findOne.mockResolvedValue(
         makeProvider({ provider: 'custom:cp-123', api_key_encrypted: 'enc-custom' }),
-      ]);
+      );
 
       const result = await service.getProviderApiKey('agent-1', 'custom:cp-123');
 
@@ -141,9 +151,9 @@ describe('ProviderKeyService', () => {
     });
 
     it('should return empty string for custom provider without key', async () => {
-      providerService.getProviders.mockResolvedValue([
+      providerRepo.findOne.mockResolvedValue(
         makeProvider({ provider: 'custom:cp-123', api_key_encrypted: null }),
-      ]);
+      );
 
       const result = await service.getProviderApiKey('agent-1', 'custom:cp-123');
 
@@ -151,7 +161,7 @@ describe('ProviderKeyService', () => {
     });
 
     it('should return null for non-existent custom provider', async () => {
-      providerService.getProviders.mockResolvedValue([]);
+      providerRepo.findOne.mockResolvedValue(null);
 
       const result = await service.getProviderApiKey('agent-1', 'custom:cp-missing');
 
@@ -162,9 +172,9 @@ describe('ProviderKeyService', () => {
       mockDecrypt.mockImplementationOnce(() => {
         throw new Error('decrypt failed');
       });
-      providerService.getProviders.mockResolvedValue([
+      providerRepo.findOne.mockResolvedValue(
         makeProvider({ provider: 'custom:cp-123', api_key_encrypted: 'bad-enc' }),
-      ]);
+      );
 
       const result = await service.getProviderApiKey('agent-1', 'custom:cp-123');
 
@@ -184,7 +194,7 @@ describe('ProviderKeyService', () => {
         auth_type: 'subscription',
         api_key_encrypted: 'enc-sub',
       });
-      providerService.getProviders.mockResolvedValue([apiKeyProvider, subProvider]);
+      providerRepo.find.mockResolvedValue([apiKeyProvider, subProvider]);
 
       mockDecrypt.mockImplementation((enc: string) => {
         if (enc === 'enc-sub') return 'sub-decrypted';
@@ -207,7 +217,7 @@ describe('ProviderKeyService', () => {
         auth_type: 'api_key',
         api_key_encrypted: 'enc-apikey',
       });
-      providerService.getProviders.mockResolvedValue([subProvider, apiKeyProvider]);
+      providerRepo.find.mockResolvedValue([subProvider, apiKeyProvider]);
 
       mockDecrypt.mockImplementation((enc: string) => {
         if (enc === 'enc-apikey') return 'apikey-decrypted';
@@ -220,9 +230,7 @@ describe('ProviderKeyService', () => {
     });
 
     it('should return null when decrypt fails for all candidates and log warning', async () => {
-      providerService.getProviders.mockResolvedValue([
-        makeProvider({ api_key_encrypted: 'bad-enc' }),
-      ]);
+      providerRepo.find.mockResolvedValue([makeProvider({ api_key_encrypted: 'bad-enc' })]);
       mockDecrypt.mockImplementation(() => {
         throw new Error('bad key');
       });
@@ -235,7 +243,7 @@ describe('ProviderKeyService', () => {
     it('should skip candidates without encrypted key', async () => {
       const noKey = makeProvider({ id: 'p1', api_key_encrypted: null });
       const withKey = makeProvider({ id: 'p2', api_key_encrypted: 'enc-valid' });
-      providerService.getProviders.mockResolvedValue([noKey, withKey]);
+      providerRepo.find.mockResolvedValue([noKey, withKey]);
 
       const result = await service.getProviderApiKey('agent-1', 'openai');
 
@@ -243,7 +251,7 @@ describe('ProviderKeyService', () => {
     });
 
     it('should log subscription label when subscription decrypt fails', async () => {
-      providerService.getProviders.mockResolvedValue([
+      providerRepo.find.mockResolvedValue([
         makeProvider({ auth_type: 'subscription', api_key_encrypted: 'bad' }),
       ]);
       mockDecrypt.mockImplementation(() => {
@@ -459,7 +467,7 @@ describe('ProviderKeyService', () => {
 
     it('should fall through to auto when override model is not available', async () => {
       discoveryService.getModelForAgent.mockResolvedValue(null);
-      providerService.getProviders.mockResolvedValue([]);
+      providerRepo.find.mockResolvedValue([]);
       pricingCache.getByModel.mockReturnValue(undefined);
       const assignment = {
         override_model: 'gpt-4o',
@@ -516,7 +524,7 @@ describe('ProviderKeyService', () => {
     it('should match via pricing provider names', async () => {
       discoveryService.getModelForAgent.mockResolvedValue(null);
       pricingCache.getByModel.mockReturnValue({ provider: 'OpenAI', model_name: 'gpt-4o' });
-      providerService.getProviders.mockResolvedValue([makeProvider({ provider: 'openai' })]);
+      providerRepo.find.mockResolvedValue([makeProvider({ provider: 'openai' })]);
       const assignment = {
         override_model: 'gpt-4o',
         auto_assigned_model: null,
@@ -535,7 +543,7 @@ describe('ProviderKeyService', () => {
         model_name: 'openai/gpt-4o',
       });
       // No direct match on "someprovider"
-      providerService.getProviders.mockResolvedValue([makeProvider({ provider: 'openai' })]);
+      providerRepo.find.mockResolvedValue([makeProvider({ provider: 'openai' })]);
       const assignment = {
         override_model: 'gpt-4o',
         auto_assigned_model: null,
@@ -550,7 +558,7 @@ describe('ProviderKeyService', () => {
     it('should match via model name prefix inference when no pricing exists', async () => {
       discoveryService.getModelForAgent.mockResolvedValue(null);
       pricingCache.getByModel.mockReturnValue(undefined);
-      providerService.getProviders.mockResolvedValue([makeProvider({ provider: 'anthropic' })]);
+      providerRepo.find.mockResolvedValue([makeProvider({ provider: 'anthropic' })]);
       const assignment = {
         override_model: 'anthropic/claude-sonnet-4',
         auto_assigned_model: null,
@@ -565,7 +573,7 @@ describe('ProviderKeyService', () => {
     it('should return false (fall to auto) when model not available anywhere', async () => {
       discoveryService.getModelForAgent.mockResolvedValue(null);
       pricingCache.getByModel.mockReturnValue(undefined);
-      providerService.getProviders.mockResolvedValue([makeProvider({ provider: 'anthropic' })]);
+      providerRepo.find.mockResolvedValue([makeProvider({ provider: 'anthropic' })]);
       const assignment = {
         override_model: 'nonexistent-model',
         auto_assigned_model: 'claude-3-haiku',

@@ -114,18 +114,20 @@ export class ProxyFallbackService {
         continue;
       }
 
-      const [resolvedCredentials, providerRegion] = await Promise.all([
-        resolveApiKey(
-          provider,
-          apiKey,
-          authType,
-          agentId,
-          userId,
-          this.openaiOauth,
-          this.minimaxOauth,
-        ),
-        this.providerKeyService.getProviderRegion(agentId, provider, authType),
-      ]);
+      const resolvedCredentials = await resolveApiKey(
+        provider,
+        apiKey,
+        authType,
+        agentId,
+        userId,
+        this.openaiOauth,
+        this.minimaxOauth,
+      );
+      const providerRegion = await this.providerKeyService.getProviderRegion(
+        agentId,
+        provider,
+        authType,
+      );
 
       this.logger.log(
         `Fallback ${i}: trying model=${model} provider=${provider} auth_type=${authType} (primary=${primaryModel})`,

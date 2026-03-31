@@ -121,8 +121,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     },
   ): Promise<void> {
     const { traceId, baseTimeMs, markHandled = false, lastAsError = false, authType } = opts ?? {};
-    if (failures.length === 0) return;
-    const rows = failures.map((f, i) => {
+    for (let i = 0; i < failures.length; i++) {
+      const f = failures[i];
       const ts = baseTimeMs
         ? new Date(baseTimeMs + (failures.length - i) * 100).toISOString()
         : new Date().toISOString();
@@ -133,7 +133,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         : f.status === 429
           ? 'rate_limited'
           : 'error';
-      return {
+      await this.messageRepo.insert({
         id: uuid(),
         tenant_id: ctx.tenantId,
         agent_id: ctx.agentId,
@@ -152,9 +152,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         fallback_index: f.fallbackIndex,
         auth_type: authType ?? null,
         user_id: ctx.userId,
-      };
-    });
-    await this.messageRepo.insert(rows);
+      });
+    }
     this.eventBus.emit(ctx.userId);
   }
 
