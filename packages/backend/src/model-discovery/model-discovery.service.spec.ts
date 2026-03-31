@@ -2015,6 +2015,44 @@ describe('ModelDiscoveryService', () => {
       expect(result[0].capabilityReasoning).toBe(true);
       expect(result[0].capabilityCode).toBe(true);
     });
+
+    it('should fall back to known-model-prices when models.dev and OpenRouter have no data', async () => {
+      mockModelsDevSync.lookupModel.mockReturnValue(null);
+      mockPricingSync.lookupPricing.mockReturnValue(null);
+
+      const models = [
+        makeModel({
+          id: 'moonshot-v1-128k',
+          inputPricePerToken: null,
+          outputPricePerToken: null,
+        }),
+      ];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider());
+
+      expect(result[0].inputPricePerToken).toBeCloseTo(1.66 / 1_000_000, 12);
+      expect(result[0].outputPricePerToken).toBeCloseTo(1.66 / 1_000_000, 12);
+    });
+
+    it('should return model without pricing when no source has data', async () => {
+      mockModelsDevSync.lookupModel.mockReturnValue(null);
+      mockPricingSync.lookupPricing.mockReturnValue(null);
+
+      const models = [
+        makeModel({
+          id: 'totally-unknown-model',
+          inputPricePerToken: null,
+          outputPricePerToken: null,
+        }),
+      ];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider());
+
+      expect(result[0].inputPricePerToken).toBeNull();
+      expect(result[0].outputPricePerToken).toBeNull();
+    });
   });
 
   /* ── models.dev fallback in discoverModels ── */

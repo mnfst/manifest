@@ -108,12 +108,13 @@ export const UNIVERSAL_NON_CHAT_RE =
  */
 export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
   openai:
-    /(?:moderation|davinci|babbage|^text-|realtime|-transcribe|^sora|^gpt-3\.5-turbo-instruct|audio|^chatgpt-image)/i,
+    /(?:moderation|davinci|babbage|^text-|realtime|-transcribe|^sora|^gpt-3\.5-turbo-instruct|audio|^chatgpt-image|search-api)/i,
   'openai-subscription':
     /(?:moderation|davinci|babbage|^text-|realtime|-transcribe|^sora|audio|^chatgpt-image)/i,
   gemini:
-    /(?:^aqs-|nano-banana|^deep-research|computer-use|^lyria|^gemini-2\.0-flash-lite$|flash-lite-preview)/i,
-  mistral: /(?:^mistral-ocr|moderation|voxtral-.*-(?:transcribe|realtime)|^labs-)/i,
+    /(?:^aqs-|nano-banana|^deep-research|computer-use|^lyria|^gemini-2\.0-flash-lite$|flash-lite-preview|robotics)/i,
+  mistral:
+    /(?:^mistral-ocr|moderation|voxtral-.*-(?:transcribe|realtime)|^labs-|^mistral-vibe-cli)/i,
   xai: /(?:imagine|multi-agent)/i,
 };
 
