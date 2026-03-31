@@ -1,5 +1,11 @@
 # manifest
 
+## 6.0.3
+
+### Patch Changes
+
+- e2e38a2: Raise manifest/auto contextWindow from 200k to 2M to match the optimistic upper bound of the routing pool, consistent with how OpenRouter declares its auto model
+
 ## 6.0.2
 
 ### Patch Changes

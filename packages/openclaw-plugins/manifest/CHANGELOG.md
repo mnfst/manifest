@@ -1,5 +1,16 @@
 # manifest
 
+## 5.38.6
+
+### Patch Changes
+
+- c0ed41f: fix: unlock sonnet/opus for Anthropic subscription tokens
+
+  Anthropic's subscription OAuth API requires a Claude Code agent identity system prompt to access sonnet and opus model families. Without it, only haiku is accessible. This injects the required system prompt for subscription auth, matching how we already spoof Editor-Version headers for GitHub Copilot.
+
+- 9a316c1: fix: improve provider connection UX and OAuth callback flow
+- 2e0e843: Sort models alphabetically by label within each provider group and sort provider groups alphabetically by name in the model picker modal
+
 ## 5.38.5
 
 ### Patch Changes
