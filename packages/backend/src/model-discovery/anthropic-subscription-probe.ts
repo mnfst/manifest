@@ -42,8 +42,36 @@ async function probeModel(apiKey: string, modelId: string): Promise<boolean> {
 
     if (res.ok) return true;
 
-    // Anthropic returns 400 with opaque "Error" for subscription tier restrictions
-    if (res.status === 400) return false;
+    // Only treat genuine permission/tier errors as inaccessible.
+    // invalid_request_error means our probe format is wrong, not that
+    // the subscription can't access this model.
+    if (res.status === 400 || res.status === 403) {
+      try {
+        const body = (await res.json()) as Record<string, unknown>;
+        const error = body.error as Record<string, unknown> | undefined;
+        const errorType = error?.type as string | undefined;
+
+        // These error types indicate the subscription genuinely cannot
+        // access this model family:
+        if (
+          errorType === 'authentication_error' ||
+          errorType === 'permission_error' ||
+          errorType === 'not_found_error'
+        ) {
+          return false;
+        }
+
+        // invalid_request_error = our probe request is malformed,
+        // NOT a tier restriction. Keep the model.
+        logger.debug(
+          `Probe for ${modelId} got ${res.status}/${errorType} — treating as accessible (not a tier error)`,
+        );
+        return true;
+      } catch {
+        // Can't parse error body — inconclusive, keep the model
+        return true;
+      }
+    }
 
     // Other errors (429 rate limit, 500 server error) — don't exclude the model,
     // it might work later. Only subscription tier rejections are deterministic.
