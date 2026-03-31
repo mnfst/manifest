@@ -1985,6 +1985,31 @@ describe('ModelDiscoveryService', () => {
       expect(result[0].outputPricePerToken).toBe(0.01);
     });
 
+    it('should trigger pricing enrichment when inputPricePerToken is set but outputPricePerToken is null', async () => {
+      mockModelsDevSync.lookupModel.mockReturnValue({
+        id: 'partial-price',
+        name: 'Partial Price',
+        inputPricePerToken: 0.005,
+        outputPricePerToken: 0.01,
+        contextWindow: 64000,
+      });
+
+      const models = [
+        makeModel({
+          id: 'partial-price',
+          inputPricePerToken: 0.001,
+          outputPricePerToken: null,
+        }),
+      ];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider());
+
+      // Output is null so enrichment should run — both prices come from models.dev
+      expect(result[0].inputPricePerToken).toBe(0.005);
+      expect(result[0].outputPricePerToken).toBe(0.01);
+    });
+
     it('should skip pricing enrichment but apply capabilities for price=0 models', async () => {
       mockModelsDevSync.lookupModel.mockReturnValue({
         id: 'zero-price',

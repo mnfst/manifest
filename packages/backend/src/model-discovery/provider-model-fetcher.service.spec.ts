@@ -863,6 +863,24 @@ describe('ProviderModelFetcherService', () => {
       expect(result[0].outputPricePerToken).toBeNull();
     });
 
+    it('should treat negative pricing as null', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              id: 'neg-pricing',
+              pricing: { prompt: '-0.001', completion: '-0.002' },
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('openrouter', '');
+      expect(result[0].inputPricePerToken).toBeNull();
+      expect(result[0].outputPricePerToken).toBeNull();
+    });
+
     it('should use id as displayName when name is missing', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,
