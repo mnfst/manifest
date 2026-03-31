@@ -129,9 +129,11 @@ const ModelPickerModal: Component<Props> = (props) => {
 
     const groups: { provId: string; name: string; models: ModalModel[] }[] = [];
     for (const group of groupMap.values()) {
-      group.models.sort((a, b) =>
-        a.value === 'openrouter/free' ? -1 : b.value === 'openrouter/free' ? 1 : 0,
-      );
+      group.models.sort((a, b) => {
+        if (a.value === 'openrouter/free') return -1;
+        if (b.value === 'openrouter/free') return 1;
+        return a.label.localeCompare(b.label);
+      });
       if (q) {
         const nameMatch = group.name.toLowerCase().includes(q);
         const filtered = nameMatch
@@ -144,6 +146,7 @@ const ModelPickerModal: Component<Props> = (props) => {
         groups.push(group);
       }
     }
+    groups.sort((a, b) => a.name.localeCompare(b.name));
     return groups;
   };
 

@@ -178,6 +178,32 @@ describe("ModelPickerModal", () => {
     expect(firstModel?.textContent).toContain("Free Models Router");
   });
 
+  it("sorts models alphabetically by label within each group", () => {
+    const models = [
+      { model_name: "gpt-4o", provider: "OpenAI", display_name: "GPT-4o", input_price_per_token: 0.0000025, output_price_per_token: 0.00001, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "gpt-3.5-turbo", provider: "OpenAI", display_name: "GPT-3.5 Turbo", input_price_per_token: 0.0000005, output_price_per_token: 0.0000015, context_window: 16385, capability_reasoning: false, capability_code: true },
+      { model_name: "gpt-4o-mini", provider: "OpenAI", display_name: "GPT-4o Mini", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
+    ];
+    const { container } = render(() => (
+      <ModelPickerModal tierId="simple" models={models} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
+    ));
+    const group = container.querySelector(".routing-modal__group")!;
+    const labels = Array.from(group.querySelectorAll(".routing-modal__model-label")).map((el) => el.childNodes[0].textContent?.trim());
+    expect(labels).toEqual(["GPT-3.5 Turbo", "GPT-4o", "GPT-4o Mini"]);
+  });
+
+  it("sorts provider groups alphabetically by name", () => {
+    const models = [
+      { model_name: "gpt-4o-mini", provider: "OpenAI", display_name: "GPT-4o Mini", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "claude-opus-4-6", provider: "Anthropic", display_name: "Claude Opus 4.6", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
+    ];
+    const { container } = render(() => (
+      <ModelPickerModal tierId="simple" models={models} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
+    ));
+    const groupNames = Array.from(container.querySelectorAll(".routing-modal__group-name")).map((el) => el.textContent);
+    expect(groupNames).toEqual(["Anthropic", "OpenAI"]);
+  });
+
   it("resolves label for vendor-prefixed model names", () => {
     const modelsWithSlash = [
       { model_name: "anthropic/claude-opus-4-6", provider: "Anthropic", display_name: "Claude Opus 4.6", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
