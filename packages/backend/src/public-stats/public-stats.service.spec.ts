@@ -118,13 +118,14 @@ describe('PublicStatsService', () => {
       expect(result.top_models).toHaveLength(0);
     });
 
-    it('excludes OpenRouter provider models', async () => {
+    it('includes OpenRouter provider models', async () => {
       setupQueries({ total: '1' }, [{ model: 'openrouter/free', usage_count: '1' }], []);
       mockPricingCache.getByModel.mockReturnValue(makePricingEntry({ provider: 'OpenRouter' }));
 
       const result = await service.getUsageStats();
 
-      expect(result.top_models).toHaveLength(0);
+      expect(result.top_models).toHaveLength(1);
+      expect(result.top_models[0].provider).toBe('OpenRouter');
     });
 
     it('limits to 10 results', async () => {
@@ -221,7 +222,7 @@ describe('PublicStatsService', () => {
       expect(service.getFreeModels(new Map([['paid', 1000]]))).toEqual([]);
     });
 
-    it('excludes Unknown and OpenRouter providers', () => {
+    it('excludes Unknown provider', () => {
       mockPricingCache.getAll.mockReturnValue([
         makePricingEntry({
           model_name: 'a',
@@ -229,6 +230,13 @@ describe('PublicStatsService', () => {
           input_price_per_token: 0,
           output_price_per_token: 0,
         }),
+      ]);
+
+      expect(service.getFreeModels(new Map([['a', 100]]))).toEqual([]);
+    });
+
+    it('includes OpenRouter provider', () => {
+      mockPricingCache.getAll.mockReturnValue([
         makePricingEntry({
           model_name: 'b',
           provider: 'OpenRouter',
@@ -237,14 +245,9 @@ describe('PublicStatsService', () => {
         }),
       ]);
 
-      expect(
-        service.getFreeModels(
-          new Map([
-            ['a', 100],
-            ['b', 200],
-          ]),
-        ),
-      ).toEqual([]);
+      const result = service.getFreeModels(new Map([['b', 200]]));
+      expect(result).toHaveLength(1);
+      expect(result[0].provider).toBe('OpenRouter');
     });
 
     it('excludes custom models', () => {

@@ -6,7 +6,7 @@ import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.se
 import { computeCutoff } from '../common/utils/sql-dialect';
 
 const MAX_RESULTS = 10;
-const EXCLUDED_PROVIDERS = new Set(['Unknown', 'OpenRouter']);
+const EXCLUDED_PROVIDERS = new Set(['Unknown']);
 
 export interface TopModel {
   model: string;
