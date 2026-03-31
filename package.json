@@ -59,6 +59,11 @@
       "prettier --write"
     ]
   },
+  "overrides": {
+    "picomatch": "^4.0.4",
+    "path-to-regexp": "8.4.1",
+    "brace-expansion": "5.0.5"
+  },
   "devDependencies": {
     "@changesets/cli": "^2.29.0",
     "@typescript-eslint/eslint-plugin": "^8.56.0",

@@ -58,6 +58,8 @@ LABEL org.opencontainers.image.title="Manifest" \
       org.opencontainers.image.vendor="MNFST Inc." \
       org.opencontainers.image.licenses="MIT"
 
+RUN apk update && apk upgrade --no-cache && rm -rf /var/cache/apk/*
+
 ENV NODE_ENV=production
 ENV BIND_ADDRESS=0.0.0.0
 
