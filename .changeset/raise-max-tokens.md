@@ -2,4 +2,4 @@
 "manifest-model-router": patch
 ---
 
-Raise manifest/auto maxTokens from 16384 to 128000 to better reflect the output capabilities of models the router selects
+Raise manifest/auto contextWindow from 200k to 2M to match the optimistic upper bound of the routing pool, consistent with how OpenRouter declares its auto model
