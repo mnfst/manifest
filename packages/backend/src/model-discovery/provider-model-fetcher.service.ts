@@ -263,8 +263,10 @@ function parseOpenRouter(body: unknown, provider: string): DiscoveredModel[] {
         displayName: entry.name || entry.id,
         provider,
         contextWindow: entry.context_length ?? 128000,
-        inputPricePerToken: prompt !== null && Number.isFinite(prompt) ? prompt : null,
-        outputPricePerToken: completion !== null && Number.isFinite(completion) ? completion : null,
+        inputPricePerToken:
+          prompt !== null && Number.isFinite(prompt) && prompt >= 0 ? prompt : null,
+        outputPricePerToken:
+          completion !== null && Number.isFinite(completion) && completion >= 0 ? completion : null,
         capabilityReasoning: false,
         capabilityCode: false,
         qualityScore: 3,

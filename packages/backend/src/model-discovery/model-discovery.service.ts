@@ -263,9 +263,14 @@ export class ModelDiscoveryService {
   }
 
   private enrichModel(model: DiscoveredModel, providerId: string): DiscoveredModel {
-    // Skip pricing enrichment when pricing is already set (price=0 for free/subscription)
+    // Skip pricing enrichment when both prices are already set (price=0 for free/subscription)
     // but still apply capability flags from models.dev for better scoring
-    if (model.inputPricePerToken !== null && model.inputPricePerToken >= 0) {
+    if (
+      model.inputPricePerToken !== null &&
+      model.inputPricePerToken >= 0 &&
+      model.outputPricePerToken !== null &&
+      model.outputPricePerToken >= 0
+    ) {
       return this.computeScore(this.applyCapabilities(model, providerId));
     }
 
