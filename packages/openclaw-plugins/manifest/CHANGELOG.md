@@ -1,5 +1,11 @@
 # manifest
 
+## 5.38.4
+
+### Patch Changes
+
+- 29e6a07: fix: OWASP security hardening - timing-safe legacy hash, email DTO validation, nonce CSP, SSRF bypass tightening, error sanitization
+
 ## 5.38.3
 
 ### Patch Changes
