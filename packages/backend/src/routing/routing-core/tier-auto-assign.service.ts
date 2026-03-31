@@ -26,8 +26,10 @@ function filterSubModels(models: DiscoveredModel[]): DiscoveredModel[] {
   for (const providerModels of byProvider.values()) {
     const zeroCost = providerModels.filter(
       (m) =>
-        (m.inputPricePerToken == null || m.inputPricePerToken === 0) &&
-        (m.outputPricePerToken == null || m.outputPricePerToken === 0),
+        m.inputPricePerToken != null &&
+        m.outputPricePerToken != null &&
+        m.inputPricePerToken === 0 &&
+        m.outputPricePerToken === 0,
     );
     // If zero-cost models exist (e.g. OpenAI Codex), use only those
     result.push(...(zeroCost.length > 0 ? zeroCost : providerModels));
@@ -107,16 +109,17 @@ export class TierAutoAssignService {
   pickBest(models: DiscoveredModel[], tier: Tier): ScoredModel | null {
     if (models.length === 0) return null;
 
-    const totalPrice = (m: DiscoveredModel) =>
-      (m.inputPricePerToken != null ? Number(m.inputPricePerToken) : 0) +
-      (m.outputPricePerToken != null ? Number(m.outputPricePerToken) : 0);
+    const totalPrice = (m: DiscoveredModel) => {
+      if (m.inputPricePerToken == null || m.outputPricePerToken == null) return Infinity;
+      return Number(m.inputPricePerToken) + Number(m.outputPricePerToken);
+    };
 
     const quality = (m: DiscoveredModel) => m.qualityScore ?? 3;
 
     // Sort by price ascending (cheapest first, including free local models)
     const byPrice = [...models].sort((a, b) => totalPrice(a) - totalPrice(b));
 
-    let picked: DiscoveredModel;
+    let picked: DiscoveredModel = byPrice[0];
 
     switch (tier) {
       case 'simple': {

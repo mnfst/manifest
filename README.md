@@ -20,6 +20,8 @@
   &nbsp;
   <a href="https://www.npmjs.com/package/manifest"><img src="https://img.shields.io/npm/dw/manifest?color=cb3837" alt="npm downloads" /></a>
   &nbsp;
+  <a href="https://hub.docker.com/r/manifestdotbuild/manifest"><img src="https://img.shields.io/docker/pulls/manifestdotbuild/manifest?color=2496ED&label=docker%20pulls" alt="Docker pulls" /></a>
+  &nbsp;
   <a href="https://github.com/mnfst/manifest/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/mnfst/manifest/ci.yml?branch=main&label=CI" alt="CI status" /></a>
   &nbsp;
   <a href="https://app.codecov.io/gh/mnfst/manifest"><img src="https://img.shields.io/codecov/c/github/mnfst/manifest?label=coverage" alt="Codecov" /></a>
@@ -61,7 +63,7 @@ Dashboard opens at **http://127.0.0.1:2099**. The plugin starts an embedded serv
 Run the full Manifest stack (app + PostgreSQL) with a single command:
 
 ```bash
-curl -O https://raw.githubusercontent.com/mnfst/manifest/main/docker-compose.yml
+curl -O https://raw.githubusercontent.com/mnfst/manifest/main/docker/docker-compose.yml
 docker compose up -d
 ```
 

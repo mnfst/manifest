@@ -248,19 +248,18 @@ describe('ProxyController', () => {
     expect(res.json).toHaveBeenCalledWith(convertedBody);
   });
 
-  it('should convert ChatGPT response for non-streaming', async () => {
-    const chatgptBody = {
-      output: [{ type: 'message', content: [{ type: 'output_text', text: 'hi' }] }],
-      usage: { input_tokens: 5, output_tokens: 3, total_tokens: 8 },
-    };
-    const convertedBody = {
+  it('should collect ChatGPT SSE response for non-streaming', async () => {
+    const sseText =
+      'event: response.output_text.delta\ndata: {"delta":"hi"}\n\n' +
+      'event: response.completed\ndata: {"response":{"usage":{"input_tokens":5,"output_tokens":3,"total_tokens":8},"output":[{"type":"message"}]}}\n\n';
+    const collectedBody = {
       choices: [{ message: { content: 'hi' } }],
       usage: { prompt_tokens: 5, completion_tokens: 3 },
     };
 
-    const mockProviderResp = new Response(JSON.stringify(chatgptBody), {
+    const mockProviderResp = new Response(sseText, {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/event-stream' },
     });
 
     proxyService.proxyRequest.mockResolvedValue({
@@ -273,9 +272,9 @@ describe('ProxyController', () => {
         reason: 'scored',
       },
     });
-    (providerClient as Record<string, jest.Mock>).convertChatGptResponse = jest
+    (providerClient as Record<string, jest.Mock>).collectChatGptSseResponse = jest
       .fn()
-      .mockReturnValue(convertedBody);
+      .mockReturnValue(collectedBody);
 
     const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] });
     const { res } = mockResponse();
@@ -283,9 +282,9 @@ describe('ProxyController', () => {
     await controller.chatCompletions(req as never, res as never);
 
     expect(
-      (providerClient as Record<string, jest.Mock>).convertChatGptResponse,
-    ).toHaveBeenCalledWith(chatgptBody, 'gpt-5.3-codex');
-    expect(res.json).toHaveBeenCalledWith(convertedBody);
+      (providerClient as Record<string, jest.Mock>).collectChatGptSseResponse,
+    ).toHaveBeenCalledWith(sseText, 'gpt-5.3-codex');
+    expect(res.json).toHaveBeenCalledWith(collectedBody);
   });
 
   it('should not record success message for non-fallback responses (OTLP pipeline records them)', async () => {

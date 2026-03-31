@@ -6,6 +6,7 @@ import {
   toAnthropicRequest,
   toResponsesRequest,
   sanitizeOpenAiBody,
+  collectChatGptSseResponse as chatGptSseCollector,
   convertChatGptResponse as chatGptResponseConverter,
   convertChatGptStreamChunk as chatGptStreamChunkConverter,
   convertGoogleResponse as googleResponseConverter,
@@ -87,6 +88,9 @@ export class ProviderClient {
     let requestBody: Record<string, unknown>;
 
     if (isGoogle) {
+      // Google Gemini API requires the key as a URL parameter (not a header).
+      // The key is sanitized from debug logs below but may be visible to
+      // intermediate proxies between Manifest and Google's API.
       url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}?key=${apiKey}`;
       if (stream) url += '&alt=sse';
       headers = endpoint.buildHeaders(apiKey, authType);
@@ -174,5 +178,10 @@ export class ProviderClient {
   /** Create a stateful Anthropic stream transformer that tracks usage across events. */
   createAnthropicStreamTransformer(model: string): (chunk: string) => string | null {
     return createAnthropicTransformer(model);
+  }
+
+  /** Collect a ChatGPT SSE stream into a non-streaming OpenAI response. */
+  collectChatGptSseResponse(sseText: string, model: string): Record<string, unknown> {
+    return chatGptSseCollector(sseText, model);
   }
 }

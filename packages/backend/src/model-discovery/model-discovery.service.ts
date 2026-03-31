@@ -22,6 +22,7 @@ import {
   buildSubscriptionFallbackModels,
   supplementWithKnownModels,
 } from './model-fallback';
+import { lookupKnownPrice } from './known-model-prices';
 // Import static helpers directly to avoid circular dependency with RoutingModule
 const customProviderKey = (id: string) => `custom:${id}`;
 const customModelKey = (id: string, modelName: string) => `custom:${id}/${modelName}`;
@@ -263,9 +264,14 @@ export class ModelDiscoveryService {
   }
 
   private enrichModel(model: DiscoveredModel, providerId: string): DiscoveredModel {
-    // Skip pricing enrichment when pricing is already set (price=0 for free/subscription)
+    // Skip pricing enrichment when both prices are already set (price=0 for free/subscription)
     // but still apply capability flags from models.dev for better scoring
-    if (model.inputPricePerToken !== null && model.inputPricePerToken >= 0) {
+    if (
+      model.inputPricePerToken !== null &&
+      model.inputPricePerToken >= 0 &&
+      model.outputPricePerToken !== null &&
+      model.outputPricePerToken >= 0
+    ) {
       return this.computeScore(this.applyCapabilities(model, providerId));
     }
 
@@ -310,6 +316,16 @@ export class ModelDiscoveryService {
           displayName: exactPricing.displayName || model.displayName,
         });
       }
+    }
+
+    // Priority 3: hardcoded known prices — last resort for models no external source covers
+    const known = lookupKnownPrice(model.id);
+    if (known) {
+      return this.computeScore({
+        ...model,
+        inputPricePerToken: known.input,
+        outputPricePerToken: known.output,
+      });
     }
 
     return this.computeScore(model);

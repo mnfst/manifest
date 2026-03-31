@@ -1,15 +1,19 @@
 name: Docker
 
 on:
-  push:
-    tags:
-      - "manifest@*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish (e.g. 5.38.1)"
+        required: true
+        type: string
   pull_request:
     branches: [main]
     paths:
       - "docker/Dockerfile"
       - ".dockerignore"
-      - "docker-compose.yml"
+      - "docker/docker-compose.yml"
+      - "docker/DOCKER_README.md"
       - "packages/backend/**"
       - "packages/frontend/**"
       - "packages/shared/**"
@@ -40,14 +44,10 @@ jobs:
 
   publish:
     name: Build & Publish
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/manifest@')
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Extract version from tag
-        id: version
-        run: echo "version=${GITHUB_REF_NAME#manifest@}" >> "$GITHUB_OUTPUT"
 
       - uses: docker/setup-buildx-action@v3
 
@@ -61,9 +61,9 @@ jobs:
         with:
           images: manifestdotbuild/manifest
           tags: |
-            type=semver,pattern={{version}},value=${{ steps.version.outputs.version }}
-            type=semver,pattern={{major}}.{{minor}},value=${{ steps.version.outputs.version }}
-            type=semver,pattern={{major}},value=${{ steps.version.outputs.version }}
+            type=semver,pattern={{version}},value=${{ inputs.version }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ inputs.version }}
+            type=semver,pattern={{major}},value=${{ inputs.version }}
             type=sha
 
       - uses: docker/build-push-action@v6
@@ -75,12 +75,5 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-      - name: Update Docker Hub description
-        uses: peter-evans/dockerhub-description@v4
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: manifestdotbuild/manifest
-          readme-filepath: ./DOCKER_README.md
-          short-description: "Open-source model router and LLM observability for AI agents"
+          sbom: true
+          provenance: mode=max

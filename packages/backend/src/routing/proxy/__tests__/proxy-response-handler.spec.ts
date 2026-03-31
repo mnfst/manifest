@@ -465,6 +465,7 @@ describe('proxy-response-handler', () => {
         convertGoogleResponse: jest.fn().mockReturnValue({ id: 'google-converted' }),
         convertAnthropicResponse: jest.fn().mockReturnValue({ id: 'anthropic-converted' }),
         convertChatGptResponse: jest.fn().mockReturnValue({ id: 'chatgpt-converted' }),
+        collectChatGptSseResponse: jest.fn().mockReturnValue({ id: 'chatgpt-collected' }),
       };
     }
 
@@ -473,7 +474,10 @@ describe('proxy-response-handler', () => {
       flags: { isGoogle?: boolean; isAnthropic?: boolean; isChatGpt?: boolean } = {},
     ) {
       return {
-        response: { json: jest.fn().mockResolvedValue(body) },
+        response: {
+          json: jest.fn().mockResolvedValue(body),
+          text: jest.fn().mockResolvedValue(typeof body === 'string' ? body : JSON.stringify(body)),
+        },
         isGoogle: flags.isGoogle ?? false,
         isAnthropic: flags.isAnthropic ?? false,
         isChatGpt: flags.isChatGpt ?? false,
@@ -526,15 +530,17 @@ describe('proxy-response-handler', () => {
       expect(usage).toBeNull();
     });
 
-    it('should convert ChatGPT response', async () => {
+    it('should collect ChatGPT SSE response for non-streaming requests', async () => {
       const { res } = mockResponse();
       const client = mockProviderClient();
-      const forward = mockForward({}, { isChatGpt: true });
+      const sseText = 'event: response.output_text.delta\ndata: {"delta":"Hi"}\n\n';
+      const forward = mockForward(sseText, { isChatGpt: true });
       const meta = makeMeta();
 
       await handleNonStreamResponse(res as any, forward as any, meta, {}, client as any);
 
-      expect(client.convertChatGptResponse).toHaveBeenCalled();
+      expect(client.collectChatGptSseResponse).toHaveBeenCalledWith(sseText, meta.model);
+      expect(forward.response.text).toHaveBeenCalled();
     });
 
     it('should pass through standard OpenAI response', async () => {

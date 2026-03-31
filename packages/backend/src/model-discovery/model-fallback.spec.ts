@@ -474,6 +474,56 @@ describe('buildModelsDevFallback', () => {
   });
 });
 
+describe('lookupWithVariants OpenRouter name aliases', () => {
+  it('should resolve voxtral-small-2507 to voxtral-small-24b-2507', () => {
+    const cache = new Map([
+      ['mistralai/voxtral-small-24b-2507', { input: 0.0000001, output: 0.0000003 }],
+    ]);
+
+    const result = lookupWithVariants(makePricingSync(cache), 'mistralai', 'voxtral-small-2507');
+
+    expect(result).toEqual({ input: 0.0000001, output: 0.0000003 });
+  });
+
+  it('should resolve voxtral-small-latest via alias then -latest stripping', () => {
+    const cache = new Map([
+      ['mistralai/voxtral-small-24b-2507', { input: 0.0000001, output: 0.0000003 }],
+    ]);
+
+    const result = lookupWithVariants(makePricingSync(cache), 'mistralai', 'voxtral-small-latest');
+
+    expect(result).toEqual({ input: 0.0000001, output: 0.0000003 });
+  });
+
+  it('should resolve open-mistral-nemo to mistral-nemo via alias', () => {
+    const cache = new Map([['mistralai/mistral-nemo', { input: 0.00000015, output: 0.00000015 }]]);
+
+    const result = lookupWithVariants(makePricingSync(cache), 'mistralai', 'open-mistral-nemo');
+
+    expect(result).toEqual({ input: 0.00000015, output: 0.00000015 });
+  });
+});
+
+describe('lookupWithVariants -latest stripping', () => {
+  it('should strip -latest and find dated variant in cache', () => {
+    const cache = new Map([
+      ['mistralai/ministral-14b-2512', { input: 0.0000002, output: 0.0000002 }],
+    ]);
+
+    const result = lookupWithVariants(makePricingSync(cache), 'mistralai', 'ministral-14b-latest');
+
+    expect(result).toEqual({ input: 0.0000002, output: 0.0000002 });
+  });
+
+  it('should not strip -latest when model does not end with it', () => {
+    const cache = new Map<string, { input: number; output: number }>();
+
+    const result = lookupWithVariants(makePricingSync(cache), 'mistralai', 'mistral-medium-2508');
+
+    expect(result).toBeNull();
+  });
+});
+
 describe('lookupWithVariants edge cases', () => {
   it('should not double-apply dot variant when model already uses dots', () => {
     const cache = new Map([['openai/gpt-4.1', { input: 0.01, output: 0.02 }]]);

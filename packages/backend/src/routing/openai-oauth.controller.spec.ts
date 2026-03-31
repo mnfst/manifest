@@ -97,6 +97,20 @@ describe('OpenaiOauthController', () => {
         controller.authorize('my-agent', { id: 'user-1' } as never, req),
       ).rejects.toThrow(HttpException);
     });
+
+    it('throws 503 with generic message when non-Error is thrown', async () => {
+      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+      oauthService.generateAuthorizationUrl.mockRejectedValue('string-error');
+
+      const req = {
+        protocol: 'http',
+        get: jest.fn().mockReturnValue('localhost:3001'),
+      } as unknown as Request;
+
+      await expect(
+        controller.authorize('my-agent', { id: 'user-1' } as never, req),
+      ).rejects.toThrow('Failed to start OAuth callback server');
+    });
   });
 
   describe('revoke', () => {
@@ -194,6 +208,14 @@ describe('OpenaiOauthController', () => {
         controller.callback('auth-code', 'bad-state', { id: 'user-1' } as never),
       ).rejects.toThrow(HttpException);
     });
+
+    it('throws 400 with generic message when exchange throws non-Error', async () => {
+      oauthService.exchangeCode = jest.fn().mockRejectedValue('string-error');
+
+      await expect(
+        controller.callback('auth-code', 'bad-state', { id: 'user-1' } as never),
+      ).rejects.toThrow('Token exchange failed');
+    });
   });
 
   describe('done', () => {
@@ -206,27 +228,28 @@ describe('OpenaiOauthController', () => {
       } as unknown as jest.Mocked<Response>;
     });
 
-    it('returns success HTML when ok=1', () => {
+    it('returns success HTML when ok=1 with nonce-based CSP', () => {
       controller.done('1', res);
 
       expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/html');
-      expect(res.setHeader).toHaveBeenCalledWith(
-        'Content-Security-Policy',
-        "default-src 'none'; script-src 'unsafe-inline'",
-      );
+      const cspCall = res.setHeader.mock.calls.find((c) => c[0] === 'Content-Security-Policy');
+      expect(cspCall).toBeDefined();
+      expect(cspCall![1]).toMatch(/^default-src 'none'; script-src 'nonce-[A-Za-z0-9+/=]+'$/);
       expect(res.send).toHaveBeenCalledWith(expect.stringContaining('manifest-oauth-success'));
       expect(res.send).toHaveBeenCalledWith(expect.stringContaining('Login successful'));
       expect(res.send).toHaveBeenCalledWith(expect.stringContaining('BroadcastChannel'));
+      // Script tag should include the nonce
+      const html = res.send.mock.calls[0][0] as string;
+      expect(html).toMatch(/nonce="[A-Za-z0-9+/=]+"/);
     });
 
-    it('returns error HTML when ok=0', () => {
+    it('returns error HTML when ok=0 with nonce-based CSP', () => {
       controller.done('0', res);
 
       expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/html');
-      expect(res.setHeader).toHaveBeenCalledWith(
-        'Content-Security-Policy',
-        "default-src 'none'; script-src 'unsafe-inline'",
-      );
+      const cspCall = res.setHeader.mock.calls.find((c) => c[0] === 'Content-Security-Policy');
+      expect(cspCall).toBeDefined();
+      expect(cspCall![1]).toMatch(/^default-src 'none'; script-src 'nonce-[A-Za-z0-9+/=]+'$/);
       expect(res.send).toHaveBeenCalledWith(expect.stringContaining('manifest-oauth-error'));
       expect(res.send).toHaveBeenCalledWith(expect.stringContaining('Login failed'));
       expect(res.send).toHaveBeenCalledWith(expect.stringContaining('BroadcastChannel'));

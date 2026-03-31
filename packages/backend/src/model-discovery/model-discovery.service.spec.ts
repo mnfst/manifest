@@ -1985,6 +1985,31 @@ describe('ModelDiscoveryService', () => {
       expect(result[0].outputPricePerToken).toBe(0.01);
     });
 
+    it('should trigger pricing enrichment when inputPricePerToken is set but outputPricePerToken is null', async () => {
+      mockModelsDevSync.lookupModel.mockReturnValue({
+        id: 'partial-price',
+        name: 'Partial Price',
+        inputPricePerToken: 0.005,
+        outputPricePerToken: 0.01,
+        contextWindow: 64000,
+      });
+
+      const models = [
+        makeModel({
+          id: 'partial-price',
+          inputPricePerToken: 0.001,
+          outputPricePerToken: null,
+        }),
+      ];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider());
+
+      // Output is null so enrichment should run — both prices come from models.dev
+      expect(result[0].inputPricePerToken).toBe(0.005);
+      expect(result[0].outputPricePerToken).toBe(0.01);
+    });
+
     it('should skip pricing enrichment but apply capabilities for price=0 models', async () => {
       mockModelsDevSync.lookupModel.mockReturnValue({
         id: 'zero-price',
@@ -2014,6 +2039,44 @@ describe('ModelDiscoveryService', () => {
       // Capabilities updated from models.dev
       expect(result[0].capabilityReasoning).toBe(true);
       expect(result[0].capabilityCode).toBe(true);
+    });
+
+    it('should fall back to known-model-prices when models.dev and OpenRouter have no data', async () => {
+      mockModelsDevSync.lookupModel.mockReturnValue(null);
+      mockPricingSync.lookupPricing.mockReturnValue(null);
+
+      const models = [
+        makeModel({
+          id: 'moonshot-v1-128k',
+          inputPricePerToken: null,
+          outputPricePerToken: null,
+        }),
+      ];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider());
+
+      expect(result[0].inputPricePerToken).toBeCloseTo(1.66 / 1_000_000, 12);
+      expect(result[0].outputPricePerToken).toBeCloseTo(1.66 / 1_000_000, 12);
+    });
+
+    it('should return model without pricing when no source has data', async () => {
+      mockModelsDevSync.lookupModel.mockReturnValue(null);
+      mockPricingSync.lookupPricing.mockReturnValue(null);
+
+      const models = [
+        makeModel({
+          id: 'totally-unknown-model',
+          inputPricePerToken: null,
+          outputPricePerToken: null,
+        }),
+      ];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider());
+
+      expect(result[0].inputPricePerToken).toBeNull();
+      expect(result[0].outputPricePerToken).toBeNull();
     });
   });
 

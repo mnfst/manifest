@@ -1,5 +1,66 @@
 # manifest
 
+## 5.38.5
+
+### Patch Changes
+
+- ae0b429: Allow configuring CSP frame-ancestors via FRAME_ANCESTORS env var
+
+## 5.38.4
+
+### Patch Changes
+
+- 29e6a07: fix: OWASP security hardening - timing-safe legacy hash, email DTO validation, nonce CSP, SSRF bypass tightening, error sanitization
+
+## 5.38.3
+
+### Patch Changes
+
+- a07b924: Fix missing model prices for 22 models across Mistral, Moonshot, Gemini, and OpenAI providers
+  - Filter non-chat models from discovery: gemini-robotics, gpt-5-search-api, mistral-vibe-cli
+  - Add -latest suffix stripping to pricing lookups in both models.dev and OpenRouter paths
+  - Add legacy Mistral name aliases: open-mistral-nemo to mistral-nemo, mistral-tiny to open-mistral-7b
+  - Add OpenRouter name aliases for provider API mismatches (voxtral-small to voxtral-small-24b)
+  - Add hardcoded fallback prices for moonshot-v1-\* legacy models, gemma-3-1b-it, and gemini-pro-latest
+
+- 4ce1b73: fix: null-priced models no longer treated as free in tier auto-assignment
+- 6eb5976: fix: check both input and output prices before skipping enrichment, filter negative OpenRouter prices
+
+## 5.38.2
+
+### Patch Changes
+
+- 3d9afa2: Fix short prompts bypassing scorer: technical prompts under 50 chars now run full keyword scoring instead of always routing to simple tier
+- 3754fcb: Keep OpenRouter models in public stats endpoints, only exclude custom and unknown providers
+- c1692d8: Improve public stats endpoints: better URLs, filtering, and 10-item limits
+
+## 5.38.1
+
+### Patch Changes
+
+- 5b0af44: Block glm-5.1 from Z.AI model discovery (subscription-only model returns 403 on standard API)
+
+## 5.38.0
+
+### Minor Changes
+
+- c32c7a1: Add public API endpoints for live usage stats and model catalog (GET /api/v1/public-stats and GET /api/v1/public-stats/models)
+
+### Patch Changes
+
+- fbad418: Filter non-working models from provider discovery results
+  - Add Mistral-specific parser with metadata filtering (deprecation, capabilities.completion_chat)
+  - Filter Mistral labs-prefixed models (require admin opt-in)
+  - Filter xAI multi-agent models (not chat-compatible)
+  - Filter deprecated Gemini models (gemini-2.0-flash-lite, flash-lite-preview snapshots)
+  - Add per-provider exact-ID blocklist for models with no pattern (voxtral-mini-2602)
+
+- 5102236: Fix non-streaming responses for ChatGPT subscription (Codex) models
+
+  The Codex Responses API always returns SSE even when stream: false is requested.
+  The proxy now collects the SSE events and builds a proper non-streaming OpenAI
+  Chat Completion response instead of failing with a JSON parse error.
+
 ## 5.37.0
 
 ### Minor Changes

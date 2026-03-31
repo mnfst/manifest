@@ -95,6 +95,27 @@ const MOCK_API_RESPONSE = {
         limit: { context: 128000 },
         modalities: { input: ['text'], output: ['text'] },
       },
+      'mistral-nemo': {
+        id: 'mistral-nemo',
+        name: 'Mistral Nemo',
+        cost: { input: 0.15, output: 0.15 },
+        limit: { context: 128000 },
+        modalities: { input: ['text'], output: ['text'] },
+      },
+      'open-mistral-7b': {
+        id: 'open-mistral-7b',
+        name: 'Mistral 7B',
+        cost: { input: 0.25, output: 0.25 },
+        limit: { context: 32000 },
+        modalities: { input: ['text'], output: ['text'] },
+      },
+      'devstral-2512': {
+        id: 'devstral-2512',
+        name: 'Devstral',
+        cost: { input: 0.4, output: 2.0 },
+        limit: { context: 256000 },
+        modalities: { input: ['text'], output: ['text'] },
+      },
     },
   },
   xai: {
@@ -161,8 +182,8 @@ describe('ModelsDevSyncService', () => {
         'https://models.dev/api.json',
         expect.objectContaining({ signal: expect.any(AbortSignal) }),
       );
-      // anthropic: 2, google: 1 (audio excluded), openai: 1, deepseek: 1, mistral: 3, xai: 3 = 11
-      expect(count).toBe(11);
+      // anthropic: 2, google: 1 (audio excluded), openai: 1, deepseek: 1, mistral: 6, xai: 3 = 14
+      expect(count).toBe(14);
     });
 
     it('should filter out non-text-output models', async () => {
@@ -346,6 +367,46 @@ describe('ModelsDevSyncService', () => {
       expect(model).not.toBeNull();
       expect(model!.name).toBe('Grok 4');
       expect(model!.inputPricePerToken).toBe(3.0 / 1_000_000);
+    });
+
+    it('should strip -latest and find dated variant (devstral-latest → devstral-2512)', () => {
+      const model = service.lookupModel('mistral', 'devstral-latest');
+      expect(model).not.toBeNull();
+      expect(model!.name).toBe('Devstral');
+      expect(model!.inputPricePerToken).toBe(0.4 / 1_000_000);
+    });
+
+    it('should strip -latest and find base name when no dated variant exists', () => {
+      // mistral-nemo has no -latest sibling but base name matches
+      // This tests the baseMatch path in step 10
+      const model = service.lookupModel('mistral', 'mistral-nemo-latest');
+      // models.dev has mistral-nemo as a key (step 10 base match)
+      expect(model).not.toBeNull();
+      expect(model!.name).toBe('Mistral Nemo');
+    });
+
+    it('should resolve legacy alias open-mistral-nemo → mistral-nemo', () => {
+      const model = service.lookupModel('mistral', 'open-mistral-nemo');
+      expect(model).not.toBeNull();
+      expect(model!.name).toBe('Mistral Nemo');
+    });
+
+    it('should resolve legacy alias open-mistral-nemo-2407 → mistral-nemo', () => {
+      const model = service.lookupModel('mistral', 'open-mistral-nemo-2407');
+      expect(model).not.toBeNull();
+      expect(model!.name).toBe('Mistral Nemo');
+    });
+
+    it('should resolve legacy alias mistral-tiny-2407 → open-mistral-7b', () => {
+      const model = service.lookupModel('mistral', 'mistral-tiny-2407');
+      expect(model).not.toBeNull();
+      expect(model!.name).toBe('Mistral 7B');
+    });
+
+    it('should resolve legacy alias mistral-tiny-latest → open-mistral-7b', () => {
+      const model = service.lookupModel('mistral', 'mistral-tiny-latest');
+      expect(model).not.toBeNull();
+      expect(model!.name).toBe('Mistral 7B');
     });
   });
 

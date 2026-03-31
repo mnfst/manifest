@@ -12,6 +12,7 @@ import {
   TestEmailProviderDto,
   TestSavedEmailProviderDto,
 } from './dto/set-email-provider.dto';
+import { SetNotificationEmailDto } from './dto/set-notification-email.dto';
 
 @Controller('api/v1/notifications')
 export class NotificationsController {
@@ -65,7 +66,7 @@ export class NotificationsController {
   }
 
   @Post('notification-email')
-  async setNotificationEmail(@CurrentUser() user: AuthUser, @Body() body: { email: string }) {
+  async setNotificationEmail(@CurrentUser() user: AuthUser, @Body() body: SetNotificationEmailDto) {
     await this.emailProviderConfigService.setNotificationEmail(user.id, body.email);
     return { saved: true };
   }

@@ -45,6 +45,9 @@ export class DatabaseSeederService implements OnModuleInit {
       await this.seedTenantAndAgent();
       await this.seedAgentMessages();
       this.logger.log('Seeded demo data (dev/test only, SEED_DATA=true)');
+      this.logger.warn(
+        'SECURITY: Default seed credentials are active (admin@manifest.build). Do NOT use in production.',
+      );
     }
   }
 

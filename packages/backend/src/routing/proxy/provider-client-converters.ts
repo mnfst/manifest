@@ -9,6 +9,7 @@ import {
   toResponsesRequest,
   fromResponsesResponse,
   transformResponsesStreamChunk,
+  collectChatGptSseResponse,
 } from './chatgpt-adapter';
 
 /** Convert a ChatGPT Responses API response to OpenAI format. */
@@ -56,7 +57,7 @@ export function createAnthropicTransformer(model: string): (chunk: string) => st
 }
 
 // Re-export adapter functions used by ProviderClient.forward()
-export { toGoogleRequest, toAnthropicRequest, toResponsesRequest };
+export { toGoogleRequest, toAnthropicRequest, toResponsesRequest, collectChatGptSseResponse };
 export type { ExtractedSignature } from './google-adapter';
 export type { SignatureLookup } from './proxy-types';
 

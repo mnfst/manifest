@@ -1,4 +1,4 @@
-import { fromResponsesResponse } from '../chatgpt-adapter';
+import { fromResponsesResponse, collectChatGptSseResponse } from '../chatgpt-adapter';
 
 describe('ChatGPT Adapter – fromResponsesResponse', () => {
   it('converts Responses API output to OpenAI chat completion format', () => {
@@ -139,5 +139,79 @@ describe('ChatGPT Adapter – fromResponsesResponse', () => {
     const usage = result.usage as Record<string, number>;
 
     expect(usage.cache_read_tokens).toBe(42);
+  });
+});
+
+describe('ChatGPT Adapter – collectChatGptSseResponse', () => {
+  it('collects text deltas into a non-streaming response', () => {
+    const sse = [
+      'event: response.output_text.delta\ndata: {"delta":"Hello"}',
+      'event: response.output_text.delta\ndata: {"delta":" world"}',
+      'event: response.completed\ndata: {"response":{"usage":{"input_tokens":10,"output_tokens":2,"total_tokens":12},"output":[{"type":"message"}]}}',
+    ].join('\n\n');
+
+    const result = collectChatGptSseResponse(sse, 'gpt-5');
+    const choices = result.choices as { message: { content: string }; finish_reason: string }[];
+
+    expect(result.object).toBe('chat.completion');
+    expect(result.model).toBe('gpt-5');
+    expect(choices[0].message.content).toBe('Hello world');
+    expect(choices[0].finish_reason).toBe('stop');
+
+    const usage = result.usage as Record<string, number>;
+    expect(usage.prompt_tokens).toBe(10);
+    expect(usage.completion_tokens).toBe(2);
+  });
+
+  it('collects function calls from SSE events', () => {
+    const sse = [
+      'event: response.output_item.added\ndata: {"item":{"type":"function_call","call_id":"call_1","name":"get_weather"},"output_index":0}',
+      'event: response.function_call_arguments.delta\ndata: {"delta":"{\\"city\\":","output_index":0}',
+      'event: response.function_call_arguments.delta\ndata: {"delta":"\\"Paris\\"}","output_index":0}',
+      'event: response.completed\ndata: {"response":{"output":[{"type":"function_call"}],"usage":{"input_tokens":5,"output_tokens":3,"total_tokens":8}}}',
+    ].join('\n\n');
+
+    const result = collectChatGptSseResponse(sse, 'gpt-5');
+    const choices = result.choices as {
+      message: { tool_calls: { id: string; function: { name: string; arguments: string } }[] };
+      finish_reason: string;
+    }[];
+
+    expect(choices[0].finish_reason).toBe('tool_calls');
+    expect(choices[0].message.tool_calls).toHaveLength(1);
+    expect(choices[0].message.tool_calls[0].id).toBe('call_1');
+    expect(choices[0].message.tool_calls[0].function.name).toBe('get_weather');
+    expect(choices[0].message.tool_calls[0].function.arguments).toBe('{"city":"Paris"}');
+  });
+
+  it('handles function calls at non-zero output_index (mixed output items)', () => {
+    const sse = [
+      'event: response.output_text.delta\ndata: {"delta":"Let me check."}',
+      'event: response.output_item.added\ndata: {"item":{"type":"function_call","call_id":"call_2","name":"search"},"output_index":1}',
+      'event: response.function_call_arguments.delta\ndata: {"delta":"{\\"q\\":\\"test\\"}","output_index":1}',
+      'event: response.completed\ndata: {"response":{"output":[{"type":"message"},{"type":"function_call"}],"usage":{"input_tokens":8,"output_tokens":4,"total_tokens":12}}}',
+    ].join('\n\n');
+
+    const result = collectChatGptSseResponse(sse, 'gpt-5');
+    const choices = result.choices as {
+      message: {
+        content: string;
+        tool_calls: { id: string; function: { name: string; arguments: string } }[];
+      };
+      finish_reason: string;
+    }[];
+
+    expect(choices[0].message.content).toBe('Let me check.');
+    expect(choices[0].message.tool_calls).toHaveLength(1);
+    expect(choices[0].message.tool_calls[0].id).toBe('call_2');
+    expect(choices[0].message.tool_calls[0].function.arguments).toBe('{"q":"test"}');
+    expect(choices[0].finish_reason).toBe('tool_calls');
+  });
+
+  it('handles empty SSE text', () => {
+    const result = collectChatGptSseResponse('', 'gpt-5');
+    const choices = result.choices as { message: { content: string | null } }[];
+
+    expect(choices[0].message.content).toBeNull();
   });
 });

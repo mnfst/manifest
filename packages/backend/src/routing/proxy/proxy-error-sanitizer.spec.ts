@@ -64,4 +64,56 @@ describe('sanitizeProviderError', () => {
     const body = JSON.stringify({ error: { message: 'Should not leak' } });
     expect(sanitizeProviderError(500, body)).toBe('Upstream provider internal error');
   });
+
+  describe('sensitive pattern sanitization in non-production', () => {
+    it('redacts OpenAI API keys from error messages', () => {
+      const key = 'sk-proj-abcdefghijklmnopqrstuvwxyz';
+      const body = JSON.stringify({ error: { message: `Invalid key: ${key}` } });
+      const result = sanitizeProviderError(401, body, 'development');
+      expect(result).not.toContain(key);
+      expect(result).toContain('sk-***');
+    });
+
+    it('redacts Anthropic API keys from error messages', () => {
+      const key = 'sk-ant-api03-abcdefghijklmnopqrstuvwxyz';
+      const body = JSON.stringify({ error: { message: `Auth failed: ${key}` } });
+      const result = sanitizeProviderError(401, body, 'development');
+      expect(result).not.toContain(key);
+      expect(result).toContain('sk-ant-***');
+    });
+
+    it('redacts key= query parameters from error messages', () => {
+      const body = JSON.stringify({
+        error: { message: 'Failed at url?key=AIzaSyAbcdef123456789' },
+      });
+      const result = sanitizeProviderError(400, body, 'development');
+      expect(result).not.toContain('AIzaSyAbcdef123456789');
+      expect(result).toContain('key=***');
+    });
+
+    it('redacts Bearer tokens from error messages', () => {
+      const body = JSON.stringify({
+        error: { message: 'Header was: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6Ikp' },
+      });
+      const result = sanitizeProviderError(401, body, 'development');
+      expect(result).not.toContain('eyJhbGciOiJSUzI1NiIsInR5cCI6Ikp');
+      expect(result).toContain('Bearer ***');
+    });
+
+    it('redacts lowercase bearer tokens from error messages', () => {
+      const body = JSON.stringify({
+        error: { message: 'Header was: bearer eyJhbGciOiJSUzI1NiIsInR5cCI6Ikp' },
+      });
+      const result = sanitizeProviderError(401, body, 'development');
+      expect(result).not.toContain('eyJhbGciOiJSUzI1NiIsInR5cCI6Ikp');
+      expect(result).toContain('Bearer ***');
+    });
+
+    it('does not redact patterns in production mode', () => {
+      const key = 'sk-proj-abcdefghijklmnopqrstuvwxyz';
+      const body = JSON.stringify({ error: { message: `Invalid key: ${key}` } });
+      const result = sanitizeProviderError(401, body, 'production');
+      expect(result).toBe('Authentication failed with upstream provider');
+    });
+  });
 });

@@ -108,11 +108,13 @@ export const UNIVERSAL_NON_CHAT_RE =
  */
 export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
   openai:
-    /(?:moderation|davinci|babbage|^text-|realtime|-transcribe|^sora|^gpt-3\.5-turbo-instruct|audio|^chatgpt-image)/i,
+    /(?:moderation|davinci|babbage|^text-|realtime|-transcribe|^sora|^gpt-3\.5-turbo-instruct|audio|^chatgpt-image|search-api)/i,
   'openai-subscription':
     /(?:moderation|davinci|babbage|^text-|realtime|-transcribe|^sora|audio|^chatgpt-image)/i,
-  gemini: /(?:^aqs-|nano-banana|^deep-research|computer-use|^lyria|^gemini-2\.0-flash-lite$|flash-lite-preview)/i,
-  mistral: /(?:^mistral-ocr|moderation|voxtral-.*-(?:transcribe|realtime)|^labs-)/i,
+  gemini:
+    /(?:^aqs-|nano-banana|^deep-research|computer-use|^lyria|^gemini-2\.0-flash-lite$|flash-lite-preview|robotics)/i,
+  mistral:
+    /(?:^mistral-ocr|moderation|voxtral-.*-(?:transcribe|realtime)|^labs-|^mistral-vibe-cli)/i,
   xai: /(?:imagine|multi-agent)/i,
 };
 
@@ -123,6 +125,9 @@ export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
 export const PROVIDER_BLOCKLIST: Record<string, ReadonlySet<string>> = {
   mistral: new Set([
     'voxtral-mini-2602', // Invalid model returned by API; not a real chat endpoint
+  ]),
+  zai: new Set([
+    'glm-5.1', // Requires Coding Plan subscription + different endpoint; 403 on standard API
   ]),
 };
 
@@ -259,8 +264,10 @@ function parseOpenRouter(body: unknown, provider: string): DiscoveredModel[] {
         displayName: entry.name || entry.id,
         provider,
         contextWindow: entry.context_length ?? 128000,
-        inputPricePerToken: prompt !== null && Number.isFinite(prompt) ? prompt : null,
-        outputPricePerToken: completion !== null && Number.isFinite(completion) ? completion : null,
+        inputPricePerToken:
+          prompt !== null && Number.isFinite(prompt) && prompt >= 0 ? prompt : null,
+        outputPricePerToken:
+          completion !== null && Number.isFinite(completion) && completion >= 0 ? completion : null,
         capabilityReasoning: false,
         capabilityCode: false,
         qualityScore: 3,

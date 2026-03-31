@@ -334,7 +334,7 @@ describe('TierAutoAssignService', () => {
       expect(result!.score).toBe(3);
     });
 
-    it('should handle null inputPricePerToken as 0', () => {
+    it('should deprioritize null inputPricePerToken (unknown cost)', () => {
       const nullInput = makeModel({
         id: 'null-input',
         inputPricePerToken: null,
@@ -348,11 +348,11 @@ describe('TierAutoAssignService', () => {
         qualityScore: 3,
       });
 
-      // null input treated as 0 makes null-input cheaper
-      expect(service.pickBest([nullInput, priced], 'simple')!.model_name).toBe('null-input');
+      // null pricing = unknown cost, priced model wins cheapest-first
+      expect(service.pickBest([nullInput, priced], 'simple')!.model_name).toBe('priced');
     });
 
-    it('should handle null outputPricePerToken as 0', () => {
+    it('should deprioritize null outputPricePerToken (unknown cost)', () => {
       const nullOutput = makeModel({
         id: 'null-output',
         inputPricePerToken: 0.000001,
@@ -366,8 +366,37 @@ describe('TierAutoAssignService', () => {
         qualityScore: 3,
       });
 
-      // null output treated as 0 makes null-output cheaper
-      expect(service.pickBest([nullOutput, priced], 'simple')!.model_name).toBe('null-output');
+      // null pricing = unknown cost, priced model wins cheapest-first
+      expect(service.pickBest([nullOutput, priced], 'simple')!.model_name).toBe('priced');
+    });
+
+    it('should still pick null-priced model when it is the only option', () => {
+      const nullPriced = makeModel({
+        id: 'null-priced',
+        inputPricePerToken: null,
+        outputPricePerToken: null,
+        qualityScore: 3,
+      });
+
+      expect(service.pickBest([nullPriced], 'simple')!.model_name).toBe('null-priced');
+    });
+
+    it('should prefer priced model over null-priced for simple tier', () => {
+      const gemma = makeModel({
+        id: 'gemma-3-1b',
+        inputPricePerToken: null,
+        outputPricePerToken: null,
+        qualityScore: 2,
+      });
+      const flash = makeModel({
+        id: 'gemini-2.0-flash',
+        inputPricePerToken: 0.0000001,
+        outputPricePerToken: 0.0000004,
+        qualityScore: 2,
+        capabilityCode: true,
+      });
+
+      expect(service.pickBest([gemma, flash], 'simple')!.model_name).toBe('gemini-2.0-flash');
     });
   });
 
@@ -706,6 +735,39 @@ describe('TierAutoAssignService', () => {
       for (const record of inserted) {
         expect(record.auto_assigned_model).toBe('gpt-5.3-codex');
       }
+    });
+
+    it('should not treat null-priced subscription models as zero-cost', async () => {
+      const nullPricedModel = makeModel({
+        id: 'gemma-3-1b',
+        provider: 'Google',
+        inputPricePerToken: null,
+        outputPricePerToken: null,
+        qualityScore: 2,
+        authType: 'subscription',
+      });
+      const paidModel = makeModel({
+        id: 'gemini-2.5-flash',
+        provider: 'Google',
+        inputPricePerToken: 0.0000003,
+        outputPricePerToken: 0.0000025,
+        qualityScore: 2,
+        capabilityCode: true,
+        authType: 'subscription',
+      });
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([nullPricedModel, paidModel]);
+      mockTierRepo.find.mockResolvedValue([]);
+
+      await service.recalculate('agent-1');
+
+      expect(mockTierRepo.insert).toHaveBeenCalledTimes(1);
+      const inserted = mockTierRepo.insert.mock.calls[0][0] as {
+        tier: string;
+        auto_assigned_model: string;
+      }[];
+      // Simple tier should pick gemini-2.5-flash (known price), not gemma-3-1b (null price)
+      const simpleTier = inserted.find((t) => t.tier === 'simple');
+      expect(simpleTier!.auto_assigned_model).toBe('gemini-2.5-flash');
     });
 
     it('should keep all models for providers without zero-cost models (Anthropic)', async () => {

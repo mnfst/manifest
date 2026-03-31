@@ -330,10 +330,7 @@ describe('ProviderModelFetcherService', () => {
       fetchSpy.mockResolvedValue({
         ok: true,
         json: async () => ({
-          data: [
-            { id: 'mistral-large-latest' },
-            { id: 'codestral-latest' },
-          ],
+          data: [{ id: 'mistral-large-latest' }, { id: 'codestral-latest' }],
         }),
       });
 
@@ -347,7 +344,10 @@ describe('ProviderModelFetcherService', () => {
         json: async () => ({
           data: [
             { id: 'mistral-large-latest', capabilities: { completion_chat: true } },
-            { id: 'codestral-latest', capabilities: { completion_chat: true, completion_fim: true } },
+            {
+              id: 'codestral-latest',
+              capabilities: { completion_chat: true, completion_fim: true },
+            },
           ],
         }),
       });
@@ -362,7 +362,11 @@ describe('ProviderModelFetcherService', () => {
         json: async () => ({
           data: [
             { id: 'mistral-large-latest', capabilities: { completion_chat: true } },
-            { id: 'deprecated-model', capabilities: { completion_chat: true }, deprecation: '2025-06-01' },
+            {
+              id: 'deprecated-model',
+              capabilities: { completion_chat: true },
+              deprecation: '2025-06-01',
+            },
             { id: 'labs-experimental', capabilities: { completion_chat: true } },
             { id: 'voxtral-mini-2602', capabilities: { completion_chat: true } },
           ],
@@ -373,6 +377,20 @@ describe('ProviderModelFetcherService', () => {
       // deprecated-model filtered by metadata, labs-experimental by regex, voxtral-mini-2602 by blocklist
       expect(result.map((m) => m.id)).toEqual(['mistral-large-latest']);
     });
+  });
+
+  /* ── Z.AI blocklist ── */
+
+  it('should filter glm-5.1 from zai models via blocklist', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [{ id: 'glm-4.5' }, { id: 'glm-5' }, { id: 'glm-5.1' }],
+      }),
+    });
+
+    const result = await service.fetch('zai', 'key');
+    expect(result.map((m) => m.id)).toEqual(['glm-4.5', 'glm-5']);
   });
 
   /* ── OpenAI-compatible providers use same parser ── */
@@ -835,6 +853,24 @@ describe('ProviderModelFetcherService', () => {
             {
               id: 'bad-pricing',
               pricing: { prompt: 'NaN', completion: 'Infinity' },
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('openrouter', '');
+      expect(result[0].inputPricePerToken).toBeNull();
+      expect(result[0].outputPricePerToken).toBeNull();
+    });
+
+    it('should treat negative pricing as null', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              id: 'neg-pricing',
+              pricing: { prompt: '-0.001', completion: '-0.002' },
             },
           ],
         }),

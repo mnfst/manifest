@@ -5,6 +5,7 @@ on:
     branches: [main]
 
 permissions:
+  actions: write
   contents: write
   pull-requests: write
   id-token: write
@@ -107,3 +108,15 @@ jobs:
           # Re-enable once `clawhub package publish` supports plugins in the CLI,
           # or once OpenClaw fixes the skill-shadows-plugin resolution bug
           # (openclaw/openclaw#52831, openclaw/openclaw#53241).
+
+      - name: Publish Docker image
+        if: steps.changesets.outputs.published == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
+        run: |
+          MANIFEST_VERSION=$(echo "$PUBLISHED_PACKAGES" | jq -r '.[] | select(.name == "manifest") | .version // empty')
+          if [ -n "$MANIFEST_VERSION" ]; then
+            echo "Triggering Docker build for manifest@${MANIFEST_VERSION}..."
+            gh workflow run docker.yml -f version="$MANIFEST_VERSION"
+          fi
