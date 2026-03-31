@@ -67,8 +67,8 @@ export function isCloudMetadataIp(ip: string): boolean {
 }
 
 export async function validatePublicUrl(url: string): Promise<void> {
-  // Skip SSRF validation in test mode
-  if (process.env['NODE_ENV'] === 'test') return;
+  // Skip SSRF validation in test mode (set SKIP_SSRF_VALIDATION=false to force validation)
+  if (process.env['NODE_ENV'] === 'test' && process.env['SKIP_SSRF_VALIDATION'] !== 'false') return;
 
   let parsed: URL;
   try {

@@ -146,6 +146,13 @@ describe('validatePublicUrl', () => {
     await expect(validatePublicUrl('http://127.0.0.1:8080')).resolves.toBeUndefined();
   });
 
+  it('enforces validation in test mode when SKIP_SSRF_VALIDATION=false', async () => {
+    process.env['NODE_ENV'] = 'test';
+    process.env['SKIP_SSRF_VALIDATION'] = 'false';
+    await expect(validatePublicUrl('http://127.0.0.1:8080')).rejects.toThrow('private or internal');
+    delete process.env['SKIP_SSRF_VALIDATION'];
+  });
+
   it('allows private IPs in local mode', async () => {
     process.env['MANIFEST_MODE'] = 'local';
     await expect(validatePublicUrl('http://127.0.0.1:8080')).resolves.toBeUndefined();
@@ -241,5 +248,10 @@ describe('validatePublicUrl', () => {
   it('accepts http scheme', async () => {
     mockLookup.mockResolvedValue([{ address: '93.184.216.34', family: 4 }] as never);
     await expect(validatePublicUrl('http://example.com/api')).resolves.toBeUndefined();
+  });
+
+  it('handles non-array lookup result (single object)', async () => {
+    mockLookup.mockResolvedValue({ address: '93.184.216.34', family: 4 } as never);
+    await expect(validatePublicUrl('https://single.example.com')).resolves.toBeUndefined();
   });
 });

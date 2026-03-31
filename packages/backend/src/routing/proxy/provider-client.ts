@@ -88,6 +88,9 @@ export class ProviderClient {
     let requestBody: Record<string, unknown>;
 
     if (isGoogle) {
+      // Google Gemini API requires the key as a URL parameter (not a header).
+      // The key is sanitized from debug logs below but may be visible to
+      // intermediate proxies between Manifest and Google's API.
       url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}?key=${apiKey}`;
       if (stream) url += '&alt=sse';
       headers = endpoint.buildHeaders(apiKey, authType);

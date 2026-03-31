@@ -10,6 +10,7 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
+import { randomBytes } from 'crypto';
 import { Request, Response } from 'express';
 import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../auth/current-user.decorator';
@@ -120,9 +121,9 @@ export class OpenaiOauthController {
   done(@Query('ok') ok: string, @Res() res: Response) {
     const success = ok === '1';
 
+    const nonce = randomBytes(16).toString('base64');
     res.setHeader('Content-Type', 'text/html');
-    // Override Helmet's CSP to allow the inline script on this page
-    res.setHeader('Content-Security-Policy', "default-src 'none'; script-src 'unsafe-inline'");
-    res.send(oauthDoneHtml(success));
+    res.setHeader('Content-Security-Policy', `default-src 'none'; script-src 'nonce-${nonce}'`);
+    res.send(oauthDoneHtml(success, nonce));
   }
 }
