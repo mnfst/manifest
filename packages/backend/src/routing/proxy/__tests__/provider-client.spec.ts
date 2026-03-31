@@ -308,8 +308,12 @@ describe('ProviderClient', () => {
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.cache_control).toBeUndefined();
-      const system = sentBody.system as Array<{ cache_control?: unknown }>;
-      expect(system[0].cache_control).toBeUndefined();
+      const system = sentBody.system as Array<{ text?: string; cache_control?: unknown }>;
+      // First system block is the subscription identity prompt
+      expect(system[0].text).toContain('Claude agent');
+      expect(system[0].cache_control).toEqual({ type: 'ephemeral' });
+      // User system block has no cache_control (subscription skips caching)
+      expect(system[1].cache_control).toBeUndefined();
       const tools = sentBody.tools as Array<{ cache_control?: unknown }>;
       expect(tools[0].cache_control).toBeUndefined();
     });

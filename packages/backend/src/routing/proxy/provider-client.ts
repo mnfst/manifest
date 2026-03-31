@@ -98,8 +98,10 @@ export class ProviderClient {
     } else if (isAnthropic) {
       url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`;
       headers = endpoint.buildHeaders(apiKey, authType);
+      const isSubscription = authType === 'subscription';
       requestBody = toAnthropicRequest(body, bareModel, {
-        injectCacheControl: authType !== 'subscription',
+        injectCacheControl: !isSubscription,
+        injectSubscriptionIdentity: isSubscription,
       });
       requestBody.model = bareModel;
       if (stream) requestBody.stream = true;

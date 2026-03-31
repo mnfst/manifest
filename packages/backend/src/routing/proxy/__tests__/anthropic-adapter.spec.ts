@@ -431,6 +431,51 @@ describe('Anthropic Adapter', () => {
       expect(tools[1].cache_control).toBeUndefined();
     });
 
+    it('prepends subscription identity block when injectSubscriptionIdentity is true', () => {
+      const body = {
+        messages: [
+          { role: 'system', content: 'You are helpful.' },
+          { role: 'user', content: 'Hi' },
+        ],
+      };
+      const result = toAnthropicRequest(body, 'claude-sonnet-4-6', {
+        injectCacheControl: false,
+        injectSubscriptionIdentity: true,
+      });
+      const system = result.system as Array<{ type: string; text: string; cache_control?: unknown }>;
+      expect(system).toHaveLength(2);
+      expect(system[0].text).toContain('Claude agent');
+      expect(system[0].cache_control).toEqual({ type: 'ephemeral' });
+      expect(system[1].text).toBe('You are helpful.');
+    });
+
+    it('adds subscription identity as sole system block when no user system prompt', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Hi' }],
+      };
+      const result = toAnthropicRequest(body, 'claude-sonnet-4-6', {
+        injectSubscriptionIdentity: true,
+      });
+      const system = result.system as Array<{ type: string; text: string }>;
+      expect(system).toHaveLength(1);
+      expect(system[0].text).toContain('Claude agent');
+    });
+
+    it('does not inject subscription identity when option is false', () => {
+      const body = {
+        messages: [
+          { role: 'system', content: 'Custom prompt.' },
+          { role: 'user', content: 'Hi' },
+        ],
+      };
+      const result = toAnthropicRequest(body, 'claude-sonnet-4-6', {
+        injectSubscriptionIdentity: false,
+      });
+      const system = result.system as Array<{ type: string; text: string }>;
+      expect(system).toHaveLength(1);
+      expect(system[0].text).toBe('Custom prompt.');
+    });
+
     it('injects cache_control on system blocks and tools by default', () => {
       const body = {
         messages: [
