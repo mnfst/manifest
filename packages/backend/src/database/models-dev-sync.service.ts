@@ -79,6 +79,15 @@ const LATEST_SUFFIX = '-latest';
 const GOOGLE_VARIANT_RE = /-(?:preview(?:-\d{2,4}){1,3}|exp-\d{4}|latest)$/;
 /** xAI reasoning/non-reasoning mode suffixes. */
 const REASONING_SUFFIX_RE = /-(reasoning|non-reasoning)$/;
+/**
+ * Legacy model names that providers still return in their native API
+ * but which are listed under a different canonical name in pricing databases.
+ * Maps legacy base name (without dated suffix) → canonical name.
+ */
+const LEGACY_NAME_ALIASES: ReadonlyMap<string, string> = new Map([
+  ['open-mistral-nemo', 'mistral-nemo'], // Mistral renamed open-mistral-nemo → mistral-nemo
+  ['mistral-tiny', 'open-mistral-7b'], // mistral-tiny was the internal codename for Mistral 7B
+]);
 
 @Injectable()
 export class ModelsDevSyncService implements OnModuleInit {
@@ -148,6 +157,21 @@ export class ModelsDevSyncService implements OnModuleInit {
     const exact = providerModels.get(modelId);
     if (exact) return exact;
 
+    // 1b. Legacy name alias (e.g., open-mistral-nemo → mistral-nemo)
+    //     Strip date, short-date, and -latest suffixes to find the base name for alias lookup.
+    const aliasBase = modelId
+      .replace(DATE_SUFFIX_RE, '')
+      .replace(SHORT_DATE_SUFFIX_RE, '')
+      .replace(/-latest$/, '');
+    const aliasTarget =
+      LEGACY_NAME_ALIASES.get(aliasBase) ??
+      LEGACY_NAME_ALIASES.get(modelId) ??
+      LEGACY_NAME_ALIASES.get(modelId.replace(/-latest$/, ''));
+    if (aliasTarget) {
+      const found = providerModels.get(aliasTarget);
+      if (found) return found;
+    }
+
     // 2. Strip 3-digit version suffix (e.g., gemini-2.0-flash-001 → gemini-2.0-flash)
     const noVersion = modelId.replace(VERSION_SUFFIX_RE, '');
     if (noVersion !== modelId) {
@@ -199,6 +223,20 @@ export class ModelsDevSyncService implements OnModuleInit {
         const withLatest = providerModels.get(noShortDate + LATEST_SUFFIX);
         if (withLatest) return withLatest;
       }
+    }
+
+    // 10. Strip -latest and search for any dated variant of the base name
+    //     (e.g. devstral-latest → devstral-2512, ministral-14b-latest → ministral-14b-2512)
+    if (modelId.endsWith(LATEST_SUFFIX)) {
+      const base = modelId.slice(0, -LATEST_SUFFIX.length);
+      const prefix = `${base}-`;
+      for (const [key, entry] of providerModels) {
+        if (key.startsWith(prefix) && key !== modelId) return entry;
+      }
+      // Also try exact base name (e.g. gemini-pro-latest → gemini-pro is unlikely
+      // but handles edge cases where models.dev stores the bare name)
+      const baseMatch = providerModels.get(base);
+      if (baseMatch) return baseMatch;
     }
 
     return null;

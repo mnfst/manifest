@@ -22,6 +22,7 @@ import {
   buildSubscriptionFallbackModels,
   supplementWithKnownModels,
 } from './model-fallback';
+import { lookupKnownPrice } from './known-model-prices';
 // Import static helpers directly to avoid circular dependency with RoutingModule
 const customProviderKey = (id: string) => `custom:${id}`;
 const customModelKey = (id: string, modelName: string) => `custom:${id}/${modelName}`;
@@ -315,6 +316,16 @@ export class ModelDiscoveryService {
           displayName: exactPricing.displayName || model.displayName,
         });
       }
+    }
+
+    // Priority 3: hardcoded known prices — last resort for models no external source covers
+    const known = lookupKnownPrice(model.id);
+    if (known) {
+      return this.computeScore({
+        ...model,
+        inputPricePerToken: known.input,
+        outputPricePerToken: known.output,
+      });
     }
 
     return this.computeScore(model);

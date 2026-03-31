@@ -49,6 +49,16 @@ export function findOpenRouterPrefix(providerId: string): string | null {
 }
 
 /**
+ * Provider-native model names that differ from OpenRouter naming.
+ * Maps the name fragment from the provider API → the OpenRouter equivalent.
+ */
+const OPENROUTER_NAME_ALIASES: ReadonlyMap<string, string> = new Map([
+  ['voxtral-small', 'voxtral-small-24b'], // Mistral API omits the 24b size indicator
+  ['open-mistral-nemo', 'mistral-nemo'], // Mistral renamed open-mistral-nemo → mistral-nemo
+  ['mistral-tiny', 'open-mistral-7b'], // mistral-tiny was internal codename for Mistral 7B
+]);
+
+/**
  * Look up pricing with name normalization variants.
  * Providers use different conventions: Anthropic uses dashes (claude-sonnet-4-6),
  * OpenRouter uses dots (claude-sonnet-4.6). Try both.
@@ -60,6 +70,15 @@ export function lookupWithVariants(
 ): { input: number; output: number; contextWindow?: number; displayName?: string } | null {
   const exact = pricingSync.lookupPricing(`${prefix}/${modelId}`);
   if (exact) return exact;
+
+  // Try OpenRouter name aliases (e.g., voxtral-small-2507 → voxtral-small-24b-2507)
+  for (const [from, to] of OPENROUTER_NAME_ALIASES) {
+    if (modelId.includes(from)) {
+      const aliased = modelId.replace(from, to);
+      const aliasResult = pricingSync.lookupPricing(`${prefix}/${aliased}`);
+      if (aliasResult) return aliasResult;
+    }
+  }
 
   const dotVariant = modelId.replace(/-(\d+)-(\d)/g, '-$1.$2');
   if (dotVariant !== modelId) {
@@ -94,6 +113,19 @@ export function lookupWithVariants(
   if (noGoogleVariant !== modelId) {
     const result = pricingSync.lookupPricing(`${prefix}/${noGoogleVariant}`);
     if (result) return result;
+  }
+
+  // Strip -latest and search for dated variants in the cache
+  // (e.g. ministral-14b-latest → mistralai/ministral-14b-2512)
+  if (modelId.endsWith('-latest')) {
+    const base = modelId.slice(0, -'-latest'.length);
+    const scanPrefix = `${prefix}/${base}-`;
+    for (const [key] of pricingSync.getAll()) {
+      if (key.startsWith(scanPrefix)) {
+        const found = pricingSync.lookupPricing(key);
+        if (found) return found;
+      }
+    }
   }
 
   return null;

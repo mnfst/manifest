@@ -96,10 +96,10 @@ describe('filterNonChatModels', () => {
       expect(result).toHaveLength(2);
     });
 
-    it('keeps search models for openai', () => {
+    it('filters search-api models for openai', () => {
       const models = [makeModel('gpt-5-search-api'), makeModel('gpt-4o-search-preview')];
       const result = filterNonChatModels(models, 'openai');
-      expect(result).toHaveLength(2);
+      expect(result.map((m) => m.id)).toEqual(['gpt-4o-search-preview']);
     });
   });
 
@@ -182,14 +182,17 @@ describe('filterNonChatModels', () => {
       expect(result).toHaveLength(2);
     });
 
-    it('keeps gemini-image and gemini-robotics models', () => {
+    it('keeps gemini-image models but filters robotics models', () => {
       const models = [
         makeModel('gemini-2.5-flash-image'),
         makeModel('gemini-3-pro-image-preview'),
         makeModel('gemini-robotics-er-1.5-preview'),
       ];
       const result = filterNonChatModels(models, 'gemini');
-      expect(result).toHaveLength(3);
+      expect(result.map((m) => m.id)).toEqual([
+        'gemini-2.5-flash-image',
+        'gemini-3-pro-image-preview',
+      ]);
     });
   });
 
@@ -233,10 +236,15 @@ describe('filterNonChatModels', () => {
       expect(result).toHaveLength(2);
     });
 
-    it('keeps mistral-vibe-cli models', () => {
-      const models = [makeModel('mistral-vibe-cli-latest'), makeModel('mistral-vibe-cli-fast')];
+    it('filters mistral-vibe-cli models', () => {
+      const models = [
+        makeModel('mistral-vibe-cli-latest'),
+        makeModel('mistral-vibe-cli-fast'),
+        makeModel('mistral-vibe-cli-with-tools'),
+        makeModel('mistral-large-latest'),
+      ];
       const result = filterNonChatModels(models, 'mistral');
-      expect(result).toHaveLength(2);
+      expect(result.map((m) => m.id)).toEqual(['mistral-large-latest']);
     });
 
     it('filters labs-prefixed models', () => {
