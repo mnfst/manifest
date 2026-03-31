@@ -60,18 +60,9 @@ Dashboard opens at **http://127.0.0.1:2099**. The plugin starts an embedded serv
 
 ### Docker
 
-Run the full Manifest stack (app + PostgreSQL) with a single command:
+Our <a href="https://hub.docker.com/r/manifestdotbuild/manifest">Manifest Docker Image</a> allows you to self-host Manifest router in your own infrastructure.
 
-```bash
-curl -O https://raw.githubusercontent.com/mnfst/manifest/main/docker/docker-compose.yml
-docker compose up -d
-```
-
-Open **http://localhost:3001** and log in with `admin@manifest.build` / `manifest`.
-
-See the [Docker Hub page](https://hub.docker.com/r/manifestdotbuild/manifest) for more options (custom ports, standalone Docker run, environment variables).
-
-### Cloud vs local
+### Which version choose?
 
 Pick cloud version for quick setup and multi-device access. Pick local version for keeping all your data on your machine or for using local models like Ollama. Pick Docker for self-hosting on your own infrastructure.
 
