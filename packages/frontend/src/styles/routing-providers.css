@@ -422,7 +422,7 @@
 
 .provider-detail__hint {
   font-size: var(--font-size-sm);
-  color: hsl(var(--muted-foreground));
+  color: hsl(215, 16%, 39%);
   margin-bottom: 12px;
   line-height: 1.5;
 }

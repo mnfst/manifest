@@ -51,8 +51,13 @@
     "prepare": "husky"
   },
   "lint-staged": {
-    "packages/*/src/**/*.{ts,tsx}": ["eslint --fix", "prettier --write"],
-    "packages/*/src/**/*.css": ["prettier --write"]
+    "packages/*/src/**/*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "packages/*/src/**/*.css": [
+      "prettier --write"
+    ]
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.0",
@@ -64,5 +69,8 @@
     "lint-staged": "^16.3.1",
     "prettier": "^3.8.1",
     "turbo": "^2"
+  },
+  "dependencies": {
+    "@rollup/rollup-darwin-arm64": "^4.60.1"
   }
 }

@@ -149,20 +149,9 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
       </button>
 
       {/* Title */}
-      <div class="routing-modal__header" style="border: none; padding: 0; margin-bottom: 20px;">
+      <div class="routing-modal__header" style="border: none; padding: 0; margin-bottom: 15px;">
         <div>
           <div class="routing-modal__title">Connect providers</div>
-          <div class="routing-modal__subtitle">
-            {isSubMode()
-              ? isPopupOAuthFlow()
-                ? 'Log in to connect your subscription'
-                : isDeviceCodeFlow()
-                  ? 'Verify your account to connect your subscription'
-                  : isCommandOnly()
-                    ? 'Log in via your browser to connect your subscription'
-                    : 'Paste your setup-token to enable routing'
-              : 'Add your API keys to enable routing through each provider'}
-          </div>
         </div>
       </div>
 

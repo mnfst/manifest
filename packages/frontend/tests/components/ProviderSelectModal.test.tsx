@@ -1261,7 +1261,7 @@ describe('ProviderSelectModal', () => {
       ));
       // Click Anthropic on subscription tab to open detail
       fireEvent.click(screen.getByText('Anthropic'));
-      expect(screen.getByText('Paste your setup-token to enable routing')).toBeDefined();
+      expect(screen.getByText('Connect providers')).toBeDefined();
     });
 
     it('shows CopyButton with subscription command in detail view', () => {
@@ -1338,7 +1338,7 @@ describe('ProviderSelectModal', () => {
         />
       ));
       fireEvent.click(screen.getByText('OpenAI'));
-      expect(screen.getByText('Log in to connect your subscription')).toBeDefined();
+      expect(screen.getByText('Connect providers')).toBeDefined();
     });
 
     it("shows 'Log in with OpenAI' button for OAuth provider", () => {
@@ -1451,7 +1451,7 @@ describe('ProviderSelectModal', () => {
         />
       ));
       fireEvent.click(screen.getByText('MiniMax'));
-      expect(screen.getByText('Verify your account to connect your subscription')).toBeDefined();
+      expect(screen.getByText('Connect providers')).toBeDefined();
       expect(screen.getByText('Connect with MiniMax')).toBeDefined();
       expect(screen.getByLabelText('Region')).toBeDefined();
     });
@@ -2330,7 +2330,7 @@ describe('ProviderSelectModal', () => {
 
       // Should open device login detail view instead of calling connectProvider
       await waitFor(() => {
-        expect(screen.getByText("Sign in with GitHub to connect Copilot")).toBeDefined();
+        expect(screen.getByText("Connect providers")).toBeDefined();
       });
       // connectProvider should NOT have been called (device login guard)
       expect(mockConnectProvider).not.toHaveBeenCalled();

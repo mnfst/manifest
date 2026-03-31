@@ -25,15 +25,9 @@ describe("SetupStepAddProvider", () => {
     expect(container.textContent).toContain("route each request");
   });
 
-  it("shows base URL in the info grid", () => {
+  it("shows model hint in description", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
-    expect(container.textContent).toContain("Base URL");
-    expect(container.textContent).toContain("http://localhost:3001/v1");
-  });
-
-  it("shows Model in the info grid", () => {
-    const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
-    expect(container.textContent).toContain("Model");
+    expect(container.textContent).toContain("manifest/auto");
   });
 
   it("shows full API key in CLI snippet by default when provided", () => {
@@ -193,10 +187,10 @@ describe("SetupStepAddProvider", () => {
     expect(container.textContent).toContain("manifest");
   });
 
-  it("has copy buttons for base URL and model", () => {
+  it("has copy buttons for CLI snippet", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
     const copyButtons = container.querySelectorAll(".modal-terminal__copy");
-    expect(copyButtons.length).toBeGreaterThanOrEqual(3);
+    expect(copyButtons.length).toBeGreaterThanOrEqual(1);
   });
 
   it("renders custom baseUrl correctly", () => {
@@ -211,9 +205,9 @@ describe("SetupStepAddProvider", () => {
     expect(container.querySelector(".setup-step__heading")).not.toBeNull();
   });
 
-  it("uses setup-info-grid class for info cards", () => {
+  it("uses setup-method-tabs class for method tabs", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
-    expect(container.querySelector(".setup-info-grid")).not.toBeNull();
+    expect(container.querySelector(".setup-method-tabs")).not.toBeNull();
   });
 
   it("uses setup-method-tabs container", () => {

@@ -159,7 +159,7 @@
 .settings-card__label-desc {
   display: block;
   font-size: var(--font-size-xs);
-  color: hsl(var(--muted-foreground));
+  color: hsl(var(--foreground) / 0.7);
   margin-top: 2px;
 }
 
@@ -199,7 +199,6 @@
   justify-content: flex-end;
   padding: var(--gap-sm) var(--gap-lg);
   background: hsl(var(--muted) / 0.3);
-  border-top: 1px solid hsl(var(--border));
 }
 
 .settings-card__body {

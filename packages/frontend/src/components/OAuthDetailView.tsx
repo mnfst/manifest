@@ -134,11 +134,21 @@ const OAuthDetailView: Component<Props> = (props) => {
         >
           <p class="provider-detail__hint">
             A login window has opened. After you sign in, the popup will show a "can't be reached"
-            page — this is expected.
+            page. This is expected.
           </p>
-          <p class="provider-detail__hint" style="margin-top: 8px; font-weight: 500;">
-            Copy the full URL from the popup's address bar and paste it below:
+          <p class="provider-detail__hint" style="margin-top: 8px;">
+            Copy the full URL from the{' '}
+            <span style="color: #000000; font-weight: 500;">popup's address bar</span> and paste it
+            below:
           </p>
+          <video
+            src="/images/oauth-callback-example.mp4"
+            autoplay
+            loop
+            muted
+            playsinline
+            style="width: 100%; border-radius: var(--radius); border: 1px solid hsl(var(--border)); margin-top: 12px;"
+          />
           <div class="provider-detail__field" style="margin-top: 12px;">
             <input
               class="provider-detail__input"
