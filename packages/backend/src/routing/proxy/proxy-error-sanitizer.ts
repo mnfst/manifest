@@ -12,6 +12,14 @@ const KNOWN_ERROR_MESSAGES: Record<number, string> = {
   504: 'Upstream provider gateway timeout',
 };
 
+function sanitizeSensitivePatterns(msg: string): string {
+  return msg
+    .replace(/sk-ant-[a-zA-Z0-9_-]{20,}/g, 'sk-ant-***')
+    .replace(/sk-[a-zA-Z0-9_-]{20,}/g, 'sk-***')
+    .replace(/key=[^&\s"]+/g, 'key=***')
+    .replace(/Bearer\s+[^\s"]+/gi, 'Bearer ***');
+}
+
 export function sanitizeProviderError(status: number, rawBody: string, nodeEnv?: string): string {
   const generic = KNOWN_ERROR_MESSAGES[status] ?? `Upstream provider returned HTTP ${status}`;
 
@@ -23,7 +31,7 @@ export function sanitizeProviderError(status: number, rawBody: string, nodeEnv?:
     const error = parsed.error as Record<string, unknown> | undefined;
     const message = error?.message ?? parsed.message;
     if (typeof message === 'string' && message.length > 0) {
-      return message.slice(0, 500);
+      return sanitizeSensitivePatterns(message).slice(0, 500);
     }
   } catch {
     // Not JSON — fall through to generic message

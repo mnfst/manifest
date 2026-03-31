@@ -39,11 +39,12 @@ export function parseOAuthTokenBlob(rawValue: string): OAuthTokenBlob | null {
   }
 }
 
-export function oauthDoneHtml(success: boolean): string {
+export function oauthDoneHtml(success: boolean, nonce?: string): string {
   const message = success ? 'manifest-oauth-success' : 'manifest-oauth-error';
   const text = success
     ? 'Login successful!'
     : 'Login failed. Please close this window and try again.';
+  const nonceAttr = nonce ? ` nonce="${nonce}"` : '';
 
   return `<!DOCTYPE html>
 <html>
@@ -51,7 +52,7 @@ export function oauthDoneHtml(success: boolean): string {
 <body style="font-family:system-ui;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;background:#111;color:#eee;">
 <p>${text}</p>
 <p id="hint" style="font-size:13px;color:#888;display:none;">You can close this window.</p>
-<script>
+<script${nonceAttr}>
 try{var bc=new BroadcastChannel('manifest-oauth');bc.postMessage({type:'${message}'});bc.close();}catch(e){}
 if(window.opener){window.opener.postMessage({type:'${message}'},window.location.origin);}
 setTimeout(function(){window.close();document.getElementById('hint').style.display='block';},1500);
