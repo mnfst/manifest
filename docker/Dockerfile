@@ -70,6 +70,8 @@ COPY --from=build /app/packages/frontend/dist packages/frontend/dist
 COPY packages/shared/package.json packages/shared/
 COPY packages/backend/package.json packages/backend/
 
+RUN mkdir -p /home/node/.openclaw/manifest && chown -R node:node /home/node/.openclaw
+
 EXPOSE 3001
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
