@@ -1,7 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { UserProvider } from '../../entities/user-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
@@ -19,8 +16,6 @@ export class ProviderKeyService {
   private readonly logger = new Logger(ProviderKeyService.name);
 
   constructor(
-    @InjectRepository(UserProvider)
-    private readonly providerRepo: Repository<UserProvider>,
     private readonly pricingCache: ModelPricingCacheService,
     private readonly discoveryService: ModelDiscoveryService,
     private readonly routingCache: RoutingCacheService,
@@ -119,9 +114,8 @@ export class ProviderKeyService {
   ): Promise<string | null> {
     // Custom providers: exact match on provider key, allow empty key for local endpoints
     if (provider.startsWith('custom:')) {
-      const record = await this.providerRepo.findOne({
-        where: { agent_id: agentId, provider, is_active: true },
-      });
+      const allProviders = await this.providerService.getProviders(agentId);
+      const record = allProviders.find((r) => r.provider === provider && r.is_active);
       if (!record) return null;
       if (!record.api_key_encrypted) return '';
       try {
@@ -133,9 +127,7 @@ export class ProviderKeyService {
     }
 
     const names = expandProviderNames([provider]);
-    const records = await this.providerRepo.find({
-      where: { agent_id: agentId, is_active: true },
-    });
+    const records = await this.providerService.getProviders(agentId);
 
     const matches = records.filter(
       (r) => isManifestUsableProvider(r) && names.has(r.provider.toLowerCase()),
@@ -181,11 +173,9 @@ export class ProviderKeyService {
       return false;
     }
 
-    const records = (
-      await this.providerRepo.find({
-        where: { agent_id: agentId, is_active: true },
-      })
-    ).filter(isManifestUsableProvider);
+    const records = (await this.providerService.getProviders(agentId)).filter(
+      isManifestUsableProvider,
+    );
     if (pricing) {
       const names = expandProviderNames([pricing.provider]);
       if (records.find((r) => names.has(r.provider.toLowerCase()))) return true;

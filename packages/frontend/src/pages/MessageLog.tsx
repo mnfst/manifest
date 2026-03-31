@@ -2,6 +2,7 @@ import { Meta, Title } from '@solidjs/meta';
 import { useNavigate, useParams } from '@solidjs/router';
 import {
   createEffect,
+  createMemo,
   createResource,
   createSignal,
   For,
@@ -142,6 +143,14 @@ const MessageLog: Component = () => {
     return prov?.name ?? id;
   };
 
+  const providerOptions = createMemo(() => [
+    { label: 'All providers', value: '' },
+    ...(data()?.providers ?? []).map((id) => ({
+      label: providerDisplayName(id),
+      value: id,
+    })),
+  ]);
+
   const scrollToFallbackSuccess = (model: string) => {
     const items = data()?.items;
     if (!items) return;
@@ -173,13 +182,7 @@ const MessageLog: Component = () => {
             <Select
               value={providerFilter()}
               onChange={setProviderFilter}
-              options={[
-                { label: 'All providers', value: '' },
-                ...(data()?.providers ?? []).map((id) => ({
-                  label: providerDisplayName(id),
-                  value: id,
-                })),
-              ]}
+              options={providerOptions()}
             />
             <div class="cost-range-filter">
               <input
