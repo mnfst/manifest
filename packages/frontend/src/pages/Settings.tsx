@@ -371,10 +371,11 @@ const Settings: Component = () => {
               <strong style="color: hsl(var(--foreground));">{agentName()}</strong> agent and all
               its data. This action cannot be undone.
             </p>
-            <label style="display: block; font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-bottom: var(--gap-sm);">
+            <label for="delete-confirm-input" style="display: block; font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-bottom: var(--gap-sm);">
               To confirm, type <strong>"{agentName()}"</strong> in the box below
             </label>
             <input
+              id="delete-confirm-input"
               class="auth-form__input"
               type="text"
               value={deleteConfirmName()}

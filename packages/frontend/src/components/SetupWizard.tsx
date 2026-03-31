@@ -32,10 +32,10 @@ const SetupWizard: Component<Props> = (props) => {
   };
 
   return (
-    <div class="modal-overlay" onClick={handleOverlayClick}>
-      <div class="modal-card" style="max-width: 560px;" onClick={(e) => e.stopPropagation()}>
+    <div class="modal-overlay" onClick={handleOverlayClick} onKeyDown={(e) => { if (e.key === 'Escape') props.onClose(); }}>
+      <div class="modal-card" style="max-width: 560px;" role="dialog" aria-modal="true" aria-labelledby="setup-wizard-title" onClick={(e) => e.stopPropagation()}>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-          <span class="modal-card__title">Set up {props.agentName}</span>
+          <span class="modal-card__title" id="setup-wizard-title">Set up {props.agentName}</span>
           <button class="modal__close" onClick={props.onClose} aria-label="Close">
             <svg
               width="16"

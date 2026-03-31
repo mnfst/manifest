@@ -284,8 +284,8 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
             if (e.key === 'Escape') setConfirmReset(false);
           }}
         >
-          <div class="modal-card" style="max-width: 420px;">
-            <h2 style="margin: 0 0 12px; font-size: var(--font-size-lg); font-weight: 600;">
+          <div class="modal-card" style="max-width: 420px;" role="dialog" aria-modal="true" aria-labelledby="reset-tier-modal-title">
+            <h2 id="reset-tier-modal-title" style="margin: 0 0 12px; font-size: var(--font-size-lg); font-weight: 600;">
               Reset tier?
             </h2>
             <p style="margin: 0 0 20px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
