@@ -149,8 +149,13 @@ describe('validatePublicUrl', () => {
   it('enforces validation in test mode when SKIP_SSRF_VALIDATION=false', async () => {
     process.env['NODE_ENV'] = 'test';
     process.env['SKIP_SSRF_VALIDATION'] = 'false';
-    await expect(validatePublicUrl('http://127.0.0.1:8080')).rejects.toThrow('private or internal');
-    delete process.env['SKIP_SSRF_VALIDATION'];
+    try {
+      await expect(validatePublicUrl('http://127.0.0.1:8080')).rejects.toThrow(
+        'private or internal',
+      );
+    } finally {
+      delete process.env['SKIP_SSRF_VALIDATION'];
+    }
   });
 
   it('allows private IPs in local mode', async () => {

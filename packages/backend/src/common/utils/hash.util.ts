@@ -28,9 +28,10 @@ export function verifyKey(input: string, storedHash: string): boolean {
     return expected.length === KEY_LENGTH && timingSafeEqual(actual, expected);
   }
   // Legacy: static salt, 64-char hex hash — use timing-safe comparison
+  if (!/^[0-9a-fA-F]{64}$/.test(storedHash)) return false;
   const legacyHashBuf = scryptSync(input, LEGACY_SALT, KEY_LENGTH);
   const storedBuf = Buffer.from(storedHash, 'hex');
-  return storedBuf.length === KEY_LENGTH && timingSafeEqual(legacyHashBuf, storedBuf);
+  return timingSafeEqual(legacyHashBuf, storedBuf);
 }
 
 export function keyPrefix(key: string): string {

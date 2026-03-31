@@ -100,6 +100,15 @@ describe('sanitizeProviderError', () => {
       expect(result).toContain('Bearer ***');
     });
 
+    it('redacts lowercase bearer tokens from error messages', () => {
+      const body = JSON.stringify({
+        error: { message: 'Header was: bearer eyJhbGciOiJSUzI1NiIsInR5cCI6Ikp' },
+      });
+      const result = sanitizeProviderError(401, body, 'development');
+      expect(result).not.toContain('eyJhbGciOiJSUzI1NiIsInR5cCI6Ikp');
+      expect(result).toContain('Bearer ***');
+    });
+
     it('does not redact patterns in production mode', () => {
       const key = 'sk-proj-abcdefghijklmnopqrstuvwxyz';
       const body = JSON.stringify({ error: { message: `Invalid key: ${key}` } });

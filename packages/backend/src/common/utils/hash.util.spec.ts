@@ -37,6 +37,16 @@ describe('verifyKey', () => {
     expect(verifyKey('test', 'abcd:0011')).toBe(false);
   });
 
+  it('returns false for legacy hash with trailing junk', () => {
+    // 64 hex chars + extra characters should be rejected
+    const validHex = 'a'.repeat(64);
+    expect(verifyKey('test', validHex + 'JUNK')).toBe(false);
+  });
+
+  it('returns false for legacy hash with non-hex characters', () => {
+    expect(verifyKey('test', 'g'.repeat(64))).toBe(false);
+  });
+
   it('verifies legacy format (64-char hex without colon)', () => {
     // Legacy format: scrypt with static salt 'manifest-api-key-salt'
     // eslint-disable-next-line @typescript-eslint/no-require-imports
