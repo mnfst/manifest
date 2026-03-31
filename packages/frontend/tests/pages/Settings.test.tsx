@@ -305,6 +305,14 @@ describe("Settings", () => {
     });
   });
 
+  it("closes delete modal on Escape key", () => {
+    const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Delete agent"));
+    expect(container.querySelector(".modal-overlay")).not.toBeNull();
+    fireEvent.keyDown(container.querySelector(".modal-overlay")!, { key: "Escape" });
+    expect(container.querySelector(".modal-overlay")).toBeNull();
+  });
+
   it("delete button is disabled until name matches", () => {
     const { container } = render(() => <Settings />);
     fireEvent.click(screen.getByText("Delete agent"));
