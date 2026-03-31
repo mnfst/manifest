@@ -48,6 +48,7 @@ const SetupStepLocalConfigure: Component<Props> = (props) => {
             stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
+            aria-hidden="true"
           >
             <polyline points="20 6 9 17 4 12" />
           </svg>
@@ -63,6 +64,7 @@ const SetupStepLocalConfigure: Component<Props> = (props) => {
             stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
+            aria-hidden="true"
           >
             <polyline points="20 6 9 17 4 12" />
           </svg>
@@ -78,6 +80,7 @@ const SetupStepLocalConfigure: Component<Props> = (props) => {
             stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
+            aria-hidden="true"
           >
             <polyline points="20 6 9 17 4 12" />
           </svg>

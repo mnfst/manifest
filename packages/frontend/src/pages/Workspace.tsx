@@ -79,9 +79,10 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
             Name your agent to start tracking its LLM usage, costs, and messages in real time.
           </p>
 
-          <label class="modal-card__field-label">Agent name</label>
+          <label class="modal-card__field-label" for="agent-name-input">Agent name</label>
           <input
             ref={(el) => requestAnimationFrame(() => el.focus())}
+            id="agent-name-input"
             class="modal-card__input"
             type="text"
             placeholder="e.g. My Cool Agent"
@@ -135,6 +136,7 @@ const Workspace: Component = () => {
             stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
+            aria-hidden="true"
           >
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />

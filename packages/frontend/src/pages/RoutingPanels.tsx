@@ -203,8 +203,8 @@ export const DisableRoutingModal: Component<DisableRoutingModalProps> = (props) 
         if (e.key === 'Escape') props.onCancel();
       }}
     >
-      <div class="modal-card" style="max-width: 420px;">
-        <h2 style="margin: 0 0 12px; font-size: var(--font-size-lg); font-weight: 600;">
+      <div class="modal-card" style="max-width: 420px;" role="dialog" aria-modal="true" aria-labelledby="disable-routing-modal-title">
+        <h2 id="disable-routing-modal-title" style="margin: 0 0 12px; font-size: var(--font-size-lg); font-weight: 600;">
           Disable routing?
         </h2>
         <p style="margin: 0 0 20px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">

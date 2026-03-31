@@ -144,7 +144,7 @@ const Routing: Component = () => {
                 class="panel"
                 style="display: flex; align-items: center; justify-content: center; min-height: 260px;"
               >
-                <span class="spinner" style="width: 24px; height: 24px;" />
+                <span class="spinner" style="width: 24px; height: 24px;" role="status" aria-label="Loading" />
               </div>
             }
           >

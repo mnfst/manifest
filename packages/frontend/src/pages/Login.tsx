@@ -121,7 +121,7 @@ const Login: Component = () => {
         </div>
 
         <form class="auth-form" onSubmit={handleSubmit}>
-          {error() && <div class="auth-form__error">{error()}</div>}
+          {error() && <div class="auth-form__error" role="alert">{error()}</div>}
           <Show when={needsVerification()}>
             <button
               type="button"
