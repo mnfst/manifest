@@ -214,9 +214,9 @@ describe("buildModelConfig", () => {
     expect(result.models[0].contextWindow).toBe(200000);
   });
 
-  it("returns model with maxTokens 16384", () => {
+  it("returns model with maxTokens 128000", () => {
     const result = buildModelConfig("https://example.com");
-    expect(result.models[0].maxTokens).toBe(16384);
+    expect(result.models[0].maxTokens).toBe(128000);
   });
 
   it("returns model with reasoning false", () => {
