@@ -89,11 +89,6 @@ describe("ProviderSelectModal -- command-only subscription detail view", () => {
     // Click the command-only provider to open detail view
     fireEvent.click(screen.getByText("CmdProvider"));
 
-    // Command-only subtitle
-    expect(
-      screen.getByText("Log in via your browser to connect your subscription"),
-    ).toBeDefined();
-
     // Command-only hint
     expect(
       screen.getByText("Run the command below to log in via your browser."),

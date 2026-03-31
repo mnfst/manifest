@@ -143,10 +143,9 @@ const CopilotDeviceLogin: Component<Props> = (props) => {
         </svg>
       </button>
 
-      <div class="routing-modal__header" style="border: none; padding: 0; margin-bottom: 20px;">
+      <div class="routing-modal__header" style="border: none; padding: 0; margin-bottom: 15px;">
         <div>
           <div class="routing-modal__title">Connect providers</div>
-          <div class="routing-modal__subtitle">Sign in with GitHub to connect Copilot</div>
         </div>
       </div>
 

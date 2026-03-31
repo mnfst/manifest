@@ -51,8 +51,13 @@
     "prepare": "husky"
   },
   "lint-staged": {
-    "packages/*/src/**/*.{ts,tsx}": ["eslint --fix", "prettier --write"],
-    "packages/*/src/**/*.css": ["prettier --write"]
+    "packages/*/src/**/*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "packages/*/src/**/*.css": [
+      "prettier --write"
+    ]
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.0",

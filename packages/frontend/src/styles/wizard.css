@@ -431,6 +431,16 @@
   color: hsl(178 75% 50%);
 }
 
+/* ── Model hint ────────────────────────────────────── */
+.setup-model-hint__code {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: hsl(var(--foreground));
+  background: hsl(var(--muted));
+  padding: 2px 8px;
+  border-radius: var(--radius);
+}
+
 /* ── Info grid (base URL + model) ──────────────────── */
 .setup-info-grid {
   display: grid;

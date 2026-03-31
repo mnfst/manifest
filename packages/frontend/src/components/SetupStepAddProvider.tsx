@@ -81,27 +81,9 @@ openclaw gateway restart`;
     <div>
       <h3 class="setup-step__heading">Add Manifest as a provider</h3>
       <p class="setup-step__desc">
-        Register Manifest in your OpenClaw config, then use{' '}
-        <code class="api-key-display__code">manifest/auto</code> as the model to route each request
-        to the best provider.
+        Register Manifest in your OpenClaw config to route each request to the best provider using
+        the model <code class="setup-model-hint__code">manifest/auto</code>
       </p>
-
-      <div class="setup-info-grid">
-        <div class="setup-info-grid__card">
-          <div class="setup-info-grid__label">Base URL</div>
-          <div class="setup-info-grid__value">
-            <span>{props.baseUrl}</span>
-            <CopyButton text={props.baseUrl} />
-          </div>
-        </div>
-        <div class="setup-info-grid__card">
-          <div class="setup-info-grid__label">Model</div>
-          <div class="setup-info-grid__value">
-            <span>manifest/auto</span>
-            <CopyButton text="manifest/auto" />
-          </div>
-        </div>
-      </div>
 
       <div class="setup-method-tabs">
         <div class="panel__tabs">
