@@ -1,5 +1,11 @@
 # manifest
 
+## 5.38.5
+
+### Patch Changes
+
+- ae0b429: Allow configuring CSP frame-ancestors via FRAME_ANCESTORS env var
+
 ## 5.38.4
 
 ### Patch Changes
