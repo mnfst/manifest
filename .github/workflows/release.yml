@@ -112,6 +112,7 @@ jobs:
       - name: Publish Docker image
         if: steps.changesets.outputs.published == 'true'
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
         run: |
           MANIFEST_VERSION=$(echo "$PUBLISHED_PACKAGES" | jq -r '.[] | select(.name == "manifest") | .version // empty')
