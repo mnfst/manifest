@@ -1,6 +1,13 @@
 import { Meta, Title } from '@solidjs/meta';
 import { A, useLocation, useNavigate, useParams } from '@solidjs/router';
-import { createEffect, createResource, createSignal, Show, type Component } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createResource,
+  createSignal,
+  Show,
+  type Component,
+} from 'solid-js';
 import ChartCard from '../components/ChartCard.jsx';
 import CostByModelTable from '../components/CostByModelTable.jsx';
 import ErrorState from '../components/ErrorState.jsx';
@@ -133,10 +140,10 @@ const Overview: Component = () => {
     setRange(SMART_RANGES[currentIdx + 1]!);
   });
 
-  const getMessageChartData = () => {
+  const messageChartData = createMemo(() => {
     const src = data()?.message_usage;
     return src?.map((d) => ({ time: d.hour ?? d.date ?? '', value: d.count })) ?? [];
-  };
+  });
 
   return (
     <div class="container--md">
@@ -248,7 +255,7 @@ const Overview: Component = () => {
                     messagesTrendPct={d().summary?.messages?.trend_pct ?? 0}
                     costUsage={d().cost_usage}
                     tokenUsage={d().token_usage}
-                    messageChartData={getMessageChartData()}
+                    messageChartData={messageChartData()}
                     range={range()}
                   />
 

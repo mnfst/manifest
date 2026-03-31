@@ -261,7 +261,7 @@ describe('ProxyMessageRecorder', () => {
   });
 
   describe('recordFailedFallbacks', () => {
-    it('records all failures and emits SSE event once', async () => {
+    it('batch-inserts all failures and emits SSE event once', async () => {
       const failures = [
         { model: 'gpt-4o', provider: 'openai', status: 500, errorBody: 'fail-1', fallbackIndex: 0 },
         {
@@ -273,9 +273,73 @@ describe('ProxyMessageRecorder', () => {
         },
       ];
       await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures);
-      expect(insertMock).toHaveBeenCalledTimes(2);
+      expect(insertMock).toHaveBeenCalledTimes(1);
+      const rows = insertMock.mock.calls[0][0];
+      expect(rows).toHaveLength(2);
+      expect(rows[0]).toMatchObject({ model: 'gpt-4o', status: 'error' });
+      expect(rows[1]).toMatchObject({ model: 'claude-3', status: 'error' });
       expect(emitMock).toHaveBeenCalledTimes(1);
       expect(emitMock).toHaveBeenCalledWith('user-1');
+    });
+
+    it('skips insert and emit when failures array is empty', async () => {
+      await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', []);
+      expect(insertMock).not.toHaveBeenCalled();
+      expect(emitMock).not.toHaveBeenCalled();
+    });
+
+    it('uses fallback_error status when markHandled is true', async () => {
+      const failures = [
+        { model: 'gpt-4o', provider: 'openai', status: 500, errorBody: 'fail-1', fallbackIndex: 0 },
+        {
+          model: 'claude-3',
+          provider: 'anthropic',
+          status: 500,
+          errorBody: 'fail-2',
+          fallbackIndex: 1,
+        },
+      ];
+      await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures, {
+        markHandled: true,
+      });
+      const rows = insertMock.mock.calls[0][0];
+      expect(rows[0].status).toBe('fallback_error');
+      expect(rows[1].status).toBe('fallback_error');
+    });
+
+    it('marks last failure as error when lastAsError is true', async () => {
+      const failures = [
+        { model: 'gpt-4o', provider: 'openai', status: 500, errorBody: 'fail-1', fallbackIndex: 0 },
+        {
+          model: 'claude-3',
+          provider: 'anthropic',
+          status: 500,
+          errorBody: 'fail-2',
+          fallbackIndex: 1,
+        },
+      ];
+      await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures, {
+        markHandled: true,
+        lastAsError: true,
+      });
+      const rows = insertMock.mock.calls[0][0];
+      expect(rows[0].status).toBe('fallback_error');
+      expect(rows[1].status).toBe('error');
+    });
+
+    it('uses rate_limited status for 429 failures', async () => {
+      const failures = [
+        {
+          model: 'gpt-4o',
+          provider: 'openai',
+          status: 429,
+          errorBody: 'rate-limited',
+          fallbackIndex: 0,
+        },
+      ];
+      await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures);
+      const rows = insertMock.mock.calls[0][0];
+      expect(rows[0].status).toBe('rate_limited');
     });
   });
 
