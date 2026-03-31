@@ -1,5 +1,13 @@
 # manifest
 
+## 5.38.2
+
+### Patch Changes
+
+- 3d9afa2: Fix short prompts bypassing scorer: technical prompts under 50 chars now run full keyword scoring instead of always routing to simple tier
+- 3754fcb: Keep OpenRouter models in public stats endpoints, only exclude custom and unknown providers
+- c1692d8: Improve public stats endpoints: better URLs, filtering, and 10-item limits
+
 ## 5.38.1
 
 ### Patch Changes
