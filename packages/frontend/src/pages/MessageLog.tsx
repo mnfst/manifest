@@ -186,6 +186,7 @@ const MessageLog: Component = () => {
                 type="number"
                 class="cost-range-filter__input"
                 placeholder="Min $"
+                aria-label="Minimum cost filter"
                 min="0"
                 step="0.01"
                 value={costMin()}
@@ -196,6 +197,7 @@ const MessageLog: Component = () => {
                 type="number"
                 class="cost-range-filter__input"
                 placeholder="Max $"
+                aria-label="Maximum cost filter"
                 min="0"
                 step="0.01"
                 value={costMax()}
