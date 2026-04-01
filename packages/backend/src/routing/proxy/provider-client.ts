@@ -54,6 +54,7 @@ export class ProviderClient {
       signal,
       extraHeaders,
       customEndpoint,
+      resourceUrl,
       authType,
       signatureLookup,
     } = opts;
@@ -69,11 +70,13 @@ export class ProviderClient {
       if (!resolved) {
         throw new Error(`No endpoint configured for provider: ${provider}`);
       }
-      // ChatGPT subscription tokens use a different backend endpoint
+      // Subscription tokens use different backend endpoints
       if (resolved === 'openai' && authType === 'subscription') {
         resolved = 'openai-subscription';
       } else if (resolved === 'minimax' && authType === 'subscription') {
         resolved = 'minimax-subscription';
+      } else if (resolved === 'google' && authType === 'subscription') {
+        resolved = 'google-subscription';
       }
       endpointKey = resolved;
       endpoint = PROVIDER_ENDPOINTS[endpointKey];
@@ -87,14 +90,28 @@ export class ProviderClient {
     let headers: Record<string, string>;
     let requestBody: Record<string, unknown>;
 
+    const isCodeAssist = endpointKey === 'google-subscription';
+
     if (isGoogle) {
-      // Google Gemini API requires the key as a URL parameter (not a header).
-      // The key is sanitized from debug logs below but may be visible to
-      // intermediate proxies between Manifest and Google's API.
-      url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}?key=${apiKey}`;
-      if (stream) url += '&alt=sse';
+      if (isCodeAssist) {
+        const method = stream ? 'streamGenerateContent' : 'generateContent';
+        url = `${endpoint.baseUrl}/v1internal:${method}`;
+      } else {
+        // Google Gemini API requires the key as a URL parameter (not a header).
+        // The key is sanitized from debug logs below but may be visible to
+        // intermediate proxies between Manifest and Google's API.
+        url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}?key=${apiKey}`;
+        if (stream) url += '&alt=sse';
+      }
       headers = endpoint.buildHeaders(apiKey, authType);
-      requestBody = toGoogleRequest(body, bareModel, signatureLookup);
+      const geminiBody = toGoogleRequest(body, bareModel, signatureLookup);
+      requestBody = isCodeAssist
+        ? {
+            model: bareModel,
+            ...(resourceUrl ? { project: resourceUrl } : {}),
+            request: { ...geminiBody, model: bareModel },
+          }
+        : geminiBody;
     } else if (isAnthropic) {
       url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`;
       headers = endpoint.buildHeaders(apiKey, authType);

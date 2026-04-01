@@ -5,6 +5,7 @@ import {
   connectProvider,
   disconnectProvider,
   revokeOpenaiOAuth,
+  revokeGeminiOAuth,
   type RoutingProvider,
   type AuthType,
 } from '../services/api.js';
@@ -71,7 +72,12 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
     (provDef.subscriptionKeyPlaceholder ? 'token' : undefined);
   const isPopupOAuthFlow = () => isSubMode() && subscriptionAuthMode() === 'popup_oauth';
   const isDeviceCodeFlow = () => isSubMode() && subscriptionAuthMode() === 'device_code';
-  const shouldRevokeOpenaiOAuth = () => props.provId === 'openai' && isPopupOAuthFlow();
+  const shouldRevokeOAuth = () => isPopupOAuthFlow();
+  const revokeOAuthForProvider = async () => {
+    if (props.provId === 'openai') return revokeOpenaiOAuth(props.agentName);
+    if (props.provId === 'gemini') return revokeGeminiOAuth(props.agentName);
+    console.warn(`No OAuth revoke handler for provider: ${props.provId}`);
+  };
   const isCommandOnly = () =>
     isSubMode() &&
     !!provDef.subscriptionCommand &&
@@ -107,8 +113,8 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
   const handleDisconnect = async () => {
     props.setBusy(true);
     try {
-      if (shouldRevokeOpenaiOAuth()) {
-        await revokeOpenaiOAuth(props.agentName).catch(() => {});
+      if (shouldRevokeOAuth()) {
+        await revokeOAuthForProvider().catch(() => {});
       }
       const result = await disconnectProvider(
         props.agentName,

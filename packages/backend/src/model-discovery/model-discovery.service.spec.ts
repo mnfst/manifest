@@ -1103,6 +1103,38 @@ describe('ModelDiscoveryService', () => {
       );
     });
 
+    it('should discard fetched models for Gemini subscription and use only knownModels', async () => {
+      mockDecrypt.mockReturnValue(
+        JSON.stringify({
+          t: 'gemini-access',
+          r: 'gemini-refresh',
+          e: Date.now() + 60000,
+          u: 'my-project',
+        }),
+      );
+
+      // Fetcher returns several models including dated previews and Gemma
+      fetcher.fetch.mockResolvedValue([
+        makeModel({ id: 'gemini-2.0-flash', provider: 'gemini' }),
+        makeModel({ id: 'gemini-2.0-flash-2025-01-01', provider: 'gemini' }),
+        makeModel({ id: 'gemma-3-9b-it', provider: 'gemini' }),
+      ]);
+
+      const result = await service.discoverModels(
+        makeProvider({
+          provider: 'gemini',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted-blob',
+        }),
+      );
+
+      // All fetched models should be discarded; only knownModels are used
+      expect(result.map((m) => m.id)).not.toContain('gemini-2.0-flash-2025-01-01');
+      expect(result.map((m) => m.id)).not.toContain('gemma-3-9b-it');
+      // Should contain known Gemini subscription models
+      expect(result.length).toBeGreaterThan(0);
+    });
+
     it('should fall back to subscription fallback when OpenAI token fetch returns empty', async () => {
       const blob = JSON.stringify({ t: 'expired-token', r: 'refresh', e: Date.now() - 1000 });
       mockDecrypt.mockReturnValue(blob);
@@ -1542,7 +1574,7 @@ describe('ModelDiscoveryService', () => {
 
   describe('buildSubscriptionFallbackModels', () => {
     it('should return empty for unsupported providers', () => {
-      const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'gemini');
+      const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'deepseek');
       expect(result).toEqual([]);
     });
 
@@ -1794,7 +1826,7 @@ describe('ModelDiscoveryService', () => {
     it('should return raw unchanged for non-subscription providers', () => {
       const raw: DiscoveredModel[] = [makeModel({ id: 'model-1' })];
 
-      const result = supplementWithKnownModels(raw, 'gemini');
+      const result = supplementWithKnownModels(raw, 'deepseek');
 
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('model-1');

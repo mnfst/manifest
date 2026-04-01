@@ -47,6 +47,8 @@ const ProviderSubscriptionTab: Component<Props> = (props) => {
             return (
               <button
                 class="provider-toggle"
+                role="switch"
+                aria-checked={connected()}
                 disabled={props.busy()}
                 onClick={() =>
                   hasDetailView()

@@ -9,6 +9,7 @@ import { TierService } from '../../routing-core/tier.service';
 import { CustomProvider } from '../../../entities/custom-provider.entity';
 import { OpenaiOauthService } from '../../oauth/openai-oauth.service';
 import { MinimaxOauthService } from '../../oauth/minimax-oauth.service';
+import { GeminiOauthService } from '../../oauth/gemini-oauth.service';
 import { ProviderClient } from '../provider-client';
 import { SessionMomentumService } from '../session-momentum.service';
 import { CopilotTokenService } from '../copilot-token.service';
@@ -24,6 +25,7 @@ describe('ProxyService', () => {
   let customProviderRepo: jest.Mocked<Repository<CustomProvider>>;
   let openaiOauth: jest.Mocked<OpenaiOauthService>;
   let minimaxOauth: jest.Mocked<MinimaxOauthService>;
+  let geminiOauth: jest.Mocked<GeminiOauthService>;
   let providerClient: jest.Mocked<ProviderClient>;
   let momentum: SessionMomentumService;
   let copilotToken: jest.Mocked<CopilotTokenService>;
@@ -82,6 +84,10 @@ describe('ProxyService', () => {
       refreshAccessToken: jest.fn(),
     } as unknown as jest.Mocked<MinimaxOauthService>;
 
+    geminiOauth = {
+      unwrapToken: jest.fn().mockResolvedValue(null),
+    } as unknown as jest.Mocked<GeminiOauthService>;
+
     pricingCache = {
       getByModel: jest.fn().mockReturnValue(null),
       getAll: jest.fn().mockReturnValue([]),
@@ -100,6 +106,7 @@ describe('ProxyService', () => {
       customProviderRepo,
       openaiOauth,
       minimaxOauth,
+      geminiOauth,
       providerClient,
       copilotToken,
       pricingCache,
@@ -111,6 +118,7 @@ describe('ProxyService', () => {
       tierService,
       openaiOauth,
       minimaxOauth,
+      geminiOauth,
       momentum,
       limitCheck,
       fallbackService,
@@ -3074,6 +3082,7 @@ describe('ProxyService', () => {
         tierService,
         openaiOauth,
         minimaxOauth,
+        geminiOauth,
         momentum,
         limitCheck,
         fallbackService,

@@ -17,8 +17,10 @@ import {
   copilotDeviceCode,
   copilotPollToken,
   getOpenaiOAuthUrl,
+  getGeminiOAuthUrl,
   pollMinimaxOAuth,
   revokeOpenaiOAuth,
+  revokeGeminiOAuth,
   startMinimaxOAuth,
   getTierAssignments,
   overrideTier,
@@ -598,6 +600,33 @@ describe('pollMinimaxOAuth', () => {
     const url = mockFetch.mock.calls[0]?.[0] as string;
     expect(url).toContain('/api/v1/oauth/minimax/poll');
     expect(url).toContain('flowId=flow-1');
+  });
+});
+
+describe('getGeminiOAuthUrl', () => {
+  it('fetches /oauth/gemini/authorize with agentName param', async () => {
+    const payload = { url: 'https://accounts.google.com/o/oauth2/v2/auth?state=xyz' };
+    mockOk(payload);
+
+    const result = await getGeminiOAuthUrl('my-agent');
+    expect(result).toEqual(payload);
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain('/api/v1/oauth/gemini/authorize');
+    expect(url).toContain('agentName=my-agent');
+  });
+});
+
+describe('revokeGeminiOAuth', () => {
+  it('sends POST to /oauth/gemini/revoke with agentName param', async () => {
+    const payload = { ok: true };
+    mockMutateOk(payload);
+
+    const result = await revokeGeminiOAuth('my-agent');
+    expect(result).toEqual(payload);
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/v1/oauth/gemini/revoke?agentName=my-agent',
+      expect.objectContaining({ method: 'POST', credentials: 'include' }),
+    );
   });
 });
 

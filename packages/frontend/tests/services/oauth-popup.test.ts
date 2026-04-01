@@ -80,6 +80,40 @@ describe("monitorOAuthPopup", () => {
     removeListenerSpy.mockRestore();
   });
 
+  it("detects success from any /oauth/*/done URL pattern", () => {
+    const popup = {
+      closed: false,
+      close: vi.fn(),
+      location: { href: "http://localhost:3001/api/v1/oauth/gemini/done?ok=1" },
+    } as unknown as Window;
+
+    const onSuccess = vi.fn();
+    const onFailure = vi.fn();
+
+    monitorOAuthPopup(popup, { onSuccess, onFailure });
+    vi.advanceTimersByTime(300);
+
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+    expect(onFailure).not.toHaveBeenCalled();
+  });
+
+  it("detects failure from /oauth/*/done URL with ok=0", () => {
+    const popup = {
+      closed: false,
+      close: vi.fn(),
+      location: { href: "http://localhost:3001/api/v1/oauth/gemini/done?ok=0" },
+    } as unknown as Window;
+
+    const onSuccess = vi.fn();
+    const onFailure = vi.fn();
+
+    monitorOAuthPopup(popup, { onSuccess, onFailure });
+    vi.advanceTimersByTime(300);
+
+    expect(onFailure).toHaveBeenCalledTimes(1);
+    expect(onSuccess).not.toHaveBeenCalled();
+  });
+
   it("ignores non-oauth messages", () => {
     const popup = {
       closed: false,

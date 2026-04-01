@@ -48,7 +48,7 @@ export function oauthDoneHtml(success: boolean, nonce?: string): string {
 
   return `<!DOCTYPE html>
 <html>
-<head><title>Manifest — OpenAI Login</title></head>
+<head><title>Manifest — Login</title></head>
 <body style="font-family:system-ui;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;background:#111;color:#eee;">
 <p>${text}</p>
 <p id="hint" style="font-size:13px;color:#888;display:none;">You can close this window.</p>

@@ -4,6 +4,8 @@ import {
   getOpenaiOAuthUrl,
   submitOpenaiOAuthCallback,
   revokeOpenaiOAuth,
+  getGeminiOAuthUrl,
+  revokeGeminiOAuth,
   disconnectProvider,
   type AuthType,
 } from '../services/api.js';
@@ -23,17 +25,38 @@ interface Props {
   onClose: () => void;
 }
 
+/** Returns OAuth functions for a given provider. */
+function getOAuthFns(provId: string) {
+  if (provId === 'gemini') {
+    return {
+      getAuthUrl: getGeminiOAuthUrl,
+      revoke: revokeGeminiOAuth,
+      /** Gemini callback is server-side; no manual URL paste needed. */
+      needsPasteFallback: false,
+      submitCallback: null as typeof submitOpenaiOAuthCallback | null,
+    };
+  }
+  return {
+    getAuthUrl: getOpenaiOAuthUrl,
+    revoke: revokeOpenaiOAuth,
+    needsPasteFallback: true,
+    submitCallback: submitOpenaiOAuthCallback,
+  };
+}
+
 const OAuthDetailView: Component<Props> = (props) => {
   const [popupOpened, setPopupOpened] = createSignal(false);
   const [pasteUrl, setPasteUrl] = createSignal('');
   const [pasteError, setPasteError] = createSignal<string | null>(null);
+
+  const oauthFns = () => getOAuthFns(props.provId);
 
   const handleOAuthLogin = async () => {
     props.setBusy(true);
     setPasteUrl('');
     setPasteError(null);
     try {
-      const { url } = await getOpenaiOAuthUrl(props.agentName);
+      const { url } = await oauthFns().getAuthUrl(props.agentName);
       const popup = window.open(url, 'manifest-oauth', 'width=500,height=700');
       if (!popup) {
         toast.error(
@@ -53,7 +76,11 @@ const OAuthDetailView: Component<Props> = (props) => {
           props.onClose();
         },
         onFailure: () => {
-          // Popup closed without auto-redirect — user needs to paste the URL
+          if (!oauthFns().needsPasteFallback) {
+            setPopupOpened(false);
+            toast.error('Login was cancelled or failed. Please try again.');
+          }
+          // Otherwise: popup closed without auto-redirect — user needs to paste the URL
         },
       });
     } catch {
@@ -64,6 +91,8 @@ const OAuthDetailView: Component<Props> = (props) => {
   const handlePasteSubmit = async () => {
     const raw = pasteUrl().trim();
     if (!raw) return;
+    const { submitCallback } = oauthFns();
+    if (!submitCallback) return;
 
     try {
       const url = new URL(raw);
@@ -76,7 +105,7 @@ const OAuthDetailView: Component<Props> = (props) => {
 
       props.setBusy(true);
       setPasteError(null);
-      await submitOpenaiOAuthCallback(code, state);
+      await submitCallback(code, state);
       toast.success(`${props.provDef.name} subscription connected`);
       props.onUpdate();
       props.onClose();
@@ -90,7 +119,9 @@ const OAuthDetailView: Component<Props> = (props) => {
   const handleDisconnect = async () => {
     props.setBusy(true);
     try {
-      await revokeOpenaiOAuth(props.agentName).catch(() => {});
+      await oauthFns()
+        .revoke(props.agentName)
+        .catch(() => {});
       const result = await disconnectProvider(
         props.agentName,
         props.provId,
@@ -114,7 +145,7 @@ const OAuthDetailView: Component<Props> = (props) => {
     <>
       <Show when={!props.connected()}>
         <Show
-          when={popupOpened()}
+          when={popupOpened() && oauthFns().needsPasteFallback}
           fallback={
             <>
               <p class="provider-detail__hint">

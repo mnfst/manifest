@@ -32,6 +32,8 @@ export interface ForwardOptions {
   authType?: string;
   /** Lookup for re-injecting cached thought_signature values (Google only). */
   signatureLookup?: SignatureLookup;
+  /** Provider-specific resource URL (e.g. MiniMax base URL, Gemini project ID). */
+  resourceUrl?: string;
 }
 
 /** Options for ProxyService.proxyRequest. */

@@ -405,6 +405,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     buildHeaders: () => ({}),
     parse: parseGemini,
   },
+  'gemini-subscription': {
+    endpoint: 'https://generativelanguage.googleapis.com/v1beta/models',
+    buildHeaders: (key: string) => ({ Authorization: `Bearer ${key}` }),
+    parse: parseGemini,
+  },
   openrouter: {
     endpoint: 'https://openrouter.ai/api/v1/models',
     buildHeaders: () => ({}),
@@ -444,6 +449,8 @@ export class ProviderModelFetcherService {
       configKey = 'openai-subscription';
     } else if (configKey === 'minimax' && authType === 'subscription') {
       configKey = 'minimax-subscription';
+    } else if (configKey === 'gemini' && authType === 'subscription') {
+      configKey = 'gemini-subscription';
     }
     const config = PROVIDER_CONFIGS[configKey];
     if (!config) {

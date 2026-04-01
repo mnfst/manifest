@@ -215,7 +215,14 @@ export function fromGoogleResponse(
   googleResp: Record<string, unknown>,
   model: string,
 ): Record<string, unknown> & { _extractedSignatures?: ExtractedSignature[] } {
-  const candidates = (googleResp.candidates as Array<Record<string, unknown>>) || [];
+  // Code Assist (subscription) wraps the Gemini response in { response: <gemini> }
+  const inner =
+    googleResp.response &&
+    typeof googleResp.response === 'object' &&
+    !Array.isArray(googleResp.response)
+      ? (googleResp.response as Record<string, unknown>)
+      : googleResp;
+  const candidates = (inner.candidates as Array<Record<string, unknown>>) || [];
   const candidate = candidates[0];
 
   if (!candidate) {
@@ -266,7 +273,7 @@ export function fromGoogleResponse(
     }
   }
 
-  const usage = googleResp.usageMetadata as Record<string, number> | undefined;
+  const usage = inner.usageMetadata as Record<string, number> | undefined;
 
   return {
     id: `chatcmpl-${randomUUID()}`,
@@ -315,7 +322,12 @@ export function transformGoogleStreamChunk(chunk: string, model: string): string
     return null;
   }
 
-  const candidates = (data.candidates as Array<Record<string, unknown>>) || [];
+  // Code Assist (subscription) wraps each streaming chunk in { response: <gemini> }
+  const inner =
+    data.response && typeof data.response === 'object' && !Array.isArray(data.response)
+      ? (data.response as Record<string, unknown>)
+      : data;
+  const candidates = (inner.candidates as Array<Record<string, unknown>>) || [];
   const candidate = candidates[0];
   const content = candidate?.content as { parts?: Array<Record<string, unknown>> } | undefined;
   const parts = content?.parts || [];
@@ -355,7 +367,7 @@ export function transformGoogleStreamChunk(chunk: string, model: string): string
     })}\n\n`;
   }
 
-  const usage = data.usageMetadata as Record<string, number> | undefined;
+  const usage = inner.usageMetadata as Record<string, number> | undefined;
   if (usage) {
     const finishReason = mapFinishReason(candidate ?? {}, toolCalls.length > 0);
     result += `data: ${JSON.stringify({

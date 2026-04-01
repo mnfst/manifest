@@ -160,14 +160,45 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(path).toBe('/v1/messages');
   });
 
-  it('google buildHeaders returns Content-Type only', () => {
-    const headers = PROVIDER_ENDPOINTS['google'].buildHeaders('');
+  it('google buildHeaders returns Content-Type only for api_key auth', () => {
+    const headers = PROVIDER_ENDPOINTS['google'].buildHeaders('AIza-test');
     expect(headers).toEqual({ 'Content-Type': 'application/json' });
+  });
+
+  it('google buildHeaders returns Content-Type only regardless of auth type', () => {
+    const headers = PROVIDER_ENDPOINTS['google'].buildHeaders('access-token', 'subscription');
+    expect(headers).toEqual({ 'Content-Type': 'application/json' });
+  });
+
+  it('google-subscription uses Bearer auth for Code Assist API', () => {
+    const ep = PROVIDER_ENDPOINTS['google-subscription'];
+    expect(ep.baseUrl).toBe('https://cloudcode-pa.googleapis.com');
+    expect(ep.format).toBe('google');
+    const headers = ep.buildHeaders('access-token');
+    expect(headers).toEqual({
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer access-token',
+    });
+  });
+
+  it('google-subscription buildPath returns /v1internal:generateContent', () => {
+    const path = PROVIDER_ENDPOINTS['google-subscription'].buildPath('gemini-2.0-flash');
+    expect(path).toBe('/v1internal:generateContent');
   });
 
   it('google buildPath includes model name with generateContent suffix', () => {
     const path = PROVIDER_ENDPOINTS['google'].buildPath('gemini-2.0-flash');
     expect(path).toBe('/v1beta/models/gemini-2.0-flash:generateContent');
+  });
+
+  it('openrouter buildHeaders returns Bearer auth with Manifest headers', () => {
+    const headers = PROVIDER_ENDPOINTS['openrouter'].buildHeaders('sk-or-key');
+    expect(headers).toEqual({
+      Authorization: 'Bearer sk-or-key',
+      'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://manifest.build',
+      'X-Title': 'Manifest',
+    });
   });
 
   it('openrouter buildPath returns /api/v1/chat/completions', () => {

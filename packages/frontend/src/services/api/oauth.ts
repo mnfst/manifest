@@ -37,6 +37,19 @@ export function revokeOpenaiOAuth(agentName: string) {
   );
 }
 
+export function getGeminiOAuthUrl(agentName: string) {
+  return fetchJson<{ url: string }>(`/oauth/gemini/authorize`, {
+    agentName,
+  });
+}
+
+export function revokeGeminiOAuth(agentName: string) {
+  return fetchMutate<{ ok: boolean }>(
+    `${BASE_URL}/oauth/gemini/revoke?agentName=${encodeURIComponent(agentName)}`,
+    { method: 'POST' },
+  );
+}
+
 export function startMinimaxOAuth(agentName: string, region: MinimaxOAuthRegion = 'global') {
   return fetchMutate<MinimaxOAuthStartResponse>(
     `${BASE_URL}/oauth/minimax/start?agentName=${encodeURIComponent(agentName)}&region=${encodeURIComponent(region)}`,

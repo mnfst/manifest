@@ -6,6 +6,7 @@ import { CustomProvider } from '../../entities/custom-provider.entity';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
 import { OpenaiOauthService } from '../oauth/openai-oauth.service';
 import { MinimaxOauthService } from '../oauth/minimax-oauth.service';
+import { GeminiOauthService } from '../oauth/gemini-oauth.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ProviderClient, ForwardResult } from './provider-client';
 import {
@@ -45,6 +46,7 @@ export class ProxyFallbackService {
     private readonly customProviderRepo: Repository<CustomProvider>,
     private readonly openaiOauth: OpenaiOauthService,
     private readonly minimaxOauth: MinimaxOauthService,
+    private readonly geminiOauth: GeminiOauthService,
     private readonly providerClient: ProviderClient,
     private readonly copilotToken: CopilotTokenService,
     private readonly pricingCache: ModelPricingCacheService,
@@ -122,6 +124,7 @@ export class ProxyFallbackService {
         userId,
         this.openaiOauth,
         this.minimaxOauth,
+        this.geminiOauth,
       );
       const providerRegion = await this.providerKeyService.getProviderRegion(
         agentId,
@@ -280,6 +283,7 @@ export class ProxyFallbackService {
       customEndpoint,
       authType,
       signatureLookup,
+      resourceUrl: opts.resourceUrl,
     });
   }
 }
@@ -300,6 +304,7 @@ export async function resolveApiKey(
   userId: string,
   openaiOauth: OpenaiOauthService,
   minimaxOauth: MinimaxOauthService,
+  geminiOauth: GeminiOauthService,
 ): Promise<{ apiKey: string; resourceUrl?: string }> {
   if (authType === 'subscription') {
     const lower = provider.toLowerCase();
@@ -309,6 +314,10 @@ export async function resolveApiKey(
     }
     if (lower === 'minimax') {
       const unwrapped = await minimaxOauth.unwrapToken(apiKey, agentId, userId);
+      if (unwrapped) return { apiKey: unwrapped.t, resourceUrl: unwrapped.u };
+    }
+    if (lower === 'gemini') {
+      const unwrapped = await geminiOauth.unwrapToken(apiKey, agentId, userId);
       if (unwrapped) return { apiKey: unwrapped.t, resourceUrl: unwrapped.u };
     }
   }

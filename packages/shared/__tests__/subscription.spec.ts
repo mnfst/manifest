@@ -8,9 +8,9 @@ import {
 } from '../src/subscription';
 
 describe('SUBSCRIPTION_PROVIDER_CONFIGS', () => {
-  it('contains anthropic, openai, minimax, copilot', () => {
+  it('contains anthropic, openai, gemini, minimax, copilot', () => {
     expect(Object.keys(SUBSCRIPTION_PROVIDER_CONFIGS)).toEqual(
-      expect.arrayContaining(['anthropic', 'openai', 'minimax', 'copilot']),
+      expect.arrayContaining(['anthropic', 'openai', 'gemini', 'minimax', 'copilot']),
     );
   });
 
@@ -53,6 +53,15 @@ describe('getSubscriptionProviderConfig', () => {
     });
   });
 
+  it('returns config for gemini', () => {
+    const config = getSubscriptionProviderConfig('gemini');
+    expect(config).toMatchObject({
+      supportsSubscription: true,
+      subscriptionLabel: 'Gemini subscription',
+      subscriptionAuthMode: 'popup_oauth',
+    });
+  });
+
   it('returns config for copilot', () => {
     const config = getSubscriptionProviderConfig('copilot');
     expect(config).toMatchObject({
@@ -79,6 +88,7 @@ describe('supportsSubscriptionProvider', () => {
   it('returns true for supported providers', () => {
     expect(supportsSubscriptionProvider('anthropic')).toBe(true);
     expect(supportsSubscriptionProvider('openai')).toBe(true);
+    expect(supportsSubscriptionProvider('gemini')).toBe(true);
     expect(supportsSubscriptionProvider('minimax')).toBe(true);
     expect(supportsSubscriptionProvider('copilot')).toBe(true);
   });
@@ -102,6 +112,15 @@ describe('getSubscriptionKnownModels', () => {
     expect(models).toContain('copilot/gpt-5.4');
   });
 
+  it('returns known models for gemini', () => {
+    const models = getSubscriptionKnownModels('gemini');
+    expect(models).toContain('gemini-2.5-pro');
+    expect(models).toContain('gemini-2.5-flash');
+    expect(models).toContain('gemini-2.5-flash-lite');
+    expect(models).toContain('gemini-3-pro-preview');
+    expect(models).not.toContain('gemma-3-27b-it');
+  });
+
   it('returns null for unsupported providers', () => {
     expect(getSubscriptionKnownModels('unknown')).toBeNull();
   });
@@ -121,8 +140,13 @@ describe('getSubscriptionCapabilities', () => {
     for (const id of SUPPORTED_SUBSCRIPTION_PROVIDER_IDS) {
       const caps = getSubscriptionCapabilities(id);
       expect(caps).not.toBeNull();
-      expect(caps!.maxContextWindow).toBe(200000);
+      expect(caps!.maxContextWindow).toBeGreaterThanOrEqual(200000);
     }
+  });
+
+  it('returns 1M context window for gemini', () => {
+    const caps = getSubscriptionCapabilities('gemini');
+    expect(caps).toMatchObject({ maxContextWindow: 1000000 });
   });
 
   it('returns null for unsupported providers', () => {

@@ -29,6 +29,7 @@ describe('ProviderModelFetcherService', () => {
       'zai',
       'anthropic',
       'gemini',
+      'gemini-subscription',
       'openrouter',
       'ollama',
       'copilot',
@@ -1592,6 +1593,65 @@ describe('ProviderModelFetcherService', () => {
       expect.stringContaining('api.minimax.io'),
       expect.anything(),
     );
+  });
+
+  it('should use gemini-subscription config for gemini subscription auth', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        models: [
+          {
+            name: 'models/gemini-2.0-flash',
+            displayName: 'Gemini 2.0 Flash',
+            supportedGenerationMethods: ['generateContent'],
+          },
+        ],
+      }),
+    });
+
+    const result = await service.fetch('gemini', 'access-token', 'subscription');
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://generativelanguage.googleapis.com/v1beta/models',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer access-token',
+        }),
+      }),
+    );
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe('gemini-2.0-flash');
+  });
+
+  it('should apply qwen endpoint override when provided', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [{ id: 'qwen3-235b-a22b' }] }),
+    });
+
+    await service.fetch(
+      'qwen',
+      'sk-qwen',
+      undefined,
+      'https://dashscope-intl.aliyuncs.com/compatible-mode',
+    );
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://dashscope-intl.aliyuncs.com/compatible-mode/v1/models',
+      expect.anything(),
+    );
+  });
+
+  it('should ignore invalid qwen endpoint override', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [{ id: 'qwen3-235b-a22b' }] }),
+    });
+
+    await service.fetch('qwen', 'sk-qwen', undefined, 'https://not-a-qwen-url.com');
+
+    // Should fall back to default URL
+    expect(fetchSpy).toHaveBeenCalledWith(expect.stringContaining('dashscope'), expect.anything());
   });
 
   it('should use regular minimax config when authType is not subscription', async () => {

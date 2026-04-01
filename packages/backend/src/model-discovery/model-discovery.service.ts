@@ -72,7 +72,7 @@ export class ModelDiscoveryService {
     // OAuth-backed subscription providers store an encrypted token blob.
     // Unwrap it so model discovery can call the provider-native /models endpoint.
     if (provider.auth_type === 'subscription' && apiKey) {
-      if (lowerProvider === 'openai' || lowerProvider === 'minimax') {
+      if (lowerProvider === 'openai' || lowerProvider === 'minimax' || lowerProvider === 'gemini') {
         const blob = parseOAuthTokenBlob(apiKey);
         if (blob?.t) {
           apiKey = blob.t;
@@ -141,6 +141,13 @@ export class ModelDiscoveryService {
           );
         }
       }
+    }
+
+    // Gemini subscription uses the Code Assist API which only supports
+    // a small set of current models. Discard fallback models and use only
+    // the curated knownModels list (no dated previews, old versions, or Gemma).
+    if (provider.auth_type === 'subscription' && lowerProvider === 'gemini') {
+      raw = [];
     }
 
     // For subscription providers, supplement with knownModels so users can

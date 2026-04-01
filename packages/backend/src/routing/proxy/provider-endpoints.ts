@@ -125,6 +125,15 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: (model: string) => `/v1beta/models/${model}:generateContent`,
     format: 'google',
   },
+  'google-subscription': {
+    baseUrl: 'https://cloudcode-pa.googleapis.com',
+    buildHeaders: (apiKey: string) => ({
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    }),
+    buildPath: () => '/v1internal:generateContent',
+    format: 'google',
+  },
   copilot: {
     baseUrl: 'https://api.githubcopilot.com',
     buildHeaders: (apiKey: string) => ({

@@ -53,6 +53,23 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       supportsBatching: false,
     }),
   }),
+  gemini: Object.freeze({
+    supportsSubscription: true as const,
+    subscriptionLabel: 'Gemini subscription',
+    subscriptionAuthMode: 'popup_oauth' as const,
+    knownModels: Object.freeze([
+      'gemini-2.5-pro',
+      'gemini-2.5-flash',
+      'gemini-2.5-flash-lite',
+      'gemini-3-pro-preview',
+      'gemini-3-flash-preview',
+    ]),
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 1000000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
   copilot: Object.freeze({
     supportsSubscription: true as const,
     subscriptionLabel: 'GitHub Copilot subscription',

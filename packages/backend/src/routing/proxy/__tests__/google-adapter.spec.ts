@@ -447,6 +447,78 @@ describe('Google Adapter', () => {
       });
     });
 
+    it('handles tool_calls with invalid JSON arguments', () => {
+      const body = {
+        messages: [
+          {
+            role: 'assistant',
+            content: null,
+            tool_calls: [
+              {
+                id: 'call_1',
+                type: 'function',
+                function: { name: 'broken_tool', arguments: 'not valid json{{{' },
+              },
+            ],
+          },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash');
+      const contents = result.contents as Array<{ parts: Array<Record<string, unknown>> }>;
+      expect(contents[0].parts[0].functionCall).toEqual({
+        name: 'broken_tool',
+        args: {},
+      });
+    });
+
+    it('re-injects thought_signature from signatureLookup cache', () => {
+      const lookup = (id: string) => (id === 'call_1' ? 'cached_sig_abc' : null);
+      const body = {
+        messages: [
+          {
+            role: 'assistant',
+            content: null,
+            tool_calls: [
+              {
+                id: 'call_1',
+                type: 'function',
+                function: { name: 'read_file', arguments: '{"path":"a.txt"}' },
+              },
+            ],
+          },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-3-flash-preview', lookup);
+      const contents = result.contents as Array<{ parts: Array<Record<string, unknown>> }>;
+      expect(contents[0].parts[0].functionCall).toEqual({
+        name: 'read_file',
+        args: { path: 'a.txt' },
+        thought_signature: 'cached_sig_abc',
+      });
+    });
+
+    it('does not inject thought_signature when signatureLookup returns null', () => {
+      const lookup = () => null;
+      const body = {
+        messages: [
+          {
+            role: 'assistant',
+            content: null,
+            tool_calls: [
+              {
+                id: 'call_99',
+                type: 'function',
+                function: { name: 'noop', arguments: '{}' },
+              },
+            ],
+          },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash', lookup);
+      const contents = result.contents as Array<{ parts: Array<Record<string, unknown>> }>;
+      expect(contents[0].parts[0].functionCall).toEqual({ name: 'noop', args: {} });
+    });
+
     it('omits thought_signature when not present in tool_calls', () => {
       const body = {
         messages: [
@@ -602,6 +674,53 @@ describe('Google Adapter', () => {
       const fn = toolCalls[0].function as { name: string; arguments: string };
       expect(fn.name).toBe('search');
       expect(JSON.parse(fn.arguments)).toEqual({ query: 'cats' });
+    });
+
+    it('unwraps Code Assist envelope (response.response)', () => {
+      const codeAssistResponse = {
+        response: {
+          candidates: [
+            {
+              content: { parts: [{ text: 'Hello from Code Assist!' }] },
+              finishReason: 'STOP',
+            },
+          ],
+          usageMetadata: {
+            promptTokenCount: 20,
+            candidatesTokenCount: 8,
+            totalTokenCount: 28,
+          },
+        },
+      };
+
+      const result = fromGoogleResponse(codeAssistResponse, 'gemini-2.0-flash');
+      const choices = result.choices as Array<{
+        message: Record<string, unknown>;
+        finish_reason: string;
+      }>;
+      expect(choices).toHaveLength(1);
+      expect(choices[0].message.content).toBe('Hello from Code Assist!');
+      expect(choices[0].finish_reason).toBe('stop');
+
+      const usage = result.usage as Record<string, number>;
+      expect(usage.prompt_tokens).toBe(20);
+      expect(usage.completion_tokens).toBe(8);
+    });
+
+    it('does not unwrap response when it is an array', () => {
+      const responseWithArray = {
+        response: [{ text: 'should not unwrap' }],
+        candidates: [
+          {
+            content: { parts: [{ text: 'outer candidate' }] },
+            finishReason: 'STOP',
+          },
+        ],
+      };
+
+      const result = fromGoogleResponse(responseWithArray, 'gemini-2.0-flash');
+      const choices = result.choices as Array<{ message: Record<string, unknown> }>;
+      expect(choices[0].message.content).toBe('outer candidate');
     });
 
     it('handles empty candidates', () => {

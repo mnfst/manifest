@@ -397,6 +397,95 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('Google subscription provider (Code Assist)', () => {
+    it('routes to Code Assist API with Bearer auth for subscription', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'google',
+        apiKey: 'access-token-123',
+        model: 'gemini-2.0-flash',
+        body,
+        stream: false,
+        authType: 'subscription',
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://cloudcode-pa.googleapis.com/v1internal:generateContent');
+      expect(url).not.toContain('key=');
+      expect(result.isGoogle).toBe(true);
+
+      const headers = mockFetch.mock.calls[0][1].headers;
+      expect(headers['Authorization']).toBe('Bearer access-token-123');
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('gemini-2.0-flash');
+      expect(sentBody.request).toBeDefined();
+      expect(sentBody.request.contents).toBeDefined();
+    });
+
+    it('uses streamGenerateContent for streaming subscription', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'google',
+        apiKey: 'access-token-123',
+        model: 'gemini-2.0-flash',
+        body,
+        stream: true,
+        authType: 'subscription',
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://cloudcode-pa.googleapis.com/v1internal:streamGenerateContent');
+      expect(url).not.toContain('key=');
+    });
+
+    it('includes project in request body when resourceUrl is provided', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'google',
+        apiKey: 'access-token-123',
+        model: 'gemini-2.0-flash',
+        body,
+        stream: false,
+        authType: 'subscription',
+        resourceUrl: 'my-gcp-project',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.project).toBe('my-gcp-project');
+      expect(sentBody.model).toBe('gemini-2.0-flash');
+      expect(sentBody.request.model).toBe('gemini-2.0-flash');
+    });
+  });
+
+  describe('MiniMax subscription provider', () => {
+    it('routes to MiniMax Anthropic backend with subscription authType', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'minimax',
+        apiKey: 'mm-oauth-token',
+        model: 'abab7-chat-preview',
+        body,
+        stream: false,
+        authType: 'subscription',
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://api.minimax.io/anthropic/v1/messages');
+      expect(result.isAnthropic).toBe(true);
+      expect(result.isGoogle).toBe(false);
+      expect(result.isChatGpt).toBe(false);
+
+      const headers = mockFetch.mock.calls[0][1].headers;
+      expect(headers['Authorization']).toBe('Bearer mm-oauth-token');
+      expect(headers['anthropic-version']).toBe('2023-06-01');
+    });
+  });
+
   describe('ChatGPT subscription provider', () => {
     it('routes to chatgpt.com Codex backend with subscription authType', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
@@ -514,6 +603,23 @@ describe('ProviderClient', () => {
     it('returns null for irrelevant events', () => {
       const result = client.convertChatGptStreamChunk('event: response.created\ndata: {}', 'gpt-5');
       expect(result).toBeNull();
+    });
+  });
+
+  describe('collectChatGptSseResponse', () => {
+    it('collects SSE stream into a non-streaming OpenAI response', () => {
+      const sseText = [
+        'event: response.output_text.delta\ndata: {"delta":"Hello"}',
+        'event: response.output_text.delta\ndata: {"delta":" world"}',
+        'event: response.completed\ndata: {"usage":{"input_tokens":5,"output_tokens":2,"total_tokens":7}}',
+      ].join('\n\n');
+
+      const result = client.collectChatGptSseResponse(sseText, 'gpt-5');
+
+      expect(result.object).toBe('chat.completion');
+      expect(result.model).toBe('gpt-5');
+      const choices = result.choices as Array<{ message: { content: string } }>;
+      expect(choices[0].message.content).toBe('Hello world');
     });
   });
 

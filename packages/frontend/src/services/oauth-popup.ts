@@ -62,7 +62,7 @@ export function monitorOAuthPopup(
   pollRef = setInterval(() => {
     try {
       const doneUrl = popup.location?.href;
-      if (doneUrl?.includes('/oauth/openai/done')) {
+      if (doneUrl && /\/oauth\/[^/]+\/done/.test(doneUrl)) {
         const ok = new URL(doneUrl).searchParams.get('ok') === '1';
         handleResult(ok);
       }

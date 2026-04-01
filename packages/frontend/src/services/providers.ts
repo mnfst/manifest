@@ -106,6 +106,9 @@ export const PROVIDERS: ProviderDef[] = [
     keyPrefix: 'AIza',
     minKeyLength: 39,
     keyPlaceholder: 'AIza...',
+    supportsSubscription: true,
+    subscriptionLabel: 'Gemini subscription',
+    subscriptionAuthMode: 'popup_oauth',
     models: [],
   },
   {

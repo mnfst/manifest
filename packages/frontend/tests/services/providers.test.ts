@@ -297,6 +297,13 @@ describe("PROVIDERS", () => {
     expect(copilot.subscriptionAuthMode).toBe("device_code");
   });
 
+  it("Gemini supports subscription with popup OAuth flow", () => {
+    const gemini = PROVIDERS.find((p) => p.id === "gemini")!;
+    expect(gemini.supportsSubscription).toBe(true);
+    expect(gemini.subscriptionLabel).toBe("Gemini subscription");
+    expect(gemini.subscriptionAuthMode).toBe("popup_oauth");
+  });
+
   it("MiniMax supports subscription with device-code flow", () => {
     const minimax = PROVIDERS.find((p) => p.id === "minimax")!;
     expect(minimax.supportsSubscription).toBe(true);
