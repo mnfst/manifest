@@ -1,5 +1,11 @@
 # manifest
 
+## 5.38.8
+
+### Patch Changes
+
+- 46e1660: Optimize frontend performance: memoize sorted rows in CostByModelTable, message chart data in Overview, and provider filter options in MessageLog with createMemo
+
 ## 5.38.7
 
 ### Patch Changes
