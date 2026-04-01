@@ -55,6 +55,7 @@ function ExpandableRow(props: {
           <button
             class={`msg-detail__chevron-btn${expanded() ? ' msg-detail__chevron-btn--open' : ''}`}
             onClick={() => setExpanded(!expanded())}
+            aria-expanded={expanded()}
             aria-label={expanded() ? 'Collapse details' : 'Expand details'}
             title={expanded() ? 'Collapse details' : 'Expand details'}
           >

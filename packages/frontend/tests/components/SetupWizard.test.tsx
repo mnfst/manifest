@@ -102,6 +102,13 @@ describe("SetupWizard", () => {
     expect(onClose).toHaveBeenCalled();
   });
 
+  it("calls onClose on Escape key", () => {
+    const { container } = render(() => <SetupWizard agentName="my-agent" onClose={onClose} />);
+    const overlay = container.querySelector(".modal-overlay")!;
+    fireEvent.keyDown(overlay, { key: "Escape" });
+    expect(onClose).toHaveBeenCalled();
+  });
+
   it("renders modal overlay", () => {
     const { container } = render(() => <SetupWizard agentName="my-agent" onClose={onClose} />);
     expect(container.querySelector(".modal-overlay")).not.toBeNull();

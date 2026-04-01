@@ -42,7 +42,7 @@ const RequestResetForm: Component = () => {
 
       <Show when={!sent()}>
         <form class="auth-form" onSubmit={handleSubmit}>
-          {error() && <div class="auth-form__error">{error()}</div>}
+          {error() && <div class="auth-form__error" role="alert">{error()}</div>}
           <label class="auth-form__label">
             Email
             <input
@@ -129,7 +129,7 @@ const SetNewPasswordForm: Component<{ token: string }> = (props) => {
         }
       >
         <form class="auth-form" onSubmit={handleSubmit}>
-          {error() && <div class="auth-form__error">{error()}</div>}
+          {error() && <div class="auth-form__error" role="alert">{error()}</div>}
           <label class="auth-form__label">
             New password
             <input

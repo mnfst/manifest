@@ -35,6 +35,7 @@ const ToastItem: Component<{ toast: Toast }> = (props) => {
         stroke-width="2"
         stroke-linecap="round"
         stroke-linejoin="round"
+        aria-hidden="true"
         innerHTML={icons[props.toast.type]}
       />
       <span class="toast__message">{props.toast.message}</span>
@@ -52,6 +53,7 @@ const ToastItem: Component<{ toast: Toast }> = (props) => {
           stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
+          aria-hidden="true"
         >
           <line x1="18" y1="6" x2="6" y2="18" />
           <line x1="6" y1="6" x2="18" y2="18" />
@@ -63,7 +65,7 @@ const ToastItem: Component<{ toast: Toast }> = (props) => {
 
 const ToastContainer: Component = () => {
   return (
-    <div class="toast-container">
+    <div class="toast-container" aria-live="polite" aria-relevant="additions removals">
       <For each={toasts()}>
         {(t) => <ToastItem toast={t} />}
       </For>

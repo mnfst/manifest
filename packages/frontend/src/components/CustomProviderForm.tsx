@@ -348,10 +348,13 @@ const CustomProviderForm: Component<Props> = (props) => {
           onClick={(e) => {
             if (e.target === e.currentTarget) setShowDeleteConfirm(false);
           }}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') setShowDeleteConfirm(false);
+          }}
         >
-          <div class="modal-card" style="max-width: 400px;">
+          <div class="modal-card" style="max-width: 400px;" role="dialog" aria-modal="true" aria-labelledby="delete-provider-modal-title">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">
-              <h3 style="margin: 0; font-size: var(--font-size-lg);">Delete provider</h3>
+              <h3 id="delete-provider-modal-title" style="margin: 0; font-size: var(--font-size-lg);">Delete provider</h3>
               <button
                 style="background: none; border: none; cursor: pointer; color: hsl(var(--muted-foreground)); padding: 4px;"
                 onClick={() => setShowDeleteConfirm(false)}
@@ -366,6 +369,7 @@ const CustomProviderForm: Component<Props> = (props) => {
                   stroke-width="2"
                   stroke-linecap="round"
                   stroke-linejoin="round"
+                  aria-hidden="true"
                 >
                   <path d="M18 6 6 18" />
                   <path d="m6 6 12 12" />

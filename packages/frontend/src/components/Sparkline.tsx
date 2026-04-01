@@ -38,7 +38,7 @@ const Sparkline: Component<SparklineProps> = (props) => {
   };
 
   return (
-    <svg width={w()} height={h()} viewBox={`0 0 ${w()} ${h()}`} preserveAspectRatio="none" style="display: block;">
+    <svg width={w()} height={h()} viewBox={`0 0 ${w()} ${h()}`} preserveAspectRatio="none" style="display: block;" aria-hidden="true">
       {pathData() && (
         <>
           <defs>

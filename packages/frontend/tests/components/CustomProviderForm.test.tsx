@@ -699,6 +699,30 @@ describe("CustomProviderForm — edit mode", () => {
     expect(mockDeleteCustomProvider).not.toHaveBeenCalled();
   });
 
+  it("closes delete confirm modal on Escape key", async () => {
+    const { container } = render(() => (
+      <CustomProviderForm
+        agentName="test-agent"
+        onCreated={onCreated}
+        onBack={onBack}
+        onDeleted={onDeleted}
+        initialData={initialData}
+      />
+    ));
+
+    fireEvent.click(screen.getByText("Delete provider"));
+    await waitFor(() => {
+      expect(screen.getByText("Cancel")).toBeDefined();
+    });
+
+    const overlay = container.querySelector(".modal-overlay") as HTMLElement;
+    fireEvent.keyDown(overlay, { key: "Escape" });
+
+    await waitFor(() => {
+      expect(container.querySelector('[role="dialog"]')).toBeNull();
+    });
+  });
+
   it("shows Saving... text while submitting", async () => {
     let resolveSubmit: (v: unknown) => void;
     mockUpdateCustomProvider.mockReturnValue(

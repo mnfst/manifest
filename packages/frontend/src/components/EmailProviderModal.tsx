@@ -310,7 +310,7 @@ const EmailProviderModal: Component<Props> = (props) => {
               </button>
             </div>
 
-            <label class="modal-card__field-label">API Key</label>
+            <label class="modal-card__field-label" for="email-provider-api-key">API Key</label>
             <Show
               when={editingKey() || !hasExistingKey()}
               fallback={
@@ -330,6 +330,7 @@ const EmailProviderModal: Component<Props> = (props) => {
               }
             >
               <input
+                id="email-provider-api-key"
                 class="modal-card__input"
                 classList={{ 'modal-card__input--error': !!keyError() }}
                 type="text"
@@ -346,7 +347,7 @@ const EmailProviderModal: Component<Props> = (props) => {
               />
             </Show>
             <Show when={keyError()}>
-              <p class="modal-card__field-error">{keyError()}</p>
+              <p class="modal-card__field-error" role="alert">{keyError()}</p>
             </Show>
             <Show when={keyDocsUrl()}>
               <p class="modal-card__field-hint">
@@ -362,8 +363,9 @@ const EmailProviderModal: Component<Props> = (props) => {
             </Show>
 
             <Show when={needsDomain()}>
-              <label class="modal-card__field-label">Sending domain</label>
+              <label class="modal-card__field-label" for="email-provider-domain">Sending domain</label>
               <input
+                id="email-provider-domain"
                 class="modal-card__input"
                 classList={{ 'modal-card__input--error': !!domainError() }}
                 type="text"
@@ -376,12 +378,13 @@ const EmailProviderModal: Component<Props> = (props) => {
                 onKeyDown={handleKeyDown}
               />
               <Show when={domainError()}>
-                <p class="modal-card__field-error">{domainError()}</p>
+                <p class="modal-card__field-error" role="alert">{domainError()}</p>
               </Show>
             </Show>
 
-            <label class="modal-card__field-label">Notification email</label>
+            <label class="modal-card__field-label" for="email-provider-notification">Notification email</label>
             <input
+              id="email-provider-notification"
               class="modal-card__input"
               type="email"
               placeholder={

@@ -100,7 +100,7 @@ const Register: Component = () => {
 
             <form class="auth-form" onSubmit={handleSubmit}>
               <Show when={alreadyExists()}>
-                <div class="auth-form__error">
+                <div class="auth-form__error" role="alert">
                   An account with this email already exists.{' '}
                   <A href="/login" class="auth-form__error-link">
                     Sign in
@@ -113,7 +113,7 @@ const Register: Component = () => {
                 </div>
               </Show>
               <Show when={error() && !alreadyExists()}>
-                <div class="auth-form__error">{error()}</div>
+                <div class="auth-form__error" role="alert">{error()}</div>
               </Show>
               <label class="auth-form__label">
                 Name
@@ -180,7 +180,7 @@ const Register: Component = () => {
         </div>
 
         <div class="auth-form">
-          {error() && <div class="auth-form__error">{error()}</div>}
+          {error() && <div class="auth-form__error" role="alert">{error()}</div>}
           <div class="auth-form__success">
             Click the link in your email to verify your account and get started.
           </div>

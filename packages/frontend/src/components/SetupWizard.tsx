@@ -32,11 +32,11 @@ const SetupWizard: Component<Props> = (props) => {
   };
 
   return (
-    <div class="modal-overlay" onClick={handleOverlayClick}>
-      <div class="modal-card" style="max-width: 560px;" onClick={(e) => e.stopPropagation()}>
+    <div class="modal-overlay" onClick={handleOverlayClick} onKeyDown={(e) => { if (e.key === 'Escape') props.onClose(); }}>
+      <div class="modal-card" style="max-width: 560px;" role="dialog" aria-modal="true" aria-labelledby="setup-wizard-title" onClick={(e) => e.stopPropagation()}>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-          <span class="modal-card__title">Set up {props.agentName}</span>
-          <button class="modal__close" onClick={props.onClose}>
+          <span class="modal-card__title" id="setup-wizard-title">Set up {props.agentName}</span>
+          <button class="modal__close" onClick={props.onClose} aria-label="Close">
             <svg
               width="16"
               height="16"
@@ -44,6 +44,7 @@ const SetupWizard: Component<Props> = (props) => {
               fill="none"
               stroke="currentColor"
               stroke-width="2"
+              aria-hidden="true"
             >
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
@@ -73,6 +74,7 @@ const SetupWizard: Component<Props> = (props) => {
                       fill="none"
                       stroke="currentColor"
                       stroke-width="3"
+                      aria-hidden="true"
                     >
                       <polyline points="20 6 9 17 4 12" />
                     </svg>

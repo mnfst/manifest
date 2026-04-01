@@ -239,6 +239,7 @@ const Settings: Component = () => {
                           stroke-width="2"
                           stroke-linecap="round"
                           stroke-linejoin="round"
+                          aria-hidden="true"
                         >
                           <path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" />
                           <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" />
@@ -255,6 +256,7 @@ const Settings: Component = () => {
                           stroke-width="2"
                           stroke-linecap="round"
                           stroke-linejoin="round"
+                          aria-hidden="true"
                         >
                           <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
                           <circle cx="12" cy="12" r="3" />
@@ -336,10 +338,13 @@ const Settings: Component = () => {
           onClick={(e) => {
             if (e.target === e.currentTarget) setShowDeleteModal(false);
           }}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') setShowDeleteModal(false);
+          }}
         >
-          <div class="modal-card" style="max-width: 440px;">
+          <div class="modal-card" style="max-width: 440px;" role="dialog" aria-modal="true" aria-labelledby="delete-agent-modal-title">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">
-              <h3 style="margin: 0; font-size: var(--font-size-lg);">Delete {agentName()}</h3>
+              <h3 id="delete-agent-modal-title" style="margin: 0; font-size: var(--font-size-lg);">Delete {agentName()}</h3>
               <button
                 style="background: none; border: none; cursor: pointer; color: hsl(var(--muted-foreground)); padding: 4px;"
                 onClick={() => setShowDeleteModal(false)}
@@ -354,6 +359,7 @@ const Settings: Component = () => {
                   stroke-width="2"
                   stroke-linecap="round"
                   stroke-linejoin="round"
+                  aria-hidden="true"
                 >
                   <path d="M18 6 6 18" />
                   <path d="m6 6 12 12" />
@@ -365,10 +371,11 @@ const Settings: Component = () => {
               <strong style="color: hsl(var(--foreground));">{agentName()}</strong> agent and all
               its data. This action cannot be undone.
             </p>
-            <label style="display: block; font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-bottom: var(--gap-sm);">
+            <label for="delete-confirm-input" style="display: block; font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-bottom: var(--gap-sm);">
               To confirm, type <strong>"{agentName()}"</strong> in the box below
             </label>
             <input
+              id="delete-confirm-input"
               class="auth-form__input"
               type="text"
               value={deleteConfirmName()}

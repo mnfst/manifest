@@ -88,10 +88,11 @@ const LimitRuleModal: Component<Props> = (props) => {
               You'll receive an email alert when usage exceeds the threshold.
             </p>
 
-            <label class="modal-card__field-label" style="margin-top: 0;">
+            <label class="modal-card__field-label" for="limit-metric-select" style="margin-top: 0;">
               Metric
             </label>
             <select
+              id="limit-metric-select"
               class="select notification-modal__select"
               value={metricType()}
               onChange={(e) => setMetricType(e.currentTarget.value)}
@@ -102,8 +103,9 @@ const LimitRuleModal: Component<Props> = (props) => {
 
             <div class="limit-modal__row">
               <div class="limit-modal__col">
-                <label class="modal-card__field-label">Threshold</label>
+                <label class="modal-card__field-label" for="limit-threshold-input">Threshold</label>
                 <input
+                  id="limit-threshold-input"
                   class="modal-card__input"
                   type="number"
                   min="0"
@@ -117,8 +119,9 @@ const LimitRuleModal: Component<Props> = (props) => {
                 />
               </div>
               <div class="limit-modal__col">
-                <label class="modal-card__field-label">Period</label>
+                <label class="modal-card__field-label" for="limit-period-select">Period</label>
                 <select
+                  id="limit-period-select"
                   class="select notification-modal__select"
                   value={period()}
                   onChange={(e) => setPeriod(e.currentTarget.value)}
