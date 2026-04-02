@@ -1,5 +1,11 @@
 # manifest
 
+## 5.39.0
+
+### Minor Changes
+
+- b70e032: Auto-show routing setup instructions modal when re-enabling routing after disable, and autofocus API key input in provider detail view
+
 ## 5.38.8
 
 ### Patch Changes
