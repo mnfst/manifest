@@ -1,4 +1,4 @@
-import { Show, type Component, type Accessor, type Setter } from 'solid-js';
+import { Show, onMount, type Component, type Accessor, type Setter } from 'solid-js';
 import type { ProviderDef } from '../services/providers.js';
 import { validateApiKey, validateSubscriptionKey } from '../services/provider-utils.js';
 import {
@@ -126,6 +126,13 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
     }
   };
 
+  let connectInputRef: HTMLInputElement | undefined;
+  onMount(() => {
+    if (connectInputRef && !props.connected()) {
+      connectInputRef.focus();
+    }
+  });
+
   return (
     <>
       {/* Not yet connected */}
@@ -133,6 +140,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
         <div class="provider-detail__field">
           <label class="provider-detail__label">{fieldLabel()}</label>
           <input
+            ref={connectInputRef}
             class="provider-detail__input provider-detail__input--masked"
             classList={{ 'provider-detail__input--error': !!props.validationError() }}
             type="text"

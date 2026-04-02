@@ -49,6 +49,8 @@ const Routing: Component = () => {
   const [instructionProvider, setInstructionProvider] = createSignal<string | null>(null);
   const [fallbackPickerTier, setFallbackPickerTier] = createSignal<string | null>(null);
   const [refreshingModels, setRefreshingModels] = createSignal(false);
+  const [wasEnabledBeforeModal, setWasEnabledBeforeModal] = createSignal(false);
+  const [hadProvidersBeforeModal, setHadProvidersBeforeModal] = createSignal(false);
 
   const refetchAll = async () => {
     await Promise.all([
@@ -83,6 +85,19 @@ const Routing: Component = () => {
   const hadRouting = () => (connectedProviders()?.length ?? 0) > 0 && !isEnabled();
   const activeProviders = () => connectedProviders()?.filter((p) => p.is_active) ?? [];
   const hasOverrides = () => tiers()?.some((t) => t.override_model !== null) ?? false;
+
+  const openProviderModal = () => {
+    setWasEnabledBeforeModal(isEnabled());
+    setHadProvidersBeforeModal((connectedProviders()?.length ?? 0) > 0);
+    setShowProviderModal(true);
+  };
+
+  const closeProviderModal = () => {
+    setShowProviderModal(false);
+    if (!wasEnabledBeforeModal() && isEnabled() && hadProvidersBeforeModal()) {
+      setInstructionModal('enable');
+    }
+  };
 
   const handleProviderUpdate = async () => {
     await refetchAll();
@@ -125,7 +140,7 @@ const Routing: Component = () => {
             >
               {refreshingModels() ? 'Refreshing...' : 'Refresh models'}
             </button>
-            <button class="btn btn--primary btn--sm" onClick={() => setShowProviderModal(true)}>
+            <button class="btn btn--primary btn--sm" onClick={openProviderModal}>
               Connect providers
             </button>
           </div>
@@ -144,7 +159,12 @@ const Routing: Component = () => {
                 class="panel"
                 style="display: flex; align-items: center; justify-content: center; min-height: 260px;"
               >
-                <span class="spinner" style="width: 24px; height: 24px;" role="status" aria-label="Loading" />
+                <span
+                  class="spinner"
+                  style="width: 24px; height: 24px;"
+                  role="status"
+                  aria-label="Loading"
+                />
               </div>
             }
           >
@@ -152,10 +172,7 @@ const Routing: Component = () => {
           </Show>
         }
       >
-        <Show
-          when={isEnabled()}
-          fallback={<EnableRoutingCard onEnable={() => setShowProviderModal(true)} />}
-        >
+        <Show when={isEnabled()} fallback={<EnableRoutingCard onEnable={openProviderModal} />}>
           <ActiveProviderIcons
             activeProviders={activeProviders}
             customProviders={() => customProviders() ?? []}
@@ -219,7 +236,7 @@ const Routing: Component = () => {
         fallbackPickerTier={fallbackPickerTier}
         onFallbackPickerClose={() => setFallbackPickerTier(null)}
         showProviderModal={showProviderModal}
-        onProviderModalClose={() => setShowProviderModal(false)}
+        onProviderModalClose={closeProviderModal}
         instructionModal={instructionModal}
         instructionProvider={instructionProvider}
         onInstructionClose={() => {
