@@ -869,6 +869,75 @@ describe("Routing — handleProviderUpdate", () => {
     await new Promise((r) => setTimeout(r, 50));
     expect(screen.queryByText("Activate routing")).toBeNull();
   });
+
+  it("does not show instruction modal on first-ever enable (fresh agent)", async () => {
+    mockGetProviders.mockResolvedValue([]);
+    mockDeactivateAllProviders.mockResolvedValue({ ok: true });
+
+    render(() => <Routing />);
+    const enableBtn = await screen.findByText("Enable Routing");
+    fireEvent.click(enableBtn);
+
+    // Simulate provider connected via update
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "openai", auth_type: "api_key" as const, is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+    ]);
+    const updateBtn = screen.getByTestId("trigger-update");
+    fireEvent.click(updateBtn);
+    await new Promise((r) => setTimeout(r, 50));
+
+    // Click Done — no modal because this is the first-ever enable (no prior providers)
+    const doneBtn = screen.getByText("Done");
+    fireEvent.click(doneBtn);
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(screen.queryByText("Activate routing")).toBeNull();
+  });
+
+  it("shows instruction modal when re-enabling routing after disable", async () => {
+    // Start with inactive providers (routing was previously disabled)
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "openai", auth_type: "api_key" as const, is_active: false, has_api_key: true, connected_at: "2025-01-01" },
+    ]);
+    mockDeactivateAllProviders.mockResolvedValue({ ok: true });
+
+    render(() => <Routing />);
+    const enableBtn = await screen.findByText("Enable Routing");
+    fireEvent.click(enableBtn);
+
+    // Simulate provider re-activated via update
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "openai", auth_type: "api_key" as const, is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+    ]);
+    const updateBtn = screen.getByTestId("trigger-update");
+    fireEvent.click(updateBtn);
+    await new Promise((r) => setTimeout(r, 50));
+
+    // Click Done — modal appears because routing was previously configured
+    const doneBtn = screen.getByText("Done");
+    fireEvent.click(doneBtn);
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(screen.queryByText("Activate routing")).toBeDefined();
+  });
+
+  it("does not show instruction modal when Done is clicked and routing was already enabled", async () => {
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "openai", auth_type: "api_key" as const, is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+    ]);
+    mockDeactivateAllProviders.mockResolvedValue({ ok: true });
+
+    render(() => <Routing />);
+    const provBtn = await screen.findByText("Connect providers");
+    fireEvent.click(provBtn);
+
+    // Click Done without any transition
+    const doneBtn = screen.getByText("Done");
+    fireEvent.click(doneBtn);
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(screen.queryByText("Activate routing")).toBeNull();
+  });
 });
 
 describe("Routing — fallback management", () => {
