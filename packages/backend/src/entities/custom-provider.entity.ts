@@ -7,6 +7,8 @@ export interface CustomProviderModel {
   input_price_per_million_tokens?: number;
   output_price_per_million_tokens?: number;
   context_window?: number;
+  capability_reasoning?: boolean;
+  capability_code?: boolean;
 }
 
 @Entity('custom_providers')
