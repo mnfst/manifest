@@ -71,7 +71,7 @@ describe("validateApiKey", () => {
     });
     expect(validateApiKey(minimax, "wrong-prefix-key-that-is-long-enough-for-validation")).toEqual({
       valid: false,
-      error: 'MiniMax keys start with "sk-api-"',
+      error: 'MiniMax keys start with "sk-"',
     });
     expect(validateApiKey(minimax, "sk-api-short")).toEqual({
       valid: false,
