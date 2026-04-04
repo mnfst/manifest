@@ -1103,6 +1103,47 @@ describe('ProviderSelectModal', () => {
       );
     });
 
+    it('keeps tooltip visible when moving mouse from icon to tooltip', async () => {
+      vi.useFakeTimers();
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText('Anthropic'));
+
+      const infoWrapper = screen.getByText('Claim your credits on Claude')
+        .closest('.anthropic-credits')!
+        .querySelector('.anthropic-credits__info-wrapper')!;
+
+      // Show tooltip
+      fireEvent.mouseEnter(infoWrapper);
+      expect(screen.getByText('Learn more about eligibility')).toBeDefined();
+
+      // Leave icon — starts hide timer
+      fireEvent.mouseLeave(infoWrapper);
+
+      // Enter tooltip before timer fires — cancels hide
+      const tooltip = document.querySelector('.anthropic-credits__tooltip')!;
+      fireEvent.mouseEnter(tooltip);
+
+      // Advance past the 150ms hide delay
+      vi.advanceTimersByTime(200);
+
+      // Tooltip should still be visible
+      expect(screen.getByText('Learn more about eligibility')).toBeDefined();
+
+      // Leave tooltip — starts hide timer again
+      fireEvent.mouseLeave(tooltip);
+      vi.advanceTimersByTime(200);
+
+      expect(screen.queryByText('Learn more about eligibility')).toBeNull();
+      vi.useRealTimers();
+    });
+
     it('does not show credits button for non-Anthropic providers', () => {
       render(() => (
         <ProviderSelectModal
