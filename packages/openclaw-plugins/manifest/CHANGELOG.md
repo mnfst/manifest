@@ -1,5 +1,11 @@
 # manifest
 
+## 5.39.1
+
+### Patch Changes
+
+- 8525832: Add "Claim your credits on Claude" link in Anthropic provider connect modal with info tooltip
+
 ## 5.39.0
 
 ### Minor Changes
