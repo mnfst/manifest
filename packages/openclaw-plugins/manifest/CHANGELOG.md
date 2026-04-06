@@ -1,5 +1,11 @@
 # manifest
 
+## 5.40.0
+
+### Minor Changes
+
+- 416169a: Add Free Models page with Cohere provider, deep-link custom provider form via URL params, and display recognized provider logos in routing
+
 ## 5.39.1
 
 ### Patch Changes
