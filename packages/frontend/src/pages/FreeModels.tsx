@@ -1,6 +1,6 @@
-import { createSignal, For, Show, type Component } from 'solid-js';
-import { Title, Meta } from '@solidjs/meta';
+import { Meta, Title } from '@solidjs/meta';
 import { useParams } from '@solidjs/router';
+import { createSignal, For, Show, type Component } from 'solid-js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import { toast } from '../services/toast-store.js';
 
@@ -9,6 +9,7 @@ interface FreeModel {
   context: string;
   max_output: string;
   modality: string;
+  trial_rate_limit: string;
 }
 
 interface FreeProvider {
@@ -33,12 +34,19 @@ const PROVIDERS: FreeProvider[] = [
     warning:
       'Trial keys cannot be used for production or commercial workloads. Data may be used for training.',
     models: [
-      { model_id: 'command-a-03-2025', context: '256K', max_output: '8K', modality: 'Text' },
+      {
+        model_id: 'command-a-03-2025',
+        context: '256K',
+        max_output: '8K',
+        modality: 'Text',
+        trial_rate_limit: '20 req / min',
+      },
       {
         model_id: 'command-a-reasoning-08-2025',
         context: '256K',
         max_output: '32K',
         modality: 'Text',
+        trial_rate_limit: '20 req / min',
       },
     ],
   },
@@ -136,7 +144,7 @@ const FreeModels: Component = () => {
             2
           </span>
           <span style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
-            Hit the Connect button, paste your key, and you're done
+            Hit the provider Connect button, paste your key, and validate the connection
           </span>
         </div>
       </div>
@@ -226,6 +234,7 @@ const FreeModels: Component = () => {
                             <th>Context</th>
                             <th>Max Output</th>
                             <th>Modality</th>
+                            <th>Trial Rate Limit</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -238,6 +247,9 @@ const FreeModels: Component = () => {
                                 <td style="font-size: var(--font-size-sm);">{model.context}</td>
                                 <td style="font-size: var(--font-size-sm);">{model.max_output}</td>
                                 <td style="font-size: var(--font-size-sm);">{model.modality}</td>
+                                <td style="font-size: var(--font-size-sm);">
+                                  {model.trial_rate_limit}
+                                </td>
                               </tr>
                             )}
                           </For>
