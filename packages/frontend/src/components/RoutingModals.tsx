@@ -10,6 +10,7 @@ import type {
   AvailableModel,
   RoutingProvider,
 } from '../services/api.js';
+import type { CustomProviderPrefill } from '../services/routing-params.js';
 
 interface RoutingModalsProps {
   agentName: () => string;
@@ -19,6 +20,7 @@ interface RoutingModalsProps {
   onFallbackPickerClose: () => void;
   showProviderModal: Accessor<boolean>;
   onProviderModalClose: () => void;
+  customProviderPrefill?: CustomProviderPrefill | null;
   instructionModal: Accessor<'enable' | 'disable' | null>;
   instructionProvider: Accessor<string | null>;
   onInstructionClose: () => void;
@@ -90,6 +92,7 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => (
         agentName={props.agentName()}
         providers={props.connectedProviders()}
         customProviders={props.customProviders()}
+        customProviderPrefill={props.customProviderPrefill}
         onClose={props.onProviderModalClose}
         onUpdate={props.onProviderUpdate}
       />

@@ -1,5 +1,5 @@
-import { createSignal, createResource, For, Show, type Component } from 'solid-js';
-import { useLocation, useParams } from '@solidjs/router';
+import { createSignal, createResource, createMemo, For, Show, type Component } from 'solid-js';
+import { useLocation, useParams, useSearchParams } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
 import { STAGES } from '../services/providers.js';
 import RoutingModals from '../components/RoutingModals.js';
@@ -20,11 +20,18 @@ import {
   getCustomProviders,
   refreshModels,
 } from '../services/api.js';
+import {
+  parseCustomProviderParams,
+  type CustomProviderPrefill,
+} from '../services/routing-params.js';
 
 const Routing: Component = () => {
   const params = useParams<{ agentName: string }>();
   const location = useLocation<{ openProviders?: boolean }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const agentName = () => decodeURIComponent(params.agentName);
+
+  const customProviderPrefill = createMemo(() => parseCustomProviderParams(searchParams));
 
   const [tiers, { refetch: refetchTiers, mutate: mutateTiers }] = createResource(
     () => agentName(),
@@ -42,7 +49,8 @@ const Routing: Component = () => {
   );
   const [dropdownTier, setDropdownTier] = createSignal<string | null>(null);
   const [showProviderModal, setShowProviderModal] = createSignal(
-    !!(location.state as { openProviders?: boolean } | undefined)?.openProviders,
+    !!(location.state as { openProviders?: boolean } | undefined)?.openProviders ||
+      !!customProviderPrefill(),
   );
   const [confirmDisable, setConfirmDisable] = createSignal(false);
   const [instructionModal, setInstructionModal] = createSignal<'enable' | 'disable' | null>(null);
@@ -94,6 +102,15 @@ const Routing: Component = () => {
 
   const closeProviderModal = () => {
     setShowProviderModal(false);
+    if (customProviderPrefill()) {
+      setSearchParams({
+        provider: undefined,
+        name: undefined,
+        baseUrl: undefined,
+        apiKey: undefined,
+        models: undefined,
+      });
+    }
     if (!wasEnabledBeforeModal() && isEnabled() && hadProvidersBeforeModal()) {
       setInstructionModal('enable');
     }
@@ -237,6 +254,7 @@ const Routing: Component = () => {
         onFallbackPickerClose={() => setFallbackPickerTier(null)}
         showProviderModal={showProviderModal}
         onProviderModalClose={closeProviderModal}
+        customProviderPrefill={customProviderPrefill()}
         instructionModal={instructionModal}
         instructionProvider={instructionProvider}
         onInstructionClose={() => {

@@ -186,7 +186,7 @@
 
 .routing-card__override {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
 }
 
@@ -195,6 +195,7 @@
   align-items: center;
   flex-shrink: 0;
   position: relative;
+  top: 2.5px;
 }
 
 .routing-card__auto-tag {

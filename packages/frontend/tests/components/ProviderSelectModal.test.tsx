@@ -56,7 +56,7 @@ vi.mock('../../src/services/toast-store.js', () => ({
 }));
 
 vi.mock('../../src/components/ProviderIcon.js', () => ({
-  providerIcon: () => null,
+  providerIcon: () => null, customProviderLogo: () => null,
 }));
 
 let mockLocalMode = false;
@@ -2397,8 +2397,8 @@ describe('ProviderSelectModal', () => {
       const modelInput = screen.getByPlaceholderText('Model name');
       fireEvent.input(modelInput, { target: { value: 'test-model' } });
 
-      // Click Create (the create mode button label)
-      fireEvent.click(screen.getByText('Create'));
+      // Click Connect (the create mode button label)
+      fireEvent.click(screen.getByText('Connect'));
 
       await waitFor(() => {
         expect(mockCreateCustomProvider).toHaveBeenCalled();

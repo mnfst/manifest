@@ -9,7 +9,7 @@ import type {
 import { PROVIDERS, STAGES } from '../services/providers.js';
 import { customProviderColor } from '../services/formatters.js';
 import { inferProviderFromModel, pricePerM, resolveProviderId } from '../services/routing-utils.js';
-import { providerIcon } from './ProviderIcon.js';
+import { providerIcon, customProviderLogo } from './ProviderIcon.js';
 
 interface Props {
   tierId: string;
@@ -358,22 +358,29 @@ const ModelPickerModal: Component<Props> = (props) => {
               <div class="routing-modal__group">
                 <div class="routing-modal__group-header">
                   <span class="routing-modal__group-icon">
-                    {group.provId.startsWith('custom:') ? (
-                      <span
-                        class="provider-card__logo-letter"
-                        style={{
-                          background: customProviderColor(group.name),
-                          width: '16px',
-                          height: '16px',
-                          'font-size': '9px',
-                          'border-radius': '50%',
-                        }}
-                      >
-                        {group.name.charAt(0).toUpperCase()}
-                      </span>
-                    ) : (
-                      providerIcon(group.provId, 16)
-                    )}
+                    {group.provId.startsWith('custom:')
+                      ? (() => {
+                          const cp = (props.customProviders ?? []).find(
+                            (c) => `custom:${c.id}` === group.provId,
+                          );
+                          return (
+                            customProviderLogo(group.name, 16, cp?.base_url) ?? (
+                              <span
+                                class="provider-card__logo-letter"
+                                style={{
+                                  background: customProviderColor(group.name),
+                                  width: '16px',
+                                  height: '16px',
+                                  'font-size': '9px',
+                                  'border-radius': '50%',
+                                }}
+                              >
+                                {group.name.charAt(0).toUpperCase()}
+                              </span>
+                            )
+                          );
+                        })()
+                      : providerIcon(group.provId, 16)}
                   </span>
                   <span class="routing-modal__group-name">{group.name}</span>
                 </div>

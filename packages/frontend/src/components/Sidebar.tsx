@@ -84,6 +84,19 @@ const Sidebar: Component = () => {
           Model Prices
         </A>
         <A
+          href={path('/free-models')}
+          class="sidebar__link"
+          classList={{ active: isActive('/free-models') }}
+          aria-current={isActive('/free-models') ? 'page' : undefined}
+        >
+          <img
+            src="/icons/free.svg"
+            alt="Free Models"
+            style="height: 12px; vertical-align: middle;"
+          />{' '}
+          Models
+        </A>
+        <A
           href={path('/help')}
           class="sidebar__link"
           classList={{ active: isActive('/help') }}

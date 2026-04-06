@@ -3,7 +3,7 @@ import type { AuthType, CustomProviderData } from '../services/api.js';
 import { customProviderColor } from '../services/formatters.js';
 import { isLocalMode } from '../services/local-mode.js';
 import type { ProviderDef } from '../services/providers.js';
-import { providerIcon } from './ProviderIcon.js';
+import { providerIcon, customProviderLogo } from './ProviderIcon.js';
 
 type ListItem =
   | { kind: 'standard'; prov: ProviderDef }
@@ -41,12 +41,14 @@ const ProviderApiKeyTab: Component<Props> = (props) => {
               return (
                 <button class="provider-toggle" onClick={() => props.onEditCustom(cp)}>
                   <span class="provider-toggle__icon">
-                    <span
-                      class="provider-card__logo-letter"
-                      style={{ background: customProviderColor(cp.name) }}
-                    >
-                      {cp.name.charAt(0).toUpperCase()}
-                    </span>
+                    {customProviderLogo(cp.name, 20, cp.base_url) ?? (
+                      <span
+                        class="provider-card__logo-letter"
+                        style={{ background: customProviderColor(cp.name) }}
+                      >
+                        {cp.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
                   </span>
                   <span class="provider-toggle__info">
                     <span class="provider-toggle__name">

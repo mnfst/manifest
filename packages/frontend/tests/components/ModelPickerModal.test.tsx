@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@solidjs/testing-library";
 
 vi.mock("../../src/components/ProviderIcon.js", () => ({
-  providerIcon: () => null,
+  providerIcon: () => null, customProviderLogo: () => null,
 }));
 
 vi.mock("../../src/services/routing-utils.js", () => ({

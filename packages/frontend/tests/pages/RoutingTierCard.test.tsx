@@ -11,7 +11,7 @@ vi.mock('../../src/services/provider-utils.js', () => ({
 }));
 
 vi.mock('../../src/components/ProviderIcon.jsx', () => ({
-  providerIcon: () => null,
+  providerIcon: () => null, customProviderLogo: () => null,
 }));
 
 vi.mock('../../src/components/AuthBadge.js', () => ({

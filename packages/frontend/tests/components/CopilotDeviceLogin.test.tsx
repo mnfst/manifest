@@ -12,7 +12,7 @@ vi.mock("../../src/services/toast-store.js", () => ({
 }));
 
 vi.mock("../../src/components/ProviderIcon.js", () => ({
-  providerIcon: () => null,
+  providerIcon: () => null, customProviderLogo: () => null,
 }));
 
 import CopilotDeviceLogin from "../../src/components/CopilotDeviceLogin";

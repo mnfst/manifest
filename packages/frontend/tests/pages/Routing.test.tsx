@@ -4,6 +4,7 @@ import { render, screen, waitFor, fireEvent } from "@solidjs/testing-library";
 vi.mock("@solidjs/router", () => ({
   useParams: () => ({ agentName: "test-agent" }),
   useLocation: () => ({ pathname: "/agents/test-agent/routing", state: null }),
+  useSearchParams: () => [{}  , vi.fn()],
   useNavigate: () => vi.fn(),
   A: (props: any) => <a href={props.href}>{props.children}</a>,
 }));
@@ -22,7 +23,7 @@ vi.mock("../../src/services/toast-store.js", () => ({
 }));
 
 vi.mock("../../src/components/ProviderIcon.js", () => ({
-  providerIcon: () => null,
+  providerIcon: () => null, customProviderLogo: () => null,
 }));
 
 vi.mock("../../src/components/ProviderSelectModal.js", () => ({

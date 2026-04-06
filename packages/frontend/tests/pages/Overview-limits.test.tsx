@@ -42,7 +42,7 @@ vi.mock("../../src/services/routing-utils.js", () => ({
 }));
 
 vi.mock("../../src/components/ProviderIcon.jsx", () => ({
-  providerIcon: () => null,
+  providerIcon: () => null, customProviderLogo: () => null,
 }));
 
 vi.mock("../../src/components/CostChart.jsx", () => ({ default: () => <div data-testid="cost-chart" /> }));

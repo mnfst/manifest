@@ -29,6 +29,7 @@ vi.mock("../../src/services/routing-utils.js", () => ({
 
 vi.mock("../../src/components/ProviderIcon.jsx", () => ({
   providerIcon: (id: string, size: number) => <svg data-provider={id} width={size} height={size} />,
+  customProviderLogo: () => null,
 }));
 
 vi.mock("../../src/services/toast-store.js", () => ({

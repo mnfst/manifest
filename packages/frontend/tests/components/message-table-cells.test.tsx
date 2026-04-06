@@ -27,7 +27,7 @@ vi.mock('../../src/services/model-display.js', () => ({
 }));
 
 vi.mock('../../src/components/ProviderIcon.jsx', () => ({
-  providerIcon: () => null,
+  providerIcon: () => null, customProviderLogo: () => null,
 }));
 
 vi.mock('../../src/components/AuthBadge.js', () => ({

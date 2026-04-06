@@ -14,7 +14,7 @@ vi.mock("../../src/services/toast-store.js", () => ({
 }));
 
 vi.mock("../../src/components/ProviderIcon.js", () => ({
-  providerIcon: () => null,
+  providerIcon: () => null, customProviderLogo: () => null,
 }));
 
 vi.mock("../../src/services/local-mode.js", () => ({

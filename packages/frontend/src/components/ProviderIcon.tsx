@@ -210,3 +210,42 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
       return null;
   }
 }
+
+const CUSTOM_PROVIDER_LOGOS: Record<string, string> = {
+  cohere: '/icons/cohere.svg',
+};
+
+const BASE_URL_TO_PROVIDER: [RegExp, string][] = [[/cohere\.ai/i, 'cohere']];
+
+function resolveCustomLogo(name: string, baseUrl?: string): string | null {
+  const byName = CUSTOM_PROVIDER_LOGOS[name.toLowerCase()];
+  if (byName) return byName;
+  if (baseUrl) {
+    for (const [pattern, key] of BASE_URL_TO_PROVIDER) {
+      if (pattern.test(baseUrl)) return CUSTOM_PROVIDER_LOGOS[key] ?? null;
+    }
+  }
+  return null;
+}
+
+/**
+ * Returns an <img> icon for a custom provider if a known logo exists,
+ * or null if no logo is available. Matches by name or base URL.
+ */
+export function customProviderLogo(
+  name: string,
+  size: number = 16,
+  baseUrl?: string,
+): JSX.Element | null {
+  const logo = resolveCustomLogo(name, baseUrl);
+  if (!logo) return null;
+  return (
+    <img
+      src={logo}
+      alt={name}
+      width={size}
+      height={size}
+      style={{ display: 'block', 'object-fit': 'contain' }}
+    />
+  );
+}

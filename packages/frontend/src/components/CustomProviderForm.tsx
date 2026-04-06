@@ -7,12 +7,14 @@ import {
   type CustomProviderData,
 } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
+import type { CustomProviderPrefill } from '../services/routing-params.js';
 
 interface Props {
   agentName: string;
   onCreated: () => void;
   onBack: () => void;
   initialData?: CustomProviderData;
+  prefill?: CustomProviderPrefill;
   onDeleted?: () => void;
 }
 
@@ -36,12 +38,23 @@ const toModelRows = (models: CustomProviderModel[]): ModelRow[] =>
 const CustomProviderForm: Component<Props> = (props) => {
   const isEdit = () => !!props.initialData;
 
-  const [name, setName] = createSignal(props.initialData?.name ?? '');
-  const [baseUrl, setBaseUrl] = createSignal(props.initialData?.base_url ?? '');
-  const [apiKey, setApiKey] = createSignal('');
+  const prefillRows = (): ModelRow[] => {
+    if (!props.prefill?.models?.length) return [emptyRow()];
+    return props.prefill.models.map((m) => ({
+      model_name: m.model_name,
+      input_price: m.input_price ?? '',
+      output_price: m.output_price ?? '',
+    }));
+  };
+
+  const [name, setName] = createSignal(props.initialData?.name ?? props.prefill?.name ?? '');
+  const [baseUrl, setBaseUrl] = createSignal(
+    props.initialData?.base_url ?? props.prefill?.baseUrl ?? '',
+  );
+  const [apiKey, setApiKey] = createSignal(props.prefill?.apiKey ?? '');
   const [editingKey, setEditingKey] = createSignal(false);
   const [rows, setRows] = createSignal<ModelRow[]>(
-    props.initialData ? toModelRows(props.initialData.models) : [emptyRow()],
+    props.initialData ? toModelRows(props.initialData.models) : prefillRows(),
   );
   const [busy, setBusy] = createSignal(false);
   const [error, setError] = createSignal<string | null>(null);
@@ -320,25 +333,25 @@ const CustomProviderForm: Component<Props> = (props) => {
           </div>
         )}
 
-        <button
-          type="submit"
-          class="btn btn--primary btn--sm provider-detail__action"
-          disabled={!canSubmit()}
-        >
-          {busy() ? <span class="spinner" /> : isEdit() ? 'Save changes' : 'Create'}
-        </button>
-
-        <Show when={isEdit()}>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 16px;">
+          <Show when={isEdit()} fallback={<div />}>
+            <button
+              type="button"
+              class="btn btn--outline btn--sm provider-detail__disconnect"
+              disabled={busy()}
+              onClick={() => setShowDeleteConfirm(true)}
+            >
+              Delete provider
+            </button>
+          </Show>
           <button
-            type="button"
-            class="btn btn--outline btn--sm provider-detail__disconnect"
-            disabled={busy()}
-            onClick={() => setShowDeleteConfirm(true)}
-            style="margin-top: 16px; align-self: flex-start;"
+            type="submit"
+            class="btn btn--primary btn--sm provider-detail__action"
+            disabled={!canSubmit()}
           >
-            Delete provider
+            {busy() ? <span class="spinner" /> : isEdit() ? 'Save changes' : 'Connect'}
           </button>
-        </Show>
+        </div>
       </form>
 
       {/* -- Delete Confirmation Modal -- */}
@@ -352,9 +365,20 @@ const CustomProviderForm: Component<Props> = (props) => {
             if (e.key === 'Escape') setShowDeleteConfirm(false);
           }}
         >
-          <div class="modal-card" style="max-width: 400px;" role="dialog" aria-modal="true" aria-labelledby="delete-provider-modal-title">
+          <div
+            class="modal-card"
+            style="max-width: 400px;"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-provider-modal-title"
+          >
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">
-              <h3 id="delete-provider-modal-title" style="margin: 0; font-size: var(--font-size-lg);">Delete provider</h3>
+              <h3
+                id="delete-provider-modal-title"
+                style="margin: 0; font-size: var(--font-size-lg);"
+              >
+                Delete provider
+              </h3>
               <button
                 style="background: none; border: none; cursor: pointer; color: hsl(var(--muted-foreground)); padding: 4px;"
                 onClick={() => setShowDeleteConfirm(false)}

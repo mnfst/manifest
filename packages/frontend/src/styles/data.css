@@ -629,3 +629,38 @@
   align-items: center;
   gap: 6px;
 }
+
+/* ── Free Models accordion ────────────────────────── */
+.free-models-accordion {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 300ms ease,
+    opacity 250ms ease;
+}
+
+.free-models-accordion > * {
+  overflow: hidden;
+}
+
+.free-models-accordion--open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.free-models-base-url-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dark .free-models-caret {
+  filter: invert(1);
+}
+
+@media (max-width: 640px) {
+  .free-models-base-url-row {
+    flex-wrap: wrap;
+  }
+}

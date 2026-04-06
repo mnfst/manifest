@@ -1,6 +1,7 @@
-import { For, Show, type Component } from 'solid-js';
+import { For, Show, createMemo, type Component } from 'solid-js';
 import { STAGES, PROVIDERS } from '../services/providers.js';
-import { providerIcon } from '../components/ProviderIcon.js';
+import { providerIcon, customProviderLogo } from '../components/ProviderIcon.js';
+import { customProviderColor } from '../services/formatters.js';
 import { authBadgeFor } from '../components/AuthBadge.js';
 import type { RoutingProvider, CustomProviderData } from '../services/api.js';
 
@@ -107,22 +108,34 @@ export const ActiveProviderIcons: Component<ActiveProviderIconsProps> = (props) 
       <For each={props.activeProviders()}>
         {(prov) => {
           if (prov.provider.startsWith('custom:')) {
-            const cp = props.customProviders()?.find((c) => `custom:${c.id}` === prov.provider);
-            const letter = (cp?.name ?? 'C').charAt(0).toUpperCase();
+            const cp = createMemo(() =>
+              props.customProviders()?.find((c) => `custom:${c.id}` === prov.provider),
+            );
+            const logo = createMemo(() => {
+              const c = cp();
+              return c ? customProviderLogo(c.name, 16, c.base_url) : null;
+            });
             return (
-              <span class="routing-providers-info__icon" title={cp?.name ?? prov.provider}>
-                <span
-                  class="provider-card__logo-letter"
-                  style={{
-                    background: 'var(--custom-provider-color)',
-                    width: '16px',
-                    height: '16px',
-                    'font-size': '9px',
-                    'border-radius': '50%',
-                  }}
+              <span class="routing-providers-info__icon" title={cp()?.name ?? prov.provider}>
+                <Show
+                  when={logo()}
+                  fallback={
+                    <span
+                      class="provider-card__logo-letter"
+                      style={{
+                        background: customProviderColor(cp()?.name ?? 'C'),
+                        width: '16px',
+                        height: '16px',
+                        'font-size': '9px',
+                        'border-radius': '50%',
+                      }}
+                    >
+                      {(cp()?.name ?? 'C').charAt(0).toUpperCase()}
+                    </span>
+                  }
                 >
-                  {letter}
-                </span>
+                  {logo()}
+                </Show>
               </span>
             );
           }
@@ -203,8 +216,17 @@ export const DisableRoutingModal: Component<DisableRoutingModalProps> = (props) 
         if (e.key === 'Escape') props.onCancel();
       }}
     >
-      <div class="modal-card" style="max-width: 420px;" role="dialog" aria-modal="true" aria-labelledby="disable-routing-modal-title">
-        <h2 id="disable-routing-modal-title" style="margin: 0 0 12px; font-size: var(--font-size-lg); font-weight: 600;">
+      <div
+        class="modal-card"
+        style="max-width: 420px;"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="disable-routing-modal-title"
+      >
+        <h2
+          id="disable-routing-modal-title"
+          style="margin: 0 0 12px; font-size: var(--font-size-lg); font-weight: 600;"
+        >
           Disable routing?
         </h2>
         <p style="margin: 0 0 20px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">

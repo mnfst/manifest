@@ -9,6 +9,7 @@ import {
 } from '../services/api.js';
 import { isLocalMode } from '../services/local-mode.js';
 import { toast } from '../services/toast-store.js';
+import type { CustomProviderPrefill } from '../services/routing-params.js';
 import CustomProviderForm from './CustomProviderForm.js';
 import CopilotDeviceLogin from './CopilotDeviceLogin.js';
 import ProviderDetailView from './ProviderDetailView.js';
@@ -19,6 +20,7 @@ export interface ProviderSelectContentProps {
   agentName: string;
   providers: RoutingProvider[];
   customProviders?: CustomProviderData[];
+  customProviderPrefill?: CustomProviderPrefill | null;
   onUpdate: () => void | Promise<void>;
   onClose?: () => void;
   showHeader?: boolean;
@@ -35,7 +37,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
   const [activeTab, setActiveTab] = createSignal<'subscription' | 'api_key'>('subscription');
   const [selectedProvider, setSelectedProvider] = createSignal<string | null>(null);
   const [selectedAuthType, setSelectedAuthType] = createSignal<AuthType>('api_key');
-  const [showCustomForm, setShowCustomForm] = createSignal(false);
+  const [showCustomForm, setShowCustomForm] = createSignal(!!props.customProviderPrefill);
   const [editingCustomProvider, setEditingCustomProvider] = createSignal<CustomProviderData | null>(
     null,
   );
@@ -147,6 +149,9 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
           <CustomProviderForm
             agentName={props.agentName}
             initialData={editingCustomProvider() ?? undefined}
+            prefill={
+              !editingCustomProvider() ? (props.customProviderPrefill ?? undefined) : undefined
+            }
             onCreated={() => {
               goBack();
               props.onUpdate();

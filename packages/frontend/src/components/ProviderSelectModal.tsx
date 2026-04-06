@@ -1,11 +1,13 @@
 import { type Component } from 'solid-js';
 import { type CustomProviderData, type RoutingProvider } from '../services/api.js';
+import type { CustomProviderPrefill } from '../services/routing-params.js';
 import ProviderSelectContent from './ProviderSelectContent.js';
 
 interface Props {
   agentName: string;
   providers: RoutingProvider[];
   customProviders?: CustomProviderData[];
+  customProviderPrefill?: CustomProviderPrefill | null;
   onClose: () => void;
   onUpdate: () => void | Promise<void>;
 }
@@ -23,7 +25,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
     >
       <div
         class="modal-card"
-        style="max-width: 480px; padding: 0;"
+        style="max-width: 480px; padding: 0; max-height: calc(100vh - 64px); overflow-y: auto;"
         role="dialog"
         aria-modal="true"
         aria-labelledby="provider-modal-title"
@@ -32,6 +34,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
           agentName={props.agentName}
           providers={props.providers}
           customProviders={props.customProviders}
+          customProviderPrefill={props.customProviderPrefill}
           onUpdate={props.onUpdate}
           onClose={props.onClose}
         />

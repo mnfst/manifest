@@ -2,9 +2,10 @@ import { createSignal, For, Show, type Component } from 'solid-js';
 import { PROVIDERS } from '../services/providers.js';
 import type { StageDef } from '../services/providers.js';
 import { getModelLabel } from '../services/provider-utils.js';
-import { providerIcon } from '../components/ProviderIcon.js';
+import { providerIcon, customProviderLogo } from '../components/ProviderIcon.js';
 import { authBadgeFor } from '../components/AuthBadge.js';
 import { pricePerM, resolveProviderId, inferProviderFromModel } from '../services/routing-utils.js';
+import { customProviderColor } from '../services/formatters.js';
 import FallbackList from '../components/FallbackList.js';
 import type {
   TierAssignment,
@@ -178,30 +179,10 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                     }
                   >
                     <div class="routing-card__override">
-                      {(() => {
-                        const pid = provId();
-                        if (pid?.startsWith('custom:')) {
-                          const cp = props.customProviders()?.find((c) => `custom:${c.id}` === pid);
-                          const letter = (cp?.name ?? 'C').charAt(0).toUpperCase();
-                          return (
-                            <span class="routing-card__override-icon">
-                              <span
-                                class="provider-card__logo-letter"
-                                style={{
-                                  background: 'var(--custom-provider-color)',
-                                  width: '16px',
-                                  height: '16px',
-                                  'font-size': '9px',
-                                  'border-radius': '50%',
-                                }}
-                              >
-                                {letter}
-                              </span>
-                            </span>
-                          );
-                        }
-                        return (
-                          <Show when={pid}>
+                      <Show
+                        when={provId()?.startsWith('custom:')}
+                        fallback={
+                          <Show when={provId()}>
                             {(p) => (
                               <span class="routing-card__override-icon">
                                 {providerIcon(p(), 16)}
@@ -209,8 +190,40 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                               </span>
                             )}
                           </Show>
-                        );
-                      })()}
+                        }
+                      >
+                        {(() => {
+                          const cp = () =>
+                            props.customProviders()?.find((c) => `custom:${c.id}` === provId());
+                          const logo = () => {
+                            const c = cp();
+                            return c ? customProviderLogo(c.name, 16, c.base_url) : null;
+                          };
+                          return (
+                            <span class="routing-card__override-icon">
+                              <Show
+                                when={logo()}
+                                fallback={
+                                  <span
+                                    class="provider-card__logo-letter"
+                                    style={{
+                                      background: customProviderColor(cp()?.name ?? 'C'),
+                                      width: '16px',
+                                      height: '16px',
+                                      'font-size': '9px',
+                                      'border-radius': '50%',
+                                    }}
+                                  >
+                                    {(cp()?.name ?? 'C').charAt(0).toUpperCase()}
+                                  </span>
+                                }
+                              >
+                                {logo()}
+                              </Show>
+                            </span>
+                          );
+                        })()}
+                      </Show>
                       <span class="routing-card__main">{labelFor(modelName())}</span>
                       <Show when={!isManual()}>
                         <span class="routing-card__auto-tag">auto</span>
@@ -284,8 +297,17 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
             if (e.key === 'Escape') setConfirmReset(false);
           }}
         >
-          <div class="modal-card" style="max-width: 420px;" role="dialog" aria-modal="true" aria-labelledby="reset-tier-modal-title">
-            <h2 id="reset-tier-modal-title" style="margin: 0 0 12px; font-size: var(--font-size-lg); font-weight: 600;">
+          <div
+            class="modal-card"
+            style="max-width: 420px;"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reset-tier-modal-title"
+          >
+            <h2
+              id="reset-tier-modal-title"
+              style="margin: 0 0 12px; font-size: var(--font-size-lg); font-weight: 600;"
+            >
               Reset tier?
             </h2>
             <p style="margin: 0 0 20px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">

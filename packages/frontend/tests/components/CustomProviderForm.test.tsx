@@ -57,7 +57,7 @@ describe("CustomProviderForm", () => {
     render(() => (
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
-    const createBtn = screen.getByText("Create");
+    const createBtn = screen.getByText("Connect");
     expect(createBtn.hasAttribute("disabled")).toBe(true);
   });
 
@@ -74,7 +74,7 @@ describe("CustomProviderForm", () => {
     fireEvent.input(modelInput, { target: { value: "llama-3.1-70b" } });
 
     await waitFor(() => {
-      expect(screen.getByText("Create").hasAttribute("disabled")).toBe(false);
+      expect(screen.getByText("Connect").hasAttribute("disabled")).toBe(false);
     });
   });
 
@@ -93,7 +93,7 @@ describe("CustomProviderForm", () => {
       target: { value: "llama-3.1-70b" },
     });
 
-    fireEvent.click(screen.getByText("Create"));
+    fireEvent.click(screen.getByText("Connect"));
 
     await waitFor(() => {
       expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
@@ -132,7 +132,7 @@ describe("CustomProviderForm", () => {
       target: { value: "llama-3.1-70b" },
     });
 
-    fireEvent.click(screen.getByText("Create"));
+    fireEvent.click(screen.getByText("Connect"));
 
     await waitFor(() => {
       expect(screen.getByText("Name already exists")).toBeDefined();
@@ -157,7 +157,7 @@ describe("CustomProviderForm", () => {
       target: { value: "llama-3.1-70b" },
     });
 
-    fireEvent.click(screen.getByText("Create"));
+    fireEvent.click(screen.getByText("Connect"));
 
     await waitFor(() => {
       expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
@@ -190,7 +190,7 @@ describe("CustomProviderForm", () => {
       target: { value: "0.79" },
     });
 
-    fireEvent.click(screen.getByText("Create"));
+    fireEvent.click(screen.getByText("Connect"));
 
     await waitFor(() => {
       expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
@@ -229,7 +229,7 @@ describe("CustomProviderForm", () => {
       target: { value: "0,79" },
     });
 
-    fireEvent.click(screen.getByText("Create"));
+    fireEvent.click(screen.getByText("Connect"));
 
     await waitFor(() => {
       expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
@@ -264,7 +264,7 @@ describe("CustomProviderForm", () => {
       target: { value: "model" },
     });
 
-    fireEvent.click(screen.getByText("Create"));
+    fireEvent.click(screen.getByText("Connect"));
 
     await waitFor(() => {
       expect(screen.getByText("Failed to create provider")).toBeDefined();
@@ -288,7 +288,7 @@ describe("CustomProviderForm", () => {
       target: { value: "model" },
     });
 
-    fireEvent.click(screen.getByText("Create"));
+    fireEvent.click(screen.getByText("Connect"));
     await waitFor(() => {
       expect(screen.getByText("Some error")).toBeDefined();
     });
@@ -318,7 +318,7 @@ describe("CustomProviderForm", () => {
       target: { value: "model" },
     });
 
-    fireEvent.click(screen.getByText("Create"));
+    fireEvent.click(screen.getByText("Connect"));
     await waitFor(() => {
       expect(screen.getByText("URL error")).toBeDefined();
     });
@@ -372,7 +372,7 @@ describe("CustomProviderForm", () => {
       target: { value: "model" },
     });
 
-    fireEvent.click(screen.getByText("Create"));
+    fireEvent.click(screen.getByText("Connect"));
 
     await waitFor(() => {
       const btn = document.querySelector("button.btn--primary") as HTMLButtonElement;
@@ -408,7 +408,7 @@ describe("CustomProviderForm", () => {
       target: { value: "https://api.example.com/v1" },
     });
 
-    fireEvent.click(screen.getByText("Create"));
+    fireEvent.click(screen.getByText("Connect"));
 
     await waitFor(() => {
       expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
@@ -443,6 +443,100 @@ describe("CustomProviderForm", () => {
 
     await waitFor(() => {
       expect(screen.getAllByPlaceholderText("Model name")).toHaveLength(1);
+    });
+  });
+});
+
+describe("CustomProviderForm — prefill from URL params", () => {
+  const onCreated = vi.fn();
+  const onBack = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockCreateCustomProvider.mockResolvedValue({
+      id: "cp-1",
+      name: "Groq",
+      base_url: "https://api.groq.com/v1",
+      has_api_key: true,
+      models: [{ model_name: "llama-3.1-70b" }],
+      created_at: "2026-03-04T00:00:00Z",
+    });
+  });
+
+  it("pre-fills fields from prefill prop", () => {
+    render(() => (
+      <CustomProviderForm
+        agentName="test-agent"
+        onCreated={onCreated}
+        onBack={onBack}
+        prefill={{
+          name: "Groq",
+          baseUrl: "https://api.groq.com/v1",
+          apiKey: "gsk-test",
+          models: [
+            { model_name: "llama-3.1-70b", input_price: "0.59", output_price: "0.79" },
+          ],
+        }}
+      />
+    ));
+
+    expect(
+      (screen.getByPlaceholderText("e.g. Groq, vLLM, Azure") as HTMLInputElement).value,
+    ).toBe("Groq");
+    expect(
+      (screen.getByPlaceholderText("https://api.example.com/v1") as HTMLInputElement).value,
+    ).toBe("https://api.groq.com/v1");
+    expect((screen.getByPlaceholderText("sk-...") as HTMLInputElement).value).toBe("gsk-test");
+    expect((screen.getByLabelText("Model 1 name") as HTMLInputElement).value).toBe(
+      "llama-3.1-70b",
+    );
+    expect(
+      (screen.getByLabelText("Model 1 input price per million tokens") as HTMLInputElement).value,
+    ).toBe("0.59");
+    expect(
+      (screen.getByLabelText("Model 1 output price per million tokens") as HTMLInputElement).value,
+    ).toBe("0.79");
+  });
+
+  it("shows empty row when prefill has no models", () => {
+    render(() => (
+      <CustomProviderForm
+        agentName="test-agent"
+        onCreated={onCreated}
+        onBack={onBack}
+        prefill={{ name: "Test" }}
+      />
+    ));
+
+    expect(
+      (screen.getByPlaceholderText("e.g. Groq, vLLM, Azure") as HTMLInputElement).value,
+    ).toBe("Test");
+    expect((screen.getByPlaceholderText("Model name") as HTMLInputElement).value).toBe("");
+  });
+
+  it("submits prefilled data correctly", async () => {
+    render(() => (
+      <CustomProviderForm
+        agentName="test-agent"
+        onCreated={onCreated}
+        onBack={onBack}
+        prefill={{
+          name: "Groq",
+          baseUrl: "https://api.groq.com/v1",
+          models: [{ model_name: "llama-3.1-70b" }],
+        }}
+      />
+    ));
+
+    fireEvent.click(screen.getByText("Connect"));
+
+    await waitFor(() => {
+      expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
+        name: "Groq",
+        base_url: "https://api.groq.com/v1",
+        apiKey: undefined,
+        models: [{ model_name: "llama-3.1-70b" }],
+      });
     });
   });
 });
