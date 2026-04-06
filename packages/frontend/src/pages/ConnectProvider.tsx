@@ -17,13 +17,20 @@ const ConnectProvider: Component = () => {
   const [searchParams] = useSearchParams();
   const [creating, setCreating] = createSignal(false);
 
+  const str = (v: string | string[] | undefined): string | undefined =>
+    Array.isArray(v) ? v[0] : v;
+
   const buildTarget = (agentName: string) => {
     const qp = new URLSearchParams();
     qp.set('provider', 'custom');
-    if (searchParams.name) qp.set('name', searchParams.name);
-    if (searchParams.baseUrl) qp.set('baseUrl', searchParams.baseUrl);
-    if (searchParams.apiKey) qp.set('apiKey', searchParams.apiKey);
-    if (searchParams.models) qp.set('models', searchParams.models);
+    const name = str(searchParams.name);
+    const baseUrl = str(searchParams.baseUrl);
+    const apiKey = str(searchParams.apiKey);
+    const models = str(searchParams.models);
+    if (name) qp.set('name', name);
+    if (baseUrl) qp.set('baseUrl', baseUrl);
+    if (apiKey) qp.set('apiKey', apiKey);
+    if (models) qp.set('models', models);
     return `/agents/${encodeURIComponent(agentName)}/routing?${qp.toString()}`;
   };
 
@@ -43,7 +50,7 @@ const ConnectProvider: Component = () => {
     const result = (await getAgents()) as AgentsData;
     const agents = result?.agents ?? [];
 
-    if (agents.length === 1) {
+    if (agents.length === 1 && agents[0]) {
       navigate(buildTarget(agents[0].agent_name), { replace: true });
     } else if (agents.length === 0) {
       await autoCreate();
