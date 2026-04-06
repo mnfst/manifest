@@ -1,5 +1,11 @@
 # manifest
 
+## 5.41.0
+
+### Minor Changes
+
+- 86f4662: Add Gemini as a free provider with stable and preview models, improve custom provider logo resolution by name/URL/model, and show friendly display names for custom providers in messages and cost tables
+
 ## 5.40.0
 
 ### Minor Changes
