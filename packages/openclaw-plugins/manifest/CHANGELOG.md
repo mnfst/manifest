@@ -1,5 +1,11 @@
 # manifest
 
+## 5.42.0
+
+### Minor Changes
+
+- 8fb3ab1: Add Kilo Code as a free provider with 4 models, smart icon resolution by model name prefix, and fix colon handling in model deep-links
+
 ## 5.41.0
 
 ### Minor Changes
