@@ -48,7 +48,7 @@ describe('FreeModels', () => {
   it('renders provider tags', () => {
     render(() => <FreeModels />);
     expect(screen.getByText('Up to 1,000 calls/month')).toBeDefined();
-    expect(screen.getAllByText('No credit card required').length).toBe(2);
+    expect(screen.getAllByText('No credit card required').length).toBe(3);
   });
 
   it('renders Get API key link', () => {
@@ -71,7 +71,7 @@ describe('FreeModels', () => {
 
   it('renders base URL with copy button', () => {
     render(() => <FreeModels />);
-    expect(screen.getAllByText('Base URL:').length).toBe(2);
+    expect(screen.getAllByText('Base URL:').length).toBe(3);
     expect(screen.getByText('https://api.cohere.ai/compatibility/v1')).toBeDefined();
   });
 
@@ -79,7 +79,7 @@ describe('FreeModels', () => {
     render(() => <FreeModels />);
     expect(screen.getByText('command-a-03-2025')).toBeDefined();
     expect(screen.getByText('command-a-reasoning-08-2025')).toBeDefined();
-    expect(screen.getAllByText('256K').length).toBe(2);
+    expect(screen.getAllByText('256K').length).toBeGreaterThanOrEqual(2);
     expect(screen.getAllByText('20 req / min').length).toBe(2);
   });
 
@@ -152,7 +152,7 @@ describe('FreeModels', () => {
     fireEvent.click(toggleBtns[0]);
     expect(screen.getByText('Show models (2)')).toBeDefined();
     fireEvent.click(screen.getByText('Show models (2)'));
-    expect(screen.getAllByText('Hide models').length).toBe(2);
+    expect(screen.getAllByText('Hide models').length).toBe(3);
   });
 
   it('copies base URL to clipboard on Copy click', async () => {

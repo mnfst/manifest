@@ -136,4 +136,57 @@ describe("customProviderLogo", () => {
     const img = container.querySelector("img");
     expect(img).toBeNull();
   });
+
+  it("resolves qwen logo by model name prefix", () => {
+    const { container } = render(() => (
+      <div>{customProviderLogo("custom", 16, undefined, "qwen/qwen3.6-plus:free")}</div>
+    ));
+    const img = container.querySelector("img");
+    expect(img).not.toBeNull();
+    expect(img!.getAttribute("src")).toBe("/icons/qwen.svg");
+  });
+
+  it("resolves nvidia logo by model name prefix", () => {
+    const { container } = render(() => (
+      <div>{customProviderLogo("custom", 16, undefined, "nvidia/nemotron-3-super-120b-a12b:free")}</div>
+    ));
+    const img = container.querySelector("img");
+    expect(img).not.toBeNull();
+    expect(img!.getAttribute("src")).toBe("/icons/nvidia.svg");
+  });
+
+  it("falls back to provider name when model prefix has no logo", () => {
+    const { container } = render(() => (
+      <div>{customProviderLogo("Kilo Code", 16, undefined, "stepfun/step-3.5-flash:free")}</div>
+    ));
+    const img = container.querySelector("img");
+    expect(img).not.toBeNull();
+    expect(img!.getAttribute("src")).toBe("/icons/kilocode.jpg");
+  });
+
+  it("resolves kilo code logo by provider name", () => {
+    const { container } = render(() => (
+      <div>{customProviderLogo("Kilo Code")}</div>
+    ));
+    const img = container.querySelector("img");
+    expect(img).not.toBeNull();
+    expect(img!.getAttribute("src")).toBe("/icons/kilocode.jpg");
+  });
+
+  it("resolves kilo code logo by base URL", () => {
+    const { container } = render(() => (
+      <div>{customProviderLogo("custom", 16, "https://api.kilo.ai/api/gateway")}</div>
+    ));
+    const img = container.querySelector("img");
+    expect(img).not.toBeNull();
+    expect(img!.getAttribute("src")).toBe("/icons/kilocode.jpg");
+  });
+
+  it("returns null when model prefix matches but no logo and name unknown", () => {
+    const { container } = render(() => (
+      <div>{customProviderLogo("unknown", 16, undefined, "corethink:free")}</div>
+    ));
+    const img = container.querySelector("img");
+    expect(img).toBeNull();
+  });
 });

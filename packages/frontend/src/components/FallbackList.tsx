@@ -12,7 +12,7 @@ import { PROVIDERS } from '../services/providers.js';
 import { resolveProviderId, stripCustomPrefix } from '../services/routing-utils.js';
 import { toast } from '../services/toast-store.js';
 import { authBadgeFor } from './AuthBadge.js';
-import { providerIcon } from './ProviderIcon.js';
+import { providerIcon, customProviderLogo } from './ProviderIcon.js';
 
 interface FallbackListProps {
   agentName: string;
@@ -220,6 +220,14 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                     <Show when={isCustom()}>
                       {(() => {
                         const cp = props.customProviders.find((c) => `custom:${c.id}` === provId());
+                        const logo = customProviderLogo(cp?.name ?? '', 14, cp?.base_url, model);
+                        if (logo) {
+                          return (
+                            <span class="fallback-list__icon" title={cp?.name ?? 'Custom'}>
+                              {logo}
+                            </span>
+                          );
+                        }
                         const letter = (cp?.name ?? 'C').charAt(0).toUpperCase();
                         return (
                           <span

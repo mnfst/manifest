@@ -214,26 +214,48 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
 const CUSTOM_PROVIDER_LOGOS: Record<string, string> = {
   cohere: '/icons/cohere.svg',
   gemini: '/icons/gemini.svg',
+  nvidia: '/icons/nvidia.svg',
+  qwen: '/icons/qwen.svg',
+  'kilo code': '/icons/kilocode.jpg',
+  kilocode: '/icons/kilocode.jpg',
 };
 
 const BASE_URL_TO_PROVIDER: [RegExp, string][] = [
   [/cohere\.ai/i, 'cohere'],
   [/generativelanguage\.googleapis\.com/i, 'gemini'],
+  [/kilo\.ai/i, 'kilo code'],
 ];
 
-const MODEL_NAME_TO_PROVIDER: [RegExp, string][] = [[/gemini/i, 'gemini']];
+const MODEL_NAME_TO_PROVIDER: [RegExp, string][] = [
+  [/gemini/i, 'gemini'],
+  [/^qwen\//i, 'qwen'],
+  [/^nvidia\//i, 'nvidia'],
+  [/^stepfun\//i, 'stepfun'],
+  [/^corethink/i, 'corethink'],
+];
 
+/**
+ * Resolve a logo for a custom provider.
+ * Priority: model name (provider prefix) → provider name → base URL → null.
+ */
 function resolveCustomLogo(name: string, baseUrl?: string, modelName?: string): string | null {
+  // Priority 1: infer provider from model name prefix
+  if (modelName) {
+    for (const [pattern, key] of MODEL_NAME_TO_PROVIDER) {
+      if (pattern.test(modelName)) {
+        const logo = CUSTOM_PROVIDER_LOGOS[key];
+        if (logo) return logo;
+        break; // matched but no logo for this provider, fall through
+      }
+    }
+  }
+  // Priority 2: provider name
   const byName = CUSTOM_PROVIDER_LOGOS[name.toLowerCase()];
   if (byName) return byName;
+  // Priority 3: base URL
   if (baseUrl) {
     for (const [pattern, key] of BASE_URL_TO_PROVIDER) {
       if (pattern.test(baseUrl)) return CUSTOM_PROVIDER_LOGOS[key] ?? null;
-    }
-  }
-  if (modelName) {
-    for (const [pattern, key] of MODEL_NAME_TO_PROVIDER) {
-      if (pattern.test(modelName)) return CUSTOM_PROVIDER_LOGOS[key] ?? null;
     }
   }
   return null;

@@ -12,8 +12,9 @@ vi.mock("../../src/services/toast-store.js", () => ({
   toast: { error: vi.fn(), success: vi.fn(), warning: vi.fn() },
 }));
 
+const mockCustomProviderLogo = vi.fn(() => null);
 vi.mock("../../src/components/ProviderIcon.js", () => ({
-  providerIcon: () => null, customProviderLogo: () => null,
+  providerIcon: () => null, customProviderLogo: (...args: unknown[]) => mockCustomProviderLogo(...args),
 }));
 
 vi.mock("../../src/components/AuthBadge.js", () => ({
@@ -261,6 +262,29 @@ describe("FallbackList", () => {
     const letterIcon = container.querySelector(".provider-card__logo-letter");
     expect(letterIcon).not.toBeNull();
     expect(letterIcon?.textContent).toBe("G");
+  });
+
+  it("shows custom provider logo when customProviderLogo returns an element", () => {
+    const fakeImg = document.createElement("img");
+    fakeImg.src = "/icons/kilocode.jpg";
+    fakeImg.alt = "Kilo Code";
+    mockCustomProviderLogo.mockReturnValueOnce(fakeImg as any);
+    const customProviders = [{ id: "cp-1", name: "Kilo Code", base_url: "https://api.kilo.ai" }] as any[];
+    const modelsWithCustom = [
+      { model_name: "qwen/qwen3.6-plus:free", provider: "custom:cp-1" },
+    ] as any[];
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={["qwen/qwen3.6-plus:free"]}
+        models={modelsWithCustom}
+        customProviders={customProviders}
+      />
+    ));
+
+    const iconSpan = container.querySelector(".fallback-list__icon");
+    expect(iconSpan).not.toBeNull();
+    expect(iconSpan!.querySelector('img[src="/icons/kilocode.jpg"]')).not.toBeNull();
   });
 
   it("uses 'C' as default letter when custom provider not found", () => {

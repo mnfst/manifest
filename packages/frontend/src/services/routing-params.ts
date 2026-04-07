@@ -38,12 +38,29 @@ export function parseCustomProviderParams(
 
   if (models) {
     prefill.models = models.split(',').map((entry) => {
+      // Split from the right: the last two colon-segments are prices only if
+      // they look numeric (or empty). This preserves colons in model names
+      // like "corethink:free".
       const parts = entry.split(':');
-      return {
-        model_name: parts[0] ?? '',
-        ...(parts[1] !== undefined ? { input_price: parts[1] } : {}),
-        ...(parts[2] !== undefined ? { output_price: parts[2] } : {}),
-      };
+      // 3+ parts: last two are prices if both look numeric
+      if (
+        parts.length >= 3 &&
+        /^[\d.]*$/.test(parts[parts.length - 1]!) &&
+        /^[\d.]*$/.test(parts[parts.length - 2]!)
+      ) {
+        const outputPrice = parts.pop()!;
+        const inputPrice = parts.pop()!;
+        return {
+          model_name: parts.join(':'),
+          ...(inputPrice !== '' ? { input_price: inputPrice } : {}),
+          ...(outputPrice !== '' ? { output_price: outputPrice } : {}),
+        };
+      }
+      // 2 parts: last is input price if numeric
+      if (parts.length === 2 && /^[\d.]+$/.test(parts[1]!)) {
+        return { model_name: parts[0]!, input_price: parts[1]! };
+      }
+      return { model_name: entry };
     });
   }
 

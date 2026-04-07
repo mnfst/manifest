@@ -802,7 +802,7 @@ h6 {
 .sidebar__link {
   display: flex;
   align-items: center;
-  gap: var(--gap-sm);
+  gap: var(--gap-xs);
   padding: 6px var(--gap-lg);
   margin: 1px 0.5rem;
   font-size: var(--font-size-sm);

@@ -97,6 +97,45 @@ const PROVIDERS: FreeProvider[] = [
       },
     ],
   },
+  {
+    name: 'Kilo Code',
+    logo: '/icons/kilocode.jpg',
+    description: '',
+    tags: ['No credit card required'],
+    apiKeyUrl: 'https://app.kilo.ai/profile',
+    baseUrl: 'https://api.kilo.ai/api/gateway',
+    warning: 'Prompts and outputs are logged on free models to improve provider products.',
+    models: [
+      {
+        model_id: 'qwen/qwen3.6-plus:free',
+        context: '1M',
+        max_output: '65K',
+        modality: 'Text + Image + Video',
+        trial_rate_limit: '~200 req / hr',
+      },
+      {
+        model_id: 'nvidia/nemotron-3-super-120b-a12b:free',
+        context: '262K',
+        max_output: '262K',
+        modality: 'Text',
+        trial_rate_limit: '~200 req / hr',
+      },
+      {
+        model_id: 'stepfun/step-3.5-flash:free',
+        context: '256K',
+        max_output: '256K',
+        modality: 'Text',
+        trial_rate_limit: '~200 req / hr',
+      },
+      {
+        model_id: 'corethink:free',
+        context: '78K',
+        max_output: '8K',
+        modality: 'Text',
+        trial_rate_limit: '~200 req / hr',
+      },
+    ],
+  },
 ];
 
 const ExternalLinkIcon = () => (
@@ -272,7 +311,7 @@ const FreeModels: Component = () => {
                   >
                     <div>
                       <Show when={provider.warning}>
-                        <div style="display: flex; align-items: flex-start; gap: 8px; padding: 10px 14px; border-radius: var(--radius); background: hsl(var(--primary) / 0.08); margin-top: 16px; margin-bottom: 16px; font-size: var(--font-size-sm);">
+                        <div style="display: flex; align-items: flex-start; gap: 8px; padding: 10px 14px; border-radius: var(--radius); background: #f7f5ed; margin-top: 16px; margin-bottom: 16px; font-size: var(--font-size-sm);">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="16"
@@ -307,7 +346,7 @@ const FreeModels: Component = () => {
                             <th>Context</th>
                             <th>Max Output</th>
                             <th>Modality</th>
-                            <th>Trial Rate Limit</th>
+                            <th>Rate Limit</th>
                           </tr>
                         </thead>
                         <tbody>
