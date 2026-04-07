@@ -1,7 +1,12 @@
 import { Controller, Get, Logger } from '@nestjs/common';
 import { Public } from '../common/decorators/public.decorator';
 import { PUBLIC_STATS_CACHE_TTL_MS } from '../common/constants/cache.constants';
-import { PublicStatsService, TopModel, FreeModel } from './public-stats.service';
+import {
+  PublicStatsService,
+  TopModel,
+  FreeModel,
+  ProviderDailyTokens,
+} from './public-stats.service';
 
 interface UsageResponse {
   total_messages: number;
@@ -15,6 +20,11 @@ interface FreeModelsResponse {
   cached_at: string;
 }
 
+interface ProviderTokensResponse {
+  providers: ProviderDailyTokens[];
+  cached_at: string;
+}
+
 let cachedUsage: UsageResponse | null = null;
 let usageTimestamp = 0;
 let usageInflight: Promise<UsageResponse> | null = null;
@@ -22,6 +32,10 @@ let usageInflight: Promise<UsageResponse> | null = null;
 let cachedFree: FreeModelsResponse | null = null;
 let freeTimestamp = 0;
 let freeInflight: Promise<FreeModelsResponse> | null = null;
+
+let cachedProviderTokens: ProviderTokensResponse | null = null;
+let providerTokensTimestamp = 0;
+let providerTokensInflight: Promise<ProviderTokensResponse> | null = null;
 
 @Controller('api/v1/public')
 export class PublicStatsController {
@@ -61,6 +75,22 @@ export class PublicStatsController {
     return freeInflight;
   }
 
+  @Public()
+  @Get('provider-tokens')
+  async getProviderTokens(): Promise<ProviderTokensResponse> {
+    if (cachedProviderTokens && Date.now() - providerTokensTimestamp < PUBLIC_STATS_CACHE_TTL_MS) {
+      return cachedProviderTokens;
+    }
+
+    if (!providerTokensInflight) {
+      providerTokensInflight = this.refreshProviderTokens().finally(() => {
+        providerTokensInflight = null;
+      });
+    }
+
+    return providerTokensInflight;
+  }
+
   private async refreshUsage(): Promise<UsageResponse> {
     try {
       const stats = await this.service.getUsageStats();
@@ -96,5 +126,21 @@ export class PublicStatsController {
     }
 
     return cachedFree ?? { models: [], total_models: 0, cached_at: new Date().toISOString() };
+  }
+
+  private async refreshProviderTokens(): Promise<ProviderTokensResponse> {
+    try {
+      const providers = await this.service.getProviderDailyTokens();
+      cachedProviderTokens = {
+        providers,
+        cached_at: new Date().toISOString(),
+      };
+      providerTokensTimestamp = Date.now();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      this.logger.error(`Failed to fetch provider tokens: ${msg}`);
+    }
+
+    return cachedProviderTokens ?? { providers: [], cached_at: new Date().toISOString() };
   }
 }
