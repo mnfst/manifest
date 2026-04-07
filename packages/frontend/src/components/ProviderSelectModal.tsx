@@ -1,6 +1,6 @@
 import { type Component } from 'solid-js';
 import { type CustomProviderData, type RoutingProvider } from '../services/api.js';
-import type { CustomProviderPrefill } from '../services/routing-params.js';
+import type { CustomProviderPrefill, ProviderDeepLink } from '../services/routing-params.js';
 import ProviderSelectContent from './ProviderSelectContent.js';
 
 interface Props {
@@ -8,6 +8,7 @@ interface Props {
   providers: RoutingProvider[];
   customProviders?: CustomProviderData[];
   customProviderPrefill?: CustomProviderPrefill | null;
+  providerDeepLink?: ProviderDeepLink | null;
   onClose: () => void;
   onUpdate: () => void | Promise<void>;
 }
@@ -35,6 +36,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
           providers={props.providers}
           customProviders={props.customProviders}
           customProviderPrefill={props.customProviderPrefill}
+          providerDeepLink={props.providerDeepLink}
           onUpdate={props.onUpdate}
           onClose={props.onClose}
         />

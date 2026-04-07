@@ -9,7 +9,7 @@ import {
 } from '../services/api.js';
 import { isLocalMode } from '../services/local-mode.js';
 import { toast } from '../services/toast-store.js';
-import type { CustomProviderPrefill } from '../services/routing-params.js';
+import type { CustomProviderPrefill, ProviderDeepLink } from '../services/routing-params.js';
 import CustomProviderForm from './CustomProviderForm.js';
 import CopilotDeviceLogin from './CopilotDeviceLogin.js';
 import ProviderDetailView from './ProviderDetailView.js';
@@ -21,6 +21,7 @@ export interface ProviderSelectContentProps {
   providers: RoutingProvider[];
   customProviders?: CustomProviderData[];
   customProviderPrefill?: CustomProviderPrefill | null;
+  providerDeepLink?: ProviderDeepLink | null;
   onUpdate: () => void | Promise<void>;
   onClose?: () => void;
   showHeader?: boolean;
@@ -34,9 +35,16 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
   const showFooter = () => props.showFooter !== false;
   const closeHandler = () => props.onClose ?? noop;
 
+  const deepLink = props.providerDeepLink;
+  const deepLinkProv = deepLink ? PROVIDERS.find((p) => p.id === deepLink.providerId) : null;
+
   const [activeTab, setActiveTab] = createSignal<'subscription' | 'api_key'>('subscription');
-  const [selectedProvider, setSelectedProvider] = createSignal<string | null>(null);
-  const [selectedAuthType, setSelectedAuthType] = createSignal<AuthType>('api_key');
+  const [selectedProvider, setSelectedProvider] = createSignal<string | null>(
+    deepLinkProv ? deepLinkProv.id : null,
+  );
+  const [selectedAuthType, setSelectedAuthType] = createSignal<AuthType>(
+    deepLinkProv?.subscriptionOnly ? 'subscription' : 'api_key',
+  );
   const [showCustomForm, setShowCustomForm] = createSignal(!!props.customProviderPrefill);
   const [editingCustomProvider, setEditingCustomProvider] = createSignal<CustomProviderData | null>(
     null,

@@ -1,14 +1,24 @@
 /**
- * Parse URL search params for deep-linking into the custom provider form.
+ * Parse URL search params for deep-linking into provider forms.
  *
  * Supported params:
- *   provider=custom  (required — triggers the custom form)
+ *   provider=custom  — triggers the custom provider form
+ *   provider=<id>    — opens the detail view for a standard provider (e.g. anthropic, gemini)
  *   name=ProviderName
  *   baseUrl=https://api.example.com/v1
  *   apiKey=sk-...
  *   models=modelA,modelB:1.5:2,modelC:0:0
  *         (format: name[:inputPrice[:outputPrice]], comma-separated)
  */
+
+/**
+ * When `provider=<id>` is a known standard provider, this prefill tells the
+ * modal to jump straight to that provider's detail view.
+ */
+export interface ProviderDeepLink {
+  providerId: string;
+}
+
 export interface CustomProviderPrefill {
   name?: string;
   baseUrl?: string;
@@ -65,4 +75,16 @@ export function parseCustomProviderParams(
   }
 
   return prefill;
+}
+
+/**
+ * Parse a `provider=<id>` param that refers to a standard (non-custom) provider.
+ * Returns null when the param is missing, empty, or `"custom"` (handled separately).
+ */
+export function parseProviderDeepLink(
+  params: Record<string, string | string[] | undefined>,
+): ProviderDeepLink | null {
+  const provider = str(params.provider);
+  if (!provider || provider === 'custom') return null;
+  return { providerId: provider };
 }

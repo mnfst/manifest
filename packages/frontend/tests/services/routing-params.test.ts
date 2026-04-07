@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseCustomProviderParams } from '../../src/services/routing-params';
+import { parseCustomProviderParams, parseProviderDeepLink } from '../../src/services/routing-params';
 
 describe('parseCustomProviderParams', () => {
   it('returns null when provider param is missing', () => {
@@ -91,5 +91,33 @@ describe('parseCustomProviderParams', () => {
       baseUrl: undefined,
     });
     expect(result).toEqual({});
+  });
+});
+
+describe('parseProviderDeepLink', () => {
+  it('returns null when provider param is missing', () => {
+    expect(parseProviderDeepLink({})).toBeNull();
+  });
+
+  it('returns null when provider is "custom"', () => {
+    expect(parseProviderDeepLink({ provider: 'custom' })).toBeNull();
+  });
+
+  it('returns null when provider is empty string', () => {
+    expect(parseProviderDeepLink({ provider: '' })).toBeNull();
+  });
+
+  it('returns deep link for a standard provider', () => {
+    expect(parseProviderDeepLink({ provider: 'anthropic' })).toEqual({ providerId: 'anthropic' });
+  });
+
+  it('returns deep link for gemini', () => {
+    expect(parseProviderDeepLink({ provider: 'gemini' })).toEqual({ providerId: 'gemini' });
+  });
+
+  it('handles array param by taking first value', () => {
+    expect(parseProviderDeepLink({ provider: ['openai', 'anthropic'] })).toEqual({
+      providerId: 'openai',
+    });
   });
 });

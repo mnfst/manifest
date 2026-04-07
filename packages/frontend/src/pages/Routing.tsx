@@ -22,7 +22,9 @@ import {
 } from '../services/api.js';
 import {
   parseCustomProviderParams,
+  parseProviderDeepLink,
   type CustomProviderPrefill,
+  type ProviderDeepLink,
 } from '../services/routing-params.js';
 
 const Routing: Component = () => {
@@ -32,6 +34,7 @@ const Routing: Component = () => {
   const agentName = () => decodeURIComponent(params.agentName);
 
   const customProviderPrefill = createMemo(() => parseCustomProviderParams(searchParams));
+  const providerDeepLink = createMemo(() => parseProviderDeepLink(searchParams));
 
   const [tiers, { refetch: refetchTiers, mutate: mutateTiers }] = createResource(
     () => agentName(),
@@ -50,7 +53,8 @@ const Routing: Component = () => {
   const [dropdownTier, setDropdownTier] = createSignal<string | null>(null);
   const [showProviderModal, setShowProviderModal] = createSignal(
     !!(location.state as { openProviders?: boolean } | undefined)?.openProviders ||
-      !!customProviderPrefill(),
+      !!customProviderPrefill() ||
+      !!providerDeepLink(),
   );
   const [confirmDisable, setConfirmDisable] = createSignal(false);
   const [instructionModal, setInstructionModal] = createSignal<'enable' | 'disable' | null>(null);
@@ -102,7 +106,7 @@ const Routing: Component = () => {
 
   const closeProviderModal = () => {
     setShowProviderModal(false);
-    if (customProviderPrefill()) {
+    if (customProviderPrefill() || providerDeepLink()) {
       setSearchParams({
         provider: undefined,
         name: undefined,
@@ -255,6 +259,7 @@ const Routing: Component = () => {
         showProviderModal={showProviderModal}
         onProviderModalClose={closeProviderModal}
         customProviderPrefill={customProviderPrefill()}
+        providerDeepLink={providerDeepLink()}
         instructionModal={instructionModal}
         instructionProvider={instructionProvider}
         onInstructionClose={() => {
