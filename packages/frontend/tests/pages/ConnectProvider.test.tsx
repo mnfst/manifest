@@ -174,3 +174,30 @@ describe('ConnectProvider', () => {
     });
   });
 });
+
+describe('ConnectProvider with provider deep-link', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('preserves provider param in redirect URL', async () => {
+    // Re-mock useSearchParams with a provider param
+    const routerMock = await import('@solidjs/router');
+    (routerMock as Record<string, unknown>).useSearchParams = () => [{ provider: 'anthropic' }];
+
+    mockGetAgents.mockResolvedValue({ agents: [{ agent_name: 'my-agent' }] });
+
+    render(() => <ConnectProvider />);
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.stringContaining('/agents/my-agent/routing?'),
+        { replace: true },
+      );
+    });
+
+    const url = mockNavigate.mock.calls[0][0] as string;
+    expect(url).toContain('provider=anthropic');
+    expect(url).not.toContain('provider=custom');
+  });
+});

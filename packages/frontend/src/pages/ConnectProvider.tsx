@@ -22,7 +22,8 @@ const ConnectProvider: Component = () => {
 
   const buildTarget = (agentName: string) => {
     const qp = new URLSearchParams();
-    qp.set('provider', 'custom');
+    const provider = str(searchParams.provider) || 'custom';
+    qp.set('provider', provider);
     const name = str(searchParams.name);
     const baseUrl = str(searchParams.baseUrl);
     const apiKey = str(searchParams.apiKey);
