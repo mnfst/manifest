@@ -1,5 +1,17 @@
 # manifest
 
+## 5.43.0
+
+### Minor Changes
+
+- bbf8cdd: Add deep-link URL support for provider modals on the routing page. Navigate directly to a specific provider's connect form via `?provider=<id>` (e.g. `?provider=gemini`, `?provider=anthropic`).
+
+### Patch Changes
+
+- a4f1cb5: Relax MiniMax API key validation to use the generic provider prefix check (`sk-`) and remove the provider-specific validation branch.
+
+  Also update the MiniMax key placeholder to `sk-...` so UI guidance matches accepted key formats.
+
 ## 5.42.0
 
 ### Minor Changes
