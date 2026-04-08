@@ -1,5 +1,15 @@
 # manifest
 
+## 5.44.0
+
+### Minor Changes
+
+- bafeb35: Add 30-day and previous-7-day token data to public usage endpoint, and new provider-tokens endpoint with daily breakdown per provider and model
+
+### Patch Changes
+
+- 19cbf73: fix: preserve provider query param in /connect-provider redirect
+
 ## 5.43.0
 
 ### Minor Changes
