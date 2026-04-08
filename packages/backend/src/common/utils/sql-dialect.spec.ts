@@ -84,7 +84,7 @@ describe('sql-dialect', () => {
       const after = Date.now();
       // No trailing 'Z' — local time format
       expect(cutoff).not.toContain('Z');
-      expect(cutoff).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/);
+      expect(cutoff).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
       const parsed = new Date(cutoff).getTime();
       // formatLocalIso truncates milliseconds, so allow up to 1s tolerance
       expect(parsed).toBeGreaterThanOrEqual(before - 24 * 3600_000 - 1000);
@@ -135,7 +135,7 @@ describe('sql-dialect', () => {
       const result = sqlNow();
       const after = Date.now();
       expect(result).not.toContain('Z');
-      expect(result).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/);
+      expect(result).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
       const parsed = new Date(result).getTime();
       expect(parsed).toBeGreaterThanOrEqual(before - 1000);
       expect(parsed).toBeLessThanOrEqual(after + 1000);

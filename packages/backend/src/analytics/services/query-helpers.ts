@@ -6,10 +6,11 @@ export interface MetricWithTrend {
   sub_values?: Record<string, number>;
 }
 
-/** Format a Date as a timestamp string using local time (matches `timestamp without time zone` storage). */
+/** Format a Date as a timestamp string using local time (matches `timestamp without time zone` storage).
+ *  Uses space separator to match SQLite's datetime storage format. */
 export function formatTimestamp(d: Date): string {
   const p = (n: number, len = 2) => String(n).padStart(len, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}.${p(d.getMilliseconds(), 3)}`;
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}.${p(d.getMilliseconds(), 3)}`;
 }
 
 /**

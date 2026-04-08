@@ -9,6 +9,7 @@ import { initSseHeaders, pipeStream, StreamUsage } from './stream-writer';
 import { sanitizeProviderError } from './proxy-error-sanitizer';
 import type { ThoughtSignatureCache } from './thought-signature-cache';
 import type { ExtractedSignature } from './google-adapter';
+import { formatLocalIso } from '../../common/utils/sql-dialect';
 
 const logger = new Logger('ProxyResponseHandler');
 
@@ -106,7 +107,7 @@ function handleFallbackExhausted(
     })
     .catch((e) => logger.warn(`Failed to record fallback errors: ${e}`));
 
-  const primaryTs = new Date(baseTime + (failedFallbacks.length + 1) * 100).toISOString();
+  const primaryTs = formatLocalIso(new Date(baseTime + (failedFallbacks.length + 1) * 100));
   recorder
     .recordPrimaryFailure(ctx, meta.tier, meta.model, errorBody, primaryTs, meta.auth_type)
     .catch((e) => logger.warn(`Failed to record primary failure: ${e}`));
@@ -152,7 +153,7 @@ export function recordFallbackFailures(
       meta.tier,
       meta.fallbackFromModel,
       meta.primaryErrorBody ?? `Provider returned HTTP ${meta.primaryErrorStatus ?? 500}`,
-      new Date(fallbackBaseTime).toISOString(),
+      formatLocalIso(new Date(fallbackBaseTime)),
       meta.auth_type,
     )
     .catch((e) => logger.warn(`Failed to record primary failure: ${e}`));
@@ -167,7 +168,7 @@ export function recordFallbackFailures(
       .catch((e) => logger.warn(`Failed to record fallback errors: ${e}`));
   }
 
-  return new Date(fallbackBaseTime + (failures.length + 1) * 100).toISOString();
+  return formatLocalIso(new Date(fallbackBaseTime + (failures.length + 1) * 100));
 }
 
 /** Pipes a streaming response, applying adapter transforms as needed. */

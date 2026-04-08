@@ -1,6 +1,7 @@
 import { Repository } from 'typeorm';
 import { Logger } from '@nestjs/common';
 import { AgentMessage } from '../entities/agent-message.entity';
+import { formatLocalIso } from '../common/utils/sql-dialect';
 
 interface SeedContext {
   tenantId: string;
@@ -52,7 +53,7 @@ export async function seedAgentMessages(
       idx++;
       const entry = models[idx % models.length]!;
       const rawTs = hourBase + Math.floor(seededRandom(idx) * 3500000);
-      const ts = new Date(Math.min(rawTs, now)).toISOString();
+      const ts = formatLocalIso(new Date(Math.min(rawTs, now)));
 
       // Input tokens 5-25x larger than output (realistic for LLM usage)
       const inputBase = 800 + Math.floor(seededRandom(idx * 3) * 14000);

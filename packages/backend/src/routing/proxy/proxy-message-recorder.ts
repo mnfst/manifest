@@ -10,6 +10,7 @@ import { FailedFallback } from './proxy-fallback.service';
 import { StreamUsage } from './stream-writer';
 import { ProxyMessageDedup } from './proxy-message-dedup';
 import { computeTokenCost } from '../../common/utils/cost-calculator';
+import { sqlNow, formatLocalIso } from '../../common/utils/sql-dialect';
 
 export interface ProviderErrorOpts {
   model?: string;
@@ -89,7 +90,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       tenant_id: ctx.tenantId,
       agent_id: ctx.agentId,
       trace_id: traceId ?? null,
-      timestamp: new Date().toISOString(),
+      timestamp: sqlNow(),
       status: messageStatus,
       error_message: errorMessage.slice(0, 2000),
       agent_name: ctx.agentName,
@@ -124,8 +125,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     for (let i = 0; i < failures.length; i++) {
       const f = failures[i];
       const ts = baseTimeMs
-        ? new Date(baseTimeMs + (failures.length - i) * 100).toISOString()
-        : new Date().toISOString();
+        ? formatLocalIso(new Date(baseTimeMs + (failures.length - i) * 100))
+        : sqlNow();
       const isLast = i === failures.length - 1;
       const useHandledStatus = markHandled && !(lastAsError && isLast);
       const status = useHandledStatus
@@ -212,7 +213,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       tenant_id: ctx.tenantId,
       agent_id: ctx.agentId,
       trace_id: traceId ?? null,
-      timestamp: timestamp ?? new Date().toISOString(),
+      timestamp: timestamp ?? sqlNow(),
       status: 'ok',
       agent_name: ctx.agentName,
       model,
@@ -295,7 +296,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
             agent_id: ctx.agentId,
             trace_id: traceId ?? null,
             session_key: normalizedSessionKey,
-            timestamp: new Date().toISOString(),
+            timestamp: sqlNow(),
             status: 'ok',
             agent_name: ctx.agentName,
             model,

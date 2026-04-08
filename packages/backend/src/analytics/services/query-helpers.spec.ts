@@ -89,25 +89,25 @@ describe('formatTimestamp', () => {
   it('formats a Date as a PG-compatible timestamp string', () => {
     const d = new Date(2026, 1, 16, 10, 5, 3, 42);
     const result = formatTimestamp(d);
-    expect(result).toBe('2026-02-16T10:05:03.042');
+    expect(result).toBe('2026-02-16 10:05:03.042');
   });
 
   it('zero-pads single-digit months, days, hours, minutes, seconds', () => {
     const d = new Date(2026, 0, 2, 3, 4, 5, 7);
     const result = formatTimestamp(d);
-    expect(result).toBe('2026-01-02T03:04:05.007');
+    expect(result).toBe('2026-01-02 03:04:05.007');
   });
 
   it('handles midnight (all-zero time components)', () => {
     const d = new Date(2026, 5, 15, 0, 0, 0, 0);
     const result = formatTimestamp(d);
-    expect(result).toBe('2026-06-15T00:00:00.000');
+    expect(result).toBe('2026-06-15 00:00:00.000');
   });
 
   it('handles end-of-day timestamp', () => {
     const d = new Date(2026, 11, 31, 23, 59, 59, 999);
     const result = formatTimestamp(d);
-    expect(result).toBe('2026-12-31T23:59:59.999');
+    expect(result).toBe('2026-12-31 23:59:59.999');
   });
 });
 

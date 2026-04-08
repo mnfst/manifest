@@ -180,7 +180,7 @@ describe('MessagesQueryService', () => {
     });
 
     expect(result.next_cursor).not.toBeNull();
-    expect(result.next_cursor).toContain('2026-02-16T09:30:00');
+    expect(result.next_cursor).toContain('2026-02-16 09:30:00');
     expect(result.next_cursor).toContain('|msg-1');
   });
 

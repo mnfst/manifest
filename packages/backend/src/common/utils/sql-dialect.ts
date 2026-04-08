@@ -97,14 +97,16 @@ export function sqlCastInterval(paramName: string, dialect: DbDialect): string {
 }
 
 /**
- * Format a Date as a local-time ISO-8601 string without timezone suffix.
- * Matches the format PostgreSQL stores for `timestamp without time zone`
- * when the pg driver serialises JS Dates in the Node process's local TZ.
+ * Format a Date as a local-time timestamp string without timezone suffix.
+ * Uses space separator (not 'T') so the string sorts correctly in both
+ * PostgreSQL (`timestamp without time zone`) and SQLite (`datetime`)
+ * comparisons. SQLite stores timestamps with a space separator; using 'T'
+ * breaks string ordering because space (0x20) < 'T' (0x54).
  */
-function formatLocalIso(d: Date): string {
+export function formatLocalIso(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, '0');
   return (
     `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
-    `T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+    ` ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
   );
 }

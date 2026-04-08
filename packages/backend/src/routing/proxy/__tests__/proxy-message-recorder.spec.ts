@@ -3,6 +3,7 @@ import { ProxyMessageDedup } from '../proxy-message-dedup';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 import { IngestEventBusService } from '../../../common/services/ingest-event-bus.service';
 import { IngestionContext } from '../../../otlp/interfaces/ingestion-context.interface';
+import { sqlNow } from '../../../common/utils/sql-dialect';
 
 const ctx: IngestionContext = {
   tenantId: 'tenant-1',
@@ -183,11 +184,11 @@ describe('ProxyMessageRecorder', () => {
     });
 
     it('uses current timestamp when timestamp is not provided', async () => {
-      const before = new Date().toISOString();
+      const before = sqlNow();
       await recorder.recordFallbackSuccess(ctx, 'gpt-4o', 'standard', {
         usage: { prompt_tokens: 10, completion_tokens: 5 },
       });
-      const after = new Date().toISOString();
+      const after = sqlNow();
       const inserted = insertMock.mock.calls[0][0];
       expect(inserted.timestamp >= before).toBe(true);
       expect(inserted.timestamp <= after).toBe(true);
