@@ -146,6 +146,9 @@ describe("registerLocalMode", () => {
 
       expect(mockServerStart).not.toHaveBeenCalled();
       expect(logger.info).toHaveBeenCalledWith(
+        expect.stringContaining("Dashboard: http://127.0.0.1:2099"),
+      );
+      expect(logger.info).toHaveBeenCalledWith(
         expect.stringContaining("Reusing existing server"),
       );
     });
@@ -173,7 +176,31 @@ describe("registerLocalMode", () => {
         expect.objectContaining({ port: 2099, host: "127.0.0.1" }),
       );
       expect(logger.info).toHaveBeenCalledWith(
-        expect.stringContaining("Dashboard ->"),
+        expect.stringContaining("Dashboard: http://127.0.0.1:2099"),
+      );
+    });
+
+    it("includes custom host and port in dashboard banner", async () => {
+      let callCount = 0;
+      global.fetch = jest.fn().mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) return Promise.reject(new Error("ECONNREFUSED"));
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ status: "healthy" }),
+        });
+      });
+
+      const logger = makeLogger();
+      const api = { registerService: jest.fn() };
+
+      registerLocalMode(api, 3099, "0.0.0.0", logger);
+
+      const serviceCall = api.registerService.mock.calls[0][0];
+      await serviceCall.start();
+
+      expect(logger.info).toHaveBeenCalledWith(
+        expect.stringContaining("http://0.0.0.0:3099"),
       );
     });
 
@@ -235,6 +262,9 @@ describe("registerLocalMode", () => {
       const serviceCall = api.registerService.mock.calls[0][0];
       await serviceCall.start();
 
+      expect(logger.info).toHaveBeenCalledWith(
+        expect.stringContaining("Dashboard: http://127.0.0.1:2099"),
+      );
       expect(logger.info).toHaveBeenCalledWith(
         expect.stringContaining("Reusing existing server"),
       );

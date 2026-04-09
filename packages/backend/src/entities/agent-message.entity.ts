@@ -55,6 +55,9 @@ export class AgentMessage {
   @Column('varchar', { nullable: true })
   error_message!: string | null;
 
+  @Column('integer', { nullable: true })
+  error_http_status!: number | null;
+
   @Column('varchar', { nullable: true })
   description!: string | null;
 

@@ -17,6 +17,7 @@ interface StartOptions {
   port?: number;
   host?: string;
   dbPath?: string;
+  quiet?: boolean;
 }
 
 export async function start(options: StartOptions = {}): Promise<unknown> {

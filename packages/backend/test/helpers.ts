@@ -171,7 +171,6 @@ export async function createTestApp(): Promise<INestApplication> {
       new ValidationPipe({
         transform: true,
         whitelist: true,
-        forbidNonWhitelisted: true,
       }),
     );
     await app.init();

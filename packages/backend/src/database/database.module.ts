@@ -65,8 +65,9 @@ import { FixNegativeCosts1773800000000 } from './migrations/1773800000000-FixNeg
 import { AddKeyPrefixIndex1773900000000 } from './migrations/1773900000000-AddKeyPrefixIndex';
 import { WidenKeyHashColumn1774000000000 } from './migrations/1774000000000-WidenKeyHashColumn';
 import { WidenApiKeyColumn1774896789000 } from './migrations/1774896789000-WidenApiKeyColumn';
-import { AddSpecificityAssignments1775000000000 } from './migrations/1775000000000-AddSpecificityAssignments';
-import { AddSpecificityCategory1775100000000 } from './migrations/1775100000000-AddSpecificityCategory';
+import { AddErrorHttpStatus1775000000000 } from './migrations/1775000000000-AddErrorHttpStatus';
+import { AddSpecificityAssignments1775200000000 } from './migrations/1775200000000-AddSpecificityAssignments';
+import { AddSpecificityCategory1775300000000 } from './migrations/1775300000000-AddSpecificityCategory';
 
 const entities = [
   AgentMessage,
@@ -130,8 +131,9 @@ const migrations = [
   AddKeyPrefixIndex1773900000000,
   WidenKeyHashColumn1774000000000,
   WidenApiKeyColumn1774896789000,
-  AddSpecificityAssignments1775000000000,
-  AddSpecificityCategory1775100000000,
+  AddErrorHttpStatus1775000000000,
+  AddSpecificityAssignments1775200000000,
+  AddSpecificityCategory1775300000000,
 ];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';

@@ -7,6 +7,7 @@ import { AppModule } from './app.module';
 import { auth } from './auth/auth.instance';
 import { LOCAL_USER_ID, LOCAL_EMAIL } from './common/constants/local-mode.constants';
 import { SpaFallbackFilter } from './common/filters/spa-fallback.filter';
+import { httpErrorLogger } from './common/middleware/http-error-logger.middleware';
 import { isAllowedLocalIp } from './common/utils/local-ip';
 
 export async function bootstrap() {
@@ -51,11 +52,12 @@ export async function bootstrap() {
     new ValidationPipe({
       transform: true,
       whitelist: true,
-      forbidNonWhitelisted: true,
     }),
   );
 
   const expressApp = app.getHttpAdapter().getInstance();
+
+  expressApp.use(httpErrorLogger);
 
   // Trust reverse proxy (Railway, Render, etc.) so Express sees the real protocol/IP
   // Disabled in local mode — loopback-only, no reverse proxy

@@ -76,7 +76,9 @@ export async function handleProviderError(
     })
     .catch((e) => logger.warn(`Failed to record provider error: ${e}`));
 
-  logger.warn(`Upstream error ${errorStatus}: ${errorBody.slice(0, 200)}`);
+  logger.warn(
+    `Upstream error ${errorStatus}: provider=${meta.provider} model=${meta.model} tier=${meta.tier} body=${errorBody.slice(0, 500)}`,
+  );
   res.status(errorStatus);
   setHeaders(res, metaHeaders);
   res.json({

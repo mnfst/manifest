@@ -38,6 +38,7 @@ describe('MessageDetailsService', () => {
     model: 'gpt-4o',
     status: 'ok',
     error_message: null,
+    error_http_status: null,
     description: 'test desc',
     service_type: 'agent',
     input_tokens: 100,
@@ -214,6 +215,7 @@ describe('MessageDetailsService', () => {
       model: 'gpt-4o',
       status: 'ok',
       error_message: null,
+      error_http_status: null,
       description: 'test desc',
       service_type: 'agent',
       input_tokens: 100,
@@ -238,6 +240,7 @@ describe('MessageDetailsService', () => {
       ...baseMessage,
       status: 'error',
       error_message: '401 Unauthorized: invalid API key',
+      error_http_status: 401,
     };
     msgQb.getOne.mockResolvedValue(errorMsg);
 
@@ -245,5 +248,6 @@ describe('MessageDetailsService', () => {
 
     expect(result.message.status).toBe('error');
     expect(result.message.error_message).toBe('401 Unauthorized: invalid API key');
+    expect(result.message.error_http_status).toBe(401);
   });
 });

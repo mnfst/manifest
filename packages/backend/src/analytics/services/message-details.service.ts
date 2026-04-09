@@ -15,6 +15,7 @@ export interface MessageDetailResponse {
     model: string | null;
     status: string;
     error_message: string | null;
+    error_http_status: number | null;
     description: string | null;
     service_type: string | null;
     input_tokens: number;
@@ -130,6 +131,7 @@ export class MessageDetailsService {
         model: message.model,
         status: message.status,
         error_message: message.error_message,
+        error_http_status: message.error_http_status,
         description: message.description,
         service_type: message.service_type,
         input_tokens: message.input_tokens,

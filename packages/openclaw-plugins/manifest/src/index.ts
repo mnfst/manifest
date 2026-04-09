@@ -23,11 +23,7 @@ module.exports = {
     const port = typeof inner.port === 'number' && inner.port > 0 ? inner.port : 2099;
     const host = typeof inner.host === 'string' && inner.host.length > 0 ? inner.host : '127.0.0.1';
 
-    logger.info(
-      `\n[🦚 Manifest] Dashboard: http://${host}:${port}\n` +
-        '[🦚 Manifest] The plugin starts an embedded server.\n' +
-        '[🦚 Manifest] Open the dashboard to connect a provider and start routing.',
-    );
+    logger.info('[🦚 Manifest] Loading embedded server...');
 
     registerLocalMode(api, port, host, logger);
   },

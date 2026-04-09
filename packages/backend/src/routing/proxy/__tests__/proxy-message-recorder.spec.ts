@@ -238,9 +238,18 @@ describe('ProxyMessageRecorder', () => {
       expect(insertMock.mock.calls[0][0]).toMatchObject({
         status: 'error',
         error_message: 'Internal error',
+        error_http_status: 500,
         model: 'gpt-4o',
       });
       expect(emitMock).toHaveBeenCalledWith('user-1');
+    });
+
+    it('stores the HTTP status code for 400 errors', async () => {
+      await recorder.recordProviderError(ctx, 400, 'Bad request');
+      expect(insertMock.mock.calls[0][0]).toMatchObject({
+        status: 'error',
+        error_http_status: 400,
+      });
     });
 
     it('records rate_limited status for 429 and emits SSE event', async () => {
@@ -276,6 +285,28 @@ describe('ProxyMessageRecorder', () => {
       expect(insertMock).toHaveBeenCalledTimes(2);
       expect(emitMock).toHaveBeenCalledTimes(1);
       expect(emitMock).toHaveBeenCalledWith('user-1');
+    });
+
+    it('stores the HTTP status code for each fallback failure', async () => {
+      const failures = [
+        {
+          model: 'gpt-4o',
+          provider: 'openai',
+          status: 400,
+          errorBody: 'bad request',
+          fallbackIndex: 0,
+        },
+        {
+          model: 'claude-3',
+          provider: 'anthropic',
+          status: 503,
+          errorBody: 'unavailable',
+          fallbackIndex: 1,
+        },
+      ];
+      await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures);
+      expect(insertMock.mock.calls[0][0].error_http_status).toBe(400);
+      expect(insertMock.mock.calls[1][0].error_http_status).toBe(503);
     });
   });
 
