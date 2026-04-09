@@ -1,6 +1,6 @@
 import { createSignal, type Component } from 'solid-js';
 
-const CopyButton: Component<{ text: string }> = (props) => {
+const CopyButton: Component<{ text: string; disabled?: boolean }> = (props) => {
   const [copied, setCopied] = createSignal(false);
   const [failed, setFailed] = createSignal(false);
 
@@ -18,9 +18,19 @@ const CopyButton: Component<{ text: string }> = (props) => {
   return (
     <button
       class="modal-terminal__copy"
-      onClick={handleCopy}
-      title="Copy"
-      aria-label={copied() ? 'Copied' : failed() ? 'Copy failed' : 'Copy to clipboard'}
+      classList={{ 'modal-terminal__copy--disabled': !!props.disabled }}
+      onClick={props.disabled ? undefined : handleCopy}
+      disabled={props.disabled}
+      title={props.disabled ? 'Reveal key first' : 'Copy'}
+      aria-label={
+        props.disabled
+          ? 'Copy disabled'
+          : copied()
+            ? 'Copied'
+            : failed()
+              ? 'Copy failed'
+              : 'Copy to clipboard'
+      }
     >
       {copied() ? (
         <svg

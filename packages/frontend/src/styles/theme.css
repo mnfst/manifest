@@ -19,6 +19,7 @@
 @import './version-indicator.css';
 @import './skeleton.css';
 @import './provider-tokens.css';
+@import './syntax-highlight.css';
 
 /* ── shadcn/ui design tokens — Light (default) ───── */
 @layer base {

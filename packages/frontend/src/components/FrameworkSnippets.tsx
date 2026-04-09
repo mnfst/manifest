@@ -1,0 +1,173 @@
+import { createSignal, For, Show, type Component } from 'solid-js';
+import CopyButton from './CopyButton.jsx';
+import CodeBlock from './CodeBlock.jsx';
+import {
+  type ToolkitId,
+  type OpenAILangId,
+  TOOLKIT_TABS,
+  OPENAI_SDK_LANGS,
+  getStoredToolkit,
+  storeToolkit,
+  getStoredOpenAILang,
+  storeOpenAILang,
+  getSnippetForToolkit,
+  getLangForToolkit,
+} from '../services/framework-snippets.js';
+
+interface Props {
+  apiKey: string | null;
+  keyPrefix: string | null;
+  baseUrl: string;
+  hideFullKey?: boolean;
+}
+
+const EyeOpen: Component = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+const EyeClosed: Component = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" />
+    <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" />
+    <path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143" />
+    <path d="m2 2 20 20" />
+  </svg>
+);
+
+const FrameworkSnippets: Component<Props> = (props) => {
+  const [activeTab, setActiveTab] = createSignal<ToolkitId>(getStoredToolkit());
+  const [openaiLang, setOpenaiLang] = createSignal<OpenAILangId>(getStoredOpenAILang());
+  const [keyRevealed, setKeyRevealed] = createSignal(!props.hideFullKey);
+
+  const hasFullKey = () => !!props.apiKey;
+  const maskedKey = () => (props.keyPrefix ? `${props.keyPrefix}...` : 'mnfst_YOUR_KEY');
+  const copyKey = () => props.apiKey ?? maskedKey();
+  const displayKey = () => {
+    if (!hasFullKey()) return maskedKey();
+    return keyRevealed() ? props.apiKey! : maskedKey();
+  };
+
+  const handleTabChange = (id: ToolkitId) => {
+    setActiveTab(id);
+    storeToolkit(id);
+  };
+
+  const handleLangChange = (id: OpenAILangId) => {
+    setOpenaiLang(id);
+    storeOpenAILang(id);
+  };
+
+  const snippet = () =>
+    getSnippetForToolkit(activeTab(), props.baseUrl, displayKey(), openaiLang());
+  const snippetForCopy = () =>
+    getSnippetForToolkit(activeTab(), props.baseUrl, copyKey(), openaiLang());
+  const language = () => getLangForToolkit(activeTab(), openaiLang());
+
+  return (
+    <div class="framework-snippets">
+      <div class="framework-snippets__connection">
+        <div class="framework-snippets__field">
+          <span class="framework-snippets__label">Base URL</span>
+          <span class="framework-snippets__value">
+            <code>{props.baseUrl}</code>
+            <CopyButton text={props.baseUrl} />
+          </span>
+        </div>
+        <div class="framework-snippets__field">
+          <span class="framework-snippets__label">API Key</span>
+          <span class="framework-snippets__value">
+            <code>{displayKey()}</code>
+            <Show when={hasFullKey()}>
+              <button
+                class="btn btn--ghost btn--sm"
+                onClick={() => setKeyRevealed(!keyRevealed())}
+                aria-label={keyRevealed() ? 'Hide API key' : 'Reveal API key'}
+                title={keyRevealed() ? 'Hide key' : 'Reveal key'}
+                style="padding: 4px;"
+              >
+                {keyRevealed() ? <EyeClosed /> : <EyeOpen />}
+              </button>
+            </Show>
+            <CopyButton text={copyKey()} />
+          </span>
+        </div>
+        <div class="framework-snippets__field">
+          <span class="framework-snippets__label">Model</span>
+          <span class="framework-snippets__value">
+            <code>auto</code>
+            <CopyButton text="auto" />
+          </span>
+        </div>
+      </div>
+
+      <div class="setup-method-tabs">
+        <div class="panel__tabs" role="tablist" aria-label="SDK / toolkit">
+          <For each={TOOLKIT_TABS}>
+            {(t) => (
+              <button
+                class="panel__tab"
+                classList={{ 'panel__tab--active': activeTab() === t.id }}
+                onClick={() => handleTabChange(t.id)}
+                role="tab"
+                aria-selected={activeTab() === t.id}
+              >
+                <Show when={t.icon}>
+                  <img src={t.icon} alt="" class="panel__tab-icon" width="16" height="16" />
+                </Show>
+                {t.label}
+              </button>
+            )}
+          </For>
+        </div>
+
+        <Show when={activeTab() === 'openai-sdk'}>
+          <div class="toolkit-lang-toggle" role="tablist" aria-label="Language">
+            <For each={OPENAI_SDK_LANGS}>
+              {(lang) => (
+                <button
+                  class="toolkit-lang-toggle__btn"
+                  classList={{ 'toolkit-lang-toggle__btn--active': openaiLang() === lang.id }}
+                  onClick={() => handleLangChange(lang.id)}
+                  role="tab"
+                  aria-selected={openaiLang() === lang.id}
+                >
+                  <img src={lang.icon} alt="" width="14" height="14" />
+                  {lang.label}
+                </button>
+              )}
+            </For>
+          </div>
+        </Show>
+
+        <div class="setup-method-tabs__content">
+          <CodeBlock code={snippet().code} copyText={snippetForCopy().code} language={language()} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default FrameworkSnippets;
