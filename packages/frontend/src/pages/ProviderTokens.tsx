@@ -4,6 +4,7 @@ import { getProviderTokens } from '../services/api/public-stats.js';
 import { formatNumber, formatCost } from '../services/formatters.js';
 import ProviderTokensChart from '../components/ProviderTokensChart.jsx';
 import type { ProviderTokensSeries } from '../components/ProviderTokensChart.jsx';
+import ErrorState from '../components/ErrorState.jsx';
 
 function formatAuthType(authType: string | null): string {
   if (authType === 'subscription') return 'Subscription';
@@ -18,7 +19,7 @@ function formatModelCost(authType: string | null, cost: number | null): string {
 }
 
 const ProviderTokens: Component = () => {
-  const [data] = createResource(getProviderTokens);
+  const [data, { refetch }] = createResource(getProviderTokens);
   const [selectedProvider, setSelectedProvider] = createSignal<string | null>(null);
 
   const providers = createMemo(() => data()?.providers ?? []);
@@ -49,7 +50,11 @@ const ProviderTokens: Component = () => {
         </p>
       </div>
 
-      <Show when={!data.loading && providers().length === 0}>
+      <Show when={data.error}>
+        <ErrorState error={data.error} onRetry={refetch} />
+      </Show>
+
+      <Show when={!data.loading && !data.error && providers().length === 0}>
         <div class="empty-state">
           <p>No token data available yet.</p>
         </div>

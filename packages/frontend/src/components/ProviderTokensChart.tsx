@@ -24,20 +24,25 @@ interface ProviderTokensChartProps {
 
 const CHART_COLORS = ['--chart-1', '--chart-2', '--chart-3', '--chart-4', '--chart-5'];
 
-function buildUnionDates(allSeries: ProviderTokensSeries[]): string[] {
-  const dateSet = new Set<string>();
-  for (const s of allSeries) {
-    for (const d of s.daily) {
-      dateSet.add(d.date);
-    }
+function buildUnionDates(): string[] {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dates: string[] = [];
+  for (let i = 30; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const y = d.getFullYear();
+    const mo = String(d.getMonth() + 1).padStart(2, '0');
+    const da = String(d.getDate()).padStart(2, '0');
+    dates.push(`${y}-${mo}-${da}`);
   }
-  return Array.from(dateSet).sort();
+  return dates;
 }
 
 function datesToEpochs(dates: string[]): number[] {
   return dates.map((dateStr) => {
     const [y, m, d] = dateStr.split('-').map(Number);
-    return new Date(y!, m! - 1, d!).getTime() / 1000;
+    return Date.UTC(y!, m! - 1, d!) / 1000;
   });
 }
 
@@ -57,7 +62,7 @@ const ProviderTokensChart: Component<ProviderTokensChartProps> = (props) => {
       const gridColor = getHslA('--foreground', 0.05);
       const bgColor = getHsl('--card');
 
-      const dates = buildUnionDates(props.series);
+      const dates = buildUnionDates();
       const timestamps = datesToEpochs(dates);
 
       const axes = createBaseAxes(axisColor, gridColor, '30d');

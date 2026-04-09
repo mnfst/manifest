@@ -99,6 +99,7 @@ describe('ProviderTokens', () => {
     });
   });
 
+
   it('renders provider tabs', async () => {
     render(() => <ProviderTokens />);
     await vi.waitFor(() => {
