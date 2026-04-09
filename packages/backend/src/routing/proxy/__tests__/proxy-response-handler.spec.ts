@@ -94,6 +94,20 @@ describe('proxy-response-handler', () => {
       expect(headers).not.toHaveProperty('X-Manifest-Fallback-From');
       expect(headers).not.toHaveProperty('X-Manifest-Fallback-Index');
     });
+
+    it('should include specificity header when specificity_category is set', () => {
+      const meta = makeMeta({ specificity_category: 'coding' });
+      const headers = buildMetaHeaders(meta);
+
+      expect(headers['X-Manifest-Specificity']).toBe('coding');
+    });
+
+    it('should not include specificity header when specificity_category is not set', () => {
+      const meta = makeMeta();
+      const headers = buildMetaHeaders(meta);
+
+      expect(headers).not.toHaveProperty('X-Manifest-Specificity');
+    });
   });
 
   /* ── handleProviderError ── */

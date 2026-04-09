@@ -70,6 +70,7 @@ export class ProxyController {
       this.rateLimiter.checkLimit(userId);
       this.rateLimiter.acquireSlot(userId);
       slotAcquired = true;
+      const specificityOverride = req.headers['x-manifest-specificity'] as string | undefined;
       const { forward, meta, failedFallbacks } = await this.proxyService.proxyRequest({
         agentId: req.ingestionContext.agentId,
         userId,
@@ -78,6 +79,7 @@ export class ProxyController {
         tenantId: req.ingestionContext.tenantId,
         agentName: req.ingestionContext.agentName,
         signal: clientAbort.signal,
+        specificityOverride,
       });
 
       this.trackFirstProxyRequest(userId);

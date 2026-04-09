@@ -1,0 +1,69 @@
+/* ── 3-column grid for specificity cards ─────────── */
+.specificity-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+/* ── Wrapper for enabled card + disable link ────── */
+.specificity-card-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.specificity-card-wrapper .routing-card {
+  flex: 1;
+}
+
+.specificity-disable-btn {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 0 0;
+  text-align: left;
+  transition: color var(--transition-fast);
+}
+
+.specificity-disable-btn:hover {
+  color: hsl(var(--destructive));
+}
+
+.specificity-disable-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── CTA card for requesting a custom tier ──────── */
+.routing-card--cta {
+  opacity: 0.5;
+  border-style: dashed;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.routing-card--cta:hover {
+  opacity: 0.75;
+}
+
+.routing-card--cta:focus-visible {
+  opacity: 0.75;
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* ── Responsive ─────────────────────────────────── */
+@media (max-width: 900px) {
+  .specificity-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .specificity-cards {
+    grid-template-columns: 1fr;
+  }
+}

@@ -175,6 +175,14 @@
   background: hsl(var(--destructive) / 0.1);
   color: hsl(var(--destructive));
 }
+.tier-badge--specificity {
+  background: hsl(270 60% 50% / 0.12);
+  color: hsl(270 60% 45%);
+}
+.tier-badge--fallback {
+  background: hsl(var(--muted-foreground) / 0.1);
+  color: hsl(var(--muted-foreground));
+}
 
 /* ── Security Events ─────────────────────────────── */
 .security-event {

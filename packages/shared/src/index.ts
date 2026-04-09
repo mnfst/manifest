@@ -1,5 +1,11 @@
 export { TIERS, TIER_LABELS, TIER_DESCRIPTIONS } from './tiers';
 export type { Tier } from './tiers';
+export {
+  SPECIFICITY_CATEGORIES,
+  SPECIFICITY_LABELS,
+  SPECIFICITY_DESCRIPTIONS,
+} from './specificity';
+export type { SpecificityCategory } from './specificity';
 export { AUTH_TYPES } from './auth-types';
 export type { AuthType } from './auth-types';
 export { API_KEY_PREFIX } from './api-key';

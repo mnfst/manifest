@@ -87,4 +87,7 @@ export class AgentMessage {
 
   @Column('varchar', { nullable: true })
   user_id!: string | null;
+
+  @Column('varchar', { nullable: true })
+  specificity_category!: string | null;
 }

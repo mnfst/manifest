@@ -1,9 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { TierService } from '../routing-core/tier.service';
 import { ProviderKeyService } from '../routing-core/provider-key.service';
+import { SpecificityService } from '../routing-core/specificity.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
-import { scoreRequest, ScorerInput, MomentumInput } from '../../scoring';
+import { scoreRequest, ScorerInput, MomentumInput, scanMessages } from '../../scoring';
 import { Tier } from '../../scoring/types';
 import { ResolveResponse } from '../dto/resolve-response';
 import { inferProviderFromModelName } from '../../common/utils/provider-aliases';
@@ -15,6 +16,7 @@ export class ResolveService {
   constructor(
     private readonly tierService: TierService,
     private readonly providerKeyService: ProviderKeyService,
+    private readonly specificityService: SpecificityService,
     private readonly pricingCache: ModelPricingCacheService,
     private readonly discoveryService: ModelDiscoveryService,
   ) {}
@@ -26,7 +28,16 @@ export class ResolveService {
     toolChoice?: unknown,
     maxTokens?: number,
     recentTiers?: MomentumInput['recentTiers'],
+    specificityOverride?: string,
   ): Promise<ResolveResponse> {
+    const specificityResult = await this.resolveSpecificity(
+      agentId,
+      messages,
+      tools,
+      specificityOverride,
+    );
+    if (specificityResult) return specificityResult;
+
     const input: ScorerInput = { messages, tools, tool_choice: toolChoice, max_tokens: maxTokens };
     const momentum: MomentumInput | undefined =
       recentTiers && recentTiers.length > 0 ? { recentTiers } : undefined;
@@ -108,6 +119,49 @@ export class ResolveService {
       score: 0,
       reason: 'heartbeat',
       auth_type: authType,
+    };
+  }
+
+  private async resolveSpecificity(
+    agentId: string,
+    messages: ScorerInput['messages'],
+    tools?: ScorerInput['tools'],
+    headerOverride?: string,
+  ): Promise<ResolveResponse | null> {
+    const active = await this.specificityService.getActiveAssignments(agentId);
+    if (active.length === 0) return null;
+
+    const detected = scanMessages(messages, tools, headerOverride);
+    if (!detected) return null;
+
+    const assignment = active.find((a) => a.category === detected.category);
+    if (!assignment) return null;
+
+    const model = assignment.override_model ?? assignment.auto_assigned_model;
+    if (!model) return null;
+
+    const provider = await this.resolveProvider(
+      agentId,
+      {
+        override_model: assignment.override_model,
+        override_provider: assignment.override_provider,
+      },
+      model,
+    );
+    const authType = provider
+      ? (assignment.override_auth_type ??
+        (await this.providerKeyService.getAuthType(agentId, provider)))
+      : undefined;
+
+    return {
+      tier: 'standard',
+      model,
+      provider,
+      confidence: detected.confidence,
+      score: 0,
+      reason: 'specificity',
+      auth_type: authType,
+      specificity_category: detected.category,
     };
   }
 

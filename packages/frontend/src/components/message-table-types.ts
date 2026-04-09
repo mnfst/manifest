@@ -6,6 +6,7 @@ export interface MessageRow {
   display_name?: string | null;
   routing_tier?: string;
   routing_reason?: string;
+  specificity_category?: string;
   input_tokens: number | null;
   output_tokens: number | null;
   total_tokens: number | null;

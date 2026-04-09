@@ -18,6 +18,7 @@ export interface ProviderErrorOpts {
   fallbackFromModel?: string;
   fallbackIndex?: number;
   authType?: string;
+  specificityCategory?: string;
 }
 
 export interface FallbackSuccessOpts {
@@ -34,6 +35,7 @@ export interface SuccessMessageOpts {
   authType?: string;
   sessionKey?: string;
   durationMs?: number;
+  specificityCategory?: string;
 }
 
 @Injectable()
@@ -66,7 +68,15 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     errorMessage: string,
     opts?: ProviderErrorOpts,
   ): Promise<void> {
-    const { model, tier, traceId, fallbackFromModel, fallbackIndex, authType } = opts ?? {};
+    const {
+      model,
+      tier,
+      traceId,
+      fallbackFromModel,
+      fallbackIndex,
+      authType,
+      specificityCategory,
+    } = opts ?? {};
 
     if (httpStatus === 429) {
       const key = `${ctx.tenantId}:${ctx.agentId}`;
@@ -103,6 +113,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       fallback_index: fallbackIndex ?? null,
       auth_type: authType ?? null,
       user_id: ctx.userId,
+      specificity_category: specificityCategory ?? null,
     });
     this.eventBus.emit(ctx.userId);
   }
@@ -238,7 +249,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     usage: StreamUsage,
     opts?: SuccessMessageOpts,
   ): Promise<void> {
-    const { traceId, authType, sessionKey, durationMs } = opts ?? {};
+    const { traceId, authType, sessionKey, durationMs, specificityCategory } = opts ?? {};
 
     const costUsd = computeTokenCost({
       inputTokens: usage.prompt_tokens,
@@ -281,6 +292,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               auth_type: authType ?? null,
               user_id: ctx.userId,
               duration_ms: durationMs ?? null,
+              specificity_category: specificityCategory ?? null,
             };
             if (normalizedSessionKey) updatePayload.session_key = normalizedSessionKey;
 
@@ -311,6 +323,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
             fallback_index: null,
             user_id: ctx.userId,
             duration_ms: durationMs ?? null,
+            specificity_category: specificityCategory ?? null,
           });
           wrote = true;
         });

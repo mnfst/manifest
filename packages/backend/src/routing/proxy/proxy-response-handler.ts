@@ -20,6 +20,9 @@ export function buildMetaHeaders(meta: RoutingMeta): Record<string, string> {
     'X-Manifest-Confidence': String(meta.confidence),
     'X-Manifest-Reason': meta.reason,
   };
+  if (meta.specificity_category) {
+    headers['X-Manifest-Specificity'] = meta.specificity_category;
+  }
   if (meta.fallbackFromModel) {
     headers['X-Manifest-Fallback-From'] = meta.fallbackFromModel;
     headers['X-Manifest-Fallback-Index'] = String(meta.fallbackIndex ?? 0);
@@ -69,6 +72,7 @@ export async function handleProviderError(
       fallbackFromModel: meta.fallbackFromModel,
       fallbackIndex: meta.fallbackIndex,
       authType: meta.auth_type,
+      specificityCategory: meta.specificity_category,
     })
     .catch((e) => logger.warn(`Failed to record provider error: ${e}`));
 
@@ -299,6 +303,7 @@ export function recordSuccess(
         authType: meta.auth_type,
         sessionKey,
         durationMs,
+        specificityCategory: meta.specificity_category,
       })
       .catch((e) => logger.warn(`Failed to record success message: ${e}`));
   }

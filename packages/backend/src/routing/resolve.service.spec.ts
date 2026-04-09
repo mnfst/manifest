@@ -1,6 +1,7 @@
 import { ResolveService } from './resolve/resolve.service';
 import { TierService } from './routing-core/tier.service';
 import { ProviderKeyService } from './routing-core/provider-key.service';
+import { SpecificityService } from './routing-core/specificity.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { ModelDiscoveryService } from '../model-discovery/model-discovery.service';
 
@@ -8,6 +9,7 @@ describe('ResolveService', () => {
   let service: ResolveService;
   let mockTierService: Record<string, jest.Mock>;
   let mockProviderKeyService: Record<string, jest.Mock>;
+  let mockSpecificityService: Record<string, jest.Mock>;
   let mockPricingCache: Record<string, jest.Mock>;
   let mockDiscoveryService: Record<string, jest.Mock>;
 
@@ -25,6 +27,9 @@ describe('ResolveService', () => {
       getAuthType: jest.fn().mockResolvedValue('api_key'),
       hasActiveProvider: jest.fn().mockResolvedValue(true),
     };
+    mockSpecificityService = {
+      getActiveAssignments: jest.fn().mockResolvedValue([]),
+    };
     mockPricingCache = {
       getByModel: jest.fn(),
     };
@@ -35,6 +40,7 @@ describe('ResolveService', () => {
     service = new ResolveService(
       mockTierService as unknown as TierService,
       mockProviderKeyService as unknown as ProviderKeyService,
+      mockSpecificityService as unknown as SpecificityService,
       mockPricingCache as unknown as ModelPricingCacheService,
       mockDiscoveryService as unknown as ModelDiscoveryService,
     );
@@ -366,10 +372,7 @@ describe('ResolveService', () => {
       const result = await service.resolveForTier('agent-1', 'simple');
 
       expect(result.provider).toBe('openrouter');
-      expect(mockProviderKeyService.hasActiveProvider).toHaveBeenCalledWith(
-        'agent-1',
-        'anthropic',
-      );
+      expect(mockProviderKeyService.hasActiveProvider).toHaveBeenCalledWith('agent-1', 'anthropic');
     });
 
     it('should use prefix when inferred provider is active', async () => {

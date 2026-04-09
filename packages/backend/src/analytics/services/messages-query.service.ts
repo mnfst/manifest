@@ -109,6 +109,7 @@ export class MessagesQueryService {
       .addSelect(costExpr, 'cost')
       .addSelect('at.routing_tier', 'routing_tier')
       .addSelect('at.routing_reason', 'routing_reason')
+      .addSelect('at.specificity_category', 'specificity_category')
       .addSelect('at.cache_read_tokens', 'cache_read_tokens')
       .addSelect('at.cache_creation_tokens', 'cache_creation_tokens')
       .addSelect('at.duration_ms', 'duration_ms')

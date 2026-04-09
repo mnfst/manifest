@@ -100,6 +100,29 @@
   border-width: 1.5px;
 }
 
+/* ── Routing section ────────────────────────────────── */
+.routing-section {
+  margin-bottom: 24px;
+}
+
+.routing-section__header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.routing-section__title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.routing-section__subtitle {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+}
+
 /* ── Routing cards (4-column grid) ─────────────────── */
 .routing-cards {
   display: grid;
@@ -547,6 +570,26 @@
   .routing-card__change-label {
     display: none;
   }
+}
+
+/* ── Disabled routing card state ─────────────────── */
+.routing-card--disabled {
+  opacity: 0.6;
+}
+
+.routing-card__disabled-text {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  display: block;
+}
+
+.routing-card__disabled-desc {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  display: block;
+  margin-top: 2px;
+  line-height: 1.5;
 }
 
 /* ── Responsive ──────────────────────────────────── */

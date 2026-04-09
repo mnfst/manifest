@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { UserProvider } from '../../entities/user-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
+import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
 
 const TTL_MS = 120_000; // 2 minutes
 const MAX_ENTRIES = 5_000;
@@ -33,6 +34,7 @@ export class RoutingCacheService {
   private readonly providers = new Map<string, CachedEntry<UserProvider[]>>();
   private readonly customProviders = new Map<string, CachedEntry<CustomProvider[]>>();
   private readonly apiKeys = new Map<string, CachedEntry<string | null>>();
+  private readonly specificity = new Map<string, CachedEntry<SpecificityAssignment[]>>();
 
   getTiers(agentId: string): TierAssignment[] | null {
     return getOrExpire(this.tiers, agentId) ?? null;
@@ -66,10 +68,19 @@ export class RoutingCacheService {
     setWithEviction(this.apiKeys, `${agentId}:${provider}:${authType ?? 'default'}`, apiKey);
   }
 
+  getSpecificity(agentId: string): SpecificityAssignment[] | null {
+    return getOrExpire(this.specificity, agentId) ?? null;
+  }
+
+  setSpecificity(agentId: string, data: SpecificityAssignment[]): void {
+    setWithEviction(this.specificity, agentId, data);
+  }
+
   invalidateAgent(agentId: string): void {
     this.tiers.delete(agentId);
     this.providers.delete(agentId);
     this.customProviders.delete(agentId);
+    this.specificity.delete(agentId);
     const prefix = `${agentId}:`;
     const toDelete = [...this.apiKeys.keys()].filter((k) => k.startsWith(prefix));
     for (const k of toDelete) this.apiKeys.delete(k);

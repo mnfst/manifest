@@ -60,6 +60,7 @@ describe('ResolveController', () => {
       undefined,
       undefined,
       undefined,
+      undefined,
     );
   });
 
@@ -84,6 +85,7 @@ describe('ResolveController', () => {
       'auto',
       1000,
       ['simple', 'standard'],
+      undefined,
     );
   });
 

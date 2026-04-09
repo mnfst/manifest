@@ -20,6 +20,7 @@ import { EmailProviderConfig } from '../entities/email-provider-config.entity';
 import { UserProvider } from '../entities/user-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
+import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
 import { DatabaseSeederService } from './database-seeder.service';
 import { LocalBootstrapService } from './local-bootstrap.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
@@ -64,6 +65,8 @@ import { FixNegativeCosts1773800000000 } from './migrations/1773800000000-FixNeg
 import { AddKeyPrefixIndex1773900000000 } from './migrations/1773900000000-AddKeyPrefixIndex';
 import { WidenKeyHashColumn1774000000000 } from './migrations/1774000000000-WidenKeyHashColumn';
 import { WidenApiKeyColumn1774896789000 } from './migrations/1774896789000-WidenApiKeyColumn';
+import { AddSpecificityAssignments1775000000000 } from './migrations/1775000000000-AddSpecificityAssignments';
+import { AddSpecificityCategory1775100000000 } from './migrations/1775100000000-AddSpecificityCategory';
 
 const entities = [
   AgentMessage,
@@ -82,6 +85,7 @@ const entities = [
   UserProvider,
   TierAssignment,
   CustomProvider,
+  SpecificityAssignment,
 ];
 
 const migrations = [
@@ -126,6 +130,8 @@ const migrations = [
   AddKeyPrefixIndex1773900000000,
   WidenKeyHashColumn1774000000000,
   WidenApiKeyColumn1774896789000,
+  AddSpecificityAssignments1775000000000,
+  AddSpecificityCategory1775100000000,
 ];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
@@ -181,6 +187,7 @@ function buildModeServices() {
       UserProvider,
       TierAssignment,
       CustomProvider,
+      SpecificityAssignment,
     ]),
     ModelPricesModule,
   ],

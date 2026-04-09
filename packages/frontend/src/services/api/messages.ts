@@ -53,6 +53,7 @@ export interface MessageDetailResponse {
     trace_id: string | null;
     routing_tier: string | null;
     routing_reason: string | null;
+    specificity_category: string | null;
     auth_type: string | null;
     skill_name: string | null;
     fallback_from_model: string | null;

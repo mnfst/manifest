@@ -43,4 +43,5 @@ export interface ProxyRequestOptions {
   tenantId?: string;
   agentName?: string;
   signal?: AbortSignal;
+  specificityOverride?: string;
 }

@@ -258,5 +258,62 @@ export const STAGES: StageDef[] = [
   },
 ];
 
+export const SPECIFICITY_STAGES: StageDef[] = [
+  {
+    id: 'coding',
+    step: 1,
+    label: 'Coding',
+    desc: 'Write, debug, and refactor code.',
+  },
+  {
+    id: 'web_browsing',
+    step: 2,
+    label: 'Web Browsing',
+    desc: 'Navigate pages, search, and extract content.',
+  },
+  {
+    id: 'data_analysis',
+    step: 3,
+    label: 'Data Analysis',
+    desc: 'Crunch numbers, run stats, build charts.',
+  },
+  {
+    id: 'image_generation',
+    step: 4,
+    label: 'Image Generation',
+    desc: 'Create and edit images, logos, visuals.',
+  },
+  {
+    id: 'video_generation',
+    step: 5,
+    label: 'Video Generation',
+    desc: 'Produce clips, animations, and edits.',
+  },
+  {
+    id: 'social_media',
+    step: 6,
+    label: 'Social Media',
+    desc: 'Draft posts, plan content, track engagement.',
+  },
+  {
+    id: 'email_management',
+    step: 7,
+    label: 'Email',
+    desc: 'Compose, reply, and manage your inbox.',
+  },
+  {
+    id: 'calendar_management',
+    step: 8,
+    label: 'Calendar',
+    desc: 'Book meetings, check availability, reschedule.',
+  },
+  {
+    id: 'trading',
+    step: 9,
+    label: 'Trading',
+    desc: 'Analyze markets, place trades, track positions.',
+  },
+];
+
 /* ── Helpers ── */
 export { getProvider, getModelLabel } from './provider-utils.js';

@@ -187,9 +187,13 @@ export function ModelCell(
             ? `custom:${customProviderName(item.model) ?? 'Custom'}/${stripCustomPrefix(item.model)}`
             : getModelDisplayName(item.model)
           : '\u2014'}
-        {item.routing_tier && (
+        {item.specificity_category ? (
+          <span class="tier-badge tier-badge--specificity">
+            {item.specificity_category.replace(/_/g, ' ')}
+          </span>
+        ) : item.routing_tier ? (
           <span class={`tier-badge tier-badge--${item.routing_tier}`}>{item.routing_tier}</span>
-        )}
+        ) : null}
         {item.fallback_from_model && (
           <span
             class="tier-badge tier-badge--fallback"

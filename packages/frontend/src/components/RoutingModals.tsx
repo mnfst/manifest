@@ -16,6 +16,14 @@ interface RoutingModalsProps {
   agentName: () => string;
   dropdownTier: Accessor<string | null>;
   onDropdownClose: () => void;
+  specificityDropdown?: Accessor<string | null>;
+  onSpecificityDropdownClose?: () => void;
+  onSpecificityOverride?: (
+    category: string,
+    model: string,
+    provider: string,
+    authType?: AuthType,
+  ) => void;
   fallbackPickerTier: Accessor<string | null>;
   onFallbackPickerClose: () => void;
   showProviderModal: Accessor<boolean>;
@@ -56,6 +64,22 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => (
           connectedProviders={props.connectedProviders()}
           onSelect={props.onOverride}
           onClose={props.onDropdownClose}
+        />
+      )}
+    </Show>
+
+    <Show when={props.specificityDropdown?.()}>
+      {(category) => (
+        <ModelPickerModal
+          tierId={category()}
+          models={props.models()}
+          tiers={props.tiers()}
+          customProviders={props.customProviders()}
+          connectedProviders={props.connectedProviders()}
+          onSelect={(_, model, provider, authType) =>
+            props.onSpecificityOverride?.(category(), model, provider, authType)
+          }
+          onClose={() => props.onSpecificityDropdownClose?.()}
         />
       )}
     </Show>

@@ -38,6 +38,7 @@ export interface RoutingMeta {
   confidence: number;
   reason: string;
   auth_type?: string;
+  specificity_category?: string;
   fallbackFromModel?: string;
   fallbackIndex?: number;
   primaryErrorStatus?: number;
@@ -68,7 +69,8 @@ export class ProxyService {
   ) {}
 
   async proxyRequest(opts: ProxyRequestOptions): Promise<ProxyResult> {
-    const { agentId, userId, body, sessionKey, tenantId, agentName, signal } = opts;
+    const { agentId, userId, body, sessionKey, tenantId, agentName, signal, specificityOverride } =
+      opts;
     const messages = body.messages;
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       throw new BadRequestException('messages array is required');
@@ -94,6 +96,7 @@ export class ProxyService {
           body.tool_choice,
           body.max_tokens as number | undefined,
           recentTiers,
+          specificityOverride,
         );
 
     if (!resolved.model || !resolved.provider) {
@@ -186,6 +189,7 @@ export class ProxyService {
               confidence: resolved.confidence,
               reason: resolved.reason,
               auth_type: resolved.auth_type,
+              specificity_category: resolved.specificity_category,
               fallbackFromModel: primaryModel,
               fallbackIndex: success.fallbackIndex,
               primaryErrorStatus: primaryStatus,
@@ -222,6 +226,7 @@ export class ProxyService {
             confidence: resolved.confidence,
             reason: resolved.reason,
             auth_type: resolved.auth_type,
+            specificity_category: resolved.specificity_category,
           },
           failedFallbacks: failures,
         };
@@ -239,6 +244,7 @@ export class ProxyService {
         confidence: resolved.confidence,
         reason: resolved.reason,
         auth_type: resolved.auth_type,
+        specificity_category: resolved.specificity_category,
       },
     };
   }
