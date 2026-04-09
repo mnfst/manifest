@@ -111,7 +111,7 @@ const FrameworkSnippets: Component<Props> = (props) => {
                 {keyRevealed() ? <EyeClosed /> : <EyeOpen />}
               </button>
             </Show>
-            <CopyButton text={copyKey()} />
+            <CopyButton text={copyKey()} disabled={hasFullKey() && !keyRevealed()} />
           </span>
         </div>
         <div class="framework-snippets__field">

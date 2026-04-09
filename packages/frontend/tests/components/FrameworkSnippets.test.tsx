@@ -59,6 +59,27 @@ describe("FrameworkSnippets", () => {
     expect(container.textContent).toContain("mnfst_abc...");
   });
 
+  it("disables API key copy button when key is hidden", () => {
+    const { container } = render(() => (
+      <FrameworkSnippets {...defaultProps} apiKey="mnfst_secret" keyPrefix="mnfst_abc" hideFullKey />
+    ));
+    const keyField = container.querySelectorAll(".framework-snippets__field")[1];
+    const copyBtn = keyField?.querySelector('[aria-label="Copy disabled"]');
+    expect(copyBtn).not.toBeNull();
+    expect(copyBtn!.hasAttribute("disabled")).toBe(true);
+  });
+
+  it("enables API key copy button when key is revealed", () => {
+    const { container } = render(() => (
+      <FrameworkSnippets {...defaultProps} apiKey="mnfst_secret" keyPrefix="mnfst_abc" hideFullKey />
+    ));
+    fireEvent.click(container.querySelector('[aria-label="Reveal API key"]')!);
+    const keyField = container.querySelectorAll(".framework-snippets__field")[1];
+    const copyBtn = keyField?.querySelector('[aria-label="Copy to clipboard"]');
+    expect(copyBtn).not.toBeNull();
+    expect(copyBtn!.hasAttribute("disabled")).toBe(false);
+  });
+
   it("shows eye toggle to reveal key when hideFullKey and apiKey set", () => {
     const { container } = render(() => (
       <FrameworkSnippets {...defaultProps} apiKey="mnfst_secret" keyPrefix="mnfst_abc" hideFullKey />
