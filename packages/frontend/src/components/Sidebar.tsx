@@ -76,14 +76,6 @@ const Sidebar: Component = () => {
       <Show when={getAgentName()}>
         <div class="sidebar__section-label">RESOURCES</div>
         <A
-          href={path('/provider-tokens')}
-          class="sidebar__link"
-          classList={{ active: isActive('/provider-tokens') }}
-          aria-current={isActive('/provider-tokens') ? 'page' : undefined}
-        >
-          Provider Tokens
-        </A>
-        <A
           href={path('/model-prices')}
           class="sidebar__link"
           classList={{ active: isActive('/model-prices') }}

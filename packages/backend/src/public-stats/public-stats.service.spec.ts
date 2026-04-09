@@ -384,27 +384,9 @@ describe('PublicStatsService', () => {
 
     it('groups tokens by provider and model with daily breakdown', async () => {
       setupProviderQuery([
-        {
-          model: 'gpt-4o',
-          date: '2026-04-06',
-          tokens: '500000',
-          auth_type: 'api_key',
-          cost: '0.50',
-        },
-        {
-          model: 'gpt-4o',
-          date: '2026-04-07',
-          tokens: '600000',
-          auth_type: 'api_key',
-          cost: '0.60',
-        },
-        {
-          model: 'claude-opus',
-          date: '2026-04-07',
-          tokens: '1000000',
-          auth_type: 'api_key',
-          cost: '1.00',
-        },
+        { model: 'gpt-4o', date: '2026-04-06', tokens: '500000' },
+        { model: 'gpt-4o', date: '2026-04-07', tokens: '600000' },
+        { model: 'claude-opus', date: '2026-04-07', tokens: '1000000' },
       ]);
       mockPricingCache.getByModel.mockImplementation((name: string) => {
         if (name === 'gpt-4o') return makePricingEntry({ provider: 'OpenAI' });
@@ -419,8 +401,6 @@ describe('PublicStatsService', () => {
       expect(result[0].total_tokens).toBe(1100000);
       expect(result[0].models).toHaveLength(1);
       expect(result[0].models[0].model).toBe('gpt-4o');
-      expect(result[0].models[0].auth_type).toBe('api_key');
-      expect(result[0].models[0].total_cost).toBeCloseTo(1.1);
       expect(result[0].models[0].daily).toEqual([
         { date: '2026-04-06', tokens: 500000 },
         { date: '2026-04-07', tokens: 600000 },
@@ -431,8 +411,8 @@ describe('PublicStatsService', () => {
 
     it('sorts providers by total tokens descending', async () => {
       setupProviderQuery([
-        { model: 'gpt-4o', date: '2026-04-07', tokens: '100', auth_type: null, cost: null },
-        { model: 'claude-opus', date: '2026-04-07', tokens: '9999', auth_type: null, cost: null },
+        { model: 'gpt-4o', date: '2026-04-07', tokens: '100' },
+        { model: 'claude-opus', date: '2026-04-07', tokens: '9999' },
       ]);
       mockPricingCache.getByModel.mockImplementation((name: string) => {
         if (name === 'gpt-4o') return makePricingEntry({ provider: 'OpenAI' });
@@ -448,8 +428,8 @@ describe('PublicStatsService', () => {
 
     it('sorts models within a provider by total tokens descending', async () => {
       setupProviderQuery([
-        { model: 'gpt-4o', date: '2026-04-07', tokens: '100', auth_type: null, cost: null },
-        { model: 'gpt-4o-mini', date: '2026-04-07', tokens: '9000', auth_type: null, cost: null },
+        { model: 'gpt-4o', date: '2026-04-07', tokens: '100' },
+        { model: 'gpt-4o-mini', date: '2026-04-07', tokens: '9000' },
       ]);
       mockPricingCache.getByModel.mockImplementation(() =>
         makePricingEntry({ provider: 'OpenAI' }),
@@ -470,15 +450,7 @@ describe('PublicStatsService', () => {
     });
 
     it('excludes custom models', async () => {
-      setupProviderQuery([
-        {
-          model: 'custom:abc/gpt-4o',
-          date: '2026-04-07',
-          tokens: '1000',
-          auth_type: null,
-          cost: null,
-        },
-      ]);
+      setupProviderQuery([{ model: 'custom:abc/gpt-4o', date: '2026-04-07', tokens: '1000' }]);
       mockPricingCache.getByModel.mockReturnValue(makePricingEntry({ provider: 'OpenAI' }));
 
       const result = await service.getProviderDailyTokens();
@@ -487,9 +459,7 @@ describe('PublicStatsService', () => {
     });
 
     it('excludes Unknown provider models', async () => {
-      setupProviderQuery([
-        { model: 'mystery-model', date: '2026-04-07', tokens: '1000', auth_type: null, cost: null },
-      ]);
+      setupProviderQuery([{ model: 'mystery-model', date: '2026-04-07', tokens: '1000' }]);
 
       const result = await service.getProviderDailyTokens();
 
@@ -497,9 +467,7 @@ describe('PublicStatsService', () => {
     });
 
     it('handles null tokens', async () => {
-      setupProviderQuery([
-        { model: 'gpt-4o', date: '2026-04-07', tokens: null, auth_type: null, cost: null },
-      ]);
+      setupProviderQuery([{ model: 'gpt-4o', date: '2026-04-07', tokens: null }]);
       mockPricingCache.getByModel.mockReturnValue(makePricingEntry({ provider: 'OpenAI' }));
 
       const result = await service.getProviderDailyTokens();
@@ -510,9 +478,9 @@ describe('PublicStatsService', () => {
 
     it('sorts daily entries chronologically', async () => {
       setupProviderQuery([
-        { model: 'gpt-4o', date: '2026-04-07', tokens: '200', auth_type: null, cost: null },
-        { model: 'gpt-4o', date: '2026-04-05', tokens: '100', auth_type: null, cost: null },
-        { model: 'gpt-4o', date: '2026-04-06', tokens: '150', auth_type: null, cost: null },
+        { model: 'gpt-4o', date: '2026-04-07', tokens: '200' },
+        { model: 'gpt-4o', date: '2026-04-05', tokens: '100' },
+        { model: 'gpt-4o', date: '2026-04-06', tokens: '150' },
       ]);
       mockPricingCache.getByModel.mockReturnValue(makePricingEntry({ provider: 'OpenAI' }));
 
@@ -537,8 +505,8 @@ describe('PublicStatsService', () => {
 
     it('aggregates multiple models under the same provider', async () => {
       setupProviderQuery([
-        { model: 'gpt-4o', date: '2026-04-07', tokens: '500', auth_type: null, cost: null },
-        { model: 'gpt-4o-mini', date: '2026-04-07', tokens: '300', auth_type: null, cost: null },
+        { model: 'gpt-4o', date: '2026-04-07', tokens: '500' },
+        { model: 'gpt-4o-mini', date: '2026-04-07', tokens: '300' },
       ]);
       mockPricingCache.getByModel.mockReturnValue(makePricingEntry({ provider: 'OpenAI' }));
 
@@ -548,73 +516,6 @@ describe('PublicStatsService', () => {
       expect(result[0].provider).toBe('OpenAI');
       expect(result[0].total_tokens).toBe(800);
       expect(result[0].models).toHaveLength(2);
-    });
-
-    it('separates same model with different auth_types', async () => {
-      setupProviderQuery([
-        {
-          model: 'claude-sonnet',
-          date: '2026-04-07',
-          tokens: '3000',
-          auth_type: 'api_key',
-          cost: '0.45',
-        },
-        {
-          model: 'claude-sonnet',
-          date: '2026-04-07',
-          tokens: '2000',
-          auth_type: 'subscription',
-          cost: '0',
-        },
-      ]);
-      mockPricingCache.getByModel.mockReturnValue(makePricingEntry({ provider: 'Anthropic' }));
-
-      const result = await service.getProviderDailyTokens();
-
-      expect(result).toHaveLength(1);
-      expect(result[0].models).toHaveLength(2);
-      const apiKeyModel = result[0].models.find((m) => m.auth_type === 'api_key');
-      const subModel = result[0].models.find((m) => m.auth_type === 'subscription');
-      expect(apiKeyModel).toBeDefined();
-      expect(apiKeyModel!.total_tokens).toBe(3000);
-      expect(apiKeyModel!.total_cost).toBeCloseTo(0.45);
-      expect(subModel).toBeDefined();
-      expect(subModel!.total_tokens).toBe(2000);
-      expect(subModel!.total_cost).toBe(0);
-    });
-
-    it('returns null total_cost when all costs are null', async () => {
-      setupProviderQuery([
-        { model: 'gpt-4o', date: '2026-04-07', tokens: '1000', auth_type: 'api_key', cost: null },
-      ]);
-      mockPricingCache.getByModel.mockReturnValue(makePricingEntry({ provider: 'OpenAI' }));
-
-      const result = await service.getProviderDailyTokens();
-
-      expect(result[0].models[0].total_cost).toBeNull();
-    });
-
-    it('sums cost correctly across multiple days', async () => {
-      setupProviderQuery([
-        { model: 'gpt-4o', date: '2026-04-06', tokens: '500', auth_type: 'api_key', cost: '0.10' },
-        { model: 'gpt-4o', date: '2026-04-07', tokens: '500', auth_type: 'api_key', cost: '0.20' },
-      ]);
-      mockPricingCache.getByModel.mockReturnValue(makePricingEntry({ provider: 'OpenAI' }));
-
-      const result = await service.getProviderDailyTokens();
-
-      expect(result[0].models[0].total_cost).toBeCloseTo(0.3);
-    });
-
-    it('includes auth_type as null when not set', async () => {
-      setupProviderQuery([
-        { model: 'gpt-4o', date: '2026-04-07', tokens: '1000', auth_type: null, cost: null },
-      ]);
-      mockPricingCache.getByModel.mockReturnValue(makePricingEntry({ provider: 'OpenAI' }));
-
-      const result = await service.getProviderDailyTokens();
-
-      expect(result[0].models[0].auth_type).toBeNull();
     });
   });
 });

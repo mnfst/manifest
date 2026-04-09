@@ -43,9 +43,7 @@ export interface DailyModelTokens {
 
 export interface ModelBreakdown {
   model: string;
-  auth_type: string | null;
   total_tokens: number;
-  total_cost: number | null;
   daily: DailyModelTokens[];
 }
 
@@ -170,37 +168,21 @@ export class PublicStatsService {
     const cutoff30d = computeCutoff('30 days');
     const dateBucket = sqlDateBucket('at.timestamp', this.dialect);
 
-    const rows: {
-      model: string;
-      date: string;
-      tokens: string;
-      auth_type: string | null;
-      cost: string | null;
-    }[] = await this.messageRepo
+    const rows: { model: string; date: string; tokens: string }[] = await this.messageRepo
       .createQueryBuilder('at')
       .select('at.model', 'model')
       .addSelect(dateBucket, 'date')
-      .addSelect('at.auth_type', 'auth_type')
       .addSelect('SUM(at.input_tokens + at.output_tokens)', 'tokens')
-      .addSelect('SUM(at.cost_usd)', 'cost')
       .where('at.model IS NOT NULL')
       .andWhere('at.timestamp >= :cutoff30d', { cutoff30d })
       .groupBy('at.model')
       .addGroupBy('date')
-      .addGroupBy('at.auth_type')
       .orderBy('date', 'ASC')
       .getRawMany();
 
     const modelMap = new Map<
       string,
-      {
-        modelName: string;
-        provider: string;
-        authType: string | null;
-        total: number;
-        cost: number | null;
-        daily: Map<string, number>;
-      }
+      { provider: string; total: number; daily: Map<string, number> }
     >();
 
     for (const r of rows) {
@@ -210,31 +192,19 @@ export class PublicStatsService {
       const provider = pricing?.provider || 'Unknown';
       if (EXCLUDED_PROVIDERS.has(provider)) continue;
 
-      const key = `${modelName}:${r.auth_type ?? ''}`;
-      let entry = modelMap.get(key);
+      let entry = modelMap.get(modelName);
       if (!entry) {
-        entry = {
-          modelName,
-          provider,
-          authType: r.auth_type ?? null,
-          total: 0,
-          cost: null,
-          daily: new Map(),
-        };
-        modelMap.set(key, entry);
+        entry = { provider, total: 0, daily: new Map() };
+        modelMap.set(modelName, entry);
       }
       const tokens = Number(r.tokens ?? 0);
       entry.total += tokens;
-      const rowCost = r.cost != null ? Number(r.cost) : null;
-      if (rowCost != null) {
-        entry.cost = (entry.cost ?? 0) + rowCost;
-      }
-      entry.daily.set(r.date, (entry.daily.get(r.date) ?? 0) + tokens);
+      entry.daily.set(r.date, tokens);
     }
 
     const providerMap = new Map<string, { total: number; models: ModelBreakdown[] }>();
 
-    for (const [, entry] of modelMap) {
+    for (const [modelName, entry] of modelMap) {
       let prov = providerMap.get(entry.provider);
       if (!prov) {
         prov = { total: 0, models: [] };
@@ -242,10 +212,8 @@ export class PublicStatsService {
       }
       prov.total += entry.total;
       prov.models.push({
-        model: entry.modelName,
-        auth_type: entry.authType,
+        model: modelName,
         total_tokens: entry.total,
-        total_cost: entry.cost,
         daily: Array.from(entry.daily.entries())
           .sort(([a], [b]) => a.localeCompare(b))
           .map(([date, tokens]) => ({ date, tokens })),
