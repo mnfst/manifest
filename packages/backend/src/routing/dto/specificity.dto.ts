@@ -1,5 +1,5 @@
 import { IsString, IsNotEmpty, IsOptional, IsIn, IsBoolean } from 'class-validator';
-import { AUTH_TYPES, SPECIFICITY_CATEGORIES } from 'manifest-shared';
+import { AUTH_TYPES } from 'manifest-shared';
 
 export class SetSpecificityOverrideDto {
   @IsString()
@@ -19,9 +19,4 @@ export class SetSpecificityOverrideDto {
 export class ToggleSpecificityDto {
   @IsBoolean()
   active!: boolean;
-}
-
-export class SpecificityParamDto {
-  @IsIn(SPECIFICITY_CATEGORIES as readonly string[])
-  category!: string;
 }

@@ -1,7 +1,7 @@
 import { ScorerMessage, ScorerTool } from './types';
 import { DEFAULT_CONFIG } from './config';
 import { KeywordTrie, TrieMatch } from './keyword-trie';
-import { extractUserTexts, combinedText } from './text-extractor';
+import { extractUserTexts } from './text-extractor';
 import { detectSpecificity, SpecificityResult } from './specificity-detector';
 
 let defaultTrie: KeywordTrie | null = null;
