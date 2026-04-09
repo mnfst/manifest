@@ -1,5 +1,11 @@
 # manifest
 
+## 5.45.0
+
+### Minor Changes
+
+- 5ae3552: Add provider tokens page with daily token consumption chart and auth_type/cost breakdown in public endpoint
+
 ## 5.44.0
 
 ### Minor Changes
