@@ -11,6 +11,8 @@ import {
   getSnippetsForFramework,
   TOOLKIT_TABS,
   OPENAI_SDK_LANGS,
+  SDK_LANG_TOGGLE,
+  getVercelPythonSnippet,
   getStoredToolkit,
   storeToolkit,
   getStoredOpenAILang,
@@ -75,6 +77,31 @@ describe("OPENAI_SDK_LANGS", () => {
     expect(OPENAI_SDK_LANGS[1].id).toBe("typescript");
     expect(OPENAI_SDK_LANGS[1].label).toBe("TypeScript");
     expect(OPENAI_SDK_LANGS[1].icon).toBe("/icons/typescript.svg");
+  });
+});
+
+describe("SDK_LANG_TOGGLE", () => {
+  it("is the same reference as OPENAI_SDK_LANGS", () => {
+    expect(SDK_LANG_TOGGLE).toBe(OPENAI_SDK_LANGS);
+  });
+
+  it("has two language options", () => {
+    expect(SDK_LANG_TOGGLE).toHaveLength(2);
+  });
+});
+
+describe("getVercelPythonSnippet", () => {
+  it("returns a snippet with Vercel AI SDK Python title", () => {
+    const snippet = getVercelPythonSnippet("http://localhost/v1", "mnfst_key");
+    expect(snippet.title).toBe("Vercel AI SDK (Python)");
+  });
+
+  it("includes OpenAI Python client code", () => {
+    const snippet = getVercelPythonSnippet("http://example.com/v1", "mnfst_abc");
+    expect(snippet.code).toContain("from openai import OpenAI");
+    expect(snippet.code).toContain("http://example.com/v1");
+    expect(snippet.code).toContain("mnfst_abc");
+    expect(snippet.code).toContain('model="auto"');
   });
 });
 
@@ -313,8 +340,20 @@ describe("getSnippetForToolkit", () => {
     expect(result.title).toBe("OpenAI Python SDK");
   });
 
-  it("returns Vercel AI SDK snippet for vercel-ai-sdk", () => {
+  it("returns Vercel AI SDK Python snippet by default", () => {
     const result = getSnippetForToolkit("vercel-ai-sdk", "http://x/v1", "key");
+    expect(result.title).toBe("Vercel AI SDK (Python)");
+    expect(result.code).toContain("from openai import OpenAI");
+  });
+
+  it("returns Vercel AI SDK Python snippet with python lang", () => {
+    const result = getSnippetForToolkit("vercel-ai-sdk", "http://x/v1", "key", "python");
+    expect(result.title).toBe("Vercel AI SDK (Python)");
+    expect(result.code).toContain("from openai import OpenAI");
+  });
+
+  it("returns Vercel AI SDK TypeScript snippet with typescript lang", () => {
+    const result = getSnippetForToolkit("vercel-ai-sdk", "http://x/v1", "key", "typescript");
     expect(result.title).toBe("Vercel AI SDK");
     expect(result.code).toContain("createOpenAI");
   });
@@ -351,8 +390,16 @@ describe("getLangForToolkit", () => {
     expect(getLangForToolkit("openai-sdk", "python")).toBe("python");
   });
 
-  it("returns typescript for vercel-ai-sdk", () => {
-    expect(getLangForToolkit("vercel-ai-sdk")).toBe("typescript");
+  it("returns python for vercel-ai-sdk default", () => {
+    expect(getLangForToolkit("vercel-ai-sdk")).toBe("python");
+  });
+
+  it("returns typescript for vercel-ai-sdk with typescript", () => {
+    expect(getLangForToolkit("vercel-ai-sdk", "typescript")).toBe("typescript");
+  });
+
+  it("returns python for vercel-ai-sdk with python", () => {
+    expect(getLangForToolkit("vercel-ai-sdk", "python")).toBe("python");
   });
 
   it("returns python for langchain", () => {

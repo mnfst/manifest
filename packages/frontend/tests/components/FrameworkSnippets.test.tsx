@@ -156,13 +156,31 @@ describe("FrameworkSnippets", () => {
     const { container } = render(() => <FrameworkSnippets {...defaultProps} />);
     const tabs = container.querySelectorAll(".panel__tab");
     fireEvent.click(tabs[1]);
-    expect(container.textContent).toContain("createOpenAI");
+    expect(container.textContent).toContain("Vercel AI SDK");
   });
 
-  it("hides language toggle on non-OpenAI SDK tabs", () => {
+  it("shows language toggle on Vercel AI SDK tab", () => {
     const { container } = render(() => <FrameworkSnippets {...defaultProps} />);
     const tabs = container.querySelectorAll(".panel__tab");
     fireEvent.click(tabs[1]); // Vercel AI SDK
+    expect(container.querySelector(".toolkit-lang-toggle")).not.toBeNull();
+  });
+
+  it("shows Vercel TypeScript snippet when TypeScript selected", () => {
+    const { container } = render(() => <FrameworkSnippets {...defaultProps} />);
+    const tabs = container.querySelectorAll(".panel__tab");
+    fireEvent.click(tabs[1]); // Vercel AI SDK
+    const langBtns = container.querySelectorAll(".toolkit-lang-toggle__btn");
+    fireEvent.click(langBtns[1]); // TypeScript
+    expect(container.textContent).toContain("createOpenAI");
+  });
+
+  it("hides language toggle on LangChain and cURL tabs", () => {
+    const { container } = render(() => <FrameworkSnippets {...defaultProps} />);
+    const tabs = container.querySelectorAll(".panel__tab");
+    fireEvent.click(tabs[2]); // LangChain
+    expect(container.querySelector(".toolkit-lang-toggle")).toBeNull();
+    fireEvent.click(tabs[3]); // cURL
     expect(container.querySelector(".toolkit-lang-toggle")).toBeNull();
   });
 

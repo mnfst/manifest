@@ -5,7 +5,7 @@ import {
   type ToolkitId,
   type OpenAILangId,
   TOOLKIT_TABS,
-  OPENAI_SDK_LANGS,
+  SDK_LANG_TOGGLE,
   getStoredToolkit,
   storeToolkit,
   getStoredOpenAILang,
@@ -143,9 +143,9 @@ const FrameworkSnippets: Component<Props> = (props) => {
           </For>
         </div>
 
-        <Show when={activeTab() === 'openai-sdk'}>
+        <Show when={activeTab() === 'openai-sdk' || activeTab() === 'vercel-ai-sdk'}>
           <div class="toolkit-lang-toggle" role="tablist" aria-label="Language">
-            <For each={OPENAI_SDK_LANGS}>
+            <For each={SDK_LANG_TOGGLE}>
               {(lang) => (
                 <button
                   class="toolkit-lang-toggle__btn"

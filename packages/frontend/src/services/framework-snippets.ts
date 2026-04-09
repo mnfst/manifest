@@ -34,10 +34,13 @@ export interface OpenAILangTab {
   icon: string;
 }
 
-export const OPENAI_SDK_LANGS: OpenAILangTab[] = [
+export const SDK_LANG_TOGGLE: OpenAILangTab[] = [
   { id: 'python', label: 'Python', icon: '/icons/python.svg' },
   { id: 'typescript', label: 'TypeScript', icon: '/icons/typescript.svg' },
 ];
+
+/** @deprecated Use SDK_LANG_TOGGLE instead */
+export const OPENAI_SDK_LANGS = SDK_LANG_TOGGLE;
 
 export interface Snippet {
   title: string;
@@ -93,6 +96,23 @@ response = client.chat.completions.create(
 )`,
     },
   ];
+}
+
+export function getVercelPythonSnippet(baseUrl: string, apiKey: string): Snippet {
+  return {
+    title: 'Vercel AI SDK (Python)',
+    code: `from openai import OpenAI
+
+client = OpenAI(
+    base_url="${baseUrl}",
+    api_key="${apiKey}",
+)
+
+response = client.chat.completions.create(
+    model="auto",
+    messages=[{"role": "user", "content": "Hello"}],
+)`,
+  };
 }
 
 export function getTypeScriptSnippets(baseUrl: string, apiKey: string): Snippet[] {
@@ -228,7 +248,9 @@ export function getSnippetForToolkit(
         ? getPythonSnippets(baseUrl, apiKey)[1]!
         : getTypeScriptSnippets(baseUrl, apiKey)[1]!;
     case 'vercel-ai-sdk':
-      return getTypeScriptSnippets(baseUrl, apiKey)[0]!;
+      return openaiLang === 'python'
+        ? getVercelPythonSnippet(baseUrl, apiKey)
+        : getTypeScriptSnippets(baseUrl, apiKey)[0]!;
     case 'langchain':
       return getPythonSnippets(baseUrl, apiKey)[0]!;
     case 'curl':
@@ -241,7 +263,7 @@ export function getLangForToolkit(id: ToolkitId, openaiLang?: OpenAILangId): str
     case 'openai-sdk':
       return openaiLang === 'typescript' ? 'typescript' : 'python';
     case 'vercel-ai-sdk':
-      return 'typescript';
+      return openaiLang === 'typescript' ? 'typescript' : 'python';
     case 'langchain':
       return 'python';
     case 'curl':
