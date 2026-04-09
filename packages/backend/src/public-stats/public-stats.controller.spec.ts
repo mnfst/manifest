@@ -152,7 +152,9 @@ describe('PublicStatsController', () => {
         models: [
           {
             model: 'gpt-4o',
+            auth_type: 'api_key',
             total_tokens: 1100000,
+            total_cost: 1.1,
             daily: [
               { date: '2026-04-06', tokens: 500000 },
               { date: '2026-04-07', tokens: 600000 },

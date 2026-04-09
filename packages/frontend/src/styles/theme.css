@@ -18,6 +18,7 @@
 @import './model-filter.css';
 @import './version-indicator.css';
 @import './skeleton.css';
+@import './provider-tokens.css';
 
 /* ── shadcn/ui design tokens — Light (default) ───── */
 @layer base {

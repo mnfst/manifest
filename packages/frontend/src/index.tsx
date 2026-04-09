@@ -26,6 +26,7 @@ const ModelPrices = lazy(() => import('./pages/ModelPrices.jsx'));
 const Help = lazy(() => import('./pages/Help.jsx'));
 const FreeModels = lazy(() => import('./pages/FreeModels.jsx'));
 const ConnectProvider = lazy(() => import('./pages/ConnectProvider.jsx'));
+const ProviderTokens = lazy(() => import('./pages/ProviderTokens.jsx'));
 
 const GuestLayout: ParentComponent = (props) => (
   <GuestGuard>
@@ -62,6 +63,7 @@ render(
             <Route path="/limits" component={Limits} />
             <Route path="/model-prices" component={ModelPrices} />
             <Route path="/free-models" component={FreeModels} />
+            <Route path="/provider-tokens" component={ProviderTokens} />
             <Route path="/help" component={Help} />
           </Route>
           <Route path="/connect-provider" component={ConnectProvider} />
