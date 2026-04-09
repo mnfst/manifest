@@ -1,7 +1,7 @@
 import { API_KEY_PREFIX, DEFAULTS } from './constants';
 import type { ProviderAuthContext, ProviderAuthResult } from './types';
 
-const AUTO_MODEL = {
+export const AUTO_MODEL = {
   id: 'auto',
   name: 'Auto Router',
   reasoning: false,

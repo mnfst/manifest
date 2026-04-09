@@ -5,7 +5,7 @@ import { registerCommand } from './command';
 import { verifyConnection } from './verify';
 import { injectProviderConfig, injectAuthProfile } from './provider-inject';
 import { stripOtlpSuffix } from './compat';
-import { runApiKeyAuth, buildModelConfig } from './auth';
+import { runApiKeyAuth, buildModelConfig, AUTO_MODEL } from './auth';
 import { ENV } from './constants';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -119,7 +119,7 @@ function registerProvider(api: any, endpoint: string, logger: PluginLogger): voi
           run: runApiKeyAuth,
         },
       ],
-      models: buildModelConfig(stripOtlpSuffix(endpoint, { info: () => {}, error: () => {}, debug: () => {} })),
+      ...buildModelConfig(stripOtlpSuffix(endpoint, { info: () => {}, error: () => {}, debug: () => {} })),
     });
 
     logger.info('[manifest] Registered as provider (model: manifest/auto)');

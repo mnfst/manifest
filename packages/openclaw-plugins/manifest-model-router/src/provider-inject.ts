@@ -3,6 +3,7 @@ import { join, dirname } from 'path';
 import { homedir } from 'os';
 import { PluginLogger } from './types';
 import { loadJsonFile } from './json-file';
+import { AUTO_MODEL } from './auth';
 
 const OPENCLAW_DIR = join(homedir(), '.openclaw');
 const OPENCLAW_CONFIG = join(OPENCLAW_DIR, 'openclaw.json');
@@ -36,7 +37,7 @@ export function injectProviderConfig(
     baseUrl,
     api: 'openai-completions',
     apiKey,
-    models: [{ id: 'auto', name: 'auto' }],
+    models: [AUTO_MODEL],
   };
 
   // 1. Write to ~/.openclaw/openclaw.json (atomic write)
