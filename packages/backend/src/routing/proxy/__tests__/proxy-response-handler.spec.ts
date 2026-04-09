@@ -469,6 +469,46 @@ describe('proxy-response-handler', () => {
       // Called with only 2 args (no transformer)
       expect(pipeStreamSpy).toHaveBeenCalledWith(forward.response.body, res);
     });
+
+    it('should cache thought_signatures from Google stream chunks', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward({ isGoogle: true });
+      const client = mockProviderClient();
+      const meta = makeMeta();
+
+      const signatureCache = { store: jest.fn() };
+      const sessionKey = 'sess-123';
+
+      // The transformer is captured by pipeStream — we need to invoke it manually.
+      // Capture the transform function passed to pipeStream.
+      let capturedTransform: ((chunk: string) => string | null) | undefined;
+      pipeStreamSpy.mockImplementation(
+        async (_body: unknown, _res: unknown, transform?: (chunk: string) => string | null) => {
+          capturedTransform = transform;
+          return null;
+        },
+      );
+
+      client.convertGoogleStreamChunk.mockImplementation((chunk: string) => chunk);
+
+      await handleStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        signatureCache as any,
+        sessionKey,
+      );
+
+      expect(capturedTransform).toBeDefined();
+
+      // Simulate a chunk with thought_signature and id fields
+      const chunk = '{"id":"call_abc","thought_signature":"sig_xyz"}';
+      capturedTransform!(chunk);
+
+      expect(signatureCache.store).toHaveBeenCalledWith('sess-123', 'call_abc', 'sig_xyz');
+    });
   });
 
   /* ── handleNonStreamResponse ── */
@@ -664,6 +704,43 @@ describe('proxy-response-handler', () => {
 
       expect(usage!.completion_tokens).toBe(0);
     });
+
+    it('should cache extracted thought_signatures from Google non-stream response', async () => {
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+      const signatureCache = { store: jest.fn() };
+      const sessionKey = 'sess-456';
+
+      // convertGoogleResponse returns a body with _extractedSignatures
+      client.convertGoogleResponse.mockReturnValue({
+        id: 'google-converted',
+        _extractedSignatures: [
+          { toolCallId: 'call_1', signature: 'sig_a' },
+          { toolCallId: 'call_2', signature: 'sig_b' },
+        ],
+      });
+
+      const forward = mockForward({}, { isGoogle: true });
+      const meta = makeMeta();
+
+      await handleNonStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        signatureCache as any,
+        sessionKey,
+      );
+
+      expect(signatureCache.store).toHaveBeenCalledTimes(2);
+      expect(signatureCache.store).toHaveBeenCalledWith('sess-456', 'call_1', 'sig_a');
+      expect(signatureCache.store).toHaveBeenCalledWith('sess-456', 'call_2', 'sig_b');
+
+      // _extractedSignatures should be deleted from the response body
+      const sentBody = res.json.mock.calls[0][0];
+      expect(sentBody._extractedSignatures).toBeUndefined();
+    });
   });
 
   /* ── recordSuccess ── */
@@ -793,6 +870,51 @@ describe('proxy-response-handler', () => {
         authType: undefined,
         usage: undefined,
       });
+    });
+
+    it('should pass specificityCategory when set on meta', () => {
+      const recorder = mockRecorder();
+      const meta = makeMeta({ specificity_category: 'coding' });
+      const usage: StreamUsage = { prompt_tokens: 100, completion_tokens: 50 };
+
+      recordSuccess(testCtx, meta, usage, undefined, recorder as any, 'trace-1', 'session-1');
+
+      expect(recorder.recordSuccessMessage).toHaveBeenCalledWith(
+        testCtx,
+        'gpt-4o',
+        'standard',
+        'auto',
+        usage,
+        expect.objectContaining({ specificityCategory: 'coding' }),
+      );
+    });
+  });
+
+  describe('handleProviderError with specificity', () => {
+    it('should pass specificityCategory to recordProviderError', async () => {
+      const { res } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta({ specificity_category: 'coding' });
+      const metaHeaders = buildMetaHeaders(meta);
+
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        metaHeaders,
+        500,
+        'Internal Server Error',
+        undefined,
+        recorder as any,
+        'trace-1',
+      );
+
+      expect(recorder.recordProviderError).toHaveBeenCalledWith(
+        testCtx,
+        500,
+        'Internal Server Error',
+        expect.objectContaining({ specificityCategory: 'coding' }),
+      );
     });
   });
 });
