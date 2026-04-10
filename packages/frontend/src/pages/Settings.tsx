@@ -5,6 +5,7 @@ import CopyButton from '../components/CopyButton.jsx';
 import ErrorState from '../components/ErrorState.jsx';
 import AgentTypePicker from '../components/AgentTypePicker.jsx';
 import SetupStepAddProvider from '../components/SetupStepAddProvider.jsx';
+import SetupModal from '../components/SetupModal.jsx';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import {
   deleteAgent,
@@ -17,7 +18,15 @@ import {
 import { isLocalMode } from '../services/local-mode.js';
 import { markAgentCreated } from '../services/recent-agents.js';
 import { toast } from '../services/toast-store.js';
-import type { AgentCategory, AgentPlatform } from 'manifest-shared';
+import { setAgentPlatform } from '../services/agent-platform-store.js';
+import {
+  type AgentCategory,
+  type AgentPlatform,
+  CATEGORY_LABELS,
+  PLATFORM_LABELS,
+  PLATFORM_ICONS,
+  PLATFORMS_BY_CATEGORY,
+} from 'manifest-shared';
 
 const Settings: Component = () => {
   const params = useParams<{ agentName: string }>();
@@ -34,23 +43,42 @@ const Settings: Component = () => {
   const [rotatedKey, setRotatedKey] = createSignal<string | null>(
     (location.state as { newApiKey?: string } | undefined)?.newApiKey ?? null,
   );
+  const [showTypeModal, setShowTypeModal] = createSignal(false);
+  const [showSetupModal, setShowSetupModal] = createSignal(false);
+  const [modalCategory, setModalCategory] = createSignal<AgentCategory | null>(null);
+  const [modalPlatform, setModalPlatform] = createSignal<AgentPlatform | null>(null);
   const [savingType, setSavingType] = createSignal(false);
 
   const [agentInfo, { refetch: refetchInfo }] = createResource(() => agentName(), getAgentInfo);
   const [apiKeyData, { refetch: refetchKey }] = createResource(() => agentName(), getAgentKey);
 
-  const [category, setCategory] = createSignal<AgentCategory | null>(null);
-  const [platform, setPlatform] = createSignal<AgentPlatform | null>(null);
-  const [typeInitialized, setTypeInitialized] = createSignal(false);
+  const currentCategory = () => (agentInfo()?.agent_category as AgentCategory) ?? null;
+  const currentPlatform = () => (agentInfo()?.agent_platform as AgentPlatform) ?? null;
 
-  // Sync category/platform from fetched data once
-  const initType = () => {
-    if (!typeInitialized() && agentInfo()) {
-      setCategory((agentInfo()?.agent_category as AgentCategory) ?? null);
-      setPlatform((agentInfo()?.agent_platform as AgentPlatform) ?? null);
-      setTypeInitialized(true);
+  const openTypeModal = () => {
+    setModalCategory(currentCategory());
+    setModalPlatform(currentPlatform());
+    setShowTypeModal(true);
+  };
+
+  const handleSaveType = async () => {
+    if (!modalCategory() || !modalPlatform()) return;
+    setSavingType(true);
+    try {
+      await updateAgent(agentName(), {
+        agent_category: modalCategory()!,
+        agent_platform: modalPlatform()!,
+      });
+      setAgentPlatform(modalPlatform()!);
+      await refetchInfo();
+      await refetchKey();
+      setShowTypeModal(false);
+      setShowSetupModal(true);
+    } catch {
+      // error toast handled by fetchMutate
+    } finally {
+      setSavingType(false);
     }
-    return true;
   };
 
   const [keyRevealed, setKeyRevealed] = createSignal(false);
@@ -70,44 +98,21 @@ const Settings: Component = () => {
     return `${window.location.origin}/v1`;
   };
 
-  const origCategory = () => (agentInfo()?.agent_category as AgentCategory) ?? null;
-  const origPlatform = () => (agentInfo()?.agent_platform as AgentPlatform) ?? null;
   const nameChanged = () => name().trim() !== agentName() && name().trim() !== '';
-  const typeChanged = () =>
-    (category() !== origCategory() || platform() !== origPlatform()) &&
-    !!category() &&
-    !!platform();
-  const hasChanges = () => nameChanged() || typeChanged();
 
-  const handleSaveAll = async () => {
+  const handleSaveName = async () => {
+    if (!nameChanged()) return;
     setSaving(true);
-    setSavingType(true);
     try {
-      if (typeChanged() && category() && platform()) {
-        await updateAgent(agentName(), {
-          agent_category: category()!,
-          agent_platform: platform()!,
-        });
-        refetchInfo();
-      }
-      if (nameChanged()) {
-        const result = await renameAgent(agentName(), name().trim());
-        const slug = (result?.name as string) ?? name().trim();
-        markAgentCreated(slug);
-        window.location.replace(`/agents/${encodeURIComponent(slug)}/settings`);
-        return;
-      }
-      if (typeChanged()) toast.success('Agent type updated');
+      const result = await renameAgent(agentName(), name().trim());
+      const slug = (result?.name as string) ?? name().trim();
+      markAgentCreated(slug);
+      window.location.replace(`/agents/${encodeURIComponent(slug)}/settings`);
     } catch {
       setName(agentName());
     } finally {
       setSaving(false);
-      setSavingType(false);
     }
-  };
-
-  const scrollToTypeSection = () => {
-    document.getElementById('agent-type-section')?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleRotate = async () => {
@@ -142,8 +147,8 @@ const Settings: Component = () => {
         </div>
       </div>
 
-      {/* -- Agent Name + Type ---------------------- */}
-      <div class="settings-card" id="agent-type-section">
+      {/* -- Agent Name ------------------------------ */}
+      <div class="settings-card">
         <div class="settings-card__row">
           <div class="settings-card__label">
             <span class="settings-card__label-title">Agent name</span>
@@ -161,32 +166,13 @@ const Settings: Component = () => {
             />
           </div>
         </div>
-
-        <Show when={initType()}>
-          <div style="padding: 0 var(--gap-lg) var(--gap-md);">
-            <span class="settings-card__label-title" style="display: block; margin-bottom: 8px;">
-              Agent type
-            </span>
-            <AgentTypePicker
-              category={category()}
-              platform={platform()}
-              onCategoryChange={(c) => {
-                setCategory(c);
-                setPlatform(null);
-              }}
-              onPlatformChange={setPlatform}
-              disabled={savingType()}
-            />
-          </div>
-        </Show>
-
         <div class="settings-card__footer">
           <button
             class="btn btn--primary btn--sm"
-            onClick={handleSaveAll}
-            disabled={saving() || savingType() || !hasChanges()}
+            onClick={handleSaveName}
+            disabled={saving() || !nameChanged()}
           >
-            {saving() || savingType() ? (
+            {saving() ? (
               <>
                 <span class="spinner" />
                 <span class="sr-only">Saving...</span>
@@ -195,6 +181,47 @@ const Settings: Component = () => {
               'Save'
             )}
           </button>
+        </div>
+      </div>
+
+      {/* -- Agent Type (read-only + change modal) --- */}
+      <h3 class="settings-section__title">Agent type</h3>
+      <div class="settings-card">
+        <div class="settings-card__row">
+          <div class="settings-card__label">
+            <span
+              class="settings-card__label-title"
+              style="display: flex; align-items: center; gap: 6px;"
+            >
+              <Show
+                when={
+                  currentPlatform() &&
+                  PLATFORM_ICONS[currentPlatform()! as keyof typeof PLATFORM_ICONS]
+                }
+              >
+                <img
+                  src={PLATFORM_ICONS[currentPlatform()! as keyof typeof PLATFORM_ICONS]}
+                  alt=""
+                  width="18"
+                  height="18"
+                />
+              </Show>
+              {currentPlatform()
+                ? (PLATFORM_LABELS[currentPlatform()! as keyof typeof PLATFORM_LABELS] ??
+                  currentPlatform())
+                : 'Not set'}
+            </span>
+            <span class="settings-card__label-desc">
+              {currentCategory()
+                ? CATEGORY_LABELS[currentCategory()! as keyof typeof CATEGORY_LABELS]
+                : ''}
+            </span>
+          </div>
+          <div class="settings-card__control" style="display: flex; justify-content: flex-end;">
+            <button class="btn btn--outline btn--sm" onClick={openTypeModal}>
+              Change
+            </button>
+          </div>
         </div>
       </div>
 
@@ -293,8 +320,7 @@ const Settings: Component = () => {
               keyPrefix={keyData()?.keyPrefix ?? null}
               baseUrl={baseUrl()}
               hideFullKey
-              platform={platform()}
-              onChangeType={scrollToTypeSection}
+              platform={currentPlatform()}
             />
           </div>
         </Show>
@@ -417,6 +443,62 @@ const Settings: Component = () => {
           </div>
         </div>
       </Show>
+
+      {/* -- Change Type Modal ----------------------- */}
+      <Show when={showTypeModal()}>
+        <div
+          class="modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowTypeModal(false);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') setShowTypeModal(false);
+          }}
+        >
+          <div
+            class="modal-card"
+            style="max-width: 540px;"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="change-type-modal-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 class="modal-card__title" id="change-type-modal-title">
+              Change agent type
+            </h2>
+            <p class="modal-card__desc">Select the new type and platform for this agent.</p>
+
+            <AgentTypePicker
+              category={modalCategory()}
+              platform={modalPlatform()}
+              onCategoryChange={(c) => {
+                setModalCategory(c);
+                setModalPlatform(PLATFORMS_BY_CATEGORY[c][0]);
+              }}
+              onPlatformChange={setModalPlatform}
+              disabled={savingType()}
+            />
+
+            <div class="modal-card__footer">
+              <button
+                class="btn btn--primary btn--sm"
+                onClick={handleSaveType}
+                disabled={savingType() || !modalCategory() || !modalPlatform()}
+              >
+                {savingType() ? <span class="spinner" /> : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Show>
+
+      <SetupModal
+        open={showSetupModal()}
+        agentName={agentName()}
+        agentPlatform={currentPlatform()}
+        onClose={() => setShowSetupModal(false)}
+        onDone={() => setShowSetupModal(false)}
+      />
     </div>
   );
 };

@@ -2,4 +2,4 @@
 "manifest": minor
 ---
 
-Redesign setup modal with toolkit-first code tabs, agent framework tabs, syntax highlighting, and OpenClaw interactive wizard
+Redesign setup modal UI with tab-style agent type selection, platform-specific setup instructions, and Settings page agent type change modal

@@ -14,6 +14,18 @@ vi.mock("../../src/services/api.js", () => ({
   getHealth: () => mockGetHealth(),
 }));
 
+vi.mock("../../src/services/agent-platform-store.js", () => ({
+  agentPlatform: () => "openclaw",
+}));
+
+vi.mock("../../src/components/SetupStepAddProvider.jsx", () => ({
+  default: (props: any) => (
+    <div data-testid="setup-add-provider" data-base-url={props.baseUrl ?? ""} data-api-key={props.apiKey ?? ""} data-platform={props.platform ?? ""} data-key-prefix={props.keyPrefix ?? ""}>
+      SetupStepAddProvider
+    </div>
+  ),
+}));
+
 import RoutingInstructionModal from "../../src/components/RoutingInstructionModal";
 
 const testModels = {
@@ -47,11 +59,11 @@ describe("RoutingInstructionModal", () => {
     expect(screen.getByText("Activate routing")).toBeDefined();
   });
 
-  it("shows manifest/auto command in enable mode", () => {
+  it("shows SetupStepAddProvider in enable mode", () => {
     const { container } = render(() => (
       <RoutingInstructionModal open={true} mode="enable" agentName="test-agent" onClose={() => {}} />
     ));
-    expect(container.textContent).toContain("manifest/auto");
+    expect(container.querySelector('[data-testid="setup-add-provider"]')).not.toBeNull();
   });
 
   it("shows 'Deactivate routing' title in disable mode", () => {
@@ -143,26 +155,18 @@ describe("RoutingInstructionModal", () => {
     expect(container.querySelector(".routing-modal__inline-picker")).toBeNull();
   });
 
-  it("shows connected provider name in enable mode when connectedProvider is set", () => {
-    render(() => (
+  it("renders SetupStepAddProvider even when connectedProvider is set", () => {
+    const { container } = render(() => (
       <RoutingInstructionModal open={true} mode="enable" agentName="test-agent" connectedProvider="openai" onClose={() => {}} />
     ));
-    expect(screen.getByText("OpenAI")).toBeDefined();
-    expect(screen.getByText("is now connected.")).toBeDefined();
+    expect(container.querySelector('[data-testid="setup-add-provider"]')).not.toBeNull();
   });
 
-  it("does not show provider name when connectedProvider is null", () => {
+  it("renders SetupStepAddProvider when connectedProvider is null", () => {
     const { container } = render(() => (
       <RoutingInstructionModal open={true} mode="enable" agentName="test-agent" connectedProvider={null} onClose={() => {}} />
     ));
-    expect(container.textContent).not.toContain("is now connected.");
-  });
-
-  it("falls back to raw provider id when provider is not in PROVIDERS list", () => {
-    render(() => (
-      <RoutingInstructionModal open={true} mode="enable" agentName="test-agent" connectedProvider="custom:my-provider" onClose={() => {}} />
-    ));
-    expect(screen.getByText("custom:my-provider")).toBeDefined();
+    expect(container.querySelector('[data-testid="setup-add-provider"]')).not.toBeNull();
   });
 
   it("shows restart command in disable mode", () => {
@@ -172,11 +176,13 @@ describe("RoutingInstructionModal", () => {
     expect(container.textContent).toContain("openclaw gateway restart");
   });
 
-  it("shows restart command in enable mode", () => {
+  it("renders SetupStepAddProvider with platform in enable mode", () => {
     const { container } = render(() => (
       <RoutingInstructionModal open={true} mode="enable" agentName="test-agent" onClose={() => {}} />
     ));
-    expect(container.textContent).toContain("openclaw gateway restart");
+    const el = container.querySelector('[data-testid="setup-add-provider"]');
+    expect(el).not.toBeNull();
+    expect(el!.getAttribute("data-platform")).toBe("openclaw");
   });
 
   it("calls onClose when Done is clicked", () => {
@@ -188,18 +194,11 @@ describe("RoutingInstructionModal", () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
-  it("has a copy button in enable mode", () => {
+  it("does not show terminal UI in enable mode", () => {
     const { container } = render(() => (
       <RoutingInstructionModal open={true} mode="enable" agentName="test-agent" onClose={() => {}} />
     ));
-    expect(container.querySelector(".modal-terminal__copy")).not.toBeNull();
-  });
-
-  it("shows terminal UI in enable mode", () => {
-    const { container } = render(() => (
-      <RoutingInstructionModal open={true} mode="enable" agentName="test-agent" onClose={() => {}} />
-    ));
-    expect(container.querySelector(".modal-terminal")).not.toBeNull();
+    expect(container.querySelector(".modal-terminal")).toBeNull();
   });
 
   it("builds the disable command with placeholder model by default", () => {
@@ -261,15 +260,15 @@ describe("RoutingInstructionModal", () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it("shows provider JSON with baseUrl and apiKey in enable mode", async () => {
+  it("passes apiKey to SetupStepAddProvider in enable mode", async () => {
     const { container } = render(() => (
       <RoutingInstructionModal open={true} mode="enable" agentName="test-agent" onClose={() => {}} />
     ));
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("openai-completions");
+      const el = container.querySelector('[data-testid="setup-add-provider"]');
+      expect(el).not.toBeNull();
+      expect(el!.getAttribute("data-api-key")).toBe("mnfst_abc123");
     });
-    expect(container.textContent).toContain("models.providers.manifest");
-    expect(container.textContent).toContain("mnfst_abc123");
   });
 
   it("shows unset command in disable mode", () => {
@@ -279,26 +278,28 @@ describe("RoutingInstructionModal", () => {
     expect(container.textContent).toContain("openclaw config unset models.providers.manifest");
   });
 
-  it("shows truncated key warning when full apiKey is unavailable", async () => {
+  it("passes null apiKey to SetupStepAddProvider when full key unavailable", async () => {
     mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_abc", apiKey: null, pluginEndpoint: null });
     const { container } = render(() => (
       <RoutingInstructionModal open={true} mode="enable" agentName="test-agent" onClose={() => {}} />
     ));
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("mnfst_abc...");
+      const el = container.querySelector('[data-testid="setup-add-provider"]');
+      expect(el).not.toBeNull();
+      expect(el!.getAttribute("data-api-key")).toBe("");
     });
-    expect(container.textContent).toContain("with your full Manifest API key");
   });
 
-  it("does not show truncated key warning when full apiKey is available", async () => {
+  it("passes full apiKey to SetupStepAddProvider when available", async () => {
     mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_abc", apiKey: "mnfst_abc123full", pluginEndpoint: null });
     const { container } = render(() => (
       <RoutingInstructionModal open={true} mode="enable" agentName="test-agent" onClose={() => {}} />
     ));
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("mnfst_abc123full");
+      const el = container.querySelector('[data-testid="setup-add-provider"]');
+      expect(el).not.toBeNull();
+      expect(el!.getAttribute("data-api-key")).toBe("mnfst_abc123full");
     });
-    expect(container.textContent).not.toContain("with your full Manifest API key");
   });
 
   it("uses pluginEndpoint as baseUrl when available", async () => {
@@ -307,7 +308,9 @@ describe("RoutingInstructionModal", () => {
       <RoutingInstructionModal open={true} mode="enable" agentName="test-agent" onClose={() => {}} />
     ));
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("https://custom.endpoint/v1");
+      const el = container.querySelector('[data-testid="setup-add-provider"]');
+      expect(el).not.toBeNull();
+      expect(el!.getAttribute("data-base-url")).toBe("https://custom.endpoint/v1");
     });
   });
 
@@ -317,39 +320,34 @@ describe("RoutingInstructionModal", () => {
       <RoutingInstructionModal open={true} mode="enable" agentName="test-agent" onClose={() => {}} />
     ));
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("/v1");
+      const el = container.querySelector('[data-testid="setup-add-provider"]');
+      expect(el).not.toBeNull();
+      expect(el!.getAttribute("data-base-url")).toContain("/v1");
     });
   });
 
-  it("copies the enable command with full provider JSON via copy button", async () => {
+  it("renders SetupStepAddProvider with correct props in enable mode", async () => {
     const { container } = render(() => (
       <RoutingInstructionModal open={true} mode="enable" agentName="test-agent" onClose={() => {}} />
     ));
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("openai-completions");
+      const el = container.querySelector('[data-testid="setup-add-provider"]');
+      expect(el).not.toBeNull();
+      expect(el!.getAttribute("data-api-key")).toBe("mnfst_abc123");
+      expect(el!.getAttribute("data-platform")).toBe("openclaw");
     });
-    const copyBtn = container.querySelector(".modal-terminal__copy");
-    expect(copyBtn).not.toBeNull();
-    fireEvent.click(copyBtn!);
-    await vi.waitFor(() => {
-      expect(navigator.clipboard.writeText).toHaveBeenCalled();
-    });
-    const calls = (navigator.clipboard.writeText as ReturnType<typeof vi.fn>).mock.calls;
-    const copiedText = calls[calls.length - 1][0];
-    expect(copiedText).toContain("models.providers.manifest");
-    expect(copiedText).toContain("openai-completions");
-    expect(copiedText).toContain("mnfst_abc123");
-    expect(copiedText).toContain("manifest/auto");
-    expect(copiedText).toContain("openclaw gateway restart");
   });
 
-  it("shows mnfst_YOUR_KEY when no keyPrefix or apiKey", async () => {
+  it("passes null apiKey and keyPrefix when no key data", async () => {
     mockGetAgentKey.mockResolvedValue({ keyPrefix: null, apiKey: null, pluginEndpoint: null });
     const { container } = render(() => (
       <RoutingInstructionModal open={true} mode="enable" agentName="test-agent" onClose={() => {}} />
     ));
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("mnfst_YOUR_KEY");
+      const el = container.querySelector('[data-testid="setup-add-provider"]');
+      expect(el).not.toBeNull();
+      expect(el!.getAttribute("data-api-key")).toBe("");
+      expect(el!.getAttribute("data-key-prefix")).toBe("");
     });
   });
 });

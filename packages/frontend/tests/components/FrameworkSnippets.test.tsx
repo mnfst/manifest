@@ -59,23 +59,22 @@ describe("FrameworkSnippets", () => {
     expect(container.textContent).toContain("mnfst_abc...");
   });
 
-  it("disables API key copy button when key is hidden", () => {
+  it("shows API key copy button when key is hidden", () => {
     const { container } = render(() => (
       <FrameworkSnippets {...defaultProps} apiKey="mnfst_secret" keyPrefix="mnfst_abc" hideFullKey />
     ));
-    const keyField = container.querySelectorAll(".framework-snippets__field")[1];
-    const copyBtn = keyField?.querySelector('[aria-label="Copy disabled"]');
+    const keyRow = container.querySelectorAll(".setup-onboard-fields__row")[1];
+    const copyBtn = keyRow?.querySelector('[aria-label="Copy to clipboard"]');
     expect(copyBtn).not.toBeNull();
-    expect(copyBtn!.hasAttribute("disabled")).toBe(true);
   });
 
-  it("enables API key copy button when key is revealed", () => {
+  it("shows API key copy button when key is revealed", () => {
     const { container } = render(() => (
       <FrameworkSnippets {...defaultProps} apiKey="mnfst_secret" keyPrefix="mnfst_abc" hideFullKey />
     ));
     fireEvent.click(container.querySelector('[aria-label="Reveal API key"]')!);
-    const keyField = container.querySelectorAll(".framework-snippets__field")[1];
-    const copyBtn = keyField?.querySelector('[aria-label="Copy to clipboard"]');
+    const keyRow = container.querySelectorAll(".setup-onboard-fields__row")[1];
+    const copyBtn = keyRow?.querySelector('[aria-label="Copy to clipboard"]');
     expect(copyBtn).not.toBeNull();
     expect(copyBtn!.hasAttribute("disabled")).toBe(false);
   });
@@ -249,9 +248,9 @@ describe("FrameworkSnippets", () => {
     expect(container.querySelector(".framework-snippets")).not.toBeNull();
   });
 
-  it("uses framework-snippets__connection class for details card", () => {
+  it("uses setup-onboard-fields class for connection details", () => {
     const { container } = render(() => <FrameworkSnippets {...defaultProps} />);
-    expect(container.querySelector(".framework-snippets__connection")).not.toBeNull();
+    expect(container.querySelector(".setup-onboard-fields")).not.toBeNull();
   });
 
   it("active tab changes visual state on click", () => {
@@ -312,12 +311,26 @@ describe("FrameworkSnippets", () => {
     expect(eyeBtn).not.toBeNull();
   });
 
-  it("disables code block copy when key hidden", () => {
+  it("hides toolkit tabs when defaultToolkit is provided", () => {
+    const { container } = render(() => (
+      <FrameworkSnippets {...defaultProps} defaultToolkit="curl" />
+    ));
+    expect(container.querySelectorAll(".panel__tab")).toHaveLength(0);
+    expect(container.textContent).toContain("curl");
+  });
+
+  it("shows correct snippet for defaultToolkit", () => {
+    const { container } = render(() => (
+      <FrameworkSnippets {...defaultProps} defaultToolkit="langchain" />
+    ));
+    expect(container.textContent).toContain("ChatOpenAI");
+  });
+
+  it("shows code block copy button even when key hidden", () => {
     const { container } = render(() => (
       <FrameworkSnippets {...defaultProps} apiKey="mnfst_secret" keyPrefix="mnfst_se" hideFullKey />
     ));
-    const copyBtn = container.querySelector('.setup-cli-block__actions [aria-label="Copy disabled"]');
+    const copyBtn = container.querySelector('.setup-cli-block__actions [aria-label="Copy to clipboard"]');
     expect(copyBtn).not.toBeNull();
-    expect(copyBtn!.hasAttribute("disabled")).toBe(true);
   });
 });

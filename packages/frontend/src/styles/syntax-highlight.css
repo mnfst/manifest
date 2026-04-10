@@ -7,14 +7,14 @@
 
 /* Keywords: from, import, def, class, return, const, let, await, export */
 .hljs-keyword {
-  color: hsl(var(--chart-1));
+  color: hsl(210 12% 50%);
   font-weight: 500;
 }
 
 /* Strings: "hello", 'world', `template` */
 .hljs-string,
 .hljs-template-tag {
-  color: hsl(var(--chart-3));
+  color: #2430f0;
 }
 
 /* Functions and method calls */
@@ -61,7 +61,7 @@
 
 /* Shell/bash specific */
 .hljs-meta {
-  color: hsl(var(--chart-1));
+  color: hsl(210 12% 50%);
 }
 
 /* Regex */
@@ -71,7 +71,7 @@
 
 /* Symbols and special */
 .hljs-symbol {
-  color: hsl(var(--chart-3));
+  color: #2430f0;
 }
 
 /* Section headers in shell scripts */
@@ -87,4 +87,16 @@
 
 .hljs-addition {
   color: hsl(var(--success));
+}
+
+/* Dark mode adjustments */
+.dark .hljs-keyword,
+.dark .hljs-meta {
+  color: hsl(210 20% 65%);
+}
+
+.dark .hljs-string,
+.dark .hljs-template-tag,
+.dark .hljs-symbol {
+  color: #6b73ff;
 }

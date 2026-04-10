@@ -1,41 +1,17 @@
 /* ── Agent type picker ────────────────────────────── */
-.agent-type-picker__categories {
-  display: flex;
-  gap: 8px;
+.agent-type-picker__tabs {
+  width: 100%;
   margin-bottom: 12px;
 }
 
-.agent-type-picker__radio {
+.agent-type-picker__tabs .panel__tab {
   flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius);
-  cursor: pointer;
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  transition: all var(--transition-fast);
-}
-
-.agent-type-picker__radio:hover {
-  border-color: hsl(var(--chart-1) / 0.4);
-}
-
-.agent-type-picker__radio--selected {
-  border-color: hsl(var(--chart-1));
-  background: hsl(var(--chart-1) / 0.06);
-}
-
-.agent-type-picker__radio input[type='radio'] {
-  accent-color: hsl(var(--chart-1));
 }
 
 .agent-type-picker__platforms {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
   margin-bottom: 4px;
 }
 
@@ -51,16 +27,20 @@
   cursor: pointer;
   font-size: var(--font-size-sm);
   font-weight: 500;
-  transition: all var(--transition-fast);
+  transition: background var(--transition-fast);
 }
 
 .agent-type-picker__platform:hover {
-  border-color: hsl(var(--chart-1) / 0.4);
+  background: hsl(var(--muted));
 }
 
 .agent-type-picker__platform--selected {
-  border-color: hsl(var(--chart-1));
-  background: hsl(var(--chart-1) / 0.06);
+  background: hsl(var(--muted));
+  border-color: hsl(var(--foreground) / 0.5);
+}
+
+.dark .agent-type-picker__platform--selected {
+  border-color: hsl(var(--foreground) / 0.6);
 }
 
 .agent-type-picker__platform input[type='radio'] {
@@ -72,12 +52,28 @@
 }
 
 .agent-type-picker__platform:focus-within {
-  outline: 2px solid hsl(var(--ring));
-  outline-offset: 2px;
+  outline: none;
 }
 
 .agent-type-picker__platform-icon {
   width: 18px;
   height: 18px;
-  border-radius: 3px;
+}
+
+.dark .agent-type-picker__platform-icon[src*='openai'],
+.dark .agent-type-picker__platform-icon[src*='vercel'] {
+  filter: invert(1);
+}
+
+.agent-type-picker__check {
+  width: 14px;
+  height: 14px;
+  color: hsl(var(--foreground));
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.agent-type-picker__check--visible {
+  opacity: 1;
 }
