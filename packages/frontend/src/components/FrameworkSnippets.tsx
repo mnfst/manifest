@@ -1,6 +1,7 @@
 import { createSignal, For, Show, type Component } from 'solid-js';
 import CopyButton from './CopyButton.jsx';
 import CodeBlock from './CodeBlock.jsx';
+import { highlight } from '../services/syntax-highlight.js';
 import {
   type ToolkitId,
   type OpenAILangId,
@@ -19,6 +20,7 @@ interface Props {
   keyPrefix: string | null;
   baseUrl: string;
   hideFullKey?: boolean;
+  defaultToolkit?: ToolkitId;
 }
 
 const EyeOpen: Component = () => (
@@ -58,7 +60,9 @@ const EyeClosed: Component = () => (
 );
 
 const FrameworkSnippets: Component<Props> = (props) => {
-  const [activeTab, setActiveTab] = createSignal<ToolkitId>(getStoredToolkit());
+  const [activeTab, setActiveTab] = createSignal<ToolkitId>(
+    props.defaultToolkit ?? getStoredToolkit(),
+  );
   const [openaiLang, setOpenaiLang] = createSignal<OpenAILangId>(getStoredOpenAILang());
   const [keyRevealed, setKeyRevealed] = createSignal(!props.hideFullKey);
 
@@ -163,7 +167,29 @@ const FrameworkSnippets: Component<Props> = (props) => {
         </Show>
 
         <div class="setup-method-tabs__content">
-          <CodeBlock code={snippet().code} copyText={snippetForCopy().code} language={language()} />
+          <div class="setup-cli-block">
+            <div class="setup-cli-block__actions">
+              <Show when={hasFullKey()}>
+                <button
+                  class="modal-terminal__copy"
+                  onClick={() => setKeyRevealed(!keyRevealed())}
+                  aria-label={keyRevealed() ? 'Hide API key in code' : 'Reveal API key in code'}
+                  title={keyRevealed() ? 'Hide key' : 'Reveal key'}
+                >
+                  {keyRevealed() ? <EyeClosed /> : <EyeOpen />}
+                </button>
+              </Show>
+              <CopyButton text={snippetForCopy().code} disabled={hasFullKey() && !keyRevealed()} />
+            </div>
+            <div class="setup-method__code">
+              <pre style="margin: 0; white-space: pre-wrap; word-break: break-all;">
+                <code
+                  class={`hljs language-${language()}`}
+                  innerHTML={highlight(snippet().code, language())}
+                />
+              </pre>
+            </div>
+          </div>
         </div>
       </div>
     </div>

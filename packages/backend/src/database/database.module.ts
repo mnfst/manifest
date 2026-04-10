@@ -65,6 +65,7 @@ import { AddKeyPrefixIndex1773900000000 } from './migrations/1773900000000-AddKe
 import { WidenKeyHashColumn1774000000000 } from './migrations/1774000000000-WidenKeyHashColumn';
 import { WidenApiKeyColumn1774896789000 } from './migrations/1774896789000-WidenApiKeyColumn';
 import { AddErrorHttpStatus1775000000000 } from './migrations/1775000000000-AddErrorHttpStatus';
+import { AddAgentType1775100000000 } from './migrations/1775100000000-AddAgentType';
 
 const entities = [
   AgentMessage,
@@ -128,6 +129,7 @@ const migrations = [
   WidenKeyHashColumn1774000000000,
   WidenApiKeyColumn1774896789000,
   AddErrorHttpStatus1775000000000,
+  AddAgentType1775100000000,
 ];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';

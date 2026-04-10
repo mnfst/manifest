@@ -4,6 +4,19 @@ export function getAgents() {
   return fetchJson('/agents');
 }
 
+export interface AgentInfo {
+  agent_name: string;
+  display_name: string;
+  agent_category: string | null;
+  agent_platform: string | null;
+}
+
+export function getAgentInfo(agentName: string): Promise<AgentInfo | null> {
+  return fetchJson<{ agents: AgentInfo[] }>('/agents').then(
+    (data) => data?.agents?.find((a) => a.agent_name === agentName) ?? null,
+  );
+}
+
 export function getAgentKey(agentName: string) {
   return fetchJson<{ keyPrefix: string; apiKey?: string; pluginEndpoint?: string }>(
     `/agents/${encodeURIComponent(agentName)}/key`,
@@ -19,15 +32,26 @@ export function rotateAgentKey(agentName: string) {
   );
 }
 
-export function renameAgent(currentName: string, newName: string) {
-  return fetchMutate<{ renamed: boolean; name: string }>(
+export function updateAgent(
+  currentName: string,
+  fields: {
+    name?: string;
+    agent_category?: string;
+    agent_platform?: string;
+  },
+) {
+  return fetchMutate<Record<string, unknown>>(
     `${BASE_URL}/agents/${encodeURIComponent(currentName)}`,
     {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: newName }),
+      body: JSON.stringify(fields),
     },
   );
+}
+
+export function renameAgent(currentName: string, newName: string) {
+  return updateAgent(currentName, { name: newName });
 }
 
 export function deleteAgent(agentName: string) {
@@ -36,13 +60,25 @@ export function deleteAgent(agentName: string) {
   });
 }
 
-export function createAgent(name: string) {
-  return fetchMutate<{ agent: { id: string; name: string }; apiKey: string }>(
-    `${BASE_URL}/agents`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name }),
-    },
-  );
+export interface CreateAgentParams {
+  name: string;
+  agent_category?: string;
+  agent_platform?: string;
+}
+
+export function createAgent(params: CreateAgentParams) {
+  return fetchMutate<{
+    agent: {
+      id: string;
+      name: string;
+      display_name: string;
+      agent_category: string | null;
+      agent_platform: string | null;
+    };
+    apiKey: string;
+  }>(`${BASE_URL}/agents`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
 }

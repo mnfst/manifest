@@ -7,6 +7,7 @@ const SetupModal: Component<{
   open: boolean;
   agentName: string;
   apiKey?: string | null;
+  agentPlatform?: string | null;
   onClose: () => void;
   onDone?: () => void;
   onGoToRouting?: () => void;
@@ -69,9 +70,7 @@ const SetupModal: Component<{
               </svg>
             </button>
           </div>
-          <p class="modal-card__desc">
-            Add Manifest as a model provider, then connect at least one LLM so routing works.
-          </p>
+          <p class="modal-card__desc">Connect your agent to Manifest to start routing requests.</p>
 
           <Show
             when={!apiKeyData.error || !!props.apiKey}
@@ -88,6 +87,7 @@ const SetupModal: Component<{
               apiKey={props.apiKey ?? apiKeyData()?.apiKey ?? null}
               keyPrefix={apiKeyData()?.keyPrefix ?? null}
               baseUrl={baseUrl()}
+              platform={props.agentPlatform}
             />
           </Show>
 

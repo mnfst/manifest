@@ -67,6 +67,8 @@ export class AgentsController {
         agentName: slug,
         displayName,
         email: user.email,
+        agentCategory: body.agent_category,
+        agentPlatform: body.agent_platform,
       });
     } catch (error) {
       if (error instanceof QueryFailedError && /unique|duplicate/i.test(error.message)) {
@@ -76,7 +78,13 @@ export class AgentsController {
     }
     await this.cacheManager.del(this.agentListCacheKey(user.id));
     return {
-      agent: { id: result.agentId, name: slug, display_name: displayName },
+      agent: {
+        id: result.agentId,
+        name: slug,
+        display_name: displayName,
+        agent_category: body.agent_category ?? null,
+        agent_platform: body.agent_platform ?? null,
+      },
       apiKey: result.apiKey,
     };
   }
@@ -102,19 +110,34 @@ export class AgentsController {
   }
 
   @Patch('agents/:agentName')
-  async renameAgent(
+  async updateAgent(
     @CurrentUser() user: AuthUser,
     @Param('agentName') agentName: string,
     @Body() body: RenameAgentDto,
   ) {
-    const slug = slugify(body.name);
-    if (!slug) {
-      throw new BadRequestException('Agent name produces an empty slug');
+    const result: Record<string, unknown> = {};
+
+    if (body.name) {
+      const slug = slugify(body.name);
+      if (!slug) throw new BadRequestException('Agent name produces an empty slug');
+      const displayName = body.name.trim();
+      await this.lifecycle.renameAgent(user.id, agentName, slug, displayName);
+      result['renamed'] = true;
+      result['name'] = slug;
+      result['display_name'] = displayName;
     }
-    const displayName = body.name.trim();
-    await this.lifecycle.renameAgent(user.id, agentName, slug, displayName);
+
+    if (body.agent_category !== undefined || body.agent_platform !== undefined) {
+      await this.lifecycle.updateAgentType(user.id, body.name ? slugify(body.name)! : agentName, {
+        agent_category: body.agent_category,
+        agent_platform: body.agent_platform,
+      });
+      if (body.agent_category !== undefined) result['agent_category'] = body.agent_category;
+      if (body.agent_platform !== undefined) result['agent_platform'] = body.agent_platform;
+    }
+
     await this.cacheManager.del(this.agentListCacheKey(user.id));
-    return { renamed: true, name: slug, display_name: displayName };
+    return result;
   }
 
   @Delete('agents/:agentName')

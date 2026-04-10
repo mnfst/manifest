@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   getAgents,
+  getAgentInfo,
+  updateAgent,
   getOverview,
   getMessages,
   getHealth,
@@ -285,7 +287,7 @@ describe('createAgent', () => {
     };
     mockMutateOk(payload);
 
-    const result = await createAgent('new-bot');
+    const result = await createAgent({ name: 'new-bot' });
 
     expect(result).toEqual({
       agent: { id: 'uuid-123', name: 'new-bot' },
@@ -296,7 +298,7 @@ describe('createAgent', () => {
   it('should POST to /api/v1/agents with JSON body', async () => {
     mockMutateOk({ agent: { id: '1', name: 'bot' }, apiKey: 'mnfst_x' });
 
-    await createAgent('bot');
+    await createAgent({ name: 'bot' });
 
     expect(mockFetch).toHaveBeenCalledWith(
       '/api/v1/agents',
@@ -304,7 +306,7 @@ describe('createAgent', () => {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'bot' }),
+        body: JSON.stringify({ name: 'bot' }),  // createAgent({ name: 'bot' })
       }),
     );
   });
@@ -313,7 +315,7 @@ describe('createAgent', () => {
     const { toast } = await import('../../src/services/toast-store.js');
     mockMutateError(400, 'Agent name is required');
 
-    await expect(createAgent('')).rejects.toThrow('Agent name is required');
+    await expect(createAgent({ name: '' })).rejects.toThrow('Agent name is required');
     expect(toast.error).toHaveBeenCalledWith('Agent name is required');
   });
 });
@@ -387,6 +389,72 @@ describe('renameAgent', () => {
   });
 });
 
+describe('getAgentInfo', () => {
+  it('should return agent info when agent exists', async () => {
+    const agents = [
+      { agent_name: 'my-agent', display_name: 'My Agent', agent_category: 'personal', agent_platform: 'openclaw' },
+      { agent_name: 'other', display_name: 'Other', agent_category: null, agent_platform: null },
+    ];
+    mockOk({ agents });
+
+    const result = await getAgentInfo('my-agent');
+
+    expect(result).toEqual(agents[0]);
+  });
+
+  it('should return null when agent not found', async () => {
+    mockOk({ agents: [{ agent_name: 'other', display_name: 'Other', agent_category: null, agent_platform: null }] });
+
+    const result = await getAgentInfo('missing-agent');
+
+    expect(result).toBeNull();
+  });
+
+  it('should return null when agents list is empty', async () => {
+    mockOk({ agents: [] });
+
+    const result = await getAgentInfo('any-agent');
+
+    expect(result).toBeNull();
+  });
+});
+
+describe('updateAgent', () => {
+  it('should PATCH to the correct URL with fields', async () => {
+    mockMutateOk({ updated: true });
+
+    const result = await updateAgent('my-agent', { agent_category: 'app', agent_platform: 'openai-sdk' });
+
+    expect(result).toEqual({ updated: true });
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/v1/agents/my-agent',
+      expect.objectContaining({
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ agent_category: 'app', agent_platform: 'openai-sdk' }),
+      }),
+    );
+  });
+
+  it('should encode agent name in URL', async () => {
+    mockMutateOk({});
+
+    await updateAgent('agent/special name', { name: 'new' });
+
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain('/agents/agent%2Fspecial%20name');
+  });
+
+  it('should throw and call toast.error on failure', async () => {
+    const { toast } = await import('../../src/services/toast-store.js');
+    mockMutateError(400, 'Invalid category');
+
+    await expect(updateAgent('my-agent', { agent_category: 'bad' })).rejects.toThrow('Invalid category');
+    expect(toast.error).toHaveBeenCalledWith('Invalid category');
+  });
+});
+
 describe('getModelPrices', () => {
   it('should fetch /api/v1/model-prices', async () => {
     const prices = [{ model: 'gpt-4', input_cost: 0.03, output_cost: 0.06 }];
@@ -407,7 +475,7 @@ describe('fetchMutate error handling', () => {
     const { toast } = await import('../../src/services/toast-store.js');
     mockMutateError(422, 'Name already taken');
 
-    await expect(createAgent('dup')).rejects.toThrow('Name already taken');
+    await expect(createAgent({ name: 'dup' })).rejects.toThrow('Name already taken');
     expect(toast.error).toHaveBeenCalledWith('Name already taken');
   });
 
@@ -419,7 +487,7 @@ describe('fetchMutate error handling', () => {
       json: () => Promise.resolve({ message: ['field is required', 'name too short'] }),
     });
 
-    await expect(createAgent('x')).rejects.toThrow('field is required, name too short');
+    await expect(createAgent({ name: 'x' })).rejects.toThrow('field is required, name too short');
     expect(toast.error).toHaveBeenCalledWith('field is required, name too short');
   });
 

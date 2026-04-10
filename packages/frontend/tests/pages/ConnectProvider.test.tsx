@@ -54,7 +54,7 @@ describe('ConnectProvider', () => {
     render(() => <ConnectProvider />);
 
     await waitFor(() => {
-      expect(mockCreateAgent).toHaveBeenCalledWith('my-agent');
+      expect(mockCreateAgent).toHaveBeenCalledWith({ name: 'my-agent' });
     });
 
     await waitFor(() => {

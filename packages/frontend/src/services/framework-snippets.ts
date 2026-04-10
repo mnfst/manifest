@@ -24,7 +24,7 @@ export interface ToolkitTab {
 export const TOOLKIT_TABS: ToolkitTab[] = [
   { id: 'openai-sdk', label: 'OpenAI SDK', icon: '/icons/providers/openai.svg' },
   { id: 'vercel-ai-sdk', label: 'Vercel AI SDK', icon: '/icons/vercel.svg' },
-  { id: 'langchain', label: 'LangChain', icon: '/icons/langchain.svg' },
+  { id: 'langchain', label: 'LangChain', icon: '/icons/langchain.png' },
   { id: 'curl', label: 'cURL' },
 ];
 
@@ -101,16 +101,17 @@ response = client.chat.completions.create(
 export function getVercelPythonSnippet(baseUrl: string, apiKey: string): Snippet {
   return {
     title: 'Vercel AI SDK (Python)',
-    code: `from openai import OpenAI
+    code: `# pip install ai-sdk
+from ai_sdk import AIClient
 
-client = OpenAI(
+client = AIClient(
     base_url="${baseUrl}",
     api_key="${apiKey}",
 )
 
-response = client.chat.completions.create(
+response = client.generate_text(
     model="auto",
-    messages=[{"role": "user", "content": "Hello"}],
+    prompt="Hello",
 )`,
   };
 }

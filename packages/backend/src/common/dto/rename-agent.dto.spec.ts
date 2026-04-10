@@ -18,10 +18,10 @@ describe('RenameAgentDto', () => {
     expect(errors.length).toBeGreaterThan(0);
   });
 
-  it('rejects missing name', async () => {
+  it('allows missing name (optional)', async () => {
     const dto = plainToInstance(RenameAgentDto, {});
     const errors = await validate(dto);
-    expect(errors.length).toBeGreaterThan(0);
+    expect(errors).toHaveLength(0);
   });
 
   it('accepts names with spaces', async () => {
@@ -38,6 +38,30 @@ describe('RenameAgentDto', () => {
 
   it('rejects names longer than 100 characters', async () => {
     const dto = plainToInstance(RenameAgentDto, { name: 'a'.repeat(101) });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
+  it('accepts valid agent_category', async () => {
+    const dto = plainToInstance(RenameAgentDto, { agent_category: 'personal' });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+  });
+
+  it('rejects invalid agent_category', async () => {
+    const dto = plainToInstance(RenameAgentDto, { agent_category: 'invalid' });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
+  it('accepts valid agent_platform', async () => {
+    const dto = plainToInstance(RenameAgentDto, { agent_platform: 'openclaw' });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+  });
+
+  it('rejects invalid agent_platform', async () => {
+    const dto = plainToInstance(RenameAgentDto, { agent_platform: 'invalid' });
     const errors = await validate(dto);
     expect(errors.length).toBeGreaterThan(0);
   });

@@ -730,6 +730,25 @@
 }
 
 /* ── Coming soon placeholder ─────────────────────── */
+/* ── Change type link ─────────────────────────────── */
+.setup-change-type-link {
+  display: inline-block;
+  font-size: var(--font-size-xs);
+  color: hsl(var(--chart-1));
+  margin-bottom: 12px;
+  text-decoration: none;
+}
+
+.setup-change-type-link:hover {
+  text-decoration: underline;
+}
+
+.setup-change-type-link:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 .setup-agents-coming-soon {
   display: flex;
   align-items: center;

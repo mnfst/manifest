@@ -276,16 +276,16 @@ describe("FrameworkSnippets", () => {
     expect(toggleImgs.length).toBe(2);
   });
 
-  it("passes copyText to CodeBlock from snippetForCopy using real key", async () => {
+  it("copies snippet with real key after revealing", async () => {
     const writeTextMock = vi.mocked(navigator.clipboard.writeText);
     const { container } = render(() => (
       <FrameworkSnippets {...defaultProps} apiKey="mnfst_real_key" keyPrefix="mnfst_re" hideFullKey />
     ));
-    // The code block copy button is inside setup-method__code
-    const codeBlockCopy = container.querySelector(".setup-method__code .modal-terminal__copy");
-    expect(codeBlockCopy).not.toBeNull();
-    await fireEvent.click(codeBlockCopy!);
-    // The copied text should contain the real key, not the masked one
+    // Reveal the key via the code block eye toggle
+    fireEvent.click(container.querySelector('[aria-label="Reveal API key in code"]')!);
+    const copyBtn = container.querySelector('.setup-cli-block__actions [aria-label="Copy to clipboard"]');
+    expect(copyBtn).not.toBeNull();
+    await fireEvent.click(copyBtn!);
     expect(writeTextMock).toHaveBeenCalled();
     const copiedText = writeTextMock.mock.calls[0][0];
     expect(copiedText).toContain("mnfst_real_key");
@@ -296,11 +296,28 @@ describe("FrameworkSnippets", () => {
     const { container } = render(() => (
       <FrameworkSnippets {...defaultProps} keyPrefix="mnfst_pre" />
     ));
-    const codeBlockCopy = container.querySelector(".setup-method__code .modal-terminal__copy");
-    expect(codeBlockCopy).not.toBeNull();
-    await fireEvent.click(codeBlockCopy!);
+    const copyBtn = container.querySelector('.setup-cli-block__actions [aria-label="Copy to clipboard"]');
+    expect(copyBtn).not.toBeNull();
+    await fireEvent.click(copyBtn!);
     expect(writeTextMock).toHaveBeenCalled();
     const copiedText = writeTextMock.mock.calls[0][0];
     expect(copiedText).toContain("mnfst_pre...");
+  });
+
+  it("shows eye toggle in code block when apiKey provided", () => {
+    const { container } = render(() => (
+      <FrameworkSnippets {...defaultProps} apiKey="mnfst_secret" keyPrefix="mnfst_se" hideFullKey />
+    ));
+    const eyeBtn = container.querySelector('.setup-cli-block__actions [aria-label="Reveal API key in code"]');
+    expect(eyeBtn).not.toBeNull();
+  });
+
+  it("disables code block copy when key hidden", () => {
+    const { container } = render(() => (
+      <FrameworkSnippets {...defaultProps} apiKey="mnfst_secret" keyPrefix="mnfst_se" hideFullKey />
+    ));
+    const copyBtn = container.querySelector('.setup-cli-block__actions [aria-label="Copy disabled"]');
+    expect(copyBtn).not.toBeNull();
+    expect(copyBtn!.hasAttribute("disabled")).toBe(true);
   });
 });

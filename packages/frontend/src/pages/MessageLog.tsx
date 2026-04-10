@@ -18,6 +18,7 @@ import Select from '../components/Select.jsx';
 import SetupModal from '../components/SetupModal.jsx';
 import { DETAILED_COLUMNS, type MessageRow } from '../components/message-table-types.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
+import { agentPlatform } from '../services/agent-platform-store.js';
 import {
   getCustomProviders,
   getMessages,
@@ -400,6 +401,7 @@ const MessageLog: Component = () => {
       <SetupModal
         open={setupOpen()}
         agentName={decodeURIComponent(params.agentName)}
+        agentPlatform={agentPlatform()}
         onClose={() => setSetupOpen(false)}
       />
     </div>

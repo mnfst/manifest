@@ -2,16 +2,20 @@ import { createResource, createSignal, Show, For, type Component } from 'solid-j
 import { A, useNavigate } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
 import ErrorState from '../components/ErrorState.jsx';
+import AgentTypePicker from '../components/AgentTypePicker.jsx';
 import { getAgents, createAgent } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
 import { markAgentCreated } from '../services/recent-agents.js';
-import { formatNumber, formatCost } from '../services/formatters.js';
+import { formatNumber } from '../services/formatters.js';
 import Sparkline from '../components/Sparkline.jsx';
 import { pingCount } from '../services/sse.js';
+import { type AgentCategory, type AgentPlatform, PLATFORM_ICONS } from 'manifest-shared';
 
 interface Agent {
   agent_name: string;
   display_name?: string;
+  agent_category?: string | null;
+  agent_platform?: string | null;
   message_count: number;
   last_active: string;
   total_cost: number;
@@ -26,21 +30,33 @@ interface AgentsData {
 const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props) => {
   const navigate = useNavigate();
   const [name, setName] = createSignal('');
+  const [category, setCategory] = createSignal<AgentCategory | null>(null);
+  const [platform, setPlatform] = createSignal<AgentPlatform | null>(null);
   const [creating, setCreating] = createSignal(false);
+
+  const handleCategoryChange = (c: AgentCategory) => {
+    setCategory(c);
+    setPlatform(null);
+  };
 
   const handleCreate = async () => {
     const agentName = name().trim();
     if (!agentName) return;
     setCreating(true);
     try {
-      const result = await createAgent(agentName);
+      const result = await createAgent({
+        name: agentName,
+        ...(category() ? { agent_category: category()! } : {}),
+        ...(platform() ? { agent_platform: platform()! } : {}),
+      });
       toast.success(`Agent "${agentName}" connected`);
       props.onClose();
-      setName('');
+      resetForm();
       const slug = result?.agent?.name ?? agentName;
       markAgentCreated(slug);
-      const url = `/agents/${encodeURIComponent(slug)}`;
-      navigate(url, { state: { newApiKey: result?.apiKey } });
+      navigate(`/agents/${encodeURIComponent(slug)}`, {
+        state: { newApiKey: result?.apiKey },
+      });
     } catch {
       // error toast already shown by fetchMutate
     } finally {
@@ -48,11 +64,17 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
     }
   };
 
+  const resetForm = () => {
+    setName('');
+    setCategory(null);
+    setPlatform(null);
+  };
+
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Enter') handleCreate();
     if (e.key === 'Escape') {
       props.onClose();
-      setName('');
+      resetForm();
     }
   };
 
@@ -62,11 +84,12 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
         class="modal-overlay"
         onClick={() => {
           props.onClose();
-          setName('');
+          resetForm();
         }}
       >
         <div
           class="modal-card"
+          style="max-width: 540px;"
           role="dialog"
           aria-modal="true"
           aria-labelledby="add-agent-title"
@@ -79,7 +102,9 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
             Name your agent to start tracking its LLM usage, costs, and messages in real time.
           </p>
 
-          <label class="modal-card__field-label" for="agent-name-input">Agent name</label>
+          <label class="modal-card__field-label" for="agent-name-input">
+            Agent name
+          </label>
           <input
             ref={(el) => requestAnimationFrame(() => el.focus())}
             id="agent-name-input"
@@ -89,6 +114,17 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
             value={name()}
             onInput={(e) => setName(e.currentTarget.value)}
             onKeyDown={handleKeyDown}
+            disabled={creating()}
+          />
+
+          <label class="modal-card__field-label" style="margin-top: 12px;">
+            Agent type
+          </label>
+          <AgentTypePicker
+            category={category()}
+            platform={platform()}
+            onCategoryChange={handleCategoryChange}
+            onPlatformChange={setPlatform}
             disabled={creating()}
           />
 
@@ -189,11 +225,25 @@ const Workspace: Component = () => {
                 {(agent) => (
                   <A href={`/agents/${encodeURIComponent(agent.agent_name)}`} class="agent-card">
                     <div class="agent-card__top">
+                      <Show
+                        when={
+                          agent.agent_platform &&
+                          PLATFORM_ICONS[agent.agent_platform as keyof typeof PLATFORM_ICONS]
+                        }
+                      >
+                        <img
+                          src={PLATFORM_ICONS[agent.agent_platform as keyof typeof PLATFORM_ICONS]}
+                          alt=""
+                          width="18"
+                          height="18"
+                          class="agent-card__platform-icon"
+                        />
+                      </Show>
                       <span class="agent-card__name">{agent.display_name ?? agent.agent_name}</span>
                     </div>
                     <div class="agent-card__stats">
                       <div class="agent-card__stat">
-                        <span class="agent-card__stat-label">Total tokens</span>
+                        <span class="agent-card__stat-label">Tokens</span>
                         <span class="agent-card__stat-value">
                           {formatNumber(agent.total_tokens)}
                         </span>
@@ -201,12 +251,6 @@ const Workspace: Component = () => {
                       <div class="agent-card__stat">
                         <span class="agent-card__stat-label">Messages</span>
                         <span class="agent-card__stat-value">{agent.message_count}</span>
-                      </div>
-                      <div class="agent-card__stat">
-                        <span class="agent-card__stat-label">Total cost</span>
-                        <span class="agent-card__stat-value">
-                          {formatCost(agent.total_cost) ?? '$0.00'}
-                        </span>
                       </div>
                     </div>
                     <div class="agent-card__chart">

@@ -249,6 +249,8 @@ export class TimeseriesQueriesService {
       return {
         agent_name: name,
         display_name: a.display_name ?? name,
+        agent_category: a.agent_category ?? null,
+        agent_platform: a.agent_platform ?? null,
         message_count: Number(stats?.['message_count'] ?? 0),
         last_active: String(stats?.['last_active'] ?? a.created_at ?? ''),
         total_cost: Number(stats?.['total_cost'] ?? 0),

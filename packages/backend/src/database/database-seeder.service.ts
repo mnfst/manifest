@@ -133,6 +133,8 @@ export class DatabaseSeederService implements OnModuleInit {
       id: SEED_AGENT_ID,
       name: 'demo-agent',
       description: 'Default development agent',
+      agent_category: 'personal',
+      agent_platform: 'openclaw',
       is_active: true,
       tenant_id: SEED_TENANT_ID,
     });

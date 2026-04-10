@@ -5,6 +5,7 @@ const CopyButton: Component<{ text: string; disabled?: boolean }> = (props) => {
   const [failed, setFailed] = createSignal(false);
 
   const handleCopy = async () => {
+    if (props.disabled) return;
     try {
       await navigator.clipboard.writeText(props.text);
       setCopied(true);
@@ -19,7 +20,7 @@ const CopyButton: Component<{ text: string; disabled?: boolean }> = (props) => {
     <button
       class="modal-terminal__copy"
       classList={{ 'modal-terminal__copy--disabled': !!props.disabled }}
-      onClick={props.disabled ? undefined : handleCopy}
+      onClick={handleCopy}
       disabled={props.disabled}
       title={props.disabled ? 'Reveal key first' : 'Copy'}
       aria-label={

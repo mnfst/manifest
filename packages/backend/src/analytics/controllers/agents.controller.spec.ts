@@ -58,7 +58,11 @@ describe('AgentsController', () => {
         },
         {
           provide: AgentLifecycleService,
-          useValue: { deleteAgent: mockDeleteAgent, renameAgent: mockRenameAgent },
+          useValue: {
+            deleteAgent: mockDeleteAgent,
+            renameAgent: mockRenameAgent,
+            updateAgentType: jest.fn(),
+          },
         },
         {
           provide: ApiKeyGeneratorService,
@@ -183,7 +187,7 @@ describe('AgentsController', () => {
 
   it('renames agent and returns success with slug', async () => {
     const user = { id: 'u1' };
-    const result = await controller.renameAgent(user as never, 'bot-1', {
+    const result = await controller.updateAgent(user as never, 'bot-1', {
       name: 'Bot Renamed',
     } as never);
 
@@ -195,7 +199,7 @@ describe('AgentsController', () => {
   it('rejects rename with empty slug', async () => {
     const user = { id: 'u1' };
     await expect(
-      controller.renameAgent(user as never, 'bot-1', { name: '!!!' } as never),
+      controller.updateAgent(user as never, 'bot-1', { name: '!!!' } as never),
     ).rejects.toThrow(BadRequestException);
   });
 
@@ -242,7 +246,7 @@ describe('AgentsController', () => {
         { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
         {
           provide: AgentLifecycleService,
-          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn() },
+          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn(), updateAgentType: jest.fn() },
         },
         {
           provide: ApiKeyGeneratorService,
@@ -272,7 +276,7 @@ describe('AgentsController', () => {
         { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
         {
           provide: AgentLifecycleService,
-          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn() },
+          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn(), updateAgentType: jest.fn() },
         },
         {
           provide: ApiKeyGeneratorService,
@@ -301,7 +305,7 @@ describe('AgentsController', () => {
         { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
         {
           provide: AgentLifecycleService,
-          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn() },
+          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn(), updateAgentType: jest.fn() },
         },
         {
           provide: ApiKeyGeneratorService,
@@ -329,7 +333,7 @@ describe('AgentsController', () => {
         { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
         {
           provide: AgentLifecycleService,
-          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn() },
+          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn(), updateAgentType: jest.fn() },
         },
         {
           provide: ApiKeyGeneratorService,

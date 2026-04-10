@@ -1,20 +1,23 @@
 import { Meta, Title } from '@solidjs/meta';
 import { useLocation, useNavigate, useParams } from '@solidjs/router';
-import { createResource, createSignal, ErrorBoundary, For, Show, type Component } from 'solid-js';
+import { createResource, createSignal, ErrorBoundary, Show, type Component } from 'solid-js';
 import CopyButton from '../components/CopyButton.jsx';
 import ErrorState from '../components/ErrorState.jsx';
+import AgentTypePicker from '../components/AgentTypePicker.jsx';
 import SetupStepAddProvider from '../components/SetupStepAddProvider.jsx';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import {
   deleteAgent,
+  getAgentInfo,
   getAgentKey,
-  getRoutingStatus,
   renameAgent,
   rotateAgentKey,
+  updateAgent,
 } from '../services/api.js';
 import { isLocalMode } from '../services/local-mode.js';
 import { markAgentCreated } from '../services/recent-agents.js';
 import { toast } from '../services/toast-store.js';
+import type { AgentCategory, AgentPlatform } from 'manifest-shared';
 
 const Settings: Component = () => {
   const params = useParams<{ agentName: string }>();
@@ -24,7 +27,6 @@ const Settings: Component = () => {
 
   const [name, setName] = createSignal(agentName());
   const [saving, setSaving] = createSignal(false);
-  const [saved, setSaved] = createSignal(false);
   const [showDeleteModal, setShowDeleteModal] = createSignal(false);
   const [deleteConfirmName, setDeleteConfirmName] = createSignal('');
   const [deleting, setDeleting] = createSignal(false);
@@ -32,14 +34,24 @@ const Settings: Component = () => {
   const [rotatedKey, setRotatedKey] = createSignal<string | null>(
     (location.state as { newApiKey?: string } | undefined)?.newApiKey ?? null,
   );
+  const [savingType, setSavingType] = createSignal(false);
 
-  const [apiKeyData, { refetch: refetchKey }] = createResource(
-    () => agentName(),
-    (n) => getAgentKey(n),
-  );
+  const [agentInfo, { refetch: refetchInfo }] = createResource(() => agentName(), getAgentInfo);
+  const [apiKeyData, { refetch: refetchKey }] = createResource(() => agentName(), getAgentKey);
 
-  const [routingStatus] = createResource(() => agentName(), getRoutingStatus);
-  const routingEnabled = () => routingStatus()?.enabled ?? false;
+  const [category, setCategory] = createSignal<AgentCategory | null>(null);
+  const [platform, setPlatform] = createSignal<AgentPlatform | null>(null);
+  const [typeInitialized, setTypeInitialized] = createSignal(false);
+
+  // Sync category/platform from fetched data once
+  const initType = () => {
+    if (!typeInitialized() && agentInfo()) {
+      setCategory((agentInfo()?.agent_category as AgentCategory) ?? null);
+      setPlatform((agentInfo()?.agent_platform as AgentPlatform) ?? null);
+      setTypeInitialized(true);
+    }
+    return true;
+  };
 
   const [keyRevealed, setKeyRevealed] = createSignal(false);
   const keyData = () => (apiKeyData.error ? undefined : apiKeyData());
@@ -58,20 +70,41 @@ const Settings: Component = () => {
     return `${window.location.origin}/v1`;
   };
 
-  const handleSave = async () => {
-    const newName = name().trim();
-    if (!newName || newName === agentName()) return;
+  const origCategory = () => (agentInfo()?.agent_category as AgentCategory) ?? null;
+  const origPlatform = () => (agentInfo()?.agent_platform as AgentPlatform) ?? null;
+  const nameChanged = () => name().trim() !== agentName() && name().trim() !== '';
+  const typeChanged = () => category() !== origCategory() || platform() !== origPlatform();
+  const hasChanges = () => nameChanged() || typeChanged();
 
+  const handleSaveAll = async () => {
     setSaving(true);
+    setSavingType(true);
     try {
-      const result = await renameAgent(agentName(), newName);
-      const slug = result?.name ?? newName;
-      markAgentCreated(slug);
-      window.location.replace(`/agents/${encodeURIComponent(slug)}/settings`);
+      if (typeChanged() && category() && platform()) {
+        await updateAgent(agentName(), {
+          agent_category: category()!,
+          agent_platform: platform()!,
+        });
+        refetchInfo();
+      }
+      if (nameChanged()) {
+        const result = await renameAgent(agentName(), name().trim());
+        const slug = (result?.name as string) ?? name().trim();
+        markAgentCreated(slug);
+        window.location.replace(`/agents/${encodeURIComponent(slug)}/settings`);
+        return;
+      }
+      if (typeChanged()) toast.success('Agent type updated');
     } catch {
       setName(agentName());
+    } finally {
       setSaving(false);
+      setSavingType(false);
     }
+  };
+
+  const scrollToTypeSection = () => {
+    document.getElementById('agent-type-section')?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleRotate = async () => {
@@ -88,10 +121,6 @@ const Settings: Component = () => {
       setRotating(false);
     }
   };
-
-  const TABS = () => ['General', 'Agent setup'] as const;
-  type Tab = 'General' | 'Agent setup';
-  const [tab, setTab] = createSignal<Tab>('General');
 
   return (
     <div class="container--sm">
@@ -110,228 +139,192 @@ const Settings: Component = () => {
         </div>
       </div>
 
-      <Show when={TABS().length > 0}>
-        <div class="panel__tabs" style="margin-bottom: var(--gap-xl);">
-          <For each={TABS()}>
-            {(t) => (
-              <button
-                class="panel__tab"
-                classList={{ 'panel__tab--active': tab() === t }}
-                onClick={() => setTab(t)}
-              >
-                {t}
-              </button>
-            )}
-          </For>
+      {/* -- Agent Name + Type ---------------------- */}
+      <div class="settings-card" id="agent-type-section">
+        <div class="settings-card__row">
+          <div class="settings-card__label">
+            <span class="settings-card__label-title">Agent name</span>
+            <span class="settings-card__label-desc">
+              The display name for this agent across the dashboard.
+            </span>
+          </div>
+          <div class="settings-card__control">
+            <input
+              class="settings-card__input"
+              type="text"
+              aria-label="Agent name"
+              value={name()}
+              onInput={(e) => setName(e.currentTarget.value)}
+            />
+          </div>
         </div>
-      </Show>
 
-      {/* -- Tab: General ----------------------------- */}
-      <Show when={tab() === 'General'}>
+        <Show when={initType()}>
+          <div style="padding: 0 var(--gap-lg) var(--gap-md);">
+            <span class="settings-card__label-title" style="display: block; margin-bottom: 8px;">
+              Agent type
+            </span>
+            <AgentTypePicker
+              category={category()}
+              platform={platform()}
+              onCategoryChange={(c) => {
+                setCategory(c);
+                setPlatform(null);
+              }}
+              onPlatformChange={setPlatform}
+              disabled={savingType()}
+            />
+          </div>
+        </Show>
+
+        <div class="settings-card__footer">
+          <button
+            class="btn btn--primary btn--sm"
+            onClick={handleSaveAll}
+            disabled={saving() || savingType() || !hasChanges()}
+          >
+            {saving() || savingType() ? (
+              <>
+                <span class="spinner" />
+                <span class="sr-only">Saving...</span>
+              </>
+            ) : (
+              'Save'
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* -- API Key ----------------------------------- */}
+      <ErrorBoundary
+        fallback={(err, reset) => (
+          <ErrorState
+            error={err}
+            title="Something went wrong"
+            message="An error occurred."
+            onRetry={reset}
+          />
+        )}
+      >
+        <h3 class="settings-section__title">API Key</h3>
         <div class="settings-card">
-          <div class="settings-card__row">
-            <div class="settings-card__label">
-              <span class="settings-card__label-title">Agent name</span>
-              <span class="settings-card__label-desc">
-                The display name for this agent across the dashboard.
-              </span>
-            </div>
-            <div class="settings-card__control">
-              <input
-                class="settings-card__input"
-                type="text"
-                aria-label="Agent name"
-                value={name()}
-                onInput={(e) => setName(e.currentTarget.value)}
-              />
+          <div class="settings-card__body">
+            <span class="settings-card__label-title">Agent API key</span>
+            <span class="settings-card__label-desc" style="font-size: 14px;">
+              This key authenticates your agent's requests to Manifest. Rotating it generates a new
+              key and immediately invalidates the current one.
+            </span>
+            <div class="settings-card__key-row">
+              <code class="settings-card__key-value">{displayedKey()}</code>
+              <div class="settings-card__key-actions">
+                <Show when={fullKey()}>
+                  <button
+                    class="btn btn--ghost btn--sm"
+                    onClick={() => setKeyRevealed(!keyRevealed())}
+                    aria-label={keyRevealed() ? 'Hide API key' : 'Reveal API key'}
+                    title={keyRevealed() ? 'Hide' : 'Reveal'}
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <Show
+                        when={keyRevealed()}
+                        fallback={
+                          <>
+                            <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
+                            <circle cx="12" cy="12" r="3" />
+                          </>
+                        }
+                      >
+                        <path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" />
+                        <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" />
+                        <path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143" />
+                        <path d="m2 2 20 20" />
+                      </Show>
+                    </svg>
+                  </button>
+                </Show>
+                <Show when={fullKey()}>
+                  <CopyButton text={fullKey()!} />
+                </Show>
+              </div>
             </div>
           </div>
           <div class="settings-card__footer">
-            <button
-              class="btn btn--primary btn--sm"
-              onClick={handleSave}
-              disabled={saving() || name().trim() === agentName()}
-            >
-              <span aria-live="polite">
-                {saved() ? (
-                  'Saved'
-                ) : saving() ? (
-                  <>
-                    <span class="spinner" />
-                    <span class="sr-only">Saving…</span>
-                  </>
-                ) : (
-                  'Save'
-                )}
-              </span>
+            <button class="btn btn--outline btn--sm" onClick={handleRotate} disabled={rotating()}>
+              {rotating() ? (
+                <>
+                  <span class="spinner" />
+                  <span class="sr-only">Rotating...</span>
+                </>
+              ) : (
+                'Rotate key'
+              )}
             </button>
           </div>
         </div>
 
-        <Show when={!isLocalMode() || agentName() !== 'local-agent'}>
-          <h3 class="settings-section__title settings-section__title--danger">Danger zone</h3>
-
-          <div class="settings-card settings-card--danger">
-            <div class="settings-card__row">
-              <div class="settings-card__label">
-                <span class="settings-card__label-title">Delete this agent</span>
-                <span class="settings-card__label-desc">
-                  Permanently delete this agent, its API key, and all recorded messages and
-                  analytics. This action cannot be undone.
-                </span>
-              </div>
-              <div class="settings-card__control">
-                <button
-                  class="btn btn--danger btn--sm"
-                  onClick={() => {
-                    setShowDeleteModal(true);
-                    setDeleteConfirmName('');
-                  }}
-                >
-                  Delete agent
-                </button>
-              </div>
+        {/* -- Setup Instructions ---------------------- */}
+        <h3 class="settings-section__title">Setup</h3>
+        <Show
+          when={!apiKeyData.loading}
+          fallback={<div class="skeleton skeleton--rect" style="width: 100%; height: 200px;" />}
+        >
+          <Show when={apiKeyData.error}>
+            <div style="background: hsl(var(--chart-5) / 0.1); border: 1px solid hsl(var(--chart-5) / 0.3); border-radius: var(--radius); padding: 10px 14px; margin-bottom: var(--gap-md); font-size: var(--font-size-sm);">
+              Could not load your API key. Use <strong>Rotate key</strong> above to generate a new
+              one.
             </div>
+          </Show>
+          <div class="settings-card" style="padding: var(--gap-lg);">
+            <SetupStepAddProvider
+              apiKey={rotatedKey() ?? keyData()?.apiKey ?? null}
+              keyPrefix={keyData()?.keyPrefix ?? null}
+              baseUrl={baseUrl()}
+              hideFullKey
+              platform={platform()}
+              onChangeType={scrollToTypeSection}
+            />
           </div>
         </Show>
-      </Show>
+      </ErrorBoundary>
 
-      {/* -- Tab: Agent setup ------------------------- */}
-      <Show when={tab() === 'Agent setup'}>
-        <ErrorBoundary
-          fallback={(err, reset) => (
-            <ErrorState
-              error={err}
-              title="Something went wrong"
-              message="An error occurred while rendering setup instructions."
-              onRetry={reset}
-            />
-          )}
-        >
-          <h3 class="settings-section__title">API Key</h3>
-
-          <div class="settings-card">
-            <div class="settings-card__body">
-              <span class="settings-card__label-title">Agent API key</span>
-              <span class="settings-card__label-desc" style="font-size: 14px;">
-                This key authenticates your agent's requests to Manifest. Rotating it generates a
-                new key and immediately invalidates the current one.
+      {/* -- Danger Zone -------------------------------- */}
+      <Show when={!isLocalMode() || agentName() !== 'local-agent'}>
+        <h3 class="settings-section__title settings-section__title--danger">Danger zone</h3>
+        <div class="settings-card settings-card--danger">
+          <div class="settings-card__row">
+            <div class="settings-card__label">
+              <span class="settings-card__label-title">Delete this agent</span>
+              <span class="settings-card__label-desc">
+                Permanently delete this agent, its API key, and all recorded messages and analytics.
+                This action cannot be undone.
               </span>
-
-              <div class="settings-card__key-row">
-                <code class="settings-card__key-value">{displayedKey()}</code>
-
-                <div class="settings-card__key-actions">
-                  <Show when={fullKey()}>
-                    <button
-                      class="btn btn--ghost btn--sm"
-                      onClick={() => setKeyRevealed(!keyRevealed())}
-                      aria-label={keyRevealed() ? 'Hide API key' : 'Reveal API key'}
-                      title={keyRevealed() ? 'Hide' : 'Reveal'}
-                    >
-                      {keyRevealed() ? (
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          aria-hidden="true"
-                        >
-                          <path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" />
-                          <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" />
-                          <path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143" />
-                          <path d="m2 2 20 20" />
-                        </svg>
-                      ) : (
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          aria-hidden="true"
-                        >
-                          <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
-                          <circle cx="12" cy="12" r="3" />
-                        </svg>
-                      )}
-                    </button>
-                  </Show>
-                  <Show when={fullKey()}>
-                    <CopyButton text={fullKey()!} />
-                  </Show>
-                </div>
-              </div>
             </div>
-
-            <div class="settings-card__footer">
-              <button class="btn btn--outline btn--sm" onClick={handleRotate} disabled={rotating()}>
-                {rotating() ? (
-                  <>
-                    <span class="spinner" />
-                    <span class="sr-only">Rotating…</span>
-                  </>
-                ) : (
-                  'Rotate key'
-                )}
+            <div class="settings-card__control">
+              <button
+                class="btn btn--danger btn--sm"
+                onClick={() => {
+                  setShowDeleteModal(true);
+                  setDeleteConfirmName('');
+                }}
+              >
+                Delete agent
               </button>
             </div>
           </div>
-
-          <h3 class="settings-section__title">Setup</h3>
-
-          <Show
-            when={!apiKeyData.loading}
-            fallback={
-              <div class="setup-steps">
-                <div class="skeleton skeleton--rect" style="width: 100%; height: 200px;" />
-              </div>
-            }
-          >
-            <Show when={apiKeyData.error}>
-              <div style="background: hsl(var(--chart-5) / 0.1); border: 1px solid hsl(var(--chart-5) / 0.3); border-radius: var(--radius); padding: 10px 14px; margin-bottom: var(--gap-md); font-size: var(--font-size-sm); color: hsl(var(--foreground));">
-                Could not load your API key. Use <strong>Rotate key</strong> above to generate a new
-                one, or follow the setup instructions below with a placeholder key.
-              </div>
-            </Show>
-            <div class="settings-card" style="padding: var(--gap-lg);">
-              <SetupStepAddProvider
-                apiKey={rotatedKey() ?? keyData()?.apiKey ?? null}
-                keyPrefix={keyData()?.keyPrefix ?? null}
-                baseUrl={baseUrl()}
-                hideFullKey
-              />
-              <Show when={!routingEnabled()}>
-                <div style="margin-top: 0; padding-top: var(--gap-lg); display: flex; align-items: center; justify-content: space-between;">
-                  <p style="margin: 0; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
-                    Add at least one LLM provider so Manifest knows where to route requests.
-                  </p>
-                  <button
-                    class="btn btn--primary btn--sm"
-                    style="flex-shrink: 0; margin-left: 16px;"
-                    onClick={() =>
-                      navigate(`/agents/${encodeURIComponent(agentName())}/routing`, {
-                        state: { openProviders: true },
-                      })
-                    }
-                  >
-                    Go to routing
-                  </button>
-                </div>
-              </Show>
-            </div>
-          </Show>
-        </ErrorBoundary>
+        </div>
       </Show>
 
-      {/* -- Delete Agent Modal ----------------------- */}
+      {/* -- Delete Modal ------------------------------ */}
       <Show when={showDeleteModal()}>
         <div
           class="modal-overlay"
@@ -342,9 +335,17 @@ const Settings: Component = () => {
             if (e.key === 'Escape') setShowDeleteModal(false);
           }}
         >
-          <div class="modal-card" style="max-width: 440px;" role="dialog" aria-modal="true" aria-labelledby="delete-agent-modal-title">
+          <div
+            class="modal-card"
+            style="max-width: 440px;"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-agent-modal-title"
+          >
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">
-              <h3 id="delete-agent-modal-title" style="margin: 0; font-size: var(--font-size-lg);">Delete {agentName()}</h3>
+              <h3 id="delete-agent-modal-title" style="margin: 0; font-size: var(--font-size-lg);">
+                Delete {agentName()}
+              </h3>
               <button
                 style="background: none; border: none; cursor: pointer; color: hsl(var(--muted-foreground)); padding: 4px;"
                 onClick={() => setShowDeleteModal(false)}
@@ -371,7 +372,10 @@ const Settings: Component = () => {
               <strong style="color: hsl(var(--foreground));">{agentName()}</strong> agent and all
               its data. This action cannot be undone.
             </p>
-            <label for="delete-confirm-input" style="display: block; font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-bottom: var(--gap-sm);">
+            <label
+              for="delete-confirm-input"
+              style="display: block; font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-bottom: var(--gap-sm);"
+            >
               To confirm, type <strong>"{agentName()}"</strong> in the box below
             </label>
             <input
@@ -401,7 +405,7 @@ const Settings: Component = () => {
               {deleting() ? (
                 <>
                   <span class="spinner" />
-                  <span class="sr-only">Deleting…</span>
+                  <span class="sr-only">Deleting...</span>
                 </>
               ) : (
                 'Delete this agent'

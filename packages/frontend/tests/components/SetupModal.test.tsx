@@ -105,7 +105,7 @@ describe("SetupModal", () => {
     const { container } = render(() => (
       <SetupModal open={true} agentName="test-agent" onClose={onClose} />
     ));
-    expect(container.textContent).toContain("Add Manifest as a model provider");
+    expect(container.textContent).toContain("Connect your agent to Manifest");
   });
 
   it("closes on overlay click", () => {

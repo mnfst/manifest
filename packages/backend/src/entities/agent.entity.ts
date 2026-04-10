@@ -1,12 +1,4 @@
-import {
-  Entity,
-  Column,
-  PrimaryColumn,
-  ManyToOne,
-  JoinColumn,
-  OneToOne,
-  Index,
-} from 'typeorm';
+import { Entity, Column, PrimaryColumn, ManyToOne, JoinColumn, OneToOne, Index } from 'typeorm';
 import { Tenant } from './tenant.entity';
 import { AgentApiKey } from './agent-api-key.entity';
 import { timestampType, timestampDefault } from '../common/utils/sql-dialect';
@@ -25,6 +17,12 @@ export class Agent {
 
   @Column('varchar', { nullable: true })
   description!: string | null;
+
+  @Column('varchar', { nullable: true })
+  agent_category!: string | null;
+
+  @Column('varchar', { nullable: true })
+  agent_platform!: string | null;
 
   @Column('boolean', { default: true })
   is_active!: boolean;

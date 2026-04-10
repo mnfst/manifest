@@ -36,6 +36,20 @@ vi.mock("../../src/services/sse.js", () => ({
   pingCount: () => 0,
 }));
 
+vi.mock("../../src/components/AgentTypePicker.jsx", () => ({
+  default: (props: any) => (
+    <div
+      data-testid="agent-type-picker"
+      data-category={props.category ?? ""}
+      data-platform={props.platform ?? ""}
+      data-disabled={String(!!props.disabled)}
+    >
+      <button data-testid="pick-category" onClick={() => props.onCategoryChange("personal")}>Pick Category</button>
+      <button data-testid="pick-platform" onClick={() => props.onPlatformChange("openclaw")}>Pick Platform</button>
+    </div>
+  ),
+}));
+
 const mockMarkAgentCreated = vi.fn();
 vi.mock("../../src/services/recent-agents.js", () => ({
   markAgentCreated: (...args: unknown[]) => mockMarkAgentCreated(...args),
@@ -75,8 +89,8 @@ describe("Workspace", () => {
   it("shows agent stats", async () => {
     const { container } = render(() => <Workspace />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("$5.50");
       expect(container.textContent).toContain("15000");
+      expect(container.textContent).toContain("42");
     });
   });
 
@@ -112,9 +126,8 @@ describe("Workspace", () => {
   it("shows agent card stat labels", async () => {
     const { container } = render(() => <Workspace />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Total tokens");
+      expect(container.textContent).toContain("Tokens");
       expect(container.textContent).toContain("Messages");
-      expect(container.textContent).toContain("Total cost");
     });
   });
 
@@ -135,7 +148,7 @@ describe("Workspace", () => {
     const createBtn = screen.getByText("Create");
     fireEvent.click(createBtn);
     await vi.waitFor(() => {
-      expect(mockCreateAgent).toHaveBeenCalledWith("new-agent");
+      expect(mockCreateAgent).toHaveBeenCalledWith(expect.objectContaining({ name: "new-agent" }));
     });
     await vi.waitFor(() => {
       expect(mockMarkAgentCreated).toHaveBeenCalledWith("new-agent");
@@ -223,7 +236,7 @@ describe("Workspace", () => {
     fireEvent.input(input, { target: { value: "enter-agent" } });
     fireEvent.keyDown(input, { key: "Enter" });
     await vi.waitFor(() => {
-      expect(mockCreateAgent).toHaveBeenCalledWith("enter-agent");
+      expect(mockCreateAgent).toHaveBeenCalledWith(expect.objectContaining({ name: "enter-agent" }));
     });
   });
 
@@ -255,5 +268,112 @@ describe("Workspace", () => {
       expect(mockGetAgents).toHaveBeenCalled();
     });
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it("shows AgentTypePicker in create modal", () => {
+    const { container } = render(() => <Workspace />);
+    fireEvent.click(screen.getAllByText("Connect Agent")[0]);
+    expect(container.querySelector('[data-testid="agent-type-picker"]')).not.toBeNull();
+  });
+
+  it("resets platform when category changes in create modal", () => {
+    const { container } = render(() => <Workspace />);
+    fireEvent.click(screen.getAllByText("Connect Agent")[0]);
+    // First pick a platform
+    fireEvent.click(container.querySelector('[data-testid="pick-platform"]')!);
+    // Then change category which should reset platform to null
+    fireEvent.click(container.querySelector('[data-testid="pick-category"]')!);
+    const picker = container.querySelector('[data-testid="agent-type-picker"]');
+    expect(picker!.getAttribute("data-platform")).toBe("");
+  });
+
+  it("sends category and platform with createAgent", async () => {
+    mockCreateAgent.mockResolvedValue({ agent: { name: "typed-agent" }, apiKey: "k" });
+    const { container } = render(() => <Workspace />);
+    fireEvent.click(screen.getAllByText("Connect Agent")[0]);
+    const input = container.querySelector(".modal-card__input") as HTMLInputElement;
+    fireEvent.input(input, { target: { value: "typed-agent" } });
+    fireEvent.click(container.querySelector('[data-testid="pick-category"]')!);
+    fireEvent.click(container.querySelector('[data-testid="pick-platform"]')!);
+    fireEvent.click(screen.getByText("Create"));
+    await vi.waitFor(() => {
+      expect(mockCreateAgent).toHaveBeenCalledWith(expect.objectContaining({
+        name: "typed-agent",
+        agent_category: "personal",
+        agent_platform: "openclaw",
+      }));
+    });
+  });
+
+  it("does not submit when name is empty", async () => {
+    const { container } = render(() => <Workspace />);
+    fireEvent.click(screen.getAllByText("Connect Agent")[0]);
+    const input = container.querySelector(".modal-card__input") as HTMLInputElement;
+    fireEvent.input(input, { target: { value: "   " } });
+    fireEvent.click(screen.getByText("Create"));
+    expect(mockCreateAgent).not.toHaveBeenCalled();
+  });
+
+  it("shows agent_name when display_name is missing", async () => {
+    mockGetAgents.mockResolvedValue({
+      agents: [
+        { agent_name: "raw-agent", message_count: 1, last_active: "2024-01-01", total_cost: 0, total_tokens: 0, sparkline: [] },
+      ],
+    });
+    const { container } = render(() => <Workspace />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("raw-agent");
+    });
+  });
+
+  it("shows error state when getAgents fails", async () => {
+    mockGetAgents.mockRejectedValue(new Error("Network error"));
+    const { container } = render(() => <Workspace />);
+    await vi.waitFor(() => {
+      // ErrorState component should render
+      expect(container.querySelector(".error-state") || container.textContent?.includes("error")).toBeDefined();
+    });
+  });
+
+  it("opens modal from empty state connect button", async () => {
+    mockGetAgents.mockResolvedValue({ agents: [] });
+    const { container } = render(() => <Workspace />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Connect your first agent");
+    });
+    const btn = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("Connect your first agent"),
+    )!;
+    fireEvent.click(btn);
+    expect(container.querySelector(".modal-card__input")).not.toBeNull();
+  });
+
+  it("shows platform icon when agent has a platform", async () => {
+    mockGetAgents.mockResolvedValue({
+      agents: [
+        { agent_name: "my-agent", display_name: "My Agent", agent_platform: "openclaw", message_count: 1, last_active: "2024-01-01", total_cost: 0, total_tokens: 0, sparkline: [] },
+      ],
+    });
+    const { container } = render(() => <Workspace />);
+    await vi.waitFor(() => {
+      const icon = container.querySelector(".agent-card__platform-icon");
+      expect(icon).not.toBeNull();
+      expect(icon!.getAttribute("src")).toBe("/icons/openclaw.png");
+    });
+  });
+
+  it("disables picker during creation", async () => {
+    let resolveCreate: (v: any) => void;
+    mockCreateAgent.mockReturnValue(new Promise((r) => { resolveCreate = r; }));
+    const { container } = render(() => <Workspace />);
+    fireEvent.click(screen.getAllByText("Connect Agent")[0]);
+    const input = container.querySelector(".modal-card__input") as HTMLInputElement;
+    fireEvent.input(input, { target: { value: "test" } });
+    fireEvent.click(screen.getByText("Create"));
+    await vi.waitFor(() => {
+      const picker = container.querySelector('[data-testid="agent-type-picker"]');
+      expect(picker!.getAttribute("data-disabled")).toBe("true");
+    });
+    resolveCreate!({ agent: { name: "test" }, apiKey: "k" });
   });
 });

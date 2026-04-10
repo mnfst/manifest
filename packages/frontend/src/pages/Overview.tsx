@@ -17,6 +17,7 @@ import Select from '../components/Select.jsx';
 import SetupModal from '../components/SetupModal.jsx';
 import { COMPACT_COLUMNS, type MessageRow } from '../components/message-table-types.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
+import { agentPlatform, agentPlatformIcon } from '../services/agent-platform-store.js';
 import { getCustomProviders, getOverview, type CustomProviderData } from '../services/api.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
 import { isRecentlyCreated } from '../services/recent-agents.js';
@@ -156,7 +157,18 @@ const Overview: Component = () => {
       />
       <div class="page-header">
         <div>
-          <h1>Overview</h1>
+          <h1 style="display: flex; align-items: center; gap: 10px;">
+            <Show when={agentPlatformIcon()}>
+              <img
+                src={agentPlatformIcon()}
+                alt=""
+                width="28"
+                height="28"
+                style="border-radius: 4px;"
+              />
+            </Show>
+            {agentDisplayName() ?? decodeURIComponent(params.agentName)} Overview
+          </h1>
           <span class="breadcrumb">Real-time summary of spending, tokens, and messages</span>
         </div>
         <div class="header-controls">
@@ -293,6 +305,7 @@ const Overview: Component = () => {
         open={setupOpen()}
         agentName={decodeURIComponent(params.agentName)}
         apiKey={(location.state as { newApiKey?: string } | undefined)?.newApiKey ?? null}
+        agentPlatform={agentPlatform()}
         onClose={() => {
           localStorage.setItem(`setup_dismissed_${params.agentName}`, '1');
           setSetupOpen(false);

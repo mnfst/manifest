@@ -5,11 +5,13 @@ import NotFound from '../pages/NotFound.jsx';
 import { getAgents } from '../services/api.js';
 import { checkLocalMode } from '../services/local-mode.js';
 import { setAgentDisplayName } from '../services/agent-display-name.js';
+import { setAgentPlatform } from '../services/agent-platform-store.js';
 import { isRecentlyCreated, clearRecentAgent } from '../services/recent-agents.js';
 
 interface Agent {
   agent_name: string;
   display_name?: string;
+  agent_platform?: string | null;
 }
 
 interface AgentsData {
@@ -38,11 +40,15 @@ const AgentGuard: ParentComponent = (props) => {
     if (agent) {
       clearRecentAgent(agent.agent_name);
       setAgentDisplayName(agent.display_name ?? agent.agent_name);
+      setAgentPlatform(agent.agent_platform ?? null);
     }
     return recent || !!agent;
   });
 
-  onCleanup(() => setAgentDisplayName(null));
+  onCleanup(() => {
+    setAgentDisplayName(null);
+    setAgentPlatform(null);
+  });
 
   return (
     <Show when={mode() !== undefined} fallback={null}>

@@ -1,3 +1,12 @@
+export {
+  AGENT_CATEGORIES,
+  AGENT_PLATFORMS,
+  CATEGORY_LABELS,
+  PLATFORM_LABELS,
+  PLATFORMS_BY_CATEGORY,
+  PLATFORM_ICONS,
+} from './agent-type';
+export type { AgentCategory, AgentPlatform } from './agent-type';
 export { TIERS, TIER_LABELS, TIER_DESCRIPTIONS } from './tiers';
 export type { Tier } from './tiers';
 export { AUTH_TYPES } from './auth-types';

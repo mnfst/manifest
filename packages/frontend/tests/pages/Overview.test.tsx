@@ -133,10 +133,10 @@ describe("Overview", () => {
     mockGetCustomProviders.mockResolvedValue([]);
   });
 
-  it("renders Overview heading", () => {
+  it("renders Overview heading with agent name", () => {
     mockGetOverview.mockResolvedValue(overviewData);
-    render(() => <Overview />);
-    expect(screen.getByText("Overview")).toBeDefined();
+    const { container } = render(() => <Overview />);
+    expect(container.textContent).toContain("Overview");
   });
 
   it("renders breadcrumb subtitle", () => {

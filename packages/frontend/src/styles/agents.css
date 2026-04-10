@@ -27,7 +27,17 @@
 }
 
 .agent-card__top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-bottom: var(--gap-sm);
+}
+
+.agent-card__platform-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  flex-shrink: 0;
 }
 
 .agent-card__name {
