@@ -24,6 +24,10 @@ interface FallbackListProps {
   onUpdate: (updatedFallbacks: string[]) => void;
   onAddFallback: () => void;
   adding?: boolean;
+  primaryDragging?: boolean;
+  onPrimaryDropAtSlot?: (slot: number) => void;
+  onFallbackDragStart?: (index: number) => void;
+  onFallbackDragEnd?: () => void;
 }
 
 const FallbackList: Component<FallbackListProps> = (props) => {
@@ -90,7 +94,9 @@ const FallbackList: Component<FallbackListProps> = (props) => {
     if (e.dataTransfer) {
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', String(index));
+      e.dataTransfer.setData('application/x-fallback', String(index));
     }
+    props.onFallbackDragStart?.(index);
   };
 
   /**
@@ -101,10 +107,11 @@ const FallbackList: Component<FallbackListProps> = (props) => {
   const computeSlot = (clientY: number): number | null => {
     if (!listRef) return null;
     const from = dragIndex();
-    if (from === null) return null;
+    const isPrimaryDrag = props.primaryDragging && from === null;
+    if (from === null && !isPrimaryDrag) return null;
 
     const cards = listRef.querySelectorAll<HTMLElement>('.fallback-list__card');
-    if (cards.length === 0) return null;
+    if (cards.length === 0) return isPrimaryDrag ? 0 : null;
 
     // Find which slot the cursor is closest to.
     // Slots are: before card 0, between card 0 and 1, ..., after last card.
@@ -119,7 +126,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
     }
 
     // Don't show indicator at the dragged item's current position (no-op move)
-    if (slot === from || slot === from + 1) return null;
+    if (!isPrimaryDrag && (slot === from || slot === from! + 1)) return null;
     return slot;
   };
 
@@ -143,6 +150,13 @@ const FallbackList: Component<FallbackListProps> = (props) => {
     const toSlot = dropSlot();
     setDragIndex(null);
     setDropSlot(null);
+
+    // Primary model dropped into fallback list
+    if (props.primaryDragging && fromIndex === null && toSlot !== null) {
+      props.onPrimaryDropAtSlot?.(toSlot);
+      return;
+    }
+
     if (fromIndex === null || toSlot === null) return;
 
     const insertAt = toSlot > fromIndex ? toSlot - 1 : toSlot;
@@ -165,11 +179,12 @@ const FallbackList: Component<FallbackListProps> = (props) => {
   const handleDragEnd = () => {
     setDragIndex(null);
     setDropSlot(null);
+    props.onFallbackDragEnd?.();
   };
 
   return (
     <div class="fallback-list">
-      <Show when={props.fallbacks.length > 0}>
+      <Show when={props.fallbacks.length > 0 || props.primaryDragging}>
         <div
           ref={listRef}
           class="fallback-list__items"
@@ -210,7 +225,6 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                         <circle cx="6" cy="12" r="1.2" />
                       </svg>
                     </span>
-                    <span class="fallback-list__rank">{i() + 1}</span>
                     <Show when={provId() && !isCustom()}>
                       <span class="fallback-list__icon" title={title()}>
                         {providerIcon(provId()!, 14)}

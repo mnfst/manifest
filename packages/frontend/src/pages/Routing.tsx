@@ -213,9 +213,10 @@ const Routing: Component = () => {
 
           <div class="routing-section">
             <div class="routing-section__header">
-              <span class="routing-section__title">By complexity</span>
+              <span class="routing-section__title">Generalist tiers</span>
               <span class="routing-section__subtitle">
-                Simple tasks get cheap models, hard ones get the best
+                Generalist tiers route requests depending on their complexity. Simple tasks get
+                cheap models, hard ones get the best.
               </span>
             </div>
             <div class="routing-cards">
@@ -262,7 +263,7 @@ const Routing: Component = () => {
               setChangingSpecificity(category);
               try {
                 await overrideSpecificity(agentName(), category, model, provider, authType);
-                await refetchAll();
+                await refetchSpecificity();
               } catch {
                 toast.error('Failed to update model');
               } finally {
@@ -273,7 +274,7 @@ const Routing: Component = () => {
               setResettingSpecificity(category);
               try {
                 await resetSpecificity(agentName(), category);
-                await refetchAll();
+                await refetchSpecificity();
               } catch {
                 toast.error('Failed to reset');
               } finally {
@@ -283,6 +284,9 @@ const Routing: Component = () => {
             onFallbackUpdate={() => {}}
             onAddFallback={() => {}}
             refetchAll={refetchAll}
+            refetchSpecificity={async () => {
+              await refetchSpecificity();
+            }}
           />
 
           <RoutingFooter
@@ -320,7 +324,7 @@ const Routing: Component = () => {
           setChangingSpecificity(category);
           try {
             await overrideSpecificity(agentName(), category, model, provider, authType);
-            await refetchAll();
+            await refetchSpecificity();
           } catch {
             toast.error('Failed to update specificity model');
           } finally {

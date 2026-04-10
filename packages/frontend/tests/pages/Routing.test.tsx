@@ -357,7 +357,7 @@ describe("Routing — enabled state (providers active)", () => {
     });
   });
 
-  it("shows 'No model available' when model is null", async () => {
+  it("shows '+ Add model' button when model is null", async () => {
     const { getTierAssignments } = await import("../../src/services/api.js");
     vi.mocked(getTierAssignments).mockResolvedValueOnce([
       { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
@@ -367,8 +367,8 @@ describe("Routing — enabled state (providers active)", () => {
     ]);
 
     render(() => <Routing />);
-    const noModels = await screen.findAllByText("No model available");
-    expect(noModels.length).toBe(4);
+    const addButtons = await screen.findAllByText("+ Add model");
+    expect(addButtons.length).toBe(4);
   });
 
   it("pluralizes provider count correctly", async () => {
@@ -1058,9 +1058,8 @@ describe("Routing — fallback management", () => {
 
     const { container } = render(() => <Routing />);
     await waitFor(() => {
-      const ranks = container.querySelectorAll(".fallback-list__rank");
-      expect(ranks.length).toBe(1);
-      expect(ranks[0].textContent).toBe("1");
+      const fallbackCards = container.querySelectorAll(".fallback-list__card");
+      expect(fallbackCards.length).toBe(1);
     });
   });
 
