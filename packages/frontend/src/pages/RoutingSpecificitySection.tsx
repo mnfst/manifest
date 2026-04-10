@@ -303,7 +303,10 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
                           'specificity-modal__toggle--on': active(),
                         }}
                         disabled={loading()}
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!loading()) handleToggle(stage.id, stage.label, !active());
+                        }}
                         aria-label={`${active() ? 'Disable' : 'Enable'} ${stage.label}`}
                       >
                         <Show
