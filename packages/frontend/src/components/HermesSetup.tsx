@@ -68,7 +68,6 @@ const HermesSetup: Component<Props> = (props) => {
 
   return (
     <div class="setup-agents-card">
-      <h4 class="setup-agents-card__title">Configure Hermes Agent</h4>
       <p class="setup-step__desc">
         Point Hermes at the Manifest endpoint to route requests through your configured providers.
       </p>
@@ -83,7 +82,7 @@ const HermesSetup: Component<Props> = (props) => {
         <div class="setup-cli-block__actions">
           <Show when={hasFullKey()}>
             <button
-              class="modal-terminal__copy"
+              class="setup-onboard-fields__eye"
               onClick={() => setKeyRevealed(!keyRevealed())}
               aria-label={keyRevealed() ? 'Hide API key' : 'Reveal API key'}
               title={keyRevealed() ? 'Hide key' : 'Reveal key'}
@@ -91,7 +90,7 @@ const HermesSetup: Component<Props> = (props) => {
               <EyeIcon open={keyRevealed()} />
             </button>
           </Show>
-          <CopyButton text={yamlConfigCopy()} disabled={hasFullKey() && !keyRevealed()} />
+          <CopyButton text={yamlConfigCopy()} />
         </div>
         <div class="setup-method__code">
           <pre style="margin: 0; white-space: pre-wrap; word-break: break-all;">
@@ -109,7 +108,7 @@ const HermesSetup: Component<Props> = (props) => {
             <code>{displayKey()}</code>
             <Show when={hasFullKey()}>
               <button
-                class="modal-terminal__copy"
+                class="setup-onboard-fields__eye"
                 onClick={() => setKeyRevealed(!keyRevealed())}
                 aria-label={keyRevealed() ? 'Hide API key' : 'Reveal API key'}
                 title={keyRevealed() ? 'Hide key' : 'Reveal key'}
@@ -117,7 +116,7 @@ const HermesSetup: Component<Props> = (props) => {
                 <EyeIcon open={keyRevealed()} />
               </button>
             </Show>
-            <CopyButton text={copyKey()} disabled={hasFullKey() && !keyRevealed()} />
+            <CopyButton text={copyKey()} />
           </span>
         </div>
         <OnboardField label="Model" value="auto" copyable />

@@ -64,11 +64,7 @@ vi.mock("../../src/components/SetupStepAddProvider.jsx", () => ({
   default: (props: any) => {
     if (mockSetupThrows) throw new Error("render crash");
     return (
-      <div data-testid="setup-add-provider" data-base-url={props.baseUrl ?? ""} data-key={props.apiKey ?? ""} data-platform={props.platform ?? ""} data-key-prefix={props.keyPrefix ?? ""}>
-        {props.onChangeType && (
-          <button data-testid="change-type-btn" onClick={() => props.onChangeType()}>Change type</button>
-        )}
-      </div>
+      <div data-testid="setup-add-provider" data-base-url={props.baseUrl ?? ""} data-key={props.apiKey ?? ""} data-platform={props.platform ?? ""} data-key-prefix={props.keyPrefix ?? ""} />
     );
   },
 }));
@@ -81,6 +77,37 @@ vi.mock("../../src/services/local-mode.js", () => ({
 const mockMarkAgentCreated = vi.fn();
 vi.mock("../../src/services/recent-agents.js", () => ({
   markAgentCreated: (...args: unknown[]) => mockMarkAgentCreated(...args),
+}));
+
+vi.mock("manifest-shared", () => ({
+  CATEGORY_LABELS: {
+    personal: "Personal AI Agent",
+    app: "App AI SDK",
+  },
+  PLATFORM_LABELS: {
+    openclaw: "OpenClaw",
+    hermes: "Hermes Agent",
+    "openai-sdk": "OpenAI SDK",
+    "vercel-ai-sdk": "Vercel AI SDK",
+    langchain: "LangChain",
+    curl: "cURL",
+    other: "Other",
+  },
+  PLATFORMS_BY_CATEGORY: {
+    personal: ["openclaw", "hermes", "other"],
+    app: ["openai-sdk", "vercel-ai-sdk", "langchain", "other"],
+  },
+  PLATFORM_ICONS: {
+    openclaw: "/icons/openclaw.png",
+    hermes: "/icons/hermes.png",
+    "openai-sdk": "/icons/providers/openai.svg",
+    "vercel-ai-sdk": "/icons/vercel.svg",
+    langchain: "/icons/langchain.svg",
+  },
+}));
+
+vi.mock("../../src/services/agent-platform-store.js", () => ({
+  setAgentPlatform: vi.fn(),
 }));
 
 import Settings from "../../src/pages/Settings";
@@ -115,10 +142,13 @@ describe("Settings", () => {
     expect(screen.getByText("Agent type")).toBeDefined();
   });
 
-  it("renders AgentTypePicker", async () => {
+  it("renders Change button for agent type", async () => {
     const { container } = render(() => <Settings />);
     await vi.waitFor(() => {
-      expect(container.querySelector('[data-testid="agent-type-picker"]')).not.toBeNull();
+      const changeBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.includes("Change"),
+      );
+      expect(changeBtn).not.toBeUndefined();
     });
   });
 
@@ -201,9 +231,10 @@ describe("Settings", () => {
 
   it("save button is disabled when agent name unchanged", () => {
     const { container } = render(() => <Settings />);
-    const saveBtn = Array.from(container.querySelectorAll("button")).find(
-      (b) => b.textContent?.includes("Save"),
-    ) as HTMLButtonElement;
+    const saveBtns = Array.from(container.querySelectorAll("button")).filter(
+      (b) => b.textContent?.trim() === "Save",
+    );
+    const saveBtn = saveBtns[0] as HTMLButtonElement;
     expect(saveBtn.disabled).toBe(true);
   });
 
@@ -334,40 +365,66 @@ describe("Settings", () => {
     });
   });
 
-  it("calls updateAgent when type changed via Save", async () => {
+  it("calls updateAgent when type changed via modal Save", async () => {
     const { container } = render(() => <Settings />);
+    await vi.waitFor(() => {
+      const changeBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.includes("Change"),
+      );
+      expect(changeBtn).not.toBeUndefined();
+    });
+    // Open the type modal
+    const changeBtn = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("Change"),
+    )!;
+    fireEvent.click(changeBtn);
     await vi.waitFor(() => {
       expect(container.querySelector('[data-testid="agent-type-picker"]')).not.toBeNull();
     });
     // Change category via mock picker
     fireEvent.click(container.querySelector('[data-testid="pick-app"]')!);
     fireEvent.click(container.querySelector('[data-testid="pick-platform"]')!);
-    const saveBtn = screen.getByText("Save") as HTMLButtonElement;
-    expect(saveBtn.disabled).toBe(false);
-    fireEvent.click(saveBtn);
+    // Click the Save button inside the modal
+    const modalSaveBtn = Array.from(container.querySelectorAll(".modal-card__footer button")).find(
+      (b) => b.textContent?.includes("Save"),
+    ) as HTMLButtonElement;
+    expect(modalSaveBtn).not.toBeUndefined();
+    fireEvent.click(modalSaveBtn);
     await vi.waitFor(() => {
       expect(mockUpdateAgent).toHaveBeenCalledWith("test-agent", expect.objectContaining({ agent_category: "app" }));
     });
   });
 
-  it("shows type updated toast when only type changed", async () => {
-    const { toast } = await import("../../src/services/toast-store.js");
+  it("opens setup modal after type changed via modal save", async () => {
     const { container } = render(() => <Settings />);
+    await vi.waitFor(() => {
+      const changeBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.includes("Change"),
+      );
+      expect(changeBtn).not.toBeUndefined();
+    });
+    fireEvent.click(Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("Change"),
+    )!);
     await vi.waitFor(() => {
       expect(container.querySelector('[data-testid="agent-type-picker"]')).not.toBeNull();
     });
     fireEvent.click(container.querySelector('[data-testid="pick-app"]')!);
     fireEvent.click(container.querySelector('[data-testid="pick-platform"]')!);
-    fireEvent.click(screen.getByText("Save"));
+    const modalSaveBtn = Array.from(container.querySelectorAll(".modal-card__footer button")).find(
+      (b) => b.textContent?.includes("Save"),
+    )!;
+    fireEvent.click(modalSaveBtn);
     await vi.waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith("Agent type updated");
+      expect(container.textContent).toContain("Set up agent");
     });
   });
 
-  it("passes onChangeType to SetupStepAddProvider", async () => {
+  it("shows current type display with platform label", async () => {
     const { container } = render(() => <Settings />);
     await vi.waitFor(() => {
-      expect(container.querySelector('[data-testid="setup-add-provider"]')).not.toBeNull();
+      expect(container.textContent).toContain("OpenClaw");
+      expect(container.textContent).toContain("Personal AI Agent");
     });
   });
 
@@ -389,31 +446,20 @@ describe("Settings", () => {
     expect(container.querySelector(".modal-overlay")).toBeNull();
   });
 
-  it("scrolls to type section when change type clicked", async () => {
-    const scrollMock = vi.fn();
-    const getByIdSpy = vi.spyOn(document, "getElementById").mockReturnValue({
-      scrollIntoView: scrollMock,
-    } as any);
+  it("opens type modal when Change button clicked", async () => {
     const { container } = render(() => <Settings />);
     await vi.waitFor(() => {
-      expect(container.querySelector('[data-testid="change-type-btn"]')).not.toBeNull();
+      const changeBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.includes("Change"),
+      );
+      expect(changeBtn).not.toBeUndefined();
     });
-    fireEvent.click(container.querySelector('[data-testid="change-type-btn"]')!);
-    expect(getByIdSpy).toHaveBeenCalledWith("agent-type-section");
-    expect(scrollMock).toHaveBeenCalledWith({ behavior: "smooth" });
-    getByIdSpy.mockRestore();
-  });
-
-  it("handles scrollToTypeSection when element not found", async () => {
-    const getByIdSpy = vi.spyOn(document, "getElementById").mockReturnValue(null);
-    const { container } = render(() => <Settings />);
+    fireEvent.click(Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("Change"),
+    )!);
     await vi.waitFor(() => {
-      expect(container.querySelector('[data-testid="change-type-btn"]')).not.toBeNull();
+      expect(container.querySelector('[data-testid="agent-type-picker"]')).not.toBeNull();
     });
-    // Should not throw
-    fireEvent.click(container.querySelector('[data-testid="change-type-btn"]')!);
-    expect(getByIdSpy).toHaveBeenCalledWith("agent-type-section");
-    getByIdSpy.mockRestore();
   });
 
   it("passes keyPrefix to setup component", async () => {
@@ -426,25 +472,38 @@ describe("Settings", () => {
     });
   });
 
-  it("disables AgentTypePicker during save", async () => {
+  it("disables AgentTypePicker during save in modal", async () => {
     let resolveSave: (v: any) => void;
     mockUpdateAgent.mockReturnValue(new Promise((r) => { resolveSave = r; }));
     const { container } = render(() => <Settings />);
+    // Open type modal
+    await vi.waitFor(() => {
+      const changeBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.includes("Change"),
+      );
+      expect(changeBtn).not.toBeUndefined();
+    });
+    fireEvent.click(Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("Change"),
+    )!);
     await vi.waitFor(() => {
       expect(container.querySelector('[data-testid="agent-type-picker"]')).not.toBeNull();
     });
     // Change type
     fireEvent.click(container.querySelector('[data-testid="pick-app"]')!);
     fireEvent.click(container.querySelector('[data-testid="pick-platform"]')!);
-    // Click save
-    fireEvent.click(screen.getByText("Save"));
+    // Click save in modal
+    const modalSaveBtn = Array.from(container.querySelectorAll(".modal-card__footer button")).find(
+      (b) => b.textContent?.includes("Save"),
+    )!;
+    fireEvent.click(modalSaveBtn);
     // Verify save button shows spinner and picker is disabled
     await vi.waitFor(() => {
-      const saveBtn = Array.from(container.querySelectorAll("button")).find(
+      const spinnerBtn = Array.from(container.querySelectorAll(".modal-card__footer button")).find(
         (b) => b.querySelector(".spinner"),
       );
-      expect(saveBtn).not.toBeUndefined();
-      expect(saveBtn!.hasAttribute("disabled")).toBe(true);
+      expect(spinnerBtn).not.toBeUndefined();
+      expect(spinnerBtn!.hasAttribute("disabled")).toBe(true);
       // Verify picker disabled prop is true during save
       const picker = container.querySelector('[data-testid="agent-type-picker"]');
       expect(picker!.getAttribute("data-disabled")).toBe("true");

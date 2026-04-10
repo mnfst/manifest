@@ -1,4 +1,4 @@
-import { createSignal, For, Show, type Component } from 'solid-js';
+import { createEffect, createSignal, For, Show, type Component } from 'solid-js';
 import CopyButton from './CopyButton.jsx';
 import CodeBlock from './CodeBlock.jsx';
 import { highlight } from '../services/syntax-highlight.js';
@@ -66,6 +66,10 @@ const FrameworkSnippets: Component<Props> = (props) => {
   const [openaiLang, setOpenaiLang] = createSignal<OpenAILangId>(getStoredOpenAILang());
   const [keyRevealed, setKeyRevealed] = createSignal(!props.hideFullKey);
 
+  createEffect(() => {
+    if (props.defaultToolkit) setActiveTab(props.defaultToolkit);
+  });
+
   const hasFullKey = () => !!props.apiKey;
   const maskedKey = () => (props.keyPrefix ? `${props.keyPrefix}...` : 'mnfst_YOUR_KEY');
   const copyKey = () => props.apiKey ?? maskedKey();
@@ -92,60 +96,27 @@ const FrameworkSnippets: Component<Props> = (props) => {
 
   return (
     <div class="framework-snippets">
-      <div class="framework-snippets__connection">
-        <div class="framework-snippets__field">
-          <span class="framework-snippets__label">Base URL</span>
-          <span class="framework-snippets__value">
-            <code>{props.baseUrl}</code>
-            <CopyButton text={props.baseUrl} />
-          </span>
-        </div>
-        <div class="framework-snippets__field">
-          <span class="framework-snippets__label">API Key</span>
-          <span class="framework-snippets__value">
-            <code>{displayKey()}</code>
-            <Show when={hasFullKey()}>
-              <button
-                class="btn btn--ghost btn--sm"
-                onClick={() => setKeyRevealed(!keyRevealed())}
-                aria-label={keyRevealed() ? 'Hide API key' : 'Reveal API key'}
-                title={keyRevealed() ? 'Hide key' : 'Reveal key'}
-                style="padding: 4px;"
-              >
-                {keyRevealed() ? <EyeClosed /> : <EyeOpen />}
-              </button>
-            </Show>
-            <CopyButton text={copyKey()} disabled={hasFullKey() && !keyRevealed()} />
-          </span>
-        </div>
-        <div class="framework-snippets__field">
-          <span class="framework-snippets__label">Model</span>
-          <span class="framework-snippets__value">
-            <code>auto</code>
-            <CopyButton text="auto" />
-          </span>
-        </div>
-      </div>
-
       <div class="setup-method-tabs">
-        <div class="panel__tabs" role="tablist" aria-label="SDK / toolkit">
-          <For each={TOOLKIT_TABS}>
-            {(t) => (
-              <button
-                class="panel__tab"
-                classList={{ 'panel__tab--active': activeTab() === t.id }}
-                onClick={() => handleTabChange(t.id)}
-                role="tab"
-                aria-selected={activeTab() === t.id}
-              >
-                <Show when={t.icon}>
-                  <img src={t.icon} alt="" class="panel__tab-icon" width="16" height="16" />
-                </Show>
-                {t.label}
-              </button>
-            )}
-          </For>
-        </div>
+        <Show when={!props.defaultToolkit}>
+          <div class="panel__tabs" role="tablist" aria-label="SDK / toolkit">
+            <For each={TOOLKIT_TABS}>
+              {(t) => (
+                <button
+                  class="panel__tab"
+                  classList={{ 'panel__tab--active': activeTab() === t.id }}
+                  onClick={() => handleTabChange(t.id)}
+                  role="tab"
+                  aria-selected={activeTab() === t.id}
+                >
+                  <Show when={t.icon}>
+                    <img src={t.icon} alt="" class="panel__tab-icon" width="16" height="16" />
+                  </Show>
+                  {t.label}
+                </button>
+              )}
+            </For>
+          </div>
+        </Show>
 
         <Show when={activeTab() === 'openai-sdk' || activeTab() === 'vercel-ai-sdk'}>
           <div class="toolkit-lang-toggle" role="tablist" aria-label="Language">
@@ -179,7 +150,7 @@ const FrameworkSnippets: Component<Props> = (props) => {
                   {keyRevealed() ? <EyeClosed /> : <EyeOpen />}
                 </button>
               </Show>
-              <CopyButton text={snippetForCopy().code} disabled={hasFullKey() && !keyRevealed()} />
+              <CopyButton text={snippetForCopy().code} />
             </div>
             <div class="setup-method__code">
               <pre style="margin: 0; white-space: pre-wrap; word-break: break-all;">
@@ -190,6 +161,40 @@ const FrameworkSnippets: Component<Props> = (props) => {
               </pre>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div class="setup-onboard-fields" role="list" aria-label="Connection details">
+        <div class="setup-onboard-fields__row" role="listitem">
+          <span class="setup-onboard-fields__label">Base URL</span>
+          <span class="setup-onboard-fields__value">
+            <code>{props.baseUrl}</code>
+            <CopyButton text={props.baseUrl} />
+          </span>
+        </div>
+        <div class="setup-onboard-fields__row" role="listitem">
+          <span class="setup-onboard-fields__label">API Key</span>
+          <span class="setup-onboard-fields__value">
+            <code>{displayKey()}</code>
+            <Show when={hasFullKey()}>
+              <button
+                class="setup-onboard-fields__eye"
+                onClick={() => setKeyRevealed(!keyRevealed())}
+                aria-label={keyRevealed() ? 'Hide API key' : 'Reveal API key'}
+                title={keyRevealed() ? 'Hide key' : 'Reveal key'}
+              >
+                {keyRevealed() ? <EyeClosed /> : <EyeOpen />}
+              </button>
+            </Show>
+            <CopyButton text={copyKey()} />
+          </span>
+        </div>
+        <div class="setup-onboard-fields__row" role="listitem">
+          <span class="setup-onboard-fields__label">Model</span>
+          <span class="setup-onboard-fields__value">
+            <code>auto</code>
+            <CopyButton text="auto" />
+          </span>
         </div>
       </div>
     </div>

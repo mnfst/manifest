@@ -18,11 +18,6 @@ describe("HermesSetup", () => {
     vi.clearAllMocks();
   });
 
-  it("renders card title", () => {
-    const { container } = render(() => <HermesSetup {...defaultProps} />);
-    expect(container.textContent).toContain("Configure Hermes Agent");
-  });
-
   it("renders description text", () => {
     const { container } = render(() => <HermesSetup {...defaultProps} />);
     expect(container.textContent).toContain("Point Hermes at the Manifest endpoint");
@@ -103,26 +98,14 @@ describe("HermesSetup", () => {
     expect(container.textContent).not.toContain("mnfst_full_key");
   });
 
-  it("disables copy button when key is hidden but apiKey exists", () => {
+  it("shows copy button on API key row", () => {
     const { container } = render(() => (
       <HermesSetup {...defaultProps} apiKey="mnfst_full_key" keyPrefix="mnfst_ful" />
     ));
     const apiKeyRow = Array.from(container.querySelectorAll('[role="listitem"]'))
       .find(r => r.textContent?.includes("API Key"));
-    const copyDisabled = apiKeyRow?.querySelector('[aria-label="Copy disabled"]');
-    expect(copyDisabled).not.toBeNull();
-    expect(copyDisabled!.hasAttribute("disabled")).toBe(true);
-  });
-
-  it("enables copy button when key is revealed", () => {
-    const { container } = render(() => (
-      <HermesSetup {...defaultProps} apiKey="mnfst_full_key" keyPrefix="mnfst_ful" />
-    ));
-    fireEvent.click(container.querySelector('[aria-label="Reveal API key"]')!);
-    const apiKeyRow = Array.from(container.querySelectorAll('[role="listitem"]'))
-      .find(r => r.textContent?.includes("API Key"));
-    const copyEnabled = apiKeyRow?.querySelector('[aria-label="Copy to clipboard"]');
-    expect(copyEnabled).not.toBeNull();
+    const copyBtn = apiKeyRow?.querySelector('[aria-label="Copy to clipboard"]');
+    expect(copyBtn).not.toBeNull();
   });
 
   it("has copy buttons for copyable fields", () => {

@@ -5,6 +5,7 @@ import { authClient } from '../services/auth-client.js';
 import { checkLocalMode, isLocalMode, isDevMode } from '../services/local-mode.js';
 import { displayName } from '../services/display-name.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
+import { agentPlatformIcon } from '../services/agent-platform-store.js';
 
 const GITHUB_REPO = 'mnfst/manifest';
 const STAR_DISMISSED_KEY = 'github-star-dismissed';
@@ -124,7 +125,18 @@ const Header: Component = () => {
             Workspace
           </A>
           <span class="header__separator">/</span>
-          <span class="header__breadcrumb-current">{agentDisplayName() ?? getAgentName()}</span>
+          <span class="header__breadcrumb-current">
+            <Show when={agentPlatformIcon()}>
+              <img
+                src={agentPlatformIcon()}
+                alt=""
+                width="14"
+                height="14"
+                class="header__breadcrumb-icon"
+              />
+            </Show>
+            {agentDisplayName() ?? getAgentName()}
+          </span>
         </Show>
       </div>
       <div class="header__right">

@@ -538,6 +538,23 @@
   flex-shrink: 0;
 }
 
+.setup-onboard-fields__eye {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color var(--transition-fast);
+}
+
+.setup-onboard-fields__eye:hover {
+  color: hsl(var(--foreground));
+}
+
 /* ── Framework snippets ──────────────────────────── */
 .framework-snippets__connection {
   display: flex;
@@ -698,10 +715,7 @@
 
 /* ── Agents card ─────────────────────────────────── */
 .setup-agents-card {
-  border-left: 3px solid hsl(var(--chart-1) / 0.4);
-  padding: 16px 18px;
-  background: hsl(var(--muted) / 0.4);
-  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 0;
 }
 
 /* ── CLI block with eye toggle overlay ────────────── */
@@ -717,6 +731,10 @@
   display: flex;
   gap: 4px;
   align-items: center;
+}
+
+.setup-cli-block__actions .modal-terminal__copy {
+  position: static;
 }
 
 .setup-cli-block .setup-method__code .modal-terminal__copy {

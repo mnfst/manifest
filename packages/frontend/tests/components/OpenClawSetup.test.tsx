@@ -18,11 +18,6 @@ describe("OpenClawSetup", () => {
     vi.clearAllMocks();
   });
 
-  it("renders card title", () => {
-    const { container } = render(() => <OpenClawSetup {...defaultProps} />);
-    expect(container.textContent).toContain("Add Manifest as a provider");
-  });
-
   it("renders description with manifest/auto model", () => {
     const { container } = render(() => <OpenClawSetup {...defaultProps} />);
     expect(container.textContent).toContain("manifest/auto");
@@ -35,7 +30,7 @@ describe("OpenClawSetup", () => {
     const btns = segment!.querySelectorAll(".setup-segment__btn");
     expect(btns).toHaveLength(2);
     expect(btns[0].textContent).toBe("CLI configuration");
-    expect(btns[1].textContent).toBe("Interactive wizard");
+    expect(btns[1].textContent).toBe("openclaw onboard");
   });
 
   it("defaults to CLI configuration tab", () => {
@@ -102,30 +97,16 @@ describe("OpenClawSetup", () => {
     expect(container.textContent).not.toContain("mnfst_secret_key");
   });
 
-  it("disables CLI copy button when key is hidden", () => {
+  it("shows CLI copy button when key is hidden", () => {
     const { container } = render(() => (
       <OpenClawSetup {...defaultProps} apiKey="mnfst_secret_key" keyPrefix="mnfst_sec" />
     ));
     const cliBlock = container.querySelector(".setup-cli-block");
-    const copyBtns = cliBlock!.querySelectorAll(".modal-terminal__copy");
-    const cliCopy = Array.from(copyBtns).find(b => b.getAttribute("aria-label") === "Copy disabled");
-    expect(cliCopy).not.toBeNull();
-    expect(cliCopy!.hasAttribute("disabled")).toBe(true);
+    const copyBtn = cliBlock!.querySelector('[aria-label="Copy to clipboard"]');
+    expect(copyBtn).not.toBeNull();
   });
 
-  it("enables CLI copy button when key is revealed", () => {
-    const { container } = render(() => (
-      <OpenClawSetup {...defaultProps} apiKey="mnfst_secret_key" keyPrefix="mnfst_sec" />
-    ));
-    fireEvent.click(container.querySelector('[aria-label="Reveal API key"]')!);
-    const cliBlock = container.querySelector(".setup-cli-block");
-    const copyBtns = cliBlock!.querySelectorAll(".modal-terminal__copy");
-    const cliCopy = Array.from(copyBtns).find(b => b.getAttribute("aria-label") === "Copy to clipboard");
-    expect(cliCopy).not.toBeNull();
-    expect(cliCopy!.hasAttribute("disabled")).toBe(false);
-  });
-
-  it("switches to Interactive wizard tab", () => {
+  it("switches to openclaw onboard tab", () => {
     const { container } = render(() => <OpenClawSetup {...defaultProps} />);
     const segment = container.querySelector(".setup-segment--full");
     const btns = segment!.querySelectorAll(".setup-segment__btn");
@@ -173,14 +154,14 @@ describe("OpenClawSetup", () => {
     expect(container.textContent).toContain("mnfst_wiz_full");
   });
 
-  it("disables wizard copy button when key is hidden", () => {
+  it("shows wizard copy button when key is hidden", () => {
     const { container } = render(() => (
       <OpenClawSetup {...defaultProps} apiKey="mnfst_wiz" keyPrefix="mnfst_wi" />
     ));
     const segment = container.querySelector(".setup-segment--full");
     fireEvent.click(segment!.querySelectorAll(".setup-segment__btn")[1]);
-    const disabledCopies = container.querySelectorAll('[aria-label="Copy disabled"]');
-    expect(disabledCopies.length).toBeGreaterThanOrEqual(1);
+    const copyBtns = container.querySelectorAll('[aria-label="Copy to clipboard"]');
+    expect(copyBtns.length).toBeGreaterThanOrEqual(1);
   });
 
   it("switches back from wizard to CLI tab", () => {

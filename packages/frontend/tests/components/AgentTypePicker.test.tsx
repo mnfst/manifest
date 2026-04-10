@@ -42,9 +42,9 @@ describe("AgentTypePicker", () => {
     vi.clearAllMocks();
   });
 
-  it("renders category radio group", () => {
+  it("renders category tab list", () => {
     const { container } = render(() => <AgentTypePicker {...defaultProps} />);
-    const group = container.querySelector('[role="radiogroup"][aria-label="Agent type"]');
+    const group = container.querySelector('[role="tablist"][aria-label="Agent type"]');
     expect(group).not.toBeNull();
   });
 
@@ -54,49 +54,49 @@ describe("AgentTypePicker", () => {
     expect(container.textContent).toContain("App AI SDK");
   });
 
-  it("renders radio inputs for categories", () => {
+  it("renders tab buttons for categories", () => {
     const { container } = render(() => <AgentTypePicker {...defaultProps} />);
-    const radios = container.querySelectorAll('input[name="agent-category"]');
-    expect(radios).toHaveLength(2);
-    expect(radios[0].getAttribute("value")).toBe("personal");
-    expect(radios[1].getAttribute("value")).toBe("app");
+    const tabs = container.querySelectorAll('[role="tab"]');
+    expect(tabs).toHaveLength(2);
+    expect(tabs[0].textContent).toContain("Personal AI Agent");
+    expect(tabs[1].textContent).toContain("App AI SDK");
   });
 
-  it("marks selected category radio as checked", () => {
+  it("marks selected category tab as active", () => {
     const { container } = render(() => (
       <AgentTypePicker {...defaultProps} category="personal" />
     ));
-    const radios = container.querySelectorAll('input[name="agent-category"]') as NodeListOf<HTMLInputElement>;
-    expect(radios[0].checked).toBe(true);
-    expect(radios[1].checked).toBe(false);
+    const tabs = container.querySelectorAll('[role="tab"]');
+    expect(tabs[0].getAttribute("aria-selected")).toBe("true");
+    expect(tabs[1].getAttribute("aria-selected")).toBe("false");
   });
 
-  it("applies selected class to chosen category", () => {
+  it("applies active class to chosen category tab", () => {
     const { container } = render(() => (
       <AgentTypePicker {...defaultProps} category="app" />
     ));
-    const labels = container.querySelectorAll(".agent-type-picker__radio");
-    expect(labels[0].classList.contains("agent-type-picker__radio--selected")).toBe(false);
-    expect(labels[1].classList.contains("agent-type-picker__radio--selected")).toBe(true);
+    const tabs = container.querySelectorAll('[role="tab"]');
+    expect(tabs[0].classList.contains("panel__tab--active")).toBe(false);
+    expect(tabs[1].classList.contains("panel__tab--active")).toBe(true);
   });
 
-  it("calls onCategoryChange when category radio clicked", () => {
+  it("calls onCategoryChange when category tab clicked", () => {
     const onCategoryChange = vi.fn();
     const { container } = render(() => (
       <AgentTypePicker {...defaultProps} onCategoryChange={onCategoryChange} />
     ));
-    const radios = container.querySelectorAll('input[name="agent-category"]');
-    fireEvent.change(radios[0]);
+    const tabs = container.querySelectorAll('[role="tab"]');
+    fireEvent.click(tabs[0]);
     expect(onCategoryChange).toHaveBeenCalledWith("personal");
   });
 
-  it("calls onCategoryChange with app when app radio clicked", () => {
+  it("calls onCategoryChange with app when app tab clicked", () => {
     const onCategoryChange = vi.fn();
     const { container } = render(() => (
       <AgentTypePicker {...defaultProps} onCategoryChange={onCategoryChange} />
     ));
-    const radios = container.querySelectorAll('input[name="agent-category"]');
-    fireEvent.change(radios[1]);
+    const tabs = container.querySelectorAll('[role="tab"]');
+    fireEvent.click(tabs[1]);
     expect(onCategoryChange).toHaveBeenCalledWith("app");
   });
 
@@ -181,23 +181,25 @@ describe("AgentTypePicker", () => {
     expect(icons[1].getAttribute("src")).toBe("/icons/hermes.png");
   });
 
-  it("does not show icon for platforms without icons", () => {
+  it("shows fallback icon for other platform", () => {
     const { container } = render(() => (
       <AgentTypePicker {...defaultProps} category="personal" />
     ));
     const labels = container.querySelectorAll(".agent-type-picker__platform");
-    // "other" platform has no icon
+    // "other" platform gets a fallback icon from iconFor()
     const otherLabel = labels[2];
-    expect(otherLabel.querySelector(".agent-type-picker__platform-icon")).toBeNull();
+    const icon = otherLabel.querySelector(".agent-type-picker__platform-icon");
+    expect(icon).not.toBeNull();
+    expect(icon!.getAttribute("src")).toBe("/icons/other-agent.svg");
   });
 
-  it("disables category radios when disabled prop is true", () => {
+  it("disables category tabs when disabled prop is true", () => {
     const { container } = render(() => (
       <AgentTypePicker {...defaultProps} disabled={true} />
     ));
-    const radios = container.querySelectorAll('input[name="agent-category"]') as NodeListOf<HTMLInputElement>;
-    expect(radios[0].disabled).toBe(true);
-    expect(radios[1].disabled).toBe(true);
+    const tabs = container.querySelectorAll('[role="tab"]') as NodeListOf<HTMLButtonElement>;
+    expect(tabs[0].disabled).toBe(true);
+    expect(tabs[1].disabled).toBe(true);
   });
 
   it("disables platform radios when disabled prop is true", () => {
