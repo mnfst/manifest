@@ -94,6 +94,20 @@ describe('proxy-response-handler', () => {
       expect(headers).not.toHaveProperty('X-Manifest-Fallback-From');
       expect(headers).not.toHaveProperty('X-Manifest-Fallback-Index');
     });
+
+    it('should include specificity header when specificity_category is set', () => {
+      const meta = makeMeta({ specificity_category: 'coding' });
+      const headers = buildMetaHeaders(meta);
+
+      expect(headers['X-Manifest-Specificity']).toBe('coding');
+    });
+
+    it('should not include specificity header when specificity_category is not set', () => {
+      const meta = makeMeta();
+      const headers = buildMetaHeaders(meta);
+
+      expect(headers).not.toHaveProperty('X-Manifest-Specificity');
+    });
   });
 
   /* ── handleProviderError ── */
@@ -123,11 +137,13 @@ describe('proxy-response-handler', () => {
         'Internal Server Error',
         {
           model: 'gpt-4o',
+          provider: 'openai',
           tier: 'standard',
           traceId: 'trace-1',
           fallbackFromModel: undefined,
           fallbackIndex: undefined,
           authType: undefined,
+          specificityCategory: undefined,
         },
       );
       expect(res.status).toHaveBeenCalledWith(500);
@@ -336,9 +352,15 @@ describe('proxy-response-handler', () => {
 
     it('should use default error message when primaryErrorBody is not set', () => {
       const recorder = mockRecorder();
+      // The meta fixture represents a fallback-success flow:
+      //   meta.provider  = 'openai'     ← fallback that succeeded
+      //   meta.primaryProvider = 'anthropic' ← primary that failed
+      // recordPrimaryFailure must attribute the primary row to the primary
+      // provider, not the fallback's provider.
       const meta = makeMeta({
-        fallbackFromModel: 'gpt-4o',
+        fallbackFromModel: 'claude-sonnet-4',
         primaryErrorStatus: 503,
+        primaryProvider: 'anthropic',
       });
 
       recordFallbackFailures(testCtx, meta, undefined, recorder as any);
@@ -346,26 +368,50 @@ describe('proxy-response-handler', () => {
       expect(recorder.recordPrimaryFailure).toHaveBeenCalledWith(
         testCtx,
         expect.anything(),
-        'gpt-4o',
+        'claude-sonnet-4',
         'Provider returned HTTP 503',
         expect.any(String),
         undefined,
+        { provider: 'anthropic', callerAttribution: undefined },
       );
     });
 
     it('should use default 500 status when primaryErrorStatus is not set', () => {
       const recorder = mockRecorder();
-      const meta = makeMeta({ fallbackFromModel: 'gpt-4o' });
+      const meta = makeMeta({
+        fallbackFromModel: 'claude-sonnet-4',
+        primaryProvider: 'anthropic',
+      });
 
       recordFallbackFailures(testCtx, meta, undefined, recorder as any);
 
       expect(recorder.recordPrimaryFailure).toHaveBeenCalledWith(
         testCtx,
         expect.anything(),
-        'gpt-4o',
+        'claude-sonnet-4',
         'Provider returned HTTP 500',
         expect.any(String),
         undefined,
+        { provider: 'anthropic', callerAttribution: undefined },
+      );
+    });
+
+    it('leaves primary provider undefined when meta.primaryProvider is not set', () => {
+      // Guard against regression: without primaryProvider we must NOT fall
+      // back to meta.provider (which is the fallback's provider in this flow).
+      const recorder = mockRecorder();
+      const meta = makeMeta({ fallbackFromModel: 'claude-sonnet-4' });
+
+      recordFallbackFailures(testCtx, meta, undefined, recorder as any);
+
+      expect(recorder.recordPrimaryFailure).toHaveBeenCalledWith(
+        testCtx,
+        expect.anything(),
+        'claude-sonnet-4',
+        expect.any(String),
+        expect.any(String),
+        undefined,
+        { provider: undefined, callerAttribution: undefined },
       );
     });
   });
@@ -454,6 +500,46 @@ describe('proxy-response-handler', () => {
 
       // Called with only 2 args (no transformer)
       expect(pipeStreamSpy).toHaveBeenCalledWith(forward.response.body, res);
+    });
+
+    it('should cache thought_signatures from Google stream chunks', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward({ isGoogle: true });
+      const client = mockProviderClient();
+      const meta = makeMeta();
+
+      const signatureCache = { store: jest.fn() };
+      const sessionKey = 'sess-123';
+
+      // The transformer is captured by pipeStream — we need to invoke it manually.
+      // Capture the transform function passed to pipeStream.
+      let capturedTransform: ((chunk: string) => string | null) | undefined;
+      pipeStreamSpy.mockImplementation(
+        async (_body: unknown, _res: unknown, transform?: (chunk: string) => string | null) => {
+          capturedTransform = transform;
+          return null;
+        },
+      );
+
+      client.convertGoogleStreamChunk.mockImplementation((chunk: string) => chunk);
+
+      await handleStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        signatureCache as any,
+        sessionKey,
+      );
+
+      expect(capturedTransform).toBeDefined();
+
+      // Simulate a chunk with thought_signature and id fields
+      const chunk = '{"id":"call_abc","thought_signature":"sig_xyz"}';
+      capturedTransform!(chunk);
+
+      expect(signatureCache.store).toHaveBeenCalledWith('sess-123', 'call_abc', 'sig_xyz');
     });
   });
 
@@ -650,6 +736,43 @@ describe('proxy-response-handler', () => {
 
       expect(usage!.completion_tokens).toBe(0);
     });
+
+    it('should cache extracted thought_signatures from Google non-stream response', async () => {
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+      const signatureCache = { store: jest.fn() };
+      const sessionKey = 'sess-456';
+
+      // convertGoogleResponse returns a body with _extractedSignatures
+      client.convertGoogleResponse.mockReturnValue({
+        id: 'google-converted',
+        _extractedSignatures: [
+          { toolCallId: 'call_1', signature: 'sig_a' },
+          { toolCallId: 'call_2', signature: 'sig_b' },
+        ],
+      });
+
+      const forward = mockForward({}, { isGoogle: true });
+      const meta = makeMeta();
+
+      await handleNonStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        signatureCache as any,
+        sessionKey,
+      );
+
+      expect(signatureCache.store).toHaveBeenCalledTimes(2);
+      expect(signatureCache.store).toHaveBeenCalledWith('sess-456', 'call_1', 'sig_a');
+      expect(signatureCache.store).toHaveBeenCalledWith('sess-456', 'call_2', 'sig_b');
+
+      // _extractedSignatures should be deleted from the response body
+      const sentBody = res.json.mock.calls[0][0];
+      expect(sentBody._extractedSignatures).toBeUndefined();
+    });
   });
 
   /* ── recordSuccess ── */
@@ -672,6 +795,7 @@ describe('proxy-response-handler', () => {
 
       expect(recorder.recordFallbackSuccess).toHaveBeenCalledWith(testCtx, 'gpt-4o', 'standard', {
         traceId: 'trace-1',
+        provider: 'openai',
         fallbackFromModel: 'gpt-4o',
         fallbackIndex: 1,
         timestamp: '2025-01-01T00:00:00Z',
@@ -695,9 +819,11 @@ describe('proxy-response-handler', () => {
         usage,
         {
           traceId: 'trace-1',
+          provider: 'openai',
           authType: undefined,
           sessionKey: 'session-1',
           durationMs: expect.any(Number),
+          specificityCategory: undefined,
         },
       );
     });
@@ -773,12 +899,74 @@ describe('proxy-response-handler', () => {
 
       expect(recorder.recordFallbackSuccess).toHaveBeenCalledWith(testCtx, 'gpt-4o', 'standard', {
         traceId: undefined,
+        provider: 'openai',
         fallbackFromModel: 'gpt-4o',
         fallbackIndex: 0,
         timestamp: '2025-01-01T00:00:00Z',
         authType: undefined,
         usage: undefined,
       });
+    });
+
+    it('defaults fallbackIndex to 0 when meta does not set one', () => {
+      const recorder = mockRecorder();
+      // fallbackFromModel is set, timestamp is set, but fallbackIndex is undefined.
+      // Exercises the `meta.fallbackIndex ?? 0` branch.
+      const meta = makeMeta({ fallbackFromModel: 'claude-3' });
+
+      recordSuccess(testCtx, meta, null, '2025-01-01T00:00:00Z', recorder as any);
+
+      expect(recorder.recordFallbackSuccess).toHaveBeenCalledWith(
+        testCtx,
+        'gpt-4o',
+        'standard',
+        expect.objectContaining({ fallbackIndex: 0 }),
+      );
+    });
+
+    it('should pass specificityCategory when set on meta', () => {
+      const recorder = mockRecorder();
+      const meta = makeMeta({ specificity_category: 'coding' });
+      const usage: StreamUsage = { prompt_tokens: 100, completion_tokens: 50 };
+
+      recordSuccess(testCtx, meta, usage, undefined, recorder as any, 'trace-1', 'session-1');
+
+      expect(recorder.recordSuccessMessage).toHaveBeenCalledWith(
+        testCtx,
+        'gpt-4o',
+        'standard',
+        'auto',
+        usage,
+        expect.objectContaining({ specificityCategory: 'coding' }),
+      );
+    });
+  });
+
+  describe('handleProviderError with specificity', () => {
+    it('should pass specificityCategory to recordProviderError', async () => {
+      const { res } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta({ specificity_category: 'coding' });
+      const metaHeaders = buildMetaHeaders(meta);
+
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        metaHeaders,
+        500,
+        'Internal Server Error',
+        undefined,
+        recorder as any,
+        'trace-1',
+      );
+
+      expect(recorder.recordProviderError).toHaveBeenCalledWith(
+        testCtx,
+        500,
+        'Internal Server Error',
+        expect.objectContaining({ specificityCategory: 'coding' }),
+      );
     });
   });
 });

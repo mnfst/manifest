@@ -18,6 +18,12 @@ export interface ProviderDef {
   subscriptionLabel?: string;
   /** Placeholder for the subscription token input (providers that need a pasted token). */
   subscriptionKeyPlaceholder?: string;
+  /**
+   * Credential kind used for subscription auth. Drives the input label and
+   * aria-labels in the subscription detail view. Defaults to 'setup-token'
+   * for providers that historically used the Anthropic-style setup-token flow.
+   */
+  subscriptionCredentialKind?: 'setup-token' | 'api-key';
   /** Instructions text shown in the subscription detail view. */
   subscriptionCommand?: string;
   /** Provider uses GitHub device login instead of token paste. */
@@ -158,6 +164,23 @@ export const PROVIDERS: ProviderDef[] = [
     localOnly: true,
   },
   {
+    id: 'ollama-cloud',
+    name: 'Ollama Cloud',
+    color: '#1a1a1a',
+    initial: 'Oc',
+    subtitle: 'DeepSeek, Qwen, Gemma, Llama in the cloud',
+    keyPrefix: '',
+    minKeyLength: 0,
+    keyPlaceholder: '',
+    supportsSubscription: true,
+    subscriptionOnly: true,
+    subscriptionLabel: 'Ollama Cloud subscription',
+    subscriptionAuthMode: 'token',
+    subscriptionCredentialKind: 'api-key',
+    subscriptionKeyPlaceholder: 'Paste your Ollama Cloud API key',
+    models: [],
+  },
+  {
     id: 'openai',
     name: 'OpenAI',
     color: '#10a37f',
@@ -214,10 +237,15 @@ export const PROVIDERS: ProviderDef[] = [
     name: 'Z.ai',
     color: '#2d2d2d',
     initial: 'Z',
-    subtitle: 'GLM 5, GLM 4.7, GLM 4.5',
+    subtitle: 'GLM 5.1, GLM 5, GLM 4.7',
     keyPrefix: '',
     minKeyLength: 30,
     keyPlaceholder: 'API key',
+    supportsSubscription: true,
+    subscriptionLabel: 'GLM Coding Plan',
+    subscriptionAuthMode: 'token',
+    subscriptionKeyPlaceholder: 'Paste your Z.ai API key',
+    subscriptionCredentialKind: 'api-key',
     models: [],
   },
 ];
@@ -255,6 +283,63 @@ export const STAGES: StageDef[] = [
     step: 4,
     label: 'Reasoning',
     desc: 'Advanced reasoning, planning, and critical decision-making.',
+  },
+];
+
+export const SPECIFICITY_STAGES: StageDef[] = [
+  {
+    id: 'coding',
+    step: 1,
+    label: 'Coding',
+    desc: 'Write, debug, and refactor code.',
+  },
+  {
+    id: 'web_browsing',
+    step: 2,
+    label: 'Web Browsing',
+    desc: 'Navigate pages, search, and extract content.',
+  },
+  {
+    id: 'data_analysis',
+    step: 3,
+    label: 'Data Analysis',
+    desc: 'Crunch numbers, run stats, build charts.',
+  },
+  {
+    id: 'image_generation',
+    step: 4,
+    label: 'Image Generation',
+    desc: 'Create and edit images, logos, visuals.',
+  },
+  {
+    id: 'video_generation',
+    step: 5,
+    label: 'Video Generation',
+    desc: 'Produce clips, animations, and edits.',
+  },
+  {
+    id: 'social_media',
+    step: 6,
+    label: 'Social Media',
+    desc: 'Draft posts, plan content, track engagement.',
+  },
+  {
+    id: 'email_management',
+    step: 7,
+    label: 'Email',
+    desc: 'Compose, reply, and manage your inbox.',
+  },
+  {
+    id: 'calendar_management',
+    step: 8,
+    label: 'Calendar',
+    desc: 'Book meetings, check availability, reschedule.',
+  },
+  {
+    id: 'trading',
+    step: 9,
+    label: 'Trading',
+    desc: 'Analyze markets, place trades, track positions.',
   },
 ];
 

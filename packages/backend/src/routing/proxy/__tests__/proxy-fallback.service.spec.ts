@@ -715,5 +715,22 @@ describe('ProxyFallbackService', () => {
 
       expect(result.apiKey).toBe('blob');
     });
+
+    it('returns Z.ai subscription API key unchanged (no OAuth unwrap)', async () => {
+      const result = await resolveApiKey(
+        'zai',
+        'zai-sub-key',
+        'subscription',
+        'agent-1',
+        'user-1',
+        openaiOauth,
+        minimaxOauth,
+      );
+
+      expect(result.apiKey).toBe('zai-sub-key');
+      expect(result.resourceUrl).toBeUndefined();
+      expect(openaiOauth.unwrapToken).not.toHaveBeenCalled();
+      expect(minimaxOauth.unwrapToken).not.toHaveBeenCalled();
+    });
   });
 });

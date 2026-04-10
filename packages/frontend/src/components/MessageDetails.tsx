@@ -142,13 +142,20 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                     <span class={`status-badge status-badge--${m.status}`}>{m.status}</span>
                   </span>
                   <MetaField label="ID" value={m.id} />
+                  <MetaField label="Provider" value={provider} />
+                  <MetaField label="Auth" value={m.auth_type} />
                   <MetaField label="Model" value={m.model ? getModelDisplayName(m.model) : null} />
                   <MetaField label="Model ID" value={m.model} />
-                  <MetaField label="Provider" value={provider} />
                   <MetaField label="Trace" value={m.trace_id?.slice(0, 16)} />
-                  <MetaField label="Routing" value={m.routing_tier} />
+                  <MetaField
+                    label="Routing"
+                    value={
+                      m.specificity_category
+                        ? m.specificity_category.replace(/_/g, ' ')
+                        : m.routing_tier
+                    }
+                  />
                   <MetaField label="Reason" value={m.routing_reason} />
-                  <MetaField label="Auth" value={m.auth_type} />
                   <MetaField label="Service" value={m.service_type} />
                   <MetaField label="Session" value={m.session_key} />
                   <MetaField label="Description" value={m.description} />

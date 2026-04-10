@@ -49,6 +49,9 @@ jobs:
     name: Build & Publish
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
 
@@ -72,6 +75,7 @@ jobs:
             type=sha
 
       - uses: docker/build-push-action@v6
+        id: build
         with:
           context: .
           file: docker/Dockerfile
@@ -83,3 +87,14 @@ jobs:
           cache-to: type=gha,mode=max
           sbom: true
           provenance: mode=max
+
+      - uses: sigstore/cosign-installer@v3
+
+      - name: Sign published image
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          for tag in ${TAGS}; do
+            cosign sign --yes "${tag}@${DIGEST}"
+          done

@@ -22,7 +22,7 @@ const MAX_CACHE_ENTRIES = 5_000;
 @Injectable()
 export class MessagesQueryService {
   private readonly dialect: DbDialect;
-  private readonly modelsCache = new TtlCache<string, string[]>({
+  private readonly modelsCache = new TtlCache<string, { models: string[]; providers: string[] }>({
     maxSize: MAX_CACHE_ENTRIES,
     ttlMs: MODELS_CACHE_TTL_MS,
   });
@@ -70,21 +70,31 @@ export class MessagesQueryService {
     if (params.agent_name)
       baseQb.andWhere('at.agent_name = :filterAgent', { filterAgent: params.agent_name });
 
-    // Provider filter: resolve matching models from the cached distinct list
+    // Provider filter: prefer the stored provider column (populated by the
+    // proxy from routing resolution), and fall back to inference for legacy
+    // rows that pre-date the column.
     if (params.provider) {
-      const allModels = await this.getDistinctModels(
+      const distinct = await this.getDistinctModels(
         params.userId,
         params.range,
         tenantId,
         params.agent_name,
       );
-      const matching = allModels.filter((m) => inferProviderFromModel(m) === params.provider);
-      if (matching.length === 0) {
-        // No models match this provider — short-circuit with empty result
-        const providers = this.deriveProviders(allModels);
-        return { items: [], next_cursor: null, total_count: 0, providers };
-      }
-      baseQb.andWhere('at.model IN (:...providerModels)', { providerModels: matching });
+      const matching = distinct.models.filter((m) => inferProviderFromModel(m) === params.provider);
+      baseQb.andWhere(
+        new Brackets((sub) => {
+          sub.where('at.provider = :providerId', { providerId: params.provider });
+          if (matching.length > 0) {
+            sub.orWhere(
+              new Brackets((inner) => {
+                inner
+                  .where('at.provider IS NULL')
+                  .andWhere('at.model IN (:...providerModels)', { providerModels: matching });
+              }),
+            );
+          }
+        }),
+      );
     }
 
     // Count (without cursor) — use cache for repeat/paginated requests
@@ -99,6 +109,7 @@ export class MessagesQueryService {
       .addSelect('at.timestamp', 'timestamp')
       .addSelect('at.agent_name', 'agent_name')
       .addSelect('at.model', 'model')
+      .addSelect('at.provider', 'provider')
       .addSelect('at.model', 'display_name')
       .addSelect('at.description', 'description')
       .addSelect('at.service_type', 'service_type')
@@ -109,6 +120,7 @@ export class MessagesQueryService {
       .addSelect(costExpr, 'cost')
       .addSelect('at.routing_tier', 'routing_tier')
       .addSelect('at.routing_reason', 'routing_reason')
+      .addSelect('at.specificity_category', 'specificity_category')
       .addSelect('at.cache_read_tokens', 'cache_read_tokens')
       .addSelect('at.cache_creation_tokens', 'cache_creation_tokens')
       .addSelect('at.duration_ms', 'duration_ms')
@@ -137,10 +149,12 @@ export class MessagesQueryService {
       }
     }
 
-    // Run count, data, and models queries in parallel (count cached on paginated requests)
+    // Run count, data, and models+providers queries in parallel.
+    // The models query row shape includes both model and provider so we can
+    // derive the full provider set in a single round trip.
     const cachedCount = params.cursor ? this.countCache.get(countCacheKey) : undefined;
     const countHit = cachedCount !== undefined;
-    const [countResult, rows, allModels] = await Promise.all([
+    const [countResult, rows, distinctRows] = await Promise.all([
       countHit ? null : countQb.getRawOne(),
       dataQb
         .orderBy('at.timestamp', 'DESC')
@@ -149,6 +163,8 @@ export class MessagesQueryService {
         .getRawMany(),
       this.getDistinctModels(params.userId, params.range, tenantId, params.agent_name),
     ]);
+    const allModels = distinctRows.models;
+    const storedProviders = distinctRows.providers;
 
     let totalCount: number;
     if (countHit) {
@@ -165,7 +181,7 @@ export class MessagesQueryService {
     const lastId = lastItem?.['id'];
     const nextCursor = hasMore && lastItem ? `${tsStr}|${String(lastId)}` : null;
 
-    const providers = this.deriveProviders(allModels);
+    const providers = this.deriveProviders(allModels, storedProviders);
 
     return {
       items,
@@ -175,9 +191,18 @@ export class MessagesQueryService {
     };
   }
 
-  /** Derive sorted unique provider IDs from a list of model names. */
-  private deriveProviders(models: string[]): string[] {
+  /**
+   * Derive sorted unique provider IDs. Combines:
+   *   1. Providers explicitly stored on message rows (accurate, populated by
+   *      the proxy from routing resolution).
+   *   2. Providers inferred from the distinct model list for legacy rows
+   *      that pre-date the stored column.
+   */
+  private deriveProviders(models: string[], storedProviders: string[]): string[] {
     const seen = new Set<string>();
+    for (const p of storedProviders) {
+      if (p) seen.add(p);
+    }
     for (const m of models) {
       const p = inferProviderFromModel(m);
       if (p) seen.add(p);
@@ -190,7 +215,7 @@ export class MessagesQueryService {
     range?: string,
     tenantId?: string,
     agentName?: string,
-  ): Promise<string[]> {
+  ): Promise<{ models: string[]; providers: string[] }> {
     const cacheKey = `${userId}:${agentName ?? ''}:${range ?? 'all'}`;
     const cached = this.modelsCache.get(cacheKey);
     if (cached) return cached;
@@ -198,7 +223,9 @@ export class MessagesQueryService {
     const cutoff = range ? computeCutoff(rangeToInterval(range)) : undefined;
     const modelsQb = this.turnRepo
       .createQueryBuilder('at')
-      .select('DISTINCT at.model', 'model')
+      .select('at.model', 'model')
+      .addSelect('at.provider', 'provider')
+      .distinct(true)
       .where('at.model IS NOT NULL')
       .andWhere("at.model != ''");
     if (cutoff) {
@@ -207,9 +234,24 @@ export class MessagesQueryService {
     addTenantFilter(modelsQb, userId, agentName, tenantId);
     const modelsResult = await modelsQb.orderBy('at.model', 'ASC').getRawMany();
 
-    const models = modelsResult.map((r: Record<string, unknown>) => String(r['model']));
-    this.modelsCache.set(cacheKey, models);
-    return models;
+    const modelSet = new Set<string>();
+    const providerSet = new Set<string>();
+    for (const row of modelsResult) {
+      const modelValue = row['model'];
+      if (modelValue != null && modelValue !== '') {
+        modelSet.add(String(modelValue));
+      }
+      const providerValue = row['provider'];
+      if (providerValue != null && providerValue !== '') {
+        providerSet.add(String(providerValue));
+      }
+    }
+    const result = {
+      models: [...modelSet],
+      providers: [...providerSet],
+    };
+    this.modelsCache.set(cacheKey, result);
+    return result;
   }
 
   private buildCountCacheKey(params: {

@@ -226,6 +226,14 @@ describe('ProxyMessageRecorder', () => {
       await recorder.recordFallbackSuccess(ctx, 'gpt-4o', 'standard');
       expect(emitMock).toHaveBeenCalledWith('user-1');
     });
+
+    it('persists the provider column when passed via opts', async () => {
+      await recorder.recordFallbackSuccess(ctx, 'gemma4:31b', 'standard', {
+        provider: 'ollama-cloud',
+        usage: { prompt_tokens: 5, completion_tokens: 5 },
+      });
+      expect(insertMock.mock.calls[0][0].provider).toBe('ollama-cloud');
+    });
   });
 
   describe('recordProviderError', () => {
@@ -266,6 +274,22 @@ describe('ProxyMessageRecorder', () => {
       await recorder.recordProviderError(ctx, 429, 'Rate limited again');
       expect(insertMock).not.toHaveBeenCalled();
       expect(emitMock).not.toHaveBeenCalled();
+    });
+
+    it('persists the provider column when passed via opts', async () => {
+      await recorder.recordProviderError(ctx, 500, 'Upstream error', {
+        model: 'gemma4:31b',
+        provider: 'ollama-cloud',
+        tier: 'standard',
+      });
+      expect(insertMock.mock.calls[0][0].provider).toBe('ollama-cloud');
+    });
+
+    it('persists provider=null when opts omit the provider', async () => {
+      await recorder.recordProviderError(ctx, 500, 'Upstream error', {
+        model: 'gpt-4o',
+      });
+      expect(insertMock.mock.calls[0][0].provider).toBeNull();
     });
   });
 
@@ -308,6 +332,118 @@ describe('ProxyMessageRecorder', () => {
       expect(insertMock.mock.calls[0][0].error_http_status).toBe(400);
       expect(insertMock.mock.calls[1][0].error_http_status).toBe(503);
     });
+
+    it('persists the provider column for each fallback failure', async () => {
+      const failures = [
+        {
+          model: 'gpt-4o',
+          provider: 'openai',
+          status: 500,
+          errorBody: 'fail-1',
+          fallbackIndex: 0,
+        },
+        {
+          model: 'claude-3',
+          provider: 'ollama-cloud',
+          status: 500,
+          errorBody: 'fail-2',
+          fallbackIndex: 1,
+        },
+      ];
+      await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures);
+      expect(insertMock.mock.calls[0][0].provider).toBe('openai');
+      expect(insertMock.mock.calls[1][0].provider).toBe('ollama-cloud');
+    });
+
+    it('persists provider=null when the failure has no provider (line 164 falsy branch)', async () => {
+      const failures = [
+        {
+          model: 'gpt-4o',
+          provider: undefined as unknown as string,
+          status: 500,
+          errorBody: 'fail',
+          fallbackIndex: 0,
+        },
+      ];
+      await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures);
+      expect(insertMock.mock.calls[0][0].provider).toBeNull();
+    });
+
+    it('marks rate_limited status when the failure status is 429 (line 150 branch)', async () => {
+      const failures = [
+        {
+          model: 'gpt-4o',
+          provider: 'openai',
+          status: 429,
+          errorBody: 'rate limited',
+          fallbackIndex: 0,
+        },
+      ];
+      // markHandled=false is the default → the !useHandledStatus branch runs,
+      // so `f.status === 429 ? 'rate_limited' : 'error'` is exercised.
+      await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures);
+      expect(insertMock.mock.calls[0][0].status).toBe('rate_limited');
+    });
+
+    it('marks fallback_error status when markHandled=true and lastAsError=false', async () => {
+      const failures = [
+        {
+          model: 'gpt-4o',
+          provider: 'openai',
+          status: 429,
+          errorBody: 'rate limited',
+          fallbackIndex: 0,
+        },
+      ];
+      await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures, {
+        markHandled: true,
+      });
+      expect(insertMock.mock.calls[0][0].status).toBe('fallback_error');
+    });
+
+    it('marks the LAST failure as error when lastAsError=true and markHandled=true', async () => {
+      const failures = [
+        {
+          model: 'gpt-4o',
+          provider: 'openai',
+          status: 500,
+          errorBody: 'fail-1',
+          fallbackIndex: 0,
+        },
+        {
+          model: 'claude-3',
+          provider: 'anthropic',
+          status: 429,
+          errorBody: 'fail-2',
+          fallbackIndex: 1,
+        },
+      ];
+      await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures, {
+        markHandled: true,
+        lastAsError: true,
+      });
+      // First failure uses fallback_error (handled), last is the real error.
+      expect(insertMock.mock.calls[0][0].status).toBe('fallback_error');
+      // Last failure with status 429 → rate_limited.
+      expect(insertMock.mock.calls[1][0].status).toBe('rate_limited');
+    });
+
+    it('uses baseTimeMs to stagger timestamps when provided', async () => {
+      const failures = [
+        {
+          model: 'gpt-4o',
+          provider: 'openai',
+          status: 500,
+          errorBody: 'fail',
+          fallbackIndex: 0,
+        },
+      ];
+      await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures, {
+        baseTimeMs: Date.parse('2025-01-01T00:00:00.000Z'),
+      });
+      // baseTimeMs + (1 - 0) * 100 = 100ms past the base.
+      expect(insertMock.mock.calls[0][0].timestamp).toBe('2025-01-01T00:00:00.100Z');
+    });
   });
 
   describe('recordPrimaryFailure', () => {
@@ -325,6 +461,33 @@ describe('ProxyMessageRecorder', () => {
         model: 'gpt-4o',
       });
       expect(emitMock).toHaveBeenCalledWith('user-1');
+    });
+
+    it('persists the provider column when passed a provider', async () => {
+      await recorder.recordPrimaryFailure(
+        ctx,
+        'standard',
+        'gemma4:31b',
+        'upstream error',
+        '2025-01-01T00:00:00.000Z',
+        'api_key',
+        { provider: 'ollama-cloud' },
+      );
+      expect(insertMock.mock.calls[0][0]).toMatchObject({
+        provider: 'ollama-cloud',
+        auth_type: 'api_key',
+      });
+    });
+
+    it('stores provider=null when no provider argument is given', async () => {
+      await recorder.recordPrimaryFailure(
+        ctx,
+        'standard',
+        'gpt-4o',
+        'upstream error',
+        '2025-01-01T00:00:00.000Z',
+      );
+      expect(insertMock.mock.calls[0][0].provider).toBeNull();
     });
   });
 
@@ -473,6 +636,104 @@ describe('ProxyMessageRecorder', () => {
         session_key: 'session-abc',
       });
       expect(emitMock).toHaveBeenCalledWith('user-1');
+    });
+
+    it('skips update when existing has only output_tokens > 0 (covers short-circuit OR branch)', async () => {
+      const updateMock = jest.fn();
+      (dedupWithLock.withAgentMessageTransaction as jest.Mock).mockImplementation(
+        (_repo: unknown, _ctx: unknown, fn: (r: unknown) => Promise<void>) =>
+          fn({ insert: insertMock, update: updateMock }),
+      );
+      // input_tokens is 0, output_tokens > 0 — the second clause of the
+      // (existing.input_tokens ?? 0) > 0 || (existing.output_tokens ?? 0) > 0
+      // guard must short-circuit the write.
+      (dedupWithLock.findExistingSuccessMessage as jest.Mock).mockResolvedValue({
+        id: 'existing-msg-output-only',
+        timestamp: new Date().toISOString(),
+        input_tokens: 0,
+        output_tokens: 42,
+        cache_read_tokens: 0,
+        cache_creation_tokens: 0,
+        duration_ms: 100,
+      });
+
+      await recorder.recordSuccessMessage(ctx, 'gpt-4o', 'standard', 'scored', {
+        prompt_tokens: 100,
+        completion_tokens: 50,
+      });
+
+      expect(updateMock).not.toHaveBeenCalled();
+      expect(insertMock).not.toHaveBeenCalled();
+      expect(emitMock).not.toHaveBeenCalled();
+    });
+
+    it('handles existing rows whose token counts are null', async () => {
+      const updateMock = jest.fn();
+      (dedupWithLock.withAgentMessageTransaction as jest.Mock).mockImplementation(
+        (_repo: unknown, _ctx: unknown, fn: (r: unknown) => Promise<void>) =>
+          fn({ insert: insertMock, update: updateMock }),
+      );
+      // Nullish coalescing: `(input_tokens ?? 0) > 0` and likewise for output.
+      (dedupWithLock.findExistingSuccessMessage as jest.Mock).mockResolvedValue({
+        id: 'existing-msg-null-tokens',
+        timestamp: new Date().toISOString(),
+        input_tokens: null,
+        output_tokens: null,
+        cache_read_tokens: 0,
+        cache_creation_tokens: 0,
+        duration_ms: null,
+      });
+
+      await recorder.recordSuccessMessage(ctx, 'gpt-4o', 'standard', 'scored', {
+        prompt_tokens: 10,
+        completion_tokens: 5,
+      });
+
+      expect(updateMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('persists the provider column on insert path', async () => {
+      await recorder.recordSuccessMessage(
+        ctx,
+        'gemma4:31b',
+        'standard',
+        'scored',
+        { prompt_tokens: 100, completion_tokens: 50 },
+        { provider: 'ollama-cloud' },
+      );
+      expect(insertMock).toHaveBeenCalledTimes(1);
+      expect(insertMock.mock.calls[0][0].provider).toBe('ollama-cloud');
+    });
+
+    it('persists the provider column on update path', async () => {
+      const updateMock = jest.fn();
+      (dedupWithLock.withAgentMessageTransaction as jest.Mock).mockImplementation(
+        (_repo: unknown, _ctx: unknown, fn: (r: unknown) => Promise<void>) =>
+          fn({ insert: insertMock, update: updateMock }),
+      );
+      (dedupWithLock.findExistingSuccessMessage as jest.Mock).mockResolvedValue({
+        id: 'existing-msg-prov',
+        timestamp: new Date().toISOString(),
+        input_tokens: 0,
+        output_tokens: 0,
+        cache_read_tokens: 0,
+        cache_creation_tokens: 0,
+        duration_ms: null,
+      });
+
+      await recorder.recordSuccessMessage(
+        ctx,
+        'gemma4:31b',
+        'standard',
+        'scored',
+        { prompt_tokens: 50, completion_tokens: 25 },
+        { provider: 'ollama-cloud' },
+      );
+
+      expect(updateMock).toHaveBeenCalledTimes(1);
+      expect(updateMock.mock.calls[0][1]).toMatchObject({
+        provider: 'ollama-cloud',
+      });
     });
 
     it('includes durationMs in update payload when provided', async () => {

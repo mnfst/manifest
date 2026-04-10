@@ -61,6 +61,7 @@ describe('LocalAuthGuard', () => {
       name: 'Local User',
       email: 'local@manifest.local',
     });
+    expect(request['authMethod']).toBe('session');
   });
 
   it('auto-authenticates loopback IPv6 (::1)', async () => {

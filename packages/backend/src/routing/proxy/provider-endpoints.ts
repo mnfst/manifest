@@ -1,4 +1,4 @@
-import { OLLAMA_HOST } from '../../common/constants/ollama';
+import { OLLAMA_CLOUD_HOST, OLLAMA_HOST } from '../../common/constants/ollama';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
 import { normalizeProviderBaseUrl } from '../provider-base-url';
 import { getQwenCompatibleBaseUrl } from '../qwen-region';
@@ -45,6 +45,7 @@ const anthropicBearerHeaders = (apiKey: string): Record<string, string> => ({
  */
 const CHATGPT_SUBSCRIPTION_BASE = 'https://chatgpt.com/backend-api';
 const MINIMAX_SUBSCRIPTION_BASE = 'https://api.minimax.io/anthropic';
+const ZAI_SUBSCRIPTION_BASE = 'https://open.bigmodel.cn/api/coding/paas/v4';
 const chatgptSubscriptionHeaders = (apiKey: string) => ({
   Authorization: `Bearer ${apiKey}`,
   'Content-Type': 'application/json',
@@ -119,6 +120,12 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: () => '/api/paas/v4/chat/completions',
     format: 'openai',
   },
+  'zai-subscription': {
+    baseUrl: ZAI_SUBSCRIPTION_BASE,
+    buildHeaders: openaiHeaders,
+    buildPath: () => '/chat/completions',
+    format: 'openai',
+  },
   google: {
     baseUrl: 'https://generativelanguage.googleapis.com',
     buildHeaders: () => ({ 'Content-Type': 'application/json' }),
@@ -151,6 +158,12 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   ollama: {
     baseUrl: OLLAMA_HOST,
     buildHeaders: () => ({ 'Content-Type': 'application/json' }),
+    buildPath: openaiPath,
+    format: 'openai',
+  },
+  'ollama-cloud': {
+    baseUrl: OLLAMA_CLOUD_HOST,
+    buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
   },

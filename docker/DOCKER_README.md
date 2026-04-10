@@ -105,6 +105,16 @@ docker run -d \
 
 Local mode skips the login page. The dashboard is accessible directly.
 
+### Verifying the image signature
+
+Published images are signed with cosign keyless signing (Sigstore). Verify before pulling:
+
+```bash
+cosign verify manifestdotbuild/manifest:<version> \
+  --certificate-identity-regexp="^https://github.com/mnfst/manifest/" \
+  --certificate-oidc-issuer="https://token.actions.githubusercontent.com"
+```
+
 ### Custom port
 
 If port 3001 is taken, change both the mapping and `BETTER_AUTH_URL`:

@@ -8,13 +8,23 @@ vi.mock("../../src/components/ProviderIcon.js", () => ({
 vi.mock("../../src/services/routing-utils.js", () => ({
   pricePerM: (v: number) => `$${(v * 1_000_000).toFixed(2)}`,
   resolveProviderId: (provider: string) => {
-    const map: Record<string, string> = { OpenAI: "openai", Anthropic: "anthropic", Google: "google", Ollama: "ollama" };
+    const map: Record<string, string> = {
+      OpenAI: "openai",
+      Anthropic: "anthropic",
+      Google: "google",
+      Ollama: "ollama",
+      "ollama-cloud": "ollama-cloud",
+      deepseek: "deepseek",
+    };
     return map[provider] ?? null;
   },
   inferProviderFromModel: (modelName: string) => {
     const slash = modelName.indexOf("/");
     if (slash !== -1) return modelName.substring(0, slash).toLowerCase();
     if (modelName.startsWith("mistral-")) return "mistral";
+    if (modelName.startsWith("deepseek-")) return "deepseek";
+    // Mirror the real heuristic: non-slash model with a colon → local ollama
+    if (!modelName.includes("/") && /:/.test(modelName)) return "ollama";
     return null;
   },
 }));
@@ -482,6 +492,77 @@ describe("ModelPickerModal", () => {
     ));
     expect(screen.getByText("Ollama")).toBeDefined();
     expect(screen.queryByText("Mistral")).toBeNull();
+  });
+
+  it("groups Ollama Cloud models under Ollama Cloud even when tag suffix looks like local Ollama", () => {
+    const models = [
+      { model_name: "gemma4:31b", provider: "ollama-cloud", display_name: "gemma4:31b", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true, auth_type: "subscription" as const },
+      { model_name: "qwen3-vl:235b", provider: "ollama-cloud", display_name: "qwen3-vl:235b", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true, auth_type: "subscription" as const },
+      { model_name: "deepseek-v3.2", provider: "ollama-cloud", display_name: "deepseek-v3.2", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: true, auth_type: "subscription" as const },
+    ];
+    const providers = [
+      { id: "p1", provider: "ollama-cloud", is_active: true, has_api_key: false, auth_type: "subscription" as const, connected_at: "2025-01-01" },
+    ];
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    // All three cloud models should appear under the Ollama Cloud group,
+    // not under local Ollama (via the colon heuristic) or DeepSeek (via prefix).
+    expect(screen.getByText("Ollama Cloud")).toBeDefined();
+    expect(screen.getByText("gemma4:31b")).toBeDefined();
+    expect(screen.getByText("qwen3-vl:235b")).toBeDefined();
+    expect(screen.getByText("deepseek-v3.2")).toBeDefined();
+    expect(screen.queryByText("DeepSeek")).toBeNull();
+    expect(screen.queryByText(/^Ollama$/)).toBeNull();
+  });
+
+  it("shows the subscription empty state when no subscription models are available", () => {
+    // A subscription provider is connected but the catalog has no matching
+    // models, so the subscription tab starts empty and must render the
+    // `isSub()` branch of the empty state copy.
+    const providers = [
+      { id: "p1", provider: "ollama-cloud", is_active: true, has_api_key: false, auth_type: "subscription" as const, connected_at: "2025-01-01" },
+    ];
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={[]}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    expect(
+      screen.getByText(/No subscription providers connected\. Connect a provider to see models\./),
+    ).toBeDefined();
+  });
+
+  it("shows the api-key empty state when no api-key models are available", () => {
+    // An api-key provider is connected but the catalog has no models for it.
+    const providers = [
+      { id: "p1", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
+    ];
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={[]}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    expect(
+      screen.getByText(/No API key providers connected\. Connect a provider to see models\./),
+    ).toBeDefined();
   });
 
   it("resets showFreeOnly when switching to subscription tab", () => {

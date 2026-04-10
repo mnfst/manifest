@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DiscoveredModel, FetcherConfig } from './model-fetcher';
-import { OLLAMA_HOST } from '../common/constants/ollama';
+import { OLLAMA_CLOUD_HOST, OLLAMA_HOST } from '../common/constants/ollama';
 import { normalizeMinimaxSubscriptionBaseUrl } from '../routing/provider-base-url';
 import { getQwenCompatibleBaseUrl, normalizeQwenCompatibleBaseUrl } from '../routing/qwen-region';
 
@@ -125,9 +125,6 @@ export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
 export const PROVIDER_BLOCKLIST: Record<string, ReadonlySet<string>> = {
   mistral: new Set([
     'voxtral-mini-2602', // Invalid model returned by API; not a real chat endpoint
-  ]),
-  zai: new Set([
-    'glm-5.1', // Requires Coding Plan subscription + different endpoint; 403 on standard API
   ]),
 };
 
@@ -383,6 +380,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
   },
+  'zai-subscription': {
+    endpoint: 'https://open.bigmodel.cn/api/coding/paas/v4/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
+  },
   anthropic: {
     endpoint: 'https://api.anthropic.com/v1/models?limit=100',
     buildHeaders: (key: string, authType?: string) => {
@@ -415,6 +417,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     buildHeaders: () => ({}),
     parse: parseOllama,
   },
+  'ollama-cloud': {
+    endpoint: `${OLLAMA_CLOUD_HOST}/api/tags`,
+    buildHeaders: bearerHeaders,
+    parse: parseOllama,
+  },
   copilot: {
     endpoint: 'https://api.githubcopilot.com/models',
     buildHeaders: (key: string) => ({
@@ -444,6 +451,8 @@ export class ProviderModelFetcherService {
       configKey = 'openai-subscription';
     } else if (configKey === 'minimax' && authType === 'subscription') {
       configKey = 'minimax-subscription';
+    } else if (configKey === 'zai' && authType === 'subscription') {
+      configKey = 'zai-subscription';
     }
     const config = PROVIDER_CONFIGS[configKey];
     if (!config) {

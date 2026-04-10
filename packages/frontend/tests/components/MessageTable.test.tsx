@@ -26,6 +26,9 @@ vi.mock('../../src/services/routing-utils.js', () => ({
     if (m.startsWith('gpt')) return 'openai';
     if (m.startsWith('claude')) return 'anthropic';
     if (m.startsWith('custom:')) return 'custom';
+    // Mirror the real heuristic: tagless Ollama models have a colon
+    if (!m.includes('/') && /:/.test(m)) return 'ollama';
+    if (m.startsWith('deepseek-')) return 'deepseek';
     return null;
   },
   inferProviderName: (m: string) => {
@@ -33,7 +36,29 @@ vi.mock('../../src/services/routing-utils.js', () => ({
     if (m.startsWith('claude')) return 'Anthropic';
     return m;
   },
+  resolveProviderId: (dbProvider: string) => {
+    if (!dbProvider) return undefined;
+    // Mirror the real helper: custom:<uuid> is returned unchanged so the
+    // caller can bucket per-custom-provider.
+    if (dbProvider.startsWith('custom:')) return dbProvider;
+    const map: Record<string, string> = {
+      openai: 'openai',
+      anthropic: 'anthropic',
+      'ollama-cloud': 'ollama-cloud',
+      ollama: 'ollama',
+    };
+    return map[dbProvider.toLowerCase()];
+  },
   stripCustomPrefix: (m: string) => m.replace(/^custom:[^/]+\//, ''),
+}));
+
+vi.mock('../../src/services/providers.js', () => ({
+  PROVIDERS: [
+    { id: 'openai', name: 'OpenAI' },
+    { id: 'anthropic', name: 'Anthropic' },
+    { id: 'ollama-cloud', name: 'Ollama Cloud' },
+    { id: 'ollama', name: 'Ollama' },
+  ],
 }));
 
 vi.mock('../../src/services/model-display.js', () => ({
@@ -316,6 +341,58 @@ describe('MessageTable', () => {
       expect(container.textContent).toContain('gpt-4o');
     });
 
+    it('uses stored provider over model-name inference for ollama-cloud tagged models', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[
+            makeRow({ id: 'm1', model: 'gemma4:31b', provider: 'ollama-cloud' }),
+            makeRow({ id: 'm2', model: 'deepseek-v3.2', provider: 'ollama-cloud' }),
+            makeRow({ id: 'm3', model: 'kimi-k2:1t', provider: 'ollama-cloud' }),
+          ]}
+          columns={['model']}
+          agentName="agent-1"
+          customProviderName={noopProvider}
+        />
+      ));
+      // All three rows should render the ollama-cloud icon, not ollama (colon
+      // heuristic) or deepseek (prefix match).
+      const cloudIcons = container.querySelectorAll('[data-testid="icon-ollama-cloud"]');
+      expect(cloudIcons.length).toBe(3);
+      expect(container.querySelector('[data-testid="icon-ollama"]')).toBeNull();
+      expect(container.querySelector('[data-testid="icon-deepseek"]')).toBeNull();
+    });
+
+    it('falls back to model-name inference when provider field is absent (legacy rows)', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ model: 'gpt-4o', provider: null })]}
+          columns={['model']}
+          agentName="agent-1"
+          customProviderName={noopProvider}
+        />
+      ));
+      expect(container.querySelector('[data-testid="icon-openai"]')).not.toBeNull();
+    });
+
+    it('renders the custom avatar when the stored provider is a custom:<id> prefix', () => {
+      // Regression guard: a row with stored provider = 'custom:abc' and
+      // model = 'custom:abc/my-model' must render the custom letter avatar,
+      // NOT the generic provider-icon branch. Without the isCustomProvider
+      // check, provId becomes 'custom:abc' (from resolveProviderId) which
+      // does not equal 'custom', so the custom branch would be skipped.
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ model: 'custom:abc/my-model', provider: 'custom:abc' })]}
+          columns={['model']}
+          agentName="agent-1"
+          customProviderName={() => 'MyProvider'}
+        />
+      ));
+      const avatar = container.querySelector('.provider-card__logo-letter');
+      expect(avatar).not.toBeNull();
+      expect(avatar!.textContent).toBe('M');
+    });
+
     it('renders custom provider letter avatar', () => {
       const { container } = render(() => (
         <MessageTable
@@ -354,6 +431,28 @@ describe('MessageTable', () => {
       const badge = container.querySelector('.tier-badge--fast');
       expect(badge).not.toBeNull();
       expect(badge!.textContent).toBe('fast');
+    });
+
+    it('renders specificity category badge (with underscores replaced) over tier badge', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[
+            makeRow({
+              routing_tier: 'fast',
+              specificity_category: 'data_analysis',
+            }),
+          ]}
+          columns={['model']}
+          agentName="agent-1"
+          customProviderName={noopProvider}
+        />
+      ));
+      const specBadge = container.querySelector('.tier-badge--specificity');
+      expect(specBadge).not.toBeNull();
+      // underscores replaced with spaces
+      expect(specBadge!.textContent).toBe('data analysis');
+      // When specificity is set, the tier badge is NOT rendered alongside it.
+      expect(container.querySelector('.tier-badge--fast')).toBeNull();
     });
 
     it('renders fallback badge', () => {

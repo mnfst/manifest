@@ -1,5 +1,6 @@
 import type { Tier } from './tiers';
 import type { AuthType } from './auth-types';
+import type { SpecificityCategory } from './specificity';
 
 export interface ResolveResponse {
   tier: Tier;
@@ -9,4 +10,5 @@ export interface ResolveResponse {
   score: number;
   reason: string;
   auth_type?: AuthType;
+  specificity_category?: SpecificityCategory;
 }

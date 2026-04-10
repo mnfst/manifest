@@ -101,6 +101,54 @@ describe("ProviderSelectContent", () => {
     expect(screen.getByText("API Keys")).toBeDefined();
   });
 
+  it("shows Z.ai GLM Coding Plan in the subscription tab", () => {
+    render(() => (
+      <ProviderSelectContent
+        agentName="test-agent"
+        providers={[]}
+        onUpdate={onUpdate}
+      />
+    ));
+    // Subscription tab is the default view; Z.ai should appear with the GLM Coding Plan label
+    expect(screen.getByText("Z.ai")).toBeDefined();
+    expect(screen.getAllByText("GLM Coding Plan").length).toBeGreaterThan(0);
+  });
+
+  it("opens token paste detail view when Z.ai is clicked in subscription tab", async () => {
+    const { container } = render(() => (
+      <ProviderSelectContent
+        agentName="test-agent"
+        providers={[]}
+        onUpdate={onUpdate}
+      />
+    ));
+    fireEvent.click(screen.getByText("Z.ai"));
+    await waitFor(() => {
+      const input = container.querySelector(
+        'input[placeholder="Paste your Z.ai API key"]',
+      );
+      expect(input).not.toBeNull();
+    });
+  });
+
+  it("shows 'Get Z.ai API key' link in the Z.ai subscription detail view", async () => {
+    const { container } = render(() => (
+      <ProviderSelectContent
+        agentName="test-agent"
+        providers={[]}
+        onUpdate={onUpdate}
+      />
+    ));
+    fireEvent.click(screen.getByText("Z.ai"));
+    await waitFor(() => {
+      const link = container.querySelector<HTMLAnchorElement>(
+        'a[href="https://z.ai/manage-apikey/apikey-list"]',
+      );
+      expect(link).not.toBeNull();
+      expect(link!.textContent).toContain("Z.ai");
+    });
+  });
+
   it("switches tabs on click", () => {
     const { container } = render(() => (
       <ProviderSelectContent

@@ -53,6 +53,39 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       supportsBatching: false,
     }),
   }),
+  'ollama-cloud': Object.freeze({
+    supportsSubscription: true as const,
+    subscriptionLabel: 'Ollama Cloud subscription',
+    subscriptionAuthMode: 'token' as const,
+    subscriptionKeyPlaceholder: 'Paste your Ollama API key',
+    // No subscriptionTokenPrefix — Ollama Cloud accepts any API key format.
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 128000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
+  zai: Object.freeze({
+    supportsSubscription: true as const,
+    subscriptionLabel: 'GLM Coding Plan',
+    subscriptionAuthMode: 'token' as const,
+    subscriptionKeyPlaceholder: 'Paste your Z.ai API key',
+    knownModels: Object.freeze([
+      'glm-5.1',
+      'glm-5-turbo',
+      'glm-5',
+      'glm-4.7',
+      'glm-4.6',
+      'glm-4.5',
+      'glm-4.5-air',
+    ]),
+    subscriptionCapabilities: Object.freeze({
+      // Z.ai advertises "200K" as 200 * 1024 = 204800, not 200000 like other providers.
+      maxContextWindow: 204800,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
   copilot: Object.freeze({
     supportsSubscription: true as const,
     subscriptionLabel: 'GitHub Copilot subscription',

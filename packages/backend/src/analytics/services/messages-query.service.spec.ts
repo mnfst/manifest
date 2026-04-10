@@ -19,6 +19,7 @@ describe('MessagesQueryService', () => {
     const mockQb: Record<string, jest.Mock> = {
       select: jest.fn(),
       addSelect: jest.fn(),
+      distinct: jest.fn(),
       leftJoin: jest.fn(),
       where: jest.fn(),
       andWhere: jest.fn(),
@@ -35,6 +36,7 @@ describe('MessagesQueryService', () => {
     const chainableMethods = [
       'select',
       'addSelect',
+      'distinct',
       'leftJoin',
       'where',
       'andWhere',
@@ -698,6 +700,180 @@ describe('MessagesQueryService', () => {
 
     expect(result.providers).toEqual(['anthropic', 'gemini', 'openai']);
   });
+
+  /**
+   * These tests cover the new stored-provider path:
+   *   1. getDistinctModels collects providers from the distinct rows
+   *   2. deriveProviders merges stored providers with inferred-from-model providers
+   *   3. getMessages provider filter ORs on at.provider = ? AND legacy model match
+   */
+  describe('stored provider column', () => {
+    it('derives provider from the stored provider column when present', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ total: 1 });
+      mockGetRawMany
+        .mockResolvedValueOnce([
+          {
+            id: 'msg-1',
+            timestamp: '2026-02-16 10:00:00',
+            model: 'gemma4:31b',
+            provider: 'ollama-cloud',
+          },
+        ])
+        .mockResolvedValueOnce([{ model: 'gemma4:31b', provider: 'ollama-cloud' }]);
+
+      const result = await service.getMessages({
+        range: '24h',
+        userId: 'test-user',
+        limit: 20,
+      });
+
+      // Without the stored provider, inferProviderFromModel would return
+      // `ollama` for `gemma4:31b` (tagless colon heuristic). The stored value
+      // takes precedence.
+      expect(result.providers).toEqual(expect.arrayContaining(['ollama-cloud']));
+      expect(result.providers).toContain('ollama');
+    });
+
+    it('merges stored providers with providers inferred from legacy rows', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ total: 2 });
+      mockGetRawMany
+        .mockResolvedValueOnce([
+          {
+            id: 'msg-1',
+            timestamp: '2026-02-16 10:00:00',
+            model: 'deepseek-v3.2',
+            provider: 'ollama-cloud',
+          },
+          {
+            id: 'msg-2',
+            timestamp: '2026-02-16 09:00:00',
+            model: 'gpt-4o',
+            provider: null,
+          },
+        ])
+        .mockResolvedValueOnce([
+          { model: 'deepseek-v3.2', provider: 'ollama-cloud' },
+          { model: 'gpt-4o', provider: null },
+        ]);
+
+      const result = await service.getMessages({
+        range: '24h',
+        userId: 'test-user',
+        limit: 20,
+      });
+
+      // deepseek-v3.2 is stored with ollama-cloud; gpt-4o has no stored
+      // provider so it falls back to inference → openai.
+      expect(result.providers.sort()).toEqual(['deepseek', 'ollama-cloud', 'openai']);
+    });
+
+    it('skips null and empty provider values in distinct rows', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ total: 1 });
+      mockGetRawMany
+        .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' }])
+        // Include rows with null and empty-string provider values to cover
+        // the `providerValue != null && providerValue !== ''` branch.
+        .mockResolvedValueOnce([
+          { model: 'gpt-4o', provider: null },
+          { model: 'claude-opus-4-6', provider: '' },
+          { model: 'deepseek-v3.2', provider: 'ollama-cloud' },
+        ]);
+
+      const result = await service.getMessages({
+        range: '24h',
+        userId: 'test-user',
+        limit: 20,
+      });
+
+      // The null and '' providers must not create spurious entries; only the
+      // real ollama-cloud entry plus the model-name-inferred ones.
+      expect(result.providers).toContain('ollama-cloud');
+      expect(result.providers).toContain('openai');
+      expect(result.providers).toContain('anthropic');
+      expect(result.providers).not.toContain('');
+    });
+
+    it('derives providers skipping null entries in stored list', async () => {
+      // Cover deriveProviders() line where `if (p) seen.add(p)` guards against
+      // null values surfacing in the stored providers array.
+      const derive = (
+        service as unknown as {
+          deriveProviders: (m: string[], p: string[]) => string[];
+        }
+      ).deriveProviders.bind(service);
+
+      // Intentionally pass a null inside the array to simulate a row that had
+      // provider = null. The TtlCache contract uses string[], but the guard
+      // defends against legacy or corrupted cached entries.
+      const result = derive(
+        ['gpt-4o'],
+        ['anthropic', null as unknown as string, '', 'ollama-cloud'],
+      );
+      expect(result).toEqual(['anthropic', 'ollama-cloud', 'openai']);
+    });
+
+    it('provider filter: ORs stored provider = ? with legacy model IN (...)', async () => {
+      // getDistinctModels returns a mix of models and providers.
+      // `matching` will include gpt-4o (inferred as openai), so the OR branch
+      // with at.provider IS NULL AND at.model IN (...) is built.
+      mockGetRawMany.mockResolvedValueOnce([
+        { model: 'gpt-4o', provider: 'openai' },
+        { model: 'gpt-4.1', provider: null },
+        { model: 'claude-opus-4-6', provider: null },
+      ]);
+      mockGetRawOne.mockResolvedValueOnce({ total: 2 });
+      mockGetRawMany
+        .mockResolvedValueOnce([
+          {
+            id: 'msg-1',
+            timestamp: '2026-02-16 10:00:00',
+            model: 'gpt-4o',
+            provider: 'openai',
+          },
+          {
+            id: 'msg-2',
+            timestamp: '2026-02-16 09:00:00',
+            model: 'gpt-4.1',
+            provider: null,
+          },
+        ])
+        .mockResolvedValueOnce([
+          { model: 'gpt-4o', provider: 'openai' },
+          { model: 'gpt-4.1', provider: null },
+          { model: 'claude-opus-4-6', provider: null },
+        ]);
+
+      const result = await service.getMessages({
+        range: '24h',
+        userId: 'test-user',
+        limit: 20,
+        provider: 'openai',
+      });
+
+      expect(result.total_count).toBe(2);
+      expect(result.items).toHaveLength(2);
+    });
+
+    it('provider filter: uses only the stored provider branch when no legacy models match', async () => {
+      // All distinct models map to something other than the requested provider
+      // (e.g. the legacy OR branch would be empty), exercising the matching.length === 0 path.
+      mockGetRawMany.mockResolvedValueOnce([{ model: 'gpt-4o', provider: 'openai' }]);
+      mockGetRawOne.mockResolvedValueOnce({ total: 0 });
+      mockGetRawMany
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([{ model: 'gpt-4o', provider: 'openai' }]);
+
+      const result = await service.getMessages({
+        range: '24h',
+        userId: 'test-user',
+        limit: 20,
+        provider: 'anthropic',
+      });
+
+      expect(result.total_count).toBe(0);
+      expect(result.items).toEqual([]);
+    });
+  });
 });
 
 describe('MessagesQueryService (sql.js / local mode)', () => {
@@ -714,6 +890,7 @@ describe('MessagesQueryService (sql.js / local mode)', () => {
     const mockQb = {
       select: jest.fn().mockReturnThis(),
       addSelect: mockAddSelect,
+      distinct: jest.fn().mockReturnThis(),
       leftJoin: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),

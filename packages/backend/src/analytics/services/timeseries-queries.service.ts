@@ -132,6 +132,7 @@ export class TimeseriesQueriesService {
       .addSelect('at.timestamp', 'timestamp')
       .addSelect('at.agent_name', 'agent_name')
       .addSelect('at.model', 'model')
+      .addSelect('at.provider', 'provider')
       .addSelect('at.model', 'display_name')
       .addSelect('at.input_tokens', 'input_tokens')
       .addSelect('at.output_tokens', 'output_tokens')

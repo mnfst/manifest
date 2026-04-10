@@ -5,6 +5,7 @@ export const ROUTING_PROVIDER_API_KEY_URLS: Record<string, string> = {
   minimax: 'https://platform.minimax.io/docs/api-reference/api-overview',
   mistral: 'https://console.mistral.ai/api-keys/',
   moonshot: 'https://platform.moonshot.ai/',
+  'ollama-cloud': 'https://ollama.com/settings/keys',
   openai: 'https://platform.openai.com/api-keys',
   openrouter: 'https://openrouter.ai/keys',
   qwen: 'https://www.alibabacloud.com/help/en/model-studio/developer-reference/get-api-key',
@@ -14,6 +15,20 @@ export const ROUTING_PROVIDER_API_KEY_URLS: Record<string, string> = {
 
 export const getRoutingProviderApiKeyUrl = (providerId: string): string | undefined =>
   ROUTING_PROVIDER_API_KEY_URLS[providerId];
+
+/**
+ * Where to obtain a subscription token for each subscription-tab provider.
+ * Kept separate from the API-key map because the subscription credential
+ * often lives behind a different URL than the regular API console (e.g.
+ * Anthropic setup-tokens come from the Claude Code CLI, not the API console).
+ */
+export const SUBSCRIPTION_PROVIDER_KEY_URLS: Record<string, string> = {
+  'ollama-cloud': 'https://ollama.com/settings/keys',
+  zai: 'https://z.ai/manage-apikey/apikey-list',
+};
+
+export const getSubscriptionProviderKeyUrl = (providerId: string): string | undefined =>
+  SUBSCRIPTION_PROVIDER_KEY_URLS[providerId];
 
 export const EMAIL_PROVIDER_API_KEY_URLS: Record<string, string> = {
   resend: 'https://resend.com/api-keys',

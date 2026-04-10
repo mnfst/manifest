@@ -14,6 +14,7 @@ const KNOWN_PROVIDERS = [
   "moonshot",
   "openrouter",
   "ollama",
+  "ollama-cloud",
   "minimax",
   "zai",
 ];

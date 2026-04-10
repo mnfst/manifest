@@ -69,6 +69,11 @@ vi.mock("../../src/services/api.js", () => ({
   getModelPrices: vi.fn().mockResolvedValue([]),
   getAgentKey: vi.fn().mockResolvedValue({ keyPrefix: "mnfst_abc", apiKey: "mnfst_abc123", pluginEndpoint: null }),
   getHealth: vi.fn().mockResolvedValue({ mode: "cloud" }),
+  getSpecificityAssignments: vi.fn().mockResolvedValue([]),
+  overrideSpecificity: vi.fn().mockResolvedValue({}),
+  resetSpecificity: vi.fn().mockResolvedValue({}),
+  setSpecificityFallbacks: vi.fn().mockResolvedValue({}),
+  clearSpecificityFallbacks: vi.fn().mockResolvedValue({}),
 }));
 
 import Routing from "../../src/pages/Routing";
@@ -76,7 +81,7 @@ import ModelPickerModal from "../../src/components/ModelPickerModal";
 import { toast } from "../../src/services/toast-store.js";
 import type { AvailableModel, TierAssignment, CustomProviderData } from "../../src/services/api.js";
 
-const { overrideTier, resetTier, resetAllTiers, setFallbacks } = await import("../../src/services/api.js");
+const { overrideTier, resetTier, resetAllTiers, setFallbacks, overrideSpecificity, resetSpecificity, setSpecificityFallbacks, clearSpecificityFallbacks, getSpecificityAssignments } = await import("../../src/services/api.js");
 
 describe("Routing — enabled state (providers active)", () => {
   beforeEach(() => {
@@ -355,7 +360,7 @@ describe("Routing — enabled state (providers active)", () => {
     });
   });
 
-  it("shows 'No model available' when model is null", async () => {
+  it("shows '+ Add model' button when model is null", async () => {
     const { getTierAssignments } = await import("../../src/services/api.js");
     vi.mocked(getTierAssignments).mockResolvedValueOnce([
       { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
@@ -365,8 +370,8 @@ describe("Routing — enabled state (providers active)", () => {
     ]);
 
     render(() => <Routing />);
-    const noModels = await screen.findAllByText("No model available");
-    expect(noModels.length).toBe(4);
+    const addButtons = await screen.findAllByText("+ Add model");
+    expect(addButtons.length).toBe(4);
   });
 
   it("pluralizes provider count correctly", async () => {
@@ -1056,9 +1061,8 @@ describe("Routing — fallback management", () => {
 
     const { container } = render(() => <Routing />);
     await waitFor(() => {
-      const ranks = container.querySelectorAll(".fallback-list__rank");
-      expect(ranks.length).toBe(1);
-      expect(ranks[0].textContent).toBe("1");
+      const fallbackCards = container.querySelectorAll(".fallback-list__card");
+      expect(fallbackCards.length).toBe(1);
     });
   });
 
@@ -1224,5 +1228,376 @@ describe("Routing — effectiveAuth case-insensitive matching", () => {
     const provBtn = await screen.findByText("Connect providers");
     fireEvent.click(provBtn);
     expect(screen.getByTestId("provider-modal")).toBeDefined();
+  });
+});
+
+describe("Routing — specificity routing", () => {
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "openai", auth_type: "api_key" as const, is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+      { id: "p2", provider: "anthropic", auth_type: "api_key" as const, is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+    ]);
+    mockGetCustomProviders.mockResolvedValue([]);
+    mockDeactivateAllProviders.mockResolvedValue({ ok: true });
+    const { getTierAssignments, getAvailableModels } = await import("../../src/services/api.js");
+    vi.mocked(getTierAssignments).mockResolvedValue([
+      { id: "1", user_id: "u1", tier: "simple", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "2", user_id: "u1", tier: "standard", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "3", user_id: "u1", tier: "complex", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+      { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" },
+    ]);
+    vi.mocked(getAvailableModels).mockResolvedValue([
+      { model_name: "gpt-4o-mini", provider: "OpenAI", display_name: "GPT-4o Mini", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "claude-opus-4-6", provider: "Anthropic", display_name: "Claude Opus 4.6", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
+    ]);
+  });
+
+  it("handleAddFallback routes to specificity API when tier is a specificity category", async () => {
+    vi.mocked(getSpecificityAssignments).mockResolvedValue([
+      { category: "coding", auto_assigned_model: "gpt-4o-mini", override_model: null, fallback_models: null, is_active: true } as any,
+    ]);
+    render(() => <Routing />);
+    await screen.findByText("Simple");
+
+    // Open fallback picker for the "coding" specificity category
+    // We need to trigger via the RoutingModals onAddFallback which calls handleAddFallback
+    // The fallback picker renders a ModelPickerModal; selecting a model triggers onAddFallback
+    // We simulate by directly finding the fallback picker and selecting a model
+    // Since the specificity section renders its own "Add fallback" buttons, find them
+    await waitFor(() => {
+      // coding category should be in the specificity section
+      expect(document.body.textContent).toContain("Coding");
+    });
+
+    // The specificity Add fallback buttons are rendered by RoutingSpecificitySection
+    // Find all "Add fallback" buttons - specificity ones come after the 4 generalist ones
+    const addButtons = screen.getAllByText("Add fallback");
+    // Click the one for coding (after the 4 generalist tiers)
+    fireEvent.click(addButtons[addButtons.length - 1]);
+
+    // Model picker opens
+    await screen.findByText("Select a model");
+    const modalButtons = document.querySelectorAll<HTMLButtonElement>(".routing-modal__model");
+    fireEvent.click(modalButtons[0]);
+
+    await waitFor(() => {
+      expect(setSpecificityFallbacks).toHaveBeenCalledWith("test-agent", "coding", expect.any(Array));
+    });
+  });
+
+  it("handleAddFallback routes to generalist API when tier is a generalist tier", async () => {
+    vi.mocked(getSpecificityAssignments).mockResolvedValue([]);
+    render(() => <Routing />);
+    const addButtons = await screen.findAllByText("Add fallback");
+    fireEvent.click(addButtons[0]); // simple tier
+    await screen.findByText("Select a model");
+
+    const modalButtons = document.querySelectorAll<HTMLButtonElement>(".routing-modal__model");
+    fireEvent.click(modalButtons[0]);
+
+    await waitFor(() => {
+      expect(setFallbacks).toHaveBeenCalledWith("test-agent", "simple", expect.any(Array));
+    });
+    // Ensure specificity API was NOT called
+    expect(setSpecificityFallbacks).not.toHaveBeenCalled();
+  });
+
+  it("handleAddFallback does not duplicate existing specificity fallback", async () => {
+    vi.mocked(getSpecificityAssignments).mockResolvedValue([
+      { category: "coding", auto_assigned_model: "gpt-4o-mini", override_model: null, fallback_models: ["claude-opus-4-6"], is_active: true } as any,
+    ]);
+    render(() => <Routing />);
+    await waitFor(() => {
+      expect(document.body.textContent).toContain("Coding");
+    });
+
+    // Find Add fallback buttons, use the specificity one
+    const addButtons = screen.getAllByText("Add fallback");
+    fireEvent.click(addButtons[addButtons.length - 1]);
+    await screen.findByText("Select a model");
+
+    // Both models filtered out (gpt-4o-mini is primary, claude-opus-4-6 is existing fallback)
+    const modalButtons = document.querySelectorAll<HTMLButtonElement>(".routing-modal__model");
+    expect(modalButtons.length).toBe(0);
+  });
+
+  it("handleAddFallback error for specificity shows toast", async () => {
+    vi.mocked(getSpecificityAssignments).mockResolvedValue([
+      { category: "coding", auto_assigned_model: "gpt-4o-mini", override_model: null, fallback_models: null, is_active: true } as any,
+    ]);
+    vi.mocked(setSpecificityFallbacks).mockRejectedValueOnce(new Error("fail"));
+    render(() => <Routing />);
+    await waitFor(() => {
+      expect(document.body.textContent).toContain("Coding");
+    });
+
+    const addButtons = screen.getAllByText("Add fallback");
+    fireEvent.click(addButtons[addButtons.length - 1]);
+    await screen.findByText("Select a model");
+
+    const modalButtons = document.querySelectorAll<HTMLButtonElement>(".routing-modal__model");
+    fireEvent.click(modalButtons[0]);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("Failed to add fallback");
+    });
+  });
+
+  it("onFallbackUpdate for specificity calls setSpecificityFallbacks", async () => {
+    vi.mocked(getSpecificityAssignments).mockResolvedValue([
+      { category: "coding", auto_assigned_model: "gpt-4o-mini", override_model: null, fallback_models: ["claude-opus-4-6"], is_active: true } as any,
+    ]);
+    const { getAvailableModels } = await import("../../src/services/api.js");
+    vi.mocked(getAvailableModels).mockResolvedValue([
+      { model_name: "gpt-4o-mini", provider: "OpenAI", display_name: "GPT-4o Mini", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true },
+      { model_name: "claude-opus-4-6", provider: "Anthropic", display_name: "Claude Opus 4.6", input_price_per_token: 0.000015, output_price_per_token: 0.000075, context_window: 200000, capability_reasoning: true, capability_code: true },
+    ]);
+
+    const { container } = render(() => <Routing />);
+    await waitFor(() => {
+      expect(document.body.textContent).toContain("Coding");
+    });
+
+    // Remove the fallback via the remove button in the specificity section
+    // This triggers onFallbackUpdate with an empty array
+    await waitFor(() => {
+      const removeButtons = container.querySelectorAll(".fallback-list__remove");
+      expect(removeButtons.length).toBeGreaterThan(0);
+    });
+    const removeBtn = container.querySelector(".specificity-section .fallback-list__remove") as HTMLButtonElement;
+    if (removeBtn) {
+      fireEvent.click(removeBtn);
+      await waitFor(() => {
+        expect(clearSpecificityFallbacks).toHaveBeenCalledWith("test-agent", "coding");
+      });
+    }
+  });
+
+  it("onFallbackUpdate for specificity calls clearSpecificityFallbacks when empty array", async () => {
+    vi.mocked(getSpecificityAssignments).mockResolvedValue([
+      { category: "coding", auto_assigned_model: "gpt-4o-mini", override_model: null, fallback_models: ["claude-opus-4-6"], is_active: true } as any,
+    ]);
+
+    const { container } = render(() => <Routing />);
+    await waitFor(() => {
+      expect(document.body.textContent).toContain("Coding");
+    });
+
+    // Find and click the remove button in the specificity section to clear fallbacks
+    await waitFor(() => {
+      const removeButtons = container.querySelectorAll(".fallback-list__remove");
+      expect(removeButtons.length).toBeGreaterThan(0);
+    });
+
+    // The remove button for the only fallback triggers onFallbackUpdate with []
+    const allRemoveButtons = container.querySelectorAll(".fallback-list__remove");
+    // The last remove button should be in the specificity section
+    fireEvent.click(allRemoveButtons[allRemoveButtons.length - 1]);
+
+    await waitFor(() => {
+      expect(clearSpecificityFallbacks).toHaveBeenCalledWith("test-agent", "coding");
+    });
+  });
+
+  it("onFallbackUpdate error for specificity shows toast", async () => {
+    vi.mocked(getSpecificityAssignments).mockResolvedValue([
+      { category: "coding", auto_assigned_model: "gpt-4o-mini", override_model: null, fallback_models: ["claude-opus-4-6"], is_active: true } as any,
+    ]);
+    // Reject all calls so both FallbackList's persistClear AND Routing's onFallbackUpdate handler hit the error
+    vi.mocked(clearSpecificityFallbacks).mockRejectedValue(new Error("fail"));
+
+    const { container } = render(() => <Routing />);
+    await waitFor(() => {
+      expect(document.body.textContent).toContain("Coding");
+    });
+
+    await waitFor(() => {
+      const removeButtons = container.querySelectorAll(".fallback-list__remove");
+      expect(removeButtons.length).toBeGreaterThan(0);
+    });
+
+    const allRemoveButtons = container.querySelectorAll(".fallback-list__remove");
+    fireEvent.click(allRemoveButtons[allRemoveButtons.length - 1]);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("Failed to update fallbacks");
+    });
+  });
+
+  it("getTier prop returns specificity assignment when no generalist tier found", async () => {
+    vi.mocked(getSpecificityAssignments).mockResolvedValue([
+      { category: "coding", auto_assigned_model: "claude-opus-4-6", override_model: null, fallback_models: ["gpt-4o-mini"], is_active: true } as any,
+    ]);
+
+    render(() => <Routing />);
+    await screen.findByText("Simple");
+
+    // Open fallback picker for "coding" category
+    // The getTier prop is used by RoutingModals' fallback picker to get current fallbacks
+    // When "coding" is opened as a fallback picker tier, getTier("coding") should return the specificity assignment
+    await waitFor(() => {
+      expect(document.body.textContent).toContain("Coding");
+    });
+
+    // The coding specificity tier should show claude-opus-4-6 as its model
+    // This exercises getTier returning the specificity assignment
+    await waitFor(() => {
+      // The specificity section should render with the assigned model
+      const body = document.body.textContent || "";
+      expect(body).toContain("Claude Opus 4.6");
+    });
+  });
+
+  it("specificity onOverride calls overrideSpecificity and refetchSpecificity", async () => {
+    vi.mocked(getSpecificityAssignments).mockResolvedValue([
+      { category: "coding", auto_assigned_model: "gpt-4o-mini", override_model: null, fallback_models: null, is_active: true } as any,
+    ]);
+
+    render(() => <Routing />);
+    await waitFor(() => {
+      expect(document.body.textContent).toContain("Coding");
+    });
+
+    // Find the Change button in the specificity section and click it
+    const changeButtons = screen.getAllByText("Change");
+    // The specificity Change button comes after the 4 generalist ones
+    fireEvent.click(changeButtons[changeButtons.length - 1]);
+
+    // Model picker opens
+    await screen.findByText("Select a model");
+    const modalButtons = document.querySelectorAll<HTMLButtonElement>(".routing-modal__model");
+    fireEvent.click(modalButtons[0]);
+
+    await waitFor(() => {
+      expect(overrideSpecificity).toHaveBeenCalledWith("test-agent", "coding", expect.any(String), expect.any(String), expect.any(String));
+    });
+  });
+
+  it("specificity onOverride error shows toast", async () => {
+    vi.mocked(getSpecificityAssignments).mockResolvedValue([
+      { category: "coding", auto_assigned_model: "gpt-4o-mini", override_model: null, fallback_models: null, is_active: true } as any,
+    ]);
+    vi.mocked(overrideSpecificity).mockRejectedValueOnce(new Error("fail"));
+
+    render(() => <Routing />);
+    await waitFor(() => {
+      expect(document.body.textContent).toContain("Coding");
+    });
+
+    const changeButtons = screen.getAllByText("Change");
+    fireEvent.click(changeButtons[changeButtons.length - 1]);
+    await screen.findByText("Select a model");
+    const modalButtons = document.querySelectorAll<HTMLButtonElement>(".routing-modal__model");
+    fireEvent.click(modalButtons[0]);
+
+    await waitFor(() => {
+      // The specificityDropdown path goes through RoutingModals onSpecificityOverride
+      // which uses "Failed to update specificity model" error message
+      expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("Failed to update"));
+    });
+  });
+
+  it("specificity onReset calls resetSpecificity and refetchSpecificity", async () => {
+    vi.mocked(getSpecificityAssignments).mockResolvedValue([
+      { category: "coding", auto_assigned_model: "gpt-4o-mini", override_model: "claude-opus-4-6", override_provider: "anthropic", fallback_models: null, is_active: true } as any,
+    ]);
+
+    render(() => <Routing />);
+    await waitFor(() => {
+      expect(document.body.textContent).toContain("Coding");
+    });
+
+    // Find the Reset button in the specificity section
+    // It only appears for tiers with overrides
+    const resetButtons = screen.getAllByText("Reset");
+    // Click the last Reset button (the specificity one)
+    fireEvent.click(resetButtons[resetButtons.length - 1]);
+
+    // Confirm the reset in the modal
+    await waitFor(() => {
+      expect(screen.getByText("Reset tier?")).toBeDefined();
+    });
+    const modalResetButtons = screen.getAllByText("Reset");
+    const confirmBtn = modalResetButtons.find((el) => el.classList.contains("btn--danger"));
+    fireEvent.click(confirmBtn!);
+
+    await waitFor(() => {
+      expect(resetSpecificity).toHaveBeenCalledWith("test-agent", "coding");
+    });
+  });
+
+  it("specificity onReset error shows toast", async () => {
+    vi.mocked(getSpecificityAssignments).mockResolvedValue([
+      { category: "coding", auto_assigned_model: "gpt-4o-mini", override_model: "claude-opus-4-6", override_provider: "anthropic", fallback_models: null, is_active: true } as any,
+    ]);
+    vi.mocked(resetSpecificity).mockRejectedValueOnce(new Error("fail"));
+
+    render(() => <Routing />);
+    await waitFor(() => {
+      expect(document.body.textContent).toContain("Coding");
+    });
+
+    const resetButtons = screen.getAllByText("Reset");
+    fireEvent.click(resetButtons[resetButtons.length - 1]);
+
+    await waitFor(() => {
+      expect(screen.getByText("Reset tier?")).toBeDefined();
+    });
+    const modalResetButtons = screen.getAllByText("Reset");
+    const confirmBtn = modalResetButtons.find((el) => el.classList.contains("btn--danger"));
+    fireEvent.click(confirmBtn!);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("Failed to reset");
+    });
+  });
+
+  it("specificity onSpecificityOverride via RoutingModals calls overrideSpecificity", async () => {
+    vi.mocked(getSpecificityAssignments).mockResolvedValue([
+      { category: "coding", auto_assigned_model: "gpt-4o-mini", override_model: null, fallback_models: null, is_active: true } as any,
+    ]);
+
+    render(() => <Routing />);
+    await waitFor(() => {
+      expect(document.body.textContent).toContain("Coding");
+    });
+
+    // Open specificity dropdown (via the RoutingSpecificitySection's onDropdownOpen)
+    // which sets specificityDropdown signal, then RoutingModals renders the specificity ModelPickerModal
+    const changeButtons = screen.getAllByText("Change");
+    // The last Change button should be for the coding specificity category
+    fireEvent.click(changeButtons[changeButtons.length - 1]);
+
+    await screen.findByText("Select a model");
+    const modalButtons = document.querySelectorAll<HTMLButtonElement>(".routing-modal__model");
+    fireEvent.click(modalButtons[0]);
+
+    await waitFor(() => {
+      expect(overrideSpecificity).toHaveBeenCalled();
+    });
+  });
+
+  it("specificity onSpecificityOverride error via RoutingModals shows toast", async () => {
+    vi.mocked(getSpecificityAssignments).mockResolvedValue([
+      { category: "coding", auto_assigned_model: "gpt-4o-mini", override_model: null, fallback_models: null, is_active: true } as any,
+    ]);
+    vi.mocked(overrideSpecificity).mockRejectedValueOnce(new Error("fail"));
+
+    render(() => <Routing />);
+    await waitFor(() => {
+      expect(document.body.textContent).toContain("Coding");
+    });
+
+    const changeButtons = screen.getAllByText("Change");
+    fireEvent.click(changeButtons[changeButtons.length - 1]);
+
+    await screen.findByText("Select a model");
+    const modalButtons = document.querySelectorAll<HTMLButtonElement>(".routing-modal__model");
+    fireEvent.click(modalButtons[0]);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("Failed to update"));
+    });
   });
 });

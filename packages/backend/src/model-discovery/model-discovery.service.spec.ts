@@ -1820,6 +1820,17 @@ describe('ModelDiscoveryService', () => {
       expect(result.map((m) => m.id)).toContain('MiniMax-M2');
       expect(result.map((m) => m.id)).not.toContain('MiniMax-M2.5');
     });
+
+    it('should supplement Z.ai known models including glm-5.1', () => {
+      const raw: DiscoveredModel[] = [makeModel({ id: 'glm-4.7', provider: 'zai' })];
+
+      const result = supplementWithKnownModels(raw, 'zai');
+
+      expect(result.map((m) => m.id)).toContain('glm-5.1');
+      expect(result.map((m) => m.id)).toContain('glm-5-turbo');
+      expect(result.map((m) => m.id)).toContain('glm-4.5-air');
+      expect(result.filter((m) => m.id === 'glm-4.7')).toHaveLength(1);
+    });
   });
 
   /* ── applyCapabilities edge cases ── */

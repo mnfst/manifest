@@ -3,9 +3,11 @@ export interface MessageRow {
   timestamp: string;
   agent_name: string | null;
   model: string | null;
+  provider?: string | null;
   display_name?: string | null;
   routing_tier?: string;
   routing_reason?: string;
+  specificity_category?: string;
   input_tokens: number | null;
   output_tokens: number | null;
   total_tokens: number | null;

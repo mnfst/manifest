@@ -163,17 +163,15 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         </svg>
       );
 
-    /* ── Z.ai (Zhipu) ─────────────────────────────── */
+    /* ── Z.ai ─────────────────────────────────────── */
     case 'zai':
       return (
-        <svg
-          style={s}
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <path d="M4.5 4.5h15v3.75H9.375L19.5 16.5v3H4.5v-3.75h10.125L4.5 7.5z" />
+        <svg style={s} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect width="24" height="24" rx="5" fill="#2d2d2d" />
+          <path
+            d="M5 5 L19 5 L19 8.5 L9 15.5 L19 15.5 L19 19 L5 19 L5 15.5 L15 8.5 L5 8.5 Z"
+            fill="#ffffff"
+          />
         </svg>
       );
 
@@ -193,6 +191,7 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
 
     /* ── Ollama ───────────────────────────────────── */
     case 'ollama':
+    case 'ollama-cloud':
       return (
         <svg
           style={s}

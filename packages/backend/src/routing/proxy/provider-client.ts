@@ -74,6 +74,8 @@ export class ProviderClient {
         resolved = 'openai-subscription';
       } else if (resolved === 'minimax' && authType === 'subscription') {
         resolved = 'minimax-subscription';
+      } else if (resolved === 'zai' && authType === 'subscription') {
+        resolved = 'zai-subscription';
       }
       endpointKey = resolved;
       endpoint = PROVIDER_ENDPOINTS[endpointKey];

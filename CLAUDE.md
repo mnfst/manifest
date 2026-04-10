@@ -1,6 +1,6 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-03-26
+Last updated: 2026-04-09
 
 ## IMPORTANT: Cloud Mode Always
 
@@ -126,7 +126,13 @@ packages/
 │   │   │   └── services/api-key.service.ts  # Agent onboarding (creates tenant+agent+key)
 │   │   ├── routing/                         # LLM routing (providers, tiers, proxy, scorer)
 │   │   │   ├── proxy/                       # OpenAI-compatible proxy (anthropic/google adapters)
-│   │   │   └── scorer/                      # Scoring engine with dimensions
+│   │   │   ├── routing-core/               # Tier, provider, specificity services + cache
+│   │   │   ├── specificity.controller.ts   # Specificity routing CRUD endpoints
+│   │   │   └── resolve/                     # Scoring-based tier + specificity resolution
+│   │   ├── scoring/                         # Request complexity scoring engine
+│   │   │   ├── keywords.ts                 # Keyword lists for all dimensions (complexity + specificity)
+│   │   │   ├── specificity-detector.ts     # Task-type detection (coding, trading, etc.)
+│   │   │   └── scan-messages.ts            # Message scanner for specificity detection
 │   │   ├── model-prices/                    # Model pricing management + sync
 │   │   ├── notifications/                   # Alert rules, email providers, cron
 │   │   ├── github/                          # GitHub stars endpoint
@@ -352,7 +358,8 @@ All analytics queries filter by user via `addTenantFilter(qb, userId)` from `que
 | GET | `/api/v1/agent/:agentName/costs` | Session/API Key | Per-agent cost data |
 | GET/POST/PATCH/DELETE | `/api/v1/notifications` | Session/API Key | Notification rules CRUD |
 | GET/POST/DELETE | `/api/v1/notifications/email-provider` | Session/API Key | Email provider config |
-| GET/POST/PUT/DELETE | `/api/v1/routing/*` | Session/API Key | Routing config |
+| GET/POST/PUT/DELETE | `/api/v1/routing/*` | Session/API Key | Routing config (tiers + providers) |
+| GET/PUT/POST/DELETE | `/api/v1/routing/:agent/specificity/*` | Session/API Key | Specificity routing config |
 | POST | `/api/v1/routing/subscription-providers` | Session/API Key | Subscription provider config |
 | POST | `/api/v1/routing/:agentName/ollama/sync` | Session/API Key | Sync Ollama models |
 | POST | `/api/v1/routing/resolve` | Bearer (mnfst_*) | Model resolution |
@@ -389,7 +396,7 @@ See `packages/backend/.env.example` for all variables. Key ones:
 
 ## Domain Terminology
 
-- **Message**: The primary entity in the system. Every row in `agent_messages` is a Message. The UI labels them "Messages" everywhere.
+- **Message**: The primary entity in the system. Every row in `agent_messages` is a Message. The UI labels them "Messages" everywhere. Key routing columns: `routing_tier` (complexity tier used), `routing_reason` (why — `scored`, `specificity`, `heartbeat`, etc.), `specificity_category` (which task-type category, null if complexity-routed).
 - **Tenant**: A user's data boundary. Created from `user.id` on first agent creation.
 - **Agent**: An AI agent owned by a tenant. Has a unique OTLP ingest key.
 
@@ -423,7 +430,10 @@ To add a new font or icon library:
 - **Database migrations**: TypeORM migrations are version-controlled in `src/database/migrations/`. `synchronize` is permanently `false`. Migrations auto-run on boot (`migrationsRun: true`) wrapped in a single transaction. The CLI DataSource is at `src/database/datasource.ts`. Better Auth manages its own tables separately via `ctx.runMigrations()`.
 - **SSE**: `SseController` provides `/api/v1/events` for real-time dashboard updates.
 - **Notifications**: Cron-based threshold checking, supports Mailgun + Resend + SMTP email providers.
-- **LLM Routing**: Tier-based model routing with provider key management (AES-256-GCM encrypted) and OpenAI-compatible proxy at `/v1/chat/completions`.
+- **LLM Routing**: Two-layer routing system with provider key management (AES-256-GCM encrypted) and OpenAI-compatible proxy at `/v1/chat/completions`:
+  - **Complexity tiers** (always active): 4 tiers (simple/standard/complex/reasoning) based on request content scoring with 23 weighted keyword dimensions.
+  - **Specificity routing** (opt-in): 9 task-type categories (coding, web_browsing, data_analysis, image_generation, video_generation, social_media, email_management, calendar_management, trading). When enabled, overrides complexity tiers. Detection uses keyword analysis on the last user message + tool name heuristics. Categories defined in `shared/src/specificity.ts`, keywords in `scoring/keywords.ts`, detection in `scoring/specificity-detector.ts`.
+  - **Resolution order**: specificity check (if any category active) → complexity scoring → tier assignment → provider/model resolution → proxy forward.
 
 ## Providers & Models
 
@@ -438,6 +448,18 @@ The registry exports derived maps used throughout the codebase:
 - `expandProviderNames()` — expands a set of names to include aliases
 
 **Do NOT duplicate the provider list here.** Read `PROVIDER_REGISTRY` in `common/constants/providers.ts` for the current list of supported providers, their IDs, aliases, and OpenRouter prefix mappings.
+
+### Adding a New Specificity Category
+
+1. Add the category ID to `SPECIFICITY_CATEGORIES` in `packages/shared/src/specificity.ts`
+2. Add keywords to `DEFAULT_KEYWORDS` in `packages/backend/src/scoring/keywords.ts` (new dimension with weight 0)
+3. Add the dimension to `DEFAULT_CONFIG.dimensions` in `packages/backend/src/scoring/config.ts`
+4. Add the category → dimensions mapping in `DIMENSION_MAP` in `packages/backend/src/scoring/specificity-detector.ts`
+5. Optionally add tool name prefixes in `TOOL_NAME_PATTERNS` in the same file
+6. Add a `StageDef` entry to `SPECIFICITY_STAGES` in `packages/frontend/src/services/providers.ts`
+7. Add test prompts to `packages/backend/src/scoring/__tests__/specificity-coverage.spec.ts`
+
+The `specificity_assignments` table and UI components handle new categories automatically — no migrations or frontend changes needed beyond the stage definition.
 
 ### Adding a New Provider
 

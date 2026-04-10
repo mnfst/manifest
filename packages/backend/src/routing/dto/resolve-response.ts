@@ -1,5 +1,5 @@
 import { Tier, ScoringReason } from '../../scoring';
-import type { AuthType } from 'manifest-shared';
+import type { AuthType, SpecificityCategory } from 'manifest-shared';
 
 export type { AuthType } from 'manifest-shared';
 
@@ -11,4 +11,5 @@ export interface ResolveResponse {
   score: number;
   reason: ScoringReason;
   auth_type?: AuthType;
+  specificity_category?: SpecificityCategory;
 }

@@ -1,5 +1,25 @@
 # manifest
 
+## 5.46.0
+
+### Minor Changes
+
+- 9a5818c: feat: add specificity routing — optional task-type-based routing that overrides complexity tiers
+
+  Users can now activate specificity routing for coding, web browsing, and data analysis tasks.
+  When active, requests matching a specificity category are routed to the user's chosen model
+  regardless of complexity tier. Detection uses keyword analysis and tool name heuristics,
+  with an optional `x-manifest-specificity` header for explicit overrides.
+
+- 9a5818c: Redesign routing page UI: flat tier cards with model chips, drag-and-drop between primary and fallback models, specific tiers management modal, toast stacking improvements
+
+### Patch Changes
+
+- 36085f6: Catch misrouted OTLP path variants and suppress expected errors from logs
+- 73ee53e: Harden auth guards, rate limiting, and input sanitization (OWASP audit)
+- bc782f7: Remove Provider Tokens sidebar item, route, and page from the dashboard. The public API endpoints remain available for the external website.
+- d6871f4: Improve specificity tier UI: add empty state background, auto-open model picker on Done, show tier icons in modal, make rows clickable, fix tier name in model picker, fix reset to clear fallbacks, and pass specificity assignments to model picker for role badges
+
 ## 5.45.1
 
 ### Patch Changes

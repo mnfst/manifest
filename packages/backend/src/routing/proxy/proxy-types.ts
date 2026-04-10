@@ -1,4 +1,5 @@
 import { ProviderEndpoint } from './provider-endpoints';
+import { CallerAttribution } from './caller-classifier';
 
 /**
  * Optional lookup to re-inject cached thought_signature values that were
@@ -43,4 +44,6 @@ export interface ProxyRequestOptions {
   tenantId?: string;
   agentName?: string;
   signal?: AbortSignal;
+  specificityOverride?: string;
+  callerAttribution?: CallerAttribution | null;
 }

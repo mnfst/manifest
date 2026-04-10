@@ -75,15 +75,10 @@ describe("FallbackList", () => {
     expect(container.querySelector(".fallback-list__items")).toBeNull();
   });
 
-  it("renders fallback items with numbered list", () => {
+  it("renders fallback items with model labels", () => {
     const { container } = render(() => (
       <FallbackList {...defaultProps} fallbacks={["model-a", "model-b"]} />
     ));
-
-    const ranks = container.querySelectorAll(".fallback-list__rank");
-    expect(ranks.length).toBe(2);
-    expect(ranks[0].textContent).toBe("1");
-    expect(ranks[1].textContent).toBe("2");
 
     const modelLabels = container.querySelectorAll(".fallback-list__model");
     expect(modelLabels.length).toBe(2);
@@ -764,5 +759,118 @@ describe("FallbackList", () => {
       const btns = container.querySelectorAll(".fallback-list__remove");
       expect((btns[0] as HTMLButtonElement).disabled).toBe(false);
     });
+  });
+
+  it("uses persistFallbacks prop when provided (for remove)", async () => {
+    const customPersist = vi.fn().mockResolvedValue(undefined);
+    const onUpdate = vi.fn();
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={["model-a", "model-b"]}
+        onUpdate={onUpdate}
+        persistFallbacks={customPersist}
+      />
+    ));
+
+    const removeButtons = container.querySelectorAll(".fallback-list__remove");
+    fireEvent.click(removeButtons[0]);
+
+    await waitFor(() => {
+      expect(customPersist).toHaveBeenCalledWith("test-agent", "tier-1", ["model-b"]);
+    });
+    // Default setFallbacks should NOT have been called
+    expect(mockSetFallbacks).not.toHaveBeenCalled();
+  });
+
+  it("uses persistClearFallbacks prop when provided (for remove last item)", async () => {
+    const customClear = vi.fn().mockResolvedValue(undefined);
+    const onUpdate = vi.fn();
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={["model-a"]}
+        onUpdate={onUpdate}
+        persistClearFallbacks={customClear}
+      />
+    ));
+
+    const removeButtons = container.querySelectorAll(".fallback-list__remove");
+    fireEvent.click(removeButtons[0]);
+
+    await waitFor(() => {
+      expect(customClear).toHaveBeenCalledWith("test-agent", "tier-1");
+    });
+    // Default clearFallbacks should NOT have been called
+    expect(mockClearFallbacks).not.toHaveBeenCalled();
+  });
+
+  it("falls back to default setFallbacks when persistFallbacks is undefined", async () => {
+    const onUpdate = vi.fn();
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={["model-a", "model-b"]}
+        onUpdate={onUpdate}
+      />
+    ));
+
+    const removeButtons = container.querySelectorAll(".fallback-list__remove");
+    fireEvent.click(removeButtons[0]);
+
+    await waitFor(() => {
+      // Should use the default setFallbacks from api.js
+      expect(mockSetFallbacks).toHaveBeenCalledWith("test-agent", "tier-1", ["model-b"]);
+    });
+  });
+
+  it("primaryDragging prop shows drop zone even with empty fallbacks", () => {
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={[]}
+        primaryDragging={true}
+      />
+    ));
+
+    // When primaryDragging is true, fallback-list__items container should render
+    // even though fallbacks is empty (Show when={props.fallbacks.length > 0 || props.primaryDragging})
+    const items = container.querySelector(".fallback-list__items");
+    expect(items).not.toBeNull();
+  });
+
+  it("onFallbackDragStart callback is called", () => {
+    const onFallbackDragStart = vi.fn();
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={["model-a", "model-b"]}
+        onFallbackDragStart={onFallbackDragStart}
+      />
+    ));
+
+    const cards = container.querySelectorAll(".fallback-list__card");
+    fireEvent.dragStart(cards[0], { dataTransfer: { effectAllowed: "", setData: vi.fn() } });
+
+    expect(onFallbackDragStart).toHaveBeenCalledWith(0);
+  });
+
+  it("onFallbackDragEnd callback is called", () => {
+    const onFallbackDragEnd = vi.fn();
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={["model-a", "model-b"]}
+        onFallbackDragEnd={onFallbackDragEnd}
+      />
+    ));
+
+    const cards = container.querySelectorAll(".fallback-list__card");
+    const list = container.querySelector(".fallback-list__items")!;
+
+    fireEvent.dragStart(cards[0], { dataTransfer: { effectAllowed: "", setData: vi.fn() } });
+    fireEvent.dragEnd(list);
+
+    expect(onFallbackDragEnd).toHaveBeenCalled();
   });
 });

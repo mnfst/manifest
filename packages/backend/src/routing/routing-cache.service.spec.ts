@@ -3,6 +3,7 @@ import { RoutingCacheService } from './routing-core/routing-cache.service';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { UserProvider } from '../entities/user-provider.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
+import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
 
 describe('RoutingCacheService', () => {
   let service: RoutingCacheService;
@@ -229,6 +230,55 @@ describe('RoutingCacheService', () => {
     it('is a no-op for unknown agent', () => {
       // Should not throw when called with an agent that has no cached data
       expect(() => service.invalidateAgent('nonexistent-agent')).not.toThrow();
+    });
+
+    it('clears specificity cache for agent', () => {
+      const assignments = [{ id: 'sa-1', category: 'coding' }] as SpecificityAssignment[];
+      service.setSpecificity('agent-1', assignments);
+      expect(service.getSpecificity('agent-1')).toEqual(assignments);
+
+      service.invalidateAgent('agent-1');
+
+      expect(service.getSpecificity('agent-1')).toBeNull();
+    });
+  });
+
+  describe('getSpecificity', () => {
+    it('returns null when not cached', () => {
+      expect(service.getSpecificity('agent-1')).toBeNull();
+    });
+
+    it('returns cached data within TTL', () => {
+      const assignments = [
+        { id: 'sa-1', category: 'coding' },
+        { id: 'sa-2', category: 'web_browsing' },
+      ] as SpecificityAssignment[];
+      service.setSpecificity('agent-1', assignments);
+
+      expect(service.getSpecificity('agent-1')).toEqual(assignments);
+    });
+
+    it('returns null after TTL expires', () => {
+      jest.useFakeTimers();
+      const assignments = [{ id: 'sa-1', category: 'coding' }] as SpecificityAssignment[];
+      service.setSpecificity('agent-1', assignments);
+
+      jest.advanceTimersByTime(120_001);
+
+      expect(service.getSpecificity('agent-1')).toBeNull();
+    });
+  });
+
+  describe('setSpecificity', () => {
+    it('stores data that can be retrieved', () => {
+      const assignments = [
+        { id: 'sa-1', category: 'coding' },
+        { id: 'sa-2', category: 'data_analysis' },
+      ] as SpecificityAssignment[];
+
+      service.setSpecificity('agent-1', assignments);
+
+      expect(service.getSpecificity('agent-1')).toEqual(assignments);
     });
   });
 });

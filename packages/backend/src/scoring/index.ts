@@ -40,6 +40,9 @@ export type {
   ScoringReason,
 } from './types';
 export type { MomentumInput } from './momentum';
+export { detectSpecificity } from './specificity-detector';
+export type { SpecificityResult } from './specificity-detector';
+export { scanMessages } from './scan-messages';
 
 let defaultTrie: KeywordTrie | null = null;
 

@@ -1,5 +1,6 @@
 # Stage 1: Install dependencies
-FROM node:22-alpine AS deps
+# Base image pinned by digest (multi-arch manifest list). Updated via Dependabot.
+FROM node:22-alpine@sha256:4d64b49e6c891c8fc821007cb1cdc6c0db7773110ac2c34bf2e6960adef62ed3 AS deps
 WORKDIR /app
 COPY package.json package-lock.json turbo.json ./
 COPY packages/shared/package.json packages/shared/
@@ -17,7 +18,7 @@ COPY packages/backend packages/backend
 RUN npx turbo build --filter=manifest-backend --filter=manifest-frontend --filter=manifest-shared
 
 # Stage 3: Production dependencies only
-FROM node:22-alpine AS prod-deps
+FROM node:22-alpine@sha256:4d64b49e6c891c8fc821007cb1cdc6c0db7773110ac2c34bf2e6960adef62ed3 AS prod-deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY packages/shared/package.json packages/shared/
@@ -47,7 +48,7 @@ RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev --ignore-scripts && \
     true
 
 # Stage 4: Production runtime
-FROM node:22-alpine AS runtime
+FROM node:22-alpine@sha256:4d64b49e6c891c8fc821007cb1cdc6c0db7773110ac2c34bf2e6960adef62ed3 AS runtime
 WORKDIR /app
 
 LABEL org.opencontainers.image.title="Manifest" \
@@ -77,7 +78,7 @@ RUN mkdir -p /home/node/.openclaw/manifest && chown -R node:node /home/node/.ope
 EXPOSE 3001
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget -qO- http://localhost:3001/api/v1/health || exit 1
+  CMD wget -qO- http://127.0.0.1:3001/api/v1/health || exit 1
 
 USER node
 

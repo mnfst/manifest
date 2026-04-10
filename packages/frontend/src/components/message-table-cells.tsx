@@ -14,8 +14,10 @@ import {
 import {
   inferProviderFromModel,
   inferProviderName,
+  resolveProviderId,
   stripCustomPrefix,
 } from '../services/routing-utils.js';
+import { PROVIDERS } from '../services/providers.js';
 import { getModelDisplayName } from '../services/model-display.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.jsx';
 import { authBadgeFor, authLabel } from './AuthBadge.js';
@@ -141,25 +143,61 @@ export function CostCell(item: MessageRow): JSX.Element {
   );
 }
 
+/**
+ * Resolve the provider ID for a message row. Prefers the stored `provider`
+ * column (populated by the proxy from routing resolution) over inference from
+ * the model name prefix, which is ambiguous for subscription providers like
+ * Ollama Cloud whose catalog includes models named after other vendors
+ * (e.g. `deepseek-v3.2`, `kimi-k2:1t`, `gemma4:31b`).
+ */
+function resolveMessageProvider(item: MessageRow): string | undefined {
+  if (item.provider) {
+    const resolved = resolveProviderId(item.provider);
+    if (resolved) return resolved;
+  }
+  if (item.model) return inferProviderFromModel(item.model);
+  return undefined;
+}
+
+function resolveMessageProviderName(item: MessageRow): string | undefined {
+  const id = resolveMessageProvider(item);
+  if (!id) return undefined;
+  return (
+    PROVIDERS.find((p) => p.id === id)?.name ?? (item.model ? inferProviderName(item.model) : id)
+  );
+}
+
 export function ModelCell(
   item: MessageRow,
   customProviderName: (m: string) => string | undefined,
 ): JSX.Element {
+  const provId = resolveMessageProvider(item);
+  const provName = resolveMessageProviderName(item);
+  // Custom providers are identified by either the literal 'custom' (from
+  // inferProviderFromModel on a `custom:...` model name) or by a stored
+  // provider column of the form `custom:<uuid>` (from resolveProviderId,
+  // which returns custom-prefixed IDs unchanged).
+  const isCustomProvider = provId === 'custom' || provId?.startsWith('custom:') === true;
   return (
     <td style={MONO_XS}>
       <span style="display: inline-flex; align-items: center; gap: 4px;">
-        {item.model && inferProviderFromModel(item.model) === 'custom' ? (
+        {item.model && isCustomProvider ? (
           (() => {
-            const provName = customProviderName(item.model!);
-            const logo = customProviderLogo(provName ?? '', 16, undefined, item.model ?? undefined);
+            const customName = customProviderName(item.model!);
+            const logo = customProviderLogo(
+              customName ?? '',
+              16,
+              undefined,
+              item.model ?? undefined,
+            );
             if (logo) return logo;
-            const letter = (provName ?? stripCustomPrefix(item.model!)).charAt(0).toUpperCase();
+            const letter = (customName ?? stripCustomPrefix(item.model!)).charAt(0).toUpperCase();
             return (
               <span
                 class="provider-card__logo-letter"
-                title={provName}
+                title={customName}
                 style={{
-                  background: customProviderColor(provName ?? ''),
+                  background: customProviderColor(customName ?? ''),
                   width: '16px',
                   height: '16px',
                   'font-size': '9px',
@@ -171,14 +209,14 @@ export function ModelCell(
               </span>
             );
           })()
-        ) : item.model && inferProviderFromModel(item.model) ? (
+        ) : provId ? (
           <span
             role="img"
-            aria-label={`${inferProviderName(item.model)} (${authLabel(item.auth_type)})`}
-            title={`${inferProviderName(item.model)} (${authLabel(item.auth_type)})`}
+            aria-label={`${provName ?? provId} (${authLabel(item.auth_type)})`}
+            title={`${provName ?? provId} (${authLabel(item.auth_type)})`}
             style="display: inline-flex; flex-shrink: 0; position: relative;"
           >
-            {providerIcon(inferProviderFromModel(item.model)!, 14)}
+            {providerIcon(provId, 14)}
             {authBadgeFor(item.auth_type, 8)}
           </span>
         ) : null}
@@ -187,9 +225,13 @@ export function ModelCell(
             ? `custom:${customProviderName(item.model) ?? 'Custom'}/${stripCustomPrefix(item.model)}`
             : getModelDisplayName(item.model)
           : '\u2014'}
-        {item.routing_tier && (
+        {item.specificity_category ? (
+          <span class="tier-badge tier-badge--specificity">
+            {item.specificity_category.replace(/_/g, ' ')}
+          </span>
+        ) : item.routing_tier ? (
           <span class={`tier-badge tier-badge--${item.routing_tier}`}>{item.routing_tier}</span>
-        )}
+        ) : null}
         {item.fallback_from_model && (
           <span
             class="tier-badge tier-badge--fallback"

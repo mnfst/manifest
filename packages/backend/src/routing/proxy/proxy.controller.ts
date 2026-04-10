@@ -18,6 +18,7 @@ import { ProxyRateLimiter } from './proxy-rate-limiter';
 import { ProviderClient } from './provider-client';
 import { ProxyMessageRecorder } from './proxy-message-recorder';
 import { ThoughtSignatureCache } from './thought-signature-cache';
+import { classifyCaller } from './caller-classifier';
 import {
   buildMetaHeaders,
   handleProviderError,
@@ -58,6 +59,7 @@ export class ProxyController {
     const body = req.body as Record<string, unknown>;
     const sessionKey = (req.headers['x-session-key'] as string) || 'default';
     const traceId = this.extractTraceId(req);
+    const callerAttribution = classifyCaller(req.headers);
     const isStream = body.stream === true;
     let headersSent = false;
     let slotAcquired = false;
@@ -71,6 +73,7 @@ export class ProxyController {
       this.rateLimiter.checkIpLimit(req.ip ?? '');
       this.rateLimiter.acquireSlot(userId);
       slotAcquired = true;
+      const specificityOverride = req.headers['x-manifest-specificity'] as string | undefined;
       const { forward, meta, failedFallbacks } = await this.proxyService.proxyRequest({
         agentId: req.ingestionContext.agentId,
         userId,
@@ -79,6 +82,7 @@ export class ProxyController {
         tenantId: req.ingestionContext.tenantId,
         agentName: req.ingestionContext.agentName,
         signal: clientAbort.signal,
+        specificityOverride,
       });
 
       this.trackFirstProxyRequest(userId);
@@ -98,6 +102,7 @@ export class ProxyController {
           failedFallbacks,
           this.recorder,
           traceId,
+          callerAttribution,
         );
         return;
       }
@@ -107,6 +112,7 @@ export class ProxyController {
         meta,
         failedFallbacks,
         this.recorder,
+        callerAttribution,
       );
 
       let streamUsage = null;
@@ -143,6 +149,7 @@ export class ProxyController {
         traceId,
         sessionKey,
         startTime,
+        callerAttribution,
       );
     } catch (err: unknown) {
       if (clientAbort.signal.aborted) {
@@ -155,7 +162,7 @@ export class ProxyController {
       this.logger.error(`Proxy error: ${message}`);
 
       this.recorder
-        .recordProviderError(req.ingestionContext, status, message, { traceId })
+        .recordProviderError(req.ingestionContext, status, message, { traceId, callerAttribution })
         .catch((e) => this.logger.warn(`Failed to record provider error: ${e}`));
 
       if (headersSent) {

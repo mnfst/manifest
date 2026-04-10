@@ -74,6 +74,8 @@ vi.mock('../../src/services/api.js', () => ({
   getAgentKey: vi.fn().mockResolvedValue({ keyPrefix: 'mnfst_abc', apiKey: 'mnfst_abc123', pluginEndpoint: null }),
   getHealth: vi.fn().mockResolvedValue({ mode: 'cloud' }),
   refreshModels: vi.fn().mockResolvedValue([]),
+  getSpecificityAssignments: vi.fn().mockResolvedValue([]),
+  overrideSpecificity: vi.fn().mockResolvedValue({}),
 }));
 
 vi.mock('../../src/services/routing-utils.js', () => ({

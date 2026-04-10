@@ -50,6 +50,7 @@ export class ResolveController {
       body.tool_choice,
       body.max_tokens,
       body.recentTiers,
+      body.specificity,
     );
   }
 

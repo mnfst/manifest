@@ -20,6 +20,7 @@ import { EmailProviderConfig } from '../entities/email-provider-config.entity';
 import { UserProvider } from '../entities/user-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
+import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
 import { DatabaseSeederService } from './database-seeder.service';
 import { LocalBootstrapService } from './local-bootstrap.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
@@ -66,6 +67,10 @@ import { WidenKeyHashColumn1774000000000 } from './migrations/1774000000000-Wide
 import { WidenApiKeyColumn1774896789000 } from './migrations/1774896789000-WidenApiKeyColumn';
 import { AddErrorHttpStatus1775000000000 } from './migrations/1775000000000-AddErrorHttpStatus';
 import { AddAgentType1775100000000 } from './migrations/1775100000000-AddAgentType';
+import { AddSpecificityAssignments1775200000000 } from './migrations/1775200000000-AddSpecificityAssignments';
+import { AddSpecificityCategory1775300000000 } from './migrations/1775300000000-AddSpecificityCategory';
+import { AddCallerAttribution1775400000000 } from './migrations/1775400000000-AddCallerAttribution';
+import { AddMessageProvider1775500000000 } from './migrations/1775500000000-AddMessageProvider';
 
 const entities = [
   AgentMessage,
@@ -84,6 +89,7 @@ const entities = [
   UserProvider,
   TierAssignment,
   CustomProvider,
+  SpecificityAssignment,
 ];
 
 const migrations = [
@@ -130,6 +136,10 @@ const migrations = [
   WidenApiKeyColumn1774896789000,
   AddErrorHttpStatus1775000000000,
   AddAgentType1775100000000,
+  AddSpecificityAssignments1775200000000,
+  AddSpecificityCategory1775300000000,
+  AddCallerAttribution1775400000000,
+  AddMessageProvider1775500000000,
 ];
 
 const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
@@ -185,6 +195,7 @@ function buildModeServices() {
       UserProvider,
       TierAssignment,
       CustomProvider,
+      SpecificityAssignment,
     ]),
     ModelPricesModule,
   ],

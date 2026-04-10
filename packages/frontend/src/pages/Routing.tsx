@@ -6,6 +6,7 @@ import RoutingModals from '../components/RoutingModals.js';
 import { toast } from '../services/toast-store.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import RoutingTierCard from './RoutingTierCard.js';
+import RoutingSpecificitySection from './RoutingSpecificitySection.js';
 import {
   RoutingLoadingSkeleton,
   EnableRoutingCard,
@@ -18,6 +19,9 @@ import {
   getAvailableModels,
   getProviders,
   getCustomProviders,
+  getSpecificityAssignments,
+  overrideSpecificity,
+  resetSpecificity,
   refreshModels,
 } from '../services/api.js';
 import {
@@ -50,7 +54,14 @@ const Routing: Component = () => {
     () => agentName(),
     getCustomProviders,
   );
+  const [specificityAssignments, { refetch: refetchSpecificity }] = createResource(
+    () => agentName(),
+    getSpecificityAssignments,
+  );
   const [dropdownTier, setDropdownTier] = createSignal<string | null>(null);
+  const [specificityDropdown, setSpecificityDropdown] = createSignal<string | null>(null);
+  const [changingSpecificity, setChangingSpecificity] = createSignal<string | null>(null);
+  const [resettingSpecificity, setResettingSpecificity] = createSignal<string | null>(null);
   const [showProviderModal, setShowProviderModal] = createSignal(
     !!(location.state as { openProviders?: boolean } | undefined)?.openProviders ||
       !!customProviderPrefill() ||
@@ -70,6 +81,7 @@ const Routing: Component = () => {
       refetchCustomProviders(),
       refetchTiers(),
       refetchModels(),
+      refetchSpecificity(),
     ]);
   };
 
@@ -88,9 +100,32 @@ const Routing: Component = () => {
     return actions.handleOverride(...args);
   };
 
-  const handleAddFallback: typeof actions.handleAddFallback = async (...args) => {
+  const isSpecificityTier = (tierId: string) =>
+    specificityAssignments()?.some((a) => a.category === tierId) ?? false;
+
+  const handleAddFallback: typeof actions.handleAddFallback = async (
+    tierId,
+    modelName,
+    providerId,
+    authType,
+  ) => {
     setFallbackPickerTier(null);
-    return actions.handleAddFallback(...args);
+    if (isSpecificityTier(tierId)) {
+      const sa = specificityAssignments()?.find((a) => a.category === tierId);
+      const current = sa?.fallback_models ?? [];
+      if (current.includes(modelName)) return;
+      const updated = [...current, modelName];
+      try {
+        const { setSpecificityFallbacks } = await import('../services/api.js');
+        await setSpecificityFallbacks(agentName(), tierId, updated);
+        await refetchSpecificity();
+        toast.success('Fallback added');
+      } catch {
+        toast.error('Failed to add fallback');
+      }
+      return;
+    }
+    return actions.handleAddFallback(tierId, modelName, providerId, authType);
   };
 
   const isEnabled = () => connectedProviders()?.some((p) => p.is_active) ?? false;
@@ -136,8 +171,8 @@ const Routing: Component = () => {
         <div>
           <h1>Routing</h1>
           <span class="breadcrumb">
-            {agentDisplayName() ?? agentName()} &rsaquo; Route requests to different models based on
-            complexity
+            {agentDisplayName() ?? agentName()} &rsaquo; Pick which model handles each type of
+            request
           </span>
         </div>
         <Show when={!connectedProviders.loading && isEnabled()}>
@@ -199,32 +234,96 @@ const Routing: Component = () => {
             customProviders={() => customProviders() ?? []}
           />
 
-          <div class="routing-cards">
-            <For each={STAGES}>
-              {(stage) => (
-                <RoutingTierCard
-                  stage={stage}
-                  tier={() => actions.getTier(stage.id)}
-                  models={() => models() ?? []}
-                  customProviders={() => customProviders() ?? []}
-                  activeProviders={activeProviders}
-                  tiersLoading={tiers.loading}
-                  changingTier={actions.changingTier}
-                  resettingTier={actions.resettingTier}
-                  resettingAll={actions.resettingAll}
-                  addingFallback={actions.addingFallback}
-                  agentName={agentName}
-                  onDropdownOpen={(tierId) => setDropdownTier(tierId)}
-                  onOverride={handleOverride}
-                  onReset={actions.handleReset}
-                  onFallbackUpdate={actions.handleFallbackUpdate}
-                  onAddFallback={(tierId) => setFallbackPickerTier(tierId)}
-                  getFallbacksFor={actions.getFallbacksFor}
-                  connectedProviders={() => connectedProviders() ?? []}
-                />
-              )}
-            </For>
+          <div class="routing-section">
+            <div class="routing-section__header">
+              <span class="routing-section__title">Generalist tiers</span>
+              <span class="routing-section__subtitle">
+                Generalist tiers route requests depending on their complexity. Simple tasks get
+                cheap models, hard ones get the best.
+              </span>
+            </div>
+            <div class="routing-cards">
+              <For each={STAGES}>
+                {(stage) => (
+                  <RoutingTierCard
+                    stage={stage}
+                    tier={() => actions.getTier(stage.id)}
+                    models={() => models() ?? []}
+                    customProviders={() => customProviders() ?? []}
+                    activeProviders={activeProviders}
+                    tiersLoading={tiers.loading}
+                    changingTier={actions.changingTier}
+                    resettingTier={actions.resettingTier}
+                    resettingAll={actions.resettingAll}
+                    addingFallback={actions.addingFallback}
+                    agentName={agentName}
+                    onDropdownOpen={(tierId) => setDropdownTier(tierId)}
+                    onOverride={handleOverride}
+                    onReset={actions.handleReset}
+                    onFallbackUpdate={actions.handleFallbackUpdate}
+                    onAddFallback={(tierId) => setFallbackPickerTier(tierId)}
+                    getFallbacksFor={actions.getFallbacksFor}
+                    connectedProviders={() => connectedProviders() ?? []}
+                  />
+                )}
+              </For>
+            </div>
           </div>
+
+          <RoutingSpecificitySection
+            agentName={agentName}
+            assignments={specificityAssignments}
+            models={() => models() ?? []}
+            customProviders={() => customProviders() ?? []}
+            activeProviders={activeProviders}
+            connectedProviders={() => connectedProviders() ?? []}
+            changingTier={changingSpecificity}
+            resettingTier={resettingSpecificity}
+            resettingAll={() => false}
+            addingFallback={() => null}
+            onDropdownOpen={(category) => setSpecificityDropdown(category)}
+            onOverride={async (category, model, provider, authType) => {
+              setChangingSpecificity(category);
+              try {
+                await overrideSpecificity(agentName(), category, model, provider, authType);
+                await refetchSpecificity();
+              } catch {
+                toast.error('Failed to update model');
+              } finally {
+                setChangingSpecificity(null);
+              }
+            }}
+            onReset={async (category) => {
+              setResettingSpecificity(category);
+              try {
+                await resetSpecificity(agentName(), category);
+                await refetchSpecificity();
+              } catch {
+                toast.error('Failed to reset');
+              } finally {
+                setResettingSpecificity(null);
+              }
+            }}
+            onFallbackUpdate={async (category, updatedFallbacks) => {
+              try {
+                if (updatedFallbacks.length === 0) {
+                  const { clearSpecificityFallbacks } = await import('../services/api.js');
+                  await clearSpecificityFallbacks(agentName(), category);
+                } else {
+                  const { setSpecificityFallbacks } = await import('../services/api.js');
+                  await setSpecificityFallbacks(agentName(), category, updatedFallbacks);
+                }
+                await refetchSpecificity();
+              } catch {
+                toast.error('Failed to update fallbacks');
+              }
+            }}
+            onAddFallback={(category) => setFallbackPickerTier(category)}
+            refetchAll={refetchAll}
+            refetchSpecificity={async () => {
+              await refetchSpecificity();
+            }}
+          />
 
           <RoutingFooter
             disabling={actions.disabling}
@@ -254,6 +353,20 @@ const Routing: Component = () => {
         agentName={agentName}
         dropdownTier={dropdownTier}
         onDropdownClose={() => setDropdownTier(null)}
+        specificityDropdown={specificityDropdown}
+        onSpecificityDropdownClose={() => setSpecificityDropdown(null)}
+        onSpecificityOverride={async (category, model, provider, authType) => {
+          setSpecificityDropdown(null);
+          setChangingSpecificity(category);
+          try {
+            await overrideSpecificity(agentName(), category, model, provider, authType);
+            await refetchSpecificity();
+          } catch {
+            toast.error('Failed to update specificity model');
+          } finally {
+            setChangingSpecificity(null);
+          }
+        }}
         fallbackPickerTier={fallbackPickerTier}
         onFallbackPickerClose={() => setFallbackPickerTier(null)}
         showProviderModal={showProviderModal}
@@ -275,9 +388,16 @@ const Routing: Component = () => {
         }}
         models={() => models() ?? []}
         tiers={() => tiers() ?? []}
+        specificityAssignments={() => specificityAssignments() ?? []}
         customProviders={() => customProviders() ?? []}
         connectedProviders={() => connectedProviders() ?? []}
-        getTier={actions.getTier}
+        getTier={(tierId) => {
+          const generalist = actions.getTier(tierId);
+          if (generalist) return generalist;
+          const sa = specificityAssignments()?.find((a) => a.category === tierId);
+          if (sa) return { ...sa, tier: sa.category };
+          return undefined;
+        }}
         onOverride={handleOverride}
         onAddFallback={handleAddFallback}
         onProviderUpdate={handleProviderUpdate}

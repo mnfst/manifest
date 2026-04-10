@@ -304,11 +304,11 @@ describe('scoreRequest — tier compatibility', () => {
     }
   });
 
-  it('returns all 23 dimensions', () => {
+  it('returns all 25 dimensions', () => {
     const result = scoreRequest({
       messages: [{ role: 'user', content: 'test request' }],
     });
-    expect(result.dimensions).toHaveLength(23);
+    expect(result.dimensions).toHaveLength(31);
   });
 });
 

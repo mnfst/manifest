@@ -8,10 +8,17 @@ import {
 } from '../src/subscription';
 
 describe('SUBSCRIPTION_PROVIDER_CONFIGS', () => {
-  it('contains anthropic, openai, minimax, copilot', () => {
+  it('contains anthropic, openai, minimax, copilot, ollama-cloud, zai', () => {
     expect(Object.keys(SUBSCRIPTION_PROVIDER_CONFIGS)).toEqual(
-      expect.arrayContaining(['anthropic', 'openai', 'minimax', 'copilot']),
+      expect.arrayContaining(['anthropic', 'openai', 'minimax', 'copilot', 'ollama-cloud', 'zai']),
     );
+  });
+
+  it('ollama-cloud config is frozen', () => {
+    expect(Object.isFrozen(SUBSCRIPTION_PROVIDER_CONFIGS['ollama-cloud'])).toBe(true);
+    expect(
+      Object.isFrozen(SUBSCRIPTION_PROVIDER_CONFIGS['ollama-cloud'].subscriptionCapabilities),
+    ).toBe(true);
   });
 
   it('is frozen', () => {
@@ -61,6 +68,28 @@ describe('getSubscriptionProviderConfig', () => {
     });
   });
 
+  it('returns config for ollama-cloud', () => {
+    const config = getSubscriptionProviderConfig('ollama-cloud');
+    expect(config).toMatchObject({
+      supportsSubscription: true,
+      subscriptionLabel: 'Ollama Cloud subscription',
+      subscriptionAuthMode: 'token',
+      subscriptionKeyPlaceholder: 'Paste your Ollama API key',
+    });
+    // Ollama Cloud accepts any API key format — no prefix constraint.
+    expect(config?.subscriptionTokenPrefix).toBeUndefined();
+  });
+
+  it('returns config for zai', () => {
+    const config = getSubscriptionProviderConfig('zai');
+    expect(config).toMatchObject({
+      supportsSubscription: true,
+      subscriptionLabel: 'GLM Coding Plan',
+      subscriptionAuthMode: 'token',
+      subscriptionKeyPlaceholder: 'Paste your Z.ai API key',
+    });
+  });
+
   it('is case-insensitive', () => {
     expect(getSubscriptionProviderConfig('ANTHROPIC')).not.toBeNull();
     expect(getSubscriptionProviderConfig('OpenAI')).not.toBeNull();
@@ -81,6 +110,8 @@ describe('supportsSubscriptionProvider', () => {
     expect(supportsSubscriptionProvider('openai')).toBe(true);
     expect(supportsSubscriptionProvider('minimax')).toBe(true);
     expect(supportsSubscriptionProvider('copilot')).toBe(true);
+    expect(supportsSubscriptionProvider('ollama-cloud')).toBe(true);
+    expect(supportsSubscriptionProvider('zai')).toBe(true);
   });
 
   it('returns false for unsupported providers', () => {
@@ -102,6 +133,18 @@ describe('getSubscriptionKnownModels', () => {
     expect(models).toContain('copilot/gpt-5.4');
   });
 
+  it('returns null known models for ollama-cloud (relies on live /api/tags discovery)', () => {
+    const models = getSubscriptionKnownModels('ollama-cloud');
+    expect(models).toBeNull();
+  });
+
+  it('returns known models for zai', () => {
+    const models = getSubscriptionKnownModels('zai');
+    expect(models).toContain('glm-5.1');
+    expect(models).toContain('glm-5');
+    expect(models).toContain('glm-4.7');
+  });
+
   it('returns null for unsupported providers', () => {
     expect(getSubscriptionKnownModels('unknown')).toBeNull();
   });
@@ -121,8 +164,28 @@ describe('getSubscriptionCapabilities', () => {
     for (const id of SUPPORTED_SUBSCRIPTION_PROVIDER_IDS) {
       const caps = getSubscriptionCapabilities(id);
       expect(caps).not.toBeNull();
-      expect(caps!.maxContextWindow).toBe(200000);
+      expect(caps!.maxContextWindow).toBeGreaterThan(0);
+      expect(typeof caps!.supportsPromptCaching).toBe('boolean');
+      expect(typeof caps!.supportsBatching).toBe('boolean');
     }
+  });
+
+  it('returns capabilities for ollama-cloud', () => {
+    const caps = getSubscriptionCapabilities('ollama-cloud');
+    expect(caps).toMatchObject({
+      maxContextWindow: 128000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    });
+  });
+
+  it('returns capabilities for zai with 204800 context window', () => {
+    const caps = getSubscriptionCapabilities('zai');
+    expect(caps).toMatchObject({
+      maxContextWindow: 204800,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    });
   });
 
   it('returns null for unsupported providers', () => {

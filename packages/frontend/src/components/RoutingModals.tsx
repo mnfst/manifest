@@ -9,6 +9,7 @@ import type {
   CustomProviderData,
   AvailableModel,
   RoutingProvider,
+  SpecificityAssignment,
 } from '../services/api.js';
 import type { CustomProviderPrefill, ProviderDeepLink } from '../services/routing-params.js';
 
@@ -16,6 +17,14 @@ interface RoutingModalsProps {
   agentName: () => string;
   dropdownTier: Accessor<string | null>;
   onDropdownClose: () => void;
+  specificityDropdown?: Accessor<string | null>;
+  onSpecificityDropdownClose?: () => void;
+  onSpecificityOverride?: (
+    category: string,
+    model: string,
+    provider: string,
+    authType?: AuthType,
+  ) => void;
   fallbackPickerTier: Accessor<string | null>;
   onFallbackPickerClose: () => void;
   showProviderModal: Accessor<boolean>;
@@ -31,6 +40,7 @@ interface RoutingModalsProps {
   onDisableConfirm: () => Promise<void>;
   models: () => AvailableModel[];
   tiers: () => TierAssignment[];
+  specificityAssignments?: () => SpecificityAssignment[];
   customProviders: () => CustomProviderData[];
   connectedProviders: () => RoutingProvider[];
   getTier: (tierId: string) => TierAssignment | undefined;
@@ -58,6 +68,28 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => (
           onClose={props.onDropdownClose}
         />
       )}
+    </Show>
+
+    <Show when={props.specificityDropdown?.()}>
+      {(category) => {
+        const specificityTiers = (): TierAssignment[] =>
+          (props.specificityAssignments?.() ?? [])
+            .filter((a) => a.is_active)
+            .map((a) => ({ ...a, tier: a.category }));
+        return (
+          <ModelPickerModal
+            tierId={category()}
+            models={props.models()}
+            tiers={specificityTiers()}
+            customProviders={props.customProviders()}
+            connectedProviders={props.connectedProviders()}
+            onSelect={(_, model, provider, authType) =>
+              props.onSpecificityOverride?.(category(), model, provider, authType)
+            }
+            onClose={() => props.onSpecificityDropdownClose?.()}
+          />
+        );
+      }}
     </Show>
 
     <Show when={props.fallbackPickerTier()}>

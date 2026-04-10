@@ -1,7 +1,7 @@
 import { IsArray, IsIn, IsNotEmpty, IsNumber, IsOptional, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
-import { TIERS } from 'manifest-shared';
+import { TIERS, SPECIFICITY_CATEGORIES } from 'manifest-shared';
 
 class MessageDto {
   @IsNotEmpty()
@@ -33,4 +33,8 @@ export class ResolveRequestDto {
   @IsArray()
   @IsIn(TIERS, { each: true })
   recentTiers?: Array<(typeof TIERS)[number]>;
+
+  @IsOptional()
+  @IsIn(SPECIFICITY_CATEGORIES as readonly string[])
+  specificity?: string;
 }

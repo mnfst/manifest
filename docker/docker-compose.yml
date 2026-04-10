@@ -13,9 +13,21 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 1g
+    pids_limit: 256
+    networks:
+      - internal
+      - frontend
 
   postgres:
-    image: postgres:16-alpine
+    image: postgres:16-alpine@sha256:20edbde7749f822887a1a022ad526fde0a47d6b2be9a8364433605cf65099416
     environment:
       - POSTGRES_USER=manifest
       - POSTGRES_PASSWORD=manifest
@@ -27,6 +39,17 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge
+    internal: true
+  frontend:
+    driver: bridge
 
 volumes:
   pgdata:

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { PROVIDERS, STAGES, getModelLabel, getProvider } from "../../src/services/providers";
 import { validateApiKey, validateSubscriptionKey } from "../../src/services/provider-utils";
-import { ROUTING_PROVIDER_API_KEY_URLS, EMAIL_PROVIDER_API_KEY_URLS, getRoutingProviderApiKeyUrl, getEmailProviderApiKeyUrl } from "../../src/services/provider-api-key-urls";
+import { ROUTING_PROVIDER_API_KEY_URLS, EMAIL_PROVIDER_API_KEY_URLS, SUBSCRIPTION_PROVIDER_KEY_URLS, getRoutingProviderApiKeyUrl, getEmailProviderApiKeyUrl, getSubscriptionProviderKeyUrl } from "../../src/services/provider-api-key-urls";
 
 /* ── getProvider ────────────────────────────────── */
 
@@ -243,8 +243,8 @@ describe("getModelLabel", () => {
 /* ── PROVIDERS constant ────────────────────────── */
 
 describe("PROVIDERS", () => {
-  it("has 13 providers defined", () => {
-    expect(PROVIDERS).toHaveLength(13);
+  it("has 14 providers defined", () => {
+    expect(PROVIDERS).toHaveLength(14);
   });
 
   it("providers are sorted alphabetically by name", () => {
@@ -304,6 +304,55 @@ describe("PROVIDERS", () => {
     expect(minimax.subscriptionAuthMode).toBe("device_code");
   });
 
+  it("Ollama Cloud is subscription-only with token paste flow", () => {
+    const cloud = PROVIDERS.find((p) => p.id === "ollama-cloud")!;
+    expect(cloud).toBeDefined();
+    expect(cloud.name).toBe("Ollama Cloud");
+    expect(cloud.supportsSubscription).toBe(true);
+    expect(cloud.subscriptionOnly).toBe(true);
+    expect(cloud.subscriptionLabel).toBe("Ollama Cloud subscription");
+    expect(cloud.subscriptionAuthMode).toBe("token");
+    expect(cloud.subscriptionKeyPlaceholder).toBe("Paste your Ollama Cloud API key");
+    expect(cloud.subscriptionCredentialKind).toBe("api-key");
+    expect(cloud.localOnly).toBeUndefined();
+    expect(cloud.noKeyRequired).toBeUndefined();
+    expect(cloud.subscriptionCommand).toBeUndefined();
+  });
+
+  it("provides an API key URL for ollama-cloud in both the API-key and subscription maps", () => {
+    expect(getRoutingProviderApiKeyUrl("ollama-cloud")).toBe(
+      "https://ollama.com/settings/keys",
+    );
+    expect(getSubscriptionProviderKeyUrl("ollama-cloud")).toBe(
+      "https://ollama.com/settings/keys",
+    );
+  });
+
+  it("exposes a subscription-key URL for every token-mode subscription-only provider", () => {
+    const missing = PROVIDERS.filter(
+      (p) =>
+        p.subscriptionOnly &&
+        p.subscriptionAuthMode === "token" &&
+        !SUBSCRIPTION_PROVIDER_KEY_URLS[p.id],
+    ).map((p) => p.id);
+    expect(missing).toEqual([]);
+  });
+
+  it("Z.ai supports GLM Coding Plan subscription with token flow", () => {
+    const zai = PROVIDERS.find((p) => p.id === "zai")!;
+    expect(zai.supportsSubscription).toBe(true);
+    expect(zai.subscriptionLabel).toBe("GLM Coding Plan");
+    expect(zai.subscriptionAuthMode).toBe("token");
+    expect(zai.subscriptionKeyPlaceholder).toBe("Paste your Z.ai API key");
+    expect(zai.subscriptionOnly).toBeUndefined();
+  });
+
+  it("provides a subscription-key URL for Z.ai pointing at the API key dashboard", () => {
+    expect(getSubscriptionProviderKeyUrl("zai")).toBe(
+      "https://z.ai/manage-apikey/apikey-list",
+    );
+  });
+
   it("requires an API key URL for every provider that needs one", () => {
     const missingProviderIds = PROVIDERS.filter(
       (provider) =>
@@ -357,6 +406,24 @@ describe("getRoutingProviderApiKeyUrl", () => {
 
   it("returns undefined for an unknown provider", () => {
     expect(getRoutingProviderApiKeyUrl("unknown")).toBeUndefined();
+  });
+});
+
+/* ── getSubscriptionProviderKeyUrl ─────────── */
+
+describe("getSubscriptionProviderKeyUrl", () => {
+  it("returns the Ollama settings page URL for ollama-cloud", () => {
+    expect(getSubscriptionProviderKeyUrl("ollama-cloud")).toBe(
+      "https://ollama.com/settings/keys",
+    );
+  });
+
+  it("returns undefined for subscription providers whose token comes from elsewhere (e.g. anthropic setup-token via CLI)", () => {
+    expect(getSubscriptionProviderKeyUrl("anthropic")).toBeUndefined();
+  });
+
+  it("returns undefined for an unknown provider", () => {
+    expect(getSubscriptionProviderKeyUrl("unknown")).toBeUndefined();
   });
 });
 

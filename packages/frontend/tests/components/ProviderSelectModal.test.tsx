@@ -1284,7 +1284,7 @@ describe('ProviderSelectModal', () => {
         />
       ));
       expect(
-        screen.getByText(/Use your existing subscription instead of an API key/),
+        screen.getByText(/Use your existing subscription or paid plan/),
       ).toBeDefined();
     });
 
@@ -1415,6 +1415,24 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('Anthropic'));
       const input = screen.getByLabelText('Anthropic setup token') as HTMLInputElement;
       expect(input.getAttribute('placeholder')).toBe('Paste your setup-token');
+    });
+
+    it('hides the "Get API key" link in Anthropic subscription mode', () => {
+      // Anthropic subscription uses setup-tokens from the CLI, not API keys from the
+      // dashboard, so the console.anthropic.com/settings/keys URL would be misleading.
+      const { container } = render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      fireEvent.click(screen.getByText('Anthropic'));
+      const link = container.querySelector<HTMLAnchorElement>(
+        'a[href="https://console.anthropic.com/settings/keys"]',
+      );
+      expect(link).toBeNull();
     });
 
     it('updates token in subscription edit mode', async () => {

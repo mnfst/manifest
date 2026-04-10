@@ -33,6 +33,7 @@ export class LocalAuthGuard implements CanActivate {
         name: 'Local User',
         email: configEmail ?? LOCAL_EMAIL,
       };
+      (request as Request & { authMethod: string }).authMethod = 'session';
       return true;
     }
 

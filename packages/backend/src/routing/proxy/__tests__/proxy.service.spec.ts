@@ -550,6 +550,7 @@ describe('ProxyService', () => {
       undefined,
       undefined,
       ['complex', 'complex'],
+      undefined,
     );
   });
 
@@ -628,6 +629,7 @@ describe('ProxyService', () => {
       expect.any(Array),
       bodyWithTools.tools,
       bodyWithTools.tool_choice,
+      undefined,
       undefined,
       undefined,
     );
@@ -1287,6 +1289,7 @@ describe('ProxyService', () => {
         undefined,
         undefined,
         4096,
+        undefined,
         undefined,
       );
     });

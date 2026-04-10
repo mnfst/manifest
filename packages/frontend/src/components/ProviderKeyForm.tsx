@@ -7,7 +7,10 @@ import {
   revokeOpenaiOAuth,
   type AuthType,
 } from '../services/api.js';
-import { getRoutingProviderApiKeyUrl } from '../services/provider-api-key-urls.js';
+import {
+  getRoutingProviderApiKeyUrl,
+  getSubscriptionProviderKeyUrl,
+} from '../services/provider-api-key-urls.js';
 import { toast } from '../services/toast-store.js';
 
 export interface ProviderKeyFormProps {
@@ -35,18 +38,20 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
     props.provDef.subscriptionAuthMode === 'popup_oauth' || !!props.provDef.subscriptionOAuth;
   const shouldRevokeOpenaiOAuth = () =>
     props.provId === 'openai' && isPopupOAuth() && props.selectedAuthType() === 'subscription';
-  const fieldLabel = () => (props.isSubMode() ? 'Setup Token' : 'API Key');
+  const isApiKeyCredential = () =>
+    !props.isSubMode() || props.provDef.subscriptionCredentialKind === 'api-key';
+  const fieldLabel = () => (isApiKeyCredential() ? 'API Key' : 'Setup Token');
   const placeholder = () =>
     props.isSubMode()
       ? (props.provDef.subscriptionKeyPlaceholder ?? 'Paste token')
       : props.provDef.keyPlaceholder;
-  const inputAriaLabel = () =>
-    props.isSubMode() ? `${props.provDef.name} setup token` : `${props.provDef.name} API key`;
-  const editAriaLabel = () =>
+  const credentialNoun = () => (isApiKeyCredential() ? 'API key' : 'setup token');
+  const inputAriaLabel = () => `${props.provDef.name} ${credentialNoun()}`;
+  const editAriaLabel = () => `New ${props.provDef.name} ${credentialNoun()}`;
+  const whereToGetUrl = () =>
     props.isSubMode()
-      ? `New ${props.provDef.name} setup token`
-      : `New ${props.provDef.name} API key`;
-  const whereToGetUrl = getRoutingProviderApiKeyUrl(props.provId);
+      ? getSubscriptionProviderKeyUrl(props.provId)
+      : getRoutingProviderApiKeyUrl(props.provId);
 
   const handleConnect = async () => {
     const result = props.isSubMode()
@@ -90,7 +95,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
         apiKey: props.keyInput().replace(/\s/g, ''),
         authType: props.selectedAuthType(),
       });
-      const label = props.isSubMode() ? 'token' : 'key';
+      const label = props.isSubMode() && !isApiKeyCredential() ? 'token' : 'key';
       toast.success(`${props.provDef.name} ${label} updated`);
       props.onBack();
       props.onUpdate();
@@ -159,15 +164,15 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
           <Show when={props.validationError()}>
             <div class="provider-detail__error">{props.validationError()}</div>
           </Show>
-          <Show when={whereToGetUrl && !props.isSubMode()}>
+          <Show when={whereToGetUrl()}>
             <p class="provider-detail__key-help">
               <a
                 class="provider-detail__key-help-link"
-                href={whereToGetUrl}
+                href={whereToGetUrl()}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Get {props.provDef.name} API key
+                Get {props.provDef.name} {credentialNoun()}
               </a>
             </p>
           </Show>
@@ -195,7 +200,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
                 value={props.getKeyPrefixDisplay(props.selectedAuthType())}
                 disabled
                 aria-label={
-                  props.isSubMode() ? 'Current setup token (masked)' : 'Current API key (masked)'
+                  isApiKeyCredential() ? 'Current API key (masked)' : 'Current setup token (masked)'
                 }
               />
               <button
@@ -255,15 +260,15 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
             <Show when={props.validationError()}>
               <div class="provider-detail__error">{props.validationError()}</div>
             </Show>
-            <Show when={whereToGetUrl && !props.isSubMode()}>
+            <Show when={whereToGetUrl()}>
               <p class="provider-detail__key-help">
                 <a
                   class="provider-detail__key-help-link"
-                  href={whereToGetUrl}
+                  href={whereToGetUrl()}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Get {props.provDef.name} API key
+                  Get {props.provDef.name} {credentialNoun()}
                 </a>
               </p>
             </Show>
