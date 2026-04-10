@@ -107,20 +107,21 @@
 
 .routing-section__header {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-bottom: 12px;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: var(--gap-lg);
 }
 
 .routing-section__title {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: hsl(var(--foreground));
 }
 
 .routing-section__subtitle {
-  font-size: var(--font-size-xs);
+  font-size: 14px;
   color: hsl(var(--muted-foreground));
+  line-height: 1.5;
 }
 
 /* ── Routing cards (4-column grid) ─────────────────── */
@@ -134,17 +135,65 @@
   display: flex;
   flex-direction: column;
   padding: 16px 20px;
-  background: hsl(var(--card));
+  background: rgba(255, 255, 255, 0.45);
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
   min-height: 0;
+}
+
+.dark .routing-card {
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .routing-card__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
+}
+
+.routing-card__header-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-family);
+  padding: 2px 0;
+  transition: color var(--transition-fast);
+}
+
+.routing-card__header-reset:hover {
+  color: hsl(var(--destructive));
+}
+
+.routing-card__header-reset:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.routing-card__header-add {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-family);
+  padding: 2px 0;
+  transition: color var(--transition-fast);
+}
+
+.routing-card__header-add:hover {
+  color: hsl(var(--foreground));
+}
+
+.routing-card__header:has(.routing-card__header-add) {
+  margin-bottom: 0;
 }
 
 .routing-card__tier {
@@ -186,14 +235,16 @@
 
 .routing-card__body {
   min-width: 0;
-  margin-bottom: 12px;
+  margin-bottom: 0;
 }
 
 .routing-card__main {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: 500;
   color: hsl(var(--foreground));
-  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .routing-card__sub {
@@ -207,10 +258,145 @@
   color: #64748b;
 }
 
+.routing-card__model-chip {
+  display: flex;
+  flex-direction: column;
+  background: #f7f5ed;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  cursor: grab;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    opacity var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.routing-card__chip-main {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+}
+
+.routing-card__chip-footer {
+  border-top: 1px solid hsl(var(--border));
+  background: rgba(255, 255, 255, 0.6);
+  padding: 5px 8px;
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+
+.dark .routing-card__chip-footer {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.routing-card__chip-price {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+}
+
+.dark .routing-card__model-chip {
+  background: #121212;
+}
+
+.routing-card__model-chip:hover {
+  background: hsl(var(--muted) / 0.3);
+}
+
+.routing-card__model-chip--dragging {
+  opacity: 0.3;
+}
+
+.routing-card__model-chip--drop-target {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 1px hsl(var(--primary));
+}
+
+.routing-card__chip-action {
+  background: none;
+  border: none;
+  color: hsl(var(--foreground) / 0.7);
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  transition: color var(--transition-fast);
+}
+
+.routing-card__chip-action:hover {
+  color: hsl(var(--foreground));
+}
+
+.routing-card__chip-reset:hover {
+  color: hsl(var(--destructive));
+}
+
+.routing-card__chip-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.routing-card__chip-action {
+  position: relative;
+}
+
+.routing-card__chip-action .routing-tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.95);
+  background: #fff;
+  color: #1a1a1a;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(0, 0, 0, 0.06);
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease;
+}
+
+.dark .routing-card__chip-action .routing-tooltip {
+  background: #2a2a2a;
+  color: #e5e5e5;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.routing-card__chip-action .routing-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: #fff;
+}
+
+.dark .routing-card__chip-action .routing-tooltip::after {
+  border-top-color: #2a2a2a;
+}
+
+.routing-card__chip-action:hover .routing-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
 .routing-card__override {
   display: inline-flex;
   align-items: flex-start;
   gap: 8px;
+  flex: 1;
+  min-width: 0;
 }
 
 .routing-card__override-icon {
@@ -218,7 +404,6 @@
   align-items: center;
   flex-shrink: 0;
   position: relative;
-  top: 2.5px;
 }
 
 .routing-card__auto-tag {
@@ -282,7 +467,9 @@
 .routing-card__right {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
+  margin-top: 0;
+  position: relative;
 }
 
 .routing-card__actions {
@@ -385,13 +572,20 @@
   align-items: center;
   gap: var(--gap-md);
   margin-top: var(--gap-lg);
+  padding-top: var(--gap-lg);
+  border-top: 1px solid hsl(var(--border));
 }
 
 /* ── Fallback list ─────────────────────────────────── */
+.fallback-list {
+  position: relative;
+}
+
 .fallback-list__items {
   display: flex;
   flex-direction: column;
   gap: 0;
+  position: relative;
 }
 
 /* Each fallback as a dashed-border mini-card */
@@ -402,7 +596,7 @@
   font-size: var(--font-size-xs);
   color: hsl(var(--foreground));
   padding: 6px 8px;
-  border: none;
+  border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
   background: #f7f5ed;
   cursor: grab;
@@ -428,13 +622,29 @@
 
 /* Drop indicator — always present as a spacer, highlights when active */
 .fallback-list__drop-indicator {
-  height: 6px;
+  height: 16px;
   transition: height 0.12s ease;
   position: relative;
 }
 
+/* Vertical connector bar between cards */
+.fallback-list__drop-indicator::before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: hsl(var(--border));
+}
+
+/* Hide connector on last drop indicator */
+.fallback-list__drop-indicator:last-child::before {
+  display: none;
+}
+
 .fallback-list__drop-indicator--active {
-  height: 10px;
+  height: 22px;
 }
 
 .fallback-list__drop-indicator--active::after {
@@ -489,7 +699,7 @@
 .fallback-list__remove {
   background: none;
   border: none;
-  color: hsl(var(--muted-foreground) / 0.5);
+  color: hsl(var(--foreground) / 0.7);
   cursor: pointer;
   line-height: 1;
   padding: 2px;

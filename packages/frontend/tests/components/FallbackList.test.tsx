@@ -75,15 +75,10 @@ describe("FallbackList", () => {
     expect(container.querySelector(".fallback-list__items")).toBeNull();
   });
 
-  it("renders fallback items with numbered list", () => {
+  it("renders fallback items with model labels", () => {
     const { container } = render(() => (
       <FallbackList {...defaultProps} fallbacks={["model-a", "model-b"]} />
     ));
-
-    const ranks = container.querySelectorAll(".fallback-list__rank");
-    expect(ranks.length).toBe(2);
-    expect(ranks[0].textContent).toBe("1");
-    expect(ranks[1].textContent).toBe("2");
 
     const modelLabels = container.querySelectorAll(".fallback-list__model");
     expect(modelLabels.length).toBe(2);
