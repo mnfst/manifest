@@ -41,7 +41,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
 
   const handleCategoryChange = (c: AgentCategory) => {
     setCategory(c);
-    setPlatform(PLATFORMS_BY_CATEGORY[c][0]);
+    setPlatform(PLATFORMS_BY_CATEGORY[c][0] ?? null);
   };
 
   const handleCreate = async () => {

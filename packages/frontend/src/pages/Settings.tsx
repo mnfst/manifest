@@ -473,7 +473,7 @@ const Settings: Component = () => {
               platform={modalPlatform()}
               onCategoryChange={(c) => {
                 setModalCategory(c);
-                setModalPlatform(PLATFORMS_BY_CATEGORY[c][0]);
+                setModalPlatform(PLATFORMS_BY_CATEGORY[c][0] ?? null);
               }}
               onPlatformChange={setModalPlatform}
               disabled={savingType()}
