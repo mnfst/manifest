@@ -265,11 +265,12 @@ describe('SpecificityService', () => {
   /* ── clearOverride ── */
 
   describe('clearOverride', () => {
-    it('should null out override fields on existing record', async () => {
+    it('should null out override fields and fallbacks on existing record', async () => {
       const existing = makeAssignment({
         override_model: 'gpt-4o',
         override_provider: 'openai',
         override_auth_type: 'api_key',
+        fallback_models: ['gpt-3.5-turbo'],
       });
       repo.findOne.mockResolvedValue(existing);
 
@@ -278,6 +279,7 @@ describe('SpecificityService', () => {
       expect(existing.override_model).toBeNull();
       expect(existing.override_provider).toBeNull();
       expect(existing.override_auth_type).toBeNull();
+      expect(existing.fallback_models).toBeNull();
       expect(repo.save).toHaveBeenCalledWith(existing);
       expect(cache.invalidateAgent).toHaveBeenCalledWith('agent-1');
     });

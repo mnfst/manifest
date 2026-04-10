@@ -117,6 +117,7 @@ export class SpecificityService {
     existing.override_model = null;
     existing.override_provider = null;
     existing.override_auth_type = null;
+    existing.fallback_models = null;
     existing.updated_at = new Date().toISOString();
     await this.repo.save(existing);
     this.routingCache.invalidateAgent(agentId);

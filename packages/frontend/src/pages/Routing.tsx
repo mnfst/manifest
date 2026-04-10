@@ -388,6 +388,7 @@ const Routing: Component = () => {
         }}
         models={() => models() ?? []}
         tiers={() => tiers() ?? []}
+        specificityAssignments={() => specificityAssignments() ?? []}
         customProviders={() => customProviders() ?? []}
         connectedProviders={() => connectedProviders() ?? []}
         getTier={(tierId) => {

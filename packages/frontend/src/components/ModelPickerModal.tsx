@@ -6,7 +6,7 @@ import type {
   RoutingProvider,
   TierAssignment,
 } from '../services/api.js';
-import { PROVIDERS, STAGES } from '../services/providers.js';
+import { PROVIDERS, STAGES, SPECIFICITY_STAGES } from '../services/providers.js';
 import { customProviderColor } from '../services/formatters.js';
 import { inferProviderFromModel, pricePerM, resolveProviderId } from '../services/routing-utils.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.js';
@@ -202,7 +202,13 @@ const ModelPickerModal: Component<Props> = (props) => {
               Select a model
             </div>
             <div class="routing-modal__subtitle">
-              {STAGES.find((s) => s.id === props.tierId)?.label} tier
+              {
+                (
+                  STAGES.find((s) => s.id === props.tierId) ??
+                  SPECIFICITY_STAGES.find((s) => s.id === props.tierId)
+                )?.label
+              }{' '}
+              tier
             </div>
           </div>
           <button class="modal__close" onClick={() => props.onClose()} aria-label="Close">

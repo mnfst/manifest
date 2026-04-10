@@ -728,6 +728,7 @@
   text-align: center;
   width: 100%;
   height: 224px;
+  margin-top: 12px;
   padding: 20px 12px;
   border-radius: var(--radius);
   background: hsl(var(--muted) / 0.15);
