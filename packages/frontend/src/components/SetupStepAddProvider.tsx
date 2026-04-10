@@ -13,7 +13,6 @@ interface Props {
   baseUrl: string;
   hideFullKey?: boolean;
   platform?: string | null;
-  onChangeType?: () => void;
 }
 
 const PLATFORM_TO_TOOLKIT: Record<string, ToolkitId> = {
@@ -33,32 +32,22 @@ const SetupStepAddProvider: Component<Props> = (props) => {
     baseUrl: props.baseUrl,
   }));
 
-  const isFiltered = () => !!props.platform && props.platform !== 'other';
+  const isFiltered = () => !!props.platform;
   const isPersonalAgent = () => props.platform === 'openclaw' || props.platform === 'hermes';
   const toolkitId = () => (props.platform ? PLATFORM_TO_TOOLKIT[props.platform] : undefined);
 
-  const changeLink = () => (
-    <Show when={props.onChangeType}>
-      <a
-        href="#agent-type-section"
-        class="setup-change-type-link"
-        onClick={(e) => {
-          e.preventDefault();
-          props.onChangeType!();
-        }}
-      >
-        Change agent type
-      </a>
-    </Show>
-  );
-
   return (
     <div>
-      <h3 class="setup-step__heading">Connect your agent to Manifest</h3>
+      <h3 class="setup-step__heading">
+        {props.platform === 'hermes'
+          ? 'Connect your Hermes agent to Manifest'
+          : props.platform === 'openclaw'
+            ? 'Connect your OpenClaw agent to Manifest'
+            : 'Connect your agent to Manifest'}
+      </h3>
 
       {/* Platform-filtered mode: show only relevant content */}
       <Show when={isFiltered()}>
-        {changeLink()}
         <Switch>
           <Match when={props.platform === 'openclaw'}>
             <OpenClawSetup {...snippetProps()} />
@@ -73,6 +62,13 @@ const SetupStepAddProvider: Component<Props> = (props) => {
               defaultToolkit={toolkitId()!}
             />
           </Match>
+          <Match when={props.platform === 'other'}>
+            <FrameworkSnippets
+              {...snippetProps()}
+              hideFullKey={props.hideFullKey}
+              defaultToolkit="curl"
+            />
+          </Match>
         </Switch>
       </Show>
 
@@ -82,7 +78,6 @@ const SetupStepAddProvider: Component<Props> = (props) => {
           Point your agent at the Manifest endpoint using the model{' '}
           <code class="setup-model-hint__code">auto</code>
         </p>
-        {changeLink()}
 
         <div class="setup-segment" role="tablist" aria-label="Setup method">
           <button

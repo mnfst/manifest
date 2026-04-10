@@ -9,7 +9,12 @@ import { markAgentCreated } from '../services/recent-agents.js';
 import { formatNumber } from '../services/formatters.js';
 import Sparkline from '../components/Sparkline.jsx';
 import { pingCount } from '../services/sse.js';
-import { type AgentCategory, type AgentPlatform, PLATFORM_ICONS } from 'manifest-shared';
+import {
+  type AgentCategory,
+  type AgentPlatform,
+  PLATFORM_ICONS,
+  PLATFORMS_BY_CATEGORY,
+} from 'manifest-shared';
 
 interface Agent {
   agent_name: string;
@@ -30,13 +35,13 @@ interface AgentsData {
 const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props) => {
   const navigate = useNavigate();
   const [name, setName] = createSignal('');
-  const [category, setCategory] = createSignal<AgentCategory | null>(null);
-  const [platform, setPlatform] = createSignal<AgentPlatform | null>(null);
+  const [category, setCategory] = createSignal<AgentCategory | null>('personal');
+  const [platform, setPlatform] = createSignal<AgentPlatform | null>('openclaw');
   const [creating, setCreating] = createSignal(false);
 
   const handleCategoryChange = (c: AgentCategory) => {
     setCategory(c);
-    setPlatform(null);
+    setPlatform(PLATFORMS_BY_CATEGORY[c][0]);
   };
 
   const handleCreate = async () => {
@@ -66,8 +71,8 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
 
   const resetForm = () => {
     setName('');
-    setCategory(null);
-    setPlatform(null);
+    setCategory('personal');
+    setPlatform('openclaw');
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -108,7 +113,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
           <input
             ref={(el) => requestAnimationFrame(() => el.focus())}
             id="agent-name-input"
-            class="modal-card__input"
+            class="modal-card__input modal-card__input--lg"
             type="text"
             placeholder="e.g. My Cool Agent"
             value={name()}

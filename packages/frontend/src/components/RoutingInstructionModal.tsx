@@ -1,8 +1,10 @@
 import { type Component, Show, createResource, createSignal } from 'solid-js';
 import { CopyButton } from './SetupStepInstall.jsx';
 import ModelSelectDropdown from './ModelSelectDropdown.jsx';
+import SetupStepAddProvider from './SetupStepAddProvider.jsx';
 import { PROVIDERS } from '../services/providers.js';
 import { getAgentKey, getHealth } from '../services/api.js';
+import { agentPlatform } from '../services/agent-platform-store.js';
 
 interface Props {
   open: boolean;
@@ -106,60 +108,38 @@ const RoutingInstructionModal: Component<Props> = (props) => {
             </button>
           </div>
 
-          <Show when={isEnable()}>
-            <Show when={providerName()}>
-              <p style="margin: 0 0 12px; font-size: var(--font-size-sm); line-height: 1.5;">
-                <span style="color: hsl(var(--primary)); font-weight: 600;">{providerName()}</span>{' '}
-                <span style="color: hsl(var(--muted-foreground));">is now connected.</span>
-              </p>
-            </Show>
-            <p style="margin: 0 0 16px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
-              Run the following commands in your agent's terminal to route all requests through
-              Manifest
-              <Show when={isKeyTruncated()} fallback=":">
-                , replacing{' '}
-                <code style="font-size: var(--font-size-sm); background: hsl(var(--muted)); padding: 1px 4px; border-radius: 3px;">
-                  {displayKey()}
-                </code>{' '}
-                with your full Manifest API key:
-              </Show>
-            </p>
-          </Show>
+          <Show
+            when={isEnable()}
+            fallback={
+              <>
+                <p style="margin: 0 0 14px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
+                  This will stop routing requests through Manifest and restore direct model access
+                  in your OpenClaw agent.
+                </p>
 
-          <Show when={!isEnable()}>
-            <p style="margin: 0 0 14px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
-              This will stop routing requests through Manifest and restore direct model access in
-              your OpenClaw agent.
-            </p>
+                <p style="margin: 0 0 8px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
+                  1. Pick the model your agent should use directly:
+                </p>
 
-            <p style="margin: 0 0 8px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
-              1. Pick the model your agent should use directly:
-            </p>
+                <ModelSelectDropdown selectedValue={selectedModel()} onSelect={handleModelSelect} />
 
-            <ModelSelectDropdown selectedValue={selectedModel()} onSelect={handleModelSelect} />
+                <p style="margin: 14px 0; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
+                  2. Run these commands in your agent's terminal to restore direct model access:
+                </p>
 
-            <p style="margin: 14px 0; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
-              2. Run these commands in your agent's terminal to restore direct model access:
-            </p>
-          </Show>
-
-          <div class="modal-terminal">
-            <div class="modal-terminal__header">
-              <div class="modal-terminal__dots">
-                <span class="modal-terminal__dot modal-terminal__dot--red" />
-                <span class="modal-terminal__dot modal-terminal__dot--yellow" />
-                <span class="modal-terminal__dot modal-terminal__dot--green" />
-              </div>
-              <div class="modal-terminal__tabs">
-                <span class="modal-terminal__tab modal-terminal__tab--active">Terminal</span>
-              </div>
-            </div>
-            <div class="modal-terminal__body">
-              <CopyButton text={command()} />
-              <Show
-                when={isEnable()}
-                fallback={
-                  <>
+                <div class="modal-terminal">
+                  <div class="modal-terminal__header">
+                    <div class="modal-terminal__dots">
+                      <span class="modal-terminal__dot modal-terminal__dot--red" />
+                      <span class="modal-terminal__dot modal-terminal__dot--yellow" />
+                      <span class="modal-terminal__dot modal-terminal__dot--green" />
+                    </div>
+                    <div class="modal-terminal__tabs">
+                      <span class="modal-terminal__tab modal-terminal__tab--active">Terminal</span>
+                    </div>
+                  </div>
+                  <div class="modal-terminal__body">
+                    <CopyButton text={disableCmd()} />
                     <div>
                       <span class="modal-terminal__prompt">$</span>
                       <span class="modal-terminal__code">
@@ -182,35 +162,18 @@ const RoutingInstructionModal: Component<Props> = (props) => {
                       <span class="modal-terminal__prompt">$</span>
                       <span class="modal-terminal__code">openclaw gateway restart</span>
                     </div>
-                  </>
-                }
-              >
-                <div>
-                  <span class="modal-terminal__prompt">$</span>
-                  <span class="modal-terminal__code" style="word-break: break-all;">
-                    openclaw config set models.providers.manifest '
-                    {JSON.stringify({
-                      baseUrl: baseUrl(),
-                      api: 'openai-completions',
-                      apiKey: displayKey(),
-                      models: [{ id: 'auto', name: 'Manifest Auto' }],
-                    })}
-                    '
-                  </span>
+                  </div>
                 </div>
-                <div style="margin-top: 8px;">
-                  <span class="modal-terminal__prompt">$</span>
-                  <span class="modal-terminal__code">
-                    openclaw config set agents.defaults.model.primary manifest/auto
-                  </span>
-                </div>
-                <div style="margin-top: 8px;">
-                  <span class="modal-terminal__prompt">$</span>
-                  <span class="modal-terminal__code">openclaw gateway restart</span>
-                </div>
-              </Show>
-            </div>
-          </div>
+              </>
+            }
+          >
+            <SetupStepAddProvider
+              apiKey={apiKeyData()?.apiKey ?? null}
+              keyPrefix={apiKeyData()?.keyPrefix ?? null}
+              baseUrl={baseUrl()}
+              platform={agentPlatform()}
+            />
+          </Show>
 
           <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
             <button class="btn btn--primary btn--sm" onClick={() => props.onClose()}>

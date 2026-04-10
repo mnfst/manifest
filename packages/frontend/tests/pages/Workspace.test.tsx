@@ -55,6 +55,20 @@ vi.mock("../../src/services/recent-agents.js", () => ({
   markAgentCreated: (...args: unknown[]) => mockMarkAgentCreated(...args),
 }));
 
+vi.mock("manifest-shared", () => ({
+  PLATFORM_ICONS: {
+    openclaw: "/icons/openclaw.png",
+    hermes: "/icons/hermes.png",
+    "openai-sdk": "/icons/providers/openai.svg",
+    "vercel-ai-sdk": "/icons/vercel.svg",
+    langchain: "/icons/langchain.svg",
+  },
+  PLATFORMS_BY_CATEGORY: {
+    personal: ["openclaw", "hermes", "other"],
+    app: ["openai-sdk", "vercel-ai-sdk", "langchain", "other"],
+  },
+}));
+
 import Workspace from "../../src/pages/Workspace";
 
 describe("Workspace", () => {
@@ -276,15 +290,15 @@ describe("Workspace", () => {
     expect(container.querySelector('[data-testid="agent-type-picker"]')).not.toBeNull();
   });
 
-  it("resets platform when category changes in create modal", () => {
+  it("sets first platform when category changes in create modal", () => {
     const { container } = render(() => <Workspace />);
     fireEvent.click(screen.getAllByText("Connect Agent")[0]);
     // First pick a platform
     fireEvent.click(container.querySelector('[data-testid="pick-platform"]')!);
-    // Then change category which should reset platform to null
+    // Then change category which should set platform to first of new category
     fireEvent.click(container.querySelector('[data-testid="pick-category"]')!);
     const picker = container.querySelector('[data-testid="agent-type-picker"]');
-    expect(picker!.getAttribute("data-platform")).toBe("");
+    expect(picker!.getAttribute("data-platform")).toBe("openclaw");
   });
 
   it("sends category and platform with createAgent", async () => {

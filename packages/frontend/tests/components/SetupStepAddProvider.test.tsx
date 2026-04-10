@@ -67,17 +67,17 @@ describe("SetupStepAddProvider", () => {
     expect(icon!.getAttribute("src")).toBe("/icons/openclaw.png");
   });
 
-  it("shows Agents card with title when OpenClaw selected", () => {
+  it("shows Agents card when OpenClaw selected", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
     expect(container.querySelector(".setup-agents-card")).not.toBeNull();
-    expect(container.textContent).toContain("Add Manifest as a provider");
+    expect(container.textContent).toContain("manifest/auto");
   });
 
   it("shows Hermes setup when Hermes Agent selected", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
     const agentTabs = container.querySelectorAll(".panel__tab");
     fireEvent.click(agentTabs[1]); // Hermes Agent
-    expect(container.textContent).toContain("Configure Hermes Agent");
+    expect(container.textContent).toContain("Point Hermes at the Manifest endpoint");
   });
 
   it("switches back to OpenClaw from Hermes Agent", () => {
@@ -85,23 +85,18 @@ describe("SetupStepAddProvider", () => {
     const agentTabs = container.querySelectorAll(".panel__tab");
     fireEvent.click(agentTabs[1]); // Hermes
     fireEvent.click(agentTabs[0]); // OpenClaw
-    expect(container.textContent).toContain("Add Manifest as a provider");
-    expect(container.textContent).not.toContain("Configure Hermes Agent");
-  });
-
-  it("shows manifest/auto in agents description", () => {
-    const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
     expect(container.textContent).toContain("manifest/auto");
+    expect(container.textContent).not.toContain("Point Hermes at the Manifest endpoint");
   });
 
-  it("shows CLI and Interactive wizard sub-tabs", () => {
+  it("shows CLI and openclaw onboard sub-tabs", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
     const fullSegment = container.querySelector(".setup-segment--full");
     expect(fullSegment).not.toBeNull();
     const btns = fullSegment!.querySelectorAll(".setup-segment__btn");
     expect(btns).toHaveLength(2);
     expect(btns[0].textContent).toBe("CLI configuration");
-    expect(btns[1].textContent).toBe("Interactive wizard");
+    expect(btns[1].textContent).toBe("openclaw onboard");
   });
 
   it("defaults to CLI configuration sub-tab", () => {
@@ -122,11 +117,11 @@ describe("SetupStepAddProvider", () => {
     expect(container.textContent).toContain("Set the provider config and default model directly via CLI commands");
   });
 
-  it("switches to Interactive wizard sub-tab", () => {
+  it("switches to openclaw onboard sub-tab", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
     const fullSegment = container.querySelector(".setup-segment--full");
     const btns = fullSegment!.querySelectorAll(".setup-segment__btn");
-    fireEvent.click(btns[1]); // Interactive wizard
+    fireEvent.click(btns[1]); // openclaw onboard
     expect(container.textContent).toContain("openclaw onboard");
     expect(container.textContent).toContain("Custom Provider");
   });
@@ -181,58 +176,6 @@ describe("SetupStepAddProvider", () => {
     expect(container.querySelector('[aria-label="Reveal API key"]')).toBeNull();
   });
 
-  it("disables CLI copy button when key is hidden", () => {
-    const { container } = render(() => (
-      <SetupStepAddProvider {...defaultProps} apiKey="mnfst_secret" keyPrefix="mnfst_abc" />
-    ));
-    const copyBtns = container.querySelectorAll(".modal-terminal__copy");
-    const cliCopy = Array.from(copyBtns).find(b => b.getAttribute("aria-label") === "Copy disabled");
-    expect(cliCopy).not.toBeNull();
-    expect(cliCopy!.hasAttribute("disabled")).toBe(true);
-  });
-
-  it("enables CLI copy button when key is revealed", () => {
-    const { container } = render(() => (
-      <SetupStepAddProvider {...defaultProps} apiKey="mnfst_secret" keyPrefix="mnfst_abc" />
-    ));
-    fireEvent.click(container.querySelector('[aria-label="Reveal API key"]')!);
-    const copyBtns = container.querySelectorAll(".modal-terminal__copy");
-    const cliCopy = Array.from(copyBtns).find(b => b.getAttribute("aria-label") === "Copy to clipboard");
-    expect(cliCopy).not.toBeNull();
-    expect(cliCopy!.hasAttribute("disabled")).toBe(false);
-  });
-
-  it("shows eye toggle on wizard API Key field when apiKey provided", () => {
-    const { container } = render(() => (
-      <SetupStepAddProvider {...defaultProps} apiKey="mnfst_wiz" keyPrefix="mnfst_wi" />
-    ));
-    const fullSegment = container.querySelector(".setup-segment--full");
-    fireEvent.click(fullSegment!.querySelectorAll(".setup-segment__btn")[1]); // wizard
-    const eyeBtns = container.querySelectorAll('[aria-label="Reveal API key"]');
-    expect(eyeBtns.length).toBeGreaterThanOrEqual(1);
-  });
-
-  it("reveals API key in wizard field when eye toggle clicked", () => {
-    const { container } = render(() => (
-      <SetupStepAddProvider {...defaultProps} apiKey="mnfst_wiz_full" keyPrefix="mnfst_wi" />
-    ));
-    const fullSegment = container.querySelector(".setup-segment--full");
-    fireEvent.click(fullSegment!.querySelectorAll(".setup-segment__btn")[1]); // wizard
-    expect(container.textContent).not.toContain("mnfst_wiz_full");
-    fireEvent.click(container.querySelector('[aria-label="Reveal API key"]')!);
-    expect(container.textContent).toContain("mnfst_wiz_full");
-  });
-
-  it("disables wizard API Key copy when key is hidden", () => {
-    const { container } = render(() => (
-      <SetupStepAddProvider {...defaultProps} apiKey="mnfst_wiz" keyPrefix="mnfst_wi" />
-    ));
-    const fullSegment = container.querySelector(".setup-segment--full");
-    fireEvent.click(fullSegment!.querySelectorAll(".setup-segment__btn")[1]); // wizard
-    const disabledCopies = container.querySelectorAll('[aria-label="Copy disabled"]');
-    expect(disabledCopies.length).toBeGreaterThanOrEqual(1);
-  });
-
   it("switches to Toolkits tab on click", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
     const segmentBtns = container.querySelectorAll(".setup-segment__btn");
@@ -268,15 +211,6 @@ describe("SetupStepAddProvider", () => {
     expect(copyButtons.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("shows Model field on Toolkits tab", () => {
-    const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
-    fireEvent.click(container.querySelectorAll(".setup-segment__btn")[1]);
-    const fields = container.querySelectorAll(".framework-snippets__field");
-    expect(fields.length).toBe(3);
-    expect(fields[2].textContent).toContain("Model");
-    expect(fields[2].textContent).toContain("auto");
-  });
-
   it("switches between tabs correctly", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
     const segmentBtns = container.querySelectorAll(".setup-segment__btn");
@@ -307,55 +241,85 @@ describe("SetupStepAddProvider", () => {
       const { container } = render(() => (
         <SetupStepAddProvider {...defaultProps} platform="openclaw" />
       ));
-      expect(container.textContent).toContain("Add Manifest as a provider");
-      // No top-level Agents/Toolkits tabs
+      expect(container.textContent).toContain("Register Manifest in your OpenClaw config");
       expect(container.querySelector('[aria-label="Setup method"]')).toBeNull();
+    });
+
+    it("shows correct heading for openclaw", () => {
+      render(() => (
+        <SetupStepAddProvider {...defaultProps} platform="openclaw" />
+      ));
+      expect(screen.getByText("Connect your OpenClaw agent to Manifest")).toBeDefined();
     });
 
     it("shows HermesSetup directly when platform is hermes", () => {
       const { container } = render(() => (
         <SetupStepAddProvider {...defaultProps} platform="hermes" />
       ));
-      expect(container.textContent).toContain("Configure Hermes Agent");
+      expect(container.textContent).toContain("Point Hermes at the Manifest endpoint");
       expect(container.querySelector('[aria-label="Setup method"]')).toBeNull();
     });
 
-    it("shows FrameworkSnippets when platform is openai-sdk", () => {
+    it("shows correct heading for hermes", () => {
+      render(() => (
+        <SetupStepAddProvider {...defaultProps} platform="hermes" />
+      ));
+      expect(screen.getByText("Connect your Hermes agent to Manifest")).toBeDefined();
+    });
+
+    it("shows OpenAI SDK snippet when platform is openai-sdk", () => {
       const { container } = render(() => (
         <SetupStepAddProvider {...defaultProps} platform="openai-sdk" />
       ));
       expect(container.querySelector(".framework-snippets")).not.toBeNull();
       expect(container.querySelector('[aria-label="Setup method"]')).toBeNull();
+      // Should show OpenAI-specific code
+      expect(container.textContent).toContain("OpenAI");
     });
 
-    it("shows FrameworkSnippets when platform is vercel-ai-sdk", () => {
+    it("shows Vercel AI SDK snippet when platform is vercel-ai-sdk", () => {
       const { container } = render(() => (
         <SetupStepAddProvider {...defaultProps} platform="vercel-ai-sdk" />
       ));
       expect(container.querySelector(".framework-snippets")).not.toBeNull();
+      // Should show Vercel-specific code
+      expect(container.textContent).toContain("ai");
     });
 
-    it("shows FrameworkSnippets when platform is langchain", () => {
+    it("shows LangChain snippet when platform is langchain", () => {
       const { container } = render(() => (
         <SetupStepAddProvider {...defaultProps} platform="langchain" />
       ));
       expect(container.querySelector(".framework-snippets")).not.toBeNull();
+      // Should show LangChain-specific code
+      expect(container.textContent).toContain("ChatOpenAI");
     });
 
-    it("shows FrameworkSnippets when platform is curl", () => {
+    it("shows cURL snippet when platform is curl", () => {
       const { container } = render(() => (
         <SetupStepAddProvider {...defaultProps} platform="curl" />
       ));
       expect(container.querySelector(".framework-snippets")).not.toBeNull();
+      expect(container.textContent).toContain("curl");
     });
 
-    it("shows full tabbed UI when platform is other", () => {
+    it("shows cURL snippet when platform is other", () => {
       const { container } = render(() => (
         <SetupStepAddProvider {...defaultProps} platform="other" />
       ));
-      expect(container.querySelector(".setup-segment")).not.toBeNull();
-      expect(container.textContent).toContain("Agents");
-      expect(container.textContent).toContain("Toolkits");
+      expect(container.querySelector(".framework-snippets")).not.toBeNull();
+      expect(container.textContent).toContain("curl");
+      // No top-level Agents/Toolkits tabs
+      expect(container.querySelector('[aria-label="Setup method"]')).toBeNull();
+    });
+
+    it("hides SDK tabs when platform is a specific toolkit", () => {
+      const { container } = render(() => (
+        <SetupStepAddProvider {...defaultProps} platform="openai-sdk" />
+      ));
+      // Should not show the SDK toolkit tab bar
+      const panelTabs = container.querySelectorAll('.panel__tab');
+      expect(panelTabs).toHaveLength(0);
     });
 
     it("shows full tabbed UI when platform is null", () => {
@@ -369,7 +333,7 @@ describe("SetupStepAddProvider", () => {
       const { container } = render(() => (
         <SetupStepAddProvider {...defaultProps} platform="openclaw" />
       ));
-      expect(container.textContent).toContain("Connect your agent to Manifest");
+      expect(container.textContent).toContain("Connect your OpenClaw agent to Manifest");
     });
 
     it("does not show description text in filtered mode", () => {
@@ -377,61 +341,6 @@ describe("SetupStepAddProvider", () => {
         <SetupStepAddProvider {...defaultProps} platform="openclaw" />
       ));
       expect(container.textContent).not.toContain("Point your agent at the Manifest endpoint");
-    });
-  });
-
-  describe("onChangeType callback", () => {
-    it("shows Change agent type link when onChangeType provided", () => {
-      const onChangeType = vi.fn();
-      const { container } = render(() => (
-        <SetupStepAddProvider {...defaultProps} onChangeType={onChangeType} />
-      ));
-      expect(container.textContent).toContain("Change agent type");
-    });
-
-    it("does not show Change agent type link when onChangeType not provided", () => {
-      const { container } = render(() => (
-        <SetupStepAddProvider {...defaultProps} />
-      ));
-      expect(container.textContent).not.toContain("Change agent type");
-    });
-
-    it("calls onChangeType when link clicked", () => {
-      const onChangeType = vi.fn();
-      const { container } = render(() => (
-        <SetupStepAddProvider {...defaultProps} onChangeType={onChangeType} />
-      ));
-      const link = container.querySelector(".setup-change-type-link");
-      expect(link).not.toBeNull();
-      fireEvent.click(link!);
-      expect(onChangeType).toHaveBeenCalledTimes(1);
-    });
-
-    it("shows Change agent type link in platform-filtered mode", () => {
-      const onChangeType = vi.fn();
-      const { container } = render(() => (
-        <SetupStepAddProvider {...defaultProps} platform="openclaw" onChangeType={onChangeType} />
-      ));
-      expect(container.textContent).toContain("Change agent type");
-    });
-
-    it("calls onChangeType in platform-filtered mode", () => {
-      const onChangeType = vi.fn();
-      const { container } = render(() => (
-        <SetupStepAddProvider {...defaultProps} platform="hermes" onChangeType={onChangeType} />
-      ));
-      const link = container.querySelector(".setup-change-type-link");
-      fireEvent.click(link!);
-      expect(onChangeType).toHaveBeenCalledTimes(1);
-    });
-
-    it("prevents default on change type link click", () => {
-      const onChangeType = vi.fn();
-      const { container } = render(() => (
-        <SetupStepAddProvider {...defaultProps} onChangeType={onChangeType} />
-      ));
-      const link = container.querySelector(".setup-change-type-link") as HTMLAnchorElement;
-      expect(link.getAttribute("href")).toBe("#agent-type-section");
     });
   });
 });

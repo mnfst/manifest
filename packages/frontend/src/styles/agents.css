@@ -36,8 +36,12 @@
 .agent-card__platform-icon {
   width: 18px;
   height: 18px;
-  border-radius: 3px;
   flex-shrink: 0;
+}
+
+.dark .agent-card__platform-icon[src*='openai'],
+.dark .agent-card__platform-icon[src*='vercel'] {
+  filter: invert(1);
 }
 
 .agent-card__name {

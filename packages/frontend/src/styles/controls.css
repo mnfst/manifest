@@ -388,9 +388,22 @@
 }
 
 .header__breadcrumb-current {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-size: var(--font-size-sm);
   font-weight: 500;
   color: hsl(var(--foreground));
+}
+
+.header__breadcrumb-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.dark .header__breadcrumb-icon[src*='openai'],
+.dark .header__breadcrumb-icon[src*='vercel'] {
+  filter: invert(1);
 }
 
 .header__right {

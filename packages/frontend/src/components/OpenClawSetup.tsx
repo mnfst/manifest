@@ -69,7 +69,6 @@ const OpenClawSetup: Component<Props> = (props) => {
 
   return (
     <div class="setup-agents-card">
-      <h4 class="setup-agents-card__title">Add Manifest as a provider</h4>
       <p class="setup-step__desc">
         Register Manifest in your OpenClaw config to route each request to the best provider using
         the model <code class="setup-model-hint__code">manifest/auto</code>
@@ -96,7 +95,7 @@ const OpenClawSetup: Component<Props> = (props) => {
           role="tab"
           aria-selected={subTab() === 'wizard'}
         >
-          Interactive wizard
+          openclaw onboard
         </button>
       </div>
 
@@ -116,10 +115,7 @@ const OpenClawSetup: Component<Props> = (props) => {
                 <EyeIcon open={cliKeyRevealed()} />
               </button>
             </Show>
-            <CopyButton
-              text={getOpenClawSnippet(props.baseUrl, copyKey())}
-              disabled={!hasFullKey() || !cliKeyRevealed()}
-            />
+            <CopyButton text={getOpenClawSnippet(props.baseUrl, copyKey())} />
           </div>
           <CodeBlock code={getOpenClawSnippet(props.baseUrl, cliKey())} language="bash" />
         </div>
@@ -139,7 +135,7 @@ const OpenClawSetup: Component<Props> = (props) => {
               <code>{wizKey()}</code>
               <Show when={hasFullKey()}>
                 <button
-                  class="modal-terminal__copy"
+                  class="setup-onboard-fields__eye"
                   onClick={() => setWizKeyRevealed(!wizKeyRevealed())}
                   aria-label={wizKeyRevealed() ? 'Hide API key' : 'Reveal API key'}
                   title={wizKeyRevealed() ? 'Hide key' : 'Reveal key'}
@@ -147,7 +143,7 @@ const OpenClawSetup: Component<Props> = (props) => {
                   <EyeIcon open={wizKeyRevealed()} />
                 </button>
               </Show>
-              <CopyButton text={copyKey()} disabled={!hasFullKey() || !wizKeyRevealed()} />
+              <CopyButton text={copyKey()} />
             </span>
           </div>
           <OnboardField label="Endpoint compatibility" value="OpenAI-compatible" />

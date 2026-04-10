@@ -19,25 +19,27 @@ interface Props {
 const categories: AgentCategory[] = ['personal', 'app'];
 
 const AgentTypePicker: Component<Props> = (props) => {
+  const iconFor = (plat: AgentPlatform) => {
+    if (plat === 'other')
+      return props.category === 'personal' ? '/icons/other-agent.svg' : '/icons/other.svg';
+    return PLATFORM_ICONS[plat];
+  };
+
   return (
     <div class="agent-type-picker">
-      <div class="agent-type-picker__categories" role="radiogroup" aria-label="Agent type">
+      <div class="panel__tabs agent-type-picker__tabs" role="tablist" aria-label="Agent type">
         <For each={categories}>
           {(cat) => (
-            <label
-              class="agent-type-picker__radio"
-              classList={{ 'agent-type-picker__radio--selected': props.category === cat }}
+            <button
+              role="tab"
+              class="panel__tab"
+              classList={{ 'panel__tab--active': props.category === cat }}
+              aria-selected={props.category === cat}
+              onClick={() => props.onCategoryChange(cat)}
+              disabled={props.disabled}
             >
-              <input
-                type="radio"
-                name="agent-category"
-                value={cat}
-                checked={props.category === cat}
-                onChange={() => props.onCategoryChange(cat)}
-                disabled={props.disabled}
-              />
-              <span class="agent-type-picker__radio-label">{CATEGORY_LABELS[cat]}</span>
-            </label>
+              {CATEGORY_LABELS[cat]}
+            </button>
           )}
         </For>
       </div>
@@ -58,9 +60,9 @@ const AgentTypePicker: Component<Props> = (props) => {
                   onChange={() => props.onPlatformChange(plat)}
                   disabled={props.disabled}
                 />
-                <Show when={PLATFORM_ICONS[plat]}>
+                <Show when={iconFor(plat)}>
                   <img
-                    src={PLATFORM_ICONS[plat]}
+                    src={iconFor(plat)}
                     alt=""
                     width="18"
                     height="18"
@@ -68,6 +70,18 @@ const AgentTypePicker: Component<Props> = (props) => {
                   />
                 </Show>
                 <span>{PLATFORM_LABELS[plat]}</span>
+                <svg
+                  class="agent-type-picker__check"
+                  classList={{ 'agent-type-picker__check--visible': props.platform === plat }}
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path d="M9 15.59 4.71 11.3 3.3 12.71l5 5c.2.2.45.29.71.29s.51-.1.71-.29l11-11-1.41-1.41L9.02 15.59Z" />
+                </svg>
               </label>
             )}
           </For>
