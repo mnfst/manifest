@@ -55,6 +55,24 @@ export function resetSpecificity(agentName: string, category: string) {
   );
 }
 
+export function setSpecificityFallbacks(agentName: string, category: string, models: string[]) {
+  return fetchMutate<string[]>(
+    `${BASE_URL}/routing/${encodeURIComponent(agentName)}/specificity/${encodeURIComponent(category)}/fallbacks`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ models }),
+    },
+  );
+}
+
+export function clearSpecificityFallbacks(agentName: string, category: string) {
+  return fetchMutate(
+    `${BASE_URL}/routing/${encodeURIComponent(agentName)}/specificity/${encodeURIComponent(category)}/fallbacks`,
+    { method: 'DELETE' },
+  );
+}
+
 export function resetAllSpecificity(agentName: string) {
   return fetchMutate(`${BASE_URL}/routing/${encodeURIComponent(agentName)}/specificity/reset-all`, {
     method: 'POST',

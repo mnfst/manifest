@@ -62,6 +62,8 @@ export interface RoutingTierCardProps {
   onAddFallback: (tierId: string) => void;
   getFallbacksFor: (tierId: string) => string[];
   connectedProviders: () => RoutingProvider[];
+  persistFallbacks?: (agentName: string, tier: string, models: string[]) => Promise<unknown>;
+  persistClearFallbacks?: (agentName: string, tier: string) => Promise<unknown>;
 }
 
 const effectiveModel = (t: TierAssignment): string | null =>
@@ -132,8 +134,10 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
     // Update fallbacks first, then override primary
     props.onFallbackUpdate(props.stage.id, newFallbacks);
     try {
-      await setFallbacksApi(props.agentName(), props.stage.id, newFallbacks);
+      const persistFn = props.persistFallbacks ?? setFallbacksApi;
+      await persistFn(props.agentName(), props.stage.id, newFallbacks);
     } catch {
+      props.onFallbackUpdate(props.stage.id, fallbacks);
       toast.error('Failed to update fallbacks');
       return;
     }
@@ -153,8 +157,10 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
     // Update fallbacks first, then override primary
     props.onFallbackUpdate(props.stage.id, newFallbacks);
     try {
-      await setFallbacksApi(props.agentName(), props.stage.id, newFallbacks);
+      const persistFn = props.persistFallbacks ?? setFallbacksApi;
+      await persistFn(props.agentName(), props.stage.id, newFallbacks);
     } catch {
+      props.onFallbackUpdate(props.stage.id, fallbacks);
       toast.error('Failed to update fallbacks');
       return;
     }
@@ -399,6 +405,8 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
               onPrimaryDropAtSlot={handlePrimaryDropAtSlot}
               onFallbackDragStart={(index) => setFallbackDragging(index)}
               onFallbackDragEnd={() => setFallbackDragging(null)}
+              persistFallbacks={props.persistFallbacks}
+              persistClearFallbacks={props.persistClearFallbacks}
             />
           </div>
         </Show>

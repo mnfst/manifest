@@ -28,6 +28,8 @@ interface FallbackListProps {
   onPrimaryDropAtSlot?: (slot: number) => void;
   onFallbackDragStart?: (index: number) => void;
   onFallbackDragEnd?: () => void;
+  persistFallbacks?: (agentName: string, tier: string, models: string[]) => Promise<unknown>;
+  persistClearFallbacks?: (agentName: string, tier: string) => Promise<unknown>;
 }
 
 const FallbackList: Component<FallbackListProps> = (props) => {
@@ -70,6 +72,9 @@ const FallbackList: Component<FallbackListProps> = (props) => {
     return `${name} (${method})`;
   };
 
+  const persistSet = props.persistFallbacks ?? setFallbacks;
+  const persistClear = props.persistClearFallbacks ?? clearFallbacks;
+
   const handleRemove = async (index: number) => {
     setRemovingIndex(index);
     const original = [...props.fallbacks];
@@ -77,9 +82,9 @@ const FallbackList: Component<FallbackListProps> = (props) => {
     props.onUpdate(updated);
     try {
       if (updated.length === 0) {
-        await clearFallbacks(props.agentName, props.tier);
+        await persistClear(props.agentName, props.tier);
       } else {
-        await setFallbacks(props.agentName, props.tier, updated);
+        await persistSet(props.agentName, props.tier, updated);
       }
       toast.success('Fallback removed');
     } catch {
@@ -169,7 +174,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
 
     props.onUpdate(reordered);
     try {
-      await setFallbacks(props.agentName, props.tier, reordered);
+      await persistSet(props.agentName, props.tier, reordered);
       toast.success('Fallback order updated');
     } catch {
       props.onUpdate(original);

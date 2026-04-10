@@ -15,6 +15,8 @@ describe('SpecificityController', () => {
     toggleCategory: jest.Mock;
     clearOverride: jest.Mock;
     resetAll: jest.Mock;
+    setFallbacks: jest.Mock;
+    clearFallbacks: jest.Mock;
   };
   let mockResolveAgentService: { resolve: jest.Mock };
 
@@ -26,6 +28,8 @@ describe('SpecificityController', () => {
       toggleCategory: jest.fn().mockResolvedValue({ id: 'sa-1', is_active: true }),
       clearOverride: jest.fn().mockResolvedValue(undefined),
       resetAll: jest.fn().mockResolvedValue(undefined),
+      setFallbacks: jest.fn().mockResolvedValue([]),
+      clearFallbacks: jest.fn().mockResolvedValue(undefined),
     };
     mockResolveAgentService = {
       resolve: jest.fn().mockResolvedValue(mockAgent),
@@ -149,6 +153,41 @@ describe('SpecificityController', () => {
         expect((e as BadRequestException).message).toContain('data_analysis');
         expect((e as BadRequestException).message).toContain('unknown');
       }
+    });
+  });
+
+  describe('setFallbacks', () => {
+    it('should resolve agent and call service.setFallbacks', async () => {
+      mockSpecificityService.setFallbacks.mockResolvedValue(['model-a']);
+      const result = await controller.setFallbacks(mockUser, 'test-agent', 'coding', {
+        models: ['model-a'],
+      });
+      expect(mockResolveAgentService.resolve).toHaveBeenCalledWith('user-1', 'test-agent');
+      expect(mockSpecificityService.setFallbacks).toHaveBeenCalledWith('agent-1', 'coding', [
+        'model-a',
+      ]);
+      expect(result).toEqual(['model-a']);
+    });
+
+    it('should reject invalid category', async () => {
+      await expect(
+        controller.setFallbacks(mockUser, 'test-agent', 'invalid', { models: ['m'] }),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('clearFallbacks', () => {
+    it('should resolve agent and call service.clearFallbacks', async () => {
+      const result = await controller.clearFallbacks(mockUser, 'test-agent', 'coding');
+      expect(mockResolveAgentService.resolve).toHaveBeenCalledWith('user-1', 'test-agent');
+      expect(mockSpecificityService.clearFallbacks).toHaveBeenCalledWith('agent-1', 'coding');
+      expect(result).toEqual({ ok: true });
+    });
+
+    it('should reject invalid category', async () => {
+      await expect(controller.clearFallbacks(mockUser, 'test-agent', 'invalid')).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 });

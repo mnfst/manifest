@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@solidjs/testing-library';
 
 let mockCustomProviderLogo = vi.fn(() => null as any);
@@ -31,11 +31,25 @@ vi.mock('../../src/services/formatters.js', () => ({
   customProviderColor: () => '#abc',
 }));
 
+let capturedFallbackListProps: any = {};
 vi.mock('../../src/components/FallbackList.js', () => ({
-  default: () => <div data-testid="fallback-list" />,
+  default: (props: any) => {
+    capturedFallbackListProps = props;
+    return <div data-testid="fallback-list" />;
+  },
+}));
+
+vi.mock('../../src/services/api.js', () => ({
+  setFallbacks: vi.fn(() => Promise.resolve([])),
+}));
+
+vi.mock('../../src/services/toast-store.js', () => ({
+  toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn() },
 }));
 
 import RoutingTierCard from '../../src/pages/RoutingTierCard';
+import { setFallbacks as mockSetFallbacksApi } from '../../src/services/api.js';
+import { toast as mockToast } from '../../src/services/toast-store.js';
 
 const stage = { id: 'premium', label: 'Premium', desc: 'Best models' };
 
@@ -69,6 +83,11 @@ const baseProps = {
 };
 
 describe('RoutingTierCard', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    capturedFallbackListProps = {};
+  });
+
   it('renders the tier label', () => {
     render(() => <RoutingTierCard {...baseProps} />);
     expect(screen.getByText('Premium')).toBeDefined();
@@ -150,5 +169,336 @@ describe('RoutingTierCard', () => {
     fireEvent.click(confirmBtn);
     expect(onReset).toHaveBeenCalledWith('premium');
     expect(container.querySelector('[role="dialog"]')).toBeNull();
+  });
+
+  it('shows "+ Add model" button when eff() is null (no model available)', () => {
+    const noModelTier = {
+      tier: 'premium',
+      auto_assigned_model: null,
+      override_model: null,
+      fallback_models: [],
+      auto_assigned_provider_id: null,
+    };
+    render(() => (
+      <RoutingTierCard {...baseProps} tier={() => noModelTier as any} />
+    ));
+    expect(screen.getByText('+ Add model')).toBeDefined();
+  });
+
+  it('"+ Add model" button calls onDropdownOpen', () => {
+    const onDropdownOpen = vi.fn();
+    const noModelTier = {
+      tier: 'premium',
+      auto_assigned_model: null,
+      override_model: null,
+      fallback_models: [],
+      auto_assigned_provider_id: null,
+    };
+    render(() => (
+      <RoutingTierCard
+        {...baseProps}
+        tier={() => noModelTier as any}
+        onDropdownOpen={onDropdownOpen}
+      />
+    ));
+    fireEvent.click(screen.getByText('+ Add model'));
+    expect(onDropdownOpen).toHaveBeenCalledWith('premium');
+  });
+
+  it('renders primary model chip with drag handle', () => {
+    const { container } = render(() => <RoutingTierCard {...baseProps} />);
+    const chip = container.querySelector('.routing-card__model-chip');
+    expect(chip).not.toBeNull();
+    expect(chip!.getAttribute('draggable')).toBe('true');
+    const dragHandle = chip!.querySelector('.fallback-list__drag-handle');
+    expect(dragHandle).not.toBeNull();
+  });
+
+  it('primary model chip has Change icon with tooltip', () => {
+    const { container } = render(() => <RoutingTierCard {...baseProps} />);
+    const changeBtn = container.querySelector('.routing-card__chip-action');
+    expect(changeBtn).not.toBeNull();
+    expect(changeBtn!.getAttribute('aria-label')).toBe('Change model for Premium');
+    const tooltip = changeBtn!.querySelector('.routing-tooltip');
+    expect(tooltip).not.toBeNull();
+    expect(tooltip!.textContent).toBe('Change');
+  });
+
+  it('reset button appears in header when hasCustomizations (override set)', () => {
+    // baseTier has override_model set, so hasCustomizations should be true
+    const { container } = render(() => <RoutingTierCard {...baseProps} />);
+    const resetBtn = container.querySelector('.routing-card__header-reset');
+    expect(resetBtn).not.toBeNull();
+    expect(resetBtn!.textContent).toContain('Reset');
+  });
+
+  it('does not show reset button when no customizations', () => {
+    const autoTier = {
+      tier: 'premium',
+      auto_assigned_model: 'claude-sonnet-4-20250514',
+      override_model: null,
+      fallback_models: [],
+      auto_assigned_provider_id: 'anthropic',
+    };
+    const { container } = render(() => (
+      <RoutingTierCard {...baseProps} tier={() => autoTier as any} />
+    ));
+    const resetBtn = container.querySelector('.routing-card__header-reset');
+    expect(resetBtn).toBeNull();
+  });
+
+  it('model chip footer shows pricing info', () => {
+    const modelsWithPricing = [
+      {
+        model_name: 'gpt-4o',
+        provider: 'OpenAI',
+        input_price_per_token: 0.000005,
+        output_price_per_token: 0.000015,
+      },
+    ] as any[];
+    const { container } = render(() => (
+      <RoutingTierCard {...baseProps} models={() => modelsWithPricing} />
+    ));
+    const footer = container.querySelector('.routing-card__chip-footer');
+    expect(footer).not.toBeNull();
+    const priceSpan = footer!.querySelector('.routing-card__chip-price');
+    expect(priceSpan).not.toBeNull();
+    // pricePerM mock returns '$0.00', so the label contains that
+    expect(priceSpan!.textContent).toContain('$0.00');
+  });
+
+  it('persistFallbacks prop is passed through to FallbackList', () => {
+    const persistFn = vi.fn();
+    render(() => (
+      <RoutingTierCard {...baseProps} persistFallbacks={persistFn} />
+    ));
+    expect(capturedFallbackListProps.persistFallbacks).toBe(persistFn);
+  });
+
+  it('persistClearFallbacks prop is passed through to FallbackList', () => {
+    const clearFn = vi.fn();
+    render(() => (
+      <RoutingTierCard {...baseProps} persistClearFallbacks={clearFn} />
+    ));
+    expect(capturedFallbackListProps.persistClearFallbacks).toBe(clearFn);
+  });
+
+  it('handlePrimaryDropAtSlot swaps primary with first fallback', async () => {
+    const onOverride = vi.fn();
+    const onFallbackUpdate = vi.fn();
+    const tierWithFallbacks = {
+      ...baseTier,
+      fallback_models: ['fallback-model-1', 'fallback-model-2'],
+    };
+    vi.mocked(mockSetFallbacksApi).mockResolvedValue([]);
+
+    render(() => (
+      <RoutingTierCard
+        {...baseProps}
+        tier={() => tierWithFallbacks as any}
+        getFallbacksFor={() => ['fallback-model-1', 'fallback-model-2']}
+        onOverride={onOverride}
+        onFallbackUpdate={onFallbackUpdate}
+      />
+    ));
+
+    // Simulate primary being dropped at slot 1 in fallback list
+    await capturedFallbackListProps.onPrimaryDropAtSlot(1);
+    expect(onFallbackUpdate).toHaveBeenCalled();
+    expect(onOverride).toHaveBeenCalled();
+  });
+
+  it('handlePrimaryDropAtSlot reverts on API failure', async () => {
+    const onFallbackUpdate = vi.fn();
+    const onOverride = vi.fn();
+    const tierWithFallbacks = {
+      ...baseTier,
+      fallback_models: ['fb-1'],
+    };
+    vi.mocked(mockSetFallbacksApi).mockRejectedValue(new Error('fail'));
+
+    render(() => (
+      <RoutingTierCard
+        {...baseProps}
+        tier={() => tierWithFallbacks as any}
+        getFallbacksFor={() => ['fb-1']}
+        onOverride={onOverride}
+        onFallbackUpdate={onFallbackUpdate}
+      />
+    ));
+
+    await capturedFallbackListProps.onPrimaryDropAtSlot(1);
+    // Should revert fallbacks and show error toast
+    expect(onFallbackUpdate).toHaveBeenCalledTimes(2); // optimistic + revert
+    expect(mockToast.error).toHaveBeenCalledWith('Failed to update fallbacks');
+    expect(onOverride).not.toHaveBeenCalled();
+  });
+
+  it('handlePrimaryDropAtSlot uses persistFallbacks when provided', async () => {
+    const persistFn = vi.fn(() => Promise.resolve([]));
+    const onOverride = vi.fn();
+    const onFallbackUpdate = vi.fn();
+
+    render(() => (
+      <RoutingTierCard
+        {...baseProps}
+        getFallbacksFor={() => ['fb-1']}
+        onOverride={onOverride}
+        onFallbackUpdate={onFallbackUpdate}
+        persistFallbacks={persistFn}
+      />
+    ));
+
+    await capturedFallbackListProps.onPrimaryDropAtSlot(1);
+    expect(persistFn).toHaveBeenCalled();
+    expect(mockSetFallbacksApi).not.toHaveBeenCalled();
+  });
+
+  it('handlePrimaryDropAtSlot is no-op when slot 0 and same model', async () => {
+    const onOverride = vi.fn();
+    const onFallbackUpdate = vi.fn();
+
+    render(() => (
+      <RoutingTierCard
+        {...baseProps}
+        getFallbacksFor={() => []}
+        onOverride={onOverride}
+        onFallbackUpdate={onFallbackUpdate}
+      />
+    ));
+
+    await capturedFallbackListProps.onPrimaryDropAtSlot(0);
+    expect(onFallbackUpdate).not.toHaveBeenCalled();
+    expect(onOverride).not.toHaveBeenCalled();
+  });
+
+  it('primary chip drag events set dragging state', () => {
+    const { container } = render(() => <RoutingTierCard {...baseProps} />);
+    const chip = container.querySelector('.routing-card__model-chip')!;
+
+    const dragStartEvent = new Event('dragstart', { bubbles: true });
+    Object.defineProperty(dragStartEvent, 'dataTransfer', {
+      value: { effectAllowed: '', setData: vi.fn() },
+    });
+    chip.dispatchEvent(dragStartEvent);
+    expect(chip.classList.contains('routing-card__model-chip--dragging')).toBe(true);
+
+    chip.dispatchEvent(new Event('dragend', { bubbles: true }));
+    expect(chip.classList.contains('routing-card__model-chip--dragging')).toBe(false);
+  });
+
+  it('primary chip accepts drop from fallback and shows drop-target class', () => {
+    const { container } = render(() => (
+      <RoutingTierCard {...baseProps} getFallbacksFor={() => ['fb-1']} />
+    ));
+    const chip = container.querySelector('.routing-card__model-chip')!;
+
+    // Simulate fallback drag start via FallbackList callback
+    capturedFallbackListProps.onFallbackDragStart(0);
+
+    const dragOverEvent = new Event('dragover', { bubbles: true, cancelable: true });
+    Object.defineProperty(dragOverEvent, 'dataTransfer', {
+      value: { dropEffect: '' },
+    });
+    chip.dispatchEvent(dragOverEvent);
+    expect(chip.classList.contains('routing-card__model-chip--drop-target')).toBe(true);
+
+    chip.dispatchEvent(new Event('dragleave', { bubbles: true }));
+    expect(chip.classList.contains('routing-card__model-chip--drop-target')).toBe(false);
+  });
+
+  it('swapPrimaryWithFallback via drop on primary chip', async () => {
+    const onOverride = vi.fn();
+    const onFallbackUpdate = vi.fn();
+    vi.mocked(mockSetFallbacksApi).mockResolvedValue([]);
+
+    render(() => (
+      <RoutingTierCard
+        {...baseProps}
+        getFallbacksFor={() => ['fb-model']}
+        onOverride={onOverride}
+        onFallbackUpdate={onFallbackUpdate}
+      />
+    ));
+
+    // Simulate: fallback at index 0 being dragged
+    capturedFallbackListProps.onFallbackDragStart(0);
+
+    const chip = document.querySelector('.routing-card__model-chip')!;
+    const dropEvent = new Event('drop', { bubbles: true, cancelable: true });
+    Object.defineProperty(dropEvent, 'dataTransfer', { value: {} });
+    chip.dispatchEvent(dropEvent);
+
+    // Wait for async
+    await new Promise((r) => setTimeout(r, 50));
+    expect(onFallbackUpdate).toHaveBeenCalled();
+    expect(onOverride).toHaveBeenCalled();
+  });
+
+  it('swapPrimaryWithFallback reverts on API failure', async () => {
+    const onOverride = vi.fn();
+    const onFallbackUpdate = vi.fn();
+    vi.mocked(mockSetFallbacksApi).mockRejectedValue(new Error('fail'));
+
+    render(() => (
+      <RoutingTierCard
+        {...baseProps}
+        getFallbacksFor={() => ['fb-model']}
+        onOverride={onOverride}
+        onFallbackUpdate={onFallbackUpdate}
+      />
+    ));
+
+    capturedFallbackListProps.onFallbackDragStart(0);
+    const chip = document.querySelector('.routing-card__model-chip')!;
+    const dropEvent = new Event('drop', { bubbles: true, cancelable: true });
+    Object.defineProperty(dropEvent, 'dataTransfer', { value: {} });
+    chip.dispatchEvent(dropEvent);
+
+    await new Promise((r) => setTimeout(r, 50));
+    expect(onFallbackUpdate).toHaveBeenCalledTimes(2); // optimistic + revert
+    expect(mockToast.error).toHaveBeenCalledWith('Failed to update fallbacks');
+    expect(onOverride).not.toHaveBeenCalled();
+  });
+
+  it('swapPrimaryWithFallback is no-op when no current model', async () => {
+    const onOverride = vi.fn();
+    const noModelTier = { ...baseTier, override_model: null, auto_assigned_model: null };
+
+    render(() => (
+      <RoutingTierCard
+        {...baseProps}
+        tier={() => noModelTier as any}
+        getFallbacksFor={() => ['fb-model']}
+        onOverride={onOverride}
+      />
+    ));
+    // No chip rendered, no swap possible — just verify no error
+    expect(onOverride).not.toHaveBeenCalled();
+  });
+
+  it('swapPrimaryWithFallback is no-op when fallback index out of range', async () => {
+    const onOverride = vi.fn();
+    const onFallbackUpdate = vi.fn();
+    vi.mocked(mockSetFallbacksApi).mockResolvedValue([]);
+
+    render(() => (
+      <RoutingTierCard
+        {...baseProps}
+        getFallbacksFor={() => []}
+        onOverride={onOverride}
+        onFallbackUpdate={onFallbackUpdate}
+      />
+    ));
+
+    // Simulate fallback drag from invalid index
+    capturedFallbackListProps.onFallbackDragStart(5);
+    const chip = document.querySelector('.routing-card__model-chip')!;
+    const dropEvent = new Event('drop', { bubbles: true, cancelable: true });
+    Object.defineProperty(dropEvent, 'dataTransfer', { value: {} });
+    chip.dispatchEvent(dropEvent);
+
+    await new Promise((r) => setTimeout(r, 50));
+    expect(onOverride).not.toHaveBeenCalled();
   });
 });

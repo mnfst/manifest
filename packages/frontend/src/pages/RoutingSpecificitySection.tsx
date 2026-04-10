@@ -1,6 +1,10 @@
 import { createSignal, For, Show, type Component, type Accessor } from 'solid-js';
 import { toast } from '../services/toast-store.js';
-import { toggleSpecificity } from '../services/api.js';
+import {
+  toggleSpecificity,
+  setSpecificityFallbacks,
+  clearSpecificityFallbacks,
+} from '../services/api.js';
 import { SPECIFICITY_STAGES } from '../services/providers.js';
 import RoutingTierCard from './RoutingTierCard.js';
 import type {
@@ -119,6 +123,12 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
                 onAddFallback={props.onAddFallback}
                 getFallbacksFor={(cat) => getAssignment(cat)?.fallback_models ?? []}
                 connectedProviders={props.connectedProviders}
+                persistFallbacks={(_agentName, category, models) =>
+                  setSpecificityFallbacks(_agentName, category, models)
+                }
+                persistClearFallbacks={(_agentName, category) =>
+                  clearSpecificityFallbacks(_agentName, category)
+                }
               />
             )}
           </For>

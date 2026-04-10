@@ -72,6 +72,30 @@ export class SpecificityController {
     return { ok: true };
   }
 
+  @Put(':agentName/specificity/:category/fallbacks')
+  async setFallbacks(
+    @CurrentUser() user: AuthUser,
+    @Param('agentName') agentName: string,
+    @Param('category') category: string,
+    @Body() body: { models: string[] },
+  ) {
+    this.validateCategory(category);
+    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    return this.specificityService.setFallbacks(agent.id, category, body.models);
+  }
+
+  @Delete(':agentName/specificity/:category/fallbacks')
+  async clearFallbacks(
+    @CurrentUser() user: AuthUser,
+    @Param('agentName') agentName: string,
+    @Param('category') category: string,
+  ) {
+    this.validateCategory(category);
+    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    await this.specificityService.clearFallbacks(agent.id, category);
+    return { ok: true };
+  }
+
   @Post(':agentName/specificity/reset-all')
   async resetAll(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);

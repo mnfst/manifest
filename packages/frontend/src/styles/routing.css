@@ -622,7 +622,7 @@
 
 /* Drop indicator — always present as a spacer, highlights when active */
 .fallback-list__drop-indicator {
-  height: 16px;
+  height: 8px;
   transition: height 0.12s ease;
   position: relative;
 }

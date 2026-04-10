@@ -122,6 +122,25 @@ export class SpecificityService {
     this.routingCache.invalidateAgent(agentId);
   }
 
+  async setFallbacks(agentId: string, category: string, models: string[]): Promise<string[]> {
+    const existing = await this.repo.findOne({ where: { agent_id: agentId, category } });
+    if (!existing) return [];
+    existing.fallback_models = models.length > 0 ? models : null;
+    existing.updated_at = new Date().toISOString();
+    await this.repo.save(existing);
+    this.routingCache.invalidateAgent(agentId);
+    return models;
+  }
+
+  async clearFallbacks(agentId: string, category: string): Promise<void> {
+    const existing = await this.repo.findOne({ where: { agent_id: agentId, category } });
+    if (!existing) return;
+    existing.fallback_models = null;
+    existing.updated_at = new Date().toISOString();
+    await this.repo.save(existing);
+    this.routingCache.invalidateAgent(agentId);
+  }
+
   async resetAll(agentId: string): Promise<void> {
     await this.repo.update(
       { agent_id: agentId },

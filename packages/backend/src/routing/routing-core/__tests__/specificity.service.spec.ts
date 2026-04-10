@@ -311,4 +311,53 @@ describe('SpecificityService', () => {
       expect(cache.invalidateAgent).toHaveBeenCalledWith('agent-1');
     });
   });
+
+  describe('setFallbacks', () => {
+    it('sets fallback_models on existing assignment', async () => {
+      const existing = makeAssignment();
+      repo.findOne.mockResolvedValue(existing);
+
+      const result = await service.setFallbacks('agent-1', 'coding', ['model-a', 'model-b']);
+      expect(result).toEqual(['model-a', 'model-b']);
+      expect(existing.fallback_models).toEqual(['model-a', 'model-b']);
+      expect(repo.save).toHaveBeenCalledWith(existing);
+      expect(cache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+
+    it('clears fallback_models when empty array', async () => {
+      const existing = makeAssignment({ fallback_models: ['model-a'] });
+      repo.findOne.mockResolvedValue(existing);
+
+      const result = await service.setFallbacks('agent-1', 'coding', []);
+      expect(result).toEqual([]);
+      expect(existing.fallback_models).toBeNull();
+      expect(repo.save).toHaveBeenCalledWith(existing);
+    });
+
+    it('returns empty array when assignment not found', async () => {
+      repo.findOne.mockResolvedValue(null);
+      const result = await service.setFallbacks('agent-1', 'coding', ['model-a']);
+      expect(result).toEqual([]);
+      expect(repo.save).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('clearFallbacks', () => {
+    it('clears fallback_models on existing assignment', async () => {
+      const existing = makeAssignment({ fallback_models: ['model-a'] });
+      repo.findOne.mockResolvedValue(existing);
+
+      await service.clearFallbacks('agent-1', 'coding');
+      expect(existing.fallback_models).toBeNull();
+      expect(repo.save).toHaveBeenCalledWith(existing);
+      expect(cache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+
+    it('does nothing when assignment not found', async () => {
+      repo.findOne.mockResolvedValue(null);
+      await service.clearFallbacks('agent-1', 'coding');
+      expect(repo.save).not.toHaveBeenCalled();
+      expect(cache.invalidateAgent).not.toHaveBeenCalled();
+    });
+  });
 });

@@ -100,9 +100,32 @@ const Routing: Component = () => {
     return actions.handleOverride(...args);
   };
 
-  const handleAddFallback: typeof actions.handleAddFallback = async (...args) => {
+  const isSpecificityTier = (tierId: string) =>
+    specificityAssignments()?.some((a) => a.category === tierId) ?? false;
+
+  const handleAddFallback: typeof actions.handleAddFallback = async (
+    tierId,
+    modelName,
+    providerId,
+    authType,
+  ) => {
     setFallbackPickerTier(null);
-    return actions.handleAddFallback(...args);
+    if (isSpecificityTier(tierId)) {
+      const sa = specificityAssignments()?.find((a) => a.category === tierId);
+      const current = sa?.fallback_models ?? [];
+      if (current.includes(modelName)) return;
+      const updated = [...current, modelName];
+      try {
+        const { setSpecificityFallbacks } = await import('../services/api.js');
+        await setSpecificityFallbacks(agentName(), tierId, updated);
+        await refetchSpecificity();
+        toast.success('Fallback added');
+      } catch {
+        toast.error('Failed to add fallback');
+      }
+      return;
+    }
+    return actions.handleAddFallback(tierId, modelName, providerId, authType);
   };
 
   const isEnabled = () => connectedProviders()?.some((p) => p.is_active) ?? false;
@@ -281,8 +304,21 @@ const Routing: Component = () => {
                 setResettingSpecificity(null);
               }
             }}
-            onFallbackUpdate={() => {}}
-            onAddFallback={() => {}}
+            onFallbackUpdate={async (category, updatedFallbacks) => {
+              try {
+                if (updatedFallbacks.length === 0) {
+                  const { clearSpecificityFallbacks } = await import('../services/api.js');
+                  await clearSpecificityFallbacks(agentName(), category);
+                } else {
+                  const { setSpecificityFallbacks } = await import('../services/api.js');
+                  await setSpecificityFallbacks(agentName(), category, updatedFallbacks);
+                }
+                await refetchSpecificity();
+              } catch {
+                toast.error('Failed to update fallbacks');
+              }
+            }}
+            onAddFallback={(category) => setFallbackPickerTier(category)}
             refetchAll={refetchAll}
             refetchSpecificity={async () => {
               await refetchSpecificity();
@@ -354,7 +390,13 @@ const Routing: Component = () => {
         tiers={() => tiers() ?? []}
         customProviders={() => customProviders() ?? []}
         connectedProviders={() => connectedProviders() ?? []}
-        getTier={actions.getTier}
+        getTier={(tierId) => {
+          const generalist = actions.getTier(tierId);
+          if (generalist) return generalist;
+          const sa = specificityAssignments()?.find((a) => a.category === tierId);
+          if (sa) return { ...sa, tier: sa.category };
+          return undefined;
+        }}
         onOverride={handleOverride}
         onAddFallback={handleAddFallback}
         onProviderUpdate={handleProviderUpdate}
