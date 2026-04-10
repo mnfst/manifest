@@ -73,7 +73,10 @@ const Settings: Component = () => {
   const origCategory = () => (agentInfo()?.agent_category as AgentCategory) ?? null;
   const origPlatform = () => (agentInfo()?.agent_platform as AgentPlatform) ?? null;
   const nameChanged = () => name().trim() !== agentName() && name().trim() !== '';
-  const typeChanged = () => category() !== origCategory() || platform() !== origPlatform();
+  const typeChanged = () =>
+    (category() !== origCategory() || platform() !== origPlatform()) &&
+    !!category() &&
+    !!platform();
   const hasChanges = () => nameChanged() || typeChanged();
 
   const handleSaveAll = async () => {
