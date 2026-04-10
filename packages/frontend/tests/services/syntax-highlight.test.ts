@@ -29,11 +29,10 @@ describe("highlight", () => {
   it("preserves code content in output", () => {
     const code = 'client = OpenAI(base_url="http://localhost")';
     const result = highlight(code, "python");
-    // Strip HTML tags to verify text content
-    const text = result.replace(/<[^>]*>/g, "");
-    expect(text).toContain("client");
-    expect(text).toContain("OpenAI");
-    expect(text).toContain("http://localhost");
+    // Verify the highlighted HTML still contains the original tokens
+    expect(result).toContain("client");
+    expect(result).toContain("OpenAI");
+    expect(result).toContain("http://localhost");
   });
 
   it("returns string output", () => {
