@@ -11,6 +11,7 @@ import { isRecentlyCreated, clearRecentAgent } from '../services/recent-agents.j
 interface Agent {
   agent_name: string;
   display_name?: string;
+  agent_category?: string | null;
   agent_platform?: string | null;
 }
 
