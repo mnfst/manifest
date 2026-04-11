@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useParams } from '@solidjs/router';
 import { createResource, createSignal, ErrorBoundary, Show, type Component } from 'solid-js';
 import CopyButton from '../components/CopyButton.jsx';
 import ErrorState from '../components/ErrorState.jsx';
-import AgentTypePicker from '../components/AgentTypePicker.jsx';
+import AgentTypeGrid from '../components/AgentTypeGrid.jsx';
 import SetupStepAddProvider from '../components/SetupStepAddProvider.jsx';
 import SetupModal from '../components/SetupModal.jsx';
 import { agentDisplayName } from '../services/agent-display-name.js';
@@ -24,8 +24,8 @@ import {
   type AgentPlatform,
   CATEGORY_LABELS,
   PLATFORM_LABELS,
-  PLATFORM_ICONS,
   PLATFORMS_BY_CATEGORY,
+  platformIcon,
 } from 'manifest-shared';
 
 const Settings: Component = () => {
@@ -69,7 +69,7 @@ const Settings: Component = () => {
         agent_category: modalCategory()!,
         agent_platform: modalPlatform()!,
       });
-      setAgentPlatform(modalPlatform()!);
+      setAgentPlatform(modalPlatform()!, modalCategory());
       await refetchInfo();
       await refetchKey();
       setShowTypeModal(false);
@@ -193,17 +193,13 @@ const Settings: Component = () => {
               class="settings-card__label-title"
               style="display: flex; align-items: center; gap: 6px;"
             >
-              <Show
-                when={
-                  currentPlatform() &&
-                  PLATFORM_ICONS[currentPlatform()! as keyof typeof PLATFORM_ICONS]
-                }
-              >
+              <Show when={platformIcon(currentPlatform(), currentCategory())}>
                 <img
-                  src={PLATFORM_ICONS[currentPlatform()! as keyof typeof PLATFORM_ICONS]}
+                  src={platformIcon(currentPlatform(), currentCategory())}
                   alt=""
                   width="18"
                   height="18"
+                  class="settings-type__icon"
                 />
               </Show>
               {currentPlatform()
@@ -468,7 +464,7 @@ const Settings: Component = () => {
             </h2>
             <p class="modal-card__desc">Select the new type and platform for this agent.</p>
 
-            <AgentTypePicker
+            <AgentTypeGrid
               category={modalCategory()}
               platform={modalPlatform()}
               onCategoryChange={(c) => {
@@ -496,6 +492,7 @@ const Settings: Component = () => {
         open={showSetupModal()}
         agentName={agentName()}
         agentPlatform={currentPlatform()}
+        agentCategory={currentCategory()}
         onClose={() => setShowSetupModal(false)}
         onDone={() => setShowSetupModal(false)}
       />

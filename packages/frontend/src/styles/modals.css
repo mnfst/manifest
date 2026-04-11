@@ -66,6 +66,22 @@
   gap: var(--gap-md);
 }
 
+.setup-modal__header .modal-card__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.setup-modal__platform-icon {
+  flex-shrink: 0;
+}
+
+.dark .setup-modal__platform-icon[src*='openai'],
+.dark .setup-modal__platform-icon[src*='vercel'],
+.dark .setup-modal__platform-icon[src*='other'] {
+  filter: invert(1);
+}
+
 .setup-modal__nav {
   display: flex;
   justify-content: flex-end;

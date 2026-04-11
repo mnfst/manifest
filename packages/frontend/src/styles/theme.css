@@ -19,7 +19,7 @@
 @import './version-indicator.css';
 @import './skeleton.css';
 @import './syntax-highlight.css';
-@import './agent-type-picker.css';
+@import './agent-type-select.css';
 
 /* ── shadcn/ui design tokens — Light (default) ───── */
 @layer base {

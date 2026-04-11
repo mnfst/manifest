@@ -41,4 +41,58 @@ describe('CreateAgentDto', () => {
     const errors = await validate(dto);
     expect(errors.length).toBeGreaterThan(0);
   });
+
+  it('accepts valid agent_category and agent_platform', async () => {
+    const dto = plainToInstance(CreateAgentDto, {
+      name: 'my-agent',
+      agent_category: 'personal',
+      agent_platform: 'openclaw',
+    });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+  });
+
+  it('accepts app category with sdk platform', async () => {
+    const dto = plainToInstance(CreateAgentDto, {
+      name: 'my-agent',
+      agent_category: 'app',
+      agent_platform: 'openai-sdk',
+    });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+  });
+
+  it('accepts other platform', async () => {
+    const dto = plainToInstance(CreateAgentDto, {
+      name: 'my-agent',
+      agent_category: 'personal',
+      agent_platform: 'other',
+    });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+  });
+
+  it('rejects invalid agent_category', async () => {
+    const dto = plainToInstance(CreateAgentDto, {
+      name: 'my-agent',
+      agent_category: 'invalid',
+    });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
+  it('rejects invalid agent_platform', async () => {
+    const dto = plainToInstance(CreateAgentDto, {
+      name: 'my-agent',
+      agent_platform: 'invalid-platform',
+    });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
+  it('allows omitting category and platform', async () => {
+    const dto = plainToInstance(CreateAgentDto, { name: 'my-agent' });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+  });
 });

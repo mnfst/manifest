@@ -5,6 +5,7 @@ export {
   PLATFORM_LABELS,
   PLATFORMS_BY_CATEGORY,
   PLATFORM_ICONS,
+  platformIcon,
 } from './agent-type';
 export type { AgentCategory, AgentPlatform } from './agent-type';
 export { TIERS, TIER_LABELS, TIER_DESCRIPTIONS } from './tiers';

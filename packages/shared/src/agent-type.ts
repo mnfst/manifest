@@ -40,3 +40,14 @@ export const PLATFORM_ICONS: Readonly<Partial<Record<AgentPlatform, string>>> = 
   langchain: '/icons/langchain.png',
   other: '/icons/other.svg',
 };
+
+export function platformIcon(
+  platform: string | null | undefined,
+  category: string | null | undefined,
+): string | undefined {
+  if (!platform) return undefined;
+  if (platform === 'other') {
+    return category === 'personal' ? '/icons/other-agent.svg' : '/icons/other.svg';
+  }
+  return PLATFORM_ICONS[platform as AgentPlatform];
+}

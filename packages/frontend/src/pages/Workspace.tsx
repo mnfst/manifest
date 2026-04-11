@@ -2,7 +2,7 @@ import { createResource, createSignal, Show, For, type Component } from 'solid-j
 import { A, useNavigate } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
 import ErrorState from '../components/ErrorState.jsx';
-import AgentTypePicker from '../components/AgentTypePicker.jsx';
+import AgentTypeSelect from '../components/AgentTypeSelect.jsx';
 import { getAgents, createAgent } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
 import { markAgentCreated } from '../services/recent-agents.js';
@@ -12,8 +12,8 @@ import { pingCount } from '../services/sse.js';
 import {
   type AgentCategory,
   type AgentPlatform,
-  PLATFORM_ICONS,
   PLATFORMS_BY_CATEGORY,
+  platformIcon,
 } from 'manifest-shared';
 
 interface Agent {
@@ -107,31 +107,34 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
             Name your agent to start tracking its LLM usage, costs, and messages in real time.
           </p>
 
-          <label class="modal-card__field-label" for="agent-name-input">
-            Agent name
-          </label>
-          <input
-            ref={(el) => requestAnimationFrame(() => el.focus())}
-            id="agent-name-input"
-            class="modal-card__input modal-card__input--lg"
-            type="text"
-            placeholder="e.g. My Cool Agent"
-            value={name()}
-            onInput={(e) => setName(e.currentTarget.value)}
-            onKeyDown={handleKeyDown}
-            disabled={creating()}
-          />
-
-          <label class="modal-card__field-label" style="margin-top: 12px;">
-            Agent type
-          </label>
-          <AgentTypePicker
-            category={category()}
-            platform={platform()}
-            onCategoryChange={handleCategoryChange}
-            onPlatformChange={setPlatform}
-            disabled={creating()}
-          />
+          <div class="agent-type-select-row">
+            <div>
+              <label class="modal-card__field-label">Type</label>
+              <AgentTypeSelect
+                category={category()}
+                platform={platform()}
+                onCategoryChange={handleCategoryChange}
+                onPlatformChange={setPlatform}
+                disabled={creating()}
+              />
+            </div>
+            <div style="flex: 1;">
+              <label class="modal-card__field-label" for="agent-name-input">
+                Agent name
+              </label>
+              <input
+                ref={(el) => requestAnimationFrame(() => el.focus())}
+                id="agent-name-input"
+                class="modal-card__input modal-card__input--lg"
+                type="text"
+                placeholder="e.g. My Cool Agent"
+                value={name()}
+                onInput={(e) => setName(e.currentTarget.value)}
+                onKeyDown={handleKeyDown}
+                disabled={creating()}
+              />
+            </div>
+          </div>
 
           <div class="modal-card__footer">
             <button
@@ -230,14 +233,9 @@ const Workspace: Component = () => {
                 {(agent) => (
                   <A href={`/agents/${encodeURIComponent(agent.agent_name)}`} class="agent-card">
                     <div class="agent-card__top">
-                      <Show
-                        when={
-                          agent.agent_platform &&
-                          PLATFORM_ICONS[agent.agent_platform as keyof typeof PLATFORM_ICONS]
-                        }
-                      >
+                      <Show when={platformIcon(agent.agent_platform, agent.agent_category)}>
                         <img
-                          src={PLATFORM_ICONS[agent.agent_platform as keyof typeof PLATFORM_ICONS]}
+                          src={platformIcon(agent.agent_platform, agent.agent_category)}
                           alt=""
                           width="18"
                           height="18"

@@ -69,6 +69,91 @@ describe('AgentLifecycleService', () => {
     });
   });
 
+  describe('updateAgentType', () => {
+    it('should update agent_category and agent_platform', async () => {
+      mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-1', name: 'my-agent' });
+
+      const mockExecute = jest.fn().mockResolvedValue({});
+      const mockUpdateQb = {
+        update: jest.fn().mockReturnThis(),
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        execute: mockExecute,
+      };
+
+      mockAgentCreateQueryBuilder
+        .mockReturnValueOnce({
+          select: jest.fn().mockReturnThis(),
+          leftJoin: jest.fn().mockReturnThis(),
+          where: jest.fn().mockReturnThis(),
+          andWhere: jest.fn().mockReturnThis(),
+          orderBy: jest.fn().mockReturnThis(),
+          getOne: mockAgentGetOne,
+          getMany: jest.fn().mockResolvedValue([]),
+        })
+        .mockReturnValueOnce(mockUpdateQb);
+
+      await service.updateAgentType('test-user', 'my-agent', {
+        agent_category: 'app',
+        agent_platform: 'openai-sdk',
+      });
+
+      expect(mockUpdateQb.set).toHaveBeenCalledWith({
+        agent_category: 'app',
+        agent_platform: 'openai-sdk',
+      });
+      expect(mockUpdateQb.where).toHaveBeenCalledWith('id = :id', { id: 'agent-id-1' });
+      expect(mockExecute).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw NotFoundException when agent not found', async () => {
+      mockAgentGetOne.mockResolvedValueOnce(null);
+
+      await expect(
+        service.updateAgentType('test-user', 'nonexistent', { agent_category: 'personal' }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should skip update when no fields provided', async () => {
+      mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-1', name: 'my-agent' });
+
+      await service.updateAgentType('test-user', 'my-agent', {});
+
+      // Only the findAgentByUser query builder should be created, not an update one
+      expect(mockAgentCreateQueryBuilder).toHaveBeenCalledTimes(1);
+    });
+
+    it('should update only agent_category when only category provided', async () => {
+      mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-1', name: 'my-agent' });
+
+      const mockExecute = jest.fn().mockResolvedValue({});
+      const mockUpdateQb = {
+        update: jest.fn().mockReturnThis(),
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        execute: mockExecute,
+      };
+
+      mockAgentCreateQueryBuilder
+        .mockReturnValueOnce({
+          select: jest.fn().mockReturnThis(),
+          leftJoin: jest.fn().mockReturnThis(),
+          where: jest.fn().mockReturnThis(),
+          andWhere: jest.fn().mockReturnThis(),
+          orderBy: jest.fn().mockReturnThis(),
+          getOne: mockAgentGetOne,
+          getMany: jest.fn().mockResolvedValue([]),
+        })
+        .mockReturnValueOnce(mockUpdateQb);
+
+      await service.updateAgentType('test-user', 'my-agent', {
+        agent_category: 'personal',
+      });
+
+      expect(mockUpdateQb.set).toHaveBeenCalledWith({ agent_category: 'personal' });
+    });
+  });
+
   describe('renameAgent', () => {
     it('should throw NotFoundException when agent not found', async () => {
       mockAgentGetOne.mockResolvedValueOnce(null);

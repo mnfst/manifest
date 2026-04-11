@@ -36,7 +36,7 @@ vi.mock("../../src/services/sse.js", () => ({
   pingCount: () => 0,
 }));
 
-vi.mock("../../src/components/AgentTypePicker.jsx", () => ({
+vi.mock("../../src/components/AgentTypeSelect.jsx", () => ({
   default: (props: any) => (
     <div
       data-testid="agent-type-picker"
@@ -56,16 +56,30 @@ vi.mock("../../src/services/recent-agents.js", () => ({
 }));
 
 vi.mock("manifest-shared", () => ({
+  AGENT_CATEGORIES: ["personal", "app"],
   PLATFORM_ICONS: {
     openclaw: "/icons/openclaw.png",
     hermes: "/icons/hermes.png",
     "openai-sdk": "/icons/providers/openai.svg",
     "vercel-ai-sdk": "/icons/vercel.svg",
     langchain: "/icons/langchain.svg",
+    other: "/icons/other.svg",
   },
   PLATFORMS_BY_CATEGORY: {
     personal: ["openclaw", "hermes", "other"],
     app: ["openai-sdk", "vercel-ai-sdk", "langchain", "other"],
+  },
+  platformIcon: (plat: string | null, cat: string | null) => {
+    if (!plat) return undefined;
+    if (plat === "other") return cat === "personal" ? "/icons/other-agent.svg" : "/icons/other.svg";
+    const icons: Record<string, string> = {
+      openclaw: "/icons/openclaw.png",
+      hermes: "/icons/hermes.png",
+      "openai-sdk": "/icons/providers/openai.svg",
+      "vercel-ai-sdk": "/icons/vercel.svg",
+      langchain: "/icons/langchain.svg",
+    };
+    return icons[plat];
   },
 }));
 

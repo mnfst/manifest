@@ -402,7 +402,8 @@
 }
 
 .dark .header__breadcrumb-icon[src*='openai'],
-.dark .header__breadcrumb-icon[src*='vercel'] {
+.dark .header__breadcrumb-icon[src*='vercel'],
+.dark .header__breadcrumb-icon[src*='other'] {
   filter: invert(1);
 }
 

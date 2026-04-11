@@ -17,7 +17,11 @@ import Select from '../components/Select.jsx';
 import SetupModal from '../components/SetupModal.jsx';
 import { COMPACT_COLUMNS, type MessageRow } from '../components/message-table-types.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
-import { agentPlatform, agentPlatformIcon } from '../services/agent-platform-store.js';
+import {
+  agentPlatform,
+  agentCategory,
+  agentPlatformIcon,
+} from '../services/agent-platform-store.js';
 import { getCustomProviders, getOverview, type CustomProviderData } from '../services/api.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
 import { isRecentlyCreated } from '../services/recent-agents.js';
@@ -164,6 +168,7 @@ const Overview: Component = () => {
                 alt=""
                 width="28"
                 height="28"
+                class="overview__platform-icon"
                 style="border-radius: 4px;"
               />
             </Show>
@@ -306,6 +311,7 @@ const Overview: Component = () => {
         agentName={decodeURIComponent(params.agentName)}
         apiKey={(location.state as { newApiKey?: string } | undefined)?.newApiKey ?? null}
         agentPlatform={agentPlatform()}
+        agentCategory={agentCategory()}
         onClose={() => {
           localStorage.setItem(`setup_dismissed_${params.agentName}`, '1');
           setSetupOpen(false);

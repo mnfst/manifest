@@ -45,7 +45,7 @@ vi.mock("../../src/components/CopyButton.jsx", () => ({
   default: () => <button>Copy</button>,
 }));
 
-vi.mock("../../src/components/AgentTypePicker.jsx", () => ({
+vi.mock("../../src/components/AgentTypeGrid.jsx", () => ({
   default: (props: any) => (
     <div
       data-testid="agent-type-picker"
@@ -80,6 +80,19 @@ vi.mock("../../src/services/recent-agents.js", () => ({
 }));
 
 vi.mock("manifest-shared", () => ({
+  AGENT_CATEGORIES: ["personal", "app"],
+  platformIcon: (plat: string | null, cat: string | null) => {
+    if (!plat) return undefined;
+    if (plat === "other") return cat === "personal" ? "/icons/other-agent.svg" : "/icons/other.svg";
+    const icons: Record<string, string> = {
+      openclaw: "/icons/openclaw.png",
+      hermes: "/icons/hermes.png",
+      "openai-sdk": "/icons/providers/openai.svg",
+      "vercel-ai-sdk": "/icons/vercel.svg",
+      langchain: "/icons/langchain.svg",
+    };
+    return icons[plat];
+  },
   CATEGORY_LABELS: {
     personal: "Personal AI Agent",
     app: "App AI SDK",

@@ -40,17 +40,17 @@ const AgentGuard: ParentComponent = (props) => {
     if (agent) {
       clearRecentAgent(agent.agent_name);
       setAgentDisplayName(agent.display_name ?? agent.agent_name);
-      setAgentPlatform(agent.agent_platform ?? null);
+      setAgentPlatform(agent.agent_platform ?? null, agent.agent_category ?? null);
     } else {
       setAgentDisplayName(null);
-      setAgentPlatform(null);
+      setAgentPlatform(null, null);
     }
     return recent || !!agent;
   });
 
   onCleanup(() => {
     setAgentDisplayName(null);
-    setAgentPlatform(null);
+    setAgentPlatform(null, null);
   });
 
   return (

@@ -40,7 +40,8 @@
 }
 
 .dark .agent-card__platform-icon[src*='openai'],
-.dark .agent-card__platform-icon[src*='vercel'] {
+.dark .agent-card__platform-icon[src*='vercel'],
+.dark .agent-card__platform-icon[src*='other'] {
   filter: invert(1);
 }
 
@@ -325,4 +326,18 @@
   border-color: hsl(var(--chart-1));
   color: hsl(var(--foreground));
   background: hsl(var(--chart-1) / 0.08);
+}
+
+/* Dark-mode icon inversion for Settings agent type display */
+.dark .settings-type__icon[src*='openai'],
+.dark .settings-type__icon[src*='vercel'],
+.dark .settings-type__icon[src*='other'] {
+  filter: invert(1);
+}
+
+/* Dark-mode icon inversion for Overview heading */
+.dark .overview__platform-icon[src*='openai'],
+.dark .overview__platform-icon[src*='vercel'],
+.dark .overview__platform-icon[src*='other'] {
+  filter: invert(1);
 }
