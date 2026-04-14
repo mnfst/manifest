@@ -49,14 +49,15 @@ Go to [app.manifest.build](https://app.manifest.build) and follow the guide.
 
 ### Self-hosted (Docker)
 
-Manifest ships as a [Docker image](https://hub.docker.com/r/manifestdotbuild/manifest). Two commands:
+Manifest ships as a [Docker image](https://hub.docker.com/r/manifestdotbuild/manifest). One command:
 
 ```bash
-curl -O https://raw.githubusercontent.com/mnfst/manifest/main/docker/docker-compose.yml
-docker compose up -d
+bash <(curl -sSL https://raw.githubusercontent.com/mnfst/manifest/main/docker/install.sh)
 ```
 
-Open [http://localhost:3001](http://localhost:3001) and the setup wizard walks you through creating your admin account. Full self-hosting guide: [docker/DOCKER_README.md](docker/DOCKER_README.md).
+The installer downloads the compose file, generates a secret, and brings up the stack. Give it about 30 seconds to boot.
+
+Open [http://localhost:3001](http://localhost:3001) and sign up. The first account you create becomes the admin. Full self-hosting guide: [docker/DOCKER_README.md](docker/DOCKER_README.md).
 
 > Docker is the only supported distribution. The legacy `manifest` npm package is deprecated and no longer published.
 
