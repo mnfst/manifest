@@ -144,6 +144,30 @@ export async function pipeStream(
       }
     }
 
+    if (passthroughBuffer.trim()) {
+      const payload = passthroughBuffer
+        .trim()
+        .split('\n')
+        .map((line) => (line.startsWith('data: ') ? line.slice(6) : line))
+        .join('\n')
+        .trim();
+      if (payload && payload !== '[DONE]') {
+        try {
+          const obj = JSON.parse(payload);
+          if (obj.usage && typeof obj.usage.prompt_tokens === 'number') {
+            capturedUsage = {
+              prompt_tokens: obj.usage.prompt_tokens,
+              completion_tokens: obj.usage.completion_tokens ?? 0,
+              cache_read_tokens: obj.usage.cache_read_tokens,
+              cache_creation_tokens: obj.usage.cache_creation_tokens,
+            };
+          }
+        } catch {
+          /* ignore non-JSON */
+        }
+      }
+    }
+
     // Flush any remaining buffer content through the transform
     if (transform && sseBuffer.trim()) {
       const payload = sseBuffer

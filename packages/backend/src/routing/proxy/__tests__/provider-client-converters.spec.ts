@@ -623,4 +623,57 @@ describe('provider-client-converters', () => {
       expect(result).not.toHaveProperty('max_completion_tokens');
     });
   });
+
+  describe('ollama', () => {
+    it('should inject stream_options.include_usage when not present', () => {
+      const body = {
+        model: 'qwen2.5:7b',
+        messages: [{ role: 'user', content: 'hello' }],
+        stream: true,
+      };
+
+      const result = sanitizeOpenAiBody(body, 'ollama', 'qwen2.5:7b');
+
+      expect(result).toHaveProperty('stream_options');
+      expect(result['stream_options']).toEqual({ include_usage: true });
+    });
+
+    it('should inject stream_options.include_usage for ollama-cloud', () => {
+      const body = {
+        model: 'llama3',
+        messages: [{ role: 'user', content: 'hello' }],
+      };
+
+      const result = sanitizeOpenAiBody(body, 'ollama-cloud', 'llama3');
+
+      expect(result).toHaveProperty('stream_options');
+      expect(result['stream_options']).toEqual({ include_usage: true });
+    });
+
+    it('should overwrite stream_options.include_usage to true regardless of user value', () => {
+      const body = {
+        model: 'qwen2.5:7b',
+        messages: [{ role: 'user', content: 'hello' }],
+        stream_options: { include_usage: false },
+      };
+
+      const result = sanitizeOpenAiBody(body, 'ollama', 'qwen2.5:7b');
+
+      expect(result['stream_options']).toEqual({ include_usage: true });
+    });
+
+    it('should pass through messages and model fields', () => {
+      const body = {
+        model: 'qwen2.5:7b',
+        messages: [{ role: 'user', content: 'hello' }],
+        temperature: 0.7,
+      };
+
+      const result = sanitizeOpenAiBody(body, 'ollama', 'qwen2.5:7b');
+
+      expect(result).toHaveProperty('model', 'qwen2.5:7b');
+      expect(result).toHaveProperty('messages');
+      expect(result).toHaveProperty('temperature', 0.7);
+    });
+  });
 });

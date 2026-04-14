@@ -454,6 +454,20 @@ describe('pipeStream', () => {
     });
   });
 
+  it('should capture usage from leftover passthroughBuffer without trailing newline', async () => {
+    const { res } = mockResponse();
+    const contentChunk = `data: ${JSON.stringify({ choices: [{ delta: { content: 'hi' } }] })}\n\n`;
+    const usageChunk = `data: ${JSON.stringify({
+      choices: [],
+      usage: { prompt_tokens: 99, completion_tokens: 42 },
+    })}`;
+    const stream = createReadableStream([contentChunk, usageChunk]);
+
+    const usage = await pipeStream(stream, res as never);
+
+    expect(usage).toEqual({ prompt_tokens: 99, completion_tokens: 42 });
+  });
+
   it('should return null usage when stream has no usage data', async () => {
     const { res } = mockResponse();
     const stream = createReadableStream([

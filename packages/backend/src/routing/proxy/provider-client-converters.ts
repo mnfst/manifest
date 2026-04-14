@@ -260,5 +260,8 @@ export function sanitizeOpenAiBody(
     cleaned[key] = value;
   }
   if (endpointKey === 'deepseek') normalizeDeepSeekMaxTokens(cleaned);
+  if (endpointKey === 'ollama' || endpointKey === 'ollama-cloud') {
+    cleaned['stream_options'] = { include_usage: true };
+  }
   return cleaned;
 }
