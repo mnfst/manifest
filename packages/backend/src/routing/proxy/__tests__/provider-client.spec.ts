@@ -1385,6 +1385,84 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('stream_options.include_usage injection', () => {
+    it('injects stream_options.include_usage for OpenAI streaming requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body: { messages: [{ role: 'user', content: 'Hello' }] },
+        stream: true,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream_options).toEqual({ include_usage: true });
+    });
+
+    it('injects stream_options.include_usage for OpenRouter streaming requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'openrouter',
+        apiKey: 'sk-or',
+        model: 'openai/gpt-4o',
+        body: { messages: [{ role: 'user', content: 'Hello' }] },
+        stream: true,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream_options).toEqual({ include_usage: true });
+    });
+
+    it('does not inject stream_options for non-streaming OpenAI requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body: { messages: [{ role: 'user', content: 'Hello' }] },
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream_options).toBeUndefined();
+    });
+
+    it('does not inject stream_options for non-passthrough providers', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'mistral',
+        apiKey: 'sk-mi',
+        model: 'mistral-small',
+        body: { messages: [{ role: 'user', content: 'Hello' }] },
+        stream: true,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream_options).toBeUndefined();
+    });
+
+    it('preserves existing stream_options fields when injecting include_usage', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body: {
+          messages: [{ role: 'user', content: 'Hello' }],
+          stream_options: { some_field: 'value' },
+        },
+        stream: true,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream_options).toEqual({
+        some_field: 'value',
+        include_usage: true,
+      });
+    });
+  });
+
   describe('Custom endpoint', () => {
     it('uses custom endpoint instead of resolving by provider name', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));

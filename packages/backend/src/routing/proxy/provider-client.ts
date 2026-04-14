@@ -119,6 +119,18 @@ export class ProviderClient {
       url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`;
       headers = endpoint.buildHeaders(apiKey, authType);
       const sanitized = sanitizeOpenAiBody(body, endpointKey, model);
+
+      // Inject stream_options.include_usage so providers always send token
+      // usage in streaming responses — needed for both DB logging and
+      // downstream clients (e.g. OpenClaw context management).
+      if (stream && (endpointKey === 'openai' || endpointKey === 'openrouter')) {
+        const existing =
+          typeof sanitized.stream_options === 'object' && sanitized.stream_options !== null
+            ? (sanitized.stream_options as Record<string, unknown>)
+            : {};
+        sanitized.stream_options = { ...existing, include_usage: true };
+      }
+
       requestBody = { ...sanitized, model: bareModel, stream };
 
       // Inject cache_control for OpenRouter requests targeting Anthropic models
