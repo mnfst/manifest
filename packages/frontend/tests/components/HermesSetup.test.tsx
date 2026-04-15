@@ -109,6 +109,19 @@ describe("HermesSetup", () => {
     expect(copyBtns.length).toBeGreaterThanOrEqual(1);
   });
 
+  it("copies yaml config when copy button in code block is clicked", () => {
+    const { container } = render(() => (
+      <HermesSetup {...defaultProps} apiKey="mnfst_test_key" keyPrefix="mnfst_te" />
+    ));
+    const codeBlock = container.querySelector(".setup-cli-block");
+    const copyBtn = codeBlock?.querySelector('[aria-label="Copy to clipboard"]');
+    expect(copyBtn).not.toBeNull();
+    fireEvent.click(copyBtn!);
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+      expect.stringContaining("provider: custom")
+    );
+  });
+
   it("uses custom base URL in code block and fields", () => {
     const { container } = render(() => (
       <HermesSetup {...defaultProps} baseUrl="https://example.com/v1" />
