@@ -48,39 +48,54 @@ Works with 300+ models across OpenAI, Anthropic, Google Gemini, DeepSeek, xAI, M
 
 ## Manifest vs OpenRouter
 
-|              | Manifest                                             | OpenRouter                                          |
-| ------------ | ---------------------------------------------------- | --------------------------------------------------- |
-| Architecture | Your Manifest instance forwards to your providers    | Cloud proxy. All traffic goes through their servers |
-| Cost         | Free                                                 | 5% fee on every API call                            |
-| Source code  | MIT, fully open                                      | Proprietary                                         |
-| Data privacy | Self-hosted — no middleman                           | Prompts and responses pass through a third party    |
-| Transparency | Open scoring. You see why a model was chosen         | No visibility into routing decisions                |
+|              | Manifest                                          | OpenRouter                                          |
+| ------------ | ------------------------------------------------- | --------------------------------------------------- |
+| Architecture | Your Manifest instance forwards to your providers | Cloud proxy. All traffic goes through their servers |
+| Cost         | Free                                              | 5% fee on every API call                            |
+| Source code  | MIT, fully open                                   | Proprietary                                         |
+| Data privacy | Self-hosted, no middleman                         | Prompts and responses pass through a third party    |
+| Transparency | Open scoring. You see why a model was chosen      | No visibility into routing decisions                |
 
 ---
 
 ## Installation
 
-Three paths, ordered from fastest to most hands-on. All three end in the same place: a running stack that walks you through the **setup wizard** at [http://localhost:3001](http://localhost:3001) to create your admin account.
+Three paths, ordered from fastest to most hands-on. All three end in the same place: a running stack at [http://localhost:3001](http://localhost:3001) where you sign up. The first account you create becomes the admin. No demo credentials are pre-seeded.
 
 > **Heads up on network binding.** The bundled compose file binds port 3001 to `127.0.0.1` only, so the dashboard is reachable on the host machine but not over the LAN. See [Custom port](#custom-port) to expose it beyond localhost.
 
 ### Option 1: Quickstart install script (recommended)
 
-One command. The script downloads `docker/docker-compose.yml` and `docker/.env.example`, writes a fresh `BETTER_AUTH_SECRET` into `.env`, brings up the stack, and waits for the healthcheck to go green.
+One command. The installer downloads the compose file, generates a secret, and brings up the stack. Give it about 30 seconds to boot.
 
 ```bash
 bash <(curl -sSL https://raw.githubusercontent.com/mnfst/manifest/main/docker/install.sh)
 ```
 
-Prefer to audit before running? Download, read, then execute:
+<details>
+<summary><strong>Prefer to review the script before running it?</strong></summary>
+
+Download the script:
 
 ```bash
 curl -sSLO https://raw.githubusercontent.com/mnfst/manifest/main/docker/install.sh
+```
+
+Review it (optional):
+
+```bash
 less install.sh
+```
+
+Run it:
+
+```bash
 bash install.sh
 ```
 
-Flags: `--dir <path>` (install into a custom directory, defaults to `./manifest`), `--dry-run` (print what would happen without touching anything), `--yes` (skip the confirmation prompt).
+</details>
+
+Useful flags: `--dir <path>` to install elsewhere, `--dry-run` to preview, `--yes` to skip the confirmation prompt.
 
 ### Option 2: Docker Compose (manual)
 
@@ -94,21 +109,23 @@ curl -O https://raw.githubusercontent.com/mnfst/manifest/main/docker/.env.exampl
 cp .env.example .env
 ```
 
-2. Generate a secret and paste it into the `BETTER_AUTH_SECRET=` line in `.env`:
+2. Open `.env` in your editor and set `BETTER_AUTH_SECRET` to a random string. You can generate one with:
 
 ```bash
 openssl rand -hex 32
 ```
 
-(Optional: to use a stronger database password, set BOTH `POSTGRES_PASSWORD` and `DATABASE_URL` in `.env` — they must agree, and any special characters in the password need to be percent-encoded in the URL.)
+(Optional: to use a stronger database password, set BOTH `POSTGRES_PASSWORD` and `DATABASE_URL` in `.env`, they must agree, and any special characters in the password need to be percent-encoded in the URL.)
 
-3. Start it:
+3. Start the stack:
 
 ```bash
 docker compose up -d
 ```
 
-4. Open [http://localhost:3001](http://localhost:3001) and complete the setup wizard.
+Give it about 30 seconds to boot.
+
+4. Open [http://localhost:3001](http://localhost:3001) and sign up. The first account you create becomes the admin.
 
 To stop:
 
@@ -119,7 +136,7 @@ docker compose down -v    # deletes everything
 
 ### Option 3: Docker Run (bring your own PostgreSQL)
 
-If you already have PostgreSQL running, pick the command for your shell.
+If you already have PostgreSQL running, replace `user`, `pass`, and `host` with your actual database credentials, then run this in your terminal:
 
 <details open>
 <summary><strong>macOS / Linux (bash, zsh)</strong></summary>
@@ -170,7 +187,7 @@ docker run -d ^
 
 </details>
 
-`AUTO_MIGRATE=true` runs TypeORM migrations on first boot. Then visit [http://localhost:3001](http://localhost:3001) and complete the setup wizard to create your admin account.
+`AUTO_MIGRATE=true` runs database migrations on first boot. Then open [http://localhost:3001](http://localhost:3001) and sign up. The first account you create becomes the admin.
 
 ### Verifying the image signature
 
@@ -197,7 +214,7 @@ Or in docker-compose.yml:
 
 ```yaml
 ports:
-  - "127.0.0.1:8080:3001"
+  - '127.0.0.1:8080:3001'
 ```
 
 …and in `.env`:
@@ -208,10 +225,10 @@ BETTER_AUTH_URL=http://localhost:8080
 
 ### Exposing on the LAN
 
-By default the compose file binds port 3001 to `127.0.0.1` only — the dashboard is reachable from the host but not from other machines on the network. To expose it on the LAN:
+By default the compose file binds port `3001` to `127.0.0.1` only. The dashboard is reachable from the host but not from other machines on the network. To expose it on the LAN:
 
 1. Edit `docker-compose.yml` and change the `ports` line from `"127.0.0.1:3001:3001"` to `"3001:3001"`.
-2. In `.env`, set `BETTER_AUTH_URL` to the host you'll reach the dashboard on — e.g. `http://192.168.1.20:3001` or `https://manifest.mydomain.com`. This MUST match the URL in the browser or Better Auth will reject the login with "Invalid origin".
+2. In `.env`, set `BETTER_AUTH_URL` to the host you'll reach the dashboard on, e.g. `http://192.168.1.20:3001` or `https://manifest.mydomain.com`. This MUST match the URL in the browser or Better Auth will reject the login with "Invalid origin".
 3. `docker compose up -d` to apply.
 
 If you see "Invalid origin" on the login page, `BETTER_AUTH_URL` doesn't match the URL you're accessing the dashboard on. The host matters as much as the port.
@@ -220,11 +237,11 @@ If you see "Invalid origin" on the login page, `BETTER_AUTH_URL` doesn't match t
 
 Every release is published with the following tags:
 
-- `{major}.{minor}.{patch}` — fully pinned (e.g. `5.46.0`)
-- `{major}.{minor}` — latest patch within a minor (e.g. `5.46`)
-- `{major}` — latest minor+patch within a major (e.g. `5`)
-- `latest` — latest stable release
-- `sha-<short>` — exact commit for rollback
+- `{major}.{minor}.{patch}` - fully pinned (e.g. `5.46.0`)
+- `{major}.{minor}` - latest patch within a minor (e.g. `5.46`)
+- `{major}` - latest minor+patch within a major (e.g. `5`)
+- `latest` - latest stable release
+- `sha-<short>` - exact commit for rollback
 
 Images are built for both `linux/amd64` and `linux/arm64`.
 
@@ -237,7 +254,7 @@ docker compose pull
 docker compose up -d
 ```
 
-Database migrations run automatically on boot — no manual steps. Your data in the `pgdata` volume is preserved across upgrades. Pin to a specific major version (e.g. `manifestdotbuild/manifest:5`) in `docker-compose.yml` if you want control over when major upgrades happen.
+Database migrations run automatically on boot, no manual steps. Your data in the `pgdata` volume is preserved across upgrades. Pin to a specific major version (e.g. `manifestdotbuild/manifest:5`) in `docker-compose.yml` if you want control over when major upgrades happen.
 
 ## Backup & persistence
 
@@ -266,14 +283,14 @@ docker compose down -v    # ⚠  destroys all data
 
 ## Environment variables
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `DATABASE_URL` | Yes | -- | PostgreSQL connection string |
-| `BETTER_AUTH_SECRET` | Yes | -- | Session signing secret (min 32 chars) |
-| `BETTER_AUTH_URL` | No | `http://localhost:3001` | Public URL. Set this when using a custom port |
-| `PORT` | No | `3001` | Internal server port |
-| `NODE_ENV` | No | `production` | Set `development` for auto-migrations |
-| `SEED_DATA` | No | `false` | Seed demo data on startup |
+| Variable             | Required | Default                 | Description                                   |
+| -------------------- | -------- | ----------------------- | --------------------------------------------- |
+| `DATABASE_URL`       | Yes      | --                      | PostgreSQL connection string                  |
+| `BETTER_AUTH_SECRET` | Yes      | --                      | Session signing secret (min 32 chars)         |
+| `BETTER_AUTH_URL`    | No       | `http://localhost:3001` | Public URL. Set this when using a custom port |
+| `PORT`               | No       | `3001`                  | Internal server port                          |
+| `NODE_ENV`           | No       | `production`            | Set `development` for auto-migrations         |
+| `SEED_DATA`          | No       | `false`                 | Seed demo data on startup                     |
 
 Full env var reference: [github.com/mnfst/manifest](https://github.com/mnfst/manifest)
 
