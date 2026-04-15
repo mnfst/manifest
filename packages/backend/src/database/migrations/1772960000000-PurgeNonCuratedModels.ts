@@ -51,6 +51,8 @@ const CURATED_MODELS = [
   'openrouter/free',
   'minimax/minimax-m2.5',
   'minimax/minimax-m1',
+  'minimax-m2.7',
+  'minimax-m2.7-highspeed',
   'minimax-m2.5',
   'minimax-m2.5-highspeed',
   'minimax-m2.1',

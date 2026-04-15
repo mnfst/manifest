@@ -119,7 +119,7 @@ export const PROVIDERS: ProviderDef[] = [
     name: 'MiniMax',
     color: '#E73562',
     initial: 'Mm',
-    subtitle: 'MiniMax M2.5, M1, M2',
+    subtitle: 'MiniMax M2.7, M2.5, M1',
     keyPrefix: 'sk-',
     minKeyLength: 30,
     keyPlaceholder: 'sk-...',
