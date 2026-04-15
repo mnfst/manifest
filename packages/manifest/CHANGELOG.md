@@ -1,5 +1,11 @@
 # manifest
 
+## 5.46.4
+
+### Patch Changes
+
+- d6de5d5: Fix Hermes setup instructions to use top-level model section instead of custom_providers
+
 ## 5.46.3
 
 ### Patch Changes
