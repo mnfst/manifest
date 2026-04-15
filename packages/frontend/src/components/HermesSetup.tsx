@@ -62,9 +62,9 @@ const HermesSetup: Component<Props> = (props) => {
   const copyKey = () => props.apiKey ?? masked();
 
   const yamlConfig = () =>
-    `custom_providers:\n  - name: Manifest\n    base_url: ${props.baseUrl}\n    api_key: ${displayKey()}\n    model: auto`;
+    `model:\n  provider: custom\n  base_url: ${props.baseUrl}\n  api_key: ${displayKey()}\n  default: auto`;
   const yamlConfigCopy = () =>
-    `custom_providers:\n  - name: Manifest\n    base_url: ${props.baseUrl}\n    api_key: ${copyKey()}\n    model: auto`;
+    `model:\n  provider: custom\n  base_url: ${props.baseUrl}\n  api_key: ${copyKey()}\n  default: auto`;
 
   return (
     <div class="setup-agents-card">
@@ -76,7 +76,8 @@ const HermesSetup: Component<Props> = (props) => {
       <CodeBlock code="hermes config edit" language="bash" />
 
       <p class="setup-method__hint" style="margin-top: 12px;">
-        Add the following to your <code class="setup-model-hint__code">config.yaml</code>:
+        Add the following <code class="setup-model-hint__code">model:</code> section to your{' '}
+        <code class="setup-model-hint__code">config.yaml</code>:
       </p>
       <div class="setup-cli-block">
         <div class="setup-cli-block__actions">
@@ -100,7 +101,6 @@ const HermesSetup: Component<Props> = (props) => {
       </div>
 
       <div class="setup-onboard-fields" role="list" aria-label="Configuration values">
-        <OnboardField label="Name" value="Manifest" />
         <OnboardField label="Base URL" value={props.baseUrl} copyable />
         <div class="setup-onboard-fields__row" role="listitem">
           <span class="setup-onboard-fields__label">API Key</span>
@@ -121,11 +121,6 @@ const HermesSetup: Component<Props> = (props) => {
         </div>
         <OnboardField label="Model" value="auto" copyable />
       </div>
-
-      <p class="setup-method__hint" style="margin-top: 12px;">
-        Then verify the configuration:
-      </p>
-      <CodeBlock code='hermes chat -q "Hello"' language="bash" />
     </div>
   );
 };

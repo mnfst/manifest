@@ -28,25 +28,20 @@ describe("HermesSetup", () => {
     expect(container.textContent).toContain("hermes config edit");
   });
 
-  it("shows config.yaml code block with YAML format", () => {
+  it("shows config.yaml code block with model section only", () => {
     const { container } = render(() => <HermesSetup {...defaultProps} />);
     expect(container.textContent).toContain("http://localhost:3001/v1");
-    expect(container.textContent).toContain("custom_providers:");
-    expect(container.textContent).toContain("name: Manifest");
-    expect(container.textContent).toContain("model: auto");
+    expect(container.textContent).toContain("model:");
+    expect(container.textContent).toContain("provider: custom");
+    expect(container.textContent).toContain("default: auto");
+    expect(container.textContent).not.toContain("custom_providers:");
   });
 
-  it("shows verify command", () => {
-    const { container } = render(() => <HermesSetup {...defaultProps} />);
-    expect(container.textContent).toContain('hermes chat -q "Hello"');
-  });
 
   it("shows onboard fields", () => {
     const { container } = render(() => <HermesSetup {...defaultProps} />);
     const fields = container.querySelectorAll('[role="listitem"]');
-    expect(fields.length).toBeGreaterThanOrEqual(3);
-    expect(container.textContent).toContain("Name");
-    expect(container.textContent).toContain("Manifest");
+    expect(fields.length).toBeGreaterThanOrEqual(2);
     expect(container.textContent).toContain("Model");
     expect(container.textContent).toContain("auto");
     expect(container.textContent).toContain("Base URL");
