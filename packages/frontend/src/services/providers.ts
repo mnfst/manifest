@@ -109,9 +109,9 @@ export const PROVIDERS: ProviderDef[] = [
     color: '#4285f4',
     initial: 'G',
     subtitle: 'Gemini 2.5, Gemini 2.0 Flash',
-    keyPrefix: 'AIza',
-    minKeyLength: 39,
-    keyPlaceholder: 'AIza...',
+    keyPrefix: '',
+    minKeyLength: 30,
+    keyPlaceholder: 'API key',
     models: [],
   },
   {
