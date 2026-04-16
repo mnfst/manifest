@@ -18,11 +18,15 @@ const mockGetMessages = vi.fn();
 const mockGetCustomProviders = vi.fn();
 const mockGetMessageDetails = vi.fn();
 const mockGetRoutingStatus = vi.fn();
+const mockSetMessageFeedback = vi.fn();
+const mockClearMessageFeedback = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   getMessages: (...args: unknown[]) => mockGetMessages(...args),
   getCustomProviders: (...args: unknown[]) => mockGetCustomProviders(...args),
   getMessageDetails: (...args: unknown[]) => mockGetMessageDetails(...args),
   getRoutingStatus: (...args: unknown[]) => mockGetRoutingStatus(...args),
+  setMessageFeedback: (...args: unknown[]) => mockSetMessageFeedback(...args),
+  clearMessageFeedback: (...args: unknown[]) => mockClearMessageFeedback(...args),
 }));
 
 vi.mock("../../src/services/sse.js", () => ({
@@ -48,6 +52,15 @@ vi.mock("../../src/components/SetupModal.jsx", () => ({
   default: (props: any) => (
     <div data-testid="setup-modal" data-open={props.open ? "true" : "false"} data-agent={props.agentName ?? ""}>
       <button data-testid="setup-close" onClick={() => props.onClose?.()}>Close</button>
+    </div>
+  ),
+}));
+
+vi.mock("../../src/components/FeedbackModal.jsx", () => ({
+  default: (props: any) => (
+    <div data-testid="feedback-modal" data-open={props.open ? "true" : "false"}>
+      <button data-testid="feedback-submit" onClick={() => props.onSubmit?.(['Too slow'], 'test')}>Submit</button>
+      <button data-testid="feedback-close" onClick={() => props.onClose?.()}>Close</button>
     </div>
   ),
 }));
@@ -856,5 +869,80 @@ describe("MessageLog", () => {
     const badge = container.querySelector(".status-badge--fallback_error")!;
     fireEvent.click(badge);
     expect(scrollSpy).toHaveBeenCalled();
+  });
+
+  describe("feedback", () => {
+    it("calls setMessageFeedback with like when thumb up is clicked", async () => {
+      mockSetMessageFeedback.mockResolvedValue(undefined);
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.querySelector(".feedback-btn")).not.toBeNull();
+      });
+      const likeBtn = container.querySelector(".feedback-btn") as HTMLElement;
+      fireEvent.click(likeBtn);
+      expect(mockSetMessageFeedback).toHaveBeenCalledWith("msg-12345678", { rating: "like" });
+    });
+
+    it("calls setMessageFeedback with dislike and opens modal when thumb down is clicked", async () => {
+      mockSetMessageFeedback.mockResolvedValue(undefined);
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.querySelector(".feedback-btn")).not.toBeNull();
+      });
+      const dislikeBtn = container.querySelectorAll(".feedback-btn")[1] as HTMLElement;
+      fireEvent.click(dislikeBtn);
+      expect(mockSetMessageFeedback).toHaveBeenCalledWith("msg-12345678", { rating: "dislike" });
+      const modal = container.querySelector('[data-testid="feedback-modal"]');
+      expect(modal?.getAttribute("data-open")).toBe("true");
+    });
+
+    it("calls clearMessageFeedback when active like is clicked", async () => {
+      mockClearMessageFeedback.mockResolvedValue(undefined);
+      const dataWithFeedback = {
+        ...messagesData,
+        items: [{ ...messagesData.items[0], feedback_rating: "like" }, messagesData.items[1]],
+      };
+      mockGetMessages.mockResolvedValue(dataWithFeedback);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.querySelector(".feedback-btn--active-like")).not.toBeNull();
+      });
+      const likeBtn = container.querySelector(".feedback-btn--active-like") as HTMLElement;
+      fireEvent.click(likeBtn);
+      expect(mockClearMessageFeedback).toHaveBeenCalledWith("msg-12345678");
+    });
+
+    it("submits feedback details from modal", async () => {
+      mockSetMessageFeedback.mockResolvedValue(undefined);
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.querySelector(".feedback-btn")).not.toBeNull();
+      });
+      // Click dislike to open modal
+      const dislikeBtn = container.querySelectorAll(".feedback-btn")[1] as HTMLElement;
+      fireEvent.click(dislikeBtn);
+      // Submit via modal
+      const submitBtn = container.querySelector('[data-testid="feedback-submit"]') as HTMLElement;
+      fireEvent.click(submitBtn);
+      expect(mockSetMessageFeedback).toHaveBeenCalledWith("msg-12345678", { rating: "dislike", tags: ["Too slow"], details: "test" });
+    });
+
+    it("closes feedback modal without submitting", async () => {
+      mockSetMessageFeedback.mockResolvedValue(undefined);
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.querySelector(".feedback-btn")).not.toBeNull();
+      });
+      const dislikeBtn = container.querySelectorAll(".feedback-btn")[1] as HTMLElement;
+      fireEvent.click(dislikeBtn);
+      const closeBtn = container.querySelector('[data-testid="feedback-close"]') as HTMLElement;
+      fireEvent.click(closeBtn);
+      const modal = container.querySelector('[data-testid="feedback-modal"]');
+      expect(modal?.getAttribute("data-open")).toBe("false");
+    });
   });
 });
