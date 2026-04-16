@@ -1,5 +1,12 @@
 # manifest
 
+## 5.46.6
+
+### Patch Changes
+
+- 83afc73: fix(docker): auto-detect local mode in Docker containers via /.dockerenv
+- 83afc73: fix: show email verification prompt after signup instead of silently reloading
+
 ## 5.46.5
 
 ### Patch Changes
