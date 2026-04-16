@@ -123,7 +123,13 @@ export class ProviderClient {
       // Inject stream_options.include_usage so providers always send token
       // usage in streaming responses — needed for both DB logging and
       // downstream clients (e.g. OpenClaw context management).
-      if (stream && (endpointKey === 'openai' || endpointKey === 'openrouter')) {
+      if (
+        stream &&
+        (endpointKey === 'openai' ||
+          endpointKey === 'openrouter' ||
+          endpointKey === 'ollama' ||
+          endpointKey === 'ollama-cloud')
+      ) {
         const existing =
           typeof sanitized.stream_options === 'object' && sanitized.stream_options !== null
             ? (sanitized.stream_options as Record<string, unknown>)
