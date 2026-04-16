@@ -785,4 +785,135 @@ describe('MessageTable', () => {
       expect(headers[4]!.textContent).toContain('Status');
     });
   });
+
+  describe('feedback column', () => {
+    it('renders feedback buttons', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow()]}
+          columns={['feedback']}
+          agentName="agent-1"
+          customProviderName={noopProvider}
+          onFeedbackLike={vi.fn()}
+          onFeedbackDislike={vi.fn()}
+          onFeedbackClear={vi.fn()}
+        />
+      ));
+      const buttons = container.querySelectorAll('.feedback-btn');
+      expect(buttons.length).toBe(2);
+    });
+
+    it('calls onFeedbackLike when thumb up is clicked', () => {
+      const handler = vi.fn();
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ id: 'msg-like-test' })]}
+          columns={['feedback']}
+          agentName="agent-1"
+          customProviderName={noopProvider}
+          onFeedbackLike={handler}
+          onFeedbackDislike={vi.fn()}
+          onFeedbackClear={vi.fn()}
+        />
+      ));
+      const likeBtn = container.querySelectorAll('.feedback-btn')[0] as HTMLElement;
+      fireEvent.click(likeBtn);
+      expect(handler).toHaveBeenCalledWith('msg-like-test');
+    });
+
+    it('calls onFeedbackDislike when thumb down is clicked', () => {
+      const handler = vi.fn();
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ id: 'msg-dislike-test' })]}
+          columns={['feedback']}
+          agentName="agent-1"
+          customProviderName={noopProvider}
+          onFeedbackLike={vi.fn()}
+          onFeedbackDislike={handler}
+          onFeedbackClear={vi.fn()}
+        />
+      ));
+      const dislikeBtn = container.querySelectorAll('.feedback-btn')[1] as HTMLElement;
+      fireEvent.click(dislikeBtn);
+      expect(handler).toHaveBeenCalledWith('msg-dislike-test');
+    });
+
+    it('calls onFeedbackClear when active like is clicked again', () => {
+      const handler = vi.fn();
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ id: 'msg-clear-test', feedback_rating: 'like' })]}
+          columns={['feedback']}
+          agentName="agent-1"
+          customProviderName={noopProvider}
+          onFeedbackLike={vi.fn()}
+          onFeedbackDislike={vi.fn()}
+          onFeedbackClear={handler}
+        />
+      ));
+      const likeBtn = container.querySelector('.feedback-btn--active-like') as HTMLElement;
+      expect(likeBtn).not.toBeNull();
+      fireEvent.click(likeBtn);
+      expect(handler).toHaveBeenCalledWith('msg-clear-test');
+    });
+
+    it('calls onFeedbackClear when active dislike is clicked again', () => {
+      const handler = vi.fn();
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ id: 'msg-clear-test', feedback_rating: 'dislike' })]}
+          columns={['feedback']}
+          agentName="agent-1"
+          customProviderName={noopProvider}
+          onFeedbackLike={vi.fn()}
+          onFeedbackDislike={vi.fn()}
+          onFeedbackClear={handler}
+        />
+      ));
+      const dislikeBtn = container.querySelector('.feedback-btn--active-dislike') as HTMLElement;
+      expect(dislikeBtn).not.toBeNull();
+      fireEvent.click(dislikeBtn);
+      expect(handler).toHaveBeenCalledWith('msg-clear-test');
+    });
+
+    it('shows active-like class when feedback_rating is like', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ feedback_rating: 'like' })]}
+          columns={['feedback']}
+          agentName="agent-1"
+          customProviderName={noopProvider}
+        />
+      ));
+      expect(container.querySelector('.feedback-btn--active-like')).not.toBeNull();
+      expect(container.querySelector('.feedback-btn--active-dislike')).toBeNull();
+    });
+
+    it('shows active-dislike class when feedback_rating is dislike', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ feedback_rating: 'dislike' })]}
+          columns={['feedback']}
+          agentName="agent-1"
+          customProviderName={noopProvider}
+        />
+      ));
+      expect(container.querySelector('.feedback-btn--active-dislike')).not.toBeNull();
+      expect(container.querySelector('.feedback-btn--active-like')).toBeNull();
+    });
+
+    it('shows no active class when no feedback', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow()]}
+          columns={['feedback']}
+          agentName="agent-1"
+          customProviderName={noopProvider}
+        />
+      ));
+      expect(container.querySelector('.feedback-btn--active-like')).toBeNull();
+      expect(container.querySelector('.feedback-btn--active-dislike')).toBeNull();
+    });
+  });
 });
