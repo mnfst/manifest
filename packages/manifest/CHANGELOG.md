@@ -1,5 +1,11 @@
 # manifest
 
+## 5.46.7
+
+### Patch Changes
+
+- aeb7a54: fix(proxy): capture streaming token usage for Ollama and Ollama Cloud providers
+
 ## 5.46.6
 
 ### Patch Changes
