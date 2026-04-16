@@ -1414,6 +1414,34 @@ describe('ProviderClient', () => {
       expect(sentBody.stream_options).toEqual({ include_usage: true });
     });
 
+    it('injects stream_options.include_usage for Ollama streaming requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'ollama',
+        apiKey: '',
+        model: 'llama3',
+        body: { messages: [{ role: 'user', content: 'Hello' }] },
+        stream: true,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream_options).toEqual({ include_usage: true });
+    });
+
+    it('injects stream_options.include_usage for Ollama Cloud streaming requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'ollama-cloud',
+        apiKey: 'ollama-key',
+        model: 'llama3',
+        body: { messages: [{ role: 'user', content: 'Hello' }] },
+        stream: true,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream_options).toEqual({ include_usage: true });
+    });
+
     it('does not inject stream_options for non-streaming OpenAI requests', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
       await client.forward({
