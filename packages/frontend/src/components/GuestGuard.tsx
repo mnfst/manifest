@@ -7,6 +7,7 @@ const GuestGuard: ParentComponent = (props) => {
   const session = authClient.useSession();
   const navigate = useNavigate();
   const [setupChecked, setSetupChecked] = createSignal(false);
+  const [ready, setReady] = createSignal(false);
 
   onMount(async () => {
     const needsSetup = await checkNeedsSetup();
@@ -22,10 +23,13 @@ const GuestGuard: ParentComponent = (props) => {
     if (!s.isPending && s.data) {
       navigate('/', { replace: true });
     }
+    if (setupChecked() && !s.isPending && !s.data) {
+      setReady(true);
+    }
   });
 
   return (
-    <Show when={setupChecked() && !session().isPending && !session().data} fallback={null}>
+    <Show when={ready()} fallback={null}>
       {props.children}
     </Show>
   );
