@@ -2,6 +2,7 @@ import { ConflictException, Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { OLLAMA_HOST } from '../common/constants/ollama';
+import { isLocalMode } from '../common/utils/detect-local-mode';
 
 /**
  * Postgres advisory lock key reserved for the first-run setup wizard.
@@ -17,10 +18,11 @@ export class SetupService {
   constructor(private readonly dataSource: DataSource) {}
 
   /**
-   * Returns true when MANIFEST_MODE is 'local' (Docker/self-hosted).
+   * Returns true when running in local/self-hosted mode.
+   * Auto-detects Docker containers; can be overridden via MANIFEST_MODE env var.
    */
   isLocalMode(): boolean {
-    return process.env['MANIFEST_MODE'] === 'local';
+    return isLocalMode();
   }
 
   /**

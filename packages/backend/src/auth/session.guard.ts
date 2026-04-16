@@ -5,6 +5,7 @@ import { fromNodeHeaders } from 'better-auth/node';
 import { auth } from './auth.instance';
 import { IS_PUBLIC_KEY } from '../common/decorators/public.decorator';
 import { isLoopbackIp } from '../common/utils/local-ip';
+import { isLocalMode } from '../common/utils/detect-local-mode';
 
 @Injectable()
 export class SessionGuard implements CanActivate {
@@ -44,7 +45,7 @@ export class SessionGuard implements CanActivate {
 
     // In local mode, fall back to a synthetic user for loopback requests
     // without a session (e.g. curl, programmatic access)
-    if (process.env['MANIFEST_MODE'] === 'local' && request.ip && isLoopbackIp(request.ip)) {
+    if (isLocalMode() && request.ip && isLoopbackIp(request.ip)) {
       (request as Request & { user: unknown }).user = {
         id: 'local',
         name: 'Local User',
