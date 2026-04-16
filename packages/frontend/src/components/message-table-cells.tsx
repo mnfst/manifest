@@ -66,7 +66,16 @@ export function FallbackIcon(): JSX.Element {
   );
 }
 
-export function ThumbUpIcon(): JSX.Element {
+const THUMB_UP_OUTLINED =
+  'M19.5 8h-5.11l.9-2.71c.25-.76.13-1.6-.34-2.25A2.52 2.52 0 0 0 12.92 2h-.57c-.52 0-1.01.23-1.34.63L6.53 8H4.5A2.5 2.5 0 0 0 2 10.5v8A2.5 2.5 0 0 0 4.5 21h11.42a4.03 4.03 0 0 0 3.75-2.59l2.17-5.8c.11-.28.16-.58.16-.88V10.5A2.5 2.5 0 0 0 19.5 8M6 19H4.5c-.28 0-.5-.22-.5-.5v-8c0-.28.22-.5.5-.5H6zm14-7.27q0 .09-.03.18l-2.17 5.8a2 2 0 0 1-1.87 1.3H8.01V9.37l4.47-5.36h.45c.22 0 .35.13.41.21s.14.24.07.45L12.4 7.71c-.18.53-.09 1.12.24 1.58s.86.73 1.42.73h5.46c.28 0 .5.22.5.5v1.23Z';
+const THUMB_UP_FILLED =
+  'M4 21h1V8H4c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2M20 8h-6.61l1.12-3.37c.2-.61.1-1.28-.27-1.8-.38-.52-.98-.83-1.62-.83h-.61c-.3 0-.58.13-.77.36L7.01 7.44V21h10.31a2 2 0 0 0 1.87-1.3l2.76-7.35c.04-.11.06-.23.06-.35v-2c0-1.1-.9-2-2-2Z';
+const THUMB_DOWN_OUTLINED =
+  'M19.5 3H8.08a4.03 4.03 0 0 0-3.75 2.59l-2.17 5.8c-.11.28-.16.58-.16.88v1.23A2.5 2.5 0 0 0 4.5 16h5.11l-.9 2.71c-.25.76-.13 1.6.34 2.25S10.28 22 11.08 22h.57c.52 0 1.01-.23 1.34-.63L17.47 16h2.03a2.5 2.5 0 0 0 2.5-2.5v-8A2.5 2.5 0 0 0 19.5 3M16 14.64 11.53 20h-.45c-.22 0-.35-.13-.41-.21a.48.48 0 0 1-.07-.45l1.01-3.04c.18-.53.09-1.12-.24-1.58s-.86-.73-1.42-.73H4.49c-.28 0-.5-.22-.5-.5v-1.23q0-.09.03-.18l2.17-5.8a2 2 0 0 1 1.87-1.3h7.92v9.64Zm4-1.14c0 .28-.22.5-.5.5H18V5h1.5c.28 0 .5.22.5.5z';
+const THUMB_DOWN_FILLED =
+  'M20 3h-1v13h1c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2M4.82 4.3l-2.76 7.35c-.04.11-.06.23-.06.35v2c0 1.1.9 2 2 2h6.61l-1.12 3.37c-.2.61-.1 1.28.27 1.8.38.52.98.83 1.62.83h.61c.3 0 .58-.13.77-.36l4.23-5.08V3H6.69a2 2 0 0 0-1.87 1.3';
+
+export function ThumbUpIcon(props: { filled?: boolean }): JSX.Element {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -76,12 +85,12 @@ export function ThumbUpIcon(): JSX.Element {
       viewBox="0 0 24 24"
       aria-hidden="true"
     >
-      <path d="M4 21h1V8H4c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2M20 8h-6.61l1.12-3.37c.2-.61.1-1.28-.27-1.8-.38-.52-.98-.83-1.62-.83h-.61c-.3 0-.58.13-.77.36L7.01 7.44V21h10.31a2 2 0 0 0 1.87-1.3l2.76-7.35c.04-.11.06-.23.06-.35v-2c0-1.1-.9-2-2-2Z" />
+      <path d={props.filled ? THUMB_UP_FILLED : THUMB_UP_OUTLINED} />
     </svg>
   );
 }
 
-export function ThumbDownIcon(): JSX.Element {
+export function ThumbDownIcon(props: { filled?: boolean }): JSX.Element {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -91,7 +100,7 @@ export function ThumbDownIcon(): JSX.Element {
       viewBox="0 0 24 24"
       aria-hidden="true"
     >
-      <path d="M20 3h-1v13h1c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2M4.82 4.3l-2.76 7.35c-.04.11-.06.23-.06.35v2c0 1.1.9 2 2 2h6.61l-1.12 3.37c-.2.61-.1 1.28.27 1.8.38.52.98.83 1.62.83h.61c.3 0 .58-.13.77-.36l4.23-5.08V3H6.69a2 2 0 0 0-1.87 1.3" />
+      <path d={props.filled ? THUMB_DOWN_FILLED : THUMB_DOWN_OUTLINED} />
     </svg>
   );
 }
@@ -365,7 +374,7 @@ export function FeedbackCell(
       <div class="feedback-cell">
         <button
           type="button"
-          class={`feedback-btn${isLiked ? ' feedback-btn--active' : ''}`}
+          class={`feedback-btn${isLiked ? ' feedback-btn--active-like' : ''}`}
           onClick={(e) => {
             e.stopPropagation();
             if (isLiked) {
@@ -377,11 +386,11 @@ export function FeedbackCell(
           title={isLiked ? 'Remove feedback' : 'Like'}
           aria-label={isLiked ? 'Remove feedback' : 'Like'}
         >
-          <ThumbUpIcon />
+          <ThumbUpIcon filled />
         </button>
         <button
           type="button"
-          class={`feedback-btn${isDisliked ? ' feedback-btn--active' : ''}`}
+          class={`feedback-btn${isDisliked ? ' feedback-btn--active-dislike' : ''}`}
           onClick={(e) => {
             e.stopPropagation();
             if (isDisliked) {
@@ -393,7 +402,7 @@ export function FeedbackCell(
           title={isDisliked ? 'Remove feedback' : 'Dislike'}
           aria-label={isDisliked ? 'Remove feedback' : 'Dislike'}
         >
-          <ThumbDownIcon />
+          <ThumbDownIcon filled />
         </button>
       </div>
     </td>

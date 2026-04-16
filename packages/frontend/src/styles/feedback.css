@@ -6,10 +6,9 @@
   gap: 0;
 }
 
-.feedback-cell td,
-td:has(> .feedback-cell) {
-  padding-left: 4px;
+.data-table td:has(> .feedback-cell) {
   padding-right: 0;
+  padding-left: 4px;
 }
 
 .feedback-btn {
@@ -36,13 +35,28 @@ td:has(> .feedback-cell) {
   background: hsl(var(--muted) / 0.5);
 }
 
-.feedback-btn--active {
+.feedback-btn--active-like {
   opacity: 1;
-  color: hsl(var(--primary));
+  color: #1bc4bf;
 }
 
-.feedback-btn--active:hover {
-  background: hsl(var(--primary) / 0.1);
+.feedback-btn--active-like:hover {
+  background: rgb(27 196 191 / 0.1);
+}
+
+.feedback-btn--active-dislike {
+  opacity: 1;
+  color: hsl(var(--foreground));
+}
+
+.feedback-btn--active-dislike:hover {
+  background: hsl(var(--muted) / 0.5);
+}
+
+/* When a sibling is active, fade the inactive thumb further */
+.feedback-cell:has(.feedback-btn--active-like) .feedback-btn:not(.feedback-btn--active-like),
+.feedback-cell:has(.feedback-btn--active-dislike) .feedback-btn:not(.feedback-btn--active-dislike) {
+  opacity: 0.2;
 }
 
 /* ── Feedback Modal ─────────────────────────────── */
