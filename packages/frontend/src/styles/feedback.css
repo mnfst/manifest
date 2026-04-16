@@ -1,0 +1,117 @@
+/* ── Message Feedback (thumbs up/down) ──────────── */
+
+.feedback-cell {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.feedback-cell td,
+td:has(> .feedback-cell) {
+  padding-left: 4px;
+  padding-right: 0;
+}
+
+.feedback-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  opacity: 0.5;
+  transition:
+    opacity var(--transition-fast),
+    color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.feedback-btn:hover {
+  opacity: 1;
+  background: hsl(var(--muted) / 0.5);
+}
+
+.feedback-btn--active {
+  opacity: 1;
+  color: hsl(var(--primary));
+}
+
+.feedback-btn--active:hover {
+  background: hsl(var(--primary) / 0.1);
+}
+
+/* ── Feedback Modal ─────────────────────────────── */
+
+.feedback-modal {
+  max-width: 420px;
+}
+
+.feedback-modal__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.feedback-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 999px;
+  background: transparent;
+  color: hsl(var(--foreground));
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+  user-select: none;
+}
+
+.feedback-tag:hover {
+  background: hsl(var(--muted) / 0.5);
+}
+
+.feedback-tag--selected {
+  background: hsl(var(--foreground));
+  color: hsl(var(--background));
+  border-color: hsl(var(--foreground));
+}
+
+.feedback-tag--selected:hover {
+  background: hsl(var(--foreground) / 0.85);
+}
+
+.feedback-modal__textarea {
+  width: 100%;
+  min-height: 60px;
+  padding: 8px 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  font-family: var(--font-sans);
+  font-size: var(--font-size-xs);
+  resize: vertical;
+  margin-bottom: 12px;
+}
+
+.feedback-modal__textarea::placeholder {
+  color: hsl(var(--muted-foreground));
+}
+
+.feedback-modal__textarea:focus {
+  outline: none;
+  border-color: hsl(var(--ring));
+}
+
+.feedback-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+}

@@ -9,6 +9,9 @@ export interface MessageTableProps {
   agentName: string;
   customProviderName: (model: string) => string | undefined;
   onFallbackErrorClick?: (model: string) => void;
+  onFeedbackLike?: (id: string) => void;
+  onFeedbackDislike?: (id: string) => void;
+  onFeedbackClear?: (id: string) => void;
   rowIdPrefix?: string;
   showHeaderTooltips?: boolean;
   expandable?: boolean;
@@ -45,6 +48,9 @@ function ExpandableRow(props: {
     agentName: props.tableProps.agentName,
     customProviderName: props.tableProps.customProviderName,
     onFallbackErrorClick: props.tableProps.onFallbackErrorClick,
+    onFeedbackLike: props.tableProps.onFeedbackLike,
+    onFeedbackDislike: props.tableProps.onFeedbackDislike,
+    onFeedbackClear: props.tableProps.onFeedbackClear,
   };
 
   return (
@@ -84,6 +90,9 @@ function PlainRow(props: {
     agentName: props.tableProps.agentName,
     customProviderName: props.tableProps.customProviderName,
     onFallbackErrorClick: props.tableProps.onFallbackErrorClick,
+    onFeedbackLike: props.tableProps.onFeedbackLike,
+    onFeedbackDislike: props.tableProps.onFeedbackDislike,
+    onFeedbackClear: props.tableProps.onFeedbackClear,
   };
   return (
     <tr id={props.rowId}>

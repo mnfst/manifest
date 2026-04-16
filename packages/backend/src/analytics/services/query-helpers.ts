@@ -86,6 +86,7 @@ export const MESSAGE_ROW_SELECT_ALIASES = [
   'auth_type',
   'fallback_from_model',
   'fallback_index',
+  'feedback_rating',
 ] as const;
 
 export function selectMessageRowColumns<T extends ObjectLiteral>(
@@ -110,5 +111,6 @@ export function selectMessageRowColumns<T extends ObjectLiteral>(
     .addSelect('at.error_message', 'error_message')
     .addSelect('at.auth_type', 'auth_type')
     .addSelect('at.fallback_from_model', 'fallback_from_model')
-    .addSelect('at.fallback_index', 'fallback_index');
+    .addSelect('at.fallback_index', 'fallback_index')
+    .addSelect('at.feedback_rating', 'feedback_rating');
 }

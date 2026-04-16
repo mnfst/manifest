@@ -100,4 +100,13 @@ export class AgentMessage {
 
   @Column('simple-json', { nullable: true })
   caller_attribution!: CallerAttribution | null;
+
+  @Column('varchar', { nullable: true })
+  feedback_rating!: string | null;
+
+  @Column('varchar', { nullable: true })
+  feedback_tags!: string | null;
+
+  @Column('text', { nullable: true })
+  feedback_details!: string | null;
 }

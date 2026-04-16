@@ -11,6 +11,7 @@ import {
 import ChartCard from '../components/ChartCard.jsx';
 import CostByModelTable from '../components/CostByModelTable.jsx';
 import ErrorState from '../components/ErrorState.jsx';
+import FeedbackModal from '../components/FeedbackModal.jsx';
 import MessageTable from '../components/MessageTable.jsx';
 import OverviewSkeleton from '../components/OverviewSkeleton.jsx';
 import Select from '../components/Select.jsx';
@@ -22,7 +23,13 @@ import {
   agentCategory,
   agentPlatformIcon,
 } from '../services/agent-platform-store.js';
-import { getCustomProviders, getOverview, type CustomProviderData } from '../services/api.js';
+import {
+  getCustomProviders,
+  getOverview,
+  setMessageFeedback,
+  clearMessageFeedback,
+  type CustomProviderData,
+} from '../services/api.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
 import { isRecentlyCreated } from '../services/recent-agents.js';
 import { pingCount } from '../services/sse.js';
@@ -102,6 +109,60 @@ const Overview: Component = () => {
     if (!match) return undefined;
     const id = match[1];
     return customProviders()?.find((cp: CustomProviderData) => cp.id === id)?.name;
+  };
+
+  const [feedbackModalOpen, setFeedbackModalOpen] = createSignal(false);
+  const [feedbackMessageId, setFeedbackMessageId] = createSignal('');
+  const [feedbackOverrides, setFeedbackOverrides] = createSignal<Record<string, string | null>>({});
+
+  const applyFeedbackOverrides = (items: MessageRow[]): MessageRow[] => {
+    const overrides = feedbackOverrides();
+    return items.map((item) =>
+      item.id in overrides ? { ...item, feedback_rating: overrides[item.id] ?? undefined } : item,
+    );
+  };
+
+  const handleFeedbackLike = (id: string) => {
+    setFeedbackOverrides((prev) => ({ ...prev, [id]: 'like' }));
+    setMessageFeedback(id, { rating: 'like' }).catch(() => {
+      setFeedbackOverrides((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+    });
+  };
+
+  const handleFeedbackDislike = (id: string) => {
+    setFeedbackOverrides((prev) => ({ ...prev, [id]: 'dislike' }));
+    setFeedbackMessageId(id);
+    setFeedbackModalOpen(true);
+    setMessageFeedback(id, { rating: 'dislike' }).catch(() => {
+      setFeedbackOverrides((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+    });
+  };
+
+  const handleFeedbackClear = (id: string) => {
+    setFeedbackOverrides((prev) => ({ ...prev, [id]: null }));
+    clearMessageFeedback(id).catch(() => {
+      setFeedbackOverrides((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+    });
+  };
+
+  const handleFeedbackSubmit = (tags: string[], details: string) => {
+    const id = feedbackMessageId();
+    if (id) {
+      setMessageFeedback(id, { rating: 'dislike', tags, details });
+    }
+    setFeedbackModalOpen(false);
   };
 
   const [data, { refetch }] = createResource(
@@ -288,10 +349,13 @@ const Overview: Component = () => {
                       </A>
                     </div>
                     <MessageTable
-                      items={d().recent_activity?.slice(0, 5) ?? []}
+                      items={applyFeedbackOverrides(d().recent_activity?.slice(0, 5) ?? [])}
                       columns={COMPACT_COLUMNS}
                       agentName={params.agentName}
                       customProviderName={customProviderName}
+                      onFeedbackLike={handleFeedbackLike}
+                      onFeedbackDislike={handleFeedbackDislike}
+                      onFeedbackClear={handleFeedbackClear}
                     />
                   </div>
 
@@ -325,6 +389,12 @@ const Overview: Component = () => {
             state: { openProviders: true },
           });
         }}
+      />
+
+      <FeedbackModal
+        open={feedbackModalOpen()}
+        onClose={() => setFeedbackModalOpen(false)}
+        onSubmit={handleFeedbackSubmit}
       />
     </div>
   );

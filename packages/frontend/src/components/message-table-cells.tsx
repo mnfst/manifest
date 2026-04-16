@@ -66,6 +66,36 @@ export function FallbackIcon(): JSX.Element {
   );
 }
 
+export function ThumbUpIcon(): JSX.Element {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="16"
+      height="16"
+      fill="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path d="M4 21h1V8H4c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2M20 8h-6.61l1.12-3.37c.2-.61.1-1.28-.27-1.8-.38-.52-.98-.83-1.62-.83h-.61c-.3 0-.58.13-.77.36L7.01 7.44V21h10.31a2 2 0 0 0 1.87-1.3l2.76-7.35c.04-.11.06-.23.06-.35v-2c0-1.1-.9-2-2-2Z" />
+    </svg>
+  );
+}
+
+export function ThumbDownIcon(): JSX.Element {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="16"
+      height="16"
+      fill="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path d="M20 3h-1v13h1c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2M4.82 4.3l-2.76 7.35c-.04.11-.06.23-.06.35v2c0 1.1.9 2 2 2h6.61l-1.12 3.37c-.2.61-.1 1.28.27 1.8.38.52.98.83 1.62.83h.61c.3 0 .58-.13.77-.36l4.23-5.08V3H6.69a2 2 0 0 0-1.87 1.3" />
+    </svg>
+  );
+}
+
 const HEADER_LABELS: Record<MessageColumnKey, string> = {
   date: 'Date',
   message: 'Message',
@@ -77,6 +107,7 @@ const HEADER_LABELS: Record<MessageColumnKey, string> = {
   cache: 'Cache',
   duration: 'Duration',
   status: 'Status',
+  feedback: '',
 };
 
 const TOOLTIP_TEXT: Partial<Record<MessageColumnKey, string>> = {
@@ -320,10 +351,62 @@ export function StatusCell(
   );
 }
 
+export function FeedbackCell(
+  item: MessageRow,
+  onLike: (id: string) => void,
+  onDislike: (id: string) => void,
+  onClear: (id: string) => void,
+): JSX.Element {
+  const isLiked = item.feedback_rating === 'like';
+  const isDisliked = item.feedback_rating === 'dislike';
+
+  return (
+    <td>
+      <div class="feedback-cell">
+        <button
+          type="button"
+          class={`feedback-btn${isLiked ? ' feedback-btn--active' : ''}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (isLiked) {
+              onClear(item.id);
+            } else {
+              onLike(item.id);
+            }
+          }}
+          title={isLiked ? 'Remove feedback' : 'Like'}
+          aria-label={isLiked ? 'Remove feedback' : 'Like'}
+        >
+          <ThumbUpIcon />
+        </button>
+        <button
+          type="button"
+          class={`feedback-btn${isDisliked ? ' feedback-btn--active' : ''}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (isDisliked) {
+              onClear(item.id);
+            } else {
+              onDislike(item.id);
+            }
+          }}
+          title={isDisliked ? 'Remove feedback' : 'Dislike'}
+          aria-label={isDisliked ? 'Remove feedback' : 'Dislike'}
+        >
+          <ThumbDownIcon />
+        </button>
+      </div>
+    </td>
+  );
+}
+
 export interface CellRenderContext {
   agentName: string;
   customProviderName: (model: string) => string | undefined;
   onFallbackErrorClick?: (model: string) => void;
+  onFeedbackLike?: (id: string) => void;
+  onFeedbackDislike?: (id: string) => void;
+  onFeedbackClear?: (id: string) => void;
 }
 
 export function renderCell(
@@ -352,5 +435,12 @@ export function renderCell(
       return DurationCell(item);
     case 'status':
       return StatusCell(item, ctx.agentName, ctx.onFallbackErrorClick);
+    case 'feedback':
+      return FeedbackCell(
+        item,
+        ctx.onFeedbackLike ?? (() => {}),
+        ctx.onFeedbackDislike ?? (() => {}),
+        ctx.onFeedbackClear ?? (() => {}),
+      );
   }
 }

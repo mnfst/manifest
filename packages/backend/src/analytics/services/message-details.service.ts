@@ -33,6 +33,9 @@ export interface MessageDetailResponse {
     fallback_from_model: string | null;
     fallback_index: number | null;
     session_key: string | null;
+    feedback_rating: string | null;
+    feedback_tags: string[] | null;
+    feedback_details: string | null;
   };
   llm_calls: {
     id: string;
@@ -149,6 +152,9 @@ export class MessageDetailsService {
         fallback_from_model: message.fallback_from_model,
         fallback_index: message.fallback_index,
         session_key: message.session_key,
+        feedback_rating: message.feedback_rating,
+        feedback_tags: message.feedback_tags ? message.feedback_tags.split(',') : null,
+        feedback_details: message.feedback_details,
       },
       llm_calls: llmCalls.map((lc) => ({
         id: lc.id,

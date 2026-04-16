@@ -55,6 +55,9 @@ describe('MessageDetailsService', () => {
     fallback_index: null,
     session_key: 'sess-001',
     user_id: 'u1',
+    feedback_rating: null,
+    feedback_tags: null,
+    feedback_details: null,
   };
 
   beforeEach(async () => {
@@ -232,7 +235,26 @@ describe('MessageDetailsService', () => {
       fallback_from_model: null,
       fallback_index: null,
       session_key: 'sess-001',
+      feedback_rating: null,
+      feedback_tags: null,
+      feedback_details: null,
     });
+  });
+
+  it('splits feedback_tags into an array when present', async () => {
+    const msgWithFeedback = {
+      ...baseMessage,
+      feedback_rating: 'dislike',
+      feedback_tags: 'Too slow,Buggy',
+      feedback_details: 'Response was slow',
+    };
+    msgQb.getOne.mockResolvedValue(msgWithFeedback);
+
+    const result = await service.getDetails('msg-1', 'u1');
+
+    expect(result.message.feedback_rating).toBe('dislike');
+    expect(result.message.feedback_tags).toEqual(['Too slow', 'Buggy']);
+    expect(result.message.feedback_details).toBe('Response was slow');
   });
 
   it('returns error message details for failed messages', async () => {

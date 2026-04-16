@@ -1,4 +1,4 @@
-import { fetchJson } from './core.js';
+import { fetchJson, fetchMutate, BASE_URL } from './core.js';
 
 export interface MessageDetailLlmCall {
   id: string;
@@ -59,6 +59,9 @@ export interface MessageDetailResponse {
     fallback_from_model: string | null;
     fallback_index: number | null;
     session_key: string | null;
+    feedback_rating: string | null;
+    feedback_tags: string[] | null;
+    feedback_details: string | null;
   };
   llm_calls: MessageDetailLlmCall[];
   tool_executions: MessageDetailToolExecution[];
@@ -82,4 +85,21 @@ export function getMessages(
 
 export function getMessageDetails(id: string) {
   return fetchJson<MessageDetailResponse>(`/messages/${encodeURIComponent(id)}/details`);
+}
+
+export function setMessageFeedback(
+  id: string,
+  body: { rating: 'like' | 'dislike'; tags?: string[]; details?: string },
+) {
+  return fetchMutate<void>(`${BASE_URL}/messages/${encodeURIComponent(id)}/feedback`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+}
+
+export function clearMessageFeedback(id: string) {
+  return fetchMutate<void>(`${BASE_URL}/messages/${encodeURIComponent(id)}/feedback`, {
+    method: 'DELETE',
+  });
 }

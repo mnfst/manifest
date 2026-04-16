@@ -116,13 +116,14 @@ describe('MessageTable', () => {
         />
       ));
       const headers = container.querySelectorAll('th');
-      expect(headers.length).toBe(6);
-      expect(headers[0]!.textContent).toContain('Date');
-      expect(headers[1]!.textContent).toContain('Message');
-      expect(headers[2]!.textContent).toContain('Cost');
-      expect(headers[3]!.textContent).toContain('Model');
-      expect(headers[4]!.textContent).toContain('Tokens');
-      expect(headers[5]!.textContent).toContain('Status');
+      expect(headers.length).toBe(7);
+      expect(headers[0]!.textContent).toBe('');
+      expect(headers[1]!.textContent).toContain('Date');
+      expect(headers[2]!.textContent).toContain('Model');
+      expect(headers[3]!.textContent).toContain('Message');
+      expect(headers[4]!.textContent).toContain('Cost');
+      expect(headers[5]!.textContent).toContain('Tokens');
+      expect(headers[6]!.textContent).toContain('Status');
     });
 
     it('renders detailed column headers with tooltips', () => {
@@ -136,11 +137,15 @@ describe('MessageTable', () => {
         />
       ));
       const headers = container.querySelectorAll('th');
-      expect(headers.length).toBe(10);
-      expect(headers[0]!.textContent).toContain('Date');
-      expect(headers[3]!.textContent).toContain('Total Tokens');
-      expect(headers[7]!.textContent).toContain('Cache');
-      expect(headers[8]!.textContent).toContain('Duration');
+      expect(headers.length).toBe(11);
+      expect(headers[0]!.textContent).toBe('');
+      expect(headers[1]!.textContent).toContain('Date');
+      expect(headers[2]!.textContent).toContain('Model');
+      expect(headers[3]!.textContent).toContain('Message');
+      expect(headers[5]!.textContent).toContain('Total Tokens');
+      expect(headers[8]!.textContent).toContain('Cache');
+      expect(headers[9]!.textContent).toContain('Duration');
+      expect(headers[10]!.textContent).toContain('Status');
       // Tooltips should be present for token columns
       const tooltips = container.querySelectorAll('[data-testid="info-tooltip"]');
       expect(tooltips.length).toBeGreaterThanOrEqual(3);
@@ -155,7 +160,7 @@ describe('MessageTable', () => {
           customProviderName={noopProvider}
         />
       ));
-      const tokensHeader = container.querySelectorAll('th')[4]!;
+      const tokensHeader = container.querySelectorAll('th')[5]!; // 'totalTokens' is at index 5 in COMPACT_COLUMNS
       expect(tokensHeader.textContent).toBe('Tokens');
       expect(tokensHeader.querySelector('[data-testid="info-tooltip"]')).toBeNull();
     });

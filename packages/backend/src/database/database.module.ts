@@ -68,6 +68,7 @@ import { AddSpecificityAssignments1775200000000 } from './migrations/17752000000
 import { AddSpecificityCategory1775300000000 } from './migrations/1775300000000-AddSpecificityCategory';
 import { AddCallerAttribution1775400000000 } from './migrations/1775400000000-AddCallerAttribution';
 import { AddMessageProvider1775500000000 } from './migrations/1775500000000-AddMessageProvider';
+import { AddMessageFeedback1775600000000 } from './migrations/1775600000000-AddMessageFeedback';
 
 const entities = [
   AgentMessage,
@@ -137,6 +138,7 @@ const migrations = [
   AddSpecificityCategory1775300000000,
   AddCallerAttribution1775400000000,
   AddMessageProvider1775500000000,
+  AddMessageFeedback1775600000000,
 ];
 
 @Module({
