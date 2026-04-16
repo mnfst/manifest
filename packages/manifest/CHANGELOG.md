@@ -1,5 +1,11 @@
 # manifest
 
+## 5.46.5
+
+### Patch Changes
+
+- 19a1366: Improve local/Docker mode: hide social login buttons when OAuth is not configured, fix per-user data isolation, add optional Ollama via Docker Compose profile, and expose mode/Ollama status in setup endpoint.
+
 ## 5.46.4
 
 ### Patch Changes
