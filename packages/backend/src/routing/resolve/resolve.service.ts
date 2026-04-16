@@ -162,6 +162,7 @@ export class ResolveService {
       reason: 'specificity',
       auth_type: authType,
       specificity_category: detected.category,
+      fallback_models: assignment.fallback_models ?? null,
     };
   }
 

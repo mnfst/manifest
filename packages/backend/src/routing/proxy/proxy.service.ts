@@ -177,7 +177,7 @@ export class ProxyService {
     if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
       const tiers = await this.tierService.getTiers(agentId);
       const assignment = tiers.find((t) => t.tier === resolved.tier);
-      const fallbackModels = assignment?.fallback_models;
+      const fallbackModels = resolved.fallback_models ?? assignment?.fallback_models;
 
       if (fallbackModels && fallbackModels.length > 0) {
         const primaryStatus = forward.response.status;

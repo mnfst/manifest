@@ -421,6 +421,7 @@ describe('ResolveService', () => {
           override_provider: 'anthropic',
           override_auth_type: null,
           auto_assigned_model: null,
+          fallback_models: ['gpt-4o', 'deepseek-chat'],
         },
       ]);
       mockProviderKeyService.hasActiveProvider.mockResolvedValue(true);
@@ -434,6 +435,7 @@ describe('ResolveService', () => {
       expect(result.provider).toBe('anthropic');
       expect(result.reason).toBe('specificity');
       expect(result.specificity_category).toBe('coding');
+      expect(result.fallback_models).toEqual(['gpt-4o', 'deepseek-chat']);
     });
 
     it('should return null when no active assignments exist', async () => {

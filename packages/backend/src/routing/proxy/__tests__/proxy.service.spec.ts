@@ -1761,6 +1761,52 @@ describe('ProxyService', () => {
       expect(result.meta.fallbackIndex).toBeUndefined();
     });
 
+    it('tries specificity fallback models before tier fallbacks when a specific-tier route fails', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-5.4',
+        provider: 'OpenAI',
+        confidence: 0.95,
+        score: 0,
+        reason: 'specificity',
+        specificity_category: 'coding',
+        fallback_models: ['claude-sonnet-4'],
+      });
+      providerKeyService.getProviderApiKey
+        .mockResolvedValueOnce('sk-openai')
+        .mockResolvedValueOnce('sk-ant');
+      providerClient.forward
+        .mockResolvedValueOnce({
+          response: new Response('error', { status: 429 }),
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        })
+        .mockResolvedValueOnce({
+          response: new Response('{}', { status: 200 }),
+          isGoogle: false,
+          isAnthropic: true,
+          isChatGpt: false,
+        });
+      tierService.getTiers.mockResolvedValue([
+        { tier: 'standard', fallback_models: null },
+      ] as never);
+      pricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' } as never);
+
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+      });
+
+      expect(result.meta.fallbackFromModel).toBe('gpt-5.4');
+      expect(result.meta.fallbackIndex).toBe(0);
+      expect(result.meta.primaryErrorStatus).toBe(429);
+      expect(result.meta.model).toBe('claude-sonnet-4');
+      expect(result.meta.specificity_category).toBe('coding');
+    });
+
     it('tries fallback model when primary returns 429', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',

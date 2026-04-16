@@ -8,7 +8,7 @@ import { RoutingCacheService } from './routing-cache.service';
 import { ProviderService } from './provider.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { randomUUID } from 'crypto';
-import { TIERS } from '../../scoring/types';
+import { TIERS, Tier } from '../../scoring/types';
 import { isManifestUsableProvider } from '../../common/utils/subscription-support';
 
 @Injectable()
@@ -39,7 +39,7 @@ export class TierService {
 
     if (rows.length === 0) {
       // Batch tier inserts — create all 4 tier rows in one query
-      const created: TierAssignment[] = TIERS.map((tier) =>
+      const created: TierAssignment[] = TIERS.map((tier: Tier) =>
         Object.assign(new TierAssignment(), {
           id: randomUUID(),
           user_id: userId ?? '',

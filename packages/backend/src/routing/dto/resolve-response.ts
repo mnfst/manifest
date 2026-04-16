@@ -12,4 +12,5 @@ export interface ResolveResponse {
   reason: ScoringReason;
   auth_type?: AuthType;
   specificity_category?: SpecificityCategory;
+  fallback_models?: string[] | null;
 }
