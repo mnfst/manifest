@@ -1347,6 +1347,26 @@ describe('ProviderModelFetcherService', () => {
       const result = await service.fetch('copilot', 'tid=token');
       expect(result).toEqual([]);
     });
+
+    it('should filter out internal Azure routing models', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'claude-opus-4.7' },
+            { id: 'gpt-4o' },
+            { id: 'accounts/msft/routers/f185i3v4' },
+            { id: 'accounts/msft/routers/fmfeto88' },
+            { id: 'accounts/msft/routers/gdjv4v2v' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('copilot', 'tid=token');
+      expect(result).toHaveLength(2);
+      expect(result[0].id).toBe('copilot/claude-opus-4.7');
+      expect(result[1].id).toBe('copilot/gpt-4o');
+    });
   });
 
   /* ── OpenAI subscription routing ── */

@@ -116,6 +116,7 @@ export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
   mistral:
     /(?:^mistral-ocr|moderation|voxtral-.*-(?:transcribe|realtime)|^labs-|^mistral-vibe-cli)/i,
   xai: /(?:imagine|multi-agent)/i,
+  copilot: /accounts\/[^/]+\/routers\//i,
 };
 
 /**

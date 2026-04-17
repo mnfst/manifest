@@ -523,6 +523,25 @@ describe('ModelDiscoveryService', () => {
       expect(result[0].contextWindow).toBe(128000);
     });
 
+    it('should filter out non-chat models from cached results', async () => {
+      const providers = [
+        makeProvider({
+          provider: 'copilot',
+          cached_models: [
+            makeModel({ id: 'copilot/claude-opus-4.7', provider: 'copilot' }),
+            makeModel({ id: 'copilot/accounts/msft/routers/f185i3v4', provider: 'copilot' }),
+            makeModel({ id: 'copilot/accounts/msft/routers/fmfeto88', provider: 'copilot' }),
+          ],
+        }),
+      ];
+      providerRepo.find.mockResolvedValue(providers);
+      customProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getModelsForAgent('agent-1');
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('copilot/claude-opus-4.7');
+    });
+
     it('should deduplicate custom provider models by composite key', async () => {
       providerRepo.find.mockResolvedValue([]);
       customProviderRepo.find.mockResolvedValue([

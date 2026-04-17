@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserProvider } from '../entities/user-provider.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
-import { ProviderModelFetcherService } from './provider-model-fetcher.service';
+import { ProviderModelFetcherService, filterNonChatModels } from './provider-model-fetcher.service';
 import { ProviderModelRegistryService } from './provider-model-registry.service';
 import { DiscoveredModel } from './model-fetcher';
 import { decrypt, getEncryptionSecret } from '../common/utils/crypto.util';
@@ -208,8 +208,9 @@ export class ModelDiscoveryService {
 
     for (const p of providers) {
       if (p.provider.startsWith('custom:')) continue;
-      const cached = p.cached_models;
-      if (!Array.isArray(cached)) continue;
+      const rawCached = p.cached_models;
+      if (!Array.isArray(rawCached)) continue;
+      const cached = filterNonChatModels(rawCached, p.provider.toLowerCase());
       const providerAuthType = p.auth_type === 'subscription' ? 'subscription' : 'api_key';
       for (const m of cached) {
         const effectiveAuthType = m.authType ?? providerAuthType;
