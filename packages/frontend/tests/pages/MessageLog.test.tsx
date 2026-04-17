@@ -961,5 +961,51 @@ describe("MessageLog", () => {
       expect(container.querySelector('[data-testid="feedback-modal"]')).toBeNull();
       mockCheckIsLocalMode.mockResolvedValue(false);
     });
+
+    it("reverts optimistic like on API error", async () => {
+      mockSetMessageFeedback.mockRejectedValue(new Error("fail"));
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.querySelector(".feedback-btn")).not.toBeNull();
+      });
+      const likeBtn = container.querySelector(".feedback-btn") as HTMLElement;
+      fireEvent.click(likeBtn);
+      await vi.waitFor(() => {
+        expect(container.querySelector(".feedback-btn--active-like")).toBeNull();
+      });
+    });
+
+    it("reverts optimistic dislike on API error", async () => {
+      mockSetMessageFeedback.mockRejectedValue(new Error("fail"));
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.querySelector(".feedback-btn")).not.toBeNull();
+      });
+      const dislikeBtn = container.querySelectorAll(".feedback-btn")[1] as HTMLElement;
+      fireEvent.click(dislikeBtn);
+      await vi.waitFor(() => {
+        expect(container.querySelector(".feedback-btn--active-dislike")).toBeNull();
+      });
+    });
+
+    it("reverts optimistic clear on API error", async () => {
+      mockClearMessageFeedback.mockRejectedValue(new Error("fail"));
+      const dataWithFeedback = {
+        ...messagesData,
+        items: [{ ...messagesData.items[0], feedback_rating: "like" }, messagesData.items[1]],
+      };
+      mockGetMessages.mockResolvedValue(dataWithFeedback);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.querySelector(".feedback-btn--active-like")).not.toBeNull();
+      });
+      const likeBtn = container.querySelector(".feedback-btn--active-like") as HTMLElement;
+      fireEvent.click(likeBtn);
+      await vi.waitFor(() => {
+        expect(container.querySelector(".feedback-btn--active-like")).not.toBeNull();
+      });
+    });
   });
 });

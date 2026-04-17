@@ -46,6 +46,9 @@ import {
   clearFallbacks,
   getPricingHealth,
   refreshPricing,
+  setMessageFeedback,
+  clearMessageFeedback,
+  getMessageDetails,
 } from '../../src/services/api.js';
 
 vi.mock('../../src/services/toast-store.js', () => ({
@@ -1294,6 +1297,79 @@ describe('copilotPollToken', () => {
   it('throws on non-ok response without showing toast', async () => {
     mockFetch.mockResolvedValueOnce({ ok: false, status: 503 });
     await expect(copilotPollToken('agent', 'dc_x')).rejects.toThrow('Poll failed: 503');
+  });
+});
+
+describe('getMessageDetails', () => {
+  it('fetches /messages/:id/details', async () => {
+    const detail = { message: { id: 'abc' }, llm_calls: [], tool_executions: [], agent_logs: [] };
+    mockFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(detail) });
+    const result = await getMessageDetails('abc');
+    expect(result).toEqual(detail);
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/messages/abc/details'),
+      expect.objectContaining({ credentials: 'include' }),
+    );
+  });
+
+  it('encodes special characters in id', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({}) });
+    await getMessageDetails('a/b');
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/messages/a%2Fb/details'),
+      expect.any(Object),
+    );
+  });
+});
+
+describe('setMessageFeedback', () => {
+  it('PATCHes /messages/:id/feedback with body', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, text: () => Promise.resolve('') });
+    await setMessageFeedback('msg-1', { rating: 'like' });
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/messages/msg-1/feedback'),
+      expect.objectContaining({
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating: 'like' }),
+      }),
+    );
+  });
+
+  it('sends tags and details when provided', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, text: () => Promise.resolve('') });
+    await setMessageFeedback('msg-1', { rating: 'dislike', tags: ['Buggy'], details: 'broken' });
+    const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+    expect(body).toEqual({ rating: 'dislike', tags: ['Buggy'], details: 'broken' });
+  });
+
+  it('throws and shows toast on error', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 400,
+      json: () => Promise.resolve({ message: 'Bad request' }),
+    });
+    await expect(setMessageFeedback('msg-1', { rating: 'like' })).rejects.toThrow('Bad request');
+  });
+});
+
+describe('clearMessageFeedback', () => {
+  it('DELETEs /messages/:id/feedback', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, text: () => Promise.resolve('') });
+    await clearMessageFeedback('msg-1');
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/messages/msg-1/feedback'),
+      expect.objectContaining({ method: 'DELETE' }),
+    );
+  });
+
+  it('encodes special characters in id', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, text: () => Promise.resolve('') });
+    await clearMessageFeedback('a/b');
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/messages/a%2Fb/feedback'),
+      expect.any(Object),
+    );
   });
 });
 
