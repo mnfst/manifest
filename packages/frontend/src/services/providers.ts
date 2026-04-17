@@ -12,7 +12,7 @@ export interface ProviderDef {
   keyPlaceholder: string;
   noKeyRequired?: boolean;
   localOnly?: boolean;
-  /** Provider supports OpenClaw OAuth/subscription auth (setup-token, OAuth, device-login). */
+  /** Provider supports agent-side OAuth/subscription auth (setup-token, OAuth, device-login). */
   supportsSubscription?: boolean;
   /** Label shown in the subscription tab for this provider. */
   subscriptionLabel?: string;
@@ -115,9 +115,9 @@ export const PROVIDERS: ProviderDef[] = [
     color: '#4285f4',
     initial: 'G',
     subtitle: 'Gemini 2.5, Gemini 2.0 Flash',
-    keyPrefix: 'AIza',
-    minKeyLength: 39,
-    keyPlaceholder: 'AIza...',
+    keyPrefix: '',
+    minKeyLength: 30,
+    keyPlaceholder: 'API key',
     models: [],
   },
   {

@@ -1,6 +1,12 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-04-09
+Last updated: 2026-04-12
+
+## What Manifest Is
+
+Manifest is a smart model router for **personal AI agents**. It sits between an agent and its LLM providers, scores each request, and routes it to the cheapest model that can handle it. The dashboard tracks costs, tokens, and messages across any agent that speaks OpenAI-compatible HTTP.
+
+**Supported agents** (configured in `packages/shared/src/agent-type.ts`): OpenClaw, Hermes, OpenAI SDK, Vercel AI SDK, LangChain, cURL, and a generic `other` slot. OpenClaw remains the deepest integration, but no new code or copy should frame Manifest as OpenClaw-only. When adding examples, prefer "personal AI agent" as the noun and pick OpenClaw as the worked example rather than the sole target. Manifest is consumed as a generic OpenAI-compatible HTTP endpoint — there are no first-party OpenClaw plugins in this repo anymore.
 
 ## IMPORTANT: Cloud Mode Always
 
@@ -23,13 +29,9 @@ docker exec postgres_db psql -U myuser -d postgres -c "CREATE DATABASE $DB_NAME;
 
 This guarantees each session starts with a clean, isolated database and avoids all cross-instance conflicts.
 
-## IMPORTANT: Plugin Must Use Cloud+Dev Mode
+## Testing OpenClaw Integration
 
-When configuring the OpenClaw **manifest-model-router** plugin to point at a local dev server (e.g. after `/serve` or `/setup-manifest-plugin`), **always use `devMode: true`** — never install the `manifest` plugin for this purpose. The `manifest` plugin starts its own embedded server on port 2099 and ignores the external backend. The `manifest-model-router` plugin with `devMode` connects directly to your dev server without starting an embedded server.
-
-## Plugin Dev Mode
-
-When testing the OpenClaw plugin integration (routing), use the **manifest-model-router** plugin in **dev mode** to connect to a local backend without API key management:
+To test routing from an OpenClaw agent against a local Manifest dev server, point OpenClaw at the dev server's OpenAI-compatible proxy directly — there is no plugin anymore:
 
 ```bash
 # 1. Build and start the backend in cloud mode
@@ -37,33 +39,15 @@ npm run build
 PORT=38238 BIND_ADDRESS=127.0.0.1 \
   node -r dotenv/config packages/backend/dist/main.js
 
-# 2. Configure the manifest-model-router plugin
-openclaw config set plugins.entries.manifest-model-router.config.devMode true
-openclaw config set plugins.entries.manifest-model-router.config.endpoint http://localhost:38238
+# 2. Configure OpenClaw to use the dev server as a generic OpenAI-compatible provider
+openclaw config set models.providers.manifest '{"baseUrl":"http://localhost:38238/v1","api":"openai-completions","apiKey":"mnfst_YOUR_KEY","models":[{"id":"auto","name":"Manifest Auto"}]}'
+openclaw config set agents.defaults.model.primary manifest/auto
 
 # 3. Restart the gateway
 openclaw gateway restart
 ```
 
-No API key needed. The dashboard shows an orange **Dev** badge in the header when running in development environment (`NODE_ENV !== 'production'`). Dev mode uses loopback bypass — the `AgentKeyAuthGuard` trusts same-machine connections without Bearer token auth. Note: `devMode` is auto-detected when the endpoint is a loopback address and no `mnfst_*` API key is provided.
-
-### Resetting OpenClaw Plugin Settings
-
-If the plugin gets into a bad state (stale config, wrong endpoint, cached errors), reset it fully:
-
-```bash
-# Reset manifest-model-router config to defaults
-openclaw config set plugins.entries.manifest-model-router.config.devMode true
-openclaw config set plugins.entries.manifest-model-router.config.endpoint http://localhost:<PORT>
-
-# Force restart the gateway (kills existing process and starts fresh)
-openclaw gateway restart
-```
-
-**Important notes:**
-- The OpenClaw config lives at `~/.openclaw/openclaw.json`. The gateway may restore certain fields (like `apiKey`) on restart — editing the file directly doesn't always stick.
-- When `devMode` is true, the gateway sends `Authorization: Bearer dev-no-auth` to the proxy. The `AgentKeyAuthGuard` accepts any non-`mnfst_*` token from loopback IPs in local mode, so this works without real API keys.
-- After restarting the backend server, **always restart the gateway too** (`openclaw gateway restart`) — the routing proxy doesn't automatically reconnect.
+The `AgentKeyAuthGuard` accepts any non-`mnfst_*` token from loopback IPs in local mode, so local-only testing works even without a valid key. After restarting the backend, also restart the OpenClaw gateway — it doesn't reconnect automatically.
 
 ## Active Technologies
 
@@ -175,10 +159,7 @@ packages/
 │   │   ├── layouts/                         # Layout components
 │   │   └── styles/
 │   └── tests/
-├── openclaw-plugins/
-│   ├── manifest/               # npm: `manifest` — full self-hosted plugin (embedded server + dashboard)
-│   └── manifest-model-router/      # npm: `manifest-model-router` — cloud-only provider plugin
-└── subscription-capabilities/     # Subscription provider config (not in npm workspaces)
+└── shared/                           # Shared TypeScript types + helpers (consumed by backend and frontend)
 ```
 
 ## Single-Service Deployment
@@ -207,12 +188,9 @@ cd packages/backend && NODE_OPTIONS='-r dotenv/config' npx nest start --watch
 
 # Frontend
 cd packages/frontend && npx vite
-
-# Plugin (watch mode, optional)
-cd packages/openclaw-plugins/manifest && npx tsx watch build.ts
 ```
 
-**Note:** `npm run dev` (turbo) starts frontend + plugin but NOT the backend, because the backend's script is `start:dev` not `dev`. Start the backend separately as shown above.
+**Note:** `npm run dev` (turbo) starts the frontend but NOT the backend, because the backend's script is `start:dev` not `dev`. Start the backend separately as shown above.
 
 ### Seeding Dev Data
 
@@ -248,13 +226,6 @@ docker exec postgres_db psql -U myuser -d postgres -c "CREATE DATABASE manifest_
 ```
 
 Then set `DATABASE_URL=postgresql://myuser:mypassword@localhost:5432/manifest_<name>` in `.env`.
-
-**Plugin build (one-time):**
-
-```bash
-npm run build:plugin
-# or: cd packages/openclaw-plugins/manifest && npx tsx build.ts
-```
 
 ```bash
 # Production build + start (single server)
@@ -388,7 +359,6 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — Google OAuth (optional)
 - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` — GitHub OAuth (optional)
 - `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET` — Discord OAuth (optional)
-- `PLUGIN_OTLP_ENDPOINT` — Custom endpoint for plugin setup UI.
 - `SEED_DATA` — Set `true` to seed demo data on startup.
 - `MANIFEST_MODE` — `local` or `cloud` (default: `cloud`). Switches between SQLite/loopback auth and PostgreSQL/Better Auth.
 - `MANIFEST_DB_PATH` — SQLite file path for local mode (default: in-memory).
@@ -399,6 +369,17 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - **Message**: The primary entity in the system. Every row in `agent_messages` is a Message. The UI labels them "Messages" everywhere. Key routing columns: `routing_tier` (complexity tier used), `routing_reason` (why — `scored`, `specificity`, `heartbeat`, etc.), `specificity_category` (which task-type category, null if complexity-routed).
 - **Tenant**: A user's data boundary. Created from `user.id` on first agent creation.
 - **Agent**: An AI agent owned by a tenant. Has a unique OTLP ingest key.
+
+### Message list endpoints (shared projection contract)
+
+Any backend endpoint that returns rows rendered by the frontend `MessageTable` / `ModelCell` component **must** project its SELECT through `selectMessageRowColumns()` in `packages/backend/src/analytics/services/query-helpers.ts`. The helper is the single source of truth for the columns the shared badge/provider/auth rendering reads (including `specificity_category`, `routing_tier`, `routing_reason`, `auth_type`, `fallback_from_model`).
+
+- Adding a new column the UI needs → edit the helper once, never duplicate the projection across query services.
+- Endpoint-specific fields that don't belong to the shared `MessageRow` contract (e.g. `description`, `service_type`, `cache_read_tokens`, `duration_ms` for the full Messages log) stay as explicit `.addSelect` chained after the helper call.
+- Current call sites: `getRecentActivity()` in `timeseries-queries.service.ts` (Overview "Recent Messages") and `getMessages()` in `messages-query.service.ts` (Messages log).
+- A `query-helpers.spec.ts` test pins the required alias set — it fails loudly if anyone drops a field from the helper. Don't bypass it by hand-rolling a new SELECT chain.
+
+This rule exists because the Overview and Messages pages previously drifted and the Recent Messages badge read `STANDARD` instead of the specificity category (`CODING` etc.) — the frontend already shares the rendering code, so the divergence was purely backend projection drift.
 
 ## Content Security Policy (CSP)
 
@@ -509,48 +490,47 @@ All pricing comes from a single source:
 | **Routing (tier assignments)** | `TierAutoAssignService.recalculate()` | Auto-assigned from discovered models based on quality/price scoring |
 | **Messages / Overview** | Stored in `agent_messages.model` column | Raw model name from telemetry, display name resolved via `model-display.ts` cache |
 
-## Releases & Changesets
+## Releases
 
-Version management and npm publishing use [Changesets](https://github.com/changesets/changesets). Config is in `.changeset/config.json`.
+There are **no publishable npm packages** in this repo. `packages/backend`, `packages/frontend`, `packages/shared`, and `packages/manifest` are all `private: true`. Manifest ships exclusively as the Docker image at `manifestdotbuild/manifest` (built from `docker/Dockerfile`).
 
-### Publishable Packages
+### `packages/manifest/` is the canonical version
 
-| Package | npm name | Published |
-|---------|----------|-----------|
-| `packages/openclaw-plugins/manifest` | `manifest` | Yes (full self-hosted plugin with embedded server + dashboard) |
-| `packages/openclaw-plugins/manifest-model-router` | `manifest-model-router` | Yes (lightweight cloud-only provider plugin, ~22KB) |
-| `packages/backend` | `manifest-backend` | No (`private: true`) |
-| `packages/frontend` | `manifest-frontend` | No (`private: true`) |
+`packages/manifest/` is a **code-free shell package** that exists only to hold the canonical "Manifest version". It has no `src/`, no tests, no dependencies — just `package.json`, `README.md`, and (after the first release) a `CHANGELOG.md`. The real backend and frontend live under `packages/backend/` and `packages/frontend/` as before.
 
-Both `manifest` and `manifest-model-router` are actively published.
+`.changeset/config.json` has `"ignore": ["manifest-backend", "manifest-frontend", "manifest-shared"]`, so when a contributor runs `npx changeset`, **only `manifest` is a selectable target**. Bumps to `manifest-backend` / `manifest-frontend` / `manifest-shared` are silently discarded. Always target `manifest` regardless of which files you actually changed.
 
-### CRITICAL: Every PR Needs a Changeset
-
-**Before creating any PR, you MUST add a changeset.** The `changeset-check` CI job will fail without one.
-
-- **Backend or frontend changes always need a `manifest` changeset.** These packages compile into `manifest`, so any change to `packages/backend/` or `packages/frontend/` must include a changeset bumping `manifest` (patch for fixes, minor for features). CI enforces this.
-- If the PR changes a **publishable package** directly (`openclaw-plugins/manifest` or `openclaw-plugins/manifest-model-router`): run `npx changeset` and select the appropriate bump level. Changes to `manifest-model-router` only need a `manifest-model-router` changeset (not `manifest`) unless the full plugin is also affected.
-- **Empty changesets** (`npx changeset add --empty`) should only be used for changes that don't affect any publishable package: CI config, docs, tooling, or dev-only scripts.
-- Commit the generated `.changeset/*.md` file as part of the PR.
-
-### Workflow
-
-1. When changing backend, frontend, or `openclaw-plugins/manifest`, run `npx changeset` and select `manifest`. When changing `openclaw-plugins/manifest-model-router`, select `manifest-model-router`. Both can be included in a single changeset if both are affected.
-2. On merge to `main`, the release workflow (`.github/workflows/release.yml`) opens a "Version Packages" PR
-3. When that PR merges, the workflow publishes to npm using `NPM_TOKEN` secret
-
-### Commands
+### Adding a changeset
 
 ```bash
-npx changeset              # Add a changeset (interactive)
-npx changeset status       # Check pending changesets
-npm run version-packages   # Apply changesets (bump versions + changelogs)
-npm run release             # Publish to npm (used by CI)
+npx changeset
+# → select "manifest"
+# → choose patch / minor / major
+# → write a one-line summary (this becomes the CHANGELOG entry)
 ```
 
-### CI Integration
+Commit the generated `.changeset/*.md` file alongside your code. On merge to `main`, `release.yml` runs `changesets/action`, which opens (or updates) a `chore: version packages` PR bumping `packages/manifest/package.json` and appending to `packages/manifest/CHANGELOG.md`.
 
-The `changeset-check` job in `.github/workflows/ci.yml` runs `npx changeset status --since=origin/main` on PRs. It also enforces that any PR touching `packages/backend/` or `packages/frontend/` includes a `manifest` changeset. The job will fail if backend/frontend files changed without one.
+Changesets are **not** required on every PR — they're optional and only meaningful for changes you want in the changelog. Use `npx changeset add --empty` for purely internal work if you want an explicit "no release" marker.
+
+### Cutting a Docker release
+
+Merging the `chore: version packages` PR to `main` automatically publishes a new Docker image — no manual step required.
+
+1. Merge the pending `chore: version packages` PR. `release.yml` detects the version bump in `packages/manifest/package.json` (by diffing `HEAD~1` against `HEAD`) and calls `docker.yml` as a reusable workflow.
+2. The `publish` job reads `packages/manifest/package.json`, resolves the version automatically, and pushes `manifestdotbuild/manifest:{version}` + `{major}.{minor}` + `{major}` + `sha-<short>` to Docker Hub. The image is multi-arch (amd64 + arm64) and cosign-signed.
+3. **Manually update the Docker Hub description** on hub.docker.com by copy-pasting the current contents of `docker/DOCKER_README.md`. (Automating this sync hit a wall because `docker-pushrm` and the Docker Hub web API need a personal-user PAT and the existing secrets are scoped to the org — tracked as a follow-up, not blocking releases.)
+
+**Manual override:** `workflow_dispatch` on `Docker → Run workflow` still works for hotfixes and retags. Leave the `version` input blank to use `packages/manifest/package.json`, or pass a semver string to retag an older commit / publish a hotfix version.
+
+### Summary of what CI does on each trigger
+
+| Trigger | What happens |
+|---------|--------------|
+| PR opened/updated (runtime files) | `ci.yml` runs tests, lint, typecheck, coverage. `docker.yml` validates the Docker build (no push). `changeset-check` warns softly if no changeset is present. |
+| Merge to `main` | `release.yml` runs `changesets/action` to open or update the `chore: version packages` PR. No publish — the version on `main` hasn't changed yet. |
+| Merge of `chore: version packages` PR | `release.yml` runs again, detects the version bump in `packages/manifest/package.json`, and calls `docker.yml` as a reusable workflow. This pushes a new image tag to Docker Hub automatically. |
+| Manual `workflow_dispatch` on `Docker` workflow | Reads `packages/manifest/package.json` (or the `version` input override) and pushes a new image tag to Docker Hub. Used for hotfixes and retags. |
 
 ## Code Coverage (Codecov)
 
@@ -563,7 +543,7 @@ Codecov runs on every PR via the `codecov/patch` and `codecov/project` checks. C
 
 ### CRITICAL: 100% Line Coverage Required
 
-**Every PR must maintain 100% line coverage across all four packages.** The codebase currently has full line coverage and every PR must preserve it. This means:
+**Every PR must maintain 100% line coverage across all packages.** The codebase currently has full line coverage and every PR must preserve it. This means:
 
 - All new source files must have corresponding tests with 100% line coverage
 - All modified functions must have tests covering every line, including error paths
@@ -571,15 +551,13 @@ Codecov runs on every PR via the `codecov/patch` and `codecov/project` checks. C
 - Run coverage locally before creating a PR:
   - `cd packages/backend && npx jest --coverage`
   - `cd packages/frontend && npx vitest run --coverage`
-  - `cd packages/openclaw-plugins/manifest && npx jest --coverage`
-  - `cd packages/openclaw-plugins/manifest-model-router && npx jest --coverage`
+  - `cd packages/shared && npx jest --coverage`
 
 This applies to:
 
 - New services, guards, controllers, or utilities in `packages/backend/src/`
 - New components or functions in `packages/frontend/src/`
-- New modules in `packages/openclaw-plugins/manifest/src/`
-- New modules in `packages/openclaw-plugins/manifest-model-router/src/`
+- New modules in `packages/shared/src/`
 
 ### Coverage Flags
 
@@ -587,8 +565,7 @@ This applies to:
 |------|-------|--------|
 | `backend` | `packages/backend/src/` | Backend (PostgreSQL) |
 | `frontend` | `packages/frontend/src/` | frontend |
-| `plugin` | `packages/openclaw-plugins/manifest/src/` | plugin |
-| `provider-plugin` | `packages/openclaw-plugins/manifest-model-router/src/` | provider-plugin |
+| `shared` | `packages/shared/src/` | shared |
 
 ### E2E Test Entities
 

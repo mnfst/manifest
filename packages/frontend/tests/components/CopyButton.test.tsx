@@ -99,4 +99,29 @@ describe("CopyButton", () => {
     const { container } = render(() => <CopyButton text="hello" />);
     expect(container.querySelector(".modal-terminal__copy")).not.toBeNull();
   });
+
+  it("renders disabled when disabled prop is true", () => {
+    const { container } = render(() => <CopyButton text="hello" disabled />);
+    const btn = container.querySelector("button")!;
+    expect(btn.hasAttribute("disabled")).toBe(true);
+    expect(btn.getAttribute("aria-label")).toBe("Copy disabled");
+    expect(btn.getAttribute("title")).toBe("Reveal key first");
+  });
+
+  it("does not copy when disabled and clicked", async () => {
+    render(() => <CopyButton text="hello" disabled />);
+    const btn = screen.getByRole("button");
+    await fireEvent.click(btn);
+    expect(writeTextMock).not.toHaveBeenCalled();
+  });
+
+  it("has disabled class when disabled", () => {
+    const { container } = render(() => <CopyButton text="hello" disabled />);
+    expect(container.querySelector(".modal-terminal__copy--disabled")).not.toBeNull();
+  });
+
+  it("does not have disabled class when not disabled", () => {
+    const { container } = render(() => <CopyButton text="hello" />);
+    expect(container.querySelector(".modal-terminal__copy--disabled")).toBeNull();
+  });
 });

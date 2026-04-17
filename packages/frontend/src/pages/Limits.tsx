@@ -1,16 +1,13 @@
 import { createSignal, createResource, Show, onCleanup, type Component } from 'solid-js';
 import { useParams } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
-import { isLocalMode } from '../services/local-mode.js';
 import { authClient } from '../services/auth-client.js';
 import CloudEmailInfo from '../components/CloudEmailInfo.js';
-import EmailProviderModal from '../components/EmailProviderModal.js';
-import EmailProviderSection from '../components/EmailProviderSection.js';
 import LimitRuleModal from '../components/LimitRuleModal.js';
 import type { LimitRuleData } from '../components/LimitRuleModal.js';
 import LimitRuleTable from '../components/LimitRuleTable.js';
 import LimitHistoryTable from '../components/LimitHistoryTable.js';
-import { KebabMenu, DeleteRuleModal, RemoveProviderModal } from '../components/LimitModals.js';
+import { KebabMenu, DeleteRuleModal } from '../components/LimitModals.js';
 import { toast } from '../services/toast-store.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import {
@@ -19,8 +16,6 @@ import {
   createNotificationRule,
   updateNotificationRule,
   deleteNotificationRule,
-  getEmailProvider,
-  removeEmailProvider,
   getRoutingStatus,
   type NotificationRule,
 } from '../services/api.js';
@@ -33,26 +28,22 @@ const Limits: Component = () => {
     () => agentName(),
     (name) => getNotificationRules(name),
   );
-  const [logs, { refetch: refetchLogs }] = createResource(
+  const [logs] = createResource(
     () => agentName(),
     (name) => getNotificationLogs(name),
   );
-  const [emailProvider, { refetch: refetchProvider }] = createResource(getEmailProvider);
   const [routingStatus] = createResource(() => agentName(), getRoutingStatus);
   const session = authClient.useSession();
   const [showModal, setShowModal] = createSignal(false);
-  const [showEditProvider, setShowEditProvider] = createSignal(false);
   const [editRule, setEditRule] = createSignal<NotificationRule | null>(null);
   const [openMenuId, setOpenMenuId] = createSignal<string | null>(null);
   const [menuPos, setMenuPos] = createSignal<{ top: number; left: number }>({ top: 0, left: 0 });
   const [deleteTarget, setDeleteTarget] = createSignal<NotificationRule | null>(null);
   const [deleteConfirmed, setDeleteConfirmed] = createSignal(false);
-  const [showRemoveProvider, setShowRemoveProvider] = createSignal(false);
   const [deleting, setDeleting] = createSignal(false);
-  const [removingProvider, setRemovingProvider] = createSignal(false);
 
   const routingEnabled = () => routingStatus()?.enabled ?? false;
-  const hasProvider = () => !isLocalMode() || !!emailProvider();
+  const hasProvider = () => true;
 
   const closeMenu = () => setOpenMenuId(null);
   const handleDocClick = () => closeMenu();
@@ -119,26 +110,6 @@ const Limits: Component = () => {
     setDeleteConfirmed(false);
   };
 
-  const hasEmailRules = () => {
-    const r = rules();
-    if (!r) return false;
-    return r.some((rule) => rule.action === 'notify' || rule.action === 'both');
-  };
-
-  const handleRemoveProvider = async () => {
-    setRemovingProvider(true);
-    try {
-      await removeEmailProvider();
-      await refetchProvider();
-      setShowRemoveProvider(false);
-      toast.success('Email provider removed');
-    } catch {
-      // error toast from fetchMutate
-    } finally {
-      setRemovingProvider(false);
-    }
-  };
-
   const blockRulesExceeded = () => {
     const r = rules();
     if (!r) return false;
@@ -201,7 +172,7 @@ const Limits: Component = () => {
         </div>
       </Show>
 
-      <Show when={routingStatus() && !routingEnabled() && !isLocalMode()}>
+      <Show when={routingStatus() && !routingEnabled()}>
         <div class="limits-routing-cta">
           <svg
             width="20"
@@ -228,21 +199,9 @@ const Limits: Component = () => {
         </div>
       </Show>
 
-      <Show when={!isLocalMode()}>
-        <div style="margin-bottom: var(--gap-lg);">
-          <CloudEmailInfo email={session().data?.user?.email ?? ''} />
-        </div>
-      </Show>
-
-      <Show when={isLocalMode()}>
-        <EmailProviderSection
-          emailProvider={emailProvider()}
-          loading={emailProvider.loading}
-          onConfigured={refetchProvider}
-          onEdit={() => setShowEditProvider(true)}
-          onRemove={() => setShowRemoveProvider(true)}
-        />
-      </Show>
+      <div style="margin-bottom: var(--gap-lg);">
+        <CloudEmailInfo email={session().data?.user?.email ?? ''} />
+      </div>
 
       <LimitRuleTable
         rules={rules()}
@@ -277,14 +236,6 @@ const Limits: Component = () => {
         onDelete={handleDelete}
       />
 
-      <RemoveProviderModal
-        open={showRemoveProvider()}
-        hasEmailRules={hasEmailRules()}
-        removing={removingProvider()}
-        onCancel={() => setShowRemoveProvider(false)}
-        onRemove={handleRemoveProvider}
-      />
-
       <LimitRuleModal
         open={showModal()}
         onClose={() => {
@@ -303,17 +254,6 @@ const Limits: Component = () => {
               }
             : null
         }
-      />
-
-      <EmailProviderModal
-        open={showEditProvider()}
-        initialProvider={emailProvider()?.provider ?? 'resend'}
-        editMode={true}
-        existingKeyPrefix={emailProvider()?.keyPrefix ?? null}
-        existingDomain={emailProvider()?.domain ?? null}
-        existingNotificationEmail={emailProvider()?.notificationEmail ?? null}
-        onClose={() => setShowEditProvider(false)}
-        onSaved={() => refetchProvider()}
       />
     </div>
   );

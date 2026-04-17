@@ -15,6 +15,7 @@ import { CopilotTokenService } from '../copilot-token.service';
 import { LimitCheckService } from '../../../notifications/services/limit-check.service';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 import { ThoughtSignatureCache } from '../thought-signature-cache';
+import { ThinkingBlockCache } from '../thinking-block-cache';
 
 describe('ProxyService', () => {
   let service: ProxyService;
@@ -116,6 +117,7 @@ describe('ProxyService', () => {
       fallbackService,
       configService,
       new ThoughtSignatureCache(),
+      new ThinkingBlockCache(),
     );
   });
 
@@ -301,7 +303,8 @@ describe('ProxyService', () => {
     expect(json.object).toBe('chat.completion');
     expect(json.model).toBe('manifest');
     const choices = json.choices as { message: { content: string } }[];
-    expect(choices[0].message.content).toContain('Manifest is connected successfully');
+    expect(choices[0].message.content).toContain("You're connected");
+    expect(choices[0].message.content).toContain('no providers are set up yet');
     expect(result.meta).toEqual({
       tier: 'simple',
       model: 'manifest',
@@ -311,7 +314,7 @@ describe('ProxyService', () => {
     });
   });
 
-  it('includes dashboard URL with agent name in no-provider response', async () => {
+  it('points no-provider response at the agent Routing page', async () => {
     resolveService.resolve.mockResolvedValue({
       tier: 'simple',
       model: null,
@@ -331,10 +334,10 @@ describe('ProxyService', () => {
 
     const json = (await result.forward.response.json()) as Record<string, unknown>;
     const choices = json.choices as { message: { content: string } }[];
-    expect(choices[0].message.content).toContain('http://localhost:3001/agents/my-agent');
+    expect(choices[0].message.content).toContain('http://localhost:3001/agents/my-agent/routing');
   });
 
-  it('uses /routing path when agentName is not provided', async () => {
+  it('uses bare base URL in no-provider response when agentName is missing', async () => {
     resolveService.resolve.mockResolvedValue({
       tier: 'simple',
       model: null,
@@ -353,8 +356,9 @@ describe('ProxyService', () => {
 
     const json = (await result.forward.response.json()) as Record<string, unknown>;
     const choices = json.choices as { message: { content: string } }[];
-    expect(choices[0].message.content).toContain('http://localhost:3001/routing');
-    expect(choices[0].message.content).not.toContain('/routing/');
+    expect(choices[0].message.content).toContain('http://localhost:3001');
+    expect(choices[0].message.content).not.toContain('/routing');
+    expect(choices[0].message.content).not.toContain('/agents/');
   });
 
   it('falls back to localhost URL when betterAuthUrl is empty', async () => {
@@ -383,7 +387,7 @@ describe('ProxyService', () => {
 
     const json = (await result.forward.response.json()) as Record<string, unknown>;
     const choices = json.choices as { message: { content: string } }[];
-    expect(choices[0].message.content).toContain('http://localhost:4000/agents/test-agent');
+    expect(choices[0].message.content).toContain('http://localhost:4000/agents/test-agent/routing');
   });
 
   it('returns synthetic streaming response when no model is resolved', async () => {
@@ -407,7 +411,7 @@ describe('ProxyService', () => {
     const text = await result.forward.response.text();
     expect(text).toContain('data: {');
     expect(text).toContain('chat.completion.chunk');
-    expect(text).toContain('Manifest is connected successfully');
+    expect(text).toContain("You're connected");
     expect(text).toContain('data: [DONE]');
     expect(result.meta.reason).toBe('no_provider');
   });
@@ -435,8 +439,8 @@ describe('ProxyService', () => {
     const json = (await result.forward.response.json()) as {
       choices: { message: { content: string } }[];
     };
-    expect(json.choices[0].message.content).toContain('No API key set for OpenAI');
-    expect(json.choices[0].message.content).toContain('/agents/my-agent');
+    expect(json.choices[0].message.content).toContain('No OpenAI API key yet');
+    expect(json.choices[0].message.content).toContain('/agents/my-agent/routing');
     expect(result.meta.reason).toBe('no_provider_key');
   });
 
@@ -1134,8 +1138,10 @@ describe('ProxyService', () => {
       const json = (await result.forward.response.json()) as {
         choices: { message: { content: string } }[];
       };
-      expect(json.choices[0].message.content).toContain('Usage limit hit');
-      expect(json.choices[0].message.content).toContain('tokens');
+      expect(json.choices[0].message.content).toContain('You hit your tokens limit');
+      expect(json.choices[0].message.content).toContain(
+        'http://localhost:3001/agents/my-agent/limits',
+      );
       expect(result.meta.reason).toBe('limit_exceeded');
     });
 
@@ -1720,7 +1726,7 @@ describe('ProxyService', () => {
       const json = (await result.forward.response.json()) as {
         choices: { message: { content: string } }[];
       };
-      expect(json.choices[0].message.content).toContain('No API key set for Anthropic');
+      expect(json.choices[0].message.content).toContain('No Anthropic API key yet');
       expect(result.meta.reason).toBe('no_provider_key');
     });
   });
@@ -3097,6 +3103,7 @@ describe('ProxyService', () => {
         fallbackService,
         configService,
         cache,
+        new ThinkingBlockCache(),
       );
 
       resolveService.resolve.mockResolvedValue({

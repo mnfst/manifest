@@ -1,9 +1,9 @@
-import { For, Show, type Component } from 'solid-js';
+import { For, Show, type Component, createSignal, onMount } from 'solid-js';
 import type { AuthType, CustomProviderData } from '../services/api.js';
 import { customProviderColor } from '../services/formatters.js';
-import { isLocalMode } from '../services/local-mode.js';
 import type { ProviderDef } from '../services/providers.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.js';
+import { checkIsLocalMode, checkIsOllamaAvailable } from '../services/setup-status.js';
 
 type ListItem =
   | { kind: 'standard'; prov: ProviderDef }
@@ -20,6 +20,15 @@ interface Props {
 }
 
 const ProviderApiKeyTab: Component<Props> = (props) => {
+  const [isLocal, setIsLocal] = createSignal(false);
+  const [ollamaReady, setOllamaReady] = createSignal(false);
+
+  onMount(async () => {
+    const [local, ollama] = await Promise.all([checkIsLocalMode(), checkIsOllamaAvailable()]);
+    setIsLocal(local);
+    setOllamaReady(ollama);
+  });
+
   const mergedProviders = (): ListItem[] => {
     const standards: ListItem[] = props.apiKeyProviders.map((prov) => ({ kind: 'standard', prov }));
     const customs: ListItem[] = (props.customProviders ?? []).map((cp) => ({ kind: 'custom', cp }));
@@ -65,7 +74,22 @@ const ProviderApiKeyTab: Component<Props> = (props) => {
 
             const prov = item.prov;
             const connected = () => props.isConnected(prov.id) || props.isNoKeyConnected(prov.id);
-            const disabled = () => !!prov.localOnly && !isLocalMode();
+            const isOllamaProvider = () => prov.id === 'ollama';
+            const disabled = () => {
+              if (!prov.localOnly) return false;
+              if (!isLocal()) return true;
+              // In local mode, Ollama is only enabled if reachable
+              if (isOllamaProvider()) return !ollamaReady();
+              return false;
+            };
+
+            const statusMessage = () => {
+              if (!prov.localOnly) return null;
+              if (!isLocal()) return 'Only available on Manifest Local';
+              if (isOllamaProvider() && !ollamaReady())
+                return 'Enable with: docker compose --profile ollama up';
+              return null;
+            };
 
             return (
               <button
@@ -82,10 +106,8 @@ const ProviderApiKeyTab: Component<Props> = (props) => {
                 </span>
                 <span class="provider-toggle__info">
                   <span class="provider-toggle__name">{prov.name}</span>
-                  <Show when={disabled()}>
-                    <span class="provider-toggle__local-only">
-                      Only available on Manifest Local
-                    </span>
+                  <Show when={statusMessage()}>
+                    <span class="provider-toggle__local-only">{statusMessage()}</span>
                   </Show>
                 </span>
                 <Show when={!disabled()}>

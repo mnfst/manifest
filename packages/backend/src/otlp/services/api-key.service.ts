@@ -34,6 +34,8 @@ export class ApiKeyGeneratorService {
     email?: string;
     agentDescription?: string;
     displayName?: string;
+    agentCategory?: string;
+    agentPlatform?: string;
   }): Promise<{ tenantId: string; agentId: string; apiKey: string }> {
     const existing = await this.tenantRepo.findOne({
       where: { name: params.tenantName },
@@ -59,6 +61,8 @@ export class ApiKeyGeneratorService {
       name: params.agentName,
       display_name: params.displayName ?? null,
       description: params.agentDescription ?? null,
+      agent_category: params.agentCategory ?? null,
+      agent_platform: params.agentPlatform ?? null,
       is_active: true,
       tenant_id: tenantId,
     });

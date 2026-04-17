@@ -74,6 +74,20 @@ describe('scoreRequest — estimateTotalTokens branches', () => {
   });
 });
 
+describe('scoreRequest — short greeting with tools and momentum', () => {
+  it('keeps a tool-bearing short greeting at SIMPLE under complex momentum', () => {
+    const tools = Array.from({ length: 10 }, (_, i) => ({
+      type: 'function' as const,
+      function: { name: `tool_${i}`, description: 'noop', parameters: { type: 'object' } },
+    }));
+    const result = scoreRequest({ messages: [{ role: 'user', content: 'hi' }], tools }, undefined, {
+      recentTiers: ['complex', 'complex', 'complex'],
+    });
+    expect(result.tier).toBe('simple');
+    expect(result.reason).toBe('short_message');
+  });
+});
+
 describe('scoreRequest — ambiguous fallback', () => {
   it('falls back to standard/ambiguous when confidence is low and reason is scored', () => {
     const result = scoreRequest(

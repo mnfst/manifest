@@ -24,11 +24,6 @@ vi.mock("../../src/components/ProviderIcon.js", () => ({
   providerIcon: () => null, customProviderLogo: () => null,
 }));
 
-vi.mock("../../src/services/local-mode.js", () => ({
-  isLocalMode: () => false,
-  checkLocalMode: () => Promise.resolve(false),
-}));
-
 // Mock providers to include a subscription provider WITHOUT subscriptionKeyPlaceholder
 // so handleSubscriptionToggle is exercised (the toggle path, not the detail-view path).
 vi.mock("../../src/services/providers.js", () => {

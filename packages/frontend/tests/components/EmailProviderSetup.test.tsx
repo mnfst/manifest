@@ -16,10 +16,6 @@ vi.mock("../../src/services/auth-client.js", () => ({
   },
 }));
 
-vi.mock("../../src/services/local-mode.js", () => ({
-  isLocalMode: () => false,
-}));
-
 vi.mock("../../src/services/toast-store.js", () => ({
   toast: { error: vi.fn(), success: vi.fn(), warning: vi.fn() },
 }));

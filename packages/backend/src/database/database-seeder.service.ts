@@ -31,28 +31,34 @@ export class DatabaseSeederService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    // In local mode, LocalBootstrapService handles initialization
-    if (this.configService.get<string>('app.manifestMode') === 'local') return;
-
     await this.runBetterAuthMigrations();
 
-    const env = this.configService.get<string>('app.nodeEnv', 'production');
     const seedData = this.configService.get<string>('SEED_DATA');
-    const shouldSeed = (env === 'development' || env === 'test') && seedData === 'true';
-    if (shouldSeed) {
-      await this.seedAdminUser();
-      await this.seedApiKey();
-      await this.seedTenantAndAgent();
-      await this.seedAgentMessages();
-      this.logger.log('Seeded demo data (dev/test only, SEED_DATA=true)');
+    if (seedData !== 'true') return;
+
+    const nodeEnv = this.configService.get<string>('app.nodeEnv', 'development');
+    if (nodeEnv === 'production') {
       this.logger.warn(
-        'SECURITY: Default seed credentials are active (admin@manifest.build). Do NOT use in production.',
+        'SEED_DATA=true is ignored in production — use the first-run setup wizard at /setup to create the admin account. Demo data is not seeded in production.',
       );
+      return;
     }
+
+    // Dev/test workflow: seed the well-known admin + demo data in one shot
+    // so `/serve` and E2E tests get a non-empty dashboard without going
+    // through the setup wizard on every run.
+    await this.seedAdminUser();
+    await this.seedApiKey();
+    await this.seedTenantAndAgent();
+    await this.seedAgentMessages();
+    this.logger.log('Seeded demo data (SEED_DATA=true, dev/test only)');
+    this.logger.warn(
+      'SECURITY: Default seed credentials are active (admin@manifest.build). Do NOT use in production.',
+    );
   }
 
   private async runBetterAuthMigrations() {
-    const ctx = await auth!.$context;
+    const ctx = await auth.$context;
     await ctx.runMigrations();
   }
 
@@ -60,7 +66,7 @@ export class DatabaseSeederService implements OnModuleInit {
     const existing = await this.checkBetterAuthUser('admin@manifest.build');
     if (existing) return;
 
-    await auth!.api.signUpEmail({
+    await auth.api.signUpEmail({
       body: {
         email: 'admin@manifest.build',
         password: 'manifest',
@@ -133,6 +139,8 @@ export class DatabaseSeederService implements OnModuleInit {
       id: SEED_AGENT_ID,
       name: 'demo-agent',
       description: 'Default development agent',
+      agent_category: 'personal',
+      agent_platform: 'openclaw',
       is_active: true,
       tenant_id: SEED_TENANT_ID,
     });

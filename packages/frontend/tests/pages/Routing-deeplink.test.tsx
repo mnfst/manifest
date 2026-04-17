@@ -11,10 +11,6 @@ vi.mock('@solidjs/router', () => ({
   A: (props: any) => <a href={props.href}>{props.children}</a>,
 }));
 
-vi.mock('../../src/services/local-mode.js', () => ({
-  checkLocalMode: vi.fn().mockResolvedValue(true),
-}));
-
 vi.mock('@solidjs/meta', () => ({
   Title: (props: any) => <title>{props.children}</title>,
   Meta: (props: any) => <meta name={props.name ?? ''} content={props.content ?? ''} />,
@@ -71,11 +67,13 @@ vi.mock('../../src/services/api.js', () => ({
   setFallbacks: vi.fn().mockResolvedValue([]),
   clearFallbacks: vi.fn().mockResolvedValue(undefined),
   getModelPrices: vi.fn().mockResolvedValue([]),
-  getAgentKey: vi.fn().mockResolvedValue({ keyPrefix: 'mnfst_abc', apiKey: 'mnfst_abc123', pluginEndpoint: null }),
+  getAgentKey: vi.fn().mockResolvedValue({ keyPrefix: 'mnfst_abc', apiKey: 'mnfst_abc123' }),
   getHealth: vi.fn().mockResolvedValue({ mode: 'cloud' }),
   refreshModels: vi.fn().mockResolvedValue([]),
   getSpecificityAssignments: vi.fn().mockResolvedValue([]),
   overrideSpecificity: vi.fn().mockResolvedValue({}),
+  getPricingHealth: vi.fn().mockResolvedValue({ model_count: 100, last_fetched_at: '2026-04-13T00:00:00.000Z' }),
+  refreshPricing: vi.fn().mockResolvedValue({ ok: true, model_count: 100, last_fetched_at: '2026-04-13T00:00:00.000Z' }),
 }));
 
 vi.mock('../../src/services/routing-utils.js', () => ({

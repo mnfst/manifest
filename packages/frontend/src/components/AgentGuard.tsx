@@ -3,13 +3,15 @@ import { createResource, createMemo, Show, onCleanup, type ParentComponent } fro
 import ErrorState from './ErrorState.jsx';
 import NotFound from '../pages/NotFound.jsx';
 import { getAgents } from '../services/api.js';
-import { checkLocalMode } from '../services/local-mode.js';
 import { setAgentDisplayName } from '../services/agent-display-name.js';
+import { setAgentPlatform } from '../services/agent-platform-store.js';
 import { isRecentlyCreated, clearRecentAgent } from '../services/recent-agents.js';
 
 interface Agent {
   agent_name: string;
   display_name?: string;
+  agent_category?: string | null;
+  agent_platform?: string | null;
 }
 
 interface AgentsData {
@@ -19,15 +21,7 @@ interface AgentsData {
 const AgentGuard: ParentComponent = (props) => {
   const params = useParams<{ agentName: string }>();
 
-  // Wait for the mode check to resolve before deciding what to do.
-  // checkLocalMode() is already called by AuthGuard, so this just awaits
-  // the existing promise (no extra network request).
-  const [mode] = createResource(() => checkLocalMode());
-
-  const [data, { refetch }] = createResource(
-    () => (mode() !== undefined ? true : false),
-    () => getAgents() as Promise<AgentsData>,
-  );
+  const [data, { refetch }] = createResource(() => getAgents() as Promise<AgentsData>);
 
   const agentExists = createMemo(() => {
     const decoded = decodeURIComponent(params.agentName);
@@ -38,20 +32,25 @@ const AgentGuard: ParentComponent = (props) => {
     if (agent) {
       clearRecentAgent(agent.agent_name);
       setAgentDisplayName(agent.display_name ?? agent.agent_name);
+      setAgentPlatform(agent.agent_platform ?? null, agent.agent_category ?? null);
+    } else {
+      setAgentDisplayName(null);
+      setAgentPlatform(null, null);
     }
     return recent || !!agent;
   });
 
-  onCleanup(() => setAgentDisplayName(null));
+  onCleanup(() => {
+    setAgentDisplayName(null);
+    setAgentPlatform(null, null);
+  });
 
   return (
-    <Show when={mode() !== undefined} fallback={null}>
-      <Show when={!data.loading} fallback={null}>
-        <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>
-          <Show when={data()?.agents}>
-            <Show when={agentExists()} fallback={<NotFound />}>
-              {props.children}
-            </Show>
+    <Show when={!data.loading} fallback={null}>
+      <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>
+        <Show when={data()?.agents}>
+          <Show when={agentExists()} fallback={<NotFound />}>
+            {props.children}
           </Show>
         </Show>
       </Show>

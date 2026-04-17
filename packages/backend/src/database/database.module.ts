@@ -2,8 +2,6 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
-import { mkdirSync } from 'fs';
-import { dirname } from 'path';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { LlmCall } from '../entities/llm-call.entity';
 import { ToolExecution } from '../entities/tool-execution.entity';
@@ -22,7 +20,6 @@ import { TierAssignment } from '../entities/tier-assignment.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
 import { DatabaseSeederService } from './database-seeder.service';
-import { LocalBootstrapService } from './local-bootstrap.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
 import { HashApiKeys1771500000000 } from './migrations/1771500000000-HashApiKeys';
@@ -66,6 +63,7 @@ import { AddKeyPrefixIndex1773900000000 } from './migrations/1773900000000-AddKe
 import { WidenKeyHashColumn1774000000000 } from './migrations/1774000000000-WidenKeyHashColumn';
 import { WidenApiKeyColumn1774896789000 } from './migrations/1774896789000-WidenApiKeyColumn';
 import { AddErrorHttpStatus1775000000000 } from './migrations/1775000000000-AddErrorHttpStatus';
+import { AddAgentType1775100000000 } from './migrations/1775100000000-AddAgentType';
 import { AddSpecificityAssignments1775200000000 } from './migrations/1775200000000-AddSpecificityAssignments';
 import { AddSpecificityCategory1775300000000 } from './migrations/1775300000000-AddSpecificityCategory';
 import { AddCallerAttribution1775400000000 } from './migrations/1775400000000-AddCallerAttribution';
@@ -134,55 +132,34 @@ const migrations = [
   WidenKeyHashColumn1774000000000,
   WidenApiKeyColumn1774896789000,
   AddErrorHttpStatus1775000000000,
+  AddAgentType1775100000000,
   AddSpecificityAssignments1775200000000,
   AddSpecificityCategory1775300000000,
   AddCallerAttribution1775400000000,
   AddMessageProvider1775500000000,
 ];
 
-const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
-
-function buildModeServices() {
-  const seeder = isLocalMode ? LocalBootstrapService : DatabaseSeederService;
-  return [seeder];
-}
-
 @Module({
   imports: [
     ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        if (isLocalMode) {
-          const dbPath = config.get<string>('app.dbPath') || ':memory:';
-          if (dbPath !== ':memory:') {
-            mkdirSync(dirname(dbPath), { recursive: true, mode: 0o700 });
-          }
-          return {
-            type: 'sqljs' as const,
-            location: dbPath === ':memory:' ? undefined : dbPath,
-            autoSave: dbPath !== ':memory:',
-            entities,
-            synchronize: true,
-            migrationsRun: false,
-            logging: false,
-          };
-        }
-        return {
-          type: 'postgres' as const,
-          url: config.get<string>('app.databaseUrl'),
-          entities,
-          synchronize: false,
-          migrationsRun: ['development', 'test'].includes(config.get<string>('app.nodeEnv') ?? ''),
-          migrationsTransactionMode: 'all' as const,
-          migrations,
-          logging: false,
-          extra: {
-            max: config.get<number>('app.dbPoolMax') ?? 20,
-            idleTimeoutMillis: 30000,
-          },
-        };
-      },
+      useFactory: (config: ConfigService) => ({
+        type: 'postgres' as const,
+        url: config.get<string>('app.databaseUrl'),
+        entities,
+        synchronize: false,
+        migrationsRun:
+          process.env['AUTO_MIGRATE'] === 'true' ||
+          ['development', 'test'].includes(config.get<string>('app.nodeEnv') ?? ''),
+        migrationsTransactionMode: 'all' as const,
+        migrations,
+        logging: false,
+        extra: {
+          max: config.get<number>('app.dbPoolMax') ?? 20,
+          idleTimeoutMillis: 30000,
+        },
+      }),
     }),
     TypeOrmModule.forFeature([
       Tenant,
@@ -197,7 +174,7 @@ function buildModeServices() {
     ]),
     ModelPricesModule,
   ],
-  providers: buildModeServices(),
-  exports: buildModeServices(),
+  providers: [DatabaseSeederService],
+  exports: [DatabaseSeederService],
 })
 export class DatabaseModule {}

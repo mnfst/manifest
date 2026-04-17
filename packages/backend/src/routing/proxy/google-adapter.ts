@@ -13,10 +13,31 @@ interface GeminiContent {
   parts: GeminiPart[];
 }
 
+interface GeminiFunctionCall {
+  name: string;
+  args: Record<string, unknown>;
+  // Present on model-emitted functionCalls. Must round-trip to the paired
+  // functionResponse so Google can correlate parallel tool calls.
+  id?: string;
+}
+
+interface GeminiFunctionResponse {
+  name: string;
+  response: Record<string, unknown>;
+  // Mirrors the id on the originating functionCall. Required for parallel
+  // tool calling — without it, Google pairs responses by position instead
+  // of id, which breaks when call and response order differ.
+  id?: string;
+}
+
 interface GeminiPart {
   text?: string;
-  functionCall?: { name: string; args: Record<string, unknown>; [key: string]: unknown };
-  functionResponse?: { name: string; response: Record<string, unknown> };
+  functionCall?: GeminiFunctionCall;
+  functionResponse?: GeminiFunctionResponse;
+  // Google attaches thoughtSignature at the Part level (sibling of functionCall),
+  // not inside the functionCall object. Gemini 3 rejects tool-use follow-ups
+  // that don't round-trip this field.
+  thoughtSignature?: string;
 }
 
 /**
@@ -86,8 +107,28 @@ function mapRole(role: string): string {
   return 'user';
 }
 
+/**
+ * Scan the message list for assistant tool_calls and build a map from
+ * tool_call_id to function name. Needed because OpenAI's tool-response
+ * messages reference the call by id only — Gemini needs the function name
+ * (and the id, for parallel calls) on the functionResponse Part.
+ */
+function buildToolCallNameMap(messages: OpenAIMessage[]): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const msg of messages) {
+    if (msg.role !== 'assistant' || !Array.isArray(msg.tool_calls)) continue;
+    for (const tc of msg.tool_calls) {
+      if (tc && typeof tc.id === 'string' && tc.function?.name) {
+        map.set(tc.id, tc.function.name);
+      }
+    }
+  }
+  return map;
+}
+
 function messageToContent(
   msg: OpenAIMessage,
+  toolNamesById: Map<string, string>,
   signatureLookup?: SignatureLookup,
 ): GeminiContent | null {
   const parts: GeminiPart[] = [];
@@ -105,35 +146,39 @@ function messageToContent(
   // Handle tool calls from assistant
   if (Array.isArray(msg.tool_calls)) {
     for (const tc of msg.tool_calls) {
-      const functionCall: GeminiPart['functionCall'] = {
+      const functionCall: GeminiFunctionCall = {
         name: tc.function.name,
         args: safeParseArgs(tc.function.arguments),
       };
-      // Preserve thought_signature from the client, or re-inject from cache
-      const sig = (tc as Record<string, unknown>).thought_signature;
-      if (sig) {
-        functionCall!.thought_signature = sig;
-      } else if (signatureLookup) {
-        const cached = signatureLookup(tc.id);
-        if (cached) functionCall!.thought_signature = cached;
-      }
-      parts.push({ functionCall });
+      // Echo the originating id back so Google can pair this call with its
+      // response on the next turn (parallel tool calling).
+      const hasId = typeof tc.id === 'string' && tc.id !== '';
+      if (hasId) functionCall.id = tc.id;
+      const part: GeminiPart = { functionCall };
+      // Preserve thought_signature from the client (if it echoed it back), or
+      // re-inject it from the cache. On the Google wire, the field lives at
+      // the Part level as `thoughtSignature`, not inside functionCall.
+      const echoed = (tc as Record<string, unknown>).thought_signature;
+      const cached = hasId && signatureLookup ? signatureLookup(tc.id) : null;
+      const signature = typeof echoed === 'string' ? echoed : cached;
+      if (signature) part.thoughtSignature = signature;
+      parts.push(part);
     }
   }
 
   // Handle tool response
   if (msg.role === 'tool' && typeof msg.content === 'string') {
-    return {
-      role: 'user',
-      parts: [
-        {
-          functionResponse: {
-            name: (msg.tool_call_id as string) || 'unknown',
-            response: { result: msg.content },
-          },
-        },
-      ],
+    const toolCallId = (msg.tool_call_id as string) || '';
+    // Resolve the real function name from the tool_call history. Falling back
+    // to the id (or 'unknown') is wrong semantically but avoids hard failures
+    // for clients that drop tool_calls from history; Gemini 2.x tolerates it.
+    const functionName = toolNamesById.get(toolCallId) || 'unknown';
+    const functionResponse: GeminiFunctionResponse = {
+      name: functionName,
+      response: { result: msg.content },
     };
+    if (toolCallId) functionResponse.id = toolCallId;
+    return { role: 'user', parts: [{ functionResponse }] };
   }
 
   if (parts.length === 0) return null;
@@ -174,6 +219,7 @@ export function toGoogleRequest(
 ): Record<string, unknown> {
   const messages = (body.messages as OpenAIMessage[]) || [];
   const contents: GeminiContent[] = [];
+  const toolNamesById = buildToolCallNameMap(messages);
 
   // Extract system instruction
   const systemMsgs = messages.filter((m) => m.role === 'system');
@@ -184,7 +230,7 @@ export function toGoogleRequest(
 
   for (const msg of messages) {
     if (msg.role === 'system') continue;
-    const content = messageToContent(msg, signatureLookup);
+    const content = messageToContent(msg, toolNamesById, signatureLookup);
     if (content) contents.push(content);
   }
 
@@ -233,38 +279,35 @@ export function fromGoogleResponse(
 
   let textContent = '';
   const toolCalls: Record<string, unknown>[] = [];
+  const extractedSignatures: ExtractedSignature[] = [];
 
   for (const part of parts) {
-    if (part.text) textContent += part.text;
+    // Thinking summaries come back as text parts with `thought: true`. Skip
+    // them — the OpenAI-compat surface doesn't expose them, and including
+    // them in `content` would leak chain-of-thought into the assistant reply.
+    if (part.text && !part.thought) textContent += part.text;
     if (part.functionCall) {
-      const fc = part.functionCall as {
-        name: string;
-        args: Record<string, unknown>;
-        thought_signature?: string;
-      };
+      const fc = part.functionCall as GeminiFunctionCall;
+      // Prefer Google's own id so parallel tool calls can be correlated back
+      // to their originating functionCall when building the next turn. Fall
+      // back to a synthetic id only for older responses that don't set one.
+      const toolCallId = typeof fc.id === 'string' && fc.id ? fc.id : `call_${randomUUID()}`;
       const toolCall: Record<string, unknown> = {
-        id: `call_${randomUUID()}`,
+        id: toolCallId,
         type: 'function',
         function: { name: fc.name, arguments: JSON.stringify(fc.args) },
       };
-      if (fc.thought_signature) toolCall.thought_signature = fc.thought_signature;
+      const sig = part.thoughtSignature;
+      if (typeof sig === 'string' && sig) {
+        toolCall.thought_signature = sig;
+        extractedSignatures.push({ toolCallId, signature: sig });
+      }
       toolCalls.push(toolCall);
     }
   }
 
   const message: Record<string, unknown> = { role: 'assistant', content: textContent || null };
   if (toolCalls.length > 0) message.tool_calls = toolCalls;
-
-  // Extract thought_signatures for caching
-  const extractedSignatures: ExtractedSignature[] = [];
-  for (const tc of toolCalls) {
-    if (tc.thought_signature && typeof tc.id === 'string') {
-      extractedSignatures.push({
-        toolCallId: tc.id as string,
-        signature: tc.thought_signature as string,
-      });
-    }
-  }
 
   const usage = googleResp.usageMetadata as Record<string, number> | undefined;
 
@@ -305,37 +348,55 @@ function mapFinishReason(candidate: Record<string, unknown>, hasToolCalls = fals
 
 /* ── Stream chunk conversion ── */
 
-export function transformGoogleStreamChunk(chunk: string, model: string): string | null {
-  if (!chunk.trim()) return null;
+/**
+ * Result of transforming one Google SSE chunk. `chunk` is the OpenAI-formatted
+ * SSE text to forward to the client (null when the input chunk produced no
+ * output). `signatures` lists any thoughtSignature values extracted from
+ * functionCall parts in this chunk, which the caller should cache so they can
+ * be re-injected on the next turn (Gemini 3 requires this).
+ */
+export interface GoogleStreamChunkResult {
+  chunk: string | null;
+  signatures: ExtractedSignature[];
+}
+
+export function transformGoogleStreamChunk(chunk: string, model: string): GoogleStreamChunkResult {
+  const empty: GoogleStreamChunkResult = { chunk: null, signatures: [] };
+  if (!chunk.trim()) return empty;
 
   let data: Record<string, unknown>;
   try {
     data = JSON.parse(chunk);
   } catch {
-    return null;
+    return empty;
   }
 
   const candidates = (data.candidates as Array<Record<string, unknown>>) || [];
   const candidate = candidates[0];
   const content = candidate?.content as { parts?: Array<Record<string, unknown>> } | undefined;
   const parts = content?.parts || [];
-  const text = parts.map((p) => p.text || '').join('');
+  const text = parts
+    .filter((p) => !p.thought)
+    .map((p) => p.text || '')
+    .join('');
 
   const toolCalls: Record<string, unknown>[] = [];
+  const signatures: ExtractedSignature[] = [];
   for (const part of parts) {
     if (part.functionCall) {
-      const fc = part.functionCall as {
-        name: string;
-        args?: Record<string, unknown>;
-        thought_signature?: string;
-      };
+      const fc = part.functionCall as GeminiFunctionCall;
+      const toolCallId = typeof fc.id === 'string' && fc.id ? fc.id : `call_${randomUUID()}`;
       const toolCall: Record<string, unknown> = {
         index: toolCalls.length,
-        id: `call_${randomUUID()}`,
+        id: toolCallId,
         type: 'function',
         function: { name: fc.name, arguments: JSON.stringify(fc.args ?? {}) },
       };
-      if (fc.thought_signature) toolCall.thought_signature = fc.thought_signature;
+      const sig = part.thoughtSignature;
+      if (typeof sig === 'string' && sig) {
+        toolCall.thought_signature = sig;
+        signatures.push({ toolCallId, signature: sig });
+      }
       toolCalls.push(toolCall);
     }
   }
@@ -382,5 +443,5 @@ export function transformGoogleStreamChunk(chunk: string, model: string): string
     })}\n\n`;
   }
 
-  return result || null;
+  return { chunk: result || null, signatures };
 }

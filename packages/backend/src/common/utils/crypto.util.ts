@@ -15,13 +15,6 @@ export function getEncryptionSecret(): string {
     return key;
   }
 
-  // Local mode: use persistent local auth secret
-  if (process.env['MANIFEST_MODE'] === 'local') {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getLocalAuthSecret } = require('../../common/constants/local-mode.constants');
-    return getLocalAuthSecret();
-  }
-
   throw new Error(
     'Encryption secret required. Set MANIFEST_ENCRYPTION_KEY or BETTER_AUTH_SECRET (>=32 chars).',
   );

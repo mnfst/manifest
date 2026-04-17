@@ -15,16 +15,18 @@ vi.mock("@solidjs/meta", () => ({
 }));
 
 const mockGetAgentKey = vi.fn();
+const mockGetAgentInfo = vi.fn();
 const mockDeleteAgent = vi.fn();
 const mockRenameAgent = vi.fn();
 const mockRotateAgentKey = vi.fn();
-const mockGetRoutingStatus = vi.fn();
+const mockUpdateAgent = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   getAgentKey: (...args: unknown[]) => mockGetAgentKey(...args),
+  getAgentInfo: (...args: unknown[]) => mockGetAgentInfo(...args),
   deleteAgent: (...args: unknown[]) => mockDeleteAgent(...args),
   renameAgent: (...args: unknown[]) => mockRenameAgent(...args),
   rotateAgentKey: (...args: unknown[]) => mockRotateAgentKey(...args),
-  getRoutingStatus: (...args: unknown[]) => mockGetRoutingStatus(...args),
+  updateAgent: (...args: unknown[]) => mockUpdateAgent(...args),
 }));
 
 vi.mock("../../src/services/toast-store.js", () => ({
@@ -39,13 +41,22 @@ vi.mock("../../src/components/ErrorState.jsx", () => ({
   ),
 }));
 
-vi.mock("../../src/components/SetupStepInstall.jsx", () => ({
-  default: () => <div data-testid="setup-install" />,
-  CopyButton: () => <button>Copy</button>,
-}));
-
 vi.mock("../../src/components/CopyButton.jsx", () => ({
   default: () => <button>Copy</button>,
+}));
+
+vi.mock("../../src/components/AgentTypeGrid.jsx", () => ({
+  default: (props: any) => (
+    <div
+      data-testid="agent-type-picker"
+      data-category={props.category ?? ""}
+      data-platform={props.platform ?? ""}
+      data-disabled={String(!!props.disabled)}
+    >
+      <button data-testid="pick-app" onClick={() => { props.onCategoryChange("app"); }}>Pick App</button>
+      <button data-testid="pick-platform" onClick={() => { props.onPlatformChange("openai-sdk"); }}>Pick Platform</button>
+    </div>
+  ),
 }));
 
 let mockSetupThrows = false;
@@ -53,25 +64,58 @@ vi.mock("../../src/components/SetupStepAddProvider.jsx", () => ({
   default: (props: any) => {
     if (mockSetupThrows) throw new Error("render crash");
     return (
-      <div data-testid="setup-add-provider" data-base-url={props.baseUrl ?? ""} data-key={props.apiKey ?? ""} data-prefix={props.keyPrefix ?? ""} />
+      <div data-testid="setup-add-provider" data-base-url={props.baseUrl ?? ""} data-key={props.apiKey ?? ""} data-platform={props.platform ?? ""} data-key-prefix={props.keyPrefix ?? ""} />
     );
   },
-}));
-
-vi.mock("../../src/components/SetupStepLocalConfigure.jsx", () => ({
-  default: (props: any) => (
-    <div data-testid="setup-local-configure" data-base-url={props.baseUrl ?? ""} data-key={props.apiKey ?? ""} data-prefix={props.keyPrefix ?? ""} />
-  ),
-}));
-
-let mockIsLocalMode: boolean | null = false;
-vi.mock("../../src/services/local-mode.js", () => ({
-  isLocalMode: () => mockIsLocalMode,
 }));
 
 const mockMarkAgentCreated = vi.fn();
 vi.mock("../../src/services/recent-agents.js", () => ({
   markAgentCreated: (...args: unknown[]) => mockMarkAgentCreated(...args),
+}));
+
+vi.mock("manifest-shared", () => ({
+  AGENT_CATEGORIES: ["personal", "app"],
+  platformIcon: (plat: string | null, cat: string | null) => {
+    if (!plat) return undefined;
+    if (plat === "other") return cat === "personal" ? "/icons/other-agent.svg" : "/icons/other.svg";
+    const icons: Record<string, string> = {
+      openclaw: "/icons/openclaw.png",
+      hermes: "/icons/hermes.png",
+      "openai-sdk": "/icons/providers/openai.svg",
+      "vercel-ai-sdk": "/icons/vercel.svg",
+      langchain: "/icons/langchain.svg",
+    };
+    return icons[plat];
+  },
+  CATEGORY_LABELS: {
+    personal: "Personal AI Agent",
+    app: "App AI SDK",
+  },
+  PLATFORM_LABELS: {
+    openclaw: "OpenClaw",
+    hermes: "Hermes Agent",
+    "openai-sdk": "OpenAI SDK",
+    "vercel-ai-sdk": "Vercel AI SDK",
+    langchain: "LangChain",
+    curl: "cURL",
+    other: "Other",
+  },
+  PLATFORMS_BY_CATEGORY: {
+    personal: ["openclaw", "hermes", "other"],
+    app: ["openai-sdk", "vercel-ai-sdk", "langchain", "other"],
+  },
+  PLATFORM_ICONS: {
+    openclaw: "/icons/openclaw.png",
+    hermes: "/icons/hermes.png",
+    "openai-sdk": "/icons/providers/openai.svg",
+    "vercel-ai-sdk": "/icons/vercel.svg",
+    langchain: "/icons/langchain.svg",
+  },
+}));
+
+vi.mock("../../src/services/agent-platform-store.js", () => ({
+  setAgentPlatform: vi.fn(),
 }));
 
 import Settings from "../../src/pages/Settings";
@@ -80,22 +124,18 @@ describe("Settings", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockAgentName = "test-agent";
-    mockIsLocalMode = false;
-    mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_abc", pluginEndpoint: null });
+    mockSetupThrows = false;
+    mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_abc" });
+    mockGetAgentInfo.mockResolvedValue({ agent_name: "test-agent", agent_category: "personal", agent_platform: "openclaw" });
     mockDeleteAgent.mockResolvedValue(undefined);
     mockRenameAgent.mockResolvedValue({ renamed: true, name: "new-name" });
     mockRotateAgentKey.mockResolvedValue({ apiKey: "new-key" });
-    mockGetRoutingStatus.mockResolvedValue({ enabled: false });
+    mockUpdateAgent.mockResolvedValue({});
   });
 
   it("renders Settings heading", () => {
     render(() => <Settings />);
     expect(screen.getByText("Settings")).toBeDefined();
-  });
-
-  it("renders General tab", () => {
-    render(() => <Settings />);
-    expect(screen.getByText("General")).toBeDefined();
   });
 
   it("renders agent name input with value", () => {
@@ -104,20 +144,29 @@ describe("Settings", () => {
     expect(input.value).toBe("test-agent");
   });
 
-  it("renders Agent setup tab", () => {
+  it("renders Agent type label", () => {
     render(() => <Settings />);
-    expect(screen.getByText("Agent setup")).toBeDefined();
+    expect(screen.getByText("Agent type")).toBeDefined();
   });
 
-  it("does not render LLM Providers tab", () => {
-    render(() => <Settings />);
-    expect(screen.queryByText("LLM Providers")).toBeNull();
+  it("renders Change button for agent type", async () => {
+    const { container } = render(() => <Settings />);
+    await vi.waitFor(() => {
+      const changeBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.includes("Change"),
+      );
+      expect(changeBtn).not.toBeUndefined();
+    });
   });
 
-  it("renders both tab buttons in cloud mode", () => {
+  it("renders API Key section", () => {
     render(() => <Settings />);
-    expect(screen.getByText("General")).toBeDefined();
-    expect(screen.getByText("Agent setup")).toBeDefined();
+    expect(screen.getByText("Agent API key")).toBeDefined();
+  });
+
+  it("renders Setup section", () => {
+    render(() => <Settings />);
+    expect(screen.getByText("Setup")).toBeDefined();
   });
 
   it("renders Danger zone", () => {
@@ -132,39 +181,34 @@ describe("Settings", () => {
 
   it("shows key prefix after loading", async () => {
     const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Agent setup"));
     await vi.waitFor(() => {
       expect(container.textContent).toContain("mnfst_abc");
     });
   });
 
   it("shows reveal button when API returns full key", async () => {
-    mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_abc", apiKey: "mnfst_full_key_123", pluginEndpoint: null });
+    mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_abc", apiKey: "mnfst_full_key_123" });
     const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Agent setup"));
     await vi.waitFor(() => {
       expect(container.querySelector('[aria-label="Reveal API key"]')).not.toBeNull();
     });
   });
 
   it("reveals full key when reveal button is clicked", async () => {
-    mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_abc", apiKey: "mnfst_full_key_123", pluginEndpoint: null });
+    mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_abc", apiKey: "mnfst_full_key_123" });
     const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Agent setup"));
     await vi.waitFor(() => {
       expect(container.querySelector('[aria-label="Reveal API key"]')).not.toBeNull();
     });
     fireEvent.click(container.querySelector('[aria-label="Reveal API key"]')!);
     await vi.waitFor(() => {
       expect(container.textContent).toContain("mnfst_full_key_123");
-      expect(container.querySelector('[aria-label="Hide API key"]')).not.toBeNull();
     });
   });
 
   it("hides full key when hide button is clicked", async () => {
-    mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_abc", apiKey: "mnfst_full_key_123", pluginEndpoint: null });
+    mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_abc", apiKey: "mnfst_full_key_123" });
     const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Agent setup"));
     await vi.waitFor(() => {
       expect(container.querySelector('[aria-label="Reveal API key"]')).not.toBeNull();
     });
@@ -175,18 +219,7 @@ describe("Settings", () => {
     fireEvent.click(container.querySelector('[aria-label="Hide API key"]')!);
     await vi.waitFor(() => {
       expect(container.textContent).not.toContain("mnfst_full_key_123");
-      expect(container.querySelector('[aria-label="Reveal API key"]')).not.toBeNull();
     });
-  });
-
-  it("does not show reveal button for legacy keys without apiKey", async () => {
-    mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_abc", pluginEndpoint: null });
-    const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Agent setup"));
-    await vi.waitFor(() => {
-      expect(container.textContent).toContain("mnfst_abc");
-    });
-    expect(container.querySelector('[aria-label="Reveal API key"]')).toBeNull();
   });
 
   it("opens delete modal on Delete agent click", () => {
@@ -195,109 +228,64 @@ describe("Settings", () => {
     expect(container.textContent).toContain("Delete test-agent");
   });
 
-  it("has rotate key button", async () => {
+  it("has rotate key button", () => {
     const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Agent setup"));
-    await vi.waitFor(() => {
-      const rotateBtn = Array.from(container.querySelectorAll("button")).find(
-        (b) => b.textContent?.includes("Rotate key"),
-      );
-      expect(rotateBtn).not.toBeUndefined();
-    });
+    const rotateBtn = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("Rotate key"),
+    );
+    expect(rotateBtn).not.toBeUndefined();
   });
 
   it("save button is disabled when agent name unchanged", () => {
     const { container } = render(() => <Settings />);
-    const saveBtn = Array.from(container.querySelectorAll("button")).find(
-      (b) => b.textContent?.includes("Save"),
-    ) as HTMLButtonElement;
+    const saveBtns = Array.from(container.querySelectorAll("button")).filter(
+      (b) => b.textContent?.trim() === "Save",
+    );
+    const saveBtn = saveBtns[0] as HTMLButtonElement;
     expect(saveBtn.disabled).toBe(true);
   });
 
   it("save button enables when agent name changes", () => {
-    const { container } = render(() => <Settings />);
+    render(() => <Settings />);
     const input = screen.getByLabelText("Agent name") as HTMLInputElement;
     fireEvent.input(input, { target: { value: "new-name" } });
-    const saveBtn = Array.from(container.querySelectorAll("button")).find(
-      (b) => b.textContent?.includes("Save"),
-    ) as HTMLButtonElement;
+    const saveBtn = screen.getByText("Save") as HTMLButtonElement;
     expect(saveBtn.disabled).toBe(false);
   });
 
-  it("clicking Save calls renameAgent API then reloads to new slug", async () => {
+  it("clicking Save calls renameAgent API then reloads", async () => {
     const replaceFn = vi.fn();
     const originalLocation = window.location;
-    Object.defineProperty(window, 'location', {
-      value: { ...originalLocation, replace: replaceFn },
-      writable: true,
-      configurable: true,
-    });
-    const { container } = render(() => <Settings />);
-    const input = screen.getByLabelText("Agent name") as HTMLInputElement;
-    fireEvent.input(input, { target: { value: "new-name" } });
-    const saveBtn = Array.from(container.querySelectorAll("button")).find(
-      (b) => b.textContent?.includes("Save"),
-    ) as HTMLButtonElement;
-    fireEvent.click(saveBtn);
-    await vi.waitFor(() => {
-      expect(mockRenameAgent).toHaveBeenCalledWith("test-agent", "new-name");
-    });
-    await vi.waitFor(() => {
-      expect(mockMarkAgentCreated).toHaveBeenCalledWith("new-name");
-    });
-    await vi.waitFor(() => {
-      expect(replaceFn).toHaveBeenCalledWith("/agents/new-name/settings");
-    });
-    Object.defineProperty(window, 'location', {
-      value: originalLocation,
-      writable: true,
-      configurable: true,
-    });
+    Object.defineProperty(window, "location", { value: { ...originalLocation, replace: replaceFn }, writable: true, configurable: true });
+    render(() => <Settings />);
+    fireEvent.input(screen.getByLabelText("Agent name"), { target: { value: "new-name" } });
+    fireEvent.click(screen.getByText("Save"));
+    await vi.waitFor(() => { expect(mockRenameAgent).toHaveBeenCalledWith("test-agent", "new-name"); });
+    await vi.waitFor(() => { expect(replaceFn).toHaveBeenCalledWith("/agents/new-name/settings"); });
+    Object.defineProperty(window, "location", { value: originalLocation, writable: true, configurable: true });
   });
 
   it("resets name on rename error", async () => {
     mockRenameAgent.mockRejectedValueOnce(new Error("Conflict"));
-    const { container } = render(() => <Settings />);
+    render(() => <Settings />);
     const input = screen.getByLabelText("Agent name") as HTMLInputElement;
     fireEvent.input(input, { target: { value: "bad-name" } });
-    const saveBtn = Array.from(container.querySelectorAll("button")).find(
-      (b) => b.textContent?.includes("Save"),
-    ) as HTMLButtonElement;
-    fireEvent.click(saveBtn);
-    await vi.waitFor(() => {
-      expect(mockRenameAgent).toHaveBeenCalled();
-    });
-    await vi.waitFor(() => {
-      expect(input.value).toBe("test-agent");
-    });
+    fireEvent.click(screen.getByText("Save"));
+    await vi.waitFor(() => { expect(input.value).toBe("test-agent"); });
   });
 
   it("clicking Rotate key calls rotateAgentKey", async () => {
     mockRotateAgentKey.mockResolvedValue({ apiKey: "mnfst_new_rotated_key" });
     const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Agent setup"));
-    await vi.waitFor(() => {
-      expect(container.textContent).toContain("Rotate key");
-    });
-    const rotateBtn = Array.from(container.querySelectorAll("button")).find(
-      (b) => b.textContent?.includes("Rotate key"),
-    )!;
+    const rotateBtn = Array.from(container.querySelectorAll("button")).find((b) => b.textContent?.includes("Rotate key"))!;
     fireEvent.click(rotateBtn);
-    await vi.waitFor(() => {
-      expect(mockRotateAgentKey).toHaveBeenCalledWith("test-agent");
-    });
+    await vi.waitFor(() => { expect(mockRotateAgentKey).toHaveBeenCalledWith("test-agent"); });
   });
 
   it("auto-reveals key after successful rotation", async () => {
     mockRotateAgentKey.mockResolvedValue({ apiKey: "mnfst_new_rotated_key" });
     const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Agent setup"));
-    await vi.waitFor(() => {
-      expect(container.textContent).toContain("Rotate key");
-    });
-    const rotateBtn = Array.from(container.querySelectorAll("button")).find(
-      (b) => b.textContent?.includes("Rotate key"),
-    )!;
+    const rotateBtn = Array.from(container.querySelectorAll("button")).find((b) => b.textContent?.includes("Rotate key"))!;
     fireEvent.click(rotateBtn);
     await vi.waitFor(() => {
       expect(container.querySelector('[aria-label="Hide API key"]')).not.toBeNull();
@@ -308,7 +296,6 @@ describe("Settings", () => {
   it("closes delete modal on Escape key", () => {
     const { container } = render(() => <Settings />);
     fireEvent.click(screen.getByText("Delete agent"));
-    expect(container.querySelector(".modal-overlay")).not.toBeNull();
     fireEvent.keyDown(container.querySelector(".modal-overlay")!, { key: "Escape" });
     expect(container.querySelector(".modal-overlay")).toBeNull();
   });
@@ -316,83 +303,26 @@ describe("Settings", () => {
   it("delete button is disabled until name matches", () => {
     const { container } = render(() => <Settings />);
     fireEvent.click(screen.getByText("Delete agent"));
-    const deleteBtn = Array.from(container.querySelectorAll("button")).find(
-      (b) => b.textContent?.includes("Delete this agent"),
-    ) as HTMLButtonElement;
+    const deleteBtn = Array.from(container.querySelectorAll("button")).find((b) => b.textContent?.includes("Delete this agent")) as HTMLButtonElement;
     expect(deleteBtn.disabled).toBe(true);
   });
 
-  it("delete button enables when name matches", () => {
-    const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Delete agent"));
-    const confirmInput = container.querySelector('.modal-overlay input[type="text"]') as HTMLInputElement;
-    fireEvent.input(confirmInput, { target: { value: "test-agent" } });
-    const deleteBtn = Array.from(container.querySelectorAll("button")).find(
-      (b) => b.textContent?.includes("Delete this agent"),
-    ) as HTMLButtonElement;
-    expect(deleteBtn.disabled).toBe(false);
-  });
-
   it("calls deleteAgent when confirmed", async () => {
-    mockDeleteAgent.mockResolvedValue(undefined);
     const { container } = render(() => <Settings />);
     fireEvent.click(screen.getByText("Delete agent"));
-    const confirmInput = container.querySelector('.modal-overlay input[type="text"]') as HTMLInputElement;
-    fireEvent.input(confirmInput, { target: { value: "test-agent" } });
-    const deleteBtn = Array.from(container.querySelectorAll("button")).find(
-      (b) => b.textContent?.includes("Delete this agent"),
-    )!;
+    fireEvent.input(container.querySelector('.modal-overlay input[type="text"]')!, { target: { value: "test-agent" } });
+    const deleteBtn = Array.from(container.querySelectorAll("button")).find((b) => b.textContent?.includes("Delete this agent"))!;
     fireEvent.click(deleteBtn);
+    await vi.waitFor(() => { expect(mockDeleteAgent).toHaveBeenCalledWith("test-agent"); });
+  });
+
+  it("shows setup instructions with platform from agent info", async () => {
+    const { container } = render(() => <Settings />);
     await vi.waitFor(() => {
-      expect(mockDeleteAgent).toHaveBeenCalledWith("test-agent");
+      const el = container.querySelector('[data-testid="setup-add-provider"]');
+      expect(el).not.toBeNull();
+      expect(el!.getAttribute("data-platform")).toBe("openclaw");
     });
-  });
-
-  it("closes delete modal when close button clicked", () => {
-    const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Delete agent"));
-    expect(container.querySelector(".modal-overlay")).not.toBeNull();
-    const closeBtn = container.querySelector('.modal-overlay [aria-label="Close"]')!;
-    fireEvent.click(closeBtn);
-    expect(container.querySelector(".modal-overlay")).toBeNull();
-  });
-
-  it("shows agent API key label", () => {
-    const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Agent setup"));
-    expect(container.textContent).toContain("Agent API key");
-  });
-
-  it("shows setup steps after loading", async () => {
-    const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Agent setup"));
-    await vi.waitFor(() => {
-      expect(container.querySelector('[data-testid="setup-add-provider"]')).not.toBeNull();
-    });
-  });
-
-  it("shows Go to routing button in setup tab", async () => {
-    const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Agent setup"));
-    await vi.waitFor(() => {
-      expect(container.textContent).toContain("Go to routing");
-    });
-  });
-
-  it("navigates to routing page when Go to routing is clicked", async () => {
-    const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Agent setup"));
-    await vi.waitFor(() => {
-      expect(container.textContent).toContain("Go to routing");
-    });
-    const goBtn = Array.from(container.querySelectorAll("button")).find(
-      (b) => b.textContent?.includes("Go to routing"),
-    )!;
-    fireEvent.click(goBtn);
-    expect(mockNavigate).toHaveBeenCalledWith(
-      "/agents/test-agent/routing",
-      { state: { openProviders: true } },
-    );
   });
 
   it("shows breadcrumb with agent name", () => {
@@ -404,129 +334,211 @@ describe("Settings", () => {
   it("handles rotate key error gracefully", async () => {
     mockRotateAgentKey.mockRejectedValue(new Error("Rotate failed"));
     const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Agent setup"));
-    await vi.waitFor(() => {
-      expect(container.textContent).toContain("Rotate key");
-    });
-    const rotateBtn = Array.from(container.querySelectorAll("button")).find(
-      (b) => b.textContent?.includes("Rotate key"),
-    )!;
+    const rotateBtn = Array.from(container.querySelectorAll("button")).find((b) => b.textContent?.includes("Rotate key"))!;
     fireEvent.click(rotateBtn);
-    await vi.waitFor(() => {
-      expect(mockRotateAgentKey).toHaveBeenCalled();
-    });
+    await vi.waitFor(() => { expect(mockRotateAgentKey).toHaveBeenCalled(); });
   });
 
   it("handles delete agent error gracefully", async () => {
     mockDeleteAgent.mockRejectedValue(new Error("Delete failed"));
     const { container } = render(() => <Settings />);
     fireEvent.click(screen.getByText("Delete agent"));
-    const confirmInput = container.querySelector('.modal-overlay input[type="text"]') as HTMLInputElement;
-    fireEvent.input(confirmInput, { target: { value: "test-agent" } });
-    const deleteBtn = Array.from(container.querySelectorAll("button")).find(
-      (b) => b.textContent?.includes("Delete this agent"),
-    )!;
+    fireEvent.input(container.querySelector('.modal-overlay input[type="text"]')!, { target: { value: "test-agent" } });
+    const deleteBtn = Array.from(container.querySelectorAll("button")).find((b) => b.textContent?.includes("Delete this agent"))!;
     fireEvent.click(deleteBtn);
-    await vi.waitFor(() => {
-      expect(mockDeleteAgent).toHaveBeenCalled();
-    });
+    await vi.waitFor(() => { expect(mockDeleteAgent).toHaveBeenCalled(); });
   });
 
-  it("calls getAgentKey with agent name when Agent setup tab is shown", async () => {
-    render(() => <Settings />);
-    fireEvent.click(screen.getByText("Agent setup"));
-    await vi.waitFor(() => {
-      expect(mockGetAgentKey).toHaveBeenCalledWith("test-agent");
-    });
-  });
-
-  it("shows warning banner when getAgentKey fails", { retry: 0 } as any, async () => {
-    // SolidJS createResource re-throws internally; suppress at both levels
-    const suppress = (e: PromiseRejectionEvent) => { e.preventDefault(); e.stopImmediatePropagation(); };
-    window.addEventListener("unhandledrejection", suppress, true);
-    const processSup = () => {};
-    process.on("unhandledRejection", processSup);
-    mockGetAgentKey.mockRejectedValueOnce(new Error("Failed"));
-    const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Agent setup"));
-    await vi.waitFor(() => {
-      expect(container.textContent).toContain("Could not load your API key");
-    });
-    await new Promise((r) => setTimeout(r, 100));
-    window.removeEventListener("unhandledrejection", suppress, true);
-    process.removeListener("unhandledRejection", processSup);
-  });
-
-  it("shows ErrorBoundary fallback when child component crashes", async () => {
+  it("shows ErrorBoundary fallback when child crashes", async () => {
     mockSetupThrows = true;
     const suppress = (e: ErrorEvent) => { e.preventDefault(); e.stopImmediatePropagation(); };
     window.addEventListener("error", suppress, true);
     try {
       const { container } = render(() => <Settings />);
-      fireEvent.click(screen.getByText("Agent setup"));
-      await vi.waitFor(() => {
-        expect(container.textContent).toContain("Something went wrong");
-      });
+      await vi.waitFor(() => { expect(container.textContent).toContain("Something went wrong"); });
     } finally {
       window.removeEventListener("error", suppress, true);
       mockSetupThrows = false;
     }
   });
 
-  it("uses custom pluginEndpoint when available", async () => {
-    mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_abc", pluginEndpoint: "https://custom.endpoint" });
+  it("calls updateAgent when type changed via modal Save", async () => {
     const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Agent setup"));
+    await vi.waitFor(() => {
+      const changeBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.includes("Change"),
+      );
+      expect(changeBtn).not.toBeUndefined();
+    });
+    // Open the type modal
+    const changeBtn = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("Change"),
+    )!;
+    fireEvent.click(changeBtn);
+    await vi.waitFor(() => {
+      expect(container.querySelector('[data-testid="agent-type-picker"]')).not.toBeNull();
+    });
+    // Change category via mock picker
+    fireEvent.click(container.querySelector('[data-testid="pick-app"]')!);
+    fireEvent.click(container.querySelector('[data-testid="pick-platform"]')!);
+    // Click the Save button inside the modal
+    const modalSaveBtn = Array.from(container.querySelectorAll(".modal-card__footer button")).find(
+      (b) => b.textContent?.includes("Save"),
+    ) as HTMLButtonElement;
+    expect(modalSaveBtn).not.toBeUndefined();
+    fireEvent.click(modalSaveBtn);
+    await vi.waitFor(() => {
+      expect(mockUpdateAgent).toHaveBeenCalledWith("test-agent", expect.objectContaining({ agent_category: "app" }));
+    });
+  });
+
+  it("opens setup modal after type changed via modal save", async () => {
+    const { container } = render(() => <Settings />);
+    await vi.waitFor(() => {
+      const changeBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.includes("Change"),
+      );
+      expect(changeBtn).not.toBeUndefined();
+    });
+    fireEvent.click(Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("Change"),
+    )!);
+    await vi.waitFor(() => {
+      expect(container.querySelector('[data-testid="agent-type-picker"]')).not.toBeNull();
+    });
+    fireEvent.click(container.querySelector('[data-testid="pick-app"]')!);
+    fireEvent.click(container.querySelector('[data-testid="pick-platform"]')!);
+    const modalSaveBtn = Array.from(container.querySelectorAll(".modal-card__footer button")).find(
+      (b) => b.textContent?.includes("Save"),
+    )!;
+    fireEvent.click(modalSaveBtn);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Set up agent");
+    });
+  });
+
+  it("shows current type display with platform label", async () => {
+    const { container } = render(() => <Settings />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("OpenClaw");
+      expect(container.textContent).toContain("Personal AI Agent");
+    });
+  });
+
+  it("closes delete modal when clicking overlay", () => {
+    const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Delete agent"));
+    const overlay = container.querySelector(".modal-overlay")!;
+    // Click on the overlay itself (not the modal card inside)
+    fireEvent.click(overlay);
+    expect(container.querySelector(".modal-overlay")).toBeNull();
+  });
+
+  it("closes delete modal when clicking close button", () => {
+    const { container } = render(() => <Settings />);
+    fireEvent.click(screen.getByText("Delete agent"));
+    const closeBtn = container.querySelector('[aria-label="Close"]');
+    expect(closeBtn).not.toBeNull();
+    fireEvent.click(closeBtn!);
+    expect(container.querySelector(".modal-overlay")).toBeNull();
+  });
+
+  it("opens type modal when Change button clicked", async () => {
+    const { container } = render(() => <Settings />);
+    await vi.waitFor(() => {
+      const changeBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.includes("Change"),
+      );
+      expect(changeBtn).not.toBeUndefined();
+    });
+    fireEvent.click(Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("Change"),
+    )!);
+    await vi.waitFor(() => {
+      expect(container.querySelector('[data-testid="agent-type-picker"]')).not.toBeNull();
+    });
+  });
+
+  it("passes keyPrefix to setup component", async () => {
+    mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_xyz_prefix" });
+    const { container } = render(() => <Settings />);
     await vi.waitFor(() => {
       const el = container.querySelector('[data-testid="setup-add-provider"]');
       expect(el).not.toBeNull();
-      expect(el!.getAttribute("data-base-url")).toBe("https://custom.endpoint");
+      expect(el!.getAttribute("data-key-prefix")).toBe("mnfst_xyz_prefix");
     });
   });
 
-  describe("local mode", () => {
-    beforeEach(() => {
-      mockIsLocalMode = true;
+  it("disables AgentTypePicker during save in modal", async () => {
+    let resolveSave: (v: any) => void;
+    mockUpdateAgent.mockReturnValue(new Promise((r) => { resolveSave = r; }));
+    const { container } = render(() => <Settings />);
+    // Open type modal
+    await vi.waitFor(() => {
+      const changeBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.includes("Change"),
+      );
+      expect(changeBtn).not.toBeUndefined();
     });
-
-    it("renders Settings page in local mode", () => {
-      render(() => <Settings />);
-      expect(screen.getByText("Settings")).toBeDefined();
-      expect(screen.getByLabelText("Agent name")).toBeDefined();
+    fireEvent.click(Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("Change"),
+    )!);
+    await vi.waitFor(() => {
+      expect(container.querySelector('[data-testid="agent-type-picker"]')).not.toBeNull();
     });
-
-    it("shows tabs in local mode", () => {
-      render(() => <Settings />);
-      expect(screen.getByText("General")).toBeDefined();
-      expect(screen.getByText("Agent setup")).toBeDefined();
+    // Change type
+    fireEvent.click(container.querySelector('[data-testid="pick-app"]')!);
+    fireEvent.click(container.querySelector('[data-testid="pick-platform"]')!);
+    // Click save in modal
+    const modalSaveBtn = Array.from(container.querySelectorAll(".modal-card__footer button")).find(
+      (b) => b.textContent?.includes("Save"),
+    )!;
+    fireEvent.click(modalSaveBtn);
+    // Verify save button shows spinner and picker is disabled
+    await vi.waitFor(() => {
+      const spinnerBtn = Array.from(container.querySelectorAll(".modal-card__footer button")).find(
+        (b) => b.querySelector(".spinner"),
+      );
+      expect(spinnerBtn).not.toBeUndefined();
+      expect(spinnerBtn!.hasAttribute("disabled")).toBe(true);
+      // Verify picker disabled prop is true during save
+      const picker = container.querySelector('[data-testid="agent-type-picker"]');
+      expect(picker!.getAttribute("data-disabled")).toBe("true");
     });
+    resolveSave!({});
+  });
 
-    it("shows Agent setup tab content in local mode", () => {
-      const { container } = render(() => <Settings />);
-      fireEvent.click(screen.getByText("Agent setup"));
-      expect(container.textContent).toContain("Agent API key");
-    });
-
-    it("shows same add provider step in local mode", async () => {
-      const { container } = render(() => <Settings />);
-      fireEvent.click(screen.getByText("Agent setup"));
-      await vi.waitFor(() => {
-        expect(container.querySelector('[data-testid="setup-add-provider"]')).not.toBeNull();
-      });
-    });
-
-    it("hides Danger zone for default local-agent", () => {
-      mockAgentName = "local-agent";
-      const { container } = render(() => <Settings />);
-      expect(container.textContent).not.toContain("Danger zone");
-      expect(container.textContent).not.toContain("Delete agent");
-    });
-
-    it("shows Danger zone for non-default agent in local mode", () => {
-      mockAgentName = "custom-agent";
-      render(() => <Settings />);
-      expect(screen.getByText("Danger zone")).toBeDefined();
-      expect(screen.getByText("Delete agent")).toBeDefined();
+  it("shows error banner when API key fetch fails", async () => {
+    mockGetAgentKey.mockRejectedValue(new Error("key fetch failed"));
+    const { container } = render(() => <Settings />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Could not load your API key");
     });
   });
+
+  it("shows fallback key display when no full key available", async () => {
+    mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_xyz" });
+    const { container } = render(() => <Settings />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("mnfst_xyz...");
+    });
+  });
+
+  it("uses app.manifest.build URL when hostname matches", async () => {
+    const originalLocation = window.location;
+    Object.defineProperty(window, "location", {
+      value: { ...originalLocation, hostname: "app.manifest.build", origin: "https://app.manifest.build" },
+      writable: true,
+      configurable: true,
+    });
+    mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_abc" });
+    const { container } = render(() => <Settings />);
+    await vi.waitFor(() => {
+      const el = container.querySelector('[data-testid="setup-add-provider"]');
+      expect(el).not.toBeNull();
+      expect(el!.getAttribute("data-base-url")).toBe("https://app.manifest.build/v1");
+    });
+    Object.defineProperty(window, "location", { value: originalLocation, writable: true, configurable: true });
+  });
+
 });

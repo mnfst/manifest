@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserProvider } from '../../entities/user-provider.entity';
@@ -6,6 +6,7 @@ import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { TierAutoAssignService } from './tier-auto-assign.service';
 import { RoutingCacheService } from './routing-cache.service';
 import { ProviderService } from './provider.service';
+import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { randomUUID } from 'crypto';
 import { TIERS } from '../../scoring/types';
 import { isManifestUsableProvider } from '../../common/utils/subscription-support';
@@ -20,7 +21,13 @@ export class TierService {
     private readonly autoAssign: TierAutoAssignService,
     private readonly routingCache: RoutingCacheService,
     private readonly providerService: ProviderService,
+    private readonly discoveryService: ModelDiscoveryService,
   ) {}
+
+  async hasRoutableTier(agentId: string): Promise<boolean> {
+    const rows = await this.tierRepo.find({ where: { agent_id: agentId } });
+    return rows.some((r) => !!r.override_model || !!r.auto_assigned_model);
+  }
 
   async getTiers(agentId: string, userId?: string): Promise<TierAssignment[]> {
     const cached = this.routingCache.getTiers(agentId);
@@ -83,6 +90,29 @@ export class TierService {
     provider?: string,
     authType?: 'api_key' | 'subscription',
   ): Promise<TierAssignment> {
+    const available = await this.discoveryService.getModelsForAgent(agentId);
+    const matches = available.filter((m) => m.id === model);
+    if (matches.length === 0) {
+      const providerHint = provider ? ` (provider: ${provider})` : '';
+      const options = available.map((m) => m.id).slice(0, 20);
+      throw new BadRequestException(
+        `Model "${model}" is not in this agent's discovered model list${providerHint}. ` +
+          `Connect the appropriate provider first, or choose from: ${options.join(', ')}${
+            available.length > options.length ? ', …' : ''
+          }`,
+      );
+    }
+    // If provider is supplied, ensure it matches one of the available entries.
+    if (provider) {
+      const providerLower = provider.toLowerCase();
+      const providerMatches = matches.some((m) => m.provider.toLowerCase() === providerLower);
+      if (!providerMatches) {
+        throw new BadRequestException(
+          `Model "${model}" is not offered by provider "${provider}" for this agent.`,
+        );
+      }
+    }
+
     const existing = await this.tierRepo.findOne({
       where: { agent_id: agentId, tier },
     });

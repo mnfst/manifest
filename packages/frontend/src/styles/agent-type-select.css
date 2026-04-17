@@ -1,0 +1,147 @@
+/* ── Agent type select (icon-button + grouped dropdown) ── */
+.agent-type-select-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  position: relative;
+}
+
+.agent-type-select {
+  position: static;
+  flex-shrink: 0;
+}
+
+.agent-type-select__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 10px 0 12px;
+  height: 2.75rem;
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.agent-type-select__trigger:hover:not(:disabled) {
+  border-color: hsl(var(--foreground) / 0.3);
+}
+
+.agent-type-select__trigger--open {
+  border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+}
+
+.agent-type-select__trigger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.agent-type-select__trigger-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.agent-type-select__caret {
+  color: hsl(var(--muted-foreground));
+  flex-shrink: 0;
+}
+
+.agent-type-select__dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+  padding: 8px;
+  z-index: 50;
+  animation: fadeInUp 100ms ease-out;
+  display: flex;
+  gap: 8px;
+}
+
+.agent-type-select__dropdown--inline {
+  position: static;
+  box-shadow: none;
+  animation: none;
+  z-index: auto;
+  border: none;
+  padding: 0;
+}
+
+.agent-type-select__dropdown--inline .agent-type-select__group-label {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.agent-type-select__column {
+  flex: 1;
+  min-width: 0;
+}
+
+.agent-type-select__group-label {
+  padding: 10px 10px 4px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.agent-type-select__group-label:not(:first-child) {
+  padding-top: 8px;
+}
+
+.agent-type-select__option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--foreground));
+  text-align: left;
+  margin: 2px 0;
+  border-radius: calc(var(--radius) - 2px);
+  transition: background var(--transition-fast);
+}
+
+.agent-type-select__option:hover {
+  background: hsl(var(--accent));
+}
+
+.agent-type-select__option--selected {
+  background: hsl(var(--muted));
+  font-weight: 600;
+}
+
+.agent-type-select__option--selected:hover,
+.agent-type-select__option:active {
+  background: hsl(var(--muted));
+}
+
+.agent-type-select__option-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* Dark-mode icon inversion for light-only logos */
+.dark .agent-type-select__trigger-icon[src*='openai'],
+.dark .agent-type-select__trigger-icon[src*='vercel'],
+.dark .agent-type-select__trigger-icon[src*='other'],
+.dark .agent-type-select__option-icon[src*='openai'],
+.dark .agent-type-select__option-icon[src*='vercel'],
+.dark .agent-type-select__option-icon[src*='other'] {
+  filter: invert(1);
+}

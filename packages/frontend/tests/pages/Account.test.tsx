@@ -19,12 +19,6 @@ vi.mock("../../src/services/auth-client.js", () => ({
   },
 }));
 
-let mockIsLocalMode = false;
-vi.mock("../../src/services/local-mode.js", () => ({
-  checkLocalMode: vi.fn().mockResolvedValue(false),
-  isLocalMode: () => mockIsLocalMode,
-}));
-
 vi.stubGlobal("navigator", {
   clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
 });
@@ -135,23 +129,3 @@ describe("Account", () => {
   });
 });
 
-describe("Account (local mode)", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    localStorage.clear();
-    mockIsLocalMode = true;
-  });
-
-  afterEach(() => {
-    mockIsLocalMode = false;
-  });
-
-  it("shows local display name input and handles Enter key", () => {
-    const { container } = render(() => <Account />);
-    const input = container.querySelector('input[aria-label="Display name"]') as HTMLInputElement;
-    expect(input).not.toBeNull();
-    fireEvent.input(input, { target: { value: "NewLocalName" } });
-    fireEvent.keyDown(input, { key: "Enter" });
-    expect(input).not.toBeNull();
-  });
-});

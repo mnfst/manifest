@@ -394,9 +394,16 @@ describe('ResolveService', () => {
     mockProviderKeyService.getEffectiveModel.mockResolvedValue('gpt-4o');
     mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' });
 
+    // Message is long enough to bypass the short-message fast path so the
+    // tools-floor branch in applyTierFloors is exercised.
     const result = await service.resolve(
       'agent-1',
-      [{ role: 'user', content: 'hi' }],
+      [
+        {
+          role: 'user',
+          content: 'Please list the items you know about and summarise what they do.',
+        },
+      ],
       [{ name: 'search' }],
       'auto',
     );

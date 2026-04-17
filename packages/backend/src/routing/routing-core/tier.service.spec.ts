@@ -1,9 +1,27 @@
+import { BadRequestException } from '@nestjs/common';
 import { TierService } from './tier.service';
 import { TierAutoAssignService } from './tier-auto-assign.service';
 import { RoutingCacheService } from './routing-cache.service';
 import { ProviderService } from './provider.service';
+import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
+import { DiscoveredModel } from '../../model-discovery/model-fetcher';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { UserProvider } from '../../entities/user-provider.entity';
+
+function makeDiscoveredModel(overrides: Partial<DiscoveredModel> = {}): DiscoveredModel {
+  return {
+    id: 'gpt-4o',
+    displayName: 'GPT-4o',
+    provider: 'openai',
+    contextWindow: 128000,
+    inputPricePerToken: 0.000005,
+    outputPricePerToken: 0.000015,
+    capabilityReasoning: false,
+    capabilityCode: true,
+    qualityScore: 4,
+    ...overrides,
+  } as DiscoveredModel;
+}
 
 jest.mock('../../common/utils/subscription-support', () => ({
   isManifestUsableProvider: jest.fn((record: { auth_type?: string }) => {
@@ -50,6 +68,7 @@ describe('TierService', () => {
     setProviders: jest.Mock;
   };
   let providerService: { getProviders: jest.Mock };
+  let discoveryService: { getModelsForAgent: jest.Mock };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -64,6 +83,14 @@ describe('TierService', () => {
       setProviders: jest.fn(),
     };
     providerService = { getProviders: jest.fn().mockResolvedValue([]) };
+    discoveryService = {
+      getModelsForAgent: jest
+        .fn()
+        .mockResolvedValue([
+          makeDiscoveredModel({ id: 'gpt-4o', provider: 'openai' }),
+          makeDiscoveredModel({ id: 'claude-3-haiku', provider: 'anthropic' }),
+        ]),
+    };
 
     service = new TierService(
       providerRepo as unknown as any,
@@ -71,7 +98,50 @@ describe('TierService', () => {
       autoAssign as unknown as TierAutoAssignService,
       routingCache as unknown as RoutingCacheService,
       providerService as unknown as ProviderService,
+      discoveryService as unknown as ModelDiscoveryService,
     );
+  });
+
+  /* ── hasRoutableTier ── */
+
+  describe('hasRoutableTier', () => {
+    it('returns true when a tier has an auto_assigned_model', async () => {
+      tierRepo.find.mockResolvedValue([makeTier({ auto_assigned_model: 'gpt-4o' })]);
+
+      const result = await service.hasRoutableTier('agent-1');
+      expect(result).toBe(true);
+    });
+
+    it('returns true when a tier has an override_model', async () => {
+      tierRepo.find.mockResolvedValue([
+        makeTier({ auto_assigned_model: null, override_model: 'claude-sonnet' }),
+      ]);
+
+      const result = await service.hasRoutableTier('agent-1');
+      expect(result).toBe(true);
+    });
+
+    it('returns false when all tier rows are null', async () => {
+      tierRepo.find.mockResolvedValue([
+        makeTier({ auto_assigned_model: null, override_model: null }),
+        makeTier({
+          id: 'tier-2',
+          tier: 'complex',
+          auto_assigned_model: null,
+          override_model: null,
+        }),
+      ]);
+
+      const result = await service.hasRoutableTier('agent-1');
+      expect(result).toBe(false);
+    });
+
+    it('returns false when no tier rows exist', async () => {
+      tierRepo.find.mockResolvedValue([]);
+
+      const result = await service.hasRoutableTier('agent-1');
+      expect(result).toBe(false);
+    });
   });
 
   /* ── getTiers ── */
@@ -241,6 +311,56 @@ describe('TierService', () => {
       await service.setOverride('agent-1', 'user-1', 'simple', 'gpt-4o');
 
       expect(existing.fallback_models).toBeNull();
+    });
+
+    it('should reject unknown model with BadRequestException', async () => {
+      await expect(
+        service.setOverride('agent-1', 'user-1', 'simple', 'gpt-does-not-exist'),
+      ).rejects.toThrow(BadRequestException);
+      expect(tierRepo.save).not.toHaveBeenCalled();
+      expect(tierRepo.insert).not.toHaveBeenCalled();
+    });
+
+    it('should include available models in the rejection message', async () => {
+      await expect(
+        service.setOverride('agent-1', 'user-1', 'simple', 'bogus-model'),
+      ).rejects.toThrow(/gpt-4o/);
+    });
+
+    it('should reject model when provider hint does not match the discovered entry', async () => {
+      await expect(
+        service.setOverride('agent-1', 'user-1', 'simple', 'gpt-4o', 'anthropic'),
+      ).rejects.toThrow(BadRequestException);
+      expect(tierRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('should accept model when provider hint matches', async () => {
+      const existing = makeTier();
+      tierRepo.findOne.mockResolvedValue(existing);
+
+      await service.setOverride('agent-1', 'user-1', 'simple', 'gpt-4o', 'openai');
+
+      expect(tierRepo.save).toHaveBeenCalled();
+    });
+
+    it('should accept model when provider hint matches case-insensitively', async () => {
+      const existing = makeTier();
+      tierRepo.findOne.mockResolvedValue(existing);
+
+      await service.setOverride('agent-1', 'user-1', 'simple', 'gpt-4o', 'OpenAI');
+
+      expect(tierRepo.save).toHaveBeenCalled();
+    });
+
+    it('should truncate options list when many models are available', async () => {
+      const many = Array.from({ length: 30 }, (_, i) =>
+        makeDiscoveredModel({ id: `model-${i}`, provider: 'openai' }),
+      );
+      discoveryService.getModelsForAgent.mockResolvedValue(many);
+
+      await expect(
+        service.setOverride('agent-1', 'user-1', 'simple', 'missing-model'),
+      ).rejects.toThrow(/…/);
     });
   });
 

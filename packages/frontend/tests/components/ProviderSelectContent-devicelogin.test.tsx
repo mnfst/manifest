@@ -17,11 +17,6 @@ vi.mock("../../src/components/ProviderIcon.js", () => ({
   providerIcon: () => null, customProviderLogo: () => null,
 }));
 
-vi.mock("../../src/services/local-mode.js", () => ({
-  isLocalMode: () => false,
-  checkLocalMode: () => Promise.resolve(false),
-}));
-
 vi.mock("../../src/services/oauth-popup.js", () => ({
   monitorOAuthPopup: vi.fn(),
 }));

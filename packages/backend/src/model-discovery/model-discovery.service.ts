@@ -163,9 +163,10 @@ export class ModelDiscoveryService {
     }));
 
     // Filter out models confirmed to lack tool support (models.dev toolCall === false).
-    // In the OpenClaw context every request includes tools, so models without
-    // tool calling are unusable. Only filter when models.dev has data — if no
-    // entry exists we keep the model (we don't know its capabilities).
+    // Personal AI agents (OpenClaw, Hermes, SDK-based agents) almost always
+    // include tools in every request, so models without tool calling are
+    // unusable. Only filter when models.dev has data — if no entry exists we
+    // keep the model (we don't know its capabilities).
     const filtered = enriched.filter((model) => {
       const mdEntry = this.modelsDevSync?.lookupModel(provider.provider, model.id);
       if (mdEntry && mdEntry.toolCall === false) return false;

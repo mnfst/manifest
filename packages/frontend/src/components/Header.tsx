@@ -2,9 +2,8 @@ import { A, useLocation, useNavigate } from '@solidjs/router';
 import { Show, createSignal, createEffect, onCleanup, onMount, type Component } from 'solid-js';
 import { useAgentName } from '../services/routing.js';
 import { authClient } from '../services/auth-client.js';
-import { checkLocalMode, isLocalMode, isDevMode } from '../services/local-mode.js';
-import { displayName } from '../services/display-name.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
+import { agentPlatformIcon } from '../services/agent-platform-store.js';
 
 const GITHUB_REPO = 'mnfst/manifest';
 const STAR_DISMISSED_KEY = 'github-star-dismissed';
@@ -24,7 +23,6 @@ const Header: Component = () => {
   const navigate = useNavigate();
 
   onMount(() => {
-    checkLocalMode();
     if (!starDismissed()) {
       const cachedCount = sessionStorage.getItem(STAR_CACHE_KEY);
       const cachedTs = sessionStorage.getItem(STAR_CACHE_TS_KEY);
@@ -57,13 +55,7 @@ const Header: Component = () => {
   };
 
   const user = () => session()?.data?.user;
-  const effectiveName = () => {
-    if (isLocalMode()) {
-      const custom = displayName();
-      if (custom) return custom;
-    }
-    return user()?.name ?? 'User';
-  };
+  const effectiveName = () => user()?.name ?? 'User';
   const docsUrl = () => {
     const p = location.pathname;
     if (p.includes('/limits')) return 'https://manifest.build/docs/set-limits';
@@ -112,19 +104,24 @@ const Header: Component = () => {
             class="header__logo-img header__logo-img--dark"
           />
         </A>
-        <Show when={isLocalMode()}>
-          <span class="header__mode-badge">Local</span>
-        </Show>
-        <Show when={isDevMode()}>
-          <span class="header__mode-badge header__mode-badge--dev">Dev</span>
-        </Show>
         <Show when={getAgentName()}>
           <span class="header__separator">/</span>
           <A href="/" class="header__breadcrumb-link">
             Workspace
           </A>
           <span class="header__separator">/</span>
-          <span class="header__breadcrumb-current">{agentDisplayName() ?? getAgentName()}</span>
+          <span class="header__breadcrumb-current">
+            <Show when={agentPlatformIcon()}>
+              <img
+                src={agentPlatformIcon()}
+                alt=""
+                width="14"
+                height="14"
+                class="header__breadcrumb-icon"
+              />
+            </Show>
+            {agentDisplayName() ?? getAgentName()}
+          </span>
         </Show>
       </div>
       <div class="header__right">
@@ -207,9 +204,7 @@ const Header: Component = () => {
             <div class="header__dropdown" role="menu">
               <div class="header__dropdown-header">
                 <span class="header__dropdown-name">{effectiveName()}</span>
-                <Show when={!isLocalMode()}>
-                  <span class="header__dropdown-email">{user()?.email ?? ''}</span>
-                </Show>
+                <span class="header__dropdown-email">{user()?.email ?? ''}</span>
               </div>
               <div class="header__dropdown-divider" />
               <A
@@ -234,30 +229,28 @@ const Header: Component = () => {
                 </svg>
                 Account Preferences
               </A>
-              <Show when={!isLocalMode()}>
-                <button
-                  class="header__dropdown-item header__dropdown-item--danger"
-                  role="menuitem"
-                  onClick={handleLogout}
+              <button
+                class="header__dropdown-item header__dropdown-item--danger"
+                role="menuitem"
+                onClick={handleLogout}
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
                 >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                    <polyline points="16 17 21 12 16 7" />
-                    <line x1="21" y1="12" x2="9" y2="12" />
-                  </svg>
-                  Log out
-                </button>
-              </Show>
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                Log out
+              </button>
             </div>
           </Show>
         </div>

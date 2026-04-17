@@ -10,7 +10,7 @@ import {
   type AuthType,
 } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
-import { CopyButton } from './SetupStepInstall.js';
+import CopyButton from './CopyButton.js';
 import ProviderKeyForm from './ProviderKeyForm.js';
 import OAuthDetailView from './OAuthDetailView.js';
 import DeviceCodeDetailView from './DeviceCodeDetailView.js';

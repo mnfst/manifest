@@ -16,11 +16,23 @@ describe("SocialButtons", () => {
     mockSignInSocial.mockClear();
   });
 
-  it("renders 3 social buttons", () => {
+  it("renders all 3 social buttons when no enabledProviders prop", () => {
     render(() => <SocialButtons />);
     expect(screen.getByText("Continue with Google")).toBeDefined();
     expect(screen.getByText("Continue with GitHub")).toBeDefined();
     expect(screen.getByText("Continue with Discord")).toBeDefined();
+  });
+
+  it("renders only enabled providers", () => {
+    render(() => <SocialButtons enabledProviders={["google"]} />);
+    expect(screen.getByText("Continue with Google")).toBeDefined();
+    expect(screen.queryByText("Continue with GitHub")).toBeNull();
+    expect(screen.queryByText("Continue with Discord")).toBeNull();
+  });
+
+  it("renders nothing when enabledProviders is empty", () => {
+    const { container } = render(() => <SocialButtons enabledProviders={[]} />);
+    expect(container.querySelector(".auth-social-group")).toBeNull();
   });
 
   it("calls signIn.social on Google click", async () => {

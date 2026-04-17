@@ -24,10 +24,6 @@ vi.mock("../../src/components/ProviderIcon.js", () => ({
   providerIcon: () => null, customProviderLogo: () => null,
 }));
 
-vi.mock("../../src/services/local-mode.js", () => ({
-  isLocalMode: () => false,
-  checkLocalMode: () => Promise.resolve(false),
-}));
 
 // Mock providers to include a "command-only" subscription provider:
 // has subscriptionCommand but NO subscriptionKeyPlaceholder and NO subscriptionOAuth

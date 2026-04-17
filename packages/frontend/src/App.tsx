@@ -4,7 +4,6 @@ import Header from './components/Header.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import AuthGuard from './components/AuthGuard.jsx';
 import { connectSse } from './services/sse.js';
-import VersionIndicator from './components/VersionIndicator.jsx';
 
 const SseConnector: ParentComponent = (props) => {
   onMount(() => {
@@ -40,7 +39,6 @@ const App: ParentComponent = (props) => {
               {props.children}
             </main>
           </div>
-          <VersionIndicator />
         </div>
       </SseConnector>
     </AuthGuard>

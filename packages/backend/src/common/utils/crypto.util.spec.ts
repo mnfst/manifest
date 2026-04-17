@@ -1,9 +1,5 @@
 import { getEncryptionSecret, encrypt, decrypt, isEncrypted } from './crypto.util';
 
-jest.mock('../../common/constants/local-mode.constants', () => ({
-  getLocalAuthSecret: jest.fn(),
-}));
-
 describe('getEncryptionSecret', () => {
   const originalEnv = process.env;
 
@@ -11,12 +7,10 @@ describe('getEncryptionSecret', () => {
     process.env = { ...originalEnv };
     delete process.env['MANIFEST_ENCRYPTION_KEY'];
     delete process.env['BETTER_AUTH_SECRET'];
-    delete process.env['MANIFEST_MODE'];
   });
 
   afterEach(() => {
     process.env = originalEnv;
-    jest.restoreAllMocks();
   });
 
   it('returns MANIFEST_ENCRYPTION_KEY when it is >= 32 chars', () => {
@@ -39,32 +33,13 @@ describe('getEncryptionSecret', () => {
     expect(getEncryptionSecret()).toBe(encKey);
   });
 
-  it('falls through to local mode when key is too short', () => {
-    process.env['BETTER_AUTH_SECRET'] = 'short';
-    process.env['MANIFEST_MODE'] = 'local';
-    const mockSecret = 'local-secret-' + 'x'.repeat(32);
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getLocalAuthSecret } = require('../../common/constants/local-mode.constants');
-    (getLocalAuthSecret as jest.Mock).mockReturnValue(mockSecret);
-    expect(getEncryptionSecret()).toBe(mockSecret);
-  });
-
-  it('calls getLocalAuthSecret in local mode when no env key is set', () => {
-    process.env['MANIFEST_MODE'] = 'local';
-    const mockSecret = 'local-fallback-' + 'y'.repeat(32);
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { getLocalAuthSecret } = require('../../common/constants/local-mode.constants');
-    (getLocalAuthSecret as jest.Mock).mockReturnValue(mockSecret);
-    expect(getEncryptionSecret()).toBe(mockSecret);
-  });
-
-  it('throws when no key is set and not in local mode', () => {
+  it('throws when no key is set', () => {
     expect(() => getEncryptionSecret()).toThrow(
       'Encryption secret required. Set MANIFEST_ENCRYPTION_KEY or BETTER_AUTH_SECRET (>=32 chars).',
     );
   });
 
-  it('throws when key exists but is shorter than 32 chars and not in local mode', () => {
+  it('throws when key exists but is shorter than 32 chars', () => {
     process.env['BETTER_AUTH_SECRET'] = 'only-31-chars-long-xxxxxxxxxx!';
     expect(() => getEncryptionSecret()).toThrow('Encryption secret required.');
   });

@@ -59,6 +59,55 @@
   color: hsl(var(--foreground));
 }
 
+.setup-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--gap-md);
+}
+
+.setup-modal__header .modal-card__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.setup-modal__platform-icon {
+  flex-shrink: 0;
+}
+
+.dark .setup-modal__platform-icon[src*='openai'],
+.dark .setup-modal__platform-icon[src*='vercel'],
+.dark .setup-modal__platform-icon[src*='other'] {
+  filter: invert(1);
+}
+
+.setup-modal__nav {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--gap-md);
+}
+
+.setup-modal__next {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 20px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  font-family: var(--font-family);
+  color: hsl(var(--primary-foreground));
+  background: hsl(var(--primary));
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.setup-modal__next:hover {
+  opacity: 0.9;
+}
+
 .modal__body {
   padding: var(--gap-md) var(--gap-lg);
   overflow-y: auto;
@@ -186,6 +235,11 @@
     box-shadow var(--transition-fast);
   margin-bottom: 0;
   box-sizing: border-box;
+}
+
+.modal-card__input--lg {
+  height: 2.75rem;
+  font-size: var(--font-size-base);
 }
 
 .modal-card__input:focus {

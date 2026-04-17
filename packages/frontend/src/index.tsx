@@ -22,6 +22,7 @@ const Account = lazy(() => import('./pages/Account.jsx'));
 const Login = lazy(() => import('./pages/Login.jsx'));
 const Register = lazy(() => import('./pages/Register.jsx'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword.jsx'));
+const Setup = lazy(() => import('./pages/Setup.jsx'));
 const ModelPrices = lazy(() => import('./pages/ModelPrices.jsx'));
 const Help = lazy(() => import('./pages/Help.jsx'));
 const FreeModels = lazy(() => import('./pages/FreeModels.jsx'));
@@ -72,6 +73,9 @@ render(
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
           <Route path="/reset-password" component={ResetPassword} />
+        </Route>
+        <Route path="/setup" component={AuthLayout}>
+          <Route path="/" component={Setup} />
         </Route>
         <Route path="*404" component={NotFound} />
       </Router>

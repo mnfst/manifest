@@ -9,10 +9,6 @@ vi.mock("@solidjs/router", () => ({
   A: (props: any) => <a href={props.href} class={props.class}>{props.children}</a>,
 }));
 
-vi.mock("../../src/services/local-mode.js", () => ({
-  isLocalMode: () => false,
-}));
-
 vi.mock("@solidjs/meta", () => ({
   Title: (props: any) => <title>{props.children}</title>,
   Meta: () => null,

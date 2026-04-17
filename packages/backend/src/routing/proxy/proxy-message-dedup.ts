@@ -145,7 +145,6 @@ export class ProxyMessageDedup {
   }
 
   private async lockAgentMessageWrites(manager: EntityManager, agentId: string): Promise<void> {
-    if (manager.connection.options.type !== 'postgres') return;
     await manager.query('SELECT id FROM agents WHERE id = $1 FOR UPDATE', [agentId]);
   }
 }

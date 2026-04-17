@@ -24,6 +24,10 @@ vi.mock("../../src/services/toast-store.js", () => ({
   toast: { error: vi.fn(), success: vi.fn(), warning: vi.fn() },
 }));
 
+vi.mock("../../src/services/setup-status.js", () => ({
+  checkSocialProviders: vi.fn().mockResolvedValue([]),
+}));
+
 import Register from "../../src/pages/Register";
 
 describe("Register", () => {

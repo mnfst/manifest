@@ -2,10 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@solidjs/testing-library";
 import { createSignal } from "solid-js";
 
-vi.mock("../../src/services/local-mode.js", () => ({
-  checkLocalMode: vi.fn().mockResolvedValue(true),
-}));
-
 vi.mock("../../src/components/ProviderSelectModal.js", () => ({
   default: (props: any) => (
     <div data-testid="provider-modal">
@@ -16,7 +12,7 @@ vi.mock("../../src/components/ProviderSelectModal.js", () => ({
 
 vi.mock("../../src/services/api.js", () => ({
   getModelPrices: vi.fn().mockResolvedValue({ models: [], lastSyncedAt: null }),
-  getAgentKey: vi.fn().mockResolvedValue({ keyPrefix: "mnfst_abc", apiKey: "mnfst_abc123", pluginEndpoint: null }),
+  getAgentKey: vi.fn().mockResolvedValue({ keyPrefix: "mnfst_abc", apiKey: "mnfst_abc123" }),
   getHealth: vi.fn().mockResolvedValue({ mode: "cloud" }),
 }));
 

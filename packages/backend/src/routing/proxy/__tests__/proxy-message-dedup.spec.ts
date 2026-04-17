@@ -490,22 +490,5 @@ describe('ProxyMessageDedup', () => {
         ['agent-1'],
       );
     });
-
-    it('should skip lock for non-postgres databases', async () => {
-      const repo = makeMockMessageRepo();
-      const txRepo = {} as any;
-      const mockManager = {
-        connection: { options: { type: 'sqljs' } },
-        query: jest.fn(),
-        getRepository: jest.fn().mockReturnValue(txRepo),
-      };
-      repo.manager.transaction.mockImplementation(async (fn: (...args: unknown[]) => unknown) =>
-        fn(mockManager),
-      );
-
-      await dedup.withAgentMessageTransaction(repo as unknown as any, testCtx, async () => 'done');
-
-      expect(mockManager.query).not.toHaveBeenCalled();
-    });
   });
 });

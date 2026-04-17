@@ -234,9 +234,16 @@ describe('Routing enabled → scorer routes by query complexity', () => {
   });
 
   it('tools floor query to at least standard tier', async () => {
+    // Long enough to bypass the short-message fast path so the tools-floor
+    // branch in applyTierFloors is the thing being exercised.
     const res = await bearer(api().post('/api/v1/routing/resolve'))
       .send({
-        messages: [{ role: 'user', content: 'search for cats' }],
+        messages: [
+          {
+            role: 'user',
+            content: 'Search the web for recent news about cats and summarise the top results.',
+          },
+        ],
         tools: [{ name: 'web_search' }],
         tool_choice: 'auto',
       })

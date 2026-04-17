@@ -23,9 +23,6 @@ jest.mock('../notifications/emails/reset-password', () => ({
 jest.mock('../notifications/services/email-providers/send-email', () => ({
   sendEmail: jest.fn(),
 }));
-jest.mock('../common/constants/local-mode.constants', () => ({
-  getLocalAuthSecret: jest.fn().mockReturnValue('local-secret-32-chars-or-more-here'),
-}));
 
 describe('auth.instance', () => {
   const originalEnv = process.env;
@@ -38,8 +35,6 @@ describe('auth.instance', () => {
       NODE_ENV: 'test',
       BETTER_AUTH_SECRET: 'a]3kF9!xLm2@pQzR7^wYu4&vN6*cE0hT',
     };
-    // Ensure local mode doesn't interfere (sql.js CI job sets MANIFEST_MODE=local)
-    delete process.env['MANIFEST_MODE'];
   });
 
   afterEach(() => {
@@ -185,16 +180,6 @@ describe('auth.instance', () => {
       expect(config.trustedOrigins).not.toContain('http://localhost:3000');
       expect(config.trustedOrigins).not.toContain('http://localhost:3001');
     });
-
-    it('does not include 127.0.0.1 origins in cloud mode', () => {
-      delete process.env['MANIFEST_MODE'];
-      process.env['PORT'] = '3001';
-      loadModule();
-
-      const config = mockBetterAuth.mock.calls[0][0];
-      expect(config.trustedOrigins).not.toContain('http://127.0.0.1:3001');
-      expect(config.trustedOrigins).not.toContain('http://127.0.0.1:3000');
-    });
   });
 
   describe('social providers', () => {
@@ -257,16 +242,6 @@ describe('auth.instance', () => {
       expect(() => loadModule()).toThrow(
         'BETTER_AUTH_SECRET must be set to a value of at least 32 characters',
       );
-    });
-
-    it('uses getLocalAuthSecret fallback in test env when BETTER_AUTH_SECRET is empty', () => {
-      process.env['NODE_ENV'] = 'test';
-      process.env['BETTER_AUTH_SECRET'] = '';
-      loadModule();
-
-      const config = mockBetterAuth.mock.calls[0][0];
-      // Should use getLocalAuthSecret() instead of a hardcoded string
-      expect(config.secret).toBe('local-secret-32-chars-or-more-here');
     });
   });
 
@@ -346,8 +321,7 @@ describe('auth.instance', () => {
       });
     });
 
-    it('sends verification email on sign-up in cloud mode when email provider is configured', () => {
-      delete process.env['MANIFEST_MODE'];
+    it('sends verification email on sign-up when Mailgun email provider is configured', () => {
       process.env['MAILGUN_API_KEY'] = 'key-test';
       process.env['MAILGUN_DOMAIN'] = 'mg.example.com';
       loadModule();
@@ -356,10 +330,20 @@ describe('auth.instance', () => {
       expect(config.emailVerification.sendOnSignUp).toBe(true);
     });
 
+    it('sends verification email on sign-up when unified EMAIL_* is configured', () => {
+      process.env['EMAIL_PROVIDER'] = 'resend';
+      process.env['EMAIL_API_KEY'] = 're_test';
+      loadModule();
+
+      const config = mockBetterAuth.mock.calls[0][0];
+      expect(config.emailVerification.sendOnSignUp).toBe(true);
+    });
+
     it('does not send verification email on sign-up when no email provider is configured', () => {
-      delete process.env['MANIFEST_MODE'];
       delete process.env['MAILGUN_API_KEY'];
       delete process.env['MAILGUN_DOMAIN'];
+      delete process.env['EMAIL_PROVIDER'];
+      delete process.env['EMAIL_API_KEY'];
       loadModule();
 
       const config = mockBetterAuth.mock.calls[0][0];
@@ -371,28 +355,6 @@ describe('auth.instance', () => {
 
       const config = mockBetterAuth.mock.calls[0][0];
       expect(config.emailVerification.autoSignInAfterVerification).toBe(true);
-    });
-  });
-
-  describe('local mode', () => {
-    beforeEach(() => {
-      process.env['MANIFEST_MODE'] = 'local';
-    });
-
-    it('exports auth as null', () => {
-      const mod = loadModule();
-      expect(mod.auth).toBeNull();
-    });
-
-    it('does not call betterAuth', () => {
-      loadModule();
-      expect(mockBetterAuth).not.toHaveBeenCalled();
-    });
-
-    it('skips secret validation even without BETTER_AUTH_SECRET', () => {
-      process.env['NODE_ENV'] = 'development';
-      delete process.env['BETTER_AUTH_SECRET'];
-      expect(() => loadModule()).not.toThrow();
     });
   });
 
@@ -419,17 +381,6 @@ describe('auth.instance', () => {
       expect(Pool).toHaveBeenCalledWith({
         connectionString: 'postgresql://myuser:mypassword@localhost:5432/mydatabase',
       });
-    });
-
-    it('does not create a database connection in local mode', () => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { Pool } = require('pg') as { Pool: jest.Mock };
-      Pool.mockClear();
-      process.env['MANIFEST_MODE'] = 'local';
-
-      loadModule();
-
-      expect(Pool).not.toHaveBeenCalled();
     });
   });
 

@@ -12,13 +12,7 @@ vi.mock("@solidjs/meta", () => ({
 }));
 
 let mockRules: any[] = [];
-let mockEmailProvider: any = null;
 let mockRoutingStatus = { enabled: false };
-let mockIsLocalMode = false;
-
-vi.mock("../../src/services/local-mode.js", () => ({
-  isLocalMode: () => mockIsLocalMode,
-}));
 
 vi.mock("../../src/services/api.js", () => ({
   getNotificationRules: vi.fn(() => Promise.resolve(mockRules)),
@@ -26,17 +20,11 @@ vi.mock("../../src/services/api.js", () => ({
   createNotificationRule: vi.fn(() => Promise.resolve({})),
   updateNotificationRule: vi.fn(() => Promise.resolve({})),
   deleteNotificationRule: vi.fn(() => Promise.resolve({})),
-  getEmailProvider: vi.fn(() => Promise.resolve(mockEmailProvider)),
-  removeEmailProvider: vi.fn(() => Promise.resolve({})),
   getRoutingStatus: vi.fn(() => Promise.resolve(mockRoutingStatus)),
 }));
 
 vi.mock("../../src/services/toast-store.js", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
-}));
-
-vi.mock("../../src/components/EmailProviderSetup.js", () => ({
-  default: () => <div data-testid="email-setup">EmailProviderSetup</div>,
 }));
 
 vi.mock("../../src/components/LimitRuleModal.js", () => ({
@@ -45,23 +33,6 @@ vi.mock("../../src/components/LimitRuleModal.js", () => ({
       <button data-testid="mock-save" onClick={() => props.onSave({ metric_type: "tokens", threshold: 100, period: "day", action: "notify" })}>
         Save
       </button>
-    </div>
-  ),
-}));
-
-vi.mock("../../src/components/ProviderBanner.js", () => ({
-  default: (props: any) => (
-    <div data-testid="provider-banner">
-      <button data-testid="mock-edit" onClick={() => props.onEdit()}>Edit</button>
-      <button data-testid="mock-remove" onClick={() => props.onRemove()}>Remove</button>
-    </div>
-  ),
-}));
-
-vi.mock("../../src/components/EmailProviderModal.js", () => ({
-  default: (props: any) => (
-    <div data-testid="email-provider-modal" data-open={props.open}>
-      EmailProviderModal
     </div>
   ),
 }));
@@ -83,9 +54,7 @@ import Limits from "../../src/pages/Limits";
 describe("Limits page interactions", () => {
   beforeEach(() => {
     mockRules = [];
-    mockEmailProvider = null;
     mockRoutingStatus = { enabled: false };
-    mockIsLocalMode = false;
     vi.clearAllMocks();
   });
 
@@ -254,57 +223,6 @@ describe("Limits page interactions", () => {
     });
   });
 
-  it("handles error in handleRemoveProvider gracefully", async () => {
-    const { removeEmailProvider } = await import("../../src/services/api.js");
-    (removeEmailProvider as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error("fail"));
-    mockEmailProvider = { provider: "resend", domain: null, keyPrefix: "re_", is_active: true };
-    mockIsLocalMode = true;
-
-    render(() => <Limits />);
-
-    await vi.waitFor(() => {
-      fireEvent.click(screen.getByTestId("mock-remove"));
-    });
-
-    await vi.waitFor(() => {
-      const title = document.querySelector(".modal-card__title") as HTMLElement;
-      expect(title.textContent).toBe("Remove provider");
-    });
-
-    const removeBtn = document.querySelector(".btn--danger") as HTMLButtonElement;
-    fireEvent.click(removeBtn);
-
-    // Should not throw — error is caught
-    await vi.waitFor(() => {
-      expect(removeEmailProvider).toHaveBeenCalled();
-    });
-  });
-
-  it("opens edit provider modal and passes provider config props", async () => {
-    mockEmailProvider = {
-      provider: "mailgun",
-      domain: "mg.example.com",
-      keyPrefix: "key-abc",
-      notificationEmail: "alerts@example.com",
-      is_active: true,
-    };
-    mockIsLocalMode = true;
-
-    render(() => <Limits />);
-
-    await vi.waitFor(() => {
-      expect(screen.getByTestId("provider-banner")).toBeDefined();
-    });
-
-    // Click Edit on provider banner
-    fireEvent.click(screen.getByTestId("mock-edit"));
-
-    await vi.waitFor(() => {
-      const modal = screen.getByTestId("email-provider-modal");
-      expect(modal.getAttribute("data-open")).toBe("true");
-    });
-  });
-
   it("disables delete button and shows Deleting... during deletion", async () => {
     let resolveDelete: () => void;
     const { deleteNotificationRule } = await import("../../src/services/api.js");
@@ -347,67 +265,4 @@ describe("Limits page interactions", () => {
     });
   });
 
-  it("disables remove button and shows Removing... during provider removal", async () => {
-    let resolveRemove: () => void;
-    const { removeEmailProvider } = await import("../../src/services/api.js");
-    (removeEmailProvider as ReturnType<typeof vi.fn>).mockReturnValue(
-      new Promise<void>((r) => { resolveRemove = r; }),
-    );
-    mockEmailProvider = { provider: "resend", domain: null, keyPrefix: "re_", is_active: true };
-    mockIsLocalMode = true;
-
-    render(() => <Limits />);
-
-    await vi.waitFor(() => {
-      fireEvent.click(screen.getByTestId("mock-remove"));
-    });
-
-    await vi.waitFor(() => {
-      const title = document.querySelector(".modal-card__title") as HTMLElement;
-      expect(title.textContent).toBe("Remove provider");
-    });
-
-    const removeBtn = document.querySelector(".btn--danger") as HTMLButtonElement;
-    fireEvent.click(removeBtn);
-
-    await vi.waitFor(() => {
-      expect(removeBtn.querySelector(".spinner")).not.toBeNull();
-      expect(removeBtn.disabled).toBe(true);
-    });
-
-    resolveRemove!();
-    await vi.waitFor(() => {
-      const title = document.querySelector(".modal-card__title");
-      expect(title).toBeNull(); // modal closed on success
-    });
-  });
-
-  it("calls removeEmailProvider after confirmation modal", async () => {
-    const { removeEmailProvider } = await import("../../src/services/api.js");
-    const { toast } = await import("../../src/services/toast-store.js");
-    mockEmailProvider = { provider: "resend", domain: null, keyPrefix: "re_", is_active: true };
-    mockIsLocalMode = true;
-
-    render(() => <Limits />);
-
-    // Click Remove on the provider banner — opens confirmation modal
-    await vi.waitFor(() => {
-      fireEvent.click(screen.getByTestId("mock-remove"));
-    });
-
-    // Wait for "Remove provider" confirmation modal to appear
-    await vi.waitFor(() => {
-      const title = document.querySelector(".modal-card__title") as HTMLElement;
-      expect(title.textContent).toBe("Remove provider");
-    });
-
-    // Click the danger button to confirm removal
-    const removeBtn = document.querySelector(".btn--danger") as HTMLButtonElement;
-    fireEvent.click(removeBtn);
-
-    await vi.waitFor(() => {
-      expect(removeEmailProvider).toHaveBeenCalled();
-      expect(toast.success).toHaveBeenCalledWith("Email provider removed");
-    });
-  });
 });

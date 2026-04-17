@@ -15,8 +15,19 @@ export interface RoutingProvider {
 
 /* -- Routing: Status -- */
 
+export type RoutingStatusReason =
+  | 'no_provider'
+  | 'no_routable_models'
+  | 'pricing_cache_empty'
+  | null;
+
+export interface RoutingStatus {
+  enabled: boolean;
+  reason: RoutingStatusReason;
+}
+
 export function getRoutingStatus(agentName: string) {
-  return fetchJson<{ enabled: boolean }>(`/routing/${encodeURIComponent(agentName)}/status`);
+  return fetchJson<RoutingStatus>(`/routing/${encodeURIComponent(agentName)}/status`);
 }
 
 /* -- Routing: Providers -- */
@@ -187,6 +198,24 @@ export function getAvailableModels(agentName: string) {
 export function refreshModels(agentName: string) {
   return fetchMutate<{ ok: boolean }>(
     `${BASE_URL}/routing/${encodeURIComponent(agentName)}/refresh-models`,
+    { method: 'POST' },
+  );
+}
+
+/* -- Routing: Pricing cache health -- */
+
+export interface PricingHealth {
+  model_count: number;
+  last_fetched_at: string | null;
+}
+
+export function getPricingHealth() {
+  return fetchJson<PricingHealth>('/routing/pricing-health');
+}
+
+export function refreshPricing() {
+  return fetchMutate<{ ok: boolean; model_count: number; last_fetched_at: string | null }>(
+    `${BASE_URL}/routing/pricing/refresh`,
     { method: 'POST' },
   );
 }

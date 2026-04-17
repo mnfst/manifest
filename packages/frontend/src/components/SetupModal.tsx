@@ -1,5 +1,6 @@
 import { createResource, Show, type Component } from 'solid-js';
 import { getAgentKey } from '../services/api.js';
+import { platformIcon } from 'manifest-shared';
 import ErrorState from './ErrorState.jsx';
 import SetupStepAddProvider from './SetupStepAddProvider.jsx';
 
@@ -7,6 +8,8 @@ const SetupModal: Component<{
   open: boolean;
   agentName: string;
   apiKey?: string | null;
+  agentPlatform?: string | null;
+  agentCategory?: string | null;
   onClose: () => void;
   onDone?: () => void;
   onGoToRouting?: () => void;
@@ -17,8 +20,6 @@ const SetupModal: Component<{
   );
 
   const baseUrl = () => {
-    const custom = apiKeyData()?.pluginEndpoint;
-    if (custom) return custom;
     const host = window.location.hostname;
     if (host === 'app.manifest.build') return 'https://app.manifest.build/v1';
     return `${window.location.origin}/v1`;
@@ -50,6 +51,15 @@ const SetupModal: Component<{
         >
           <div class="setup-modal__header">
             <div class="modal-card__title" id="setup-modal-title">
+              <Show when={platformIcon(props.agentPlatform, props.agentCategory)}>
+                <img
+                  src={platformIcon(props.agentPlatform, props.agentCategory)}
+                  alt=""
+                  width="28"
+                  height="28"
+                  class="setup-modal__platform-icon"
+                />
+              </Show>
               Set up agent: <em>{props.agentName}</em>
             </div>
             <button class="modal__close" onClick={() => props.onClose()} aria-label="Close">
@@ -69,9 +79,7 @@ const SetupModal: Component<{
               </svg>
             </button>
           </div>
-          <p class="modal-card__desc">
-            Add Manifest as a model provider, then connect at least one LLM so routing works.
-          </p>
+          <p class="modal-card__desc">Connect your agent to Manifest to start routing requests.</p>
 
           <Show
             when={!apiKeyData.error || !!props.apiKey}
@@ -88,6 +96,7 @@ const SetupModal: Component<{
               apiKey={props.apiKey ?? apiKeyData()?.apiKey ?? null}
               keyPrefix={apiKeyData()?.keyPrefix ?? null}
               baseUrl={baseUrl()}
+              platform={props.agentPlatform}
             />
           </Show>
 

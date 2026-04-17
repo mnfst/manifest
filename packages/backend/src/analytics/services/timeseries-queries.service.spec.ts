@@ -10,12 +10,28 @@ describe('TimeseriesQueriesService', () => {
   let service: TimeseriesQueriesService;
   let mockGetRawMany: jest.Mock;
   let mockGetMany: jest.Mock;
+  let mockTurnQb: {
+    select: jest.Mock;
+    addSelect: jest.Mock;
+    leftJoin: jest.Mock;
+    where: jest.Mock;
+    andWhere: jest.Mock;
+    orWhere: jest.Mock;
+    groupBy: jest.Mock;
+    addGroupBy: jest.Mock;
+    orderBy: jest.Mock;
+    addOrderBy: jest.Mock;
+    limit: jest.Mock;
+    getRawMany: jest.Mock;
+    getRawOne: jest.Mock;
+    getMany: jest.Mock;
+  };
 
   beforeEach(async () => {
     mockGetRawMany = jest.fn().mockResolvedValue([]);
     mockGetMany = jest.fn().mockResolvedValue([]);
 
-    const mockTurnQb = {
+    mockTurnQb = {
       select: jest.fn().mockReturnThis(),
       addSelect: jest.fn().mockReturnThis(),
       leftJoin: jest.fn().mockReturnThis(),
@@ -156,6 +172,35 @@ describe('TimeseriesQueriesService', () => {
     it('returns empty array when no activity', async () => {
       mockGetRawMany.mockResolvedValue([]);
       expect(await service.getRecentActivity('24h', 'u1', 10)).toEqual([]);
+    });
+
+    it('propagates specificity_category rows returned by the helper projection', async () => {
+      mockGetRawMany.mockResolvedValue([
+        {
+          id: '1',
+          timestamp: '2026-02-16T10:00:00',
+          agent_name: 'bot-1',
+          model: 'claude-opus-4-6',
+          routing_tier: 'standard',
+          routing_reason: 'specificity',
+          specificity_category: 'coding',
+        },
+      ]);
+      const rows = (await service.getRecentActivity('24h', 'u1')) as Array<Record<string, unknown>>;
+      expect(rows[0]!['specificity_category']).toBe('coding');
+    });
+
+    it('projects specificity_category through the shared helper (regression: dashboard badge drift)', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getRecentActivity('24h', 'u1');
+
+      const projectedAliases = [
+        ...mockTurnQb.select.mock.calls.map((call) => call[1]),
+        ...mockTurnQb.addSelect.mock.calls.map((call) => call[1]),
+      ];
+      expect(projectedAliases).toContain('specificity_category');
+      expect(projectedAliases).toContain('routing_tier');
+      expect(projectedAliases).toContain('routing_reason');
     });
   });
 
@@ -313,143 +358,5 @@ describe('TimeseriesQueriesService', () => {
       expect(result[0].total_cost).toBe(0);
       expect(result[0].sparkline).toEqual([]);
     });
-  });
-});
-
-describe('TimeseriesQueriesService (sql.js / local mode)', () => {
-  let service: TimeseriesQueriesService;
-  let mockSelect: jest.Mock;
-  let mockAddSelect: jest.Mock;
-  let mockGetRawMany: jest.Mock;
-  let mockGetMany: jest.Mock;
-
-  beforeEach(async () => {
-    mockSelect = jest.fn().mockReturnThis();
-    mockAddSelect = jest.fn().mockReturnThis();
-    mockGetRawMany = jest.fn().mockResolvedValue([]);
-    mockGetMany = jest.fn().mockResolvedValue([]);
-
-    const mockTurnQb = {
-      select: mockSelect,
-      addSelect: mockAddSelect,
-      leftJoin: jest.fn().mockReturnThis(),
-      where: jest.fn().mockReturnThis(),
-      andWhere: jest.fn().mockReturnThis(),
-      orWhere: jest.fn().mockReturnThis(),
-      groupBy: jest.fn().mockReturnThis(),
-      addGroupBy: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
-      addOrderBy: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockReturnThis(),
-      getRawMany: mockGetRawMany,
-      getRawOne: jest.fn().mockResolvedValue({}),
-      getMany: mockGetMany,
-    };
-
-    const mockAgentQb = {
-      select: jest.fn().mockReturnThis(),
-      addSelect: jest.fn().mockReturnThis(),
-      leftJoin: jest.fn().mockReturnThis(),
-      where: jest.fn().mockReturnThis(),
-      andWhere: jest.fn().mockReturnThis(),
-      orWhere: jest.fn().mockReturnThis(),
-      groupBy: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
-      getMany: mockGetMany,
-      getRawMany: mockGetRawMany,
-    };
-
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        TimeseriesQueriesService,
-        {
-          provide: getRepositoryToken(AgentMessage),
-          useValue: { createQueryBuilder: jest.fn().mockReturnValue(mockTurnQb) },
-        },
-        {
-          provide: getRepositoryToken(Agent),
-          useValue: { createQueryBuilder: jest.fn().mockReturnValue(mockAgentQb) },
-        },
-        { provide: DataSource, useValue: { options: { type: 'sqljs' } } },
-        { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
-      ],
-    }).compile();
-
-    service = module.get<TimeseriesQueriesService>(TimeseriesQueriesService);
-  });
-
-  it('initializes with sqlite dialect from sqljs', () => {
-    expect(service).toBeDefined();
-  });
-
-  it('uses strftime for hour bucketing in getTimeseries (hourly)', async () => {
-    mockGetRawMany.mockResolvedValue([]);
-    await service.getTimeseries('24h', 'u1', true);
-
-    const selectCalls = mockSelect.mock.calls.map((c: unknown[]) => c[0]);
-    const hasStrftime = selectCalls.some(
-      (expr: unknown) =>
-        typeof expr === 'string' && expr.includes('strftime') && expr.includes('%H:00:00'),
-    );
-    expect(hasStrftime).toBe(true);
-  });
-
-  it('uses strftime for date bucketing in getTimeseries (daily)', async () => {
-    mockGetRawMany.mockResolvedValue([]);
-    await service.getTimeseries('7d', 'u1', false);
-
-    const selectCalls = mockSelect.mock.calls.map((c: unknown[]) => c[0]);
-    const hasStrftime = selectCalls.some(
-      (expr: unknown) => typeof expr === 'string' && expr.includes("strftime('%Y-%m-%d'"),
-    );
-    expect(hasStrftime).toBe(true);
-  });
-
-  it('uses CAST AS REAL in getRecentActivity', async () => {
-    mockGetRawMany.mockResolvedValue([]);
-    await service.getRecentActivity('24h', 'u1');
-
-    const addSelectCalls = mockAddSelect.mock.calls.map((c: unknown[]) => c[0]);
-    const hasCastReal = addSelectCalls.some(
-      (expr: unknown) =>
-        typeof expr === 'string' && expr.includes('CAST') && expr.includes('AS REAL'),
-    );
-    expect(hasCastReal).toBe(true);
-  });
-
-  it('business logic works identically on sqlite dialect', async () => {
-    mockGetRawMany.mockResolvedValue([
-      { hour: '2026-02-16T10:00:00', input_tokens: 100, output_tokens: 50, cost: 1.0, count: 3 },
-    ]);
-
-    const result = await service.getTimeseries('24h', 'u1', true);
-    expect(result.tokenUsage).toEqual([
-      { hour: '2026-02-16T10:00:00', input_tokens: 100, output_tokens: 50 },
-    ]);
-  });
-
-  it('getAgentList uses leftJoin fallback when tenantId is null', async () => {
-    mockGetMany.mockResolvedValueOnce([
-      { name: 'bot-1', display_name: null, created_at: '2026-02-16' },
-    ]);
-    mockGetRawMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
-
-    const result = await service.getAgentList('u1');
-    expect(result).toHaveLength(1);
-    expect(result[0].agent_name).toBe('bot-1');
-  });
-
-  it('getCostByModel works with sqlite dialect', async () => {
-    mockGetRawMany.mockResolvedValue([
-      { model: 'gpt-4o', tokens: 500, estimated_cost: 2.0, auth_type: 'api_key' },
-      { model: 'claude', tokens: 500, estimated_cost: 3.0, auth_type: null },
-    ]);
-
-    const result = await service.getCostByModel('7d', 'u1');
-    expect(result).toHaveLength(2);
-    expect(result[0].share_pct).toBe(50);
-    expect(result[0].auth_type).toBe('api_key');
-    expect(result[1].auth_type).toBeNull();
-    expect(result[1].share_pct).toBe(50);
   });
 });

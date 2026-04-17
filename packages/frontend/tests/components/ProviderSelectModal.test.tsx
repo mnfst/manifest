@@ -59,12 +59,6 @@ vi.mock('../../src/components/ProviderIcon.js', () => ({
   providerIcon: () => null, customProviderLogo: () => null,
 }));
 
-let mockLocalMode = false;
-vi.mock('../../src/services/local-mode.js', () => ({
-  isLocalMode: () => mockLocalMode,
-  checkLocalMode: () => Promise.resolve(mockLocalMode),
-}));
-
 import ProviderSelectModal from '../../src/components/ProviderSelectModal';
 import { toast } from '../../src/services/toast-store.js';
 import type { RoutingProvider } from '../../src/services/api.js';
@@ -102,7 +96,6 @@ describe('ProviderSelectModal', () => {
     vi.clearAllMocks();
     broadcastChannelRegistry.clear();
     vi.stubGlobal('BroadcastChannel', MockBroadcastChannel);
-    mockLocalMode = false;
     onClose = vi.fn();
     onUpdate = vi.fn();
     mockConnectProvider.mockResolvedValue({});
@@ -842,103 +835,6 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('API Keys'));
       // Custom providers show the "Custom" tag
       expect(screen.getByText('Custom')).toBeDefined();
-    });
-  });
-
-  describe('ollama (no key required)', () => {
-    const ollamaConnected: RoutingProvider = {
-      id: 'p3',
-      provider: 'ollama',
-      is_active: true,
-      has_api_key: false,
-      connected_at: '2025-01-01',
-      auth_type: 'api_key',
-    };
-
-    beforeEach(() => {
-      mockLocalMode = true;
-    });
-
-    it("shows 'No API key required' for Ollama", () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('Ollama'));
-      expect(screen.getByText('No API key required for local models')).toBeDefined();
-    });
-
-    it('shows Connect button for disconnected Ollama', () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('Ollama'));
-      expect(screen.getByText('Connect')).toBeDefined();
-    });
-
-    it('shows Disconnect button for connected Ollama', () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[ollamaConnected]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('Ollama'));
-      expect(screen.getByText('Disconnect')).toBeDefined();
-    });
-
-    it('connects Ollama without API key', async () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('Ollama'));
-      fireEvent.click(screen.getByText('Connect'));
-
-      await waitFor(() => {
-        expect(mockConnectProvider).toHaveBeenCalledWith('test-agent', {
-          provider: 'ollama',
-          apiKey: undefined,
-          authType: 'api_key',
-        });
-      });
-    });
-
-    it('disconnects connected Ollama', async () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[ollamaConnected]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('Ollama'));
-      fireEvent.click(screen.getByText('Disconnect'));
-
-      await waitFor(() => {
-        expect(mockDisconnectProvider).toHaveBeenCalledWith('test-agent', 'ollama', 'api_key');
-      });
     });
   });
 

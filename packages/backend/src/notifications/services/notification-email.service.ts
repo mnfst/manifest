@@ -12,10 +12,9 @@ export class NotificationEmailService {
   private readonly fromEmail: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.fromEmail = this.configService.get<string>(
-      'app.notificationFromEmail',
-      'noreply@manifest.build',
-    );
+    this.fromEmail =
+      this.configService.get<string>('app.emailFrom') ||
+      this.configService.get<string>('app.notificationFromEmail', 'noreply@manifest.build');
   }
 
   async sendThresholdAlert(

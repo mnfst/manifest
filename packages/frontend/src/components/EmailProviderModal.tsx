@@ -2,7 +2,6 @@ import { createSignal, createEffect, Show, type Component } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { setEmailProvider, testEmailProvider, testSavedEmailProvider } from '../services/api.js';
 import { authClient } from '../services/auth-client.js';
-import { isLocalMode } from '../services/local-mode.js';
 import { getEmailProviderApiKeyUrl } from '../services/provider-api-key-urls.js';
 import { toast } from '../services/toast-store.js';
 
@@ -53,9 +52,7 @@ const EmailProviderModal: Component<Props> = (props) => {
       const hasKey = props.editMode && !!props.existingKeyPrefix;
       setEditingKey(!hasKey);
       setDomain(props.existingDomain ?? '');
-      const defaultEmail =
-        props.existingNotificationEmail ??
-        (!isLocalMode() ? (session()?.data?.user?.email ?? '') : '');
+      const defaultEmail = props.existingNotificationEmail ?? session()?.data?.user?.email ?? '';
       setNotificationEmail(defaultEmail);
       setKeyError('');
       setDomainError('');
@@ -310,7 +307,9 @@ const EmailProviderModal: Component<Props> = (props) => {
               </button>
             </div>
 
-            <label class="modal-card__field-label" for="email-provider-api-key">API Key</label>
+            <label class="modal-card__field-label" for="email-provider-api-key">
+              API Key
+            </label>
             <Show
               when={editingKey() || !hasExistingKey()}
               fallback={
@@ -347,7 +346,9 @@ const EmailProviderModal: Component<Props> = (props) => {
               />
             </Show>
             <Show when={keyError()}>
-              <p class="modal-card__field-error" role="alert">{keyError()}</p>
+              <p class="modal-card__field-error" role="alert">
+                {keyError()}
+              </p>
             </Show>
             <Show when={keyDocsUrl()}>
               <p class="modal-card__field-hint">
@@ -363,7 +364,9 @@ const EmailProviderModal: Component<Props> = (props) => {
             </Show>
 
             <Show when={needsDomain()}>
-              <label class="modal-card__field-label" for="email-provider-domain">Sending domain</label>
+              <label class="modal-card__field-label" for="email-provider-domain">
+                Sending domain
+              </label>
               <input
                 id="email-provider-domain"
                 class="modal-card__input"
@@ -378,20 +381,20 @@ const EmailProviderModal: Component<Props> = (props) => {
                 onKeyDown={handleKeyDown}
               />
               <Show when={domainError()}>
-                <p class="modal-card__field-error" role="alert">{domainError()}</p>
+                <p class="modal-card__field-error" role="alert">
+                  {domainError()}
+                </p>
               </Show>
             </Show>
 
-            <label class="modal-card__field-label" for="email-provider-notification">Notification email</label>
+            <label class="modal-card__field-label" for="email-provider-notification">
+              Notification email
+            </label>
             <input
               id="email-provider-notification"
               class="modal-card__input"
               type="email"
-              placeholder={
-                !isLocalMode()
-                  ? (session()?.data?.user?.email ?? 'you@example.com')
-                  : 'you@example.com'
-              }
+              placeholder={session()?.data?.user?.email ?? 'you@example.com'}
               value={notificationEmail()}
               onInput={(e) => setNotificationEmail(e.currentTarget.value)}
               onKeyDown={handleKeyDown}

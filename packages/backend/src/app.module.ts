@@ -11,7 +11,6 @@ import { DASHBOARD_CACHE_TTL_MS } from './common/constants/cache.constants';
 import { ApiKeyGuard } from './common/guards/api-key.guard';
 import { ApiKey } from './entities/api-key.entity';
 import { SessionGuard } from './auth/session.guard';
-import { LocalAuthGuard } from './auth/local-auth.guard';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
@@ -24,9 +23,7 @@ import { CommonModule } from './common/common.module';
 import { SseModule } from './sse/sse.module';
 import { GithubModule } from './github/github.module';
 import { PublicStatsModule } from './public-stats/public-stats.module';
-
-const isLocalMode = process.env['MANIFEST_MODE'] === 'local';
-const sessionGuardClass = isLocalMode ? LocalAuthGuard : SessionGuard;
+import { SetupModule } from './setup/setup.module';
 
 const frontendPath = resolveFrontendDir();
 const ONE_YEAR_S = 365 * 24 * 60 * 60;
@@ -74,9 +71,10 @@ const serveStaticImports = frontendPath
     SseModule,
     GithubModule,
     PublicStatsModule,
+    SetupModule,
   ],
   providers: [
-    { provide: APP_GUARD, useClass: sessionGuardClass },
+    { provide: APP_GUARD, useClass: SessionGuard },
     { provide: APP_GUARD, useClass: ApiKeyGuard },
     { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],

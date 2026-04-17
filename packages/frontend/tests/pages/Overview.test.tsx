@@ -11,11 +11,6 @@ vi.mock("@solidjs/router", () => ({
   A: (props: any) => <a href={props.href} class={props.class}>{props.children}</a>,
 }));
 
-let mockIsLocalMode: boolean | null = false;
-vi.mock("../../src/services/local-mode.js", () => ({
-  isLocalMode: () => mockIsLocalMode,
-}));
-
 vi.mock("@solidjs/meta", () => ({
   Title: (props: any) => <title>{props.children}</title>,
   Meta: (props: any) => <meta name={props.name ?? ""} content={props.content ?? ""} />,
@@ -129,14 +124,13 @@ describe("Overview", () => {
     localStorage.clear();
     mockAgentName = "test-agent";
     mockLocationState = null;
-    mockIsLocalMode = false;
     mockGetCustomProviders.mockResolvedValue([]);
   });
 
-  it("renders Overview heading", () => {
+  it("renders Overview heading with agent name", () => {
     mockGetOverview.mockResolvedValue(overviewData);
-    render(() => <Overview />);
-    expect(screen.getByText("Overview")).toBeDefined();
+    const { container } = render(() => <Overview />);
+    expect(container.textContent).toContain("Overview");
   });
 
   it("renders breadcrumb subtitle", () => {
@@ -541,40 +535,6 @@ describe("Overview", () => {
     await vi.waitFor(() => {
       expect(container.textContent).toContain("Set up agent");
       expect(container.textContent).not.toContain("Enable routing");
-    });
-  });
-
-  describe("local mode", () => {
-    it("should open setup modal for new agent in local mode", async () => {
-      mockAgentName = "local-agent";
-      mockIsLocalMode = true;
-      mockGetOverview.mockResolvedValue(emptyOverviewData);
-      const { container } = render(() => <Overview />);
-      await vi.waitFor(() => {
-        const modal = container.querySelector('[data-testid="setup-modal"]');
-        expect(modal?.getAttribute("data-open")).toBe("true");
-      });
-    });
-
-    it("should show empty state with setup button in local mode", async () => {
-      mockAgentName = "other-agent";
-      mockIsLocalMode = true;
-      mockGetOverview.mockResolvedValue(emptyOverviewData);
-      const { container } = render(() => <Overview />);
-      await vi.waitFor(() => {
-        expect(container.textContent).toContain("No activity yet");
-      });
-    });
-
-    it("shows waiting banner in local mode when has_providers is true", async () => {
-      mockAgentName = "local-agent";
-      mockIsLocalMode = true;
-      mockGetOverview.mockResolvedValue({ ...emptyOverviewData, has_providers: true });
-      const { container } = render(() => <Overview />);
-      await vi.waitFor(() => {
-        expect(container.textContent).toContain("No activity yet");
-        expect(container.querySelector('.waiting-banner')).not.toBeNull();
-      });
     });
   });
 

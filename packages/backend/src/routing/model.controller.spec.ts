@@ -4,6 +4,7 @@ import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { CustomProviderService } from './custom-provider/custom-provider.service';
 import { ModelDiscoveryService } from '../model-discovery/model-discovery.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
+import { PricingSyncService } from '../database/pricing-sync.service';
 import { DiscoveredModel } from '../model-discovery/model-fetcher';
 import { Agent } from '../entities/agent.entity';
 
@@ -33,6 +34,7 @@ describe('ModelController', () => {
   let mockOllamaSync: Record<string, jest.Mock>;
   let mockResolveAgent: Record<string, jest.Mock>;
   let mockCustomProviderService: Record<string, jest.Mock>;
+  let mockPricingSync: Record<string, jest.Mock>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -52,6 +54,11 @@ describe('ModelController', () => {
     mockCustomProviderService = {
       list: jest.fn().mockResolvedValue([]),
     };
+    mockPricingSync = {
+      getAll: jest.fn().mockReturnValue(new Map([['gpt-4o', {}]])),
+      getLastFetchedAt: jest.fn().mockReturnValue(new Date('2026-04-13T00:00:00Z')),
+      refreshCache: jest.fn().mockResolvedValue(42),
+    };
 
     controller = new ModelController(
       mockProviderService as unknown as ProviderService,
@@ -59,7 +66,65 @@ describe('ModelController', () => {
       mockOllamaSync as unknown as OllamaSyncService,
       mockResolveAgent as unknown as ResolveAgentService,
       mockCustomProviderService as unknown as CustomProviderService,
+      mockPricingSync as unknown as PricingSyncService,
     );
+  });
+
+  /* ── pricingHealth ── */
+
+  describe('pricingHealth', () => {
+    it('returns cache size and last fetch timestamp', () => {
+      mockPricingSync.getAll.mockReturnValue(
+        new Map([
+          ['a', {}],
+          ['b', {}],
+        ]),
+      );
+      mockPricingSync.getLastFetchedAt.mockReturnValue(new Date('2026-04-12T10:00:00Z'));
+
+      const result = controller.pricingHealth();
+
+      expect(result).toEqual({
+        model_count: 2,
+        last_fetched_at: '2026-04-12T10:00:00.000Z',
+      });
+    });
+
+    it('returns null last_fetched_at when cache was never populated', () => {
+      mockPricingSync.getAll.mockReturnValue(new Map());
+      mockPricingSync.getLastFetchedAt.mockReturnValue(null);
+
+      const result = controller.pricingHealth();
+
+      expect(result).toEqual({ model_count: 0, last_fetched_at: null });
+    });
+  });
+
+  /* ── refreshPricing ── */
+
+  describe('refreshPricing', () => {
+    it('triggers a cache refresh and reports the new count', async () => {
+      mockPricingSync.refreshCache.mockResolvedValue(150);
+      mockPricingSync.getLastFetchedAt.mockReturnValue(new Date('2026-04-13T12:00:00Z'));
+
+      const result = await controller.refreshPricing();
+
+      expect(mockPricingSync.refreshCache).toHaveBeenCalled();
+      expect(result).toEqual({
+        ok: true,
+        model_count: 150,
+        last_fetched_at: '2026-04-13T12:00:00.000Z',
+      });
+    });
+
+    it('returns ok=false when refresh yields zero models', async () => {
+      mockPricingSync.refreshCache.mockResolvedValue(0);
+      mockPricingSync.getLastFetchedAt.mockReturnValue(null);
+
+      const result = await controller.refreshPricing();
+
+      expect(result).toEqual({ ok: false, model_count: 0, last_fetched_at: null });
+    });
   });
 
   /* ── syncOllama ── */

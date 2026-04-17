@@ -5,10 +5,8 @@ import compression from 'compression';
 import * as express from 'express';
 import { AppModule } from './app.module';
 import { auth } from './auth/auth.instance';
-import { LOCAL_USER_ID, LOCAL_EMAIL } from './common/constants/local-mode.constants';
 import { SpaFallbackFilter } from './common/filters/spa-fallback.filter';
 import { httpErrorLogger } from './common/middleware/http-error-logger.middleware';
-import { isAllowedLocalIp } from './common/utils/local-ip';
 
 export async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -62,44 +60,27 @@ export async function bootstrap() {
 
   expressApp.use(httpErrorLogger);
 
-  // Trust reverse proxy (Railway, Render, etc.) so Express sees the real protocol/IP
-  // Disabled in local mode — loopback-only, no reverse proxy
-  if (!isDev && process.env['MANIFEST_MODE'] !== 'local') {
+  // Trust reverse proxy (Railway, Render, Traefik, Nginx, etc.) so Express
+  // sees the real client IP from X-Forwarded-For headers. Enabled in
+  // production deployments only — dev runs on loopback with no proxy.
+  if (!isDev) {
     expressApp.set('trust proxy', 1);
   }
 
-  // Mount auth handlers
-  if (process.env['MANIFEST_MODE'] === 'local') {
-    // Local mode: simple session endpoints (no Better Auth needed)
-    const localSessionHandler = (req: express.Request, res: express.Response) => {
-      const ip = req.ip ?? '';
-      if (!isAllowedLocalIp(ip)) {
-        res.status(403).json({ error: 'Forbidden' });
-        return;
-      }
-      res.json(buildLocalSessionResponse());
-    };
-    expressApp.get('/api/auth/get-session', localSessionHandler);
-    expressApp.get('/api/auth/local-session', localSessionHandler);
-    expressApp.all('/api/auth/*splat', (_req: express.Request, res: express.Response) => {
-      res.status(404).json({ error: 'Not available in local mode' });
-    });
-  } else {
-    // Rate limit login attempts (Better Auth runs outside NestJS, so ThrottlerGuard doesn't apply)
-    const { default: rateLimit } = await import('express-rate-limit');
-    const loginLimiter = rateLimit({
-      windowMs: 15 * 60 * 1000,
-      max: 20,
-      standardHeaders: true,
-      legacyHeaders: false,
-      message: { error: 'Too many login attempts. Try again later.' },
-    });
-    expressApp.use('/api/auth/sign-in', loginLimiter);
+  // Rate limit login attempts (Better Auth runs outside NestJS, so ThrottlerGuard doesn't apply)
+  const { default: rateLimit } = await import('express-rate-limit');
+  const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many login attempts. Try again later.' },
+  });
+  expressApp.use('/api/auth/sign-in', loginLimiter);
 
-    // Cloud mode: mount Better Auth handler (needs raw body, before express.json)
-    const { toNodeHandler } = await import('better-auth/node');
-    expressApp.all('/api/auth/*splat', toNodeHandler(auth!));
-  }
+  // Mount Better Auth handler (needs raw body, before express.json)
+  const { toNodeHandler } = await import('better-auth/node');
+  expressApp.all('/api/auth/*splat', toNodeHandler(auth));
 
   // Re-add body parsing for NestJS routes
   expressApp.use(express.json({ limit: '1mb' }));
@@ -118,30 +99,6 @@ export async function bootstrap() {
   }
 
   return app;
-}
-
-function buildLocalSessionResponse() {
-  const now = new Date().toISOString();
-  const farFuture = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
-  return {
-    session: {
-      id: 'local-session',
-      userId: LOCAL_USER_ID,
-      token: 'local-token',
-      expiresAt: farFuture,
-      createdAt: now,
-      updatedAt: now,
-    },
-    user: {
-      id: LOCAL_USER_ID,
-      name: 'Local User',
-      email: LOCAL_EMAIL,
-      emailVerified: true,
-      image: null,
-      createdAt: now,
-      updatedAt: now,
-    },
-  };
 }
 
 // Only auto-start when run directly (not when embedded)

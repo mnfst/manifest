@@ -19,7 +19,7 @@ describe('Proxy data round-trip', () => {
     const ds = app.get(DataSource);
     await ds.query(
       `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, agent_name, user_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
       [uuid(), TEST_TENANT_ID, TEST_AGENT_ID, new Date().toISOString(), 'ok', 'claude-opus-4-6', 1500, 800, 0, 0, 'demo-agent', 'test-user-001'],
     );
   });
@@ -51,7 +51,7 @@ describe('Clock skew tolerance', () => {
     const futureTs = new Date(Date.now() + 30_000).toISOString();
     await ds.query(
       `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, agent_name, user_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
       [uuid(), TEST_TENANT_ID, TEST_AGENT_ID, futureTs, 'ok', 'gpt-4o', 500, 200, 0, 0, 'demo-agent', 'test-user-001'],
     );
   });

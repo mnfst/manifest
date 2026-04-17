@@ -476,7 +476,43 @@ describe('proxy-response-handler', () => {
 
       await handleStreamResponse(res as any, forward as any, meta, {}, client as any);
 
-      expect(client.createAnthropicStreamTransformer).toHaveBeenCalledWith('gpt-4o');
+      // `undefined` is the thinking-blocks callback — absent when no
+      // thinking cache is provided to the handler (OpenAI-compat contract
+      // tests don't wire one up).
+      expect(client.createAnthropicStreamTransformer).toHaveBeenCalledWith('gpt-4o', undefined);
+    });
+
+    it('should forward extracted thinking blocks into the thinking cache on Anthropic streams', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward({ isAnthropic: true });
+      const client = mockProviderClient();
+      const meta = makeMeta();
+      const thinkingCache = { store: jest.fn() };
+      const sessionKey = 'sess-anthro-stream';
+
+      await handleStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        sessionKey,
+        thinkingCache as any,
+      );
+
+      // Second arg to createAnthropicStreamTransformer is the onThinkingBlocks
+      // callback. Grab it and invoke it to prove the handler wires it to
+      // thinkingCache.store.
+      const callback = client.createAnthropicStreamTransformer.mock.calls[0][1];
+      expect(typeof callback).toBe('function');
+      const blocks = [{ type: 'thinking', thinking: 'r', signature: 's' }];
+      callback('toolu_stream', blocks);
+      expect(thinkingCache.store).toHaveBeenCalledWith(
+        'sess-anthro-stream',
+        'toolu_stream',
+        blocks,
+      );
     });
 
     it('should use ChatGPT adapter for ChatGPT responses', async () => {
@@ -512,7 +548,6 @@ describe('proxy-response-handler', () => {
       const sessionKey = 'sess-123';
 
       // The transformer is captured by pipeStream — we need to invoke it manually.
-      // Capture the transform function passed to pipeStream.
       let capturedTransform: ((chunk: string) => string | null) | undefined;
       pipeStreamSpy.mockImplementation(
         async (_body: unknown, _res: unknown, transform?: (chunk: string) => string | null) => {
@@ -521,7 +556,15 @@ describe('proxy-response-handler', () => {
         },
       );
 
-      client.convertGoogleStreamChunk.mockImplementation((chunk: string) => chunk);
+      // convertGoogleStreamChunk now returns structured { chunk, signatures }
+      // so the handler can cache signatures without scraping the output.
+      client.convertGoogleStreamChunk.mockReturnValue({
+        chunk: 'data: {}\n\n',
+        signatures: [
+          { toolCallId: 'call_abc', signature: 'sig_xyz' },
+          { toolCallId: 'call_def', signature: 'sig_uvw' },
+        ],
+      });
 
       await handleStreamResponse(
         res as any,
@@ -534,12 +577,36 @@ describe('proxy-response-handler', () => {
       );
 
       expect(capturedTransform).toBeDefined();
+      const out = capturedTransform!('{}');
+      expect(out).toBe('data: {}\n\n');
 
-      // Simulate a chunk with thought_signature and id fields
-      const chunk = '{"id":"call_abc","thought_signature":"sig_xyz"}';
-      capturedTransform!(chunk);
-
+      expect(signatureCache.store).toHaveBeenCalledTimes(2);
       expect(signatureCache.store).toHaveBeenCalledWith('sess-123', 'call_abc', 'sig_xyz');
+      expect(signatureCache.store).toHaveBeenCalledWith('sess-123', 'call_def', 'sig_uvw');
+    });
+
+    it('should not cache when signatureCache is absent', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward({ isGoogle: true });
+      const client = mockProviderClient();
+      const meta = makeMeta();
+
+      let capturedTransform: ((chunk: string) => string | null) | undefined;
+      pipeStreamSpy.mockImplementation(
+        async (_body: unknown, _res: unknown, transform?: (chunk: string) => string | null) => {
+          capturedTransform = transform;
+          return null;
+        },
+      );
+      client.convertGoogleStreamChunk.mockReturnValue({
+        chunk: 'data: {}\n\n',
+        signatures: [{ toolCallId: 'call_abc', signature: 'sig_xyz' }],
+      });
+
+      await handleStreamResponse(res as any, forward as any, meta, {}, client as any);
+
+      // Should not throw — just drops the signatures silently.
+      expect(() => capturedTransform!('{}')).not.toThrow();
     });
   });
 
@@ -614,6 +681,65 @@ describe('proxy-response-handler', () => {
 
       expect(client.convertAnthropicResponse).toHaveBeenCalled();
       expect(usage).toBeNull();
+    });
+
+    it('should cache extracted thinking blocks from Anthropic non-stream response', async () => {
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+      const thinkingCache = { store: jest.fn() };
+      const sessionKey = 'sess-anthro';
+
+      client.convertAnthropicResponse.mockReturnValue({
+        id: 'anthropic-converted',
+        _extractedThinkingBlocks: {
+          firstToolUseId: 'toolu_01',
+          blocks: [{ type: 'thinking', thinking: 'reason', signature: 's' }],
+        },
+      });
+
+      const forward = mockForward({}, { isAnthropic: true });
+      const meta = makeMeta();
+
+      await handleNonStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        sessionKey,
+        thinkingCache as any,
+      );
+
+      expect(thinkingCache.store).toHaveBeenCalledTimes(1);
+      expect(thinkingCache.store).toHaveBeenCalledWith('sess-anthro', 'toolu_01', [
+        { type: 'thinking', thinking: 'reason', signature: 's' },
+      ]);
+
+      // The internal side-channel is stripped before the body reaches the client.
+      const sentBody = res.json.mock.calls[0][0];
+      expect(sentBody._extractedThinkingBlocks).toBeUndefined();
+    });
+
+    it('should strip _extractedThinkingBlocks even when no cache is provided', async () => {
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+
+      client.convertAnthropicResponse.mockReturnValue({
+        id: 'anthropic-converted',
+        _extractedThinkingBlocks: {
+          firstToolUseId: 'toolu_02',
+          blocks: [{ type: 'thinking', thinking: 'x', signature: 'y' }],
+        },
+      });
+
+      const forward = mockForward({}, { isAnthropic: true });
+      const meta = makeMeta();
+
+      await handleNonStreamResponse(res as any, forward as any, meta, {}, client as any);
+
+      const sentBody = res.json.mock.calls[0][0];
+      expect(sentBody._extractedThinkingBlocks).toBeUndefined();
     });
 
     it('should collect ChatGPT SSE response for non-streaming requests', async () => {

@@ -2,18 +2,13 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { DataSource } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { CreateNotificationRuleDto, UpdateNotificationRuleDto } from '../dto/notification-rule.dto';
-import { detectDialect, portableSql, type DbDialect } from '../../common/utils/sql-dialect';
 
 @Injectable()
 export class NotificationRulesService {
-  private readonly dialect: DbDialect;
-
-  constructor(private readonly ds: DataSource) {
-    this.dialect = detectDialect(ds.options.type as string);
-  }
+  constructor(private readonly ds: DataSource) {}
 
   private sql(query: string): string {
-    return portableSql(query, this.dialect);
+    return query;
   }
 
   async listRules(userId: string, agentName: string) {
@@ -55,7 +50,7 @@ export class NotificationRulesService {
         dto.threshold,
         dto.period,
         dto.action ?? 'notify',
-        this.dialect === 'sqlite' ? 1 : true,
+        true,
         now,
         now,
       ],
@@ -92,7 +87,7 @@ export class NotificationRulesService {
     }
     if (dto.is_active !== undefined) {
       sets.push(`is_active = $${paramIdx++}`);
-      params.push(this.dialect === 'sqlite' ? (dto.is_active ? 1 : 0) : dto.is_active);
+      params.push(dto.is_active);
     }
 
     if (sets.length === 0) return this.getRule(ruleId);
@@ -145,7 +140,7 @@ export class NotificationRulesService {
   async getAllActiveRules() {
     return this.ds.query(
       this.sql(`SELECT * FROM notification_rules WHERE is_active = $1 AND action IN ($2, $3)`),
-      [this.dialect === 'sqlite' ? 1 : true, 'notify', 'both'],
+      [true, 'notify', 'both'],
     );
   }
 
@@ -154,7 +149,7 @@ export class NotificationRulesService {
       this.sql(
         `SELECT * FROM notification_rules WHERE user_id = $1 AND is_active = $2 AND action IN ($3, $4)`,
       ),
-      [userId, this.dialect === 'sqlite' ? 1 : true, 'notify', 'both'],
+      [userId, true, 'notify', 'both'],
     );
   }
 
@@ -165,7 +160,7 @@ export class NotificationRulesService {
          WHERE tenant_id = $1 AND agent_name = $2
          AND is_active = $3 AND action IN ($4, $5)`,
       ),
-      [tenantId, agentName, this.dialect === 'sqlite' ? 1 : true, 'block', 'both'],
+      [tenantId, agentName, true, 'block', 'both'],
     );
   }
 

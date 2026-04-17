@@ -6,7 +6,7 @@
   </picture>
 </p>
 <p align="center">
-    Take control of your OpenClaw costs
+    Affordable Personal AI
 </p>
 
 ![manifest-gh](https://github.com/user-attachments/assets/7dd74fc2-f7d6-4558-a95a-014ed754a125)
@@ -16,11 +16,9 @@
   &nbsp;
   <a href="https://github.com/mnfst/manifest/stargazers"><img src="https://img.shields.io/github/stars/mnfst/manifest?style=flat" alt="GitHub stars" /></a>
   &nbsp;
-  <a href="https://www.npmjs.com/package/manifest"><img src="https://img.shields.io/npm/v/manifest?color=cb3837&label=npm" alt="npm version" /></a>
-  &nbsp;
-  <a href="https://www.npmjs.com/package/manifest"><img src="https://img.shields.io/npm/dw/manifest?color=cb3837" alt="npm downloads" /></a>
-  &nbsp;
   <a href="https://hub.docker.com/r/manifestdotbuild/manifest"><img src="https://img.shields.io/docker/pulls/manifestdotbuild/manifest?color=2496ED&label=docker%20pulls" alt="Docker pulls" /></a>
+  &nbsp;
+  <a href="https://hub.docker.com/r/manifestdotbuild/manifest/tags"><img src="https://img.shields.io/docker/image-size/manifestdotbuild/manifest/latest?color=2496ED&label=image%20size" alt="Docker image size" /></a>
   &nbsp;
   <a href="https://github.com/mnfst/manifest/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/mnfst/manifest/ci.yml?branch=main&label=CI" alt="CI status" /></a>
   &nbsp;
@@ -37,7 +35,7 @@
 
 ## What is Manifest?
 
-Manifest is a smart model router for OpenClaw. It sits between your agent and your LLM providers, scores each request, and routes it to the cheapest model that can handle it. Simple questions go to fast, cheap models. Hard problems go to expensive ones. You save money without thinking about it.
+Manifest is a smart model router for Personal AI Agents like OpenClaw or Hermes. It sits between your agent and your LLM providers, scores each request, and routes it to the cheapest model that can handle it. Simple questions go to fast, cheap models. Hard problems go to expensive ones. You save money without thinking about it.
 
 - Route requests to the right model: Cut costs up to 70%
 - Automatic fallbacks: If a model fails, the next one picks up
@@ -49,24 +47,19 @@ Manifest is a smart model router for OpenClaw. It sits between your agent and yo
 
 Go to [app.manifest.build](https://app.manifest.build) and follow the guide.
 
-### Local version
+### Self-hosted (Docker)
+
+Manifest ships as a [Docker image](https://hub.docker.com/r/manifestdotbuild/manifest). One command:
 
 ```bash
-openclaw plugins install manifest
-openclaw gateway restart
+bash <(curl -sSL https://raw.githubusercontent.com/mnfst/manifest/main/docker/install.sh)
 ```
 
-Dashboard opens at **http://127.0.0.1:2099**. The plugin starts an embedded server, runs the dashboard locally, and registers itself as a provider automatically. No account or API key needed.
+The installer downloads the compose file, generates a secret, and brings up the stack. Give it about 30 seconds to boot.
 
-### Docker
+Open [http://localhost:3001](http://localhost:3001) and sign up. The first account you create becomes the admin. Full self-hosting guide: [docker/DOCKER_README.md](docker/DOCKER_README.md).
 
-Our <a href="https://hub.docker.com/r/manifestdotbuild/manifest">Manifest Docker Image</a> allows you to self-host Manifest router in your own infrastructure.
-
-### Which version choose?
-
-Pick cloud version for quick setup and multi-device access. Pick local version for keeping all your data on your machine or for using local models like Ollama. Pick Docker for self-hosting on your own infrastructure.
-
-Not sure which one to choose? Start with cloud.
+> Docker is the only supported distribution. The legacy `manifest` npm package is deprecated and no longer published.
 
 ## How it works
 
@@ -86,24 +79,24 @@ All routing data (tokens, costs, model, duration) is recorded automatically. You
 
 ## Supported providers
 
-Works with 300+ models across these providers:
+Works with 300+ models across these providers. Connect with an API key, or reuse an existing paid subscription where supported:
 
-| Provider                                                                       | Models                                                               |
-| ------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
-| [OpenAI](https://platform.openai.com/)                                         | `gpt-5.3`, `gpt-4.1`, `o3`, `o4-mini` + 54 more                      |
-| [Anthropic](https://www.anthropic.com/)                                        | `claude-opus-4-6`, `claude-sonnet-4.5`, `claude-haiku-4.5` + 14 more |
-| [Google Gemini](https://ai.google.dev/)                                        | `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-3-pro` + 19 more       |
-| [DeepSeek](https://www.deepseek.com/)                                          | `deepseek-chat`, `deepseek-reasoner` + 11 more                       |
-| [xAI](https://x.ai/)                                                           | `grok-4`, `grok-3`, `grok-3-mini` + 8 more                           |
-| [Mistral AI](https://mistral.ai/)                                              | `mistral-large`, `codestral`, `devstral` + 26 more                   |
-| [Qwen (Alibaba)](https://www.alibabacloud.com/en/solutions/generative-ai/qwen) | `qwen3-235b`, `qwen3-coder`, `qwq-32b` + 42 more                     |
-| [MiniMax](https://www.minimax.io/)                                             | `minimax-m2.5`, `minimax-m1`, `minimax-m2` + 5 more                  |
-| [Kimi (Moonshot)](https://kimi.ai/)                                            | `kimi-k2`, `kimi-k2.5` + 3 more                                      |
-| [Amazon Nova](https://aws.amazon.com/ai/nova/)                                 | `nova-pro`, `nova-lite`, `nova-micro` + 5 more                       |
-| [Z.ai (Zhipu)](https://z.ai/)                                                  | `glm-5`, `glm-4.7`, `glm-4.5` + 5 more                               |
-| [OpenRouter](https://openrouter.ai/)                                           | 300+ models from all providers                                       |
-| [Ollama](https://ollama.com/)                                                  | Run any model locally (Llama, Gemma, Mistral, ...)                   |
-| Custom providers                                                               | Any provider with an OpenAI-compatible API endpoint                  |
+| Provider                                                                       | API key | Subscription               |
+| ------------------------------------------------------------------------------ | :-----: | :------------------------- |
+| [OpenAI](https://platform.openai.com/)                                         |   ✅    | ✅ ChatGPT Plus / Pro / Team |
+| [Anthropic](https://www.anthropic.com/)                                        |   ✅    | ✅ Claude Max / Pro          |
+| [Google Gemini](https://ai.google.dev/)                                        |   ✅    |                            |
+| [DeepSeek](https://www.deepseek.com/)                                          |   ✅    |                            |
+| [xAI](https://x.ai/)                                                           |   ✅    |                            |
+| [Mistral AI](https://mistral.ai/)                                              |   ✅    |                            |
+| [Qwen (Alibaba)](https://www.alibabacloud.com/en/solutions/generative-ai/qwen) |   ✅    |                            |
+| [MiniMax](https://www.minimax.io/)                                             |   ✅    | ✅ MiniMax Coding Plan       |
+| [Kimi (Moonshot)](https://kimi.ai/)                                            |   ✅    |                            |
+| [Z.ai (Zhipu)](https://z.ai/)                                                  |   ✅    | ✅ GLM Coding Plan           |
+| [GitHub Copilot](https://github.com/features/copilot)                          |         | ✅ Copilot subscription      |
+| [OpenRouter](https://openrouter.ai/)                                           |   ✅    |                            |
+| [Ollama](https://ollama.com/)                                                  |   ✅ Local   | ✅ Ollama Cloud              |
+| Custom providers (OpenAI-compatible)                                           |   ✅    |                            |
 
 ## Contributing
 

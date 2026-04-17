@@ -139,6 +139,12 @@
   outline-offset: 2px;
 }
 
+.modal-terminal__copy--disabled,
+.modal-terminal__copy--disabled:hover {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
 /* Key box (step 2) */
 .modal-key-box {
   border: 1px solid hsl(var(--chart-5) / 0.3);
@@ -381,6 +387,7 @@
 
 .setup-method-tabs .panel__tab {
   flex: 1;
+  font-size: 14px;
 }
 
 .setup-method__body {
@@ -530,4 +537,250 @@
 .setup-onboard-fields__value .modal-terminal__copy {
   position: static;
   flex-shrink: 0;
+}
+
+.setup-onboard-fields__eye {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color var(--transition-fast);
+}
+
+.setup-onboard-fields__eye:hover {
+  color: hsl(var(--foreground));
+}
+
+/* ── Framework snippets ──────────────────────────── */
+.framework-snippets__connection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  background: hsl(var(--muted));
+  border-radius: var(--radius);
+}
+
+.framework-snippets__field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.framework-snippets__label {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  min-width: 60px;
+  flex-shrink: 0;
+}
+
+.framework-snippets__value {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.framework-snippets__value code {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.framework-snippets__value .modal-terminal__copy {
+  position: static;
+  flex-shrink: 0;
+}
+
+.framework-snippets__block {
+  margin-top: 12px;
+}
+
+/* ── Segmented control (top-level tabs) ──────────── */
+.setup-segment {
+  display: inline-flex;
+  background: hsl(var(--muted));
+  border-radius: var(--radius);
+  padding: 3px;
+  margin-bottom: 16px;
+  gap: 2px;
+}
+
+.setup-segment__btn {
+  padding: 6px 20px;
+  border: none;
+  border-radius: calc(var(--radius) - 2px);
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.setup-segment__btn:hover {
+  color: hsl(var(--foreground));
+}
+
+.setup-segment__btn--active {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-weight: 600;
+  box-shadow: 0 1px 2px hsl(0 0% 0% / 0.06);
+}
+
+.setup-segment__btn:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* ── Tab icon ────────────────────────────────────── */
+.panel__tab-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.6;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.panel__tab--active .panel__tab-icon {
+  opacity: 1;
+}
+
+/* ── Toolkit language toggle ─────────────────────── */
+.toolkit-lang-toggle {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  background: hsl(var(--muted));
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+}
+
+.toolkit-lang-toggle__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border: none;
+  border-radius: calc(var(--radius) - 2px);
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  font-family: var(--font-family);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.toolkit-lang-toggle__btn:hover {
+  color: hsl(var(--foreground));
+}
+
+.toolkit-lang-toggle__btn--active {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-weight: 600;
+}
+
+.toolkit-lang-toggle__btn:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.toolkit-lang-toggle__btn img {
+  width: 14px;
+  height: 14px;
+}
+
+/* ── Segmented control – full-width variant ──────── */
+.setup-segment--full {
+  display: flex;
+  width: 100%;
+}
+
+.setup-segment--full .setup-segment__btn {
+  flex: 1;
+  text-align: center;
+}
+
+/* ── Agents card ─────────────────────────────────── */
+.setup-agents-card {
+  padding: 0;
+}
+
+/* ── CLI block with eye toggle overlay ────────────── */
+.setup-cli-block {
+  position: relative;
+}
+
+.setup-cli-block__actions {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  z-index: 1;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.setup-cli-block__actions .modal-terminal__copy {
+  position: static;
+}
+
+.setup-cli-block .setup-method__code .modal-terminal__copy {
+  display: none;
+}
+
+.setup-agents-card__title {
+  margin: 0 0 4px;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+}
+
+/* ── Coming soon placeholder ─────────────────────── */
+/* ── Change type link ─────────────────────────────── */
+.setup-change-type-link {
+  display: inline-block;
+  font-size: var(--font-size-xs);
+  color: hsl(var(--chart-1));
+  margin-bottom: 12px;
+  text-decoration: none;
+}
+
+.setup-change-type-link:hover {
+  text-decoration: underline;
+}
+
+.setup-change-type-link:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.setup-agents-coming-soon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+  border: 1px dashed hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.3);
+}
+
+.setup-agents-coming-soon__text {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  font-style: italic;
 }

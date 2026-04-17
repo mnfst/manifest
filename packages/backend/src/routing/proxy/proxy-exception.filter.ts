@@ -2,20 +2,17 @@ import { ExceptionFilter, Catch, ArgumentsHost, HttpException, Injectable } from
 import { ConfigService } from '@nestjs/config';
 import { Request, Response as ExpressResponse } from 'express';
 import { getDashboardUrl, sendFriendlyResponse } from './proxy-friendly-response';
-import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
 
 /** Guard-thrown messages that should become friendly chat responses. */
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
   'Authorization header required':
-    '[🦚 Manifest] Missing API key. Set your Manifest key (starts with mnfst_) as the Bearer token.',
-  'Empty token':
-    '[🦚 Manifest] Bearer token is empty — paste your Manifest API key into the authorization field.',
+    '[🦚 Manifest] Missing the Authorization header. Set it to "Bearer mnfst_<your-key>".',
+  'Empty token': '[🦚 Manifest] The Bearer token is empty. Paste your Manifest key into it.',
   'Invalid API key format':
-    '[🦚 Manifest] That doesn\'t look like a Manifest key. They start with "mnfst_" — check your dashboard.',
-  'API key expired':
-    '[🦚 Manifest] This API key expired. Generate a new one from your Manifest dashboard',
+    '[🦚 Manifest] That doesn\'t look right. Manifest keys start with "mnfst_". Grab yours from the dashboard.',
+  'API key expired': '[🦚 Manifest] This key has expired. Generate a new one here',
   'Invalid API key':
-    "[🦚 Manifest] This API key wasn't recognized — it may have been rotated or deleted. Check your dashboard for the current key.",
+    "[🦚 Manifest] I don't recognize this key. It might have been rotated or deleted. Grab the current one from the dashboard.",
 };
 
 /** Status codes that should pass through as normal HTTP errors. */
@@ -48,13 +45,10 @@ export class ProxyExceptionFilter implements ExceptionFilter {
     }
 
     const isStream = (req.body as Record<string, unknown>)?.stream === true;
-    const ingestionCtx = (req as Request & { ingestionContext?: IngestionContext })
-      .ingestionContext;
-    const agentName = ingestionCtx?.agentName;
 
     const friendly = AUTH_ERROR_MESSAGES[message];
     if (friendly) {
-      const dashboardUrl = getDashboardUrl(this.config, agentName);
+      const dashboardUrl = getDashboardUrl(this.config);
       const content =
         message === 'API key expired'
           ? `${friendly}: ${dashboardUrl}`
@@ -65,7 +59,7 @@ export class ProxyExceptionFilter implements ExceptionFilter {
 
     // Other errors (400 bad request, 500, etc.) — send as friendly chat message
     const content =
-      status >= 500 ? '[🦚 Manifest] Something broke on our end. Try again shortly.' : message;
+      status >= 500 ? '[🦚 Manifest] Something broke on our end. Try again in a moment.' : message;
     sendFriendlyResponse(res, content, isStream);
   }
 }

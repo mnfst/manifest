@@ -18,15 +18,17 @@ import {
 } from './proxy-fallback.service';
 import { ProxyRequestOptions } from './proxy-types';
 import { ThoughtSignatureCache } from './thought-signature-cache';
+import { ThinkingBlockCache } from './thinking-block-cache';
 import { buildFriendlyResponse, getDashboardUrl } from './proxy-friendly-response';
 
 export { FailedFallback } from './proxy-fallback.service';
 
 /**
- * Roles excluded from scoring. OpenClaw (and similar tools) inject a large,
- * keyword-rich system prompt with every request. Scoring it inflates every
- * request to the most expensive tier. We strip these before the scorer sees
- * them, but forward the full unmodified body to the real provider.
+ * Roles excluded from scoring. Personal AI agents (OpenClaw, Hermes, and
+ * similar tools) inject a large, keyword-rich system prompt with every
+ * request. Scoring it inflates every request to the most expensive tier.
+ * We strip these before the scorer sees them, but forward the full
+ * unmodified body to the real provider.
  */
 const SCORING_EXCLUDED_ROLES = new Set(['system', 'developer']);
 const SCORING_RECENT_MESSAGES = 10;
@@ -73,6 +75,7 @@ export class ProxyService {
     private readonly fallbackService: ProxyFallbackService,
     private readonly config: ConfigService,
     private readonly signatureCache: ThoughtSignatureCache,
+    private readonly thinkingCache: ThinkingBlockCache,
   ) {}
 
   async proxyRequest(opts: ProxyRequestOptions): Promise<ProxyResult> {
@@ -126,8 +129,8 @@ export class ProxyService {
       resolved.auth_type,
     );
     if (apiKey === null) {
-      const dashboardUrl = getDashboardUrl(this.config, agentName);
-      const content = `[🦚 Manifest] No API key set for ${resolved.provider} yet. Add one here: ${dashboardUrl}`;
+      const dashboardUrl = getDashboardUrl(this.config, agentName, 'routing');
+      const content = `[🦚 Manifest] No ${resolved.provider} API key yet. Add one here: ${dashboardUrl}`;
       return buildFriendlyResponse(content, body.stream === true, 'no_provider_key');
     }
 
@@ -154,6 +157,8 @@ export class ProxyService {
     const stream = body.stream === true;
     const signatureLookup = (toolCallId: string) =>
       this.signatureCache.retrieve(sessionKey, toolCallId);
+    const thinkingLookup = (firstToolUseId: string) =>
+      this.thinkingCache.retrieve(sessionKey, firstToolUseId);
     const forward = await this.fallbackService.tryForwardToProvider({
       provider: resolved.provider,
       apiKey: resolvedCredentials.apiKey,
@@ -166,6 +171,7 @@ export class ProxyService {
       resourceUrl: resolvedCredentials.resourceUrl,
       providerRegion,
       signatureLookup,
+      thinkingLookup,
     });
 
     if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
@@ -188,6 +194,7 @@ export class ProxyService {
           resolved.provider ?? undefined,
           resolved.auth_type,
           signatureLookup,
+          thinkingLookup,
         );
 
         if (success) {
@@ -275,8 +282,8 @@ export class ProxyService {
       exceeded.metricType === 'cost'
         ? `$${Number(exceeded.threshold).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
         : Number(exceeded.threshold).toLocaleString(undefined, { maximumFractionDigits: 0 });
-    const dashboardUrl = getDashboardUrl(this.config, agentName);
-    return `[🦚 Manifest] Usage limit hit: ${exceeded.metricType} is at ${fmt} (limit: ${threshFmt}/${exceeded.period}). You can adjust it here: ${dashboardUrl}`;
+    const dashboardUrl = getDashboardUrl(this.config, agentName, 'limits');
+    return `[🦚 Manifest] You hit your ${exceeded.metricType} limit: ${fmt} used, ${threshFmt}/${exceeded.period} allowed. Adjust it here: ${dashboardUrl}`;
   }
 
   private filterScoringMessages(messages: ScorerMessage[]): ScorerMessage[] {
@@ -298,8 +305,8 @@ export class ProxyService {
   }
 
   private buildNoProviderResult(stream: boolean, agentName?: string): ProxyResult {
-    const dashboardUrl = getDashboardUrl(this.config, agentName);
-    const content = `[🦚 Manifest] Manifest is connected successfully. To start routing requests, connect a model provider: ${dashboardUrl}`;
+    const dashboardUrl = getDashboardUrl(this.config, agentName, 'routing');
+    const content = `[🦚 Manifest] You're connected, but no providers are set up yet. Add one here: ${dashboardUrl}`;
     return buildFriendlyResponse(content, stream, 'no_provider');
   }
 }

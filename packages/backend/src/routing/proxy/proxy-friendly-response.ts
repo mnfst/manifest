@@ -21,12 +21,19 @@ export interface FriendlyResult {
   };
 }
 
-export function getDashboardUrl(config: ConfigService, agentName?: string): string {
+export type DashboardSection = 'routing' | 'limits';
+
+export function getDashboardUrl(
+  config: ConfigService,
+  agentName?: string,
+  section?: DashboardSection,
+): string {
   const baseUrl =
     config.get<string>('app.betterAuthUrl') ||
     `http://localhost:${config.get<number>('app.port', 3001)}`;
-  const path = agentName ? `/agents/${encodeURIComponent(agentName)}` : '/routing';
-  return `${baseUrl}${path}`;
+  if (!agentName) return baseUrl;
+  const suffix = section ? `/${section}` : '';
+  return `${baseUrl}/agents/${encodeURIComponent(agentName)}${suffix}`;
 }
 
 export function buildFriendlyResponse(

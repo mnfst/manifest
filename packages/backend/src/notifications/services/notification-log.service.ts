@@ -1,12 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { v4 as uuid } from 'uuid';
-import { ManifestRuntimeService } from '../../common/services/manifest-runtime.service';
-import { detectDialect, portableSql, type DbDialect } from '../../common/utils/sql-dialect';
-import {
-  LOCAL_EMAIL,
-  readLocalNotificationEmail,
-} from '../../common/constants/local-mode.constants';
 
 export function formatNotificationTimestamp(): string {
   return new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
@@ -14,17 +8,10 @@ export function formatNotificationTimestamp(): string {
 
 @Injectable()
 export class NotificationLogService {
-  private readonly dialect: DbDialect;
-
-  constructor(
-    private readonly ds: DataSource,
-    private readonly runtime: ManifestRuntimeService,
-  ) {
-    this.dialect = detectDialect(ds.options.type as string);
-  }
+  constructor(private readonly ds: DataSource) {}
 
   private sql(query: string): string {
-    return portableSql(query, this.dialect);
+    return query;
   }
 
   async hasAlreadySent(ruleId: string, periodStart: string): Promise<boolean> {
@@ -86,14 +73,7 @@ export class NotificationLogService {
   ): Promise<string | null> {
     if (notificationEmail) return notificationEmail;
 
-    if (this.runtime.isLocalMode()) {
-      const configEmail = readLocalNotificationEmail();
-      if (configEmail) return configEmail;
-    }
-
     const rows = await this.ds.query(this.sql(`SELECT email FROM "user" WHERE id = $1`), [userId]);
-    const email = rows[0]?.email ?? null;
-    if (email === LOCAL_EMAIL) return null;
-    return email;
+    return rows[0]?.email ?? null;
   }
 }

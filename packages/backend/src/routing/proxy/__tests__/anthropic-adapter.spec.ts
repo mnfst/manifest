@@ -335,6 +335,29 @@ describe('Anthropic Adapter', () => {
       expect(content[0].tool_use_id).toBe('unknown');
     });
 
+    it('returns empty args when tool_call arguments string is invalid JSON', () => {
+      const body = {
+        messages: [
+          {
+            role: 'assistant',
+            content: 'thinking',
+            tool_calls: [
+              {
+                id: 'call_1',
+                type: 'function',
+                function: { name: 'noop', arguments: 'not-valid-json{' },
+              },
+            ],
+          },
+        ],
+      };
+      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
+      const messages = result.messages as Array<{ content: Array<Record<string, unknown>> }>;
+      const toolBlock = messages[0].content.find((b) => b.type === 'tool_use');
+      // safeParseArgs catches and returns {}.
+      expect(toolBlock!.input).toEqual({});
+    });
+
     it('handles tool_call with empty arguments string', () => {
       const body = {
         messages: [
@@ -442,7 +465,11 @@ describe('Anthropic Adapter', () => {
         injectCacheControl: false,
         injectSubscriptionIdentity: true,
       });
-      const system = result.system as Array<{ type: string; text: string; cache_control?: unknown }>;
+      const system = result.system as Array<{
+        type: string;
+        text: string;
+        cache_control?: unknown;
+      }>;
       expect(system).toHaveLength(2);
       expect(system[0].text).toContain('Claude agent');
       expect(system[0].cache_control).toEqual({ type: 'ephemeral' });
@@ -1126,6 +1153,661 @@ describe('Anthropic Adapter', () => {
       expect(usage.usage.cache_read_tokens).toBe(10);
       expect(usage.usage.cache_creation_tokens).toBe(5);
       expect(usage.usage.prompt_tokens_details.cached_tokens).toBe(10);
+    });
+  });
+
+  describe('extended-thinking round-trip (Fix 3)', () => {
+    describe('fromAnthropicResponse', () => {
+      it('extracts thinking blocks + tool_use via _extractedThinkingBlocks', () => {
+        const thinkingBlock = {
+          type: 'thinking',
+          thinking: 'Let me think about this.',
+          signature: 'sig_1',
+        };
+        const resp = {
+          content: [
+            thinkingBlock,
+            { type: 'text', text: 'Result' },
+            { type: 'tool_use', id: 'toolu_first', name: 'search', input: { q: 'cats' } },
+          ],
+          stop_reason: 'tool_use',
+        };
+        const result = fromAnthropicResponse(resp, 'claude-sonnet-4-20250514');
+        const extracted = (result as Record<string, unknown>)._extractedThinkingBlocks as {
+          firstToolUseId: string;
+          blocks: Array<Record<string, unknown>>;
+        };
+        expect(extracted).toBeDefined();
+        expect(extracted.firstToolUseId).toBe('toolu_first');
+        expect(extracted.blocks).toHaveLength(1);
+        // The extracted block must be the SAME object reference — Anthropic
+        // signs it and we never mutate.
+        expect(extracted.blocks[0]).toBe(thinkingBlock);
+      });
+
+      it('extracts redacted_thinking blocks the same way', () => {
+        const redacted = { type: 'redacted_thinking', data: 'opaque-blob' };
+        const resp = {
+          content: [redacted, { type: 'tool_use', id: 'toolu_1', name: 'search', input: {} }],
+          stop_reason: 'tool_use',
+        };
+        const result = fromAnthropicResponse(resp, 'claude-sonnet-4-20250514');
+        const extracted = (result as Record<string, unknown>)._extractedThinkingBlocks as {
+          firstToolUseId: string;
+          blocks: Array<Record<string, unknown>>;
+        };
+        expect(extracted).toBeDefined();
+        expect(extracted.firstToolUseId).toBe('toolu_1');
+        expect(extracted.blocks[0]).toBe(redacted);
+      });
+
+      it('does not surface _extractedThinkingBlocks when there is no tool_use', () => {
+        const resp = {
+          content: [
+            { type: 'thinking', thinking: 'quiet reasoning', signature: 's' },
+            { type: 'text', text: 'Final answer.' },
+          ],
+          stop_reason: 'end_turn',
+        };
+        const result = fromAnthropicResponse(resp, 'claude-sonnet-4-20250514');
+        expect((result as Record<string, unknown>)._extractedThinkingBlocks).toBeUndefined();
+      });
+
+      it('does not surface _extractedThinkingBlocks when there are tool_use but no thinking', () => {
+        const resp = {
+          content: [
+            { type: 'text', text: 'Let me search.' },
+            { type: 'tool_use', id: 'toolu_1', name: 'search', input: { q: 'cats' } },
+          ],
+          stop_reason: 'tool_use',
+        };
+        const result = fromAnthropicResponse(resp, 'claude-sonnet-4-20250514');
+        expect((result as Record<string, unknown>)._extractedThinkingBlocks).toBeUndefined();
+      });
+
+      it('maps regular content and tool_calls alongside thinking extraction', () => {
+        const thinkingBlock = {
+          type: 'thinking',
+          thinking: 'Thinking...',
+          signature: 'sig_xy',
+        };
+        const resp = {
+          content: [
+            thinkingBlock,
+            { type: 'text', text: 'The answer is:' },
+            { type: 'tool_use', id: 'toolu_1', name: 'calc', input: { n: 2 } },
+          ],
+          stop_reason: 'tool_use',
+          usage: { input_tokens: 10, output_tokens: 5 },
+        };
+        const result = fromAnthropicResponse(resp, 'claude-sonnet-4-20250514');
+        const choices = result.choices as Array<{
+          message: Record<string, unknown>;
+          finish_reason: string;
+        }>;
+        // Regular mapping still works: text content + tool_calls + finish_reason.
+        expect(choices[0].message.content).toBe('The answer is:');
+        const toolCalls = choices[0].message.tool_calls as Array<Record<string, unknown>>;
+        expect(toolCalls).toHaveLength(1);
+        expect(toolCalls[0].id).toBe('toolu_1');
+        expect(choices[0].finish_reason).toBe('tool_calls');
+
+        // And thinking extraction happened in parallel.
+        const extracted = (result as Record<string, unknown>)._extractedThinkingBlocks as {
+          firstToolUseId: string;
+          blocks: Array<Record<string, unknown>>;
+        };
+        expect(extracted.firstToolUseId).toBe('toolu_1');
+        expect(extracted.blocks[0]).toBe(thinkingBlock);
+      });
+
+      it('preserves the order of multiple thinking blocks', () => {
+        const b1 = { type: 'thinking', thinking: 'step 1', signature: 's1' };
+        const b2 = { type: 'redacted_thinking', data: 'blob' };
+        const b3 = { type: 'thinking', thinking: 'step 3', signature: 's3' };
+        const resp = {
+          content: [b1, b2, b3, { type: 'tool_use', id: 'toolu_1', name: 'calc', input: {} }],
+          stop_reason: 'tool_use',
+        };
+        const result = fromAnthropicResponse(resp, 'claude-sonnet-4-20250514');
+        const extracted = (result as Record<string, unknown>)._extractedThinkingBlocks as {
+          firstToolUseId: string;
+          blocks: Array<Record<string, unknown>>;
+        };
+        expect(extracted.blocks).toHaveLength(3);
+        expect(extracted.blocks[0]).toBe(b1);
+        expect(extracted.blocks[1]).toBe(b2);
+        expect(extracted.blocks[2]).toBe(b3);
+      });
+    });
+
+    describe('toAnthropicRequest thinkingLookup', () => {
+      it('prepends cached thinking blocks before text and tool_use', () => {
+        const thinkingBlock = {
+          type: 'thinking',
+          thinking: 'cached reasoning',
+          signature: 'sig_cached',
+        };
+        const lookup = jest.fn().mockReturnValue([thinkingBlock]);
+
+        const body = {
+          messages: [
+            { role: 'user', content: 'Do it' },
+            {
+              role: 'assistant',
+              content: 'Working on it.',
+              tool_calls: [
+                {
+                  id: 'toolu_first',
+                  type: 'function',
+                  function: { name: 'search', arguments: '{"q":"cats"}' },
+                },
+              ],
+            },
+          ],
+        };
+        const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514', {
+          thinkingLookup: lookup,
+        });
+
+        expect(lookup).toHaveBeenCalledWith('toolu_first');
+
+        const messages = result.messages as Array<{ role: string; content: unknown }>;
+        const assistant = messages[1];
+        const content = assistant.content as Array<Record<string, unknown>>;
+        // Order must be: thinking block → text → tool_use.
+        expect(content).toHaveLength(3);
+        expect(content[0]).toBe(thinkingBlock);
+        expect(content[1]).toEqual({ type: 'text', text: 'Working on it.' });
+        expect(content[2].type).toBe('tool_use');
+        expect(content[2].id).toBe('toolu_first');
+      });
+
+      it('prepends multiple cached blocks in the order they were cached', () => {
+        const b1 = { type: 'thinking', thinking: 'one', signature: 's1' };
+        const b2 = { type: 'redacted_thinking', data: 'opaque' };
+        const lookup = jest.fn().mockReturnValue([b1, b2]);
+
+        const body = {
+          messages: [
+            {
+              role: 'assistant',
+              content: null,
+              tool_calls: [
+                {
+                  id: 'toolu_1',
+                  type: 'function',
+                  function: { name: 'noop', arguments: '{}' },
+                },
+              ],
+            },
+          ],
+        };
+        const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514', {
+          thinkingLookup: lookup,
+        });
+        const messages = result.messages as Array<{ content: Array<Record<string, unknown>> }>;
+        const content = messages[0].content;
+        expect(content).toHaveLength(3);
+        expect(content[0]).toBe(b1);
+        expect(content[1]).toBe(b2);
+        expect(content[2].type).toBe('tool_use');
+      });
+
+      it('prepends nothing when thinkingLookup returns null', () => {
+        const lookup = jest.fn().mockReturnValue(null);
+        const body = {
+          messages: [
+            {
+              role: 'assistant',
+              content: null,
+              tool_calls: [
+                {
+                  id: 'toolu_1',
+                  type: 'function',
+                  function: { name: 'noop', arguments: '{}' },
+                },
+              ],
+            },
+          ],
+        };
+        const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514', {
+          thinkingLookup: lookup,
+        });
+        const messages = result.messages as Array<{ content: Array<Record<string, unknown>> }>;
+        // Only the tool_use block — no thinking block prepended.
+        expect(messages[0].content).toHaveLength(1);
+        expect(messages[0].content[0].type).toBe('tool_use');
+      });
+
+      it('does not call thinkingLookup when assistant message has no tool_calls', () => {
+        const lookup = jest
+          .fn()
+          .mockReturnValue([{ type: 'thinking', thinking: 'ignored', signature: 'x' }]);
+        const body = {
+          messages: [
+            { role: 'user', content: 'Hi' },
+            { role: 'assistant', content: 'Hello!' },
+          ],
+        };
+        const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514', {
+          thinkingLookup: lookup,
+        });
+        expect(lookup).not.toHaveBeenCalled();
+        const messages = result.messages as Array<{ content: Array<Record<string, unknown>> }>;
+        expect(messages[1].content).toHaveLength(1);
+        expect(messages[1].content[0]).toEqual({ type: 'text', text: 'Hello!' });
+      });
+
+      it('works without a thinkingLookup option (no throw, no prepend)', () => {
+        const body = {
+          messages: [
+            {
+              role: 'assistant',
+              content: null,
+              tool_calls: [
+                {
+                  id: 'toolu_1',
+                  type: 'function',
+                  function: { name: 'noop', arguments: '{}' },
+                },
+              ],
+            },
+          ],
+        };
+        expect(() => toAnthropicRequest(body, 'claude-sonnet-4-20250514')).not.toThrow();
+        const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
+        const messages = result.messages as Array<{ content: Array<Record<string, unknown>> }>;
+        expect(messages[0].content).toHaveLength(1);
+        expect(messages[0].content[0].type).toBe('tool_use');
+      });
+
+      it('does not call thinkingLookup when the first tool_call has no id', () => {
+        const lookup = jest.fn();
+        const body = {
+          messages: [
+            {
+              role: 'assistant',
+              content: null,
+              tool_calls: [
+                // id missing
+                {
+                  type: 'function',
+                  function: { name: 'noop', arguments: '{}' },
+                } as unknown as {
+                  id: string;
+                  type: string;
+                  function: { name: string; arguments: string };
+                },
+              ],
+            },
+          ],
+        };
+        toAnthropicRequest(body, 'claude-sonnet-4-20250514', { thinkingLookup: lookup });
+        expect(lookup).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('createAnthropicStreamTransformer onThinkingBlocks callback', () => {
+      it('fires once at message_delta with a single assembled thinking block when a tool_use is present', () => {
+        const onThinkingBlocks = jest.fn();
+        const transform = createAnthropicStreamTransformer(
+          'claude-sonnet-4-20250514',
+          onThinkingBlocks,
+        );
+
+        transform(
+          'event: message_start\n{"type":"message_start","message":{"usage":{"input_tokens":10}}}',
+        );
+
+        // thinking block start at index 0
+        expect(
+          transform(
+            'event: content_block_start\n{"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":""}}',
+          ),
+        ).toBeNull();
+
+        // two thinking_delta events
+        expect(
+          transform(
+            'event: content_block_delta\n{"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"Let me "}}',
+          ),
+        ).toBeNull();
+        expect(
+          transform(
+            'event: content_block_delta\n{"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"reason."}}',
+          ),
+        ).toBeNull();
+
+        // signature_delta
+        expect(
+          transform(
+            'event: content_block_delta\n{"type":"content_block_delta","index":0,"delta":{"type":"signature_delta","signature":"sig_xyz"}}',
+          ),
+        ).toBeNull();
+
+        // content_block_stop
+        expect(
+          transform('event: content_block_stop\n{"type":"content_block_stop","index":0}'),
+        ).toBeNull();
+
+        // tool_use block_start at index 1 — records the first tool_use id
+        // but does NOT yet fire the callback (we wait for message_delta so
+        // late-arriving signature_deltas can't mutate the snapshot).
+        const toolStart = transform(
+          'event: content_block_start\n{"type":"content_block_start","index":1,"content_block":{"type":"tool_use","id":"toolu_first","name":"search"}}',
+        );
+        expect(toolStart).not.toBeNull();
+        expect(onThinkingBlocks).not.toHaveBeenCalled();
+
+        // message_delta — flushes the assembled blocks into the callback.
+        transform(
+          'event: message_delta\n{"type":"message_delta","delta":{"stop_reason":"tool_use"},"usage":{"output_tokens":5}}',
+        );
+
+        expect(onThinkingBlocks).toHaveBeenCalledTimes(1);
+        expect(onThinkingBlocks).toHaveBeenCalledWith('toolu_first', [
+          { type: 'thinking', thinking: 'Let me reason.', signature: 'sig_xyz' },
+        ]);
+      });
+
+      it('fires once with a redacted_thinking block intact', () => {
+        const onThinkingBlocks = jest.fn();
+        const transform = createAnthropicStreamTransformer(
+          'claude-sonnet-4-20250514',
+          onThinkingBlocks,
+        );
+
+        transform(
+          'event: message_start\n{"type":"message_start","message":{"usage":{"input_tokens":10}}}',
+        );
+
+        expect(
+          transform(
+            'event: content_block_start\n{"type":"content_block_start","index":0,"content_block":{"type":"redacted_thinking","data":"opaque-blob"}}',
+          ),
+        ).toBeNull();
+
+        transform(
+          'event: content_block_start\n{"type":"content_block_start","index":1,"content_block":{"type":"tool_use","id":"toolu_a","name":"search"}}',
+        );
+        transform(
+          'event: message_delta\n{"type":"message_delta","delta":{"stop_reason":"tool_use"},"usage":{"output_tokens":5}}',
+        );
+
+        expect(onThinkingBlocks).toHaveBeenCalledTimes(1);
+        const [firstId, blocks] = onThinkingBlocks.mock.calls[0];
+        expect(firstId).toBe('toolu_a');
+        expect(blocks).toHaveLength(1);
+        expect(blocks[0]).toEqual({ type: 'redacted_thinking', data: 'opaque-blob' });
+      });
+
+      it('keys on the first tool_use id when multiple tool_use blocks arrive', () => {
+        const onThinkingBlocks = jest.fn();
+        const transform = createAnthropicStreamTransformer(
+          'claude-sonnet-4-20250514',
+          onThinkingBlocks,
+        );
+
+        transform(
+          'event: message_start\n{"type":"message_start","message":{"usage":{"input_tokens":10}}}',
+        );
+
+        // thinking block
+        transform(
+          'event: content_block_start\n{"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":""}}',
+        );
+        transform(
+          'event: content_block_delta\n{"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"reason"}}',
+        );
+        transform(
+          'event: content_block_delta\n{"type":"content_block_delta","index":0,"delta":{"type":"signature_delta","signature":"s"}}',
+        );
+
+        // first tool_use
+        transform(
+          'event: content_block_start\n{"type":"content_block_start","index":1,"content_block":{"type":"tool_use","id":"toolu_1","name":"a"}}',
+        );
+        // second tool_use
+        transform(
+          'event: content_block_start\n{"type":"content_block_start","index":2,"content_block":{"type":"tool_use","id":"toolu_2","name":"b"}}',
+        );
+        // message_delta — flushes the single callback with the first id
+        transform(
+          'event: message_delta\n{"type":"message_delta","delta":{"stop_reason":"tool_use"},"usage":{"output_tokens":5}}',
+        );
+
+        expect(onThinkingBlocks).toHaveBeenCalledTimes(1);
+        expect(onThinkingBlocks).toHaveBeenCalledWith('toolu_1', expect.any(Array));
+      });
+
+      it('does not fire at message_delta when tool_use arrives with no thinking blocks', () => {
+        const onThinkingBlocks = jest.fn();
+        const transform = createAnthropicStreamTransformer(
+          'claude-sonnet-4-20250514',
+          onThinkingBlocks,
+        );
+
+        transform(
+          'event: message_start\n{"type":"message_start","message":{"usage":{"input_tokens":10}}}',
+        );
+        transform(
+          'event: content_block_start\n{"type":"content_block_start","index":0,"content_block":{"type":"tool_use","id":"toolu_1","name":"a"}}',
+        );
+        // Drive through message_delta to hit the empty-blocks early return
+        // inside flushThinkingBlocks — no callback should fire.
+        transform(
+          'event: message_delta\n{"type":"message_delta","delta":{"stop_reason":"tool_use"},"usage":{"output_tokens":5}}',
+        );
+
+        expect(onThinkingBlocks).not.toHaveBeenCalled();
+      });
+
+      it('does not fire when thinking blocks are seen but no tool_use follows', () => {
+        const onThinkingBlocks = jest.fn();
+        const transform = createAnthropicStreamTransformer(
+          'claude-sonnet-4-20250514',
+          onThinkingBlocks,
+        );
+
+        transform(
+          'event: message_start\n{"type":"message_start","message":{"usage":{"input_tokens":10}}}',
+        );
+        transform(
+          'event: content_block_start\n{"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":""}}',
+        );
+        transform(
+          'event: content_block_delta\n{"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"quiet"}}',
+        );
+        transform(
+          'event: content_block_delta\n{"type":"content_block_delta","index":0,"delta":{"type":"signature_delta","signature":"s"}}',
+        );
+        transform(
+          'event: message_delta\n{"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"output_tokens":3}}',
+        );
+
+        expect(onThinkingBlocks).not.toHaveBeenCalled();
+      });
+
+      it('does not plumb the callback when onThinkingBlocks is omitted', () => {
+        const transform = createAnthropicStreamTransformer('claude-sonnet-4-20250514');
+
+        // Process a stream with thinking + tool_use without a callback — should not throw.
+        expect(() => {
+          transform(
+            'event: message_start\n{"type":"message_start","message":{"usage":{"input_tokens":10}}}',
+          );
+          transform(
+            'event: content_block_start\n{"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":""}}',
+          );
+          transform(
+            'event: content_block_delta\n{"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"reason"}}',
+          );
+          transform(
+            'event: content_block_delta\n{"type":"content_block_delta","index":0,"delta":{"type":"signature_delta","signature":"s"}}',
+          );
+          transform(
+            'event: content_block_start\n{"type":"content_block_start","index":1,"content_block":{"type":"tool_use","id":"toolu_1","name":"search"}}',
+          );
+        }).not.toThrow();
+      });
+
+      it('captures signature_deltas that arrive after the first tool_use (regression — late signatures)', () => {
+        // Anthropic's streaming contract puts thinking deltas before the
+        // first tool_use, but we don't rely on that ordering. The flush
+        // happens at message_delta so any signature_delta interleaved
+        // between tool_use and message_delta is still included.
+        const onThinkingBlocks = jest.fn();
+        const transform = createAnthropicStreamTransformer(
+          'claude-sonnet-4-20250514',
+          onThinkingBlocks,
+        );
+
+        transform(
+          'event: message_start\n{"type":"message_start","message":{"usage":{"input_tokens":10}}}',
+        );
+        transform(
+          'event: content_block_start\n{"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":""}}',
+        );
+        transform(
+          'event: content_block_delta\n{"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"reason"}}',
+        );
+        // tool_use arrives BEFORE the signature_delta
+        transform(
+          'event: content_block_start\n{"type":"content_block_start","index":1,"content_block":{"type":"tool_use","id":"toolu_x","name":"search"}}',
+        );
+        // late signature_delta on the thinking block
+        transform(
+          'event: content_block_delta\n{"type":"content_block_delta","index":0,"delta":{"type":"signature_delta","signature":"late_sig"}}',
+        );
+        transform(
+          'event: message_delta\n{"type":"message_delta","delta":{"stop_reason":"tool_use"},"usage":{"output_tokens":5}}',
+        );
+
+        expect(onThinkingBlocks).toHaveBeenCalledTimes(1);
+        const [, blocks] = onThinkingBlocks.mock.calls[0];
+        expect(blocks[0]).toEqual({ type: 'thinking', thinking: 'reason', signature: 'late_sig' });
+      });
+
+      it('deep-clones blocks passed to the callback so later mutations do not leak', () => {
+        const onThinkingBlocks = jest.fn();
+        const transform = createAnthropicStreamTransformer(
+          'claude-sonnet-4-20250514',
+          onThinkingBlocks,
+        );
+
+        transform(
+          'event: message_start\n{"type":"message_start","message":{"usage":{"input_tokens":10}}}',
+        );
+        transform(
+          'event: content_block_start\n{"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":""}}',
+        );
+        transform(
+          'event: content_block_delta\n{"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"reasoned"}}',
+        );
+        transform(
+          'event: content_block_delta\n{"type":"content_block_delta","index":0,"delta":{"type":"signature_delta","signature":"sig_1"}}',
+        );
+        transform(
+          'event: content_block_start\n{"type":"content_block_start","index":1,"content_block":{"type":"tool_use","id":"toolu_x","name":"search"}}',
+        );
+        transform(
+          'event: message_delta\n{"type":"message_delta","delta":{"stop_reason":"tool_use"},"usage":{"output_tokens":5}}',
+        );
+
+        const [, blocks] = onThinkingBlocks.mock.calls[0];
+        const snapshot = JSON.stringify(blocks[0]);
+
+        // Mutate the captured block after it's been passed to the callback.
+        blocks[0].thinking = 'tampered';
+        blocks[0].signature = 'tampered';
+
+        // A second transformer over the same stream data should still emit
+        // the original values — confirming the callback received a copy,
+        // not a live reference to the transformer's internal map.
+        const onThinkingBlocks2 = jest.fn();
+        const transform2 = createAnthropicStreamTransformer(
+          'claude-sonnet-4-20250514',
+          onThinkingBlocks2,
+        );
+        transform2(
+          'event: message_start\n{"type":"message_start","message":{"usage":{"input_tokens":10}}}',
+        );
+        transform2(
+          'event: content_block_start\n{"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":""}}',
+        );
+        transform2(
+          'event: content_block_delta\n{"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"reasoned"}}',
+        );
+        transform2(
+          'event: content_block_delta\n{"type":"content_block_delta","index":0,"delta":{"type":"signature_delta","signature":"sig_1"}}',
+        );
+        transform2(
+          'event: content_block_start\n{"type":"content_block_start","index":1,"content_block":{"type":"tool_use","id":"toolu_x","name":"search"}}',
+        );
+        transform2(
+          'event: message_delta\n{"type":"message_delta","delta":{"stop_reason":"tool_use"},"usage":{"output_tokens":5}}',
+        );
+        const [, blocks2] = onThinkingBlocks2.mock.calls[0];
+        expect(JSON.stringify(blocks2[0])).toBe(snapshot);
+      });
+
+      it('still emits text_delta content chunks normally with a callback attached', () => {
+        const onThinkingBlocks = jest.fn();
+        const transform = createAnthropicStreamTransformer(
+          'claude-sonnet-4-20250514',
+          onThinkingBlocks,
+        );
+
+        transform(
+          'event: message_start\n{"type":"message_start","message":{"usage":{"input_tokens":10}}}',
+        );
+        const textResult = transform(
+          'event: content_block_delta\n{"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Hello"}}',
+        );
+        expect(textResult).toContain('"content":"Hello"');
+        expect(onThinkingBlocks).not.toHaveBeenCalled();
+      });
+
+      it('passes thinking blocks in index order regardless of insertion order', () => {
+        const onThinkingBlocks = jest.fn();
+        const transform = createAnthropicStreamTransformer(
+          'claude-sonnet-4-20250514',
+          onThinkingBlocks,
+        );
+
+        transform(
+          'event: message_start\n{"type":"message_start","message":{"usage":{"input_tokens":10}}}',
+        );
+
+        // Intentionally seed index 2 before index 0 to verify sorting.
+        transform(
+          'event: content_block_start\n{"type":"content_block_start","index":2,"content_block":{"type":"redacted_thinking","data":"second"}}',
+        );
+        transform(
+          'event: content_block_start\n{"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":""}}',
+        );
+        transform(
+          'event: content_block_delta\n{"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"first"}}',
+        );
+        transform(
+          'event: content_block_delta\n{"type":"content_block_delta","index":0,"delta":{"type":"signature_delta","signature":"s"}}',
+        );
+        transform(
+          'event: content_block_start\n{"type":"content_block_start","index":3,"content_block":{"type":"tool_use","id":"toolu_z","name":"search"}}',
+        );
+        transform(
+          'event: message_delta\n{"type":"message_delta","delta":{"stop_reason":"tool_use"},"usage":{"output_tokens":5}}',
+        );
+
+        expect(onThinkingBlocks).toHaveBeenCalledTimes(1);
+        const [firstId, blocks] = onThinkingBlocks.mock.calls[0];
+        expect(firstId).toBe('toolu_z');
+        expect(blocks).toHaveLength(2);
+        // Sorted: index 0 (thinking) before index 2 (redacted_thinking).
+        expect(blocks[0]).toEqual({ type: 'thinking', thinking: 'first', signature: 's' });
+        expect(blocks[1]).toEqual({ type: 'redacted_thinking', data: 'second' });
+      });
     });
   });
 

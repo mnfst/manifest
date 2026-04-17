@@ -1,198 +1,157 @@
-import { createSignal, For, Show, type Component } from 'solid-js';
-import CopyButton from './CopyButton.jsx';
+import { createSignal, createMemo, Show, Switch, Match, type Component } from 'solid-js';
+import FrameworkSnippets from './FrameworkSnippets.jsx';
+import OpenClawSetup from './OpenClawSetup.jsx';
+import HermesSetup from './HermesSetup.jsx';
+import type { ToolkitId } from '../services/framework-snippets.js';
 
-type MethodId = 'cli' | 'onboard';
-
-const METHOD_TABS: { id: MethodId; label: string }[] = [
-  { id: 'cli', label: 'CLI configuration' },
-  { id: 'onboard', label: 'Interactive wizard' },
-];
+type SetupTab = 'toolkits' | 'agents';
+type AgentId = 'openclaw' | 'hermes';
 
 interface Props {
   apiKey: string | null;
   keyPrefix: string | null;
   baseUrl: string;
   hideFullKey?: boolean;
+  platform?: string | null;
 }
 
-const EyeOpen: Component = () => (
-  <svg
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    aria-hidden="true"
-  >
-    <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
-
-const EyeClosed: Component = () => (
-  <svg
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    aria-hidden="true"
-  >
-    <path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" />
-    <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" />
-    <path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143" />
-    <path d="m2 2 20 20" />
-  </svg>
-);
+const PLATFORM_TO_TOOLKIT: Record<string, ToolkitId> = {
+  'openai-sdk': 'openai-sdk',
+  'vercel-ai-sdk': 'vercel-ai-sdk',
+  langchain: 'langchain',
+  curl: 'curl',
+};
 
 const SetupStepAddProvider: Component<Props> = (props) => {
-  const [activeTab, setActiveTab] = createSignal<MethodId>('cli');
-  const [keyRevealed, setKeyRevealed] = createSignal(!props.hideFullKey);
+  const [activeTab, setActiveTab] = createSignal<SetupTab>('agents');
+  const [activeAgent, setActiveAgent] = createSignal<AgentId>('openclaw');
 
-  const hasFullKey = () => !!props.apiKey;
-  const maskedKey = () => (props.keyPrefix ? `${props.keyPrefix}...` : 'mnfst_YOUR_KEY');
-  const copyKey = () => props.apiKey ?? maskedKey();
-  const displayKey = () => {
-    if (!hasFullKey()) return maskedKey();
-    return keyRevealed() ? props.apiKey! : maskedKey();
-  };
+  const snippetProps = createMemo(() => ({
+    apiKey: props.apiKey,
+    keyPrefix: props.keyPrefix,
+    baseUrl: props.baseUrl,
+  }));
 
-  const buildCliSnippet = (key: string) => {
-    const providerJson = JSON.stringify({
-      baseUrl: props.baseUrl,
-      api: 'openai-completions',
-      apiKey: key,
-      models: [{ id: 'auto', name: 'Manifest Auto' }],
-    });
-    return `openclaw config set models.providers.manifest '${providerJson}'
-openclaw config set agents.defaults.model.primary manifest/auto
-openclaw gateway restart`;
-  };
-  const cliSnippet = () => buildCliSnippet(displayKey());
-  const cliSnippetForCopy = () => buildCliSnippet(copyKey());
-
-  const onboardSnippet = () => `openclaw onboard`;
+  const isFiltered = () => !!props.platform;
+  const isPersonalAgent = () => props.platform === 'openclaw' || props.platform === 'hermes';
+  const toolkitId = () => (props.platform ? PLATFORM_TO_TOOLKIT[props.platform] : undefined);
 
   return (
     <div>
-      <h3 class="setup-step__heading">Add Manifest as a provider</h3>
-      <p class="setup-step__desc">
-        Register Manifest in your OpenClaw config to route each request to the best provider using
-        the model <code class="setup-model-hint__code">manifest/auto</code>
-      </p>
+      <h3 class="setup-step__heading">
+        {props.platform === 'hermes'
+          ? 'Connect your Hermes agent to Manifest'
+          : props.platform === 'openclaw'
+            ? 'Connect your OpenClaw agent to Manifest'
+            : 'Connect your agent to Manifest'}
+      </h3>
 
-      <div class="setup-method-tabs">
-        <div class="panel__tabs">
-          <For each={METHOD_TABS}>
-            {(t) => (
+      {/* Platform-filtered mode: show only relevant content */}
+      <Show when={isFiltered()}>
+        <Switch>
+          <Match when={props.platform === 'openclaw'}>
+            <OpenClawSetup {...snippetProps()} />
+          </Match>
+          <Match when={props.platform === 'hermes'}>
+            <HermesSetup {...snippetProps()} />
+          </Match>
+          <Match when={toolkitId()}>
+            <FrameworkSnippets
+              {...snippetProps()}
+              hideFullKey={props.hideFullKey}
+              defaultToolkit={toolkitId()!}
+            />
+          </Match>
+          <Match when={props.platform === 'other'}>
+            <FrameworkSnippets
+              {...snippetProps()}
+              hideFullKey={props.hideFullKey}
+              defaultToolkit="curl"
+            />
+          </Match>
+        </Switch>
+      </Show>
+
+      {/* Default / "other": show full tabbed UI */}
+      <Show when={!isFiltered()}>
+        <p class="setup-step__desc">
+          Point your agent at the Manifest endpoint using the model{' '}
+          <code class="setup-model-hint__code">auto</code>
+        </p>
+
+        <div class="setup-segment" role="tablist" aria-label="Setup method">
+          <button
+            class="setup-segment__btn"
+            classList={{ 'setup-segment__btn--active': activeTab() === 'agents' }}
+            onClick={() => setActiveTab('agents')}
+            role="tab"
+            aria-selected={activeTab() === 'agents'}
+          >
+            Agents
+          </button>
+          <button
+            class="setup-segment__btn"
+            classList={{ 'setup-segment__btn--active': activeTab() === 'toolkits' }}
+            onClick={() => setActiveTab('toolkits')}
+            role="tab"
+            aria-selected={activeTab() === 'toolkits'}
+          >
+            Toolkits
+          </button>
+        </div>
+
+        <Show when={activeTab() === 'toolkits'}>
+          <FrameworkSnippets {...snippetProps()} hideFullKey={props.hideFullKey} />
+        </Show>
+
+        <Show when={activeTab() === 'agents'}>
+          <div class="setup-method-tabs">
+            <div class="panel__tabs" role="tablist" aria-label="Agent framework">
               <button
                 class="panel__tab"
-                classList={{ 'panel__tab--active': activeTab() === t.id }}
-                onClick={() => setActiveTab(t.id)}
+                classList={{ 'panel__tab--active': activeAgent() === 'openclaw' }}
+                onClick={() => setActiveAgent('openclaw')}
+                role="tab"
+                aria-selected={activeAgent() === 'openclaw'}
               >
-                {t.label}
+                <img
+                  src="/icons/openclaw.png"
+                  alt=""
+                  class="panel__tab-icon"
+                  width="16"
+                  height="16"
+                />
+                OpenClaw
               </button>
-            )}
-          </For>
-        </div>
+              <button
+                class="panel__tab"
+                classList={{ 'panel__tab--active': activeAgent() === 'hermes' }}
+                onClick={() => setActiveAgent('hermes')}
+                role="tab"
+                aria-selected={activeAgent() === 'hermes'}
+              >
+                <img
+                  src="/icons/hermes.png"
+                  alt=""
+                  class="panel__tab-icon"
+                  width="16"
+                  height="16"
+                />
+                Hermes Agent
+              </button>
+            </div>
+          </div>
 
-        <div class="setup-method-tabs__content">
-          <Show when={activeTab() === 'cli'}>
-            <p class="setup-method__hint">
-              Set the provider config and default model directly via CLI commands.
-            </p>
-            <div
-              class="setup-method__code"
-              style={hasFullKey() ? 'padding-right: 80px;' : undefined}
-            >
-              <div class="setup-method__actions">
-                <Show when={hasFullKey()}>
-                  <button
-                    class="btn btn--ghost btn--sm"
-                    onClick={() => setKeyRevealed(!keyRevealed())}
-                    aria-label={
-                      keyRevealed() ? 'Hide API key in snippet' : 'Reveal API key in snippet'
-                    }
-                    title={keyRevealed() ? 'Hide key' : 'Reveal key'}
-                    style="padding: 4px;"
-                  >
-                    {keyRevealed() ? <EyeClosed /> : <EyeOpen />}
-                  </button>
-                </Show>
-                <CopyButton text={cliSnippetForCopy()} />
-              </div>
-              <pre style="margin: 0; white-space: pre-wrap; word-break: break-all;">
-                {cliSnippet()}
-              </pre>
-            </div>
-          </Show>
-
-          <Show when={activeTab() === 'onboard'}>
-            <p class="setup-method__hint">
-              Run the onboarding wizard and select <strong>Custom Provider</strong> when prompted.
-              Then enter the following values:
-            </p>
-            <div class="setup-method__code" style="margin-bottom: 12px;">
-              <CopyButton text={onboardSnippet()} />
-              <pre style="margin: 0; white-space: pre-wrap; word-break: break-all;">
-                {onboardSnippet()}
-              </pre>
-            </div>
-            <div class="setup-onboard-fields">
-              <div class="setup-onboard-fields__row">
-                <span class="setup-onboard-fields__label">API Base URL</span>
-                <span class="setup-onboard-fields__value">
-                  {props.baseUrl}
-                  <CopyButton text={props.baseUrl} />
-                </span>
-              </div>
-              <div class="setup-onboard-fields__row">
-                <span class="setup-onboard-fields__label">API Key</span>
-                <span class="setup-onboard-fields__value">
-                  {displayKey()}
-                  <Show when={hasFullKey()}>
-                    <button
-                      class="btn btn--ghost btn--sm"
-                      onClick={() => setKeyRevealed(!keyRevealed())}
-                      aria-label={
-                        keyRevealed() ? 'Hide API key in wizard' : 'Reveal API key in wizard'
-                      }
-                      style="padding: 4px;"
-                    >
-                      {keyRevealed() ? <EyeClosed /> : <EyeOpen />}
-                    </button>
-                  </Show>
-                  <CopyButton text={copyKey()} />
-                </span>
-              </div>
-              <div class="setup-onboard-fields__row">
-                <span class="setup-onboard-fields__label">Endpoint compatibility</span>
-                <span class="setup-onboard-fields__value">OpenAI-compatible</span>
-              </div>
-              <div class="setup-onboard-fields__row">
-                <span class="setup-onboard-fields__label">Model ID</span>
-                <span class="setup-onboard-fields__value">
-                  auto
-                  <CopyButton text="auto" />
-                </span>
-              </div>
-              <div class="setup-onboard-fields__row">
-                <span class="setup-onboard-fields__label">Endpoint ID</span>
-                <span class="setup-onboard-fields__value">
-                  manifest
-                  <CopyButton text="manifest" />
-                </span>
-              </div>
-            </div>
-          </Show>
-        </div>
-      </div>
+          <Switch>
+            <Match when={activeAgent() === 'openclaw'}>
+              <OpenClawSetup {...snippetProps()} />
+            </Match>
+            <Match when={activeAgent() === 'hermes'}>
+              <HermesSetup {...snippetProps()} />
+            </Match>
+          </Switch>
+        </Show>
+      </Show>
     </div>
   );
 };

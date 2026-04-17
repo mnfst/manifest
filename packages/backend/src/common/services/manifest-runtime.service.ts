@@ -5,14 +5,6 @@ import { ConfigService } from '@nestjs/config';
 export class ManifestRuntimeService {
   constructor(private readonly config: ConfigService) {}
 
-  getMode(): 'cloud' | 'local' {
-    return this.config.get<'cloud' | 'local'>('app.manifestMode', 'cloud');
-  }
-
-  isLocalMode(): boolean {
-    return this.getMode() === 'local';
-  }
-
   getAuthBaseUrl(): string {
     const configuredBaseUrl = this.config.get<string>('app.betterAuthUrl', '');
     if (configuredBaseUrl) return configuredBaseUrl;

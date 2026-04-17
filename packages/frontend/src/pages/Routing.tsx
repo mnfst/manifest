@@ -23,6 +23,8 @@ import {
   overrideSpecificity,
   resetSpecificity,
   refreshModels,
+  getPricingHealth,
+  refreshPricing,
 } from '../services/api.js';
 import {
   parseCustomProviderParams,
@@ -72,6 +74,9 @@ const Routing: Component = () => {
   const [instructionProvider, setInstructionProvider] = createSignal<string | null>(null);
   const [fallbackPickerTier, setFallbackPickerTier] = createSignal<string | null>(null);
   const [refreshingModels, setRefreshingModels] = createSignal(false);
+  const [pricingHealth, { refetch: refetchPricingHealth }] = createResource(getPricingHealth);
+  const [refreshingPricing, setRefreshingPricing] = createSignal(false);
+  const pricingCacheEmpty = () => (pricingHealth()?.model_count ?? 0) === 0;
   const [wasEnabledBeforeModal, setWasEnabledBeforeModal] = createSignal(false);
   const [hadProvidersBeforeModal, setHadProvidersBeforeModal] = createSignal(false);
 
@@ -202,6 +207,46 @@ const Routing: Component = () => {
           </div>
         </Show>
       </div>
+
+      <Show when={pricingHealth() && pricingCacheEmpty()}>
+        <div
+          class="panel"
+          role="alert"
+          style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; border-left: 3px solid var(--color-warning, #d97706);"
+        >
+          <div>
+            <strong>Pricing catalog is empty.</strong>{' '}
+            <span>
+              Manifest couldn't reach openrouter.ai at startup, so no models will be auto-assigned
+              to tiers. Retry below, or check outbound network access to openrouter.ai.
+            </span>
+          </div>
+          <button
+            class="btn btn--outline btn--sm"
+            disabled={refreshingPricing()}
+            onClick={async () => {
+              setRefreshingPricing(true);
+              try {
+                const res = await refreshPricing();
+                await refetchPricingHealth();
+                if (res.ok) {
+                  toast.success(`Pricing catalog loaded (${res.model_count} models)`);
+                  await refetchModels();
+                  await refetchTiers();
+                } else {
+                  toast.error('Pricing refresh failed — check backend logs');
+                }
+              } catch {
+                toast.error('Pricing refresh failed');
+              } finally {
+                setRefreshingPricing(false);
+              }
+            }}
+          >
+            {refreshingPricing() ? 'Retrying...' : 'Retry pricing sync'}
+          </button>
+        </div>
+      </Show>
 
       <Show
         when={!connectedProviders.loading}

@@ -9,14 +9,6 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
     },
-    "manifest#build": {
-      "dependsOn": ["manifest-frontend#build", "manifest-backend#build"],
-      "outputs": ["dist/**", "public/**"]
-    },
-    "manifest-model-router#build": {
-      "dependsOn": ["manifest-shared#build"],
-      "outputs": ["dist/**", "skills/**"]
-    },
     "test": {
       "cache": false
     },

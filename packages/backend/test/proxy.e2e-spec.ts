@@ -70,25 +70,13 @@ const bearer = (r: request.Test) =>
 
 describe('Proxy E2E — /v1/chat/completions', () => {
   it('rejects requests without auth', async () => {
-    // In local mode, loopback requests bypass auth (trusted same-machine).
-    // This test only validates auth rejection in cloud mode.
-    if (process.env['MANIFEST_MODE'] === 'local') {
-      // In local mode, unauthenticated loopback requests are trusted — expect 200/400 not 401.
-      await api()
-        .post('/v1/chat/completions')
-        .send({ messages: [{ role: 'user', content: 'hello' }] })
-        .expect((res: { status: number }) => {
-          expect(res.status).not.toBe(401);
-        });
-      return;
-    }
     const res = await api()
       .post('/v1/chat/completions')
       .send({ messages: [{ role: 'user', content: 'hello' }] })
       .expect(200);
 
     // Auth errors are returned as friendly chat completion messages
-    expect(res.body.choices[0].message.content).toContain('Missing API key');
+    expect(res.body.choices[0].message.content).toContain('Missing the Authorization header');
   });
 
   it('returns friendly message when messages are missing', async () => {

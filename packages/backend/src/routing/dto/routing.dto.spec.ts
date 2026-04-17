@@ -1,7 +1,12 @@
 import 'reflect-metadata';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
-import { AgentNameParamDto, CopilotPollDto, SetFallbacksDto } from './routing.dto';
+import {
+  AgentNameParamDto,
+  ConnectProviderDto,
+  CopilotPollDto,
+  SetFallbacksDto,
+} from './routing.dto';
 
 function toDto(data: Record<string, unknown>): AgentNameParamDto {
   return plainToInstance(AgentNameParamDto, data);
@@ -66,6 +71,61 @@ describe('AgentNameParamDto', () => {
 
   it('should reject non-string agentName', async () => {
     const dto = toDto({ agentName: 123 });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+});
+
+describe('ConnectProviderDto', () => {
+  function toConnectDto(data: Record<string, unknown>): ConnectProviderDto {
+    return plainToInstance(ConnectProviderDto, data);
+  }
+
+  it('accepts a known provider id', async () => {
+    const dto = toConnectDto({ provider: 'openai', apiKey: 'sk-abcdef' });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+    expect(dto.provider).toBe('openai');
+  });
+
+  it('normalizes provider casing to lowercase', async () => {
+    const dto = toConnectDto({ provider: 'OpenAI' });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+    expect(dto.provider).toBe('openai');
+  });
+
+  it('trims whitespace around the provider name', async () => {
+    const dto = toConnectDto({ provider: '  anthropic  ' });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+    expect(dto.provider).toBe('anthropic');
+  });
+
+  it('accepts registered aliases (google -> gemini entry)', async () => {
+    const dto = toConnectDto({ provider: 'google' });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+  });
+
+  it('rejects an unknown provider name', async () => {
+    const dto = toConnectDto({ provider: 'made-up-xyz' });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+    const flat = errors.flatMap((e) => Object.values(e.constraints ?? {}));
+    expect(flat.join('\n')).toMatch(/provider must be one of/);
+  });
+
+  it('rejects an empty provider', async () => {
+    const dto = toConnectDto({ provider: '' });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
+  it('passes through a non-string provider value without transforming', async () => {
+    const dto = toConnectDto({ provider: 42 });
+    // Transform preserves non-strings so class-validator can reject via @IsString
+    expect(dto.provider).toBe(42 as unknown as string);
     const errors = await validate(dto);
     expect(errors.length).toBeGreaterThan(0);
   });

@@ -874,72 +874,33 @@ describe('MessagesQueryService', () => {
       expect(result.items).toEqual([]);
     });
   });
-});
 
-describe('MessagesQueryService (sql.js / local mode)', () => {
-  let service: MessagesQueryService;
-  let mockAddSelect: jest.Mock;
-  let mockGetRawOne: jest.Mock;
-  let mockGetRawMany: jest.Mock;
-
-  beforeEach(async () => {
-    mockAddSelect = jest.fn().mockReturnThis();
-    mockGetRawOne = jest.fn().mockResolvedValue({ total: 0 });
-    mockGetRawMany = jest.fn().mockResolvedValue([]);
-
-    const mockQb = {
-      select: jest.fn().mockReturnThis(),
-      addSelect: mockAddSelect,
-      distinct: jest.fn().mockReturnThis(),
-      leftJoin: jest.fn().mockReturnThis(),
-      where: jest.fn().mockReturnThis(),
-      andWhere: jest.fn().mockReturnThis(),
-      orWhere: jest.fn().mockReturnThis(),
-      groupBy: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
-      addOrderBy: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockReturnThis(),
-      clone: jest.fn().mockReturnThis(),
-      getRawOne: mockGetRawOne,
-      getRawMany: mockGetRawMany,
-    };
-
-    mockQb.clone = jest.fn().mockReturnValue({ ...mockQb, clone: jest.fn() });
-
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        MessagesQueryService,
-        {
-          provide: getRepositoryToken(AgentMessage),
-          useValue: { createQueryBuilder: jest.fn().mockReturnValue(mockQb) },
-        },
-        {
-          provide: DataSource,
-          useValue: { options: { type: 'sqljs' } },
-        },
-        {
-          provide: TenantCacheService,
-          useValue: { resolve: jest.fn().mockResolvedValue('tenant-123') },
-        },
-      ],
-    }).compile();
-
-    service = module.get<MessagesQueryService>(MessagesQueryService);
-  });
-
-  it('uses CAST(... AS REAL) for cost in sqlite mode', async () => {
+  // Shared contract with TimeseriesQueriesService.getRecentActivity:
+  // both endpoints must project `specificity_category` so the frontend
+  // MessageTable/ModelCell badge renders the specificity category instead of
+  // falling back to the complexity tier. See selectMessageRowColumns helper.
+  it('propagates specificity_category rows returned by the helper projection', async () => {
     mockGetRawOne.mockResolvedValueOnce({ total: 1 });
     mockGetRawMany
-      .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-01-01', cost: 0.5 }])
-      .mockResolvedValueOnce([]);
+      .mockResolvedValueOnce([
+        {
+          id: 'msg-spec',
+          timestamp: '2026-02-16 10:00:00',
+          model: 'claude-opus-4-6',
+          cost: 0.1,
+          routing_tier: 'standard',
+          routing_reason: 'specificity',
+          specificity_category: 'coding',
+        },
+      ])
+      .mockResolvedValueOnce([{ model: 'claude-opus-4-6' }]);
 
-    await service.getMessages({ range: '24h', userId: 'u1', limit: 20 });
+    const result = await service.getMessages({
+      range: '24h',
+      userId: 'test-user',
+      limit: 20,
+    });
 
-    const addSelectCalls = mockAddSelect.mock.calls.map((c: unknown[]) => c[0]);
-    const hasCastReal = addSelectCalls.some(
-      (expr: unknown) =>
-        typeof expr === 'string' && expr.includes('CAST') && expr.includes('AS REAL'),
-    );
-    expect(hasCastReal).toBe(true);
+    expect(result.items[0]).toHaveProperty('specificity_category', 'coding');
   });
 });

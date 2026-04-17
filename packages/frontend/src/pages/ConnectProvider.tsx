@@ -38,7 +38,7 @@ const ConnectProvider: Component = () => {
   const autoCreate = async () => {
     setCreating(true);
     try {
-      const result = await createAgent('my-agent');
+      const result = await createAgent({ name: 'my-agent' });
       const slug = result?.agent?.name ?? 'my-agent';
       markAgentCreated(slug);
       navigate(buildTarget(slug), { replace: true });

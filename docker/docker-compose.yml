@@ -1,18 +1,62 @@
+# First boot: `docker compose up -d` starts the stack. Visit
+# http://localhost:3001 and the app walks you through creating the first
+# admin account via the setup wizard at /setup. No hardcoded credentials.
+#
+# Configuration comes from a `.env` file next to this compose file.
+# Copy `.env.example` to `.env` and set at least BETTER_AUTH_SECRET before
+# booting. The install script does this automatically.
+#
+# Before exposing this instance beyond localhost:
+#   - Set a real BETTER_AUTH_SECRET in .env (openssl rand -hex 32).
+#   - To harden the database password, set BOTH `POSTGRES_PASSWORD` AND
+#     `DATABASE_URL` in .env. They must agree — the password in the URL
+#     must match POSTGRES_PASSWORD, and any special characters must be
+#     percent-encoded in the URL.
+#   - Confirm your admin password is strong (the setup wizard enforces
+#     at least 8 characters).
+#   - If you enable email verification (set EMAIL_PROVIDER / EMAIL_API_KEY),
+#     set BETTER_AUTH_URL to a reachable public URL so the verification
+#     links resolve.
+#   - The app port binds to 127.0.0.1 by default. To expose on the LAN,
+#     change `127.0.0.1:3001:3001` below to `3001:3001` AND update
+#     BETTER_AUTH_URL in .env to match the host you reach it on.
+
 services:
   manifest:
     image: manifestdotbuild/manifest:latest
     ports:
-      - "3001:3001"
+      - "127.0.0.1:3001:3001"
     environment:
-      - DATABASE_URL=postgresql://manifest:manifest@postgres:5432/manifest
-      - BETTER_AUTH_SECRET=change-me-to-a-random-32-char-string!!
-      - BETTER_AUTH_URL=http://localhost:3001
-      - SEED_DATA=true
-      - NODE_ENV=development
-      - MANIFEST_TRUST_LAN=true
+      - DATABASE_URL=${DATABASE_URL:-postgresql://manifest:manifest@postgres:5432/manifest}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET must be set in .env}
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:3001}
+      - OLLAMA_HOST=http://ollama:11434
+      - SEED_DATA=false
+      - NODE_ENV=production
+      - AUTO_MIGRATE=true
+      # Email provider (optional). Covers both login/verification emails
+      # and threshold alert notifications. Set one provider block — see
+      # DOCKER_README.md "Email setup". Supports resend, mailgun, sendgrid.
+      - EMAIL_PROVIDER=${EMAIL_PROVIDER:-}
+      - EMAIL_API_KEY=${EMAIL_API_KEY:-}
+      - EMAIL_DOMAIN=${EMAIL_DOMAIN:-}
+      - EMAIL_FROM=${EMAIL_FROM:-}
+      # OAuth providers (optional). Activate when both ID and SECRET are set.
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
+      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID:-}
+      - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET:-}
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3001/api/v1/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 45s
+      retries: 3
     read_only: true
     tmpfs:
       - /tmp
@@ -30,7 +74,7 @@ services:
     image: postgres:16-alpine@sha256:20edbde7749f822887a1a022ad526fde0a47d6b2be9a8364433605cf65099416
     environment:
       - POSTGRES_USER=manifest
-      - POSTGRES_PASSWORD=manifest
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-manifest}
       - POSTGRES_DB=manifest
     volumes:
       - pgdata:/var/lib/postgresql/data
@@ -44,6 +88,22 @@ services:
     networks:
       - internal
 
+  # Optional: run local LLMs via Ollama.
+  # Start with: docker compose --profile ollama up -d
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["ollama"]
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    networks:
+      - internal
+
 networks:
   internal:
     driver: bridge
@@ -53,3 +113,4 @@ networks:
 
 volumes:
   pgdata:
+  ollama_data:

@@ -7,8 +7,12 @@ import {
   ArrayMaxSize,
   Matches,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 import { TIERS, AUTH_TYPES } from 'manifest-shared';
+import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
+
+const KNOWN_PROVIDER_IDS: readonly string[] = Array.from(PROVIDER_BY_ID_OR_ALIAS.keys());
 
 export class AgentNameParamDto {
   @IsString()
@@ -31,6 +35,10 @@ export class ProviderParamDto {
 export class ConnectProviderDto {
   @IsString()
   @IsNotEmpty()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
+  @IsIn(KNOWN_PROVIDER_IDS, {
+    message: `provider must be one of: ${KNOWN_PROVIDER_IDS.join(', ')}`,
+  })
   provider!: string;
 
   @IsOptional()

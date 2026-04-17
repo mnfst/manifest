@@ -360,18 +360,18 @@ describe('OpenaiOauthService', () => {
       expect(createServerMock).toHaveBeenCalled();
     });
 
-    it('skips callback server in cloud mode', async () => {
-      const cloudConfig = {
-        get: jest.fn((key: string) => (key === 'MANIFEST_MODE' ? 'cloud' : undefined)),
+    it('skips callback server in production mode', async () => {
+      const prodConfig = {
+        get: jest.fn((key: string) => (key === 'app.nodeEnv' ? 'production' : undefined)),
       } as unknown as jest.Mocked<ConfigService>;
-      const cloudService = new OpenaiOauthService(
+      const prodService = new OpenaiOauthService(
         providerService,
-        cloudConfig,
+        prodConfig,
         discoveryService as never,
       );
 
       createServerMock.mockClear();
-      await cloudService.generateAuthorizationUrl('agent-1', 'user-1');
+      await prodService.generateAuthorizationUrl('agent-1', 'user-1');
       expect(createServerMock).not.toHaveBeenCalled();
     });
 

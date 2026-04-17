@@ -4,7 +4,7 @@ import { DataSource, Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { Agent } from '../../entities/agent.entity';
 import { rangeToInterval } from '../../common/utils/range.util';
-import { addTenantFilter } from './query-helpers';
+import { addTenantFilter, selectMessageRowColumns } from './query-helpers';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import {
   DbDialect,
@@ -126,26 +126,10 @@ export class TimeseriesQueriesService {
 
     const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'), this.dialect);
 
-    const qb = this.turnRepo
-      .createQueryBuilder('at')
-      .select('at.id', 'id')
-      .addSelect('at.timestamp', 'timestamp')
-      .addSelect('at.agent_name', 'agent_name')
-      .addSelect('at.model', 'model')
-      .addSelect('at.provider', 'provider')
-      .addSelect('at.model', 'display_name')
-      .addSelect('at.input_tokens', 'input_tokens')
-      .addSelect('at.output_tokens', 'output_tokens')
-      .addSelect('at.status', 'status')
-      .addSelect('at.input_tokens + at.output_tokens', 'total_tokens')
-      .addSelect(costExpr, 'cost')
-      .addSelect('at.routing_tier', 'routing_tier')
-      .addSelect('at.routing_reason', 'routing_reason')
-      .addSelect('at.error_message', 'error_message')
-      .addSelect('at.auth_type', 'auth_type')
-      .addSelect('at.fallback_from_model', 'fallback_from_model')
-      .addSelect('at.fallback_index', 'fallback_index')
-      .where('at.timestamp >= :cutoff', { cutoff });
+    const qb = selectMessageRowColumns(this.turnRepo.createQueryBuilder('at'), costExpr).where(
+      'at.timestamp >= :cutoff',
+      { cutoff },
+    );
     addTenantFilter(qb, userId, agentName, resolved);
     return qb.orderBy('at.timestamp', 'DESC').limit(limit).getRawMany();
   }
@@ -202,7 +186,10 @@ export class TimeseriesQueriesService {
     const statsQb = this.turnRepo
       .createQueryBuilder('at')
       .select('at.agent_name', 'agent_name')
-      .addSelect('COUNT(*)', 'message_count')
+      .addSelect(
+        `COUNT(*) FILTER (WHERE at.status IS NULL OR at.status NOT IN ('error', 'fallback_error'))`,
+        'message_count',
+      )
       .addSelect('MAX(at.timestamp)', 'last_active')
       .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'total_cost')
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'total_tokens')
@@ -250,6 +237,8 @@ export class TimeseriesQueriesService {
       return {
         agent_name: name,
         display_name: a.display_name ?? name,
+        agent_category: a.agent_category ?? null,
+        agent_platform: a.agent_platform ?? null,
         message_count: Number(stats?.['message_count'] ?? 0),
         last_active: String(stats?.['last_active'] ?? a.created_at ?? ''),
         total_cost: Number(stats?.['total_cost'] ?? 0),

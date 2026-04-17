@@ -6,6 +6,7 @@ import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { CustomProviderService } from './custom-provider/custom-provider.service';
 import { ModelDiscoveryService } from '../model-discovery/model-discovery.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
+import { PricingSyncService } from '../database/pricing-sync.service';
 import { AgentNameParamDto } from './dto/routing.dto';
 
 @Controller('api/v1/routing')
@@ -16,7 +17,26 @@ export class ModelController {
     private readonly ollamaSync: OllamaSyncService,
     private readonly resolveAgentService: ResolveAgentService,
     private readonly customProviderService: CustomProviderService,
+    private readonly pricingSync: PricingSyncService,
   ) {}
+
+  @Get('pricing-health')
+  pricingHealth() {
+    return {
+      model_count: this.pricingSync.getAll().size,
+      last_fetched_at: this.pricingSync.getLastFetchedAt()?.toISOString() ?? null,
+    };
+  }
+
+  @Post('pricing/refresh')
+  async refreshPricing() {
+    const modelCount = await this.pricingSync.refreshCache();
+    return {
+      ok: modelCount > 0,
+      model_count: modelCount,
+      last_fetched_at: this.pricingSync.getLastFetchedAt()?.toISOString() ?? null,
+    };
+  }
 
   @Post(':agentName/refresh-models')
   async refreshModels(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {

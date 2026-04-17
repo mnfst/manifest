@@ -3,9 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { ArgumentsHost } from '@nestjs/common';
 import { ProxyExceptionFilter } from '../proxy-exception.filter';
 
-function createMockHost(body: Record<string, unknown> = {}, ingestionCtx?: unknown) {
+function createMockHost(body: Record<string, unknown> = {}) {
   const req: Record<string, unknown> = { body };
-  if (ingestionCtx) req.ingestionContext = ingestionCtx;
 
   const res = {
     setHeader: jest.fn(),
@@ -52,7 +51,7 @@ describe('ProxyExceptionFilter', () => {
           choices: expect.arrayContaining([
             expect.objectContaining({
               message: expect.objectContaining({
-                content: expect.stringContaining('Missing API key'),
+                content: expect.stringContaining('Missing the Authorization header'),
               }),
             }),
           ]),
@@ -79,13 +78,14 @@ describe('ProxyExceptionFilter', () => {
     });
 
     it('converts "API key expired" with dashboard URL', () => {
-      const { host, res } = createMockHost({}, { agentName: 'my-agent' });
+      const { host, res } = createMockHost();
       filter.catch(new UnauthorizedException('API key expired'), host);
 
       expect(res.status).toHaveBeenCalledWith(200);
       const content = res.json.mock.calls[0][0].choices[0].message.content;
       expect(content).toContain('expired');
-      expect(content).toContain('http://localhost:3001/agents/my-agent');
+      expect(content).toContain('http://localhost:3001');
+      expect(content).not.toContain('/routing');
     });
 
     it('converts "Invalid API key" to friendly message', () => {
@@ -94,7 +94,7 @@ describe('ProxyExceptionFilter', () => {
 
       expect(res.status).toHaveBeenCalledWith(200);
       const content = res.json.mock.calls[0][0].choices[0].message.content;
-      expect(content).toContain("wasn't recognized");
+      expect(content).toContain("I don't recognize this key");
     });
 
     it('includes dashboard URL in auth error messages', () => {
@@ -102,7 +102,8 @@ describe('ProxyExceptionFilter', () => {
       filter.catch(new UnauthorizedException('Invalid API key'), host);
 
       const content = res.json.mock.calls[0][0].choices[0].message.content;
-      expect(content).toContain('Dashboard: http://localhost:3001/routing');
+      expect(content).toContain('Dashboard: http://localhost:3001');
+      expect(content).not.toContain('Dashboard: http://localhost:3001/routing');
     });
   });
 
@@ -163,7 +164,7 @@ describe('ProxyExceptionFilter', () => {
 
       expect(res.status).toHaveBeenCalledWith(200);
       const content = res.json.mock.calls[0][0].choices[0].message.content;
-      expect(content).toBe('[🦚 Manifest] Something broke on our end. Try again shortly.');
+      expect(content).toBe('[🦚 Manifest] Something broke on our end. Try again in a moment.');
     });
 
     it('converts unknown auth message to friendly message', () => {

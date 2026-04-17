@@ -55,3 +55,60 @@ export function addTenantFilter<T extends ObjectLiteral>(
   }
   return qb;
 }
+
+/**
+ * Single source of truth for the columns projected by any endpoint that
+ * returns rows rendered by the frontend `MessageTable` / `ModelCell` component.
+ * The frontend `MessageRow` type (packages/frontend/src/components/message-table-types.ts)
+ * is the downstream contract — every field it declares must be selected here so
+ * the shared badge/provider rendering works identically across every call site.
+ *
+ * Assumes the query builder aliases `agent_messages` as `at`. Callers pass a
+ * dialect-specific `costExpr` (e.g. `sqlCastFloat(sqlSanitizeCost('at.cost_usd'), dialect)`)
+ * so per-service dialect handling stays at the call site.
+ */
+export const MESSAGE_ROW_SELECT_ALIASES = [
+  'id',
+  'timestamp',
+  'agent_name',
+  'model',
+  'provider',
+  'display_name',
+  'input_tokens',
+  'output_tokens',
+  'status',
+  'total_tokens',
+  'cost',
+  'routing_tier',
+  'routing_reason',
+  'specificity_category',
+  'error_message',
+  'auth_type',
+  'fallback_from_model',
+  'fallback_index',
+] as const;
+
+export function selectMessageRowColumns<T extends ObjectLiteral>(
+  qb: SelectQueryBuilder<T>,
+  costExpr: string,
+): SelectQueryBuilder<T> {
+  return qb
+    .select('at.id', 'id')
+    .addSelect('at.timestamp', 'timestamp')
+    .addSelect('at.agent_name', 'agent_name')
+    .addSelect('at.model', 'model')
+    .addSelect('at.provider', 'provider')
+    .addSelect('at.model', 'display_name')
+    .addSelect('at.input_tokens', 'input_tokens')
+    .addSelect('at.output_tokens', 'output_tokens')
+    .addSelect('at.status', 'status')
+    .addSelect('at.input_tokens + at.output_tokens', 'total_tokens')
+    .addSelect(costExpr, 'cost')
+    .addSelect('at.routing_tier', 'routing_tier')
+    .addSelect('at.routing_reason', 'routing_reason')
+    .addSelect('at.specificity_category', 'specificity_category')
+    .addSelect('at.error_message', 'error_message')
+    .addSelect('at.auth_type', 'auth_type')
+    .addSelect('at.fallback_from_model', 'fallback_from_model')
+    .addSelect('at.fallback_index', 'fallback_index');
+}

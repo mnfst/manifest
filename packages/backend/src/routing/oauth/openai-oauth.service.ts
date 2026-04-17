@@ -33,7 +33,11 @@ export class OpenaiOauthService {
     private readonly discoveryService: ModelDiscoveryService,
   ) {
     this.clientId = this.configService.get<string>('OPENAI_OAUTH_CLIENT_ID') ?? DEFAULT_CLIENT_ID;
-    this.useCallbackServer = this.configService.get<string>('MANIFEST_MODE') !== 'cloud';
+    // Loopback callback server runs only in development. Production
+    // deployments (Docker self-hosted and cloud) complete the OAuth flow
+    // through the server's public URL instead.
+    this.useCallbackServer =
+      (this.configService.get<string>('app.nodeEnv') ?? 'development') !== 'production';
   }
 
   async generateAuthorizationUrl(

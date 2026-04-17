@@ -8,7 +8,9 @@ import { ProviderClient } from './provider-client';
 import { initSseHeaders, pipeStream, StreamUsage } from './stream-writer';
 import { sanitizeProviderError } from './proxy-error-sanitizer';
 import type { ThoughtSignatureCache } from './thought-signature-cache';
+import type { ThinkingBlockCache, ThinkingBlock } from './thinking-block-cache';
 import type { ExtractedSignature } from './google-adapter';
+import type { ExtractedThinkingBlocks } from './anthropic-adapter';
 import type { CallerAttribution } from './caller-classifier';
 
 const logger = new Logger('ProxyResponseHandler');
@@ -203,30 +205,32 @@ export async function handleStreamResponse(
   providerClient: ProviderClient,
   signatureCache?: ThoughtSignatureCache,
   sessionKey?: string,
+  thinkingCache?: ThinkingBlockCache,
 ): Promise<StreamUsage | null> {
   initSseHeaders(res, metaHeaders);
 
   if (forward.isGoogle) {
     return pipeStream(forward.response.body!, res, (chunk) => {
-      const result = providerClient.convertGoogleStreamChunk(chunk, meta.model);
-      // Cache thought_signatures from streamed tool calls
-      if (signatureCache && sessionKey && result) {
-        const sigRe = /"thought_signature"\s*:\s*"([^"]+)"/g;
-        const idRe = /"id"\s*:\s*"([^"]+)"/g;
-        const ids = [...result.matchAll(idRe)].map((m) => m[1]);
-        const sigs = [...result.matchAll(sigRe)].map((m) => m[1]);
-        for (let i = 0; i < Math.min(ids.length, sigs.length); i++) {
-          signatureCache.store(sessionKey, ids[i], sigs[i]);
+      const { chunk: out, signatures } = providerClient.convertGoogleStreamChunk(chunk, meta.model);
+      if (signatureCache && sessionKey) {
+        for (const s of signatures) {
+          signatureCache.store(sessionKey, s.toolCallId, s.signature);
         }
       }
-      return result;
+      return out;
     });
   }
   if (forward.isAnthropic) {
+    const onThinkingBlocks =
+      thinkingCache && sessionKey
+        ? (firstToolUseId: string, blocks: ThinkingBlock[]) => {
+            thinkingCache.store(sessionKey, firstToolUseId, blocks);
+          }
+        : undefined;
     return pipeStream(
       forward.response.body!,
       res,
-      providerClient.createAnthropicStreamTransformer(meta.model),
+      providerClient.createAnthropicStreamTransformer(meta.model, onThinkingBlocks),
     );
   }
   if (forward.isChatGpt) {
@@ -246,25 +250,32 @@ export async function handleNonStreamResponse(
   providerClient: ProviderClient,
   signatureCache?: ThoughtSignatureCache,
   sessionKey?: string,
+  thinkingCache?: ThinkingBlockCache,
 ): Promise<StreamUsage | null> {
   let responseBody: unknown;
 
   if (forward.isGoogle) {
     const googleData = (await forward.response.json()) as Record<string, unknown>;
     responseBody = providerClient.convertGoogleResponse(googleData, meta.model);
-    // Cache extracted thought_signatures for re-injection on subsequent requests
-    if (signatureCache && sessionKey) {
-      const sigs = (responseBody as Record<string, unknown>)?._extractedSignatures as
-        | ExtractedSignature[]
-        | undefined;
-      if (sigs) {
-        for (const s of sigs) signatureCache.store(sessionKey, s.toolCallId, s.signature);
-        delete (responseBody as Record<string, unknown>)._extractedSignatures;
-      }
+    const sigs = (responseBody as Record<string, unknown>)?._extractedSignatures as
+      | ExtractedSignature[]
+      | undefined;
+    if (sigs && signatureCache && sessionKey) {
+      for (const s of sigs) signatureCache.store(sessionKey, s.toolCallId, s.signature);
     }
+    // Always strip the internal side-channel — it must never reach the client,
+    // even if the cache wasn't provided for this request.
+    delete (responseBody as Record<string, unknown>)._extractedSignatures;
   } else if (forward.isAnthropic) {
     const anthropicData = (await forward.response.json()) as Record<string, unknown>;
     responseBody = providerClient.convertAnthropicResponse(anthropicData, meta.model);
+    const extracted = (responseBody as Record<string, unknown>)?._extractedThinkingBlocks as
+      | ExtractedThinkingBlocks
+      | undefined;
+    if (extracted && thinkingCache && sessionKey) {
+      thinkingCache.store(sessionKey, extracted.firstToolUseId, extracted.blocks);
+    }
+    delete (responseBody as Record<string, unknown>)._extractedThinkingBlocks;
   } else if (forward.isChatGpt) {
     // The Codex Responses API always returns SSE even when stream: false.
     // Consume the SSE text and build a non-streaming response.

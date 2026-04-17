@@ -23,17 +23,6 @@ SECURITY.md
 CLAUDE.md
 LICENSE
 
-# Plugin source — keep package.json for workspace resolution
-packages/openclaw-plugins/*/src/
-packages/openclaw-plugins/*/dist/
-packages/openclaw-plugins/*/public/
-packages/openclaw-plugins/*/__tests__/
-packages/openclaw-plugins/*/test/
-packages/openclaw-plugins/*/skills/
-packages/openclaw-plugins/*/*.ts
-packages/openclaw-plugins/*/*.js
-packages/openclaw-plugins/*/*.map
-
 # Test files
 packages/backend/test/
 packages/frontend/tests/

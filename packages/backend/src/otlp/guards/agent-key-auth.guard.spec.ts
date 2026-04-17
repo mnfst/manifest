@@ -22,7 +22,6 @@ function makeContext(headers: Record<string, string | undefined>, ip = '203.0.11
 
 function createMockConfig(overrides: Record<string, string> = {}): ConfigService {
   const values: Record<string, string> = {
-    'app.manifestMode': 'cloud',
     'app.nodeEnv': 'test',
     ...overrides,
   };
@@ -228,195 +227,7 @@ describe('AgentKeyAuthGuard', () => {
     expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
   });
 
-  describe('loopback bypass in local mode', () => {
-    beforeEach(() => {
-      guard.onModuleDestroy();
-      guard = createGuard({ 'app.manifestMode': 'local' });
-    });
-
-    it('allows loopback requests without auth in local mode', async () => {
-      const { ctx, req } = makeContext({}, '127.0.0.1');
-      const result = await guard.canActivate(ctx);
-
-      expect(result).toBe(true);
-      expect(req.ingestionContext).toEqual({
-        tenantId: 'local-tenant-001',
-        agentId: 'local-agent-001',
-        agentName: 'local-agent',
-        userId: 'local-user-001',
-      });
-      expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
-    });
-
-    it('allows ::1 loopback without auth in local mode', async () => {
-      const { ctx, req } = makeContext({}, '::1');
-      const result = await guard.canActivate(ctx);
-
-      expect(result).toBe(true);
-      expect(req.ingestionContext).toEqual({
-        tenantId: 'local-tenant-001',
-        agentId: 'local-agent-001',
-        agentName: 'local-agent',
-        userId: 'local-user-001',
-      });
-    });
-
-    it('allows private network IPs without auth in local mode when MANIFEST_TRUST_LAN is true', async () => {
-      const origTrustLan = process.env['MANIFEST_TRUST_LAN'];
-      process.env['MANIFEST_TRUST_LAN'] = 'true';
-      try {
-        const { ctx, req } = makeContext({}, '192.168.1.100');
-        const result = await guard.canActivate(ctx);
-
-        expect(result).toBe(true);
-        expect(req.ingestionContext).toEqual({
-          tenantId: 'local-tenant-001',
-          agentId: 'local-agent-001',
-          agentName: 'local-agent',
-          userId: 'local-user-001',
-        });
-        expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
-      } finally {
-        if (origTrustLan === undefined) delete process.env['MANIFEST_TRUST_LAN'];
-        else process.env['MANIFEST_TRUST_LAN'] = origTrustLan;
-      }
-    });
-
-    it('still requires auth for public IPs in local mode', async () => {
-      const { ctx } = makeContext({}, '8.8.8.8');
-      await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
-    });
-
-    it('allows loopback with non-mnfst token in local mode (dev gateway)', async () => {
-      const { ctx, req } = makeContext({ authorization: 'Bearer dev-no-auth' }, '127.0.0.1');
-      const result = await guard.canActivate(ctx);
-
-      expect(result).toBe(true);
-      expect(req.ingestionContext).toEqual({
-        tenantId: 'local-tenant-001',
-        agentId: 'local-agent-001',
-        agentName: 'local-agent',
-        userId: 'local-user-001',
-      });
-      expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
-    });
-
-    it('allows non-mnfst token from private network IP in local mode when MANIFEST_TRUST_LAN is true', async () => {
-      const origTrustLan = process.env['MANIFEST_TRUST_LAN'];
-      process.env['MANIFEST_TRUST_LAN'] = 'true';
-      try {
-        const { ctx, req } = makeContext({ authorization: 'Bearer dev-no-auth' }, '192.168.1.100');
-        const result = await guard.canActivate(ctx);
-
-        expect(result).toBe(true);
-        expect(req.ingestionContext).toEqual({
-          tenantId: 'local-tenant-001',
-          agentId: 'local-agent-001',
-          agentName: 'local-agent',
-          userId: 'local-user-001',
-        });
-        expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
-      } finally {
-        if (origTrustLan === undefined) delete process.env['MANIFEST_TRUST_LAN'];
-        else process.env['MANIFEST_TRUST_LAN'] = origTrustLan;
-      }
-    });
-
-    it('rejects non-mnfst token from public IP in local mode', async () => {
-      const { ctx } = makeContext({ authorization: 'Bearer dev-no-auth' }, '8.8.8.8');
-      await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
-    });
-
-    it('uses prefix-matched agent when mnfst_ key hash fails in local mode', async () => {
-      // Prefix matches a candidate but hash doesn't verify (rotated key)
-      mockGetMany.mockResolvedValue([
-        {
-          id: 'key-stale',
-          tenant_id: 'my-tenant',
-          agent_id: 'my-agent-id',
-          key_hash: 'wrong-hash',
-          agent: { name: 'my-agent' },
-          tenant: { name: 'local-user-001' },
-        },
-      ]);
-
-      const { ctx, req } = makeContext(
-        { authorization: 'Bearer mnfst_stale-or-unknown-key' },
-        '127.0.0.1',
-      );
-      const result = await guard.canActivate(ctx);
-
-      expect(result).toBe(true);
-      expect(req.ingestionContext).toEqual({
-        tenantId: 'my-tenant',
-        agentId: 'my-agent-id',
-        agentName: 'my-agent',
-        userId: 'local-user-001',
-      });
-      // Should NOT call resolveDevContext since prefix matched
-      expect(mockFindOne).not.toHaveBeenCalled();
-    });
-
-    it('falls back to first active agent when no prefix match in local mode', async () => {
-      mockGetMany.mockResolvedValue([]); // no prefix match at all
-      mockFindOne.mockResolvedValue({
-        tenant_id: 'fb-tenant',
-        agent_id: 'fb-agent',
-        agent: { name: 'fallback-agent' },
-        tenant: { name: 'local-user-001' },
-      });
-
-      const { ctx, req } = makeContext(
-        { authorization: 'Bearer mnfst_totally-unknown-key' },
-        '127.0.0.1',
-      );
-      const result = await guard.canActivate(ctx);
-
-      expect(result).toBe(true);
-      expect(req.ingestionContext).toEqual({
-        tenantId: 'fb-tenant',
-        agentId: 'fb-agent',
-        agentName: 'fallback-agent',
-        userId: 'local-user-001',
-      });
-    });
-
-    it('falls back to LOCAL constants when no prefix match and no active agents in local mode', async () => {
-      mockGetMany.mockResolvedValue([]);
-      mockFindOne.mockResolvedValue(null);
-
-      const { ctx, req } = makeContext(
-        { authorization: 'Bearer mnfst_stale-or-unknown-key' },
-        '127.0.0.1',
-      );
-      const result = await guard.canActivate(ctx);
-
-      expect(result).toBe(true);
-      expect(req.ingestionContext).toEqual({
-        tenantId: 'local-tenant-001',
-        agentId: 'local-agent-001',
-        agentName: 'local-agent',
-        userId: 'local-user-001',
-      });
-    });
-
-    it('still rejects unknown mnfst_ key from public IP in local mode', async () => {
-      mockGetMany.mockResolvedValue([]);
-
-      const { ctx } = makeContext(
-        { authorization: 'Bearer mnfst_stale-or-unknown-key' },
-        '8.8.8.8',
-      );
-      await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key');
-    });
-  });
-
-  it('still requires auth for loopback IPs when not in local mode', async () => {
-    const { ctx } = makeContext({}, '127.0.0.1');
-    await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
-  });
-
-  it('still requires auth when manifestMode is unset (defaults to cloud)', async () => {
+  it('requires auth for loopback IPs in non-development mode', async () => {
     const { ctx } = makeContext({}, '127.0.0.1');
     await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
   });
@@ -424,7 +235,7 @@ describe('AgentKeyAuthGuard', () => {
   describe('dev loopback bypass in development mode', () => {
     beforeEach(() => {
       guard.onModuleDestroy();
-      guard = createGuard({ 'app.manifestMode': 'cloud', 'app.nodeEnv': 'development' });
+      guard = createGuard({ 'app.nodeEnv': 'development' });
     });
 
     it('allows loopback with non-mnfst token in dev mode by resolving first active key', async () => {
@@ -488,14 +299,14 @@ describe('AgentKeyAuthGuard', () => {
 
     it('rejects loopback with non-mnfst token in production mode', async () => {
       guard.onModuleDestroy();
-      guard = createGuard({ 'app.manifestMode': 'cloud', 'app.nodeEnv': 'production' });
+      guard = createGuard({ 'app.nodeEnv': 'production' });
       const { ctx } = makeContext({ authorization: 'Bearer dev-no-auth' }, '127.0.0.1');
       await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
     });
 
     it('rejects loopback with non-mnfst token in test mode', async () => {
       guard.onModuleDestroy();
-      guard = createGuard({ 'app.manifestMode': 'cloud', 'app.nodeEnv': 'test' });
+      guard = createGuard({ 'app.nodeEnv': 'test' });
       const { ctx } = makeContext({ authorization: 'Bearer dev-no-auth' }, '127.0.0.1');
       await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
     });
@@ -520,8 +331,6 @@ describe('AgentKeyAuthGuard', () => {
   });
 
   it('handles request.ip being undefined without crashing', async () => {
-    guard.onModuleDestroy();
-    guard = createGuard({ 'app.manifestMode': 'local' });
     const request: Record<string, unknown> = { headers: {}, ip: undefined };
     const ctx = {
       switchToHttp: () => ({

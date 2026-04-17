@@ -78,12 +78,29 @@ describe('scoreRequest — hard overrides', () => {
     expect(result.reason).not.toBe('short_message');
   });
 
-  it('does NOT return SIMPLE for short message with tools', () => {
+  it('returns SIMPLE for short greeting even with tools attached', () => {
+    const tools = Array.from({ length: 10 }, (_, i) => ({
+      type: 'function' as const,
+      function: { name: `tool_${i}`, description: 'noop', parameters: { type: 'object' } },
+    }));
     const result = scoreRequest({
       messages: [{ role: 'user', content: 'hi' }],
-      tools: [{}, {}, {}, {}, {}],
+      tools,
     });
-    expect(result.tier).not.toBe('simple');
+    expect(result.tier).toBe('simple');
+    expect(result.reason).toBe('short_message');
+  });
+
+  it('does NOT return SIMPLE for short technical prompt with tools', () => {
+    const tools = Array.from({ length: 10 }, (_, i) => ({
+      type: 'function' as const,
+      function: { name: `tool_${i}`, description: 'noop', parameters: { type: 'object' } },
+    }));
+    const result = scoreRequest({
+      messages: [{ role: 'user', content: 'Debug this function' }],
+      tools,
+    });
+    expect(result.reason).not.toBe('short_message');
   });
 
   it('does NOT return SIMPLE for short message with momentum (no simple indicator)', () => {

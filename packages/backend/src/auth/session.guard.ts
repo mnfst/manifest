@@ -4,6 +4,8 @@ import { Request } from 'express';
 import { fromNodeHeaders } from 'better-auth/node';
 import { auth } from './auth.instance';
 import { IS_PUBLIC_KEY } from '../common/decorators/public.decorator';
+import { isLoopbackIp } from '../common/utils/local-ip';
+import { isLocalMode } from '../common/utils/detect-local-mode';
 
 @Injectable()
 export class SessionGuard implements CanActivate {
@@ -23,7 +25,7 @@ export class SessionGuard implements CanActivate {
     // Let API-key authenticated requests be handled by ApiKeyGuard
     if (request.headers['x-api-key']) return true;
 
-    // In local mode, Better Auth is not initialized
+    // In local mode without Better Auth, skip session lookup
     if (!auth) return true;
 
     try {
@@ -35,9 +37,22 @@ export class SessionGuard implements CanActivate {
         (request as Request & { user: unknown }).user = session.user;
         (request as Request & { session: unknown }).session = session.session;
         (request as Request & { authMethod: string }).authMethod = 'session';
+        return true;
       }
     } catch (err) {
       this.logger.warn(`Session lookup failed: ${(err as Error).message}`);
+    }
+
+    // In local mode, fall back to a synthetic user for loopback requests
+    // without a session (e.g. curl, programmatic access)
+    if (isLocalMode() && request.ip && isLoopbackIp(request.ip)) {
+      (request as Request & { user: unknown }).user = {
+        id: 'local',
+        name: 'Local User',
+        email: 'local@localhost',
+      };
+      (request as Request & { authMethod: string }).authMethod = 'session';
+      return true;
     }
 
     // Always pass — let ApiKeyGuard handle unauthenticated requests

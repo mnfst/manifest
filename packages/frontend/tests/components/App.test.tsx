@@ -21,16 +21,6 @@ vi.mock("../../src/services/sse.js", () => ({
   connectSse: () => () => {},
 }));
 
-vi.mock("../../src/services/local-mode.js", () => ({
-  isLocalMode: () => false,
-  checkLocalMode: () => Promise.resolve(false),
-  updateInfo: () => null,
-}));
-
-vi.mock("../../src/components/VersionIndicator.jsx", () => ({
-  default: () => <div data-testid="version-indicator" />,
-}));
-
 import App from "../../src/App";
 
 beforeEach(() => {

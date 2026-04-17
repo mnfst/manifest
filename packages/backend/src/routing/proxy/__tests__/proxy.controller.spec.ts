@@ -4,6 +4,7 @@ import { ProxyMessageRecorder } from '../proxy-message-recorder';
 import { ProxyMessageDedup } from '../proxy-message-dedup';
 import { IngestEventBusService } from '../../../common/services/ingest-event-bus.service';
 import { ThoughtSignatureCache } from '../thought-signature-cache';
+import { ThinkingBlockCache } from '../thinking-block-cache';
 
 function mockResponse(): {
   res: Record<string, jest.Mock | boolean | number>;
@@ -137,6 +138,7 @@ describe('ProxyController', () => {
       providerClient as never,
       recorder,
       new ThoughtSignatureCache(),
+      new ThinkingBlockCache(),
     );
   });
 
@@ -639,7 +641,7 @@ describe('ProxyController', () => {
         choices: expect.arrayContaining([
           expect.objectContaining({
             message: expect.objectContaining({
-              content: '[🦚 Manifest] Something broke on our end. Try again shortly.',
+              content: '[🦚 Manifest] Something broke on our end. Try again in a moment.',
             }),
           }),
         ]),
@@ -1393,7 +1395,7 @@ describe('ProxyController', () => {
           choices: expect.arrayContaining([
             expect.objectContaining({
               message: expect.objectContaining({
-                content: '[🦚 Manifest] Something broke on our end. Try again shortly.',
+                content: '[🦚 Manifest] Something broke on our end. Try again in a moment.',
               }),
             }),
           ]),
@@ -1440,7 +1442,7 @@ describe('ProxyController', () => {
           choices: expect.arrayContaining([
             expect.objectContaining({
               message: expect.objectContaining({
-                content: '[🦚 Manifest] Something broke on our end. Try again shortly.',
+                content: '[🦚 Manifest] Something broke on our end. Try again in a moment.',
               }),
             }),
           ]),
@@ -1867,7 +1869,7 @@ describe('ProxyController', () => {
 
       expect(
         (providerClient as Record<string, jest.Mock>).createAnthropicStreamTransformer,
-      ).toHaveBeenCalledWith('claude-sonnet-4-20250514');
+      ).toHaveBeenCalledWith('claude-sonnet-4-20250514', expect.any(Function));
       expect(written.some((w) => w.includes('content'))).toBe(true);
     });
 
@@ -1892,9 +1894,10 @@ describe('ProxyController', () => {
         },
       });
 
-      providerClient.convertGoogleStreamChunk.mockReturnValue(
-        'data: {"choices":[{"delta":{"content":"hi"}}]}\n\n',
-      );
+      providerClient.convertGoogleStreamChunk.mockReturnValue({
+        chunk: 'data: {"choices":[{"delta":{"content":"hi"}}]}\n\n',
+        signatures: [],
+      });
 
       const req = mockRequest({
         messages: [{ role: 'user', content: 'test' }],

@@ -1,8 +1,9 @@
 import { A } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
-import { type Component, createSignal, Show } from 'solid-js';
+import { type Component, createSignal, onMount, Show } from 'solid-js';
 import SocialButtons from '../components/SocialButtons.jsx';
 import { authClient } from '../services/auth-client.js';
+import { checkSocialProviders } from '../services/setup-status.js';
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
@@ -15,6 +16,11 @@ const Register: Component = () => {
   const [emailSent, setEmailSent] = createSignal(false);
   const [alreadyExists, setAlreadyExists] = createSignal(false);
   const [resendCooldown, setResendCooldown] = createSignal(0);
+  const [socialProviders, setSocialProviders] = createSignal<string[]>([]);
+
+  onMount(async () => {
+    setSocialProviders(await checkSocialProviders());
+  });
 
   const startCooldown = () => {
     setResendCooldown(RESEND_COOLDOWN_SECONDS);
@@ -92,11 +98,13 @@ const Register: Component = () => {
               <p class="auth-header__subtitle">Monitor your AI agents' costs and usage</p>
             </div>
 
-            <SocialButtons />
+            <SocialButtons enabledProviders={socialProviders()} />
 
-            <div class="auth-divider">
-              <span class="auth-divider__text">or</span>
-            </div>
+            <Show when={socialProviders().length > 0}>
+              <div class="auth-divider">
+                <span class="auth-divider__text">or</span>
+              </div>
+            </Show>
 
             <form class="auth-form" onSubmit={handleSubmit}>
               <Show when={alreadyExists()}>
@@ -113,7 +121,9 @@ const Register: Component = () => {
                 </div>
               </Show>
               <Show when={error() && !alreadyExists()}>
-                <div class="auth-form__error" role="alert">{error()}</div>
+                <div class="auth-form__error" role="alert">
+                  {error()}
+                </div>
               </Show>
               <label class="auth-form__label">
                 Name
@@ -180,7 +190,11 @@ const Register: Component = () => {
         </div>
 
         <div class="auth-form">
-          {error() && <div class="auth-form__error" role="alert">{error()}</div>}
+          {error() && (
+            <div class="auth-form__error" role="alert">
+              {error()}
+            </div>
+          )}
           <div class="auth-form__success">
             Click the link in your email to verify your account and get started.
           </div>

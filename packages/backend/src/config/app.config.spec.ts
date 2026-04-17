@@ -27,47 +27,6 @@ describe('appConfig', () => {
     expect(config.port).toBe(8080);
   });
 
-  it('defaults manifestMode to cloud', async () => {
-    delete process.env['MANIFEST_MODE'];
-    const config = await loadConfig();
-    expect(config.manifestMode).toBe('cloud');
-  });
-
-  it('reads MANIFEST_MODE from env', async () => {
-    process.env['MANIFEST_MODE'] = 'local';
-    const config = await loadConfig();
-    expect(config.manifestMode).toBe('local');
-  });
-
-  it('sanitizes MANIFEST_DB_PATH with path.resolve', async () => {
-    process.env['MANIFEST_DB_PATH'] = './relative/../db.sqlite';
-    const config = await loadConfig();
-    expect(config.dbPath).not.toContain('..');
-    expect(config.dbPath).toMatch(/db\.sqlite$/);
-  });
-
-  it('returns empty string for empty MANIFEST_DB_PATH in cloud mode', async () => {
-    delete process.env['MANIFEST_DB_PATH'];
-    delete process.env['MANIFEST_MODE'];
-    const config = await loadConfig();
-    expect(config.dbPath).toBe('');
-  });
-
-  it('defaults dbPath to persistent file in local mode', async () => {
-    delete process.env['MANIFEST_DB_PATH'];
-    process.env['MANIFEST_MODE'] = 'local';
-    const config = await loadConfig();
-    expect(config.dbPath).toMatch(/manifest\.db$/);
-    expect(config.dbPath).toContain('.openclaw');
-  });
-
-  it('uses explicit MANIFEST_DB_PATH over default in local mode', async () => {
-    process.env['MANIFEST_DB_PATH'] = '/tmp/custom.db';
-    process.env['MANIFEST_MODE'] = 'local';
-    const config = await loadConfig();
-    expect(config.dbPath).toBe('/tmp/custom.db');
-  });
-
   it('defaults bindAddress to 127.0.0.1', async () => {
     delete process.env['BIND_ADDRESS'];
     const config = await loadConfig();
@@ -114,25 +73,60 @@ describe('appConfig', () => {
     expect(config.dbPoolMax).toBe(50);
   });
 
-  it('throws when DATABASE_URL is missing in cloud mode', async () => {
+  it('throws when DATABASE_URL is missing in production', async () => {
     delete process.env['DATABASE_URL'];
-    delete process.env['MANIFEST_MODE'];
     process.env['NODE_ENV'] = 'production';
-    await expect(loadConfig()).rejects.toThrow('DATABASE_URL is required in cloud mode');
-  });
-
-  it('returns empty string when DATABASE_URL is missing in local mode', async () => {
-    delete process.env['DATABASE_URL'];
-    process.env['MANIFEST_MODE'] = 'local';
-    const config = await loadConfig();
-    expect(config.databaseUrl).toBe('');
+    await expect(loadConfig()).rejects.toThrow('DATABASE_URL is required');
   });
 
   it('returns default URL when DATABASE_URL is missing in test mode', async () => {
     delete process.env['DATABASE_URL'];
     process.env['NODE_ENV'] = 'test';
-    delete process.env['MANIFEST_MODE'];
     const config = await loadConfig();
     expect(config.databaseUrl).toContain('postgresql://');
+  });
+
+  it('defaults autoMigrate to false', async () => {
+    delete process.env['AUTO_MIGRATE'];
+    const config = await loadConfig();
+    expect(config.autoMigrate).toBe(false);
+  });
+
+  it('reads AUTO_MIGRATE=true from env', async () => {
+    process.env['AUTO_MIGRATE'] = 'true';
+    const config = await loadConfig();
+    expect(config.autoMigrate).toBe(true);
+  });
+
+  it('ignores non-true AUTO_MIGRATE values', async () => {
+    process.env['AUTO_MIGRATE'] = '1';
+    const config = await loadConfig();
+    expect(config.autoMigrate).toBe(false);
+  });
+
+  it('reads EMAIL_PROVIDER from env', async () => {
+    process.env['EMAIL_PROVIDER'] = 'resend';
+    const config = await loadConfig();
+    expect(config.emailProvider).toBe('resend');
+  });
+
+  it('reads EMAIL_FROM from env', async () => {
+    process.env['EMAIL_FROM'] = 'noreply@example.com';
+    const config = await loadConfig();
+    expect(config.emailFrom).toBe('noreply@example.com');
+  });
+
+  it('falls back EMAIL_FROM to NOTIFICATION_FROM_EMAIL', async () => {
+    delete process.env['EMAIL_FROM'];
+    process.env['NOTIFICATION_FROM_EMAIL'] = 'legacy@example.com';
+    const config = await loadConfig();
+    expect(config.emailFrom).toBe('legacy@example.com');
+  });
+
+  it('defaults emailFrom to noreply@manifest.build', async () => {
+    delete process.env['EMAIL_FROM'];
+    delete process.env['NOTIFICATION_FROM_EMAIL'];
+    const config = await loadConfig();
+    expect(config.emailFrom).toBe('noreply@manifest.build');
   });
 });

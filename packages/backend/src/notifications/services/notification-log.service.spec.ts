@@ -1,17 +1,9 @@
-jest.mock('../../common/constants/local-mode.constants', () => ({
-  LOCAL_EMAIL: 'local@manifest.local',
-  readLocalNotificationEmail: jest.fn().mockReturnValue(null),
-}));
-
 import { NotificationLogService, formatNotificationTimestamp } from './notification-log.service';
-import { ManifestRuntimeService } from '../../common/services/manifest-runtime.service';
 import { DataSource } from 'typeorm';
-import { readLocalNotificationEmail } from '../../common/constants/local-mode.constants';
 
 describe('NotificationLogService', () => {
   let service: NotificationLogService;
   let mockQuery: jest.Mock;
-  let mockRuntime: { isLocalMode: jest.Mock };
 
   beforeEach(() => {
     mockQuery = jest.fn().mockResolvedValue([]);
@@ -20,8 +12,7 @@ describe('NotificationLogService', () => {
       options: { type: 'postgres' },
     } as unknown as DataSource;
 
-    mockRuntime = { isLocalMode: jest.fn().mockReturnValue(false) };
-    service = new NotificationLogService(ds, mockRuntime as unknown as ManifestRuntimeService);
+    service = new NotificationLogService(ds);
   });
 
   describe('hasAlreadySent', () => {
@@ -109,80 +100,6 @@ describe('NotificationLogService', () => {
     it('returns null when user not found', async () => {
       mockQuery.mockResolvedValue([]);
       expect(await service.resolveUserEmail('u1')).toBeNull();
-    });
-
-    it('returns null for LOCAL_EMAIL', async () => {
-      mockQuery.mockResolvedValue([{ email: 'local@manifest.local' }]);
-      expect(await service.resolveUserEmail('u1')).toBeNull();
-    });
-
-    it('uses local config email in local mode', async () => {
-      mockRuntime.isLocalMode.mockReturnValue(true);
-      (readLocalNotificationEmail as jest.Mock).mockReturnValue('local-real@test.com');
-      expect(await service.resolveUserEmail('u1')).toBe('local-real@test.com');
-      expect(mockQuery).not.toHaveBeenCalled();
-      (readLocalNotificationEmail as jest.Mock).mockReturnValue(null);
-    });
-
-    it('falls through to DB when local config email is null', async () => {
-      mockRuntime.isLocalMode.mockReturnValue(true);
-      (readLocalNotificationEmail as jest.Mock).mockReturnValue(null);
-      mockQuery.mockResolvedValue([{ email: 'db@test.com' }]);
-      expect(await service.resolveUserEmail('u1')).toBe('db@test.com');
-    });
-  });
-
-  describe('sql.js dialect', () => {
-    let sqljsService: NotificationLogService;
-    let sqljsQuery: jest.Mock;
-
-    beforeEach(() => {
-      sqljsQuery = jest.fn().mockResolvedValue([]);
-      const ds = {
-        query: sqljsQuery,
-        options: { type: 'sqljs' },
-      } as unknown as DataSource;
-      sqljsService = new NotificationLogService(
-        ds,
-        mockRuntime as unknown as ManifestRuntimeService,
-      );
-    });
-
-    it('uses ? placeholders for hasAlreadySent', async () => {
-      await sqljsService.hasAlreadySent('r1', '2026-01-01');
-      const sql = sqljsQuery.mock.calls[0][0] as string;
-      expect(sql).toContain('?');
-      expect(sql).not.toContain('$1');
-    });
-
-    it('uses ? placeholders for insertLog', async () => {
-      await sqljsService.insertLog({
-        ruleId: 'r1',
-        periodStart: '2026-01-01',
-        periodEnd: '2026-01-02',
-        actualValue: 100,
-        thresholdValue: 50,
-        metricType: 'tokens',
-        agentName: 'a1',
-        sentAt: '2026-01-01 12:00:00',
-      });
-      const sql = sqljsQuery.mock.calls[0][0] as string;
-      expect(sql).toContain('?');
-      expect(sql).not.toContain('$1');
-    });
-
-    it('uses ? placeholders for getLogsForAgent', async () => {
-      await sqljsService.getLogsForAgent('u1', 'a1');
-      const sql = sqljsQuery.mock.calls[0][0] as string;
-      expect(sql).toContain('?');
-      expect(sql).not.toContain('$1');
-    });
-
-    it('uses ? placeholders for resolveUserEmail', async () => {
-      await sqljsService.resolveUserEmail('u1');
-      const sql = sqljsQuery.mock.calls[0][0] as string;
-      expect(sql).toContain('?');
-      expect(sql).not.toContain('$1');
     });
   });
 });

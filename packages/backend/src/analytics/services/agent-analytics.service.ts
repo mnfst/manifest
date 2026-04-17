@@ -2,10 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
-import {
-  rangeToInterval,
-  rangeToPreviousInterval,
-} from '../../common/utils/range.util';
+import { rangeToInterval, rangeToPreviousInterval } from '../../common/utils/range.util';
 import { computeTrend } from './query-helpers';
 import { computeCutoff } from '../../common/utils/sql-dialect';
 
@@ -50,7 +47,10 @@ export class AgentAnalyticsService {
         .select('COALESCE(SUM(at.input_tokens), 0)', 'input')
         .addSelect('COALESCE(SUM(at.output_tokens), 0)', 'output')
         .addSelect('COALESCE(SUM(at.cache_read_tokens), 0)', 'cache_read')
-        .addSelect('COUNT(*)', 'messages')
+        .addSelect(
+          `COUNT(*) FILTER (WHERE at.status IS NULL OR at.status NOT IN ('error', 'fallback_error'))`,
+          'messages',
+        )
         .where('at.timestamp >= :cutoff', { cutoff })
         .andWhere('at.tenant_id = :tenantId', { tenantId: scope.tenantId })
         .andWhere('at.agent_id = :agentId', { agentId: scope.agentId })

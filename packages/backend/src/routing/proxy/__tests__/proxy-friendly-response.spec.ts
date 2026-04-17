@@ -8,28 +8,37 @@ import {
 
 describe('proxy-friendly-response', () => {
   describe('getDashboardUrl', () => {
-    it('returns agent-specific URL when agentName provided', () => {
-      const config = {
-        get: jest.fn((key: string) => {
-          if (key === 'app.betterAuthUrl') return 'https://app.manifest.build';
-          return undefined;
-        }),
-      } as unknown as ConfigService;
+    const prodConfig = {
+      get: jest.fn((key: string) => {
+        if (key === 'app.betterAuthUrl') return 'https://app.manifest.build';
+        return undefined;
+      }),
+    } as unknown as ConfigService;
 
-      expect(getDashboardUrl(config, 'my-agent')).toBe(
+    it('returns agent Overview URL when agentName provided without section', () => {
+      expect(getDashboardUrl(prodConfig, 'my-agent')).toBe(
         'https://app.manifest.build/agents/my-agent',
       );
     });
 
-    it('returns routing URL when no agentName', () => {
-      const config = {
-        get: jest.fn((key: string) => {
-          if (key === 'app.betterAuthUrl') return 'https://app.manifest.build';
-          return undefined;
-        }),
-      } as unknown as ConfigService;
+    it('returns agent Routing URL when section is "routing"', () => {
+      expect(getDashboardUrl(prodConfig, 'my-agent', 'routing')).toBe(
+        'https://app.manifest.build/agents/my-agent/routing',
+      );
+    });
 
-      expect(getDashboardUrl(config)).toBe('https://app.manifest.build/routing');
+    it('returns agent Limits URL when section is "limits"', () => {
+      expect(getDashboardUrl(prodConfig, 'my-agent', 'limits')).toBe(
+        'https://app.manifest.build/agents/my-agent/limits',
+      );
+    });
+
+    it('returns bare base URL (Workspace) when no agentName', () => {
+      expect(getDashboardUrl(prodConfig)).toBe('https://app.manifest.build');
+    });
+
+    it('ignores section when no agentName is supplied', () => {
+      expect(getDashboardUrl(prodConfig, undefined, 'routing')).toBe('https://app.manifest.build');
     });
 
     it('falls back to localhost when no betterAuthUrl configured', () => {
@@ -41,7 +50,9 @@ describe('proxy-friendly-response', () => {
         }),
       } as unknown as ConfigService;
 
-      expect(getDashboardUrl(config, 'demo')).toBe('http://localhost:4000/agents/demo');
+      expect(getDashboardUrl(config, 'demo', 'routing')).toBe(
+        'http://localhost:4000/agents/demo/routing',
+      );
     });
 
     it('encodes special characters in agent name', () => {
@@ -52,7 +63,9 @@ describe('proxy-friendly-response', () => {
         }),
       } as unknown as ConfigService;
 
-      expect(getDashboardUrl(config, 'my agent')).toBe('http://localhost:3001/agents/my%20agent');
+      expect(getDashboardUrl(config, 'my agent', 'limits')).toBe(
+        'http://localhost:3001/agents/my%20agent/limits',
+      );
     });
   });
 

@@ -1,22 +1,14 @@
-jest.mock('../../common/constants/local-mode.constants', () => ({
-  readLocalApiKey: jest.fn().mockReturnValue(null),
-  LOCAL_AGENT_NAME: 'local-agent',
-}));
-
 import { Test, TestingModule } from '@nestjs/testing';
 import { CACHE_MANAGER, CacheModule } from '@nestjs/cache-manager';
 import { ConfigService } from '@nestjs/config';
 import type { Cache } from 'cache-manager';
-import { BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common';
+import { BadRequestException, ConflictException } from '@nestjs/common';
 import { QueryFailedError } from 'typeorm';
 import { AgentsController } from './agents.controller';
 import { TimeseriesQueriesService } from '../services/timeseries-queries.service';
 import { AgentLifecycleService } from '../services/agent-lifecycle.service';
 import { ApiKeyGeneratorService } from '../../otlp/services/api-key.service';
-import { readLocalApiKey } from '../../common/constants/local-mode.constants';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
-
-const mockReadLocalApiKey = readLocalApiKey as jest.MockedFunction<typeof readLocalApiKey>;
 
 describe('AgentsController', () => {
   let controller: AgentsController;
@@ -28,13 +20,6 @@ describe('AgentsController', () => {
   let mockDeleteAgent: jest.Mock;
   let mockRenameAgent: jest.Mock;
   let mockTenantResolve: jest.Mock;
-
-  const origMode = process.env['MANIFEST_MODE'];
-
-  afterEach(() => {
-    if (origMode === undefined) delete process.env['MANIFEST_MODE'];
-    else process.env['MANIFEST_MODE'] = origMode;
-  });
 
   beforeEach(async () => {
     mockGetAgentList = jest.fn().mockResolvedValue([
@@ -58,7 +43,11 @@ describe('AgentsController', () => {
         },
         {
           provide: AgentLifecycleService,
-          useValue: { deleteAgent: mockDeleteAgent, renameAgent: mockRenameAgent },
+          useValue: {
+            deleteAgent: mockDeleteAgent,
+            renameAgent: mockRenameAgent,
+            updateAgentType: jest.fn(),
+          },
         },
         {
           provide: ApiKeyGeneratorService,
@@ -101,35 +90,23 @@ describe('AgentsController', () => {
     expect(mockGetAgentList).toHaveBeenCalledWith('u1', undefined);
   });
 
-  it('returns agent key prefix without pluginEndpoint when env is not set', async () => {
+  it('returns agent key prefix', async () => {
     const user = { id: 'u1' };
     const result = await controller.getAgentKey(user as never, 'bot-1');
 
     expect(result).toMatchObject({ keyPrefix: 'mnfst_test1234' });
-    expect(result).not.toHaveProperty('pluginEndpoint');
     expect(mockGetKeyForAgent).toHaveBeenCalledWith('u1', 'bot-1');
   });
 
-  it('returns agent key prefix with pluginEndpoint when env is set', async () => {
-    mockConfigGet.mockReturnValue('http://localhost:3001/otlp');
+  it('returns full apiKey when service returns fullKey', async () => {
+    mockGetKeyForAgent.mockResolvedValueOnce({
+      keyPrefix: 'mnfst_test1234',
+      fullKey: 'mnfst_full_decrypted',
+    });
     const user = { id: 'u1' };
     const result = await controller.getAgentKey(user as never, 'bot-1');
 
-    expect(result).toMatchObject({
-      keyPrefix: 'mnfst_test1234',
-      pluginEndpoint: 'http://localhost:3001/otlp',
-    });
-  });
-
-  it('returns full apiKey in local mode for default agent', async () => {
-    mockReadLocalApiKey.mockReturnValue('mnfst_full_local_key');
-    mockConfigGet.mockImplementation((key: string, fallback?: string) =>
-      key === 'MANIFEST_MODE' ? 'local' : (fallback ?? ''),
-    );
-    const user = { id: 'u1' };
-    const result = await controller.getAgentKey(user as never, 'local-agent');
-
-    expect(result).toMatchObject({ keyPrefix: 'mnfst_test1234', apiKey: 'mnfst_full_local_key' });
+    expect(result).toMatchObject({ keyPrefix: 'mnfst_test1234', apiKey: 'mnfst_full_decrypted' });
   });
 
   it('returns full apiKey when service returns fullKey', async () => {
@@ -145,18 +122,6 @@ describe('AgentsController', () => {
 
   it('does not return apiKey when service returns no fullKey', async () => {
     mockGetKeyForAgent.mockResolvedValue({ keyPrefix: 'mnfst_test1234' });
-    const user = { id: 'u1' };
-    const result = await controller.getAgentKey(user as never, 'bot-1');
-
-    expect(result).toMatchObject({ keyPrefix: 'mnfst_test1234' });
-    expect(result).not.toHaveProperty('apiKey');
-  });
-
-  it('does not return full apiKey in local mode for non-default agent', async () => {
-    mockReadLocalApiKey.mockReturnValue('mnfst_full_local_key');
-    mockConfigGet.mockImplementation((key: string, fallback?: string) =>
-      key === 'MANIFEST_MODE' ? 'local' : (fallback ?? ''),
-    );
     const user = { id: 'u1' };
     const result = await controller.getAgentKey(user as never, 'bot-1');
 
@@ -183,7 +148,7 @@ describe('AgentsController', () => {
 
   it('renames agent and returns success with slug', async () => {
     const user = { id: 'u1' };
-    const result = await controller.renameAgent(user as never, 'bot-1', {
+    const result = await controller.updateAgent(user as never, 'bot-1', {
       name: 'Bot Renamed',
     } as never);
 
@@ -195,7 +160,7 @@ describe('AgentsController', () => {
   it('rejects rename with empty slug', async () => {
     const user = { id: 'u1' };
     await expect(
-      controller.renameAgent(user as never, 'bot-1', { name: '!!!' } as never),
+      controller.updateAgent(user as never, 'bot-1', { name: '!!!' } as never),
     ).rejects.toThrow(BadRequestException);
   });
 
@@ -208,25 +173,99 @@ describe('AgentsController', () => {
     expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents');
   });
 
-  it('throws ForbiddenException when deleting default agent in local mode', async () => {
-    mockConfigGet.mockImplementation((key: string, fallback?: string) =>
-      key === 'MANIFEST_MODE' ? 'local' : (fallback ?? ''),
+  it('passes agent_category and agent_platform to onboardAgent', async () => {
+    const mockOnboard = jest.fn().mockResolvedValue({
+      tenantId: 't1',
+      agentId: 'a1',
+      apiKey: 'mnfst_key',
+    });
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [CacheModule.register()],
+      controllers: [AgentsController],
+      providers: [
+        { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
+        {
+          provide: AgentLifecycleService,
+          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn(), updateAgentType: jest.fn() },
+        },
+        {
+          provide: ApiKeyGeneratorService,
+          useValue: { onboardAgent: mockOnboard, getKeyForAgent: jest.fn(), rotateKey: jest.fn() },
+        },
+        { provide: ConfigService, useValue: { get: jest.fn() } },
+        { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
+      ],
+    }).compile();
+
+    const ctrl = module.get<AgentsController>(AgentsController);
+    const cm = module.get<Cache>(CACHE_MANAGER);
+    jest.spyOn(cm, 'del').mockResolvedValue(true);
+    const user = { id: 'user-123', email: 'test@example.com' };
+    const result = await ctrl.createAgent(
+      user as never,
+      {
+        name: 'My Agent',
+        agent_category: 'personal',
+        agent_platform: 'openclaw',
+      } as never,
     );
-    const user = { id: 'u1' };
-    await expect(controller.deleteAgent(user as never, 'local-agent')).rejects.toThrow(
-      ForbiddenException,
+
+    expect(mockOnboard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentCategory: 'personal',
+        agentPlatform: 'openclaw',
+      }),
     );
-    expect(mockDeleteAgent).not.toHaveBeenCalled();
+    expect(result.agent.agent_category).toBe('personal');
+    expect(result.agent.agent_platform).toBe('openclaw');
   });
 
-  it('allows deleting non-default agents in local mode', async () => {
-    mockConfigGet.mockImplementation((key: string, fallback?: string) =>
-      key === 'MANIFEST_MODE' ? 'local' : (fallback ?? ''),
-    );
+  it('returns null category/platform when not provided', async () => {
+    const mockOnboard = jest.fn().mockResolvedValue({
+      tenantId: 't1',
+      agentId: 'a1',
+      apiKey: 'mnfst_key',
+    });
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [CacheModule.register()],
+      controllers: [AgentsController],
+      providers: [
+        { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
+        {
+          provide: AgentLifecycleService,
+          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn(), updateAgentType: jest.fn() },
+        },
+        {
+          provide: ApiKeyGeneratorService,
+          useValue: { onboardAgent: mockOnboard, getKeyForAgent: jest.fn(), rotateKey: jest.fn() },
+        },
+        { provide: ConfigService, useValue: { get: jest.fn() } },
+        { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
+      ],
+    }).compile();
+
+    const ctrl = module.get<AgentsController>(AgentsController);
+    const cm = module.get<Cache>(CACHE_MANAGER);
+    jest.spyOn(cm, 'del').mockResolvedValue(true);
+    const user = { id: 'user-123', email: 'test@example.com' };
+    const result = await ctrl.createAgent(user as never, { name: 'My Agent' } as never);
+
+    expect(result.agent.agent_category).toBeNull();
+    expect(result.agent.agent_platform).toBeNull();
+  });
+
+  it('passes category/platform to updateAgentType on PATCH', async () => {
+    const mockUpdateType = jest.fn().mockResolvedValue(undefined);
     const user = { id: 'u1' };
-    const result = await controller.deleteAgent(user as never, 'bot-1');
-    expect(result).toEqual({ deleted: true });
-    expect(mockDeleteAgent).toHaveBeenCalledWith('u1', 'bot-1');
+    const result = await controller.updateAgent(user as never, 'bot-1', {
+      agent_category: 'app',
+      agent_platform: 'openai-sdk',
+    } as never);
+
+    expect(result).toMatchObject({
+      agent_category: 'app',
+      agent_platform: 'openai-sdk',
+    });
   });
 
   it('invalidates agent list cache after successful createAgent', async () => {
@@ -242,7 +281,7 @@ describe('AgentsController', () => {
         { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
         {
           provide: AgentLifecycleService,
-          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn() },
+          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn(), updateAgentType: jest.fn() },
         },
         {
           provide: ApiKeyGeneratorService,
@@ -272,7 +311,7 @@ describe('AgentsController', () => {
         { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
         {
           provide: AgentLifecycleService,
-          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn() },
+          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn(), updateAgentType: jest.fn() },
         },
         {
           provide: ApiKeyGeneratorService,
@@ -301,7 +340,7 @@ describe('AgentsController', () => {
         { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
         {
           provide: AgentLifecycleService,
-          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn() },
+          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn(), updateAgentType: jest.fn() },
         },
         {
           provide: ApiKeyGeneratorService,
@@ -329,7 +368,7 @@ describe('AgentsController', () => {
         { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
         {
           provide: AgentLifecycleService,
-          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn() },
+          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn(), updateAgentType: jest.fn() },
         },
         {
           provide: ApiKeyGeneratorService,

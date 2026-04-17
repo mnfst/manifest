@@ -874,13 +874,35 @@ describe('ProviderClient', () => {
       });
       const result = client.convertGoogleStreamChunk(chunk, 'gemini-2.0-flash');
 
-      expect(result).toContain('data: ');
-      expect(result).toContain('"chat.completion.chunk"');
+      expect(result.chunk).toContain('data: ');
+      expect(result.chunk).toContain('"chat.completion.chunk"');
+      expect(result.signatures).toEqual([]);
     });
 
-    it('returns null for empty chunk', () => {
+    it('returns null chunk for empty input', () => {
       const result = client.convertGoogleStreamChunk('', 'gemini-2.0-flash');
-      expect(result).toBeNull();
+      expect(result.chunk).toBeNull();
+      expect(result.signatures).toEqual([]);
+    });
+
+    it('surfaces extracted signatures from functionCall parts', () => {
+      const chunk = JSON.stringify({
+        candidates: [
+          {
+            content: {
+              parts: [
+                {
+                  functionCall: { name: 'fn', args: {} },
+                  thoughtSignature: 'sig_abc',
+                },
+              ],
+            },
+          },
+        ],
+      });
+      const result = client.convertGoogleStreamChunk(chunk, 'gemini-3-pro-preview');
+      expect(result.signatures).toHaveLength(1);
+      expect(result.signatures[0].signature).toBe('sig_abc');
     });
   });
 
@@ -1450,6 +1472,112 @@ describe('ProviderClient', () => {
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.store).toBe(false);
       expect(sentBody.max_completion_tokens).toBe(8192);
+    });
+  });
+
+  describe('stream_options.include_usage injection', () => {
+    it('injects stream_options.include_usage for OpenAI streaming requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body: { messages: [{ role: 'user', content: 'Hello' }] },
+        stream: true,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream_options).toEqual({ include_usage: true });
+    });
+
+    it('injects stream_options.include_usage for OpenRouter streaming requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'openrouter',
+        apiKey: 'sk-or',
+        model: 'openai/gpt-4o',
+        body: { messages: [{ role: 'user', content: 'Hello' }] },
+        stream: true,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream_options).toEqual({ include_usage: true });
+    });
+
+    it('injects stream_options.include_usage for Ollama streaming requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'ollama',
+        apiKey: '',
+        model: 'llama3',
+        body: { messages: [{ role: 'user', content: 'Hello' }] },
+        stream: true,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream_options).toEqual({ include_usage: true });
+    });
+
+    it('injects stream_options.include_usage for Ollama Cloud streaming requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'ollama-cloud',
+        apiKey: 'ollama-key',
+        model: 'llama3',
+        body: { messages: [{ role: 'user', content: 'Hello' }] },
+        stream: true,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream_options).toEqual({ include_usage: true });
+    });
+
+    it('does not inject stream_options for non-streaming OpenAI requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body: { messages: [{ role: 'user', content: 'Hello' }] },
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream_options).toBeUndefined();
+    });
+
+    it('does not inject stream_options for non-passthrough providers', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'mistral',
+        apiKey: 'sk-mi',
+        model: 'mistral-small',
+        body: { messages: [{ role: 'user', content: 'Hello' }] },
+        stream: true,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream_options).toBeUndefined();
+    });
+
+    it('preserves existing stream_options fields when injecting include_usage', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body: {
+          messages: [{ role: 'user', content: 'Hello' }],
+          stream_options: { some_field: 'value' },
+        },
+        stream: true,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream_options).toEqual({
+        some_field: 'value',
+        include_usage: true,
+      });
     });
   });
 

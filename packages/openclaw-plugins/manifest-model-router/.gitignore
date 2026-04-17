@@ -1,6 +1,0 @@
-dist/
-node_modules/
-skills/
-
-# Vite-generated frontend bundles (rebuilt by scripts/copy-assets.js)
-public/assets/

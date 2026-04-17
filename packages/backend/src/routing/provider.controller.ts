@@ -12,8 +12,10 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
 import { ProviderService } from './routing-core/provider.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
+import { TierService } from './routing-core/tier.service';
 import { ModelDiscoveryService } from '../model-discovery/model-discovery.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
+import { PricingSyncService } from '../database/pricing-sync.service';
 import {
   AgentNameParamDto,
   AgentProviderParamDto,
@@ -29,14 +31,34 @@ export class ProviderController {
     private readonly discoveryService: ModelDiscoveryService,
     private readonly ollamaSync: OllamaSyncService,
     private readonly resolveAgentService: ResolveAgentService,
+    private readonly tierService: TierService,
+    private readonly pricingSync: PricingSyncService,
   ) {}
 
   @Get(':agentName/status')
   async getStatus(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     const providers = await this.providerService.getProviders(agent.id);
-    const enabled = providers.some((p) => p.is_active);
-    return { enabled };
+    const hasActiveProvider = providers.some((p) => p.is_active);
+
+    if (!hasActiveProvider) {
+      return { enabled: false, reason: 'no_provider' as const };
+    }
+
+    const hasRoutableTier = await this.tierService.hasRoutableTier(agent.id);
+    if (!hasRoutableTier) {
+      // No tier resolves to a model. If the OpenRouter pricing cache is empty
+      // (e.g. first-boot fetch failed), surface that as a more actionable hint.
+      const pricingCacheEmpty = this.pricingSync.getAll().size === 0;
+      return {
+        enabled: false,
+        reason: pricingCacheEmpty
+          ? ('pricing_cache_empty' as const)
+          : ('no_routable_models' as const),
+      };
+    }
+
+    return { enabled: true, reason: null };
   }
 
   @Get(':agentName/providers')

@@ -9,10 +9,6 @@ vi.mock("@solidjs/router", () => ({
   A: (props: any) => <a href={props.href}>{props.children}</a>,
 }));
 
-vi.mock("../../src/services/local-mode.js", () => ({
-  checkLocalMode: vi.fn().mockResolvedValue(true),
-}));
-
 vi.mock("@solidjs/meta", () => ({
   Title: (props: any) => <title>{props.children}</title>,
   Meta: (props: any) => <meta name={props.name ?? ""} content={props.content ?? ""} />,
@@ -67,13 +63,16 @@ vi.mock("../../src/services/api.js", () => ({
   setFallbacks: vi.fn().mockResolvedValue([]),
   clearFallbacks: vi.fn().mockResolvedValue(undefined),
   getModelPrices: vi.fn().mockResolvedValue([]),
-  getAgentKey: vi.fn().mockResolvedValue({ keyPrefix: "mnfst_abc", apiKey: "mnfst_abc123", pluginEndpoint: null }),
+  getAgentKey: vi.fn().mockResolvedValue({ keyPrefix: "mnfst_abc", apiKey: "mnfst_abc123" }),
   getHealth: vi.fn().mockResolvedValue({ mode: "cloud" }),
   getSpecificityAssignments: vi.fn().mockResolvedValue([]),
   overrideSpecificity: vi.fn().mockResolvedValue({}),
   resetSpecificity: vi.fn().mockResolvedValue({}),
   setSpecificityFallbacks: vi.fn().mockResolvedValue({}),
   clearSpecificityFallbacks: vi.fn().mockResolvedValue({}),
+  refreshModels: vi.fn().mockResolvedValue({ ok: true }),
+  getPricingHealth: vi.fn().mockResolvedValue({ model_count: 100, last_fetched_at: "2026-04-13T00:00:00.000Z" }),
+  refreshPricing: vi.fn().mockResolvedValue({ ok: true, model_count: 100, last_fetched_at: "2026-04-13T00:00:00.000Z" }),
 }));
 
 import Routing from "../../src/pages/Routing";
@@ -81,7 +80,7 @@ import ModelPickerModal from "../../src/components/ModelPickerModal";
 import { toast } from "../../src/services/toast-store.js";
 import type { AvailableModel, TierAssignment, CustomProviderData } from "../../src/services/api.js";
 
-const { overrideTier, resetTier, resetAllTiers, setFallbacks, overrideSpecificity, resetSpecificity, setSpecificityFallbacks, clearSpecificityFallbacks, getSpecificityAssignments } = await import("../../src/services/api.js");
+const { overrideTier, resetTier, resetAllTiers, setFallbacks, overrideSpecificity, resetSpecificity, setSpecificityFallbacks, clearSpecificityFallbacks, getSpecificityAssignments, getPricingHealth, refreshPricing } = await import("../../src/services/api.js");
 
 describe("Routing — enabled state (providers active)", () => {
   beforeEach(() => {
@@ -488,6 +487,63 @@ describe("Routing — enabled state (providers active)", () => {
       expect(resetTier).toHaveBeenCalled();
     });
     // Should not crash — error is handled silently (fetchMutate shows toast)
+  });
+});
+
+describe("Routing — pricing cache health banner", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetProviders.mockResolvedValue([
+      { id: "p1", provider: "openai", auth_type: "api_key" as const, is_active: true, has_api_key: true, connected_at: "2025-01-01" },
+    ]);
+    mockGetCustomProviders.mockResolvedValue([]);
+  });
+
+  it("does not show the banner when the pricing cache has models", async () => {
+    vi.mocked(getPricingHealth).mockResolvedValue({ model_count: 100, last_fetched_at: "2026-04-13T00:00:00.000Z" });
+    render(() => <Routing />);
+    await screen.findByText("Simple");
+    expect(screen.queryByText(/Pricing catalog is empty/)).toBeNull();
+  });
+
+  it("shows the banner when the pricing cache is empty", async () => {
+    vi.mocked(getPricingHealth).mockResolvedValue({ model_count: 0, last_fetched_at: null });
+    render(() => <Routing />);
+    expect(await screen.findByText(/Pricing catalog is empty/)).toBeDefined();
+    expect(screen.getByText("Retry pricing sync")).toBeDefined();
+  });
+
+  it("calls refreshPricing when the retry button is clicked", async () => {
+    vi.mocked(getPricingHealth).mockResolvedValue({ model_count: 0, last_fetched_at: null });
+    vi.mocked(refreshPricing).mockResolvedValue({ ok: true, model_count: 200, last_fetched_at: "2026-04-13T12:00:00.000Z" });
+    render(() => <Routing />);
+    const retryBtn = await screen.findByText("Retry pricing sync");
+    fireEvent.click(retryBtn);
+    await waitFor(() => {
+      expect(refreshPricing).toHaveBeenCalled();
+    });
+  });
+
+  it("shows an error toast when refreshPricing returns ok=false", async () => {
+    vi.mocked(getPricingHealth).mockResolvedValue({ model_count: 0, last_fetched_at: null });
+    vi.mocked(refreshPricing).mockResolvedValue({ ok: false, model_count: 0, last_fetched_at: null });
+    render(() => <Routing />);
+    const retryBtn = await screen.findByText("Retry pricing sync");
+    fireEvent.click(retryBtn);
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("Pricing refresh failed"));
+    });
+  });
+
+  it("shows an error toast when refreshPricing throws", async () => {
+    vi.mocked(getPricingHealth).mockResolvedValue({ model_count: 0, last_fetched_at: null });
+    vi.mocked(refreshPricing).mockRejectedValue(new Error("network error"));
+    render(() => <Routing />);
+    const retryBtn = await screen.findByText("Retry pricing sync");
+    fireEvent.click(retryBtn);
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalled();
+    });
   });
 });
 

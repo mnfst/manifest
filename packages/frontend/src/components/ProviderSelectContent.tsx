@@ -7,7 +7,6 @@ import {
   type CustomProviderData,
   type RoutingProvider,
 } from '../services/api.js';
-import { isLocalMode } from '../services/local-mode.js';
 import { toast } from '../services/toast-store.js';
 import type { CustomProviderPrefill, ProviderDeepLink } from '../services/routing-params.js';
 import CustomProviderForm from './CustomProviderForm.js';
@@ -57,9 +56,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
   const subscriptionProviders = () => PROVIDERS.filter((p) => p.supportsSubscription);
   const apiKeyProviders = () => {
     const filtered = PROVIDERS.filter((p) => !p.subscriptionOnly);
-    return isLocalMode()
-      ? filtered
-      : [...filtered].sort((a, b) => (a.localOnly ? 1 : 0) - (b.localOnly ? 1 : 0));
+    return [...filtered].sort((a, b) => (a.localOnly ? 1 : 0) - (b.localOnly ? 1 : 0));
   };
 
   const getProviderByAuth = (provId: string, authType: AuthType) =>

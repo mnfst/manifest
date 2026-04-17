@@ -2,8 +2,10 @@ import { NotFoundException } from '@nestjs/common';
 import { ProviderController } from './provider.controller';
 import { ProviderService } from './routing-core/provider.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
+import { TierService } from './routing-core/tier.service';
 import { ModelDiscoveryService } from '../model-discovery/model-discovery.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
+import { PricingSyncService } from '../database/pricing-sync.service';
 import { Agent } from '../entities/agent.entity';
 
 const mockUser = { id: 'user-1' } as never;
@@ -16,6 +18,8 @@ describe('ProviderController', () => {
   let mockDiscoveryService: Record<string, jest.Mock>;
   let mockOllamaSync: Record<string, jest.Mock>;
   let mockResolveAgent: Record<string, jest.Mock>;
+  let mockTierService: Record<string, jest.Mock>;
+  let mockPricingSync: Record<string, jest.Mock>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -35,51 +39,84 @@ describe('ProviderController', () => {
     mockResolveAgent = {
       resolve: jest.fn().mockResolvedValue({ id: TEST_AGENT_ID, name: 'test-agent' } as Agent),
     };
+    mockTierService = {
+      hasRoutableTier: jest.fn().mockResolvedValue(true),
+    };
+    mockPricingSync = {
+      getAll: jest.fn().mockReturnValue(new Map([['model-1', {}]])),
+    };
 
     controller = new ProviderController(
       mockProviderService as unknown as ProviderService,
       mockDiscoveryService as unknown as ModelDiscoveryService,
       mockOllamaSync as unknown as OllamaSyncService,
       mockResolveAgent as unknown as ResolveAgentService,
+      mockTierService as unknown as TierService,
+      mockPricingSync as unknown as PricingSyncService,
     );
   });
 
   /* ── getStatus ── */
 
   describe('getStatus', () => {
-    it('returns enabled true when at least one provider is active', async () => {
+    it('returns enabled true when a provider is active and a tier is routable', async () => {
       mockProviderService.getProviders.mockResolvedValue([
         { id: 'p1', provider: 'openai', is_active: true },
       ]);
+      mockTierService.hasRoutableTier.mockResolvedValue(true);
 
       const result = await controller.getStatus(mockUser, mockAgentName);
-      expect(result).toEqual({ enabled: true });
+      expect(result).toEqual({ enabled: true, reason: null });
     });
 
-    it('returns enabled false when no providers are active', async () => {
+    it('returns no_provider when no providers are active', async () => {
       mockProviderService.getProviders.mockResolvedValue([
         { id: 'p1', provider: 'openai', is_active: false },
       ]);
 
       const result = await controller.getStatus(mockUser, mockAgentName);
-      expect(result).toEqual({ enabled: false });
+      expect(result).toEqual({ enabled: false, reason: 'no_provider' });
+      expect(mockTierService.hasRoutableTier).not.toHaveBeenCalled();
     });
 
-    it('returns enabled false when no providers exist', async () => {
+    it('returns no_provider when no providers exist', async () => {
       mockProviderService.getProviders.mockResolvedValue([]);
 
       const result = await controller.getStatus(mockUser, mockAgentName);
-      expect(result).toEqual({ enabled: false });
+      expect(result).toEqual({ enabled: false, reason: 'no_provider' });
     });
 
-    it('returns enabled true with mixed active/inactive providers', async () => {
+    it('considers mixed active/inactive providers as having an active one', async () => {
       mockProviderService.getProviders.mockResolvedValue([
         { id: 'p1', provider: 'openai', is_active: false },
         { id: 'p2', provider: 'anthropic', is_active: true },
       ]);
+      mockTierService.hasRoutableTier.mockResolvedValue(true);
 
       const result = await controller.getStatus(mockUser, mockAgentName);
-      expect(result).toEqual({ enabled: true });
+      expect(result).toEqual({ enabled: true, reason: null });
+    });
+
+    it('returns no_routable_models when provider is active but no tier resolves', async () => {
+      mockProviderService.getProviders.mockResolvedValue([
+        { id: 'p1', provider: 'openai', is_active: true },
+      ]);
+      mockTierService.hasRoutableTier.mockResolvedValue(false);
+      mockPricingSync.getAll.mockReturnValue(new Map([['gpt-4', {}]]));
+
+      const result = await controller.getStatus(mockUser, mockAgentName);
+      expect(result).toEqual({ enabled: false, reason: 'no_routable_models' });
+    });
+
+    it('returns pricing_cache_empty when tiers are empty and pricing cache is empty', async () => {
+      mockProviderService.getProviders.mockResolvedValue([
+        { id: 'p1', provider: 'openai', is_active: true },
+      ]);
+      mockTierService.hasRoutableTier.mockResolvedValue(false);
+      mockPricingSync.getAll.mockReturnValue(new Map());
+
+      const result = await controller.getStatus(mockUser, mockAgentName);
+      expect(result).toEqual({ enabled: false, reason: 'pricing_cache_empty' });
     });
   });
 

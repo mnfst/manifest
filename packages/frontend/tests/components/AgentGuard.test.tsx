@@ -11,13 +11,6 @@ vi.mock("../../src/services/api.js", () => ({
   getAgents: () => mockGetAgents(),
 }));
 
-const mockIsLocalMode = vi.fn(() => false);
-const mockCheckLocalMode = vi.fn(() => Promise.resolve(false));
-vi.mock("../../src/services/local-mode.js", () => ({
-  isLocalMode: () => mockIsLocalMode(),
-  checkLocalMode: () => mockCheckLocalMode(),
-}));
-
 const mockSetAgentDisplayName = vi.fn();
 vi.mock("../../src/services/agent-display-name.js", () => ({
   setAgentDisplayName: (...args: unknown[]) => mockSetAgentDisplayName(...args),
@@ -48,8 +41,6 @@ import AgentGuard from "../../src/components/AgentGuard";
 describe("AgentGuard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockIsLocalMode.mockReturnValue(false);
-    mockCheckLocalMode.mockResolvedValue(false);
     mockSetAgentDisplayName.mockClear();
     mockIsRecentlyCreated.mockReturnValue(false);
     mockClearRecentAgent.mockClear();
@@ -68,54 +59,6 @@ describe("AgentGuard", () => {
   });
 
   it("renders NotFound inline when agent does not exist", async () => {
-    mockGetAgents.mockResolvedValue({ agents: [{ agent_name: "other-agent" }] });
-    const { container } = render(() => (
-      <AgentGuard>
-        <div data-testid="child">Child</div>
-      </AgentGuard>
-    ));
-    await vi.waitFor(() => {
-      expect(container.textContent).toContain("Page not found");
-    });
-    expect(container.querySelector('[data-testid="child"]')).toBeNull();
-  });
-
-  it("renders nothing while mode is loading", () => {
-    mockCheckLocalMode.mockReturnValue(new Promise(() => {}));
-    const { container } = render(() => (
-      <AgentGuard>
-        <div data-testid="child">Child</div>
-      </AgentGuard>
-    ));
-    expect(container.querySelector('[data-testid="child"]')).toBeNull();
-  });
-
-  it("calls getAgents in cloud mode", async () => {
-    mockGetAgents.mockResolvedValue({ agents: [{ agent_name: "test-agent" }] });
-    render(() => <AgentGuard><div>Child</div></AgentGuard>);
-    await vi.waitFor(() => {
-      expect(mockGetAgents).toHaveBeenCalled();
-    });
-  });
-
-  it("calls getAgents and renders children when agent exists in local mode", async () => {
-    mockIsLocalMode.mockReturnValue(true);
-    mockCheckLocalMode.mockResolvedValue(true);
-    mockGetAgents.mockResolvedValue({ agents: [{ agent_name: "test-agent" }] });
-    render(() => (
-      <AgentGuard>
-        <div data-testid="child">Child content</div>
-      </AgentGuard>
-    ));
-    await vi.waitFor(() => {
-      expect(screen.getByTestId("child")).toBeDefined();
-    });
-    expect(mockGetAgents).toHaveBeenCalled();
-  });
-
-  it("shows NotFound when agent does not exist in local mode", async () => {
-    mockIsLocalMode.mockReturnValue(true);
-    mockCheckLocalMode.mockResolvedValue(true);
     mockGetAgents.mockResolvedValue({ agents: [{ agent_name: "other-agent" }] });
     const { container } = render(() => (
       <AgentGuard>

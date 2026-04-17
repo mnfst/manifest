@@ -14,6 +14,8 @@ import {
   convertAnthropicResponse as anthropicResponseConverter,
   convertAnthropicStreamChunk as anthropicStreamChunkConverter,
   createAnthropicTransformer,
+  type GoogleStreamChunkResult,
+  type ThinkingBlocksCallback,
 } from './provider-client-converters';
 import { ForwardOptions } from './proxy-types';
 
@@ -56,6 +58,7 @@ export class ProviderClient {
       customEndpoint,
       authType,
       signatureLookup,
+      thinkingLookup,
     } = opts;
 
     let endpoint: ProviderEndpoint;
@@ -112,6 +115,7 @@ export class ProviderClient {
       requestBody = toAnthropicRequest(body, bareModel, {
         injectCacheControl: !isSubscription,
         injectSubscriptionIdentity: isSubscription,
+        thinkingLookup,
       });
       requestBody.model = bareModel;
       if (stream) requestBody.stream = true;
@@ -123,6 +127,24 @@ export class ProviderClient {
       url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`;
       headers = endpoint.buildHeaders(apiKey, authType);
       const sanitized = sanitizeOpenAiBody(body, endpointKey, model);
+
+      // Inject stream_options.include_usage so providers always send token
+      // usage in streaming responses — needed for both DB logging and
+      // downstream clients (e.g. OpenClaw context management).
+      if (
+        stream &&
+        (endpointKey === 'openai' ||
+          endpointKey === 'openrouter' ||
+          endpointKey === 'ollama' ||
+          endpointKey === 'ollama-cloud')
+      ) {
+        const existing =
+          typeof sanitized.stream_options === 'object' && sanitized.stream_options !== null
+            ? (sanitized.stream_options as Record<string, unknown>)
+            : {};
+        sanitized.stream_options = { ...existing, include_usage: true };
+      }
+
       requestBody = { ...sanitized, model: bareModel, stream };
 
       // Inject cache_control for OpenRouter requests targeting Anthropic models
@@ -176,7 +198,7 @@ export class ProviderClient {
   }
 
   /** Convert a Google SSE chunk to OpenAI SSE format. */
-  convertGoogleStreamChunk(chunk: string, model: string): string | null {
+  convertGoogleStreamChunk(chunk: string, model: string): GoogleStreamChunkResult {
     return googleStreamChunkConverter(chunk, model);
   }
 
@@ -194,8 +216,11 @@ export class ProviderClient {
   }
 
   /** Create a stateful Anthropic stream transformer that tracks usage across events. */
-  createAnthropicStreamTransformer(model: string): (chunk: string) => string | null {
-    return createAnthropicTransformer(model);
+  createAnthropicStreamTransformer(
+    model: string,
+    onThinkingBlocks?: ThinkingBlocksCallback,
+  ): (chunk: string) => string | null {
+    return createAnthropicTransformer(model, onThinkingBlocks);
   }
 
   /** Collect a ChatGPT SSE stream into a non-streaming OpenAI response. */

@@ -13,6 +13,8 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    outputs:
+      should_publish: ${{ steps.detect.outputs.should_publish }}
     steps:
       - name: Generate GitHub App token
         id: app-token
@@ -21,102 +23,51 @@ jobs:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-          registry-url: 'https://registry.npmjs.org'
       - run: npm ci
       - run: npm run build
       - uses: changesets/action@v1
         id: changesets
         with:
           createGithubReleases: false
-          publish: npm run release
           version: npm run version-packages
           title: "chore: version packages"
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
-
-      - name: Create GitHub Releases
-        if: steps.changesets.outputs.published == 'true'
+      - name: Detect version bump
+        id: detect
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
+          BEFORE_SHA: ${{ github.event.before }}
         run: |
-          echo "$PUBLISHED_PACKAGES" | jq -c '.[]' | while read -r PKG; do
-            NAME=$(echo "$PKG" | jq -r '.name')
-            VERSION=$(echo "$PKG" | jq -r '.version')
-            TAG="${NAME}@${VERSION}"
-
-            # Determine changelog path based on package name
-            if [ "$NAME" = "manifest" ]; then
-              CHANGELOG_PATH="packages/openclaw-plugins/manifest/CHANGELOG.md"
-            elif [ "$NAME" = "manifest-model-router" ]; then
-              CHANGELOG_PATH="packages/openclaw-plugins/manifest-model-router/CHANGELOG.md"
-            else
-              echo "Unknown package $NAME — skipping release"
-              continue
-            fi
-
-            git tag "$TAG" 2>/dev/null || true
-            git push origin "$TAG" 2>/dev/null || true
-
-            BODY=""
-            if [ -f "$CHANGELOG_PATH" ]; then
-              BODY=$(awk -v ver="## ${VERSION}" \
-                '$0 == ver { found=1; next } found && /^## / { exit } found { print }' \
-                "$CHANGELOG_PATH")
-
-              BODY=$(echo "$BODY" | sed \
-                -e 's/^### Major Changes$/### 💥 Major Changes/' \
-                -e 's/^### Minor Changes$/### ✨ Minor Changes/' \
-                -e 's/^### Patch Changes$/### 🐛 Patch Changes/')
-            fi
-
-            gh release create "$TAG" --title "${NAME} v${VERSION}" --notes "${BODY:-No changelog}" --verify-tag
-            echo "Created release $TAG"
-          done
-
-      - name: Publish to ClawHub
-        if: steps.changesets.outputs.published == 'true'
-        env:
-          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
-          CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}
-        run: |
-          npx clawhub@latest login --token "$CLAWHUB_TOKEN" --no-browser || { echo "ClawHub login failed (non-fatal)"; exit 0; }
-
-          HAS_PROVIDER=$(echo "$PUBLISHED_PACKAGES" | jq '[.[] | select(.name == "manifest-model-router")] | length')
-          HAS_MANIFEST=$(echo "$PUBLISHED_PACKAGES" | jq '[.[] | select(.name == "manifest")] | length')
-          PROVIDER_VERSION=$(echo "$PUBLISHED_PACKAGES" | jq -r '.[] | select(.name == "manifest-model-router") | .version // empty')
-          MANIFEST_VERSION=$(echo "$PUBLISHED_PACKAGES" | jq -r '.[] | select(.name == "manifest") | .version // empty')
-
-          # Publish manifest-model-router plugin to ClawHub
-          if [ "$HAS_PROVIDER" -gt 0 ]; then
-            echo "Publishing manifest-model-router@${PROVIDER_VERSION} to ClawHub..."
-            npx clawhub@latest package publish packages/openclaw-plugins/manifest-model-router \
-              --source-repo mnfst/manifest \
-              --source-commit "$GITHUB_SHA" || echo "ClawHub plugin publish failed (non-fatal)"
+          # Read CURR from HEAD (not the working tree) because
+          # changesets/action runs `npm run version-packages` in place and
+          # may have mutated packages/manifest/package.json on disk.
+          CURR=$(git show HEAD:packages/manifest/package.json 2>/dev/null | jq -r .version 2>/dev/null || echo "")
+          # Compare against the push base so multi-commit pushes are handled
+          # correctly. On first push to a branch, BEFORE_SHA is all zeros.
+          if [ -n "$BEFORE_SHA" ] && [ "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
+            PREV=$(git show "${BEFORE_SHA}:packages/manifest/package.json" 2>/dev/null | jq -r .version 2>/dev/null || echo "")
+          else
+            PREV=""
+          fi
+          if [ -n "$PREV" ] && [ -n "$CURR" ] && [ "$PREV" != "$CURR" ]; then
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+            echo "Version bumped: $PREV -> $CURR"
+          else
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"
+            echo "No version change (PREV=${PREV:-<none>} CURR=${CURR:-<none>})"
           fi
 
-          # Skill publish disabled: the "manifest" ClawHub skill was deleted to
-          # unblock `openclaw plugins install manifest` on OpenClaw 2026.3.22+
-          # (ClawHub skills shadow npm plugins in the new resolver).
-          # Re-enable once `clawhub package publish` supports plugins in the CLI,
-          # or once OpenClaw fixes the skill-shadows-plugin resolution bug
-          # (openclaw/openclaw#52831, openclaw/openclaw#53241).
-
-      - name: Publish Docker image
-        if: steps.changesets.outputs.published == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
-        run: |
-          MANIFEST_VERSION=$(echo "$PUBLISHED_PACKAGES" | jq -r '.[] | select(.name == "manifest") | .version // empty')
-          if [ -n "$MANIFEST_VERSION" ]; then
-            echo "Triggering Docker build for manifest@${MANIFEST_VERSION}..."
-            gh workflow run docker.yml -f version="$MANIFEST_VERSION"
-          fi
+  publish-docker:
+    needs: release
+    if: needs.release.outputs.should_publish == 'true'
+    uses: ./.github/workflows/docker.yml
+    secrets: inherit
+    permissions:
+      contents: read
+      id-token: write

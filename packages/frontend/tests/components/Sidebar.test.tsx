@@ -23,10 +23,6 @@ vi.mock("../../src/services/routing.js", () => ({
   agentPath: (name: string, sub: string) => name ? `/agents/${name}${sub}` : "/",
 }));
 
-vi.mock("../../src/services/local-mode.js", () => ({
-  isLocalMode: () => false,
-}));
-
 import Sidebar from "../../src/components/Sidebar";
 
 describe("Sidebar with agent", () => {

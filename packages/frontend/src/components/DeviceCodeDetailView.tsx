@@ -15,7 +15,7 @@ import {
   type MinimaxOAuthRegion,
 } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
-import { CopyButton } from './SetupStepInstall.js';
+import CopyButton from './CopyButton.js';
 
 interface Props {
   provDef: ProviderDef;

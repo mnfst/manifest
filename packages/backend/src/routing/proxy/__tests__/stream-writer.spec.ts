@@ -484,6 +484,64 @@ describe('pipeStream', () => {
     });
   });
 
+  it('should capture usage from leftover passthrough buffer', async () => {
+    const { res } = mockResponse();
+    const usagePayload = JSON.stringify({
+      choices: [],
+      usage: { prompt_tokens: 31, completion_tokens: 10, cache_read_tokens: 5 },
+    });
+    // Final chunk with usage does NOT end with \n\n — stays in passthroughBuffer
+    const stream = createReadableStream([
+      `data: ${JSON.stringify({ choices: [{ delta: { content: 'hi' } }] })}\n\n`,
+      `data: ${usagePayload}`,
+    ]);
+
+    const usage = await pipeStream(stream, res as never);
+
+    expect(usage).toEqual({
+      prompt_tokens: 31,
+      completion_tokens: 10,
+      cache_read_tokens: 5,
+      cache_creation_tokens: undefined,
+    });
+  });
+
+  it('should handle non-JSON leftover in passthrough buffer', async () => {
+    const { res } = mockResponse();
+    const stream = createReadableStream([
+      `data: ${JSON.stringify({ choices: [{ delta: { content: 'hi' } }] })}\n\n`,
+      'data: not-valid-json',
+    ]);
+
+    const usage = await pipeStream(stream, res as never);
+
+    expect(usage).toBeNull();
+  });
+
+  it('should skip [DONE] in passthrough flush buffer', async () => {
+    const { res } = mockResponse();
+    const stream = createReadableStream([
+      `data: ${JSON.stringify({ choices: [{ delta: { content: 'hi' } }] })}\n\n`,
+      'data: [DONE]',
+    ]);
+
+    const usage = await pipeStream(stream, res as never);
+
+    expect(usage).toBeNull();
+  });
+
+  it('should not flush passthrough buffer when whitespace-only', async () => {
+    const { res } = mockResponse();
+    const stream = createReadableStream([
+      `data: ${JSON.stringify({ choices: [{ delta: { content: 'hi' } }] })}\n\n`,
+      '   \n  ',
+    ]);
+
+    const usage = await pipeStream(stream, res as never);
+
+    expect(usage).toBeNull();
+  });
+
   it('should capture usage from leftover buffer in flush section with transform', async () => {
     const { res } = mockResponse();
     const usagePayload = JSON.stringify({

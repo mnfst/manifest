@@ -1,4 +1,5 @@
 import { ProviderEndpoint } from './provider-endpoints';
+import type { ThinkingBlock } from './thinking-block-cache';
 import { CallerAttribution } from './caller-classifier';
 
 /**
@@ -7,6 +8,13 @@ import { CallerAttribution } from './caller-classifier';
  * signature or null.
  */
 export type SignatureLookup = (toolCallId: string) => string | null;
+
+/**
+ * Optional lookup to re-inject cached Anthropic thinking blocks that were
+ * stripped by the client. Called with the first tool_use id from the
+ * assistant turn; returns the ordered block sequence or null.
+ */
+export type ThinkingBlockLookup = (firstToolUseId: string) => ThinkingBlock[] | null;
 
 export interface OpenAIMessage {
   role: string;
@@ -33,6 +41,8 @@ export interface ForwardOptions {
   authType?: string;
   /** Lookup for re-injecting cached thought_signature values (Google only). */
   signatureLookup?: SignatureLookup;
+  /** Lookup for re-injecting cached thinking blocks (Anthropic only). */
+  thinkingLookup?: ThinkingBlockLookup;
 }
 
 /** Options for ProxyService.proxyRequest. */

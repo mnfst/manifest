@@ -1,0 +1,102 @@
+/* ── Syntax highlighting (highlight.js custom theme) ── */
+/* Uses existing CSS custom properties for theme-aware colors */
+
+.hljs {
+  color: hsl(var(--foreground));
+}
+
+/* Keywords: from, import, def, class, return, const, let, await, export */
+.hljs-keyword {
+  color: hsl(210 12% 50%);
+  font-weight: 500;
+}
+
+/* Strings: "hello", 'world', `template` */
+.hljs-string,
+.hljs-template-tag {
+  color: #2430f0;
+}
+
+/* Functions and method calls */
+.hljs-title.function_,
+.hljs-title.class_ {
+  color: hsl(var(--chart-4));
+}
+
+/* Numbers, booleans, null */
+.hljs-number,
+.hljs-literal {
+  color: hsl(var(--chart-5));
+}
+
+/* Built-in types and objects */
+.hljs-built_in,
+.hljs-type {
+  color: hsl(var(--chart-2));
+}
+
+/* Object properties and attributes */
+.hljs-attr,
+.hljs-property {
+  color: hsl(var(--chart-4));
+}
+
+/* Comments */
+.hljs-comment {
+  color: hsl(var(--muted-foreground));
+  font-style: italic;
+}
+
+/* Variables, parameters */
+.hljs-variable,
+.hljs-params {
+  color: hsl(var(--foreground));
+}
+
+/* Punctuation, operators */
+.hljs-punctuation,
+.hljs-operator {
+  color: hsl(var(--muted-foreground));
+}
+
+/* Shell/bash specific */
+.hljs-meta {
+  color: hsl(210 12% 50%);
+}
+
+/* Regex */
+.hljs-regexp {
+  color: hsl(var(--chart-5));
+}
+
+/* Symbols and special */
+.hljs-symbol {
+  color: #2430f0;
+}
+
+/* Section headers in shell scripts */
+.hljs-section {
+  color: hsl(var(--chart-4));
+  font-weight: 600;
+}
+
+/* Deletion and addition (diff) */
+.hljs-deletion {
+  color: hsl(var(--destructive));
+}
+
+.hljs-addition {
+  color: hsl(var(--success));
+}
+
+/* Dark mode adjustments */
+.dark .hljs-keyword,
+.dark .hljs-meta {
+  color: hsl(210 20% 65%);
+}
+
+.dark .hljs-string,
+.dark .hljs-template-tag,
+.dark .hljs-symbol {
+  color: #6b73ff;
+}

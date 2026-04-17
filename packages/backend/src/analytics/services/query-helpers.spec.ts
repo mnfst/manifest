@@ -1,4 +1,11 @@
-import { computeTrend, downsample, formatTimestamp, addTenantFilter } from './query-helpers';
+import {
+  computeTrend,
+  downsample,
+  formatTimestamp,
+  addTenantFilter,
+  selectMessageRowColumns,
+  MESSAGE_ROW_SELECT_ALIASES,
+} from './query-helpers';
 import { SelectQueryBuilder } from 'typeorm';
 
 describe('computeTrend', () => {
@@ -168,5 +175,73 @@ describe('addTenantFilter', () => {
     addTenantFilter(qb, 'user-123', 'my-agent', 'tenant-456');
 
     expect(mockAndWhere).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('selectMessageRowColumns', () => {
+  function makeMockQb() {
+    const selectCalls: Array<[string, string]> = [];
+    const addSelectCalls: Array<[string, string]> = [];
+    const qb = {
+      select: jest.fn().mockImplementation((expr: string, alias: string) => {
+        selectCalls.push([expr, alias]);
+        return qb;
+      }),
+      addSelect: jest.fn().mockImplementation((expr: string, alias: string) => {
+        addSelectCalls.push([expr, alias]);
+        return qb;
+      }),
+    };
+    return { qb: qb as unknown as SelectQueryBuilder<never>, selectCalls, addSelectCalls };
+  }
+
+  it('projects exactly the columns declared in MESSAGE_ROW_SELECT_ALIASES', () => {
+    const { qb, selectCalls, addSelectCalls } = makeMockQb();
+    selectMessageRowColumns(qb, 'CAST(at.cost_usd AS FLOAT)');
+
+    expect(selectCalls).toHaveLength(1);
+    expect(addSelectCalls).toHaveLength(MESSAGE_ROW_SELECT_ALIASES.length - 1);
+
+    const emittedAliases = [selectCalls[0]![1], ...addSelectCalls.map(([, alias]) => alias)];
+    expect(emittedAliases).toEqual([...MESSAGE_ROW_SELECT_ALIASES]);
+  });
+
+  it('uses the caller-supplied cost expression so dialect handling stays at the call site', () => {
+    const { qb, addSelectCalls } = makeMockQb();
+    const costExpr = 'SOME_DIALECT_SPECIFIC_CAST(at.cost_usd)';
+    selectMessageRowColumns(qb, costExpr);
+
+    const costCall = addSelectCalls.find(([, alias]) => alias === 'cost');
+    expect(costCall).toEqual([costExpr, 'cost']);
+  });
+
+  it('computes total_tokens from input_tokens + output_tokens', () => {
+    const { qb, addSelectCalls } = makeMockQb();
+    selectMessageRowColumns(qb, 'cost');
+
+    const totalCall = addSelectCalls.find(([, alias]) => alias === 'total_tokens');
+    expect(totalCall).toEqual(['at.input_tokens + at.output_tokens', 'total_tokens']);
+  });
+
+  it('aliases display_name from at.model', () => {
+    const { qb, addSelectCalls } = makeMockQb();
+    selectMessageRowColumns(qb, 'cost');
+
+    const displayNameCall = addSelectCalls.find(([, alias]) => alias === 'display_name');
+    expect(displayNameCall).toEqual(['at.model', 'display_name']);
+  });
+
+  it('projects specificity_category so the frontend badge can render it', () => {
+    const { qb, addSelectCalls } = makeMockQb();
+    selectMessageRowColumns(qb, 'cost');
+
+    const specCall = addSelectCalls.find(([, alias]) => alias === 'specificity_category');
+    expect(specCall).toEqual(['at.specificity_category', 'specificity_category']);
+  });
+
+  it('returns the query builder for chaining', () => {
+    const { qb } = makeMockQb();
+    const result = selectMessageRowColumns(qb, 'cost');
+    expect(result).toBe(qb);
   });
 });

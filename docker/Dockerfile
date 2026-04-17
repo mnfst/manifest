@@ -6,8 +6,6 @@ COPY package.json package-lock.json turbo.json ./
 COPY packages/shared/package.json packages/shared/
 COPY packages/frontend/package.json packages/frontend/
 COPY packages/backend/package.json packages/backend/
-COPY packages/openclaw-plugins/manifest/package.json packages/openclaw-plugins/manifest/
-COPY packages/openclaw-plugins/manifest-model-router/package.json packages/openclaw-plugins/manifest-model-router/
 RUN --mount=type=cache,target=/root/.npm npm ci
 
 # Stage 2: Build the application
@@ -24,16 +22,10 @@ COPY package.json package-lock.json ./
 COPY packages/shared/package.json packages/shared/
 COPY packages/frontend/package.json packages/frontend/
 COPY packages/backend/package.json packages/backend/
-COPY packages/openclaw-plugins/manifest/package.json packages/openclaw-plugins/manifest/
-COPY packages/openclaw-plugins/manifest-model-router/package.json packages/openclaw-plugins/manifest-model-router/
 RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev --ignore-scripts && \
     rm -rf node_modules/typescript node_modules/@types \
            node_modules/ts-node node_modules/acorn \
-           node_modules/create-require node_modules/v8-compile-cache-lib \
-           node_modules/sql.js/dist/sql-asm* \
-           node_modules/sql.js/dist/worker.* \
-           node_modules/sql.js/dist/sql-wasm-browser* \
-           node_modules/sql.js/dist/sql-wasm-debug* && \
+           node_modules/create-require node_modules/v8-compile-cache-lib && \
     find . -path "*/node_modules/vitest" -type d -exec rm -rf {} + 2>/dev/null; \
     find . -path "*/node_modules/vite-node" -type d -exec rm -rf {} + 2>/dev/null; \
     find . -path "*/node_modules/rollup" -type d -exec rm -rf {} + 2>/dev/null; \
@@ -73,11 +65,9 @@ COPY --from=build /app/packages/frontend/dist packages/frontend/dist
 COPY packages/shared/package.json packages/shared/
 COPY packages/backend/package.json packages/backend/
 
-RUN mkdir -p /home/node/.openclaw/manifest && chown -R node:node /home/node/.openclaw
-
 EXPOSE 3001
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \
   CMD wget -qO- http://127.0.0.1:3001/api/v1/health || exit 1
 
 USER node

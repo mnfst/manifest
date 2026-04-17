@@ -18,6 +18,7 @@ import Select from '../components/Select.jsx';
 import SetupModal from '../components/SetupModal.jsx';
 import { DETAILED_COLUMNS, type MessageRow } from '../components/message-table-types.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
+import { agentPlatform, agentCategory } from '../services/agent-platform-store.js';
 import {
   getCustomProviders,
   getMessages,
@@ -25,7 +26,6 @@ import {
   type CustomProviderData,
 } from '../services/api.js';
 import { createCursorPagination } from '../services/cursor-pagination.js';
-import { isLocalMode } from '../services/local-mode.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
 import { PROVIDERS } from '../services/providers.js';
 import { pingCount } from '../services/sse.js';
@@ -47,7 +47,7 @@ const MessageLog: Component = () => {
   const [costMax, setCostMax] = createSignal('');
   const [setupOpen, setSetupOpen] = createSignal(false);
   const [setupCompleted] = createSignal(
-    !!localStorage.getItem(`setup_completed_${params.agentName}`) || isLocalMode() === true,
+    !!localStorage.getItem(`setup_completed_${params.agentName}`),
   );
 
   const [customProviders] = createResource(
@@ -400,6 +400,8 @@ const MessageLog: Component = () => {
       <SetupModal
         open={setupOpen()}
         agentName={decodeURIComponent(params.agentName)}
+        agentPlatform={agentPlatform()}
+        agentCategory={agentCategory()}
         onClose={() => setSetupOpen(false)}
       />
     </div>

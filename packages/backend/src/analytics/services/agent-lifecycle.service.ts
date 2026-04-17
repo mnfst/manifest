@@ -25,6 +25,36 @@ export class AgentLifecycleService {
     await this.agentRepo.delete(agent.id);
   }
 
+  private async findAgentByUser(userId: string, agentName: string) {
+    return this.agentRepo
+      .createQueryBuilder('a')
+      .leftJoin('a.tenant', 't')
+      .where('t.name = :userId', { userId })
+      .andWhere('a.name = :agentName', { agentName })
+      .getOne();
+  }
+
+  async updateAgentType(
+    userId: string,
+    agentName: string,
+    fields: { agent_category?: string; agent_platform?: string },
+  ): Promise<void> {
+    const agent = await this.findAgentByUser(userId, agentName);
+    if (!agent) throw new NotFoundException(`Agent "${agentName}" not found`);
+
+    const update: Record<string, unknown> = {};
+    if (fields.agent_category !== undefined) update['agent_category'] = fields.agent_category;
+    if (fields.agent_platform !== undefined) update['agent_platform'] = fields.agent_platform;
+    if (Object.keys(update).length === 0) return;
+
+    await this.agentRepo
+      .createQueryBuilder()
+      .update('agents')
+      .set(update)
+      .where('id = :id', { id: agent.id })
+      .execute();
+  }
+
   async renameAgent(
     userId: string,
     currentName: string,

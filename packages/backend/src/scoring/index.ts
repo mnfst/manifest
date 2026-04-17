@@ -190,7 +190,7 @@ export function scoreRequest(
 
   const hasTools = tools && tools.length > 0;
   const hasMomentum = momentum?.recentTiers && momentum.recentTiers.length > 0;
-  if (lastUserText.length > 0 && lastUserText.length < 50 && !hasTools) {
+  if (lastUserText.length > 0 && lastUserText.length < 50) {
     const lastMatches = trie.scan(lastUserText);
     const hasSimpleIndicator = lastMatches.some((m) => m.dimension === 'simpleIndicators');
     const hasComplexSignal = lastMatches.some(

@@ -27,12 +27,12 @@ Manifest is a monorepo managed with [Turborepo](https://turbo.build/) and npm wo
 
 ```
 packages/
+├── shared/               # Shared TypeScript types and constants
 ├── backend/              # NestJS API server (TypeORM, PostgreSQL, Better Auth)
-├── frontend/             # SolidJS single-page app (Vite, uPlot)
-└── openclaw-plugins/
-    ├── manifest/          # npm: `manifest` — full self-hosted plugin (embedded server + dashboard)
-    └── manifest-model-router/ # npm: `manifest-model-router` — cloud-only provider plugin
+└── frontend/             # SolidJS single-page app (Vite, uPlot)
 ```
+
+Self-hosting is supported via the [Docker image](https://hub.docker.com/r/manifestdotbuild/manifest).
 
 ## Getting Started
 
@@ -76,7 +76,11 @@ The frontend runs on `http://localhost:3000` and proxies API requests to the bac
 
 4. With `SEED_DATA=true`, you can log in with `admin@manifest.build` / `manifest`.
 
-## Testing with OpenClaw
+## Testing Routing with a Personal AI Agent
+
+Manifest is a smart router for any personal AI agent that speaks OpenAI-compatible HTTP. The list of supported agents lives in `packages/shared/src/agent-type.ts` — OpenClaw, Hermes, OpenAI SDK, Vercel AI SDK, LangChain, and cURL are all first-class. The dashboard's "Connect Agent" flow generates the right setup snippet for whichever platform you pick.
+
+This section walks through **OpenClaw** because it's the deepest integration and the easiest to wire up end-to-end. The same backend also handles all other agents — just follow the dashboard instructions after creating the agent, or grab the snippet shown by the setup modal.
 
 To test routing against your local backend, add Manifest as a model provider in your OpenClaw config:
 
@@ -98,7 +102,7 @@ openclaw config set agents.defaults.model.primary manifest/auto
 openclaw gateway restart
 ```
 
-No plugin needed for this. The backend runs standalone and OpenClaw talks to it as a regular model provider.
+The backend runs standalone and OpenClaw talks to it as a regular OpenAI-compatible provider — no plugin needed. For other agents (OpenAI SDK, Vercel AI SDK, LangChain, cURL, …) follow the corresponding tab in the dashboard's "Connect Agent" modal — the underlying endpoint and auth are identical.
 
 **When to use this:**
 
@@ -106,52 +110,17 @@ No plugin needed for this. The backend runs standalone and OpenClaw talks to it 
 - Debugging the proxy or message recording
 - Working on the dashboard UI with live data
 
-## Development Skills
-
-Development skills live in `.claude/skills/` and are **auto-discovered** by Claude Code for all contributors -- no manual install needed. You can also run the bundled scripts directly from the repo root.
-
-### Standalone Usage
-
-The scripts work without Claude Code. Run them directly from the repo root:
-
-```bash
-bash .claude/skills/manifest-status/scripts/manifest_status.sh
-bash .claude/skills/setup-manifest-plugin/scripts/setup_manifest.sh 38238 --mode local
-bash .claude/skills/uninstall-manifest-plugin/scripts/uninstall_manifest.sh
-```
-
-Requires `jq` and the `openclaw` CLI.
-
-### Available Skills
-
-| Skill | Command | What it does |
-| --- | --- | --- |
-| `manifest-status` | `/manifest-status` | Prints a diagnostic table of the current plugin configuration (mode, endpoint, keys, default model) |
-| `setup-manifest-plugin` | `/setup-manifest-plugin` | Configures the OpenClaw gateway to route through a local Manifest backend. Accepts a port and optional mode (`local`/`cloud`). Restarts the gateway. |
-| `uninstall-manifest-plugin` | `/uninstall-manifest-plugin` | Removes the Manifest plugin, cleans up auth profiles and local data, detects available providers, and sets the best default model. |
-| `ensure-manifest-docs-consistency` | `/ensure-manifest-docs-consistency` | Audits all Manifest documentation sources for consistency against the codebase. Produces a dissonance report. |
-
-### Typical Workflow
-
-1. Start the backend in local mode on a specific port (e.g., `38238`)
-2. Run `/setup-manifest-plugin` with that port to configure the gateway
-3. Use `/manifest-status` to verify the configuration
-4. When done, run `/uninstall-manifest-plugin` to reset to direct provider access
-
 ## Available Scripts
 
 | Command | Description |
 | --- | --- |
-| `npm run dev` | Start frontend + plugin in watch mode (start backend separately) |
-| `npm run build` | Production build (frontend then backend via Turborepo) |
+| `npm run dev` | Start frontend in watch mode (start backend separately) |
+| `npm run build` | Production build (shared, backend, frontend via Turborepo) |
 | `npm start` | Start the production server |
 | `npm test --workspace=packages/backend` | Run backend unit tests (Jest) |
 | `npm run test:e2e --workspace=packages/backend` | Run backend e2e tests (Jest + Supertest) |
 | `npm test --workspace=packages/frontend` | Run frontend tests (Vitest) |
-| `npm test --workspace=packages/openclaw-plugins/manifest` | Run manifest plugin tests (Jest) |
-| `npm test --workspace=packages/openclaw-plugins/manifest-model-router` | Run provider plugin tests (Jest) |
-| `npm run build:plugin` | Build the manifest (local) plugin |
-| `npm run build:provider` | Build the manifest-model-router (cloud) plugin |
+| `npm test --workspace=packages/shared` | Run shared tests (Jest) |
 
 ## Working with Individual Packages
 
@@ -169,33 +138,10 @@ Requires `jq` and the `openclaw` CLI.
 - **Tests**: Vitest
 - **Key directories**: `pages/` (route components), `components/` (shared UI), `services/` (API client, auth client)
 
-### Full Plugin (`packages/openclaw-plugins/manifest`)
+### Shared (`packages/shared`)
 
-- **Bundler**: esbuild (zero runtime dependencies)
-- **Build**: `npx tsx build.ts` or `npm run build:plugin` from the root
-- **Watch mode**: `cd packages/openclaw-plugins/manifest && npx tsx watch build.ts`
-
-The full plugin includes an embedded NestJS server, SQLite database, and dashboard. It starts the server automatically on gateway boot.
-
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `port` | `number` | `2099` | Embedded server port |
-| `host` | `string` | `127.0.0.1` | Bind address |
-
-Settings are defined in `openclaw.plugin.json`. The API key is auto-generated and stored in `~/.openclaw/manifest/config.json`.
-
-### Provider Plugin (`packages/openclaw-plugins/manifest-model-router`)
-
-- **npm**: `manifest-model-router` — lightweight cloud-only provider plugin (~22KB)
-- **Bundler**: esbuild (zero runtime dependencies)
-- Registers Manifest as a model provider with interactive auth onboarding. No embedded server or dashboard.
-
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `devMode` | `boolean` | auto | Skips API key validation. Auto-detected when endpoint is a loopback address. |
-| `endpoint` | `string` | `https://app.manifest.build` | Manifest server URL. |
-
-Settings are parsed in `src/config.ts` and validated in `validateConfig`. The JSON schema in `openclaw.plugin.json` is the source of truth.
+- TypeScript types, constants, and helpers used by both the backend and the frontend.
+- Built with `tsc` — both CJS and ESM outputs are produced so it can be consumed from either package.
 
 ## Making Changes
 
@@ -204,22 +150,26 @@ Settings are parsed in `src/config.ts` and validated in `validateConfig`. The JS
 1. Create a branch from `main` for your change
 2. Make your changes in the relevant package(s)
 3. Write or update tests as needed
-4. If your change affects a publishable package (`manifest`), add a changeset:
+4. Add a changeset if your change should appear in the release notes:
 
 ```bash
 npx changeset
+# → select "manifest"
+# → choose patch / minor / major
+# → write a one-line summary
 ```
 
-Follow the prompts to select the affected packages and bump type (patch / minor / major). This creates a file in `.changeset/` — commit it with your code. See [Changesets](#changesets) below for details.
+Always target `manifest` — it's the canonical release version for the whole project, and it's the only package changesets will accept. `manifest-backend`, `manifest-frontend`, and `manifest-shared` are ignored regardless of what you pick. Commit the generated `.changeset/*.md` alongside your code. Changesets are optional for internal/tooling changes; skip this step if the change doesn't need a CHANGELOG entry.
+
+See [`packages/manifest/README.md`](packages/manifest/README.md) for why this package exists.
 
 5. Run the test suite to make sure everything passes:
 
 ```bash
+npm test --workspace=packages/shared
 npm test --workspace=packages/backend
 npm run test:e2e --workspace=packages/backend
 npm test --workspace=packages/frontend
-npm test --workspace=packages/openclaw-plugins/manifest
-npm test --workspace=packages/openclaw-plugins/manifest-model-router
 ```
 
 6. Verify the production build works:
@@ -230,38 +180,15 @@ npm run build
 
 7. Open a pull request against `main`
 
-### Changesets
+### Cutting a Docker release
 
-This project uses [Changesets](https://github.com/changesets/changesets) for version management and npm publishing. When you change a publishable package, you need to include a changeset describing the change.
+Manifest ships as the Docker image at [`manifestdotbuild/manifest`](https://hub.docker.com/r/manifestdotbuild/manifest). Releases are manual:
 
-**Which packages need changesets?**
+1. After merging PRs with changesets, a `chore: version packages` PR will be open on `main` — merge it to land the version bump in `packages/manifest/package.json` and update `packages/manifest/CHANGELOG.md`.
+2. Go to **GitHub Actions → Docker → Run workflow**, leave the `version` input blank, click Run.
+3. The workflow reads the version from `packages/manifest/package.json` and pushes `manifestdotbuild/manifest:{version}` (plus `{major}.{minor}`, `{major}`, and a `sha-<short>` rollback tag).
 
-| Package | npm name | Needs changeset? |
-| --- | --- | --- |
-| `packages/openclaw-plugins/manifest` | `manifest` | Yes |
-| `packages/openclaw-plugins/manifest-model-router` | `manifest-model-router` | Yes — only when its own code changes |
-| `packages/backend` | — | Yes — bump `manifest` (backend compiles into the full plugin) |
-| `packages/frontend` | — | Yes — bump `manifest` (frontend compiles into the full plugin) |
-
-**Adding a changeset:**
-
-```bash
-npx changeset
-```
-
-Select the affected packages, choose the semver bump type, and write a short summary. This creates a markdown file in `.changeset/` — commit it alongside your code changes.
-
-**What happens after merge:**
-
-1. The release workflow detects changesets and opens a "Version Packages" PR
-2. That PR bumps versions in `package.json` and updates `CHANGELOG.md`
-3. When the version PR is merged, the workflow publishes to npm automatically
-
-**If your change doesn't need a release** (e.g., docs, CI, internal tooling):
-
-```bash
-npx changeset add --empty
-```
+If you need to retag an older commit or publish a version that doesn't match the current `package.json`, pass a semver string in the `version` input and it overrides the auto-detected value.
 
 ### Commit Messages
 
@@ -271,7 +198,6 @@ Write clear, concise commit messages that explain **why** the change was made. U
 
 - Keep PRs focused on a single concern
 - Include a short summary of what changed and why
-- If you changed a publishable package, include a changeset (CI will warn if missing)
 - Reference any related issues
 
 ## Architecture Notes

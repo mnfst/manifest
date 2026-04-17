@@ -9,11 +9,6 @@ vi.mock("@solidjs/router", () => ({
   A: (props: any) => <a href={props.href} style={props.style} class={props.class}>{props.children}</a>,
 }));
 
-let mockIsLocalMode: boolean | null = false;
-vi.mock("../../src/services/local-mode.js", () => ({
-  isLocalMode: () => mockIsLocalMode,
-}));
-
 vi.mock("@solidjs/meta", () => ({
   Title: (props: any) => <title>{props.children}</title>,
   Meta: (props: any) => <meta name={props.name ?? ""} content={props.content ?? ""} />,
@@ -102,7 +97,6 @@ describe("MessageLog", () => {
     vi.clearAllMocks();
     localStorage.clear();
     mockAgentName = "test-agent";
-    mockIsLocalMode = false;
     mockGetCustomProviders.mockResolvedValue([]);
     mockGetRoutingStatus.mockResolvedValue({ enabled: false });
   });
@@ -560,50 +554,6 @@ describe("MessageLog", () => {
     await vi.waitFor(() => {
       expect(container.textContent).toContain("Set up agent");
       expect(container.textContent).not.toContain("Enable routing");
-    });
-  });
-
-  describe("local mode", () => {
-    it("should show Enable routing in local mode when no providers", async () => {
-      mockAgentName = "local-agent";
-      mockIsLocalMode = true;
-      mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
-      const { container } = render(() => <MessageLog />);
-      await vi.waitFor(() => {
-        expect(container.textContent).toContain("Enable routing");
-      });
-    });
-
-    it("should not show Set up agent button for any agent in local mode", async () => {
-      mockAgentName = "other-agent";
-      mockIsLocalMode = true;
-      mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
-      const { container } = render(() => <MessageLog />);
-      await vi.waitFor(() => {
-        expect(container.textContent).not.toContain("Set up agent");
-      });
-    });
-
-    it("should show message table in local mode when providers are enabled", async () => {
-      mockAgentName = "other-agent";
-      mockIsLocalMode = true;
-      mockGetRoutingStatus.mockResolvedValue({ enabled: true });
-      mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
-      const { container } = render(() => <MessageLog />);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.waiting-banner')).not.toBeNull();
-        expect(container.textContent).toContain("0 total");
-      });
-    });
-
-    it("should show Set up agent button for local-agent when not in local mode", async () => {
-      mockAgentName = "local-agent";
-      mockIsLocalMode = false;
-      mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
-      const { container } = render(() => <MessageLog />);
-      await vi.waitFor(() => {
-        expect(container.textContent).toContain("No messages yet");
-      });
     });
   });
 

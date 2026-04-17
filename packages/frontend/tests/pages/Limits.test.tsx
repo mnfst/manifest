@@ -12,13 +12,7 @@ vi.mock("@solidjs/meta", () => ({
 }));
 
 let mockRules: any[] = [];
-let mockEmailProvider: any = null;
 let mockRoutingStatus = { enabled: false };
-let mockIsLocalMode = false;
-
-vi.mock("../../src/services/local-mode.js", () => ({
-  isLocalMode: () => mockIsLocalMode,
-}));
 
 vi.mock("../../src/services/api.js", () => ({
   getNotificationRules: vi.fn(() => Promise.resolve(mockRules)),
@@ -26,17 +20,11 @@ vi.mock("../../src/services/api.js", () => ({
   createNotificationRule: vi.fn(() => Promise.resolve({})),
   updateNotificationRule: vi.fn(() => Promise.resolve({})),
   deleteNotificationRule: vi.fn(() => Promise.resolve({})),
-  getEmailProvider: vi.fn(() => Promise.resolve(mockEmailProvider)),
-  removeEmailProvider: vi.fn(() => Promise.resolve({})),
   getRoutingStatus: vi.fn(() => Promise.resolve(mockRoutingStatus)),
 }));
 
 vi.mock("../../src/services/toast-store.js", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
-}));
-
-vi.mock("../../src/components/EmailProviderSetup.js", () => ({
-  default: (props: any) => <div data-testid="email-setup">EmailProviderSetup</div>,
 }));
 
 vi.mock("../../src/components/LimitRuleModal.js", () => ({
@@ -49,31 +37,6 @@ vi.mock("../../src/components/LimitRuleModal.js", () => ({
       <button data-testid="mock-close" onClick={() => props.onClose()}>
         MockClose
       </button>
-    </div>
-  ),
-}));
-
-vi.mock("../../src/components/ProviderBanner.js", () => ({
-  default: (props: any) => (
-    <div data-testid="provider-banner" data-provider={props.config?.provider}>
-      ProviderBanner
-      <button data-testid="mock-edit" onClick={() => props.onEdit()}>Edit</button>
-      <button data-testid="mock-remove" onClick={() => props.onRemove()}>Remove</button>
-    </div>
-  ),
-}));
-
-vi.mock("../../src/components/EmailProviderModal.js", () => ({
-  default: (props: any) => (
-    <div
-      data-testid="email-provider-modal"
-      data-open={props.open}
-      data-provider={props.initialProvider}
-      data-key-prefix={props.existingKeyPrefix ?? ""}
-      data-domain={props.existingDomain ?? ""}
-      data-notification-email={props.existingNotificationEmail ?? ""}
-    >
-      EmailProviderModal
     </div>
   ),
 }));
@@ -95,9 +58,7 @@ import Limits from "../../src/pages/Limits";
 describe("Limits page", () => {
   beforeEach(() => {
     mockRules = [];
-    mockEmailProvider = null;
     mockRoutingStatus = { enabled: false };
-    mockIsLocalMode = false;
   });
 
   it("renders page title", () => {
@@ -146,9 +107,8 @@ describe("Limits page", () => {
     });
   });
 
-  it("shows routing CTA banner when routing disabled in cloud mode", async () => {
+  it("shows routing CTA banner when routing disabled", async () => {
     mockRoutingStatus = { enabled: false };
-    mockIsLocalMode = false;
 
     const { container } = render(() => <Limits />);
 
@@ -167,43 +127,12 @@ describe("Limits page", () => {
     });
   });
 
-  it("hides routing CTA banner in local mode", () => {
-    mockRoutingStatus = { enabled: false };
-    mockIsLocalMode = true;
-
-    const { container } = render(() => <Limits />);
-    expect(container.textContent).not.toContain("Enable routing to set hard limits");
-  });
-
-  it("shows cloud email info in cloud mode", () => {
-    mockIsLocalMode = false;
+  it("shows cloud email info", () => {
     render(() => <Limits />);
     expect(screen.getByTestId("cloud-email-info")).toBeDefined();
   });
 
-  it("shows email provider setup in local mode", async () => {
-    mockIsLocalMode = true;
-    render(() => <Limits />);
-    await waitFor(() => {
-      expect(screen.getByTestId("email-setup")).toBeDefined();
-    });
-  });
-
-  it("hides email provider setup in cloud mode", () => {
-    mockIsLocalMode = false;
-    const { container } = render(() => <Limits />);
-    expect(container.querySelector('[data-testid="email-setup"]')).toBeNull();
-    expect(container.querySelector('[data-testid="provider-banner"]')).toBeNull();
-  });
-
-  it("hides cloud email info in local mode", () => {
-    mockIsLocalMode = true;
-    const { container } = render(() => <Limits />);
-    expect(container.querySelector('[data-testid="cloud-email-info"]')).toBeNull();
-  });
-
   it("passes session email to cloud email info", () => {
-    mockIsLocalMode = false;
     const { container } = render(() => <Limits />);
     expect(container.textContent).toContain("user@example.com");
   });
@@ -322,17 +251,6 @@ describe("Limits page", () => {
     const { container } = render(() => <Limits />);
     await vi.waitFor(() => {
       expect(container.querySelector(".notif-table__row--disabled")).toBeNull();
-    });
-  });
-
-  it("shows provider banner when email provider is configured in local mode", async () => {
-    mockEmailProvider = { provider: "resend", domain: null, keyPrefix: "re_", is_active: true };
-    mockIsLocalMode = true;
-
-    render(() => <Limits />);
-
-    await vi.waitFor(() => {
-      expect(screen.getByTestId("provider-banner")).toBeDefined();
     });
   });
 
@@ -473,150 +391,6 @@ describe("Limits page", () => {
     });
   });
 
-  // --- Remove provider confirmation modal tests ---
-
-  it("opens remove provider modal on ProviderBanner remove click", async () => {
-    mockEmailProvider = { provider: "resend", domain: null, keyPrefix: "re_", is_active: true };
-    mockIsLocalMode = true;
-
-    render(() => <Limits />);
-
-    await vi.waitFor(() => {
-      expect(screen.getByTestId("provider-banner")).toBeDefined();
-    });
-
-    fireEvent.click(screen.getByTestId("mock-remove"));
-
-    await vi.waitFor(() => {
-      const titles = document.querySelectorAll(".modal-card__title");
-      const removeTitle = Array.from(titles).find((t) => t.textContent === "Remove provider");
-      expect(removeTitle).toBeDefined();
-    });
-  });
-
-  it("shows email warning in remove provider modal when notify rules exist", async () => {
-    mockEmailProvider = { provider: "resend", domain: null, keyPrefix: "re_", is_active: true };
-    mockIsLocalMode = true;
-    mockRules = [{
-      id: "r1", agent_name: "test-agent", metric_type: "tokens",
-      threshold: 50000, period: "day", action: "notify",
-      is_active: true, trigger_count: 0, created_at: "2026-01-01",
-    }];
-
-    render(() => <Limits />);
-
-    await vi.waitFor(() => {
-      expect(screen.getByTestId("mock-remove")).toBeDefined();
-    });
-
-    fireEvent.click(screen.getByTestId("mock-remove"));
-
-    await vi.waitFor(() => {
-      const descs = document.querySelectorAll(".modal-card__desc");
-      const removeDesc = Array.from(descs).find((d) => d.textContent?.includes("disconnect your email provider"));
-      expect(removeDesc?.textContent).toContain("Email alerts won't be sent");
-    });
-  });
-
-  it("shows email warning in remove provider modal for action 'both' rules", async () => {
-    mockEmailProvider = { provider: "resend", domain: null, keyPrefix: "re_", is_active: true };
-    mockIsLocalMode = true;
-    mockRules = [{
-      id: "r1", agent_name: "test-agent", metric_type: "tokens",
-      threshold: 50000, period: "day", action: "both",
-      is_active: true, trigger_count: 0, created_at: "2026-01-01",
-    }];
-
-    render(() => <Limits />);
-
-    await vi.waitFor(() => {
-      expect(screen.getByTestId("mock-remove")).toBeDefined();
-    });
-
-    fireEvent.click(screen.getByTestId("mock-remove"));
-
-    await vi.waitFor(() => {
-      const descs = document.querySelectorAll(".modal-card__desc");
-      const removeDesc = Array.from(descs).find((d) => d.textContent?.includes("disconnect your email provider"));
-      expect(removeDesc?.textContent).toContain("Email alerts won't be sent");
-    });
-  });
-
-  it("does not show email warning in remove provider modal when only block rules exist", async () => {
-    mockEmailProvider = { provider: "resend", domain: null, keyPrefix: "re_", is_active: true };
-    mockIsLocalMode = true;
-    mockRules = [{
-      id: "r1", agent_name: "test-agent", metric_type: "tokens",
-      threshold: 50000, period: "day", action: "block",
-      is_active: true, trigger_count: 0, created_at: "2026-01-01",
-    }];
-
-    render(() => <Limits />);
-
-    await vi.waitFor(() => {
-      expect(screen.getByTestId("mock-remove")).toBeDefined();
-    });
-
-    fireEvent.click(screen.getByTestId("mock-remove"));
-
-    await vi.waitFor(() => {
-      const descs = document.querySelectorAll(".modal-card__desc");
-      const removeDesc = Array.from(descs).find((d) => d.textContent?.includes("disconnect your email provider"));
-      expect(removeDesc?.textContent).not.toContain("Email alerts won't be sent");
-    });
-  });
-
-  it("does not show email warning in remove provider modal when no rules exist", async () => {
-    mockEmailProvider = { provider: "resend", domain: null, keyPrefix: "re_", is_active: true };
-    mockIsLocalMode = true;
-    mockRules = [];
-
-    render(() => <Limits />);
-
-    await vi.waitFor(() => {
-      expect(screen.getByTestId("mock-remove")).toBeDefined();
-    });
-
-    fireEvent.click(screen.getByTestId("mock-remove"));
-
-    await vi.waitFor(() => {
-      const descs = document.querySelectorAll(".modal-card__desc");
-      const removeDesc = Array.from(descs).find((d) => d.textContent?.includes("disconnect your email provider"));
-      expect(removeDesc?.textContent).not.toContain("Email alerts won't be sent");
-    });
-  });
-
-  it("closes remove provider modal on cancel", async () => {
-    mockEmailProvider = { provider: "resend", domain: null, keyPrefix: "re_", is_active: true };
-    mockIsLocalMode = true;
-
-    render(() => <Limits />);
-
-    await vi.waitFor(() => {
-      expect(screen.getByTestId("mock-remove")).toBeDefined();
-    });
-
-    fireEvent.click(screen.getByTestId("mock-remove"));
-
-    await vi.waitFor(() => {
-      const titles = document.querySelectorAll(".modal-card__title");
-      const removeTitle = Array.from(titles).find((t) => t.textContent === "Remove provider");
-      expect(removeTitle).toBeDefined();
-    });
-
-    // Click Cancel
-    const cancelBtn = Array.from(document.querySelectorAll(".btn--ghost")).find(
-      (b) => b.textContent === "Cancel",
-    ) as HTMLButtonElement;
-    fireEvent.click(cancelBtn);
-
-    await vi.waitFor(() => {
-      const titles = document.querySelectorAll(".modal-card__title");
-      const removeTitle = Array.from(titles).find((t) => t.textContent === "Remove provider");
-      expect(removeTitle).toBeUndefined();
-    });
-  });
-
   // --- Delete rule modal content tests ---
 
   it("shows 'token' (singular) in delete modal for tokens metric type", async () => {
@@ -663,39 +437,6 @@ describe("Limits page", () => {
       const desc = document.querySelector(".modal-card__desc") as HTMLElement;
       expect(desc.textContent).toContain("cost");
       expect(desc.textContent).toContain("$25.50");
-    });
-  });
-
-  it("passes provider config to EmailProviderModal when edit is clicked", async () => {
-    mockEmailProvider = {
-      provider: "mailgun",
-      domain: "mg.example.com",
-      keyPrefix: "key-abc",
-      notificationEmail: "alerts@example.com",
-      is_active: true,
-    };
-    mockIsLocalMode = true;
-
-    render(() => <Limits />);
-
-    await vi.waitFor(() => {
-      expect(screen.getByTestId("provider-banner")).toBeDefined();
-    });
-
-    // Verify ProviderBanner receives config
-    const banner = screen.getByTestId("provider-banner");
-    expect(banner.getAttribute("data-provider")).toBe("mailgun");
-
-    // Click Edit to open EmailProviderModal
-    fireEvent.click(screen.getByTestId("mock-edit"));
-
-    await vi.waitFor(() => {
-      const modal = screen.getByTestId("email-provider-modal");
-      expect(modal.getAttribute("data-open")).toBe("true");
-      expect(modal.getAttribute("data-provider")).toBe("mailgun");
-      expect(modal.getAttribute("data-key-prefix")).toBe("key-abc");
-      expect(modal.getAttribute("data-domain")).toBe("mg.example.com");
-      expect(modal.getAttribute("data-notification-email")).toBe("alerts@example.com");
     });
   });
 
@@ -785,23 +526,6 @@ describe("Limits page", () => {
     await vi.waitFor(() => {
       const modal = screen.getByTestId("limit-modal");
       expect(modal.getAttribute("data-open")).toBe("false");
-    });
-  });
-
-  it("shows no-provider warning tag for email rules without provider in local mode", async () => {
-    mockRules = [{
-      id: "r1", agent_name: "test-agent", metric_type: "tokens",
-      threshold: 50000, period: "day", action: "notify",
-      is_active: true, trigger_count: 0, created_at: "2026-01-01",
-    }];
-    mockIsLocalMode = true;
-    mockEmailProvider = null;
-
-    const { container } = render(() => <Limits />);
-
-    await vi.waitFor(() => {
-      expect(container.querySelector(".limit-warn-tag")).not.toBeNull();
-      expect(container.textContent).toContain("No provider");
     });
   });
 

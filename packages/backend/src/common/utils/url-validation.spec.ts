@@ -126,19 +126,15 @@ describe('isCloudMetadataIp', () => {
 
 describe('validatePublicUrl', () => {
   const origNodeEnv = process.env['NODE_ENV'];
-  const origManifestMode = process.env['MANIFEST_MODE'];
 
   beforeEach(() => {
     mockLookup.mockReset();
     // Force non-test mode for validation to run
     process.env['NODE_ENV'] = 'production';
-    delete process.env['MANIFEST_MODE'];
   });
 
   afterEach(() => {
     process.env['NODE_ENV'] = origNodeEnv;
-    if (origManifestMode) process.env['MANIFEST_MODE'] = origManifestMode;
-    else delete process.env['MANIFEST_MODE'];
   });
 
   it('skips validation in test mode', async () => {
@@ -156,32 +152,6 @@ describe('validatePublicUrl', () => {
     } finally {
       delete process.env['SKIP_SSRF_VALIDATION'];
     }
-  });
-
-  it('allows private IPs in local mode', async () => {
-    process.env['MANIFEST_MODE'] = 'local';
-    await expect(validatePublicUrl('http://127.0.0.1:8080')).resolves.toBeUndefined();
-  });
-
-  it('blocks cloud metadata IPs in local mode', async () => {
-    process.env['MANIFEST_MODE'] = 'local';
-    await expect(validatePublicUrl('http://169.254.169.254/latest/meta-data')).rejects.toThrow(
-      'cloud metadata',
-    );
-  });
-
-  it('blocks hostnames resolving to metadata IPs in local mode', async () => {
-    process.env['MANIFEST_MODE'] = 'local';
-    mockLookup.mockResolvedValue([{ address: '169.254.169.254', family: 4 }] as never);
-    await expect(validatePublicUrl('http://metadata.internal/latest')).rejects.toThrow(
-      'cloud metadata',
-    );
-  });
-
-  it('allows hostnames with DNS failure in local mode', async () => {
-    process.env['MANIFEST_MODE'] = 'local';
-    mockLookup.mockRejectedValue(new Error('ENOTFOUND'));
-    await expect(validatePublicUrl('http://local-service:8080')).resolves.toBeUndefined();
   });
 
   it('accepts public URL that resolves to public IP', async () => {
