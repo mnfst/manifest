@@ -71,11 +71,15 @@ All routing data (tokens, costs, model, duration) is recorded automatically. You
 
 |              | Manifest                                     | OpenRouter                                          |
 | ------------ | -------------------------------------------- | --------------------------------------------------- |
+| Audience | Consumers, Prosumers, devs, AI personal agents, Apps | Enterprise, B2B API volume |
 | Architecture | Local. Your requests, your providers         | Cloud proxy. All traffic goes through their servers |
 | Cost         | Free                                         | 5% fee on every API call                            |
 | Source code  | MIT, fully open                              | Proprietary                                         |
 | Data privacy | Metadata only (cloud) or fully local         | Prompts and responses pass through a third party    |
 | Transparency | Open scoring. You see why a model was chosen | No visibility into routing decisions                |
+| Control | Define your model per tier with up to 5 fallbacks each, from complexity tiers (Simple → Reasoning) to specialized ones (Coding, Vision). | Flat fallback list per request, or opaque auto-routing. No user-defined tiers. |
+| Custom providers | Add custom providers and models | Supported providers only, no arbitrary endpoints |
+| Subscription support | Route through flat-rate subscriptions you already pay for (MiniMax $20/mo, etc.) | Pay-per-use billing |
 
 ## Supported providers
 
