@@ -1740,6 +1740,8 @@ describe('ModelDiscoveryService', () => {
       const result = buildSubscriptionFallbackModels(null as never, 'minimax');
 
       expect(result.map((m) => m.id)).toEqual([
+        'MiniMax-M2.7',
+        'MiniMax-M2.7-highspeed',
         'MiniMax-M2.5',
         'MiniMax-M2.5-highspeed',
         'MiniMax-M2.1',
