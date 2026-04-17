@@ -71,7 +71,7 @@ All routing data (tokens, costs, model, duration) is recorded automatically. You
 
 |              | Manifest                                     | OpenRouter                                          |
 | ------------ | -------------------------------------------- | --------------------------------------------------- |
-| Audience | Consumers, Prosumers, devs, AI personal agents, Apps | Enterprise, B2B API volume |
+| Built for | Personal AI agents and consumer apps | Enterprise API traffic |
 | Architecture | Local. Your requests, your providers         | Cloud proxy. All traffic goes through their servers |
 | Cost         | Free                                         | 5% fee on every API call                            |
 | Source code  | MIT, fully open                              | Proprietary                                         |
