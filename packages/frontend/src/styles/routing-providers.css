@@ -305,9 +305,23 @@
 }
 
 .provider-detail__name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: var(--font-size-md);
   font-weight: 600;
   color: hsl(var(--foreground));
+}
+
+.provider-detail__beta-badge {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border-radius: var(--radius);
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
 }
 
 /* Anthropic credits link */
@@ -514,11 +528,9 @@
 .provider-detail__signin-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   text-decoration: none;
   margin-bottom: 16px;
-  padding: 8px 14px;
-  min-height: 44px;
 }
 
 .provider-detail__signin-btn svg {
@@ -899,4 +911,16 @@
   font-size: var(--font-size-sm);
   color: hsl(var(--muted-foreground));
   margin-top: 16px;
+}
+
+.provider-icon--opencode-go-dark {
+  display: none;
+}
+
+.dark .provider-icon--opencode-go-light {
+  display: none;
+}
+
+.dark .provider-icon--opencode-go-dark {
+  display: inline;
 }

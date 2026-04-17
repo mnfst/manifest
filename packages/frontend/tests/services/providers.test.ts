@@ -365,8 +365,8 @@ describe("PROVIDERS", () => {
     expect(og.subscriptionSignInUrl).toBe("https://opencode.ai/auth");
     expect(og.subscriptionSignInLabel).toBe("Sign in to OpenCode Go");
     expect(og.subscriptionSignInHint).toMatch(/Sign in to OpenCode Go/);
-    expect(og.subscriptionSignInHint).toMatch(/beta/);
     expect(og.subscriptionSignInHint).not.toMatch(/Zen/i);
+    expect(og.beta).toBe(true);
   });
 
   it("OpenCode Go has no hardcoded model list (catalog is dynamic)", () => {

@@ -40,6 +40,8 @@ export interface ProviderDef {
   subscriptionSignInLabel?: string;
   /** Custom instruction text shown above the sign-in button (overrides the default). */
   subscriptionSignInHint?: string;
+  /** Show a beta badge next to the provider name. */
+  beta?: boolean;
 }
 
 export const PROVIDERS: ProviderDef[] = [
@@ -231,9 +233,9 @@ export const PROVIDERS: ProviderDef[] = [
     subscriptionKeyPlaceholder: 'Paste your OpenCode API key',
     subscriptionSignInUrl: 'https://opencode.ai/auth',
     subscriptionSignInLabel: 'Sign in to OpenCode Go',
-    subscriptionSignInHint:
-      'Sign in to OpenCode Go, copy your API key, then paste it below. OpenCode Go is currently in beta.',
+    subscriptionSignInHint: 'Sign in to OpenCode Go to get your API key.',
     subscriptionOnly: true,
+    beta: true,
     // Models are discovered dynamically from the OpenCode Go docs catalog.
     models: [],
   },

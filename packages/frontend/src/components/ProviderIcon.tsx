@@ -208,22 +208,32 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
     /* ── OpenCode Go ──────────────────────────────── */
     case 'opencode-go':
       return (
-        <svg
-          style={s}
-          viewBox="0 0 512 512"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <rect width="512" height="512" fill="#131010" />
-          <path d="M320 224V352H192V224H320Z" fill="#5A5858" />
-          <path
-            fill-rule="evenodd"
-            clip-rule="evenodd"
-            d="M384 416H128V96H384V416ZM320 160H192V352H320V160Z"
-            fill="white"
-          />
-        </svg>
+        <>
+          {/* Light mode logo (dark frame) */}
+          <svg
+            class="provider-icon--opencode-go provider-icon--opencode-go-light"
+            style={s}
+            viewBox="0 0 240 300"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <path d="M180 240H60V120H180V240Z" fill="#CFCECD" />
+            <path d="M180 60H60V240H180V60ZM240 300H0V0H240V300Z" fill="#211E1E" />
+          </svg>
+          {/* Dark mode logo (light frame) */}
+          <svg
+            class="provider-icon--opencode-go provider-icon--opencode-go-dark"
+            style={s}
+            viewBox="0 0 240 300"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <path d="M180 240H60V120H180V240Z" fill="#4B4646" />
+            <path d="M180 60H60V240H180V60ZM240 300H0V0H240V300Z" fill="#F1ECEC" />
+          </svg>
+        </>
       );
 
     default:

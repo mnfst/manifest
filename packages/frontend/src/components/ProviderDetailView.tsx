@@ -174,7 +174,12 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
           )}
         </span>
         <div class="provider-detail__title-group">
-          <div class="provider-detail__name">{provDef.name}</div>
+          <div class="provider-detail__name">
+            {provDef.name}
+            <Show when={provDef.beta}>
+              <span class="provider-detail__beta-badge">beta</span>
+            </Show>
+          </div>
         </div>
         <Show when={props.provId === 'anthropic'}>
           <AnthropicCreditsLink />
@@ -188,7 +193,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
             `Sign in to your ${provDef.name} account to get your API key, then paste it below.`}
         </p>
         <a
-          class="btn btn--outline provider-detail__signin-btn"
+          class="btn btn--primary btn--sm provider-detail__signin-btn"
           href={provDef.subscriptionSignInUrl}
           target="_blank"
           rel="noopener noreferrer"
