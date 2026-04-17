@@ -63,6 +63,40 @@ jobs:
             echo "No version change (PREV=${PREV:-<none>} CURR=${CURR:-<none>})"
           fi
 
+  github-release:
+    needs: release
+    if: needs.release.outputs.should_publish == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(jq -r .version packages/manifest/package.json)
+          TAG="manifest@${VERSION}"
+
+          # Extract changelog section for this version
+          BODY=$(awk -v ver="## ${VERSION}" \
+            '$0 == ver { found=1; next } found && /^## / { exit } found { print }' \
+            packages/manifest/CHANGELOG.md)
+
+          # Add emoji headers
+          BODY=$(echo "$BODY" | sed \
+            -e 's/^### Major Changes$/### 💥 Major Changes/' \
+            -e 's/^### Minor Changes$/### ✨ Minor Changes/' \
+            -e 's/^### Patch Changes$/### 🐛 Patch Changes/')
+
+          git tag "$TAG" 2>/dev/null || true
+          git push origin "$TAG" 2>/dev/null || true
+
+          gh release create "$TAG" \
+            --title "manifest v${VERSION}" \
+            --notes "${BODY:-No changelog}" \
+            --verify-tag
+
   publish-docker:
     needs: release
     if: needs.release.outputs.should_publish == 'true'
