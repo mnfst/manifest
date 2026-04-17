@@ -8,6 +8,7 @@ import {
   For,
   on,
   onCleanup,
+  onMount,
   Show,
   type Component,
 } from 'solid-js';
@@ -31,6 +32,7 @@ import {
 import { createCursorPagination } from '../services/cursor-pagination.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
 import { PROVIDERS } from '../services/providers.js';
+import { checkIsLocalMode } from '../services/setup-status.js';
 import { pingCount } from '../services/sse.js';
 import '../styles/overview.css';
 
@@ -45,6 +47,12 @@ const MessageLog: Component = () => {
   const params = useParams<{ agentName: string }>();
   const navigate = useNavigate();
   preloadModelDisplayNames();
+  const [isLocal, setIsLocal] = createSignal(false);
+  onMount(() => {
+    checkIsLocalMode().then(setIsLocal);
+  });
+  const columns = () =>
+    isLocal() ? DETAILED_COLUMNS.filter((c) => c !== 'feedback') : DETAILED_COLUMNS;
   const [providerFilter, setProviderFilter] = createSignal('');
   const [costMin, setCostMin] = createSignal('');
   const [costMax, setCostMax] = createSignal('');
@@ -430,14 +438,16 @@ const MessageLog: Component = () => {
               </div>
               <div class="data-table-scroll">
                 <MessageTable
-                  items={applyFeedbackOverrides(data()?.items ?? [])}
-                  columns={DETAILED_COLUMNS}
+                  items={
+                    isLocal() ? (data()?.items ?? []) : applyFeedbackOverrides(data()?.items ?? [])
+                  }
+                  columns={columns()}
                   agentName={params.agentName}
                   customProviderName={customProviderName}
                   onFallbackErrorClick={scrollToFallbackSuccess}
-                  onFeedbackLike={handleFeedbackLike}
-                  onFeedbackDislike={handleFeedbackDislike}
-                  onFeedbackClear={handleFeedbackClear}
+                  onFeedbackLike={isLocal() ? undefined : handleFeedbackLike}
+                  onFeedbackDislike={isLocal() ? undefined : handleFeedbackDislike}
+                  onFeedbackClear={isLocal() ? undefined : handleFeedbackClear}
                   rowIdPrefix="msg-"
                   showHeaderTooltips
                   expandable
@@ -465,11 +475,13 @@ const MessageLog: Component = () => {
         onClose={() => setSetupOpen(false)}
       />
 
-      <FeedbackModal
-        open={feedbackModalOpen()}
-        onClose={() => setFeedbackModalOpen(false)}
-        onSubmit={handleFeedbackSubmit}
-      />
+      <Show when={!isLocal()}>
+        <FeedbackModal
+          open={feedbackModalOpen()}
+          onClose={() => setFeedbackModalOpen(false)}
+          onSubmit={handleFeedbackSubmit}
+        />
+      </Show>
     </div>
   );
 };

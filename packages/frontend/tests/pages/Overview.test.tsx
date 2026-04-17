@@ -45,6 +45,11 @@ vi.mock("../../src/services/formatters.js", () => ({
   customProviderColor: vi.fn(() => '#6366f1'),
 }));
 
+const mockCheckIsLocalMode = vi.fn(() => Promise.resolve(false));
+vi.mock("../../src/services/setup-status.js", () => ({
+  checkIsLocalMode: () => mockCheckIsLocalMode(),
+}));
+
 vi.mock("../../src/components/CostChart.jsx", () => ({
   default: () => <div data-testid="cost-chart" />,
 }));
@@ -862,6 +867,18 @@ describe("Overview", () => {
       const submitBtn = container.querySelector('[data-testid="feedback-submit"]') as HTMLElement;
       fireEvent.click(submitBtn);
       expect(mockSetMessageFeedback).toHaveBeenCalledWith("msg-12345678", { rating: "dislike", tags: ["Too slow"], details: "test" });
+    });
+
+    it("hides feedback column and modal in local mode", async () => {
+      mockCheckIsLocalMode.mockResolvedValue(true);
+      mockGetOverview.mockResolvedValue(overviewData);
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        expect(container.querySelector(".data-table")).not.toBeNull();
+      });
+      expect(container.querySelector(".feedback-btn")).toBeNull();
+      expect(container.querySelector('[data-testid="feedback-modal"]')).toBeNull();
+      mockCheckIsLocalMode.mockResolvedValue(false);
     });
   });
 });

@@ -48,6 +48,11 @@ vi.mock("../../src/services/formatters.js", () => ({
   customProviderColor: vi.fn(() => '#6366f1'),
 }));
 
+const mockCheckIsLocalMode = vi.fn(() => Promise.resolve(false));
+vi.mock("../../src/services/setup-status.js", () => ({
+  checkIsLocalMode: () => mockCheckIsLocalMode(),
+}));
+
 vi.mock("../../src/components/SetupModal.jsx", () => ({
   default: (props: any) => (
     <div data-testid="setup-modal" data-open={props.open ? "true" : "false"} data-agent={props.agentName ?? ""}>
@@ -943,6 +948,18 @@ describe("MessageLog", () => {
       fireEvent.click(closeBtn);
       const modal = container.querySelector('[data-testid="feedback-modal"]');
       expect(modal?.getAttribute("data-open")).toBe("false");
+    });
+
+    it("hides feedback column and modal in local mode", async () => {
+      mockCheckIsLocalMode.mockResolvedValue(true);
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.querySelector(".data-table")).not.toBeNull();
+      });
+      expect(container.querySelector(".feedback-btn")).toBeNull();
+      expect(container.querySelector('[data-testid="feedback-modal"]')).toBeNull();
+      mockCheckIsLocalMode.mockResolvedValue(false);
     });
   });
 });

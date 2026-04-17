@@ -5,6 +5,7 @@ import {
   createMemo,
   createResource,
   createSignal,
+  onMount,
   Show,
   type Component,
 } from 'solid-js';
@@ -32,6 +33,7 @@ import {
 } from '../services/api.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
 import { isRecentlyCreated } from '../services/recent-agents.js';
+import { checkIsLocalMode } from '../services/setup-status.js';
 import { pingCount } from '../services/sse.js';
 import '../styles/overview.css';
 
@@ -79,6 +81,12 @@ const Overview: Component = () => {
   const location = useLocation<{ newApiKey?: string }>();
   const navigate = useNavigate();
   preloadModelDisplayNames();
+  const [isLocal, setIsLocal] = createSignal(false);
+  onMount(() => {
+    checkIsLocalMode().then(setIsLocal);
+  });
+  const columns = () =>
+    isLocal() ? COMPACT_COLUMNS.filter((c) => c !== 'feedback') : COMPACT_COLUMNS;
   const RANGE_STORAGE_KEY = 'manifest_chart_range';
   const VALID_RANGES = new Set(['24h', '7d', '30d']);
   const savedRange = localStorage.getItem(RANGE_STORAGE_KEY);
@@ -349,13 +357,17 @@ const Overview: Component = () => {
                       </A>
                     </div>
                     <MessageTable
-                      items={applyFeedbackOverrides(d().recent_activity?.slice(0, 5) ?? [])}
-                      columns={COMPACT_COLUMNS}
+                      items={
+                        isLocal()
+                          ? (d().recent_activity?.slice(0, 5) ?? [])
+                          : applyFeedbackOverrides(d().recent_activity?.slice(0, 5) ?? [])
+                      }
+                      columns={columns()}
                       agentName={params.agentName}
                       customProviderName={customProviderName}
-                      onFeedbackLike={handleFeedbackLike}
-                      onFeedbackDislike={handleFeedbackDislike}
-                      onFeedbackClear={handleFeedbackClear}
+                      onFeedbackLike={isLocal() ? undefined : handleFeedbackLike}
+                      onFeedbackDislike={isLocal() ? undefined : handleFeedbackDislike}
+                      onFeedbackClear={isLocal() ? undefined : handleFeedbackClear}
                     />
                   </div>
 
@@ -391,11 +403,13 @@ const Overview: Component = () => {
         }}
       />
 
-      <FeedbackModal
-        open={feedbackModalOpen()}
-        onClose={() => setFeedbackModalOpen(false)}
-        onSubmit={handleFeedbackSubmit}
-      />
+      <Show when={!isLocal()}>
+        <FeedbackModal
+          open={feedbackModalOpen()}
+          onClose={() => setFeedbackModalOpen(false)}
+          onSubmit={handleFeedbackSubmit}
+        />
+      </Show>
     </div>
   );
 };
