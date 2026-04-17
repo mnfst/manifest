@@ -139,6 +139,7 @@
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
   min-height: 0;
+  overflow: hidden;
 }
 
 .dark .routing-card {
@@ -261,6 +262,7 @@
 .routing-card__model-chip {
   display: flex;
   flex-direction: column;
+  min-width: 0;
   background: #f7f5ed;
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
@@ -275,6 +277,7 @@
 .routing-card__chip-main {
   display: flex;
   align-items: center;
+  min-width: 0;
   gap: 6px;
   padding: 6px 8px;
 }
@@ -393,7 +396,7 @@
 
 .routing-card__override {
   display: inline-flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
   flex: 1;
   min-width: 0;
