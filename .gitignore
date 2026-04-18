@@ -26,3 +26,5 @@ coverage/
 .windsurf/
 /backend/
 .gstack/
+scripts/.env.verify
+scripts/verify-free-model-ids.sh

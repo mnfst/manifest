@@ -6,3 +6,4 @@ export * from './api/routing.js';
 export * from './api/specificity.js';
 export * from './api/notifications.js';
 export * from './api/oauth.js';
+export * from './api/free-models.js';

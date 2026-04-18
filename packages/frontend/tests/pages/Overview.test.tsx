@@ -406,14 +406,13 @@ describe("Overview", () => {
       ],
     };
 
-    it("renders custom provider icon letter in recent messages", async () => {
+    it("renders custom provider icon in recent messages", async () => {
       mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Groq" }]);
       mockGetOverview.mockResolvedValue(customOverview);
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
-        const letter = container.querySelector(".provider-card__logo-letter");
-        expect(letter).not.toBeNull();
-        expect(letter!.textContent).toBe("G");
+        const img = container.querySelector('img[alt="Groq"]');
+        expect(img).not.toBeNull();
       });
     });
 
@@ -432,9 +431,9 @@ describe("Overview", () => {
       mockGetOverview.mockResolvedValue(customOverview);
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
-        const letters = container.querySelectorAll(".provider-card__logo-letter");
+        const imgs = container.querySelectorAll('img[alt="Groq"]');
         // At least one in recent messages and one in cost by model
-        expect(letters.length).toBeGreaterThanOrEqual(2);
+        expect(imgs.length).toBeGreaterThanOrEqual(2);
       });
     });
 

@@ -667,6 +667,53 @@
   filter: invert(1);
 }
 
+.free-models-logo-dark {
+  display: none;
+}
+
+.dark .free-models-logo-light {
+  display: none;
+}
+
+.dark .free-models-logo-dark {
+  display: block;
+}
+
+.free-models-disabled-btn {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  padding: 6px 16px;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  border-radius: var(--radius);
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--muted-foreground));
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.free-models-disabled-btn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 0;
+  padding: 4px 10px;
+  border-radius: var(--radius);
+  background: hsl(var(--foreground));
+  color: hsl(var(--background));
+  font-size: var(--font-size-xs);
+  font-weight: 400;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms ease;
+}
+
+.free-models-disabled-btn:hover::after {
+  opacity: 1;
+}
+
 @media (max-width: 640px) {
   .free-models-base-url-row {
     flex-wrap: wrap;

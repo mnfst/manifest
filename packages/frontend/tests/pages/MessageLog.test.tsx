@@ -585,14 +585,13 @@ describe("MessageLog", () => {
       providers: ["custom"],
     };
 
-    it("renders custom provider icon letter in message rows", async () => {
+    it("renders custom provider icon in message rows", async () => {
       mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Groq" }]);
       mockGetMessages.mockResolvedValue(customMessagesData);
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        const letter = container.querySelector(".provider-card__logo-letter");
-        expect(letter).not.toBeNull();
-        expect(letter!.textContent).toBe("G");
+        const img = container.querySelector('img[alt="Groq"]');
+        expect(img).not.toBeNull();
       });
     });
 

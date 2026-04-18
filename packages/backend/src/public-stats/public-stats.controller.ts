@@ -7,6 +7,10 @@ import {
   FreeModel,
   ProviderDailyTokens,
 } from './public-stats.service';
+import {
+  FreeModelsService,
+  FreeProviderDto,
+} from '../free-models/free-models.service';
 
 interface UsageResponse {
   total_messages: number;
@@ -25,6 +29,12 @@ interface ProviderTokensResponse {
   cached_at: string;
 }
 
+interface FreeProvidersResponse {
+  providers: FreeProviderDto[];
+  last_synced_at: string | null;
+  cached_at: string;
+}
+
 let cachedUsage: UsageResponse | null = null;
 let usageTimestamp = 0;
 let usageInflight: Promise<UsageResponse> | null = null;
@@ -37,11 +47,17 @@ let cachedProviderTokens: ProviderTokensResponse | null = null;
 let providerTokensTimestamp = 0;
 let providerTokensInflight: Promise<ProviderTokensResponse> | null = null;
 
+let cachedFreeProviders: FreeProvidersResponse | null = null;
+let freeProvidersTimestamp = 0;
+
 @Controller('api/v1/public')
 export class PublicStatsController {
   private readonly logger = new Logger(PublicStatsController.name);
 
-  constructor(private readonly service: PublicStatsService) {}
+  constructor(
+    private readonly service: PublicStatsService,
+    private readonly freeModelsService: FreeModelsService,
+  ) {}
 
   @Public()
   @Get('usage')
@@ -89,6 +105,23 @@ export class PublicStatsController {
     }
 
     return providerTokensInflight;
+  }
+
+  @Public()
+  @Get('free-providers')
+  getFreeProviders(): FreeProvidersResponse {
+    if (cachedFreeProviders && Date.now() - freeProvidersTimestamp < PUBLIC_STATS_CACHE_TTL_MS) {
+      return cachedFreeProviders;
+    }
+
+    const data = this.freeModelsService.getAll();
+    cachedFreeProviders = {
+      providers: data.providers,
+      last_synced_at: data.last_synced_at,
+      cached_at: new Date().toISOString(),
+    };
+    freeProvidersTimestamp = Date.now();
+    return cachedFreeProviders;
   }
 
   private async refreshUsage(): Promise<UsageResponse> {
