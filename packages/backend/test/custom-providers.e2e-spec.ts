@@ -307,6 +307,91 @@ describe('Custom Providers (e2e)', () => {
       .expect(200);
   });
 
+  it('creates custom provider with capability flags', async () => {
+    const res = await request(app.getHttpServer())
+      .post(`/api/v1/routing/${agentName}/custom-providers`)
+      .set(headers)
+      .send({
+        name: 'Gateway Provider',
+        base_url: 'https://proxy.example.com/v1',
+        models: [
+          {
+            model_name: 'frontier-model',
+            input_price_per_million_tokens: 15,
+            output_price_per_million_tokens: 75,
+            capability_reasoning: true,
+            capability_code: true,
+          },
+        ],
+      })
+      .expect(201);
+
+    expect(res.body.models[0].capability_reasoning).toBe(true);
+    expect(res.body.models[0].capability_code).toBe(true);
+
+    // Verify available-models reflects capability flags and quality score
+    const modelsRes = await request(app.getHttpServer())
+      .get(`/api/v1/routing/${agentName}/available-models`)
+      .set(headers)
+      .expect(200);
+
+    const model = modelsRes.body.find(
+      (m: { display_name?: string }) => m.display_name === 'frontier-model',
+    );
+    expect(model).toBeDefined();
+    expect(model.capability_reasoning).toBe(true);
+    expect(model.capability_code).toBe(true);
+    // Expensive + dual capabilities = frontier tier (score 5)
+    expect(model.quality_score).toBe(5);
+
+    // Cleanup
+    await request(app.getHttpServer())
+      .delete(`/api/v1/routing/${agentName}/custom-providers/${res.body.id}`)
+      .set(headers)
+      .expect(200);
+  });
+
+  it('custom provider models without capability flags default to false', async () => {
+    const res = await request(app.getHttpServer())
+      .post(`/api/v1/routing/${agentName}/custom-providers`)
+      .set(headers)
+      .send({
+        name: 'Legacy Provider',
+        base_url: 'https://api.example.com/v1',
+        models: [
+          {
+            model_name: 'legacy-model',
+            input_price_per_million_tokens: 1.0,
+            output_price_per_million_tokens: 2.0,
+          },
+        ],
+      })
+      .expect(201);
+
+    // Should not have capability fields in stored models
+    expect(res.body.models[0].capability_reasoning).toBeUndefined();
+    expect(res.body.models[0].capability_code).toBeUndefined();
+
+    // Verify available-models defaults to false
+    const modelsRes = await request(app.getHttpServer())
+      .get(`/api/v1/routing/${agentName}/available-models`)
+      .set(headers)
+      .expect(200);
+
+    const model = modelsRes.body.find(
+      (m: { display_name?: string }) => m.display_name === 'legacy-model',
+    );
+    expect(model).toBeDefined();
+    expect(model.capability_reasoning).toBe(false);
+    expect(model.capability_code).toBe(false);
+
+    // Cleanup
+    await request(app.getHttpServer())
+      .delete(`/api/v1/routing/${agentName}/custom-providers/${res.body.id}`)
+      .set(headers)
+      .expect(200);
+  });
+
   it('stores explicit 0 prices as 0 (not null)', async () => {
     const res = await request(app.getHttpServer())
       .post(`/api/v1/routing/${agentName}/custom-providers`)

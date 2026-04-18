@@ -3,6 +3,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsNumber,
+  IsBoolean,
   IsArray,
   ValidateNested,
   Matches,
@@ -37,6 +38,14 @@ export class CustomProviderModelDto {
   @Min(1)
   @Type(() => Number)
   context_window?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  capability_reasoning?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  capability_code?: boolean;
 }
 
 export class CreateCustomProviderDto {

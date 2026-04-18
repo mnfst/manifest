@@ -190,6 +190,36 @@ describe('CustomProviderService (with mocks)', () => {
       expect(result.models[0].output_price_per_million_tokens).toBe(0);
     });
 
+    it('passes through capability flags to stored models', async () => {
+      const dto = {
+        name: 'Gateway',
+        base_url: 'https://proxy.example.com/v1',
+        models: [
+          {
+            model_name: 'claude-opus',
+            capability_reasoning: true,
+            capability_code: true,
+          },
+        ],
+      };
+      const result = await service.create('agent-1', 'user-1', dto as never);
+
+      expect(result.models[0].capability_reasoning).toBe(true);
+      expect(result.models[0].capability_code).toBe(true);
+    });
+
+    it('stores undefined capabilities when not provided (backward compat)', async () => {
+      const dto = {
+        name: 'Legacy',
+        base_url: 'https://api.example.com/v1',
+        models: [{ model_name: 'old-model' }],
+      };
+      const result = await service.create('agent-1', 'user-1', dto as never);
+
+      expect(result.models[0].capability_reasoning).toBeUndefined();
+      expect(result.models[0].capability_code).toBeUndefined();
+    });
+
     it('creates multiple models in the custom provider', async () => {
       const dto = {
         name: 'Multi',
@@ -393,6 +423,21 @@ describe('CustomProviderService (with mocks)', () => {
       await service.update('agent-1', 'cp-1', 'user-1', { name: 'New Name' } as never);
 
       expect(mockRoutingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+
+    it('passes through capability flags when models are updated', async () => {
+      const result = await service.update('agent-1', 'cp-1', 'user-1', {
+        models: [
+          {
+            model_name: 'new-model',
+            capability_reasoning: true,
+            capability_code: false,
+          },
+        ],
+      } as never);
+
+      expect(result.models[0].capability_reasoning).toBe(true);
+      expect(result.models[0].capability_code).toBe(false);
     });
 
     it('does not double-recalculate when both models and apiKey change', async () => {
