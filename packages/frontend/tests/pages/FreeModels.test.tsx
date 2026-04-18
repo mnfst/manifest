@@ -18,6 +18,17 @@ vi.mock('../../src/services/agent-display-name.js', () => ({
   agentDisplayName: () => 'test-agent',
 }));
 
+vi.mock('../../src/services/setup-status.js', () => ({
+  checkIsLocalMode: vi.fn().mockResolvedValue(false),
+}));
+
+vi.mock('../../src/services/providers.js', () => ({
+  PROVIDERS: [
+    { id: 'ollama', name: 'Ollama', localOnly: true, color: '#1a1a1a', initial: 'Ol', subtitle: '', keyPrefix: '', minKeyLength: 0, keyPlaceholder: '', noKeyRequired: true, models: [] },
+    { id: 'gemini', name: 'Google', color: '#4285f4', initial: 'G', subtitle: '', keyPrefix: '', minKeyLength: 30, keyPlaceholder: '', models: [] },
+  ],
+}));
+
 vi.mock('../../src/services/api/free-models.js', () => ({
   getFreeModels: vi.fn().mockResolvedValue({
     providers: [
@@ -38,7 +49,7 @@ vi.mock('../../src/services/api/free-models.js', () => ({
         ],
       },
       {
-        name: 'Gemini',
+        name: 'Google Gemini',
         logo: '/icons/gemini.svg',
         description: 'Free tier from Google.',
         tags: ['250K TPM (Tokens / Minute) shared across models', 'No credit card required'],
@@ -53,12 +64,26 @@ vi.mock('../../src/services/api/free-models.js', () => ({
         ],
       },
       {
+        name: 'GitHub Models',
+        logo: '/icons/github.svg',
+        description: 'Free tier from GitHub.',
+        tags: [],
+        api_key_url: 'https://github.com/settings/tokens',
+        base_url: null,
+        warning: null,
+        country: 'US',
+        flag: '\u{1F1FA}\u{1F1F8}',
+        models: [
+          { id: 'gpt-4o', name: 'GPT-4o', context: '128K', max_output: '16K', modality: 'Text', rate_limit: '10 RPM' },
+        ],
+      },
+      {
         name: 'Ollama Cloud',
-        logo: null,
+        logo: '/icons/ollama.svg',
         description: 'Free tier with qualitative usage limits.',
         tags: [],
         api_key_url: 'https://ollama.com/settings/keys',
-        base_url: null,
+        base_url: 'https://api.ollama.com',
         warning: null,
         country: 'US',
         flag: '\u{1F1FA}\u{1F1F8}',
@@ -138,7 +163,7 @@ describe('FreeModels', () => {
   it('renders base URL with copy button for providers that have one', async () => {
     render(() => <FreeModels />);
     await vi.waitFor(() => {
-      expect(screen.getAllByText('Base URL:').length).toBe(2);
+      expect(screen.getAllByText('Base URL:').length).toBe(3);
       expect(screen.getByText('https://api.cohere.ai/compatibility/v1')).toBeDefined();
     });
   });
@@ -146,15 +171,15 @@ describe('FreeModels', () => {
   it('does not render base URL or Connect for providers without baseUrl', async () => {
     render(() => <FreeModels />);
     await vi.waitFor(() => {
-      expect(screen.getByText('Ollama Cloud')).toBeDefined();
-      expect(screen.queryByText('Connect Ollama Cloud')).toBeNull();
+      expect(screen.getByText('GitHub Models')).toBeDefined();
+      expect(screen.queryByText('Connect GitHub Models')).toBeNull();
     });
   });
 
   it('shows description for providers without tags', async () => {
     render(() => <FreeModels />);
     await vi.waitFor(() => {
-      expect(screen.getByText('Free tier with qualitative usage limits.')).toBeDefined();
+      expect(screen.getByText('Free tier from GitHub.')).toBeDefined();
     });
   });
 
@@ -176,19 +201,19 @@ describe('FreeModels', () => {
   it('renders Gemini provider card', async () => {
     const { container } = render(() => <FreeModels />);
     await vi.waitFor(() => {
-      expect(screen.getByText('Gemini')).toBeDefined();
+      expect(screen.getByText('Google Gemini')).toBeDefined();
       const img = container.querySelector('img[src="/icons/gemini.svg"]');
       expect(img).not.toBeNull();
     });
   });
 
-  it('renders Gemini Connect button', async () => {
+  it('renders Gemini Connect button linking to built-in provider', async () => {
     render(() => <FreeModels />);
     await vi.waitFor(() => {
-      const connectBtn = screen.getByText('Connect Gemini');
+      const connectBtn = screen.getByText('Connect Google Gemini');
       expect(connectBtn.tagName).toBe('A');
       const href = connectBtn.getAttribute('href')!;
-      expect(href).toContain('name=Gemini');
+      expect(href).toContain('provider=gemini');
     });
   });
 
@@ -257,6 +282,50 @@ describe('FreeModels', () => {
 
     await vi.waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('Failed to copy');
+    });
+  });
+
+  it('renders built-in provider connect link for known providers', async () => {
+    render(() => <FreeModels />);
+    await vi.waitFor(() => {
+      const connectBtn = screen.getByText('Connect Google Gemini');
+      const href = connectBtn.getAttribute('href')!;
+      expect(href).toContain('provider=gemini');
+      expect(href).not.toContain('provider=custom');
+    });
+  });
+
+  it('renders dark mode logo variant for providers with dark logos', async () => {
+    const { container } = render(() => <FreeModels />);
+    await vi.waitFor(() => {
+      const darkLogo = container.querySelector('img.free-models-logo-dark');
+      expect(darkLogo).not.toBeNull();
+      expect(darkLogo!.getAttribute('src')).toContain('-dark-mode');
+    });
+  });
+
+  it('renders disabled connect button for Ollama Cloud in cloud mode', async () => {
+    const { container } = render(() => <FreeModels />);
+    await vi.waitFor(() => {
+      const disabled = container.querySelector('.free-models-disabled-btn');
+      expect(disabled).not.toBeNull();
+      expect(disabled!.textContent).toContain('Connect Ollama Cloud');
+      expect(disabled!.getAttribute('data-tooltip')).toBe('Available in local mode only');
+    });
+  });
+
+  it('renders show models toggle for providers without base_url', async () => {
+    render(() => <FreeModels />);
+    await vi.waitFor(() => {
+      expect(screen.getByText('GitHub Models')).toBeDefined();
+    });
+    // GitHub Models has no base_url, so the toggle is rendered outside the base-url row
+    const buttons = screen.getAllByText(/Show models/);
+    const ghButton = buttons.find((b) => b.textContent?.includes('(1)'));
+    expect(ghButton).toBeDefined();
+    fireEvent.click(ghButton!);
+    await vi.waitFor(() => {
+      expect(screen.getByText('gpt-4o')).toBeDefined();
     });
   });
 });
