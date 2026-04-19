@@ -36,8 +36,10 @@ const PROVIDER_TIMEOUT_MS = 180_000;
  * Models synced from OpenRouter use vendor prefixes, but native APIs expect bare names.
  */
 function stripModelPrefix(model: string, endpointKey: string): string {
-  // OpenRouter accepts and expects vendor prefixes
-  if (endpointKey === 'openrouter') return model;
+  // OpenRouter accepts and expects vendor prefixes.
+  // Custom HTTP gateways store arbitrary upstream model ids (e.g. "z-ai/step-3.5-flash");
+  // stripping the first path segment breaks those backends.
+  if (endpointKey === 'openrouter' || endpointKey === 'custom') return model;
   const slashIdx = model.indexOf('/');
   return slashIdx > 0 ? model.substring(slashIdx + 1) : model;
 }
