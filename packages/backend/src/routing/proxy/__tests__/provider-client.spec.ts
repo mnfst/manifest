@@ -1614,6 +1614,32 @@ describe('ProviderClient', () => {
       expect(sentBody.stream).toBe(false);
     });
 
+    it('preserves vendor/path model ids for custom endpoints (no prefix stripping)', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const customEndpoint = {
+        baseUrl: 'http://localhost:8000',
+        buildHeaders: (key: string) => ({
+          Authorization: `Bearer ${key}`,
+          'Content-Type': 'application/json',
+        }),
+        buildPath: () => '/v1/chat/completions',
+        format: 'openai' as const,
+      };
+
+      await client.forward({
+        provider: 'custom:uuid',
+        apiKey: 'k',
+        model: 'z-ai/step-3.5-flash',
+        body,
+        stream: false,
+        customEndpoint,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('z-ai/step-3.5-flash');
+    });
+
     it('uses custom endpoint with streaming', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
