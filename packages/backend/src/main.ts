@@ -17,8 +17,12 @@ export async function bootstrap() {
   app.enableShutdownHooks();
   app.useGlobalFilters(new SpaFallbackFilter());
 
+  const betterAuthUrl = process.env['BETTER_AUTH_URL'] || '';
+  const hstsEnabled = /^https:\/\//i.test(betterAuthUrl);
+
   app.use(
     helmet({
+      hsts: hstsEnabled,
       contentSecurityPolicy: {
         directives: {
           defaultSrc: ["'self'"],
@@ -34,6 +38,10 @@ export async function bootstrap() {
                 .map((v) => v.trim())
                 .filter((v) => v !== '*')
             : ["'none'"],
+          // Helmet ships `upgrade-insecure-requests` in its defaults. Safari enforces it
+          // even on loopback (Chrome/Firefox skip for localhost), which rewrites every
+          // same-origin subresource to https:// and breaks plain-HTTP dev/Docker setups.
+          upgradeInsecureRequests: null,
         },
       },
     }),
