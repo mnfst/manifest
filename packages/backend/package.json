@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "dev": "nest start --watch",
     "build": "rm -f tsconfig.build.tsbuildinfo && nest build",
     "start": "node dist/main",
-    "start:dev": "nest start --watch",
+    "start:dev": "npm run dev",
     "start:prod": "node dist/main",
     "test": "jest",
     "test:watch": "jest --watch",

@@ -62,14 +62,14 @@ API_KEY=dev-api-key-12345
 SEED_DATA=true
 ```
 
-3. Start the development servers (in separate terminals):
+3. Start the development servers (in separate terminals from the repo root):
 
 ```bash
-# Backend (must preload dotenv)
-cd packages/backend && NODE_OPTIONS='-r dotenv/config' npx nest start --watch
+# Backend
+npm run dev:backend
 
 # Frontend
-cd packages/frontend && npx vite
+npm run dev:frontend
 ```
 
 The frontend runs on `http://localhost:3000` and proxies API requests to the backend on `http://localhost:3001`.
@@ -114,7 +114,9 @@ The backend runs standalone and OpenClaw talks to it as a regular OpenAI-compati
 
 | Command | Description |
 | --- | --- |
-| `npm run dev` | Start frontend in watch mode (start backend separately) |
+| `npm run dev:backend` | Start the backend in watch mode with `dotenv/config` preloaded |
+| `npm run dev:frontend` | Start the frontend in watch mode |
+| `npm run dev` | Alias for `npm run dev:frontend` |
 | `npm run build` | Production build (shared, backend, frontend via Turborepo) |
 | `npm start` | Start the production server |
 | `npm test --workspace=packages/backend` | Run backend unit tests (Jest) |
