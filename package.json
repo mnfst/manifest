@@ -35,7 +35,7 @@
   "scripts": {
     "dev": "npm run dev:frontend",
     "dev:frontend": "npm run dev --workspace=packages/frontend",
-    "dev:backend": "NODE_OPTIONS='-r dotenv/config' npm run dev --workspace=packages/backend",
+    "dev:backend": "cross-env NODE_OPTIONS=\"-r dotenv/config\" npm run dev --workspace=packages/backend",
     "build": "turbo build",
     "test": "turbo test",
     "start": "node packages/backend/dist/main.js",
@@ -67,6 +67,7 @@
     "@changesets/cli": "^2.29.0",
     "@typescript-eslint/eslint-plugin": "^8.56.0",
     "@typescript-eslint/parser": "^8.56.0",
+    "cross-env": "^10.1.0",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
