@@ -61,31 +61,31 @@ describe('ProviderApiKeyTab', () => {
     expect(names[2]).toContain('Zeta');
   });
 
-  it('disables local-only providers when not in the self-hosted version and shows the hint', async () => {
+  it('hides local-only providers entirely when not in the self-hosted version', async () => {
     checkIsSelfHosted.mockResolvedValue(false);
     checkIsOllamaAvailable.mockResolvedValue(false);
 
-    const onOpenDetail = vi.fn();
     const { container } = render(() => (
       <ProviderApiKeyTab
         apiKeyProviders={[
           provider({ id: 'ollama', name: 'Ollama', localOnly: true } as ProviderDef),
+          provider({ id: 'openai', name: 'OpenAI' }),
         ]}
         customProviders={[]}
         isConnected={() => false}
         isNoKeyConnected={() => false}
-        onOpenDetail={onOpenDetail}
+        onOpenDetail={vi.fn()}
         onOpenCustomForm={vi.fn()}
         onEditCustom={vi.fn()}
       />
     ));
     await flushMicrotasks();
 
-    const btn = container.querySelector('button.provider-toggle') as HTMLButtonElement;
-    expect(btn.disabled).toBe(true);
-    expect(container.textContent).toContain('Only available on self-hosted Manifest');
-    fireEvent.click(btn);
-    expect(onOpenDetail).not.toHaveBeenCalled();
+    const names = Array.from(container.querySelectorAll('.provider-toggle__name')).map(
+      (n) => n.textContent?.trim() ?? '',
+    );
+    expect(names).toEqual(['OpenAI']);
+    expect(container.textContent).not.toContain('Ollama');
   });
 
   it('shows the "install Ollama on host" hint when self-hosted but Ollama is unreachable', async () => {

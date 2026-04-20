@@ -260,6 +260,18 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         </svg>
       );
 
+    /* ── vLLM ────────────────────────────────────── */
+    case 'vllm':
+      return <img src="/icons/vllm.png" alt="" style={s} />;
+
+    /* ── LM Studio ───────────────────────────────── */
+    case 'lmstudio':
+      return <img src="/icons/lmstudio.png" alt="" style={s} />;
+
+    /* ── llama.cpp ───────────────────────────────── */
+    case 'llamacpp':
+      return <img src="/icons/llamacpp.png" alt="" style={s} />;
+
     /* ── OpenCode Go ──────────────────────────────── */
     case 'opencode-go':
       return (
