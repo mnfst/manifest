@@ -868,6 +868,24 @@ describe("Overview", () => {
       expect(mockSetMessageFeedback).toHaveBeenCalledWith("msg-12345678", { rating: "dislike", tags: ["Too slow"], details: "test" });
     });
 
+    it("reverts optimistic dislike when modal submit API call fails", async () => {
+      mockSetMessageFeedback
+        .mockResolvedValueOnce(undefined)     // dislike click succeeds
+        .mockRejectedValueOnce(new Error("fail")); // modal submit fails
+      mockGetOverview.mockResolvedValue(overviewData);
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        expect(container.querySelector(".feedback-btn")).not.toBeNull();
+      });
+      const dislikeBtn = container.querySelectorAll(".feedback-btn")[1] as HTMLElement;
+      fireEvent.click(dislikeBtn);
+      const submitBtn = container.querySelector('[data-testid="feedback-submit"]') as HTMLElement;
+      fireEvent.click(submitBtn);
+      await vi.waitFor(() => {
+        expect(container.querySelector(".feedback-btn--active-dislike")).toBeNull();
+      });
+    });
+
     it("hides feedback column and modal in local mode", async () => {
       mockCheckIsLocalMode.mockResolvedValue(true);
       mockGetOverview.mockResolvedValue(overviewData);

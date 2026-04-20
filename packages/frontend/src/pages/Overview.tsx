@@ -168,7 +168,13 @@ const Overview: Component = () => {
   const handleFeedbackSubmit = (tags: string[], details: string) => {
     const id = feedbackMessageId();
     if (id) {
-      setMessageFeedback(id, { rating: 'dislike', tags, details });
+      setMessageFeedback(id, { rating: 'dislike', tags, details }).catch(() => {
+        setFeedbackOverrides((prev) => {
+          const next = { ...prev };
+          delete next[id];
+          return next;
+        });
+      });
     }
     setFeedbackModalOpen(false);
   };
