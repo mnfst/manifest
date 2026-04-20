@@ -3,10 +3,12 @@ import { render, fireEvent } from '@solidjs/testing-library';
 
 const checkIsSelfHosted = vi.fn();
 const checkIsOllamaAvailable = vi.fn();
+const checkLocalLlmHost = vi.fn().mockResolvedValue('localhost');
 
 vi.mock('../../src/services/setup-status.js', () => ({
   checkIsSelfHosted: () => checkIsSelfHosted(),
   checkIsOllamaAvailable: () => checkIsOllamaAvailable(),
+  checkLocalLlmHost: () => checkLocalLlmHost(),
 }));
 
 import ProviderApiKeyTab from '../../src/components/ProviderApiKeyTab';
@@ -28,6 +30,8 @@ function flushMicrotasks() {
 beforeEach(() => {
   checkIsSelfHosted.mockReset();
   checkIsOllamaAvailable.mockReset();
+  checkLocalLlmHost.mockReset();
+  checkLocalLlmHost.mockResolvedValue('localhost');
 });
 
 describe('ProviderApiKeyTab', () => {
@@ -267,5 +271,68 @@ describe('ProviderApiKeyTab', () => {
 
     fireEvent.click(container.querySelector('.provider-modal__add-custom-chip') as HTMLElement);
     expect(onOpenCustomForm).toHaveBeenCalled();
+  });
+
+  it('opens the custom-provider form prefilled when a local-only tile with defaultLocalPort is clicked', async () => {
+    checkIsSelfHosted.mockResolvedValue(true);
+    checkIsOllamaAvailable.mockResolvedValue(false);
+    checkLocalLlmHost.mockResolvedValue('host.docker.internal');
+
+    const onOpenCustomForm = vi.fn();
+    const onOpenDetail = vi.fn();
+    const { container } = render(() => (
+      <ProviderApiKeyTab
+        apiKeyProviders={[
+          provider({
+            id: 'vllm',
+            name: 'vLLM',
+            localOnly: true,
+            noKeyRequired: true,
+            defaultLocalPort: 8000,
+          } as ProviderDef),
+        ]}
+        customProviders={[]}
+        isConnected={() => false}
+        isNoKeyConnected={() => false}
+        onOpenDetail={onOpenDetail}
+        onOpenCustomForm={onOpenCustomForm}
+        onEditCustom={vi.fn()}
+      />
+    ));
+    await flushMicrotasks();
+
+    const btn = container.querySelector('button.provider-toggle') as HTMLButtonElement;
+    fireEvent.click(btn);
+    expect(onOpenCustomForm).toHaveBeenCalledWith({
+      name: 'vLLM',
+      baseUrl: 'http://host.docker.internal:8000/v1',
+    });
+    expect(onOpenDetail).not.toHaveBeenCalled();
+  });
+
+  it('routes a local-only tile without defaultLocalPort through onOpenDetail (Ollama path)', async () => {
+    checkIsSelfHosted.mockResolvedValue(true);
+    checkIsOllamaAvailable.mockResolvedValue(true);
+
+    const onOpenCustomForm = vi.fn();
+    const onOpenDetail = vi.fn();
+    const { container } = render(() => (
+      <ProviderApiKeyTab
+        apiKeyProviders={[
+          provider({ id: 'ollama', name: 'Ollama', localOnly: true } as ProviderDef),
+        ]}
+        customProviders={[]}
+        isConnected={() => false}
+        isNoKeyConnected={() => false}
+        onOpenDetail={onOpenDetail}
+        onOpenCustomForm={onOpenCustomForm}
+        onEditCustom={vi.fn()}
+      />
+    ));
+    await flushMicrotasks();
+
+    fireEvent.click(container.querySelector('button.provider-toggle') as HTMLButtonElement);
+    expect(onOpenDetail).toHaveBeenCalledWith('ollama', 'api_key');
+    expect(onOpenCustomForm).not.toHaveBeenCalled();
   });
 });

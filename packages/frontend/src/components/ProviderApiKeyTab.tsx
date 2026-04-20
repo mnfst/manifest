@@ -2,8 +2,13 @@ import { For, Show, type Component, createSignal, onMount } from 'solid-js';
 import type { AuthType, CustomProviderData } from '../services/api.js';
 import { customProviderColor } from '../services/formatters.js';
 import type { ProviderDef } from '../services/providers.js';
+import type { CustomProviderPrefill } from '../services/routing-params.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.js';
-import { checkIsSelfHosted, checkIsOllamaAvailable } from '../services/setup-status.js';
+import {
+  checkIsSelfHosted,
+  checkIsOllamaAvailable,
+  checkLocalLlmHost,
+} from '../services/setup-status.js';
 
 type ListItem =
   | { kind: 'standard'; prov: ProviderDef }
@@ -15,18 +20,24 @@ interface Props {
   isConnected: (provId: string) => boolean;
   isNoKeyConnected: (provId: string) => boolean;
   onOpenDetail: (provId: string, authType: AuthType) => void;
-  onOpenCustomForm: () => void;
+  onOpenCustomForm: (prefill?: CustomProviderPrefill) => void;
   onEditCustom: (cp: CustomProviderData) => void;
 }
 
 const ProviderApiKeyTab: Component<Props> = (props) => {
   const [isSelfHosted, setIsSelfHosted] = createSignal(false);
   const [ollamaReady, setOllamaReady] = createSignal(false);
+  const [localLlmHost, setLocalLlmHost] = createSignal('localhost');
 
   onMount(async () => {
-    const [selfHosted, ollama] = await Promise.all([checkIsSelfHosted(), checkIsOllamaAvailable()]);
+    const [selfHosted, ollama, host] = await Promise.all([
+      checkIsSelfHosted(),
+      checkIsOllamaAvailable(),
+      checkLocalLlmHost(),
+    ]);
     setIsSelfHosted(selfHosted);
     setOllamaReady(ollama);
+    setLocalLlmHost(host);
   });
 
   const mergedProviders = (): ListItem[] => {
@@ -75,6 +86,7 @@ const ProviderApiKeyTab: Component<Props> = (props) => {
             const prov = item.prov;
             const connected = () => props.isConnected(prov.id) || props.isNoKeyConnected(prov.id);
             const isOllamaProvider = () => prov.id === 'ollama';
+            const hasLocalPort = () => prov.defaultLocalPort !== undefined;
             const disabled = () => {
               if (!prov.localOnly) return false;
               if (!isSelfHosted()) return true;
@@ -91,12 +103,23 @@ const ProviderApiKeyTab: Component<Props> = (props) => {
               return null;
             };
 
+            const handleClick = () => {
+              if (disabled()) return;
+              if (hasLocalPort()) {
+                // vLLM / LM Studio / llama.cpp — open the custom-provider
+                // form prefilled with the default local URL so the user can
+                // tweak the port and probe models.
+                props.onOpenCustomForm({
+                  name: prov.name,
+                  baseUrl: `http://${localLlmHost()}:${prov.defaultLocalPort}/v1`,
+                });
+                return;
+              }
+              props.onOpenDetail(prov.id, 'api_key');
+            };
+
             return (
-              <button
-                class="provider-toggle"
-                disabled={disabled()}
-                onClick={() => !disabled() && props.onOpenDetail(prov.id, 'api_key')}
-              >
+              <button class="provider-toggle" disabled={disabled()} onClick={handleClick}>
                 <span class="provider-toggle__icon">
                   {providerIcon(prov.id, 20) ?? (
                     <span class="provider-card__logo-letter" style={{ background: prov.color }}>
@@ -123,7 +146,7 @@ const ProviderApiKeyTab: Component<Props> = (props) => {
           }}
         </For>
         <div class="provider-modal__add-custom">
-          <button class="provider-modal__add-custom-chip" onClick={props.onOpenCustomForm}>
+          <button class="provider-modal__add-custom-chip" onClick={() => props.onOpenCustomForm()}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M8.46 11h7.08a1.755 1.755 0 0 0 1.43-2.77l-3.54-4.96c-.66-.92-2.19-.92-2.85 0L7.04 8.23A1.755 1.755 0 0 0 8.47 11ZM12 4.72 15.06 9H8.95l3.06-4.28ZM17.5 13c-2.48 0-4.5 2.02-4.5 4.5s2.02 4.5 4.5 4.5 4.5-2.02 4.5-4.5-2.02-4.5-4.5-4.5m0 7a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5M3.75 22h5.5c.96 0 1.75-.79 1.75-1.75v-5.5c0-.96-.79-1.75-1.75-1.75h-5.5C2.79 13 2 13.79 2 14.75v5.5c0 .96.79 1.75 1.75 1.75M4 15h5v5H4z" />
             </svg>

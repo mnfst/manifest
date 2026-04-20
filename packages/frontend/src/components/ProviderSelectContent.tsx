@@ -45,6 +45,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     deepLinkProv?.subscriptionOnly ? 'subscription' : 'api_key',
   );
   const [showCustomForm, setShowCustomForm] = createSignal(!!props.customProviderPrefill);
+  const [tilePrefill, setTilePrefill] = createSignal<CustomProviderPrefill | null>(null);
   const [editingCustomProvider, setEditingCustomProvider] = createSignal<CustomProviderData | null>(
     null,
   );
@@ -96,14 +97,16 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     setDirection('back');
     setSelectedProvider(null);
     setShowCustomForm(false);
+    setTilePrefill(null);
     setEditingCustomProvider(null);
     setKeyInput('');
     setEditing(false);
     setValidationError(null);
   };
 
-  const openCustomForm = () => {
+  const openCustomForm = (prefill?: CustomProviderPrefill) => {
     setDirection('forward');
+    setTilePrefill(prefill ?? null);
     setShowCustomForm(true);
   };
 
@@ -155,7 +158,9 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
             agentName={props.agentName}
             initialData={editingCustomProvider() ?? undefined}
             prefill={
-              !editingCustomProvider() ? (props.customProviderPrefill ?? undefined) : undefined
+              !editingCustomProvider()
+                ? (tilePrefill() ?? props.customProviderPrefill ?? undefined)
+                : undefined
             }
             onCreated={() => {
               goBack();

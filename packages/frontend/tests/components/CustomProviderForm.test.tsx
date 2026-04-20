@@ -454,56 +454,13 @@ describe("CustomProviderForm", () => {
   });
 });
 
-describe("CustomProviderForm — self-hosted presets and probe", () => {
+describe("CustomProviderForm — Fetch models probe", () => {
   const onCreated = vi.fn();
   const onBack = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockCheckIsSelfHosted.mockResolvedValue(true);
-  });
-
-  it("shows local server preset chips only when self-hosted", async () => {
-    render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
-    ));
-
-    // Wait for the async isSelfHosted resource to resolve and render
-    await waitFor(() => {
-      expect(screen.getByText("Local server presets")).toBeDefined();
-      expect(screen.getByText("vLLM")).toBeDefined();
-      expect(screen.getByText("LM Studio")).toBeDefined();
-      expect(screen.getByText("llama.cpp")).toBeDefined();
-      expect(screen.getByText("Ollama")).toBeDefined();
-    });
-  });
-
-  it("hides preset chips in cloud mode", async () => {
-    mockCheckIsSelfHosted.mockResolvedValue(false);
-    render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
-    ));
-
-    // Resource resolves, but the block should stay hidden
-    await waitFor(() => {
-      expect(screen.queryByText("Local server presets")).toBeNull();
-    });
-  });
-
-  it("applies a preset to the name and base URL when clicked", async () => {
-    render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
-    ));
-
-    const chip = await screen.findByText("LM Studio");
-    fireEvent.click(chip);
-
-    await waitFor(() => {
-      const nameInput = screen.getByPlaceholderText("e.g. Groq, vLLM, Azure") as HTMLInputElement;
-      const urlInput = screen.getByPlaceholderText("https://api.example.com/v1") as HTMLInputElement;
-      expect(nameInput.value).toBe("LM Studio");
-      expect(urlInput.value).toBe("http://host.docker.internal:1234/v1");
-    });
   });
 
   it("fetches models via probe and populates the model rows", async () => {
@@ -514,9 +471,6 @@ describe("CustomProviderForm — self-hosted presets and probe", () => {
     render(() => (
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
-
-    // Wait for the presets to render so the fetch button is available
-    await screen.findByText("Local server presets");
 
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
       target: { value: "http://host.docker.internal:8000/v1" },
@@ -544,8 +498,6 @@ describe("CustomProviderForm — self-hosted presets and probe", () => {
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
 
-    await screen.findByText("Local server presets");
-
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
       target: { value: "http://host.docker.internal:9999/v1" },
     });
@@ -564,8 +516,6 @@ describe("CustomProviderForm — self-hosted presets and probe", () => {
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
 
-    await screen.findByText("Local server presets");
-
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
       target: { value: "http://host.docker.internal:8000/v1" },
     });
@@ -582,7 +532,7 @@ describe("CustomProviderForm — self-hosted presets and probe", () => {
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
 
-    const fetchBtn = await screen.findByText("Fetch models");
+    const fetchBtn = screen.getByText("Fetch models");
     expect(fetchBtn.hasAttribute("disabled")).toBe(true);
   });
 });
@@ -1055,8 +1005,6 @@ describe("CustomProviderForm — probe edge cases and model-row interactions", (
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
 
-    await screen.findByText("Local server presets");
-
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
       target: { value: "http://x" },
     });
@@ -1088,8 +1036,6 @@ describe("CustomProviderForm — probe edge cases and model-row interactions", (
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
 
-    await screen.findByText("Local server presets");
-
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
       target: { value: "http://host.docker.internal:8000/v1" },
     });
@@ -1097,36 +1043,6 @@ describe("CustomProviderForm — probe edge cases and model-row interactions", (
 
     await waitFor(() => {
       expect(screen.getByText("Probe failed")).toBeDefined();
-    });
-  });
-
-  it("applying a preset then probing populates the rows with the preset URL", async () => {
-    mockProbeCustomProvider.mockResolvedValue({
-      models: [{ model_name: "llama" }],
-    });
-
-    render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
-    ));
-
-    await screen.findByText("Local server presets");
-
-    fireEvent.click(screen.getByText("Ollama"));
-
-    // The Ollama preset fills the base URL; Fetch should now be enabled.
-    await waitFor(() => {
-      const btn = screen.getByText("Fetch models");
-      expect(btn.hasAttribute("disabled")).toBe(false);
-    });
-
-    fireEvent.click(screen.getByText("Fetch models"));
-
-    await waitFor(() => {
-      expect(mockProbeCustomProvider).toHaveBeenCalledWith(
-        "test-agent",
-        "http://host.docker.internal:11434/v1",
-        undefined,
-      );
     });
   });
 
@@ -1138,7 +1054,6 @@ describe("CustomProviderForm — probe edge cases and model-row interactions", (
     render(() => (
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
-    await screen.findByText("Local server presets");
 
     const removeBtn = screen.getByLabelText("Remove model 1") as HTMLButtonElement;
     removeBtn.removeAttribute("disabled");
@@ -1152,8 +1067,6 @@ describe("CustomProviderForm — probe edge cases and model-row interactions", (
     render(() => (
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
-
-    await screen.findByText("Local server presets");
 
     // Row 1
     fireEvent.input(screen.getByPlaceholderText("Model name"), {

@@ -42,6 +42,12 @@ export interface ProviderDef {
   subscriptionSignInHint?: string;
   /** Show a beta badge next to the provider name. */
   beta?: boolean;
+  /**
+   * Default port for local OpenAI-compatible servers (vLLM, LM Studio, …).
+   * When set, clicking the tile in self-hosted mode opens the custom-provider
+   * form prefilled with `http://{localLlmHost}:{defaultLocalPort}/v1`.
+   */
+  defaultLocalPort?: number;
 }
 
 export const PROVIDERS: ProviderDef[] = [
@@ -121,6 +127,34 @@ export const PROVIDERS: ProviderDef[] = [
     minKeyLength: 30,
     keyPlaceholder: 'API key',
     models: [],
+  },
+  {
+    id: 'llamacpp',
+    name: 'llama.cpp',
+    color: '#2d2d2d',
+    initial: 'Lc',
+    subtitle: 'OpenAI-compatible llama.cpp server',
+    keyPrefix: '',
+    minKeyLength: 0,
+    keyPlaceholder: '',
+    noKeyRequired: true,
+    models: [],
+    localOnly: true,
+    defaultLocalPort: 8080,
+  },
+  {
+    id: 'lmstudio',
+    name: 'LM Studio',
+    color: '#4a90e2',
+    initial: 'LM',
+    subtitle: 'Run GGUF models with a local server',
+    keyPrefix: '',
+    minKeyLength: 0,
+    keyPlaceholder: '',
+    noKeyRequired: true,
+    models: [],
+    localOnly: true,
+    defaultLocalPort: 1234,
   },
   {
     id: 'minimax',
@@ -249,6 +283,20 @@ export const PROVIDERS: ProviderDef[] = [
     minKeyLength: 60,
     keyPlaceholder: 'sk-or-...',
     models: [],
+  },
+  {
+    id: 'vllm',
+    name: 'vLLM',
+    color: '#306998',
+    initial: 'vL',
+    subtitle: 'High-throughput GPU inference server',
+    keyPrefix: '',
+    minKeyLength: 0,
+    keyPlaceholder: '',
+    noKeyRequired: true,
+    models: [],
+    localOnly: true,
+    defaultLocalPort: 8000,
   },
   {
     id: 'xai',
