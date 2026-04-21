@@ -128,6 +128,15 @@ export class AgentsController {
       if (body.agent_platform !== undefined) result['agent_platform'] = body.agent_platform;
     }
 
+    if (body.context_floor_override !== undefined) {
+      await this.lifecycle.updateContextFloorOverride(
+        user.id,
+        body.name ? slugify(body.name)! : agentName,
+        body.context_floor_override,
+      );
+      result['context_floor_override'] = body.context_floor_override;
+    }
+
     await this.cacheManager.del(this.agentListCacheKey(user.id));
     return result;
   }

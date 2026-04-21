@@ -185,6 +185,15 @@ export function refreshModels(agentName: string) {
   });
 }
 
+export interface ContextWindowInfo {
+  context_length: number;
+  overridden: boolean;
+}
+
+export function getContextWindow(agentName: string) {
+  return fetchJson<ContextWindowInfo>(routingPath(agentName, 'context-window'));
+}
+
 /* -- Routing: Pricing cache health -- */
 
 export interface PricingHealth {

@@ -154,6 +154,75 @@ describe('AgentLifecycleService', () => {
     });
   });
 
+  describe('updateContextFloorOverride', () => {
+    it('writes the override value on the agents row when the agent exists', async () => {
+      mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-1', name: 'my-agent' });
+
+      const mockExecute = jest.fn().mockResolvedValue({});
+      const mockUpdateQb = {
+        update: jest.fn().mockReturnThis(),
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        execute: mockExecute,
+      };
+
+      mockAgentCreateQueryBuilder
+        .mockReturnValueOnce({
+          select: jest.fn().mockReturnThis(),
+          leftJoin: jest.fn().mockReturnThis(),
+          where: jest.fn().mockReturnThis(),
+          andWhere: jest.fn().mockReturnThis(),
+          orderBy: jest.fn().mockReturnThis(),
+          getOne: mockAgentGetOne,
+          getMany: jest.fn().mockResolvedValue([]),
+        })
+        .mockReturnValueOnce(mockUpdateQb);
+
+      await service.updateContextFloorOverride('test-user', 'my-agent', 50_000);
+
+      expect(mockUpdateQb.update).toHaveBeenCalledWith('agents');
+      expect(mockUpdateQb.set).toHaveBeenCalledWith({ context_floor_override: 50_000 });
+      expect(mockUpdateQb.where).toHaveBeenCalledWith('id = :id', { id: 'agent-id-1' });
+      expect(mockExecute).toHaveBeenCalledTimes(1);
+    });
+
+    it('writes null when clearing the override', async () => {
+      mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-1', name: 'my-agent' });
+
+      const mockExecute = jest.fn().mockResolvedValue({});
+      const mockUpdateQb = {
+        update: jest.fn().mockReturnThis(),
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        execute: mockExecute,
+      };
+
+      mockAgentCreateQueryBuilder
+        .mockReturnValueOnce({
+          select: jest.fn().mockReturnThis(),
+          leftJoin: jest.fn().mockReturnThis(),
+          where: jest.fn().mockReturnThis(),
+          andWhere: jest.fn().mockReturnThis(),
+          orderBy: jest.fn().mockReturnThis(),
+          getOne: mockAgentGetOne,
+          getMany: jest.fn().mockResolvedValue([]),
+        })
+        .mockReturnValueOnce(mockUpdateQb);
+
+      await service.updateContextFloorOverride('test-user', 'my-agent', null);
+
+      expect(mockUpdateQb.set).toHaveBeenCalledWith({ context_floor_override: null });
+    });
+
+    it('throws NotFoundException when the agent does not belong to the user', async () => {
+      mockAgentGetOne.mockResolvedValueOnce(null);
+
+      await expect(
+        service.updateContextFloorOverride('test-user', 'nonexistent', 50_000),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
   describe('renameAgent', () => {
     it('should throw NotFoundException when agent not found', async () => {
       mockAgentGetOne.mockResolvedValueOnce(null);

@@ -91,6 +91,7 @@ describe('ProxyController', () => {
   };
   let mockPricingCache: { getByModel: jest.Mock };
   let recorder: ProxyMessageRecorder;
+  let mockGetEffectiveContext: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -130,6 +131,9 @@ describe('ProxyController', () => {
       new ProxyMessageDedup(),
       { emit: jest.fn() } as unknown as IngestEventBusService,
     );
+    mockGetEffectiveContext = jest
+      .fn()
+      .mockResolvedValue({ contextLength: 128000, overridden: false });
     controller = new ProxyController(
       proxyService as never,
       rateLimiter as never,
@@ -137,6 +141,7 @@ describe('ProxyController', () => {
       recorder,
       new ThoughtSignatureCache(),
       new ThinkingBlockCache(),
+      { getEffectiveContext: mockGetEffectiveContext } as never,
     );
   });
 
@@ -2751,5 +2756,50 @@ describe('ProxyController', () => {
 
     expect(res.status).toHaveBeenCalledWith(200);
     expect(headers['X-Manifest-Fallback-Exhausted']).toBeUndefined();
+  });
+
+  /**
+   * GET /v1/models — OpenAI-compatible listing. The payload shape is what
+   * OpenClaw / OpenAI SDK / LangChain etc. read when they probe the endpoint
+   * to decide how aggressively to compact. Any change here can silently
+   * re-introduce issues #1617 / #1612 / #1450 in every client that trusts
+   * the response.
+   */
+  describe('listModels (GET /v1/models)', () => {
+    it('returns the OpenAI-compatible envelope with the honest context floor', async () => {
+      mockGetEffectiveContext.mockResolvedValue({
+        contextLength: 128000,
+        overridden: false,
+      });
+
+      const req = mockRequest({});
+      const result = await controller.listModels(req as never);
+
+      expect(mockGetEffectiveContext).toHaveBeenCalledWith('agent-1');
+      expect(result.object).toBe('list');
+      expect(result.data).toHaveLength(1);
+      const [model] = result.data;
+      expect(model.id).toBe('auto');
+      expect(model.object).toBe('model');
+      expect(model.owned_by).toBe('manifest');
+      expect(model.context_length).toBe(128000);
+      // `created` is a Unix timestamp in seconds — assert the field exists
+      // and is a positive integer, don't pin the exact value.
+      expect(typeof model.created).toBe('number');
+      expect(Number.isInteger(model.created)).toBe(true);
+      expect(model.created).toBeGreaterThan(0);
+    });
+
+    it('advertises the override when a user-set floor is in effect', async () => {
+      mockGetEffectiveContext.mockResolvedValue({
+        contextLength: 50_000,
+        overridden: true,
+      });
+
+      const req = mockRequest({});
+      const result = await controller.listModels(req as never);
+
+      expect(result.data[0].context_length).toBe(50_000);
+    });
   });
 });

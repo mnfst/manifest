@@ -356,5 +356,35 @@ describe('TimeseriesQueriesService', () => {
       expect(result[0].total_cost).toBe(0);
       expect(result[0].sparkline).toEqual([]);
     });
+
+    /**
+     * The Settings page loads the current override from GET /api/v1/agents
+     * (to prefill the Auto/Custom radio). If this projection ever drops the
+     * field, the Settings page silently reverts to "Auto" every reload.
+     */
+    it('surfaces a configured context_floor_override on each agent row', async () => {
+      mockGetMany.mockResolvedValueOnce([
+        {
+          name: 'custom-bot',
+          display_name: null,
+          created_at: '2026-02-16',
+          context_floor_override: 50_000,
+        },
+      ]);
+      mockGetRawMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+
+      const result = await service.getAgentList('u1');
+      expect(result[0].context_floor_override).toBe(50_000);
+    });
+
+    it('defaults context_floor_override to null when the agent row has no override', async () => {
+      mockGetMany.mockResolvedValueOnce([
+        { name: 'auto-bot', display_name: null, created_at: '2026-02-16' },
+      ]);
+      mockGetRawMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+
+      const result = await service.getAgentList('u1');
+      expect(result[0].context_floor_override).toBeNull();
+    });
   });
 });

@@ -73,6 +73,13 @@ const OpenClawSetup: Component<Props> = (props) => {
         Register Manifest in your OpenClaw config to route each request to the best provider using
         the model <code class="setup-model-hint__code">manifest/auto</code>
       </p>
+      <p class="setup-step__desc" style="font-size: var(--font-size-sm);">
+        OpenClaw reads the context window from <code>GET /v1/models</code> automatically, so the
+        snippet below intentionally doesn't hardcode <code>contextWindow</code>. If an older
+        Manifest guide told you to paste <code>contextWindow: 2000000</code> or similar, remove that
+        line — it prevents OpenClaw from compacting and will cause requests to overflow smaller
+        routed models.
+      </p>
 
       <div
         class="setup-segment setup-segment--full"

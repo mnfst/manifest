@@ -70,6 +70,7 @@ import { AddMessageFeedback1775600000000 } from './migrations/1775600000000-AddM
 import { CleanupOrphanedCustomProviderRefs1776679833383 } from './migrations/1776679833383-CleanupOrphanedCustomProviderRefs';
 import { AddMessageRequestHeaders1776700000000 } from './migrations/1776700000000-AddMessageRequestHeaders';
 import { AddSpecificityMiscategorized1777000000000 } from './migrations/1777000000000-AddSpecificityMiscategorized';
+import { AddAgentContextFloorOverride1777100000000 } from './migrations/1777100000000-AddAgentContextFloorOverride';
 
 const entities = [
   AgentMessage,
@@ -141,6 +142,7 @@ const migrations = [
   CleanupOrphanedCustomProviderRefs1776679833383,
   AddMessageRequestHeaders1776700000000,
   AddSpecificityMiscategorized1777000000000,
+  AddAgentContextFloorOverride1777100000000,
 ];
 
 @Module({

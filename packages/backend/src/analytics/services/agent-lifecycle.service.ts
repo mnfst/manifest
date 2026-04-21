@@ -55,6 +55,22 @@ export class AgentLifecycleService {
       .execute();
   }
 
+  async updateContextFloorOverride(
+    userId: string,
+    agentName: string,
+    value: number | null,
+  ): Promise<void> {
+    const agent = await this.findAgentByUser(userId, agentName);
+    if (!agent) throw new NotFoundException(`Agent "${agentName}" not found`);
+
+    await this.agentRepo
+      .createQueryBuilder()
+      .update('agents')
+      .set({ context_floor_override: value })
+      .where('id = :id', { id: agent.id })
+      .execute();
+  }
+
   async renameAgent(
     userId: string,
     currentName: string,
