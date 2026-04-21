@@ -68,9 +68,11 @@ describe('HeaderTierService', () => {
   describe('create', () => {
     it('inserts a new tier with sort_order = max+1 and invalidates cache', async () => {
       const { svc, repo, cache } = makeService();
+      // Mix decreasing and increasing orders so both branches of the reduce
+      // ternary (new max and retained max) are exercised.
       repo.find.mockResolvedValue([
-        { name: 'Other1', header_key: 'x-a', header_value: 'a', sort_order: 2 } as HeaderTier,
-        { name: 'Other2', header_key: 'x-b', header_value: 'b', sort_order: 5 } as HeaderTier,
+        { name: 'Other1', header_key: 'x-a', header_value: 'a', sort_order: 5 } as HeaderTier,
+        { name: 'Other2', header_key: 'x-b', header_value: 'b', sort_order: 2 } as HeaderTier,
       ]);
       const out = await svc.create('a1', 'u1', 't1', validInput);
       expect(out.sort_order).toBe(6);
@@ -181,6 +183,30 @@ describe('HeaderTierService', () => {
         header_key: 'X-MANIFEST-TIER',
       });
       expect(out.header_key).toBe('x-manifest-tier');
+    });
+
+    it('treats a null name as empty', async () => {
+      const { svc, repo } = makeService();
+      repo.find.mockResolvedValue([]);
+      await expect(
+        svc.create('a1', 'u1', null, { ...validInput, name: null as unknown as string }),
+      ).rejects.toThrow(/Name is required/);
+    });
+
+    it('treats a null header_key as empty', async () => {
+      const { svc, repo } = makeService();
+      repo.find.mockResolvedValue([]);
+      await expect(
+        svc.create('a1', 'u1', null, { ...validInput, header_key: null as unknown as string }),
+      ).rejects.toThrow(/Header key is required/);
+    });
+
+    it('treats a null header_value as empty', async () => {
+      const { svc, repo } = makeService();
+      repo.find.mockResolvedValue([]);
+      await expect(
+        svc.create('a1', 'u1', null, { ...validInput, header_value: null as unknown as string }),
+      ).rejects.toThrow(/Header value is required/);
     });
   });
 
