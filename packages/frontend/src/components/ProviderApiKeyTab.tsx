@@ -41,12 +41,7 @@ const ProviderApiKeyTab: Component<Props> = (props) => {
   });
 
   const mergedProviders = (): ListItem[] => {
-    // Local-only providers (Ollama, vLLM, LM Studio, llama.cpp) are hidden
-    // entirely in cloud mode — the cloud backend can't reach the user's host.
-    const visibleStandards = props.apiKeyProviders.filter(
-      (prov) => !prov.localOnly || isSelfHosted(),
-    );
-    const standards: ListItem[] = visibleStandards.map((prov) => ({ kind: 'standard', prov }));
+    const standards: ListItem[] = props.apiKeyProviders.map((prov) => ({ kind: 'standard', prov }));
     const customs: ListItem[] = (props.customProviders ?? []).map((cp) => ({ kind: 'custom', cp }));
     return [...standards, ...customs].sort((a, b) => {
       const nameA = a.kind === 'standard' ? a.prov.name : a.cp.name;
@@ -92,15 +87,23 @@ const ProviderApiKeyTab: Component<Props> = (props) => {
             const connected = () => props.isConnected(prov.id) || props.isNoKeyConnected(prov.id);
             const isOllamaProvider = () => prov.id === 'ollama';
             const hasLocalPort = () => prov.defaultLocalPort !== undefined;
-            // localOnly providers are filtered out of the list in cloud
-            // mode (see mergedProviders), so the only relevant guard left
-            // is Ollama reachability.
-            const disabled = () => isOllamaProvider() && !ollamaReady();
+            const disabled = () => {
+              if (!prov.localOnly) return false;
+              // Grey out local-only tiles in cloud mode so cloud users can
+              // discover the feature and know it unlocks in the self-hosted
+              // version.
+              if (!isSelfHosted()) return true;
+              if (isOllamaProvider()) return !ollamaReady();
+              return false;
+            };
 
-            const statusMessage = () =>
-              isOllamaProvider() && !ollamaReady()
-                ? 'Install Ollama on your host from ollama.com, then click to connect'
-                : null;
+            const statusMessage = () => {
+              if (!prov.localOnly) return null;
+              if (!isSelfHosted()) return 'Only available on self-hosted Manifest';
+              if (isOllamaProvider() && !ollamaReady())
+                return 'Install Ollama on your host from ollama.com, then click to connect';
+              return null;
+            };
 
             const handleClick = () => {
               if (disabled()) return;

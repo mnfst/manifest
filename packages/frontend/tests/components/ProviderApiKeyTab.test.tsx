@@ -61,10 +61,12 @@ describe('ProviderApiKeyTab', () => {
     expect(names[2]).toContain('Zeta');
   });
 
-  it('hides local-only providers entirely when not in the self-hosted version', async () => {
+  it('greys out local-only providers in cloud mode with the self-hosted hint', async () => {
     checkIsSelfHosted.mockResolvedValue(false);
     checkIsOllamaAvailable.mockResolvedValue(false);
 
+    const onOpenDetail = vi.fn();
+    const onOpenCustomForm = vi.fn();
     const { container } = render(() => (
       <ProviderApiKeyTab
         apiKeyProviders={[
@@ -74,8 +76,8 @@ describe('ProviderApiKeyTab', () => {
         customProviders={[]}
         isConnected={() => false}
         isNoKeyConnected={() => false}
-        onOpenDetail={vi.fn()}
-        onOpenCustomForm={vi.fn()}
+        onOpenDetail={onOpenDetail}
+        onOpenCustomForm={onOpenCustomForm}
         onEditCustom={vi.fn()}
       />
     ));
@@ -84,8 +86,18 @@ describe('ProviderApiKeyTab', () => {
     const names = Array.from(container.querySelectorAll('.provider-toggle__name')).map(
       (n) => n.textContent?.trim() ?? '',
     );
-    expect(names).toEqual(['OpenAI']);
-    expect(container.textContent).not.toContain('Ollama');
+    // Both tiles render; local-only is greyed out to advertise the feature.
+    expect(names).toContain('Ollama');
+    expect(names).toContain('OpenAI');
+    expect(container.textContent).toContain('Only available on self-hosted Manifest');
+    const tiles = container.querySelectorAll('button.provider-toggle');
+    const ollamaBtn = Array.from(tiles).find((b) =>
+      b.textContent?.includes('Ollama'),
+    ) as HTMLButtonElement;
+    expect(ollamaBtn.disabled).toBe(true);
+    fireEvent.click(ollamaBtn);
+    expect(onOpenDetail).not.toHaveBeenCalled();
+    expect(onOpenCustomForm).not.toHaveBeenCalled();
   });
 
   it('shows the "install Ollama on host" hint when self-hosted but Ollama is unreachable', async () => {
