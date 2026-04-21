@@ -9,8 +9,8 @@ import {
 } from './providers';
 
 describe('PROVIDER_REGISTRY', () => {
-  it('should contain exactly 15 provider entries', () => {
-    expect(PROVIDER_REGISTRY).toHaveLength(15);
+  it('should contain exactly 16 provider entries', () => {
+    expect(PROVIDER_REGISTRY).toHaveLength(16);
   });
 
   it('ollama-cloud has localOnly=false and requiresApiKey=false', () => {
@@ -92,11 +92,11 @@ describe('PROVIDER_REGISTRY', () => {
 });
 
 describe('PROVIDER_BY_ID', () => {
-  it('resolves all 15 provider IDs', () => {
+  it('resolves all 16 provider IDs', () => {
     for (const entry of PROVIDER_REGISTRY) {
       expect(PROVIDER_BY_ID.get(entry.id)).toBe(entry);
     }
-    expect(PROVIDER_BY_ID.size).toBe(15);
+    expect(PROVIDER_BY_ID.size).toBe(16);
   });
 
   it('returns undefined for an unknown ID', () => {

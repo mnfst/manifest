@@ -243,8 +243,8 @@ describe("getModelLabel", () => {
 /* ── PROVIDERS constant ────────────────────────── */
 
 describe("PROVIDERS", () => {
-  it("has 15 providers defined", () => {
-    expect(PROVIDERS).toHaveLength(15);
+  it("has 16 providers defined", () => {
+    expect(PROVIDERS).toHaveLength(16);
   });
 
   it("providers are sorted alphabetically by name", () => {

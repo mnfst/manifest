@@ -130,6 +130,11 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subtitle: 'Kimi k2, Moonshot v1',
     models: [],
   },
+  'nano-gpt': {
+    initial: 'NG',
+    subtitle: 'OpenAI-compatible multi-model gateway',
+    models: [],
+  },
   ollama: {
     initial: 'Ol',
     subtitle: 'Llama, Mistral, Gemma, and more',
@@ -235,6 +240,7 @@ const PROVIDER_ORDER = [
   'minimax',
   'mistral',
   'moonshot',
+  'nano-gpt',
   'ollama',
   'ollama-cloud',
   'openai',

@@ -293,6 +293,21 @@ describe('PROVIDER_ENDPOINTS', () => {
     });
     expect(headers['Authorization']).toBeUndefined();
   });
+
+  it('nano-gpt uses baseUrl https://nano-gpt.com/api, format openai, and correct buildPath', () => {
+    const ep = PROVIDER_ENDPOINTS['nano-gpt'];
+    expect(ep.baseUrl).toBe('https://nano-gpt.com/api');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('/v1/chat/completions')).toBe('/v1/chat/completions');
+  });
+
+  it('nano-gpt uses Bearer auth headers with Content-Type application/json', () => {
+    const headers = PROVIDER_ENDPOINTS['nano-gpt'].buildHeaders('sk-test-key');
+    expect(headers).toEqual({
+      Authorization: 'Bearer sk-test-key',
+      'Content-Type': 'application/json',
+    });
+  });
 });
 
 describe('buildEndpointOverride', () => {

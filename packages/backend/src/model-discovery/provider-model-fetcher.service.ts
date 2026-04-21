@@ -354,6 +354,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
   },
+  'nano-gpt': {
+    endpoint: 'https://nano-gpt.com/api/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
+  },
   xai: {
     endpoint: 'https://api.x.ai/v1/models',
     buildHeaders: bearerHeaders,

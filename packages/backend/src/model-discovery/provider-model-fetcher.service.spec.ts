@@ -22,6 +22,7 @@ describe('ProviderModelFetcherService', () => {
       'deepseek',
       'mistral',
       'moonshot',
+      'nano-gpt',
       'xai',
       'minimax',
       'minimax-subscription',
