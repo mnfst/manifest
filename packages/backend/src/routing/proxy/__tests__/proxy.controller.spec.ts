@@ -823,6 +823,7 @@ describe('ProxyController', () => {
       tenantId: 'tenant-1',
       agentName: 'test-agent',
       signal: expect.any(AbortSignal),
+      headers: expect.any(Object),
     });
   });
 
@@ -856,6 +857,7 @@ describe('ProxyController', () => {
       tenantId: 'tenant-1',
       agentName: 'test-agent',
       signal: expect.any(AbortSignal),
+      headers: expect.any(Object),
     });
   });
 

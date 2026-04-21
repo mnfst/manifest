@@ -13,4 +13,7 @@ export interface ResolveResponse {
   auth_type?: AuthType;
   specificity_category?: SpecificityCategory;
   fallback_models?: string[] | null;
+  header_tier_id?: string;
+  header_tier_name?: string;
+  header_tier_color?: string;
 }

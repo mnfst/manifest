@@ -45,6 +45,9 @@ export interface RoutingMeta {
   reason: string;
   auth_type?: string;
   specificity_category?: string;
+  header_tier_id?: string;
+  header_tier_name?: string;
+  header_tier_color?: string;
   fallbackFromModel?: string;
   fallbackIndex?: number;
   primaryErrorStatus?: number;
@@ -83,8 +86,17 @@ export class ProxyService {
   ) {}
 
   async proxyRequest(opts: ProxyRequestOptions): Promise<ProxyResult> {
-    const { agentId, userId, body, sessionKey, tenantId, agentName, signal, specificityOverride } =
-      opts;
+    const {
+      agentId,
+      userId,
+      body,
+      sessionKey,
+      tenantId,
+      agentName,
+      signal,
+      specificityOverride,
+      headers,
+    } = opts;
     this.validatePayload(body);
 
     const limitMessage = await this.enforceLimits(tenantId, agentName);
@@ -92,7 +104,13 @@ export class ProxyService {
       return buildFriendlyResponse(limitMessage, body.stream === true, 'limit_exceeded');
     }
 
-    const resolved = await this.resolveRouting(agentId, body, sessionKey, specificityOverride);
+    const resolved = await this.resolveRouting(
+      agentId,
+      body,
+      sessionKey,
+      specificityOverride,
+      headers,
+    );
     if (!resolved.model || !resolved.provider) {
       this.logger.warn(
         `No model available for agent=${agentId}: ` +
@@ -181,6 +199,7 @@ export class ProxyService {
     body: ProxyRequestOptions['body'],
     sessionKey: string,
     specificityOverride: ProxyRequestOptions['specificityOverride'],
+    headers: ProxyRequestOptions['headers'],
   ) {
     const messages = body.messages as ScorerMessage[];
     const scoringMessages = this.filterScoringMessages(messages);
@@ -200,6 +219,7 @@ export class ProxyService {
           recentTiers,
           specificityOverride,
           recentCategories,
+          headers,
         );
   }
 
@@ -315,6 +335,9 @@ export class ProxyService {
       reason: string;
       auth_type?: string;
       specificity_category?: string;
+      header_tier_id?: string;
+      header_tier_name?: string;
+      header_tier_color?: string;
       provider?: string | null;
     },
     model: string,
@@ -328,6 +351,9 @@ export class ProxyService {
       reason: resolved.reason,
       auth_type: resolved.auth_type,
       specificity_category: resolved.specificity_category,
+      header_tier_id: resolved.header_tier_id,
+      header_tier_name: resolved.header_tier_name,
+      header_tier_color: resolved.header_tier_color,
       ...overrides,
     };
   }

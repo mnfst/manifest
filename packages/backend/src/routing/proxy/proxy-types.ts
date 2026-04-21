@@ -1,3 +1,4 @@
+import type { IncomingHttpHeaders } from 'http';
 import { ProviderEndpoint } from './provider-endpoints';
 import type { ThinkingBlock } from './thinking-block-cache';
 import { CallerAttribution } from './caller-classifier';
@@ -56,4 +57,5 @@ export interface ProxyRequestOptions {
   signal?: AbortSignal;
   specificityOverride?: string;
   callerAttribution?: CallerAttribution | null;
+  headers?: IncomingHttpHeaders;
 }

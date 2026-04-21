@@ -7,6 +7,7 @@ import { ProxyModule } from './proxy/proxy.module';
 import { OAuthModule } from './oauth/oauth.module';
 import { CustomProviderModule } from './custom-provider/custom-provider.module';
 import { ResolveModule } from './resolve/resolve.module';
+import { HeaderTiersModule } from './header-tiers/header-tiers.module';
 import { ProviderController } from './provider.controller';
 import { TierController } from './tier.controller';
 import { ModelController } from './model.controller';
@@ -26,6 +27,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     OAuthModule,
     CustomProviderModule,
     ResolveModule,
+    HeaderTiersModule,
   ],
   controllers: [
     ProviderController,

@@ -11,6 +11,7 @@ import { SpecificityService } from '../routing-core/specificity.service';
 import { SpecificityPenaltyService } from '../routing-core/specificity-penalty.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
+import { HeaderTierService } from '../header-tiers/header-tier.service';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const scoring = require('../../scoring');
 
@@ -51,6 +52,10 @@ function makeService(overrides: {
     getPenaltiesForAgent: jest.fn().mockResolvedValue(new Map()),
   } as unknown as SpecificityPenaltyService;
 
+  const headerTierService: HeaderTierService = {
+    list: jest.fn().mockResolvedValue([]),
+  } as unknown as HeaderTierService;
+
   const svc = new ResolveService(
     tierService,
     providerKeyService,
@@ -58,6 +63,7 @@ function makeService(overrides: {
     pricingCache,
     discoveryService,
     penaltyService,
+    headerTierService,
   );
   return {
     svc,
