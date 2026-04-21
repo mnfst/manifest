@@ -184,6 +184,40 @@
   color: hsl(var(--muted-foreground));
 }
 
+/* Custom header-triggered tier badge — color comes from tier-color-* classes. */
+.tier-badge--custom {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Tier color palette (shared between badges + dots) ── */
+.tier-color--slate {
+  background: hsl(215 16% 47% / 0.14);
+  color: hsl(215 20% 38%);
+}
+.tier-color--indigo {
+  background: hsl(239 68% 56% / 0.14);
+  color: hsl(239 60% 48%);
+}
+.tier-color--teal {
+  background: hsl(174 66% 42% / 0.14);
+  color: hsl(174 70% 32%);
+}
+.tier-color--amber {
+  background: hsl(38 92% 50% / 0.16);
+  color: hsl(35 90% 40%);
+}
+.tier-color--rose {
+  background: hsl(351 83% 58% / 0.14);
+  color: hsl(351 80% 48%);
+}
+.tier-color--violet {
+  background: hsl(270 67% 55% / 0.14);
+  color: hsl(270 60% 45%);
+}
+
 /* ── Security Events ─────────────────────────────── */
 .security-event {
   display: flex;

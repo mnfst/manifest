@@ -7,6 +7,7 @@ import { toast } from '../services/toast-store.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import RoutingTierCard from './RoutingTierCard.js';
 import RoutingSpecificitySection from './RoutingSpecificitySection.js';
+import RoutingHeaderTiersSection from './RoutingHeaderTiersSection.js';
 import {
   RoutingLoadingSkeleton,
   EnableRoutingCard,
@@ -277,6 +278,13 @@ const Routing: Component = () => {
           <ActiveProviderIcons
             activeProviders={activeProviders}
             customProviders={() => customProviders() ?? []}
+          />
+
+          <RoutingHeaderTiersSection
+            agentName={agentName}
+            models={() => models() ?? []}
+            customProviders={() => customProviders() ?? []}
+            connectedProviders={() => connectedProviders() ?? []}
           />
 
           <div class="routing-section">

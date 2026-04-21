@@ -64,6 +64,9 @@ export interface MessageDetailResponse {
     feedback_tags: string[] | null;
     feedback_details: string | null;
     request_headers: Record<string, string> | null;
+    header_tier_id: string | null;
+    header_tier_name: string | null;
+    header_tier_color: string | null;
     caller_attribution: {
       sdk?: string;
       sdkVersion?: string;
