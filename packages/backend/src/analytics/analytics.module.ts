@@ -14,6 +14,7 @@ import { TimeseriesQueriesService } from './services/timeseries-queries.service'
 import { MessagesQueryService } from './services/messages-query.service';
 import { MessageDetailsService } from './services/message-details.service';
 import { MessageFeedbackService } from './services/message-feedback.service';
+import { SpecificityFeedbackService } from './services/specificity-feedback.service';
 import { AgentAnalyticsService } from './services/agent-analytics.service';
 import { OverviewController } from './controllers/overview.controller';
 import { TokensController } from './controllers/tokens.controller';
@@ -43,7 +44,9 @@ import { AgentAnalyticsController } from './controllers/agent-analytics.controll
     MessagesQueryService,
     MessageDetailsService,
     MessageFeedbackService,
+    SpecificityFeedbackService,
     AgentAnalyticsService,
   ],
+  exports: [SpecificityFeedbackService],
 })
 export class AnalyticsModule {}

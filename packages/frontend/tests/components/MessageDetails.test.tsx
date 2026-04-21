@@ -2,8 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@solidjs/testing-library';
 
 const mockGetMessageDetails = vi.fn();
+const mockFlagMiscategorized = vi.fn();
+const mockClearMiscategorized = vi.fn();
 vi.mock('../../src/services/api.js', () => ({
   getMessageDetails: (...args: unknown[]) => mockGetMessageDetails(...args),
+  flagMessageMiscategorized: (...args: unknown[]) => mockFlagMiscategorized(...args),
+  clearMessageMiscategorized: (...args: unknown[]) => mockClearMiscategorized(...args),
 }));
 
 vi.mock('../../src/services/formatters.js', () => ({
@@ -243,6 +247,30 @@ describe('MessageDetails', () => {
     });
   });
 
+  it('displays severity dot with warn color for warn logs', async () => {
+    const warnLogResponse = {
+      ...detailsResponse,
+      agent_logs: [
+        {
+          id: 'al-warn',
+          severity: 'warn',
+          body: 'Deprecation notice',
+          timestamp: '2026-02-16 10:00:00',
+          span_id: null,
+        },
+      ],
+    };
+    mockGetMessageDetails.mockResolvedValue(warnLogResponse);
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      const dot = container.querySelector('.msg-detail__severity-dot') as HTMLElement;
+      expect(dot).not.toBeNull();
+      expect(dot.getAttribute('title')).toBe('warn');
+      // The warn branch returns hsl(var(--chart-5)). The style attribute is a string.
+      expect(dot.getAttribute('style') ?? '').toContain('--chart-5');
+    });
+  });
+
   it('displays severity dot with correct color for error logs', async () => {
     const errorLogResponse = {
       ...detailsResponse,
@@ -368,6 +396,111 @@ describe('MessageDetails', () => {
     });
   });
 
+  it('renders em dashes for null call_index, request_model, and response_model in an LLM call', async () => {
+    const nullFieldsResponse = {
+      ...detailsResponse,
+      llm_calls: [
+        {
+          ...detailsResponse.llm_calls[0],
+          call_index: null,
+          request_model: null,
+          response_model: null,
+        },
+      ],
+    };
+    mockGetMessageDetails.mockResolvedValue(nullFieldsResponse);
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('LLM Calls');
+      const cells = container.querySelectorAll('.msg-detail__table td');
+      const emDashes = Array.from(cells).filter((c) => c.textContent === '\u2014');
+      // Three null fields → at least three em-dashes in the LLM-call row.
+      expect(emDashes.length).toBeGreaterThanOrEqual(3);
+    });
+  });
+
+  it('renders em dash for null tool duration', async () => {
+    const nullToolDurationResponse = {
+      ...detailsResponse,
+      tool_executions: [
+        {
+          id: 'te-null',
+          llm_call_id: 'lc-1',
+          tool_name: 'Bash',
+          duration_ms: null,
+          status: 'ok',
+          error_message: null,
+        },
+      ],
+    };
+    mockGetMessageDetails.mockResolvedValue(nullToolDurationResponse);
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Bash');
+      const cells = container.querySelectorAll('.msg-detail__table td');
+      const emDashCells = Array.from(cells).filter((c) => c.textContent === '\u2014');
+      expect(emDashCells.length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  it('renders em dash for null log body', async () => {
+    const nullBodyLogResponse = {
+      ...detailsResponse,
+      agent_logs: [
+        {
+          id: 'al-nobody',
+          severity: 'info',
+          body: null,
+          timestamp: '2026-02-16 10:00:00',
+          span_id: null,
+        },
+      ],
+    };
+    mockGetMessageDetails.mockResolvedValue(nullBodyLogResponse);
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      const logCells = container.querySelectorAll('.msg-detail__log-body');
+      expect(logCells.length).toBe(1);
+      expect(logCells[0]!.textContent).toBe('\u2014');
+    });
+  });
+
+  it('omits Provider and Model when the message has no model attached', async () => {
+    const noModelResponse = {
+      ...detailsResponse,
+      message: { ...detailsResponse.message, model: null },
+    };
+    mockGetMessageDetails.mockResolvedValue(noModelResponse);
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      // With model=null, inferProviderName isn't called and `Provider` MetaField
+      // renders nothing (value is null).
+      expect(container.textContent).toContain('Message');
+      expect(container.textContent).not.toContain('Provider');
+      expect(container.textContent).not.toContain('Model ID');
+    });
+  });
+
+  it('omits the attempt # when fallback_index is null but fallback_from_model is set', async () => {
+    const fallbackNoIndexResponse = {
+      ...detailsResponse,
+      message: {
+        ...detailsResponse.message,
+        fallback_from_model: 'gemini-2.5-flash-lite',
+        fallback_index: null,
+      },
+    };
+    mockGetMessageDetails.mockResolvedValue(fallbackNoIndexResponse);
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      const banner = container.querySelector('.msg-detail__fallback-banner');
+      expect(banner).not.toBeNull();
+      expect(banner!.textContent).toContain('gemini-2.5-flash-lite');
+      // Without fallback_index, the "(attempt #N)" suffix is hidden.
+      expect(banner!.textContent).not.toContain('attempt #');
+    });
+  });
+
   it('shows em dash for null duration in LLM call', async () => {
     const nullDurationResponse = {
       ...detailsResponse,
@@ -380,6 +513,117 @@ describe('MessageDetails', () => {
       const cells = container.querySelectorAll('.msg-detail__table td');
       const durationValues = Array.from(cells).filter((c) => c.textContent === '\u2014');
       expect(durationValues.length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  describe('miscategorization control', () => {
+    const specificityResponse = {
+      ...detailsResponse,
+      message: {
+        ...detailsResponse.message,
+        specificity_category: 'web_browsing',
+        specificity_miscategorized: false,
+      },
+    };
+
+    it('is hidden when the message was not routed by specificity', async () => {
+      mockGetMessageDetails.mockResolvedValue(detailsResponse);
+      const { container } = render(() => <MessageDetails messageId="msg-1" />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain('Routing');
+      });
+      expect(container.querySelector('.msg-detail__miscat-btn')).toBeNull();
+    });
+
+    it('shows the button when specificity_category is set', async () => {
+      mockGetMessageDetails.mockResolvedValue(specificityResponse);
+      const { container } = render(() => <MessageDetails messageId="msg-1" />);
+      await vi.waitFor(() => {
+        const btn = container.querySelector('.msg-detail__miscat-btn') as HTMLButtonElement;
+        expect(btn).not.toBeNull();
+        expect(btn.textContent).toContain('Wrong category?');
+      });
+    });
+
+    it('reflects already-flagged state on initial render', async () => {
+      const flagged = {
+        ...specificityResponse,
+        message: { ...specificityResponse.message, specificity_miscategorized: true },
+      };
+      mockGetMessageDetails.mockResolvedValue(flagged);
+      const { container } = render(() => <MessageDetails messageId="msg-1" />);
+      await vi.waitFor(() => {
+        const btn = container.querySelector('.msg-detail__miscat-btn') as HTMLButtonElement;
+        expect(btn).not.toBeNull();
+        expect(btn.getAttribute('aria-pressed')).toBe('true');
+        expect(btn.textContent).toContain('undo');
+      });
+    });
+
+    it('calls flag API on first click and reveals undo state', async () => {
+      mockGetMessageDetails.mockResolvedValue(specificityResponse);
+      mockFlagMiscategorized.mockResolvedValue(undefined);
+      const { container } = render(() => <MessageDetails messageId="msg-1" />);
+      const btn = await vi.waitFor(() => {
+        const b = container.querySelector('.msg-detail__miscat-btn') as HTMLButtonElement;
+        expect(b).not.toBeNull();
+        return b;
+      });
+      btn.click();
+      await vi.waitFor(() => {
+        expect(mockFlagMiscategorized).toHaveBeenCalledWith('msg-1');
+        expect(btn.getAttribute('aria-pressed')).toBe('true');
+      });
+    });
+
+    it('calls clear API when undoing a flag', async () => {
+      const flagged = {
+        ...specificityResponse,
+        message: { ...specificityResponse.message, specificity_miscategorized: true },
+      };
+      mockGetMessageDetails.mockResolvedValue(flagged);
+      mockClearMiscategorized.mockResolvedValue(undefined);
+      const { container } = render(() => <MessageDetails messageId="msg-1" />);
+      const btn = await vi.waitFor(() => {
+        const b = container.querySelector('.msg-detail__miscat-btn') as HTMLButtonElement;
+        expect(b).not.toBeNull();
+        return b;
+      });
+      btn.click();
+      await vi.waitFor(() => {
+        expect(mockClearMiscategorized).toHaveBeenCalledWith('msg-1');
+        expect(btn.getAttribute('aria-pressed')).toBe('false');
+      });
+    });
+
+    it('ignores rapid clicks while a request is in flight', async () => {
+      mockGetMessageDetails.mockResolvedValue(specificityResponse);
+      let resolveFlag: (() => void) | null = null;
+      mockFlagMiscategorized.mockReturnValue(
+        new Promise<void>((resolve) => {
+          resolveFlag = resolve;
+        }),
+      );
+      const { container } = render(() => <MessageDetails messageId="msg-1" />);
+      const btn = await vi.waitFor(() => {
+        const b = container.querySelector('.msg-detail__miscat-btn') as HTMLButtonElement;
+        expect(b).not.toBeNull();
+        return b;
+      });
+      // The handler sets busy=true on the first click and early-returns on
+      // subsequent clicks while the flag request is pending. Yielding to the
+      // microtask queue between clicks lets the `setBusy(true)` write settle
+      // so the second click's `if (busy()) return` guard fires.
+      btn.click();
+      await Promise.resolve();
+      await Promise.resolve();
+      btn.click();
+      await Promise.resolve();
+      btn.click();
+      resolveFlag!();
+      await vi.waitFor(() => {
+        expect(mockFlagMiscategorized).toHaveBeenCalledTimes(1);
+      });
     });
   });
 });

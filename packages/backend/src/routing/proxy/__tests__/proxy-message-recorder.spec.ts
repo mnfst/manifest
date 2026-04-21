@@ -291,6 +291,16 @@ describe('ProxyMessageRecorder', () => {
       });
       expect(insertMock.mock.calls[0][0].provider).toBeNull();
     });
+
+    it('scrubs provider secrets from the persisted error_message', async () => {
+      const leaky = JSON.stringify({
+        error: { message: 'Invalid x-api-key: sk-ant-api03-SECRETKEYVALUE12345' },
+      });
+      await recorder.recordProviderError(ctx, 401, leaky, { model: 'claude-3' });
+      const stored: string = insertMock.mock.calls[0][0].error_message;
+      expect(stored).not.toContain('SECRETKEYVALUE12345');
+      expect(stored).toContain('[REDACTED]');
+    });
   });
 
   describe('recordFailedFallbacks', () => {
@@ -443,6 +453,32 @@ describe('ProxyMessageRecorder', () => {
       });
       // baseTimeMs + (1 - 0) * 100 = 100ms past the base.
       expect(insertMock.mock.calls[0][0].timestamp).toBe('2025-01-01T00:00:00.100Z');
+    });
+
+    it('scrubs provider secrets from each persisted fallback error_message', async () => {
+      const failures = [
+        {
+          model: 'gpt-4o',
+          provider: 'openai',
+          status: 401,
+          errorBody: 'Authorization: Bearer sk-proj-LEAKEDKEY1234567890',
+          fallbackIndex: 0,
+        },
+        {
+          model: 'claude-3',
+          provider: 'anthropic',
+          status: 401,
+          errorBody: 'x-api-key: sk-ant-api03-LEAKEDKEY0987654321',
+          fallbackIndex: 1,
+        },
+      ];
+      await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures);
+      const first: string = insertMock.mock.calls[0][0].error_message;
+      const second: string = insertMock.mock.calls[1][0].error_message;
+      expect(first).not.toContain('LEAKEDKEY1234567890');
+      expect(first).toContain('[REDACTED]');
+      expect(second).not.toContain('LEAKEDKEY0987654321');
+      expect(second).toContain('[REDACTED]');
     });
   });
 

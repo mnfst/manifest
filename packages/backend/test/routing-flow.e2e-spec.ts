@@ -7,7 +7,6 @@ import { INestApplication } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import request from 'supertest';
 import { createTestApp, TEST_AGENT_ID, TEST_API_KEY, TEST_OTLP_KEY, TEST_USER_ID } from './helpers';
-import { detectDialect, portableSql } from '../src/common/utils/sql-dialect';
 import { PricingSyncService } from '../src/database/pricing-sync.service';
 import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
 import { TierAutoAssignService } from '../src/routing/routing-core/tier-auto-assign.service';
@@ -94,8 +93,6 @@ describe('Routing enabled → scorer routes by query complexity', () => {
 
     // Seed discovered models on provider records so tier auto-assign can pick them
     const ds = app.get(DataSource);
-    const dialect = detectDialect(ds.options.type as string);
-    const sql = (q: string) => portableSql(q, dialect);
 
     const openaiModels = JSON.stringify([
       {
@@ -135,11 +132,11 @@ describe('Routing enabled → scorer routes by query complexity', () => {
       },
     ]);
     await ds.query(
-      sql(`UPDATE user_providers SET cached_models = $1 WHERE agent_id = $2 AND provider = $3`),
+      `UPDATE user_providers SET cached_models = $1 WHERE agent_id = $2 AND provider = $3`,
       [openaiModels, TEST_AGENT_ID, 'openai'],
     );
     await ds.query(
-      sql(`UPDATE user_providers SET cached_models = $1 WHERE agent_id = $2 AND provider = $3`),
+      `UPDATE user_providers SET cached_models = $1 WHERE agent_id = $2 AND provider = $3`,
       [anthropicModels, TEST_AGENT_ID, 'anthropic'],
     );
 
@@ -343,17 +340,15 @@ describe('Persisted unsupported subscriptions are cleaned up on read', () => {
       .expect(201);
 
     const ds = app.get(DataSource);
-    const dialect = detectDialect(ds.options.type as string);
-    const sql = (q: string) => portableSql(q, dialect);
     const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
 
     await ds.query(
-      sql(`DELETE FROM user_providers WHERE agent_id = $1 AND provider = $2 AND auth_type = $3`),
+      `DELETE FROM user_providers WHERE agent_id = $1 AND provider = $2 AND auth_type = $3`,
       [TEST_AGENT_ID, 'deepseek', 'subscription'],
     );
     await ds.query(
-      sql(`INSERT INTO user_providers (id, user_id, agent_id, provider, api_key_encrypted, key_prefix, auth_type, is_active, connected_at, updated_at)
-           VALUES ($1, $2, $3, $4, NULL, NULL, $5, true, $6, $7)`),
+      `INSERT INTO user_providers (id, user_id, agent_id, provider, api_key_encrypted, key_prefix, auth_type, is_active, connected_at, updated_at)
+           VALUES ($1, $2, $3, $4, NULL, NULL, $5, true, $6, $7)`,
       ['stale-deepseek-sub', TEST_USER_ID, TEST_AGENT_ID, 'deepseek', 'subscription', now, now],
     );
 
@@ -366,7 +361,7 @@ describe('Persisted unsupported subscriptions are cleaned up on read', () => {
     expect(deepseek).toBeUndefined();
 
     const rows = await ds.query(
-      sql(`SELECT is_active FROM user_providers WHERE id = $1`),
+      `SELECT is_active FROM user_providers WHERE id = $1`,
       ['stale-deepseek-sub'],
     );
     const isActive = rows[0]?.is_active === true || rows[0]?.is_active === 1;
@@ -396,8 +391,6 @@ describe('Routing disabled after deactivation → falls back to null', () => {
 
     // Re-seed cached_models on the re-activated provider
     const ds = app.get(DataSource);
-    const dialect = detectDialect(ds.options.type as string);
-    const sql = (q: string) => portableSql(q, dialect);
     const openaiModels = JSON.stringify([
       {
         id: 'gpt-4o-mini',
@@ -412,7 +405,7 @@ describe('Routing disabled after deactivation → falls back to null', () => {
       },
     ]);
     await ds.query(
-      sql(`UPDATE user_providers SET cached_models = $1 WHERE agent_id = $2 AND provider = $3`),
+      `UPDATE user_providers SET cached_models = $1 WHERE agent_id = $2 AND provider = $3`,
       [openaiModels, TEST_AGENT_ID, 'openai'],
     );
     await app.get(TierAutoAssignService).recalculate(TEST_AGENT_ID);

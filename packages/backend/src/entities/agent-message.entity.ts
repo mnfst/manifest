@@ -98,6 +98,9 @@ export class AgentMessage {
   @Column('varchar', { nullable: true })
   specificity_category!: string | null;
 
+  @Column('boolean', { default: false })
+  specificity_miscategorized!: boolean;
+
   @Column('simple-json', { nullable: true })
   caller_attribution!: CallerAttribution | null;
 

@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
 import { TimeseriesQueriesService } from './timeseries-queries.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { Agent } from '../../entities/agent.entity';
@@ -72,7 +71,6 @@ describe('TimeseriesQueriesService', () => {
           provide: getRepositoryToken(Agent),
           useValue: { createQueryBuilder: jest.fn().mockReturnValue(mockAgentQb) },
         },
-        { provide: DataSource, useValue: { options: { type: 'postgres' } } },
         {
           provide: TenantCacheService,
           useValue: { resolve: jest.fn().mockResolvedValue('tenant-123') },

@@ -12,8 +12,6 @@ import { hashKey, keyPrefix } from '../src/common/utils/hash.util';
 import { AgentMessage } from '../src/entities/agent-message.entity';
 import { LlmCall } from '../src/entities/llm-call.entity';
 import { ToolExecution } from '../src/entities/tool-execution.entity';
-import { TokenUsageSnapshot } from '../src/entities/token-usage-snapshot.entity';
-import { CostSnapshot } from '../src/entities/cost-snapshot.entity';
 import { AgentLog } from '../src/entities/agent-log.entity';
 import { ApiKey } from '../src/entities/api-key.entity';
 import { Tenant } from '../src/entities/tenant.entity';
@@ -43,7 +41,7 @@ export const TEST_TENANT_ID = 'test-tenant-001';
 export const TEST_AGENT_ID = 'test-agent-001';
 export const TEST_OTLP_KEY = 'mnfst_test-otlp-key-001';
 
-const entities = [AgentMessage, LlmCall, ToolExecution, TokenUsageSnapshot, CostSnapshot, AgentLog, ApiKey, Tenant, Agent, AgentApiKey, NotificationRule, NotificationLog, UserProvider, TierAssignment, CustomProvider, EmailProviderConfig, SpecificityAssignment];
+const entities = [AgentMessage, LlmCall, ToolExecution, AgentLog, ApiKey, Tenant, Agent, AgentApiKey, NotificationRule, NotificationLog, UserProvider, TierAssignment, CustomProvider, EmailProviderConfig, SpecificityAssignment];
 const OPENROUTER_MODELS_URL = 'https://openrouter.ai/api/v1/models';
 const OPENROUTER_MODELS_FIXTURE = {
   data: [
@@ -177,26 +175,25 @@ export async function createTestApp(): Promise<INestApplication> {
     await app.init();
 
     const ds = app.get(DataSource);
-    const sql = (query: string) => query;
     const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
 
     // Seed test API key (hashed)
     await ds.query(
-      sql(`INSERT INTO api_keys (id, key, key_hash, key_prefix, user_id, name, created_at) VALUES ($1, NULL, $2, $3, $4, $5, $6)`),
+      `INSERT INTO api_keys (id, key, key_hash, key_prefix, user_id, name, created_at) VALUES ($1, NULL, $2, $3, $4, $5, $6)`,
       ['test-key-id', hashKey(TEST_API_KEY), keyPrefix(TEST_API_KEY), TEST_USER_ID, 'Test Key', now],
     );
 
     // Seed test tenant, agent, and OTLP key (hashed)
     await ds.query(
-      sql(`INSERT INTO tenants (id, name, organization_name, is_active, created_at, updated_at) VALUES ($1,$2,$3,true,$4,$5)`),
+      `INSERT INTO tenants (id, name, organization_name, is_active, created_at, updated_at) VALUES ($1,$2,$3,true,$4,$5)`,
       [TEST_TENANT_ID, TEST_USER_ID, 'Test Org', now, now],
     );
     await ds.query(
-      sql(`INSERT INTO agents (id, name, display_name, description, is_active, tenant_id, created_at, updated_at) VALUES ($1,$2,$3,$4,true,$5,$6,$7)`),
+      `INSERT INTO agents (id, name, display_name, description, is_active, tenant_id, created_at, updated_at) VALUES ($1,$2,$3,$4,true,$5,$6,$7)`,
       [TEST_AGENT_ID, 'test-agent', 'Test Agent', 'Test agent', TEST_TENANT_ID, now, now],
     );
     await ds.query(
-      sql(`INSERT INTO agent_api_keys (id, key, key_hash, key_prefix, label, tenant_id, agent_id, is_active, created_at) VALUES ($1, NULL, $2, $3, $4, $5, $6, true, $7)`),
+      `INSERT INTO agent_api_keys (id, key, key_hash, key_prefix, label, tenant_id, agent_id, is_active, created_at) VALUES ($1, NULL, $2, $3, $4, $5, $6, true, $7)`,
       ['test-otlp-key-id', hashKey(TEST_OTLP_KEY), keyPrefix(TEST_OTLP_KEY), 'Test OTLP Key', TEST_TENANT_ID, TEST_AGENT_ID, now],
     );
 

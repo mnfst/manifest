@@ -2,7 +2,6 @@ import { INestApplication } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import request from 'supertest';
 import { createTestApp, TEST_OTLP_KEY, TEST_API_KEY, TEST_AGENT_ID } from './helpers';
-import { detectDialect, portableSql } from '../src/common/utils/sql-dialect';
 import { PricingSyncService } from '../src/database/pricing-sync.service';
 import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
 import { TierAutoAssignService } from '../src/routing/routing-core/tier-auto-assign.service';
@@ -13,8 +12,6 @@ beforeAll(async () => {
   app = await createTestApp();
 
   const ds = app.get(DataSource);
-  const dialect = detectDialect(ds.options.type as string);
-  const sql = (q: string) => portableSql(q, dialect);
 
   // Populate PricingSyncService cache with gpt-4o-mini pricing (use prefixed key
   // so ModelPricingCacheService.inferProvider() resolves the correct provider name)
@@ -51,7 +48,7 @@ beforeAll(async () => {
     },
   ]);
   await ds.query(
-    sql(`UPDATE user_providers SET cached_models = $1 WHERE agent_id = $2 AND provider = $3`),
+    `UPDATE user_providers SET cached_models = $1 WHERE agent_id = $2 AND provider = $3`,
     [models, TEST_AGENT_ID, 'openai'],
   );
 

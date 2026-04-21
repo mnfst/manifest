@@ -1,116 +1,108 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { In, Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
+import { NotificationRule } from '../../entities/notification-rule.entity';
+import { NotificationLog } from '../../entities/notification-log.entity';
+import { AgentMessage } from '../../entities/agent-message.entity';
+import { Agent } from '../../entities/agent.entity';
+import { Tenant } from '../../entities/tenant.entity';
 import { CreateNotificationRuleDto, UpdateNotificationRuleDto } from '../dto/notification-rule.dto';
+
+export interface NotificationRuleWithTriggerCount extends NotificationRule {
+  trigger_count: number;
+}
+
+const NOTIFY_ACTIONS = ['notify', 'both'] as const;
+const BLOCK_ACTIONS = ['block', 'both'] as const;
 
 @Injectable()
 export class NotificationRulesService {
-  constructor(private readonly ds: DataSource) {}
+  constructor(
+    @InjectRepository(NotificationRule)
+    private readonly ruleRepo: Repository<NotificationRule>,
+    @InjectRepository(NotificationLog)
+    private readonly logRepo: Repository<NotificationLog>,
+    @InjectRepository(AgentMessage)
+    private readonly messageRepo: Repository<AgentMessage>,
+    @InjectRepository(Agent)
+    private readonly agentRepo: Repository<Agent>,
+    @InjectRepository(Tenant)
+    private readonly tenantRepo: Repository<Tenant>,
+  ) {}
 
-  private sql(query: string): string {
-    return query;
+  async listRules(userId: string, agentName: string): Promise<NotificationRuleWithTriggerCount[]> {
+    const rules = await this.ruleRepo.find({
+      where: { user_id: userId, agent_name: agentName },
+      order: { created_at: 'DESC' },
+    });
+    if (rules.length === 0) return [];
+
+    const ruleIds = rules.map((r) => r.id);
+    const counts = await this.logRepo
+      .createQueryBuilder('nl')
+      .select('nl.rule_id', 'rule_id')
+      .addSelect('COUNT(*)', 'trigger_count')
+      .where('nl.rule_id IN (:...ids)', { ids: ruleIds })
+      .groupBy('nl.rule_id')
+      .getRawMany<{ rule_id: string; trigger_count: string | number }>();
+
+    const countMap = new Map<string, number>();
+    for (const row of counts) countMap.set(row.rule_id, Number(row.trigger_count));
+
+    return rules.map((rule) => ({ ...rule, trigger_count: countMap.get(rule.id) ?? 0 }));
   }
 
-  async listRules(userId: string, agentName: string) {
-    return this.ds.query(
-      this.sql(
-        `SELECT nr.*, COALESCE(nl.trigger_count, 0) AS trigger_count
-         FROM notification_rules nr
-         LEFT JOIN (
-           SELECT rule_id, COUNT(*) AS trigger_count
-           FROM notification_logs
-           WHERE rule_id IN (SELECT id FROM notification_rules WHERE user_id = $1 AND agent_name = $2)
-           GROUP BY rule_id
-         ) nl ON nl.rule_id = nr.id
-         WHERE nr.user_id = $3 AND nr.agent_name = $4
-         ORDER BY nr.created_at DESC`,
-      ),
-      [userId, agentName, userId, agentName],
-    );
-  }
-
-  async createRule(userId: string, dto: CreateNotificationRuleDto) {
+  async createRule(userId: string, dto: CreateNotificationRuleDto): Promise<NotificationRule> {
     const agent = await this.resolveAgent(userId, dto.agent_name);
     const id = uuid();
-    const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
+    const now = nowSqlTimestamp();
 
-    await this.ds.query(
-      this.sql(
-        `INSERT INTO notification_rules
-         (id, tenant_id, agent_id, agent_name, user_id, metric_type, threshold, period, action, is_active, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
-      ),
-      [
-        id,
-        agent.tenant_id,
-        agent.id,
-        dto.agent_name,
-        userId,
-        dto.metric_type,
-        dto.threshold,
-        dto.period,
-        dto.action ?? 'notify',
-        true,
-        now,
-        now,
-      ],
-    );
-
-    const rows = await this.ds.query(this.sql(`SELECT * FROM notification_rules WHERE id = $1`), [
+    const rule: Partial<NotificationRule> = {
       id,
-    ]);
-    return rows[0];
+      tenant_id: agent.tenant_id,
+      agent_id: agent.id,
+      agent_name: dto.agent_name,
+      user_id: userId,
+      metric_type: dto.metric_type,
+      threshold: dto.threshold,
+      period: dto.period,
+      action: dto.action ?? 'notify',
+      is_active: true,
+      created_at: now,
+      updated_at: now,
+    };
+
+    await this.ruleRepo.insert(rule);
+    return (await this.ruleRepo.findOneBy({ id }))!;
   }
 
-  async updateRule(userId: string, ruleId: string, dto: UpdateNotificationRuleDto) {
+  async updateRule(
+    userId: string,
+    ruleId: string,
+    dto: UpdateNotificationRuleDto,
+  ): Promise<NotificationRule | undefined> {
     await this.verifyOwnership(userId, ruleId);
 
-    const sets: string[] = [];
-    const params: unknown[] = [];
-    let paramIdx = 1;
+    const patch: Partial<NotificationRule> = {};
+    if (dto.metric_type !== undefined) patch.metric_type = dto.metric_type;
+    if (dto.threshold !== undefined) patch.threshold = dto.threshold;
+    if (dto.period !== undefined) patch.period = dto.period;
+    if (dto.action !== undefined) patch.action = dto.action;
+    if (dto.is_active !== undefined) patch.is_active = dto.is_active;
 
-    if (dto.metric_type !== undefined) {
-      sets.push(`metric_type = $${paramIdx++}`);
-      params.push(dto.metric_type);
-    }
-    if (dto.threshold !== undefined) {
-      sets.push(`threshold = $${paramIdx++}`);
-      params.push(dto.threshold);
-    }
-    if (dto.period !== undefined) {
-      sets.push(`period = $${paramIdx++}`);
-      params.push(dto.period);
-    }
-    if (dto.action !== undefined) {
-      sets.push(`action = $${paramIdx++}`);
-      params.push(dto.action);
-    }
-    if (dto.is_active !== undefined) {
-      sets.push(`is_active = $${paramIdx++}`);
-      params.push(dto.is_active);
+    if (Object.keys(patch).length === 0) {
+      return this.getRule(ruleId);
     }
 
-    if (sets.length === 0) return this.getRule(ruleId);
-
-    const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
-    sets.push(`updated_at = $${paramIdx++}`);
-    params.push(now);
-    params.push(ruleId);
-
-    await this.ds.query(
-      this.sql(`UPDATE notification_rules SET ${sets.join(', ')} WHERE id = $${paramIdx}`),
-      params,
-    );
-
-    const rows = await this.ds.query(this.sql(`SELECT * FROM notification_rules WHERE id = $1`), [
-      ruleId,
-    ]);
-    return rows[0];
+    patch.updated_at = nowSqlTimestamp();
+    await this.ruleRepo.update({ id: ruleId }, patch);
+    return this.getRule(ruleId);
   }
 
-  async deleteRule(userId: string, ruleId: string) {
+  async deleteRule(userId: string, ruleId: string): Promise<void> {
     await this.verifyOwnership(userId, ruleId);
-    await this.ds.query(this.sql(`DELETE FROM notification_rules WHERE id = $1`), [ruleId]);
+    await this.ruleRepo.delete({ id: ruleId });
   }
 
   async getConsumption(
@@ -122,85 +114,73 @@ export class NotificationRulesService {
   ): Promise<number> {
     const expr =
       metric === 'tokens'
-        ? 'COALESCE(SUM(input_tokens + output_tokens), 0)'
-        : 'COALESCE(SUM(cost_usd), 0)';
+        ? 'COALESCE(SUM(at.input_tokens + at.output_tokens), 0)'
+        : 'COALESCE(SUM(at.cost_usd), 0)';
 
-    const rows = await this.ds.query(
-      this.sql(
-        `SELECT ${expr} as total FROM agent_messages
-         WHERE tenant_id = $1 AND agent_name = $2
-         AND timestamp >= $3 AND timestamp < $4`,
-      ),
-      [tenantId, agentName, periodStart, periodEnd],
-    );
+    const row = await this.messageRepo
+      .createQueryBuilder('at')
+      .select(expr, 'total')
+      .where('at.tenant_id = :tenantId', { tenantId })
+      .andWhere('at.agent_name = :agentName', { agentName })
+      .andWhere('at.timestamp >= :periodStart', { periodStart })
+      .andWhere('at.timestamp < :periodEnd', { periodEnd })
+      .getRawOne<{ total: string | number | null }>();
 
-    return Number(rows[0]?.total ?? 0);
+    return Number(row?.total ?? 0);
   }
 
-  async getAllActiveRules() {
-    return this.ds.query(
-      this.sql(`SELECT * FROM notification_rules WHERE is_active = $1 AND action IN ($2, $3)`),
-      [true, 'notify', 'both'],
-    );
+  getAllActiveRules(): Promise<NotificationRule[]> {
+    return this.ruleRepo.find({
+      where: { is_active: true, action: In([...NOTIFY_ACTIONS]) },
+    });
   }
 
-  async getActiveRulesForUser(userId: string) {
-    return this.ds.query(
-      this.sql(
-        `SELECT * FROM notification_rules WHERE user_id = $1 AND is_active = $2 AND action IN ($3, $4)`,
-      ),
-      [userId, true, 'notify', 'both'],
-    );
+  getActiveRulesForUser(userId: string): Promise<NotificationRule[]> {
+    return this.ruleRepo.find({
+      where: { user_id: userId, is_active: true, action: In([...NOTIFY_ACTIONS]) },
+    });
   }
 
-  async getActiveBlockRules(tenantId: string, agentName: string) {
-    return this.ds.query(
-      this.sql(
-        `SELECT * FROM notification_rules
-         WHERE tenant_id = $1 AND agent_name = $2
-         AND is_active = $3 AND action IN ($4, $5)`,
-      ),
-      [tenantId, agentName, true, 'block', 'both'],
-    );
+  getActiveBlockRules(tenantId: string, agentName: string): Promise<NotificationRule[]> {
+    return this.ruleRepo.find({
+      where: {
+        tenant_id: tenantId,
+        agent_name: agentName,
+        is_active: true,
+        action: In([...BLOCK_ACTIONS]),
+      },
+    });
   }
 
-  private async resolveAgent(userId: string, agentName: string) {
-    const rows = await this.ds.query(
-      this.sql(
-        `SELECT a.id, a.tenant_id FROM agents a
-         JOIN tenants t ON t.id = a.tenant_id
-         WHERE t.name = $1 AND a.name = $2`,
-      ),
-      [userId, agentName],
-    );
-    if (!rows.length) {
-      throw new BadRequestException(`Agent "${agentName}" not found`);
-    }
-    return rows[0] as { id: string; tenant_id: string };
+  getRule(ruleId: string): Promise<NotificationRule | undefined> {
+    return this.ruleRepo.findOneBy({ id: ruleId }).then((r) => r ?? undefined);
   }
 
-  private async verifyOwnership(userId: string, ruleId: string) {
-    const rows = await this.ds.query(
-      this.sql(`SELECT id FROM notification_rules WHERE id = $1 AND user_id = $2`),
-      [ruleId, userId],
-    );
-    if (!rows.length) {
-      throw new NotFoundException('Notification rule not found');
-    }
+  getOwnedRule(userId: string, ruleId: string): Promise<NotificationRule | undefined> {
+    return this.ruleRepo.findOneBy({ id: ruleId, user_id: userId }).then((r) => r ?? undefined);
   }
 
-  async getRule(ruleId: string) {
-    const rows = await this.ds.query(this.sql(`SELECT * FROM notification_rules WHERE id = $1`), [
-      ruleId,
-    ]);
-    return rows[0];
+  private async resolveAgent(
+    userId: string,
+    agentName: string,
+  ): Promise<{ id: string; tenant_id: string }> {
+    const agent = await this.agentRepo
+      .createQueryBuilder('a')
+      .select(['a.id', 'a.tenant_id'])
+      .innerJoin(Tenant, 't', 't.id = a.tenant_id')
+      .where('t.name = :userId', { userId })
+      .andWhere('a.name = :agentName', { agentName })
+      .getOne();
+    if (!agent) throw new BadRequestException(`Agent "${agentName}" not found`);
+    return { id: agent.id, tenant_id: agent.tenant_id };
   }
 
-  async getOwnedRule(userId: string, ruleId: string) {
-    const rows = await this.ds.query(
-      this.sql(`SELECT * FROM notification_rules WHERE id = $1 AND user_id = $2`),
-      [ruleId, userId],
-    );
-    return rows[0];
+  private async verifyOwnership(userId: string, ruleId: string): Promise<void> {
+    const count = await this.ruleRepo.count({ where: { id: ruleId, user_id: userId } });
+    if (count === 0) throw new NotFoundException('Notification rule not found');
   }
+}
+
+function nowSqlTimestamp(): string {
+  return new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
 }

@@ -3,6 +3,7 @@ import { MessagesController } from './messages.controller';
 import { MessagesQueryService } from '../services/messages-query.service';
 import { MessageDetailsService } from '../services/message-details.service';
 import { MessageFeedbackService } from '../services/message-feedback.service';
+import { SpecificityFeedbackService } from '../services/specificity-feedback.service';
 
 describe('MessagesController', () => {
   let controller: MessagesController;
@@ -10,6 +11,8 @@ describe('MessagesController', () => {
   let mockGetDetails: jest.Mock;
   let mockSetFeedback: jest.Mock;
   let mockClearFeedback: jest.Mock;
+  let mockFlagMiscategorized: jest.Mock;
+  let mockClearMiscategorized: jest.Mock;
 
   beforeEach(async () => {
     mockGetMessages = jest.fn().mockResolvedValue({
@@ -28,6 +31,8 @@ describe('MessagesController', () => {
 
     mockSetFeedback = jest.fn().mockResolvedValue(undefined);
     mockClearFeedback = jest.fn().mockResolvedValue(undefined);
+    mockFlagMiscategorized = jest.fn().mockResolvedValue(undefined);
+    mockClearMiscategorized = jest.fn().mockResolvedValue(undefined);
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [MessagesController],
@@ -43,6 +48,13 @@ describe('MessagesController', () => {
         {
           provide: MessageFeedbackService,
           useValue: { setFeedback: mockSetFeedback, clearFeedback: mockClearFeedback },
+        },
+        {
+          provide: SpecificityFeedbackService,
+          useValue: {
+            flagMiscategorized: mockFlagMiscategorized,
+            clearFlag: mockClearMiscategorized,
+          },
         },
       ],
     }).compile();
@@ -166,5 +178,19 @@ describe('MessagesController', () => {
     await controller.clearFeedback('msg-1', user as never);
 
     expect(mockClearFeedback).toHaveBeenCalledWith('msg-1', 'u1');
+  });
+
+  it('delegates flagMiscategorized to specificity feedback service', async () => {
+    const user = { id: 'u1' };
+    await controller.flagMiscategorized('msg-1', user as never);
+
+    expect(mockFlagMiscategorized).toHaveBeenCalledWith('msg-1', 'u1');
+  });
+
+  it('delegates clearMiscategorized to specificity feedback service', async () => {
+    const user = { id: 'u1' };
+    await controller.clearMiscategorized('msg-1', user as never);
+
+    expect(mockClearMiscategorized).toHaveBeenCalledWith('msg-1', 'u1');
   });
 });

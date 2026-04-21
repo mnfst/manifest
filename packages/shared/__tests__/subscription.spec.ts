@@ -57,7 +57,6 @@ describe('getSubscriptionProviderConfig', () => {
     expect(config).toMatchObject({
       supportsSubscription: true,
       subscriptionAuthMode: 'popup_oauth',
-      subscriptionOAuth: true,
     });
   });
 

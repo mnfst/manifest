@@ -1,4 +1,4 @@
-import { fetchJson, fetchMutate, BASE_URL } from './core.js';
+import { fetchJson, fetchMutate } from './core.js';
 
 export function getAgents() {
   return fetchJson('/agents');
@@ -24,12 +24,9 @@ export function getAgentKey(agentName: string) {
 }
 
 export function rotateAgentKey(agentName: string) {
-  return fetchMutate<{ apiKey: string }>(
-    `${BASE_URL}/agents/${encodeURIComponent(agentName)}/rotate-key`,
-    {
-      method: 'POST',
-    },
-  );
+  return fetchMutate<{ apiKey: string }>(`/agents/${encodeURIComponent(agentName)}/rotate-key`, {
+    method: 'POST',
+  });
 }
 
 export function updateAgent(
@@ -40,14 +37,11 @@ export function updateAgent(
     agent_platform?: string;
   },
 ) {
-  return fetchMutate<Record<string, unknown>>(
-    `${BASE_URL}/agents/${encodeURIComponent(currentName)}`,
-    {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(fields),
-    },
-  );
+  return fetchMutate<Record<string, unknown>>(`/agents/${encodeURIComponent(currentName)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(fields),
+  });
 }
 
 export function renameAgent(currentName: string, newName: string) {
@@ -55,9 +49,7 @@ export function renameAgent(currentName: string, newName: string) {
 }
 
 export function deleteAgent(agentName: string) {
-  return fetchMutate(`${BASE_URL}/agents/${encodeURIComponent(agentName)}`, {
-    method: 'DELETE',
-  });
+  return fetchMutate(`/agents/${encodeURIComponent(agentName)}`, { method: 'DELETE' });
 }
 
 export interface CreateAgentParams {
@@ -76,7 +68,7 @@ export function createAgent(params: CreateAgentParams) {
       agent_platform: string | null;
     };
     apiKey: string;
-  }>(`${BASE_URL}/agents`, {
+  }>('/agents', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params),

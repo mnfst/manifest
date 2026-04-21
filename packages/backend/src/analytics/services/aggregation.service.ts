@@ -1,31 +1,26 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { rangeToInterval, rangeToPreviousInterval } from '../../common/utils/range.util';
 import { MetricWithTrend, computeTrend, addTenantFilter } from './query-helpers';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
-import {
-  DbDialect,
-  detectDialect,
-  computeCutoff,
-  sqlSanitizeCost,
-} from '../../common/utils/sql-dialect';
+import { computeCutoff, sqlSanitizeCost } from '../../common/utils/sql-dialect';
 
 export { MetricWithTrend };
 
+interface RangeWindow {
+  cutoff: string;
+  prevCutoff: string;
+}
+
 @Injectable()
 export class AggregationService {
-  private readonly dialect: DbDialect;
-
   constructor(
     @InjectRepository(AgentMessage)
     private readonly turnRepo: Repository<AgentMessage>,
-    private readonly dataSource: DataSource,
     private readonly tenantCache: TenantCacheService,
-  ) {
-    this.dialect = detectDialect(this.dataSource.options.type as string);
-  }
+  ) {}
 
   async hasAnyData(userId: string, agentName?: string, tenantId?: string): Promise<boolean> {
     const resolved = tenantId ?? (await this.tenantCache.resolve(userId)) ?? undefined;
@@ -35,152 +30,27 @@ export class AggregationService {
     return row != null;
   }
 
-  async getTokenSummary(range: string, userId: string, agentName?: string) {
-    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
-    const interval = rangeToInterval(range);
-    const prevInterval = rangeToPreviousInterval(range);
-    const cutoff = computeCutoff(interval);
-    const prevCutoff = computeCutoff(prevInterval);
-
-    // 3A: Merge current total + breakdown into one query (total = input + output)
-    const detailQb = this.turnRepo
-      .createQueryBuilder('at')
-      .select('COALESCE(SUM(at.input_tokens), 0)', 'inp')
-      .addSelect('COALESCE(SUM(at.output_tokens), 0)', 'out')
-      .where('at.timestamp >= :cutoff', { cutoff });
-    addTenantFilter(detailQb, userId, agentName, tenantId);
-
-    const prevQb = this.turnRepo
-      .createQueryBuilder('at')
-      .select('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'total')
-      .where('at.timestamp >= :prevCutoff', { prevCutoff })
-      .andWhere('at.timestamp < :cutoff', { cutoff });
-    addTenantFilter(prevQb, userId, agentName, tenantId);
-
-    const [detail, prevRow] = await Promise.all([detailQb.getRawOne(), prevQb.getRawOne()]);
-
-    const inputTotal = Number(detail?.inp ?? 0);
-    const outputTotal = Number(detail?.out ?? 0);
-    const current = inputTotal + outputTotal;
-    const previous = Number(prevRow?.total ?? 0);
-
-    return {
-      tokens_today: {
-        value: current,
-        trend_pct: computeTrend(current, previous),
-        sub_values: { input: inputTotal, output: outputTotal },
-      } as MetricWithTrend,
-      input_tokens: inputTotal,
-      output_tokens: outputTotal,
-    };
-  }
-
-  async getCostSummary(
-    range: string,
-    userId: string,
-    agentName?: string,
-  ): Promise<MetricWithTrend> {
-    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
-    const interval = rangeToInterval(range);
-    const prevInterval = rangeToPreviousInterval(range);
-    const cutoff = computeCutoff(interval);
-    const prevCutoff = computeCutoff(prevInterval);
-
-    // 3B: Parallelize current + previous period queries
-    const safeCost = sqlSanitizeCost('at.cost_usd');
-    const currentQb = this.turnRepo
-      .createQueryBuilder('at')
-      .select(`COALESCE(SUM(${safeCost}), 0)`, 'total')
-      .where('at.timestamp >= :cutoff', { cutoff });
-    addTenantFilter(currentQb, userId, agentName, tenantId);
-
-    const prevQb = this.turnRepo
-      .createQueryBuilder('at')
-      .select(`COALESCE(SUM(${safeCost}), 0)`, 'total')
-      .where('at.timestamp >= :prevCutoff', { prevCutoff })
-      .andWhere('at.timestamp < :cutoff', { cutoff });
-    addTenantFilter(prevQb, userId, agentName, tenantId);
-
-    const [currentRow, prevRow] = await Promise.all([currentQb.getRawOne(), prevQb.getRawOne()]);
-
-    const current = Number(currentRow?.total ?? 0);
-    const previous = Number(prevRow?.total ?? 0);
-    return { value: current, trend_pct: computeTrend(current, previous) };
-  }
-
-  async getMessageCount(
-    range: string,
-    userId: string,
-    agentName?: string,
-  ): Promise<MetricWithTrend> {
-    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
-    const interval = rangeToInterval(range);
-    const prevInterval = rangeToPreviousInterval(range);
-    const cutoff = computeCutoff(interval);
-    const prevCutoff = computeCutoff(prevInterval);
-
-    // 3C: Parallelize current + previous period queries
-    const currentQb = this.turnRepo
-      .createQueryBuilder('at')
-      .select('COUNT(*)', 'total')
-      .where('at.timestamp >= :cutoff', { cutoff });
-    addTenantFilter(currentQb, userId, agentName, tenantId);
-
-    const prevQb = this.turnRepo
-      .createQueryBuilder('at')
-      .select('COUNT(*)', 'total')
-      .where('at.timestamp >= :prevCutoff', { prevCutoff })
-      .andWhere('at.timestamp < :cutoff', { cutoff });
-    addTenantFilter(prevQb, userId, agentName, tenantId);
-
-    const [currentRow, prevRow] = await Promise.all([currentQb.getRawOne(), prevQb.getRawOne()]);
-
-    const current = Number(currentRow?.total ?? 0);
-    const previous = Number(prevRow?.total ?? 0);
-    return { value: current, trend_pct: computeTrend(current, previous) };
-  }
-
   async getPreviousTokenTotal(range: string, userId: string, agentName?: string): Promise<number> {
     const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
-    const interval = rangeToInterval(range);
-    const prevInterval = rangeToPreviousInterval(range);
-    const cutoff = computeCutoff(interval);
-    const prevCutoff = computeCutoff(prevInterval);
-
-    const prevQb = this.turnRepo
-      .createQueryBuilder('at')
+    const { cutoff, prevCutoff } = this.computeWindow(range);
+    const row = await this.buildPreviousWindowQuery(userId, agentName, tenantId, cutoff, prevCutoff)
       .select('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'total')
-      .where('at.timestamp >= :prevCutoff', { prevCutoff })
-      .andWhere('at.timestamp < :cutoff', { cutoff });
-    addTenantFilter(prevQb, userId, agentName, tenantId);
-    const row = await prevQb.getRawOne();
+      .getRawOne();
     return Number(row?.total ?? 0);
   }
 
   async getPreviousCostTotal(range: string, userId: string, agentName?: string): Promise<number> {
     const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
-    const interval = rangeToInterval(range);
-    const prevInterval = rangeToPreviousInterval(range);
-    const cutoff = computeCutoff(interval);
-    const prevCutoff = computeCutoff(prevInterval);
-
+    const { cutoff, prevCutoff } = this.computeWindow(range);
     const safeCost = sqlSanitizeCost('at.cost_usd');
-    const prevQb = this.turnRepo
-      .createQueryBuilder('at')
+    const row = await this.buildPreviousWindowQuery(userId, agentName, tenantId, cutoff, prevCutoff)
       .select(`COALESCE(SUM(${safeCost}), 0)`, 'total')
-      .where('at.timestamp >= :prevCutoff', { prevCutoff })
-      .andWhere('at.timestamp < :cutoff', { cutoff });
-    addTenantFilter(prevQb, userId, agentName, tenantId);
-    const row = await prevQb.getRawOne();
+      .getRawOne();
     return Number(row?.total ?? 0);
   }
 
   async getSummaryMetrics(range: string, userId: string, tenantId?: string, agentName?: string) {
-    const interval = rangeToInterval(range);
-    const prevInterval = rangeToPreviousInterval(range);
-    const cutoff = computeCutoff(interval);
-    const prevCutoff = computeCutoff(prevInterval);
-
+    const { cutoff, prevCutoff } = this.computeWindow(range);
     const safeCost = sqlSanitizeCost('at.cost_usd');
 
     const currentQb = this.turnRepo
@@ -192,14 +62,10 @@ export class AggregationService {
       .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(currentQb, userId, agentName, tenantId);
 
-    const prevQb = this.turnRepo
-      .createQueryBuilder('at')
+    const prevQb = this.buildPreviousWindowQuery(userId, agentName, tenantId, cutoff, prevCutoff)
       .select('COUNT(*)', 'msg_count')
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
-      .addSelect(`COALESCE(SUM(${safeCost}), 0)`, 'cost')
-      .where('at.timestamp >= :prevCutoff', { prevCutoff })
-      .andWhere('at.timestamp < :cutoff', { cutoff });
-    addTenantFilter(prevQb, userId, agentName, tenantId);
+      .addSelect(`COALESCE(SUM(${safeCost}), 0)`, 'cost');
 
     const [cur, prev] = await Promise.all([currentQb.getRawOne(), prevQb.getRawOne()]);
 
@@ -225,5 +91,27 @@ export class AggregationService {
       cost: { value: curCost, trend_pct: computeTrend(curCost, prevCost) } as MetricWithTrend,
       messages: { value: curMsgs, trend_pct: computeTrend(curMsgs, prevMsgs) } as MetricWithTrend,
     };
+  }
+
+  private computeWindow(range: string): RangeWindow {
+    return {
+      cutoff: computeCutoff(rangeToInterval(range)),
+      prevCutoff: computeCutoff(rangeToPreviousInterval(range)),
+    };
+  }
+
+  private buildPreviousWindowQuery(
+    userId: string,
+    agentName: string | undefined,
+    tenantId: string | undefined,
+    cutoff: string,
+    prevCutoff: string,
+  ): SelectQueryBuilder<AgentMessage> {
+    const qb = this.turnRepo
+      .createQueryBuilder('at')
+      .where('at.timestamp >= :prevCutoff', { prevCutoff })
+      .andWhere('at.timestamp < :cutoff', { cutoff });
+    addTenantFilter(qb, userId, agentName, tenantId);
+    return qb;
   }
 }

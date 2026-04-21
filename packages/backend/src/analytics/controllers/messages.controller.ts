@@ -14,6 +14,7 @@ import { MessageFeedbackDto } from '../dto/message-feedback.dto';
 import { MessagesQueryService } from '../services/messages-query.service';
 import { MessageDetailsService } from '../services/message-details.service';
 import { MessageFeedbackService } from '../services/message-feedback.service';
+import { SpecificityFeedbackService } from '../services/specificity-feedback.service';
 import { CurrentUser } from '../../auth/current-user.decorator';
 import { AuthUser } from '../../auth/auth.instance';
 
@@ -23,6 +24,7 @@ export class MessagesController {
     private readonly messagesQuery: MessagesQueryService,
     private readonly messageDetails: MessageDetailsService,
     private readonly messageFeedback: MessageFeedbackService,
+    private readonly specificityFeedback: SpecificityFeedbackService,
   ) {}
 
   @Get('messages')
@@ -60,5 +62,17 @@ export class MessagesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async clearFeedback(@Param('id') id: string, @CurrentUser() user: AuthUser) {
     await this.messageFeedback.clearFeedback(id, user.id);
+  }
+
+  @Patch('messages/:id/miscategorized')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async flagMiscategorized(@Param('id') id: string, @CurrentUser() user: AuthUser) {
+    await this.specificityFeedback.flagMiscategorized(id, user.id);
+  }
+
+  @Delete('messages/:id/miscategorized')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async clearMiscategorized(@Param('id') id: string, @CurrentUser() user: AuthUser) {
+    await this.specificityFeedback.clearFlag(id, user.id);
   }
 }

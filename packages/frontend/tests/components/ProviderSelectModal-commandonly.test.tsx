@@ -26,7 +26,7 @@ vi.mock("../../src/components/ProviderIcon.js", () => ({
 
 
 // Mock providers to include a "command-only" subscription provider:
-// has subscriptionCommand but NO subscriptionKeyPlaceholder and NO subscriptionOAuth
+// has subscriptionCommand but NO subscriptionKeyPlaceholder and NO popup_oauth mode
 vi.mock("../../src/services/providers.js", () => {
   const commandOnlyProvider = {
     id: "cmd-sub",
@@ -42,7 +42,7 @@ vi.mock("../../src/services/providers.js", () => {
     subscriptionLabel: "CmdSub Plan",
     subscriptionCommand: "cmdprov login",
     // No subscriptionKeyPlaceholder
-    // No subscriptionOAuth
+    // No subscriptionAuthMode: 'popup_oauth'
   };
   return {
     PROVIDERS: [commandOnlyProvider],

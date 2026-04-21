@@ -1,14 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
-import {
-  DbDialect,
-  detectDialect,
-  computeCutoff,
-  sqlDateBucket,
-} from '../common/utils/sql-dialect';
+import { computeCutoff, sqlDateBucket } from '../common/utils/sql-dialect';
 
 const MAX_RESULTS = 10;
 const EXCLUDED_PROVIDERS = new Set(['Unknown']);
@@ -61,16 +56,11 @@ function isCustomModel(model: string): boolean {
 
 @Injectable()
 export class PublicStatsService {
-  private readonly dialect: DbDialect;
-
   constructor(
     @InjectRepository(AgentMessage)
     private readonly messageRepo: Repository<AgentMessage>,
     private readonly pricingCache: ModelPricingCacheService,
-    private readonly dataSource: DataSource,
-  ) {
-    this.dialect = detectDialect(this.dataSource.options.type as string);
-  }
+  ) {}
 
   async getUsageStats(): Promise<UsageStats> {
     const cutoff7d = computeCutoff('7 days');
@@ -168,7 +158,7 @@ export class PublicStatsService {
 
   async getProviderDailyTokens(): Promise<ProviderDailyTokens[]> {
     const cutoff30d = computeCutoff('30 days');
-    const dateBucket = sqlDateBucket('at.timestamp', this.dialect);
+    const dateBucket = sqlDateBucket('at.timestamp');
 
     const rows: {
       model: string;

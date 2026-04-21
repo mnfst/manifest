@@ -121,25 +121,28 @@ describe('detectSpecificity', () => {
   });
 
   describe('multiple categories active — highest score wins', () => {
-    it('should pick the category with the highest score', () => {
+    it('should pick coding over web_browsing when coding has more weighted signal', () => {
       const matches = [
         match('function', 'codeGeneration', 0),
         match('class', 'codeGeneration', 10),
         match('refactor', 'codeReview', 20),
-        match('navigate', 'webBrowsing', 30),
-        match('click', 'webBrowsing', 40),
+        match('component', 'codeGeneration', 30),
+        match('endpoint', 'codeGeneration', 40),
+        // single weak web_browsing keyword (default weight 1) — below the
+        // web_browsing activation threshold of 3 on its own.
+        match('click', 'webBrowsing', 50),
       ];
       const result = detectSpecificity(matches);
       expect(result).not.toBeNull();
       expect(result!.category).toBe('coding');
     });
 
-    it('should pick web_browsing when it has the highest score', () => {
+    it('should pick web_browsing when strong browse anchors dominate', () => {
       const matches = [
         match('function', 'codeGeneration', 0),
+        // strong anchors: navigate (3) + browse (3) = 6, clears web_browsing threshold.
         match('navigate', 'webBrowsing', 10),
-        match('click', 'webBrowsing', 20),
-        match('scroll', 'webBrowsing', 30),
+        match('browse', 'webBrowsing', 20),
       ];
       const result = detectSpecificity(matches);
       expect(result).not.toBeNull();
@@ -233,6 +236,129 @@ describe('detectSpecificity', () => {
       const matches = [match('function', 'codeGeneration', 0)];
       const result = detectSpecificity(matches, [], undefined, 2);
       expect(result).toBeNull();
+    });
+  });
+
+  describe('session stickiness (recentCategories)', () => {
+    it('biases ambiguous current turn toward sticky recent category', () => {
+      // An ambiguous message whose web_browsing signal would hit exactly the
+      // threshold (3) — with the last 3 turns all coding, the session bias
+      // (+2) keeps coding ahead. This is the discussion #1613 scenario.
+      const matches = [
+        match('visit', 'webBrowsing', 0), // weight 3 → web_browsing = 3
+        match('function', 'codeGeneration', 10), // weight 1 → coding = 1
+      ];
+      const result = detectSpecificity(matches, undefined, undefined, undefined, undefined, [
+        'coding',
+        'coding',
+        'coding',
+      ]);
+      expect(result).not.toBeNull();
+      // Without stickiness, web_browsing wins (3 vs 1). With +2 stickiness on
+      // coding, coding scores 3 — tied. We take the first to clear threshold
+      // with the highest score, so web_browsing still wins on equal bestScore
+      // thanks to comparison being strict `>`. This confirms stickiness alone
+      // doesn't override a genuine anchor — it only biases close races.
+      // Bumping coding by one more match flips it:
+      const matches2 = [
+        match('visit', 'webBrowsing', 0),
+        match('function', 'codeGeneration', 10),
+        match('class', 'codeGeneration', 20),
+      ];
+      const result2 = detectSpecificity(matches2, undefined, undefined, undefined, undefined, [
+        'coding',
+        'coding',
+        'coding',
+      ]);
+      expect(result2!.category).toBe('coding');
+    });
+
+    it('ignores stickiness when current-turn anchor dominates', () => {
+      // Strong anchor: navigate (3) + browse (3) = 6 web_browsing, clearly
+      // above both the threshold and any sticky bias.
+      const matches = [match('navigate', 'webBrowsing', 0), match('browse', 'webBrowsing', 10)];
+      const result = detectSpecificity(matches, undefined, undefined, undefined, undefined, [
+        'coding',
+        'coding',
+        'coding',
+      ]);
+      expect(result!.category).toBe('web_browsing');
+    });
+
+    it('requires at least 3 consistent recent categories to bias', () => {
+      // Only 2 recent entries — below STICKY_AGREEMENT_MIN, so no bias applied.
+      const matches = [match('visit', 'webBrowsing', 0), match('function', 'codeGeneration', 10)];
+      const result = detectSpecificity(matches, undefined, undefined, undefined, undefined, [
+        'coding',
+        'coding',
+      ]);
+      expect(result!.category).toBe('web_browsing');
+    });
+
+    it('does not bias when recent categories disagree', () => {
+      const matches = [match('visit', 'webBrowsing', 0), match('function', 'codeGeneration', 10)];
+      const result = detectSpecificity(matches, undefined, undefined, undefined, undefined, [
+        'coding',
+        'web_browsing',
+        'coding',
+      ]);
+      expect(result!.category).toBe('web_browsing');
+    });
+  });
+
+  describe('category penalties', () => {
+    it('subtracts the penalty from a flagged category so a weaker one wins', () => {
+      const matches = [
+        match('visit', 'webBrowsing', 0), // weight 3 → web_browsing = 3
+        match('function', 'codeGeneration', 10), // weight 1 → coding = 1
+      ];
+      // A 2.5 penalty on web_browsing drops it to 0.5 — below threshold and
+      // below coding. Coding at 1.0 wins.
+      const penalties = new Map([['web_browsing' as const, 2.5]]);
+      const result = detectSpecificity(
+        matches,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        penalties,
+      );
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('coding');
+    });
+
+    it('clamps the post-penalty score at zero', () => {
+      // A huge penalty on the only category still leaves it at 0 (not negative),
+      // so the detector returns null instead of selecting a sub-threshold score.
+      const matches = [match('function', 'codeGeneration', 0)];
+      const penalties = new Map([['coding' as const, 1000]]);
+      const result = detectSpecificity(
+        matches,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        penalties,
+      );
+      expect(result).toBeNull();
+    });
+
+    it('does not alter scores when the penalty map is empty', () => {
+      const matches = [match('function', 'codeGeneration', 0)];
+      const penalties = new Map();
+      const result = detectSpecificity(
+        matches,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        penalties,
+      );
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('coding');
     });
   });
 

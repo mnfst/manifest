@@ -2,12 +2,26 @@ import { Injectable, Logger } from '@nestjs/common';
 import { TierService } from '../routing-core/tier.service';
 import { ProviderKeyService } from '../routing-core/provider-key.service';
 import { SpecificityService } from '../routing-core/specificity.service';
+import { SpecificityPenaltyService } from '../routing-core/specificity-penalty.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { scoreRequest, ScorerInput, MomentumInput, scanMessages } from '../../scoring';
 import { Tier } from '../../scoring/types';
 import { ResolveResponse } from '../dto/resolve-response';
 import { inferProviderFromModelName } from '../../common/utils/provider-aliases';
+import type { SpecificityCategory } from 'manifest-shared';
+
+/**
+ * When specificity detection is below this confidence, skip specificity
+ * routing and fall through to the complexity tier. Low-confidence detections
+ * are the ones that misrouted coding sessions to web_browsing (discussion
+ * #1613) — the safer call is to route by complexity instead of committing to
+ * an ambiguous specificity category. Kept below the typical
+ * single-strong-anchor confidence (0.33 for web_browsing at threshold 3) but
+ * above the score-equals-threshold minimum, so clean 2-signal detections
+ * (keyword + URL, keyword + tool) still pass.
+ */
+const MIN_SPECIFICITY_CONFIDENCE = 0.4;
 
 @Injectable()
 export class ResolveService {
@@ -19,6 +33,7 @@ export class ResolveService {
     private readonly specificityService: SpecificityService,
     private readonly pricingCache: ModelPricingCacheService,
     private readonly discoveryService: ModelDiscoveryService,
+    private readonly penaltyService: SpecificityPenaltyService,
   ) {}
 
   async resolve(
@@ -29,12 +44,14 @@ export class ResolveService {
     maxTokens?: number,
     recentTiers?: MomentumInput['recentTiers'],
     specificityOverride?: string,
+    recentCategories?: readonly SpecificityCategory[],
   ): Promise<ResolveResponse> {
     const specificityResult = await this.resolveSpecificity(
       agentId,
       messages,
       tools,
       specificityOverride,
+      recentCategories,
     );
     if (specificityResult) return specificityResult;
 
@@ -127,12 +144,33 @@ export class ResolveService {
     messages: ScorerInput['messages'],
     tools?: ScorerInput['tools'],
     headerOverride?: string,
+    recentCategories?: readonly SpecificityCategory[],
   ): Promise<ResolveResponse | null> {
     const active = await this.specificityService.getActiveAssignments(agentId);
     if (active.length === 0) return null;
 
-    const detected = scanMessages(messages, tools, headerOverride);
+    const penalties = await this.penaltyService.getPenaltiesForAgent(agentId);
+    const detected = scanMessages(
+      messages,
+      tools,
+      headerOverride,
+      recentCategories,
+      penalties.size > 0 ? penalties : undefined,
+    );
     if (!detected) return null;
+
+    // Confidence gate: a weak detection (single keyword match, no corroborating
+    // signal) is the one that misroutes coding sessions. Fall through to
+    // complexity routing instead of committing to the ambiguous category.
+    // Header overrides bypass the gate because they are explicit user intent.
+    if (!headerOverride && detected.confidence < MIN_SPECIFICITY_CONFIDENCE) {
+      this.logger.debug(
+        `Specificity detected=${detected.category} ` +
+          `confidence=${detected.confidence.toFixed(2)} below ${MIN_SPECIFICITY_CONFIDENCE} — ` +
+          `falling through to complexity routing`,
+      );
+      return null;
+    }
 
     const assignment = active.find((a) => a.category === detected.category);
     if (!assignment) return null;

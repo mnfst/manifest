@@ -39,8 +39,8 @@ export async function parseErrorMessage(res: Response): Promise<string> {
   return `Request failed (${res.status})`;
 }
 
-export async function fetchMutate<T = void>(url: string, options: RequestInit): Promise<T> {
-  const res = await fetch(url, { credentials: 'include', ...options });
+export async function fetchMutate<T = void>(path: string, options: RequestInit): Promise<T> {
+  const res = await fetch(`${BASE_URL}${path}`, { credentials: 'include', ...options });
   if (!res.ok) {
     const message = await parseErrorMessage(res);
     toast.error(message);
@@ -49,4 +49,12 @@ export async function fetchMutate<T = void>(url: string, options: RequestInit): 
   const text = await res.text();
   if (!text) return undefined as T;
   return JSON.parse(text) as T;
+}
+
+/** Build a `/routing/:agent/suffix` path with proper URL-encoding of the agent name. */
+export function routingPath(agentName: string, suffix = ''): string {
+  const encoded = encodeURIComponent(agentName);
+  return suffix
+    ? `/routing/${encoded}${suffix.startsWith('/') ? suffix : `/${suffix}`}`
+    : `/routing/${encoded}`;
 }

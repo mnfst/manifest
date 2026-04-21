@@ -8,6 +8,7 @@ import { ResolveService } from './resolve.service';
 import { TierService } from '../routing-core/tier.service';
 import { ProviderKeyService } from '../routing-core/provider-key.service';
 import { SpecificityService } from '../routing-core/specificity.service';
+import { SpecificityPenaltyService } from '../routing-core/specificity-penalty.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -46,12 +47,17 @@ function makeService(overrides: {
     getByModel: overrides.getByModel ?? jest.fn().mockReturnValue(null),
   } as unknown as ModelPricingCacheService;
 
+  const penaltyService: SpecificityPenaltyService = {
+    getPenaltiesForAgent: jest.fn().mockResolvedValue(new Map()),
+  } as unknown as SpecificityPenaltyService;
+
   const svc = new ResolveService(
     tierService,
     providerKeyService,
     specificityService,
     pricingCache,
     discoveryService,
+    penaltyService,
   );
   return {
     svc,
@@ -60,6 +66,7 @@ function makeService(overrides: {
     specificityService,
     discoveryService,
     pricingCache,
+    penaltyService,
   };
 }
 
@@ -244,6 +251,99 @@ describe('ResolveService', () => {
       expect(out.auth_type).toBe('subscription');
       // getAuthType must not be called when override_auth_type is set
       expect(getAuthType).not.toHaveBeenCalled();
+    });
+
+    it('falls through to complexity routing when the detected confidence is below the gate', async () => {
+      // A confidence of 0.33 is the typical single-keyword result and used to
+      // misroute coding sessions in discussion #1613. The gate at 0.4 forces
+      // this weak detection back to complexity scoring.
+      scoring.scanMessages.mockReturnValue({ category: 'coding', confidence: 0.33 });
+      scoring.scoreRequest.mockReturnValue({
+        tier: 'simple',
+        confidence: 1,
+        score: 0,
+        reason: 'scored',
+      });
+      const { svc } = makeService({
+        activeSpecificity: [{ category: 'coding', override_model: 'x', auto_assigned_model: 'x' }],
+      });
+      const out = await svc.resolve('agent-1', [{ role: 'user', content: 'hi' }]);
+      expect(out.reason).toBe('scored');
+      expect(scoring.scoreRequest).toHaveBeenCalled();
+    });
+
+    it('bypasses the confidence gate when a header override is supplied', async () => {
+      // Headers are explicit user intent — low confidence still routes.
+      scoring.scanMessages.mockReturnValue({ category: 'coding', confidence: 0.1 });
+      const { svc } = makeService({
+        activeSpecificity: [
+          {
+            category: 'coding',
+            override_model: 'anthropic/claude-opus-4',
+            auto_assigned_model: null,
+            override_provider: null,
+          },
+        ],
+        hasActiveProvider: jest.fn().mockResolvedValue(true),
+        getAuthType: jest.fn().mockResolvedValue('api_key'),
+      });
+      const out = await svc.resolve(
+        'agent-1',
+        [{ role: 'user', content: 'hi' }],
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        'coding',
+      );
+      expect(out.reason).toBe('specificity');
+      expect(out.model).toBe('anthropic/claude-opus-4');
+    });
+
+    it('passes penalties from the penalty service through to scanMessages', async () => {
+      scoring.scanMessages.mockReturnValue(null);
+      scoring.scoreRequest.mockReturnValue({
+        tier: 'simple',
+        confidence: 1,
+        score: 0,
+        reason: 'scored',
+      });
+      const penalties = new Map([['web_browsing' as const, 2.25]]);
+      const { svc, penaltyService } = makeService({
+        activeSpecificity: [{ category: 'coding', override_model: 'x', auto_assigned_model: 'x' }],
+      });
+      (penaltyService.getPenaltiesForAgent as jest.Mock).mockResolvedValue(penalties);
+      await svc.resolve('agent-1', [{ role: 'user', content: 'hi' }]);
+      // scanMessages receives penalties because the map is non-empty.
+      expect(scoring.scanMessages).toHaveBeenCalledWith(
+        [{ role: 'user', content: 'hi' }],
+        undefined,
+        undefined,
+        undefined,
+        penalties,
+      );
+    });
+
+    it('omits the penalty argument to scanMessages when the map is empty', async () => {
+      scoring.scanMessages.mockReturnValue(null);
+      scoring.scoreRequest.mockReturnValue({
+        tier: 'simple',
+        confidence: 1,
+        score: 0,
+        reason: 'scored',
+      });
+      const { svc, penaltyService } = makeService({
+        activeSpecificity: [{ category: 'coding', override_model: 'x', auto_assigned_model: 'x' }],
+      });
+      (penaltyService.getPenaltiesForAgent as jest.Mock).mockResolvedValue(new Map());
+      await svc.resolve('agent-1', [{ role: 'user', content: 'hi' }]);
+      expect(scoring.scanMessages).toHaveBeenCalledWith(
+        [{ role: 'user', content: 'hi' }],
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      );
     });
 
     it('returns the specificity response with provider + auth type when a match hits', async () => {

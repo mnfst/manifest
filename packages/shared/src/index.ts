@@ -16,6 +16,12 @@ export { AUTH_TYPES } from './auth-types';
 export type { AuthType } from './auth-types';
 export { API_KEY_PREFIX } from './api-key';
 export { MODEL_PREFIX_MAP, inferProviderFromModel } from './provider-inference';
+export {
+  SHARED_PROVIDERS,
+  SHARED_PROVIDER_BY_ID,
+  SHARED_PROVIDER_BY_ID_OR_ALIAS,
+} from './providers';
+export type { SharedProviderEntry } from './providers';
 export type { ResolveResponse } from './resolve-response';
 export {
   SUBSCRIPTION_PROVIDER_CONFIGS,

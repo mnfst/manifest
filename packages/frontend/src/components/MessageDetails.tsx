@@ -1,6 +1,8 @@
-import { createResource, Show, For, type JSX } from 'solid-js';
+import { createResource, createSignal, Show, For, type JSX } from 'solid-js';
 import {
   getMessageDetails,
+  flagMessageMiscategorized,
+  clearMessageMiscategorized,
   type MessageDetailLlmCall,
   type MessageDetailToolExecution,
   type MessageDetailLog,
@@ -96,6 +98,48 @@ function MetaField(props: { label: string; value: string | null | undefined }): 
   );
 }
 
+function MiscategorizeControl(props: {
+  messageId: string;
+  initiallyFlagged: boolean;
+}): JSX.Element {
+  const [flagged, setFlagged] = createSignal(props.initiallyFlagged);
+  const [busy, setBusy] = createSignal(false);
+
+  async function toggle() {
+    // Belt-and-suspenders: `disabled={busy()}` on the button already rejects
+    // real clicks during an in-flight request. This guard catches the narrow
+    // race where Solid's event delegation could fire the handler before the
+    // disabled attribute commits, and tests can't reliably reproduce it.
+    /* v8 ignore next */
+    if (busy()) return;
+    setBusy(true);
+    try {
+      if (flagged()) {
+        await clearMessageMiscategorized(props.messageId);
+        setFlagged(false);
+      } else {
+        await flagMessageMiscategorized(props.messageId);
+        setFlagged(true);
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      class="msg-detail__miscat-btn"
+      onClick={toggle}
+      disabled={busy()}
+      title="Flag this message's routing category as wrong. Repeated flags reduce this category's routing score for this agent."
+      aria-pressed={flagged()}
+    >
+      {flagged() ? 'Flagged as miscategorized — undo' : 'Wrong category?'}
+    </button>
+  );
+}
+
 export default function MessageDetails(props: MessageDetailsProps): JSX.Element {
   const [data] = createResource(() => props.messageId, getMessageDetails);
 
@@ -129,7 +173,8 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                   Fallback from <strong>{m.fallback_from_model}</strong>
                   <Show when={m.fallback_index != null}>
                     {' '}
-                    (attempt #{(m.fallback_index ?? 0) + 1})
+                    {/* Show guard above ensures fallback_index is non-null here. */}
+                    (attempt #{(m.fallback_index as number) + 1})
                   </Show>
                 </div>
               </Show>
@@ -155,6 +200,12 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                         : m.routing_tier
                     }
                   />
+                  <Show when={m.specificity_category}>
+                    <MiscategorizeControl
+                      messageId={m.id}
+                      initiallyFlagged={m.specificity_miscategorized}
+                    />
+                  </Show>
                   <MetaField label="Reason" value={m.routing_reason} />
                   <MetaField label="Service" value={m.service_type} />
                   <MetaField label="Session" value={m.session_key} />

@@ -1,15 +1,8 @@
 /**
- * SQL helpers. Manifest is Postgres-only; this module is kept as a thin
- * wrapper so existing decorator-time and query-time call sites don't need
- * to be rewritten. The `DbDialect` parameter on some helpers is vestigial
- * and ignored — always emits Postgres SQL.
+ * Postgres SQL helpers. Manifest is Postgres-only, so these emit Postgres SQL
+ * directly — no dialect switching. The module name is historical; the
+ * `DbDialect` abstraction was removed once SQLite was retired.
  */
-
-export type DbDialect = 'postgres';
-
-export function detectDialect(_dsType: string): DbDialect {
-  return 'postgres';
-}
 
 /**
  * TypeORM column type for timestamp columns.
@@ -54,18 +47,18 @@ export function sqlNow(): string {
   return formatLocalIso(new Date());
 }
 
-export function sqlHourBucket(col: string, _dialect?: DbDialect): string {
+export function sqlHourBucket(col: string): string {
   // Stored values are already in the Node process's local timezone (the pg
   // driver serialises JS Dates using local time into `timestamp without time
   // zone` columns). Truncate directly — no AT TIME ZONE conversion needed.
   return `to_char(date_trunc('hour', ${col}), 'YYYY-MM-DD"T"HH24:MI:SS')`;
 }
 
-export function sqlDateBucket(col: string, _dialect?: DbDialect): string {
+export function sqlDateBucket(col: string): string {
   return `to_char(${col}::date, 'YYYY-MM-DD')`;
 }
 
-export function sqlCastFloat(col: string, _dialect?: DbDialect): string {
+export function sqlCastFloat(col: string): string {
   return `${col}::float`;
 }
 
@@ -78,14 +71,7 @@ export function sqlSanitizeCost(col: string): string {
   return `CASE WHEN ${col} >= 0 THEN ${col} ELSE NULL END`;
 }
 
-/**
- * Pass-through for Postgres.
- */
-export function portableSql(sql: string, _dialect?: DbDialect): string {
-  return sql;
-}
-
-export function sqlCastInterval(paramName: string, _dialect?: DbDialect): string {
+export function sqlCastInterval(paramName: string): string {
   return `CAST(:${paramName} AS interval)`;
 }
 

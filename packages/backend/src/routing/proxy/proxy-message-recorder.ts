@@ -10,6 +10,7 @@ import { FailedFallback } from './proxy-fallback.service';
 import { StreamUsage } from './stream-writer';
 import { ProxyMessageDedup } from './proxy-message-dedup';
 import { computeTokenCost } from '../../common/utils/cost-calculator';
+import { scrubSecrets } from '../../common/utils/secret-scrub';
 import { CallerAttribution } from './caller-classifier';
 
 export interface ProviderErrorOpts {
@@ -43,6 +44,25 @@ export interface SuccessMessageOpts {
   durationMs?: number;
   specificityCategory?: string;
   callerAttribution?: CallerAttribution | null;
+}
+
+function buildMessageRow(
+  ctx: IngestionContext,
+  overrides: Partial<AgentMessage>,
+): Partial<AgentMessage> {
+  return {
+    id: uuid(),
+    tenant_id: ctx.tenantId,
+    agent_id: ctx.agentId,
+    agent_name: ctx.agentName,
+    user_id: ctx.userId,
+    trace_id: null,
+    input_tokens: 0,
+    output_tokens: 0,
+    cache_read_tokens: 0,
+    cache_creation_tokens: 0,
+    ...overrides,
+  };
 }
 
 @Injectable()
@@ -103,30 +123,23 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
 
     const messageStatus = httpStatus === 429 ? 'rate_limited' : 'error';
 
-    await this.messageRepo.insert({
-      id: uuid(),
-      tenant_id: ctx.tenantId,
-      agent_id: ctx.agentId,
-      trace_id: traceId ?? null,
-      timestamp: new Date().toISOString(),
-      status: messageStatus,
-      error_message: errorMessage.slice(0, 2000),
-      error_http_status: httpStatus,
-      agent_name: ctx.agentName,
-      model: model ?? null,
-      provider: provider ?? null,
-      routing_tier: tier ?? null,
-      input_tokens: 0,
-      output_tokens: 0,
-      cache_read_tokens: 0,
-      cache_creation_tokens: 0,
-      fallback_from_model: fallbackFromModel ?? null,
-      fallback_index: fallbackIndex ?? null,
-      auth_type: authType ?? null,
-      user_id: ctx.userId,
-      specificity_category: specificityCategory ?? null,
-      caller_attribution: callerAttribution ?? null,
-    });
+    await this.messageRepo.insert(
+      buildMessageRow(ctx, {
+        trace_id: traceId ?? null,
+        timestamp: new Date().toISOString(),
+        status: messageStatus,
+        error_message: scrubSecrets(errorMessage).slice(0, 2000),
+        error_http_status: httpStatus,
+        model: model ?? null,
+        provider: provider ?? null,
+        routing_tier: tier ?? null,
+        fallback_from_model: fallbackFromModel ?? null,
+        fallback_index: fallbackIndex ?? null,
+        auth_type: authType ?? null,
+        specificity_category: specificityCategory ?? null,
+        caller_attribution: callerAttribution ?? null,
+      }),
+    );
     this.eventBus.emit(ctx.userId);
   }
 
@@ -164,29 +177,22 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         : f.status === 429
           ? 'rate_limited'
           : 'error';
-      await this.messageRepo.insert({
-        id: uuid(),
-        tenant_id: ctx.tenantId,
-        agent_id: ctx.agentId,
-        trace_id: traceId ?? null,
-        timestamp: ts,
-        status,
-        error_message: f.errorBody.slice(0, 2000),
-        error_http_status: f.status,
-        agent_name: ctx.agentName,
-        model: f.model,
-        provider: f.provider ?? null,
-        routing_tier: tier,
-        input_tokens: 0,
-        output_tokens: 0,
-        cache_read_tokens: 0,
-        cache_creation_tokens: 0,
-        fallback_from_model: primaryModel,
-        fallback_index: f.fallbackIndex,
-        auth_type: authType ?? null,
-        user_id: ctx.userId,
-        caller_attribution: callerAttribution ?? null,
-      });
+      await this.messageRepo.insert(
+        buildMessageRow(ctx, {
+          trace_id: traceId ?? null,
+          timestamp: ts,
+          status,
+          error_message: scrubSecrets(f.errorBody).slice(0, 2000),
+          error_http_status: f.status,
+          model: f.model,
+          provider: f.provider ?? null,
+          routing_tier: tier,
+          fallback_from_model: primaryModel,
+          fallback_index: f.fallbackIndex,
+          auth_type: authType ?? null,
+          caller_attribution: callerAttribution ?? null,
+        }),
+      );
     }
     this.eventBus.emit(ctx.userId);
   }
@@ -200,28 +206,20 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     authType?: string,
     opts?: { provider?: string; callerAttribution?: CallerAttribution | null },
   ): Promise<void> {
-    await this.messageRepo.insert({
-      id: uuid(),
-      tenant_id: ctx.tenantId,
-      agent_id: ctx.agentId,
-      trace_id: null,
-      timestamp,
-      status: 'fallback_error',
-      error_message: errorBody.slice(0, 2000),
-      agent_name: ctx.agentName,
-      model,
-      provider: opts?.provider ?? null,
-      routing_tier: tier,
-      input_tokens: 0,
-      output_tokens: 0,
-      cache_read_tokens: 0,
-      cache_creation_tokens: 0,
-      fallback_from_model: null,
-      fallback_index: null,
-      auth_type: authType ?? null,
-      user_id: ctx.userId,
-      caller_attribution: opts?.callerAttribution ?? null,
-    });
+    await this.messageRepo.insert(
+      buildMessageRow(ctx, {
+        timestamp,
+        status: 'fallback_error',
+        error_message: errorBody.slice(0, 2000),
+        model,
+        provider: opts?.provider ?? null,
+        routing_tier: tier,
+        fallback_from_model: null,
+        fallback_index: null,
+        auth_type: authType ?? null,
+        caller_attribution: opts?.callerAttribution ?? null,
+      }),
+    );
     this.eventBus.emit(ctx.userId);
   }
 
@@ -253,28 +251,25 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       isSubscription: authType === 'subscription',
     });
 
-    await this.messageRepo.insert({
-      id: uuid(),
-      tenant_id: ctx.tenantId,
-      agent_id: ctx.agentId,
-      trace_id: traceId ?? null,
-      timestamp: timestamp ?? new Date().toISOString(),
-      status: 'ok',
-      agent_name: ctx.agentName,
-      model,
-      provider: provider ?? null,
-      routing_tier: tier,
-      input_tokens: inputTokens,
-      output_tokens: outputTokens,
-      cache_read_tokens: usage?.cache_read_tokens ?? 0,
-      cache_creation_tokens: usage?.cache_creation_tokens ?? 0,
-      cost_usd: costUsd,
-      auth_type: authType ?? null,
-      fallback_from_model: fallbackFromModel ?? null,
-      fallback_index: fallbackIndex ?? null,
-      user_id: ctx.userId,
-      caller_attribution: callerAttribution ?? null,
-    });
+    await this.messageRepo.insert(
+      buildMessageRow(ctx, {
+        trace_id: traceId ?? null,
+        timestamp: timestamp ?? new Date().toISOString(),
+        status: 'ok',
+        model,
+        provider: provider ?? null,
+        routing_tier: tier,
+        input_tokens: inputTokens,
+        output_tokens: outputTokens,
+        cache_read_tokens: usage?.cache_read_tokens ?? 0,
+        cache_creation_tokens: usage?.cache_creation_tokens ?? 0,
+        cost_usd: costUsd,
+        auth_type: authType ?? null,
+        fallback_from_model: fallbackFromModel ?? null,
+        fallback_index: fallbackIndex ?? null,
+        caller_attribution: callerAttribution ?? null,
+      }),
+    );
     this.eventBus.emit(ctx.userId);
   }
 
@@ -348,32 +343,29 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
             return;
           }
 
-          await messageRepo.insert({
-            id: uuid(),
-            tenant_id: ctx.tenantId,
-            agent_id: ctx.agentId,
-            trace_id: traceId ?? null,
-            session_key: normalizedSessionKey,
-            timestamp: new Date().toISOString(),
-            status: 'ok',
-            agent_name: ctx.agentName,
-            model,
-            provider: provider ?? null,
-            routing_tier: tier,
-            routing_reason: reason,
-            input_tokens: usage.prompt_tokens,
-            output_tokens: usage.completion_tokens,
-            cache_read_tokens: usage.cache_read_tokens ?? 0,
-            cache_creation_tokens: usage.cache_creation_tokens ?? 0,
-            cost_usd: costUsd,
-            auth_type: authType ?? null,
-            fallback_from_model: null,
-            fallback_index: null,
-            user_id: ctx.userId,
-            duration_ms: durationMs ?? null,
-            specificity_category: specificityCategory ?? null,
-            caller_attribution: callerAttribution ?? null,
-          });
+          await messageRepo.insert(
+            buildMessageRow(ctx, {
+              trace_id: traceId ?? null,
+              session_key: normalizedSessionKey,
+              timestamp: new Date().toISOString(),
+              status: 'ok',
+              model,
+              provider: provider ?? null,
+              routing_tier: tier,
+              routing_reason: reason,
+              input_tokens: usage.prompt_tokens,
+              output_tokens: usage.completion_tokens,
+              cache_read_tokens: usage.cache_read_tokens ?? 0,
+              cache_creation_tokens: usage.cache_creation_tokens ?? 0,
+              cost_usd: costUsd,
+              auth_type: authType ?? null,
+              fallback_from_model: null,
+              fallback_index: null,
+              duration_ms: durationMs ?? null,
+              specificity_category: specificityCategory ?? null,
+              caller_attribution: callerAttribution ?? null,
+            }),
+          );
           wrote = true;
         });
       },

@@ -14,10 +14,11 @@ const mockRule = {
   agent_id: 'a-1',
   agent_name: 'my-agent',
   user_id: 'user-1',
-  metric_type: 'tokens',
+  metric_type: 'tokens' as const,
   threshold: 100000,
-  period: 'day',
-  is_active: 1,
+  period: 'day' as const,
+  action: 'notify' as const,
+  is_active: true,
   created_at: '2026-01-01 00:00:00',
   updated_at: '2026-01-01 00:00:00',
 };
@@ -32,7 +33,7 @@ describe('NotificationsController', () => {
     const mockRulesService = {
       listRules: jest.fn().mockResolvedValue([mockRule]),
       createRule: jest.fn().mockResolvedValue(mockRule),
-      updateRule: jest.fn().mockResolvedValue({ ...mockRule, is_active: 0 }),
+      updateRule: jest.fn().mockResolvedValue({ ...mockRule, is_active: false }),
       deleteRule: jest.fn().mockResolvedValue(undefined),
       getRule: jest.fn().mockResolvedValue(mockRule),
       getOwnedRule: jest.fn().mockResolvedValue(mockRule),
@@ -125,7 +126,7 @@ describe('NotificationsController', () => {
     const dto = { is_active: false };
     const result = await controller.updateRule('rule-1', dto, mockUser);
     expect(rulesService.updateRule).toHaveBeenCalledWith('user-1', 'rule-1', dto);
-    expect(result.is_active).toBe(0);
+    expect(result?.is_active).toBe(false);
   });
 
   it('deletes a rule', async () => {
@@ -242,7 +243,7 @@ describe('NotificationsController', () => {
     });
 
     it('invalidates cache when creating a block rule', async () => {
-      const blockRule = { ...mockRule, action: 'block' };
+      const blockRule = { ...mockRule, action: 'block' as const };
       rulesService.createRule.mockResolvedValue(blockRule);
 
       const dto = {
@@ -258,7 +259,7 @@ describe('NotificationsController', () => {
     });
 
     it('does not invalidate cache when creating a notify rule', async () => {
-      const notifyRule = { ...mockRule, action: 'notify' };
+      const notifyRule = { ...mockRule, action: 'notify' as const };
       rulesService.createRule.mockResolvedValue(notifyRule);
 
       const dto = {
@@ -274,7 +275,7 @@ describe('NotificationsController', () => {
     });
 
     it('invalidates cache when creating a both rule', async () => {
-      const bothRule = { ...mockRule, action: 'both' };
+      const bothRule = { ...mockRule, action: 'both' as const };
       rulesService.createRule.mockResolvedValue(bothRule);
 
       const dto = {

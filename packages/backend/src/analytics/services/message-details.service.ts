@@ -28,6 +28,7 @@ export interface MessageDetailResponse {
     routing_tier: string | null;
     routing_reason: string | null;
     specificity_category: string | null;
+    specificity_miscategorized: boolean;
     auth_type: string | null;
     skill_name: string | null;
     fallback_from_model: string | null;
@@ -147,6 +148,7 @@ export class MessageDetailsService {
         routing_tier: message.routing_tier,
         routing_reason: message.routing_reason,
         specificity_category: message.specificity_category,
+        specificity_miscategorized: message.specificity_miscategorized,
         auth_type: message.auth_type,
         skill_name: message.skill_name,
         fallback_from_model: message.fallback_from_model,

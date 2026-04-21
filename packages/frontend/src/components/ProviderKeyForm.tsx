@@ -34,8 +34,7 @@ export interface ProviderKeyFormProps {
 }
 
 const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
-  const isPopupOAuth = () =>
-    props.provDef.subscriptionAuthMode === 'popup_oauth' || !!props.provDef.subscriptionOAuth;
+  const isPopupOAuth = () => props.provDef.subscriptionAuthMode === 'popup_oauth';
   const shouldRevokeOpenaiOAuth = () =>
     props.provId === 'openai' && isPopupOAuth() && props.selectedAuthType() === 'subscription';
   const isApiKeyCredential = () =>

@@ -15,6 +15,7 @@ import {
   resolveEndpointKey,
 } from './provider-endpoints';
 import { CopilotTokenService } from './copilot-token.service';
+import { buildProviderExtraHeaders } from './provider-hooks';
 import { shouldTriggerFallback } from './fallback-status-codes';
 import { inferProviderFromModelName } from '../../common/utils/provider-aliases';
 import { normalizeMinimaxSubscriptionBaseUrl } from '../provider-base-url';
@@ -236,11 +237,7 @@ export class ProxyFallbackService {
       thinkingLookup,
     } = opts;
 
-    const extraHeaders: Record<string, string> = {};
-    if (provider === 'xai') {
-      extraHeaders['x-grok-conv-id'] = opts.sessionKey;
-    }
-    const hasExtraHeaders = Object.keys(extraHeaders).length > 0;
+    const extraHeaders = buildProviderExtraHeaders(provider, opts.sessionKey);
 
     // Copilot: exchange the stored GitHub OAuth token for a short-lived API token
     let effectiveKey = opts.apiKey;
@@ -281,7 +278,7 @@ export class ProxyFallbackService {
       body,
       stream,
       signal,
-      extraHeaders: hasExtraHeaders ? extraHeaders : undefined,
+      extraHeaders,
       customEndpoint,
       authType,
       signatureLookup,

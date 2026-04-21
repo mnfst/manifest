@@ -107,13 +107,7 @@ export class AgentLifecycleService {
         .where('id = :id', { id: agent.id })
         .execute();
 
-      const tables = [
-        'agent_messages',
-        'notification_rules',
-        'notification_logs',
-        'token_usage_snapshots',
-        'cost_snapshots',
-      ];
+      const tables = ['agent_messages', 'notification_rules', 'notification_logs'];
       await Promise.all(
         tables.map((table) =>
           manager

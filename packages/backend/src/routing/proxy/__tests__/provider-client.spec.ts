@@ -1667,6 +1667,62 @@ describe('ProviderClient', () => {
       expect(fetchOptions.headers['Authorization']).toBe('Bearer test-key');
       expect(fetchOptions.headers['X-Custom']).toBe('value');
     });
+
+    // Regression: #1591 — MiniMax endpoint rejects bare model name because the
+    // second "/" segment was being eaten before reaching the provider.
+    it('preserves multi-segment upstream model ids with a vendor/model shape (#1591)', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const customEndpoint = {
+        baseUrl: 'https://api.minimax.io/v1',
+        buildHeaders: (key: string) => ({
+          Authorization: `Bearer ${key}`,
+          'Content-Type': 'application/json',
+        }),
+        buildPath: () => '/chat/completions',
+        format: 'openai' as const,
+      };
+
+      await client.forward({
+        provider: 'custom:minimax-cp',
+        apiKey: 'test-key',
+        model: 'MiniMaxAI/MiniMax-2.7',
+        body,
+        stream: false,
+        customEndpoint,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('MiniMaxAI/MiniMax-2.7');
+    });
+
+    // Regression: #1615 — Fireworks Fire Pass rejects truncated model name
+    // because earlier code stripped the "accounts/" segment off the wire payload.
+    it('preserves deeply slashed upstream model ids (#1615)', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const customEndpoint = {
+        baseUrl: 'https://api.fireworks.ai/inference/v1',
+        buildHeaders: (key: string) => ({
+          Authorization: `Bearer ${key}`,
+          'Content-Type': 'application/json',
+        }),
+        buildPath: () => '/chat/completions',
+        format: 'openai' as const,
+      };
+
+      await client.forward({
+        provider: 'custom:fireworks-cp',
+        apiKey: 'test-key',
+        model: 'accounts/fireworks/routers/kimi-k2p5-turbo',
+        body,
+        stream: false,
+        customEndpoint,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('accounts/fireworks/routers/kimi-k2p5-turbo');
+    });
   });
 
   describe('Error handling', () => {

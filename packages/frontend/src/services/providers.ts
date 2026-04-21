@@ -1,5 +1,7 @@
 /* ── LLM Provider definitions (shared by Routing page) ── */
 
+import { SHARED_PROVIDER_BY_ID, type SharedProviderEntry } from 'manifest-shared';
+
 export interface ProviderDef {
   id: string;
   name: string;
@@ -30,8 +32,6 @@ export interface ProviderDef {
   deviceLogin?: boolean;
   /** UI auth mode for subscription flows. */
   subscriptionAuthMode?: 'popup_oauth' | 'device_code' | 'token';
-  /** Deprecated compatibility flag for popup OAuth providers. */
-  subscriptionOAuth?: boolean;
   /** Provider is subscription-only and should not appear in the API Keys tab. */
   subscriptionOnly?: boolean;
   /** External URL the user should open to sign in and retrieve their token (token mode). */
@@ -50,27 +50,37 @@ export interface ProviderDef {
   defaultLocalPort?: number;
 }
 
-export const PROVIDERS: ProviderDef[] = [
-  {
-    id: 'qwen',
-    name: 'Alibaba',
-    color: '#FF6003',
+/** UI-only overlay fields for each provider. The id must match a `SHARED_PROVIDERS` entry. */
+interface ProviderUIOverlay {
+  initial: string;
+  subtitle: string;
+  models: { label: string; value: string }[];
+  noKeyRequired?: boolean;
+  supportsSubscription?: boolean;
+  subscriptionLabel?: string;
+  subscriptionKeyPlaceholder?: string;
+  subscriptionCredentialKind?: 'setup-token' | 'api-key';
+  subscriptionCommand?: string;
+  deviceLogin?: boolean;
+  subscriptionAuthMode?: 'popup_oauth' | 'device_code' | 'token';
+  subscriptionOnly?: boolean;
+  subscriptionSignInUrl?: string;
+  subscriptionSignInLabel?: string;
+  subscriptionSignInHint?: string;
+  beta?: boolean;
+  /** See ProviderDef.defaultLocalPort. */
+  defaultLocalPort?: number;
+}
+
+const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
+  qwen: {
     initial: 'Al',
     subtitle: 'Qwen3, Qwen2.5, QwQ',
-    keyPrefix: 'sk-',
-    minKeyLength: 30,
-    keyPlaceholder: 'sk-...',
     models: [],
   },
-  {
-    id: 'anthropic',
-    name: 'Anthropic',
-    color: '#d97757',
+  anthropic: {
     initial: 'A',
     subtitle: 'Claude Opus 4, Sonnet 4.5, Haiku',
-    keyPrefix: 'sk-ant-',
-    minKeyLength: 50,
-    keyPlaceholder: 'sk-ant-...',
     supportsSubscription: true,
     subscriptionLabel: 'Claude Max / Pro subscription',
     subscriptionAuthMode: 'token',
@@ -78,26 +88,14 @@ export const PROVIDERS: ProviderDef[] = [
     subscriptionCommand: 'claude setup-token',
     models: [],
   },
-  {
-    id: 'deepseek',
-    name: 'DeepSeek',
-    color: '#4d6bfe',
+  deepseek: {
     initial: 'D',
     subtitle: 'DeepSeek V3, R1',
-    keyPrefix: 'sk-',
-    minKeyLength: 30,
-    keyPlaceholder: 'sk-...',
     models: [],
   },
-  {
-    id: 'copilot',
-    name: 'GitHub Copilot',
-    color: '#000000',
+  copilot: {
     initial: 'GH',
     subtitle: 'Claude, GPT, Gemini via Copilot',
-    keyPrefix: '',
-    minKeyLength: 0,
-    keyPlaceholder: '',
     supportsSubscription: true,
     subscriptionLabel: 'GitHub Copilot subscription',
     subscriptionAuthMode: 'device_code',
@@ -117,103 +115,52 @@ export const PROVIDERS: ProviderDef[] = [
       { label: 'Grok Code Fast 1', value: 'copilot/grok-code-fast-1' },
     ],
   },
-  {
-    id: 'gemini',
-    name: 'Google',
-    color: '#4285f4',
+  gemini: {
     initial: 'G',
     subtitle: 'Gemini 2.5, Gemini 2.0 Flash',
-    keyPrefix: '',
-    minKeyLength: 30,
-    keyPlaceholder: 'API key',
     models: [],
   },
-  {
-    id: 'llamacpp',
-    name: 'llama.cpp',
-    color: '#2d2d2d',
+  llamacpp: {
     initial: 'Lc',
     subtitle: 'OpenAI-compatible llama.cpp server',
-    keyPrefix: '',
-    minKeyLength: 0,
-    keyPlaceholder: '',
     noKeyRequired: true,
     models: [],
-    localOnly: true,
     defaultLocalPort: 8080,
   },
-  {
-    id: 'lmstudio',
-    name: 'LM Studio',
-    color: '#4a90e2',
+  lmstudio: {
     initial: 'LM',
     subtitle: 'Run GGUF models with a local server',
-    keyPrefix: '',
-    minKeyLength: 0,
-    keyPlaceholder: '',
     noKeyRequired: true,
     models: [],
-    localOnly: true,
     defaultLocalPort: 1234,
   },
-  {
-    id: 'minimax',
-    name: 'MiniMax',
-    color: '#E73562',
+  minimax: {
     initial: 'Mm',
     subtitle: 'MiniMax M2.7, M2.5, M1',
-    keyPrefix: 'sk-',
-    minKeyLength: 30,
-    keyPlaceholder: 'sk-...',
     supportsSubscription: true,
     subscriptionLabel: 'MiniMax Coding Plan',
     subscriptionAuthMode: 'device_code',
     models: [],
   },
-  {
-    id: 'mistral',
-    name: 'Mistral',
-    color: '#f97316',
+  mistral: {
     initial: 'M',
     subtitle: 'Mistral Large, Codestral, Pixtral',
-    keyPrefix: '',
-    minKeyLength: 32,
-    keyPlaceholder: 'API key',
     models: [],
   },
-  {
-    id: 'moonshot',
-    name: 'Moonshot',
-    color: '#1a1a2e',
+  moonshot: {
     initial: 'Mo',
     subtitle: 'Kimi k2, Moonshot v1',
-    keyPrefix: 'sk-',
-    minKeyLength: 30,
-    keyPlaceholder: 'sk-...',
     models: [],
   },
-  {
-    id: 'ollama',
-    name: 'Ollama',
-    color: '#1a1a1a',
+  ollama: {
     initial: 'Ol',
     subtitle: 'Llama, Mistral, Gemma, and more',
-    keyPrefix: '',
-    minKeyLength: 0,
-    keyPlaceholder: '',
     noKeyRequired: true,
     models: [],
-    localOnly: true,
   },
-  {
-    id: 'ollama-cloud',
-    name: 'Ollama Cloud',
-    color: '#1a1a1a',
+  'ollama-cloud': {
     initial: 'Oc',
     subtitle: 'DeepSeek, Qwen, Gemma, Llama in the cloud',
-    keyPrefix: '',
-    minKeyLength: 0,
-    keyPlaceholder: '',
     supportsSubscription: true,
     subscriptionOnly: true,
     subscriptionLabel: 'Ollama Cloud subscription',
@@ -222,15 +169,9 @@ export const PROVIDERS: ProviderDef[] = [
     subscriptionKeyPlaceholder: 'Paste your Ollama Cloud API key',
     models: [],
   },
-  {
-    id: 'openai',
-    name: 'OpenAI',
-    color: '#10a37f',
+  openai: {
     initial: 'O',
     subtitle: 'GPT-4o, GPT-4.1, o3, o4',
-    keyPrefix: 'sk-',
-    minKeyLength: 50,
-    keyPlaceholder: 'sk-...',
     supportsSubscription: true,
     subscriptionLabel: 'ChatGPT Plus/Pro/Team',
     subscriptionAuthMode: 'popup_oauth',
@@ -252,15 +193,9 @@ export const PROVIDERS: ProviderDef[] = [
       { label: 'o1 Preview', value: 'o1-preview' },
     ],
   },
-  {
-    id: 'opencode-go',
-    name: 'OpenCode Go',
-    color: '#7C3AED',
+  'opencode-go': {
     initial: 'OG',
     subtitle: 'GLM, Kimi, MiMo, MiniMax',
-    keyPrefix: '',
-    minKeyLength: 20,
-    keyPlaceholder: '',
     supportsSubscription: true,
     subscriptionLabel: 'OpenCode Go (beta)',
     subscriptionAuthMode: 'token',
@@ -270,54 +205,28 @@ export const PROVIDERS: ProviderDef[] = [
     subscriptionSignInHint: 'Sign in to OpenCode Go to get your API key.',
     subscriptionOnly: true,
     beta: true,
-    // Models are discovered dynamically from the OpenCode Go docs catalog.
     models: [],
   },
-  {
-    id: 'openrouter',
-    name: 'OpenRouter',
-    color: '#6366f1',
+  openrouter: {
     initial: 'OR',
     subtitle: 'Auto-route to 300+ models',
-    keyPrefix: 'sk-or-',
-    minKeyLength: 60,
-    keyPlaceholder: 'sk-or-...',
     models: [],
   },
-  {
-    id: 'vllm',
-    name: 'vLLM',
-    color: '#306998',
+  vllm: {
     initial: 'vL',
     subtitle: 'High-throughput GPU inference server',
-    keyPrefix: '',
-    minKeyLength: 0,
-    keyPlaceholder: '',
     noKeyRequired: true,
     models: [],
-    localOnly: true,
     defaultLocalPort: 8000,
   },
-  {
-    id: 'xai',
-    name: 'xAI',
-    color: '#555555',
+  xai: {
     initial: 'X',
     subtitle: 'Grok 3, Grok 2',
-    keyPrefix: 'xai-',
-    minKeyLength: 50,
-    keyPlaceholder: 'xai-...',
     models: [],
   },
-  {
-    id: 'zai',
-    name: 'Z.ai',
-    color: '#2d2d2d',
+  zai: {
     initial: 'Z',
     subtitle: 'GLM 5.1, GLM 5, GLM 4.7',
-    keyPrefix: '',
-    minKeyLength: 30,
-    keyPlaceholder: 'API key',
     supportsSubscription: true,
     subscriptionLabel: 'GLM Coding Plan',
     subscriptionAuthMode: 'token',
@@ -325,7 +234,55 @@ export const PROVIDERS: ProviderDef[] = [
     subscriptionCredentialKind: 'api-key',
     models: [],
   },
+};
+
+function buildProviderDef(shared: SharedProviderEntry): ProviderDef {
+  const overlay = PROVIDER_UI[shared.id];
+  if (!overlay) {
+    throw new Error(`Missing UI overlay for shared provider "${shared.id}"`);
+  }
+  return {
+    id: shared.id,
+    name: shared.displayName,
+    color: shared.color,
+    keyPrefix: shared.keyPrefix,
+    minKeyLength: shared.minKeyLength,
+    keyPlaceholder: shared.keyPlaceholder,
+    localOnly: shared.localOnly || undefined,
+    ...overlay,
+  };
+}
+
+// Preserve previous ordering (alphabetical-ish by display name) so UI tests
+// that index into PROVIDERS don't shift.
+const PROVIDER_ORDER = [
+  'qwen',
+  'anthropic',
+  'deepseek',
+  'copilot',
+  'gemini',
+  'llamacpp',
+  'lmstudio',
+  'minimax',
+  'mistral',
+  'moonshot',
+  'ollama',
+  'ollama-cloud',
+  'openai',
+  'opencode-go',
+  'openrouter',
+  'vllm',
+  'xai',
+  'zai',
 ];
+
+export const PROVIDERS: ProviderDef[] = PROVIDER_ORDER.map((id) => {
+  const shared = SHARED_PROVIDER_BY_ID.get(id);
+  if (!shared) {
+    throw new Error(`Unknown provider id in PROVIDER_ORDER: "${id}"`);
+  }
+  return buildProviderDef(shared);
+});
 
 /* ── Pipeline stage definitions ────────────────────── */
 

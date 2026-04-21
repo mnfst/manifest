@@ -1,4 +1,4 @@
-import { fetchJson, fetchMutate, BASE_URL } from './core.js';
+import { fetchJson, fetchMutate } from './core.js';
 
 export interface NotificationRule {
   id: string;
@@ -38,7 +38,7 @@ export function createNotificationRule(data: {
   period: string;
   action?: string;
 }) {
-  return fetchMutate(`${BASE_URL}/notifications`, {
+  return fetchMutate('/notifications', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -46,7 +46,7 @@ export function createNotificationRule(data: {
 }
 
 export function updateNotificationRule(id: string, data: Record<string, unknown>) {
-  return fetchMutate(`${BASE_URL}/notifications/${encodeURIComponent(id)}`, {
+  return fetchMutate(`/notifications/${encodeURIComponent(id)}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -54,9 +54,7 @@ export function updateNotificationRule(id: string, data: Record<string, unknown>
 }
 
 export function deleteNotificationRule(id: string) {
-  return fetchMutate(`${BASE_URL}/notifications/${encodeURIComponent(id)}`, {
-    method: 'DELETE',
-  });
+  return fetchMutate(`/notifications/${encodeURIComponent(id)}`, { method: 'DELETE' });
 }
 
 export interface EmailProviderConfig {
@@ -81,7 +79,7 @@ export function setEmailProvider(data: {
   domain?: string;
   notificationEmail?: string;
 }) {
-  return fetchMutate(`${BASE_URL}/notifications/email-provider`, {
+  return fetchMutate('/notifications/email-provider', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -89,9 +87,7 @@ export function setEmailProvider(data: {
 }
 
 export function removeEmailProvider() {
-  return fetchMutate(`${BASE_URL}/notifications/email-provider`, {
-    method: 'DELETE',
-  });
+  return fetchMutate('/notifications/email-provider', { method: 'DELETE' });
 }
 
 export function testEmailProvider(data: {
@@ -100,19 +96,16 @@ export function testEmailProvider(data: {
   domain?: string;
   to: string;
 }) {
-  return fetchMutate<{ success: boolean; error?: string }>(
-    `${BASE_URL}/notifications/email-provider/test`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    },
-  );
+  return fetchMutate<{ success: boolean; error?: string }>('/notifications/email-provider/test', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
 }
 
 export function testSavedEmailProvider(to: string) {
   return fetchMutate<{ success: boolean; error?: string }>(
-    `${BASE_URL}/notifications/email-provider/test-saved`,
+    '/notifications/email-provider/test-saved',
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

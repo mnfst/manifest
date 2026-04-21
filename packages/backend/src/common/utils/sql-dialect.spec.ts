@@ -1,7 +1,5 @@
 import {
   computeCutoff,
-  detectDialect,
-  portableSql,
   sqlCastFloat,
   sqlCastInterval,
   sqlDateBucket,
@@ -13,14 +11,6 @@ import {
 } from './sql-dialect';
 
 describe('sql-dialect', () => {
-  describe('detectDialect', () => {
-    it('always resolves to postgres regardless of input', () => {
-      expect(detectDialect('sqlite')).toBe('postgres');
-      expect(detectDialect('postgres')).toBe('postgres');
-      expect(detectDialect('')).toBe('postgres');
-    });
-  });
-
   describe('timestamp helpers', () => {
     it('uses `timestamp` as the column type', () => {
       expect(timestampType()).toBe('timestamp');
@@ -99,10 +89,6 @@ describe('sql-dialect', () => {
 
     it('sqlSanitizeCost returns NULL for negative costs', () => {
       expect(sqlSanitizeCost('cost')).toBe('CASE WHEN cost >= 0 THEN cost ELSE NULL END');
-    });
-
-    it('portableSql is a pass-through', () => {
-      expect(portableSql('SELECT 1')).toBe('SELECT 1');
     });
 
     it('sqlCastInterval wraps a named parameter in CAST(... AS interval)', () => {

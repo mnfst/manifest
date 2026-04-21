@@ -5,8 +5,6 @@ import { ConfigService } from '@nestjs/config';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { LlmCall } from '../entities/llm-call.entity';
 import { ToolExecution } from '../entities/tool-execution.entity';
-import { TokenUsageSnapshot } from '../entities/token-usage-snapshot.entity';
-import { CostSnapshot } from '../entities/cost-snapshot.entity';
 import { AgentLog } from '../entities/agent-log.entity';
 import { ApiKey } from '../entities/api-key.entity';
 import { Tenant } from '../entities/tenant.entity';
@@ -70,13 +68,12 @@ import { AddCallerAttribution1775400000000 } from './migrations/1775400000000-Ad
 import { AddMessageProvider1775500000000 } from './migrations/1775500000000-AddMessageProvider';
 import { AddMessageFeedback1775600000000 } from './migrations/1775600000000-AddMessageFeedback';
 import { CleanupOrphanedCustomProviderRefs1776679833383 } from './migrations/1776679833383-CleanupOrphanedCustomProviderRefs';
+import { AddSpecificityMiscategorized1777000000000 } from './migrations/1777000000000-AddSpecificityMiscategorized';
 
 const entities = [
   AgentMessage,
   LlmCall,
   ToolExecution,
-  TokenUsageSnapshot,
-  CostSnapshot,
   AgentLog,
   ApiKey,
   Tenant,
@@ -141,6 +138,7 @@ const migrations = [
   AddMessageProvider1775500000000,
   AddMessageFeedback1775600000000,
   CleanupOrphanedCustomProviderRefs1776679833383,
+  AddSpecificityMiscategorized1777000000000,
 ];
 
 @Module({

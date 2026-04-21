@@ -96,4 +96,21 @@ describe('scanMessages', () => {
     const messages: ScorerMessage[] = [{ role: 'user', content: '' }];
     expect(scanMessages(messages)).toBeNull();
   });
+
+  it('returns null when the last extracted user text is empty (defensive guard)', () => {
+    // The production extractor filters empty texts, so this defensive branch
+    // is only reachable by simulating a future extractor regression.
+    jest.doMock('../text-extractor', () => ({
+      extractUserTexts: () => [
+        { text: 'filler', positionWeight: 0.5, messageIndex: 0 },
+        { text: '', positionWeight: 1.0, messageIndex: 1 },
+      ],
+      countConversationMessages: () => 0,
+      combinedText: () => '',
+    }));
+    const { scanMessages } = loadScanMessages();
+    const messages: ScorerMessage[] = [{ role: 'user', content: 'anything' }];
+    expect(scanMessages(messages)).toBeNull();
+    jest.dontMock('../text-extractor');
+  });
 });
