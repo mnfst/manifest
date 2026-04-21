@@ -41,7 +41,7 @@ interface ContextSvcDeps {
   findOne?: jest.Mock;
   getTiers?: jest.Mock;
   getActiveAssignments?: jest.Mock;
-  getModelForAgent?: jest.Mock;
+  getModelsForAgent?: jest.Mock;
 }
 
 async function makeService(overrides: ContextSvcDeps = {}): Promise<{
@@ -49,12 +49,12 @@ async function makeService(overrides: ContextSvcDeps = {}): Promise<{
   findOne: jest.Mock;
   getTiers: jest.Mock;
   getActiveAssignments: jest.Mock;
-  getModelForAgent: jest.Mock;
+  getModelsForAgent: jest.Mock;
 }> {
   const findOne = overrides.findOne ?? jest.fn().mockResolvedValue(null);
   const getTiers = overrides.getTiers ?? jest.fn().mockResolvedValue([]);
   const getActiveAssignments = overrides.getActiveAssignments ?? jest.fn().mockResolvedValue([]);
-  const getModelForAgent = overrides.getModelForAgent ?? jest.fn().mockResolvedValue(null);
+  const getModelsForAgent = overrides.getModelsForAgent ?? jest.fn().mockResolvedValue([]);
 
   const module: TestingModule = await Test.createTestingModule({
     providers: [
@@ -65,7 +65,7 @@ async function makeService(overrides: ContextSvcDeps = {}): Promise<{
       },
       { provide: TierService, useValue: { getTiers } },
       { provide: SpecificityService, useValue: { getActiveAssignments } },
-      { provide: ModelDiscoveryService, useValue: { getModelForAgent } },
+      { provide: ModelDiscoveryService, useValue: { getModelsForAgent } },
     ],
   }).compile();
 
@@ -74,14 +74,14 @@ async function makeService(overrides: ContextSvcDeps = {}): Promise<{
     findOne,
     getTiers,
     getActiveAssignments,
-    getModelForAgent,
+    getModelsForAgent,
   };
 }
 
 describe('ContextAdvertisementService', () => {
   describe('agent override', () => {
     it('returns the override verbatim when agent.context_floor_override is set', async () => {
-      const { service, findOne, getTiers, getModelForAgent } = await makeService({
+      const { service, findOne, getTiers, getModelsForAgent } = await makeService({
         findOne: jest.fn().mockResolvedValue({ context_floor_override: 50_000 }),
       });
 
@@ -91,7 +91,7 @@ describe('ContextAdvertisementService', () => {
       expect(findOne).toHaveBeenCalledWith({ where: { id: 'agent-1' } });
       // Override short-circuits discovery — don't pay for it.
       expect(getTiers).not.toHaveBeenCalled();
-      expect(getModelForAgent).not.toHaveBeenCalled();
+      expect(getModelsForAgent).not.toHaveBeenCalled();
     });
 
     it('ignores a zero override (falsy) and computes from models instead', async () => {
@@ -165,7 +165,7 @@ describe('ContextAdvertisementService', () => {
           .mockResolvedValue([
             { auto_assigned_model: 'ghost-model', override_model: null, fallback_models: null },
           ]),
-        getModelForAgent: jest.fn().mockResolvedValue(undefined),
+        getModelsForAgent: jest.fn().mockResolvedValue([]),
       });
 
       const result = await service.getEffectiveContext('agent-1');
@@ -187,11 +187,9 @@ describe('ContextAdvertisementService', () => {
             fallback_models: ['also-broken'],
           },
         ]),
-        getModelForAgent: jest.fn().mockImplementation((_agentId, modelId) => {
-          if (modelId === 'broken') return Promise.resolve(mkModel('broken', 0));
-          if (modelId === 'also-broken') return Promise.resolve(mkModel('also-broken', -1));
-          return Promise.resolve(null);
-        }),
+        getModelsForAgent: jest
+          .fn()
+          .mockResolvedValue([mkModel('broken', 0), mkModel('also-broken', -1)]),
       });
 
       const result = await service.getEffectiveContext('agent-1');
@@ -216,12 +214,12 @@ describe('ContextAdvertisementService', () => {
             fallback_models: ['gpt-4o-mini'],
           },
         ]),
-        getModelForAgent: jest.fn().mockImplementation((_agentId, modelId) => {
-          if (modelId === 'claude-opus-4-6')
-            return Promise.resolve(mkModel('claude-opus-4-6', 200_000));
-          if (modelId === 'gpt-4o-mini') return Promise.resolve(mkModel('gpt-4o-mini', 128_000));
-          return Promise.resolve(null);
-        }),
+        getModelsForAgent: jest
+          .fn()
+          .mockResolvedValue([
+            mkModel('claude-opus-4-6', 200_000),
+            mkModel('gpt-4o-mini', 128_000),
+          ]),
       });
 
       const result = await service.getEffectiveContext('agent-1');
@@ -232,7 +230,10 @@ describe('ContextAdvertisementService', () => {
     it('prefers override_model over auto_assigned_model when both are set', async () => {
       // Matches the `tier.override_model ?? tier.auto_assigned_model` rule:
       // a user pinned a different model, so that's the one we have to honour.
-      const { service, getModelForAgent } = await makeService({
+      // We check the collected candidate set via the internal bookkeeping —
+      // if `auto-model` ever made it into the candidates, a discovery entry
+      // for it with a smaller window would win and break this test.
+      const { service } = await makeService({
         getTiers: jest.fn().mockResolvedValue([
           {
             auto_assigned_model: 'auto-model',
@@ -240,19 +241,17 @@ describe('ContextAdvertisementService', () => {
             fallback_models: null,
           },
         ]),
-        getModelForAgent: jest.fn().mockImplementation((_agentId, modelId) => {
-          if (modelId === 'pinned-model') return Promise.resolve(mkModel('pinned-model', 64_000));
-          return Promise.resolve(null);
-        }),
+        getModelsForAgent: jest.fn().mockResolvedValue([
+          mkModel('pinned-model', 64_000),
+          // If the impl mistakenly used auto-model, this 8K entry would drag
+          // the advertised floor down and fail the assertion below.
+          mkModel('auto-model', 8_000),
+        ]),
       });
 
       const result = await service.getEffectiveContext('agent-1');
 
       expect(result.contextLength).toBe(64_000);
-      // We must never look up the auto-assigned one when an override exists.
-      const lookedUp = getModelForAgent.mock.calls.map((c) => c[1]);
-      expect(lookedUp).toContain('pinned-model');
-      expect(lookedUp).not.toContain('auto-model');
     });
 
     it('includes specificity assignments in the candidate set', async () => {
@@ -275,14 +274,13 @@ describe('ContextAdvertisementService', () => {
             fallback_models: ['medium-fallback'],
           },
         ]),
-        getModelForAgent: jest.fn().mockImplementation((_agentId, modelId) => {
-          if (modelId === 'big-model') return Promise.resolve(mkModel('big-model', 1_000_000));
-          if (modelId === 'small-coding-model')
-            return Promise.resolve(mkModel('small-coding-model', 32_000));
-          if (modelId === 'medium-fallback')
-            return Promise.resolve(mkModel('medium-fallback', 128_000));
-          return Promise.resolve(null);
-        }),
+        getModelsForAgent: jest
+          .fn()
+          .mockResolvedValue([
+            mkModel('big-model', 1_000_000),
+            mkModel('small-coding-model', 32_000),
+            mkModel('medium-fallback', 128_000),
+          ]),
       });
 
       const result = await service.getEffectiveContext('agent-1');
@@ -301,10 +299,7 @@ describe('ContextAdvertisementService', () => {
             fallback_models: null,
           },
         ]),
-        getModelForAgent: jest.fn().mockImplementation((_agentId, modelId) => {
-          if (modelId === 'pinned-spec') return Promise.resolve(mkModel('pinned-spec', 96_000));
-          return Promise.resolve(null);
-        }),
+        getModelsForAgent: jest.fn().mockResolvedValue([mkModel('pinned-spec', 96_000)]),
       });
 
       const result = await service.getEffectiveContext('agent-1');
@@ -312,33 +307,35 @@ describe('ContextAdvertisementService', () => {
       expect(result.contextLength).toBe(96_000);
     });
 
-    it('dedupes identical model ids across tiers and specificity so they only cost one lookup', async () => {
-      // Same model appears as both a tier primary and a specificity
-      // fallback. The internal Set must collapse it — we don't want to
-      // query the discovery service twice per request for the same model.
-      const getModelForAgent = jest.fn().mockResolvedValue(mkModel('gpt-4o', 128_000));
+    it('fetches the discovery index only once regardless of how many candidates the agent has', async () => {
+      // Before this optimisation the service looped `getModelForAgent` which
+      // internally scanned the full provider list on each call, turning N
+      // candidates into N full fetches. Guard against regressing that.
+      const getModelsForAgent = jest
+        .fn()
+        .mockResolvedValue([mkModel('gpt-4o', 128_000), mkModel('claude-opus-4-6', 200_000)]);
       const { service } = await makeService({
         getTiers: jest.fn().mockResolvedValue([
           {
             auto_assigned_model: 'gpt-4o',
             override_model: null,
-            fallback_models: ['gpt-4o'],
+            fallback_models: ['claude-opus-4-6'],
           },
         ]),
         getActiveAssignments: jest.fn().mockResolvedValue([
           {
             auto_assigned_model: 'gpt-4o',
             override_model: null,
-            fallback_models: ['gpt-4o'],
+            fallback_models: ['claude-opus-4-6'],
           },
         ]),
-        getModelForAgent,
+        getModelsForAgent,
       });
 
       await service.getEffectiveContext('agent-1');
 
-      expect(getModelForAgent).toHaveBeenCalledTimes(1);
-      expect(getModelForAgent).toHaveBeenCalledWith('agent-1', 'gpt-4o');
+      expect(getModelsForAgent).toHaveBeenCalledTimes(1);
+      expect(getModelsForAgent).toHaveBeenCalledWith('agent-1');
     });
 
     it('skips tiers whose primary is null and has no fallbacks', async () => {
@@ -358,7 +355,7 @@ describe('ContextAdvertisementService', () => {
             fallback_models: null,
           },
         ]),
-        getModelForAgent: jest.fn().mockResolvedValue(mkModel('only-real', 42_000)),
+        getModelsForAgent: jest.fn().mockResolvedValue([mkModel('only-real', 42_000)]),
       });
 
       const result = await service.getEffectiveContext('agent-1');
@@ -383,7 +380,7 @@ describe('ContextAdvertisementService', () => {
             fallback_models: null,
           },
         ]),
-        getModelForAgent: jest.fn().mockResolvedValue(mkModel('spec-real', 70_000)),
+        getModelsForAgent: jest.fn().mockResolvedValue([mkModel('spec-real', 70_000)]),
       });
 
       const result = await service.getEffectiveContext('agent-1');

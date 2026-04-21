@@ -53,12 +53,16 @@ export class ContextAdvertisementService {
       return { contextLength: DEFAULT_ADVERTISED_CONTEXT, overridden: false };
     }
 
+    // Single fetch — getModelForAgent internally calls getModelsForAgent on
+    // every invocation, so looping it would re-scan the full provider list
+    // once per candidate. Build the index once and look candidates up in it.
+    const discovered = await this.discoveryService.getModelsForAgent(agentId);
+    const byId = new Map(discovered.map((m) => [m.id, m]));
+
     const contexts: number[] = [];
     for (const modelId of candidates) {
-      const discovered = await this.discoveryService.getModelForAgent(agentId, modelId);
-      if (discovered && discovered.contextWindow > 0) {
-        contexts.push(discovered.contextWindow);
-      }
+      const model = byId.get(modelId);
+      if (model && model.contextWindow > 0) contexts.push(model.contextWindow);
     }
 
     if (contexts.length === 0) {
