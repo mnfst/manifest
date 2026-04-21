@@ -24,6 +24,7 @@ function makeService(overrides: {
   activeSpecificity?: unknown[];
   getModelForAgent?: jest.Mock;
   getByModel?: jest.Mock;
+  headerTiers?: unknown[];
 }) {
   const tierService: TierService = {
     getTiers: jest.fn().mockResolvedValue(overrides.tiers ?? []),
@@ -53,7 +54,7 @@ function makeService(overrides: {
   } as unknown as SpecificityPenaltyService;
 
   const headerTierService: HeaderTierService = {
-    list: jest.fn().mockResolvedValue([]),
+    list: jest.fn().mockResolvedValue(overrides.headerTiers ?? []),
   } as unknown as HeaderTierService;
 
   const svc = new ResolveService(
@@ -73,6 +74,7 @@ function makeService(overrides: {
     discoveryService,
     pricingCache,
     penaltyService,
+    headerTierService,
   };
 }
 
@@ -593,6 +595,193 @@ describe('ResolveService', () => {
       expect(out.model).toBe('openai/gpt-5-mini');
       expect(out.provider).toBe('openai');
       expect(out.auth_type).toBe('api_key');
+    });
+  });
+
+  describe('header-tier path', () => {
+    const tier = {
+      id: 'ht-1',
+      name: 'Premium',
+      badge_color: 'indigo',
+      header_key: 'x-manifest-tier',
+      header_value: 'premium',
+      override_model: 'openai/gpt-5',
+      override_provider: 'openai',
+      override_auth_type: null,
+      fallback_models: ['claude-sonnet-4'],
+    };
+
+    it('matches the first tier with a configured model and returns reason=header-match', async () => {
+      scoring.scoreRequest.mockReturnValue({
+        tier: 'simple',
+        confidence: 1,
+        score: 0,
+        reason: 'scored',
+      });
+      const { svc } = makeService({
+        headerTiers: [tier],
+        hasActiveProvider: jest.fn().mockResolvedValue(true),
+        getAuthType: jest.fn().mockResolvedValue('api_key'),
+      });
+      const out = await svc.resolve(
+        'agent-1',
+        [{ role: 'user', content: 'hi' }],
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        { 'x-manifest-tier': 'premium' },
+      );
+      expect(out.reason).toBe('header-match');
+      expect(out.model).toBe('openai/gpt-5');
+      expect(out.provider).toBe('openai');
+      expect(out.header_tier_id).toBe('ht-1');
+      expect(out.header_tier_name).toBe('Premium');
+      expect(out.header_tier_color).toBe('indigo');
+      expect(out.fallback_models).toEqual(['claude-sonnet-4']);
+      // Specificity / complexity never consulted when header matches.
+      expect(scoring.scoreRequest).not.toHaveBeenCalled();
+    });
+
+    it('matches when the incoming header is a repeated string array', async () => {
+      const { svc } = makeService({
+        headerTiers: [tier],
+        hasActiveProvider: jest.fn().mockResolvedValue(true),
+      });
+      const out = await svc.resolve(
+        'agent-1',
+        [{ role: 'user', content: 'hi' }],
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        { 'x-manifest-tier': ['free', 'premium'] },
+      );
+      expect(out.reason).toBe('header-match');
+    });
+
+    it('falls through when header key missing', async () => {
+      scoring.scoreRequest.mockReturnValue({
+        tier: 'simple',
+        confidence: 1,
+        score: 0,
+        reason: 'scored',
+      });
+      const { svc } = makeService({ headerTiers: [tier] });
+      const out = await svc.resolve(
+        'agent-1',
+        [{ role: 'user', content: 'hi' }],
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        {},
+      );
+      expect(out.reason).toBe('scored');
+    });
+
+    it('falls through when header value mismatches', async () => {
+      scoring.scoreRequest.mockReturnValue({
+        tier: 'simple',
+        confidence: 1,
+        score: 0,
+        reason: 'scored',
+      });
+      const { svc } = makeService({ headerTiers: [tier] });
+      const out = await svc.resolve(
+        'agent-1',
+        [{ role: 'user', content: 'hi' }],
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        { 'x-manifest-tier': 'free' },
+      );
+      expect(out.reason).toBe('scored');
+    });
+
+    it('falls through when the matched tier has no model configured', async () => {
+      scoring.scoreRequest.mockReturnValue({
+        tier: 'simple',
+        confidence: 1,
+        score: 0,
+        reason: 'scored',
+      });
+      const emptyTier = { ...tier, override_model: null };
+      const { svc } = makeService({ headerTiers: [emptyTier] });
+      const out = await svc.resolve(
+        'agent-1',
+        [{ role: 'user', content: 'hi' }],
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        { 'x-manifest-tier': 'premium' },
+      );
+      expect(out.reason).toBe('scored');
+    });
+
+    it('is skipped when headers are not supplied', async () => {
+      scoring.scoreRequest.mockReturnValue({
+        tier: 'simple',
+        confidence: 1,
+        score: 0,
+        reason: 'scored',
+      });
+      const { svc, headerTierService } = makeService({ headerTiers: [tier] });
+      await svc.resolve('agent-1', [{ role: 'user', content: 'hi' }]);
+      expect(headerTierService.list).not.toHaveBeenCalled();
+    });
+
+    it('prefers an earlier tier (first-match-wins) when multiple match', async () => {
+      const first = { ...tier, id: 'first', name: 'First', override_model: 'a/model-a' };
+      const second = { ...tier, id: 'second', name: 'Second', override_model: 'b/model-b' };
+      const { svc } = makeService({
+        headerTiers: [first, second],
+        hasActiveProvider: jest.fn().mockResolvedValue(true),
+      });
+      const out = await svc.resolve(
+        'agent-1',
+        [{ role: 'user', content: 'hi' }],
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        { 'x-manifest-tier': 'premium' },
+      );
+      expect(out.model).toBe('a/model-a');
+      expect(out.header_tier_id).toBe('first');
+    });
+
+    it('infers provider via model prefix when override_provider is null', async () => {
+      const { svc } = makeService({
+        headerTiers: [{ ...tier, override_provider: null }],
+        hasActiveProvider: jest.fn().mockResolvedValue(true),
+      });
+      const out = await svc.resolve(
+        'agent-1',
+        [{ role: 'user', content: 'hi' }],
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        { 'x-manifest-tier': 'premium' },
+      );
+      expect(out.provider).toBe('openai');
     });
   });
 });
