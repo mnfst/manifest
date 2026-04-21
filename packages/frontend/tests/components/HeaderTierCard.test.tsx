@@ -176,6 +176,92 @@ describe('HeaderTierCard', () => {
     expect(onDelete).toHaveBeenCalled();
   });
 
+  it('closes the kebab menu when focus leaves the menu region', () => {
+    const { container } = render(() => (
+      <HeaderTierCard
+        tier={tier}
+        ordinal={0}
+        models={[]}
+        customProviders={[]}
+        connectedProviders={[]}
+        onOverride={vi.fn()}
+        onReset={vi.fn()}
+        onDelete={vi.fn()}
+      />
+    ));
+    const kebab = container.querySelector('[aria-label="More actions"]') as HTMLElement;
+    fireEvent.click(kebab);
+    const menu = container.querySelector('.header-tier-card__menu') as HTMLElement;
+    expect(menu).not.toBeNull();
+
+    // Focus moves outside the menu → it should close.
+    fireEvent.focusOut(menu, { relatedTarget: document.body });
+    expect(container.querySelector('.header-tier-card__menu')).toBeNull();
+  });
+
+  it('keeps the kebab menu open when focus moves to a child of the menu', () => {
+    const { container, getByText } = render(() => (
+      <HeaderTierCard
+        tier={tier}
+        ordinal={0}
+        models={[]}
+        customProviders={[]}
+        connectedProviders={[]}
+        onOverride={vi.fn()}
+        onReset={vi.fn()}
+        onDelete={vi.fn()}
+      />
+    ));
+    fireEvent.click(container.querySelector('[aria-label="More actions"]')!);
+    const menu = container.querySelector('.header-tier-card__menu') as HTMLElement;
+    const deleteItem = getByText('Delete tier') as HTMLElement;
+    fireEvent.focusOut(menu, { relatedTarget: deleteItem });
+    expect(container.querySelector('.header-tier-card__menu')).not.toBeNull();
+  });
+
+  it('infers the provider id from the model prefix when override_provider is absent', () => {
+    const prefixTier: HeaderTier = {
+      ...tier,
+      override_provider: null,
+      override_model: 'anthropic/claude-sonnet-4',
+    };
+    const { container } = render(() => (
+      <HeaderTierCard
+        tier={prefixTier}
+        ordinal={0}
+        models={[]}
+        customProviders={[]}
+        connectedProviders={[]}
+        onOverride={vi.fn()}
+        onReset={vi.fn()}
+        onDelete={vi.fn()}
+      />
+    ));
+    // The provider icon block renders when a non-custom provider is resolved.
+    expect(container.querySelector('[data-testid="provider-icon"]')).not.toBeNull();
+  });
+
+  it('renders a custom-provider swatch when the tier points at custom:{id}', () => {
+    const customTier: HeaderTier = {
+      ...tier,
+      override_provider: 'custom:cp-1',
+      override_model: 'custom:cp-1/llama3',
+    };
+    const { container } = render(() => (
+      <HeaderTierCard
+        tier={customTier}
+        ordinal={0}
+        models={[]}
+        customProviders={[{ id: 'cp-1', name: 'Local Llama' } as never]}
+        connectedProviders={[]}
+        onOverride={vi.fn()}
+        onReset={vi.fn()}
+        onDelete={vi.fn()}
+      />
+    ));
+    expect(container.querySelector('[data-testid="custom-logo"]')).not.toBeNull();
+  });
+
   it('does not call onDelete when confirm is declined', () => {
     vi.spyOn(globalThis, 'confirm').mockReturnValue(false);
     const onDelete = vi.fn();
