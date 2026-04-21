@@ -295,6 +295,13 @@ describe('HeaderTierService', () => {
       repo.find.mockResolvedValue([{ id: 'a' } as HeaderTier, { id: 'b' } as HeaderTier]);
       await expect(svc.reorder('a1', ['a', 'c'])).rejects.toThrow(BadRequestException);
     });
+
+    it('rejects non-array payloads (guards against loop-bound injection)', async () => {
+      const { svc } = makeService();
+      await expect(svc.reorder('a1', 'not-an-array' as unknown as string[])).rejects.toThrow(
+        /must be an array/,
+      );
+    });
   });
 
   describe('override + fallbacks', () => {
