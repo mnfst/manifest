@@ -57,19 +57,36 @@ export class SeenHeadersService {
       filters.push(`at.agent_name = $${params.length}`);
     }
 
+    // Two-level aggregation so top_values is ordered by *frequency*, not just
+    // a distinct slice. Inner query counts (key, value) pairs; outer groups by
+    // key and picks the top N values per key by count.
     const sql = `
-      SELECT
-        key,
-        COUNT(*)::int AS count,
-        (array_agg(DISTINCT value))[1:${MAX_VALUES_PER_KEY}] AS top_values,
-        array_remove(array_agg(DISTINCT sdk), NULL) AS sdks
-      FROM (
+      WITH expanded AS (
         SELECT hdr.key, hdr.value, (at.caller_attribution::json->>'sdk') AS sdk
         FROM agent_messages at,
              LATERAL jsonb_each_text(at.request_headers::jsonb) AS hdr(key, value)
         WHERE ${filters.join(' AND ')}
-      ) x
-      GROUP BY key
+      ),
+      value_freq AS (
+        SELECT key, value, COUNT(*)::int AS freq
+        FROM expanded
+        GROUP BY key, value
+      ),
+      ranked_values AS (
+        SELECT key, value, freq,
+               ROW_NUMBER() OVER (PARTITION BY key ORDER BY freq DESC, value ASC) AS rn
+        FROM value_freq
+      )
+      SELECT
+        key,
+        (SELECT SUM(freq)::int FROM value_freq v WHERE v.key = r.key) AS count,
+        (SELECT array_agg(value ORDER BY rn)
+         FROM ranked_values rv
+         WHERE rv.key = r.key AND rv.rn <= ${MAX_VALUES_PER_KEY}) AS top_values,
+        (SELECT array_remove(array_agg(DISTINCT sdk), NULL)
+         FROM expanded e WHERE e.key = r.key) AS sdks
+      FROM ranked_values r
+      WHERE r.rn = 1
       ORDER BY count DESC
       LIMIT ${MAX_KEYS}
     `;

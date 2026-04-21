@@ -1,4 +1,13 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { CurrentUser } from '../../auth/current-user.decorator';
 import type { AuthUser } from '../../auth/auth.instance';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
@@ -87,6 +96,9 @@ export class HeaderTierController {
     @Param('agentName') agentName: string,
     @Body() body: ReorderBody,
   ) {
+    if (!body || !Array.isArray(body.ids)) {
+      throw new BadRequestException('reorder: body.ids must be an array');
+    }
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
     await this.headerTierService.reorder(agent.id, body.ids);
     return { ok: true };

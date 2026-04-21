@@ -328,6 +328,12 @@ describe('HeaderTierService', () => {
         /must be an array/,
       );
     });
+
+    it('rejects duplicate ids', async () => {
+      const { svc, repo } = makeService();
+      repo.find.mockResolvedValue([{ id: 'a' } as HeaderTier, { id: 'b' } as HeaderTier]);
+      await expect(svc.reorder('a1', ['a', 'a'])).rejects.toThrow(/duplicate ids/);
+    });
   });
 
   describe('override + fallbacks', () => {

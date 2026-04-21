@@ -172,7 +172,7 @@ describe('HeaderTierCard', () => {
       />
     ));
     fireEvent.click(container.querySelector('[aria-label="More actions"]')!);
-    fireEvent.mouseDown(getByText('Delete tier'));
+    fireEvent.click(getByText('Delete tier'));
     expect(onDelete).toHaveBeenCalled();
   });
 
@@ -192,7 +192,7 @@ describe('HeaderTierCard', () => {
       />
     ));
     fireEvent.click(container.querySelector('[aria-label="More actions"]')!);
-    fireEvent.mouseDown(getByText('Delete tier'));
+    fireEvent.click(getByText('Delete tier'));
     expect(onDelete).not.toHaveBeenCalled();
   });
 });

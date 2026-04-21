@@ -166,6 +166,16 @@ export class ResolveService {
       return null;
     }
 
+    // Guard against orphaned overrides (e.g. a model that was removed after the
+    // tier was configured). Mirrors the same check in resolveSpecificity().
+    if (!(await this.providerKeyService.isModelAvailable(agentId, match.override_model))) {
+      this.logger.warn(
+        `Header tier "${match.name}" override ${match.override_model} is unavailable ` +
+          `for agent=${agentId}; falling through to existing routing`,
+      );
+      return null;
+    }
+
     const provider = await this.resolveProvider(
       agentId,
       {

@@ -85,6 +85,22 @@ describe('HeaderTierController', () => {
     expect(out).toEqual({ ok: true });
   });
 
+  it('reorder rejects a missing body', async () => {
+    const { controller, service } = makeController();
+    await expect(controller.reorder(user, 'my-agent', undefined as never)).rejects.toThrow(
+      /ids must be an array/,
+    );
+    expect(service.reorder).not.toHaveBeenCalled();
+  });
+
+  it('reorder rejects a non-array ids property', async () => {
+    const { controller, service } = makeController();
+    await expect(
+      controller.reorder(user, 'my-agent', { ids: 'abc' as unknown as string[] }),
+    ).rejects.toThrow(/ids must be an array/);
+    expect(service.reorder).not.toHaveBeenCalled();
+  });
+
   it('setOverride forwards model/provider/authType', async () => {
     const { controller, service } = makeController();
     await controller.setOverride(user, 'my-agent', 'ht-1', {

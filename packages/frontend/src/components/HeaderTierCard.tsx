@@ -142,18 +142,25 @@ const HeaderTierCard: Component<Props> = (props) => {
             aria-expanded={kebabOpen()}
             aria-label="More actions"
             onClick={() => setKebabOpen((v) => !v)}
-            onBlur={() => setTimeout(() => setKebabOpen(false), 150)}
           >
             ⋯
           </button>
           <Show when={kebabOpen()}>
-            <div class="header-tier-card__menu" role="menu">
+            <div
+              class="header-tier-card__menu"
+              role="menu"
+              // Close the menu when focus leaves it so blur doesn't need to
+              // race with the menu item's own click handler.
+              onFocusOut={(e) => {
+                const next = e.relatedTarget as HTMLElement | null;
+                if (!e.currentTarget.contains(next)) setKebabOpen(false);
+              }}
+            >
               <button
                 type="button"
                 role="menuitem"
                 class="header-tier-card__menu-item header-tier-card__menu-item--danger"
-                onMouseDown={(e) => {
-                  e.preventDefault();
+                onClick={() => {
                   setKebabOpen(false);
                   if (confirm(`Delete tier "${props.tier.name}"?`)) props.onDelete();
                 }}

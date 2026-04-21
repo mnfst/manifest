@@ -708,6 +708,31 @@ describe('ResolveService', () => {
       expect(out.reason).toBe('scored');
     });
 
+    it('falls through when the tier override_model is unavailable', async () => {
+      scoring.scoreRequest.mockReturnValue({
+        tier: 'simple',
+        confidence: 1,
+        score: 0,
+        reason: 'scored',
+      });
+      const { svc } = makeService({
+        headerTiers: [tier],
+        isModelAvailable: jest.fn().mockResolvedValue(false),
+      });
+      const out = await svc.resolve(
+        'agent-1',
+        [{ role: 'user', content: 'hi' }],
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        { 'x-manifest-tier': 'premium' },
+      );
+      expect(out.reason).toBe('scored');
+    });
+
     it('falls through when the matched tier has no model configured', async () => {
       scoring.scoreRequest.mockReturnValue({
         tier: 'simple',

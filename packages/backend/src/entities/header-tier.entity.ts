@@ -4,7 +4,9 @@ import type { TierColor } from 'manifest-shared';
 
 @Entity('header_tiers')
 @Index(['agent_id', 'sort_order'])
-@Index(['agent_id', 'name'], { unique: true })
+// The unique (agent_id, LOWER(name)) index is declared in the migration so it
+// can be case-insensitive. Don't re-declare it here with a case-sensitive
+// collation — schema sync would drop the migration's index in dev.
 export class HeaderTier {
   @PrimaryColumn('varchar')
   id!: string;

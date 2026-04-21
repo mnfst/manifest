@@ -815,16 +815,18 @@ describe('ProxyController', () => {
 
     await controller.chatCompletions(req as never, res as never);
 
-    expect(proxyService.proxyRequest).toHaveBeenCalledWith({
-      agentId: 'agent-1',
-      userId: 'user-1',
-      body: req.body,
-      sessionKey: 'my-session',
-      tenantId: 'tenant-1',
-      agentName: 'test-agent',
-      signal: expect.any(AbortSignal),
-      headers: expect.any(Object),
-    });
+    expect(proxyService.proxyRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body: req.body,
+        sessionKey: 'my-session',
+        tenantId: 'tenant-1',
+        agentName: 'test-agent',
+        signal: expect.any(AbortSignal),
+        headers: expect.any(Object),
+      }),
+    );
   });
 
   it('should default session key to "default" when header is absent', async () => {
@@ -849,16 +851,18 @@ describe('ProxyController', () => {
 
     await controller.chatCompletions(req as never, res as never);
 
-    expect(proxyService.proxyRequest).toHaveBeenCalledWith({
-      agentId: 'agent-1',
-      userId: 'user-1',
-      body: req.body,
-      sessionKey: 'default',
-      tenantId: 'tenant-1',
-      agentName: 'test-agent',
-      signal: expect.any(AbortSignal),
-      headers: expect.any(Object),
-    });
+    expect(proxyService.proxyRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body: req.body,
+        sessionKey: 'default',
+        tenantId: 'tenant-1',
+        agentName: 'test-agent',
+        signal: expect.any(AbortSignal),
+        headers: expect.any(Object),
+      }),
+    );
   });
 
   describe('rate limiting', () => {

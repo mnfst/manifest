@@ -135,6 +135,12 @@ export class HeaderTierService {
     if (ids.length !== rows.length) {
       throw new BadRequestException('reorder list must include every existing tier exactly once');
     }
+    // A Set trims duplicates; if its size still matches the array length, each
+    // id was unique. Without this, `[a, a]` on a two-tier agent would pass the
+    // length check and silently leave one tier out of the reorder.
+    if (new Set(ids).size !== ids.length) {
+      throw new BadRequestException('reorder list must not contain duplicate ids');
+    }
     const byId = new Map(rows.map((r) => [r.id, r]));
     if (!ids.every((id) => byId.has(id))) {
       throw new BadRequestException('reorder list must include every existing tier exactly once');
