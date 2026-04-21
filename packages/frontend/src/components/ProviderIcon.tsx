@@ -291,6 +291,18 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         </>
       );
 
+    /* ── NanoGPT ──────────────────────────────────── */
+    case 'nano-gpt':
+      return (
+        <img
+          src="/icons/providers/nano-gpt.svg"
+          alt="NanoGPT"
+          width={size}
+          height={size}
+          style={{ display: 'block', 'object-fit': 'contain' }}
+        />
+      );
+
     default:
       return null;
   }
