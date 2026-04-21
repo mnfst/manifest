@@ -72,10 +72,6 @@ const LocalServerDetailView: Component<Props> = (props) => {
     const state = probe();
     if (!state || state.models.length === 0) return;
     const picked = Array.from(selected());
-    if (picked.length === 0) {
-      toast.error('Select at least one model');
-      return;
-    }
     setConnecting(true);
     try {
       await createCustomProvider(props.agentName, {

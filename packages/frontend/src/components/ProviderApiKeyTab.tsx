@@ -67,11 +67,7 @@ const ProviderApiKeyTab: Component<Props> = (props) => {
 
   const serverReady = (prov: ProviderDef): boolean => {
     if (prov.id === 'ollama') return ollamaReady();
-    const s = localServers();
-    if (prov.id === 'vllm') return s.vllm;
-    if (prov.id === 'lmstudio') return s.lmstudio;
-    if (prov.id === 'llamacpp') return s.llamacpp;
-    return true;
+    return localServers()[prov.id as keyof LocalServerAvailability] ?? true;
   };
 
   return (
@@ -129,10 +125,10 @@ const ProviderApiKeyTab: Component<Props> = (props) => {
                 return 'Install Ollama on your host from ollama.com, then click to connect';
               // For vLLM / LM Studio / llama.cpp we surface the exact
               // start command so the user can unblock themselves without
-              // leaving the page.
-              const hint = LOCAL_SERVER_HINTS[prov.id];
-              if (hint) return `Not running on :${hint.defaultPort}. ${hint.setupCommand}`;
-              return `Start ${prov.name} to connect`;
+              // leaving the page. `serverReady` only returns false for these
+              // three ids, which all have an entry in LOCAL_SERVER_HINTS.
+              const hint = LOCAL_SERVER_HINTS[prov.id]!;
+              return `Not running on :${hint.defaultPort}. ${hint.setupCommand}`;
             };
 
             const handleClick = () => {

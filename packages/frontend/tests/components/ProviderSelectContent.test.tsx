@@ -4,6 +4,21 @@ import { render, screen, fireEvent, waitFor } from "@solidjs/testing-library";
 vi.mock("../../src/services/api.js", () => ({
   connectProvider: vi.fn(),
   disconnectProvider: vi.fn().mockResolvedValue({ notifications: [] }),
+  probeCustomProvider: vi
+    .fn()
+    .mockResolvedValue({ models: [{ model_name: 'llama-3.1-8b' }] }),
+  createCustomProvider: vi.fn().mockResolvedValue({ id: 'cp-1' }),
+}));
+
+vi.mock("../../src/services/setup-status.js", () => ({
+  checkIsSelfHosted: vi.fn().mockResolvedValue(true),
+  checkIsOllamaAvailable: vi.fn().mockResolvedValue(false),
+  checkLocalLlmHost: vi.fn().mockResolvedValue('localhost'),
+  checkLocalServers: vi.fn().mockResolvedValue({
+    vllm: true,
+    lmstudio: false,
+    llamacpp: false,
+  }),
 }));
 
 vi.mock("../../src/services/toast-store.js", () => ({
@@ -183,6 +198,118 @@ describe("ProviderSelectContent", () => {
     ));
     const doneBtn = container.querySelector(".provider-modal__footer .btn")!;
     expect(() => fireEvent.click(doneBtn)).not.toThrow();
+  });
+
+  describe("LocalServerDetailView flow", () => {
+    it("opens LocalServerDetailView when a reachable local-server tile is clicked, and closes on onBack", async () => {
+      const { container } = render(() => (
+        <ProviderSelectContent
+          agentName="test-agent"
+          providers={[]}
+          onUpdate={onUpdate}
+        />
+      ));
+
+      // Switch to API Keys tab to see local-server tiles
+      fireEvent.click(screen.getByText("API Keys"));
+
+      // Wait for self-hosted + server liveness to resolve so vLLM is enabled
+      const vllmBtn = await waitFor(() => {
+        const b = Array.from(container.querySelectorAll<HTMLButtonElement>("button.provider-toggle")).find(
+          (el) => el.textContent?.includes("vLLM") && !el.disabled,
+        );
+        if (!b) throw new Error("vllm tile not yet enabled");
+        return b;
+      });
+      fireEvent.click(vllmBtn);
+
+      // LocalServerDetailView renders its own "Connect vLLM" button
+      await waitFor(() => {
+        expect(container.textContent).toContain("Connect vLLM");
+      });
+
+      // Back button dismisses the detail view and returns to the list
+      const backBtn = container.querySelector(".provider-detail__back") as HTMLButtonElement;
+      fireEvent.click(backBtn);
+      await waitFor(() => {
+        expect(container.querySelector(".provider-detail__back")).toBeNull();
+      });
+    });
+
+    it("completes the Connect flow: closes the detail view and calls onUpdate", async () => {
+      const onUpdateLocal = vi.fn().mockResolvedValue(undefined);
+      const { container } = render(() => (
+        <ProviderSelectContent
+          agentName="test-agent"
+          providers={[]}
+          onUpdate={onUpdateLocal}
+        />
+      ));
+
+      fireEvent.click(screen.getByText("API Keys"));
+
+      const vllmBtn = await waitFor(() => {
+        const b = Array.from(container.querySelectorAll<HTMLButtonElement>("button.provider-toggle")).find(
+          (el) => el.textContent?.includes("vLLM") && !el.disabled,
+        );
+        if (!b) throw new Error("vllm tile not yet enabled");
+        return b;
+      });
+      fireEvent.click(vllmBtn);
+
+      const connectBtn = await waitFor(() => {
+        const b = Array.from(container.querySelectorAll("button")).find((el) =>
+          el.textContent?.trim().startsWith("Connect vLLM"),
+        );
+        if (!b) throw new Error("Connect button not yet rendered");
+        return b as HTMLButtonElement;
+      });
+      fireEvent.click(connectBtn);
+
+      // After successful create, onConnected → goBack + onUpdate
+      await waitFor(() => {
+        expect(onUpdateLocal).toHaveBeenCalled();
+        expect(container.querySelector(".provider-detail__back")).toBeNull();
+      });
+    });
+
+    it("forwards onCustomize from LocalServerDetailView to the CustomProviderForm prefilled with base URL", async () => {
+      const { container } = render(() => (
+        <ProviderSelectContent
+          agentName="test-agent"
+          providers={[]}
+          onUpdate={onUpdate}
+        />
+      ));
+
+      fireEvent.click(screen.getByText("API Keys"));
+
+      const vllmBtn = await waitFor(() => {
+        const b = Array.from(container.querySelectorAll<HTMLButtonElement>("button.provider-toggle")).find(
+          (el) => el.textContent?.includes("vLLM") && !el.disabled,
+        );
+        if (!b) throw new Error("vllm tile not yet enabled");
+        return b;
+      });
+      fireEvent.click(vllmBtn);
+
+      // Click the "Advanced — customize URL or pricing" secondary button
+      const customizeBtn = await waitFor(() => {
+        const b = Array.from(container.querySelectorAll("button")).find((el) =>
+          el.textContent?.includes("Advanced"),
+        );
+        if (!b) throw new Error("customize button not yet rendered");
+        return b as HTMLButtonElement;
+      });
+      fireEvent.click(customizeBtn);
+
+      // After onCustomize, CustomProviderForm takes over with the base URL prefilled
+      await waitFor(() => {
+        const input = container.querySelector<HTMLInputElement>("#cp-base-url");
+        if (!input) throw new Error("base URL input not yet rendered");
+        expect(input.value).toBe("http://localhost:8000/v1");
+      });
+    });
   });
 
   describe("CopilotDeviceLogin callbacks", () => {
