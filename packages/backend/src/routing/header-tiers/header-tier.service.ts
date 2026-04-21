@@ -125,13 +125,22 @@ export class HeaderTierService {
   }
 
   async reorder(agentId: string, ids: string[]): Promise<void> {
+    if (!Array.isArray(ids)) {
+      throw new BadRequestException('reorder: ids must be an array');
+    }
     const rows = await this.repo.find({ where: { agent_id: agentId } });
+    // Bound the loop by the DB-backed tier count, not the user-supplied array
+    // length, so a pathological payload can't turn this into an O(user-input)
+    // loop (CodeQL: js/loop-bound-injection).
+    if (ids.length !== rows.length) {
+      throw new BadRequestException('reorder list must include every existing tier exactly once');
+    }
     const byId = new Map(rows.map((r) => [r.id, r]));
-    if (ids.length !== rows.length || !ids.every((id) => byId.has(id))) {
+    if (!ids.every((id) => byId.has(id))) {
       throw new BadRequestException('reorder list must include every existing tier exactly once');
     }
     const now = new Date().toISOString();
-    for (let i = 0; i < ids.length; i++) {
+    for (let i = 0; i < rows.length; i++) {
       const row = byId.get(ids[i])!;
       row.sort_order = i;
       row.updated_at = now;
