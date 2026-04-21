@@ -1,5 +1,5 @@
 import { createSignal, Show, type Component } from 'solid-js';
-import { PROVIDERS } from '../services/providers.js';
+import { PROVIDERS, type ProviderDef } from '../services/providers.js';
 import {
   connectProvider,
   disconnectProvider,
@@ -11,6 +11,7 @@ import { toast } from '../services/toast-store.js';
 import type { CustomProviderPrefill, ProviderDeepLink } from '../services/routing-params.js';
 import CustomProviderForm from './CustomProviderForm.js';
 import CopilotDeviceLogin from './CopilotDeviceLogin.js';
+import LocalServerDetailView from './LocalServerDetailView.js';
 import ProviderDetailView from './ProviderDetailView.js';
 import ProviderApiKeyTab from './ProviderApiKeyTab.js';
 import ProviderSubscriptionTab from './ProviderSubscriptionTab.js';
@@ -49,6 +50,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
   const [editingCustomProvider, setEditingCustomProvider] = createSignal<CustomProviderData | null>(
     null,
   );
+  const [localServerProvider, setLocalServerProvider] = createSignal<ProviderDef | null>(null);
   const [busy, setBusy] = createSignal(false);
   const [keyInput, setKeyInput] = createSignal('');
   const [editing, setEditing] = createSignal(false);
@@ -99,6 +101,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     setShowCustomForm(false);
     setTilePrefill(null);
     setEditingCustomProvider(null);
+    setLocalServerProvider(null);
     setKeyInput('');
     setEditing(false);
     setValidationError(null);
@@ -113,6 +116,11 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
   const openEditCustom = (cp: CustomProviderData) => {
     setDirection('forward');
     setEditingCustomProvider(cp);
+  };
+
+  const openLocalServer = (prov: ProviderDef) => {
+    setDirection('forward');
+    setLocalServerProvider(prov);
   };
 
   const handleSubscriptionToggle = async (provId: string) => {
@@ -151,8 +159,27 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
 
   return (
     <>
+      {/* -- Local Server Detail View (vLLM, LM Studio, llama.cpp) -- */}
+      <Show when={localServerProvider() && !showCustomForm() && !editingCustomProvider()}>
+        <div class="provider-modal__view provider-modal__view--from-right">
+          <LocalServerDetailView
+            agentName={props.agentName}
+            provider={localServerProvider()!}
+            onConnected={() => {
+              goBack();
+              props.onUpdate();
+            }}
+            onBack={goBack}
+            onCustomize={(prefill) => {
+              setLocalServerProvider(null);
+              openCustomForm(prefill);
+            }}
+          />
+        </div>
+      </Show>
+
       {/* -- Custom Provider Form View (create or edit) -- */}
-      <Show when={showCustomForm() || editingCustomProvider()}>
+      <Show when={(showCustomForm() || editingCustomProvider()) && !localServerProvider()}>
         <div class="provider-modal__view provider-modal__view--from-right">
           <CustomProviderForm
             agentName={props.agentName}
@@ -176,7 +203,14 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
       </Show>
 
       {/* -- List View -- */}
-      <Show when={selectedProvider() === null && !showCustomForm() && !editingCustomProvider()}>
+      <Show
+        when={
+          selectedProvider() === null &&
+          !showCustomForm() &&
+          !editingCustomProvider() &&
+          !localServerProvider()
+        }
+      >
         <div
           class="provider-modal__view"
           classList={{ 'provider-modal__view--from-left': direction() === 'back' }}
@@ -287,6 +321,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
               onOpenDetail={openDetail}
               onOpenCustomForm={openCustomForm}
               onEditCustom={openEditCustom}
+              onOpenLocalServer={openLocalServer}
             />
           </Show>
 

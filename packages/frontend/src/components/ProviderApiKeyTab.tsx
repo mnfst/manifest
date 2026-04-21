@@ -1,4 +1,5 @@
 import { For, Show, type Component, createSignal, onMount } from 'solid-js';
+import { LOCAL_SERVER_HINTS } from 'manifest-shared';
 import type { AuthType, CustomProviderData } from '../services/api.js';
 import { customProviderColor } from '../services/formatters.js';
 import type { ProviderDef } from '../services/providers.js';
@@ -7,7 +8,8 @@ import { providerIcon, customProviderLogo } from './ProviderIcon.js';
 import {
   checkIsSelfHosted,
   checkIsOllamaAvailable,
-  checkLocalLlmHost,
+  checkLocalServers,
+  type LocalServerAvailability,
 } from '../services/setup-status.js';
 
 type ListItem =
@@ -22,22 +24,35 @@ interface Props {
   onOpenDetail: (provId: string, authType: AuthType) => void;
   onOpenCustomForm: (prefill?: CustomProviderPrefill) => void;
   onEditCustom: (cp: CustomProviderData) => void;
+  /**
+   * Tile click for the vLLM / LM Studio / llama.cpp (and future) local
+   * server providers that have a `defaultLocalPort` — opens the
+   * auto-probing detail view instead of the generic custom-provider form.
+   */
+  onOpenLocalServer: (prov: ProviderDef) => void;
 }
+
+const DEFAULT_LOCAL_SERVERS: LocalServerAvailability = {
+  vllm: false,
+  lmstudio: false,
+  llamacpp: false,
+};
 
 const ProviderApiKeyTab: Component<Props> = (props) => {
   const [isSelfHosted, setIsSelfHosted] = createSignal(false);
   const [ollamaReady, setOllamaReady] = createSignal(false);
-  const [localLlmHost, setLocalLlmHost] = createSignal('localhost');
+  const [localServers, setLocalServers] =
+    createSignal<LocalServerAvailability>(DEFAULT_LOCAL_SERVERS);
 
   onMount(async () => {
-    const [selfHosted, ollama, host] = await Promise.all([
+    const [selfHosted, ollama, servers] = await Promise.all([
       checkIsSelfHosted(),
       checkIsOllamaAvailable(),
-      checkLocalLlmHost(),
+      checkLocalServers(),
     ]);
     setIsSelfHosted(selfHosted);
     setOllamaReady(ollama);
-    setLocalLlmHost(host);
+    setLocalServers(servers);
   });
 
   const mergedProviders = (): ListItem[] => {
@@ -48,6 +63,15 @@ const ProviderApiKeyTab: Component<Props> = (props) => {
       const nameB = b.kind === 'standard' ? b.prov.name : b.cp.name;
       return nameA.localeCompare(nameB);
     });
+  };
+
+  const serverReady = (prov: ProviderDef): boolean => {
+    if (prov.id === 'ollama') return ollamaReady();
+    const s = localServers();
+    if (prov.id === 'vllm') return s.vllm;
+    if (prov.id === 'lmstudio') return s.lmstudio;
+    if (prov.id === 'llamacpp') return s.llamacpp;
+    return true;
   };
 
   return (
@@ -87,34 +111,34 @@ const ProviderApiKeyTab: Component<Props> = (props) => {
             const connected = () => props.isConnected(prov.id) || props.isNoKeyConnected(prov.id);
             const isOllamaProvider = () => prov.id === 'ollama';
             const hasLocalPort = () => prov.defaultLocalPort !== undefined;
+
             const disabled = () => {
               if (!prov.localOnly) return false;
               // Grey out local-only tiles in cloud mode so cloud users can
               // discover the feature and know it unlocks in the self-hosted
               // version.
               if (!isSelfHosted()) return true;
-              if (isOllamaProvider()) return !ollamaReady();
-              return false;
+              return !serverReady(prov);
             };
 
             const statusMessage = () => {
               if (!prov.localOnly) return null;
               if (!isSelfHosted()) return 'Only available on self-hosted Manifest';
-              if (isOllamaProvider() && !ollamaReady())
+              if (serverReady(prov)) return null;
+              if (isOllamaProvider())
                 return 'Install Ollama on your host from ollama.com, then click to connect';
-              return null;
+              // For vLLM / LM Studio / llama.cpp we surface the exact
+              // start command so the user can unblock themselves without
+              // leaving the page.
+              const hint = LOCAL_SERVER_HINTS[prov.id];
+              if (hint) return `Not running on :${hint.defaultPort}. ${hint.setupCommand}`;
+              return `Start ${prov.name} to connect`;
             };
 
             const handleClick = () => {
               if (disabled()) return;
               if (hasLocalPort()) {
-                // vLLM / LM Studio / llama.cpp — open the custom-provider
-                // form prefilled with the default local URL so the user can
-                // tweak the port and probe models.
-                props.onOpenCustomForm({
-                  name: prov.name,
-                  baseUrl: `http://${localLlmHost()}:${prov.defaultLocalPort}/v1`,
-                });
+                props.onOpenLocalServer(prov);
                 return;
               }
               props.onOpenDetail(prov.id, 'api_key');

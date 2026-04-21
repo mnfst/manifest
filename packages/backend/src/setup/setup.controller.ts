@@ -15,14 +15,22 @@ export class SetupController {
     isSelfHosted: boolean;
     ollamaAvailable: boolean;
     localLlmHost: string;
+    localServers: { vllm: boolean; lmstudio: boolean; llamacpp: boolean };
   }> {
     const selfHosted = this.setupService.isSelfHosted();
+    const [ollamaAvailable, localServers] = await Promise.all([
+      selfHosted ? this.setupService.isOllamaAvailable() : Promise.resolve(false),
+      selfHosted
+        ? this.setupService.probeLocalServers()
+        : Promise.resolve({ vllm: false, lmstudio: false, llamacpp: false }),
+    ]);
     return {
       needsSetup: await this.setupService.needsSetup(),
       socialProviders: this.setupService.getEnabledSocialProviders(),
       isSelfHosted: selfHosted,
-      ollamaAvailable: selfHosted ? await this.setupService.isOllamaAvailable() : false,
+      ollamaAvailable,
       localLlmHost: this.setupService.getLocalLlmHost(),
+      localServers,
     };
   }
 

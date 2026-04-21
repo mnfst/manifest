@@ -3,12 +3,19 @@
  * setup page, and any guards can all ask without spamming the endpoint.
  */
 
+export interface LocalServerAvailability {
+  vllm: boolean;
+  lmstudio: boolean;
+  llamacpp: boolean;
+}
+
 interface SetupStatusResponse {
   needsSetup: boolean;
   socialProviders?: string[];
   isSelfHosted?: boolean;
   ollamaAvailable?: boolean;
   localLlmHost?: string;
+  localServers?: Partial<LocalServerAvailability>;
 }
 
 interface SetupStatusResult {
@@ -17,7 +24,14 @@ interface SetupStatusResult {
   isSelfHosted: boolean;
   ollamaAvailable: boolean;
   localLlmHost: string;
+  localServers: LocalServerAvailability;
 }
+
+const DEFAULT_LOCAL_SERVERS: LocalServerAvailability = {
+  vllm: false,
+  lmstudio: false,
+  llamacpp: false,
+};
 
 let cachedPromise: Promise<SetupStatusResult> | null = null;
 
@@ -34,6 +48,7 @@ async function fetchSetupStatus(): Promise<SetupStatusResult> {
         isSelfHosted: false,
         ollamaAvailable: false,
         localLlmHost: 'localhost',
+        localServers: { ...DEFAULT_LOCAL_SERVERS },
       };
     const data = (await res.json()) as SetupStatusResponse;
     return {
@@ -42,6 +57,11 @@ async function fetchSetupStatus(): Promise<SetupStatusResult> {
       isSelfHosted: data.isSelfHosted === true,
       ollamaAvailable: data.ollamaAvailable === true,
       localLlmHost: data.localLlmHost || 'localhost',
+      localServers: {
+        vllm: data.localServers?.vllm === true,
+        lmstudio: data.localServers?.lmstudio === true,
+        llamacpp: data.localServers?.llamacpp === true,
+      },
     };
   } catch {
     return {
@@ -50,6 +70,7 @@ async function fetchSetupStatus(): Promise<SetupStatusResult> {
       isSelfHosted: false,
       ollamaAvailable: false,
       localLlmHost: 'localhost',
+      localServers: { ...DEFAULT_LOCAL_SERVERS },
     };
   }
 }
@@ -79,6 +100,10 @@ export async function checkIsOllamaAvailable(): Promise<boolean> {
 
 export async function checkLocalLlmHost(): Promise<string> {
   return (await getSetupStatus()).localLlmHost;
+}
+
+export async function checkLocalServers(): Promise<LocalServerAvailability> {
+  return (await getSetupStatus()).localServers;
 }
 
 /** Invalidate the cached status. Call this after a successful setup. */

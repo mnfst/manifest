@@ -1,9 +1,14 @@
 import { ConflictException, Injectable, Logger } from '@nestjs/common';
 import { existsSync } from 'fs';
 import { DataSource } from 'typeorm';
+import { LOCAL_SERVER_HINTS } from 'manifest-shared';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { OLLAMA_HOST } from '../common/constants/ollama';
 import { isSelfHosted } from '../common/utils/detect-self-hosted';
+
+/** Provider IDs with a backend liveness probe on `/setup/status`. */
+const PROBEABLE_LOCAL_PROVIDERS = ['vllm', 'lmstudio', 'llamacpp'] as const;
+type ProbeableLocalProvider = (typeof PROBEABLE_LOCAL_PROVIDERS)[number];
 
 /**
  * Postgres advisory lock key reserved for the first-run setup wizard.
@@ -68,6 +73,33 @@ export class SetupService {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Probes each of the other local LLM servers (vLLM, LM Studio, llama.cpp)
+   * at its default port so the UI can grey out tiles whose server isn't
+   * running. Returns a map of provider ID → reachable. Each probe has a
+   * 1-second budget so the overall startup ping stays fast.
+   */
+  async probeLocalServers(): Promise<Record<ProbeableLocalProvider, boolean>> {
+    const host = this.getLocalLlmHost();
+    const entries = await Promise.all(
+      PROBEABLE_LOCAL_PROVIDERS.map(async (id) => {
+        const port = LOCAL_SERVER_HINTS[id]?.defaultPort;
+        if (!port) return [id, false] as const;
+        const url = `http://${host}:${port}/v1/models`;
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 1000);
+          const res = await fetch(url, { signal: controller.signal });
+          clearTimeout(timeout);
+          return [id, res.ok] as const;
+        } catch {
+          return [id, false] as const;
+        }
+      }),
+    );
+    return Object.fromEntries(entries) as Record<ProbeableLocalProvider, boolean>;
   }
 
   /**

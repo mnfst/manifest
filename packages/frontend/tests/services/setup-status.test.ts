@@ -5,6 +5,7 @@ import {
   checkIsSelfHosted,
   checkIsOllamaAvailable,
   checkLocalLlmHost,
+  checkLocalServers,
   resetSetupStatus,
   createFirstAdmin,
 } from '../../src/services/setup-status';
@@ -252,6 +253,73 @@ describe('setup-status service', () => {
     it("defaults to 'localhost' when the backend returns a non-ok response", async () => {
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 500 }));
       expect(await checkLocalLlmHost()).toBe('localhost');
+    });
+  });
+
+  describe('checkLocalServers', () => {
+    it('returns the backend-reported liveness map', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: async () => ({
+            needsSetup: false,
+            localServers: { vllm: true, lmstudio: false, llamacpp: true },
+          }),
+        }),
+      );
+      expect(await checkLocalServers()).toEqual({ vllm: true, lmstudio: false, llamacpp: true });
+    });
+
+    it('defaults each to false when backend omits localServers', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: async () => ({ needsSetup: false }),
+        }),
+      );
+      expect(await checkLocalServers()).toEqual({
+        vllm: false,
+        lmstudio: false,
+        llamacpp: false,
+      });
+    });
+
+    it('defaults to all-false on fetch failure', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
+      expect(await checkLocalServers()).toEqual({
+        vllm: false,
+        lmstudio: false,
+        llamacpp: false,
+      });
+    });
+
+    it('defaults to all-false when the backend returns a non-ok response', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 500 }));
+      expect(await checkLocalServers()).toEqual({
+        vllm: false,
+        lmstudio: false,
+        llamacpp: false,
+      });
+    });
+
+    it('coerces non-boolean values to false defensively', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: async () => ({
+            needsSetup: false,
+            localServers: { vllm: 'yes', lmstudio: null, llamacpp: 1 },
+          }),
+        }),
+      );
+      expect(await checkLocalServers()).toEqual({
+        vllm: false,
+        lmstudio: false,
+        llamacpp: false,
+      });
     });
   });
 

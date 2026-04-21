@@ -4,11 +4,15 @@ import { render, fireEvent } from '@solidjs/testing-library';
 const checkIsSelfHosted = vi.fn();
 const checkIsOllamaAvailable = vi.fn();
 const checkLocalLlmHost = vi.fn().mockResolvedValue('localhost');
+const checkLocalServers = vi
+  .fn()
+  .mockResolvedValue({ vllm: false, lmstudio: false, llamacpp: false });
 
 vi.mock('../../src/services/setup-status.js', () => ({
   checkIsSelfHosted: () => checkIsSelfHosted(),
   checkIsOllamaAvailable: () => checkIsOllamaAvailable(),
   checkLocalLlmHost: () => checkLocalLlmHost(),
+  checkLocalServers: () => checkLocalServers(),
 }));
 
 import ProviderApiKeyTab from '../../src/components/ProviderApiKeyTab';
@@ -32,7 +36,18 @@ beforeEach(() => {
   checkIsOllamaAvailable.mockReset();
   checkLocalLlmHost.mockReset();
   checkLocalLlmHost.mockResolvedValue('localhost');
+  checkLocalServers.mockReset();
+  checkLocalServers.mockResolvedValue({ vllm: false, lmstudio: false, llamacpp: false });
 });
+
+const baseProps = {
+  isConnected: () => false,
+  isNoKeyConnected: () => false,
+  onOpenDetail: vi.fn(),
+  onOpenCustomForm: vi.fn(),
+  onEditCustom: vi.fn(),
+  onOpenLocalServer: vi.fn(),
+};
 
 describe('ProviderApiKeyTab', () => {
   it('sorts standard and custom providers alphabetically in the merged list', async () => {
@@ -48,6 +63,7 @@ describe('ProviderApiKeyTab', () => {
         onOpenDetail={vi.fn()}
         onOpenCustomForm={vi.fn()}
         onEditCustom={vi.fn()}
+        onOpenLocalServer={vi.fn()}
       />
     ));
     await flushMicrotasks();
@@ -79,6 +95,7 @@ describe('ProviderApiKeyTab', () => {
         onOpenDetail={onOpenDetail}
         onOpenCustomForm={onOpenCustomForm}
         onEditCustom={vi.fn()}
+        onOpenLocalServer={vi.fn()}
       />
     ));
     await flushMicrotasks();
@@ -115,6 +132,7 @@ describe('ProviderApiKeyTab', () => {
         onOpenDetail={vi.fn()}
         onOpenCustomForm={vi.fn()}
         onEditCustom={vi.fn()}
+        onOpenLocalServer={vi.fn()}
       />
     ));
     await flushMicrotasks();
@@ -142,6 +160,7 @@ describe('ProviderApiKeyTab', () => {
         onOpenDetail={onOpenDetail}
         onOpenCustomForm={vi.fn()}
         onEditCustom={vi.fn()}
+        onOpenLocalServer={vi.fn()}
       />
     ));
     await flushMicrotasks();
@@ -174,6 +193,7 @@ describe('ProviderApiKeyTab', () => {
         onOpenDetail={vi.fn()}
         onOpenCustomForm={vi.fn()}
         onEditCustom={onEditCustom}
+        onOpenLocalServer={vi.fn()}
       />
     ));
     await flushMicrotasks();
@@ -202,6 +222,7 @@ describe('ProviderApiKeyTab', () => {
         onOpenDetail={vi.fn()}
         onOpenCustomForm={vi.fn()}
         onEditCustom={vi.fn()}
+        onOpenLocalServer={vi.fn()}
       />
     ));
     await flushMicrotasks();
@@ -228,6 +249,7 @@ describe('ProviderApiKeyTab', () => {
         onOpenDetail={vi.fn()}
         onOpenCustomForm={vi.fn()}
         onEditCustom={vi.fn()}
+        onOpenLocalServer={vi.fn()}
       />
     ));
     await flushMicrotasks();
@@ -238,11 +260,10 @@ describe('ProviderApiKeyTab', () => {
     expect(names).toEqual(['OpenAI']);
   });
 
-  it('renders a non-Ollama localOnly provider as enabled in self-hosted mode (falls through to return false)', async () => {
-    // Covers the branch on line 85 where prov.localOnly && isSelfHosted
-    // but the provider is NOT ollama, so disabled() returns false.
+  it('enables a localOnly tile when the backend reports the server is running', async () => {
     checkIsSelfHosted.mockResolvedValue(true);
     checkIsOllamaAvailable.mockResolvedValue(false);
+    checkLocalServers.mockResolvedValue({ vllm: false, lmstudio: true, llamacpp: false });
 
     const { container } = render(() => (
       <ProviderApiKeyTab
@@ -255,12 +276,45 @@ describe('ProviderApiKeyTab', () => {
         onOpenDetail={vi.fn()}
         onOpenCustomForm={vi.fn()}
         onEditCustom={vi.fn()}
+        onOpenLocalServer={vi.fn()}
       />
     ));
     await flushMicrotasks();
 
     const btn = container.querySelector('button.provider-toggle') as HTMLButtonElement;
     expect(btn.disabled).toBe(false);
+  });
+
+  it('greys out a localOnly tile with provider-specific start command when the server is down', async () => {
+    checkIsSelfHosted.mockResolvedValue(true);
+    checkIsOllamaAvailable.mockResolvedValue(false);
+    checkLocalServers.mockResolvedValue({ vllm: false, lmstudio: false, llamacpp: false });
+
+    const { container } = render(() => (
+      <ProviderApiKeyTab
+        apiKeyProviders={[
+          provider({
+            id: 'lmstudio',
+            name: 'LM Studio',
+            localOnly: true,
+            defaultLocalPort: 1234,
+          } as ProviderDef),
+        ]}
+        customProviders={[]}
+        isConnected={() => false}
+        isNoKeyConnected={() => false}
+        onOpenDetail={vi.fn()}
+        onOpenCustomForm={vi.fn()}
+        onEditCustom={vi.fn()}
+        onOpenLocalServer={vi.fn()}
+      />
+    ));
+    await flushMicrotasks();
+
+    const btn = container.querySelector('button.provider-toggle') as HTMLButtonElement;
+    expect(btn.disabled).toBe(true);
+    expect(container.textContent).toContain('Not running on :1234');
+    expect(container.textContent).toContain('lms server start');
   });
 
   it('fires onOpenCustomForm when the "Add custom provider" chip is clicked', async () => {
@@ -277,6 +331,7 @@ describe('ProviderApiKeyTab', () => {
         onOpenDetail={vi.fn()}
         onOpenCustomForm={onOpenCustomForm}
         onEditCustom={vi.fn()}
+        onOpenLocalServer={vi.fn()}
       />
     ));
     await flushMicrotasks();
@@ -285,40 +340,39 @@ describe('ProviderApiKeyTab', () => {
     expect(onOpenCustomForm).toHaveBeenCalled();
   });
 
-  it('opens the custom-provider form prefilled when a local-only tile with defaultLocalPort is clicked', async () => {
+  it('opens the LocalServerDetailView when a reachable local-only tile with defaultLocalPort is clicked', async () => {
     checkIsSelfHosted.mockResolvedValue(true);
     checkIsOllamaAvailable.mockResolvedValue(false);
-    checkLocalLlmHost.mockResolvedValue('host.docker.internal');
+    checkLocalServers.mockResolvedValue({ vllm: true, lmstudio: false, llamacpp: false });
 
     const onOpenCustomForm = vi.fn();
     const onOpenDetail = vi.fn();
+    const onOpenLocalServer = vi.fn();
+    const vllmProv = provider({
+      id: 'vllm',
+      name: 'vLLM',
+      localOnly: true,
+      noKeyRequired: true,
+      defaultLocalPort: 8000,
+    } as ProviderDef);
     const { container } = render(() => (
       <ProviderApiKeyTab
-        apiKeyProviders={[
-          provider({
-            id: 'vllm',
-            name: 'vLLM',
-            localOnly: true,
-            noKeyRequired: true,
-            defaultLocalPort: 8000,
-          } as ProviderDef),
-        ]}
+        apiKeyProviders={[vllmProv]}
         customProviders={[]}
         isConnected={() => false}
         isNoKeyConnected={() => false}
         onOpenDetail={onOpenDetail}
         onOpenCustomForm={onOpenCustomForm}
         onEditCustom={vi.fn()}
+        onOpenLocalServer={onOpenLocalServer}
       />
     ));
     await flushMicrotasks();
 
     const btn = container.querySelector('button.provider-toggle') as HTMLButtonElement;
     fireEvent.click(btn);
-    expect(onOpenCustomForm).toHaveBeenCalledWith({
-      name: 'vLLM',
-      baseUrl: 'http://host.docker.internal:8000/v1',
-    });
+    expect(onOpenLocalServer).toHaveBeenCalledWith(vllmProv);
+    expect(onOpenCustomForm).not.toHaveBeenCalled();
     expect(onOpenDetail).not.toHaveBeenCalled();
   });
 
@@ -339,6 +393,7 @@ describe('ProviderApiKeyTab', () => {
         onOpenDetail={onOpenDetail}
         onOpenCustomForm={onOpenCustomForm}
         onEditCustom={vi.fn()}
+        onOpenLocalServer={vi.fn()}
       />
     ));
     await flushMicrotasks();

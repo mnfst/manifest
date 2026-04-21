@@ -14,6 +14,7 @@ import { TierAutoAssignService } from '../routing-core/tier-auto-assign.service'
 import { CreateCustomProviderDto, UpdateCustomProviderDto } from '../dto/custom-provider.dto';
 import { validatePublicUrl } from '../../common/utils/url-validation';
 import { isSelfHosted } from '../../common/utils/detect-self-hosted';
+import { classifyProbeError } from './probe-error';
 
 const PROBE_TIMEOUT_MS = 5000;
 
@@ -225,26 +226,24 @@ export class CustomProviderService {
         redirect: 'error',
       });
       if (!res.ok) {
-        throw new BadRequestException(`Probe failed: ${res.status}`);
+        throw new BadRequestException(classifyProbeError({ url, status: res.status }).message);
       }
-      // Guard against hostile endpoints returning non-JSON (HTML, binary, …).
       const contentType = res.headers.get('content-type') ?? '';
       if (!contentType.includes('application/json')) {
-        throw new BadRequestException(
-          `${url} did not return JSON (got ${contentType || 'no content-type'})`,
-        );
+        throw new BadRequestException(classifyProbeError({ url, contentType }).message);
       }
       const body = (await res.json()) as { data?: { id?: string }[] };
       const items = body?.data ?? [];
-      return items
-        .filter((m): m is { id: string } => typeof m.id === 'string' && m.id.length > 0)
-        .map((m) => ({ model_name: m.id }));
+      const filtered = items.filter(
+        (m): m is { id: string } => typeof m.id === 'string' && m.id.length > 0,
+      );
+      if (filtered.length === 0) {
+        throw new BadRequestException(classifyProbeError({ url, emptyModels: true }).message);
+      }
+      return filtered.map((m) => ({ model_name: m.id }));
     } catch (err) {
       if (err instanceof BadRequestException) throw err;
-      if (err instanceof Error && err.name === 'AbortError') {
-        throw new BadRequestException(`Timed out probing ${url} after ${PROBE_TIMEOUT_MS}ms`);
-      }
-      throw new BadRequestException(`Could not reach ${url}: ${(err as Error).message}`);
+      throw new BadRequestException(classifyProbeError({ url, error: err as Error }).message);
     } finally {
       clearTimeout(timeout);
     }

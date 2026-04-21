@@ -277,3 +277,61 @@ export const SHARED_PROVIDER_BY_ID_OR_ALIAS: ReadonlyMap<string, SharedProviderE
     ...p.aliases.map((a): [string, SharedProviderEntry] => [a, p]),
   ]),
 );
+
+/**
+ * Hints for local-LLM provider tiles: default port, setup command the
+ * user needs to run, and docs link. Consumed by both the frontend detail
+ * view (for actionable setup copy when the server is unreachable) and
+ * the backend setup-status probe (for the default port).
+ */
+export interface LocalServerHint {
+  /** Default port the server listens on. */
+  defaultPort: number;
+  /** One-line terminal command that starts the server with the right flags. */
+  setupCommand: string;
+  /** Canonical docs URL for the getting-started page. */
+  docsUrl: string;
+  /**
+   * True when the server conceptually runs one model at a time
+   * (vLLM, llama.cpp). The UI simplifies the connect flow in that case
+   * to a single "Connect {model}" card.
+   */
+  singleModel: boolean;
+  /**
+   * Short human-readable note shown at the top of the detail view when
+   * the user is running Manifest inside Docker and the server needs to
+   * bind `0.0.0.0` (otherwise host.docker.internal can't reach it).
+   */
+  dockerBindNote?: string;
+}
+
+export const LOCAL_SERVER_HINTS: Readonly<Record<string, LocalServerHint>> = {
+  ollama: {
+    defaultPort: 11434,
+    setupCommand: 'ollama pull llama3.1:8b   # then: ollama serve',
+    docsUrl: 'https://ollama.com/download',
+    singleModel: false,
+  },
+  vllm: {
+    defaultPort: 8000,
+    setupCommand: 'vllm serve meta-llama/Llama-3.1-8B-Instruct --host 0.0.0.0 --port 8000',
+    docsUrl: 'https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html',
+    singleModel: true,
+    dockerBindNote: 'Use --host 0.0.0.0 so host.docker.internal can reach vLLM.',
+  },
+  lmstudio: {
+    defaultPort: 1234,
+    setupCommand: 'lms server start   # or: open LM Studio → Developer → Start Server',
+    docsUrl: 'https://lmstudio.ai/docs/app/api/endpoints/openai',
+    singleModel: false,
+    dockerBindNote: 'Enable "Serve on local network" in LM Studio so the container can reach it.',
+  },
+  llamacpp: {
+    defaultPort: 8080,
+    setupCommand: './llama-server -m model.gguf --host 0.0.0.0 --port 8080',
+    docsUrl: 'https://github.com/ggml-org/llama.cpp/tree/master/tools/server',
+    singleModel: true,
+    dockerBindNote:
+      'Launch with --host 0.0.0.0 — the default 127.0.0.1 bind is not reachable from Docker.',
+  },
+};
