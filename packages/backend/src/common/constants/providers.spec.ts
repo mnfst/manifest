@@ -138,6 +138,13 @@ describe('PROVIDER_BY_ID_OR_ALIAS', () => {
     expect(entry.displayName).toBe('Z.ai');
   });
 
+  it('resolves nanogpt alias to nano-gpt entry', () => {
+    const entry = PROVIDER_BY_ID_OR_ALIAS.get('nanogpt') as ProviderRegistryEntry;
+    expect(entry).toBeDefined();
+    expect(entry.id).toBe('nano-gpt');
+    expect(entry.displayName).toBe('NanoGPT');
+  });
+
   it('returns undefined for an unknown alias', () => {
     expect(PROVIDER_BY_ID_OR_ALIAS.get('nonexistent')).toBeUndefined();
   });

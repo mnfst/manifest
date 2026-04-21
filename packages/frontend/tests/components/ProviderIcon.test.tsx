@@ -18,21 +18,22 @@ const KNOWN_PROVIDERS = [
   "minimax",
   "zai",
   "opencode-go",
+  "nano-gpt",
 ];
 
 describe("providerIcon", () => {
   for (const provider of KNOWN_PROVIDERS) {
-    it(`returns an SVG for "${provider}"`, () => {
+    it(`renders an icon for "${provider}"`, () => {
       const { container } = render(() => <div>{providerIcon(provider)}</div>);
-      const svg = container.querySelector("svg");
-      expect(svg).not.toBeNull();
+      const icon = container.querySelector("svg") ?? container.querySelector("img");
+      expect(icon).not.toBeNull();
     });
   }
 
   it("returns null for unknown provider", () => {
     const { container } = render(() => <div>{providerIcon("unknown-provider")}</div>);
-    const svg = container.querySelector("svg");
-    expect(svg).toBeNull();
+    const icon = container.querySelector("svg") ?? container.querySelector("img");
+    expect(icon).toBeNull();
   });
 
   it("uses custom size when provided", () => {

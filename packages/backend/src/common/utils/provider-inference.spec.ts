@@ -61,6 +61,10 @@ describe('inferProviderFromModel', () => {
     expect(inferProviderFromModel('glm-5')).toBe('zai');
   });
 
+  it('returns "nano-gpt" for nano-gpt/ prefix', () => {
+    expect(inferProviderFromModel('nano-gpt/some-model')).toBe('nano-gpt');
+  });
+
   it('returns "qwen" for qwen/qwq models', () => {
     expect(inferProviderFromModel('qwen2.5-72b-instruct')).toBe('qwen');
     expect(inferProviderFromModel('qwen3-235b-a22b')).toBe('qwen');
