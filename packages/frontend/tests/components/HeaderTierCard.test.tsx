@@ -176,7 +176,7 @@ describe('HeaderTierCard', () => {
     expect(onDelete).toHaveBeenCalled();
   });
 
-  it('closes the kebab menu when focus leaves the menu region', () => {
+  it('closes the kebab menu on pointerdown outside the container', () => {
     const { container } = render(() => (
       <HeaderTierCard
         tier={tier}
@@ -189,17 +189,15 @@ describe('HeaderTierCard', () => {
         onDelete={vi.fn()}
       />
     ));
-    const kebab = container.querySelector('[aria-label="More actions"]') as HTMLElement;
-    fireEvent.click(kebab);
-    const menu = container.querySelector('.header-tier-card__menu') as HTMLElement;
-    expect(menu).not.toBeNull();
+    fireEvent.click(container.querySelector('[aria-label="More actions"]')!);
+    expect(container.querySelector('.header-tier-card__menu')).not.toBeNull();
 
-    // Focus moves outside the menu → it should close.
-    fireEvent.focusOut(menu, { relatedTarget: document.body });
+    // PointerDown on the document body (outside the kebab container) closes it.
+    fireEvent.pointerDown(document.body);
     expect(container.querySelector('.header-tier-card__menu')).toBeNull();
   });
 
-  it('keeps the kebab menu open when focus moves to a child of the menu', () => {
+  it('keeps the kebab menu open when a pointerdown lands inside it', () => {
     const { container, getByText } = render(() => (
       <HeaderTierCard
         tier={tier}
@@ -213,9 +211,7 @@ describe('HeaderTierCard', () => {
       />
     ));
     fireEvent.click(container.querySelector('[aria-label="More actions"]')!);
-    const menu = container.querySelector('.header-tier-card__menu') as HTMLElement;
-    const deleteItem = getByText('Delete tier') as HTMLElement;
-    fireEvent.focusOut(menu, { relatedTarget: deleteItem });
+    fireEvent.pointerDown(getByText('Delete tier'));
     expect(container.querySelector('.header-tier-card__menu')).not.toBeNull();
   });
 

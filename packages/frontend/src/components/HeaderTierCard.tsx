@@ -1,4 +1,4 @@
-import { createSignal, Show, type Component } from 'solid-js';
+import { createEffect, createSignal, onCleanup, Show, type Component } from 'solid-js';
 import type {
   AuthType,
   AvailableModel,
@@ -43,6 +43,19 @@ interface Props {
 const HeaderTierCard: Component<Props> = (props) => {
   const [pickerOpen, setPickerOpen] = createSignal(false);
   const [kebabOpen, setKebabOpen] = createSignal(false);
+  let kebabRef: HTMLDivElement | undefined;
+
+  // Close the kebab menu when a pointerdown lands outside its container.
+  // Using pointerdown (not click) so the menu closes before the outside target
+  // receives its own click handler, and covers both mouse and touch.
+  createEffect(() => {
+    if (!kebabOpen()) return;
+    const handler = (e: PointerEvent) => {
+      if (kebabRef && !kebabRef.contains(e.target as Node)) setKebabOpen(false);
+    };
+    document.addEventListener('pointerdown', handler, true);
+    onCleanup(() => document.removeEventListener('pointerdown', handler, true));
+  });
 
   const currentModel = (): string | null => props.tier.override_model;
   const providerId = (): string | undefined => {
@@ -134,7 +147,7 @@ const HeaderTierCard: Component<Props> = (props) => {
             Reset
           </button>
         </Show>
-        <div class="header-tier-card__kebab">
+        <div class="header-tier-card__kebab" ref={kebabRef}>
           <button
             type="button"
             class="header-tier-card__action-btn"
@@ -146,16 +159,7 @@ const HeaderTierCard: Component<Props> = (props) => {
             ⋯
           </button>
           <Show when={kebabOpen()}>
-            <div
-              class="header-tier-card__menu"
-              role="menu"
-              // Close the menu when focus leaves it so blur doesn't need to
-              // race with the menu item's own click handler.
-              onFocusOut={(e) => {
-                const next = e.relatedTarget as HTMLElement | null;
-                if (!e.currentTarget.contains(next)) setKebabOpen(false);
-              }}
-            >
+            <div class="header-tier-card__menu" role="menu">
               <button
                 type="button"
                 role="menuitem"
