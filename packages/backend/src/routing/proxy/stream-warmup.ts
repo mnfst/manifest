@@ -73,9 +73,9 @@ export async function peekStream(
           } else if (nextValue) {
             controller.enqueue(nextValue);
           }
-        } catch {
-          controller.close();
+        } catch (err) {
           reader.releaseLock();
+          controller.error(err);
         }
       },
       cancel() {

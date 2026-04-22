@@ -129,4 +129,29 @@ describe('peekStream', () => {
       expect(text).toBe('only-chunk');
     }
   });
+
+  it('propagates mid-stream errors after warmup succeeds', async () => {
+    let pullCount = 0;
+    const source = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        pullCount++;
+        if (pullCount === 1) {
+          controller.enqueue(new TextEncoder().encode('first'));
+        } else {
+          controller.error(new Error('upstream died mid-stream'));
+        }
+      },
+    });
+
+    const result = await peekStream(source, 5000);
+    expect(result.ok).toBe(true);
+
+    if (result.ok) {
+      const reader = result.stream.getReader();
+      const first = await reader.read();
+      expect(new TextDecoder().decode(first.value)).toBe('first');
+
+      await expect(reader.read()).rejects.toThrow('upstream died mid-stream');
+    }
+  });
 });
