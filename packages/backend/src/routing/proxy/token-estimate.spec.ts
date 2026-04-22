@@ -28,6 +28,14 @@ describe('estimateTokens', () => {
     expect(long).toBeGreaterThan(medium);
   });
 
+  it('safety multiplier is set high enough to cover the documented CJK undercount (#1678 cubic P1)', () => {
+    // Regression guard: cl100k_base under-counts Chinese / Japanese by
+    // ~15% in published benchmarks. If the multiplier drops below ~1.15,
+    // CJK-heavy requests slip past the fit check and overflow the routed
+    // model. 1.2 is the minimum we're willing to ship.
+    expect(TOKEN_ESTIMATE_SAFETY_MULTIPLIER).toBeGreaterThanOrEqual(1.2);
+  });
+
   it('applies the safety multiplier so we bias toward over-estimation', () => {
     // With 100 messages of known text we can show the output is larger than
     // the raw tokenization would be — without depending on the exact raw
@@ -39,7 +47,7 @@ describe('estimateTokens', () => {
     const estimate = estimateTokens(messages);
 
     // A pure cl100k_base count would be ~900 tokens for this input. We
-    // expect ≥10% more because of the safety multiplier.
+    // expect ≥20% more because of the safety multiplier.
     expect(estimate).toBeGreaterThan(900);
     expect(TOKEN_ESTIMATE_SAFETY_MULTIPLIER).toBeGreaterThan(1);
   });

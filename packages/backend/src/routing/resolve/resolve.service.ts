@@ -241,9 +241,15 @@ export class ResolveService {
     assignment: TierAssignment,
     contextByModel: Map<string, number>,
   ): FitCandidate[] {
+    // Push override first (user intent wins), then auto-assigned as a live
+    // fallback for when the override is stale / points at a disconnected
+    // provider, then the configured fallback chain. Matches the resilience
+    // of `ProviderKeyService.getEffectiveModel` — without this, a stale
+    // override_model would eliminate the tier from the size-aware walk
+    // even when the auto-assigned model is perfectly serviceable.
     const ordered: string[] = [];
-    const primary = assignment.override_model ?? assignment.auto_assigned_model;
-    if (primary) ordered.push(primary);
+    if (assignment.override_model) ordered.push(assignment.override_model);
+    if (assignment.auto_assigned_model) ordered.push(assignment.auto_assigned_model);
     if (assignment.fallback_models) ordered.push(...assignment.fallback_models);
 
     const seen = new Set<string>();

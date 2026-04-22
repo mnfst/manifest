@@ -999,6 +999,58 @@ describe('ProxyService', () => {
 
       expect(resolveService.resolve).toHaveBeenCalled();
     });
+
+    it('falls through to size-aware routing when a large payload contains HEARTBEAT_OK as substring (#1678 cubic P1)', async () => {
+      // The heartbeat sentinel is matched via `.includes(...)`. Before the
+      // fix, a legitimate large user message that happened to mention
+      // HEARTBEAT_OK (e.g. a prompt asking "should I include HEARTBEAT_OK
+      // in my cron output?") would skip size-aware routing and fire at
+      // the `simple` tier, overflowing any small model pinned there.
+      // Gate: the heartbeat fast-path only applies when estimated tokens
+      // are under the real-heartbeat ceiling.
+      const largeContentWithSentinel = {
+        messages: [
+          {
+            role: 'user',
+            // Long enough to push estimated tokens past HEARTBEAT_TOKEN_CEILING (1000).
+            content: (
+              'Explain how heartbeat polling works in distributed systems. ' +
+              'Should I literally include HEARTBEAT_OK in the response body? '
+            ).repeat(200),
+          },
+        ],
+        stream: false,
+      };
+
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      resolveService.resolveForTier = jest.fn();
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body: largeContentWithSentinel,
+        sessionKey: 'sess-gated',
+      });
+
+      // The size-aware path (resolve) must be used — NOT the heartbeat
+      // fast-path (resolveForTier). Exactly the regression #1678 flagged.
+      expect(resolveService.resolve).toHaveBeenCalled();
+      expect(resolveService.resolveForTier).not.toHaveBeenCalled();
+    });
   });
 
   describe('system prompt stripping', () => {

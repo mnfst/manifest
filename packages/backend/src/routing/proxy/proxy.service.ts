@@ -39,6 +39,15 @@ const SCORING_EXCLUDED_ROLES = new Set(['system', 'developer']);
 const SCORING_RECENT_MESSAGES = 10;
 const MAX_MESSAGES_PER_REQUEST = 1000;
 
+/**
+ * Maximum estimated token count for a request to still be treated as a
+ * heartbeat. Real heartbeats are tens of tokens at most; this ceiling is
+ * generous (1000) but low enough to stop an adversarial/oversized payload
+ * that happens to contain the `HEARTBEAT_OK` substring from bypassing
+ * size-aware routing.
+ */
+const HEARTBEAT_TOKEN_CEILING = 1_000;
+
 export interface RoutingMeta {
   tier: Tier;
   model: string;
@@ -200,19 +209,21 @@ export class ProxyService {
     const messages = body.messages as ScorerMessage[];
     const scoringMessages = this.filterScoringMessages(messages);
     const scoringTools = Array.isArray(body.tools) ? body.tools : undefined;
-    const isHeartbeat = this.detectHeartbeat(scoringMessages);
     const recentTiers = this.momentum.getRecentTiers(sessionKey);
     const recentCategories = this.momentum.getRecentCategories(sessionKey);
 
-    // Heartbeat traffic bypasses the size check by design: heartbeats are
-    // tiny by construction and must route to `simple` cheaply, so the
-    // extra tokenization round-trip would be pure overhead.
-    if (isHeartbeat) return this.resolveService.resolveForTier(agentId, 'simple');
-
     // Estimate against the full message array and tool list — the scoring
     // window is a subset of the payload, but the *fit* check must reflect
-    // what will actually be forwarded to the provider.
+    // what will actually be forwarded to the provider. Heartbeat detection
+    // uses `.includes('HEARTBEAT_OK')` so a legitimate user message that
+    // happens to mention the sentinel in a large payload would otherwise
+    // bypass size-aware routing and fire at the `simple` tier regardless
+    // of whether it can fit. Gate the heartbeat fast-path on the estimate
+    // staying below a safe ceiling — real heartbeats are tens of tokens.
     const estimatedTokens = estimateTokens(messages, scoringTools);
+    const isHeartbeat =
+      this.detectHeartbeat(scoringMessages) && estimatedTokens <= HEARTBEAT_TOKEN_CEILING;
+    if (isHeartbeat) return this.resolveService.resolveForTier(agentId, 'simple');
 
     return this.resolveService.resolve(
       agentId,

@@ -861,6 +861,47 @@ describe('ResolveService', () => {
       expect(getModelsForAgent).toHaveBeenCalledTimes(1);
     });
 
+    it('falls through to auto_assigned_model when override_model is stale (#1678 cubic P1)', async () => {
+      // Before this fix, a tier whose `override_model` pointed at a
+      // model that isn't in the discovery cache (e.g. the provider got
+      // disconnected after the override was pinned) would contribute
+      // zero candidates to the size-aware walk, even though the
+      // auto-assigned model is perfectly serviceable. That matches how
+      // ProviderKeyService.getEffectiveModel resilience works — we must
+      // not regress it.
+      const { svc } = makeService({
+        tiers: [
+          {
+            tier: 'standard',
+            override_model: 'stale-override',
+            auto_assigned_model: 'gpt-4o-mini',
+            override_provider: null,
+            override_auth_type: null,
+            fallback_models: null,
+          },
+        ],
+        // Only the auto-assigned model exists in discovery.
+        getModelsForAgent: jest.fn().mockResolvedValue([discoveredModel('gpt-4o-mini', 128_000)]),
+        hasActiveProvider: jest.fn().mockResolvedValue(true),
+      });
+
+      const out = await svc.resolve(
+        'agent-1',
+        [{ role: 'user', content: 'hi' }],
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        50_000,
+      );
+
+      // Stale override was silently skipped; the auto-assigned model
+      // carried the request instead of the tier being dropped entirely.
+      expect(out.model).toBe('gpt-4o-mini');
+    });
+
     it('skips discovered models with a non-positive contextWindow — misconfigured providers', async () => {
       // Defensive: a provider whose cached_models row has contextWindow=0
       // should be treated as invisible, not as a model that "fits anything

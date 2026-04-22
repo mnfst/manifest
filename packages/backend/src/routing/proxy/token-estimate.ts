@@ -18,13 +18,18 @@
 import { getEncoding, type Tiktoken } from 'js-tiktoken';
 
 /**
- * Safety margin on the estimate. A 1.1× multiplier means we treat a
- * 100K-estimated request as 110K when deciding fit. Picked deliberately:
- * - cl100k_base under-counts Chinese / Japanese by ~15%
- * - JSON-heavy tool definitions vary ±10% between encoders
- * This absorbs both without making every request escalate.
+ * Safety margin on the estimate. A 1.2× multiplier means we treat a
+ * 100K-estimated request as 120K when deciding fit. Picked deliberately:
+ * - cl100k_base under-counts Chinese / Japanese by ~15% in published
+ *   benchmarks — anything below 1.15 would let those requests slip past
+ *   the fit check and overflow the routed model.
+ * - JSON-heavy tool definitions vary ±10% between encoders.
+ * Rounded up to 1.2 so a single buffer covers both the CJK worst-case
+ * and a little headroom for provider-specific tokenizer differences.
+ * The cost of an unnecessary escalation is a few cents; the cost of an
+ * overflow is a failed request.
  */
-export const TOKEN_ESTIMATE_SAFETY_MULTIPLIER = 1.1;
+export const TOKEN_ESTIMATE_SAFETY_MULTIPLIER = 1.2;
 
 let encoderSingleton: Tiktoken | null = null;
 
