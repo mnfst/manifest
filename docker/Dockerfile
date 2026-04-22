@@ -7,7 +7,7 @@
 # pinned by digest.
 
 # Stage 1: Install all dependencies (including dev deps) for the build.
-FROM node:22-alpine@sha256:8ea2348b068a9544dae7317b4f3aafcdc032df1647bb7d768a05a5cad1a7683f AS deps
+FROM node:25-alpine@sha256:bdf2cca6fe3dabd014ea60163eca3f0f7015fbd5c7ee1b0e9ccb4ced6eb02ef4 AS deps
 WORKDIR /app
 COPY package.json package-lock.json turbo.json ./
 COPY packages/shared/package.json packages/shared/
@@ -26,7 +26,7 @@ RUN npx turbo build --filter=manifest-backend --filter=manifest-frontend --filte
 # Stage 3: Production dependencies only. npm ci runs with --ignore-scripts
 # so nothing is compiled — all runtime deps are pure JS, making the glibc
 # of this stage irrelevant to the final image.
-FROM node:22-slim@sha256:d415caac2f1f77b98caaf9415c5f807e14bc8d7bdea62561ea2fef4fbd08a73c AS prod-deps
+FROM node:25-slim@sha256:e49fd70491eb042270f974167c874d6245287263ffc16422fcf93b3c150409d8 AS prod-deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY packages/shared/package.json packages/shared/
