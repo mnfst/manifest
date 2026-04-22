@@ -18,6 +18,7 @@ describe('SUBSCRIPTION_PROVIDER_CONFIGS', () => {
         'ollama-cloud',
         'zai',
         'opencode-go',
+        'nano-gpt',
       ]),
     );
   });
@@ -112,6 +113,21 @@ describe('getSubscriptionProviderConfig', () => {
     });
   });
 
+  it('returns config for nano-gpt', () => {
+    const config = getSubscriptionProviderConfig('nano-gpt');
+    expect(config).toMatchObject({
+      supportsSubscription: true,
+      subscriptionLabel: 'NanoGPT subscription',
+      subscriptionAuthMode: 'token',
+      subscriptionKeyPlaceholder: 'Paste your NanoGPT API key',
+    });
+    expect(config?.subscriptionCapabilities).toMatchObject({
+      maxContextWindow: 128000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    });
+  });
+
   it('does not publish a hardcoded known-models list for opencode-go', () => {
     const config = getSubscriptionProviderConfig('opencode-go');
     expect(config?.knownModels).toBeUndefined();
@@ -140,6 +156,7 @@ describe('supportsSubscriptionProvider', () => {
     expect(supportsSubscriptionProvider('ollama-cloud')).toBe(true);
     expect(supportsSubscriptionProvider('zai')).toBe(true);
     expect(supportsSubscriptionProvider('opencode-go')).toBe(true);
+    expect(supportsSubscriptionProvider('nano-gpt')).toBe(true);
   });
 
   it('returns false for unsupported providers', () => {

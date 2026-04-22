@@ -133,6 +133,11 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
   'nano-gpt': {
     initial: 'NG',
     subtitle: 'OpenAI-compatible multi-model gateway',
+    supportsSubscription: true,
+    subscriptionLabel: 'NanoGPT subscription',
+    subscriptionAuthMode: 'token',
+    subscriptionCredentialKind: 'api-key',
+    subscriptionKeyPlaceholder: 'Paste your NanoGPT API key',
     models: [],
   },
   ollama: {

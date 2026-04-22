@@ -101,6 +101,12 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('opencodego')).toBe('opencode-go');
   });
 
+  it('resolves nano-gpt and its nanogpt alias', () => {
+    expect(resolveEndpointKey('nano-gpt')).toBe('nano-gpt');
+    expect(resolveEndpointKey('Nano-GPT')).toBe('nano-gpt');
+    expect(resolveEndpointKey('nanogpt')).toBe('nano-gpt');
+  });
+
   it('resolves every built-in provider id and alias from the registry', () => {
     for (const entry of PROVIDER_REGISTRY) {
       expect(resolveEndpointKey(entry.id)).not.toBeNull();
@@ -305,6 +311,21 @@ describe('PROVIDER_ENDPOINTS', () => {
     const headers = PROVIDER_ENDPOINTS['nano-gpt'].buildHeaders('sk-test-key');
     expect(headers).toEqual({
       Authorization: 'Bearer sk-test-key',
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('nano-gpt-subscription uses baseUrl https://nano-gpt.com/api/subscription', () => {
+    const ep = PROVIDER_ENDPOINTS['nano-gpt-subscription'];
+    expect(ep.baseUrl).toBe('https://nano-gpt.com/api/subscription');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('test-model')).toBe('/v1/chat/completions');
+  });
+
+  it('nano-gpt-subscription uses Bearer auth headers', () => {
+    const headers = PROVIDER_ENDPOINTS['nano-gpt-subscription'].buildHeaders('sub-key');
+    expect(headers).toEqual({
+      Authorization: 'Bearer sub-key',
       'Content-Type': 'application/json',
     });
   });

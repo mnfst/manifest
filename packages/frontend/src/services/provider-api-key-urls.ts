@@ -24,6 +24,7 @@ export const getRoutingProviderApiKeyUrl = (providerId: string): string | undefi
  * Anthropic setup-tokens come from the Claude Code CLI, not the API console).
  */
 export const SUBSCRIPTION_PROVIDER_KEY_URLS: Record<string, string> = {
+  'nano-gpt': 'https://nano-gpt.com/settings/api-keys',
   'ollama-cloud': 'https://ollama.com/settings/keys',
   zai: 'https://z.ai/manage-apikey/apikey-list',
 };

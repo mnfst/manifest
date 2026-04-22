@@ -100,6 +100,17 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       supportsBatching: false,
     }),
   }),
+  'nano-gpt': Object.freeze({
+    supportsSubscription: true as const,
+    subscriptionLabel: 'NanoGPT subscription',
+    subscriptionAuthMode: 'token' as const,
+    subscriptionKeyPlaceholder: 'Paste your NanoGPT API key',
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 128000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
   copilot: Object.freeze({
     supportsSubscription: true as const,
     subscriptionLabel: 'GitHub Copilot subscription',

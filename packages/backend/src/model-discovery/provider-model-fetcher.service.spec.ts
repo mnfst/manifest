@@ -23,6 +23,7 @@ describe('ProviderModelFetcherService', () => {
       'mistral',
       'moonshot',
       'nano-gpt',
+      'nano-gpt-subscription',
       'xai',
       'minimax',
       'minimax-subscription',
@@ -1777,6 +1778,36 @@ describe('ProviderModelFetcherService', () => {
 
     expect(fetchSpy).toHaveBeenCalledWith(
       expect.stringContaining('api.minimaxi.chat'),
+      expect.anything(),
+    );
+  });
+
+  /* ── NanoGPT subscription routing ── */
+
+  it('should route nano-gpt+subscription to nano-gpt-subscription config', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [] }),
+    });
+
+    await service.fetch('nano-gpt', 'token', 'subscription');
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      expect.stringContaining('nano-gpt.com/api/subscription'),
+      expect.anything(),
+    );
+  });
+
+  it('should use regular nano-gpt config when authType is not subscription', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [] }),
+    });
+
+    await service.fetch('nano-gpt', 'api-key', 'api_key');
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      expect.stringContaining('nano-gpt.com/api/v1/models'),
       expect.anything(),
     );
   });

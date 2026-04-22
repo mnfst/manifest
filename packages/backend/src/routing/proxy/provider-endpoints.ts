@@ -124,6 +124,12 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: openaiPath,
     format: 'openai',
   },
+  'nano-gpt-subscription': {
+    baseUrl: 'https://nano-gpt.com/api/subscription',
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+  },
   qwen: {
     baseUrl: getQwenCompatibleBaseUrl('beijing'),
     buildHeaders: openaiHeaders,

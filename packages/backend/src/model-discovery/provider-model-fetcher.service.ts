@@ -359,6 +359,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
   },
+  'nano-gpt-subscription': {
+    endpoint: 'https://nano-gpt.com/api/subscription/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
+  },
   xai: {
     endpoint: 'https://api.x.ai/v1/models',
     buildHeaders: bearerHeaders,
@@ -468,6 +473,8 @@ export class ProviderModelFetcherService {
       configKey = 'minimax-subscription';
     } else if (configKey === 'zai' && authType === 'subscription') {
       configKey = 'zai-subscription';
+    } else if (configKey === 'nano-gpt' && authType === 'subscription') {
+      configKey = 'nano-gpt-subscription';
     } else if (configKey === 'opencode-go') {
       return this.fetchOpencodeGoCatalog();
     }

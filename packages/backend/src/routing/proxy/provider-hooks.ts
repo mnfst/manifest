@@ -16,6 +16,7 @@ const SUBSCRIPTION_ENDPOINT_OVERRIDES: Record<string, string> = {
   openai: 'openai-subscription',
   minimax: 'minimax-subscription',
   zai: 'zai-subscription',
+  'nano-gpt': 'nano-gpt-subscription',
 };
 
 export function resolveSubscriptionEndpointKey(endpointKey: string): string | undefined {

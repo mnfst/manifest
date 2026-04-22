@@ -339,6 +339,33 @@ describe("PROVIDERS", () => {
     expect(missing).toEqual([]);
   });
 
+  it("NanoGPT supports subscription with token flow and appears in both tabs", () => {
+    const nano = PROVIDERS.find((p) => p.id === "nano-gpt")!;
+    expect(nano).toBeDefined();
+    expect(nano.supportsSubscription).toBe(true);
+    expect(nano.subscriptionLabel).toBe("NanoGPT subscription");
+    expect(nano.subscriptionAuthMode).toBe("token");
+    expect(nano.subscriptionCredentialKind).toBe("api-key");
+    expect(nano.subscriptionKeyPlaceholder).toBe("Paste your NanoGPT API key");
+    // Not subscription-only: appears in API Keys tab too
+    expect(nano.subscriptionOnly).toBeUndefined();
+  });
+
+  it("provides a subscription-key URL for NanoGPT", () => {
+    expect(getSubscriptionProviderKeyUrl("nano-gpt")).toBe(
+      "https://nano-gpt.com/settings/api-keys",
+    );
+  });
+
+  it("NanoGPT appears in both the API-key and subscription URL maps", () => {
+    expect(getRoutingProviderApiKeyUrl("nano-gpt")).toBe(
+      "https://nano-gpt.com/settings/api-keys",
+    );
+    expect(getSubscriptionProviderKeyUrl("nano-gpt")).toBe(
+      "https://nano-gpt.com/settings/api-keys",
+    );
+  });
+
   it("Z.ai supports GLM Coding Plan subscription with token flow", () => {
     const zai = PROVIDERS.find((p) => p.id === "zai")!;
     expect(zai.supportsSubscription).toBe(true);
