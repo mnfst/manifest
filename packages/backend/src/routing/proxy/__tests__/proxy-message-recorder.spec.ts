@@ -234,6 +234,21 @@ describe('ProxyMessageRecorder', () => {
       });
       expect(insertMock.mock.calls[0][0].provider).toBe('ollama-cloud');
     });
+
+    it('persists routing_reason when passed via opts (parity with non-fallback success)', async () => {
+      await recorder.recordFallbackSuccess(ctx, 'gpt-4o', 'standard', {
+        reason: 'header-match',
+        usage: { prompt_tokens: 1, completion_tokens: 1 },
+      });
+      expect(insertMock.mock.calls[0][0].routing_reason).toBe('header-match');
+    });
+
+    it('writes null routing_reason when reason is omitted', async () => {
+      await recorder.recordFallbackSuccess(ctx, 'gpt-4o', 'standard', {
+        usage: { prompt_tokens: 1, completion_tokens: 1 },
+      });
+      expect(insertMock.mock.calls[0][0].routing_reason).toBeNull();
+    });
   });
 
   describe('recordProviderError', () => {
@@ -300,6 +315,19 @@ describe('ProxyMessageRecorder', () => {
       const stored: string = insertMock.mock.calls[0][0].error_message;
       expect(stored).not.toContain('SECRETKEYVALUE12345');
       expect(stored).toContain('[REDACTED]');
+    });
+
+    it('persists routing_reason when passed via opts', async () => {
+      await recorder.recordProviderError(ctx, 500, 'oops', {
+        model: 'gpt-4o',
+        reason: 'header-match',
+      });
+      expect(insertMock.mock.calls[0][0].routing_reason).toBe('header-match');
+    });
+
+    it('writes null routing_reason when reason is omitted', async () => {
+      await recorder.recordProviderError(ctx, 500, 'oops', { model: 'gpt-4o' });
+      expect(insertMock.mock.calls[0][0].routing_reason).toBeNull();
     });
   });
 
@@ -480,6 +508,18 @@ describe('ProxyMessageRecorder', () => {
       expect(second).not.toContain('LEAKEDKEY0987654321');
       expect(second).toContain('[REDACTED]');
     });
+
+    it('persists routing_reason on every failed-fallback row when passed via opts', async () => {
+      const failures = [
+        { model: 'm1', provider: 'openai', status: 500, errorBody: 'oops', fallbackIndex: 0 },
+        { model: 'm2', provider: 'openai', status: 502, errorBody: 'oops', fallbackIndex: 1 },
+      ];
+      await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures, {
+        reason: 'header-match',
+      });
+      expect(insertMock.mock.calls[0][0].routing_reason).toBe('header-match');
+      expect(insertMock.mock.calls[1][0].routing_reason).toBe('header-match');
+    });
   });
 
   describe('recordPrimaryFailure', () => {
@@ -524,6 +564,19 @@ describe('ProxyMessageRecorder', () => {
         '2025-01-01T00:00:00.000Z',
       );
       expect(insertMock.mock.calls[0][0].provider).toBeNull();
+    });
+
+    it('persists routing_reason when passed via opts', async () => {
+      await recorder.recordPrimaryFailure(
+        ctx,
+        'standard',
+        'gpt-4o',
+        'upstream error',
+        '2025-01-01T00:00:00.000Z',
+        undefined,
+        { reason: 'header-match' },
+      );
+      expect(insertMock.mock.calls[0][0].routing_reason).toBe('header-match');
     });
   });
 

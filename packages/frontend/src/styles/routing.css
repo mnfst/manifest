@@ -153,7 +153,7 @@
   margin-bottom: 8px;
 }
 
-.routing-card__header-reset {
+.routing-card__header-action {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -168,11 +168,20 @@
   transition: color var(--transition-fast);
 }
 
-.routing-card__header-reset:hover {
+.routing-card__header-action:hover {
+  color: hsl(var(--foreground));
+}
+
+/**
+ * Destructive variant — applied only to actually-destructive actions
+ * (e.g. the Reset button on the generalist tier card). Non-destructive
+ * actions (Use, Edit) keep the neutral hover from `--header-action` above.
+ */
+.routing-card__header-action--danger:hover {
   color: hsl(var(--destructive));
 }
 
-.routing-card__header-reset:disabled {
+.routing-card__header-action:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }

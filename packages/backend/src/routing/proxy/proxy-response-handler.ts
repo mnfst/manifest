@@ -85,6 +85,7 @@ export async function handleProviderError(
       fallbackFromModel: meta.fallbackFromModel,
       fallbackIndex: meta.fallbackIndex,
       authType: meta.auth_type,
+      reason: meta.reason,
       specificityCategory: meta.specificity_category,
       callerAttribution,
       requestHeaders,
@@ -209,6 +210,7 @@ export function recordFallbackFailures(
         // Use the primary provider explicitly — meta.provider holds the
         // succeeding fallback's provider in this flow, not the primary's.
         provider: meta.primaryProvider,
+        reason: meta.reason,
         callerAttribution,
         requestHeaders,
         headerTierId: meta.header_tier_id,
@@ -225,6 +227,7 @@ export function recordFallbackFailures(
         baseTimeMs: fallbackBaseTime,
         markHandled: true,
         authType: meta.auth_type,
+        reason: meta.reason,
         callerAttribution,
         requestHeaders,
         headerTierId: meta.header_tier_id,
@@ -367,6 +370,7 @@ export function recordSuccess(
         fallbackIndex: meta.fallbackIndex ?? 0,
         timestamp: fallbackSuccessTs,
         authType: meta.auth_type,
+        reason: meta.reason,
         usage: streamUsage ?? undefined,
         callerAttribution,
         requestHeaders,

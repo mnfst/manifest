@@ -1,36 +1,52 @@
-/* Custom header-triggered routing tiers — section + card + create modal. */
+/* Custom header-triggered routing tiers — section + card + create modal.
+   Reuses the shared .routing-card / .modal-overlay / .modal-card / .btn
+   classes from routing.css and modals.css; only adds the bits unique to
+   header tiers (ordinal, colored dot, rule chip, kebab menu, swatches). */
 
-.routing-section--header-tiers {
-  margin-bottom: 24px;
+/* ── Section CTA ─────────────────────────────────── */
+
+/* Section header row: title block + CTA, mirrors specificity layout. */
+.routing-section__header--header-tiers {
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--gap-md);
 }
 
+.routing-section__header--header-tiers > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* CTA matches the .btn .btn--outline shape so it lines up with other
+   "+ Add …" buttons across the app. We add a small tweak to keep the
+   leading "+" tight against the label. */
 .routing-section__cta {
-  align-self: flex-start;
-  padding: 6px 12px;
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  border-radius: var(--radius-sm);
-  border: 1px solid hsl(var(--border));
-  background: hsl(var(--background));
-  color: hsl(var(--foreground));
-  cursor: pointer;
-  transition: background var(--transition-fast);
-}
-.routing-section__cta:hover {
-  background: hsl(var(--muted) / 0.5);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
 }
 
+/* ── Empty state ─────────────────────────────────── */
 .routing-section__empty {
-  padding: 24px;
+  padding: 32px 24px;
   border: 1px dashed hsl(var(--border));
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
   text-align: center;
   color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted) / 0.2);
 }
 .routing-section__empty-title {
+  font-size: var(--font-size-sm);
   font-weight: 600;
   color: hsl(var(--foreground));
-  margin-bottom: 6px;
+  margin-bottom: 4px;
+}
+.routing-section__empty-desc {
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
 }
 .routing-section__empty-desc code {
   font-family: var(--font-mono);
@@ -38,152 +54,135 @@
   background: hsl(var(--muted) / 0.6);
   padding: 1px 4px;
   border-radius: 3px;
+  color: hsl(var(--foreground));
 }
 
-/* ── Header tier card (one per tier) ── */
+/* ── Header tier card ────────────────────────────── */
+/* Uses .routing-card + .routing-card__* from routing.css for shape and
+   primary-model rendering. We only add the title-row bits unique to
+   header tiers. min-width:0 keeps long titles from blowing out the
+   1fr grid track and forcing 2-up instead of 4-up. */
 
-.header-tier-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.routing-card.routing-card--header-tier {
+  min-width: 0;
 }
 
-.header-tier-card {
-  display: flex;
+.routing-card--header-tier .routing-card__header {
   align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius-sm);
-  background: hsl(var(--card));
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+/* Left: ordinal + dot + name. Truncates if it can't fit. */
+.header-tier-card__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .header-tier-card__ordinal {
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
   color: hsl(var(--muted-foreground));
-  min-width: 22px;
+  font-weight: 500;
+  flex-shrink: 0;
 }
 
 .header-tier-card__dot {
   display: inline-block;
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
 }
-/* The .tier-color-* rules above set both background + color; for the dot we
-   only want the background so override `color` to inherit. */
 .header-tier-card__dot[class*='tier-color--'] {
+  /* tier-color-* sets text colour too; we only want the bg. */
   color: inherit;
 }
 
 .header-tier-card__name {
-  font-weight: 600;
-  font-size: var(--font-size-sm);
-  color: hsl(var(--foreground));
-  white-space: nowrap;
-}
-
-.header-tier-card__rule {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  color: hsl(var(--muted-foreground));
-  background: hsl(var(--muted) / 0.6);
-  padding: 2px 6px;
-  border-radius: 3px;
-  max-width: 260px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
 }
 
-.header-tier-card__model-slot {
-  flex: 1;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.header-tier-card__add {
-  padding: 4px 10px;
-  font-size: var(--font-size-xs);
-  border: 1px dashed hsl(var(--border));
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: hsl(var(--muted-foreground));
-  cursor: pointer;
-}
-.header-tier-card__add:hover {
-  color: hsl(var(--foreground));
-  border-color: hsl(var(--foreground));
-}
-
-.header-tier-card__model {
+/* Right: Reset / + Add model + kebab, all in one inline cluster mirroring
+   the generalist-card "Reset" placement. */
+.header-tier-card__actions {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 8px;
-  font-size: var(--font-size-xs);
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius-sm);
-  background: hsl(var(--background));
-  cursor: pointer;
-}
-.header-tier-card__model:hover {
-  background: hsl(var(--muted) / 0.4);
+  gap: 4px;
+  flex-shrink: 0;
 }
 
-.header-tier-card__provider-icon {
+/* Header rule chip (key:value), shown under the title row so the title row
+   can stay tidy in narrow card widths. */
+.header-tier-card__rule {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted) / 0.55);
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  align-self: flex-start;
+}
+
+/* Kebab trigger styled like the generalist card's reset button so the row
+   stays visually balanced. */
+.header-tier-card__kebab {
+  position: relative;
+  display: inline-flex;
+}
+
+.header-tier-card__kebab-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
-}
-
-.header-tier-card__model-name {
-  font-weight: 500;
-}
-
-.header-tier-card__price {
-  color: hsl(var(--muted-foreground));
-  font-size: var(--font-size-2xs, 10px);
-}
-
-.header-tier-card__actions {
-  display: inline-flex;
-  gap: 4px;
-  align-items: center;
-}
-
-.header-tier-card__action-btn {
-  padding: 4px 8px;
-  font-size: var(--font-size-xs);
-  border: 1px solid transparent;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  font-size: 16px;
+  line-height: 1;
   background: transparent;
+  border: none;
   color: hsl(var(--muted-foreground));
   border-radius: var(--radius-sm);
   cursor: pointer;
+  font-family: var(--font-family);
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
 }
-.header-tier-card__action-btn:hover {
+.header-tier-card__kebab-btn:hover {
   background: hsl(var(--muted) / 0.5);
   color: hsl(var(--foreground));
 }
-
-.header-tier-card__kebab {
-  position: relative;
+.header-tier-card__kebab-btn:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
 }
 
 .header-tier-card__menu {
   position: absolute;
   right: 0;
-  top: 100%;
-  margin-top: 4px;
+  top: calc(100% + 4px);
   min-width: 140px;
-  background: hsl(var(--popover));
+  background: hsl(var(--popover, var(--card)));
   border: 1px solid hsl(var(--border));
-  border-radius: var(--radius-sm);
-  box-shadow: 0 4px 16px hsl(0 0% 0% / 0.08);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.08);
   z-index: 20;
   padding: 4px;
 }
@@ -196,9 +195,10 @@
   font-size: var(--font-size-xs);
   background: transparent;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   color: hsl(var(--foreground));
   cursor: pointer;
+  font-family: var(--font-family);
 }
 .header-tier-card__menu-item:hover {
   background: hsl(var(--muted) / 0.6);
@@ -207,96 +207,55 @@
   color: hsl(var(--destructive));
 }
 
-/* ── Create tier modal ── */
+/* ── Create custom-tier modal ─────────────────────── */
+/* Uses the shared .modal-overlay + .modal-card pattern. We keep
+   .header-tier-modal-backdrop / .header-tier-modal__close as alias hooks
+   so existing tests and selectors still find them. */
 
-.header-tier-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: hsl(0 0% 0% / 0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.header-tier-modal {
-  width: 100%;
-  max-width: 520px;
-  background: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius);
-  box-shadow: 0 8px 32px hsl(0 0% 0% / 0.16);
-  display: flex;
-  flex-direction: column;
-  max-height: 90vh;
-}
-
-.header-tier-modal__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid hsl(var(--border));
-}
-
-.header-tier-modal__header h2 {
-  margin: 0;
-  font-size: var(--font-size-base);
-  font-weight: 600;
+.modal-card.header-tier-modal {
+  max-width: 480px;
 }
 
 .header-tier-modal__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   border: none;
+  color: hsl(var(--muted-foreground));
   font-size: 20px;
   line-height: 1;
-  color: hsl(var(--muted-foreground));
-  cursor: pointer;
-  padding: 4px 8px;
-}
-
-.header-tier-modal__body {
-  padding: 16px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  overflow-y: auto;
-}
-
-.header-tier-modal__field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.header-tier-modal__label {
-  font-size: var(--font-size-xs);
-  font-weight: 500;
-  color: hsl(var(--muted-foreground));
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.header-tier-modal__input {
-  padding: 8px 10px;
-  font-size: var(--font-size-sm);
-  border: 1px solid hsl(var(--border));
   border-radius: var(--radius-sm);
-  background: hsl(var(--background));
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
-.header-tier-modal__input:focus {
-  outline: 2px solid hsl(var(--ring) / 0.3);
-  outline-offset: -1px;
+.header-tier-modal__close:hover {
+  background: hsl(var(--muted) / 0.6);
+  color: hsl(var(--foreground));
 }
-.header-tier-modal__input--invalid {
-  border-color: hsl(var(--destructive));
+.header-tier-modal__close:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.header-tier-modal .modal-card__title {
+  padding-right: 40px;
 }
 
 .header-tier-modal__error {
   font-size: var(--font-size-xs);
   color: hsl(var(--destructive));
+  margin-top: 4px;
 }
 
+/* ── Color swatches ───────────────────────────────── */
 .header-tier-modal__swatches {
   display: flex;
   gap: 8px;
@@ -306,15 +265,28 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  border: 2px solid transparent;
+  border: 1px solid hsl(var(--border));
   cursor: pointer;
   padding: 0;
-  background-clip: content-box;
+  background-clip: padding-box;
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+.header-tier-modal__swatch:hover {
+  transform: scale(1.05);
+}
+.header-tier-modal__swatch:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
 }
 .header-tier-modal__swatch--active {
-  border-color: hsl(var(--ring));
-  box-shadow: 0 0 0 2px hsl(var(--background));
+  border-color: hsl(var(--foreground));
+  box-shadow:
+    0 0 0 2px hsl(var(--background)),
+    0 0 0 3px hsl(var(--foreground));
 }
+
 .header-tier-modal__swatch--slate {
   background: hsl(215 16% 47%);
 }
@@ -334,37 +306,17 @@
   background: hsl(270 67% 55%);
 }
 
+/* ── Modal footer (cancel / create) ──────────────── */
 .header-tier-modal__footer {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  padding: 12px 20px;
-  border-top: 1px solid hsl(var(--border));
+  margin-top: var(--gap-xl);
 }
 
-.header-tier-modal__btn {
-  padding: 6px 14px;
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  border: 1px solid hsl(var(--border));
-}
-.header-tier-modal__btn--ghost {
-  background: transparent;
-  color: hsl(var(--foreground));
-}
-.header-tier-modal__btn--primary {
-  background: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-  border-color: hsl(var(--primary));
-}
-.header-tier-modal__btn--primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* ── HeaderComboBox (used inside the modal) ── */
+/* ── HeaderComboBox (used inside the modal) ──────── */
+/* Visually identical to .modal-card__input — same height, border,
+   focus ring — but mono-font for the header key/value semantics. */
 
 .header-combo {
   position: relative;
@@ -372,15 +324,41 @@
 
 .header-combo__input {
   width: 100%;
-  padding: 8px 10px;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius-sm);
+  height: 2.25rem;
+  padding: 0 12px;
   background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-mono);
+  outline: none;
+  box-sizing: border-box;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
+
+.header-combo__input:focus {
+  border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+}
+
+.header-combo__input::placeholder {
+  color: hsl(var(--muted-foreground));
+}
+
+.header-combo__input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: hsl(var(--muted) / 0.3);
+}
+
 .header-combo--invalid .header-combo__input {
   border-color: hsl(var(--destructive));
+}
+.header-combo--invalid .header-combo__input:focus {
+  box-shadow: 0 0 0 2px hsl(var(--destructive) / 0.2);
 }
 
 .header-combo__menu {
@@ -388,12 +366,12 @@
   top: calc(100% + 4px);
   left: 0;
   right: 0;
-  max-height: 280px;
+  max-height: 240px;
   overflow-y: auto;
-  background: hsl(var(--popover));
+  background: hsl(var(--popover, var(--card)));
   border: 1px solid hsl(var(--border));
-  border-radius: var(--radius-sm);
-  box-shadow: 0 4px 16px hsl(0 0% 0% / 0.08);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.08);
   list-style: none;
   padding: 4px 0;
   margin: 0;
@@ -403,6 +381,7 @@
 .header-combo__option {
   padding: 6px 12px;
   cursor: pointer;
+  font-family: var(--font-family);
 }
 .header-combo__option--hover,
 .header-combo__option:hover {
@@ -419,16 +398,18 @@
 .header-combo__option-label {
   font-family: var(--font-mono);
   font-size: var(--font-size-sm);
+  color: hsl(var(--foreground));
 }
 
 .header-combo__option-group {
-  font-size: var(--font-size-2xs, 10px);
+  font-size: 10px;
   color: hsl(var(--muted-foreground));
   text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .header-combo__option-sublabel {
-  font-size: var(--font-size-2xs, 10px);
+  font-size: 11px;
   color: hsl(var(--muted-foreground));
   margin-top: 2px;
 }

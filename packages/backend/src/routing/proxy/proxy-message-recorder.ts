@@ -27,6 +27,12 @@ export interface ProviderErrorOpts extends HeaderTierRef {
   fallbackFromModel?: string;
   fallbackIndex?: number;
   authType?: string;
+  /**
+   * Why the tier was selected (e.g. 'header-match', 'specificity', 'scored').
+   * Persisted to agent_messages.routing_reason so single-shot upstream errors
+   * keep the same audit context as their successful siblings.
+   */
+  reason?: string;
   specificityCategory?: string;
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
@@ -39,6 +45,12 @@ export interface FallbackSuccessOpts extends HeaderTierRef {
   fallbackIndex?: number;
   timestamp?: string;
   authType?: string;
+  /**
+   * Why the primary tier was selected (e.g. 'header-match', 'specificity',
+   * 'scored'). Persisted to agent_messages.routing_reason so fallback rows
+   * keep the same audit context as their non-fallback siblings.
+   */
+  reason?: string;
   usage?: StreamUsage;
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
@@ -112,6 +124,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       fallbackFromModel,
       fallbackIndex,
       authType,
+      reason,
       specificityCategory,
       callerAttribution,
       requestHeaders,
@@ -146,6 +159,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         model: model ?? null,
         provider: provider ?? null,
         routing_tier: tier ?? null,
+        routing_reason: reason ?? null,
         fallback_from_model: fallbackFromModel ?? null,
         fallback_index: fallbackIndex ?? null,
         auth_type: authType ?? null,
@@ -171,6 +185,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       markHandled?: boolean;
       lastAsError?: boolean;
       authType?: string;
+      reason?: string;
       callerAttribution?: CallerAttribution | null;
       requestHeaders?: Record<string, string> | null;
       headerTierId?: string | null;
@@ -184,6 +199,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       markHandled = false,
       lastAsError = false,
       authType,
+      reason,
       callerAttribution,
       requestHeaders,
       headerTierId,
@@ -212,6 +228,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
           model: f.model,
           provider: f.provider ?? null,
           routing_tier: tier,
+          routing_reason: reason ?? null,
           fallback_from_model: primaryModel,
           fallback_index: f.fallbackIndex,
           auth_type: authType ?? null,
@@ -235,6 +252,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     authType?: string,
     opts?: {
       provider?: string;
+      reason?: string;
       callerAttribution?: CallerAttribution | null;
       requestHeaders?: Record<string, string> | null;
       headerTierId?: string | null;
@@ -250,6 +268,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         model,
         provider: opts?.provider ?? null,
         routing_tier: tier,
+        routing_reason: opts?.reason ?? null,
         fallback_from_model: null,
         fallback_index: null,
         auth_type: authType ?? null,
@@ -276,6 +295,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       fallbackIndex,
       timestamp,
       authType,
+      reason,
       usage,
       callerAttribution,
       requestHeaders,
@@ -303,6 +323,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         model,
         provider: provider ?? null,
         routing_tier: tier,
+        routing_reason: reason ?? null,
         input_tokens: inputTokens,
         output_tokens: outputTokens,
         cache_read_tokens: usage?.cache_read_tokens ?? 0,
