@@ -35,6 +35,21 @@ export function buildMetaHeaders(meta: RoutingMeta): Record<string, string> {
     headers['X-Manifest-Fallback-From'] = meta.fallbackFromModel;
     headers['X-Manifest-Fallback-Index'] = String(meta.fallbackIndex ?? 0);
   }
+  // Phase 2 size-awareness signals. Agents use these to adapt compaction
+  // per-response without a second round trip — see EthanFrostpro's ask on
+  // issue #1617.
+  if (meta.estimatedTokens !== undefined) {
+    headers['X-Manifest-Context-Estimated'] = String(meta.estimatedTokens);
+  }
+  if (meta.usedContextWindow !== undefined) {
+    headers['X-Manifest-Context-Used'] = String(meta.usedContextWindow);
+  }
+  if (meta.sizeEscalatedFrom) {
+    // ASCII-only value. Node's http layer drops headers containing
+    // characters outside the Latin-1 range — a unicode arrow (→) would
+    // silently disappear from the response.
+    headers['X-Manifest-Context-Escalated'] = `${meta.sizeEscalatedFrom}->${meta.tier}`;
+  }
   return headers;
 }
 

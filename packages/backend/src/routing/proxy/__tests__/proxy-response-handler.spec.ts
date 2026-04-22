@@ -108,6 +108,70 @@ describe('proxy-response-handler', () => {
 
       expect(headers).not.toHaveProperty('X-Manifest-Specificity');
     });
+
+    // Phase 2: size-awareness signals. Tests here defend the contract
+    // called out in issue #1617 (EthanFrostpro) — agents must be able to
+    // learn the routed model's context window from a response header.
+
+    it('emits X-Manifest-Context-Estimated when the resolver measured the request', () => {
+      const meta = makeMeta({ estimatedTokens: 145_000 });
+      const headers = buildMetaHeaders(meta);
+
+      expect(headers['X-Manifest-Context-Estimated']).toBe('145000');
+    });
+
+    it('emits X-Manifest-Context-Used with the routed model context window', () => {
+      const meta = makeMeta({ usedContextWindow: 200_000 });
+      const headers = buildMetaHeaders(meta);
+
+      expect(headers['X-Manifest-Context-Used']).toBe('200000');
+    });
+
+    it('emits X-Manifest-Context-Escalated when the size check bumped the tier', () => {
+      const meta = makeMeta({
+        tier: 'complex',
+        sizeEscalatedFrom: 'standard',
+      });
+      const headers = buildMetaHeaders(meta);
+
+      expect(headers['X-Manifest-Context-Escalated']).toBe('standard->complex');
+    });
+
+    it('encodes the escalation header with an ASCII arrow so Node does not drop it silently', () => {
+      // Node's http layer silently drops headers containing
+      // Latin-1-incompatible characters — a Unicode arrow here would
+      // disappear from the response. Verified by manual smoke on
+      // 2026-04-22. Future-me: the arrow must stay ASCII `->`.
+      const meta = makeMeta({
+        tier: 'complex',
+        sizeEscalatedFrom: 'standard',
+      });
+      const headers = buildMetaHeaders(meta);
+
+      expect(headers['X-Manifest-Context-Escalated']).toBe('standard->complex');
+      expect(headers['X-Manifest-Context-Escalated']).toContain('->');
+      expect(headers['X-Manifest-Context-Escalated']).not.toContain('→');
+      // Belt and braces — verify every byte is 7-bit ASCII so the
+      // regression cannot recur with any other non-latin-1 glyph either.
+      for (const ch of headers['X-Manifest-Context-Escalated']!) {
+        expect(ch.charCodeAt(0)).toBeLessThan(128);
+      }
+    });
+
+    it('omits the escalation header when the scored tier fit on its own', () => {
+      // A happy-path request that fit in the scored tier should not leak
+      // a misleading "escalated" signal to clients. Estimated+used are
+      // still useful and present; Escalated is only for the rescue case.
+      const meta = makeMeta({
+        estimatedTokens: 10_000,
+        usedContextWindow: 128_000,
+      });
+      const headers = buildMetaHeaders(meta);
+
+      expect(headers).not.toHaveProperty('X-Manifest-Context-Escalated');
+      expect(headers['X-Manifest-Context-Estimated']).toBe('10000');
+      expect(headers['X-Manifest-Context-Used']).toBe('128000');
+    });
   });
 
   /* ── handleProviderError ── */

@@ -22,6 +22,8 @@ import { ProxyRequestOptions, SignatureLookup, ThinkingBlockLookup } from './pro
 import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
 import { buildFriendlyResponse, getDashboardUrl } from './proxy-friendly-response';
+import { estimateTokens } from './token-estimate';
+import { REASON_CONTEXT_WINDOW_EXCEEDED } from '../dto/resolve-response';
 import type { AuthType } from 'manifest-shared';
 
 type ResolvedRouting = Awaited<ReturnType<ResolveService['resolve']>>;
@@ -56,6 +58,16 @@ export interface RoutingMeta {
    * failure row to the correct vendor.
    */
   primaryProvider?: string;
+  /** Estimated tokens for the request. Surfaced in response headers. */
+  estimatedTokens?: number;
+  /** Context window of the chosen model. Surfaced in response headers. */
+  usedContextWindow?: number;
+  /**
+   * Set when Phase 2 size check escalated the request out of its scored
+   * tier because no model in the tier could fit. Carries the original
+   * tier so the client can log what actually happened.
+   */
+  sizeEscalatedFrom?: Tier;
 }
 
 export interface ProxyResult {
@@ -93,6 +105,9 @@ export class ProxyService {
     }
 
     const resolved = await this.resolveRouting(agentId, body, sessionKey, specificityOverride);
+    if (resolved.reason === REASON_CONTEXT_WINDOW_EXCEEDED) {
+      return this.buildContextExceededResult(resolved, body.stream === true, agentName);
+    }
     if (!resolved.model || !resolved.provider) {
       this.logger.warn(
         `No model available for agent=${agentId}: ` +
@@ -189,18 +204,27 @@ export class ProxyService {
     const recentTiers = this.momentum.getRecentTiers(sessionKey);
     const recentCategories = this.momentum.getRecentCategories(sessionKey);
 
-    return isHeartbeat
-      ? this.resolveService.resolveForTier(agentId, 'simple')
-      : this.resolveService.resolve(
-          agentId,
-          scoringMessages,
-          scoringTools,
-          body.tool_choice,
-          body.max_tokens as number | undefined,
-          recentTiers,
-          specificityOverride,
-          recentCategories,
-        );
+    // Heartbeat traffic bypasses the size check by design: heartbeats are
+    // tiny by construction and must route to `simple` cheaply, so the
+    // extra tokenization round-trip would be pure overhead.
+    if (isHeartbeat) return this.resolveService.resolveForTier(agentId, 'simple');
+
+    // Estimate against the full message array and tool list — the scoring
+    // window is a subset of the payload, but the *fit* check must reflect
+    // what will actually be forwarded to the provider.
+    const estimatedTokens = estimateTokens(messages, scoringTools);
+
+    return this.resolveService.resolve(
+      agentId,
+      scoringMessages,
+      scoringTools,
+      body.tool_choice,
+      body.max_tokens as number | undefined,
+      recentTiers,
+      specificityOverride,
+      recentCategories,
+      estimatedTokens,
+    );
   }
 
   private async resolveCredentials(
@@ -316,6 +340,9 @@ export class ProxyService {
       auth_type?: string;
       specificity_category?: string;
       provider?: string | null;
+      estimated_tokens?: number;
+      used_context_window?: number;
+      size_escalated_from?: Tier;
     },
     model: string,
     overrides: Partial<RoutingMeta> = {},
@@ -328,6 +355,9 @@ export class ProxyService {
       reason: resolved.reason,
       auth_type: resolved.auth_type,
       specificity_category: resolved.specificity_category,
+      estimatedTokens: resolved.estimated_tokens,
+      usedContextWindow: resolved.used_context_window,
+      sizeEscalatedFrom: resolved.size_escalated_from,
       ...overrides,
     };
   }
@@ -377,6 +407,34 @@ export class ProxyService {
     const dashboardUrl = getDashboardUrl(this.config, agentName, 'routing');
     const content = `[🦚 Manifest] You're connected, but no providers are set up yet. Add one here: ${dashboardUrl}`;
     return buildFriendlyResponse(content, stream, 'no_provider');
+  }
+
+  /**
+   * Phase 2: no model in any connected tier can fit this request. Tell
+   * the user exactly what the budget looked like — breaking out input
+   * vs reserved output matters because they're independently actionable:
+   * "shorten the conversation" fixes input overshoot, "lower max_tokens"
+   * fixes reserve overshoot. Lumping them together made the message
+   * nonsensical when the reserve was the real blocker.
+   */
+  private buildContextExceededResult(
+    resolved: ResolvedRouting,
+    stream: boolean,
+    agentName?: string,
+  ): ProxyResult {
+    const dashboardUrl = getDashboardUrl(this.config, agentName, 'routing');
+    const estimated = resolved.estimated_tokens ?? 0;
+    const reserved = resolved.reserved_output_tokens ?? 0;
+    const total = estimated + reserved;
+    const largest = resolved.largest_available_context ?? 0;
+    const reservedSuffix =
+      reserved > 0 ? ` + ${reserved.toLocaleString()} reserved for output` : '';
+    const content =
+      `[🦚 Manifest] Request needs ~${total.toLocaleString()} tokens ` +
+      `(${estimated.toLocaleString()} input${reservedSuffix}), ` +
+      `but the largest connected model's context window is ${largest.toLocaleString()}. ` +
+      `Shorten the conversation, lower \`max_tokens\`, or connect a larger-context provider: ${dashboardUrl}`;
+    return buildFriendlyResponse(content, stream, REASON_CONTEXT_WINDOW_EXCEEDED);
   }
 }
 
