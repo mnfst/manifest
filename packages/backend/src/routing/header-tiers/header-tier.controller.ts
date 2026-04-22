@@ -8,6 +8,7 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
+import { IsArray, IsString } from 'class-validator';
 import { CurrentUser } from '../../auth/current-user.decorator';
 import type { AuthUser } from '../../auth/auth.instance';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
@@ -39,8 +40,10 @@ interface OverrideBody {
   authType?: 'api_key' | 'subscription';
 }
 
-interface FallbacksBody {
-  models: string[];
+class FallbacksBody {
+  @IsArray()
+  @IsString({ each: true })
+  models!: string[];
 }
 
 @Controller('api/v1/routing')

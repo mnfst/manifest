@@ -71,15 +71,18 @@ export function storeFramework(id: FrameworkId): void {
 
 export type CustomHeaders = Record<string, string>;
 
-/** `{"x-key": "value", "x-other": "v"}` rendered for the target language. */
+/**
+ * `{"x-key": "value", "x-other": "v"}` rendered for the target language.
+ * Uses JSON.stringify for both keys and values so embedded quotes/backslashes
+ * are escaped properly even though we already reject them at input validation
+ * time — defense in depth against future regressions or bypasses.
+ */
 function renderHeadersDict(headers: CustomHeaders | undefined, lang: 'py' | 'ts'): string | null {
   if (!headers) return null;
   const entries = Object.entries(headers);
   if (entries.length === 0) return null;
-  if (lang === 'py') {
-    return `{${entries.map(([k, v]) => `"${k}": "${v}"`).join(', ')}}`;
-  }
-  return `{ ${entries.map(([k, v]) => `"${k}": "${v}"`).join(', ')} }`;
+  const inner = entries.map(([k, v]) => `${JSON.stringify(k)}: ${JSON.stringify(v)}`).join(', ');
+  return lang === 'py' ? `{${inner}}` : `{ ${inner} }`;
 }
 
 /**
@@ -222,9 +225,12 @@ export function getCurlSnippet(
   apiKey: string,
   customHeaders?: CustomHeaders,
 ): Snippet[] {
+  // Wrap each header arg in single quotes so embedded double-quotes (already
+  // rejected at input validation but defended against here too) can't break
+  // out of the shell string.
   const extraHeaders = customHeaders
     ? Object.entries(customHeaders)
-        .map(([k, v]) => `  -H "${k}: ${v}" \\\n`)
+        .map(([k, v]) => `  -H '${k}: ${v}' \\\n`)
         .join('')
     : '';
   return [

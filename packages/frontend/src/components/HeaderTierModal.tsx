@@ -103,12 +103,11 @@ const HeaderTierModal: Component<Props> = (props) => {
     if (v.length > MAX_HEADER_VALUE_LEN) {
       return `Header value must be ${MAX_HEADER_VALUE_LEN} characters or fewer`;
     }
-    // Quotes would break the rendered SDK snippet (the wizard wraps the value
-    // in `"..."` for Python/TS/cURL alike) and aren't valid HTTP token chars
-    // anyway. Reject up front instead of escaping inside every snippet
-    // generator.
-    if (v.includes('"') || v.includes('\\')) {
-      return 'Header value cannot contain double quotes or backslashes';
+    // Quotes and backslashes would break the rendered SDK snippets (Python/TS
+    // wrap the value in `"..."`, cURL wraps it in `'...'`). Reject up front
+    // instead of escaping inside every snippet generator.
+    if (v.includes('"') || v.includes("'") || v.includes('\\')) {
+      return 'Header value cannot contain quotes or backslashes';
     }
     const key = rawKey.trim().toLowerCase();
     if (otherTiers().some((t) => t.header_key === key && t.header_value === v)) {

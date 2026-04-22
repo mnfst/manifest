@@ -131,6 +131,7 @@ function handleFallbackExhausted(
       markHandled: true,
       lastAsError: true,
       authType: meta.auth_type,
+      reason: meta.reason,
       callerAttribution,
       requestHeaders,
       headerTierId: meta.header_tier_id,
@@ -151,6 +152,7 @@ function handleFallbackExhausted(
       meta.auth_type,
       {
         provider: meta.provider,
+        reason: meta.reason,
         callerAttribution,
         requestHeaders,
         headerTierId: meta.header_tier_id,

@@ -230,14 +230,17 @@ describe('HeaderTierModal', () => {
     });
 
     it('rejects header values containing quotes or backslashes (would break SDK snippets)', () => {
-      const { container, getByText, getByPlaceholderText } = mount();
-      const nameInput = container.querySelector('input[type="text"]') as HTMLInputElement;
-      fireEvent.input(nameInput, { target: { value: 'Name' } });
-      fireEvent.input(getByPlaceholderText('x-manifest-tier'), { target: { value: 'x-a' } });
-      fireEvent.input(getByPlaceholderText('premium'), { target: { value: 'has"quote' } });
-      fireEvent.click(getByText('Create tier'));
-      expect(container.textContent).toContain('cannot contain double quotes or backslashes');
-      expect(createHeaderTierMock).not.toHaveBeenCalled();
+      for (const bad of ['has"quote', "has'quote", 'has\\backslash']) {
+        const { container, getByText, getByPlaceholderText, unmount } = mount();
+        const nameInput = container.querySelector('input[type="text"]') as HTMLInputElement;
+        fireEvent.input(nameInput, { target: { value: 'Name' } });
+        fireEvent.input(getByPlaceholderText('x-manifest-tier'), { target: { value: 'x-a' } });
+        fireEvent.input(getByPlaceholderText('premium'), { target: { value: bad } });
+        fireEvent.click(getByText('Create tier'));
+        expect(container.textContent).toContain('cannot contain quotes or backslashes');
+        expect(createHeaderTierMock).not.toHaveBeenCalled();
+        unmount();
+      }
     });
 
     it('shows a "Creating…" label while the create request is in flight', async () => {

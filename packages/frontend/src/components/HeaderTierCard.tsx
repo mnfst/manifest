@@ -277,9 +277,10 @@ const HeaderTierCard: Component<Props> = (props) => {
                             'font-weight': '600',
                           }}
                         >
-                          <Show when={cp} fallback={(cp?.name ?? 'C').charAt(0).toUpperCase()}>
-                            {customProviderLogo(cp!.name, 14)}
-                          </Show>
+                          {(() => {
+                            const logo = cp ? customProviderLogo(cp.name, 14) : null;
+                            return logo ?? (cp?.name ?? 'C').charAt(0).toUpperCase();
+                          })()}
                         </span>
                       );
                     })()}

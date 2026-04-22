@@ -460,13 +460,13 @@ describe("customHeaders weaving", () => {
       "x-manifest-tier": "premium",
       "x-app-name": "billing",
     })[0];
-    expect(s!.code).toContain('-H "x-manifest-tier: premium"');
-    expect(s!.code).toContain('-H "x-app-name: billing"');
+    expect(s!.code).toContain("-H 'x-manifest-tier: premium'");
+    expect(s!.code).toContain("-H 'x-app-name: billing'");
   });
 
   it("curl: empty customHeaders object is treated as 'no extra headers'", () => {
     const s = getCurlSnippet("https://api.local/v1", "k", {})[0];
-    expect(s!.code).not.toContain('-H "x-');
+    expect(s!.code).not.toContain("-H 'x-");
   });
 
   it("python: empty customHeaders object renders no default_headers kwarg", () => {
@@ -500,7 +500,7 @@ describe("customHeaders weaving", () => {
 
   it("getSnippetsForFramework forwards customHeaders to curl", () => {
     const [c] = getSnippetsForFramework("curl", "https://api.local/v1", "k", headers);
-    expect(c!.code).toContain('-H "x-manifest-tier: premium"');
+    expect(c!.code).toContain("-H 'x-manifest-tier: premium'");
   });
 
   it("getSnippetsForFramework openclaw ignores customHeaders (CLI does not need them)", () => {
@@ -535,6 +535,6 @@ describe("customHeaders weaving", () => {
 
   it("getSnippetForToolkit forwards customHeaders for curl", () => {
     const s = getSnippetForToolkit("curl", "https://api.local/v1", "k", "python", headers);
-    expect(s.code).toContain('-H "x-manifest-tier: premium"');
+    expect(s.code).toContain("-H 'x-manifest-tier: premium'");
   });
 });
