@@ -12,7 +12,7 @@ import {
   sqlDateBucket,
   sqlCastFloat,
   sqlSanitizeCost,
-} from '../../common/utils/sql-dialect';
+} from '../../common/utils/postgres-sql';
 
 interface TimeseriesBucketRow {
   hour?: string;

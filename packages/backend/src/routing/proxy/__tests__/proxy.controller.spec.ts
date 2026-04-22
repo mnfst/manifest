@@ -81,7 +81,6 @@ describe('ProxyController', () => {
     transaction: jest.Mock;
     getRepository: jest.Mock;
     query: jest.Mock;
-    connection: { options: { type: string } };
   };
   let mockMessageRepo: {
     insert: jest.Mock;
@@ -115,7 +114,6 @@ describe('ProxyController', () => {
       ),
       getRepository: jest.fn(),
       query: jest.fn().mockResolvedValue([]),
-      connection: { options: { type: 'sqlite' } },
     };
     mockMessageRepo = {
       insert: jest.fn().mockResolvedValue({}),

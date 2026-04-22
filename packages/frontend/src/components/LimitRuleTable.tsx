@@ -22,9 +22,6 @@ interface LimitRuleTableProps {
   onToggleMenu: (ruleId: string, e: MouseEvent) => void;
 }
 
-const isActive = (rule: NotificationRule) =>
-  typeof rule.is_active === 'number' ? !!rule.is_active : rule.is_active;
-
 const hasEmailAction = (action: string) => action === 'notify' || action === 'both';
 const hasBlockAction = (action: string) => action === 'block' || action === 'both';
 
@@ -87,7 +84,7 @@ const LimitRuleTable: Component<LimitRuleTableProps> = (props) => (
           <tbody>
             <For each={props.rules}>
               {(rule) => (
-                <tr classList={{ 'notif-table__row--disabled': !isActive(rule) }}>
+                <tr classList={{ 'notif-table__row--disabled': !rule.is_active }}>
                   <td>
                     <div class="limit-type-icons">
                       <Show when={hasEmailAction(rule.action ?? 'notify')}>
@@ -136,7 +133,13 @@ const LimitRuleTable: Component<LimitRuleTableProps> = (props) => (
                         onClick={(e) => props.onToggleMenu(rule.id, e)}
                         aria-label="Rule options"
                       >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                          aria-hidden="true"
+                        >
                           <circle cx="12" cy="5" r="2" />
                           <circle cx="12" cy="12" r="2" />
                           <circle cx="12" cy="19" r="2" />

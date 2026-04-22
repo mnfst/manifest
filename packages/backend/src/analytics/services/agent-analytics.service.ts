@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { rangeToInterval, rangeToPreviousInterval } from '../../common/utils/range.util';
 import { computeTrend } from './query-helpers';
-import { computeCutoff } from '../../common/utils/sql-dialect';
+import { computeCutoff } from '../../common/utils/postgres-sql';
 
 interface AgentScope {
   tenantId: string;

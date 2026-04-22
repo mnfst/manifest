@@ -86,7 +86,7 @@ describe('SessionGuard', () => {
     expect(request['authMethod']).toBe('session');
   });
 
-  it('returns true even when no session found (non-local mode)', async () => {
+  it('returns true even when no session found (anonymous passthrough)', async () => {
     jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
     (auth.api.getSession as jest.Mock).mockResolvedValue(null);
     const { context, request } = createMockContext({ ip: '203.0.113.1' });

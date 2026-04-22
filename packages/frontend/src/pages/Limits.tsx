@@ -116,7 +116,7 @@ const Limits: Component = () => {
     return r.some(
       (rule) =>
         (rule.action === 'block' || rule.action === 'both') &&
-        (typeof rule.is_active === 'number' ? !!rule.is_active : rule.is_active) &&
+        rule.is_active &&
         Number(rule.trigger_count) > 0,
     );
   };

@@ -3,7 +3,7 @@ import CopyButton from './CopyButton.jsx';
 import ModelSelectDropdown from './ModelSelectDropdown.jsx';
 import SetupStepAddProvider from './SetupStepAddProvider.jsx';
 import { PROVIDERS } from '../services/providers.js';
-import { getAgentKey, getHealth } from '../services/api.js';
+import { getAgentKey } from '../services/api.js';
 import { agentPlatform } from '../services/agent-platform-store.js';
 
 interface Props {
@@ -25,15 +25,12 @@ const RoutingInstructionModal: Component<Props> = (props) => {
   const title = () => (isEnable() ? 'Activate routing' : 'Deactivate routing');
   const modelOrPlaceholder = () => selectedModel() ?? '<provider/model>';
 
-  const [healthData] = createResource(() => (props.open ? true : null), getHealth);
-  const isLocal = () => (healthData() as { mode?: string })?.mode === 'local';
   const [apiKeyData] = createResource(
     () => (props.open && isEnable() ? props.agentName : null),
     (n) => getAgentKey(n),
   );
 
   const baseUrl = () => {
-    if (isLocal()) return `${window.location.origin}/v1`;
     const host = window.location.hostname;
     if (host === 'app.manifest.build') return 'https://app.manifest.build/v1';
     return `${window.location.origin}/v1`;

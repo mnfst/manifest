@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
-import { computeCutoff, sqlDateBucket } from '../common/utils/sql-dialect';
+import { computeCutoff, sqlDateBucket } from '../common/utils/postgres-sql';
 
 const MAX_RESULTS = 10;
 const EXCLUDED_PROVIDERS = new Set(['Unknown']);

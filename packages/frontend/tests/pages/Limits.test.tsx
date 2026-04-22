@@ -230,11 +230,11 @@ describe("Limits page", () => {
     });
   });
 
-  it("shows disabled row style for inactive rules (is_active=0)", async () => {
+  it("shows disabled row style for inactive rules", async () => {
     mockRules = [{
       id: "r1", agent_name: "test-agent", metric_type: "tokens",
       threshold: 50000, period: "day", action: "notify",
-      is_active: 0, trigger_count: 0, created_at: "2026-01-01",
+      is_active: false, trigger_count: 0, created_at: "2026-01-01",
     }];
     const { container } = render(() => <Limits />);
     await vi.waitFor(() => {
@@ -242,11 +242,11 @@ describe("Limits page", () => {
     });
   });
 
-  it("does not show disabled row for active rules (is_active=1, sql.js local mode)", async () => {
+  it("does not show disabled row for active rules", async () => {
     mockRules = [{
       id: "r1", agent_name: "test-agent", metric_type: "tokens",
       threshold: 50000, period: "day", action: "notify",
-      is_active: 1, trigger_count: 0, created_at: "2026-01-01",
+      is_active: true, trigger_count: 0, created_at: "2026-01-01",
     }];
     const { container } = render(() => <Limits />);
     await vi.waitFor(() => {

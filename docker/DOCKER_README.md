@@ -61,9 +61,9 @@ Works with 300+ models across OpenAI, Anthropic, Google Gemini, DeepSeek, xAI, M
 
 ## Installation
 
-Three paths, ordered from fastest to most hands-on. All three end in the same place: a running stack at [http://localhost:3001](http://localhost:3001) where you sign up. The first account you create becomes the admin. No demo credentials are pre-seeded.
+Three paths, ordered from fastest to most hands-on. All three end in the same place: a running stack at [http://localhost:2099](http://localhost:2099) where you sign up. The first account you create becomes the admin. No demo credentials are pre-seeded.
 
-> **Heads up on network binding.** The bundled compose file binds port 3001 to `127.0.0.1` only, so the dashboard is reachable on the host machine but not over the LAN. See [Custom port](#custom-port) to expose it beyond localhost.
+> **Heads up on network binding.** The bundled compose file binds port 2099 to `127.0.0.1` only, so the dashboard is reachable on the host machine but not over the LAN. See [Custom port](#custom-port) to expose it beyond localhost.
 
 ### Option 1: Quickstart install script (recommended)
 
@@ -126,7 +126,7 @@ docker compose up -d
 
 Give it about 30 seconds to boot.
 
-4. Open [http://localhost:3001](http://localhost:3001) and sign up. The first account you create becomes the admin.
+4. Open [http://localhost:2099](http://localhost:2099) and sign up. The first account you create becomes the admin.
 
 To stop:
 
@@ -144,10 +144,10 @@ If you already have PostgreSQL running, replace `user`, `pass`, and `host` with 
 
 ```bash
 docker run -d \
-  -p 3001:3001 \
+  -p 2099:2099 \
   -e DATABASE_URL=postgresql://user:pass@host:5432/manifest \
   -e BETTER_AUTH_SECRET=$(openssl rand -hex 32) \
-  -e BETTER_AUTH_URL=http://localhost:3001 \
+  -e BETTER_AUTH_URL=http://localhost:2099 \
   manifestdotbuild/manifest
 ```
 
@@ -160,10 +160,10 @@ docker run -d \
 $secret = -join ((48..57 + 97..122) | Get-Random -Count 64 | ForEach-Object { [char]$_ })
 
 docker run -d `
-  -p 3001:3001 `
+  -p 2099:2099 `
   -e DATABASE_URL=postgresql://user:pass@host:5432/manifest `
   -e BETTER_AUTH_SECRET=$secret `
-  -e BETTER_AUTH_URL=http://localhost:3001 `
+  -e BETTER_AUTH_URL=http://localhost:2099 `
   manifestdotbuild/manifest
 ```
 
@@ -176,16 +176,16 @@ Generate a 64-character hex secret with any tool you trust, then:
 
 ```cmd
 docker run -d ^
-  -p 3001:3001 ^
+  -p 2099:2099 ^
   -e DATABASE_URL=postgresql://user:pass@host:5432/manifest ^
   -e BETTER_AUTH_SECRET=<your-64-char-secret> ^
-  -e BETTER_AUTH_URL=http://localhost:3001 ^
+  -e BETTER_AUTH_URL=http://localhost:2099 ^
   manifestdotbuild/manifest
 ```
 
 </details>
 
-TypeORM migrations run automatically on every boot — fresh installs come up with the schema in place. Then visit [http://localhost:3001](http://localhost:3001) and complete the setup wizard to create your admin account.
+TypeORM migrations run automatically on every boot — fresh installs come up with the schema in place. Then visit [http://localhost:2099](http://localhost:2099) and complete the setup wizard to create your admin account.
 
 ### Verifying the image signature
 
@@ -199,11 +199,11 @@ cosign verify manifestdotbuild/manifest:<version> \
 
 ### Custom port
 
-If port 3001 is taken, change both the mapping and `BETTER_AUTH_URL`:
+If port 2099 is taken, change both the mapping and `BETTER_AUTH_URL`:
 
 ```bash
 docker run -d \
-  -p 8080:3001 \
+  -p 8080:2099 \
   -e BETTER_AUTH_URL=http://localhost:8080 \
   ...
 ```
@@ -212,7 +212,7 @@ Or in docker-compose.yml:
 
 ```yaml
 ports:
-  - '127.0.0.1:8080:3001'
+  - '127.0.0.1:8080:2099'
 ```
 
 …and in `.env`:
@@ -223,10 +223,10 @@ BETTER_AUTH_URL=http://localhost:8080
 
 ### Exposing on the LAN
 
-By default the compose file binds port `3001` to `127.0.0.1` only. The dashboard is reachable from the host but not from other machines on the network. To expose it on the LAN:
+By default the compose file binds port `2099` to `127.0.0.1` only. The dashboard is reachable from the host but not from other machines on the network. To expose it on the LAN:
 
-1. Edit `docker-compose.yml` and change the `ports` line from `"127.0.0.1:3001:3001"` to `"3001:3001"`.
-2. In `.env`, set `BETTER_AUTH_URL` to the host you'll reach the dashboard on, e.g. `http://192.168.1.20:3001` or `https://manifest.mydomain.com`. This MUST match the URL in the browser or Better Auth will reject the login with "Invalid origin".
+1. Edit `docker-compose.yml` and change the `ports` line from `"127.0.0.1:2099:2099"` to `"2099:2099"`.
+2. In `.env`, set `BETTER_AUTH_URL` to the host you'll reach the dashboard on, e.g. `http://192.168.1.20:2099` or `https://manifest.mydomain.com`. This MUST match the URL in the browser or Better Auth will reject the login with "Invalid origin".
 3. `docker compose up -d` to apply.
 
 If you see "Invalid origin" on the login page, `BETTER_AUTH_URL` doesn't match the URL you're accessing the dashboard on. The host matters as much as the port.
@@ -317,8 +317,8 @@ If Ollama runs on a different host on your LAN, set `OLLAMA_HOST` in `.env` to t
 | -------------------- | -------- | ----------------------- | --------------------------------------------- |
 | `DATABASE_URL`       | Yes      | --                      | PostgreSQL connection string                  |
 | `BETTER_AUTH_SECRET` | Yes      | --                      | Session signing secret (min 32 chars)         |
-| `BETTER_AUTH_URL`    | No       | `http://localhost:3001` | Public URL. Set this when using a custom port |
-| `PORT`               | No       | `3001`                  | Internal server port                          |
+| `BETTER_AUTH_URL`    | No       | `http://localhost:2099` | Public URL. Set this when using a custom port |
+| `PORT`               | No       | `2099`                  | Internal server port                          |
 | `NODE_ENV`           | No       | `production`            | Runtime mode. Leave as `production` for Docker |
 | `SEED_DATA`          | No       | `false`                 | Seed demo data on startup                     |
 | `OLLAMA_HOST`        | No       | `http://host.docker.internal:11434` | Ollama endpoint for the built-in tile. Override to point at a LAN-hosted Ollama. |

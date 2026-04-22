@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import request from 'supertest';
 import { createTestApp, TEST_API_KEY, TEST_USER_ID, TEST_TENANT_ID } from './helpers';
-import { sqlNow } from '../src/common/utils/sql-dialect';
+import { sqlNow } from '../src/common/utils/postgres-sql';
 import { v4 as uuid } from 'uuid';
 import { PricingSyncService } from '../src/database/pricing-sync.service';
 import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
@@ -27,7 +27,8 @@ beforeAll(async () => {
   await app.get(ModelPricingCacheService).reload();
 
   // Seed agent_messages directly (with pre-calculated cost_usd) using the same
-  // timestamp format as sqlNow() so that date comparisons work in both PG & sql.js.
+  // timestamp format as sqlNow() so that date comparisons line up with the
+  // Postgres `timestamp without time zone` columns the analytics queries read.
   const costUsd1 = 5000 * 0.0000025 + 2000 * 0.00001; // 0.0325
   const costUsd2 = 3000 * 0.0000025 + 1000 * 0.00001; // 0.0175
   await ds.query(

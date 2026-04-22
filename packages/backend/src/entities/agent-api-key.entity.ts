@@ -1,7 +1,7 @@
 import { Entity, Column, PrimaryColumn, ManyToOne, OneToOne, JoinColumn, Index } from 'typeorm';
 import { Tenant } from './tenant.entity';
 import { Agent } from './agent.entity';
-import { timestampType, timestampDefault } from '../common/utils/sql-dialect';
+import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
 
 @Entity('agent_api_keys')
 export class AgentApiKey {

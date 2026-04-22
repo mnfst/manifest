@@ -55,9 +55,20 @@ Manifest ships as a [Docker image](https://hub.docker.com/r/manifestdotbuild/man
 bash <(curl -sSL https://raw.githubusercontent.com/mnfst/manifest/main/docker/install.sh)
 ```
 
-The installer downloads the compose file, generates a secret, and brings up the stack. Give it about 30 seconds to boot.
+The installer downloads the compose file into `~/manifest`, generates a secret, and brings up the stack. First boot pulls the app image and Postgres, so give it up to a couple of minutes.
 
-Open [http://localhost:3001](http://localhost:3001) and sign up. The first account you create becomes the admin. Full self-hosting guide: [docker/DOCKER_README.md](docker/DOCKER_README.md).
+Open [http://localhost:2099](http://localhost:2099) and sign up — the first account you create becomes the admin. Confirm the stack is live with `curl -sSf http://localhost:2099/api/v1/health`.
+
+Prefer to look before running a remote script? Download and inspect it first, or do a dry run:
+
+```bash
+curl -sSLO https://raw.githubusercontent.com/mnfst/manifest/main/docker/install.sh
+less install.sh
+bash install.sh --dry-run      # prints what it would do
+bash install.sh --dir /opt/mnfst --yes   # custom location, non-interactive
+```
+
+Full self-hosting guide: [docker/DOCKER_README.md](docker/DOCKER_README.md).
 
 > Docker is the only supported distribution. The legacy `manifest` npm package is deprecated and no longer published.
 

@@ -63,9 +63,9 @@ export function addTenantFilter<T extends ObjectLiteral>(
  * is the downstream contract — every field it declares must be selected here so
  * the shared badge/provider rendering works identically across every call site.
  *
- * Assumes the query builder aliases `agent_messages` as `at`. Callers pass a
- * dialect-specific `costExpr` (e.g. `sqlCastFloat(sqlSanitizeCost('at.cost_usd'), dialect)`)
- * so per-service dialect handling stays at the call site.
+ * Assumes the query builder aliases `agent_messages` as `at`. Callers pass the
+ * `costExpr` (e.g. `sqlCastFloat(sqlSanitizeCost('at.cost_usd'))`) so the
+ * shared helper stays agnostic to how each call site sanitises cost.
  */
 export const MESSAGE_ROW_SELECT_ALIASES = [
   'id',

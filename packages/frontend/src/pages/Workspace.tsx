@@ -219,7 +219,7 @@ const Workspace: Component = () => {
             fallback={
               <div class="empty-state">
                 <div class="empty-state__title">No agents yet</div>
-                <p>Create an agent to see its LLM calls, tokens, and costs.</p>
+                <p>Connect an agent or an AI app to take control of your routing and your costs.</p>
                 <button
                   class="btn btn--primary btn--sm"
                   style="margin-top: var(--gap-md);"

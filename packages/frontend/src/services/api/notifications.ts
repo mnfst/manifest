@@ -7,7 +7,7 @@ export interface NotificationRule {
   threshold: number;
   period: 'hour' | 'day' | 'week' | 'month';
   action: 'notify' | 'block' | 'both';
-  is_active: boolean | number;
+  is_active: boolean;
   trigger_count: number;
   created_at: string;
 }

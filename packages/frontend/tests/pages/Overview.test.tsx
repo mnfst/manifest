@@ -323,20 +323,20 @@ describe("Overview", () => {
     mockGetOverview.mockResolvedValue(overviewData);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
+      expect(container.querySelector('[data-testid="single-token-chart"]')).not.toBeNull();
+    });
+
+    // Click cost stat
+    const stats = container.querySelectorAll(".chart-card__stat--clickable");
+    fireEvent.click(stats[1]); // cost
+    await vi.waitFor(() => {
       expect(container.querySelector('[data-testid="cost-chart"]')).not.toBeNull();
     });
 
     // Click tokens stat
-    const stats = container.querySelectorAll(".chart-card__stat--clickable");
-    fireEvent.click(stats[1]); // tokens
+    fireEvent.click(stats[2]); // tokens
     await vi.waitFor(() => {
       expect(container.querySelector('[data-testid="token-chart"]')).not.toBeNull();
-    });
-
-    // Click messages stat
-    fireEvent.click(stats[2]); // messages
-    await vi.waitFor(() => {
-      expect(container.querySelector('[data-testid="single-token-chart"]')).not.toBeNull();
     });
   });
 

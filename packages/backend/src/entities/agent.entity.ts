@@ -1,7 +1,7 @@
 import { Entity, Column, PrimaryColumn, ManyToOne, JoinColumn, OneToOne, Index } from 'typeorm';
 import { Tenant } from './tenant.entity';
 import { AgentApiKey } from './agent-api-key.entity';
-import { timestampType, timestampDefault } from '../common/utils/sql-dialect';
+import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
 
 @Entity('agents')
 @Index(['tenant_id', 'name'], { unique: true })

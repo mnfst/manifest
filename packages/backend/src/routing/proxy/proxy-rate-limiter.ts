@@ -56,7 +56,7 @@ export class ProxyRateLimiter implements OnModuleDestroy {
 
   /**
    * Check if the IP is over the per-IP rate limit and increment the counter.
-   * This catches abuse even when all requests share a userId (e.g. dev/local mode).
+   * This catches abuse even when many requests share a single userId (e.g. dev).
    */
   checkIpLimit(ip: string): void {
     const now = Date.now();

@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryColumn } from 'typeorm';
-import { timestampType } from '../common/utils/sql-dialect';
+import { timestampType } from '../common/utils/postgres-sql';
 
 @Entity('agent_logs')
 export class AgentLog {
