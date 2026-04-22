@@ -29,6 +29,7 @@ describe('ProviderController', () => {
       removeProvider: jest.fn().mockResolvedValue({ notifications: 0 }),
       deactivateAllProviders: jest.fn().mockResolvedValue(undefined),
       recalculateTiers: jest.fn().mockResolvedValue(undefined),
+      updateProviderAccount: jest.fn().mockResolvedValue({}),
     };
     mockDiscoveryService = {
       discoverModels: jest.fn().mockResolvedValue([]),
@@ -123,7 +124,7 @@ describe('ProviderController', () => {
   /* ── getProviders ── */
 
   describe('getProviders', () => {
-    it('should return mapped provider list', async () => {
+    it('should return mapped provider list with account_label and is_default', async () => {
       mockProviderService.getProviders.mockResolvedValue([
         {
           id: 'p1',
@@ -132,6 +133,19 @@ describe('ProviderController', () => {
           connected_at: '2025-01-01',
           api_key_encrypted: 'enc',
           key_prefix: 'sk-proj-',
+          account_label: 'default',
+          is_default: true,
+        },
+        {
+          id: 'p2',
+          provider: 'openai',
+          is_active: true,
+          connected_at: '2025-02-01',
+          api_key_encrypted: 'enc2',
+          key_prefix: 'sk-proj2',
+          account_label: 'work',
+          is_default: false,
+          auth_type: 'api_key',
         },
       ]);
 
@@ -147,7 +161,21 @@ describe('ProviderController', () => {
           has_api_key: true,
           key_prefix: 'sk-proj-',
           region: null,
+          account_label: 'default',
+          is_default: true,
           connected_at: '2025-01-01',
+        },
+        {
+          id: 'p2',
+          provider: 'openai',
+          auth_type: 'api_key',
+          is_active: true,
+          has_api_key: true,
+          key_prefix: 'sk-proj2',
+          region: null,
+          account_label: 'work',
+          is_default: false,
+          connected_at: '2025-02-01',
         },
       ]);
     });
@@ -162,6 +190,8 @@ describe('ProviderController', () => {
           api_key_encrypted: 'secret',
           key_prefix: 'sk-proj-',
           agent_id: 'a1',
+          account_label: 'default',
+          is_default: true,
         },
       ]);
 
@@ -171,6 +201,8 @@ describe('ProviderController', () => {
       expect(result[0]).not.toHaveProperty('agent_id');
       expect(result[0]).toHaveProperty('has_api_key', true);
       expect(result[0]).toHaveProperty('key_prefix', 'sk-proj-');
+      expect(result[0]).toHaveProperty('account_label', 'default');
+      expect(result[0]).toHaveProperty('is_default', true);
     });
 
     it('should return null key_prefix when provider has no key_prefix', async () => {
@@ -181,6 +213,8 @@ describe('ProviderController', () => {
           is_active: true,
           connected_at: '2025-02-01',
           api_key_encrypted: null,
+          account_label: 'default',
+          is_default: true,
         },
       ]);
 
@@ -200,7 +234,14 @@ describe('ProviderController', () => {
   describe('upsertProvider', () => {
     it('should call service and return mapped result (with apiKey)', async () => {
       mockProviderService.upsertProvider.mockResolvedValue({
-        provider: { id: 'p1', provider: 'anthropic', is_active: true, api_key_encrypted: 'enc' },
+        provider: {
+          id: 'p1',
+          provider: 'anthropic',
+          is_active: true,
+          api_key_encrypted: 'enc',
+          account_label: 'default',
+          is_default: true,
+        },
         isNew: true,
       });
 
@@ -216,6 +257,7 @@ describe('ProviderController', () => {
         'sk-ant-test',
         undefined,
         undefined,
+        undefined,
       );
       expect(result).toEqual({
         id: 'p1',
@@ -223,12 +265,52 @@ describe('ProviderController', () => {
         auth_type: 'api_key',
         is_active: true,
         region: null,
+        account_label: 'default',
+        is_default: true,
       });
+    });
+
+    it('should pass accountLabel to service when provided', async () => {
+      mockProviderService.upsertProvider.mockResolvedValue({
+        provider: {
+          id: 'p2',
+          provider: 'openai',
+          is_active: true,
+          api_key_encrypted: null,
+          account_label: 'work',
+          is_default: false,
+        },
+        isNew: true,
+      });
+
+      const result = await controller.upsertProvider(mockUser, mockAgentName, {
+        provider: 'openai',
+        accountLabel: 'work',
+      });
+
+      expect(mockProviderService.upsertProvider).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'user-1',
+        'openai',
+        undefined,
+        undefined,
+        undefined,
+        'work',
+      );
+      expect(result.account_label).toBe('work');
+      expect(result.is_default).toBe(false);
     });
 
     it('should call service without apiKey', async () => {
       mockProviderService.upsertProvider.mockResolvedValue({
-        provider: { id: 'p1', provider: 'openai', is_active: true, api_key_encrypted: null },
+        provider: {
+          id: 'p1',
+          provider: 'openai',
+          is_active: true,
+          api_key_encrypted: null,
+          account_label: 'default',
+          is_default: true,
+        },
         isNew: false,
       });
 
@@ -243,6 +325,7 @@ describe('ProviderController', () => {
         undefined,
         undefined,
         undefined,
+        undefined,
       );
       expect(result).toEqual({
         id: 'p1',
@@ -250,6 +333,8 @@ describe('ProviderController', () => {
         auth_type: 'api_key',
         is_active: true,
         region: null,
+        account_label: 'default',
+        is_default: true,
       });
     });
 
@@ -284,7 +369,13 @@ describe('ProviderController', () => {
     });
 
     it('should swallow discovery errors silently', async () => {
-      const providerResult = { id: 'p1', provider: 'openai', is_active: true };
+      const providerResult = {
+        id: 'p1',
+        provider: 'openai',
+        is_active: true,
+        account_label: 'default',
+        is_default: true,
+      };
       mockProviderService.upsertProvider.mockResolvedValue({
         provider: providerResult,
         isNew: false,
@@ -302,6 +393,8 @@ describe('ProviderController', () => {
         auth_type: 'api_key',
         is_active: true,
         region: null,
+        account_label: 'default',
+        is_default: true,
       });
     });
 
@@ -315,6 +408,8 @@ describe('ProviderController', () => {
           agent_id: 'a1',
           connected_at: '2025-01-01',
           updated_at: '2025-01-01',
+          account_label: 'default',
+          is_default: true,
         },
         isNew: true,
       });
@@ -324,20 +419,19 @@ describe('ProviderController', () => {
         apiKey: 'sk-test',
       });
 
-      expect(result).toEqual({
-        id: 'p1',
-        provider: 'openai',
-        auth_type: 'api_key',
-        is_active: true,
-        region: null,
-      });
       expect(result).not.toHaveProperty('api_key_encrypted');
       expect(result).not.toHaveProperty('agent_id');
     });
 
     it('should sync ollama models before connecting', async () => {
       mockProviderService.upsertProvider.mockResolvedValue({
-        provider: { id: 'p1', provider: 'ollama', is_active: true },
+        provider: {
+          id: 'p1',
+          provider: 'ollama',
+          is_active: true,
+          account_label: 'default',
+          is_default: true,
+        },
         isNew: true,
       });
 
@@ -375,6 +469,7 @@ describe('ProviderController', () => {
         TEST_AGENT_ID,
         'openai',
         undefined,
+        undefined,
       );
       expect(result).toEqual({ ok: true, notifications: 3 });
     });
@@ -403,7 +498,98 @@ describe('ProviderController', () => {
         TEST_AGENT_ID,
         'anthropic',
         'subscription',
+        undefined,
       );
+    });
+
+    it('should pass providerId to service when provided', async () => {
+      mockProviderService.removeProvider.mockResolvedValue({ notifications: [] });
+
+      await controller.removeProvider(
+        mockUser,
+        { agentName: 'test-agent', provider: 'openai' } as never,
+        { providerId: 'prov-abc' } as never,
+      );
+
+      expect(mockProviderService.removeProvider).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'openai',
+        undefined,
+        'prov-abc',
+      );
+    });
+  });
+
+  /* ── patchProviderAccount ── */
+
+  describe('patchProviderAccount', () => {
+    it('should update account label and return mapped result', async () => {
+      mockProviderService.updateProviderAccount.mockResolvedValue({
+        id: 'p1',
+        provider: 'openai',
+        auth_type: 'api_key',
+        is_active: true,
+        region: null,
+        account_label: 'personal',
+        is_default: true,
+      });
+
+      const result = await controller.patchProviderAccount(
+        mockUser,
+        { agentName: 'test-agent', providerId: 'p1' } as never,
+        { accountLabel: 'personal' } as never,
+      );
+
+      expect(mockProviderService.updateProviderAccount).toHaveBeenCalledWith(TEST_AGENT_ID, 'p1', {
+        accountLabel: 'personal',
+        isDefault: undefined,
+      });
+      expect(result).toEqual({
+        id: 'p1',
+        provider: 'openai',
+        auth_type: 'api_key',
+        is_active: true,
+        region: null,
+        account_label: 'personal',
+        is_default: true,
+      });
+    });
+
+    it('should set is_default on a provider', async () => {
+      mockProviderService.updateProviderAccount.mockResolvedValue({
+        id: 'p2',
+        provider: 'openai',
+        auth_type: 'api_key',
+        is_active: true,
+        region: null,
+        account_label: 'work',
+        is_default: true,
+      });
+
+      await controller.patchProviderAccount(
+        mockUser,
+        { agentName: 'test-agent', providerId: 'p2' } as never,
+        { isDefault: true } as never,
+      );
+
+      expect(mockProviderService.updateProviderAccount).toHaveBeenCalledWith(TEST_AGENT_ID, 'p2', {
+        accountLabel: undefined,
+        isDefault: true,
+      });
+    });
+
+    it('should propagate NotFoundException from updateProviderAccount', async () => {
+      mockProviderService.updateProviderAccount.mockRejectedValue(
+        new NotFoundException('Provider account not found'),
+      );
+
+      await expect(
+        controller.patchProviderAccount(
+          mockUser,
+          { agentName: 'test-agent', providerId: 'nonexistent' } as never,
+          { accountLabel: 'x' } as never,
+        ),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 

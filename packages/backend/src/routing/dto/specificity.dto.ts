@@ -14,6 +14,12 @@ export class SetSpecificityOverrideDto {
   @IsOptional()
   @IsIn(AUTH_TYPES)
   authType?: 'api_key' | 'subscription';
+
+  /** Exact UserProvider.id — preferred over provider/authType for multi-account. */
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  overrideProviderId?: string;
 }
 
 export class ToggleSpecificityDto {

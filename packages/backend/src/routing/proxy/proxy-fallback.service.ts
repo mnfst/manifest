@@ -303,15 +303,16 @@ export async function resolveApiKey(
   userId: string,
   openaiOauth: OpenaiOauthService,
   minimaxOauth: MinimaxOauthService,
+  userProviderId?: string,
 ): Promise<{ apiKey: string; resourceUrl?: string }> {
   if (authType === 'subscription') {
     const lower = provider.toLowerCase();
     if (lower === 'openai') {
-      const unwrapped = await openaiOauth.unwrapToken(apiKey, agentId, userId);
+      const unwrapped = await openaiOauth.unwrapToken(apiKey, agentId, userId, userProviderId);
       if (unwrapped) return { apiKey: unwrapped };
     }
     if (lower === 'minimax') {
-      const unwrapped = await minimaxOauth.unwrapToken(apiKey, agentId, userId);
+      const unwrapped = await minimaxOauth.unwrapToken(apiKey, agentId, userId, userProviderId);
       if (unwrapped) return { apiKey: unwrapped.t, resourceUrl: unwrapped.u };
     }
   }

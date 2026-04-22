@@ -69,8 +69,26 @@ describe('SpecificityController', () => {
         'gpt-4o',
         'openai',
         'api_key',
+        undefined,
       );
       expect(result).toBe(override);
+    });
+
+    it('should pass overrideProviderId to service', async () => {
+      const body = { model: 'gpt-4o', overrideProviderId: 'prov-xyz' };
+      mockSpecificityService.setOverride.mockResolvedValue({});
+
+      await controller.setOverride(mockUser, 'test-agent', 'coding', body);
+
+      expect(mockSpecificityService.setOverride).toHaveBeenCalledWith(
+        'agent-1',
+        'user-1',
+        'coding',
+        'gpt-4o',
+        undefined,
+        undefined,
+        'prov-xyz',
+      );
     });
 
     it('should throw BadRequestException for invalid category', async () => {

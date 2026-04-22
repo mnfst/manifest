@@ -26,6 +26,9 @@ export class SpecificityAssignment {
   override_provider!: string | null;
 
   @Column('varchar', { nullable: true })
+  override_provider_id!: string | null;
+
+  @Column('varchar', { nullable: true })
   override_auth_type!: 'api_key' | 'subscription' | null;
 
   @Column('varchar', { nullable: true })

@@ -44,6 +44,7 @@ export class OpenaiOauthService {
     agentId: string,
     userId: string,
     backendUrl?: string,
+    accountLabel?: string,
   ): Promise<string> {
     this.cleanupExpired();
     const state = randomBytes(32).toString('hex');
@@ -55,6 +56,7 @@ export class OpenaiOauthService {
       userId,
       backendUrl: backendUrl ?? '',
       expiresAt: Date.now() + STATE_TTL_MS,
+      accountLabel,
     });
     if (this.useCallbackServer) {
       await this.ensureCallbackServer();
@@ -111,6 +113,8 @@ export class OpenaiOauthService {
       'openai',
       JSON.stringify(blob),
       'subscription',
+      undefined,
+      pending.accountLabel,
     );
     try {
       await this.discoveryService.discoverModels(savedProvider);
@@ -150,7 +154,12 @@ export class OpenaiOauthService {
   }
 
   /** Parse an OAuth blob and return a valid access token, refreshing if expired. */
-  async unwrapToken(rawValue: string, agentId: string, userId: string): Promise<string | null> {
+  async unwrapToken(
+    rawValue: string,
+    agentId: string,
+    userId: string,
+    userProviderId?: string,
+  ): Promise<string | null> {
     let blob: OAuthTokenBlob;
     try {
       blob = JSON.parse(rawValue) as OAuthTokenBlob;
@@ -161,13 +170,21 @@ export class OpenaiOauthService {
     if (Date.now() < blob.e - 60_000) return blob.t;
     try {
       const refreshed = await this.refreshAccessToken(blob.r);
-      await this.providerService.upsertProvider(
-        agentId,
-        userId,
-        'openai',
-        JSON.stringify(refreshed),
-        'subscription',
-      );
+      if (userProviderId) {
+        await this.providerService.updateProviderApiKeyById(
+          agentId,
+          userProviderId,
+          JSON.stringify(refreshed),
+        );
+      } else {
+        await this.providerService.upsertProvider(
+          agentId,
+          userId,
+          'openai',
+          JSON.stringify(refreshed),
+          'subscription',
+        );
+      }
       this.logger.log(`OpenAI OAuth token refreshed for agent=${agentId}`);
       return refreshed.t;
     } catch (err) {

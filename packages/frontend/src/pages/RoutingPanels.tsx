@@ -102,63 +102,76 @@ export interface ActiveProviderIconsProps {
 }
 
 /** Renders the provider icons row and connection count above the tier cards. */
-export const ActiveProviderIcons: Component<ActiveProviderIconsProps> = (props) => (
-  <div class="routing-providers-info">
-    <span class="routing-providers-info__icons">
-      <For each={props.activeProviders()}>
-        {(prov) => {
-          if (prov.provider.startsWith('custom:')) {
-            const cp = createMemo(() =>
-              props.customProviders()?.find((c) => `custom:${c.id}` === prov.provider),
-            );
-            const logo = createMemo(() => {
-              const c = cp();
-              return c ? customProviderLogo(c.name, 16, c.base_url) : null;
-            });
+export const ActiveProviderIcons: Component<ActiveProviderIconsProps> = (props) => {
+  // Deduplicate by (provider, auth_type) so multi-account rows don't show duplicate icons.
+  const uniqueProviders = () => {
+    const seen = new Set<string>();
+    return props.activeProviders().filter((prov) => {
+      const key = `${prov.provider}:${prov.auth_type}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  };
+
+  return (
+    <div class="routing-providers-info">
+      <span class="routing-providers-info__icons">
+        <For each={uniqueProviders()}>
+          {(prov) => {
+            if (prov.provider.startsWith('custom:')) {
+              const cp = createMemo(() =>
+                props.customProviders()?.find((c) => `custom:${c.id}` === prov.provider),
+              );
+              const logo = createMemo(() => {
+                const c = cp();
+                return c ? customProviderLogo(c.name, 16, c.base_url) : null;
+              });
+              return (
+                <span class="routing-providers-info__icon" title={cp()?.name ?? prov.provider}>
+                  <Show
+                    when={logo()}
+                    fallback={
+                      <span
+                        class="provider-card__logo-letter"
+                        style={{
+                          background: customProviderColor(cp()?.name ?? 'C'),
+                          width: '16px',
+                          height: '16px',
+                          'font-size': '9px',
+                          'border-radius': '50%',
+                        }}
+                      >
+                        {(cp()?.name ?? 'C').charAt(0).toUpperCase()}
+                      </span>
+                    }
+                  >
+                    {logo()}
+                  </Show>
+                </span>
+              );
+            }
+            const provDef = PROVIDERS.find((p) => p.id === prov.provider);
+            const authLabel = prov.auth_type === 'subscription' ? 'Subscription' : 'API Key';
             return (
-              <span class="routing-providers-info__icon" title={cp()?.name ?? prov.provider}>
-                <Show
-                  when={logo()}
-                  fallback={
-                    <span
-                      class="provider-card__logo-letter"
-                      style={{
-                        background: customProviderColor(cp()?.name ?? 'C'),
-                        width: '16px',
-                        height: '16px',
-                        'font-size': '9px',
-                        'border-radius': '50%',
-                      }}
-                    >
-                      {(cp()?.name ?? 'C').charAt(0).toUpperCase()}
-                    </span>
-                  }
-                >
-                  {logo()}
-                </Show>
+              <span
+                class="routing-providers-info__icon"
+                title={`${provDef?.name ?? prov.provider} (${authLabel})`}
+              >
+                {providerIcon(prov.provider, 16)}
+                {authBadgeFor(prov.auth_type, 12)}
               </span>
             );
-          }
-          const provDef = PROVIDERS.find((p) => p.id === prov.provider);
-          const authLabel = prov.auth_type === 'subscription' ? 'Subscription' : 'API Key';
-          return (
-            <span
-              class="routing-providers-info__icon"
-              title={`${provDef?.name ?? prov.provider} (${authLabel})`}
-            >
-              {providerIcon(prov.provider, 16)}
-              {authBadgeFor(prov.auth_type, 12)}
-            </span>
-          );
-        }}
-      </For>
-    </span>
-    <span class="routing-providers-info__label">
-      {props.activeProviders().length} connection
-      {props.activeProviders().length !== 1 ? 's' : ''}
-    </span>
-  </div>
-);
+          }}
+        </For>
+      </span>
+      <span class="routing-providers-info__label">
+        {props.activeProviders().length} connection
+        {props.activeProviders().length !== 1 ? 's' : ''}
+      </span>
+    </div>
+  );
+};
 
 export interface RoutingFooterProps {
   disabling: () => boolean;

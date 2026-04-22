@@ -18,6 +18,10 @@ interface Props {
   selectedAuthType: Accessor<AuthType>;
   busy: Accessor<boolean>;
   setBusy: Setter<boolean>;
+  /** The exact UserProvider.id for the current provider+authType (multi-account). */
+  userProviderId?: string;
+  accountLabel?: string;
+  requireAccountLabel?: boolean;
   onBack: () => void;
   onUpdate: () => void;
   onClose: () => void;
@@ -27,13 +31,18 @@ const OAuthDetailView: Component<Props> = (props) => {
   const [popupOpened, setPopupOpened] = createSignal(false);
   const [pasteUrl, setPasteUrl] = createSignal('');
   const [pasteError, setPasteError] = createSignal<string | null>(null);
+  const normalizedAccountLabel = () => props.accountLabel?.trim() || undefined;
 
   const handleOAuthLogin = async () => {
+    if (props.requireAccountLabel && !normalizedAccountLabel()) {
+      setPasteError('Account label is required to add another account.');
+      return;
+    }
     props.setBusy(true);
     setPasteUrl('');
     setPasteError(null);
     try {
-      const { url } = await getOpenaiOAuthUrl(props.agentName);
+      const { url } = await getOpenaiOAuthUrl(props.agentName, normalizedAccountLabel());
       const popup = window.open(url, 'manifest-oauth', 'width=500,height=700');
       if (!popup) {
         toast.error(
@@ -90,11 +99,12 @@ const OAuthDetailView: Component<Props> = (props) => {
   const handleDisconnect = async () => {
     props.setBusy(true);
     try {
-      await revokeOpenaiOAuth(props.agentName).catch(() => {});
+      await revokeOpenaiOAuth(props.agentName, props.userProviderId).catch(() => {});
       const result = await disconnectProvider(
         props.agentName,
         props.provId,
         props.selectedAuthType(),
+        props.userProviderId,
       );
       if (result?.notifications?.length) {
         for (const msg of result.notifications) {
@@ -120,9 +130,14 @@ const OAuthDetailView: Component<Props> = (props) => {
               <p class="provider-detail__hint">
                 Log in with your {props.provDef.name} account to connect your subscription.
               </p>
+              <Show when={props.requireAccountLabel}>
+                <p class="provider-detail__hint" style="margin-top: 8px;">
+                  Add an account label first to connect another {props.provDef.name} account.
+                </p>
+              </Show>
               <button
                 class="btn btn--primary provider-detail__action"
-                disabled={props.busy()}
+                disabled={props.busy() || (props.requireAccountLabel && !normalizedAccountLabel())}
                 onClick={handleOAuthLogin}
               >
                 <Show when={!props.busy()} fallback={<span class="spinner" />}>
@@ -191,6 +206,7 @@ const OAuthDetailView: Component<Props> = (props) => {
           class="btn btn--outline provider-detail__action provider-detail__disconnect"
           disabled={props.busy()}
           onClick={handleDisconnect}
+          aria-label="Disconnect provider"
         >
           <Show when={!props.busy()} fallback={<span class="spinner" />}>
             Disconnect

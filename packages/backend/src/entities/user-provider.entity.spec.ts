@@ -10,6 +10,8 @@ describe('UserProvider entity', () => {
     entity.key_prefix = 'enc-key-';
     entity.region = 'singapore';
     entity.is_active = true;
+    entity.account_label = 'default';
+    entity.is_default = true;
     entity.connected_at = '2025-01-01T00:00:00Z';
     entity.updated_at = '2025-01-01T00:00:00Z';
 
@@ -20,6 +22,8 @@ describe('UserProvider entity', () => {
     expect(entity.key_prefix).toBe('enc-key-');
     expect(entity.region).toBe('singapore');
     expect(entity.is_active).toBe(true);
+    expect(entity.account_label).toBe('default');
+    expect(entity.is_default).toBe(true);
     expect(entity.connected_at).toBe('2025-01-01T00:00:00Z');
     expect(entity.updated_at).toBe('2025-01-01T00:00:00Z');
   });
@@ -46,5 +50,17 @@ describe('UserProvider entity', () => {
     const entity = new UserProvider();
     entity.region = null;
     expect(entity.region).toBeNull();
+  });
+
+  it('should allow non-default account_label', () => {
+    const entity = new UserProvider();
+    entity.account_label = 'work';
+    expect(entity.account_label).toBe('work');
+  });
+
+  it('should allow is_default to be set to false', () => {
+    const entity = new UserProvider();
+    entity.is_default = false;
+    expect(entity.is_default).toBe(false);
   });
 });

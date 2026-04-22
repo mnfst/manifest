@@ -224,6 +224,8 @@ describe('MinimaxOauthService', () => {
         'minimax',
         expect.stringContaining('"t":"at"'),
         'subscription',
+        undefined,
+        undefined,
       );
       expect(discovery.discoverModels).toHaveBeenCalled();
       expect(provider.recalculateTiers).toHaveBeenCalledWith('agent-1');

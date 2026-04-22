@@ -79,6 +79,30 @@ describe('CopilotController', () => {
         'copilot',
         'ghu_github_token',
         'subscription',
+        undefined,
+        undefined,
+      );
+    });
+
+    it('should pass accountLabel when provided in copilot poll', async () => {
+      mockCopilotAuth.pollForToken.mockResolvedValue({
+        status: 'complete',
+        token: 'ghu_github_token',
+      });
+
+      await controller.copilotPollToken(mockUser, mockAgentName, {
+        deviceCode: 'dc_abc',
+        accountLabel: 'work',
+      } as never);
+
+      expect(mockProviderService.upsertProvider).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'user-1',
+        'copilot',
+        'ghu_github_token',
+        'subscription',
+        undefined,
+        'work',
       );
     });
 

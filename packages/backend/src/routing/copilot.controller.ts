@@ -37,6 +37,8 @@ export class CopilotController {
         'copilot',
         result.token,
         'subscription',
+        undefined,
+        body.accountLabel,
       );
       try {
         await this.discoveryService.discoverModels(record);

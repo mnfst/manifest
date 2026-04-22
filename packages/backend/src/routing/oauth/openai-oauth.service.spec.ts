@@ -144,6 +144,8 @@ describe('OpenaiOauthService', () => {
         'openai',
         expect.stringContaining('"t":"access-1"'),
         'subscription',
+        undefined,
+        undefined,
       );
       expect(discovery.discoverModels).toHaveBeenCalled();
       expect(providerService.recalculateTiers).toHaveBeenCalledWith('agent-1');
@@ -167,6 +169,30 @@ describe('OpenaiOauthService', () => {
       const state = new URL(url).searchParams.get('state')!;
       await expect(svc.exchangeCode(state, 'c')).resolves.toBeUndefined();
       expect(providerService.upsertProvider).toHaveBeenCalled();
+    });
+
+    it('passes accountLabel to upsertProvider when provided in generateAuthorizationUrl', async () => {
+      fetchMock.mockResolvedValue(
+        mockResponse(200, {
+          access_token: 'access-1',
+          refresh_token: 'refresh-1',
+          expires_in: 3600,
+        }),
+      );
+      const url = await svc.generateAuthorizationUrl('agent-1', 'user-1', undefined, 'work');
+      const state = new URL(url).searchParams.get('state')!;
+
+      await svc.exchangeCode(state, 'auth-code');
+
+      expect(providerService.upsertProvider).toHaveBeenCalledWith(
+        'agent-1',
+        'user-1',
+        'openai',
+        expect.stringContaining('"t":"access-1"'),
+        'subscription',
+        undefined,
+        'work',
+      );
     });
   });
 

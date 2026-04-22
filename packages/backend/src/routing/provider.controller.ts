@@ -5,6 +5,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Query,
 } from '@nestjs/common';
@@ -20,6 +21,8 @@ import {
   AgentNameParamDto,
   AgentProviderParamDto,
   ConnectProviderDto,
+  PatchProviderDto,
+  ProviderIdParamDto,
   RemoveProviderQueryDto,
 } from './dto/routing.dto';
 import { isQwenRegion } from './qwen-region';
@@ -73,6 +76,8 @@ export class ProviderController {
       has_api_key: !!p.api_key_encrypted,
       key_prefix: p.key_prefix ?? null,
       region: p.region ?? null,
+      account_label: p.account_label ?? 'default',
+      is_default: p.is_default ?? true,
       connected_at: p.connected_at,
     }));
   }
@@ -108,6 +113,7 @@ export class ProviderController {
       body.apiKey,
       body.authType,
       body.region,
+      body.accountLabel,
     );
 
     // Discover models and recalculate tiers before returning so the
@@ -129,6 +135,8 @@ export class ProviderController {
       auth_type: result.auth_type ?? 'api_key',
       is_active: result.is_active,
       region: result.region ?? null,
+      account_label: result.account_label ?? 'default',
+      is_default: result.is_default ?? true,
     };
   }
 
@@ -150,7 +158,30 @@ export class ProviderController {
       agent.id,
       params.provider,
       query.authType,
+      query.providerId,
     );
     return { ok: true, notifications };
+  }
+
+  @Patch(':agentName/providers/:providerId/account')
+  async patchProviderAccount(
+    @CurrentUser() user: AuthUser,
+    @Param() params: ProviderIdParamDto,
+    @Body() body: PatchProviderDto,
+  ) {
+    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    const result = await this.providerService.updateProviderAccount(agent.id, params.providerId, {
+      accountLabel: body.accountLabel,
+      isDefault: body.isDefault,
+    });
+    return {
+      id: result.id,
+      provider: result.provider,
+      auth_type: result.auth_type ?? 'api_key',
+      is_active: result.is_active,
+      region: result.region ?? null,
+      account_label: result.account_label ?? 'default',
+      is_default: result.is_default ?? true,
+    };
   }
 }

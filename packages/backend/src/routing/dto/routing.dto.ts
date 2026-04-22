@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsString,
   IsIn,
   IsNotEmpty,
@@ -52,6 +53,12 @@ export class ConnectProviderDto {
   @IsOptional()
   @IsString()
   region?: string;
+
+  /** Label for multi-account disambiguation (e.g. "work", "personal"). */
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  accountLabel?: string;
 }
 
 export class AgentProviderParamDto {
@@ -69,6 +76,12 @@ export class RemoveProviderQueryDto {
   @IsOptional()
   @IsIn(AUTH_TYPES)
   authType?: 'api_key' | 'subscription';
+
+  /** Specific UserProvider.id to remove (multi-account). */
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  providerId?: string;
 }
 
 export class SetOverrideDto {
@@ -84,12 +97,46 @@ export class SetOverrideDto {
   @IsOptional()
   @IsIn(AUTH_TYPES)
   authType?: 'api_key' | 'subscription';
+
+  /** Exact UserProvider.id — preferred over provider/authType for multi-account. */
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  overrideProviderId?: string;
 }
 
 export class CopilotPollDto {
   @IsString()
   @IsNotEmpty()
   deviceCode!: string;
+
+  /** Label for multi-account disambiguation when creating a new account. */
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  accountLabel?: string;
+}
+
+export class PatchProviderDto {
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  accountLabel?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isDefault?: boolean;
+}
+
+export class ProviderIdParamDto {
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^[a-zA-Z0-9_-]+$/, { message: 'Invalid agent name' })
+  agentName!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  providerId!: string;
 }
 
 export class SetFallbacksDto {

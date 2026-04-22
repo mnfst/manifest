@@ -44,6 +44,9 @@ function makeProvider(overrides: Partial<UserProvider> = {}): UserProvider {
     updated_at: '2025-01-01T00:00:00Z',
     cached_models: null,
     models_fetched_at: null,
+    account_label: 'default',
+    is_default: true,
+    region: null,
     ...overrides,
   });
 }
@@ -56,6 +59,7 @@ function makeTier(overrides: Partial<TierAssignment> = {}): TierAssignment {
     tier: 'simple',
     override_model: null,
     override_provider: null,
+    override_provider_id: null,
     override_auth_type: null,
     auto_assigned_model: 'gpt-4o-mini',
     fallback_models: null,
@@ -191,9 +195,15 @@ describe('ProviderService', () => {
 
       const result = await service.upsertProvider('agent-1', 'user-1', 'openai', 'sk-key');
 
+      // First call: exact match by (agent, provider, auth_type, account_label)
       expect(providerRepo.findOne).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { agent_id: 'agent-1', provider: 'openai', auth_type: 'api_key' },
+          where: {
+            agent_id: 'agent-1',
+            provider: 'openai',
+            auth_type: 'api_key',
+            account_label: 'default',
+          },
         }),
       );
       expect(result.provider.auth_type).toBe('api_key');
@@ -206,7 +216,12 @@ describe('ProviderService', () => {
 
       expect(providerRepo.findOne).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { agent_id: 'agent-1', provider: 'anthropic', auth_type: 'subscription' },
+          where: {
+            agent_id: 'agent-1',
+            provider: 'anthropic',
+            auth_type: 'subscription',
+            account_label: 'default',
+          },
         }),
       );
     });
@@ -297,12 +312,49 @@ describe('ProviderService', () => {
       providerRepo.findOne.mockResolvedValue(existing);
       // Other active provider of same type that is usable (api_key)
       providerRepo.find.mockResolvedValue([makeProvider({ id: 'p2', auth_type: 'api_key' })]);
+      // cleanupProviderReferences returns nothing to invalidate
+      tierRepo.find.mockResolvedValue([]);
 
       const result = await service.removeProvider('agent-1', 'openai');
 
       expect(existing.is_active).toBe(false);
       expect(result).toEqual({ notifications: [] });
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+
+    it('should clear only overrides pointing to removed account when other accounts exist', async () => {
+      const removedAccount = makeProvider({ id: 'prov-a', is_active: true });
+      providerRepo.findOne.mockResolvedValue(removedAccount);
+      // Other active account of the same provider
+      providerRepo.find.mockResolvedValue([makeProvider({ id: 'prov-b', auth_type: 'api_key' })]);
+
+      const overrideA = makeTier({
+        override_model: 'gpt-4o',
+        override_provider: 'openai',
+        override_provider_id: 'prov-a',
+        tier: 'complex',
+      });
+      const overrideB = makeTier({
+        id: 'tier-2',
+        override_model: 'o1-mini',
+        override_provider: 'openai',
+        override_provider_id: 'prov-b',
+        tier: 'reasoning',
+      });
+      tierRepo.find
+        .mockResolvedValueOnce([overrideA, overrideB]) // overrides
+        .mockResolvedValueOnce([overrideA, overrideB]); // notification lookup
+
+      const result = await service.removeProvider('agent-1', 'openai', undefined, 'prov-a');
+
+      // Only overrideA (prov-a) should be cleared
+      expect(overrideA.override_model).toBeNull();
+      expect(overrideA.override_provider_id).toBeNull();
+      // overrideB (prov-b) should be untouched
+      expect(overrideB.override_model).toBe('o1-mini');
+      expect(overrideB.override_provider_id).toBe('prov-b');
+      expect(result.notifications).toHaveLength(1);
+      expect(result.notifications[0]).toContain('gpt-4o');
     });
 
     it('should clear tier assignments when no other active provider', async () => {
@@ -391,6 +443,19 @@ describe('ProviderService', () => {
       });
     });
 
+    it('should pass providerId filter when provided', async () => {
+      const existing = makeProvider({ is_active: true });
+      providerRepo.findOne.mockResolvedValue(existing);
+      providerRepo.find.mockResolvedValue([]);
+      tierRepo.find.mockResolvedValue([]);
+
+      await service.removeProvider('agent-1', 'openai', undefined, 'prov-123');
+
+      expect(providerRepo.findOne).toHaveBeenCalledWith({
+        where: { agent_id: 'agent-1', provider: 'openai', id: 'prov-123' },
+      });
+    });
+
     it('should use tier label for unknown tier names', async () => {
       const existing = makeProvider({ is_active: true });
       providerRepo.findOne.mockResolvedValue(existing);
@@ -433,6 +498,7 @@ describe('ProviderService', () => {
         expect.objectContaining({
           override_model: null,
           override_provider: null,
+          override_provider_id: null,
           override_auth_type: null,
           fallback_models: null,
         }),
@@ -708,6 +774,7 @@ describe('ProviderService', () => {
         is_active: true,
         override_model: null,
         override_provider: null,
+        override_provider_id: null,
         override_auth_type: null,
         auto_assigned_model: null,
         fallback_models: null,
@@ -736,6 +803,7 @@ describe('ProviderService', () => {
           id: 'spec-1',
           override_model: null,
           override_provider: null,
+          override_provider_id: null,
           override_auth_type: null,
         }),
       ]);

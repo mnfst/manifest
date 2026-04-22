@@ -39,6 +39,7 @@ export class OpenaiOauthController {
   @Get('authorize')
   async authorize(
     @Query('agentName') agentName: string,
+    @Query('accountLabel') accountLabel: string | undefined,
     @CurrentUser() user: AuthUser,
     @Req() req: Request,
   ) {
@@ -48,7 +49,12 @@ export class OpenaiOauthController {
     const agent = await this.resolveAgent.resolve(user.id, agentName);
     const backendUrl = `${req.protocol}://${req.get('host')}`;
     try {
-      const url = await this.oauthService.generateAuthorizationUrl(agent.id, user.id, backendUrl);
+      const url = await this.oauthService.generateAuthorizationUrl(
+        agent.id,
+        user.id,
+        backendUrl,
+        accountLabel,
+      );
       return { url };
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to start OAuth callback server';
@@ -60,7 +66,11 @@ export class OpenaiOauthController {
    * Revoke the stored OpenAI OAuth token (best-effort) and disconnect the provider.
    */
   @Post('revoke')
-  async revoke(@Query('agentName') agentName: string, @CurrentUser() user: AuthUser) {
+  async revoke(
+    @Query('agentName') agentName: string,
+    @Query('providerId') providerId: string | undefined,
+    @CurrentUser() user: AuthUser,
+  ) {
     if (!agentName) {
       throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
     }
@@ -69,6 +79,7 @@ export class OpenaiOauthController {
       agent.id,
       'openai',
       'subscription',
+      providerId,
     );
 
     if (apiKey) {
@@ -81,7 +92,7 @@ export class OpenaiOauthController {
       }
     }
 
-    await this.providerService.removeProvider(agent.id, 'openai', 'subscription');
+    await this.providerService.removeProvider(agent.id, 'openai', 'subscription', providerId);
 
     return { ok: true };
   }

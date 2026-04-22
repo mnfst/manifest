@@ -16,10 +16,10 @@ export interface MinimaxOAuthPollResponse {
   pollIntervalMs?: number;
 }
 
-export function getOpenaiOAuthUrl(agentName: string) {
-  return fetchJson<{ url: string }>(`/oauth/openai/authorize`, {
-    agentName,
-  });
+export function getOpenaiOAuthUrl(agentName: string, accountLabel?: string) {
+  const params: Record<string, string | undefined> = { agentName };
+  if (accountLabel) params.accountLabel = accountLabel;
+  return fetchJson<{ url: string }>(`/oauth/openai/authorize`, params);
 }
 
 export function submitOpenaiOAuthCallback(code: string, state: string) {
@@ -30,18 +30,22 @@ export function submitOpenaiOAuthCallback(code: string, state: string) {
   });
 }
 
-export function revokeOpenaiOAuth(agentName: string) {
-  return fetchMutate<{ ok: boolean }>(
-    `/oauth/openai/revoke?agentName=${encodeURIComponent(agentName)}`,
-    { method: 'POST' },
-  );
+export function revokeOpenaiOAuth(agentName: string, providerId?: string) {
+  const params = new URLSearchParams({ agentName });
+  if (providerId) params.set('providerId', providerId);
+  return fetchMutate<{ ok: boolean }>(`/oauth/openai/revoke?${params.toString()}`, {
+    method: 'POST',
+  });
 }
 
-export function startMinimaxOAuth(agentName: string, region: MinimaxOAuthRegion = 'global') {
-  return fetchMutate<MinimaxOAuthStartResponse>(
-    `/oauth/minimax/start?agentName=${encodeURIComponent(agentName)}&region=${encodeURIComponent(region)}`,
-    { method: 'POST' },
-  );
+export function startMinimaxOAuth(
+  agentName: string,
+  region: MinimaxOAuthRegion = 'global',
+  accountLabel?: string,
+) {
+  let path = `/oauth/minimax/start?agentName=${encodeURIComponent(agentName)}&region=${encodeURIComponent(region)}`;
+  if (accountLabel) path += `&accountLabel=${encodeURIComponent(accountLabel)}`;
+  return fetchMutate<MinimaxOAuthStartResponse>(path, { method: 'POST' });
 }
 
 export function pollMinimaxOAuth(flowId: string) {

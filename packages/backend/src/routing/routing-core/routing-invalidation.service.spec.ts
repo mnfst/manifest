@@ -19,6 +19,7 @@ function makeTier(overrides: Partial<TierAssignment> = {}): TierAssignment {
     tier: 'simple',
     override_model: null,
     override_provider: null,
+    override_provider_id: null,
     override_auth_type: null,
     auto_assigned_model: 'gpt-4o-mini',
     fallback_models: null,
@@ -60,6 +61,7 @@ describe('RoutingInvalidationService', () => {
       const tier = makeTier({
         override_model: 'gpt-4o',
         override_provider: 'openai',
+        override_provider_id: 'prov-1',
         override_auth_type: 'api_key',
         agent_id: 'agent-1',
       });
@@ -72,6 +74,7 @@ describe('RoutingInvalidationService', () => {
 
       expect(tier.override_model).toBeNull();
       expect(tier.override_provider).toBeNull();
+      expect(tier.override_provider_id).toBeNull();
       expect(tier.override_auth_type).toBeNull();
       expect(tierRepo.save).toHaveBeenCalled();
       expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1');

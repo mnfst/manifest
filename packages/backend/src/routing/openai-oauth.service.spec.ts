@@ -117,6 +117,8 @@ describe('OpenaiOauthService', () => {
         'openai',
         expect.any(String),
         'subscription',
+        undefined,
+        undefined,
       );
 
       const storedBlob: OAuthTokenBlob = JSON.parse(

@@ -10,7 +10,6 @@ import {
 import { toast } from '../services/toast-store.js';
 import type { CustomProviderPrefill, ProviderDeepLink } from '../services/routing-params.js';
 import CustomProviderForm from './CustomProviderForm.js';
-import CopilotDeviceLogin from './CopilotDeviceLogin.js';
 import ProviderDetailView from './ProviderDetailView.js';
 import ProviderApiKeyTab from './ProviderApiKeyTab.js';
 import ProviderSubscriptionTab from './ProviderSubscriptionTab.js';
@@ -60,21 +59,30 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
   };
 
   const getProviderByAuth = (provId: string, authType: AuthType) =>
-    props.providers.find((p) => p.provider === provId && p.auth_type === authType);
+    props.providers.find(
+      (p) => p.provider === provId && p.auth_type === authType && p.is_default,
+    ) ?? props.providers.find((p) => p.provider === provId && p.auth_type === authType);
+
+  /** Get all active provider rows for a given provider+authType (multi-account). */
+  const getProviderAccounts = (provId: string, authType: AuthType) =>
+    props.providers.filter((p) => p.provider === provId && p.auth_type === authType && p.is_active);
+
+  const getProviderId = (provId: string, authType: AuthType): string | undefined =>
+    getProviderByAuth(provId, authType)?.id;
 
   const isConnected = (provId: string): boolean => {
-    const p = getProviderByAuth(provId, 'api_key');
-    return !!p && p.is_active && p.has_api_key;
+    const accounts = getProviderAccounts(provId, 'api_key');
+    return accounts.length > 0 && accounts.some((p) => p.has_api_key);
   };
 
   const isSubscriptionConnected = (provId: string): boolean => {
-    const p = getProviderByAuth(provId, 'subscription');
-    return !!p && p.is_active;
+    const accounts = getProviderAccounts(provId, 'subscription');
+    return accounts.length > 0;
   };
 
   const isSubscriptionWithToken = (provId: string): boolean => {
-    const p = getProviderByAuth(provId, 'subscription');
-    return !!p && p.is_active && p.has_api_key;
+    const accounts = getProviderAccounts(provId, 'subscription');
+    return accounts.length > 0 && accounts.some((p) => p.has_api_key);
   };
 
   const isNoKeyConnected = (provId: string): boolean => {
@@ -126,7 +134,12 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     setBusy(true);
     try {
       if (connected) {
-        const result = await disconnectProvider(props.agentName, provId, 'subscription');
+        const result = await disconnectProvider(
+          props.agentName,
+          provId,
+          'subscription',
+          getProviderId(provId, 'subscription'),
+        );
         if (result?.notifications?.length) {
           for (const msg of result.notifications) toast.error(msg);
         }
@@ -269,6 +282,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
               isSubscriptionWithToken={isSubscriptionWithToken}
               onOpenDetail={openDetail}
               onToggle={handleSubscriptionToggle}
+              providers={props.providers}
             />
           </Show>
 
@@ -282,6 +296,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
               onOpenDetail={openDetail}
               onOpenCustomForm={openCustomForm}
               onEditCustom={openEditCustom}
+              providers={props.providers}
             />
           </Show>
 
@@ -295,41 +310,8 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
         </div>
       </Show>
 
-      {/* -- Device Login Detail View (Copilot) -- */}
-      <Show
-        when={
-          selectedProvider() !== null &&
-          !showCustomForm() &&
-          !editingCustomProvider() &&
-          PROVIDERS.find((p) => p.id === selectedProvider())?.deviceLogin
-        }
-      >
-        <div class="provider-modal__view provider-modal__view--from-right">
-          <CopilotDeviceLogin
-            agentName={props.agentName}
-            connected={isSubscriptionWithToken(selectedProvider()!)}
-            onBack={goBack}
-            onConnected={async () => {
-              await props.onUpdate();
-              goBack();
-            }}
-            onDisconnected={() => {
-              goBack();
-              props.onUpdate();
-            }}
-          />
-        </div>
-      </Show>
-
       {/* -- Detail View (API Key / Token) -- */}
-      <Show
-        when={
-          selectedProvider() !== null &&
-          !showCustomForm() &&
-          !editingCustomProvider() &&
-          !PROVIDERS.find((p) => p.id === selectedProvider())?.deviceLogin
-        }
-      >
+      <Show when={selectedProvider() !== null && !showCustomForm() && !editingCustomProvider()}>
         <div class="provider-modal__view provider-modal__view--from-right">
           <ProviderDetailView
             provId={selectedProvider()!}

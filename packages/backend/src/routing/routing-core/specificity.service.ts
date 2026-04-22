@@ -1,15 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
 import { RoutingCacheService } from './routing-cache.service';
+import { UserProvider } from '../../entities/user-provider.entity';
 
 @Injectable()
 export class SpecificityService {
   constructor(
     @InjectRepository(SpecificityAssignment)
     private readonly repo: Repository<SpecificityAssignment>,
+    @InjectRepository(UserProvider)
+    private readonly providerRepo: Repository<UserProvider>,
     private readonly routingCache: RoutingCacheService,
   ) {}
 
@@ -73,13 +76,34 @@ export class SpecificityService {
     model: string,
     provider?: string,
     authType?: 'api_key' | 'subscription',
+    overrideProviderId?: string,
   ): Promise<SpecificityAssignment> {
+    // Resolve provider details from overrideProviderId when given.
+    let resolvedProvider = provider;
+    let resolvedAuthType = authType;
+    let resolvedProviderId = overrideProviderId ?? null;
+
+    if (overrideProviderId) {
+      const userProvider = await this.providerRepo.findOne({
+        where: { id: overrideProviderId, agent_id: agentId, is_active: true },
+      });
+      if (!userProvider) {
+        throw new BadRequestException(
+          `Provider account "${overrideProviderId}" not found for this agent.`,
+        );
+      }
+      resolvedProvider = userProvider.provider;
+      resolvedAuthType = userProvider.auth_type;
+      resolvedProviderId = userProvider.id;
+    }
+
     const existing = await this.repo.findOne({ where: { agent_id: agentId, category } });
 
     if (existing) {
       existing.override_model = model;
-      existing.override_provider = provider ?? null;
-      existing.override_auth_type = authType ?? null;
+      existing.override_provider = resolvedProvider ?? null;
+      existing.override_auth_type = resolvedAuthType ?? null;
+      existing.override_provider_id = resolvedProviderId;
       existing.is_active = true;
       existing.updated_at = new Date().toISOString();
       await this.repo.save(existing);
@@ -94,8 +118,9 @@ export class SpecificityService {
       category,
       is_active: true,
       override_model: model,
-      override_provider: provider ?? null,
-      override_auth_type: authType ?? null,
+      override_provider: resolvedProvider ?? null,
+      override_auth_type: resolvedAuthType ?? null,
+      override_provider_id: resolvedProviderId,
       auto_assigned_model: null,
       fallback_models: null,
     });
@@ -104,7 +129,16 @@ export class SpecificityService {
       await this.repo.insert(record);
     } catch {
       const retry = await this.repo.findOne({ where: { agent_id: agentId, category } });
-      if (retry) return this.setOverride(agentId, userId, category, model, provider, authType);
+      if (retry)
+        return this.setOverride(
+          agentId,
+          userId,
+          category,
+          model,
+          provider,
+          authType,
+          overrideProviderId,
+        );
     }
     this.routingCache.invalidateAgent(agentId);
     return record;
@@ -116,6 +150,7 @@ export class SpecificityService {
 
     existing.override_model = null;
     existing.override_provider = null;
+    existing.override_provider_id = null;
     existing.override_auth_type = null;
     existing.fallback_models = null;
     existing.updated_at = new Date().toISOString();
@@ -149,6 +184,7 @@ export class SpecificityService {
         is_active: false,
         override_model: null,
         override_provider: null,
+        override_provider_id: null,
         override_auth_type: null,
         fallback_models: null,
         updated_at: new Date().toISOString(),

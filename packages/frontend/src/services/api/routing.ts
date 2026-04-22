@@ -3,6 +3,7 @@ import { fetchJson, fetchMutate, routingPath } from './core.js';
 export type AuthType = 'api_key' | 'subscription';
 
 export interface RoutingProvider {
+  /** UserProvider.id — exact database row identity for multi-account disambiguation. */
   id: string;
   provider: string;
   auth_type: AuthType;
@@ -10,6 +11,8 @@ export interface RoutingProvider {
   has_api_key: boolean;
   key_prefix?: string | null;
   region?: string | null;
+  account_label?: string;
+  is_default?: boolean;
   connected_at: string;
 }
 
@@ -38,7 +41,7 @@ export function getProviders(agentName: string) {
 
 export function connectProvider(
   agentName: string,
-  data: { provider: string; apiKey?: string; authType?: AuthType },
+  data: { provider: string; apiKey?: string; authType?: AuthType; accountLabel?: string },
 ) {
   return fetchMutate<{
     id: string;
@@ -46,6 +49,8 @@ export function connectProvider(
     auth_type: AuthType;
     is_active: boolean;
     region?: string | null;
+    account_label: string;
+    is_default: boolean;
   }>(routingPath(agentName, 'providers'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -59,10 +64,39 @@ export function deactivateAllProviders(agentName: string) {
   });
 }
 
-export function disconnectProvider(agentName: string, provider: string, authType?: AuthType) {
+export function disconnectProvider(
+  agentName: string,
+  provider: string,
+  authType?: AuthType,
+  providerId?: string,
+) {
   const base = routingPath(agentName, `providers/${encodeURIComponent(provider)}`);
-  const path = authType ? `${base}?authType=${authType}` : base;
+  const params = new URLSearchParams();
+  if (authType) params.set('authType', authType);
+  if (providerId) params.set('providerId', providerId);
+  const qs = params.toString();
+  const path = qs ? `${base}?${qs}` : base;
   return fetchMutate<{ ok: boolean; notifications: string[] }>(path, { method: 'DELETE' });
+}
+
+export function patchProviderAccount(
+  agentName: string,
+  providerId: string,
+  data: { accountLabel?: string; isDefault?: boolean },
+) {
+  return fetchMutate<{
+    id: string;
+    provider: string;
+    auth_type: AuthType;
+    is_active: boolean;
+    region?: string | null;
+    account_label: string;
+    is_default: boolean;
+  }>(routingPath(agentName, `providers/${encodeURIComponent(providerId)}/account`), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
 }
 
 /* -- Routing: Copilot Device Login -- */
@@ -83,12 +117,16 @@ export function copilotDeviceCode(agentName: string) {
   });
 }
 
-export async function copilotPollToken(agentName: string, deviceCode: string) {
+export async function copilotPollToken(
+  agentName: string,
+  deviceCode: string,
+  accountLabel?: string,
+) {
   const res = await fetch(`/api/v1${routingPath(agentName, 'copilot/poll-token')}`, {
     credentials: 'include',
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ deviceCode }),
+    body: JSON.stringify({ deviceCode, accountLabel }),
   });
   if (!res.ok) throw new Error(`Poll failed: ${res.status}`);
   return res.json() as Promise<{ status: CopilotPollStatus }>;
@@ -103,6 +141,8 @@ export interface TierAssignment {
   override_model: string | null;
   override_provider: string | null;
   override_auth_type: AuthType | null;
+  /** Exact UserProvider.id used for the override (multi-account). */
+  override_provider_id: string | null;
   auto_assigned_model: string | null;
   fallback_models: string[] | null;
   updated_at: string;
@@ -118,11 +158,17 @@ export function overrideTier(
   model: string,
   provider: string,
   authType?: AuthType,
+  overrideProviderId?: string,
 ) {
   return fetchMutate<TierAssignment>(routingPath(agentName, `tiers/${encodeURIComponent(tier)}`), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model, provider, ...(authType && { authType }) }),
+    body: JSON.stringify({
+      model,
+      provider,
+      ...(authType && { authType }),
+      ...(overrideProviderId && { overrideProviderId }),
+    }),
   });
 }
 

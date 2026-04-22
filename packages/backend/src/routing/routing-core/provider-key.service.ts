@@ -31,15 +31,18 @@ export class ProviderKeyService {
     agentId: string,
     provider: string,
     authType?: 'api_key' | 'subscription',
+    userProviderId?: string,
   ): Promise<string | null> {
     // Ollama runs locally — no API key needed
     if (provider.toLowerCase() === 'ollama') return '';
 
-    const cached = this.routingCache.getApiKey(agentId, provider, authType);
+    const cached = this.routingCache.getApiKey(agentId, provider, authType, userProviderId);
     if (cached !== undefined) return cached;
 
-    const result = await this.resolveProviderApiKey(agentId, provider, authType);
-    this.routingCache.setApiKey(agentId, provider, result, authType);
+    const result = userProviderId
+      ? await this.resolveProviderApiKeyById(agentId, userProviderId)
+      : await this.resolveProviderApiKey(agentId, provider, authType);
+    this.routingCache.setApiKey(agentId, provider, result, authType, userProviderId);
     return result;
   }
 
@@ -47,7 +50,13 @@ export class ProviderKeyService {
     agentId: string,
     provider: string,
     excludeAuthTypes?: Set<string>,
+    userProviderId?: string,
   ): Promise<'api_key' | 'subscription'> {
+    if (userProviderId) {
+      const exact = await this.findActiveProviderRecordById(agentId, userProviderId);
+      return exact?.auth_type ?? 'api_key';
+    }
+
     const names = expandProviderNames([provider]);
     const records = await this.providerService.getProviders(agentId);
     let matches = records.filter((r) => r.is_active && names.has(r.provider.toLowerCase()));
@@ -76,7 +85,13 @@ export class ProviderKeyService {
     agentId: string,
     provider: string,
     authType?: 'api_key' | 'subscription',
+    userProviderId?: string,
   ): Promise<string | null> {
+    if (userProviderId) {
+      const exact = await this.findActiveProviderRecordById(agentId, userProviderId);
+      return exact?.region ?? null;
+    }
+
     const names = expandProviderNames([provider]);
     const records = await this.providerService.getProviders(agentId);
     const matches = records.filter((r) => r.is_active && names.has(r.provider.toLowerCase()));
@@ -163,6 +178,39 @@ export class ProviderKeyService {
     }
 
     return null;
+  }
+
+  /**
+   * Resolve an API key by exact user_providers.id.
+   * Used when routing carries a pinned provider account (multi-account support).
+   * Avoids guessing a different account when one is explicitly specified.
+   */
+  private async resolveProviderApiKeyById(
+    agentId: string,
+    userProviderId: string,
+  ): Promise<string | null> {
+    const record = await this.findActiveProviderRecordById(agentId, userProviderId);
+    if (!record) return null;
+    if (!record.api_key_encrypted) {
+      // Custom/local providers may have no key
+      return '';
+    }
+    try {
+      return decrypt(record.api_key_encrypted, getEncryptionSecret());
+    } catch {
+      const label = record.auth_type === 'subscription' ? 'token' : 'API key';
+      this.logger.warn(`Failed to decrypt ${label} for provider record ${userProviderId}`);
+      return null;
+    }
+  }
+
+  private async findActiveProviderRecordById(
+    agentId: string,
+    userProviderId: string,
+  ): Promise<UserProvider | null> {
+    return this.providerRepo.findOne({
+      where: { id: userProviderId, agent_id: agentId, is_active: true },
+    });
   }
 
   async isModelAvailable(agentId: string, model: string): Promise<boolean> {

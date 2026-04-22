@@ -45,6 +45,7 @@ export class SpecificityController {
       body.model,
       body.provider,
       body.authType,
+      body.overrideProviderId,
     );
   }
 

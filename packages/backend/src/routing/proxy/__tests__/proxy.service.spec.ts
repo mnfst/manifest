@@ -493,6 +493,47 @@ describe('ProxyService', () => {
     );
   });
 
+  it('passes exact user_provider_id into credential and region lookup when resolver pins an account', async () => {
+    resolveService.resolve.mockResolvedValue({
+      tier: 'standard',
+      model: 'qwen3.5-flash',
+      provider: 'Alibaba',
+      confidence: 0.8,
+      score: 0.1,
+      reason: 'scored',
+      auth_type: 'api_key',
+      user_provider_id: 'prov-qwen-1',
+    });
+    providerKeyService.getProviderApiKey.mockResolvedValue('sk-qwen');
+    providerKeyService.getProviderRegion.mockResolvedValue('singapore');
+    providerClient.forward.mockResolvedValue({
+      response: new Response('{}', { status: 200 }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    });
+
+    await service.proxyRequest({
+      agentId: 'agent-1',
+      userId: 'user-1',
+      body,
+      sessionKey: 'sess-account',
+    });
+
+    expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
+      'agent-1',
+      'Alibaba',
+      'api_key',
+      'prov-qwen-1',
+    );
+    expect(providerKeyService.getProviderRegion).toHaveBeenCalledWith(
+      'agent-1',
+      'Alibaba',
+      'api_key',
+      'prov-qwen-1',
+    );
+  });
+
   it('applies the stored Qwen region when resolver returns the Alibaba alias', async () => {
     resolveService.resolve.mockResolvedValue({
       tier: 'standard',
@@ -2959,7 +3000,12 @@ describe('ProxyService', () => {
         sessionKey: 'sess',
       });
 
-      expect(openaiOauth.unwrapToken).toHaveBeenCalledWith(tokenBlob, 'agent-1', 'user-1');
+      expect(openaiOauth.unwrapToken).toHaveBeenCalledWith(
+        tokenBlob,
+        'agent-1',
+        'user-1',
+        undefined,
+      );
       expect(providerClient.forward).toHaveBeenCalledWith(
         expect.objectContaining({
           provider: 'openai',
@@ -3079,6 +3125,7 @@ describe('ProxyService', () => {
         '{"t":"fb-tok","r":"fb-ref","e":9999999999999}',
         'agent-1',
         'user-1',
+        undefined,
       );
       expect(result.meta.model).toBe('gpt-4o');
     });
@@ -3120,7 +3167,12 @@ describe('ProxyService', () => {
         sessionKey: 'sess',
       });
 
-      expect(minimaxOauth.unwrapToken).toHaveBeenCalledWith(tokenBlob, 'agent-1', 'user-1');
+      expect(minimaxOauth.unwrapToken).toHaveBeenCalledWith(
+        tokenBlob,
+        'agent-1',
+        'user-1',
+        undefined,
+      );
       expect(providerClient.forward).toHaveBeenCalledWith(
         expect.objectContaining({
           provider: 'minimax',

@@ -3,7 +3,14 @@ import { timestampType, timestampDefault } from '../common/utils/sql-dialect';
 import type { DiscoveredModel } from '../model-discovery/model-fetcher';
 
 @Entity('user_providers')
-@Index(['agent_id', 'provider', 'auth_type'], { unique: true })
+@Index(['agent_id', 'provider', 'auth_type', 'account_label'], {
+  unique: true,
+  where: '"is_active" = true',
+})
+@Index(['agent_id', 'provider', 'auth_type'], {
+  unique: true,
+  where: '"is_active" = true AND "is_default" = true',
+})
 export class UserProvider {
   @PrimaryColumn('varchar')
   id!: string;
@@ -31,6 +38,12 @@ export class UserProvider {
 
   @Column('boolean', { default: true })
   is_active!: boolean;
+
+  @Column('varchar', { default: 'default' })
+  account_label!: string;
+
+  @Column('boolean', { default: true })
+  is_default!: boolean;
 
   @Column(timestampType(), { default: timestampDefault() })
   connected_at!: string;

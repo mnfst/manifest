@@ -71,8 +71,28 @@ describe('TierController', () => {
         'claude-opus-4-6',
         'openrouter',
         undefined,
+        undefined,
       );
       expect(result).toBe(updated);
+    });
+
+    it('should pass overrideProviderId to service', async () => {
+      mockTierService.setOverride.mockResolvedValue({});
+
+      await controller.setOverride(mockUser, 'test-agent', 'simple', {
+        model: 'gpt-4o',
+        overrideProviderId: 'prov-abc',
+      });
+
+      expect(mockTierService.setOverride).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'user-1',
+        'simple',
+        'gpt-4o',
+        undefined,
+        undefined,
+        'prov-abc',
+      );
     });
   });
 

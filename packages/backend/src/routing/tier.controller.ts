@@ -33,6 +33,7 @@ export class TierController {
       body.model,
       body.provider,
       body.authType,
+      body.overrideProviderId,
     );
   }
 

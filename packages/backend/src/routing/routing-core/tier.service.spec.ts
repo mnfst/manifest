@@ -29,6 +29,24 @@ jest.mock('../../common/utils/subscription-support', () => ({
   }),
 }));
 
+function makeProvider(overrides: Partial<UserProvider> = {}): UserProvider {
+  return Object.assign(new UserProvider(), {
+    id: 'prov-1',
+    user_id: 'user-1',
+    agent_id: 'agent-1',
+    provider: 'openai',
+    auth_type: 'api_key' as const,
+    api_key_encrypted: 'enc-key',
+    key_prefix: 'sk-',
+    is_active: true,
+    connected_at: '2025-01-01T00:00:00Z',
+    updated_at: '2025-01-01T00:00:00Z',
+    cached_models: null,
+    models_fetched_at: null,
+    ...overrides,
+  });
+}
+
 function makeMockRepo() {
   return {
     find: jest.fn().mockResolvedValue([]),
@@ -47,6 +65,7 @@ function makeTier(overrides: Partial<TierAssignment> = {}): TierAssignment {
     tier: 'simple',
     override_model: null,
     override_provider: null,
+    override_provider_id: null,
     override_auth_type: null,
     auto_assigned_model: 'gpt-4o-mini',
     fallback_models: null,
@@ -362,6 +381,81 @@ describe('TierService', () => {
         service.setOverride('agent-1', 'user-1', 'simple', 'missing-model'),
       ).rejects.toThrow(/…/);
     });
+
+    /* ── overrideProviderId ── */
+
+    it('should accept overrideProviderId and resolve provider details', async () => {
+      const existing = makeTier();
+      tierRepo.findOne.mockResolvedValue(existing);
+      providerRepo.findOne.mockResolvedValue(
+        makeProvider({ id: 'prov-abc', provider: 'openai', auth_type: 'api_key' }),
+      );
+
+      const result = await service.setOverride(
+        'agent-1',
+        'user-1',
+        'simple',
+        'gpt-4o',
+        undefined,
+        undefined,
+        'prov-abc',
+      );
+
+      expect(result.override_provider).toBe('openai');
+      expect(result.override_auth_type).toBe('api_key');
+      expect(result.override_provider_id).toBe('prov-abc');
+      expect(tierRepo.save).toHaveBeenCalledWith(existing);
+    });
+
+    it('should reject overrideProviderId not belonging to the agent', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.setOverride(
+          'agent-1',
+          'user-1',
+          'simple',
+          'gpt-4o',
+          undefined,
+          undefined,
+          'bad-id',
+        ),
+      ).rejects.toThrow(BadRequestException);
+      expect(tierRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('should reject overrideProviderId for inactive provider', async () => {
+      // Real DB query filters by is_active: true, so inactive providers return null
+      providerRepo.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.setOverride(
+          'agent-1',
+          'user-1',
+          'simple',
+          'gpt-4o',
+          undefined,
+          undefined,
+          'prov-inactive',
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should store null override_provider_id when no overrideProviderId given', async () => {
+      const existing = makeTier();
+      tierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await service.setOverride(
+        'agent-1',
+        'user-1',
+        'simple',
+        'gpt-4o',
+        'openai',
+        'api_key',
+      );
+
+      expect(result.override_provider_id).toBeNull();
+    });
   });
 
   /* ── clearOverride ── */
@@ -371,6 +465,7 @@ describe('TierService', () => {
       const existing = makeTier({
         override_model: 'gpt-4o',
         override_provider: 'openai',
+        override_provider_id: 'prov-1',
         override_auth_type: 'api_key',
       });
       tierRepo.findOne.mockResolvedValue(existing);
@@ -379,6 +474,7 @@ describe('TierService', () => {
 
       expect(existing.override_model).toBeNull();
       expect(existing.override_provider).toBeNull();
+      expect(existing.override_provider_id).toBeNull();
       expect(existing.override_auth_type).toBeNull();
       expect(tierRepo.save).toHaveBeenCalledWith(existing);
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
@@ -405,6 +501,7 @@ describe('TierService', () => {
         expect.objectContaining({
           override_model: null,
           override_provider: null,
+          override_provider_id: null,
           override_auth_type: null,
           fallback_models: null,
         }),

@@ -29,6 +29,10 @@ export interface ProviderKeyFormProps {
   validationError: Accessor<string | null>;
   setValidationError: Setter<string | null>;
   getKeyPrefixDisplay: (authType: AuthType) => string;
+  /** The exact UserProvider.id for the current provider+authType (multi-account). */
+  userProviderId?: string;
+  accountLabel?: string;
+  requireAccountLabel?: boolean;
   onBack: () => void;
   onUpdate: () => void;
 }
@@ -51,8 +55,13 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
     props.isSubMode()
       ? getSubscriptionProviderKeyUrl(props.provId)
       : getRoutingProviderApiKeyUrl(props.provId);
+  const normalizedAccountLabel = () => props.accountLabel?.trim() || undefined;
 
   const handleConnect = async () => {
+    if (props.requireAccountLabel && !normalizedAccountLabel()) {
+      props.setValidationError('Account label is required to add another account.');
+      return;
+    }
     const result = props.isSubMode()
       ? validateSubscriptionKey(props.provDef, props.keyInput())
       : validateApiKey(props.provDef, props.keyInput());
@@ -67,6 +76,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
         provider: props.provId,
         apiKey: props.keyInput().replace(/\s/g, ''),
         authType: props.selectedAuthType(),
+        ...(normalizedAccountLabel() ? { accountLabel: normalizedAccountLabel() } : {}),
       });
       toast.success(`${props.provDef.name} connected`);
       props.onBack();
@@ -79,6 +89,10 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
   };
 
   const handleUpdateKey = async () => {
+    if (props.requireAccountLabel && !normalizedAccountLabel()) {
+      props.setValidationError('Account label is required to add another account.');
+      return;
+    }
     const result = props.isSubMode()
       ? validateSubscriptionKey(props.provDef, props.keyInput())
       : validateApiKey(props.provDef, props.keyInput());
@@ -93,6 +107,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
         provider: props.provId,
         apiKey: props.keyInput().replace(/\s/g, ''),
         authType: props.selectedAuthType(),
+        ...(normalizedAccountLabel() ? { accountLabel: normalizedAccountLabel() } : {}),
       });
       const label = props.isSubMode() && !isApiKeyCredential() ? 'token' : 'key';
       toast.success(`${props.provDef.name} ${label} updated`);
@@ -109,12 +124,13 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
     props.setBusy(true);
     try {
       if (shouldRevokeOpenaiOAuth()) {
-        await revokeOpenaiOAuth(props.agentName).catch(() => {});
+        await revokeOpenaiOAuth(props.agentName, props.userProviderId).catch(() => {});
       }
       const result = await disconnectProvider(
         props.agentName,
         props.provId,
         props.selectedAuthType(),
+        props.userProviderId,
       );
       if (result?.notifications?.length) {
         for (const msg of result.notifications) {

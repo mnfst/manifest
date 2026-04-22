@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@solidjs/testing-library";
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@solidjs/testing-library';
 
 const mockConnectProvider = vi.fn();
 const mockDisconnectProvider = vi.fn();
@@ -7,7 +7,7 @@ const mockGetOpenaiOAuthUrl = vi.fn();
 const mockPollMinimaxOAuth = vi.fn();
 const mockStartMinimaxOAuth = vi.fn();
 
-vi.mock("../../src/services/api.js", () => ({
+vi.mock('../../src/services/api.js', () => ({
   connectProvider: (...args: unknown[]) => mockConnectProvider(...args),
   disconnectProvider: (...args: unknown[]) => mockDisconnectProvider(...args),
   getOpenaiOAuthUrl: (...args: unknown[]) => mockGetOpenaiOAuthUrl(...args),
@@ -16,26 +16,27 @@ vi.mock("../../src/services/api.js", () => ({
   startMinimaxOAuth: (...args: unknown[]) => mockStartMinimaxOAuth(...args),
 }));
 
-vi.mock("../../src/services/toast-store.js", () => ({
+vi.mock('../../src/services/toast-store.js', () => ({
   toast: { error: vi.fn(), success: vi.fn(), warning: vi.fn() },
 }));
 
-vi.mock("../../src/components/ProviderIcon.js", () => ({
-  providerIcon: () => null, customProviderLogo: () => null,
+vi.mock('../../src/components/ProviderIcon.js', () => ({
+  providerIcon: () => null,
+  customProviderLogo: () => null,
 }));
 
 // Mock providers to include a subscription provider WITHOUT subscriptionKeyPlaceholder
 // so handleSubscriptionToggle is exercised (the toggle path, not the detail-view path).
-vi.mock("../../src/services/providers.js", () => {
+vi.mock('../../src/services/providers.js', () => {
   const testProvider = {
-    id: "test-sub",
-    name: "TestSub",
-    color: "#000",
-    initial: "T",
-    subtitle: "Test subscription provider",
-    keyPrefix: "",
+    id: 'test-sub',
+    name: 'TestSub',
+    color: '#000',
+    initial: 'T',
+    subtitle: 'Test subscription provider',
+    keyPrefix: '',
     minKeyLength: 0,
-    keyPlaceholder: "",
+    keyPlaceholder: '',
     models: [],
     supportsSubscription: true,
     // No subscriptionKeyPlaceholder → toggle path
@@ -47,11 +48,11 @@ vi.mock("../../src/services/providers.js", () => {
   };
 });
 
-import ProviderSelectModal from "../../src/components/ProviderSelectModal";
-import { toast } from "../../src/services/toast-store.js";
-import type { RoutingProvider } from "../../src/services/api.js";
+import ProviderSelectModal from '../../src/components/ProviderSelectModal';
+import { toast } from '../../src/services/toast-store.js';
+import type { RoutingProvider } from '../../src/services/api.js';
 
-describe("ProviderSelectModal — subscription toggle (no subscriptionKeyPlaceholder)", () => {
+describe('ProviderSelectModal — subscription toggle (no subscriptionKeyPlaceholder)', () => {
   let onClose: ReturnType<typeof vi.fn>;
   let onUpdate: ReturnType<typeof vi.fn>;
 
@@ -61,17 +62,17 @@ describe("ProviderSelectModal — subscription toggle (no subscriptionKeyPlaceho
     onUpdate = vi.fn();
     mockConnectProvider.mockResolvedValue({});
     mockDisconnectProvider.mockResolvedValue({ notifications: [] });
-    mockPollMinimaxOAuth.mockResolvedValue({ status: "pending", pollIntervalMs: 2000 });
+    mockPollMinimaxOAuth.mockResolvedValue({ status: 'pending', pollIntervalMs: 2000 });
     mockStartMinimaxOAuth.mockResolvedValue({
-      flowId: "flow-1",
-      userCode: "ABCD-1234",
-      verificationUri: "https://www.minimax.io/verify",
+      flowId: 'flow-1',
+      userCode: 'ABCD-1234',
+      verificationUri: 'https://www.minimax.io/verify',
       expiresAt: Date.now() + 60_000,
       pollIntervalMs: 2000,
     });
   });
 
-  it("connects a subscription provider via toggle when not connected", async () => {
+  it('connects a subscription provider via toggle when not connected', async () => {
     render(() => (
       <ProviderSelectModal
         providers={[]}
@@ -81,26 +82,26 @@ describe("ProviderSelectModal — subscription toggle (no subscriptionKeyPlaceho
       />
     ));
     // On subscription tab (default), click the TestSub provider toggle
-    fireEvent.click(screen.getByText("TestSub"));
+    fireEvent.click(screen.getByText('TestSub'));
 
     await waitFor(() => {
-      expect(mockConnectProvider).toHaveBeenCalledWith("test-agent", {
-        provider: "test-sub",
-        authType: "subscription",
+      expect(mockConnectProvider).toHaveBeenCalledWith('test-agent', {
+        provider: 'test-sub',
+        authType: 'subscription',
       });
     });
-    expect(toast.success).toHaveBeenCalledWith("TestSub subscription connected");
+    expect(toast.success).toHaveBeenCalledWith('TestSub subscription connected');
     expect(onUpdate).toHaveBeenCalled();
   });
 
-  it("disconnects a subscription provider via toggle when already connected", async () => {
+  it('disconnects a subscription provider via toggle when already connected', async () => {
     const subProvider: RoutingProvider = {
-      id: "p-sub",
-      provider: "test-sub",
+      id: 'p-sub',
+      provider: 'test-sub',
       is_active: true,
       has_api_key: false,
-      connected_at: "2025-01-01",
-      auth_type: "subscription",
+      connected_at: '2025-01-01',
+      auth_type: 'subscription',
     };
     render(() => (
       <ProviderSelectModal
@@ -111,26 +112,31 @@ describe("ProviderSelectModal — subscription toggle (no subscriptionKeyPlaceho
       />
     ));
     // On subscription tab, the toggle is ON → click disconnects
-    fireEvent.click(screen.getByText("TestSub"));
+    fireEvent.click(screen.getByText('TestSub'));
 
     await waitFor(() => {
-      expect(mockDisconnectProvider).toHaveBeenCalledWith("test-agent", "test-sub", "subscription");
+      expect(mockDisconnectProvider).toHaveBeenCalledWith(
+        'test-agent',
+        'test-sub',
+        'subscription',
+        'p-sub',
+      );
     });
-    expect(toast.success).toHaveBeenCalledWith("TestSub subscription disconnected");
+    expect(toast.success).toHaveBeenCalledWith('TestSub subscription disconnected');
     expect(onUpdate).toHaveBeenCalled();
   });
 
-  it("shows disconnect notifications as error toasts", async () => {
+  it('shows disconnect notifications as error toasts', async () => {
     mockDisconnectProvider.mockResolvedValue({
-      notifications: ["Model X is no longer available."],
+      notifications: ['Model X is no longer available.'],
     });
     const subProvider: RoutingProvider = {
-      id: "p-sub",
-      provider: "test-sub",
+      id: 'p-sub',
+      provider: 'test-sub',
       is_active: true,
       has_api_key: false,
-      connected_at: "2025-01-01",
-      auth_type: "subscription",
+      connected_at: '2025-01-01',
+      auth_type: 'subscription',
     };
     render(() => (
       <ProviderSelectModal
@@ -140,15 +146,15 @@ describe("ProviderSelectModal — subscription toggle (no subscriptionKeyPlaceho
         agentName="test-agent"
       />
     ));
-    fireEvent.click(screen.getByText("TestSub"));
+    fireEvent.click(screen.getByText('TestSub'));
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith("Model X is no longer available.");
+      expect(toast.error).toHaveBeenCalledWith('Model X is no longer available.');
     });
   });
 
-  it("handles toggle error gracefully", async () => {
-    mockConnectProvider.mockRejectedValue(new Error("Network error"));
+  it('handles toggle error gracefully', async () => {
+    mockConnectProvider.mockRejectedValue(new Error('Network error'));
     render(() => (
       <ProviderSelectModal
         providers={[]}
@@ -157,7 +163,7 @@ describe("ProviderSelectModal — subscription toggle (no subscriptionKeyPlaceho
         agentName="test-agent"
       />
     ));
-    fireEvent.click(screen.getByText("TestSub"));
+    fireEvent.click(screen.getByText('TestSub'));
 
     await waitFor(() => {
       expect(mockConnectProvider).toHaveBeenCalled();
@@ -166,14 +172,14 @@ describe("ProviderSelectModal — subscription toggle (no subscriptionKeyPlaceho
     expect(onUpdate).not.toHaveBeenCalled();
   });
 
-  it("shows isSubscriptionConnected toggle as ON when provider is active", () => {
+  it('shows isSubscriptionConnected toggle as ON when provider is active', () => {
     const subProvider: RoutingProvider = {
-      id: "p-sub",
-      provider: "test-sub",
+      id: 'p-sub',
+      provider: 'test-sub',
       is_active: true,
       has_api_key: false,
-      connected_at: "2025-01-01",
-      auth_type: "subscription",
+      connected_at: '2025-01-01',
+      auth_type: 'subscription',
     };
     const { container } = render(() => (
       <ProviderSelectModal
@@ -185,7 +191,7 @@ describe("ProviderSelectModal — subscription toggle (no subscriptionKeyPlaceho
     ));
     // For a provider without subscriptionKeyPlaceholder, connected() uses isSubscriptionConnected
     // which only checks is_active (not has_api_key)
-    const onSwitches = container.querySelectorAll(".provider-toggle__switch--on");
+    const onSwitches = container.querySelectorAll('.provider-toggle__switch--on');
     expect(onSwitches.length).toBeGreaterThanOrEqual(1);
   });
 
@@ -200,9 +206,9 @@ describe("ProviderSelectModal — subscription toggle (no subscriptionKeyPlaceho
     ));
     // TestSub provider has no subscriptionLabel, so the fallback 'Subscription' is used
     // Check within the provider toggle's local-only span (not the tab label)
-    const localOnlyLabels = container.querySelectorAll(".provider-toggle__local-only");
+    const localOnlyLabels = container.querySelectorAll('.provider-toggle__local-only');
     const hasSubscriptionLabel = Array.from(localOnlyLabels).some(
-      (el) => el.textContent === "Subscription",
+      (el) => el.textContent === 'Subscription',
     );
     expect(hasSubscriptionLabel).toBe(true);
   });

@@ -44,6 +44,7 @@ describe('ProviderApiKeyTab', () => {
         onOpenDetail={vi.fn()}
         onOpenCustomForm={vi.fn()}
         onEditCustom={vi.fn()}
+        providers={[]}
       />
     ));
     await flushMicrotasks();
@@ -73,6 +74,7 @@ describe('ProviderApiKeyTab', () => {
         onOpenDetail={onOpenDetail}
         onOpenCustomForm={vi.fn()}
         onEditCustom={vi.fn()}
+        providers={[]}
       />
     ));
     await flushMicrotasks();
@@ -99,6 +101,7 @@ describe('ProviderApiKeyTab', () => {
         onOpenDetail={vi.fn()}
         onOpenCustomForm={vi.fn()}
         onEditCustom={vi.fn()}
+        providers={[]}
       />
     ));
     await flushMicrotasks();
@@ -126,6 +129,7 @@ describe('ProviderApiKeyTab', () => {
         onOpenDetail={onOpenDetail}
         onOpenCustomForm={vi.fn()}
         onEditCustom={vi.fn()}
+        providers={[]}
       />
     ));
     await flushMicrotasks();
@@ -186,6 +190,7 @@ describe('ProviderApiKeyTab', () => {
         onOpenDetail={vi.fn()}
         onOpenCustomForm={vi.fn()}
         onEditCustom={vi.fn()}
+        providers={[]}
       />
     ));
     await flushMicrotasks();
@@ -212,6 +217,7 @@ describe('ProviderApiKeyTab', () => {
         onOpenDetail={vi.fn()}
         onOpenCustomForm={vi.fn()}
         onEditCustom={vi.fn()}
+        providers={[]}
       />
     ));
     await flushMicrotasks();
@@ -239,6 +245,7 @@ describe('ProviderApiKeyTab', () => {
         onOpenDetail={vi.fn()}
         onOpenCustomForm={vi.fn()}
         onEditCustom={vi.fn()}
+        providers={[]}
       />
     ));
     await flushMicrotasks();
@@ -261,6 +268,7 @@ describe('ProviderApiKeyTab', () => {
         onOpenDetail={vi.fn()}
         onOpenCustomForm={onOpenCustomForm}
         onEditCustom={vi.fn()}
+        providers={[]}
       />
     ));
     await flushMicrotasks();

@@ -1,5 +1,5 @@
-import { For, type Accessor, type Component } from 'solid-js';
-import type { AuthType } from '../services/api.js';
+import { For, Show, type Accessor, type Component } from 'solid-js';
+import type { AuthType, RoutingProvider } from '../services/api.js';
 import type { ProviderDef } from '../services/providers.js';
 import { providerIcon } from './ProviderIcon.js';
 
@@ -10,11 +10,18 @@ interface Props {
   isSubscriptionWithToken: (provId: string) => boolean;
   onOpenDetail: (provId: string, authType: AuthType) => void;
   onToggle: (provId: string) => void;
+  /** All provider rows for checking multi-account status. */
+  providers: RoutingProvider[];
 }
 
 const ProviderSubscriptionTab: Component<Props> = (props) => {
   const getSubscriptionAuthMode = (prov: ProviderDef) =>
     prov.subscriptionAuthMode ?? (prov.subscriptionKeyPlaceholder ? 'token' : undefined);
+
+  const getAccountsForProvider = (provId: string) =>
+    props.providers.filter(
+      (p) => p.provider === provId && p.auth_type === 'subscription' && p.is_active,
+    );
 
   return (
     <>
@@ -41,6 +48,8 @@ const ProviderSubscriptionTab: Component<Props> = (props) => {
               requiresStoredToken()
                 ? props.isSubscriptionWithToken(prov.id)
                 : props.isSubscriptionConnected(prov.id);
+            const accounts = () => getAccountsForProvider(prov.id);
+            const accountCount = () => accounts().length;
 
             return (
               <button
@@ -61,9 +70,14 @@ const ProviderSubscriptionTab: Component<Props> = (props) => {
                 </span>
                 <span class="provider-toggle__info">
                   <span class="provider-toggle__name">{prov.name}</span>
-                  <span class="provider-toggle__local-only">
-                    {prov.subscriptionLabel ?? 'Subscription'}
-                  </span>
+                  <Show when={accountCount() > 1}>
+                    <span class="provider-toggle__tag">{accountCount()} accounts</span>
+                  </Show>
+                  <Show when={accountCount() <= 1}>
+                    <span class="provider-toggle__local-only">
+                      {prov.subscriptionLabel ?? 'Subscription'}
+                    </span>
+                  </Show>
                 </span>
                 <span
                   class="provider-toggle__switch"

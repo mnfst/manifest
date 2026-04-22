@@ -4,6 +4,8 @@ export interface PendingOAuth {
   userId: string;
   backendUrl: string;
   expiresAt: number;
+  /** Optional account label for multi-account support. */
+  accountLabel?: string;
 }
 
 export interface OAuthTokenBlob {

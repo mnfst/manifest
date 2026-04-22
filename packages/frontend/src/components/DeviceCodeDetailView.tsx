@@ -25,6 +25,10 @@ interface Props {
   selectedAuthType: Accessor<AuthType>;
   busy: Accessor<boolean>;
   setBusy: Setter<boolean>;
+  /** The exact UserProvider.id for the current provider+authType (multi-account). */
+  userProviderId?: string;
+  accountLabel?: string;
+  requireAccountLabel?: boolean;
   onBack: () => void;
   onUpdate: () => void;
   onClose: () => void;
@@ -48,6 +52,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
   let pollTimer: number | undefined;
   let isDisposed = false;
   let activeFlowGeneration = 0;
+  const normalizedAccountLabel = () => props.accountLabel?.trim() || undefined;
 
   const clearPollTimer = () => {
     if (pollTimer !== undefined) {
@@ -78,6 +83,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
         props.agentName,
         props.provId,
         props.selectedAuthType(),
+        props.userProviderId,
       );
       if (result?.notifications?.length) {
         for (const msg of result.notifications) {
@@ -146,13 +152,21 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
   };
 
   const handleStart = async () => {
+    if (props.requireAccountLabel && !normalizedAccountLabel()) {
+      setFlowError('Account label is required to add another account.');
+      return;
+    }
     props.setBusy(true);
     const flowGeneration = ++activeFlowGeneration;
     clearPollTimer();
     setFlowError(null);
     setStatusMessage(null);
     try {
-      const nextFlow = await startMinimaxOAuth(props.agentName, selectedRegion());
+      const nextFlow = await startMinimaxOAuth(
+        props.agentName,
+        selectedRegion(),
+        normalizedAccountLabel(),
+      );
       if (isDisposed || flowGeneration !== activeFlowGeneration) return;
       setFlow(nextFlow);
       window.open(nextFlow.verificationUri, '_blank', 'noopener,noreferrer');
@@ -183,6 +197,11 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
                 Choose your MiniMax region, then open the authorization page in your browser to sign
                 in and approve access.
               </p>
+              <Show when={props.requireAccountLabel}>
+                <p class="provider-detail__hint" style="margin-top: 8px;">
+                  Add an account label first to connect another {props.provDef.name} account.
+                </p>
+              </Show>
               <div class="provider-detail__field" style="margin-top: 12px;">
                 <label class="provider-detail__label" for="minimax-region">
                   Region
@@ -280,6 +299,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
           class="btn btn--outline provider-detail__action provider-detail__disconnect"
           disabled={props.busy()}
           onClick={handleDisconnect}
+          aria-label="Disconnect provider"
         >
           <Show when={!props.busy()} fallback={<span class="spinner" />}>
             Disconnect

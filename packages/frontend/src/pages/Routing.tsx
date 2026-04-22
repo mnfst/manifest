@@ -25,6 +25,7 @@ import {
   refreshModels,
   getPricingHealth,
   refreshPricing,
+  type AuthType,
 } from '../services/api.js';
 import {
   parseCustomProviderParams,
@@ -137,6 +138,22 @@ const Routing: Component = () => {
   const hadRouting = () => (connectedProviders()?.length ?? 0) > 0 && !isEnabled();
   const activeProviders = () => connectedProviders()?.filter((p) => p.is_active) ?? [];
   const hasOverrides = () => tiers()?.some((t) => t.override_model !== null) ?? false;
+
+  /** Resolve the exact UserProvider.id for a provider+authType combo (multi-account). */
+  const resolveOverrideProviderId = (
+    providerId: string,
+    authType?: AuthType,
+  ): string | undefined => {
+    const providers = connectedProviders();
+    if (!providers) return undefined;
+    const match = providers.find(
+      (p) =>
+        p.is_active &&
+        p.provider.toLowerCase() === providerId.toLowerCase() &&
+        (!authType || p.auth_type === authType),
+    );
+    return match?.id;
+  };
 
   const openProviderModal = () => {
     setWasEnabledBeforeModal(isEnabled());
@@ -330,7 +347,15 @@ const Routing: Component = () => {
             onOverride={async (category, model, provider, authType) => {
               setChangingSpecificity(category);
               try {
-                await overrideSpecificity(agentName(), category, model, provider, authType);
+                const overrideProviderId = resolveOverrideProviderId(provider, authType);
+                await overrideSpecificity(
+                  agentName(),
+                  category,
+                  model,
+                  provider,
+                  authType,
+                  overrideProviderId,
+                );
                 await refetchSpecificity();
               } catch {
                 toast.error('Failed to update model');
@@ -404,7 +429,15 @@ const Routing: Component = () => {
           setSpecificityDropdown(null);
           setChangingSpecificity(category);
           try {
-            await overrideSpecificity(agentName(), category, model, provider, authType);
+            const overrideProviderId = resolveOverrideProviderId(provider, authType);
+            await overrideSpecificity(
+              agentName(),
+              category,
+              model,
+              provider,
+              authType,
+              overrideProviderId,
+            );
             await refetchSpecificity();
           } catch {
             toast.error('Failed to update specificity model');

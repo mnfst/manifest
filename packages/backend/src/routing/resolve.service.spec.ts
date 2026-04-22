@@ -248,7 +248,12 @@ describe('ResolveService', () => {
       const result = await service.resolve('agent-1', [{ role: 'user', content: 'hello' }]);
 
       expect(result.auth_type).toBe('api_key');
-      expect(mockProviderKeyService.getAuthType).toHaveBeenCalledWith('agent-1', 'OpenAI');
+      expect(mockProviderKeyService.getAuthType).toHaveBeenCalledWith(
+        'agent-1',
+        'OpenAI',
+        undefined,
+        undefined,
+      );
     });
 
     it('should return subscription from getAuthType when provider has subscription', async () => {
@@ -341,7 +346,12 @@ describe('ResolveService', () => {
       const result = await service.resolveForTier('agent-1', 'simple');
 
       expect(result.auth_type).toBe('api_key');
-      expect(mockProviderKeyService.getAuthType).toHaveBeenCalledWith('agent-1', 'OpenAI');
+      expect(mockProviderKeyService.getAuthType).toHaveBeenCalledWith(
+        'agent-1',
+        'OpenAI',
+        undefined,
+        undefined,
+      );
     });
 
     it('should not include auth_type in resolveForTier when model is null', async () => {
@@ -580,7 +590,12 @@ describe('ResolveService', () => {
       ]);
 
       expect(result.auth_type).toBe('api_key');
-      expect(mockProviderKeyService.getAuthType).toHaveBeenCalledWith('agent-1', 'anthropic');
+      expect(mockProviderKeyService.getAuthType).toHaveBeenCalledWith(
+        'agent-1',
+        'anthropic',
+        undefined,
+        undefined,
+      );
     });
 
     it('should accept specificity override via header', async () => {

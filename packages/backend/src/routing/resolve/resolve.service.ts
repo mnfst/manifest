@@ -97,9 +97,10 @@ export class ResolveService {
     }
 
     const provider = await this.resolveProvider(agentId, assignment, model);
+    const userProviderId = assignment.override_provider_id ?? undefined;
     const authType = provider
       ? (assignment.override_auth_type ??
-        (await this.providerKeyService.getAuthType(agentId, provider)))
+        (await this.providerKeyService.getAuthType(agentId, provider, undefined, userProviderId)))
       : undefined;
 
     return {
@@ -110,6 +111,7 @@ export class ResolveService {
       score: result.score,
       reason: result.reason,
       auth_type: authType,
+      user_provider_id: userProviderId,
     };
   }
 
@@ -123,9 +125,10 @@ export class ResolveService {
 
     const model = await this.providerKeyService.getEffectiveModel(agentId, assignment);
     const provider = model ? await this.resolveProvider(agentId, assignment, model) : null;
+    const userProviderId = assignment.override_provider_id ?? undefined;
     const authType = provider
       ? (assignment.override_auth_type ??
-        (await this.providerKeyService.getAuthType(agentId, provider)))
+        (await this.providerKeyService.getAuthType(agentId, provider, undefined, userProviderId)))
       : undefined;
 
     return {
@@ -136,6 +139,7 @@ export class ResolveService {
       score: 0,
       reason: 'heartbeat',
       auth_type: authType,
+      user_provider_id: userProviderId,
     };
   }
 
@@ -186,9 +190,10 @@ export class ResolveService {
       },
       model,
     );
+    const userProviderId = assignment.override_provider_id ?? undefined;
     const authType = provider
       ? (assignment.override_auth_type ??
-        (await this.providerKeyService.getAuthType(agentId, provider)))
+        (await this.providerKeyService.getAuthType(agentId, provider, undefined, userProviderId)))
       : undefined;
 
     return {
@@ -201,6 +206,7 @@ export class ResolveService {
       auth_type: authType,
       specificity_category: detected.category,
       fallback_models: assignment.fallback_models ?? null,
+      user_provider_id: userProviderId,
     };
   }
 

@@ -170,7 +170,6 @@ describe('getMessages', () => {
   });
 });
 
-
 describe('getHealth', () => {
   it('fetches /api/v1/health', async () => {
     mockOk({ status: 'ok' });
@@ -301,7 +300,7 @@ describe('createAgent', () => {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'bot' }),  // createAgent({ name: 'bot' })
+        body: JSON.stringify({ name: 'bot' }), // createAgent({ name: 'bot' })
       }),
     );
   });
@@ -387,7 +386,12 @@ describe('renameAgent', () => {
 describe('getAgentInfo', () => {
   it('should return agent info when agent exists', async () => {
     const agents = [
-      { agent_name: 'my-agent', display_name: 'My Agent', agent_category: 'personal', agent_platform: 'openclaw' },
+      {
+        agent_name: 'my-agent',
+        display_name: 'My Agent',
+        agent_category: 'personal',
+        agent_platform: 'openclaw',
+      },
       { agent_name: 'other', display_name: 'Other', agent_category: null, agent_platform: null },
     ];
     mockOk({ agents });
@@ -398,7 +402,11 @@ describe('getAgentInfo', () => {
   });
 
   it('should return null when agent not found', async () => {
-    mockOk({ agents: [{ agent_name: 'other', display_name: 'Other', agent_category: null, agent_platform: null }] });
+    mockOk({
+      agents: [
+        { agent_name: 'other', display_name: 'Other', agent_category: null, agent_platform: null },
+      ],
+    });
 
     const result = await getAgentInfo('missing-agent');
 
@@ -418,7 +426,10 @@ describe('updateAgent', () => {
   it('should PATCH to the correct URL with fields', async () => {
     mockMutateOk({ updated: true });
 
-    const result = await updateAgent('my-agent', { agent_category: 'app', agent_platform: 'openai-sdk' });
+    const result = await updateAgent('my-agent', {
+      agent_category: 'app',
+      agent_platform: 'openai-sdk',
+    });
 
     expect(result).toEqual({ updated: true });
     expect(mockFetch).toHaveBeenCalledWith(
@@ -445,7 +456,9 @@ describe('updateAgent', () => {
     const { toast } = await import('../../src/services/toast-store.js');
     mockMutateError(400, 'Invalid category');
 
-    await expect(updateAgent('my-agent', { agent_category: 'bad' })).rejects.toThrow('Invalid category');
+    await expect(updateAgent('my-agent', { agent_category: 'bad' })).rejects.toThrow(
+      'Invalid category',
+    );
     expect(toast.error).toHaveBeenCalledWith('Invalid category');
   });
 });
@@ -692,6 +705,24 @@ describe('disconnectProvider', () => {
     const url = mockFetch.mock.calls[0]?.[0] as string;
     expect(url).toContain('/routing/my-agent/providers/anthropic?authType=subscription');
   });
+
+  it('appends providerId query parameter when provided', async () => {
+    mockMutateOk({ ok: true, notifications: [] });
+
+    await disconnectProvider('my-agent', 'anthropic', 'subscription', 'up-abc123');
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain('authType=subscription');
+    expect(url).toContain('providerId=up-abc123');
+  });
+
+  it('only includes providerId when provided without authType', async () => {
+    mockMutateOk({ ok: true, notifications: [] });
+
+    await disconnectProvider('my-agent', 'openai', undefined, 'up-xyz');
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain('/routing/my-agent/providers/openai?providerId=up-xyz');
+    expect(url).not.toContain('authType');
+  });
 });
 
 describe('getTierAssignments', () => {
@@ -757,6 +788,41 @@ describe('overrideTier', () => {
         }),
       }),
     );
+  });
+
+  it('includes overrideProviderId in body when provided', async () => {
+    mockMutateOk({});
+
+    await overrideTier(
+      'my-agent',
+      'simple',
+      'claude-sonnet-4',
+      'anthropic',
+      'subscription',
+      'up-abc123',
+    );
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/v1/routing/my-agent/tiers/simple',
+      expect.objectContaining({
+        method: 'PUT',
+        body: JSON.stringify({
+          model: 'claude-sonnet-4',
+          provider: 'anthropic',
+          authType: 'subscription',
+          overrideProviderId: 'up-abc123',
+        }),
+      }),
+    );
+  });
+
+  it('omits overrideProviderId when not provided', async () => {
+    mockMutateOk({});
+
+    await overrideTier('my-agent', 'simple', 'gpt-4o', 'openai');
+    const call = mockFetch.mock.calls[0];
+    const body = JSON.parse(call[1].body);
+    expect(body).toEqual({ model: 'gpt-4o', provider: 'openai' });
+    expect(body).not.toHaveProperty('overrideProviderId');
   });
 });
 

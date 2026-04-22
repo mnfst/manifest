@@ -49,15 +49,40 @@ describe('OpenaiOauthController', () => {
         get: jest.fn().mockReturnValue('localhost:3001'),
       } as unknown as Request;
 
-      const result = await controller.authorize('my-agent', { id: 'user-1' } as never, req);
+      const result = await controller.authorize(
+        'my-agent',
+        undefined,
+        { id: 'user-1' } as never,
+        req,
+      );
 
       expect(resolveAgent.resolve).toHaveBeenCalledWith('user-1', 'my-agent');
       expect(oauthService.generateAuthorizationUrl).toHaveBeenCalledWith(
         'agent-id-1',
         'user-1',
         'http://localhost:3001',
+        undefined,
       );
       expect(result).toEqual({ url: 'https://auth.openai.com/oauth/...' });
+    });
+
+    it('passes accountLabel to generateAuthorizationUrl', async () => {
+      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+      oauthService.generateAuthorizationUrl.mockResolvedValue('https://auth.openai.com/oauth/...');
+
+      const req = {
+        protocol: 'http',
+        get: jest.fn().mockReturnValue('localhost:3001'),
+      } as unknown as Request;
+
+      await controller.authorize('my-agent', 'work', { id: 'user-1' } as never, req);
+
+      expect(oauthService.generateAuthorizationUrl).toHaveBeenCalledWith(
+        'agent-id-1',
+        'user-1',
+        'http://localhost:3001',
+        'work',
+      );
     });
 
     it('throws 400 when agentName is missing', async () => {
@@ -67,7 +92,12 @@ describe('OpenaiOauthController', () => {
       } as unknown as Request;
 
       await expect(
-        controller.authorize(undefined as unknown as string, { id: 'user-1' } as never, req),
+        controller.authorize(
+          undefined as unknown as string,
+          undefined,
+          { id: 'user-1' } as never,
+          req,
+        ),
       ).rejects.toThrow(HttpException);
     });
 
@@ -77,9 +107,9 @@ describe('OpenaiOauthController', () => {
         get: jest.fn().mockReturnValue('localhost:3001'),
       } as unknown as Request;
 
-      await expect(controller.authorize('', { id: 'user-1' } as never, req)).rejects.toThrow(
-        HttpException,
-      );
+      await expect(
+        controller.authorize('', undefined, { id: 'user-1' } as never, req),
+      ).rejects.toThrow(HttpException);
     });
 
     it('throws 503 when callback server port is unavailable', async () => {
@@ -94,7 +124,7 @@ describe('OpenaiOauthController', () => {
       } as unknown as Request;
 
       await expect(
-        controller.authorize('my-agent', { id: 'user-1' } as never, req),
+        controller.authorize('my-agent', undefined, { id: 'user-1' } as never, req),
       ).rejects.toThrow(HttpException);
     });
 
@@ -108,7 +138,7 @@ describe('OpenaiOauthController', () => {
       } as unknown as Request;
 
       await expect(
-        controller.authorize('my-agent', { id: 'user-1' } as never, req),
+        controller.authorize('my-agent', undefined, { id: 'user-1' } as never, req),
       ).rejects.toThrow('Failed to start OAuth callback server');
     });
   });
@@ -116,12 +146,14 @@ describe('OpenaiOauthController', () => {
   describe('revoke', () => {
     it('throws 400 when agentName is missing', async () => {
       await expect(
-        controller.revoke(undefined as unknown as string, { id: 'user-1' } as never),
+        controller.revoke(undefined as unknown as string, undefined, { id: 'user-1' } as never),
       ).rejects.toThrow(HttpException);
     });
 
     it('throws 400 when agentName is empty string', async () => {
-      await expect(controller.revoke('', { id: 'user-1' } as never)).rejects.toThrow(HttpException);
+      await expect(controller.revoke('', undefined, { id: 'user-1' } as never)).rejects.toThrow(
+        HttpException,
+      );
     });
 
     it('revokes both access and refresh tokens from stored blob', async () => {
@@ -129,12 +161,13 @@ describe('OpenaiOauthController', () => {
       const blob = JSON.stringify({ t: 'access-tok', r: 'refresh-tok', e: Date.now() + 3600000 });
       providerKeyService.getProviderApiKey.mockResolvedValue(blob);
 
-      const result = await controller.revoke('my-agent', { id: 'user-1' } as never);
+      const result = await controller.revoke('my-agent', undefined, { id: 'user-1' } as never);
 
       expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
         'agent-id-1',
         'openai',
         'subscription',
+        undefined,
       );
       expect(oauthService.revokeToken).toHaveBeenCalledWith('access-tok');
       expect(oauthService.revokeToken).toHaveBeenCalledWith('refresh-tok');
@@ -142,6 +175,7 @@ describe('OpenaiOauthController', () => {
         'agent-id-1',
         'openai',
         'subscription',
+        undefined,
       );
       expect(result).toEqual({ ok: true });
     });
@@ -150,13 +184,14 @@ describe('OpenaiOauthController', () => {
       resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
       providerKeyService.getProviderApiKey.mockResolvedValue(null);
 
-      const result = await controller.revoke('my-agent', { id: 'user-1' } as never);
+      const result = await controller.revoke('my-agent', undefined, { id: 'user-1' } as never);
 
       expect(oauthService.revokeToken).not.toHaveBeenCalled();
       expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-id-1',
         'openai',
         'subscription',
+        undefined,
       );
       expect(result).toEqual({ ok: true });
     });
@@ -165,13 +200,14 @@ describe('OpenaiOauthController', () => {
       resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
       providerKeyService.getProviderApiKey.mockResolvedValue('not-json');
 
-      const result = await controller.revoke('my-agent', { id: 'user-1' } as never);
+      const result = await controller.revoke('my-agent', undefined, { id: 'user-1' } as never);
 
       expect(oauthService.revokeToken).not.toHaveBeenCalled();
       expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-id-1',
         'openai',
         'subscription',
+        undefined,
       );
       expect(result).toEqual({ ok: true });
     });

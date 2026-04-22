@@ -373,6 +373,28 @@ describe('ResolveService', () => {
       expect(out.fallback_models).toEqual(['anthropic/claude-sonnet-4']);
       expect(scoring.scoreRequest).not.toHaveBeenCalled();
     });
+
+    it('propagates override_provider_id from specificity assignment', async () => {
+      scoring.scanMessages.mockReturnValue({ category: 'coding', confidence: 0.9 });
+      const hasActiveProvider = jest.fn().mockResolvedValue(true);
+      const getAuthType = jest.fn().mockResolvedValue('api_key');
+      const { svc } = makeService({
+        activeSpecificity: [
+          {
+            category: 'coding',
+            override_model: 'anthropic/claude-opus-4',
+            auto_assigned_model: null,
+            override_provider: null,
+            override_provider_id: 'spec-prov-1',
+          },
+        ],
+        hasActiveProvider,
+        getAuthType,
+      });
+      const out = await svc.resolve('agent-1', [{ role: 'user', content: 'write some code' }]);
+      expect(out.user_provider_id).toBe('spec-prov-1');
+      expect(getAuthType).toHaveBeenCalledWith('agent-1', 'anthropic', undefined, 'spec-prov-1');
+    });
   });
 
   // -- resolve() complexity path --
@@ -446,6 +468,62 @@ describe('ResolveService', () => {
       expect(out.auth_type).toBe('api_key');
     });
 
+    it('propagates override_provider_id from the tier assignment to the response', async () => {
+      scoring.scoreRequest.mockReturnValue({
+        tier: 'standard',
+        confidence: 0.5,
+        score: 20,
+        reason: 'scored',
+      });
+      const { svc, providerKeyService } = makeService({
+        tiers: [
+          {
+            tier: 'standard',
+            override_model: 'gpt-4o',
+            override_provider: 'openai',
+            override_auth_type: null,
+            override_provider_id: 'prov-account-1',
+            auto_assigned_model: null,
+          },
+        ],
+        getEffectiveModel: jest.fn().mockResolvedValue('gpt-4o'),
+        getAuthType: jest.fn().mockResolvedValue('api_key'),
+      });
+      const out = await svc.resolve('agent-1', [{ role: 'user', content: 'hi' }]);
+      expect(out.user_provider_id).toBe('prov-account-1');
+      expect(providerKeyService.getAuthType).toHaveBeenCalledWith(
+        'agent-1',
+        'openai',
+        undefined,
+        'prov-account-1',
+      );
+    });
+
+    it('omits user_provider_id when the tier assignment has no override_provider_id', async () => {
+      scoring.scoreRequest.mockReturnValue({
+        tier: 'standard',
+        confidence: 0.5,
+        score: 20,
+        reason: 'scored',
+      });
+      const { svc } = makeService({
+        tiers: [
+          {
+            tier: 'standard',
+            override_model: null,
+            override_provider: null,
+            override_auth_type: null,
+            auto_assigned_model: 'gpt-4o',
+          },
+        ],
+        getEffectiveModel: jest.fn().mockResolvedValue('gpt-4o'),
+        hasActiveProvider: jest.fn().mockResolvedValue(true),
+        getAuthType: jest.fn().mockResolvedValue('api_key'),
+      });
+      const out = await svc.resolve('agent-1', [{ role: 'user', content: 'hi' }]);
+      expect(out.user_provider_id).toBeUndefined();
+    });
+
     it('respects override_provider when the assignment explicitly pins one', async () => {
       scoring.scoreRequest.mockReturnValue({
         tier: 'standard',
@@ -477,7 +555,7 @@ describe('ResolveService', () => {
         score: 0,
         reason: 'scored',
       });
-      const { svc } = makeService({
+      const { svc, providerKeyService } = makeService({
         tiers: [
           {
             tier: 'simple',
@@ -587,6 +665,31 @@ describe('ResolveService', () => {
       expect(out.model).toBe('openai/gpt-5-mini');
       expect(out.provider).toBe('openai');
       expect(out.auth_type).toBe('api_key');
+    });
+
+    it('propagates override_provider_id from tier assignment in heartbeat response', async () => {
+      const { svc, providerKeyService } = makeService({
+        tiers: [
+          {
+            tier: 'simple',
+            override_model: 'gpt-4o-mini',
+            override_provider: 'openai',
+            override_auth_type: null,
+            override_provider_id: 'prov-heartbeat-1',
+            auto_assigned_model: null,
+          },
+        ],
+        getEffectiveModel: jest.fn().mockResolvedValue('gpt-4o-mini'),
+        getAuthType: jest.fn().mockResolvedValue('api_key'),
+      });
+      const out = await svc.resolveForTier('agent-1', 'simple');
+      expect(out.user_provider_id).toBe('prov-heartbeat-1');
+      expect(providerKeyService.getAuthType).toHaveBeenCalledWith(
+        'agent-1',
+        'openai',
+        undefined,
+        'prov-heartbeat-1',
+      );
     });
   });
 });

@@ -39,6 +39,7 @@ export class RoutingInvalidationService {
       );
       tier.override_model = null;
       tier.override_provider = null;
+      tier.override_provider_id = null;
       tier.override_auth_type = null;
       tier.updated_at = new Date().toISOString();
       tiersToSave.push(tier);

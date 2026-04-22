@@ -60,12 +60,29 @@ export class RoutingCacheService {
     setWithEviction(this.customProviders, agentId, data);
   }
 
-  getApiKey(agentId: string, provider: string, authType?: string): string | null | undefined {
-    return getOrExpire(this.apiKeys, `${agentId}:${provider}:${authType ?? 'default'}`);
+  getApiKey(
+    agentId: string,
+    provider: string,
+    authType?: string,
+    userProviderId?: string,
+  ): string | null | undefined {
+    const suffix = userProviderId ? `:${userProviderId}` : '';
+    return getOrExpire(this.apiKeys, `${agentId}:${provider}:${authType ?? 'default'}${suffix}`);
   }
 
-  setApiKey(agentId: string, provider: string, apiKey: string | null, authType?: string): void {
-    setWithEviction(this.apiKeys, `${agentId}:${provider}:${authType ?? 'default'}`, apiKey);
+  setApiKey(
+    agentId: string,
+    provider: string,
+    apiKey: string | null,
+    authType?: string,
+    userProviderId?: string,
+  ): void {
+    const suffix = userProviderId ? `:${userProviderId}` : '';
+    setWithEviction(
+      this.apiKeys,
+      `${agentId}:${provider}:${authType ?? 'default'}${suffix}`,
+      apiKey,
+    );
   }
 
   getSpecificity(agentId: string): SpecificityAssignment[] | null {

@@ -1,10 +1,11 @@
-import { Show, createSignal, type Component, type Accessor, type Setter } from 'solid-js';
+import { For, Show, createSignal, type Component, type Accessor, type Setter } from 'solid-js';
 import { Portal as SolidPortal } from 'solid-js/web';
 import { PROVIDERS } from '../services/providers.js';
 import { providerIcon } from './ProviderIcon.js';
 import {
   connectProvider,
   disconnectProvider,
+  patchProviderAccount,
   revokeOpenaiOAuth,
   type RoutingProvider,
   type AuthType,
@@ -14,6 +15,7 @@ import CopyButton from './CopyButton.js';
 import ProviderKeyForm from './ProviderKeyForm.js';
 import OAuthDetailView from './OAuthDetailView.js';
 import DeviceCodeDetailView from './DeviceCodeDetailView.js';
+import CopilotDeviceLogin from './CopilotDeviceLogin.js';
 
 export interface ProviderDetailViewProps {
   provId: string;
@@ -37,30 +39,86 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
   const provDef = PROVIDERS.find((p) => p.id === props.provId)!;
 
   const getProviderByAuth = (authType: AuthType) =>
-    props.providers.find((p) => p.provider === props.provId && p.auth_type === authType);
+    props.providers.find(
+      (p) => p.provider === props.provId && p.auth_type === authType && p.is_default,
+    ) ?? props.providers.find((p) => p.provider === props.provId && p.auth_type === authType);
+
+  /** Get all active accounts for a provider+authType. */
+  const getProviderAccounts = (authType: AuthType) =>
+    props.providers.filter(
+      (p) => p.provider === props.provId && p.auth_type === authType && p.is_active,
+    );
+
+  const initialAccount = getProviderByAuth(props.selectedAuthType());
+  const [selectedAccountId, setSelectedAccountId] = createSignal<string | 'new' | null>(null);
+  const [accountLabelInput, setAccountLabelInput] = createSignal(
+    initialAccount?.account_label && initialAccount.account_label !== 'default'
+      ? initialAccount.account_label
+      : '',
+  );
+
+  const selectedAccount = () => {
+    if (selectedAccountId() === 'new') return null;
+    if (selectedAccountId()) {
+      return (
+        getProviderAccounts(props.selectedAuthType()).find((p) => p.id === selectedAccountId()) ??
+        null
+      );
+    }
+    return getProviderByAuth(props.selectedAuthType()) ?? null;
+  };
+  const isCreatingNewAccount = () => selectedAccountId() === 'new';
+  const normalizedAccountLabel = () => accountLabelInput().trim() || undefined;
+  const requiresNewAccountLabel = () =>
+    isCreatingNewAccount() && getProviderAccounts(props.selectedAuthType()).length > 0;
+  const selectedProviderId = () => selectedAccount()?.id;
+  const selectedAccountLabel = () =>
+    selectedAccount()?.account_label ?? normalizedAccountLabel() ?? 'default';
+
+  const resetDetailState = () => {
+    props.setEditing(false);
+    props.setKeyInput('');
+    props.setValidationError(null);
+  };
+
+  const selectExistingAccount = (providerId: string) => {
+    const account = getProviderAccounts(props.selectedAuthType()).find((p) => p.id === providerId);
+    setSelectedAccountId(providerId);
+    setAccountLabelInput(
+      account?.account_label && account.account_label !== 'default' ? account.account_label : '',
+    );
+    resetDetailState();
+  };
+
+  const selectNewAccount = () => {
+    setSelectedAccountId('new');
+    setAccountLabelInput('');
+    resetDetailState();
+  };
 
   const isConnectedApiKey = (): boolean => {
-    const p = getProviderByAuth('api_key');
+    const p = selectedAccount();
     return !!p && p.is_active && p.has_api_key;
   };
 
   const isSubscriptionConnected = (): boolean => {
-    const p = getProviderByAuth('subscription');
+    const p = selectedAccount();
     return !!p && p.is_active;
   };
 
   const isSubscriptionWithToken = (): boolean => {
-    const p = getProviderByAuth('subscription');
+    const p = selectedAccount();
     return !!p && p.is_active && p.has_api_key;
   };
 
   const isNoKeyConnected = (): boolean => {
-    const p = getProviderByAuth('api_key');
+    const p = selectedAccount();
     return !!p && p.is_active && !!provDef.noKeyRequired;
   };
 
   const getKeyPrefixDisplay = (authType: AuthType): string => {
-    const p = getProviderByAuth(authType);
+    const p =
+      authType === props.selectedAuthType() ? selectedAccount() : getProviderByAuth(authType);
     if (p?.key_prefix) return `${p.key_prefix}${'•'.repeat(8)}`;
     return '••••••••••••';
   };
@@ -69,7 +127,9 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
   const subscriptionAuthMode = () =>
     provDef.subscriptionAuthMode ?? (provDef.subscriptionKeyPlaceholder ? 'token' : undefined);
   const isPopupOAuthFlow = () => isSubMode() && subscriptionAuthMode() === 'popup_oauth';
-  const isDeviceCodeFlow = () => isSubMode() && subscriptionAuthMode() === 'device_code';
+  const isDeviceCodeFlow = () =>
+    isSubMode() && subscriptionAuthMode() === 'device_code' && !provDef.deviceLogin;
+  const isCopilotDeviceFlow = () => isSubMode() && !!provDef.deviceLogin;
   const shouldRevokeOpenaiOAuth = () => props.provId === 'openai' && isPopupOAuthFlow();
   const isCommandOnly = () =>
     isSubMode() &&
@@ -92,6 +152,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
       await connectProvider(props.agentName, {
         provider: props.provId,
         authType: props.selectedAuthType(),
+        ...(normalizedAccountLabel() ? { accountLabel: normalizedAccountLabel() } : {}),
       });
       toast.success(`${provDef.name} connected`);
       props.onBack();
@@ -107,12 +168,13 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
     props.setBusy(true);
     try {
       if (shouldRevokeOpenaiOAuth()) {
-        await revokeOpenaiOAuth(props.agentName).catch(() => {});
+        await revokeOpenaiOAuth(props.agentName, selectedProviderId()).catch(() => {});
       }
       const result = await disconnectProvider(
         props.agentName,
         props.provId,
         props.selectedAuthType(),
+        selectedProviderId(),
       );
       if (result?.notifications?.length) {
         for (const msg of result.notifications) {
@@ -120,6 +182,38 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
         }
       }
       props.onBack();
+      props.onUpdate();
+    } catch {
+      // error toast from fetchMutate
+    } finally {
+      props.setBusy(false);
+    }
+  };
+
+  const handleSaveAccountLabel = async () => {
+    const providerId = selectedProviderId();
+    if (!providerId) return;
+    props.setBusy(true);
+    try {
+      await patchProviderAccount(props.agentName, providerId, {
+        accountLabel: normalizedAccountLabel() ?? 'default',
+      });
+      toast.success('Account label updated');
+      props.onUpdate();
+    } catch {
+      // error toast from fetchMutate
+    } finally {
+      props.setBusy(false);
+    }
+  };
+
+  const handleMakeDefault = async () => {
+    const providerId = selectedProviderId();
+    if (!providerId) return;
+    props.setBusy(true);
+    try {
+      await patchProviderAccount(props.agentName, providerId, { isDefault: true });
+      toast.success('Default account updated');
       props.onUpdate();
     } catch {
       // error toast from fetchMutate
@@ -177,12 +271,92 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
             <Show when={provDef.beta}>
               <span class="provider-detail__beta-badge">beta</span>
             </Show>
+            <Show when={connected() && selectedAccountLabel() !== 'default'}>
+              <span class="provider-toggle__tag" style="margin-left: 6px;">
+                {selectedAccountLabel()}
+              </span>
+            </Show>
           </div>
         </div>
         <Show when={props.provId === 'anthropic'}>
           <AnthropicCreditsLink />
         </Show>
       </div>
+
+      <Show when={getProviderAccounts(props.selectedAuthType()).length > 0}>
+        <div class="provider-detail__field" style="margin-top: 12px;">
+          <label class="provider-detail__label">Accounts</label>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <For each={getProviderAccounts(props.selectedAuthType())}>
+              {(account) => (
+                <button
+                  class="btn btn--outline btn--sm"
+                  style={
+                    selectedAccountId() === account.id
+                      ? 'border-color: hsl(var(--primary)); color: hsl(var(--primary));'
+                      : undefined
+                  }
+                  disabled={props.busy()}
+                  onClick={() => selectExistingAccount(account.id)}
+                >
+                  {account.account_label ?? 'default'}
+                  <Show when={account.is_default}>
+                    <span class="provider-toggle__tag" style="margin-left: 6px;">
+                      default
+                    </span>
+                  </Show>
+                </button>
+              )}
+            </For>
+            <button
+              class="btn btn--ghost btn--sm"
+              disabled={props.busy()}
+              onClick={selectNewAccount}
+            >
+              Add account
+            </button>
+          </div>
+        </div>
+      </Show>
+
+      <Show when={!isOllama}>
+        <div class="provider-detail__field" style="margin-top: 12px;">
+          <label class="provider-detail__label">Account label</label>
+          <input
+            class="provider-detail__input"
+            type="text"
+            autocomplete="off"
+            placeholder={requiresNewAccountLabel() ? 'Required for an extra account' : 'Optional'}
+            value={accountLabelInput()}
+            onInput={(e) => setAccountLabelInput(e.currentTarget.value)}
+          />
+          <Show when={requiresNewAccountLabel()}>
+            <p class="provider-detail__hint" style="margin-top: 8px;">
+              Add a label like work or personal before connecting another account.
+            </p>
+          </Show>
+          <Show when={!isCreatingNewAccount() && selectedAccount()}>
+            <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+              <button
+                class="btn btn--outline btn--sm"
+                disabled={props.busy()}
+                onClick={handleSaveAccountLabel}
+              >
+                Save label
+              </button>
+              <Show when={!selectedAccount()?.is_default}>
+                <button
+                  class="btn btn--outline btn--sm"
+                  disabled={props.busy()}
+                  onClick={handleMakeDefault}
+                >
+                  Set as default
+                </button>
+              </Show>
+            </div>
+          </Show>
+        </div>
+      </Show>
 
       {/* Subscription sign-in URL instruction (token mode with external sign-in) */}
       <Show when={isSubMode() && provDef.subscriptionSignInUrl}>
@@ -255,6 +429,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
             class="btn btn--outline provider-detail__action provider-detail__disconnect"
             disabled={props.busy()}
             onClick={handleDisconnect}
+            aria-label="Disconnect provider"
           >
             <Show when={!props.busy()} fallback={<span class="spinner" />}>
               Disconnect
@@ -278,6 +453,9 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
           selectedAuthType={props.selectedAuthType}
           busy={props.busy}
           setBusy={props.setBusy}
+          userProviderId={selectedProviderId()}
+          accountLabel={normalizedAccountLabel()}
+          requireAccountLabel={requiresNewAccountLabel()}
           onBack={props.onBack}
           onUpdate={props.onUpdate}
           onClose={props.onClose}
@@ -294,9 +472,31 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
           selectedAuthType={props.selectedAuthType}
           busy={props.busy}
           setBusy={props.setBusy}
+          userProviderId={selectedProviderId()}
+          accountLabel={normalizedAccountLabel()}
+          requireAccountLabel={requiresNewAccountLabel()}
           onBack={props.onBack}
           onUpdate={props.onUpdate}
           onClose={props.onClose}
+        />
+      </Show>
+
+      <Show when={isCopilotDeviceFlow()}>
+        <CopilotDeviceLogin
+          agentName={props.agentName}
+          connected={connected()}
+          userProviderId={selectedProviderId()}
+          accountLabel={normalizedAccountLabel()}
+          requireAccountLabel={requiresNewAccountLabel()}
+          onBack={props.onBack}
+          onConnected={async () => {
+            await props.onUpdate();
+            props.onBack();
+          }}
+          onDisconnected={() => {
+            props.onBack();
+            props.onUpdate();
+          }}
         />
       </Show>
 
@@ -321,6 +521,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
             class="btn btn--outline provider-detail__action provider-detail__disconnect"
             disabled={props.busy()}
             onClick={handleDisconnect}
+            aria-label="Disconnect provider"
           >
             <Show when={!props.busy()} fallback={<span class="spinner" />}>
               Disconnect
@@ -330,7 +531,15 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
       </Show>
 
       {/* API key / subscription token form (non-Ollama, non-command-only, non-OAuth) */}
-      <Show when={!isOllama && !isCommandOnly() && !isPopupOAuthFlow() && !isDeviceCodeFlow()}>
+      <Show
+        when={
+          !isOllama &&
+          !isCommandOnly() &&
+          !isPopupOAuthFlow() &&
+          !isDeviceCodeFlow() &&
+          !isCopilotDeviceFlow()
+        }
+      >
         <ProviderKeyForm
           provDef={provDef}
           provId={props.provId}
@@ -347,6 +556,9 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
           validationError={props.validationError}
           setValidationError={props.setValidationError}
           getKeyPrefixDisplay={getKeyPrefixDisplay}
+          userProviderId={selectedProviderId()}
+          accountLabel={normalizedAccountLabel()}
+          requireAccountLabel={requiresNewAccountLabel()}
           onBack={props.onBack}
           onUpdate={props.onUpdate}
         />

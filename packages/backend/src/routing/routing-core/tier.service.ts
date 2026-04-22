@@ -10,6 +10,7 @@ import { ModelDiscoveryService } from '../../model-discovery/model-discovery.ser
 import { randomUUID } from 'crypto';
 import { TIERS, Tier } from '../../scoring/types';
 import { isManifestUsableProvider } from '../../common/utils/subscription-support';
+import { In } from 'typeorm';
 
 @Injectable()
 export class TierService {
@@ -89,11 +90,31 @@ export class TierService {
     model: string,
     provider?: string,
     authType?: 'api_key' | 'subscription',
+    overrideProviderId?: string,
   ): Promise<TierAssignment> {
+    // If overrideProviderId is given, validate it belongs to this agent.
+    let resolvedProvider = provider;
+    let resolvedAuthType = authType;
+    let resolvedProviderId = overrideProviderId ?? null;
+
+    if (overrideProviderId) {
+      const userProvider = await this.providerRepo.findOne({
+        where: { id: overrideProviderId, agent_id: agentId, is_active: true },
+      });
+      if (!userProvider) {
+        throw new BadRequestException(
+          `Provider account "${overrideProviderId}" not found for this agent.`,
+        );
+      }
+      resolvedProvider = userProvider.provider;
+      resolvedAuthType = userProvider.auth_type;
+      resolvedProviderId = userProvider.id;
+    }
+
     const available = await this.discoveryService.getModelsForAgent(agentId);
     const matches = available.filter((m) => m.id === model);
     if (matches.length === 0) {
-      const providerHint = provider ? ` (provider: ${provider})` : '';
+      const providerHint = resolvedProvider ? ` (provider: ${resolvedProvider})` : '';
       const options = available.map((m) => m.id).slice(0, 20);
       throw new BadRequestException(
         `Model "${model}" is not in this agent's discovered model list${providerHint}. ` +
@@ -103,12 +124,12 @@ export class TierService {
       );
     }
     // If provider is supplied, ensure it matches one of the available entries.
-    if (provider) {
-      const providerLower = provider.toLowerCase();
+    if (resolvedProvider) {
+      const providerLower = resolvedProvider.toLowerCase();
       const providerMatches = matches.some((m) => m.provider.toLowerCase() === providerLower);
       if (!providerMatches) {
         throw new BadRequestException(
-          `Model "${model}" is not offered by provider "${provider}" for this agent.`,
+          `Model "${model}" is not offered by provider "${resolvedProvider}" for this agent.`,
         );
       }
     }
@@ -119,8 +140,9 @@ export class TierService {
 
     if (existing) {
       existing.override_model = model;
-      existing.override_provider = provider ?? null;
-      existing.override_auth_type = authType ?? null;
+      existing.override_provider = resolvedProvider ?? null;
+      existing.override_auth_type = resolvedAuthType ?? null;
+      existing.override_provider_id = resolvedProviderId;
       if (existing.fallback_models?.includes(model)) {
         const filtered = existing.fallback_models.filter((m) => m !== model);
         existing.fallback_models = filtered.length > 0 ? filtered : null;
@@ -137,8 +159,9 @@ export class TierService {
       agent_id: agentId,
       tier,
       override_model: model,
-      override_provider: provider ?? null,
-      override_auth_type: authType ?? null,
+      override_provider: resolvedProvider ?? null,
+      override_auth_type: resolvedAuthType ?? null,
+      override_provider_id: resolvedProviderId,
       auto_assigned_model: null,
     });
 
@@ -147,7 +170,16 @@ export class TierService {
     } catch {
       // Concurrent insert — retry as update
       const retry = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
-      if (retry) return this.setOverride(agentId, userId, tier, model, provider, authType);
+      if (retry)
+        return this.setOverride(
+          agentId,
+          userId,
+          tier,
+          model,
+          provider,
+          authType,
+          overrideProviderId,
+        );
     }
     this.routingCache.invalidateAgent(agentId);
     return record;
@@ -162,6 +194,7 @@ export class TierService {
     existing.override_model = null;
     existing.override_provider = null;
     existing.override_auth_type = null;
+    existing.override_provider_id = null;
     existing.updated_at = new Date().toISOString();
     await this.tierRepo.save(existing);
     this.routingCache.invalidateAgent(agentId);
@@ -174,6 +207,7 @@ export class TierService {
         override_model: null,
         override_provider: null,
         override_auth_type: null,
+        override_provider_id: null,
         fallback_models: null,
         updated_at: new Date().toISOString(),
       },

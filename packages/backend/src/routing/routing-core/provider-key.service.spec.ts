@@ -109,6 +109,7 @@ describe('ProviderKeyService', () => {
         'openai',
         'decrypted-key-value',
         undefined,
+        undefined,
       );
     });
 
@@ -119,12 +120,18 @@ describe('ProviderKeyService', () => {
 
       await service.getProviderApiKey('agent-1', 'openai', 'subscription');
 
-      expect(routingCache.getApiKey).toHaveBeenCalledWith('agent-1', 'openai', 'subscription');
+      expect(routingCache.getApiKey).toHaveBeenCalledWith(
+        'agent-1',
+        'openai',
+        'subscription',
+        undefined,
+      );
       expect(routingCache.setApiKey).toHaveBeenCalledWith(
         'agent-1',
         'openai',
         'decrypted-key-value',
         'subscription',
+        undefined,
       );
     });
 
@@ -264,9 +271,139 @@ describe('ProviderKeyService', () => {
     });
   });
 
+  /* ── getProviderApiKey with userProviderId ── */
+
+  describe('getProviderApiKey with userProviderId', () => {
+    it('should use resolveProviderApiKeyById when userProviderId is provided', async () => {
+      providerRepo.findOne.mockResolvedValue(
+        makeProvider({ id: 'prov-exact', api_key_encrypted: 'enc-exact' }),
+      );
+
+      const result = await service.getProviderApiKey('agent-1', 'openai', undefined, 'prov-exact');
+
+      expect(result).toBe('decrypted-key-value');
+      // Should query by id, not by provider name
+      expect(providerRepo.findOne).toHaveBeenCalledWith({
+        where: { id: 'prov-exact', agent_id: 'agent-1', is_active: true },
+      });
+      // Should NOT call find (used by the name-based path)
+      expect(providerRepo.find).not.toHaveBeenCalled();
+    });
+
+    it('should cache keyed by userProviderId', async () => {
+      providerRepo.findOne.mockResolvedValue(
+        makeProvider({ id: 'prov-exact', api_key_encrypted: 'enc-exact' }),
+      );
+
+      await service.getProviderApiKey('agent-1', 'openai', undefined, 'prov-exact');
+
+      expect(routingCache.getApiKey).toHaveBeenCalledWith(
+        'agent-1',
+        'openai',
+        undefined,
+        'prov-exact',
+      );
+      expect(routingCache.setApiKey).toHaveBeenCalledWith(
+        'agent-1',
+        'openai',
+        'decrypted-key-value',
+        undefined,
+        'prov-exact',
+      );
+    });
+
+    it('should return empty string for exact record with no key', async () => {
+      providerRepo.findOne.mockResolvedValue(
+        makeProvider({ id: 'prov-local', api_key_encrypted: null }),
+      );
+
+      const result = await service.getProviderApiKey('agent-1', 'ollama', undefined, 'prov-local');
+
+      expect(result).toBe('');
+    });
+
+    it('should return null when exact record not found', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      const result = await service.getProviderApiKey(
+        'agent-1',
+        'openai',
+        undefined,
+        'prov-missing',
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null when decrypt fails for exact record', async () => {
+      mockDecrypt.mockImplementationOnce(() => {
+        throw new Error('decrypt failed');
+      });
+      providerRepo.findOne.mockResolvedValue(
+        makeProvider({ id: 'prov-bad', api_key_encrypted: 'bad-enc' }),
+      );
+
+      const result = await service.getProviderApiKey('agent-1', 'openai', undefined, 'prov-bad');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null for inactive exact record', async () => {
+      providerRepo.findOne.mockResolvedValue(null); // is_active: false filtered by WHERE
+
+      const result = await service.getProviderApiKey(
+        'agent-1',
+        'openai',
+        undefined,
+        'prov-inactive',
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it('should use subscription label for subscription exact record decrypt failure', async () => {
+      mockDecrypt.mockImplementationOnce(() => {
+        throw new Error('decrypt failed');
+      });
+      providerRepo.findOne.mockResolvedValue(
+        makeProvider({
+          id: 'prov-sub',
+          auth_type: 'subscription',
+          api_key_encrypted: 'bad-sub',
+        }),
+      );
+
+      const result = await service.getProviderApiKey('agent-1', 'openai', undefined, 'prov-sub');
+
+      expect(result).toBeNull();
+    });
+  });
+
   /* ── getAuthType ── */
 
   describe('getAuthType', () => {
+    it('should return exact record auth_type when userProviderId is provided', async () => {
+      providerRepo.findOne.mockResolvedValue(
+        makeProvider({ id: 'prov-sub', auth_type: 'subscription', api_key_encrypted: null }),
+      );
+
+      const result = await service.getAuthType('agent-1', 'openai', undefined, 'prov-sub');
+
+      expect(result).toBe('subscription');
+      expect(providerRepo.findOne).toHaveBeenCalledWith({
+        where: { id: 'prov-sub', agent_id: 'agent-1', is_active: true },
+      });
+      expect(providerService.getProviders).not.toHaveBeenCalled();
+    });
+
+    it('should fall back to api_key when exact record is missing', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      const result = await service.getAuthType('agent-1', 'openai', undefined, 'prov-missing');
+
+      expect(result).toBe('api_key');
+    });
+
     it('should return subscription when subscription record with key exists', async () => {
       providerService.getProviders.mockResolvedValue([
         makeProvider({ auth_type: 'subscription', api_key_encrypted: 'enc-sub' }),
@@ -375,6 +512,39 @@ describe('ProviderKeyService', () => {
 
       // Empty set has size 0, so exclusion logic is skipped — defaults to subscription
       expect(result).toBe('subscription');
+    });
+  });
+
+  /* ── getProviderRegion ── */
+
+  describe('getProviderRegion', () => {
+    it('should return exact record region when userProviderId is provided', async () => {
+      providerRepo.findOne.mockResolvedValue(
+        makeProvider({ id: 'prov-region', provider: 'qwen', region: 'singapore' }),
+      );
+
+      const result = await service.getProviderRegion('agent-1', 'qwen', 'api_key', 'prov-region');
+
+      expect(result).toBe('singapore');
+      expect(providerService.getProviders).not.toHaveBeenCalled();
+    });
+
+    it('should return null when exact region record is missing', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      const result = await service.getProviderRegion('agent-1', 'qwen', 'api_key', 'prov-missing');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return matching region by provider/authType without userProviderId', async () => {
+      providerService.getProviders.mockResolvedValue([
+        makeProvider({ id: 'prov-qwen', provider: 'qwen', region: 'us' }),
+      ]);
+
+      const result = await service.getProviderRegion('agent-1', 'qwen', 'api_key');
+
+      expect(result).toBe('us');
     });
   });
 

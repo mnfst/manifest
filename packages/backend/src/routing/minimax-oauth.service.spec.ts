@@ -123,6 +123,8 @@ describe('MinimaxOauthService', () => {
         'minimax',
         expect.any(String),
         'subscription',
+        undefined,
+        undefined,
       );
       expect(discoveryService.discoverModels).toHaveBeenCalled();
     });

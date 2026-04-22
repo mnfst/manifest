@@ -31,23 +31,49 @@ describe('MinimaxOauthController', () => {
       pollIntervalMs: 2000,
     });
 
-    const result = await controller.start('my-agent', 'cn', { id: 'user-1' } as never);
+    const result = await controller.start('my-agent', 'cn', undefined, { id: 'user-1' } as never);
 
     expect(resolveAgent.resolve).toHaveBeenCalledWith('user-1', 'my-agent');
-    expect(oauthService.startAuthorization).toHaveBeenCalledWith('agent-id-1', 'user-1', 'cn');
+    expect(oauthService.startAuthorization).toHaveBeenCalledWith(
+      'agent-id-1',
+      'user-1',
+      'cn',
+      undefined,
+    );
     expect(result.flowId).toBe('flow-1');
   });
 
-  it('throws 400 when agentName is missing', async () => {
-    await expect(controller.start('', 'global', { id: 'user-1' } as never)).rejects.toThrow(
-      HttpException,
+  it('starts MiniMax OAuth with accountLabel', async () => {
+    resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+    oauthService.startAuthorization.mockResolvedValue({
+      flowId: 'flow-2',
+      userCode: 'EFGH-5678',
+      verificationUri: 'https://www.minimax.io/verify',
+      expiresAt: Date.now() + 60_000,
+      pollIntervalMs: 2000,
+    });
+
+    const result = await controller.start('my-agent', 'global', 'work', { id: 'user-1' } as never);
+
+    expect(oauthService.startAuthorization).toHaveBeenCalledWith(
+      'agent-id-1',
+      'user-1',
+      'global',
+      'work',
     );
+    expect(result.flowId).toBe('flow-2');
+  });
+
+  it('throws 400 when agentName is missing', async () => {
+    await expect(
+      controller.start('', 'global', undefined, { id: 'user-1' } as never),
+    ).rejects.toThrow(HttpException);
   });
 
   it('throws 400 when region is invalid', async () => {
-    await expect(controller.start('my-agent', 'mars', { id: 'user-1' } as never)).rejects.toThrow(
-      HttpException,
-    );
+    await expect(
+      controller.start('my-agent', 'mars', undefined, { id: 'user-1' } as never),
+    ).rejects.toThrow(HttpException);
   });
 
   it('polls MiniMax OAuth state', async () => {
@@ -68,7 +94,7 @@ describe('MinimaxOauthController', () => {
     oauthService.startAuthorization.mockRejectedValue(new Error('MiniMax unavailable'));
 
     await expect(
-      controller.start('my-agent', 'global', { id: 'user-1' } as never),
+      controller.start('my-agent', 'global', undefined, { id: 'user-1' } as never),
     ).rejects.toMatchObject({
       message: 'MiniMax unavailable',
       status: HttpStatus.SERVICE_UNAVAILABLE,

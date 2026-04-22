@@ -45,6 +45,7 @@ const assignment = {
   override_model: null,
   override_provider: null,
   override_auth_type: null,
+  override_provider_id: null,
   auto_assigned_model: 'claude-sonnet-4-20250514',
   fallback_models: null,
   updated_at: '2026-04-09T00:00:00Z',
@@ -123,21 +124,22 @@ describe('toggleSpecificity', () => {
 
 describe('overrideSpecificity', () => {
   it('should PUT with model and provider', async () => {
-    const overridden = { ...assignment, override_model: 'gpt-4o', override_provider: 'openai' };
+    const overridden = {
+      ...assignment,
+      override_model: 'gpt-4o',
+      override_provider: 'openai',
+    };
     mockMutateOk(overridden);
 
     const result = await overrideSpecificity('my-agent', 'code_generation', 'gpt-4o', 'openai');
 
     expect(result).toEqual(overridden);
-    expect(mockFetch).toHaveBeenCalledWith(
-      '/api/v1/routing/my-agent/specificity/code_generation',
-      {
-        credentials: 'include',
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'gpt-4o', provider: 'openai' }),
-      },
-    );
+    expect(mockFetch).toHaveBeenCalledWith('/api/v1/routing/my-agent/specificity/code_generation', {
+      credentials: 'include',
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'gpt-4o', provider: 'openai' }),
+    });
   });
 
   it('should include authType in body when provided', async () => {
@@ -145,18 +147,40 @@ describe('overrideSpecificity', () => {
 
     await overrideSpecificity('my-agent', 'code_generation', 'gpt-4o', 'openai', 'subscription');
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      '/api/v1/routing/my-agent/specificity/code_generation',
-      {
-        credentials: 'include',
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'gpt-4o', provider: 'openai', authType: 'subscription' }),
-      },
-    );
+    expect(mockFetch).toHaveBeenCalledWith('/api/v1/routing/my-agent/specificity/code_generation', {
+      credentials: 'include',
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'gpt-4o', provider: 'openai', authType: 'subscription' }),
+    });
   });
 
-  it('should omit authType from body when undefined', async () => {
+  it('should include overrideProviderId in body when provided', async () => {
+    mockMutateOk({ ...assignment, override_provider_id: 'up-abc123' });
+
+    await overrideSpecificity(
+      'my-agent',
+      'code_generation',
+      'gpt-4o',
+      'openai',
+      'subscription',
+      'up-abc123',
+    );
+
+    expect(mockFetch).toHaveBeenCalledWith('/api/v1/routing/my-agent/specificity/code_generation', {
+      credentials: 'include',
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        provider: 'openai',
+        authType: 'subscription',
+        overrideProviderId: 'up-abc123',
+      }),
+    });
+  });
+
+  it('should omit authType and overrideProviderId from body when undefined', async () => {
     mockMutateOk(assignment);
 
     await overrideSpecificity('my-agent', 'code_generation', 'gpt-4o', 'openai', undefined);
@@ -165,6 +189,7 @@ describe('overrideSpecificity', () => {
     const body = JSON.parse(call[1].body);
     expect(body).toEqual({ model: 'gpt-4o', provider: 'openai' });
     expect(body).not.toHaveProperty('authType');
+    expect(body).not.toHaveProperty('overrideProviderId');
   });
 
   it('should encode special characters in agent name and category', async () => {
@@ -185,10 +210,10 @@ describe('resetSpecificity', () => {
 
     await resetSpecificity('my-agent', 'code_generation');
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      '/api/v1/routing/my-agent/specificity/code_generation',
-      { credentials: 'include', method: 'DELETE' },
-    );
+    expect(mockFetch).toHaveBeenCalledWith('/api/v1/routing/my-agent/specificity/code_generation', {
+      credentials: 'include',
+      method: 'DELETE',
+    });
   });
 
   it('should encode special characters in agent name and category', async () => {
@@ -196,10 +221,10 @@ describe('resetSpecificity', () => {
 
     await resetSpecificity('agent/name', 'cat/egory');
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      '/api/v1/routing/agent%2Fname/specificity/cat%2Fegory',
-      { credentials: 'include', method: 'DELETE' },
-    );
+    expect(mockFetch).toHaveBeenCalledWith('/api/v1/routing/agent%2Fname/specificity/cat%2Fegory', {
+      credentials: 'include',
+      method: 'DELETE',
+    });
   });
 });
 
@@ -209,10 +234,10 @@ describe('resetAllSpecificity', () => {
 
     await resetAllSpecificity('my-agent');
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      '/api/v1/routing/my-agent/specificity/reset-all',
-      { credentials: 'include', method: 'POST' },
-    );
+    expect(mockFetch).toHaveBeenCalledWith('/api/v1/routing/my-agent/specificity/reset-all', {
+      credentials: 'include',
+      method: 'POST',
+    });
   });
 
   it('should encode special characters in agent name', async () => {
@@ -220,9 +245,9 @@ describe('resetAllSpecificity', () => {
 
     await resetAllSpecificity('agent/name');
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      '/api/v1/routing/agent%2Fname/specificity/reset-all',
-      { credentials: 'include', method: 'POST' },
-    );
+    expect(mockFetch).toHaveBeenCalledWith('/api/v1/routing/agent%2Fname/specificity/reset-all', {
+      credentials: 'include',
+      method: 'POST',
+    });
   });
 });

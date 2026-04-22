@@ -15,6 +15,7 @@ export class MinimaxOauthController {
   async start(
     @Query('agentName') agentName: string,
     @Query('region') region: string | undefined,
+    @Query('accountLabel') accountLabel: string | undefined,
     @CurrentUser() user: AuthUser,
   ) {
     if (!agentName) {
@@ -30,7 +31,12 @@ export class MinimaxOauthController {
     const agent = await this.resolveAgent.resolve(user.id, agentName);
     const selectedRegion = region && isMinimaxRegion(region) ? region : 'global';
     try {
-      return await this.oauthService.startAuthorization(agent.id, user.id, selectedRegion);
+      return await this.oauthService.startAuthorization(
+        agent.id,
+        user.id,
+        selectedRegion,
+        accountLabel,
+      );
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to start MiniMax OAuth';
       throw new HttpException(message, HttpStatus.SERVICE_UNAVAILABLE);

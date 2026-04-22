@@ -57,11 +57,33 @@ export class ProviderService {
     apiKey?: string,
     authType?: 'api_key' | 'subscription',
     region?: string,
+    accountLabel?: string,
   ): Promise<{ provider: UserProvider; isNew: boolean }> {
     const effectiveAuthType = authType ?? 'api_key';
-    const existing = await this.providerRepo.findOne({
-      where: { agent_id: agentId, provider, auth_type: effectiveAuthType },
+    const effectiveLabel = accountLabel ?? 'default';
+
+    // Try exact match by (agent, provider, auth_type, account_label) first.
+    let existing = await this.providerRepo.findOne({
+      where: {
+        agent_id: agentId,
+        provider,
+        auth_type: effectiveAuthType,
+        account_label: effectiveLabel,
+      },
     });
+
+    // Fallback: when no label was specified and the exact 'default' label
+    // didn't match, look for a single active row for (provider, auth_type).
+    // This supports token-refresh callers that don't carry the label.
+    if (!existing && !accountLabel) {
+      const activeRows = await this.providerRepo.find({
+        where: { agent_id: agentId, provider, auth_type: effectiveAuthType, is_active: true },
+      });
+      if (activeRows.length === 1) {
+        existing = activeRows[0];
+      }
+    }
+
     const resolvedRegion = await this.resolveProviderRegion(
       provider,
       effectiveAuthType,
@@ -85,6 +107,12 @@ export class ProviderService {
       return { provider: existing, isNew: false };
     }
 
+    // When creating a new row, check if any other active row for the same
+    // (provider, auth_type) already exists so we can set is_default=false.
+    const hasOtherActive = await this.providerRepo.findOne({
+      where: { agent_id: agentId, provider, auth_type: effectiveAuthType, is_active: true },
+    });
+
     const record: UserProvider = Object.assign(new UserProvider(), {
       id: randomUUID(),
       user_id: userId,
@@ -95,6 +123,8 @@ export class ProviderService {
       key_prefix: keyPrefix,
       region: resolvedRegion,
       is_active: true,
+      account_label: effectiveLabel,
+      is_default: !hasOtherActive,
       connected_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     });
@@ -207,9 +237,11 @@ export class ProviderService {
     agentId: string,
     provider: string,
     authType?: 'api_key' | 'subscription',
+    providerId?: string,
   ): Promise<{ notifications: string[] }> {
     const where: Record<string, unknown> = { agent_id: agentId, provider };
     if (authType) where.auth_type = authType;
+    if (providerId) where.id = providerId;
 
     const existing = await this.providerRepo.findOne({ where });
     if (!existing) throw new NotFoundException('Provider not found');
@@ -218,20 +250,136 @@ export class ProviderService {
     existing.is_active = false;
     existing.updated_at = new Date().toISOString();
     await this.providerRepo.save(existing);
+
+    // Check if other active accounts of this provider still exist
     const otherActive = await this.providerRepo.find({
       where: { agent_id: agentId, provider, is_active: true },
     });
 
     if (otherActive.some((record) => isManifestUsableProvider(record))) {
-      // Provider is still available via the other auth type — skip override clearing
+      // Provider still available via other accounts — only clear overrides
+      // that explicitly point to the removed account.
+      const { invalidated } = await this.cleanupProviderReferences(
+        agentId,
+        [provider],
+        existing.id,
+      );
+      await this.autoAssign.recalculate(agentId);
       this.routingCache.invalidateAgent(agentId);
-      return { notifications: [] };
+      return this.buildNotifications(agentId, invalidated);
     }
 
     const { invalidated } = await this.cleanupProviderReferences(agentId, [provider]);
     await this.autoAssign.recalculate(agentId);
     this.routingCache.invalidateAgent(agentId);
+    return this.buildNotifications(agentId, invalidated);
+  }
+  async deactivateAllProviders(agentId: string): Promise<void> {
+    await this.providerRepo.update(
+      { agent_id: agentId },
+      { is_active: false, updated_at: new Date().toISOString() },
+    );
+    await this.tierRepo.update(
+      { agent_id: agentId },
+      {
+        override_model: null,
+        override_provider: null,
+        override_provider_id: null,
+        override_auth_type: null,
+        fallback_models: null,
+        updated_at: new Date().toISOString(),
+      },
+    );
+    await this.autoAssign.recalculate(agentId);
+    this.routingCache.invalidateAgent(agentId);
+  }
 
+  /** Update account_label and/or is_default on a specific provider row. */
+  async updateProviderAccount(
+    agentId: string,
+    providerId: string,
+    updates: { accountLabel?: string; isDefault?: boolean },
+  ): Promise<UserProvider> {
+    const record = await this.providerRepo.findOne({
+      where: { id: providerId, agent_id: agentId, is_active: true },
+    });
+    if (!record) throw new NotFoundException('Provider account not found');
+
+    if (updates.accountLabel !== undefined) {
+      // Check for uniqueness conflict
+      const conflict = await this.providerRepo.findOne({
+        where: {
+          agent_id: agentId,
+          provider: record.provider,
+          auth_type: record.auth_type,
+          account_label: updates.accountLabel,
+          is_active: true,
+        },
+      });
+      if (conflict && conflict.id !== providerId) {
+        throw new BadRequestException(
+          `Account label "${updates.accountLabel}" already in use for ${record.provider}`,
+        );
+      }
+      record.account_label = updates.accountLabel;
+    }
+
+    if (updates.isDefault === true) {
+      // Clear is_default on sibling rows
+      const siblings = await this.providerRepo.find({
+        where: {
+          agent_id: agentId,
+          provider: record.provider,
+          auth_type: record.auth_type,
+          is_active: true,
+        },
+      });
+      const toClear = siblings.filter((s) => s.is_default && s.id !== providerId);
+      if (toClear.length > 0) {
+        for (const s of toClear) {
+          s.is_default = false;
+          s.updated_at = new Date().toISOString();
+        }
+        await this.providerRepo.save(toClear);
+      }
+      record.is_default = true;
+    } else if (updates.isDefault === false) {
+      record.is_default = false;
+    }
+
+    record.updated_at = new Date().toISOString();
+    await this.providerRepo.save(record);
+    this.routingCache.invalidateAgent(agentId);
+    return record;
+  }
+
+  async updateProviderApiKeyById(
+    agentId: string,
+    providerId: string,
+    apiKey: string,
+    region?: string | null,
+  ): Promise<UserProvider> {
+    const record = await this.providerRepo.findOne({
+      where: { id: providerId, agent_id: agentId, is_active: true },
+    });
+    if (!record) throw new NotFoundException('Provider account not found');
+
+    record.api_key_encrypted = encrypt(apiKey, getEncryptionSecret());
+    record.key_prefix = apiKey.substring(0, 8);
+    if (region !== undefined) {
+      record.region = region;
+    }
+    record.updated_at = new Date().toISOString();
+    await this.providerRepo.save(record);
+    this.routingCache.invalidateAgent(agentId);
+    return record;
+  }
+
+  /** Build user-facing notification messages for invalidated tier overrides. */
+  private async buildNotifications(
+    agentId: string,
+    invalidated: { tier: string; modelName: string }[],
+  ): Promise<{ notifications: string[] }> {
     const notifications: string[] = [];
     if (invalidated.length > 0) {
       const tierNames = invalidated.map((i) => i.tier);
@@ -249,26 +397,7 @@ export class ProviderService {
         notifications.push(`${modelName} is no longer available. ${suffix}`);
       }
     }
-
     return { notifications };
-  }
-  async deactivateAllProviders(agentId: string): Promise<void> {
-    await this.providerRepo.update(
-      { agent_id: agentId },
-      { is_active: false, updated_at: new Date().toISOString() },
-    );
-    await this.tierRepo.update(
-      { agent_id: agentId },
-      {
-        override_model: null,
-        override_provider: null,
-        override_auth_type: null,
-        fallback_models: null,
-        updated_at: new Date().toISOString(),
-      },
-    );
-    await this.autoAssign.recalculate(agentId);
-    this.routingCache.invalidateAgent(agentId);
   }
   private async cleanupUnsupportedSubscriptionProviders(agentId: string): Promise<void> {
     const activeProviders = await this.providerRepo.find({
@@ -319,16 +448,16 @@ export class ProviderService {
    * Clears overrides and fallback entries on both tier_assignments and
    * specificity_assignments that reference any of the given provider keys.
    *
-   * A row matches when any of these hold for its override_model/fallback entry:
-   *   - the assignment's override_provider equals the provider key (case-insensitive)
-   *   - the model/entry string starts with `<providerKey>/` (covers custom:<uuid>/... entries
-   *     that don't carry an explicit override_provider, and any fallback_models list where
-   *     provider metadata isn't stored alongside the string)
-   *   - the pricing cache infers the entry belongs to this provider (well-known models)
+   * When `removedProviderId` is set, only clear overrides whose
+   * `override_provider_id` equals that ID. Overrides without an
+   * `override_provider_id` (legacy rows) are still matched by provider
+   * string heuristics — but only when `removedProviderId` is NOT set
+   * (i.e. the whole provider is being removed).
    */
   private async cleanupProviderReferences(
     agentId: string,
     providers: string[],
+    removedProviderId?: string,
   ): Promise<{ invalidated: { tier: string; modelName: string }[]; hadTierAssignments: boolean }> {
     if (providers.length === 0) return { invalidated: [], hadTierAssignments: false };
 
@@ -349,6 +478,26 @@ export class ProviderService {
     const tiersToSave: TierAssignment[] = [];
     for (const tier of tierOverrides) {
       const overrideProvider = tier.override_provider?.toLowerCase();
+      const overrideProviderId = tier.override_provider_id;
+
+      // When a specific account was removed, only clear overrides pointing
+      // to that exact account (by override_provider_id). Skip overrides
+      // that point to a different account or have no provider_id.
+      if (removedProviderId) {
+        if (overrideProviderId === removedProviderId) {
+          invalidated.push({ tier: tier.tier, modelName: tier.override_model! });
+          tier.override_model = null;
+          tier.override_provider = null;
+          tier.override_provider_id = null;
+          tier.override_auth_type = null;
+          tier.updated_at = new Date().toISOString();
+          tiersToSave.push(tier);
+        }
+        // Do NOT clear overrides that point to other accounts or have no provider_id.
+        continue;
+      }
+
+      // Full provider removal — clear any override matching the provider string.
       if (
         (overrideProvider && providerNames.has(overrideProvider)) ||
         modelBelongs(tier.override_model!)
@@ -356,6 +505,7 @@ export class ProviderService {
         invalidated.push({ tier: tier.tier, modelName: tier.override_model! });
         tier.override_model = null;
         tier.override_provider = null;
+        tier.override_provider_id = null;
         tier.override_auth_type = null;
         tier.updated_at = new Date().toISOString();
         tiersToSave.push(tier);
@@ -382,13 +532,26 @@ export class ProviderService {
     for (const row of specificityRows) {
       let changed = false;
       const overrideProvider = row.override_provider?.toLowerCase();
-      if (
+      const overrideProviderId = row.override_provider_id;
+
+      if (removedProviderId) {
+        // Account-scoped removal: only clear overrides pointing to this account.
+        if (overrideProviderId === removedProviderId) {
+          row.override_model = null;
+          row.override_provider = null;
+          row.override_provider_id = null;
+          row.override_auth_type = null;
+          changed = true;
+        }
+      } else if (
         row.override_model !== null &&
         ((overrideProvider && providerNames.has(overrideProvider)) ||
           modelBelongs(row.override_model))
       ) {
+        // Full provider removal.
         row.override_model = null;
         row.override_provider = null;
+        row.override_provider_id = null;
         row.override_auth_type = null;
         changed = true;
       }

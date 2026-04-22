@@ -29,6 +29,25 @@ export function createRoutingActions(input: RoutingActionsInput) {
   const [addingFallback, setAddingFallback] = createSignal<string | null>(null);
   const [fallbackOverrides, setFallbackOverrides] = createSignal<Record<string, string[]>>({});
 
+  /**
+   * Resolve the exact UserProvider.id for a provider+authType combo.
+   * Returns the first matching connected provider's `id`, or undefined.
+   */
+  const resolveOverrideProviderId = (
+    providerId: string,
+    authType?: AuthType,
+  ): string | undefined => {
+    const providers = input.connectedProviders();
+    if (!providers) return undefined;
+    const match = providers.find(
+      (p) =>
+        p.is_active &&
+        p.provider.toLowerCase() === providerId.toLowerCase() &&
+        (!authType || p.auth_type === authType),
+    );
+    return match?.id;
+  };
+
   const getTier = (tierId: string): TierAssignment | undefined =>
     input.tiers()?.find((t) => t.tier === tierId);
 
@@ -46,12 +65,15 @@ export function createRoutingActions(input: RoutingActionsInput) {
   ) => {
     setChangingTier(tierId);
     try {
+      // Resolve the exact UserProvider.id for multi-account disambiguation.
+      const overrideProviderId = resolveOverrideProviderId(providerId, authType);
       const updated = await overrideTier(
         input.agentName(),
         tierId,
         modelName,
         providerId,
         authType,
+        overrideProviderId,
       );
       input.mutateTiers((prev) => prev?.map((t) => (t.tier === tierId ? updated : t)));
       toast.success('Routing updated');
@@ -72,6 +94,7 @@ export function createRoutingActions(input: RoutingActionsInput) {
           override_model: null,
           override_provider: null,
           override_auth_type: null,
+          override_provider_id: null,
           fallback_models: null,
         })),
       );
@@ -90,7 +113,13 @@ export function createRoutingActions(input: RoutingActionsInput) {
       input.mutateTiers((prev) =>
         prev?.map((t) =>
           t.tier === tierId
-            ? { ...t, override_model: null, override_provider: null, override_auth_type: null }
+            ? {
+                ...t,
+                override_model: null,
+                override_provider: null,
+                override_auth_type: null,
+                override_provider_id: null,
+              }
             : t,
         ),
       );

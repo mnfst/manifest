@@ -1,5 +1,5 @@
 import { For, Show, type Component, createSignal, onMount } from 'solid-js';
-import type { AuthType, CustomProviderData } from '../services/api.js';
+import type { AuthType, CustomProviderData, RoutingProvider } from '../services/api.js';
 import { customProviderColor } from '../services/formatters.js';
 import type { ProviderDef } from '../services/providers.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.js';
@@ -17,6 +17,8 @@ interface Props {
   onOpenDetail: (provId: string, authType: AuthType) => void;
   onOpenCustomForm: () => void;
   onEditCustom: (cp: CustomProviderData) => void;
+  /** All provider rows for checking multi-account status. */
+  providers: RoutingProvider[];
 }
 
 const ProviderApiKeyTab: Component<Props> = (props) => {
@@ -91,6 +93,11 @@ const ProviderApiKeyTab: Component<Props> = (props) => {
               return null;
             };
 
+            const accountCount = () =>
+              props.providers.filter(
+                (p) => p.provider === prov.id && p.auth_type === 'api_key' && p.is_active,
+              ).length;
+
             return (
               <button
                 class="provider-toggle"
@@ -108,6 +115,9 @@ const ProviderApiKeyTab: Component<Props> = (props) => {
                   <span class="provider-toggle__name">{prov.name}</span>
                   <Show when={statusMessage()}>
                     <span class="provider-toggle__local-only">{statusMessage()}</span>
+                  </Show>
+                  <Show when={!statusMessage() && accountCount() > 1}>
+                    <span class="provider-toggle__tag">{accountCount()} accounts</span>
                   </Show>
                 </span>
                 <Show when={!disabled()}>

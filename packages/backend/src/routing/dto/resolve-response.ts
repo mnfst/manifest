@@ -13,4 +13,6 @@ export interface ResolveResponse {
   auth_type?: AuthType;
   specificity_category?: SpecificityCategory;
   fallback_models?: string[] | null;
+  /** Exact user_providers.id when the routing assignment pins one. */
+  user_provider_id?: string;
 }

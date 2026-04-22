@@ -33,6 +33,8 @@ interface PendingMinimaxOAuth {
   resourceUrl: string;
   expiresAt: number;
   pollIntervalMs: number;
+  /** Optional account label for multi-account support. */
+  accountLabel?: string;
 }
 
 interface MinimaxCodeResponse {
@@ -86,6 +88,7 @@ export class MinimaxOauthService {
     agentId: string,
     userId: string,
     region: MinimaxRegion = DEFAULT_REGION,
+    accountLabel?: string,
   ): Promise<MinimaxOAuthStartResult> {
     this.cleanupExpired();
     const verifier = randomBytes(32).toString('base64url');
@@ -132,6 +135,7 @@ export class MinimaxOauthService {
       resourceUrl,
       expiresAt,
       pollIntervalMs,
+      accountLabel,
     });
     return {
       flowId,
@@ -208,6 +212,8 @@ export class MinimaxOauthService {
       'minimax',
       JSON.stringify(blob),
       'subscription',
+      undefined,
+      pending.accountLabel,
     );
     try {
       await this.discoveryService.discoverModels(savedProvider);
@@ -258,6 +264,7 @@ export class MinimaxOauthService {
     rawValue: string,
     agentId: string,
     userId: string,
+    userProviderId?: string,
   ): Promise<OAuthTokenBlob | null> {
     let blob: OAuthTokenBlob;
     try {
@@ -271,13 +278,21 @@ export class MinimaxOauthService {
     if (Date.now() < blob.e - 60_000) return blob;
     try {
       const refreshed = await this.refreshAccessToken(blob.r, blob.u);
-      await this.providerService.upsertProvider(
-        agentId,
-        userId,
-        'minimax',
-        JSON.stringify(refreshed),
-        'subscription',
-      );
+      if (userProviderId) {
+        await this.providerService.updateProviderApiKeyById(
+          agentId,
+          userProviderId,
+          JSON.stringify(refreshed),
+        );
+      } else {
+        await this.providerService.upsertProvider(
+          agentId,
+          userId,
+          'minimax',
+          JSON.stringify(refreshed),
+          'subscription',
+        );
+      }
       this.logger.log(`MiniMax OAuth token refreshed for agent=${agentId}`);
       return refreshed;
     } catch (err) {

@@ -1,6 +1,26 @@
+import { BadRequestException } from '@nestjs/common';
 import { SpecificityService } from '../specificity.service';
 import { RoutingCacheService } from '../routing-cache.service';
 import { SpecificityAssignment } from '../../../entities/specificity-assignment.entity';
+import { UserProvider } from '../../../entities/user-provider.entity';
+
+function makeProvider(overrides: Partial<UserProvider> = {}): UserProvider {
+  return Object.assign(new UserProvider(), {
+    id: 'prov-1',
+    user_id: 'user-1',
+    agent_id: 'agent-1',
+    provider: 'openai',
+    auth_type: 'api_key' as const,
+    api_key_encrypted: 'enc-key',
+    key_prefix: 'sk-',
+    is_active: true,
+    connected_at: '2025-01-01T00:00:00Z',
+    updated_at: '2025-01-01T00:00:00Z',
+    cached_models: null,
+    models_fetched_at: null,
+    ...overrides,
+  });
+}
 
 function makeMockRepo() {
   return {
@@ -21,6 +41,7 @@ function makeAssignment(overrides: Partial<SpecificityAssignment> = {}): Specifi
     is_active: true,
     override_model: null,
     override_provider: null,
+    override_provider_id: null,
     override_auth_type: null,
     auto_assigned_model: null,
     fallback_models: null,
@@ -32,6 +53,7 @@ function makeAssignment(overrides: Partial<SpecificityAssignment> = {}): Specifi
 describe('SpecificityService', () => {
   let service: SpecificityService;
   let repo: ReturnType<typeof makeMockRepo>;
+  let providerRepo: ReturnType<typeof makeMockRepo>;
   let cache: {
     getSpecificity: jest.Mock;
     setSpecificity: jest.Mock;
@@ -41,6 +63,7 @@ describe('SpecificityService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     repo = makeMockRepo();
+    providerRepo = makeMockRepo();
     cache = {
       getSpecificity: jest.fn().mockReturnValue(null),
       setSpecificity: jest.fn(),
@@ -49,6 +72,7 @@ describe('SpecificityService', () => {
 
     service = new SpecificityService(
       repo as unknown as any,
+      providerRepo as unknown as any,
       cache as unknown as RoutingCacheService,
     );
   });
@@ -260,6 +284,64 @@ describe('SpecificityService', () => {
       expect(result.category).toBe('coding');
       expect(cache.invalidateAgent).toHaveBeenCalledWith('agent-1');
     });
+
+    /* ── overrideProviderId ── */
+
+    it('should accept overrideProviderId and resolve provider details', async () => {
+      const existing = makeAssignment();
+      repo.findOne.mockResolvedValue(existing);
+      providerRepo.findOne.mockResolvedValue(
+        makeProvider({ id: 'prov-xyz', provider: 'openai', auth_type: 'api_key' }),
+      );
+
+      const result = await service.setOverride(
+        'agent-1',
+        'user-1',
+        'coding',
+        'gpt-4o',
+        undefined,
+        undefined,
+        'prov-xyz',
+      );
+
+      expect(result.override_provider).toBe('openai');
+      expect(result.override_auth_type).toBe('api_key');
+      expect(result.override_provider_id).toBe('prov-xyz');
+      expect(repo.save).toHaveBeenCalledWith(existing);
+    });
+
+    it('should reject overrideProviderId not belonging to the agent', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.setOverride(
+          'agent-1',
+          'user-1',
+          'coding',
+          'gpt-4o',
+          undefined,
+          undefined,
+          'bad-id',
+        ),
+      ).rejects.toThrow(BadRequestException);
+      expect(repo.save).not.toHaveBeenCalled();
+    });
+
+    it('should store null override_provider_id when no overrideProviderId given', async () => {
+      const existing = makeAssignment();
+      repo.findOne.mockResolvedValue(existing);
+
+      const result = await service.setOverride(
+        'agent-1',
+        'user-1',
+        'coding',
+        'gpt-4o',
+        'openai',
+        'api_key',
+      );
+
+      expect(result.override_provider_id).toBeNull();
+    });
   });
 
   /* ── clearOverride ── */
@@ -269,6 +351,7 @@ describe('SpecificityService', () => {
       const existing = makeAssignment({
         override_model: 'gpt-4o',
         override_provider: 'openai',
+        override_provider_id: 'prov-1',
         override_auth_type: 'api_key',
         fallback_models: ['gpt-3.5-turbo'],
       });
@@ -278,6 +361,7 @@ describe('SpecificityService', () => {
 
       expect(existing.override_model).toBeNull();
       expect(existing.override_provider).toBeNull();
+      expect(existing.override_provider_id).toBeNull();
       expect(existing.override_auth_type).toBeNull();
       expect(existing.fallback_models).toBeNull();
       expect(repo.save).toHaveBeenCalledWith(existing);
@@ -306,6 +390,7 @@ describe('SpecificityService', () => {
           is_active: false,
           override_model: null,
           override_provider: null,
+          override_provider_id: null,
           override_auth_type: null,
           fallback_models: null,
         }),

@@ -82,6 +82,20 @@ describe('RoutingCacheService', () => {
       expect(svc.getApiKey('a', 'openai')).toBe('key-default');
       expect(svc.getApiKey('a', 'openai', 'subscription')).toBe('key-sub');
     });
+
+    it('keys by userProviderId — same provider + authType but different userProviderId is a separate slot', () => {
+      svc.setApiKey('a', 'openai', 'key-1', undefined, 'prov-1');
+      svc.setApiKey('a', 'openai', 'key-2', undefined, 'prov-2');
+      expect(svc.getApiKey('a', 'openai', undefined, 'prov-1')).toBe('key-1');
+      expect(svc.getApiKey('a', 'openai', undefined, 'prov-2')).toBe('key-2');
+      // Without userProviderId, falls back to the non-id slot (undefined)
+      expect(svc.getApiKey('a', 'openai')).toBeUndefined();
+    });
+
+    it('returns cached value for exact userProviderId slot', () => {
+      svc.setApiKey('a', 'openai', 'exact-key', 'api_key', 'prov-42');
+      expect(svc.getApiKey('a', 'openai', 'api_key', 'prov-42')).toBe('exact-key');
+    });
   });
 
   describe('invalidateAgent', () => {

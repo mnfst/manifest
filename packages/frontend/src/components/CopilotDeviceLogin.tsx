@@ -1,5 +1,4 @@
 import { createSignal, onCleanup, Show, type Component } from 'solid-js';
-import { providerIcon } from './ProviderIcon.js';
 import {
   copilotDeviceCode,
   copilotPollToken,
@@ -25,6 +24,10 @@ type Phase = 'idle' | 'loading' | 'awaiting' | 'success' | 'error';
 interface Props {
   agentName: string;
   connected: boolean;
+  /** The exact UserProvider.id for the copilot subscription (multi-account). */
+  userProviderId?: string;
+  accountLabel?: string;
+  requireAccountLabel?: boolean;
   onBack: () => void;
   onConnected: () => void;
   onDisconnected: () => void;
@@ -42,6 +45,7 @@ const CopilotDeviceLogin: Component<Props> = (props) => {
   const [copied, setCopied] = createSignal(false);
   let pollTimeout: ReturnType<typeof setTimeout> | undefined;
   let cancelled = false;
+  const normalizedAccountLabel = () => props.accountLabel?.trim() || undefined;
 
   onCleanup(() => {
     cancelled = true;
@@ -49,6 +53,11 @@ const CopilotDeviceLogin: Component<Props> = (props) => {
   });
 
   const startLogin = async () => {
+    if (props.requireAccountLabel && !normalizedAccountLabel()) {
+      setError('Account label is required to add another account.');
+      setPhase('error');
+      return;
+    }
     setPhase('loading');
     setError('');
     cancelled = false;
@@ -69,7 +78,7 @@ const CopilotDeviceLogin: Component<Props> = (props) => {
     pollTimeout = setTimeout(async () => {
       if (cancelled) return;
       try {
-        const result = await copilotPollToken(props.agentName, code);
+        const result = await copilotPollToken(props.agentName, code, normalizedAccountLabel());
         if (cancelled) return;
         const next = handlePollResult(result.status, delaySec);
         if (next > 0) schedulePoll(code, next, 0);
@@ -113,7 +122,12 @@ const CopilotDeviceLogin: Component<Props> = (props) => {
   const handleDisconnect = async () => {
     setBusy(true);
     try {
-      const result = await disconnectProvider(props.agentName, 'copilot', 'subscription');
+      const result = await disconnectProvider(
+        props.agentName,
+        'copilot',
+        'subscription',
+        props.userProviderId,
+      );
       if (result?.notifications?.length) {
         for (const msg of result.notifications) toast.error(msg);
       }
@@ -126,36 +140,7 @@ const CopilotDeviceLogin: Component<Props> = (props) => {
   };
 
   return (
-    <div class="provider-detail">
-      <button class="provider-detail__back" onClick={props.onBack} aria-label="Back to providers">
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <path d="m15 18-6-6 6-6" />
-        </svg>
-      </button>
-
-      <div class="routing-modal__header" style="border: none; padding: 0; margin-bottom: 15px;">
-        <div>
-          <div class="routing-modal__title">Connect providers</div>
-        </div>
-      </div>
-
-      <div class="provider-detail__header">
-        <span class="provider-detail__icon">{providerIcon('copilot', 28)}</span>
-        <div class="provider-detail__title-group">
-          <div class="provider-detail__name">GitHub Copilot</div>
-        </div>
-      </div>
-
+    <>
       {/* Connected state */}
       <Show when={props.connected && phase() !== 'success'}>
         <p class="provider-detail__hint" style="color: var(--success-color, #22c55e);">
@@ -165,6 +150,7 @@ const CopilotDeviceLogin: Component<Props> = (props) => {
           class="btn btn--outline provider-detail__action provider-detail__disconnect"
           disabled={busy()}
           onClick={handleDisconnect}
+          aria-label="Disconnect provider"
         >
           <Show when={!busy()} fallback={<span class="spinner" />}>
             Disconnect
@@ -177,6 +163,11 @@ const CopilotDeviceLogin: Component<Props> = (props) => {
         <p class="provider-detail__hint">
           Requires an active GitHub Copilot subscription. This will open a GitHub device login.
         </p>
+        <Show when={props.requireAccountLabel}>
+          <p class="provider-detail__hint" style="margin-top: 8px;">
+            Add an account label first to connect another GitHub Copilot account.
+          </p>
+        </Show>
         <Show when={error()}>
           <div class="provider-detail__error">{error()}</div>
         </Show>
@@ -264,7 +255,7 @@ const CopilotDeviceLogin: Component<Props> = (props) => {
           GitHub Copilot connected successfully.
         </p>
       </Show>
-    </div>
+    </>
   );
 };
 
