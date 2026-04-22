@@ -323,8 +323,22 @@ If Ollama runs on a different host on your LAN, set `OLLAMA_HOST` in `.env` to t
 | `SEED_DATA`          | No       | `false`                 | Seed demo data on startup                     |
 | `OLLAMA_HOST`        | No       | `http://host.docker.internal:11434` | Ollama endpoint for the built-in tile. Override to point at a LAN-hosted Ollama. |
 | `MANIFEST_MODE`      | No       | auto (Docker → selfhosted) | `selfhosted` or `cloud`. `local` is a legacy alias. Self-hosted mode allows private/http URLs for custom providers. |
+| `MANIFEST_TELEMETRY_DISABLED` | No | `0`               | Set `1` to disable anonymous usage telemetry  |
 
 Full env var reference: [github.com/mnfst/manifest](https://github.com/mnfst/manifest)
+
+## Anonymous usage telemetry
+
+Manifest sends a small anonymous usage report once per 24h so the maintainers
+can see how the project is being used. Aggregates only — no prompts, no
+message contents, no API keys, nothing that identifies a user. The report is
+a random install UUID (generated once, no PII), the Manifest version, and
+aggregate counters grouped by provider, routing tier, auth type, agent
+platform, OS, and arch.
+
+To disable, set `MANIFEST_TELEMETRY_DISABLED=1` in your `.env` file and
+restart the container. The full field list is published at
+[manifest.build/docs/self-hosted#telemetry](https://manifest.build/docs/self-hosted#telemetry).
 
 ## Links
 

@@ -91,7 +91,9 @@ export class ProxyExceptionFilter implements ExceptionFilter {
 
     if (isChatClient) {
       const content =
-        status >= 500 ? '[🦚 Manifest] Something broke on our end. Try again in a moment.' : message;
+        status >= 500
+          ? '[🦚 Manifest] Something broke on our end. Try again in a moment.'
+          : message;
       sendFriendlyResponse(res, content, isStream);
       return;
     }

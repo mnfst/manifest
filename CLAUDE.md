@@ -393,6 +393,44 @@ To add a new font or icon library:
 3. Reference the local CSS in `index.html` (e.g. `<link href="/fonts/..." />`)
 4. Do **not** add external domains to the CSP directives
 
+## Anonymous Usage Telemetry (self-hosted)
+
+Self-hosted installs (Docker / `node dist/main.js` with `NODE_ENV=production`)
+send one aggregate usage report per 24h to `TELEMETRY_ENDPOINT` (default
+`https://telemetry.manifest.build/v1/report`). The module lives at
+`packages/backend/src/telemetry/`.
+
+**Payload fields (v1) — keep this list minimal**:
+
+- `schema_version`, `install_id` (random UUIDv4, persisted once in
+  `install_metadata`), `manifest_version`
+- Last 24h aggregates from `agent_messages`: `messages_total`,
+  `messages_by_provider` (bucketed via `PROVIDER_BY_ID_OR_ALIAS` — unknown
+  values collapse to `"custom"`, NULL to `"unknown"`), `messages_by_tier`
+  (`simple` / `standard` / `complex` / `reasoning`, NULL → `"unknown"`),
+  `messages_by_auth_type` (`api_key` / `subscription`), `tokens_input_total`,
+  `tokens_output_total`
+- Configuration: `agents_total`, `agents_by_platform`
+- Runtime: `platform` (`process.platform`), `arch` (`process.arch`)
+
+User-facing spec: https://manifest.build/docs/self-hosted#telemetry
+
+**Explicitly never sent**: tenant/user IDs, emails, API keys, prompts,
+message contents, model names, custom provider URLs, OAuth client IDs,
+raw IPs.
+
+**Opt-out**: `MANIFEST_TELEMETRY_DISABLED=1`. Also auto-disabled when
+`NODE_ENV !== 'production'` so dev instances never report.
+
+**Cadence**: `@Cron(CronExpression.EVERY_HOUR)` fires once an hour but
+short-circuits unless the last send was ≥24h ago (and the first-send jitter
+window has elapsed). Hourly tick + timestamp check beats a daily cron
+because it survives restarts without missing windows.
+
+**Extending the payload**: bump `TELEMETRY_SCHEMA_VERSION` and add fields
+additively — the ingest (peacock-backend) rejects unknown `schema_version`
+values with 400, so downgrades stay safe.
+
 ## Architecture Notes
 
 - **Single-service**: In production, `@nestjs/serve-static` serves `frontend/dist/` with SPA fallback. API routes (`/api/*`, `/otlp/*`) are excluded.

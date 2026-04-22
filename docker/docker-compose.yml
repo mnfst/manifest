@@ -77,6 +77,9 @@ services:
       - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
       - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID:-}
       - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET:-}
+      # Anonymous usage telemetry (opt-out). Set to 1 to disable. See
+      # https://manifest.build/telemetry for the exact payload shape.
+      - MANIFEST_TELEMETRY_DISABLED=${MANIFEST_TELEMETRY_DISABLED:-0}
     depends_on:
       postgres:
         condition: service_healthy
