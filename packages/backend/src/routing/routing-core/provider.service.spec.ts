@@ -27,6 +27,7 @@ function makeMockRepo() {
     save: jest.fn().mockImplementation((entity: unknown) => Promise.resolve(entity)),
     insert: jest.fn().mockResolvedValue(undefined),
     update: jest.fn().mockResolvedValue(undefined),
+    count: jest.fn().mockResolvedValue(0),
   };
 }
 
@@ -480,6 +481,70 @@ describe('ProviderService', () => {
       const result = await service.removeProvider('agent-1', 'openai');
 
       expect(result.notifications[0]).toContain('unknown-tier is back to automatic mode');
+    });
+
+    it('should reject ambiguous removal when multiple active accounts exist and no providerId given', async () => {
+      const existing = makeProvider({ is_active: true });
+      providerRepo.findOne.mockResolvedValue(existing);
+      // Multiple active accounts of the same provider+authType
+      providerRepo.count.mockResolvedValue(2);
+
+      await expect(service.removeProvider('agent-1', 'openai', 'api_key')).rejects.toThrow(
+        'Multiple active accounts exist',
+      );
+      expect(providerRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('should allow removal when providerId is given even with multiple active accounts', async () => {
+      const existing = makeProvider({ id: 'prov-a', is_active: true });
+      providerRepo.findOne.mockResolvedValue(existing);
+      // Other active account exists
+      providerRepo.find.mockResolvedValue([makeProvider({ id: 'prov-b', auth_type: 'api_key' })]);
+      tierRepo.find.mockResolvedValue([]);
+
+      const result = await service.removeProvider('agent-1', 'openai', 'api_key', 'prov-a');
+
+      expect(existing.is_active).toBe(false);
+      expect(result).toEqual({ notifications: [] });
+    });
+
+    it('should preserve fallback models during account-scoped removal when sibling accounts remain', async () => {
+      const removedAccount = makeProvider({ id: 'prov-a', is_active: true });
+      providerRepo.findOne.mockResolvedValue(removedAccount);
+      providerRepo.find.mockResolvedValue([makeProvider({ id: 'prov-b', auth_type: 'api_key' })]);
+
+      const tierWithFallback = makeTier({
+        id: 'tier-fallback',
+        tier: 'complex',
+        fallback_models: ['openai/gpt-4o', 'anthropic/claude-sonnet-4'],
+      });
+      const specificityWithFallback = Object.assign(new SpecificityAssignment(), {
+        id: 'spec-1',
+        user_id: 'user-1',
+        agent_id: 'agent-1',
+        category: 'coding',
+        override_model: null,
+        override_provider: null,
+        override_provider_id: null,
+        override_auth_type: null,
+        auto_assigned_model: 'gpt-4o-mini',
+        fallback_models: ['openai/gpt-4o', 'anthropic/claude-sonnet-4'],
+        updated_at: '2025-01-01T00:00:00Z',
+      });
+
+      tierRepo.find.mockResolvedValue([tierWithFallback]);
+      specificityRepo.find.mockResolvedValue([specificityWithFallback]);
+
+      await service.removeProvider('agent-1', 'openai', 'api_key', 'prov-a');
+
+      expect(tierWithFallback.fallback_models).toEqual([
+        'openai/gpt-4o',
+        'anthropic/claude-sonnet-4',
+      ]);
+      expect(specificityWithFallback.fallback_models).toEqual([
+        'openai/gpt-4o',
+        'anthropic/claude-sonnet-4',
+      ]);
     });
   });
 

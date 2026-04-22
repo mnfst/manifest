@@ -397,6 +397,50 @@ Aanvulling:
 
 ---
 
+## 3b. Backfill plan voor legacy override-kolommen
+
+De bestaande kolommen `override_provider` en `override_auth_type` op `tier_assignments` en `specificity_assignments` bevatten waarden uit de pre-multi-account periode. Zodra `override_provider_id` beschikbaar is, moeten deze legacy waarden gemigreerd worden zodat bestaande overrides niet breken.
+
+### Migratiestappen
+
+1. **Identificeer rows met een override maar zonder `override_provider_id`**
+   - `SELECT` alle `tier_assignments` en `specificity_assignments` waar `override_provider IS NOT NULL AND override_provider_id IS NULL`
+2. **Resolve `override_provider_id` per row**
+   - Voor elke row: zoek het actieve `user_providers` record dat matcht op `(agent_id, provider, auth_type)` met `is_default = true` of — als er maar één is — dat record
+   - Als er geen match is (provider verwijderd): laat `override_provider_id` als `NULL` en log een waarschuwing
+3. **Schrijf een migratie-script**
+   ```sql
+   UPDATE tier_assignments t
+   SET override_provider_id = (
+     SELECT up.id FROM user_providers up
+     WHERE up.agent_id = t.agent_id
+       AND up.provider = t.override_provider
+       AND (up.auth_type = t.override_auth_type OR t.override_auth_type IS NULL)
+       AND up.is_active = true
+     ORDER BY up.is_default DESC
+     LIMIT 1
+   )
+   WHERE t.override_provider IS NOT NULL
+     AND t.override_provider_id IS NULL;
+   ```
+   Herhaal voor `specificity_assignments`.
+4. **Validatie na migratie**
+   - Verifieer dat geen enkele actieve override meer een `override_provider` heeft zonder bijbehorend `override_provider_id`
+   - Spot-check: compareer counts before/after
+5. **Runtime-gedrag tijdens overgang**
+   - `resolve.service` gebruikt `override_provider_id` wanneer aanwezig; valt terug op `override_provider` + `override_auth_type` wanneer `override_provider_id NULL` is
+   - Dit garandeert backwards-compatibiliteit tijdens de migratieperiode
+6. **Opruiming (volgende release)**
+   - Zodra de backfill bevestigd is, kunnen `override_provider` en `override_auth_type` kolommen uit de entity-definitie verwijderd worden en een volgende migratie de kolommen droppen
+
+### Edge cases
+
+- **Meerdere actieve accounts met dezelfde provider+auth_type**: backfill kiest de `is_default = true` account
+- **Geen actief account**: `override_provider_id` blijft `NULL`; resolve.service fallthrough naar auto-assigned
+- **Custom providers**: `override_provider` bevat `custom:uuid`; backfill moet exacte string-match gebruiken
+
+---
+
 ## 4. Fallbacks moeten ook account-aware worden
 
 Huidig model:

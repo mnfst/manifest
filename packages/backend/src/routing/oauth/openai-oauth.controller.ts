@@ -75,11 +75,33 @@ export class OpenaiOauthController {
       throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
     }
     const agent = await this.resolveAgent.resolve(user.id, agentName);
+
+    // When no specific providerId is given, resolve the exact account.
+    // If there are multiple active OpenAI subscription accounts, reject
+    // to avoid revoking the wrong one.
+    let resolvedProviderId = providerId;
+    if (!resolvedProviderId) {
+      const providers = await this.providerService.getProviders(agent.id);
+      const openaiSubs = providers.filter(
+        (p) => p.provider === 'openai' && p.auth_type === 'subscription' && p.is_active,
+      );
+      if (openaiSubs.length === 0) {
+        throw new HttpException('No active OpenAI subscription found', HttpStatus.NOT_FOUND);
+      }
+      if (openaiSubs.length > 1) {
+        throw new HttpException(
+          'Multiple OpenAI subscription accounts found. Provide providerId to specify which to revoke.',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      resolvedProviderId = openaiSubs[0].id;
+    }
+
     const apiKey = await this.providerKeyService.getProviderApiKey(
       agent.id,
       'openai',
       'subscription',
-      providerId,
+      resolvedProviderId,
     );
 
     if (apiKey) {
@@ -92,7 +114,12 @@ export class OpenaiOauthController {
       }
     }
 
-    await this.providerService.removeProvider(agent.id, 'openai', 'subscription', providerId);
+    await this.providerService.removeProvider(
+      agent.id,
+      'openai',
+      'subscription',
+      resolvedProviderId,
+    );
 
     return { ok: true };
   }

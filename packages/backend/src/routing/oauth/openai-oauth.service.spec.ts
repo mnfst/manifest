@@ -29,13 +29,24 @@ function createProviderService(): {
   svc: ProviderService;
   upsertProvider: jest.Mock;
   recalculateTiers: jest.Mock;
+  getProviders: jest.Mock;
+  updateProviderApiKeyById: jest.Mock;
 } {
   const upsertProvider = jest.fn().mockResolvedValue({ provider: { id: 'p1' } });
   const recalculateTiers = jest.fn().mockResolvedValue(undefined);
+  const getProviders = jest.fn().mockResolvedValue([]);
+  const updateProviderApiKeyById = jest.fn().mockResolvedValue({ id: 'p1' });
   return {
-    svc: { upsertProvider, recalculateTiers } as unknown as ProviderService,
+    svc: {
+      upsertProvider,
+      recalculateTiers,
+      getProviders,
+      updateProviderApiKeyById,
+    } as unknown as ProviderService,
     upsertProvider,
     recalculateTiers,
+    getProviders,
+    updateProviderApiKeyById,
   };
 }
 
@@ -240,15 +251,57 @@ describe('OpenaiOauthService', () => {
       fetchMock.mockResolvedValue(
         mockResponse(200, { access_token: 'new', refresh_token: 'rf2', expires_in: 3600 }),
       );
+      // Return a single active OpenAI subscription so the fallback path resolves
+      providerService.getProviders.mockResolvedValue([
+        { id: 'prov-1', provider: 'openai', auth_type: 'subscription', is_active: true },
+      ]);
       const token = await svc.unwrapToken(JSON.stringify(blob), 'agent-1', 'user-1');
       expect(token).toBe('new');
-      expect(providerService.upsertProvider).toHaveBeenCalledWith(
+      // Should use exact update by ID, not the ambiguous upsertProvider
+      expect(providerService.updateProviderApiKeyById).toHaveBeenCalledWith(
+        'agent-1',
+        'prov-1',
+        expect.stringContaining('"t":"new"'),
+      );
+    });
+
+    it('refreshes and persists via userProviderId when given', async () => {
+      const blob = { t: 'old', r: 'rf', e: Date.now() + 30_000 };
+      fetchMock.mockResolvedValue(
+        mockResponse(200, { access_token: 'new2', refresh_token: 'rf3', expires_in: 3600 }),
+      );
+      const token = await svc.unwrapToken(
+        JSON.stringify(blob),
         'agent-1',
         'user-1',
-        'openai',
-        expect.stringContaining('"t":"new"'),
-        'subscription',
+        'exact-prov-id',
       );
+      expect(token).toBe('new2');
+      expect(providerService.updateProviderApiKeyById).toHaveBeenCalledWith(
+        'agent-1',
+        'exact-prov-id',
+        expect.stringContaining('"t":"new2"'),
+      );
+      // Should NOT call the ambiguous upsertProvider
+      expect(providerService.upsertProvider).not.toHaveBeenCalled();
+    });
+
+    it('skips persistence when no userProviderId and multiple active OpenAI subscriptions', async () => {
+      const blob = { t: 'old', r: 'rf', e: Date.now() + 30_000 };
+      fetchMock.mockResolvedValue(
+        mockResponse(200, { access_token: 'new3', refresh_token: 'rf4', expires_in: 3600 }),
+      );
+      // Multiple active accounts — ambiguous
+      providerService.getProviders.mockResolvedValue([
+        { id: 'prov-a', provider: 'openai', auth_type: 'subscription', is_active: true },
+        { id: 'prov-b', provider: 'openai', auth_type: 'subscription', is_active: true },
+      ]);
+      const token = await svc.unwrapToken(JSON.stringify(blob), 'agent-1', 'user-1');
+      // Still returns the fresh token for immediate use
+      expect(token).toBe('new3');
+      // But does NOT persist — would be ambiguous
+      expect(providerService.upsertProvider).not.toHaveBeenCalled();
+      expect(providerService.updateProviderApiKeyById).not.toHaveBeenCalled();
     });
 
     it('returns null when the refresh call fails', async () => {

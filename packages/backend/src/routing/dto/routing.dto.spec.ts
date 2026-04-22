@@ -6,6 +6,7 @@ import {
   ConnectProviderDto,
   CopilotPollDto,
   SetFallbacksDto,
+  PatchProviderDto,
 } from './routing.dto';
 
 function toDto(data: Record<string, unknown>): AgentNameParamDto {
@@ -202,6 +203,44 @@ describe('SetFallbacksDto', () => {
 
   it('should reject when models property is missing', async () => {
     const dto = toFallbacksDto({});
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+});
+
+describe('ConnectProviderDto accountLabel', () => {
+  function toConnectDto(data: Record<string, unknown>): ConnectProviderDto {
+    return plainToInstance(ConnectProviderDto, data);
+  }
+
+  it('trims whitespace from accountLabel', async () => {
+    const dto = toConnectDto({ provider: 'openai', accountLabel: '  work  ' });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+    expect(dto.accountLabel).toBe('work');
+  });
+
+  it('rejects whitespace-only accountLabel', async () => {
+    const dto = toConnectDto({ provider: 'openai', accountLabel: '   ' });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+});
+
+describe('PatchProviderDto accountLabel', () => {
+  function toPatchDto(data: Record<string, unknown>): PatchProviderDto {
+    return plainToInstance(PatchProviderDto, data);
+  }
+
+  it('trims whitespace from accountLabel', async () => {
+    const dto = toPatchDto({ accountLabel: '  personal  ' });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+    expect(dto.accountLabel).toBe('personal');
+  });
+
+  it('rejects whitespace-only accountLabel', async () => {
+    const dto = toPatchDto({ accountLabel: '   ' });
     const errors = await validate(dto);
     expect(errors.length).toBeGreaterThan(0);
   });

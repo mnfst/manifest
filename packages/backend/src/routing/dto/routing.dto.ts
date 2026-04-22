@@ -58,6 +58,7 @@ export class ConnectProviderDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   accountLabel?: string;
 }
 
@@ -114,6 +115,7 @@ export class CopilotPollDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   accountLabel?: string;
 }
 
@@ -121,6 +123,7 @@ export class PatchProviderDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   accountLabel?: string;
 
   @IsOptional()

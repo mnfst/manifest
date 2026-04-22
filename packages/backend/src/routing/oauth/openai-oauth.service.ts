@@ -177,13 +177,27 @@ export class OpenaiOauthService {
           JSON.stringify(refreshed),
         );
       } else {
-        await this.providerService.upsertProvider(
-          agentId,
-          userId,
-          'openai',
-          JSON.stringify(refreshed),
-          'subscription',
+        // Without an exact userProviderId, find the single active OpenAI
+        // subscription account for this agent.  If there are zero or more
+        // than one, skip persistence — upserting without a pin would
+        // either create a duplicate or update the wrong row.
+        const providers = await this.providerService.getProviders(agentId);
+        const openaiSubs = providers.filter(
+          (p) => p.provider === 'openai' && p.auth_type === 'subscription' && p.is_active,
         );
+        if (openaiSubs.length === 1) {
+          await this.providerService.updateProviderApiKeyById(
+            agentId,
+            openaiSubs[0].id,
+            JSON.stringify(refreshed),
+          );
+        } else {
+          this.logger.warn(
+            `Skipping OAuth token persistence for agent=${agentId}: ` +
+              `found ${openaiSubs.length} active OpenAI subscription accounts ` +
+              `(expected exactly 1). Pass userProviderId to disambiguate.`,
+          );
+        }
       }
       this.logger.log(`OpenAI OAuth token refreshed for agent=${agentId}`);
       return refreshed.t;

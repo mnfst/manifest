@@ -246,6 +246,27 @@ export class ProviderService {
     const existing = await this.providerRepo.findOne({ where });
     if (!existing) throw new NotFoundException('Provider not found');
 
+    // Guard: when no providerId was specified and there are multiple active
+    // accounts for this provider+authType, refuse to remove — the caller
+    // must specify which one.
+    if (!providerId) {
+      const siblingCount = await this.providerRepo.count({
+        where: {
+          agent_id: agentId,
+          provider,
+          ...(authType ? { auth_type: authType } : {}),
+          is_active: true,
+        },
+      });
+      if (siblingCount > 1) {
+        throw new BadRequestException(
+          `Multiple active accounts exist for ${provider}` +
+            (authType ? ` (${authType})` : '') +
+            `. Specify providerId to remove a specific account.`,
+        );
+      }
+    }
+
     // Deactivate this record
     existing.is_active = false;
     existing.updated_at = new Date().toISOString();
@@ -515,13 +536,15 @@ export class ProviderService {
     const allTiers = await this.tierRepo.find({ where: { agent_id: agentId } });
     const hadTierAssignments = allTiers.length > 0;
     const savedTierIds = new Set(tiersToSave.map((tier) => tier.id));
-    for (const tier of allTiers) {
-      if (!tier.fallback_models || tier.fallback_models.length === 0) continue;
-      const filtered = tier.fallback_models.filter((model) => !modelBelongs(model));
-      if (filtered.length !== tier.fallback_models.length) {
-        tier.fallback_models = filtered.length > 0 ? filtered : null;
-        tier.updated_at = new Date().toISOString();
-        if (!savedTierIds.has(tier.id)) tiersToSave.push(tier);
+    if (!removedProviderId) {
+      for (const tier of allTiers) {
+        if (!tier.fallback_models || tier.fallback_models.length === 0) continue;
+        const filtered = tier.fallback_models.filter((model) => !modelBelongs(model));
+        if (filtered.length !== tier.fallback_models.length) {
+          tier.fallback_models = filtered.length > 0 ? filtered : null;
+          tier.updated_at = new Date().toISOString();
+          if (!savedTierIds.has(tier.id)) tiersToSave.push(tier);
+        }
       }
     }
 
@@ -555,7 +578,7 @@ export class ProviderService {
         row.override_auth_type = null;
         changed = true;
       }
-      if (row.fallback_models && row.fallback_models.length > 0) {
+      if (!removedProviderId && row.fallback_models && row.fallback_models.length > 0) {
         const filtered = row.fallback_models.filter((model) => !modelBelongs(model));
         if (filtered.length !== row.fallback_models.length) {
           row.fallback_models = filtered.length > 0 ? filtered : null;

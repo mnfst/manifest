@@ -99,6 +99,13 @@ export class ProviderKeyService {
     return match?.region ?? null;
   }
 
+  async getActiveProviderRecordById(
+    agentId: string,
+    userProviderId: string,
+  ): Promise<UserProvider | null> {
+    return this.findActiveProviderRecordById(agentId, userProviderId);
+  }
+
   async findProviderForModel(agentId: string, model: string): Promise<string | undefined> {
     const providers = await this.providerService.getProviders(agentId);
     for (const p of providers) {

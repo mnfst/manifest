@@ -421,6 +421,9 @@ describe('TierService', () => {
           'bad-id',
         ),
       ).rejects.toThrow(BadRequestException);
+      expect(providerRepo.findOne).toHaveBeenCalledWith({
+        where: { id: 'bad-id', agent_id: 'agent-1', is_active: true },
+      });
       expect(tierRepo.save).not.toHaveBeenCalled();
     });
 
@@ -439,6 +442,9 @@ describe('TierService', () => {
           'prov-inactive',
         ),
       ).rejects.toThrow(BadRequestException);
+      expect(providerRepo.findOne).toHaveBeenCalledWith({
+        where: { id: 'prov-inactive', agent_id: 'agent-1', is_active: true },
+      });
     });
 
     it('should store null override_provider_id when no overrideProviderId given', async () => {

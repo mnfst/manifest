@@ -193,6 +193,11 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
           when={flow()}
           fallback={
             <>
+              <Show when={props.requireAccountLabel && !normalizedAccountLabel()}>
+                <div class="provider-detail__error">
+                  Account label is required to add another account.
+                </div>
+              </Show>
               <p class="provider-detail__hint">
                 Choose your MiniMax region, then open the authorization page in your browser to sign
                 in and approve access.

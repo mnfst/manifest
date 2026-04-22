@@ -64,7 +64,27 @@ export class MultiAccountProvider1777100000000 implements MigrationInterface {
     );
     await queryRunner.query(`ALTER TABLE "tier_assignments" DROP COLUMN "override_provider_id"`);
     await queryRunner.query(`DROP INDEX IF EXISTS "IDX_user_providers_active_default_unique"`);
-    await queryRunner.query(`DROP INDEX IF EXISTS "IDX_user_providers_active_label_unique"`);
+    await queryRunner.query(`DROP INDEX "IDX_user_providers_active_label_unique"`);
+    // Before restoring the strict unique index, deactivate all but one
+    // active row per (agent_id, provider, auth_type) so the CREATE UNIQUE
+    // does not fail on pre-existing multi-account data.
+    await queryRunner.query(`
+      WITH ranked AS (
+        SELECT
+          "id",
+          ROW_NUMBER() OVER (
+            PARTITION BY "agent_id", "provider", "auth_type"
+            ORDER BY "is_default" DESC, "connected_at" ASC, "id" ASC
+          ) AS rn
+        FROM "user_providers"
+        WHERE "is_active" = true
+      )
+      UPDATE "user_providers" u
+      SET "is_active" = false, "updated_at" = NOW()
+      FROM ranked r
+      WHERE u."id" = r."id"
+        AND r.rn > 1
+    `);
     // Restore the original (non-partial) unique index
     await queryRunner.query(
       `CREATE UNIQUE INDEX "IDX_user_providers_agent_provider_auth" ` +

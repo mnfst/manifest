@@ -319,7 +319,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
         </div>
       </Show>
 
-      <Show when={!isOllama}>
+      <Show when={!isOllama || isCreatingNewAccount()}>
         <div class="provider-detail__field" style="margin-top: 12px;">
           <label class="provider-detail__label">Account label</label>
           <input

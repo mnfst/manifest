@@ -60,8 +60,9 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
 
   const getProviderByAuth = (provId: string, authType: AuthType) =>
     props.providers.find(
-      (p) => p.provider === provId && p.auth_type === authType && p.is_default,
-    ) ?? props.providers.find((p) => p.provider === provId && p.auth_type === authType);
+      (p) => p.provider === provId && p.auth_type === authType && p.is_active && p.is_default,
+    ) ??
+    props.providers.find((p) => p.provider === provId && p.auth_type === authType && p.is_active);
 
   /** Get all active provider rows for a given provider+authType (multi-account). */
   const getProviderAccounts = (provId: string, authType: AuthType) =>

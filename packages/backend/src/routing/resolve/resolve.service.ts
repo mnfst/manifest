@@ -10,6 +10,8 @@ import { Tier } from '../../scoring/types';
 import { ResolveResponse } from '../dto/resolve-response';
 import { inferProviderFromModelName } from '../../common/utils/provider-aliases';
 import type { SpecificityCategory } from 'manifest-shared';
+import type { TierAssignment } from '../../entities/tier-assignment.entity';
+import type { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
 
 /**
  * When specificity detection is below this confidence, skip specificity
@@ -97,10 +99,19 @@ export class ResolveService {
     }
 
     const provider = await this.resolveProvider(agentId, assignment, model);
-    const userProviderId = assignment.override_provider_id ?? undefined;
+    const validatedProviderId = await this.validateOverrideProviderId(
+      agentId,
+      assignment,
+      provider,
+    );
     const authType = provider
       ? (assignment.override_auth_type ??
-        (await this.providerKeyService.getAuthType(agentId, provider, undefined, userProviderId)))
+        (await this.providerKeyService.getAuthType(
+          agentId,
+          provider,
+          undefined,
+          validatedProviderId,
+        )))
       : undefined;
 
     return {
@@ -111,7 +122,7 @@ export class ResolveService {
       score: result.score,
       reason: result.reason,
       auth_type: authType,
-      user_provider_id: userProviderId,
+      user_provider_id: validatedProviderId,
     };
   }
 
@@ -125,10 +136,19 @@ export class ResolveService {
 
     const model = await this.providerKeyService.getEffectiveModel(agentId, assignment);
     const provider = model ? await this.resolveProvider(agentId, assignment, model) : null;
-    const userProviderId = assignment.override_provider_id ?? undefined;
+    const validatedProviderId = await this.validateOverrideProviderId(
+      agentId,
+      assignment,
+      provider,
+    );
     const authType = provider
       ? (assignment.override_auth_type ??
-        (await this.providerKeyService.getAuthType(agentId, provider, undefined, userProviderId)))
+        (await this.providerKeyService.getAuthType(
+          agentId,
+          provider,
+          undefined,
+          validatedProviderId,
+        )))
       : undefined;
 
     return {
@@ -139,7 +159,7 @@ export class ResolveService {
       score: 0,
       reason: 'heartbeat',
       auth_type: authType,
-      user_provider_id: userProviderId,
+      user_provider_id: validatedProviderId,
     };
   }
 
@@ -190,10 +210,19 @@ export class ResolveService {
       },
       model,
     );
-    const userProviderId = assignment.override_provider_id ?? undefined;
+    const validatedProviderId = await this.validateOverrideProviderId(
+      agentId,
+      assignment,
+      provider,
+    );
     const authType = provider
       ? (assignment.override_auth_type ??
-        (await this.providerKeyService.getAuthType(agentId, provider, undefined, userProviderId)))
+        (await this.providerKeyService.getAuthType(
+          agentId,
+          provider,
+          undefined,
+          validatedProviderId,
+        )))
       : undefined;
 
     return {
@@ -206,7 +235,7 @@ export class ResolveService {
       auth_type: authType,
       specificity_category: detected.category,
       fallback_models: assignment.fallback_models ?? null,
-      user_provider_id: userProviderId,
+      user_provider_id: validatedProviderId,
     };
   }
 
@@ -266,5 +295,52 @@ export class ResolveService {
     if (pricing && pricing.provider !== 'OpenRouter') return pricing.provider;
 
     return null;
+  }
+
+  /**
+   * Validate that override_provider_id points to an active provider record
+   * for this agent whose provider string matches the resolved provider.
+   * Returns undefined when the pinned provider is inactive, mismatched, or
+   * absent — letting downstream code fall back to default resolution.
+   */
+  private async validateOverrideProviderId(
+    agentId: string,
+    assignment: {
+      override_provider_id?: string | null;
+      override_provider?: string | null;
+      override_auth_type?: 'api_key' | 'subscription' | null;
+    },
+    resolvedProvider: string | null,
+  ): Promise<string | undefined> {
+    const pid = assignment.override_provider_id;
+    if (!pid) return undefined;
+
+    const record = await this.providerKeyService.getActiveProviderRecordById(agentId, pid);
+    if (!record) {
+      this.logger.warn(
+        `override_provider_id="${pid}" no longer points to an active provider ` +
+          `for agent=${agentId}; dropping pin`,
+      );
+      return undefined;
+    }
+
+    const expectedProvider = (resolvedProvider ?? assignment.override_provider)?.toLowerCase();
+    if (expectedProvider && record.provider.toLowerCase() !== expectedProvider) {
+      this.logger.warn(
+        `override_provider_id="${pid}" points to provider=${record.provider} ` +
+          `but resolved provider=${expectedProvider} for agent=${agentId}; dropping pin`,
+      );
+      return undefined;
+    }
+
+    if (assignment.override_auth_type && record.auth_type !== assignment.override_auth_type) {
+      this.logger.warn(
+        `override_provider_id="${pid}" points to auth_type=${record.auth_type} ` +
+          `but assignment expects ${assignment.override_auth_type} for agent=${agentId}; dropping pin`,
+      );
+      return undefined;
+    }
+
+    return pid;
   }
 }

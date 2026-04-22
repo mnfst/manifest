@@ -31,7 +31,8 @@ export function createRoutingActions(input: RoutingActionsInput) {
 
   /**
    * Resolve the exact UserProvider.id for a provider+authType combo.
-   * Returns the first matching connected provider's `id`, or undefined.
+   * Prefer the default active account; otherwise only resolve when exactly one
+   * active account matches.
    */
   const resolveOverrideProviderId = (
     providerId: string,
@@ -39,13 +40,21 @@ export function createRoutingActions(input: RoutingActionsInput) {
   ): string | undefined => {
     const providers = input.connectedProviders();
     if (!providers) return undefined;
-    const match = providers.find(
+    const defaultMatch = providers.find(
+      (p) =>
+        p.is_active &&
+        p.is_default &&
+        p.provider.toLowerCase() === providerId.toLowerCase() &&
+        (!authType || p.auth_type === authType),
+    );
+    if (defaultMatch) return defaultMatch.id;
+    const activeMatches = providers.filter(
       (p) =>
         p.is_active &&
         p.provider.toLowerCase() === providerId.toLowerCase() &&
         (!authType || p.auth_type === authType),
     );
-    return match?.id;
+    return activeMatches.length === 1 ? activeMatches[0]!.id : undefined;
   };
 
   const getTier = (tierId: string): TierAssignment | undefined =>

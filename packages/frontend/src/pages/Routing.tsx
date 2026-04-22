@@ -146,13 +146,26 @@ const Routing: Component = () => {
   ): string | undefined => {
     const providers = connectedProviders();
     if (!providers) return undefined;
-    const match = providers.find(
+    // Prefer the default active account for this provider+authType.
+    const byDefault = providers.find(
+      (p) =>
+        p.is_active &&
+        p.is_default &&
+        p.provider.toLowerCase() === providerId.toLowerCase() &&
+        (!authType || p.auth_type === authType),
+    );
+    if (byDefault) return byDefault.id;
+    // Fallback: if there's exactly one active match, use it.
+    const activeMatches = providers.filter(
       (p) =>
         p.is_active &&
         p.provider.toLowerCase() === providerId.toLowerCase() &&
         (!authType || p.auth_type === authType),
     );
-    return match?.id;
+    if (activeMatches.length === 1) return activeMatches[0]!.id;
+    // Ambiguous: multiple active accounts and no default — return undefined
+    // so the backend falls back to its default resolution.
+    return undefined;
   };
 
   const openProviderModal = () => {

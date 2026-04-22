@@ -19,6 +19,7 @@ function makeService(overrides: {
   getEffectiveModel?: jest.Mock;
   getAuthType?: jest.Mock;
   hasActiveProvider?: jest.Mock;
+  getActiveProviderRecordById?: jest.Mock;
   isModelAvailable?: jest.Mock;
   activeSpecificity?: unknown[];
   getModelForAgent?: jest.Mock;
@@ -32,6 +33,8 @@ function makeService(overrides: {
     getEffectiveModel: overrides.getEffectiveModel ?? jest.fn().mockResolvedValue(null),
     getAuthType: overrides.getAuthType ?? jest.fn().mockResolvedValue('api_key'),
     hasActiveProvider: overrides.hasActiveProvider ?? jest.fn().mockResolvedValue(false),
+    getActiveProviderRecordById:
+      overrides.getActiveProviderRecordById ?? jest.fn().mockResolvedValue(null),
     isModelAvailable: overrides.isModelAvailable ?? jest.fn().mockResolvedValue(true),
   } as unknown as ProviderKeyService;
 
@@ -244,6 +247,9 @@ describe('ResolveService', () => {
           },
         ],
         hasActiveProvider,
+        getActiveProviderRecordById: jest
+          .fn()
+          .mockResolvedValue({ id: 'spec-prov-1', provider: 'anthropic', auth_type: 'api_key' }),
         getAuthType,
       });
       const out = await svc.resolve('agent-1', [{ role: 'user', content: 'write some code' }]);
@@ -361,6 +367,9 @@ describe('ResolveService', () => {
           },
         ],
         hasActiveProvider,
+        getActiveProviderRecordById: jest
+          .fn()
+          .mockResolvedValue({ id: 'spec-prov-1', provider: 'anthropic', auth_type: 'api_key' }),
         getAuthType,
       });
       const out = await svc.resolve('agent-1', [{ role: 'user', content: 'write some code' }]);
@@ -389,6 +398,9 @@ describe('ResolveService', () => {
           },
         ],
         hasActiveProvider,
+        getActiveProviderRecordById: jest
+          .fn()
+          .mockResolvedValue({ id: 'spec-prov-1', provider: 'anthropic', auth_type: 'api_key' }),
         getAuthType,
       });
       const out = await svc.resolve('agent-1', [{ role: 'user', content: 'write some code' }]);
@@ -487,6 +499,10 @@ describe('ResolveService', () => {
           },
         ],
         getEffectiveModel: jest.fn().mockResolvedValue('gpt-4o'),
+        hasActiveProvider: jest.fn().mockResolvedValue(true),
+        getActiveProviderRecordById: jest
+          .fn()
+          .mockResolvedValue({ id: 'prov-account-1', provider: 'openai', auth_type: 'api_key' }),
         getAuthType: jest.fn().mockResolvedValue('api_key'),
       });
       const out = await svc.resolve('agent-1', [{ role: 'user', content: 'hi' }]);
@@ -497,6 +513,68 @@ describe('ResolveService', () => {
         undefined,
         'prov-account-1',
       );
+    });
+
+    it('drops override_provider_id when the pinned provider is inactive', async () => {
+      scoring.scoreRequest.mockReturnValue({
+        tier: 'standard',
+        confidence: 0.5,
+        score: 20,
+        reason: 'scored',
+      });
+      const { svc } = makeService({
+        tiers: [
+          {
+            tier: 'standard',
+            override_model: 'gpt-4o',
+            override_provider: 'openai',
+            override_auth_type: null,
+            override_provider_id: 'prov-inactive',
+            auto_assigned_model: null,
+          },
+        ],
+        getEffectiveModel: jest.fn().mockResolvedValue('gpt-4o'),
+        hasActiveProvider: jest.fn().mockResolvedValue(true),
+        getActiveProviderRecordById: jest.fn().mockResolvedValue(null),
+        getAuthType: jest.fn().mockResolvedValue('api_key'),
+      });
+      const out = await svc.resolve('agent-1', [{ role: 'user', content: 'hi' }]);
+      // The provider is still resolved from override_provider string, but
+      // user_provider_id is dropped because the pinned record is inactive.
+      expect(out.provider).toBe('openai');
+      expect(out.user_provider_id).toBeUndefined();
+    });
+
+    it('drops override_provider_id when the pinned provider mismatches the resolved provider', async () => {
+      scoring.scoreRequest.mockReturnValue({
+        tier: 'standard',
+        confidence: 0.5,
+        score: 20,
+        reason: 'scored',
+      });
+      const { svc } = makeService({
+        tiers: [
+          {
+            tier: 'standard',
+            override_model: 'gpt-4o',
+            override_provider: 'openai',
+            override_auth_type: null,
+            override_provider_id: 'prov-mismatch',
+            auto_assigned_model: null,
+          },
+        ],
+        getEffectiveModel: jest.fn().mockResolvedValue('gpt-4o'),
+        hasActiveProvider: jest.fn().mockResolvedValue(true),
+        getActiveProviderRecordById: jest
+          .fn()
+          .mockResolvedValue({ id: 'prov-mismatch', provider: 'anthropic', auth_type: 'api_key' }),
+        getAuthType: jest.fn().mockResolvedValue('api_key'),
+      });
+
+      const out = await svc.resolve('agent-1', [{ role: 'user', content: 'hi' }]);
+
+      expect(out.provider).toBe('openai');
+      expect(out.user_provider_id).toBeUndefined();
     });
 
     it('omits user_provider_id when the tier assignment has no override_provider_id', async () => {
@@ -680,6 +758,10 @@ describe('ResolveService', () => {
           },
         ],
         getEffectiveModel: jest.fn().mockResolvedValue('gpt-4o-mini'),
+        hasActiveProvider: jest.fn().mockResolvedValue(true),
+        getActiveProviderRecordById: jest
+          .fn()
+          .mockResolvedValue({ id: 'prov-heartbeat-1', provider: 'openai', auth_type: 'api_key' }),
         getAuthType: jest.fn().mockResolvedValue('api_key'),
       });
       const out = await svc.resolveForTier('agent-1', 'simple');

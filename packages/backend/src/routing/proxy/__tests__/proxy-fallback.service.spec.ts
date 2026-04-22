@@ -628,7 +628,7 @@ describe('ProxyFallbackService', () => {
       );
 
       expect(result.apiKey).toBe('access-token');
-      expect(openaiOauth.unwrapToken).toHaveBeenCalledWith('blob', 'agent-1', 'user-1');
+      expect(openaiOauth.unwrapToken).toHaveBeenCalledWith('blob', 'agent-1', 'user-1', undefined);
     });
 
     it('unwraps MiniMax subscription token with resource URL', async () => {

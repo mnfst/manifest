@@ -29,6 +29,11 @@ describe('OpenaiOauthController', () => {
 
     providerService = {
       removeProvider: jest.fn().mockResolvedValue({ notifications: [] }),
+      getProviders: jest
+        .fn()
+        .mockResolvedValue([
+          { id: 'prov-1', provider: 'openai', auth_type: 'subscription', is_active: true },
+        ]),
     } as unknown as jest.Mocked<ProviderService>;
 
     controller = new OpenaiOauthController(
@@ -163,11 +168,13 @@ describe('OpenaiOauthController', () => {
 
       const result = await controller.revoke('my-agent', undefined, { id: 'user-1' } as never);
 
+      // Resolves to the single active OpenAI subscription account
+      expect(providerService.getProviders).toHaveBeenCalledWith('agent-id-1');
       expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
         'agent-id-1',
         'openai',
         'subscription',
-        undefined,
+        'prov-1',
       );
       expect(oauthService.revokeToken).toHaveBeenCalledWith('access-tok');
       expect(oauthService.revokeToken).toHaveBeenCalledWith('refresh-tok');
@@ -175,7 +182,7 @@ describe('OpenaiOauthController', () => {
         'agent-id-1',
         'openai',
         'subscription',
-        undefined,
+        'prov-1',
       );
       expect(result).toEqual({ ok: true });
     });
@@ -191,7 +198,7 @@ describe('OpenaiOauthController', () => {
         'agent-id-1',
         'openai',
         'subscription',
-        undefined,
+        'prov-1',
       );
       expect(result).toEqual({ ok: true });
     });
@@ -207,9 +214,49 @@ describe('OpenaiOauthController', () => {
         'agent-id-1',
         'openai',
         'subscription',
-        undefined,
+        'prov-1',
       );
       expect(result).toEqual({ ok: true });
+    });
+
+    it('rejects when multiple OpenAI subscription accounts exist and no providerId given', async () => {
+      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+      providerService.getProviders.mockResolvedValue([
+        { id: 'prov-a', provider: 'openai', auth_type: 'subscription', is_active: true },
+        { id: 'prov-b', provider: 'openai', auth_type: 'subscription', is_active: true },
+      ] as any);
+
+      await expect(
+        controller.revoke('my-agent', undefined, { id: 'user-1' } as never),
+      ).rejects.toThrow('Multiple OpenAI subscription accounts found');
+      expect(providerService.removeProvider).not.toHaveBeenCalled();
+    });
+
+    it('rejects when no active OpenAI subscription exists and no providerId given', async () => {
+      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+      providerService.getProviders.mockResolvedValue([]);
+
+      await expect(
+        controller.revoke('my-agent', undefined, { id: 'user-1' } as never),
+      ).rejects.toThrow('No active OpenAI subscription found');
+      expect(providerService.removeProvider).not.toHaveBeenCalled();
+    });
+
+    it('uses explicit providerId when given, skipping multi-account resolution', async () => {
+      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+      const blob = JSON.stringify({ t: 'tok', r: 'ref', e: Date.now() + 3600000 });
+      providerKeyService.getProviderApiKey.mockResolvedValue(blob);
+
+      await controller.revoke('my-agent', 'explicit-prov-id', { id: 'user-1' } as never);
+
+      // Should NOT call getProviders — providerId is explicit
+      expect(providerService.getProviders).not.toHaveBeenCalled();
+      expect(providerService.removeProvider).toHaveBeenCalledWith(
+        'agent-id-1',
+        'openai',
+        'subscription',
+        'explicit-prov-id',
+      );
     });
   });
 
