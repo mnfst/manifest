@@ -66,13 +66,17 @@ export class TierService {
     );
     try {
       await this.tierRepo.insert(created);
-    } catch {
-      // Concurrent request already created the rows — re-read
+    } catch (err) {
+      // A concurrent request may have inserted the same slots first, which
+      // hits the unique (agent_id, tier) index. Re-read and adopt its rows
+      // if present; otherwise the failure is something else (FK violation,
+      // connection error, …) and we rethrow rather than silently proceed.
       const existing = await this.tierRepo.find({ where: { agent_id: agentId } });
       if (existing.length > 0) {
         this.routingCache.setTiers(agentId, existing);
         return existing;
       }
+      throw err;
     }
 
     // If agent has active providers, recalculate so new slots get auto-assigned models.

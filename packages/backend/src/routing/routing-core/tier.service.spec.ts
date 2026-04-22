@@ -212,6 +212,33 @@ describe('TierService', () => {
       expect(result).toHaveLength(5);
     });
 
+    it('re-reads and returns existing rows when insert fails from a concurrent write', async () => {
+      tierRepo.find.mockResolvedValueOnce([]);
+      tierRepo.insert.mockRejectedValueOnce(new Error('unique violation'));
+      const racedTiers = [
+        makeTier({ tier: 'simple' }),
+        makeTier({ id: 'tier-2', tier: 'standard' }),
+        makeTier({ id: 'tier-3', tier: 'complex' }),
+        makeTier({ id: 'tier-4', tier: 'reasoning' }),
+        makeTier({ id: 'tier-5', tier: 'default' }),
+      ];
+      tierRepo.find.mockResolvedValueOnce(racedTiers);
+
+      const result = await service.getTiers('agent-1', 'user-1');
+
+      expect(result).toEqual(racedTiers);
+      expect(routingCache.setTiers).toHaveBeenCalledWith('agent-1', racedTiers);
+    });
+
+    it('rethrows insert failures when the re-read confirms no rows landed', async () => {
+      tierRepo.find.mockResolvedValueOnce([]); // initial read
+      const insertErr = new Error('FK violation');
+      tierRepo.insert.mockRejectedValueOnce(insertErr);
+      tierRepo.find.mockResolvedValueOnce([]); // re-read after failure: still empty
+
+      await expect(service.getTiers('agent-1', 'user-1')).rejects.toThrow('FK violation');
+    });
+
     it('should use empty string for user_id when not provided', async () => {
       tierRepo.find.mockResolvedValue([]);
 
