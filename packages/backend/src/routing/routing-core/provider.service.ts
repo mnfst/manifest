@@ -73,7 +73,8 @@ export class ProviderService {
     });
 
     // Fallback: when no label was specified and the exact 'default' label
-    // didn't match, look for a single active row for (provider, auth_type).
+    // didn't match, look for an active row for (provider, auth_type).
+    // Single active row → use it. Multiple → pick the is_default one.
     // This supports token-refresh callers that don't carry the label.
     if (!existing && !accountLabel) {
       const activeRows = await this.providerRepo.find({
@@ -81,6 +82,8 @@ export class ProviderService {
       });
       if (activeRows.length === 1) {
         existing = activeRows[0];
+      } else if (activeRows.length > 1) {
+        existing = activeRows.find((r) => r.is_default) ?? null;
       }
     }
 

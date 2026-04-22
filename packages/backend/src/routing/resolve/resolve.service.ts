@@ -98,21 +98,11 @@ export class ResolveService {
       };
     }
 
-    const provider = await this.resolveProvider(agentId, assignment, model);
-    const validatedProviderId = await this.validateOverrideProviderId(
+    const { provider, authType, userProviderId } = await this.resolveProviderMeta(
       agentId,
       assignment,
-      provider,
+      model,
     );
-    const authType = provider
-      ? (assignment.override_auth_type ??
-        (await this.providerKeyService.getAuthType(
-          agentId,
-          provider,
-          undefined,
-          validatedProviderId,
-        )))
-      : undefined;
 
     return {
       tier: result.tier,
@@ -122,7 +112,7 @@ export class ResolveService {
       score: result.score,
       reason: result.reason,
       auth_type: authType,
-      user_provider_id: validatedProviderId,
+      user_provider_id: userProviderId,
     };
   }
 
@@ -135,31 +125,26 @@ export class ResolveService {
     }
 
     const model = await this.providerKeyService.getEffectiveModel(agentId, assignment);
-    const provider = model ? await this.resolveProvider(agentId, assignment, model) : null;
-    const validatedProviderId = await this.validateOverrideProviderId(
+
+    if (!model) {
+      return { tier, model: null, provider: null, confidence: 1, score: 0, reason: 'heartbeat' };
+    }
+
+    const { provider, authType, userProviderId } = await this.resolveProviderMeta(
       agentId,
       assignment,
-      provider,
+      model,
     );
-    const authType = provider
-      ? (assignment.override_auth_type ??
-        (await this.providerKeyService.getAuthType(
-          agentId,
-          provider,
-          undefined,
-          validatedProviderId,
-        )))
-      : undefined;
 
     return {
       tier,
-      model: model ?? null,
+      model,
       provider,
       confidence: 1,
       score: 0,
       reason: 'heartbeat',
       auth_type: authType,
-      user_provider_id: validatedProviderId,
+      user_provider_id: userProviderId,
     };
   }
 
@@ -202,28 +187,16 @@ export class ResolveService {
     const model = await this.resolveSpecificityModel(agentId, assignment);
     if (!model) return null;
 
-    const provider = await this.resolveProvider(
+    const { provider, authType, userProviderId } = await this.resolveProviderMeta(
       agentId,
       {
         override_model: assignment.override_model,
         override_provider: assignment.override_provider,
+        override_provider_id: assignment.override_provider_id,
+        override_auth_type: assignment.override_auth_type,
       },
       model,
     );
-    const validatedProviderId = await this.validateOverrideProviderId(
-      agentId,
-      assignment,
-      provider,
-    );
-    const authType = provider
-      ? (assignment.override_auth_type ??
-        (await this.providerKeyService.getAuthType(
-          agentId,
-          provider,
-          undefined,
-          validatedProviderId,
-        )))
-      : undefined;
 
     return {
       tier: 'standard',
@@ -235,7 +208,7 @@ export class ResolveService {
       auth_type: authType,
       specificity_category: detected.category,
       fallback_models: assignment.fallback_models ?? null,
-      user_provider_id: validatedProviderId,
+      user_provider_id: userProviderId,
     };
   }
 
@@ -260,6 +233,34 @@ export class ResolveService {
       return null;
     }
     return assignment.auto_assigned_model;
+  }
+
+  /**
+   * Shared helper that resolves provider, validates override_provider_id,
+   * and determines auth type. Used by resolve(), resolveForTier(), and
+   * resolveSpecificity() to avoid duplication drift.
+   */
+  private async resolveProviderMeta(
+    agentId: string,
+    assignment: {
+      override_model: string | null;
+      override_provider?: string | null;
+      override_provider_id?: string | null;
+      override_auth_type?: 'api_key' | 'subscription' | null;
+    },
+    model: string,
+  ): Promise<{
+    provider: string | null;
+    authType: 'api_key' | 'subscription' | undefined;
+    userProviderId: string | undefined;
+  }> {
+    const provider = await this.resolveProvider(agentId, assignment, model);
+    const userProviderId = await this.validateOverrideProviderId(agentId, assignment, provider);
+    const authType = provider
+      ? (assignment.override_auth_type ??
+        (await this.providerKeyService.getAuthType(agentId, provider, undefined, userProviderId)))
+      : undefined;
+    return { provider, authType, userProviderId };
   }
 
   /**

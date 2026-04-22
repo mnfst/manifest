@@ -243,6 +243,45 @@ describe('ProviderService', () => {
       expect(result.provider.key_prefix).toBeNull();
       expect(result.provider.api_key_encrypted).toBeNull();
     });
+
+    it('should pick the default account when multiple active accounts exist and no label given', async () => {
+      // First findOne: exact match by 'default' label → not found
+      // Second find: returns multiple active rows, one with is_default=true
+      const defaultAccount = makeProvider({
+        id: 'prov-default',
+        account_label: 'work',
+        is_default: true,
+      });
+      const otherAccount = makeProvider({
+        id: 'prov-other',
+        account_label: 'personal',
+        is_default: false,
+      });
+      providerRepo.findOne.mockResolvedValue(null);
+      providerRepo.find.mockResolvedValueOnce([defaultAccount, otherAccount]);
+
+      const result = await service.upsertProvider('agent-1', 'user-1', 'openai', 'sk-new-key');
+
+      expect(result.provider.id).toBe('prov-default');
+      expect(result.isNew).toBe(false);
+      expect(providerRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'prov-default', api_key_encrypted: 'encrypted-value' }),
+      );
+    });
+
+    it('should fall through to new row when multiple active accounts exist but none is default', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+      // Two active rows, neither is_default
+      providerRepo.find.mockResolvedValueOnce([
+        makeProvider({ id: 'prov-a', is_default: false }),
+        makeProvider({ id: 'prov-b', is_default: false }),
+      ]);
+
+      const result = await service.upsertProvider('agent-1', 'user-1', 'openai', 'sk-new-key');
+
+      expect(result.isNew).toBe(true);
+      expect(providerRepo.insert).toHaveBeenCalled();
+    });
   });
 
   /* ── registerSubscriptionProvider ── */

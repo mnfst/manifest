@@ -147,6 +147,10 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
   const isOllama = provDef.noKeyRequired;
 
   const handleOllamaConnect = async () => {
+    if (requiresNewAccountLabel() && !normalizedAccountLabel()) {
+      props.setValidationError('Account label is required for an additional account');
+      return;
+    }
     props.setBusy(true);
     try {
       await connectProvider(props.agentName, {
@@ -508,7 +512,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
         <Show when={!connected()}>
           <button
             class="btn btn--primary provider-detail__action"
-            disabled={props.busy()}
+            disabled={props.busy() || (requiresNewAccountLabel() && !normalizedAccountLabel())}
             onClick={handleOllamaConnect}
           >
             <Show when={!props.busy()} fallback={<span class="spinner" />}>

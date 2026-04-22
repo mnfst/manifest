@@ -324,6 +324,9 @@ describe('SpecificityService', () => {
           'bad-id',
         ),
       ).rejects.toThrow(BadRequestException);
+      expect(providerRepo.findOne).toHaveBeenCalledWith({
+        where: { id: 'bad-id', agent_id: 'agent-1', is_active: true },
+      });
       expect(repo.save).not.toHaveBeenCalled();
     });
 
