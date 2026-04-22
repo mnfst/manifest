@@ -902,6 +902,100 @@ describe('ResolveService', () => {
       expect(out.model).toBe('gpt-4o-mini');
     });
 
+    it('does not inherit override_auth_type when the chosen model is not the override_model (#1678 cubic P1)', async () => {
+      // Credentials-leak guard: user pinned an OpenAI `subscription`
+      // model as the override. It went stale. We fell through to the
+      // auto-assigned Anthropic model. Previously the override's
+      // `subscription` auth_type would still be applied, making us
+      // reach for OpenAI-shaped subscription auth on an Anthropic
+      // model. Fix: override_auth_type only applies when the chosen
+      // model IS the override_model.
+      const getAuthType = jest.fn().mockResolvedValue('api_key');
+      const { svc } = makeService({
+        tiers: [
+          {
+            tier: 'standard',
+            override_model: 'openai/stale-override',
+            override_provider: 'openai',
+            override_auth_type: 'subscription',
+            auto_assigned_model: 'anthropic/claude-opus-4-6',
+            fallback_models: null,
+          },
+        ],
+        // Override not in discovery — stale. Only the auto-assigned
+        // model is actually routable. Slash-prefixed names so
+        // inferProviderFromModelName returns 'anthropic' / 'openai'.
+        getModelsForAgent: jest
+          .fn()
+          .mockResolvedValue([discoveredModel('anthropic/claude-opus-4-6', 200_000)]),
+        hasActiveProvider: jest.fn().mockResolvedValue(true),
+        getAuthType,
+      });
+
+      const out = await svc.resolve(
+        'agent-1',
+        [{ role: 'user', content: 'hi' }],
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        50_000,
+      );
+
+      // The auto-assigned Anthropic model took the request — its auth
+      // type came from getAuthType for Anthropic (`api_key`), NOT from
+      // the override's `subscription` value.
+      expect(out.model).toBe('anthropic/claude-opus-4-6');
+      expect(out.provider).toBe('anthropic');
+      expect(out.auth_type).toBe('api_key');
+      // Explicit proof that we consulted getAuthType rather than
+      // inheriting the pinned override_auth_type.
+      expect(getAuthType).toHaveBeenCalledWith('agent-1', 'anthropic');
+    });
+
+    it('preserves override_auth_type when the override_model is the one actually used', async () => {
+      // Positive control for the previous test: when the override model
+      // IS serviceable, its pinned auth type must still be honoured —
+      // otherwise we've broken a legitimate user-configured path.
+      const getAuthType = jest.fn().mockResolvedValue('api_key');
+      const { svc } = makeService({
+        tiers: [
+          {
+            tier: 'standard',
+            override_model: 'openai/gpt-4o-mini',
+            override_provider: 'openai',
+            override_auth_type: 'subscription',
+            auto_assigned_model: null,
+            fallback_models: null,
+          },
+        ],
+        getModelsForAgent: jest
+          .fn()
+          .mockResolvedValue([discoveredModel('openai/gpt-4o-mini', 128_000)]),
+        hasActiveProvider: jest.fn().mockResolvedValue(true),
+        getAuthType,
+      });
+
+      const out = await svc.resolve(
+        'agent-1',
+        [{ role: 'user', content: 'hi' }],
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        50_000,
+      );
+
+      expect(out.model).toBe('openai/gpt-4o-mini');
+      expect(out.auth_type).toBe('subscription');
+      // getAuthType wasn't called — we used the pinned override_auth_type.
+      expect(getAuthType).not.toHaveBeenCalled();
+    });
+
     it('skips discovered models with a non-positive contextWindow — misconfigured providers', async () => {
       // Defensive: a provider whose cached_models row has contextWindow=0
       // should be treated as invisible, not as a model that "fits anything

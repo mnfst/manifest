@@ -1000,6 +1000,47 @@ describe('ProxyService', () => {
       expect(resolveService.resolve).toHaveBeenCalled();
     });
 
+    it('falls through to size-aware routing when a tiny HEARTBEAT_OK prompt has a huge max_tokens (#1678 cubic P1 follow-up)', async () => {
+      // Second half of the heartbeat-gate bug: even with tiny input (a
+      // legitimate heartbeat-shaped body), a max_tokens reserve that
+      // would overflow the simple tier must still go through size-aware
+      // routing. Before the follow-up fix, gating only considered input
+      // size, so `{content: 'HEARTBEAT_OK', max_tokens: 500_000}` hit
+      // the simple tier and overflowed.
+      const tinyHeartbeatHugeMaxTokens = {
+        messages: [{ role: 'user', content: 'HEARTBEAT_OK' }],
+        max_tokens: 500_000,
+        stream: false,
+      };
+
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      resolveService.resolveForTier = jest.fn();
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body: tinyHeartbeatHugeMaxTokens,
+        sessionKey: 'sess-tiny-huge',
+      });
+
+      expect(resolveService.resolve).toHaveBeenCalled();
+      expect(resolveService.resolveForTier).not.toHaveBeenCalled();
+    });
+
     it('falls through to size-aware routing when a large payload contains HEARTBEAT_OK as substring (#1678 cubic P1)', async () => {
       // The heartbeat sentinel is matched via `.includes(...)`. Before the
       // fix, a legitimate large user message that happened to mention

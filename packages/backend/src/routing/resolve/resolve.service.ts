@@ -272,9 +272,17 @@ export class ResolveService {
 
   /**
    * Shared helper for the two success paths in this service: look up the
-   * provider for a chosen model, then resolve the auth type (honouring a
-   * per-tier override). Identical logic across both paths by design — the
-   * only variance is which model gets passed in.
+   * provider for a chosen model, then resolve the auth type. Identical
+   * logic across both paths by design — the only variance is which model
+   * gets passed in.
+   *
+   * `override_auth_type` is applied **only** when the chosen model is the
+   * override_model itself. When we fell through to the auto-assigned
+   * model or a fallback (because the override was stale), inheriting the
+   * override's auth type would leak credentials to a different provider
+   * — e.g. the user pinned an OpenAI subscription model, it went stale,
+   * we fell through to a Claude model, and we'd reach for OpenAI
+   * subscription auth on an Anthropic model.
    */
   private async resolveProviderAndAuth(
     agentId: string,
@@ -282,10 +290,14 @@ export class ResolveService {
     model: string,
   ): Promise<{ provider: string | null; authType: AuthType | undefined }> {
     const provider = await this.resolveProvider(agentId, assignment, model);
-    const authType = provider
-      ? ((assignment.override_auth_type as AuthType | null) ??
-        (await this.providerKeyService.getAuthType(agentId, provider)))
-      : undefined;
+    if (!provider) return { provider: null, authType: undefined };
+
+    const isOverrideModel = assignment.override_model === model;
+    const pinnedAuthType = isOverrideModel
+      ? (assignment.override_auth_type as AuthType | null)
+      : null;
+    const authType =
+      pinnedAuthType ?? (await this.providerKeyService.getAuthType(agentId, provider));
     return { provider, authType };
   }
 

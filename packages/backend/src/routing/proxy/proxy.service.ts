@@ -218,11 +218,16 @@ export class ProxyService {
     // uses `.includes('HEARTBEAT_OK')` so a legitimate user message that
     // happens to mention the sentinel in a large payload would otherwise
     // bypass size-aware routing and fire at the `simple` tier regardless
-    // of whether it can fit. Gate the heartbeat fast-path on the estimate
-    // staying below a safe ceiling — real heartbeats are tens of tokens.
+    // of whether it can fit. Gate on the full request budget (estimated
+    // input + max_tokens reserve) so a tiny prompt with huge max_tokens
+    // can't slip through either — real heartbeats never request a large
+    // output.
     const estimatedTokens = estimateTokens(messages, scoringTools);
+    const reservedOutput =
+      typeof body.max_tokens === 'number' && body.max_tokens > 0 ? body.max_tokens : 0;
     const isHeartbeat =
-      this.detectHeartbeat(scoringMessages) && estimatedTokens <= HEARTBEAT_TOKEN_CEILING;
+      this.detectHeartbeat(scoringMessages) &&
+      estimatedTokens + reservedOutput <= HEARTBEAT_TOKEN_CEILING;
     if (isHeartbeat) return this.resolveService.resolveForTier(agentId, 'simple');
 
     return this.resolveService.resolve(
