@@ -6,10 +6,9 @@ import { SpecificityPenaltyService } from '../routing-core/specificity-penalty.s
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { scoreRequest, ScorerInput, MomentumInput, scanMessages } from '../../scoring';
-import { Tier } from '../../scoring/types';
 import { ResolveResponse } from '../dto/resolve-response';
 import { inferProviderFromModelName } from '../../common/utils/provider-aliases';
-import type { SpecificityCategory } from 'manifest-shared';
+import type { SpecificityCategory, TierSlot } from 'manifest-shared';
 
 /**
  * When specificity detection is below this confidence, skip specificity
@@ -55,6 +54,14 @@ export class ResolveService {
     );
     if (specificityResult) return specificityResult;
 
+    // Complexity routing is opt-in. When the agent has it disabled, every
+    // request (that didn't match specificity) routes through the 'default'
+    // tier — one model + fallbacks, no scoring.
+    const complexityEnabled = await this.tierService.isComplexityEnabled(agentId);
+    if (!complexityEnabled) {
+      return this.resolveForTier(agentId, 'default', 'default');
+    }
+
     const input: ScorerInput = { messages, tools, tool_choice: toolChoice, max_tokens: maxTokens };
     const momentum: MomentumInput | undefined =
       recentTiers && recentTiers.length > 0 ? { recentTiers } : undefined;
@@ -69,14 +76,9 @@ export class ResolveService {
         `No tier assignment found for agent=${agentId} tier=${result.tier} ` +
           `(available tiers: ${tiers.map((t) => t.tier).join(', ') || 'none'})`,
       );
-      return {
-        tier: result.tier,
-        model: null,
-        provider: null,
-        confidence: result.confidence,
-        score: result.score,
-        reason: result.reason,
-      };
+      // Final catch-all: fall back to the default tier so the request still
+      // resolves a model instead of 500ing when a scored tier is missing.
+      return this.resolveForTier(agentId, 'default', 'default');
     }
 
     const model = await this.providerKeyService.getEffectiveModel(agentId, assignment);
@@ -113,12 +115,16 @@ export class ResolveService {
     };
   }
 
-  async resolveForTier(agentId: string, tier: Tier): Promise<ResolveResponse> {
+  async resolveForTier(
+    agentId: string,
+    tier: TierSlot,
+    reason: 'heartbeat' | 'default' = 'heartbeat',
+  ): Promise<ResolveResponse> {
     const tiers = await this.tierService.getTiers(agentId);
     const assignment = tiers.find((t) => t.tier === tier);
 
     if (!assignment) {
-      return { tier, model: null, provider: null, confidence: 1, score: 0, reason: 'heartbeat' };
+      return { tier, model: null, provider: null, confidence: 1, score: 0, reason };
     }
 
     const model = await this.providerKeyService.getEffectiveModel(agentId, assignment);
@@ -134,8 +140,9 @@ export class ResolveService {
       provider,
       confidence: 1,
       score: 0,
-      reason: 'heartbeat',
+      reason,
       auth_type: authType,
+      fallback_models: assignment.fallback_models ?? null,
     };
   }
 

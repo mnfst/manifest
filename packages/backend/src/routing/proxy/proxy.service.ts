@@ -9,8 +9,8 @@ import { ForwardResult } from './provider-client';
 import { SessionMomentumService } from './session-momentum.service';
 import { LimitCheckService } from '../../notifications/services/limit-check.service';
 import { shouldTriggerFallback } from './fallback-status-codes';
-import { Tier, ScorerMessage } from '../../scoring/types';
-import type { SpecificityCategory } from 'manifest-shared';
+import { Tier, TIERS, ScorerMessage } from '../../scoring/types';
+import type { SpecificityCategory, TierSlot } from 'manifest-shared';
 import { SPECIFICITY_CATEGORIES } from 'manifest-shared';
 import {
   ProxyFallbackService,
@@ -38,7 +38,7 @@ const SCORING_RECENT_MESSAGES = 10;
 const MAX_MESSAGES_PER_REQUEST = 1000;
 
 export interface RoutingMeta {
-  tier: Tier;
+  tier: TierSlot;
   model: string;
   provider: string;
   confidence: number;
@@ -155,12 +155,18 @@ export class ProxyService {
       if (fallbackResult) return fallbackResult;
     }
 
-    this.momentum.recordTier(sessionKey, resolved.tier as Tier);
+    this.recordTierIfScoring(sessionKey, resolved.tier);
     this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
     return {
       forward,
       meta: this.buildBaseMeta(resolved, primaryModel),
     };
+  }
+
+  private recordTierIfScoring(sessionKey: string, tier: TierSlot): void {
+    if ((TIERS as readonly string[]).includes(tier)) {
+      this.momentum.recordTier(sessionKey, tier as Tier);
+    }
   }
 
   private validatePayload(body: ProxyRequestOptions['body']): void {
@@ -269,7 +275,7 @@ export class ProxyService {
       args.thinkingLookup,
     );
 
-    this.momentum.recordTier(sessionKey, resolved.tier as Tier);
+    this.recordTierIfScoring(sessionKey, resolved.tier);
     this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
 
     if (success) {
@@ -321,7 +327,7 @@ export class ProxyService {
     overrides: Partial<RoutingMeta> = {},
   ): RoutingMeta {
     return {
-      tier: resolved.tier as Tier,
+      tier: resolved.tier as TierSlot,
       model,
       provider: overrides.provider ?? resolved.provider ?? '',
       confidence: resolved.confidence,

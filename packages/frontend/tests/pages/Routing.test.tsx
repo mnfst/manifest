@@ -67,6 +67,8 @@ vi.mock("../../src/services/api.js", () => ({
   getHealth: vi.fn().mockResolvedValue({ mode: "cloud" }),
   getSpecificityAssignments: vi.fn().mockResolvedValue([]),
   overrideSpecificity: vi.fn().mockResolvedValue({}),
+  getComplexityStatus: vi.fn().mockResolvedValue({ enabled: true }),
+  toggleComplexity: vi.fn().mockResolvedValue({ ok: true, enabled: true }),
   resetSpecificity: vi.fn().mockResolvedValue({}),
   setSpecificityFallbacks: vi.fn().mockResolvedValue({}),
   clearSpecificityFallbacks: vi.fn().mockResolvedValue({}),
@@ -370,7 +372,8 @@ describe("Routing — enabled state (providers active)", () => {
 
     render(() => <Routing />);
     const addButtons = await screen.findAllByText("+ Add model");
-    expect(addButtons.length).toBe(4);
+    // 4 complexity tiers + 1 default tier = 5 "+ Add model" CTAs
+    expect(addButtons.length).toBe(5);
   });
 
   it("pluralizes provider count correctly", async () => {

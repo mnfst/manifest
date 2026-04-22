@@ -261,6 +261,13 @@ export interface StageDef {
   desc: string;
 }
 
+export const DEFAULT_STAGE: StageDef = {
+  id: 'default',
+  step: 0,
+  label: 'Default model',
+  desc: 'Handles every request.',
+};
+
 export const STAGES: StageDef[] = [
   {
     id: 'simple',

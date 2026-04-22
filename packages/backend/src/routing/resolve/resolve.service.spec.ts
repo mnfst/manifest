@@ -26,6 +26,7 @@ function makeService(overrides: {
 }) {
   const tierService: TierService = {
     getTiers: jest.fn().mockResolvedValue(overrides.tiers ?? []),
+    isComplexityEnabled: jest.fn().mockResolvedValue(true),
   } as unknown as TierService;
 
   const providerKeyService: ProviderKeyService = {
@@ -86,7 +87,10 @@ describe('ResolveService', () => {
         reason: 'scored',
       });
       scoring.scanMessages.mockReturnValue(null);
-      const { svc } = makeService({ tiers: [] });
+      const { svc } = makeService({
+        tiers: [{ tier: 'simple', override_model: null, auto_assigned_model: 'm' }],
+        getEffectiveModel: jest.fn().mockResolvedValue('m'),
+      });
       const out = await svc.resolve('agent-1', [{ role: 'user', content: 'hi' }]);
       expect(out.tier).toBe('simple');
       expect(out.reason).toBe('scored');
@@ -103,6 +107,8 @@ describe('ResolveService', () => {
       scoring.scanMessages.mockReturnValue(null);
       const { svc } = makeService({
         activeSpecificity: [{ category: 'coding', override_model: 'x', auto_assigned_model: 'x' }],
+        tiers: [{ tier: 'standard', override_model: null, auto_assigned_model: 'm' }],
+        getEffectiveModel: jest.fn().mockResolvedValue('m'),
       });
       const out = await svc.resolve('agent-1', [{ role: 'user', content: 'hi' }]);
       expect(out.reason).toBe('scored');
@@ -118,6 +124,8 @@ describe('ResolveService', () => {
       scoring.scanMessages.mockReturnValue({ category: 'trading', confidence: 0.8 });
       const { svc } = makeService({
         activeSpecificity: [{ category: 'coding', override_model: 'x', auto_assigned_model: 'x' }],
+        tiers: [{ tier: 'simple', override_model: null, auto_assigned_model: 'm' }],
+        getEffectiveModel: jest.fn().mockResolvedValue('m'),
       });
       const out = await svc.resolve('agent-1', [{ role: 'user', content: 'hi' }]);
       expect(out.reason).toBe('scored');
@@ -135,6 +143,8 @@ describe('ResolveService', () => {
         activeSpecificity: [
           { category: 'coding', override_model: null, auto_assigned_model: null },
         ],
+        tiers: [{ tier: 'simple', override_model: null, auto_assigned_model: 'm' }],
+        getEffectiveModel: jest.fn().mockResolvedValue('m'),
       });
       const out = await svc.resolve('agent-1', [{ role: 'user', content: 'hi' }]);
       expect(out.reason).toBe('scored');
@@ -266,6 +276,8 @@ describe('ResolveService', () => {
       });
       const { svc } = makeService({
         activeSpecificity: [{ category: 'coding', override_model: 'x', auto_assigned_model: 'x' }],
+        tiers: [{ tier: 'simple', override_model: null, auto_assigned_model: 'm' }],
+        getEffectiveModel: jest.fn().mockResolvedValue('m'),
       });
       const out = await svc.resolve('agent-1', [{ role: 'user', content: 'hi' }]);
       expect(out.reason).toBe('scored');
@@ -382,18 +394,31 @@ describe('ResolveService', () => {
       scoring.scanMessages.mockReturnValue(null);
     });
 
-    it('returns a blank-model response when no tier assignment exists for the scored tier', async () => {
+    it('falls back to the default tier when no assignment exists for the scored tier', async () => {
       scoring.scoreRequest.mockReturnValue({
         tier: 'complex',
         confidence: 0.7,
         score: 50,
         reason: 'scored',
       });
-      const { svc } = makeService({ tiers: [{ tier: 'simple' }] });
+      const { svc } = makeService({
+        tiers: [
+          { tier: 'simple' },
+          {
+            tier: 'default',
+            override_model: null,
+            auto_assigned_model: 'openai/gpt-4o-mini',
+            override_provider: null,
+            override_auth_type: null,
+          },
+        ],
+        getEffectiveModel: jest.fn().mockResolvedValue('openai/gpt-4o-mini'),
+        hasActiveProvider: jest.fn().mockResolvedValue(true),
+      });
       const out = await svc.resolve('agent-1', [{ role: 'user', content: 'hi' }]);
-      expect(out.model).toBeNull();
-      expect(out.provider).toBeNull();
-      expect(out.tier).toBe('complex');
+      expect(out.tier).toBe('default');
+      expect(out.reason).toBe('default');
+      expect(out.model).toBe('openai/gpt-4o-mini');
     });
 
     it('returns a blank-model response when getEffectiveModel returns null', async () => {

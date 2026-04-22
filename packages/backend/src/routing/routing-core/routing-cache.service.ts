@@ -35,6 +35,7 @@ export class RoutingCacheService {
   private readonly customProviders = new Map<string, CachedEntry<CustomProvider[]>>();
   private readonly apiKeys = new Map<string, CachedEntry<string | null>>();
   private readonly specificity = new Map<string, CachedEntry<SpecificityAssignment[]>>();
+  private readonly complexityEnabled = new Map<string, CachedEntry<boolean>>();
 
   getTiers(agentId: string): TierAssignment[] | null {
     return getOrExpire(this.tiers, agentId) ?? null;
@@ -76,11 +77,20 @@ export class RoutingCacheService {
     setWithEviction(this.specificity, agentId, data);
   }
 
+  getComplexityEnabled(agentId: string): boolean | undefined {
+    return getOrExpire(this.complexityEnabled, agentId);
+  }
+
+  setComplexityEnabled(agentId: string, enabled: boolean): void {
+    setWithEviction(this.complexityEnabled, agentId, enabled);
+  }
+
   invalidateAgent(agentId: string): void {
     this.tiers.delete(agentId);
     this.providers.delete(agentId);
     this.customProviders.delete(agentId);
     this.specificity.delete(agentId);
+    this.complexityEnabled.delete(agentId);
     const prefix = `${agentId}:`;
     const toDelete = [...this.apiKeys.keys()].filter((k) => k.startsWith(prefix));
     for (const k of toDelete) this.apiKeys.delete(k);

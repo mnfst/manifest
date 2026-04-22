@@ -5,7 +5,8 @@ import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { DiscoveredModel } from '../../model-discovery/model-fetcher';
 import { randomUUID } from 'crypto';
-import { TIERS, Tier } from '../../scoring/types';
+import { Tier } from '../../scoring/types';
+import { TIER_SLOTS } from 'manifest-shared';
 
 /**
  * OpenAI subscription tokens only work with Codex models (zero cost).
@@ -68,10 +69,12 @@ export class TierAutoAssignService {
     const toSave: TierAssignment[] = [];
     const toInsert: Record<string, unknown>[] = [];
 
-    for (const tier of TIERS) {
+    for (const slot of TIER_SLOTS) {
+      // The 'default' slot picks a balanced model — same heuristic as 'standard'.
+      const pickTier: Tier = slot === 'default' ? 'standard' : (slot as Tier);
       // Subscription models always take priority over API key models
-      const best = this.pickBest(subModels, tier) ?? this.pickBest(keyModels, tier);
-      const existing = tierMap.get(tier);
+      const best = this.pickBest(subModels, pickTier) ?? this.pickBest(keyModels, pickTier);
+      const existing = tierMap.get(slot);
 
       if (existing) {
         existing.auto_assigned_model = best?.model_name ?? null;
@@ -82,7 +85,7 @@ export class TierAutoAssignService {
           id: randomUUID(),
           user_id: '',
           agent_id: agentId,
-          tier,
+          tier: slot,
           override_model: null,
           override_provider: null,
           auto_assigned_model: best?.model_name ?? null,

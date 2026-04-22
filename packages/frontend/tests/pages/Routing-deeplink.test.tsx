@@ -72,6 +72,8 @@ vi.mock('../../src/services/api.js', () => ({
   refreshModels: vi.fn().mockResolvedValue([]),
   getSpecificityAssignments: vi.fn().mockResolvedValue([]),
   overrideSpecificity: vi.fn().mockResolvedValue({}),
+  getComplexityStatus: vi.fn().mockResolvedValue({ enabled: true }),
+  toggleComplexity: vi.fn().mockResolvedValue({ ok: true, enabled: true }),
   getPricingHealth: vi.fn().mockResolvedValue({ model_count: 100, last_fetched_at: '2026-04-13T00:00:00.000Z' }),
   refreshPricing: vi.fn().mockResolvedValue({ ok: true, model_count: 100, last_fetched_at: '2026-04-13T00:00:00.000Z' }),
 }));

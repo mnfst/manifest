@@ -1,10 +1,10 @@
-import { Tier, ScoringReason } from '../../scoring';
-import type { AuthType, SpecificityCategory } from 'manifest-shared';
+import { ScoringReason } from '../../scoring';
+import type { AuthType, SpecificityCategory, TierSlot } from 'manifest-shared';
 
 export type { AuthType } from 'manifest-shared';
 
 export interface ResolveResponse {
-  tier: Tier;
+  tier: TierSlot;
   model: string | null;
   provider: string | null;
   confidence: number;

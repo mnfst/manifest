@@ -1,11 +1,11 @@
-import { createSignal, createResource, createMemo, For, Show, type Component } from 'solid-js';
+import { createSignal, createResource, createMemo, Show, type Component } from 'solid-js';
 import { useLocation, useParams, useSearchParams } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
-import { STAGES } from '../services/providers.js';
 import RoutingModals from '../components/RoutingModals.js';
 import { toast } from '../services/toast-store.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
-import RoutingTierCard from './RoutingTierCard.js';
+import RoutingDefaultTierSection from './RoutingDefaultTierSection.js';
+import RoutingComplexitySection from './RoutingComplexitySection.js';
 import RoutingSpecificitySection from './RoutingSpecificitySection.js';
 import {
   RoutingLoadingSkeleton,
@@ -20,6 +20,7 @@ import {
   getProviders,
   getCustomProviders,
   getSpecificityAssignments,
+  getComplexityStatus,
   overrideSpecificity,
   resetSpecificity,
   refreshModels,
@@ -60,6 +61,11 @@ const Routing: Component = () => {
     () => agentName(),
     getSpecificityAssignments,
   );
+  const [complexityStatus, { mutate: mutateComplexity }] = createResource(
+    () => agentName(),
+    getComplexityStatus,
+  );
+  const complexityEnabled = () => complexityStatus()?.enabled ?? false;
   const [dropdownTier, setDropdownTier] = createSignal<string | null>(null);
   const [specificityDropdown, setSpecificityDropdown] = createSignal<string | null>(null);
   const [changingSpecificity, setChangingSpecificity] = createSignal<string | null>(null);
@@ -104,6 +110,9 @@ const Routing: Component = () => {
     setDropdownTier(null);
     return actions.handleOverride(...args);
   };
+
+  const hasAnySpecificityActive = () => specificityAssignments()?.some((a) => a.is_active) ?? false;
+  const showPriorityLegend = () => complexityEnabled() && hasAnySpecificityActive();
 
   const isSpecificityTier = (tierId: string) =>
     specificityAssignments()?.some((a) => a.category === tierId) ?? false;
@@ -279,41 +288,49 @@ const Routing: Component = () => {
             customProviders={() => customProviders() ?? []}
           />
 
-          <div class="routing-section">
-            <div class="routing-section__header">
-              <span class="routing-section__title">Generalist tiers</span>
-              <span class="routing-section__subtitle">
-                Generalist tiers route requests depending on their complexity. Simple tasks get
-                cheap models, hard ones get the best.
-              </span>
-            </div>
-            <div class="routing-cards">
-              <For each={STAGES}>
-                {(stage) => (
-                  <RoutingTierCard
-                    stage={stage}
-                    tier={() => actions.getTier(stage.id)}
-                    models={() => models() ?? []}
-                    customProviders={() => customProviders() ?? []}
-                    activeProviders={activeProviders}
-                    tiersLoading={tiers.loading}
-                    changingTier={actions.changingTier}
-                    resettingTier={actions.resettingTier}
-                    resettingAll={actions.resettingAll}
-                    addingFallback={actions.addingFallback}
-                    agentName={agentName}
-                    onDropdownOpen={(tierId) => setDropdownTier(tierId)}
-                    onOverride={handleOverride}
-                    onReset={actions.handleReset}
-                    onFallbackUpdate={actions.handleFallbackUpdate}
-                    onAddFallback={(tierId) => setFallbackPickerTier(tierId)}
-                    getFallbacksFor={actions.getFallbacksFor}
-                    connectedProviders={() => connectedProviders() ?? []}
-                  />
-                )}
-              </For>
-            </div>
-          </div>
+          <RoutingDefaultTierSection
+            agentName={agentName}
+            tier={() => actions.getTier('default')}
+            complexityEnabled={complexityEnabled}
+            models={() => models() ?? []}
+            customProviders={() => customProviders() ?? []}
+            activeProviders={activeProviders}
+            connectedProviders={() => connectedProviders() ?? []}
+            tiersLoading={tiers.loading}
+            changingTier={actions.changingTier}
+            resettingTier={actions.resettingTier}
+            resettingAll={actions.resettingAll}
+            addingFallback={actions.addingFallback}
+            onDropdownOpen={(tierId) => setDropdownTier(tierId)}
+            onOverride={handleOverride}
+            onReset={actions.handleReset}
+            onFallbackUpdate={actions.handleFallbackUpdate}
+            onAddFallback={(tierId) => setFallbackPickerTier(tierId)}
+            getFallbacksFor={actions.getFallbacksFor}
+          />
+
+          <RoutingComplexitySection
+            agentName={agentName}
+            enabled={complexityEnabled}
+            onEnabledChange={(next) => mutateComplexity({ enabled: next })}
+            tiers={() => tiers() ?? []}
+            models={() => models() ?? []}
+            customProviders={() => customProviders() ?? []}
+            activeProviders={activeProviders}
+            connectedProviders={() => connectedProviders() ?? []}
+            tiersLoading={tiers.loading}
+            changingTier={actions.changingTier}
+            resettingTier={actions.resettingTier}
+            resettingAll={actions.resettingAll}
+            addingFallback={actions.addingFallback}
+            onDropdownOpen={(tierId) => setDropdownTier(tierId)}
+            onOverride={handleOverride}
+            onReset={actions.handleReset}
+            onFallbackUpdate={actions.handleFallbackUpdate}
+            onAddFallback={(tierId) => setFallbackPickerTier(tierId)}
+            getFallbacksFor={actions.getFallbacksFor}
+            getTier={actions.getTier}
+          />
 
           <RoutingSpecificitySection
             agentName={agentName}
@@ -369,6 +386,12 @@ const Routing: Component = () => {
               await refetchSpecificity();
             }}
           />
+
+          <Show when={showPriorityLegend()}>
+            <div class="routing-priority-legend">
+              Priority: Task-specific &rsaquo; Complexity &rsaquo; Default
+            </div>
+          </Show>
 
           <RoutingFooter
             disabling={actions.disabling}
