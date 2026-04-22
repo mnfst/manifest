@@ -14,11 +14,6 @@ vi.mock("../../src/services/setup-status.js", () => ({
   checkIsSelfHosted: vi.fn().mockResolvedValue(true),
   checkIsOllamaAvailable: vi.fn().mockResolvedValue(false),
   checkLocalLlmHost: vi.fn().mockResolvedValue('localhost'),
-  checkLocalServers: vi.fn().mockResolvedValue({
-    vllm: true,
-    lmstudio: false,
-    llamacpp: false,
-  }),
 }));
 
 vi.mock("../../src/services/toast-store.js", () => ({
@@ -213,19 +208,19 @@ describe("ProviderSelectContent", () => {
       // Switch to API Keys tab to see local-server tiles
       fireEvent.click(screen.getByText("API Keys"));
 
-      // Wait for self-hosted + server liveness to resolve so vLLM is enabled
-      const vllmBtn = await waitFor(() => {
+      // Wait for self-hosted + server liveness to resolve so LM Studio is enabled
+      const lmsBtn = await waitFor(() => {
         const b = Array.from(container.querySelectorAll<HTMLButtonElement>("button.provider-toggle")).find(
-          (el) => el.textContent?.includes("vLLM") && !el.disabled,
+          (el) => el.textContent?.includes("LM Studio") && !el.disabled,
         );
-        if (!b) throw new Error("vllm tile not yet enabled");
+        if (!b) throw new Error("lmstudio tile not yet enabled");
         return b;
       });
-      fireEvent.click(vllmBtn);
+      fireEvent.click(lmsBtn);
 
-      // LocalServerDetailView renders its own "Connect vLLM" button
+      // LocalServerDetailView renders its own "Connect 1 model" button
       await waitFor(() => {
-        expect(container.textContent).toContain("Connect vLLM");
+        expect(container.textContent).toContain("Connect 1 model");
       });
 
       // Back button dismisses the detail view and returns to the list
@@ -248,18 +243,18 @@ describe("ProviderSelectContent", () => {
 
       fireEvent.click(screen.getByText("API Keys"));
 
-      const vllmBtn = await waitFor(() => {
+      const lmsBtn = await waitFor(() => {
         const b = Array.from(container.querySelectorAll<HTMLButtonElement>("button.provider-toggle")).find(
-          (el) => el.textContent?.includes("vLLM") && !el.disabled,
+          (el) => el.textContent?.includes("LM Studio") && !el.disabled,
         );
-        if (!b) throw new Error("vllm tile not yet enabled");
+        if (!b) throw new Error("lmstudio tile not yet enabled");
         return b;
       });
-      fireEvent.click(vllmBtn);
+      fireEvent.click(lmsBtn);
 
       const connectBtn = await waitFor(() => {
         const b = Array.from(container.querySelectorAll("button")).find((el) =>
-          el.textContent?.trim().startsWith("Connect vLLM"),
+          el.textContent?.trim().startsWith("Connect 1 model"),
         );
         if (!b) throw new Error("Connect button not yet rendered");
         return b as HTMLButtonElement;
@@ -273,7 +268,7 @@ describe("ProviderSelectContent", () => {
       });
     });
 
-    it("forwards onCustomize from LocalServerDetailView to the CustomProviderForm prefilled with base URL", async () => {
+    it("does not expose an Advanced / customize escape hatch from the local-server view", async () => {
       const { container } = render(() => (
         <ProviderSelectContent
           agentName="test-agent"
@@ -284,31 +279,27 @@ describe("ProviderSelectContent", () => {
 
       fireEvent.click(screen.getByText("API Keys"));
 
-      const vllmBtn = await waitFor(() => {
+      const lmsBtn = await waitFor(() => {
         const b = Array.from(container.querySelectorAll<HTMLButtonElement>("button.provider-toggle")).find(
-          (el) => el.textContent?.includes("vLLM") && !el.disabled,
+          (el) => el.textContent?.includes("LM Studio") && !el.disabled,
         );
-        if (!b) throw new Error("vllm tile not yet enabled");
+        if (!b) throw new Error("lmstudio tile not yet enabled");
         return b;
       });
-      fireEvent.click(vllmBtn);
+      fireEvent.click(lmsBtn);
 
-      // Click the "Advanced — customize URL or pricing" secondary button
-      const customizeBtn = await waitFor(() => {
-        const b = Array.from(container.querySelectorAll("button")).find((el) =>
-          el.textContent?.includes("Advanced"),
-        );
-        if (!b) throw new Error("customize button not yet rendered");
-        return b as HTMLButtonElement;
-      });
-      fireEvent.click(customizeBtn);
-
-      // After onCustomize, CustomProviderForm takes over with the base URL prefilled
       await waitFor(() => {
-        const input = container.querySelector<HTMLInputElement>("#cp-base-url");
-        if (!input) throw new Error("base URL input not yet rendered");
-        expect(input.value).toBe("http://localhost:8000/v1");
+        expect(container.textContent).toContain("Connect 1 model");
       });
+
+      const advanced = Array.from(container.querySelectorAll("button")).find((el) =>
+        el.textContent?.toLowerCase().includes("advanced"),
+      );
+      const customize = Array.from(container.querySelectorAll("button")).find((el) =>
+        el.textContent?.toLowerCase().includes("customize"),
+      );
+      expect(advanced).toBeUndefined();
+      expect(customize).toBeUndefined();
     });
   });
 

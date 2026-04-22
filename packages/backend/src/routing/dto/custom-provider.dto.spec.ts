@@ -29,7 +29,7 @@ describe('CreateCustomProviderDto', () => {
 
   it('accepts http URLs for local providers', async () => {
     const dto = toDto({
-      name: 'Local vLLM',
+      name: 'Local OpenAI-compatible',
       base_url: 'http://localhost:8000/v1',
       models: [{ model_name: 'my-model' }],
     });

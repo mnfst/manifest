@@ -220,7 +220,7 @@ const CustomProviderForm: Component<Props> = (props) => {
             id="cp-name"
             class="provider-detail__input"
             type="text"
-            placeholder="e.g. Groq, vLLM, Azure"
+            placeholder="e.g. Groq, Together, Azure"
             value={name()}
             onInput={(e) => {
               setName(e.currentTarget.value);

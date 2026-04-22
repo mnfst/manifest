@@ -298,13 +298,20 @@ ollama pull llama3.1:8b
 2. In the dashboard, go to Providers → API Keys → click the **Ollama** tile.
 3. Manifest reaches Ollama at `http://host.docker.internal:11434` and syncs the available models.
 
-### vLLM, LM Studio, llama.cpp, text-generation-webui — anything OpenAI-compatible
+### LM Studio
 
-1. Start your server on the host. **Bind to `0.0.0.0`**, not `127.0.0.1`, so the Manifest container can reach it:
-   - vLLM: `vllm serve <model> --host 0.0.0.0 --port 8000`
-   - LM Studio: enable the local server on port 1234
-   - llama.cpp: `./server -m model.gguf --host 0.0.0.0 --port 8080`
-2. Providers → API Keys → **Add custom provider** → pick a preset chip, or type the URL (e.g. `http://host.docker.internal:8000/v1`).
+1. Install LM Studio from https://lmstudio.ai, load at least one chat model, and start the local server. **Bind to `0.0.0.0`** so the Manifest container can reach it:
+   - GUI: Developer tab → enable "Serve on Local Network" (LM Studio persists this across restarts).
+   - CLI: `lms server start --bind 0.0.0.0 --port 1234 --cors`
+2. Providers → API Keys → click the **LM Studio** tile.
+3. Manifest probes `http://host.docker.internal:1234/v1`, discovers your loaded models, and connects them in one click.
+
+### Any other OpenAI-compatible server
+
+For vLLM, llama.cpp, text-generation-webui, TogetherAI proxies, Azure OpenAI gateways, or anything else that speaks OpenAI's HTTP API:
+
+1. Start your server on the host bound to `0.0.0.0`.
+2. Providers → API Keys → **Add custom provider** → type the URL (e.g. `http://host.docker.internal:8000/v1`).
 3. Click **Fetch models** to auto-populate the model list from the server's `/v1/models` endpoint.
 
 ### Running Ollama on another machine

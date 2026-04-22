@@ -54,7 +54,7 @@ describe("CustomProviderForm", () => {
     render(() => (
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
-    expect(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure")).toBeDefined();
+    expect(screen.getByPlaceholderText("e.g. Groq, Together, Azure")).toBeDefined();
     expect(screen.getByPlaceholderText("https://api.example.com/v1")).toBeDefined();
     expect(screen.getByPlaceholderText("sk-...")).toBeDefined();
     expect(screen.getByPlaceholderText("Model name")).toBeDefined();
@@ -72,7 +72,7 @@ describe("CustomProviderForm", () => {
     render(() => (
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
-    const nameInput = screen.getByPlaceholderText("e.g. Groq, vLLM, Azure");
+    const nameInput = screen.getByPlaceholderText("e.g. Groq, Together, Azure");
     const urlInput = screen.getByPlaceholderText("https://api.example.com/v1");
     const modelInput = screen.getByPlaceholderText("Model name");
 
@@ -90,7 +90,7 @@ describe("CustomProviderForm", () => {
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
 
-    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure"), {
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
       target: { value: "Groq" },
     });
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
@@ -129,7 +129,7 @@ describe("CustomProviderForm", () => {
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
 
-    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure"), {
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
       target: { value: "Groq" },
     });
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
@@ -151,7 +151,7 @@ describe("CustomProviderForm", () => {
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
 
-    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure"), {
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
       target: { value: "Groq" },
     });
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
@@ -181,7 +181,7 @@ describe("CustomProviderForm", () => {
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
 
-    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure"), {
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
       target: { value: "Groq" },
     });
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
@@ -220,7 +220,7 @@ describe("CustomProviderForm", () => {
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
 
-    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure"), {
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
       target: { value: "Groq" },
     });
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
@@ -261,7 +261,7 @@ describe("CustomProviderForm", () => {
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
 
-    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure"), {
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
       target: { value: "Test" },
     });
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
@@ -285,7 +285,7 @@ describe("CustomProviderForm", () => {
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
 
-    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure"), {
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
       target: { value: "Test" },
     });
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
@@ -300,7 +300,7 @@ describe("CustomProviderForm", () => {
       expect(screen.getByText("Some error")).toBeDefined();
     });
 
-    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure"), {
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
       target: { value: "New Name" },
     });
     await waitFor(() => {
@@ -315,7 +315,7 @@ describe("CustomProviderForm", () => {
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
 
-    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure"), {
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
       target: { value: "Test" },
     });
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
@@ -369,7 +369,7 @@ describe("CustomProviderForm", () => {
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
 
-    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure"), {
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
       target: { value: "Test" },
     });
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
@@ -408,7 +408,7 @@ describe("CustomProviderForm", () => {
     await waitFor(() => expect(addBtn.hasAttribute("disabled")).toBe(false));
     fireEvent.click(addBtn);
 
-    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure"), {
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
       target: { value: "Test" },
     });
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
@@ -571,7 +571,7 @@ describe("CustomProviderForm — prefill from URL params", () => {
     ));
 
     expect(
-      (screen.getByPlaceholderText("e.g. Groq, vLLM, Azure") as HTMLInputElement).value,
+      (screen.getByPlaceholderText("e.g. Groq, Together, Azure") as HTMLInputElement).value,
     ).toBe("Groq");
     expect(
       (screen.getByPlaceholderText("https://api.example.com/v1") as HTMLInputElement).value,
@@ -599,7 +599,7 @@ describe("CustomProviderForm — prefill from URL params", () => {
     ));
 
     expect(
-      (screen.getByPlaceholderText("e.g. Groq, vLLM, Azure") as HTMLInputElement).value,
+      (screen.getByPlaceholderText("e.g. Groq, Together, Azure") as HTMLInputElement).value,
     ).toBe("Test");
     expect((screen.getByPlaceholderText("Model name") as HTMLInputElement).value).toBe("");
   });
@@ -669,7 +669,7 @@ describe("CustomProviderForm — edit mode", () => {
 
     expect(screen.getByText("Edit custom provider")).toBeDefined();
     expect(screen.getByText("Save changes")).toBeDefined();
-    expect((screen.getByPlaceholderText("e.g. Groq, vLLM, Azure") as HTMLInputElement).value).toBe("Groq");
+    expect((screen.getByPlaceholderText("e.g. Groq, Together, Azure") as HTMLInputElement).value).toBe("Groq");
     expect((screen.getByPlaceholderText("https://api.example.com/v1") as HTMLInputElement).value).toBe("https://api.groq.com/openai/v1");
   });
 
@@ -727,7 +727,7 @@ describe("CustomProviderForm — edit mode", () => {
       />
     ));
 
-    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure"), {
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
       target: { value: "Updated Groq" },
     });
 

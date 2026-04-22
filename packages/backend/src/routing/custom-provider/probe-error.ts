@@ -45,7 +45,7 @@ export function classifyProbeError(input: ClassifyInput): ProbeError {
       kind: 'empty_models',
       message:
         `${url} is reachable but reports no models. Load a model in your LLM server ` +
-        `(LM Studio → My Models, vLLM's --model flag, Ollama pull) and try again.`,
+        `(LM Studio → My Models, ollama pull) and try again.`,
     };
   }
 
@@ -63,8 +63,8 @@ export function classifyProbeError(input: ClassifyInput): ProbeError {
         kind: 'not_found',
         message:
           `${url} returned 404. The server is up but /v1/models isn't exposed — check ` +
-          `that the OpenAI-compatible endpoints are enabled (recent llama.cpp / vLLM / ` +
-          `LM Studio builds expose them by default).`,
+          `that the OpenAI-compatible endpoints are enabled (recent LM Studio / Ollama ` +
+          `builds expose them by default).`,
       };
     }
     return {
@@ -82,9 +82,18 @@ export function classifyProbeError(input: ClassifyInput): ProbeError {
     };
   }
 
-  const code = (error as { code?: string } | undefined)?.code;
-  const name = (error as { name?: string } | undefined)?.name;
-  const msg = (error as { message?: string } | undefined)?.message ?? '';
+  // Node's fetch (undici) wraps network failures as `TypeError: fetch failed`
+  // with the real error attached as `.cause`. We check both levels so
+  // `ECONNREFUSED` / `ENOTFOUND` / `AbortError` don't fall through to the
+  // opaque "unknown" branch.
+  const cause = (error as { cause?: unknown } | undefined)?.cause as
+    | { code?: string; name?: string; message?: string }
+    | undefined;
+  const code = (error as { code?: string } | undefined)?.code ?? cause?.code;
+  const name = (error as { name?: string } | undefined)?.name ?? cause?.name;
+  const directMsg = (error as { message?: string } | undefined)?.message ?? '';
+  const causeMsg = cause?.message ?? '';
+  const msg = [directMsg, causeMsg].filter(Boolean).join(' | ');
 
   if (name === 'AbortError') {
     return {

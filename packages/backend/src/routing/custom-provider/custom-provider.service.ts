@@ -18,6 +18,21 @@ import { classifyProbeError } from './probe-error';
 
 const PROBE_TIMEOUT_MS = 5000;
 
+/**
+ * OpenAI-compatible `/v1/models` endpoints return every model the server
+ * knows about — including embedding / reranker / moderation models that
+ * can't serve `/v1/chat/completions`. LM Studio silently redirects chat
+ * calls to its loaded LLM, masking the problem; strict OpenAI-compatible
+ * servers reject the call with 400. Either way, surfacing embedders in
+ * the routing UI is misleading, so we filter them out at probe time.
+ */
+const EMBEDDING_MODEL_PATTERN =
+  /(?:^|[\/_\-])embed(?:ding|dings|ed)?(?:[\/_\-]|$)|text[_\-]embedding|embedder|reranker|moderation/i;
+
+export function isEmbeddingModel(id: string): boolean {
+  return EMBEDDING_MODEL_PATTERN.test(id);
+}
+
 @Injectable()
 export class CustomProviderService {
   constructor(
@@ -193,8 +208,8 @@ export class CustomProviderService {
    * Probes the `{base_url}/models` endpoint of an OpenAI-compatible server
    * and returns the discovered model IDs. Used by the "Fetch models" button
    * in the custom-provider form so users connecting a local LLM server
-   * (vLLM, LM Studio, llama.cpp, Ollama-on-host) don't have to type each
-   * model name by hand.
+   * (LM Studio, Ollama-on-host, or any OpenAI-compatible endpoint) don't
+   * have to type each model name by hand.
    */
   async probeModels(baseUrl: string, apiKey?: string): Promise<{ model_name: string }[]> {
     try {
@@ -235,7 +250,8 @@ export class CustomProviderService {
       const body = (await res.json()) as { data?: { id?: string }[] };
       const items = body?.data ?? [];
       const filtered = items.filter(
-        (m): m is { id: string } => typeof m.id === 'string' && m.id.length > 0,
+        (m): m is { id: string } =>
+          typeof m.id === 'string' && m.id.length > 0 && !isEmbeddingModel(m.id),
       );
       if (filtered.length === 0) {
         throw new BadRequestException(classifyProbeError({ url, emptyModels: true }).message);

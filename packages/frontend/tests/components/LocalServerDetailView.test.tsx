@@ -22,26 +22,18 @@ vi.mock('../../src/services/toast-store.js', () => ({
 import LocalServerDetailView from '../../src/components/LocalServerDetailView';
 import type { ProviderDef } from '../../src/services/providers';
 
-const vllmProv: ProviderDef = {
-  id: 'vllm',
-  name: 'vLLM',
-  color: '#306998',
-  initial: 'vL',
-  subtitle: 'High-throughput GPU inference server',
+const lmsProv: ProviderDef = {
+  id: 'lmstudio',
+  name: 'LM Studio',
+  color: '#4a90e2',
+  initial: 'LM',
+  subtitle: 'Run GGUF models with a local server',
   keyPrefix: '',
   minKeyLength: 0,
   keyPlaceholder: '',
   noKeyRequired: true,
   localOnly: true,
   models: [],
-  defaultLocalPort: 8000,
-};
-
-const lmsProv: ProviderDef = {
-  ...vllmProv,
-  id: 'lmstudio',
-  name: 'LM Studio',
-  subtitle: 'Run GGUF models with a local server',
   defaultLocalPort: 1234,
 };
 
@@ -51,23 +43,22 @@ describe('LocalServerDetailView', () => {
     mockCheckHost.mockResolvedValue('localhost');
   });
 
-  it('probes on mount and renders a single-model confirmation for vLLM', async () => {
+  it('probes on mount and confirms the server is reachable with the discovered model', async () => {
     mockProbe.mockResolvedValue({ models: [{ model_name: 'llama-3.1-8b' }] });
 
     const onConnected = vi.fn();
     const { container } = render(() => (
       <LocalServerDetailView
         agentName="a1"
-        provider={vllmProv}
+        provider={lmsProv}
         onConnected={onConnected}
         onBack={vi.fn()}
-        onCustomize={vi.fn()}
       />
     ));
 
     await waitFor(() => {
-      expect(mockProbe).toHaveBeenCalledWith('a1', 'http://localhost:8000/v1');
-      expect(container.textContent).toContain('Server is reachable');
+      expect(mockProbe).toHaveBeenCalledWith('a1', 'http://localhost:1234/v1');
+      expect(container.textContent).toContain('Found 1 model');
       expect(container.textContent).toContain('llama-3.1-8b');
     });
   });
@@ -83,7 +74,6 @@ describe('LocalServerDetailView', () => {
         provider={lmsProv}
         onConnected={vi.fn()}
         onBack={vi.fn()}
-        onCustomize={vi.fn()}
       />
     ));
 
@@ -105,16 +95,15 @@ describe('LocalServerDetailView', () => {
     const { container } = render(() => (
       <LocalServerDetailView
         agentName="a1"
-        provider={vllmProv}
+        provider={lmsProv}
         onConnected={onConnected}
         onBack={vi.fn()}
-        onCustomize={vi.fn()}
       />
     ));
 
     const btn = await waitFor(() => {
       const b = Array.from(container.querySelectorAll('button')).find((x) =>
-        x.textContent?.includes('Connect vLLM'),
+        x.textContent?.includes('Connect 1 model'),
       );
       if (!b) throw new Error('button not found yet');
       return b as HTMLButtonElement;
@@ -124,8 +113,8 @@ describe('LocalServerDetailView', () => {
 
     await waitFor(() => {
       expect(mockCreate).toHaveBeenCalledWith('a1', {
-        name: 'vLLM',
-        base_url: 'http://localhost:8000/v1',
+        name: 'LM Studio',
+        base_url: 'http://localhost:1234/v1',
         models: [
           {
             model_name: 'single',
@@ -138,34 +127,33 @@ describe('LocalServerDetailView', () => {
     });
   });
 
-  it('shows the failure state with setup command and Retry / Customize when probe fails', async () => {
-    mockProbe.mockRejectedValue(new Error('No server is listening on http://localhost:8000/v1/models'));
-    const onCustomize = vi.fn();
+  it('shows the failure state with setup command and a Retry button when probe fails', async () => {
+    mockProbe.mockRejectedValue(new Error('No server is listening on http://localhost:1234/v1/models'));
 
     const { container } = render(() => (
       <LocalServerDetailView
         agentName="a1"
-        provider={vllmProv}
+        provider={lmsProv}
         onConnected={vi.fn()}
         onBack={vi.fn()}
-        onCustomize={onCustomize}
       />
     ));
 
     await waitFor(() => {
       expect(container.textContent).toContain('No server is listening');
-      expect(container.textContent).toContain('vllm serve');
+      expect(container.textContent).toContain('lms server start');
     });
 
-    // Customize dispatches back to the parent with current URL
-    const customizeBtn = Array.from(container.querySelectorAll('button')).find((b) =>
-      b.textContent?.includes('Customize URL'),
-    ) as HTMLButtonElement;
-    fireEvent.click(customizeBtn);
-    expect(onCustomize).toHaveBeenCalledWith({
-      name: 'vLLM',
-      baseUrl: 'http://localhost:8000/v1',
-    });
+    // Retry button is present; no escape hatch to a customize form.
+    const retryBtn = Array.from(container.querySelectorAll('button')).find((b) =>
+      b.textContent?.includes('Retry'),
+    );
+    expect(retryBtn).toBeDefined();
+    expect(
+      Array.from(container.querySelectorAll('button')).find((b) =>
+        b.textContent?.includes('Customize'),
+      ),
+    ).toBeUndefined();
   });
 
   it('shows Docker caveat when running inside Docker', async () => {
@@ -175,23 +163,22 @@ describe('LocalServerDetailView', () => {
     const { container } = render(() => (
       <LocalServerDetailView
         agentName="a1"
-        provider={vllmProv}
+        provider={lmsProv}
         onConnected={vi.fn()}
         onBack={vi.fn()}
-        onCustomize={vi.fn()}
       />
     ));
 
     await waitFor(() => {
       expect(container.textContent).toContain('Running Manifest in Docker');
-      expect(container.textContent).toContain('--host 0.0.0.0');
+      expect(container.textContent).toContain('--bind 0.0.0.0');
     });
   });
 
   it('falls back to the letter badge when providerIcon has no entry for the id', async () => {
     mockProbe.mockResolvedValue({ models: [{ model_name: 'only' }] });
     const unknownProv: ProviderDef = {
-      ...vllmProv,
+      ...lmsProv,
       id: 'unknown-local-server',
       name: 'Unknown',
       initial: 'U',
@@ -204,7 +191,6 @@ describe('LocalServerDetailView', () => {
         provider={unknownProv}
         onConnected={vi.fn()}
         onBack={vi.fn()}
-        onCustomize={vi.fn()}
       />
     ));
 
@@ -221,10 +207,9 @@ describe('LocalServerDetailView', () => {
     const { container } = render(() => (
       <LocalServerDetailView
         agentName="a1"
-        provider={vllmProv}
+        provider={lmsProv}
         onConnected={vi.fn()}
         onBack={vi.fn()}
-        onCustomize={vi.fn()}
       />
     ));
 
@@ -233,7 +218,7 @@ describe('LocalServerDetailView', () => {
       if (!a) throw new Error('docs link not rendered yet');
       return a;
     });
-    expect(docsLink.href).toContain('docs.vllm.ai');
+    expect(docsLink.href).toContain('lmstudio.ai');
     expect(docsLink.target).toBe('_blank');
     expect(docsLink.rel).toContain('noopener');
 
@@ -245,9 +230,71 @@ describe('LocalServerDetailView', () => {
     fireEvent.click(retryBtn);
 
     await waitFor(() => {
-      expect(container.textContent).toContain('Server is reachable');
+      expect(container.textContent).toContain('Found 1 model');
     });
     expect(mockProbe.mock.calls.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('refresh button re-probes and intersect-preserves the user selection', async () => {
+    // Reset the mock state so no prior test's default leaks through; then
+    // set an explicit default that is used for both the initial probe and
+    // the post-click refetch until overridden below.
+    mockProbe.mockReset();
+    mockProbe.mockResolvedValue({
+      models: [{ model_name: 'alpha' }, { model_name: 'beta' }],
+    });
+
+    const { container } = render(() => (
+      <LocalServerDetailView
+        agentName="a1"
+        provider={lmsProv}
+        onConnected={vi.fn()}
+        onBack={vi.fn()}
+      />
+    ));
+
+    // Wait for initial probe to land.
+    const boxes = await waitFor(() => {
+      const list = Array.from(
+        container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'),
+      );
+      if (list.length !== 2) throw new Error('waiting');
+      return list;
+    });
+    // Uncheck the first ("alpha").
+    fireEvent.click(boxes[0]);
+
+    // Second probe returns an expanded list; "beta" stays (user still has it
+    // checked), "gamma" appears unchecked, "alpha" is preserved as unchecked.
+    mockProbe.mockReset();
+    mockProbe.mockResolvedValue({
+      models: [{ model_name: 'alpha' }, { model_name: 'beta' }, { model_name: 'gamma' }],
+    });
+    const refreshBtn = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="Refresh model list"]',
+    );
+    expect(refreshBtn).not.toBeNull();
+    fireEvent.click(refreshBtn!);
+
+    await waitFor(() => {
+      const rows = Array.from(
+        container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'),
+      );
+      if (rows.length !== 3) throw new Error('waiting for 3 models');
+      // alpha was unchecked before refresh and should stay unchecked.
+      const labels = Array.from(
+        container.querySelectorAll('.provider-detail__model-row'),
+      ).map((row) => ({
+        name: row.textContent?.trim() ?? '',
+        checked: row.querySelector<HTMLInputElement>('input')?.checked ?? false,
+      }));
+      const alpha = labels.find((l) => l.name === 'alpha');
+      const beta = labels.find((l) => l.name === 'beta');
+      const gamma = labels.find((l) => l.name === 'gamma');
+      expect(alpha?.checked).toBe(false);
+      expect(beta?.checked).toBe(true);
+      expect(gamma?.checked).toBe(false);
+    });
   });
 
   it('toggles model selection on checkbox click', async () => {
@@ -262,7 +309,6 @@ describe('LocalServerDetailView', () => {
         provider={lmsProv}
         onConnected={vi.fn()}
         onBack={vi.fn()}
-        onCustomize={vi.fn()}
       />
     ));
 
@@ -297,16 +343,15 @@ describe('LocalServerDetailView', () => {
     const { container } = render(() => (
       <LocalServerDetailView
         agentName="a1"
-        provider={vllmProv}
+        provider={lmsProv}
         onConnected={vi.fn()}
         onBack={vi.fn()}
-        onCustomize={vi.fn()}
       />
     ));
 
     const btn = await waitFor(() => {
       const b = Array.from(container.querySelectorAll('button')).find((x) =>
-        x.textContent?.includes('Connect vLLM'),
+        x.textContent?.includes('Connect 1 model'),
       );
       if (!b) throw new Error('not ready');
       return b as HTMLButtonElement;
@@ -318,7 +363,7 @@ describe('LocalServerDetailView', () => {
     });
   });
 
-  it('copies the setup command to the clipboard when the Docker caveat link is clicked', async () => {
+  it('copies the bind command from the Docker caveat when Copy is clicked', async () => {
     mockCheckHost.mockResolvedValue('host.docker.internal');
     mockProbe.mockRejectedValue(new Error('No server is listening'));
     const writeText = vi.fn().mockResolvedValue(undefined);
@@ -330,29 +375,30 @@ describe('LocalServerDetailView', () => {
     const { container } = render(() => (
       <LocalServerDetailView
         agentName="a1"
-        provider={vllmProv}
+        provider={lmsProv}
         onConnected={vi.fn()}
         onBack={vi.fn()}
-        onCustomize={vi.fn()}
       />
     ));
 
     const copyBtn = await waitFor(() => {
-      const b = Array.from(container.querySelectorAll('button')).find((el) =>
-        el.textContent?.includes('Copy the start command'),
+      const candidates = Array.from(
+        container.querySelectorAll<HTMLButtonElement>('.provider-detail__caveat button'),
       );
+      const b = candidates.find((el) => el.textContent?.trim() === 'Copy');
       if (!b) throw new Error('copy button not yet rendered');
-      return b as HTMLButtonElement;
+      return b;
     });
     fireEvent.click(copyBtn);
 
     await waitFor(() => {
-      expect(writeText).toHaveBeenCalledWith(expect.stringContaining('vllm serve'));
-      expect(mockToast.success).toHaveBeenCalledWith('Command copied to clipboard');
+      expect(writeText).toHaveBeenCalledWith(expect.stringContaining('--bind 0.0.0.0'));
     });
+    // Label flips to "Copied" briefly after a successful copy.
+    expect(copyBtn.textContent?.trim()).toBe('Copied');
   });
 
-  it('falls back to the error toast when clipboard.writeText rejects', async () => {
+  it('falls back to the error toast when Copy-in-caveat rejects', async () => {
     mockCheckHost.mockResolvedValue('host.docker.internal');
     mockProbe.mockRejectedValue(new Error('No server is listening'));
     const writeText = vi.fn().mockRejectedValue(new Error('clipboard denied'));
@@ -364,19 +410,19 @@ describe('LocalServerDetailView', () => {
     const { container } = render(() => (
       <LocalServerDetailView
         agentName="a1"
-        provider={vllmProv}
+        provider={lmsProv}
         onConnected={vi.fn()}
         onBack={vi.fn()}
-        onCustomize={vi.fn()}
       />
     ));
 
     const copyBtn = await waitFor(() => {
-      const b = Array.from(container.querySelectorAll('button')).find((el) =>
-        el.textContent?.includes('Copy the start command'),
+      const candidates = Array.from(
+        container.querySelectorAll<HTMLButtonElement>('.provider-detail__caveat button'),
       );
+      const b = candidates.find((el) => el.textContent?.trim() === 'Copy');
       if (!b) throw new Error('copy button not yet rendered');
-      return b as HTMLButtonElement;
+      return b;
     });
     fireEvent.click(copyBtn);
 
@@ -384,6 +430,29 @@ describe('LocalServerDetailView', () => {
       expect(mockToast.error).toHaveBeenCalledWith(
         'Copy failed — select the command and copy it manually',
       );
+    });
+  });
+
+  it('renders the GUI fix row and one-time-setup line for LM Studio in Docker', async () => {
+    mockCheckHost.mockResolvedValue('host.docker.internal');
+    mockProbe.mockRejectedValue(new Error('No server is listening'));
+
+    const { container } = render(() => (
+      <LocalServerDetailView
+        agentName="a1"
+        provider={lmsProv}
+        onConnected={vi.fn()}
+        onBack={vi.fn()}
+      />
+    ));
+
+    await waitFor(() => {
+      const caveat = container.querySelector('.provider-detail__caveat');
+      expect(caveat).not.toBeNull();
+      // GUI path (the "Fix it" GUI label) and the copyable CLI with --bind.
+      expect(caveat!.textContent).toContain('Serve on Local Network');
+      expect(caveat!.textContent).toContain('--bind 0.0.0.0');
+      expect(caveat!.textContent).toContain('One-time setup');
     });
   });
 });

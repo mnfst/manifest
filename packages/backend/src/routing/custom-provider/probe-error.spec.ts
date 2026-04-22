@@ -22,6 +22,22 @@ describe('classifyProbeError', () => {
     expect(out.kind).toBe('connection_refused');
   });
 
+  it('unwraps Node fetch errors where the real cause is on error.cause', () => {
+    // This is what `fetch()` actually throws when the target port refuses
+    // the connection: a bare TypeError with the `ECONNREFUSED` payload
+    // nested on `.cause`. The classifier must look one level deep.
+    const out = classifyProbeError({
+      url,
+      error: Object.assign(new TypeError('fetch failed'), {
+        cause: Object.assign(new Error('connect ECONNREFUSED 127.0.0.1:1234'), {
+          code: 'ECONNREFUSED',
+        }),
+      }),
+    });
+    expect(out.kind).toBe('connection_refused');
+    expect(out.message).toMatch(/No server is listening/);
+  });
+
   it('classifies AbortError as a timeout with the loading-model hint', () => {
     const out = classifyProbeError({
       url,

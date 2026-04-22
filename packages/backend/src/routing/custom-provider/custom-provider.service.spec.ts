@@ -379,6 +379,40 @@ describe('CustomProviderService', () => {
       expect(result).toEqual([{ model_name: 'm1' }]);
     });
 
+    it('filters out embedding / reranker / moderation models (they cannot serve chat)', async () => {
+      const { svc } = makeDeps({});
+      global.fetch = jest.fn().mockResolvedValue(
+        jsonResponse({
+          data: [
+            { id: 'google/gemma-4-e4b' },
+            { id: 'text-embedding-nomic-embed-text-v1.5' },
+            { id: 'bge-reranker-base' },
+            { id: 'openai/text-embedding-3-small' },
+            { id: 'text-moderation-007' },
+            { id: 'nomic-embed-text' },
+          ],
+        }),
+      ) as unknown as typeof fetch;
+
+      const result = await svc.probeModels('http://localhost:1234/v1');
+      // Only the LLM survives; all embedders / rerankers / moderation models
+      // are filtered out at probe time so they never reach the routing UI.
+      expect(result).toEqual([{ model_name: 'google/gemma-4-e4b' }]);
+    });
+
+    it('rejects when every returned model is an embedder (nothing routable)', async () => {
+      const { svc } = makeDeps({});
+      global.fetch = jest.fn().mockResolvedValue(
+        jsonResponse({
+          data: [{ id: 'text-embedding-3-small' }, { id: 'nomic-embed-text-v1.5' }],
+        }),
+      ) as unknown as typeof fetch;
+
+      await expect(svc.probeModels('http://localhost:1234/v1')).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
+    });
+
     it('rejects non-JSON responses (HTML, binary, no content-type)', async () => {
       const { svc } = makeDeps({});
       global.fetch = jest.fn().mockResolvedValue({

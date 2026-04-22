@@ -86,10 +86,12 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     return !!p && p.is_active && !!provDef?.noKeyRequired;
   };
 
-  const openDetail = (provId: string, authType: AuthType) => {
-    setDirection('forward');
-    setSelectedProvider(provId);
-    setSelectedAuthType(authType);
+  const resetToList = () => {
+    setSelectedProvider(null);
+    setShowCustomForm(false);
+    setTilePrefill(null);
+    setEditingCustomProvider(null);
+    setLocalServerProvider(null);
     setKeyInput('');
     setEditing(false);
     setValidationError(null);
@@ -97,11 +99,20 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
 
   const goBack = () => {
     setDirection('back');
-    setSelectedProvider(null);
-    setShowCustomForm(false);
-    setTilePrefill(null);
-    setEditingCustomProvider(null);
-    setLocalServerProvider(null);
+    resetToList();
+  };
+
+  // Kept as an alias of goBack so callers that finish a flow (create /
+  // delete / connect) don't have to know how back-nav works.
+  const completeToList = () => {
+    setDirection('back');
+    resetToList();
+  };
+
+  const openDetail = (provId: string, authType: AuthType) => {
+    setDirection('forward');
+    setSelectedProvider(provId);
+    setSelectedAuthType(authType);
     setKeyInput('');
     setEditing(false);
     setValidationError(null);
@@ -159,21 +170,17 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
 
   return (
     <>
-      {/* -- Local Server Detail View (vLLM, LM Studio, llama.cpp) -- */}
+      {/* -- Local Server Detail View (LM Studio) -- */}
       <Show when={localServerProvider() && !showCustomForm() && !editingCustomProvider()}>
         <div class="provider-modal__view provider-modal__view--from-right">
           <LocalServerDetailView
             agentName={props.agentName}
             provider={localServerProvider()!}
             onConnected={() => {
-              goBack();
+              completeToList();
               props.onUpdate();
             }}
             onBack={goBack}
-            onCustomize={(prefill) => {
-              setLocalServerProvider(null);
-              openCustomForm(prefill);
-            }}
           />
         </div>
       </Show>
@@ -190,12 +197,12 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
                 : undefined
             }
             onCreated={() => {
-              goBack();
+              completeToList();
               props.onUpdate();
             }}
             onBack={goBack}
             onDeleted={() => {
-              goBack();
+              completeToList();
               props.onUpdate();
             }}
           />

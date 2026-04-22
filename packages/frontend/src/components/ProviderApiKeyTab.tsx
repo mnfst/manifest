@@ -1,16 +1,25 @@
 import { For, Show, type Component, createSignal, onMount } from 'solid-js';
-import { LOCAL_SERVER_HINTS } from 'manifest-shared';
+import { SHARED_PROVIDER_BY_ID_OR_ALIAS, normalizeProviderName } from 'manifest-shared';
 import type { AuthType, CustomProviderData } from '../services/api.js';
 import { customProviderColor } from '../services/formatters.js';
 import type { ProviderDef } from '../services/providers.js';
 import type { CustomProviderPrefill } from '../services/routing-params.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.js';
-import {
-  checkIsSelfHosted,
-  checkIsOllamaAvailable,
-  checkLocalServers,
-  type LocalServerAvailability,
-} from '../services/setup-status.js';
+import { checkIsSelfHosted } from '../services/setup-status.js';
+
+// Canonical local-LLM ids: when a custom provider is named after one of
+// these, we treat it as "the" connection for that tile — we hide the
+// empty tileOnly entry and drop the "Custom" tag so the row doesn't look
+// like a secondary, off-brand copy.
+const CANONICAL_LOCAL_IDS = new Set(['lmstudio', 'ollama']);
+
+const resolveCanonicalId = (name: string): string | null => {
+  const shared =
+    SHARED_PROVIDER_BY_ID_OR_ALIAS.get(normalizeProviderName(name)) ??
+    SHARED_PROVIDER_BY_ID_OR_ALIAS.get(name) ??
+    SHARED_PROVIDER_BY_ID_OR_ALIAS.get(name.toLowerCase());
+  return shared && CANONICAL_LOCAL_IDS.has(shared.id) ? shared.id : null;
+};
 
 type ListItem =
   | { kind: 'standard'; prov: ProviderDef }
@@ -25,49 +34,39 @@ interface Props {
   onOpenCustomForm: (prefill?: CustomProviderPrefill) => void;
   onEditCustom: (cp: CustomProviderData) => void;
   /**
-   * Tile click for the vLLM / LM Studio / llama.cpp (and future) local
-   * server providers that have a `defaultLocalPort` — opens the
-   * auto-probing detail view instead of the generic custom-provider form.
+   * Tile click for local server providers (LM Studio today) that have a
+   * `defaultLocalPort` — opens the auto-probing detail view instead of
+   * the generic custom-provider form.
    */
   onOpenLocalServer: (prov: ProviderDef) => void;
 }
 
-const DEFAULT_LOCAL_SERVERS: LocalServerAvailability = {
-  vllm: false,
-  lmstudio: false,
-  llamacpp: false,
-};
-
 const ProviderApiKeyTab: Component<Props> = (props) => {
   const [isSelfHosted, setIsSelfHosted] = createSignal(false);
-  const [ollamaReady, setOllamaReady] = createSignal(false);
-  const [localServers, setLocalServers] =
-    createSignal<LocalServerAvailability>(DEFAULT_LOCAL_SERVERS);
 
   onMount(async () => {
-    const [selfHosted, ollama, servers] = await Promise.all([
-      checkIsSelfHosted(),
-      checkIsOllamaAvailable(),
-      checkLocalServers(),
-    ]);
-    setIsSelfHosted(selfHosted);
-    setOllamaReady(ollama);
-    setLocalServers(servers);
+    setIsSelfHosted(await checkIsSelfHosted());
   });
 
   const mergedProviders = (): ListItem[] => {
-    const standards: ListItem[] = props.apiKeyProviders.map((prov) => ({ kind: 'standard', prov }));
-    const customs: ListItem[] = (props.customProviders ?? []).map((cp) => ({ kind: 'custom', cp }));
-    return [...standards, ...customs].sort((a, b) => {
+    const customs = props.customProviders ?? [];
+    // Any canonical local-LLM id already claimed by a custom provider.
+    // We hide the empty tileOnly entry for these so the user sees one
+    // "LM Studio" row instead of a connected + disconnected duplicate.
+    const claimed = new Set<string>();
+    for (const cp of customs) {
+      const id = resolveCanonicalId(cp.name);
+      if (id) claimed.add(id);
+    }
+    const standards: ListItem[] = props.apiKeyProviders
+      .filter((prov) => !claimed.has(prov.id))
+      .map((prov) => ({ kind: 'standard', prov }));
+    const customItems: ListItem[] = customs.map((cp) => ({ kind: 'custom', cp }));
+    return [...standards, ...customItems].sort((a, b) => {
       const nameA = a.kind === 'standard' ? a.prov.name : a.cp.name;
       const nameB = b.kind === 'standard' ? b.prov.name : b.cp.name;
       return nameA.localeCompare(nameB);
     });
-  };
-
-  const serverReady = (prov: ProviderDef): boolean => {
-    if (prov.id === 'ollama') return ollamaReady();
-    return localServers()[prov.id as keyof LocalServerAvailability] ?? true;
   };
 
   return (
@@ -78,6 +77,11 @@ const ProviderApiKeyTab: Component<Props> = (props) => {
           {(item) => {
             if (item.kind === 'custom') {
               const cp = item.cp;
+              // When a custom row resolves to a canonical local-LLM id
+              // (LM Studio, Ollama) treat it as the native tile — drop
+              // the "Custom" badge so the row looks like a first-class
+              // provider rather than a side-channel.
+              const isCanonical = resolveCanonicalId(cp.name) !== null;
               return (
                 <button class="provider-toggle" onClick={() => props.onEditCustom(cp)}>
                   <span class="provider-toggle__icon">
@@ -93,7 +97,9 @@ const ProviderApiKeyTab: Component<Props> = (props) => {
                   <span class="provider-toggle__info">
                     <span class="provider-toggle__name">
                       {cp.name}
-                      <span class="provider-toggle__tag">Custom</span>
+                      <Show when={!isCanonical}>
+                        <span class="provider-toggle__tag">Custom</span>
+                      </Show>
                     </span>
                   </span>
                   <span class="provider-toggle__switch provider-toggle__switch--on">
@@ -105,31 +111,15 @@ const ProviderApiKeyTab: Component<Props> = (props) => {
 
             const prov = item.prov;
             const connected = () => props.isConnected(prov.id) || props.isNoKeyConnected(prov.id);
-            const isOllamaProvider = () => prov.id === 'ollama';
             const hasLocalPort = () => prov.defaultLocalPort !== undefined;
 
-            const disabled = () => {
-              if (!prov.localOnly) return false;
-              // Grey out local-only tiles in cloud mode so cloud users can
-              // discover the feature and know it unlocks in the self-hosted
-              // version.
-              if (!isSelfHosted()) return true;
-              return !serverReady(prov);
-            };
-
-            const statusMessage = () => {
-              if (!prov.localOnly) return null;
-              if (!isSelfHosted()) return 'Only available on self-hosted Manifest';
-              if (serverReady(prov)) return null;
-              if (isOllamaProvider())
-                return 'Install Ollama on your host from ollama.com, then click to connect';
-              // For vLLM / LM Studio / llama.cpp we surface the exact
-              // start command so the user can unblock themselves without
-              // leaving the page. `serverReady` only returns false for these
-              // three ids, which all have an entry in LOCAL_SERVER_HINTS.
-              const hint = LOCAL_SERVER_HINTS[prov.id]!;
-              return `Not running on :${hint.defaultPort}. ${hint.setupCommand}`;
-            };
+            // Local-only tiles are greyed in cloud mode (a gate, not a
+            // todo). In the self-hosted version they stay clickable even
+            // when the server isn't reachable — clicking opens the detail
+            // view where the setup command, retry, and docs link live.
+            const disabled = () => prov.localOnly && !isSelfHosted();
+            const statusMessage = () =>
+              disabled() ? 'Only available on self-hosted Manifest' : null;
 
             const handleClick = () => {
               if (disabled()) return;

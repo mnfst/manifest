@@ -43,9 +43,11 @@ export interface ProviderDef {
   /** Show a beta badge next to the provider name. */
   beta?: boolean;
   /**
-   * Default port for local OpenAI-compatible servers (vLLM, LM Studio, …).
-   * When set, clicking the tile in self-hosted mode opens the custom-provider
-   * form prefilled with `http://{localLlmHost}:{defaultLocalPort}/v1`.
+   * Default port for a local OpenAI-compatible server (LM Studio today).
+   * When set, clicking the tile in self-hosted mode opens the
+   * LocalServerDetailView, which probes
+   * `http://{localLlmHost}:{defaultLocalPort}/v1` and auto-connects the
+   * discovered models.
    */
   defaultLocalPort?: number;
 }
@@ -119,13 +121,6 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     initial: 'G',
     subtitle: 'Gemini 2.5, Gemini 2.0 Flash',
     models: [],
-  },
-  llamacpp: {
-    initial: 'Lc',
-    subtitle: 'OpenAI-compatible llama.cpp server',
-    noKeyRequired: true,
-    models: [],
-    defaultLocalPort: 8080,
   },
   lmstudio: {
     initial: 'LM',
@@ -212,13 +207,6 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subtitle: 'Auto-route to 300+ models',
     models: [],
   },
-  vllm: {
-    initial: 'vL',
-    subtitle: 'High-throughput GPU inference server',
-    noKeyRequired: true,
-    models: [],
-    defaultLocalPort: 8000,
-  },
   xai: {
     initial: 'X',
     subtitle: 'Grok 3, Grok 2',
@@ -261,7 +249,6 @@ const PROVIDER_ORDER = [
   'deepseek',
   'copilot',
   'gemini',
-  'llamacpp',
   'lmstudio',
   'minimax',
   'mistral',
@@ -271,7 +258,6 @@ const PROVIDER_ORDER = [
   'openai',
   'opencode-go',
   'openrouter',
-  'vllm',
   'xai',
   'zai',
 ];

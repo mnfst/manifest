@@ -14,7 +14,6 @@ describe('SetupController', () => {
   let mockIsSelfHosted: jest.Mock;
   let mockIsOllamaAvailable: jest.Mock;
   let mockGetLocalLlmHost: jest.Mock;
-  let mockProbeLocalServers: jest.Mock;
 
   beforeEach(async () => {
     mockNeedsSetup = jest.fn();
@@ -23,9 +22,6 @@ describe('SetupController', () => {
     mockIsSelfHosted = jest.fn().mockReturnValue(false);
     mockIsOllamaAvailable = jest.fn().mockResolvedValue(false);
     mockGetLocalLlmHost = jest.fn().mockReturnValue('localhost');
-    mockProbeLocalServers = jest
-      .fn()
-      .mockResolvedValue({ vllm: false, lmstudio: false, llamacpp: false });
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [SetupController],
@@ -39,7 +35,6 @@ describe('SetupController', () => {
             isSelfHosted: mockIsSelfHosted,
             isOllamaAvailable: mockIsOllamaAvailable,
             getLocalLlmHost: mockGetLocalLlmHost,
-            probeLocalServers: mockProbeLocalServers,
           },
         },
       ],
@@ -58,7 +53,6 @@ describe('SetupController', () => {
         isSelfHosted: false,
         ollamaAvailable: false,
         localLlmHost: 'localhost',
-        localServers: { vllm: false, lmstudio: false, llamacpp: false },
       });
     });
 
@@ -71,7 +65,6 @@ describe('SetupController', () => {
         isSelfHosted: false,
         ollamaAvailable: false,
         localLlmHost: 'localhost',
-        localServers: { vllm: false, lmstudio: false, llamacpp: false },
       });
     });
 
@@ -85,7 +78,6 @@ describe('SetupController', () => {
         isSelfHosted: false,
         ollamaAvailable: false,
         localLlmHost: 'localhost',
-        localServers: { vllm: false, lmstudio: false, llamacpp: false },
       });
     });
 
@@ -100,7 +92,6 @@ describe('SetupController', () => {
         isSelfHosted: true,
         ollamaAvailable: false,
         localLlmHost: 'localhost',
-        localServers: { vllm: false, lmstudio: false, llamacpp: false },
       });
     });
 
@@ -115,7 +106,6 @@ describe('SetupController', () => {
         isSelfHosted: true,
         ollamaAvailable: true,
         localLlmHost: 'localhost',
-        localServers: { vllm: false, lmstudio: false, llamacpp: false },
       });
     });
 

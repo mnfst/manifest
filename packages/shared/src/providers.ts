@@ -34,11 +34,11 @@ export interface SharedProviderEntry {
   /** Placeholder shown in the UI's API-key input. */
   keyPlaceholder: string;
   /**
-   * Tiles that exist purely to deep-link users into the custom-provider
-   * form (vLLM, LM Studio, llama.cpp). They do not have a fixed proxy
-   * endpoint — once connected, the backend routes through the
-   * `custom:<uuid>` path using the user-entered base URL. The proxy
-   * endpoint sanity test skips entries with `tileOnly: true`.
+   * Tiles that deep-link users into the local-server detail view (LM
+   * Studio today). They do not have a fixed proxy endpoint — once
+   * connected, the backend routes through the `custom:<uuid>` path
+   * using the user-entered base URL. The proxy endpoint sanity test
+   * skips entries with `tileOnly: true`.
    */
   tileOnly?: boolean;
 }
@@ -141,19 +141,6 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: 'sk-...',
   },
   {
-    id: 'llamacpp',
-    displayName: 'llama.cpp',
-    aliases: ['llama.cpp', 'llama-cpp'],
-    openRouterPrefixes: [],
-    requiresApiKey: false,
-    localOnly: true,
-    tileOnly: true,
-    color: '#2d2d2d',
-    keyPrefix: '',
-    minKeyLength: 0,
-    keyPlaceholder: '',
-  },
-  {
     id: 'lmstudio',
     displayName: 'LM Studio',
     aliases: ['lm-studio', 'lm studio'],
@@ -227,19 +214,6 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: 'sk-or-...',
   },
   {
-    id: 'vllm',
-    displayName: 'vLLM',
-    aliases: [],
-    openRouterPrefixes: [],
-    requiresApiKey: false,
-    localOnly: true,
-    tileOnly: true,
-    color: '#306998',
-    keyPrefix: '',
-    minKeyLength: 0,
-    keyPlaceholder: '',
-  },
-  {
     id: 'xai',
     displayName: 'xAI',
     aliases: [],
@@ -279,59 +253,75 @@ export const SHARED_PROVIDER_BY_ID_OR_ALIAS: ReadonlyMap<string, SharedProviderE
 );
 
 /**
- * Hints for local-LLM provider tiles: default port, setup command the
- * user needs to run, and docs link. Consumed by both the frontend detail
- * view (for actionable setup copy when the server is unreachable) and
- * the backend setup-status probe (for the default port).
+ * Collapse whitespace, dots, underscores, and hyphens so variants like
+ * "LM Studio", "lm-studio", "lm.studio" and "lmstudio" all normalize to
+ * the same alias key. Used wherever we match a free-form provider name
+ * (custom-provider row names, deep-link params, test fixtures) against
+ * `SHARED_PROVIDER_BY_ID_OR_ALIAS`.
+ */
+export const normalizeProviderName = (s: string): string =>
+  s
+    .toLowerCase()
+    .trim()
+    .replace(/[\s._\-]+/g, '');
+
+/**
+ * Setup hints for local-LLM provider tiles: default port, setup command,
+ * install URL, and Docker-specific fix copy. Consumed by the frontend
+ * detail view to surface actionable guidance when the server is
+ * unreachable.
  */
 export interface LocalServerHint {
   /** Default port the server listens on. */
   defaultPort: number;
   /** One-line terminal command that starts the server with the right flags. */
   setupCommand: string;
-  /** Canonical docs URL for the getting-started page. */
-  docsUrl: string;
-  /**
-   * True when the server conceptually runs one model at a time
-   * (vLLM, llama.cpp). The UI simplifies the connect flow in that case
-   * to a single "Connect {model}" card.
-   */
-  singleModel: boolean;
+  /** Where to send users who don't have the server installed yet (homepage / download page). */
+  installUrl: string;
   /**
    * Short human-readable note shown at the top of the detail view when
    * the user is running Manifest inside Docker and the server needs to
    * bind `0.0.0.0` (otherwise host.docker.internal can't reach it).
    */
   dockerBindNote?: string;
+  /**
+   * One-liner CLI command that explicitly rebinds the server to `0.0.0.0`
+   * so it's reachable from a Docker container on the same host. Used in
+   * the Docker caveat card when the user's default setupCommand doesn't
+   * already include the right bind (LM Studio's default is loopback).
+   */
+  dockerBindCommand?: string;
+  /**
+   * Human-readable GUI path to flip the "serve on network" toggle in the
+   * provider's desktop app. Shown alongside the CLI command for users
+   * who prefer not to open a terminal. Only set for providers that have
+   * such a toggle (LM Studio).
+   */
+  dockerGuiFix?: string;
+  /**
+   * True when the provider's server-start flags persist across restarts
+   * (LM Studio remembers the last `--bind`). Surfaces a "one-time setup"
+   * reassurance line so users know they don't have to re-run on every
+   * launch.
+   */
+  persistsBindAcrossLaunches?: boolean;
 }
 
 export const LOCAL_SERVER_HINTS: Readonly<Record<string, LocalServerHint>> = {
   ollama: {
     defaultPort: 11434,
     setupCommand: 'ollama pull llama3.1:8b   # then: ollama serve',
-    docsUrl: 'https://ollama.com/download',
-    singleModel: false,
-  },
-  vllm: {
-    defaultPort: 8000,
-    setupCommand: 'vllm serve meta-llama/Llama-3.1-8B-Instruct --host 0.0.0.0 --port 8000',
-    docsUrl: 'https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html',
-    singleModel: true,
-    dockerBindNote: 'Use --host 0.0.0.0 so host.docker.internal can reach vLLM.',
+    installUrl: 'https://ollama.com/download',
   },
   lmstudio: {
     defaultPort: 1234,
     setupCommand: 'lms server start   # or: open LM Studio → Developer → Start Server',
-    docsUrl: 'https://lmstudio.ai/docs/app/api/endpoints/openai',
-    singleModel: false,
-    dockerBindNote: 'Enable "Serve on local network" in LM Studio so the container can reach it.',
-  },
-  llamacpp: {
-    defaultPort: 8080,
-    setupCommand: './llama-server -m model.gguf --host 0.0.0.0 --port 8080',
-    docsUrl: 'https://github.com/ggml-org/llama.cpp/tree/master/tools/server',
-    singleModel: true,
+    installUrl: 'https://lmstudio.ai',
     dockerBindNote:
-      'Launch with --host 0.0.0.0 — the default 127.0.0.1 bind is not reachable from Docker.',
+      'LM Studio listens on 127.0.0.1 by default, which a Docker container can\u2019t reach. Either flip the GUI toggle or run the CLI below.',
+    dockerBindCommand: 'lms server start --bind 0.0.0.0 --port 1234 --cors',
+    dockerGuiFix:
+      'LM Studio \u2192 \u2699 Developer \u2192 enable \u201cServe on Local Network\u201d',
+    persistsBindAcrossLaunches: true,
   },
 };
