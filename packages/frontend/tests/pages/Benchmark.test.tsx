@@ -304,11 +304,24 @@ describe('Benchmark page', () => {
     ]);
     const { container } = render(() => <Benchmark />);
     await flush();
-    const headersButton = container.querySelector('.benchmark-prompt__headers');
+    // Second prompt-header button is the headers popover trigger (first is replay).
+    const headersButton = container.querySelectorAll('.benchmark-prompt__headers')[1];
     expect(headersButton).toBeDefined();
     fireEvent.click(headersButton!);
     await flush();
     expect(container.querySelector('.benchmark-headers')).toBeDefined();
+    // Type into a header key input → exercises the `updateHeaders` callback.
+    const keyInput = container.querySelector('.benchmark-headers__input--key') as HTMLInputElement;
+    if (keyInput) {
+      fireEvent.input(keyInput, { target: { value: 'X-Title' } });
+      await flush();
+    }
+    // Close the popover via its close button → exercises the onClose prop.
+    const closeBtn = container.querySelector('.benchmark-headers__close') as HTMLButtonElement;
+    if (closeBtn) {
+      fireEvent.click(closeBtn);
+      await flush();
+    }
   });
 
   it('submits through the prompt and sends requestHeaders from localStorage', async () => {
