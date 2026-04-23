@@ -209,7 +209,7 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
         <span class="routing-card__tier">{props.stage.label}</span>
         <Show when={hasCustomizations()}>
           <button
-            class="routing-card__header-reset"
+            class="routing-card__header-action routing-card__header-action--danger"
             onClick={() => setConfirmReset(true)}
             disabled={props.resettingTier() === props.stage.id || props.resettingAll()}
           >

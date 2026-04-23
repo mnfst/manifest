@@ -12,6 +12,7 @@ import { CustomProvider } from '../../entities/custom-provider.entity';
 import { ProviderService } from '../routing-core/provider.service';
 import { RoutingCacheService } from '../routing-core/routing-cache.service';
 import { TierAutoAssignService } from '../routing-core/tier-auto-assign.service';
+import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { validatePublicUrl } = require('../../common/utils/url-validation');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -49,7 +50,16 @@ function makeDeps(overrides: {
   const recalculate = jest.fn().mockResolvedValue(undefined);
   const autoAssign = { recalculate } as unknown as TierAutoAssignService;
 
-  const svc = new CustomProviderService(repo, providerService, routingCache, autoAssign);
+  const reloadPricing = jest.fn().mockResolvedValue(undefined);
+  const pricingCache = { reload: reloadPricing } as unknown as ModelPricingCacheService;
+
+  const svc = new CustomProviderService(
+    repo,
+    providerService,
+    routingCache,
+    autoAssign,
+    pricingCache,
+  );
 
   return {
     svc,
@@ -64,6 +74,7 @@ function makeDeps(overrides: {
     setCustomProviders,
     invalidateAgent,
     recalculate,
+    reloadPricing,
   };
 }
 
@@ -144,7 +155,7 @@ describe('CustomProviderService', () => {
     });
 
     it('inserts the row, upserts a UserProvider, and defaults context_window to 128k', async () => {
-      const { svc, insert, upsertProvider } = makeDeps({ findOneResults: [null] });
+      const { svc, insert, upsertProvider, reloadPricing } = makeDeps({ findOneResults: [null] });
       const cp = await svc.create('agent-1', 'user-1', dto);
 
       expect(insert).toHaveBeenCalledTimes(1);
@@ -153,6 +164,9 @@ describe('CustomProviderService', () => {
       expect(cp.models[0].context_window).toBe(128_000);
       expect(upsertProvider).toHaveBeenCalledWith('agent-1', 'user-1', `custom:${cp.id}`, 'sk-x');
       expect(validatePublicUrl).toHaveBeenCalledWith(dto.base_url, { allowPrivate: false });
+      // Price lookup cache must be refreshed so the proxy can compute cost
+      // for messages routed to this provider's models immediately.
+      expect(reloadPricing).toHaveBeenCalledTimes(1);
     });
 
     it('passes allowPrivate=true in the self-hosted version so private URLs are accepted', async () => {
@@ -186,13 +200,16 @@ describe('CustomProviderService', () => {
 
     it('renames and persists when no collision', async () => {
       const existing = { id: 'cp1', agent_id: 'agent-1', name: 'old' } as CustomProvider;
-      const { svc, save, invalidateAgent } = makeDeps({
+      const { svc, save, invalidateAgent, reloadPricing } = makeDeps({
         findOneResults: [existing, null],
       });
       await svc.update('agent-1', 'cp1', 'user-1', { name: 'new' });
       expect(existing.name).toBe('new');
       expect(save).toHaveBeenCalledWith(existing);
       expect(invalidateAgent).toHaveBeenCalledWith('agent-1');
+      // A rename-only update cannot affect prices, so the shared pricing
+      // cache should be left alone (reload is expensive for large installs).
+      expect(reloadPricing).not.toHaveBeenCalled();
     });
 
     it('validates and updates base_url when provided', async () => {
@@ -231,7 +248,9 @@ describe('CustomProviderService', () => {
 
     it('rewrites models (defaulting context_window) and recalculates tiers when the api key is not touched', async () => {
       const existing = { id: 'cp1', agent_id: 'agent-1', name: 'n' } as CustomProvider;
-      const { svc, recalculate, upsertProvider } = makeDeps({ findOneResults: [existing] });
+      const { svc, recalculate, upsertProvider, reloadPricing } = makeDeps({
+        findOneResults: [existing],
+      });
       await svc.update('agent-1', 'cp1', 'user-1', {
         models: [
           {
@@ -244,11 +263,16 @@ describe('CustomProviderService', () => {
       expect(existing.models[0].context_window).toBe(128_000);
       expect(recalculate).toHaveBeenCalledWith('agent-1');
       expect(upsertProvider).not.toHaveBeenCalled();
+      // Edited prices must flow into the shared pricing cache so the next
+      // proxied message picks up the new per-token cost.
+      expect(reloadPricing).toHaveBeenCalledTimes(1);
     });
 
     it('delegates tier recalculation to provider upsert when the api key is also updated', async () => {
       const existing = { id: 'cp1', agent_id: 'agent-1', name: 'n' } as CustomProvider;
-      const { svc, recalculate, upsertProvider } = makeDeps({ findOneResults: [existing] });
+      const { svc, recalculate, upsertProvider, reloadPricing } = makeDeps({
+        findOneResults: [existing],
+      });
       await svc.update('agent-1', 'cp1', 'user-1', {
         apiKey: 'sk-new',
         models: [
@@ -264,6 +288,8 @@ describe('CustomProviderService', () => {
       // When api key is updated, the upsert triggers its own recalc — service should not double-call.
       expect(recalculate).not.toHaveBeenCalled();
       expect(existing.models[0].context_window).toBe(64_000);
+      // Prices still changed → pricing cache must still be refreshed.
+      expect(reloadPricing).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -275,10 +301,13 @@ describe('CustomProviderService', () => {
 
     it('deletes the row and attempts provider removal', async () => {
       const cp = { id: 'cp1', agent_id: 'agent-1' } as CustomProvider;
-      const { svc, removeProvider, remove } = makeDeps({ findOneResults: [cp] });
+      const { svc, removeProvider, remove, reloadPricing } = makeDeps({ findOneResults: [cp] });
       await svc.remove('agent-1', 'cp1');
       expect(removeProvider).toHaveBeenCalledWith('agent-1', 'custom:cp1');
       expect(remove).toHaveBeenCalledWith(cp);
+      // Stale pricing entries for this provider must be dropped from the
+      // cache so getAll() stops returning them.
+      expect(reloadPricing).toHaveBeenCalledTimes(1);
     });
 
     it('swallows errors from provider removal (partial-state cleanup)', async () => {
@@ -351,14 +380,14 @@ describe('CustomProviderService', () => {
       const { svc } = makeDeps({});
       global.fetch = jest
         .fn()
-        .mockResolvedValue(jsonResponse({ data: [] })) as unknown as typeof fetch;
+        .mockResolvedValue(jsonResponse({ data: [{ id: 'm1' }] })) as unknown as typeof fetch;
 
       await svc.probeModels('http://host.docker.internal:8000/v1');
       const headers = (global.fetch as jest.Mock).mock.calls[0][1].headers;
       expect(headers.Authorization).toBeUndefined();
     });
 
-    it('returns an empty array when the server returns no data', async () => {
+    it('returns an empty array when the server returns no models', async () => {
       const { svc } = makeDeps({});
       global.fetch = jest.fn().mockResolvedValue(jsonResponse({})) as unknown as typeof fetch;
 
@@ -378,6 +407,39 @@ describe('CustomProviderService', () => {
       expect(result).toEqual([{ model_name: 'm1' }]);
     });
 
+    it('filters out embedding / reranker / moderation models (they cannot serve chat)', async () => {
+      const { svc } = makeDeps({});
+      global.fetch = jest.fn().mockResolvedValue(
+        jsonResponse({
+          data: [
+            { id: 'google/gemma-4-e4b' },
+            { id: 'text-embedding-nomic-embed-text-v1.5' },
+            { id: 'bge-reranker-base' },
+            { id: 'openai/text-embedding-3-small' },
+            { id: 'text-moderation-007' },
+            { id: 'nomic-embed-text' },
+          ],
+        }),
+      ) as unknown as typeof fetch;
+
+      const result = await svc.probeModels('http://localhost:1234/v1');
+      // Only the LLM survives; all embedders / rerankers / moderation models
+      // are filtered out at probe time so they never reach the routing UI.
+      expect(result).toEqual([{ model_name: 'google/gemma-4-e4b' }]);
+    });
+
+    it('returns an empty array when every returned model is an embedder (nothing routable)', async () => {
+      const { svc } = makeDeps({});
+      global.fetch = jest.fn().mockResolvedValue(
+        jsonResponse({
+          data: [{ id: 'text-embedding-3-small' }, { id: 'nomic-embed-text-v1.5' }],
+        }),
+      ) as unknown as typeof fetch;
+
+      const result = await svc.probeModels('http://localhost:1234/v1');
+      expect(result).toEqual([]);
+    });
+
     it('rejects non-JSON responses (HTML, binary, no content-type)', async () => {
       const { svc } = makeDeps({});
       global.fetch = jest.fn().mockResolvedValue({
@@ -387,7 +449,7 @@ describe('CustomProviderService', () => {
       }) as unknown as typeof fetch;
 
       await expect(svc.probeModels('http://host.docker.internal:8000/v1')).rejects.toThrow(
-        /did not return JSON/,
+        /instead of JSON/,
       );
     });
 
@@ -441,7 +503,7 @@ describe('CustomProviderService', () => {
       global.fetch = jest.fn().mockRejectedValue(abortErr) as unknown as typeof fetch;
 
       await expect(svc.probeModels('http://host.docker.internal:8000/v1')).rejects.toThrow(
-        /Timed out probing/,
+        /No response from|loading a model/,
       );
     });
 
@@ -477,7 +539,7 @@ describe('CustomProviderService', () => {
         // Manually drive the AbortController.abort() callback registered
         // in probeModels so the timeout path is exercised end-to-end.
         fired!();
-        await expect(pending).rejects.toThrow(/Timed out probing/);
+        await expect(pending).rejects.toThrow(/No response from|loading a model/);
       } finally {
         global.setTimeout = realSetTimeout;
       }

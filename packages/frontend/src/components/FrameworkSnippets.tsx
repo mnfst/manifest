@@ -21,6 +21,12 @@ interface Props {
   baseUrl: string;
   hideFullKey?: boolean;
   defaultToolkit?: ToolkitId;
+  /**
+   * Extra request headers to weave into every snippet (OpenAI's defaultHeaders,
+   * Vercel AI's headers, LangChain's configuration.defaultHeaders, curl -H).
+   * Used by the header-tier "How to send this" modal.
+   */
+  customHeaders?: Record<string, string>;
 }
 
 const EyeOpen: Component = () => (
@@ -89,10 +95,19 @@ const FrameworkSnippets: Component<Props> = (props) => {
   };
 
   const snippet = () =>
-    getSnippetForToolkit(activeTab(), props.baseUrl, displayKey(), openaiLang());
+    getSnippetForToolkit(
+      activeTab(),
+      props.baseUrl,
+      displayKey(),
+      openaiLang(),
+      props.customHeaders,
+    );
   const snippetForCopy = () =>
-    getSnippetForToolkit(activeTab(), props.baseUrl, copyKey(), openaiLang());
+    getSnippetForToolkit(activeTab(), props.baseUrl, copyKey(), openaiLang(), props.customHeaders);
   const language = () => getLangForToolkit(activeTab(), openaiLang());
+
+  const headerEntries = (): [string, string][] =>
+    props.customHeaders ? Object.entries(props.customHeaders) : [];
 
   return (
     <div class="framework-snippets">
@@ -196,6 +211,19 @@ const FrameworkSnippets: Component<Props> = (props) => {
             <CopyButton text="auto" />
           </span>
         </div>
+        <For each={headerEntries()}>
+          {([key, value]) => (
+            <div class="setup-onboard-fields__row" role="listitem">
+              <span class="setup-onboard-fields__label">
+                Header <code>{key}</code>
+              </span>
+              <span class="setup-onboard-fields__value">
+                <code>{value}</code>
+                <CopyButton text={value} />
+              </span>
+            </div>
+          )}
+        </For>
       </div>
     </div>
   );

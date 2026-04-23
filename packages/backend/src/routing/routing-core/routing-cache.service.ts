@@ -3,6 +3,7 @@ import { UserProvider } from '../../entities/user-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
+import { HeaderTier } from '../../entities/header-tier.entity';
 
 const TTL_MS = 120_000; // 2 minutes
 const MAX_ENTRIES = 5_000;
@@ -36,6 +37,7 @@ export class RoutingCacheService {
   private readonly apiKeys = new Map<string, CachedEntry<string | null>>();
   private readonly specificity = new Map<string, CachedEntry<SpecificityAssignment[]>>();
   private readonly complexityEnabled = new Map<string, CachedEntry<boolean>>();
+  private readonly headerTiers = new Map<string, CachedEntry<HeaderTier[]>>();
 
   getTiers(agentId: string): TierAssignment[] | null {
     return getOrExpire(this.tiers, agentId) ?? null;
@@ -85,12 +87,21 @@ export class RoutingCacheService {
     setWithEviction(this.complexityEnabled, agentId, enabled);
   }
 
+  getHeaderTiers(agentId: string): HeaderTier[] | null {
+    return getOrExpire(this.headerTiers, agentId) ?? null;
+  }
+
+  setHeaderTiers(agentId: string, data: HeaderTier[]): void {
+    setWithEviction(this.headerTiers, agentId, data);
+  }
+
   invalidateAgent(agentId: string): void {
     this.tiers.delete(agentId);
     this.providers.delete(agentId);
     this.customProviders.delete(agentId);
     this.specificity.delete(agentId);
     this.complexityEnabled.delete(agentId);
+    this.headerTiers.delete(agentId);
     const prefix = `${agentId}:`;
     const toDelete = [...this.apiKeys.keys()].filter((k) => k.startsWith(prefix));
     for (const k of toDelete) this.apiKeys.delete(k);

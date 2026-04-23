@@ -4,6 +4,18 @@ import { render, screen, fireEvent, waitFor } from "@solidjs/testing-library";
 vi.mock("../../src/services/api.js", () => ({
   connectProvider: vi.fn(),
   disconnectProvider: vi.fn().mockResolvedValue({ notifications: [] }),
+  probeCustomProvider: vi
+    .fn()
+    .mockResolvedValue({ models: [{ model_name: 'llama-3.1-8b' }] }),
+  createCustomProvider: vi.fn().mockResolvedValue({ id: 'cp-1' }),
+  deleteCustomProvider: vi.fn().mockResolvedValue({}),
+  updateCustomProvider: vi.fn().mockResolvedValue({}),
+}));
+
+vi.mock("../../src/services/setup-status.js", () => ({
+  checkIsSelfHosted: vi.fn().mockResolvedValue(true),
+  checkIsOllamaAvailable: vi.fn().mockResolvedValue(false),
+  checkLocalLlmHost: vi.fn().mockResolvedValue('localhost'),
 }));
 
 vi.mock("../../src/services/toast-store.js", () => ({
@@ -183,6 +195,148 @@ describe("ProviderSelectContent", () => {
     ));
     const doneBtn = container.querySelector(".provider-modal__footer .btn")!;
     expect(() => fireEvent.click(doneBtn)).not.toThrow();
+  });
+
+  describe("LocalServerDetailView flow", () => {
+    it("opens LocalServerDetailView when a reachable local-server tile is clicked, and closes on onBack", async () => {
+      const { container } = render(() => (
+        <ProviderSelectContent
+          agentName="test-agent"
+          providers={[]}
+          onUpdate={onUpdate}
+        />
+      ));
+
+      // Switch to API Keys tab to see local-server tiles
+      fireEvent.click(screen.getByText("API Keys"));
+
+      // Wait for self-hosted + server liveness to resolve so LM Studio is enabled
+      const lmsBtn = await waitFor(() => {
+        const b = Array.from(container.querySelectorAll<HTMLButtonElement>("button.provider-toggle")).find(
+          (el) => el.textContent?.includes("LM Studio") && !el.disabled,
+        );
+        if (!b) throw new Error("lmstudio tile not yet enabled");
+        return b;
+      });
+      fireEvent.click(lmsBtn);
+
+      // LocalServerDetailView renders its own "Connect 1 model" button
+      await waitFor(() => {
+        expect(container.textContent).toContain("Connect 1 model");
+      });
+
+      // Back button dismisses the detail view and returns to the list
+      const backBtn = container.querySelector(".provider-detail__back") as HTMLButtonElement;
+      fireEvent.click(backBtn);
+      await waitFor(() => {
+        expect(container.querySelector(".provider-detail__back")).toBeNull();
+      });
+    });
+
+    it("completes the Connect flow: closes the detail view and calls onUpdate", async () => {
+      const onUpdateLocal = vi.fn().mockResolvedValue(undefined);
+      const { container } = render(() => (
+        <ProviderSelectContent
+          agentName="test-agent"
+          providers={[]}
+          onUpdate={onUpdateLocal}
+        />
+      ));
+
+      fireEvent.click(screen.getByText("API Keys"));
+
+      const lmsBtn = await waitFor(() => {
+        const b = Array.from(container.querySelectorAll<HTMLButtonElement>("button.provider-toggle")).find(
+          (el) => el.textContent?.includes("LM Studio") && !el.disabled,
+        );
+        if (!b) throw new Error("lmstudio tile not yet enabled");
+        return b;
+      });
+      fireEvent.click(lmsBtn);
+
+      const connectBtn = await waitFor(() => {
+        const b = Array.from(container.querySelectorAll("button")).find((el) =>
+          el.textContent?.trim().startsWith("Connect 1 model"),
+        );
+        if (!b) throw new Error("Connect button not yet rendered");
+        return b as HTMLButtonElement;
+      });
+      fireEvent.click(connectBtn);
+
+      // After successful create, onConnected → goBack + onUpdate
+      await waitFor(() => {
+        expect(onUpdateLocal).toHaveBeenCalled();
+        expect(container.querySelector(".provider-detail__back")).toBeNull();
+      });
+    });
+
+    it("routes editing an LM Studio custom provider to LocalServerDetailView in edit mode", async () => {
+      const lmsCustom = {
+        id: 'cp-lms',
+        name: 'LM Studio',
+        base_url: 'http://localhost:1234/v1',
+        models: [{ model_name: 'llama', input_price_per_million_tokens: 0, output_price_per_million_tokens: 0 }],
+      };
+
+      const { container } = render(() => (
+        <ProviderSelectContent
+          agentName="test-agent"
+          providers={[]}
+          customProviders={[lmsCustom]}
+          onUpdate={onUpdate}
+        />
+      ));
+
+      fireEvent.click(screen.getByText("API Keys"));
+
+      // Click the custom provider toggle for LM Studio
+      const lmsToggle = await waitFor(() => {
+        const toggles = Array.from(container.querySelectorAll<HTMLButtonElement>("button.provider-toggle"));
+        const t = toggles.find((el) => el.textContent?.includes("LM Studio"));
+        if (!t) throw new Error("LM Studio custom provider toggle not found");
+        return t;
+      });
+      fireEvent.click(lmsToggle);
+
+      // Should open LocalServerDetailView in edit mode
+      await waitFor(() => {
+        expect(container.textContent).toContain("Edit provider");
+      });
+    });
+
+    it("does not expose an Advanced / customize escape hatch from the local-server view", async () => {
+      const { container } = render(() => (
+        <ProviderSelectContent
+          agentName="test-agent"
+          providers={[]}
+          onUpdate={onUpdate}
+        />
+      ));
+
+      fireEvent.click(screen.getByText("API Keys"));
+
+      const lmsBtn = await waitFor(() => {
+        const b = Array.from(container.querySelectorAll<HTMLButtonElement>("button.provider-toggle")).find(
+          (el) => el.textContent?.includes("LM Studio") && !el.disabled,
+        );
+        if (!b) throw new Error("lmstudio tile not yet enabled");
+        return b;
+      });
+      fireEvent.click(lmsBtn);
+
+      await waitFor(() => {
+        expect(container.textContent).toContain("Connect 1 model");
+      });
+
+      const advanced = Array.from(container.querySelectorAll("button")).find((el) =>
+        el.textContent?.toLowerCase().includes("advanced"),
+      );
+      const customize = Array.from(container.querySelectorAll("button")).find((el) =>
+        el.textContent?.toLowerCase().includes("customize"),
+      );
+      expect(advanced).toBeUndefined();
+      expect(customize).toBeUndefined();
+    });
   });
 
   describe("CopilotDeviceLogin callbacks", () => {

@@ -143,6 +143,7 @@ describe('proxy-response-handler', () => {
           fallbackFromModel: undefined,
           fallbackIndex: undefined,
           authType: undefined,
+          reason: 'auto',
           specificityCategory: undefined,
         },
       );
@@ -151,6 +152,31 @@ describe('proxy-response-handler', () => {
         expect.objectContaining({
           error: expect.objectContaining({ type: 'upstream_error', status: 500 }),
         }),
+      );
+    });
+
+    it('forwards meta.reason so single-shot upstream errors keep routing_reason', async () => {
+      const { res } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta({ reason: 'header-match' });
+      const metaHeaders = buildMetaHeaders(meta);
+
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        metaHeaders,
+        500,
+        'oops',
+        undefined,
+        recorder as any,
+      );
+
+      expect(recorder.recordProviderError).toHaveBeenCalledWith(
+        testCtx,
+        500,
+        'oops',
+        expect.objectContaining({ reason: 'header-match' }),
       );
     });
 
@@ -372,7 +398,7 @@ describe('proxy-response-handler', () => {
         'Provider returned HTTP 503',
         expect.any(String),
         undefined,
-        { provider: 'anthropic', callerAttribution: undefined },
+        { provider: 'anthropic', reason: 'auto', callerAttribution: undefined },
       );
     });
 
@@ -392,7 +418,7 @@ describe('proxy-response-handler', () => {
         'Provider returned HTTP 500',
         expect.any(String),
         undefined,
-        { provider: 'anthropic', callerAttribution: undefined },
+        { provider: 'anthropic', reason: 'auto', callerAttribution: undefined },
       );
     });
 
@@ -411,7 +437,7 @@ describe('proxy-response-handler', () => {
         expect.any(String),
         expect.any(String),
         undefined,
-        { provider: undefined, callerAttribution: undefined },
+        { provider: undefined, reason: 'auto', callerAttribution: undefined },
       );
     });
   });
@@ -524,6 +550,32 @@ describe('proxy-response-handler', () => {
       await handleStreamResponse(res as any, forward as any, meta, {}, client as any);
 
       expect(pipeStreamSpy).toHaveBeenCalledWith(forward.response.body, res, expect.any(Function));
+    });
+
+    it('ChatGPT stream transformer delegates each chunk to convertChatGptStreamChunk', async () => {
+      // Captures the inline transformer pipeStream receives and proves it
+      // forwards (chunk, model) to providerClient — the only behaviour that
+      // matters when the Codex Responses API streams.
+      const { res } = mockResponse();
+      const forward = mockForward({ isChatGpt: true });
+      const client = mockProviderClient();
+      client.convertChatGptStreamChunk.mockReturnValue('data: out\n\n');
+      const meta = makeMeta();
+
+      let captured: ((chunk: string) => string | null) | undefined;
+      pipeStreamSpy.mockImplementation(
+        async (_b: unknown, _r: unknown, transform?: (c: string) => string | null) => {
+          captured = transform;
+          return null;
+        },
+      );
+
+      await handleStreamResponse(res as any, forward as any, meta, {}, client as any);
+
+      expect(captured).toBeDefined();
+      const out = captured!('data: in\n\n');
+      expect(out).toBe('data: out\n\n');
+      expect(client.convertChatGptStreamChunk).toHaveBeenCalledWith('data: in\n\n', 'gpt-4o');
     });
 
     it('should pipe without transformer for standard OpenAI responses', async () => {
@@ -926,6 +978,7 @@ describe('proxy-response-handler', () => {
         fallbackIndex: 1,
         timestamp: '2025-01-01T00:00:00Z',
         authType: undefined,
+        reason: 'auto',
         usage,
       });
     });
@@ -1030,6 +1083,7 @@ describe('proxy-response-handler', () => {
         fallbackIndex: 0,
         timestamp: '2025-01-01T00:00:00Z',
         authType: undefined,
+        reason: 'auto',
         usage: undefined,
       });
     });
@@ -1165,6 +1219,29 @@ describe('proxy-response-handler', () => {
         'claude-sonnet-4',
         failedFallbacks,
         expect.objectContaining({ requestHeaders: headers }),
+      );
+    });
+
+    it('recordFallbackFailures threads meta.reason into the recordFailedFallbacks opts', () => {
+      // Sibling rows (the failed fallbacks of a fallback-success flow) must
+      // inherit the same routing_reason as the success row, otherwise the
+      // Messages log shows split reasons for one logical request.
+      const recorder = mockRecorder();
+      const meta = makeMeta({
+        fallbackFromModel: 'claude-sonnet-4',
+        primaryProvider: 'anthropic',
+        reason: 'header-match',
+      });
+      const failedFallbacks: FailedFallback[] = [
+        { model: 'x', provider: 'y', fallbackIndex: 0, status: 500, errorBody: '' },
+      ];
+      recordFallbackFailures(testCtx, meta, failedFallbacks, recorder as any);
+      expect(recorder.recordFailedFallbacks).toHaveBeenCalledWith(
+        testCtx,
+        'standard',
+        'claude-sonnet-4',
+        failedFallbacks,
+        expect.objectContaining({ reason: 'header-match' }),
       );
     });
 

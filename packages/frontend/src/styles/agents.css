@@ -106,23 +106,11 @@
   padding: var(--gap-xl) var(--gap-lg);
 }
 
-.account-modal__back {
+.account-back-btn {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: hsl(var(--muted-foreground));
-  font-size: var(--font-size-sm);
-  font-family: var(--font-family);
-  cursor: pointer;
   margin-bottom: var(--gap-lg);
-  transition: color var(--transition-fast);
-}
-
-.account-modal__back:hover {
-  color: hsl(var(--foreground));
 }
 
 /* ── Settings Card (Account / Vercel-style) ───────── */

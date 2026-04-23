@@ -65,6 +65,10 @@ describe('isPrivateIp', () => {
     expect(isPrivateIp('fd00::1')).toBe(true);
   });
 
+  it('detects fd12:3456:789a::1 as private IPv6 (ULA beyond the fd00:: literal prefix)', () => {
+    expect(isPrivateIp('fd12:3456:789a::1')).toBe(true);
+  });
+
   it('detects fe80::1 as private IPv6 (link-local)', () => {
     expect(isPrivateIp('fe80::1')).toBe(true);
   });

@@ -1,14 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
+import type { IncomingHttpHeaders } from 'http';
 import { TierService } from '../routing-core/tier.service';
 import { ProviderKeyService } from '../routing-core/provider-key.service';
 import { SpecificityService } from '../routing-core/specificity.service';
 import { SpecificityPenaltyService } from '../routing-core/specificity-penalty.service';
+import { HeaderTierService } from '../header-tiers/header-tier.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { scoreRequest, ScorerInput, MomentumInput, scanMessages } from '../../scoring';
 import { ResolveResponse } from '../dto/resolve-response';
 import { inferProviderFromModelName } from '../../common/utils/provider-aliases';
 import type { SpecificityCategory, TierSlot } from 'manifest-shared';
+import type { HeaderTier } from '../../entities/header-tier.entity';
 
 /**
  * When specificity detection is below this confidence, skip specificity
@@ -33,6 +36,7 @@ export class ResolveService {
     private readonly pricingCache: ModelPricingCacheService,
     private readonly discoveryService: ModelDiscoveryService,
     private readonly penaltyService: SpecificityPenaltyService,
+    private readonly headerTierService: HeaderTierService,
   ) {}
 
   async resolve(
@@ -44,7 +48,13 @@ export class ResolveService {
     recentTiers?: MomentumInput['recentTiers'],
     specificityOverride?: string,
     recentCategories?: readonly SpecificityCategory[],
+    headers?: IncomingHttpHeaders,
   ): Promise<ResolveResponse> {
+    if (headers) {
+      const headerTierResult = await this.resolveHeaderTier(agentId, headers);
+      if (headerTierResult) return headerTierResult;
+    }
+
     const specificityResult = await this.resolveSpecificity(
       agentId,
       messages,
@@ -143,6 +153,61 @@ export class ResolveService {
       reason,
       auth_type: authType,
       fallback_models: assignment.fallback_models ?? null,
+    };
+  }
+
+  private async resolveHeaderTier(
+    agentId: string,
+    headers: IncomingHttpHeaders,
+  ): Promise<ResolveResponse | null> {
+    const allTiers = await this.headerTierService.list(agentId);
+    const tiers = allTiers.filter((t) => t.enabled);
+    if (tiers.length === 0) return null;
+
+    const match = tiers.find((t) => matchesHeaderRule(headers, t));
+    if (!match) return null;
+
+    if (!match.override_model) {
+      this.logger.debug(
+        `Header tier "${match.name}" matched but has no model configured — falling through`,
+      );
+      return null;
+    }
+
+    // Guard against orphaned overrides (e.g. a model that was removed after the
+    // tier was configured). Mirrors the same check in resolveSpecificity().
+    if (!(await this.providerKeyService.isModelAvailable(agentId, match.override_model))) {
+      this.logger.warn(
+        `Header tier "${match.name}" override ${match.override_model} is unavailable ` +
+          `for agent=${agentId}; falling through to existing routing`,
+      );
+      return null;
+    }
+
+    const provider = await this.resolveProvider(
+      agentId,
+      {
+        override_model: match.override_model,
+        override_provider: match.override_provider,
+      },
+      match.override_model,
+    );
+    const authType = provider
+      ? (match.override_auth_type ?? (await this.providerKeyService.getAuthType(agentId, provider)))
+      : undefined;
+
+    return {
+      tier: 'standard',
+      model: match.override_model,
+      provider,
+      confidence: 1,
+      score: 0,
+      reason: 'header-match',
+      auth_type: authType,
+      fallback_models: match.fallback_models ?? null,
+      header_tier_id: match.id,
+      header_tier_name: match.name,
+      header_tier_color: match.badge_color,
     };
   }
 
@@ -268,4 +333,12 @@ export class ResolveService {
 
     return null;
   }
+}
+
+function matchesHeaderRule(headers: IncomingHttpHeaders, tier: HeaderTier): boolean {
+  const raw = headers[tier.header_key];
+  if (raw == null) return false;
+  // Node gives repeated headers as string[]; match if any entry equals the rule.
+  if (Array.isArray(raw)) return raw.some((v) => v === tier.header_value);
+  return raw === tier.header_value;
 }

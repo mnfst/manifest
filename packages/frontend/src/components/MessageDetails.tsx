@@ -245,9 +245,10 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                   <MetaField
                     label="Routing"
                     value={
-                      m.specificity_category
+                      m.header_tier_name ??
+                      (m.specificity_category
                         ? m.specificity_category.replace(/_/g, ' ')
-                        : m.routing_tier
+                        : m.routing_tier)
                     }
                   />
                   <Show when={m.specificity_category}>

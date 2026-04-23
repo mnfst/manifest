@@ -110,6 +110,7 @@ Works with 300+ models across these providers. Connect with an API key, or reuse
 | [Z.ai (Zhipu)](https://z.ai/)                                                  |   ✅    | ✅ GLM Coding Plan           |
 | [GitHub Copilot](https://github.com/features/copilot)                          |         | ✅ Copilot subscription      |
 | [OpenRouter](https://openrouter.ai/)                                           |   ✅    |                            |
+| [LM Studio](https://lmstudio.ai/)                                              |   ✅ Local   |                            |
 | [Ollama](https://ollama.com/)                                                  |   ✅ Local   | ✅ Ollama Cloud              |
 | Custom providers (OpenAI-compatible)                                           |   ✅    |                            |
 

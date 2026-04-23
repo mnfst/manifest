@@ -34,7 +34,8 @@ export type ScoringReason =
   | 'ambiguous'
   | 'heartbeat'
   | 'specificity'
-  | 'default';
+  | 'default'
+  | 'header-match';
 
 export interface DimensionScore {
   name: string;

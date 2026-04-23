@@ -9,6 +9,7 @@ import { TierService } from '../routing-core/tier.service';
 import { ProviderKeyService } from '../routing-core/provider-key.service';
 import { SpecificityService } from '../routing-core/specificity.service';
 import { SpecificityPenaltyService } from '../routing-core/specificity-penalty.service';
+import { HeaderTierService } from '../header-tiers/header-tier.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -54,6 +55,9 @@ function buildService(opts: {
     {
       getPenaltiesForAgent: jest.fn().mockResolvedValue(new Map()),
     } as unknown as SpecificityPenaltyService,
+    {
+      list: jest.fn().mockResolvedValue([]),
+    } as unknown as HeaderTierService,
   );
 }
 

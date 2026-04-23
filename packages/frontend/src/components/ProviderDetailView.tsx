@@ -5,7 +5,6 @@ import { providerIcon } from './ProviderIcon.js';
 import {
   connectProvider,
   disconnectProvider,
-  revokeOpenaiOAuth,
   type RoutingProvider,
   type AuthType,
 } from '../services/api.js';
@@ -14,6 +13,7 @@ import CopyButton from './CopyButton.js';
 import ProviderKeyForm from './ProviderKeyForm.js';
 import OAuthDetailView from './OAuthDetailView.js';
 import DeviceCodeDetailView from './DeviceCodeDetailView.js';
+import { getRoutingProviderApiKeyUrl } from '../services/provider-api-key-urls.js';
 
 export interface ProviderDetailViewProps {
   provId: string;
@@ -70,7 +70,6 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
     provDef.subscriptionAuthMode ?? (provDef.subscriptionKeyPlaceholder ? 'token' : undefined);
   const isPopupOAuthFlow = () => isSubMode() && subscriptionAuthMode() === 'popup_oauth';
   const isDeviceCodeFlow = () => isSubMode() && subscriptionAuthMode() === 'device_code';
-  const shouldRevokeOpenaiOAuth = () => props.provId === 'openai' && isPopupOAuthFlow();
   const isCommandOnly = () =>
     isSubMode() &&
     !!provDef.subscriptionCommand &&
@@ -106,9 +105,6 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
   const handleDisconnect = async () => {
     props.setBusy(true);
     try {
-      if (shouldRevokeOpenaiOAuth()) {
-        await revokeOpenaiOAuth(props.agentName).catch(() => {});
-      }
       const result = await disconnectProvider(
         props.agentName,
         props.provId,
@@ -131,19 +127,16 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
   return (
     <div class="provider-detail">
       {/* Back arrow */}
-      <button class="provider-detail__back" onClick={props.onBack} aria-label="Back to providers">
+      <button class="modal-back-btn" onClick={props.onBack} aria-label="Back to providers">
         <svg
+          xmlns="http://www.w3.org/2000/svg"
           width="16"
           height="16"
+          fill="currentColor"
           viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
           aria-hidden="true"
         >
-          <path d="m15 18-6-6 6-6" />
+          <path d="M14.71 7.29a.996.996 0 0 0-1.41 0l-4 4a.996.996 0 0 0 0 1.41l4 4c.2.2.45.29.71.29s.51-.1.71-.29a.996.996 0 0 0 0-1.41L11.43 12l3.29-3.29a.996.996 0 0 0 0-1.41Z" />
         </svg>
       </button>
 
@@ -304,6 +297,17 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
       <Show when={isOllama}>
         <div class="provider-detail__field">
           <span class="provider-detail__no-key">No API key required for local models</span>
+          <Show when={getRoutingProviderApiKeyUrl(props.provId)}>
+            <a
+              href={getRoutingProviderApiKeyUrl(props.provId)}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="provider-detail__docs-link"
+              style="margin-left: 8px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));"
+            >
+              Get {provDef.name} ↗
+            </a>
+          </Show>
         </div>
         <Show when={!connected()}>
           <button

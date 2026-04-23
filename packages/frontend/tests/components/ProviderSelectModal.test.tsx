@@ -799,7 +799,7 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('API Keys'));
       fireEvent.click(screen.getByText('Add custom provider'));
       await waitFor(() => {
-        expect(screen.getByPlaceholderText('e.g. Groq, vLLM, Azure')).toBeDefined();
+        expect(screen.getByPlaceholderText('e.g. Groq, Together, Azure')).toBeDefined();
       });
     });
 
@@ -2427,7 +2427,7 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('Add custom provider'));
 
       // Fill in the custom provider form
-      const nameInput = screen.getByPlaceholderText('e.g. Groq, vLLM, Azure');
+      const nameInput = screen.getByPlaceholderText('e.g. Groq, Together, Azure');
       fireEvent.input(nameInput, { target: { value: 'NewProvider' } });
 
       const urlInput = screen.getByPlaceholderText('https://api.example.com/v1');

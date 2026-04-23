@@ -265,7 +265,14 @@ export function ModelCell(
             ? `custom:${customProviderName(item.model) ?? 'Custom'}/${stripCustomPrefix(item.model)}`
             : getModelDisplayName(item.model)
           : '\u2014'}
-        {item.specificity_category ? (
+        {item.header_tier_name ? (
+          <span
+            class={`tier-badge tier-badge--custom tier-color--${item.header_tier_color ?? 'indigo'}`}
+            title={item.header_tier_name}
+          >
+            {item.header_tier_name}
+          </span>
+        ) : item.specificity_category ? (
           <span class="tier-badge tier-badge--specificity">
             {item.specificity_category.replace(/_/g, ' ')}
           </span>

@@ -44,8 +44,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius);
   border: none;
   background: transparent;
@@ -285,6 +285,31 @@
 .modal-card__cta:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* ── Shared modal back button ──────────────────────── */
+.modal-back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: hsl(var(--muted-foreground));
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.modal-back-btn:hover,
+.modal-back-btn:active {
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+}
+.modal-back-btn:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
 }
 
 .modal-card__back-link {

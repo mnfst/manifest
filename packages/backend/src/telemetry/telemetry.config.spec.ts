@@ -40,6 +40,29 @@ describe('buildTelemetryConfig', () => {
     });
     expect(cfg.endpoint).toBe('http://127.0.0.1:9999/ingest');
   });
+
+  it('is disabled when the Manifest version cannot be read', () => {
+    // Simulates a misconfigured image that ships without
+    // packages/manifest/package.json. readManifestVersion() falls back to
+    // "unknown", which the ingest would reject as invalid semver — better
+    // to stay silent than to spam the endpoint.
+    jest.isolateModules(() => {
+      jest.doMock('fs', () => {
+        const actual = jest.requireActual<typeof import('fs')>('fs');
+        return {
+          ...actual,
+          readFileSync: jest.fn(() => {
+            throw new Error('ENOENT');
+          }),
+        };
+      });
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const mod = require('./telemetry.config') as typeof import('./telemetry.config');
+      const cfg = mod.buildTelemetryConfig({ NODE_ENV: 'production' });
+      expect(cfg.manifestVersion).toBe('unknown');
+      expect(cfg.enabled).toBe(false);
+    });
+  });
 });
 
 describe('readManifestVersion', () => {

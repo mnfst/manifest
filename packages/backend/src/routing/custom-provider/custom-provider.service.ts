@@ -14,8 +14,25 @@ import { TierAutoAssignService } from '../routing-core/tier-auto-assign.service'
 import { CreateCustomProviderDto, UpdateCustomProviderDto } from '../dto/custom-provider.dto';
 import { validatePublicUrl } from '../../common/utils/url-validation';
 import { isSelfHosted } from '../../common/utils/detect-self-hosted';
+import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
+import { classifyProbeError } from './probe-error';
 
 const PROBE_TIMEOUT_MS = 5000;
+
+/**
+ * OpenAI-compatible `/v1/models` endpoints return every model the server
+ * knows about — including embedding / reranker / moderation models that
+ * can't serve `/v1/chat/completions`. LM Studio silently redirects chat
+ * calls to its loaded LLM, masking the problem; strict OpenAI-compatible
+ * servers reject the call with 400. Either way, surfacing embedders in
+ * the routing UI is misleading, so we filter them out at probe time.
+ */
+const EMBEDDING_MODEL_PATTERN =
+  /(?:^|[\/_\-])embed(?:ding|dings|ed)?(?:[\/_\-]|$)|text[_\-]embedding|embedder|reranker|moderation/i;
+
+export function isEmbeddingModel(id: string): boolean {
+  return EMBEDDING_MODEL_PATTERN.test(id);
+}
 
 @Injectable()
 export class CustomProviderService {
@@ -25,6 +42,7 @@ export class CustomProviderService {
     private readonly providerService: ProviderService,
     private readonly routingCache: RoutingCacheService,
     private readonly autoAssign: TierAutoAssignService,
+    private readonly pricingCache: ModelPricingCacheService,
   ) {}
 
   /** Provider key used in UserProvider tables. */
@@ -102,6 +120,11 @@ export class CustomProviderService {
     // Create UserProvider + trigger tier recalculation
     await this.providerService.upsertProvider(agentId, userId, provKey, dto.apiKey);
 
+    // Rebuild the shared pricing cache so the proxy can compute cost for
+    // requests routed to this custom provider's models immediately (without
+    // waiting for the daily 5am reload).
+    await this.pricingCache.reload();
+
     return cp;
   }
 
@@ -162,6 +185,12 @@ export class CustomProviderService {
     await this.repo.save(cp);
     this.routingCache.invalidateAgent(agentId);
 
+    // Reload pricing cache when the model list changes so new prices (or
+    // edits to existing ones) are used for subsequent cost computations.
+    if (dto.models !== undefined) {
+      await this.pricingCache.reload();
+    }
+
     return cp;
   }
 
@@ -182,6 +211,9 @@ export class CustomProviderService {
 
     // Delete CustomProvider row
     await this.repo.remove(cp);
+
+    // Drop stale pricing entries for this provider's models from the cache.
+    await this.pricingCache.reload();
   }
 
   async getById(id: string): Promise<CustomProvider | null> {
@@ -192,8 +224,8 @@ export class CustomProviderService {
    * Probes the `{base_url}/models` endpoint of an OpenAI-compatible server
    * and returns the discovered model IDs. Used by the "Fetch models" button
    * in the custom-provider form so users connecting a local LLM server
-   * (vLLM, LM Studio, llama.cpp, Ollama-on-host) don't have to type each
-   * model name by hand.
+   * (LM Studio, Ollama-on-host, or any OpenAI-compatible endpoint) don't
+   * have to type each model name by hand.
    */
   async probeModels(baseUrl: string, apiKey?: string): Promise<{ model_name: string }[]> {
     try {
@@ -225,26 +257,22 @@ export class CustomProviderService {
         redirect: 'error',
       });
       if (!res.ok) {
-        throw new BadRequestException(`Probe failed: ${res.status}`);
+        throw new BadRequestException(classifyProbeError({ url, status: res.status }).message);
       }
-      // Guard against hostile endpoints returning non-JSON (HTML, binary, …).
       const contentType = res.headers.get('content-type') ?? '';
       if (!contentType.includes('application/json')) {
-        throw new BadRequestException(
-          `${url} did not return JSON (got ${contentType || 'no content-type'})`,
-        );
+        throw new BadRequestException(classifyProbeError({ url, contentType }).message);
       }
       const body = (await res.json()) as { data?: { id?: string }[] };
       const items = body?.data ?? [];
-      return items
-        .filter((m): m is { id: string } => typeof m.id === 'string' && m.id.length > 0)
-        .map((m) => ({ model_name: m.id }));
+      const filtered = items.filter(
+        (m): m is { id: string } =>
+          typeof m.id === 'string' && m.id.length > 0 && !isEmbeddingModel(m.id),
+      );
+      return filtered.map((m) => ({ model_name: m.id }));
     } catch (err) {
       if (err instanceof BadRequestException) throw err;
-      if (err instanceof Error && err.name === 'AbortError') {
-        throw new BadRequestException(`Timed out probing ${url} after ${PROBE_TIMEOUT_MS}ms`);
-      }
-      throw new BadRequestException(`Could not reach ${url}: ${(err as Error).message}`);
+      throw new BadRequestException(classifyProbeError({ url, error: err as Error }).message);
     } finally {
       clearTimeout(timeout);
     }

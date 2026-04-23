@@ -7,6 +7,7 @@ import { agentDisplayName } from '../services/agent-display-name.js';
 import RoutingDefaultTierSection from './RoutingDefaultTierSection.js';
 import RoutingComplexitySection from './RoutingComplexitySection.js';
 import RoutingSpecificitySection from './RoutingSpecificitySection.js';
+import RoutingHeaderTiersSection from './RoutingHeaderTiersSection.js';
 import {
   RoutingLoadingSkeleton,
   EnableRoutingCard,
@@ -387,9 +388,16 @@ const Routing: Component = () => {
             }}
           />
 
+          <RoutingHeaderTiersSection
+            agentName={agentName}
+            models={() => models() ?? []}
+            customProviders={() => customProviders() ?? []}
+            connectedProviders={() => connectedProviders() ?? []}
+          />
+
           <Show when={showPriorityLegend()}>
             <div class="routing-priority-legend">
-              Priority: Task-specific &rsaquo; Complexity &rsaquo; Default
+              Priority: Custom &rsaquo; Task-specific &rsaquo; Complexity &rsaquo; Default
             </div>
           </Show>
 

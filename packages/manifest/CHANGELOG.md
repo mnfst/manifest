@@ -1,5 +1,50 @@
 # manifest
 
+## 5.51.0
+
+### Minor Changes
+
+- 910b191: Add custom header-triggered routing tiers. Configure a tier keyed to an HTTP header key+value pair (e.g. `x-manifest-tier: premium`) and every matching request routes directly to that tier's model, overriding specificity and complexity. Each tier gets a user-picked name + color that shows as a badge on the message row. The create modal autocompletes the header key from the keys Manifest has already seen in the last 7 days, grouped by the SDK that sent them, with example values. Sensitive headers (`authorization`, `cookie`, …) are blocked from being used as match rules.
+
+## 5.50.1
+
+### Patch Changes
+
+- 37308ea: Fix cost column showing "—" for self-hosted custom provider messages. Prices entered via the custom provider form are now indexed into the shared pricing cache under `custom:<uuid>/<model>` — the same key the proxy writes to `agent_messages.model` — so the cost recorder can look them up when a request is routed. The cache refreshes immediately on create, model edits, and delete, so new prices take effect without waiting for the daily 5am reload. Custom entries are scoped out of the public `/api/v1/model-prices` list so one tenant's providers can't leak into another's. Existing messages recorded with `cost_usd = null` stay null (no price snapshot is stored per message); only new messages benefit.
+
+## 5.50.0
+
+### Minor Changes
+
+- abd9dea: Promote LM Studio to a first-class provider tile alongside Ollama. In the self-hosted version, clicking the LM Studio tile opens a dedicated detail view that probes `http://{localLlmHost}:1234/v1`, lists the loaded chat models, and connects them in one click — no URL typing, no manual pricing. A refresh icon re-probes after the user swaps models on the host. When the probe fails inside Docker, the detail view surfaces a two-path "Fix it" card: GUI toggle (LM Studio → Developer → "Serve on Local Network") and CLI one-liner (`lms server start --bind 0.0.0.0 --port 1234 --cors`) with a Copy button and a "one-time setup" reassurance. Embedding / reranker / moderation models are filtered out of the discovered list so they don't leak into the routing tier picker. Local-only tiles are disabled in cloud mode with an "Only available on self-hosted Manifest" hint. The `customProviderLogo` lookup now normalizes names against the shared registry, so an "LM Studio" custom provider shows the real logo everywhere (tier cards, Messages table, Model Prices, Fallback picker).
+
+## 5.49.3
+
+### Patch Changes
+
+- 40e9f9f: Add `org.opencontainers.image.base.name` and `org.opencontainers.image.base.digest` OCI labels to the Docker image so Docker Scout can evaluate the "No unapproved base images" and "No outdated base images" policies.
+
+  The published image already ships SLSA provenance and SPDX SBOM attestations (the build workflow sets `sbom: true` and `provenance: mode=max`), but Scout's base-image policies key off the OCI base-image labels on the image config and buildkit does not auto-generate them. Without the labels, Scout reports "No data" for both policies and the image is stuck at a B health score even when it has no outstanding CVEs.
+
+  The labels sit next to the matching `FROM … AS runtime` line so a future base-image bump updates both together. No change to build output size, runtime behavior, or the attestation manifests — pure metadata addition on the image config.
+
+## 5.49.2
+
+### Patch Changes
+
+- fec55cf: Bump Docker runtime to `gcr.io/distroless/nodejs22-debian13:nonroot` to clear 9 CVEs (1 CRITICAL / 8 HIGH) that the published image inherited from the older `nodejs22-debian12` base.
+
+  Root cause: Google hasn't rebuilt any tag on `gcr.io/distroless/nodejs22-debian12` since Node 22.22.2 and Debian 12's `openssl 3.0.19-1~deb12u2` shipped. Every `debian12` variant still bakes Node 22.22.0 on top of the vulnerable `openssl 3.0.18-1~deb12u2`, so a digest refresh alone couldn't clear the scan. The `nodejs22-debian13` family already publishes Node v22.22.2 on a newer openssl, so moving the runtime stage to it fixes both CVE sources in a single base-image bump.
+
+  The move is safe: the prod-deps stage runs `npm ci --ignore-scripts`, so no native modules are compiled and the runtime's glibc version is invisible to `node_modules`. `node:22-alpine` and `node:22-slim` digest pins were also refreshed for hygiene — those layers don't ship in the final image.
+
+  **CVEs cleared:**
+  - CVE-2025-55130 (CRITICAL, CVSS 9.1) — Node
+  - CVE-2025-55131, CVE-2025-59465, CVE-2025-59466, CVE-2026-21637, CVE-2026-21710 (HIGH) — Node
+  - CVE-2026-28388, CVE-2026-28389, CVE-2026-28390 (HIGH) — Debian openssl
+
+  **Verification:** Local Trivy scan (`--severity HIGH,CRITICAL --ignore-unfixed`) reports 0 findings post-bump (was 9). `docker compose up -d` passes the healthcheck in ~14s and `/api/v1/health` returns `{"status":"healthy"}`.
+
 ## 5.49.1
 
 ### Patch Changes

@@ -139,14 +139,14 @@ describe('RoutingSpecificitySection', () => {
     ).toBeDefined();
   });
 
-  it('shows "Enable specific tiers" button when no tiers are active', () => {
+  it('shows "Enable specificity tiers" button when no tiers are active', () => {
     render(() => <RoutingSpecificitySection {...makeProps()} />);
     const buttons = screen.getAllByText('Enable task-specific routing');
     // One in the header, one in the empty state
     expect(buttons.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('shows "Manage specific tiers" button when at least one tier is active', () => {
+  it('shows "Manage specificity tiers" button when at least one tier is active', () => {
     const props = makeProps({
       assignments: () => [
         {

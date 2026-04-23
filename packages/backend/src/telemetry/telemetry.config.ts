@@ -13,18 +13,26 @@ export interface TelemetryConfig {
 
 /**
  * Opt-out with `MANIFEST_TELEMETRY_DISABLED=1`. Also auto-silenced outside
- * production so dev instances and test runs never report.
+ * production so dev instances and test runs never report. Also silenced
+ * when the Manifest version can't be read — the ingest validates
+ * `manifest_version` as semver, so a misconfigured image without
+ * `packages/manifest/package.json` would otherwise spam the endpoint
+ * with 400s.
  */
 export function buildTelemetryConfig(env: NodeJS.ProcessEnv = process.env): TelemetryConfig {
   const disabled = env['MANIFEST_TELEMETRY_DISABLED'];
   const isProd = (env['NODE_ENV'] ?? 'development') === 'production';
   const isDisabled = disabled === '1' || disabled === 'true';
+  const manifestVersion = readManifestVersion();
+  const versionReadable = manifestVersion !== UNKNOWN_VERSION;
   return {
-    enabled: isProd && !isDisabled,
+    enabled: isProd && !isDisabled && versionReadable,
     endpoint: env['TELEMETRY_ENDPOINT'] ?? DEFAULT_TELEMETRY_ENDPOINT,
-    manifestVersion: readManifestVersion(),
+    manifestVersion,
   };
 }
+
+export const UNKNOWN_VERSION = 'unknown';
 
 export function readManifestVersion(): string {
   try {
@@ -32,8 +40,8 @@ export function readManifestVersion(): string {
     const raw = readFileSync(path, 'utf8');
     const pkg = JSON.parse(raw) as { version?: unknown };
     if (typeof pkg.version === 'string') return pkg.version;
-    return 'unknown';
+    return UNKNOWN_VERSION;
   } catch {
-    return 'unknown';
+    return UNKNOWN_VERSION;
   }
 }

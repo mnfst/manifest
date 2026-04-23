@@ -657,6 +657,11 @@
   opacity: 1;
 }
 
+.dark .panel__tab-icon[src*='openai'],
+.dark .panel__tab-icon[src*='vercel'] {
+  filter: invert(1);
+}
+
 /* ── Toolkit language toggle ─────────────────────── */
 .toolkit-lang-toggle {
   display: inline-flex;

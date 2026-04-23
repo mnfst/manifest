@@ -1,4 +1,4 @@
-import { createResource, createSignal, Index, For, Show, type Component } from 'solid-js';
+import { createResource, createSignal, Index, Show, type Component } from 'solid-js';
 import {
   createCustomProvider,
   deleteCustomProvider,
@@ -10,19 +10,6 @@ import {
 import { toast } from '../services/toast-store.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
 import type { CustomProviderPrefill } from '../services/routing-params.js';
-
-interface Preset {
-  label: string;
-  name: string;
-  baseUrl: string;
-}
-
-const LOCAL_SERVER_PRESETS: Preset[] = [
-  { label: 'Ollama', name: 'Ollama (host)', baseUrl: 'http://host.docker.internal:11434/v1' },
-  { label: 'vLLM', name: 'vLLM', baseUrl: 'http://host.docker.internal:8000/v1' },
-  { label: 'LM Studio', name: 'LM Studio', baseUrl: 'http://host.docker.internal:1234/v1' },
-  { label: 'llama.cpp', name: 'llama.cpp', baseUrl: 'http://host.docker.internal:8080/v1' },
-];
 
 interface Props {
   agentName: string;
@@ -77,15 +64,6 @@ const CustomProviderForm: Component<Props> = (props) => {
   const [probeBusy, setProbeBusy] = createSignal(false);
   const [probeError, setProbeError] = createSignal<string | null>(null);
   const [isSelfHosted] = createResource(() => checkIsSelfHosted());
-
-  const applyPreset = (preset: Preset) => {
-    setName(preset.name);
-    setBaseUrl(preset.baseUrl);
-    setApiKey('');
-    setEditingKey(true);
-    setError(null);
-    setProbeError(null);
-  };
 
   const handleProbe = async () => {
     const url = baseUrl().trim();
@@ -203,19 +181,16 @@ const CustomProviderForm: Component<Props> = (props) => {
 
   return (
     <div class="provider-detail">
-      <button class="provider-detail__back" onClick={props.onBack} aria-label="Back to providers">
+      <button class="modal-back-btn" onClick={props.onBack} aria-label="Back to providers">
         <svg
+          xmlns="http://www.w3.org/2000/svg"
           width="16"
           height="16"
+          fill="currentColor"
           viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
           aria-hidden="true"
         >
-          <path d="m15 18-6-6 6-6" />
+          <path d="M14.71 7.29a.996.996 0 0 0-1.41 0l-4 4a.996.996 0 0 0 0 1.41l4 4c.2.2.45.29.71.29s.51-.1.71-.29a.996.996 0 0 0 0-1.41L11.43 12l3.29-3.29a.996.996 0 0 0 0-1.41Z" />
         </svg>
       </button>
 
@@ -227,25 +202,6 @@ const CustomProviderForm: Component<Props> = (props) => {
           <div class="routing-modal__subtitle">Connect any OpenAI-compatible endpoint</div>
         </div>
       </div>
-
-      <Show when={!isEdit() && isSelfHosted()}>
-        <div class="provider-detail__field">
-          <div class="provider-detail__label">Local server presets</div>
-          <div class="custom-provider-presets" style="display: flex; flex-wrap: wrap; gap: 8px;">
-            <For each={LOCAL_SERVER_PRESETS}>
-              {(preset) => (
-                <button
-                  type="button"
-                  class="btn btn--outline btn--sm"
-                  onClick={() => applyPreset(preset)}
-                >
-                  {preset.label}
-                </button>
-              )}
-            </For>
-          </div>
-        </div>
-      </Show>
 
       <form
         onSubmit={(e) => {
@@ -261,7 +217,7 @@ const CustomProviderForm: Component<Props> = (props) => {
             id="cp-name"
             class="provider-detail__input"
             type="text"
-            placeholder="e.g. Groq, vLLM, Azure"
+            placeholder="e.g. Groq, Together, Azure"
             value={name()}
             onInput={(e) => {
               setName(e.currentTarget.value);
