@@ -17,11 +17,7 @@ import {
   getProviders,
   listBenchmarkRuns,
 } from '../services/api.js';
-import {
-  createBenchmarkStore,
-  MAX_COLUMNS,
-  type BenchmarkColumn as ColumnData,
-} from '../services/benchmark-store.js';
+import { createBenchmarkStore, MAX_COLUMNS } from '../services/benchmark-store.js';
 import { toast } from '../services/toast-store.js';
 import BenchmarkColumn from '../components/benchmark/BenchmarkColumn.jsx';
 import BenchmarkPrompt from '../components/benchmark/BenchmarkPrompt.jsx';
@@ -31,88 +27,17 @@ import BenchmarkEmptyState from '../components/benchmark/BenchmarkEmptyState.jsx
 import BenchmarkHistoryDrawer from '../components/benchmark/BenchmarkHistoryDrawer.jsx';
 import RequestHeadersPopover, {
   blankEntry,
-  isBlockedHeaderKey,
   toHeaderRecord,
   type HeaderEntry,
 } from '../components/benchmark/RequestHeadersPopover.jsx';
 import { CodeIcon, HistoryIcon } from '../components/benchmark/icons.jsx';
-
-const REQUEST_HEADERS_STORAGE_KEY = 'manifest.benchmark.requestHeaders';
-
-function loadStoredHeaders(): HeaderEntry[] {
-  try {
-    const raw = localStorage.getItem(REQUEST_HEADERS_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as unknown;
-    if (!Array.isArray(parsed)) return [];
-    return parsed
-      .filter(
-        (e): e is HeaderEntry =>
-          typeof e === 'object' &&
-          e !== null &&
-          typeof (e as HeaderEntry).id === 'string' &&
-          typeof (e as HeaderEntry).key === 'string' &&
-          typeof (e as HeaderEntry).value === 'string',
-      )
-      .slice(0, 20);
-  } catch {
-    return [];
-  }
-}
-
-function persistHeaders(entries: HeaderEntry[]): void {
-  try {
-    localStorage.setItem(REQUEST_HEADERS_STORAGE_KEY, JSON.stringify(entries));
-  } catch {
-    /* quota / private mode — silently ignore */
-  }
-}
-
-function activeHeaderCount(entries: HeaderEntry[]): number {
-  let n = 0;
-  for (const e of entries) {
-    const k = e.key.trim();
-    if (!k || !e.value) continue;
-    if (isBlockedHeaderKey(k)) continue;
-    n++;
-  }
-  return n;
-}
-
-function findDisplayName(
-  available: ReturnType<typeof Array<{ model_name: string; display_name?: string }>>,
-  modelName: string,
-): string {
-  const match = available.find((m) => m.model_name === modelName);
-  return match?.display_name ?? modelName;
-}
-
-function findWinners(columns: readonly ColumnData[]): { cheapestId?: string; fastestId?: string } {
-  const success = columns.filter((c) => c.status === 'success' && c.metrics);
-  if (success.length < 2) return {};
-
-  let cheapestId: string | undefined;
-  let cheapestCost = Number.POSITIVE_INFINITY;
-  for (const c of success) {
-    const cost = c.metrics?.cost;
-    if (cost != null && cost < cheapestCost) {
-      cheapestCost = cost;
-      cheapestId = c.id;
-    }
-  }
-
-  let fastestId: string | undefined;
-  let fastestDuration = Number.POSITIVE_INFINITY;
-  for (const c of success) {
-    const dur = c.metrics?.durationMs ?? Number.POSITIVE_INFINITY;
-    if (dur < fastestDuration) {
-      fastestDuration = dur;
-      fastestId = c.id;
-    }
-  }
-
-  return { cheapestId, fastestId };
-}
+import {
+  activeHeaderCount,
+  findDisplayName,
+  findWinners,
+  loadStoredHeaders,
+  persistHeaders,
+} from '../services/benchmark-helpers.js';
 
 const Benchmark: Component = () => {
   const params = useParams<{ agentName: string }>();
