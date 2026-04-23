@@ -25,6 +25,8 @@ const { api, toast } = vi.hoisted(() => ({
     listBenchmarkRuns: vi.fn(),
     getBenchmarkRun: vi.fn(),
     runBenchmark: vi.fn(),
+    getMessages: vi.fn(),
+    getMessageDetails: vi.fn(),
   },
   toast: { error: vi.fn(), success: vi.fn(), warning: vi.fn() },
 }));
@@ -153,6 +155,7 @@ beforeEach(() => {
   ]);
   api.getCustomProviders.mockResolvedValue([]);
   api.listBenchmarkRuns.mockResolvedValue([]);
+  api.getMessages.mockResolvedValue({ items: [] });
 });
 
 afterEach(() => {
@@ -278,6 +281,115 @@ describe('Benchmark page', () => {
     await flush();
     // If no prompt set, runBenchmark is not called; but the handler path was executed.
     expect(promptProps.last).toBeDefined();
+  });
+
+  it('disables the replay icon when no recorded messages exist', async () => {
+    api.getProviders.mockResolvedValue([
+      { id: 'p1', provider: 'openai', auth_type: 'api_key', is_active: true, has_api_key: true, connected_at: '' },
+    ]);
+    api.getMessages.mockResolvedValue({ items: [] });
+    const { container } = render(() => <Benchmark />);
+    await flush();
+    await flush();
+    const headerButtons = container.querySelectorAll('.benchmark-prompt__headers');
+    // First button is the replay-icon button; second is the headers popover button.
+    const replayBtn = headerButtons[0] as HTMLButtonElement;
+    expect(replayBtn.disabled).toBe(true);
+  });
+
+  it('pins an Original column when a recorded message is picked from the drawer', async () => {
+    api.getProviders.mockResolvedValue([
+      { id: 'p1', provider: 'openai', auth_type: 'api_key', is_active: true, has_api_key: true, connected_at: '' },
+    ]);
+    api.getMessages.mockImplementation(({ limit }: { limit?: string }) => {
+      if (limit === '1') return Promise.resolve({ items: [{ id: 'probe' }] });
+      return Promise.resolve({
+        items: [
+          {
+            id: 'msg-42',
+            timestamp: new Date().toISOString(),
+            model: 'openai/gpt-4o',
+            status: 'ok',
+            input_tokens: 10,
+            output_tokens: 5,
+            total_tokens: 15,
+            cost: 0.002,
+            duration_ms: 400,
+            agent_name: 'demo-agent',
+          },
+        ],
+      });
+    });
+    api.getMessageDetails.mockResolvedValue({
+      message: {
+        id: 'msg-42',
+        timestamp: new Date().toISOString(),
+        agent_name: 'demo-agent',
+        model: 'openai/gpt-4o',
+        status: 'ok',
+        error_message: null,
+        description: null,
+        service_type: null,
+        input_tokens: 10,
+        output_tokens: 5,
+        cache_read_tokens: 0,
+        cache_creation_tokens: 0,
+        cost_usd: 0.002,
+        duration_ms: 400,
+        trace_id: null,
+        routing_tier: null,
+        routing_reason: null,
+        specificity_category: null,
+        specificity_miscategorized: false,
+        auth_type: 'api_key',
+        skill_name: null,
+        fallback_from_model: null,
+        fallback_index: null,
+        session_key: null,
+        feedback_rating: null,
+        feedback_tags: null,
+        feedback_details: null,
+        request_headers: null,
+        recorded: true,
+        caller_attribution: null,
+      },
+      recording: {
+        request_body: {
+          messages: [{ role: 'user', content: 'the original prompt' }],
+          temperature: 0.2,
+        },
+        response_body: {
+          type: 'json',
+          body: { choices: [{ message: { content: 'recorded assistant reply' } }] },
+        },
+        response_headers: { 'x-request-id': 'abc' },
+        size_bytes: 42,
+        created_at: new Date().toISOString(),
+      },
+      llm_calls: [],
+      tool_executions: [],
+      agent_logs: [],
+    });
+
+    const { container, findAllByTestId } = render(() => <Benchmark />);
+    await flush();
+    await flush();
+
+    // Open the replay picker via the first prompt-header button.
+    const replayBtn = container.querySelectorAll('.benchmark-prompt__headers')[0] as HTMLButtonElement;
+    fireEvent.click(replayBtn);
+    await flush();
+    await flush();
+    const row = container.querySelector('.benchmark-replay__item') as HTMLButtonElement;
+    expect(row).toBeDefined();
+    fireEvent.click(row);
+    await flush();
+    await flush();
+    const cols = await findAllByTestId('bench-col');
+    expect(cols.length).toBe(1); // Original column only, defaults were cleared
+    // The replay banner replaces the textarea.
+    expect(container.querySelector('.benchmark-prompt__banner')).toBeDefined();
+    expect(container.querySelector('textarea')).toBeNull();
   });
 
   it('adds a new column via the "+ Add model" picker', async () => {
