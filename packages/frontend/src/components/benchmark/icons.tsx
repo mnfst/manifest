@@ -63,3 +63,20 @@ export const CodeIcon: Component<IconProps> = (props) => (
     <path d="M8 6l-6 6 6 6" />
   </svg>
 );
+
+/** Counterclockwise arc with a dot at the tail — reads as "replay from a point in time". */
+export const ReplayIcon: Component<IconProps> = (props) => (
+  <svg {...svgProps(props.size ?? 16, props.class)}>
+    <path d="M3 12a9 9 0 1 0 2.6-6.3" />
+    <polyline points="3 4 3 8 7 8" />
+    <circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+/** Closed padlock — used on the read-only "Original" column. */
+export const LockIcon: Component<IconProps> = (props) => (
+  <svg {...svgProps(props.size ?? 16, props.class)}>
+    <rect x="4" y="11" width="16" height="10" rx="2" />
+    <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+  </svg>
+);

@@ -44,6 +44,24 @@ export class BenchmarkService {
     private readonly messageRepo: Repository<AgentMessage>,
   ) {}
 
+  /**
+   * Pick the outgoing request body: the verbatim recorded request when
+   * `rawRequestBody` is supplied (replay flow), otherwise the simple
+   * `{ messages }` payload built from the DTO. Always force non-streaming
+   * and drop anything that would override the target model so the column
+   * actually hits the model the user picked.
+   */
+  private buildRequestBody(dto: RunBenchmarkDto): Record<string, unknown> {
+    if (dto.rawRequestBody) {
+      const cloned = { ...dto.rawRequestBody };
+      delete cloned['stream'];
+      delete cloned['stream_options'];
+      delete cloned['model'];
+      return cloned;
+    }
+    return { messages: dto.messages };
+  }
+
   private extractPrompt(messages: BenchmarkMessageDto[]): string {
     for (let i = messages.length - 1; i >= 0; i--) {
       const m = messages[i]!;
@@ -72,6 +90,7 @@ export class BenchmarkService {
     }
 
     const extraHeaders = sanitizeRequestHeaders(dto.requestHeaders);
+    const body = this.buildRequestBody(dto);
 
     const startedAt = Date.now();
     let rawResponse: Response;
@@ -81,7 +100,7 @@ export class BenchmarkService {
         provider: dto.provider,
         apiKey,
         model: dto.model,
-        body: { messages: dto.messages },
+        body,
         stream: false,
         authType,
         extraHeaders,

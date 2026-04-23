@@ -64,9 +64,14 @@ export interface Winners {
   fastestId?: string;
 }
 
-/** Cheapest cost + fastest duration across columns that completed successfully. */
+/**
+ * Cheapest cost + fastest duration across columns that completed successfully
+ * in this session. The pinned "Original" column (isOriginal=true) is a
+ * historical recording and is excluded — comparing it head-to-head with
+ * fresh calls would mislead (its latency came from a different day).
+ */
 export function findWinners(columns: readonly BenchmarkColumn[]): Winners {
-  const success = columns.filter((c) => c.status === 'success' && c.metrics);
+  const success = columns.filter((c) => !c.isOriginal && c.status === 'success' && c.metrics);
   if (success.length < 2) return {};
 
   let cheapestId: string | undefined;

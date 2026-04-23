@@ -308,6 +308,40 @@ describe('BenchmarkService', () => {
     await expect(service.run(USER_ID, makeDto())).rejects.toBeInstanceOf(BadGatewayException);
   });
 
+  it('forwards the verbatim rawRequestBody when provided (stream/model/stream_options stripped)', async () => {
+    const { service, mocks } = buildService();
+    mocks.providerClient.forward.mockResolvedValue({
+      response: jsonResponse({
+        choices: [{ message: { content: 'replayed' } }],
+        usage: { prompt_tokens: 8, completion_tokens: 4 },
+      }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    });
+
+    await service.run(
+      USER_ID,
+      makeDto({
+        rawRequestBody: {
+          messages: [{ role: 'user', content: 'original' }],
+          temperature: 0.7,
+          tools: [{ name: 'x' }],
+          stream: true,
+          stream_options: { include_usage: true },
+          model: 'ignored/old-model',
+        },
+      }),
+    );
+
+    const call = mocks.providerClient.forward.mock.calls[0][0];
+    expect(call.body).toEqual({
+      messages: [{ role: 'user', content: 'original' }],
+      temperature: 0.7,
+      tools: [{ name: 'x' }],
+    });
+  });
+
   it('only returns whitelisted response headers', async () => {
     const { service, mocks } = buildService();
     mocks.providerClient.forward.mockResolvedValue({

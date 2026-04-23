@@ -22,6 +22,7 @@ export interface RunBenchmarkRequest {
   runId?: string;
   position?: number;
   requestHeaders?: Record<string, string>;
+  rawRequestBody?: Record<string, unknown>;
 }
 
 export async function runBenchmark(req: RunBenchmarkRequest): Promise<BenchmarkRunResult> {

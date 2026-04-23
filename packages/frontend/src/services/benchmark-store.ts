@@ -17,6 +17,16 @@ export interface BenchmarkColumn {
   metrics?: BenchmarkRunResult['metrics'];
   headers?: Record<string, string>;
   error?: string;
+  /** True for the pinned "Original" column produced from a recorded message. */
+  isOriginal?: boolean;
+}
+
+export interface ReplaySource {
+  messageId: string;
+  prompt: string;
+  recordedAt: string;
+  /** The verbatim `request_body` from the recording — replayed as-is. */
+  requestBody: Record<string, unknown>;
 }
 
 export interface BenchmarkStore {
@@ -38,6 +48,14 @@ export interface BenchmarkStore {
   isAnyRunning: () => boolean;
   pickDefaults: (available: AvailableModel[], connected: RoutingProvider[]) => void;
   loadHistoryRun: (detail: BenchmarkHistoryRunDetail) => void;
+  /**
+   * Enter "recorded query replay" mode. Pins a read-only Original column
+   * at position 0 and remembers the source so subsequent runAll() calls
+   * send the recorded request body to every non-original column.
+   */
+  loadRecording: (source: ReplaySource, original: Omit<BenchmarkColumn, 'isOriginal'>) => void;
+  exitRecordingMode: () => void;
+  replaySource: () => ReplaySource | null;
 }
 
 export const MAX_COLUMNS = 6;
@@ -103,6 +121,7 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
   const [columns, setColumns] = createStore<BenchmarkColumn[]>([]);
   const [prompt, setPrompt] = createSignal('');
   const [history, setHistory] = createSignal<string[]>([]);
+  const [replaySource, setReplaySource] = createSignal<ReplaySource | null>(null);
 
   const addColumn: BenchmarkStore['addColumn'] = (model, provider, authType, displayName) => {
     if (columns.length >= MAX_COLUMNS) return;
@@ -155,7 +174,7 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
     requestHeaders: Record<string, string> | undefined,
   ): Promise<void> => {
     const col = columns.find((c) => c.id === colId);
-    if (!col) return;
+    if (!col || col.isOriginal) return;
     setColumns(
       (c) => c.id === colId,
       produce((c) => {
@@ -167,6 +186,7 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
       }),
     );
     try {
+      const source = replaySource();
       const result = await runBenchmark({
         agentName,
         model: col.model,
@@ -176,6 +196,7 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
         runId,
         position,
         ...(requestHeaders && Object.keys(requestHeaders).length > 0 ? { requestHeaders } : {}),
+        ...(source ? { rawRequestBody: source.requestBody } : {}),
       });
       setColumns(
         (c) => c.id === colId,
@@ -204,7 +225,9 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
     setHistory((prev) => (prev[0] === promptText ? prev : [promptText, ...prev].slice(0, 20)));
     const runId = newRunId();
     await Promise.allSettled(
-      columns.map((c, i) => runSingle(c.id, promptText, runId, i, options?.requestHeaders)),
+      columns
+        .filter((c) => !c.isOriginal)
+        .map((c, i) => runSingle(c.id, promptText, runId, i, options?.requestHeaders)),
     );
   };
 
@@ -213,6 +236,18 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
     if (!promptText) return;
     const position = columns.findIndex((c) => c.id === id);
     await runSingle(id, promptText, newRunId(), Math.max(position, 0), options?.requestHeaders);
+  };
+
+  const loadRecording: BenchmarkStore['loadRecording'] = (source, original) => {
+    setReplaySource(source);
+    setColumns([{ ...original, isOriginal: true }]);
+    setPrompt(source.prompt);
+  };
+
+  const exitRecordingMode: BenchmarkStore['exitRecordingMode'] = () => {
+    setReplaySource(null);
+    setColumns((prev) => prev.filter((c) => !c.isOriginal));
+    setPrompt('');
   };
 
   const loadHistoryRun: BenchmarkStore['loadHistoryRun'] = (detail) => {
@@ -317,5 +352,8 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
     isAnyRunning,
     pickDefaults,
     loadHistoryRun,
+    loadRecording,
+    exitRecordingMode,
+    replaySource,
   };
 }

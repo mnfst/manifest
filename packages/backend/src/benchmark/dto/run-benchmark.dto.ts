@@ -81,4 +81,15 @@ export class RunBenchmarkDto {
   @IsOptional()
   @IsObject()
   requestHeaders?: Record<string, string>;
+
+  /**
+   * Optional full request body captured from a recorded message. When
+   * present the server forwards this verbatim (minus `stream`) instead of
+   * synthesizing `{ messages }` from `dto.messages`. Used for the
+   * "replay a recorded query" flow so the target models receive the exact
+   * same tools/temperature/etc. as the original run.
+   */
+  @IsOptional()
+  @IsObject()
+  rawRequestBody?: Record<string, unknown>;
 }

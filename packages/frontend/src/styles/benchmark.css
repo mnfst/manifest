@@ -28,6 +28,39 @@
   overflow: hidden;
 }
 
+.benchmark-column--original {
+  border-left: 2px solid hsl(var(--primary));
+}
+
+.benchmark-column__title--static {
+  cursor: default;
+}
+
+.benchmark-column__title--static:hover {
+  background: transparent;
+}
+
+.benchmark-column__chip--original {
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  font-weight: 600;
+}
+
+.benchmark-column__remove--locked {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: hsl(var(--muted-foreground));
+  cursor: default;
+}
+
+.benchmark-column__remove--locked:hover {
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+}
+
 .benchmark-column__header {
   display: flex;
   align-items: center;
@@ -481,6 +514,37 @@
   font-variant-numeric: tabular-nums;
 }
 
+.benchmark-summary__delta--better {
+  color: hsl(var(--success));
+}
+
+.benchmark-summary__delta--worse {
+  color: hsl(var(--destructive));
+}
+
+.benchmark-summary__row--original {
+  background: hsl(var(--muted) / 0.4);
+}
+
+.benchmark-summary__row--original th,
+.benchmark-summary__row--original td {
+  border-bottom: 2px solid hsl(var(--border));
+}
+
+.benchmark-summary__chip {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  padding: 1px 6px;
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
 .benchmark-summary__provider {
   width: 1%;
   white-space: nowrap;
@@ -597,6 +661,86 @@
   font-weight: 600;
   line-height: 16px;
   text-align: center;
+}
+
+/* Tiny solid dot used on the replay icon when a recording is pinned. */
+.benchmark-prompt__headers-dot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: hsl(var(--primary));
+}
+
+.benchmark-prompt__headers:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.benchmark-prompt__headers:disabled:hover {
+  background: transparent;
+  border-color: transparent;
+}
+
+/* ── Replay banner (replaces textarea in replay mode) ───── */
+
+.benchmark-prompt--replay .benchmark-prompt__send {
+  background: hsl(var(--primary));
+}
+
+.benchmark-prompt__banner {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  min-height: 34px;
+  font-size: 13px;
+}
+
+.benchmark-prompt__banner-icon {
+  display: inline-flex;
+  color: hsl(var(--primary));
+  flex: 0 0 auto;
+}
+
+.benchmark-prompt__banner-label {
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  flex: 0 0 auto;
+}
+
+.benchmark-prompt__banner-prompt {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: hsl(var(--muted-foreground));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.benchmark-prompt__banner-exit {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+}
+
+.benchmark-prompt__banner-exit:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--foreground));
 }
 
 /* ── Request headers popover ─────────────────────────── */
@@ -1015,6 +1159,162 @@
 .benchmark-history__meta {
   font-size: 11px;
   color: hsl(var(--muted-foreground));
+}
+
+/* ── Replay picker drawer (sibling of History drawer) ─── */
+
+.benchmark-replay__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 49;
+  background: rgb(0 0 0 / 0.3);
+  animation: fadeIn 150ms ease-out;
+}
+
+.benchmark-replay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 380px;
+  max-width: 92vw;
+  background: hsl(var(--background));
+  border-left: 1px solid hsl(var(--border));
+  border-top-left-radius: var(--radius);
+  border-bottom-left-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  z-index: 50;
+  box-shadow: -8px 0 24px rgb(0 0 0 / 0.18);
+  animation: fadeIn 120ms ease-out;
+}
+
+.benchmark-replay__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--gap-md, 12px) var(--gap-lg, 16px);
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.benchmark-replay__title {
+  margin: 0;
+  font-size: var(--font-size-lg, 16px);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.benchmark-replay__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius);
+  border: none;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition: all var(--transition-fast, 120ms ease);
+}
+
+.benchmark-replay__close:hover {
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+}
+
+.benchmark-replay__search {
+  padding: 10px 14px;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.benchmark-replay__search-input {
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 13px;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+  color: hsl(var(--card-foreground));
+}
+
+.benchmark-replay__search-input:focus {
+  outline: none;
+  border-color: hsl(var(--ring));
+}
+
+.benchmark-replay__empty {
+  margin: 16px 14px;
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.5;
+}
+
+.benchmark-replay__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+.benchmark-replay__item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 16px;
+  background: hsl(var(--card));
+  border: none;
+  border-top: 1px solid hsl(var(--border));
+  cursor: pointer;
+  color: hsl(var(--card-foreground));
+  transition: background var(--transition-fast, 120ms ease);
+}
+
+.benchmark-replay__item:hover {
+  background: hsl(var(--accent));
+}
+
+.benchmark-replay__row-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.benchmark-replay__model {
+  font-weight: 600;
+  font-size: 13px;
+  color: hsl(var(--card-foreground));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.benchmark-replay__when {
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex: 0 0 auto;
+}
+
+.benchmark-replay__prompt {
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.benchmark-replay__meta {
+  display: flex;
+  gap: 4px;
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  font-variant-numeric: tabular-nums;
 }
 
 /* Screen-reader-only utility; expected to exist in theme.css,

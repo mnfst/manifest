@@ -14,9 +14,13 @@ import {
   getAvailableModels,
   getBenchmarkRun,
   getCustomProviders,
+  getMessageDetails,
+  getMessages,
   getProviders,
   listBenchmarkRuns,
 } from '../services/api.js';
+import { extractRecordedAssistantText } from '../services/recording-extract.js';
+import { inferProviderFromModel } from '../services/routing-utils.js';
 import { createBenchmarkStore, MAX_COLUMNS } from '../services/benchmark-store.js';
 import { toast } from '../services/toast-store.js';
 import BenchmarkColumn from '../components/benchmark/BenchmarkColumn.jsx';
@@ -30,7 +34,8 @@ import RequestHeadersPopover, {
   toHeaderRecord,
   type HeaderEntry,
 } from '../components/benchmark/RequestHeadersPopover.jsx';
-import { CodeIcon, HistoryIcon } from '../components/benchmark/icons.jsx';
+import ReplayPickerDrawer from '../components/benchmark/ReplayPickerDrawer.jsx';
+import { CodeIcon, HistoryIcon, ReplayIcon } from '../components/benchmark/icons.jsx';
 import {
   activeHeaderCount,
   findDisplayName,
@@ -57,6 +62,20 @@ const Benchmark: Component = () => {
   const [activeRunId, setActiveRunId] = createSignal<string | null>(null);
   const [headerEntries, setHeaderEntries] = createSignal<HeaderEntry[]>(loadStoredHeaders());
   const [headersOpen, setHeadersOpen] = createSignal(false);
+  const [replayPickerOpen, setReplayPickerOpen] = createSignal(false);
+
+  // Cold-start probe: does this agent have any recorded messages at all?
+  // Drives the enabled/disabled state of the replay button.
+  const [recordingsProbe] = createResource(agentName, async (name) => {
+    try {
+      const data = (await getMessages({ recorded: 'true', agent_name: name, limit: '1' })) as {
+        items?: unknown[];
+      };
+      return (data.items ?? []).length > 0;
+    } catch {
+      return false;
+    }
+  });
 
   const updateHeaders = (entries: HeaderEntry[]) => {
     setHeaderEntries(entries);
@@ -152,6 +171,57 @@ const Benchmark: Component = () => {
     }
   };
 
+  const handlePickRecording = async (messageId: string) => {
+    try {
+      const detail = await getMessageDetails(messageId);
+      if (!detail.recording?.request_body) {
+        toast.error('Selected message has no recorded request body.');
+        return;
+      }
+      const recReq = detail.recording.request_body as Record<string, unknown>;
+      const messagesArr = Array.isArray(recReq['messages'])
+        ? (recReq['messages'] as Array<{ role?: unknown; content?: unknown }>)
+        : [];
+      const lastUser = [...messagesArr].reverse().find((m) => m && m.role === 'user');
+      const promptText =
+        typeof lastUser?.content === 'string'
+          ? lastUser.content
+          : JSON.stringify(lastUser?.content ?? '').slice(0, 500);
+      const modelName =
+        detail.message.model ??
+        (typeof recReq['model'] === 'string' ? (recReq['model'] as string) : 'unknown');
+      const displayName = findDisplayName(available() ?? [], modelName);
+      const providerGuess = inferProviderFromModel(modelName) ?? 'unknown';
+      store.loadRecording(
+        {
+          messageId,
+          prompt: promptText,
+          recordedAt: detail.message.timestamp,
+          requestBody: recReq,
+        },
+        {
+          id: `orig-${messageId}`,
+          model: modelName,
+          provider: providerGuess,
+          authType: (detail.message.auth_type as AuthType) ?? 'api_key',
+          displayName,
+          status: 'success',
+          response: extractRecordedAssistantText(detail.recording.response_body),
+          metrics: {
+            cost: detail.message.cost_usd,
+            inputTokens: detail.message.input_tokens,
+            outputTokens: detail.message.output_tokens,
+            durationMs: detail.message.duration_ms ?? 0,
+          },
+          headers: detail.recording.response_headers ?? undefined,
+        },
+      );
+      setReplayPickerOpen(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to load recording');
+    }
+  };
+
   const hasConnectedProviders = () => (providers() ?? []).some((p) => p.is_active);
   const winners = () => findWinners(store.columns);
 
@@ -226,29 +296,60 @@ const Benchmark: Component = () => {
           disabled={store.isAnyRunning() || store.columns.length === 0}
           running={store.isAnyRunning()}
           headersSlot={
-            <div class="benchmark-prompt__headers-slot">
+            <>
               <button
                 type="button"
                 class="benchmark-prompt__headers"
-                aria-label="Request headers"
-                aria-expanded={headersOpen()}
-                title="Custom request headers"
-                onClick={() => (headersOpen() ? setHeadersOpen(false) : openHeaders())}
+                aria-label={
+                  recordingsProbe() ? 'Re-run a recorded query' : 'No recorded messages yet'
+                }
+                aria-disabled={!recordingsProbe()}
+                disabled={!recordingsProbe()}
+                title={
+                  recordingsProbe()
+                    ? 'Re-run a recorded query'
+                    : 'No recorded messages yet. Enable recording in Settings to replay past queries.'
+                }
+                onClick={() => setReplayPickerOpen(true)}
               >
-                <CodeIcon size={16} />
-                <Show when={activeHeaderCount(headerEntries()) > 0}>
-                  <span class="benchmark-prompt__headers-badge">
-                    {activeHeaderCount(headerEntries())}
-                  </span>
+                <ReplayIcon size={16} />
+                <Show when={store.replaySource() != null}>
+                  <span class="benchmark-prompt__headers-dot" aria-hidden="true" />
                 </Show>
               </button>
-              <RequestHeadersPopover
-                open={headersOpen()}
-                entries={headerEntries()}
-                onChange={updateHeaders}
-                onClose={() => setHeadersOpen(false)}
-              />
-            </div>
+              <div class="benchmark-prompt__headers-slot">
+                <button
+                  type="button"
+                  class="benchmark-prompt__headers"
+                  aria-label="Request headers"
+                  aria-expanded={headersOpen()}
+                  title="Custom request headers"
+                  onClick={() => (headersOpen() ? setHeadersOpen(false) : openHeaders())}
+                >
+                  <CodeIcon size={16} />
+                  <Show when={activeHeaderCount(headerEntries()) > 0}>
+                    <span class="benchmark-prompt__headers-badge">
+                      {activeHeaderCount(headerEntries())}
+                    </span>
+                  </Show>
+                </button>
+                <RequestHeadersPopover
+                  open={headersOpen()}
+                  entries={headerEntries()}
+                  onChange={updateHeaders}
+                  onClose={() => setHeadersOpen(false)}
+                />
+              </div>
+            </>
+          }
+          replayBanner={
+            store.replaySource()
+              ? {
+                  prompt: store.replaySource()!.prompt,
+                  recordedAt: store.replaySource()!.recordedAt,
+                  onExit: () => store.exitRecordingMode(),
+                }
+              : undefined
           }
         />
       </Show>
@@ -291,6 +392,13 @@ const Benchmark: Component = () => {
           onSelect={handlePickHistory}
         />
       </div>
+
+      <ReplayPickerDrawer
+        open={replayPickerOpen()}
+        agentName={agentName()}
+        onClose={() => setReplayPickerOpen(false)}
+        onSelect={handlePickRecording}
+      />
     </div>
   );
 };

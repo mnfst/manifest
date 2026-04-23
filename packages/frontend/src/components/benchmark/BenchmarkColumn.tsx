@@ -4,6 +4,7 @@ import { formatCost, formatDuration, formatNumber } from '../../services/formatt
 import { providerIcon } from '../ProviderIcon.jsx';
 import { resolveProviderId, inferProviderFromModel } from '../../services/routing-utils.js';
 import MarkdownContent from './MarkdownContent.jsx';
+import { LockIcon } from './icons.jsx';
 
 interface Props {
   column: ColumnData;
@@ -25,37 +26,74 @@ function providerIdFor(column: ColumnData): string {
 const BenchmarkColumn: Component<Props> = (props) => {
   const metricsDash = '—';
 
+  const isOriginal = () => props.column.isOriginal === true;
+
   return (
     <section
       class="benchmark-column"
+      classList={{ 'benchmark-column--original': isOriginal() }}
       role="region"
-      aria-label={`Response from ${props.column.displayName}`}
+      aria-label={
+        isOriginal()
+          ? `Original recorded response from ${props.column.displayName}`
+          : `Response from ${props.column.displayName}`
+      }
     >
       <header class="benchmark-column__header">
-        <button
-          type="button"
-          class="benchmark-column__title"
-          onClick={() => props.onChangeModel(props.column.id)}
-          title="Change model"
+        <Show
+          when={!isOriginal()}
+          fallback={
+            <div class="benchmark-column__title benchmark-column__title--static">
+              <span class="benchmark-column__icon">
+                {providerIcon(providerIdFor(props.column), 18)}
+              </span>
+              <span class="benchmark-column__name">{props.column.displayName}</span>
+              <span class="benchmark-column__chip benchmark-column__chip--original">Original</span>
+            </div>
+          }
         >
-          <span class="benchmark-column__icon">
-            {providerIcon(providerIdFor(props.column), 18)}
-          </span>
-          <span class="benchmark-column__name">{props.column.displayName}</span>
-        </button>
-        <button
-          type="button"
-          class="benchmark-column__remove"
-          aria-label={`Remove ${props.column.displayName}`}
-          onClick={() => props.onRemove(props.column.id)}
+          <button
+            type="button"
+            class="benchmark-column__title"
+            onClick={() => props.onChangeModel(props.column.id)}
+            title="Change model"
+          >
+            <span class="benchmark-column__icon">
+              {providerIcon(providerIdFor(props.column), 18)}
+            </span>
+            <span class="benchmark-column__name">{props.column.displayName}</span>
+          </button>
+        </Show>
+        <Show
+          when={!isOriginal()}
+          fallback={
+            <span
+              class="benchmark-column__remove benchmark-column__remove--locked"
+              aria-disabled="true"
+              title="Original recording — pinned baseline"
+            >
+              <LockIcon size={14} />
+            </span>
+          }
         >
-          ×
-        </button>
+          <button
+            type="button"
+            class="benchmark-column__remove"
+            aria-label={`Remove ${props.column.displayName}`}
+            onClick={() => props.onRemove(props.column.id)}
+          >
+            ×
+          </button>
+        </Show>
       </header>
 
       <div class="benchmark-column__body">
         <Show when={props.column.status === 'idle'}>
-          <p class="benchmark-column__placeholder">Type a prompt below to run this model.</p>
+          <p class="benchmark-column__placeholder">
+            {isOriginal()
+              ? 'Original recorded response.'
+              : 'Type a prompt below to run this model.'}
+          </p>
         </Show>
         <Show when={props.column.status === 'loading'}>
           <div class="benchmark-column__skeleton" aria-hidden="true">

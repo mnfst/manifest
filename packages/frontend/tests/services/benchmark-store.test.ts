@@ -323,6 +323,103 @@ describe('createBenchmarkStore', () => {
     });
   });
 
+  describe('recording replay mode', () => {
+    it('loadRecording pins an Original column, sets the prompt, and exposes the replay source', () => {
+      const store = createBenchmarkStore('demo');
+      store.loadRecording(
+        {
+          messageId: 'msg-1',
+          prompt: 'original prompt',
+          recordedAt: '2026-04-23T10:00:00Z',
+          requestBody: { messages: [{ role: 'user', content: 'original prompt' }], temperature: 0 },
+        },
+        {
+          id: 'orig-msg-1',
+          model: 'openai/gpt-4o',
+          provider: 'openai',
+          authType: 'api_key',
+          displayName: 'GPT-4o',
+          status: 'success',
+          response: 'original reply',
+          metrics: { cost: 0.01, inputTokens: 10, outputTokens: 5, durationMs: 200 },
+          headers: { 'x-rid': 'abc' },
+        },
+      );
+      expect(store.columns).toHaveLength(1);
+      expect(store.columns[0]!.isOriginal).toBe(true);
+      expect(store.prompt()).toBe('original prompt');
+      expect(store.replaySource()?.messageId).toBe('msg-1');
+    });
+
+    it('runAll forwards the recorded requestBody to every non-original column', async () => {
+      const store = createBenchmarkStore('demo');
+      store.loadRecording(
+        {
+          messageId: 'msg-1',
+          prompt: 'p',
+          recordedAt: '2026-04-23T10:00:00Z',
+          requestBody: { messages: [{ role: 'user', content: 'p' }], temperature: 0.3 },
+        },
+        {
+          id: 'orig-msg-1',
+          model: 'openai/gpt-4o',
+          provider: 'openai',
+          authType: 'api_key',
+          displayName: 'GPT-4o',
+          status: 'success',
+          response: 'r',
+          metrics: { cost: 0.01, inputTokens: 10, outputTokens: 5, durationMs: 200 },
+        },
+      );
+      store.addColumn('anthropic/claude-sonnet-4', 'anthropic', 'api_key', 'Claude');
+      runBenchmarkMock.mockResolvedValue({
+        content: 'ok',
+        metrics: { cost: 0, inputTokens: 1, outputTokens: 1, durationMs: 10 },
+        headers: {},
+      });
+
+      await store.runAll();
+
+      expect(runBenchmarkMock).toHaveBeenCalledTimes(1);
+      const call = runBenchmarkMock.mock.calls[0][0] as { rawRequestBody?: unknown; model: string };
+      expect(call.model).toBe('anthropic/claude-sonnet-4');
+      expect(call.rawRequestBody).toEqual({
+        messages: [{ role: 'user', content: 'p' }],
+        temperature: 0.3,
+      });
+    });
+
+    it('exitRecordingMode drops the Original column, clears the source, and resets the prompt', () => {
+      const store = createBenchmarkStore('demo');
+      store.loadRecording(
+        {
+          messageId: 'msg-1',
+          prompt: 'p',
+          recordedAt: '2026-04-23T10:00:00Z',
+          requestBody: { messages: [] },
+        },
+        {
+          id: 'orig-msg-1',
+          model: 'openai/gpt-4o',
+          provider: 'openai',
+          authType: 'api_key',
+          displayName: 'GPT-4o',
+          status: 'success',
+          metrics: { cost: 0, inputTokens: 1, outputTokens: 1, durationMs: 10 },
+        },
+      );
+      store.addColumn('anthropic/claude-sonnet-4', 'anthropic', 'api_key', 'Claude');
+      expect(store.columns).toHaveLength(2);
+
+      store.exitRecordingMode();
+
+      expect(store.replaySource()).toBeNull();
+      expect(store.columns.find((c) => c.isOriginal)).toBeUndefined();
+      expect(store.prompt()).toBe('');
+      expect(store.columns.some((c) => c.model === 'anthropic/claude-sonnet-4')).toBe(true);
+    });
+  });
+
   describe('loadHistoryRun', () => {
     it('replaces columns and prompt with the historical run data', () => {
       const store = createBenchmarkStore('demo');
