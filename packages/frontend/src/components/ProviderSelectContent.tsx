@@ -1,4 +1,5 @@
 import { createSignal, Show, type Component } from 'solid-js';
+import { normalizeProviderName } from 'manifest-shared';
 import { PROVIDERS, type ProviderDef } from '../services/providers.js';
 import {
   connectProvider,
@@ -51,6 +52,9 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     null,
   );
   const [localServerProvider, setLocalServerProvider] = createSignal<ProviderDef | null>(null);
+  const [localServerEditData, setLocalServerEditData] = createSignal<
+    CustomProviderData | undefined
+  >(undefined);
   const [busy, setBusy] = createSignal(false);
   const [keyInput, setKeyInput] = createSignal('');
   const [editing, setEditing] = createSignal(false);
@@ -92,6 +96,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     setTilePrefill(null);
     setEditingCustomProvider(null);
     setLocalServerProvider(null);
+    setLocalServerEditData(undefined);
     setKeyInput('');
     setEditing(false);
     setValidationError(null);
@@ -125,6 +130,16 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
   };
 
   const openEditCustom = (cp: CustomProviderData) => {
+    const normalized = normalizeProviderName(cp.name);
+    const localProv = PROVIDERS.find(
+      (p) => p.defaultLocalPort && normalizeProviderName(p.name) === normalized,
+    );
+    if (localProv) {
+      setDirection('forward');
+      setLocalServerProvider(localProv);
+      setLocalServerEditData(cp);
+      return;
+    }
     setDirection('forward');
     setEditingCustomProvider(cp);
   };
@@ -176,6 +191,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
           <LocalServerDetailView
             agentName={props.agentName}
             provider={localServerProvider()!}
+            editData={localServerEditData()}
             onConnected={() => {
               completeToList();
               props.onUpdate();

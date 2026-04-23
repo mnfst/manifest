@@ -8,6 +8,8 @@ vi.mock("../../src/services/api.js", () => ({
     .fn()
     .mockResolvedValue({ models: [{ model_name: 'llama-3.1-8b' }] }),
   createCustomProvider: vi.fn().mockResolvedValue({ id: 'cp-1' }),
+  deleteCustomProvider: vi.fn().mockResolvedValue({}),
+  updateCustomProvider: vi.fn().mockResolvedValue({}),
 }));
 
 vi.mock("../../src/services/setup-status.js", () => ({
@@ -265,6 +267,40 @@ describe("ProviderSelectContent", () => {
       await waitFor(() => {
         expect(onUpdateLocal).toHaveBeenCalled();
         expect(container.querySelector(".provider-detail__back")).toBeNull();
+      });
+    });
+
+    it("routes editing an LM Studio custom provider to LocalServerDetailView in edit mode", async () => {
+      const lmsCustom = {
+        id: 'cp-lms',
+        name: 'LM Studio',
+        base_url: 'http://localhost:1234/v1',
+        models: [{ model_name: 'llama', input_price_per_million_tokens: 0, output_price_per_million_tokens: 0 }],
+      };
+
+      const { container } = render(() => (
+        <ProviderSelectContent
+          agentName="test-agent"
+          providers={[]}
+          customProviders={[lmsCustom]}
+          onUpdate={onUpdate}
+        />
+      ));
+
+      fireEvent.click(screen.getByText("API Keys"));
+
+      // Click the custom provider toggle for LM Studio
+      const lmsToggle = await waitFor(() => {
+        const toggles = Array.from(container.querySelectorAll<HTMLButtonElement>("button.provider-toggle"));
+        const t = toggles.find((el) => el.textContent?.includes("LM Studio"));
+        if (!t) throw new Error("LM Studio custom provider toggle not found");
+        return t;
+      });
+      fireEvent.click(lmsToggle);
+
+      // Should open LocalServerDetailView in edit mode
+      await waitFor(() => {
+        expect(container.textContent).toContain("Edit provider");
       });
     });
 

@@ -253,9 +253,6 @@ export class CustomProviderService {
         (m): m is { id: string } =>
           typeof m.id === 'string' && m.id.length > 0 && !isEmbeddingModel(m.id),
       );
-      if (filtered.length === 0) {
-        throw new BadRequestException(classifyProbeError({ url, emptyModels: true }).message);
-      }
       return filtered.map((m) => ({ model_name: m.id }));
     } catch (err) {
       if (err instanceof BadRequestException) throw err;

@@ -106,9 +106,7 @@ export function classifyProbeError(input: ClassifyInput): ProbeError {
   if (code === 'ECONNREFUSED' || /ECONNREFUSED/i.test(msg)) {
     return {
       kind: 'connection_refused',
-      message:
-        `No server is listening on ${url}. Start your LLM server first (the tile ` +
-        `shows the exact command when a probe fails).`,
+      message: `No server is listening on ${url}.\nYou can start it with the command below.`,
     };
   }
   if (code === 'ENOTFOUND' || /ENOTFOUND|getaddrinfo/i.test(msg)) {

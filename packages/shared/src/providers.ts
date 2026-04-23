@@ -315,7 +315,7 @@ export const LOCAL_SERVER_HINTS: Readonly<Record<string, LocalServerHint>> = {
   },
   lmstudio: {
     defaultPort: 1234,
-    setupCommand: 'lms server start   # or: open LM Studio → Developer → Start Server',
+    setupCommand: 'lms server start',
     installUrl: 'https://lmstudio.ai',
     dockerBindNote:
       'LM Studio listens on 127.0.0.1 by default, which a Docker container can\u2019t reach. Either flip the GUI toggle or run the CLI below.',

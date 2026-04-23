@@ -358,13 +358,12 @@ describe('CustomProviderService', () => {
       expect(headers.Authorization).toBeUndefined();
     });
 
-    it('rejects with an actionable message when the server returns no models', async () => {
+    it('returns an empty array when the server returns no models', async () => {
       const { svc } = makeDeps({});
       global.fetch = jest.fn().mockResolvedValue(jsonResponse({})) as unknown as typeof fetch;
 
-      await expect(svc.probeModels('http://host.docker.internal:8000/v1')).rejects.toThrow(
-        /no models/i,
-      );
+      const result = await svc.probeModels('http://host.docker.internal:8000/v1');
+      expect(result).toEqual([]);
     });
 
     it('drops entries without a string id', async () => {
@@ -400,7 +399,7 @@ describe('CustomProviderService', () => {
       expect(result).toEqual([{ model_name: 'google/gemma-4-e4b' }]);
     });
 
-    it('rejects when every returned model is an embedder (nothing routable)', async () => {
+    it('returns an empty array when every returned model is an embedder (nothing routable)', async () => {
       const { svc } = makeDeps({});
       global.fetch = jest.fn().mockResolvedValue(
         jsonResponse({
@@ -408,9 +407,8 @@ describe('CustomProviderService', () => {
         }),
       ) as unknown as typeof fetch;
 
-      await expect(svc.probeModels('http://localhost:1234/v1')).rejects.toBeInstanceOf(
-        BadRequestException,
-      );
+      const result = await svc.probeModels('http://localhost:1234/v1');
+      expect(result).toEqual([]);
     });
 
     it('rejects non-JSON responses (HTML, binary, no content-type)', async () => {

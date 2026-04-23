@@ -1,16 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, waitFor } from '@solidjs/testing-library';
 
-const { mockProbe, mockCreate, mockCheckHost, mockToast } = vi.hoisted(() => ({
-  mockProbe: vi.fn(),
-  mockCreate: vi.fn(),
-  mockCheckHost: vi.fn().mockResolvedValue('localhost'),
-  mockToast: { error: vi.fn(), success: vi.fn(), warning: vi.fn() },
-}));
+const { mockProbe, mockCreate, mockDelete, mockUpdate, mockCheckHost, mockToast } = vi.hoisted(
+  () => ({
+    mockProbe: vi.fn(),
+    mockCreate: vi.fn(),
+    mockDelete: vi.fn(),
+    mockUpdate: vi.fn(),
+    mockCheckHost: vi.fn().mockResolvedValue('localhost'),
+    mockToast: { error: vi.fn(), success: vi.fn(), warning: vi.fn() },
+  }),
+);
 
 vi.mock('../../src/services/api.js', () => ({
   probeCustomProvider: (...a: unknown[]) => mockProbe(...a),
   createCustomProvider: (...a: unknown[]) => mockCreate(...a),
+  deleteCustomProvider: (...a: unknown[]) => mockDelete(...a),
+  updateCustomProvider: (...a: unknown[]) => mockUpdate(...a),
 }));
 vi.mock('../../src/services/setup-status.js', () => ({
   checkLocalLlmHost: () => mockCheckHost(),
@@ -58,12 +64,12 @@ describe('LocalServerDetailView', () => {
 
     await waitFor(() => {
       expect(mockProbe).toHaveBeenCalledWith('a1', 'http://localhost:1234/v1');
-      expect(container.textContent).toContain('Found 1 model');
+      expect(container.textContent).toContain('1 model');
       expect(container.textContent).toContain('llama-3.1-8b');
     });
   });
 
-  it('renders a checklist when LM Studio returns multiple models', async () => {
+  it('renders a toggle list when LM Studio returns multiple models', async () => {
     mockProbe.mockResolvedValue({
       models: [{ model_name: 'm-a' }, { model_name: 'm-b' }, { model_name: 'm-c' }],
     });
@@ -78,12 +84,11 @@ describe('LocalServerDetailView', () => {
     ));
 
     await waitFor(() => {
-      const checkboxes = container.querySelectorAll('input[type="checkbox"]');
-      expect(checkboxes.length).toBe(3);
-      // All checked by default
-      for (const cb of Array.from(checkboxes) as HTMLInputElement[]) {
-        expect(cb.checked).toBe(true);
-      }
+      const toggles = container.querySelectorAll('.provider-toggle');
+      expect(toggles.length).toBe(3);
+      // All enabled (on) by default
+      const switches = container.querySelectorAll('.provider-toggle__switch--on');
+      expect(switches.length).toBe(3);
     });
   });
 
@@ -214,7 +219,7 @@ describe('LocalServerDetailView', () => {
     ));
 
     const docsLink = await waitFor(() => {
-      const a = container.querySelector<HTMLAnchorElement>('a.provider-detail__docs-link');
+      const a = container.querySelector<HTMLAnchorElement>('a.btn--outline');
       if (!a) throw new Error('docs link not rendered yet');
       return a;
     });
@@ -230,7 +235,7 @@ describe('LocalServerDetailView', () => {
     fireEvent.click(retryBtn);
 
     await waitFor(() => {
-      expect(container.textContent).toContain('Found 1 model');
+      expect(container.textContent).toContain('1 model');
     });
     expect(mockProbe.mock.calls.length).toBeGreaterThanOrEqual(2);
   });
@@ -254,18 +259,18 @@ describe('LocalServerDetailView', () => {
     ));
 
     // Wait for initial probe to land.
-    const boxes = await waitFor(() => {
+    const toggles = await waitFor(() => {
       const list = Array.from(
-        container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'),
+        container.querySelectorAll<HTMLButtonElement>('.provider-toggle'),
       );
       if (list.length !== 2) throw new Error('waiting');
       return list;
     });
-    // Uncheck the first ("alpha").
-    fireEvent.click(boxes[0]);
+    // Toggle off the first ("alpha").
+    fireEvent.click(toggles[0]);
 
     // Second probe returns an expanded list; "beta" stays (user still has it
-    // checked), "gamma" appears unchecked, "alpha" is preserved as unchecked.
+    // on), "gamma" appears off, "alpha" is preserved as off.
     mockProbe.mockReset();
     mockProbe.mockResolvedValue({
       models: [{ model_name: 'alpha' }, { model_name: 'beta' }, { model_name: 'gamma' }],
@@ -278,26 +283,24 @@ describe('LocalServerDetailView', () => {
 
     await waitFor(() => {
       const rows = Array.from(
-        container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'),
+        container.querySelectorAll<HTMLButtonElement>('.provider-toggle'),
       );
       if (rows.length !== 3) throw new Error('waiting for 3 models');
-      // alpha was unchecked before refresh and should stay unchecked.
-      const labels = Array.from(
-        container.querySelectorAll('.provider-detail__model-row'),
-      ).map((row) => ({
+      // alpha was toggled off before refresh and should stay off.
+      const labels = rows.map((row) => ({
         name: row.textContent?.trim() ?? '',
-        checked: row.querySelector<HTMLInputElement>('input')?.checked ?? false,
+        on: !!row.querySelector('.provider-toggle__switch--on'),
       }));
       const alpha = labels.find((l) => l.name === 'alpha');
       const beta = labels.find((l) => l.name === 'beta');
       const gamma = labels.find((l) => l.name === 'gamma');
-      expect(alpha?.checked).toBe(false);
-      expect(beta?.checked).toBe(true);
-      expect(gamma?.checked).toBe(false);
+      expect(alpha?.on).toBe(false);
+      expect(beta?.on).toBe(true);
+      expect(gamma?.on).toBe(false);
     });
   });
 
-  it('toggles model selection on checkbox click', async () => {
+  it('toggles model selection on toggle click', async () => {
     mockProbe.mockResolvedValue({
       models: [{ model_name: 'a' }, { model_name: 'b' }],
     });
@@ -312,23 +315,23 @@ describe('LocalServerDetailView', () => {
       />
     ));
 
-    const boxes = await waitFor(() => {
+    const toggles = await waitFor(() => {
       const list = Array.from(
-        container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'),
+        container.querySelectorAll<HTMLButtonElement>('.provider-toggle'),
       );
       if (list.length !== 2) throw new Error('waiting');
       return list;
     });
 
-    // Uncheck then re-check the first — covers both branches of toggleModel.
-    fireEvent.click(boxes[0]);
+    // Toggle off then back on the first — covers both branches of toggleModel.
+    fireEvent.click(toggles[0]);
     expect(
       Array.from(container.querySelectorAll('button')).some((b) =>
         b.textContent?.includes('Connect 1 model'),
       ),
     ).toBe(true);
 
-    fireEvent.click(boxes[0]);
+    fireEvent.click(toggles[0]);
     expect(
       Array.from(container.querySelectorAll('button')).some((b) =>
         b.textContent?.includes('Connect 2 models'),
@@ -421,6 +424,257 @@ describe('LocalServerDetailView', () => {
         container.querySelectorAll<HTMLButtonElement>('.provider-detail__caveat button'),
       );
       const b = candidates.find((el) => el.textContent?.trim() === 'Copy');
+      if (!b) throw new Error('copy button not yet rendered');
+      return b;
+    });
+    fireEvent.click(copyBtn);
+
+    await waitFor(() => {
+      expect(mockToast.error).toHaveBeenCalledWith(
+        'Copy failed — select the command and copy it manually',
+      );
+    });
+  });
+
+  it('opens in edit mode with pre-selected models and calls updateCustomProvider on save', async () => {
+    mockProbe.mockResolvedValue({
+      models: [{ model_name: 'alpha' }, { model_name: 'beta' }, { model_name: 'gamma' }],
+    });
+    mockUpdate.mockResolvedValue({});
+    const onConnected = vi.fn();
+
+    const editData = {
+      id: 'cp-42',
+      name: 'LM Studio',
+      base_url: 'http://localhost:1234/v1',
+      models: [
+        { model_name: 'alpha', input_price_per_million_tokens: 0, output_price_per_million_tokens: 0 },
+        { model_name: 'beta', input_price_per_million_tokens: 0, output_price_per_million_tokens: 0 },
+      ],
+    };
+
+    const { container } = render(() => (
+      <LocalServerDetailView
+        agentName="a1"
+        provider={lmsProv}
+        editData={editData}
+        onConnected={onConnected}
+        onBack={vi.fn()}
+      />
+    ));
+
+    // Wait for probe and verify edit mode title
+    await waitFor(() => {
+      expect(container.textContent).toContain('Edit provider');
+    });
+
+    // Button says "Save changes" in edit mode
+    const saveBtn = await waitFor(() => {
+      const b = Array.from(container.querySelectorAll('button')).find((x) =>
+        x.textContent?.includes('Save changes'),
+      );
+      if (!b) throw new Error('save button not found yet');
+      return b as HTMLButtonElement;
+    });
+
+    fireEvent.click(saveBtn);
+
+    await waitFor(() => {
+      expect(mockUpdate).toHaveBeenCalledWith('a1', 'cp-42', {
+        models: expect.arrayContaining([
+          expect.objectContaining({ model_name: 'alpha' }),
+          expect.objectContaining({ model_name: 'beta' }),
+        ]),
+      });
+      expect(onConnected).toHaveBeenCalled();
+      expect(mockToast.success).toHaveBeenCalledWith(expect.stringContaining('updated'));
+    });
+  });
+
+  it('calls deleteCustomProvider when Delete button is clicked in edit mode', async () => {
+    mockProbe.mockResolvedValue({
+      models: [{ model_name: 'alpha' }],
+    });
+    mockDelete.mockResolvedValue({});
+    const onConnected = vi.fn();
+
+    const editData = {
+      id: 'cp-99',
+      name: 'LM Studio',
+      base_url: 'http://localhost:1234/v1',
+      models: [
+        { model_name: 'alpha', input_price_per_million_tokens: 0, output_price_per_million_tokens: 0 },
+      ],
+    };
+
+    const { container } = render(() => (
+      <LocalServerDetailView
+        agentName="a1"
+        provider={lmsProv}
+        editData={editData}
+        onConnected={onConnected}
+        onBack={vi.fn()}
+      />
+    ));
+
+    const deleteBtn = await waitFor(() => {
+      const b = Array.from(container.querySelectorAll('button')).find((x) =>
+        x.textContent?.includes('Delete provider'),
+      );
+      if (!b) throw new Error('delete button not found yet');
+      return b as HTMLButtonElement;
+    });
+
+    fireEvent.click(deleteBtn);
+
+    await waitFor(() => {
+      expect(mockDelete).toHaveBeenCalledWith('a1', 'cp-99');
+      expect(onConnected).toHaveBeenCalled();
+      expect(mockToast.success).toHaveBeenCalledWith(expect.stringContaining('disconnected'));
+    });
+  });
+
+  it('shows toast error when delete fails', async () => {
+    mockProbe.mockResolvedValue({
+      models: [{ model_name: 'alpha' }],
+    });
+    mockDelete.mockRejectedValue(new Error('delete failed'));
+
+    const editData = {
+      id: 'cp-99',
+      name: 'LM Studio',
+      base_url: 'http://localhost:1234/v1',
+      models: [
+        { model_name: 'alpha', input_price_per_million_tokens: 0, output_price_per_million_tokens: 0 },
+      ],
+    };
+
+    const { container } = render(() => (
+      <LocalServerDetailView
+        agentName="a1"
+        provider={lmsProv}
+        editData={editData}
+        onConnected={vi.fn()}
+        onBack={vi.fn()}
+      />
+    ));
+
+    const deleteBtn = await waitFor(() => {
+      const b = Array.from(container.querySelectorAll('button')).find((x) =>
+        x.textContent?.includes('Delete provider'),
+      );
+      if (!b) throw new Error('delete button not found yet');
+      return b as HTMLButtonElement;
+    });
+
+    fireEvent.click(deleteBtn);
+
+    await waitFor(() => {
+      expect(mockToast.error).toHaveBeenCalledWith('delete failed');
+    });
+  });
+
+  it('shows empty models state when server is reachable but returns no models', async () => {
+    mockProbe.mockResolvedValue({ models: [] });
+
+    const { container } = render(() => (
+      <LocalServerDetailView
+        agentName="a1"
+        provider={lmsProv}
+        onConnected={vi.fn()}
+        onBack={vi.fn()}
+      />
+    ));
+
+    await waitFor(() => {
+      expect(container.textContent).toContain('no models are loaded');
+      expect(container.textContent).toContain('Retry');
+    });
+  });
+
+  it('shows error toast when probe fails in edit mode (server was connected)', async () => {
+    mockProbe.mockRejectedValue(new Error('Connection lost'));
+
+    const editData = {
+      id: 'cp-1',
+      name: 'LM Studio',
+      base_url: 'http://localhost:1234/v1',
+      models: [
+        { model_name: 'alpha', input_price_per_million_tokens: 0, output_price_per_million_tokens: 0 },
+      ],
+    };
+
+    render(() => (
+      <LocalServerDetailView
+        agentName="a1"
+        provider={lmsProv}
+        editData={editData}
+        onConnected={vi.fn()}
+        onBack={vi.fn()}
+      />
+    ));
+
+    await waitFor(() => {
+      expect(mockToast.error).toHaveBeenCalledWith('LM Studio is no longer reachable');
+    });
+  });
+
+  it('copies setup command when copy button is clicked in failure state', async () => {
+    mockProbe.mockRejectedValue(new Error('No server is listening'));
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    });
+
+    const { container } = render(() => (
+      <LocalServerDetailView
+        agentName="a1"
+        provider={lmsProv}
+        onConnected={vi.fn()}
+        onBack={vi.fn()}
+      />
+    ));
+
+    // Wait for the setup command copy button (inside the setup cmd block, not Docker caveat)
+    const copyBtn = await waitFor(() => {
+      // The copy button is a button with a title attribute
+      const candidates = Array.from(
+        container.querySelectorAll<HTMLButtonElement>('button[title]'),
+      );
+      const b = candidates.find((el) => el.title === 'Copy' || el.title === 'Copied!');
+      if (!b) throw new Error('copy button not yet rendered');
+      return b;
+    });
+    fireEvent.click(copyBtn);
+
+    await waitFor(() => {
+      expect(writeText).toHaveBeenCalledWith('lms server start');
+    });
+  });
+
+  it('shows toast error when setup command copy fails', async () => {
+    mockProbe.mockRejectedValue(new Error('No server is listening'));
+    const writeText = vi.fn().mockRejectedValue(new Error('clipboard denied'));
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    });
+
+    const { container } = render(() => (
+      <LocalServerDetailView
+        agentName="a1"
+        provider={lmsProv}
+        onConnected={vi.fn()}
+        onBack={vi.fn()}
+      />
+    ));
+
+    const copyBtn = await waitFor(() => {
+      const candidates = Array.from(
+        container.querySelectorAll<HTMLButtonElement>('button[title]'),
+      );
+      const b = candidates.find((el) => el.title === 'Copy' || el.title === 'Copied!');
       if (!b) throw new Error('copy button not yet rendered');
       return b;
     });
