@@ -159,6 +159,62 @@ describe('BenchmarkColumn', () => {
     expect(onRemove).toHaveBeenCalledWith('col-1');
   });
 
+  describe('when the column is the pinned Original', () => {
+    it('shows the "Original" chip and swaps the remove × for a lock glyph', () => {
+      const { container } = render(() => (
+        <BenchmarkColumn
+          column={makeColumn({
+            isOriginal: true,
+            status: 'success',
+            response: 'historical response',
+            metrics: { cost: 0.01, inputTokens: 10, outputTokens: 5, durationMs: 200 },
+          })}
+          isCheapest={false}
+          isFastest={false}
+          onRemove={() => {}}
+          onChangeModel={() => {}}
+          onRetry={() => {}}
+        />
+      ));
+      expect(container.textContent).toContain('Original');
+      expect(container.querySelector('.benchmark-column__remove--locked')).toBeDefined();
+      // The remove affordance becomes a non-button <span> with aria-disabled="true".
+      const btn = container.querySelector('button.benchmark-column__remove');
+      expect(btn).toBeNull();
+    });
+
+    it('does not fire onChangeModel when the Original title area is clicked', () => {
+      const onChangeModel = vi.fn();
+      const { container } = render(() => (
+        <BenchmarkColumn
+          column={makeColumn({ isOriginal: true, status: 'success', response: 'x', metrics: { cost: 0, inputTokens: 1, outputTokens: 1, durationMs: 10 } })}
+          isCheapest={false}
+          isFastest={false}
+          onRemove={() => {}}
+          onChangeModel={onChangeModel}
+          onRetry={() => {}}
+        />
+      ));
+      const title = container.querySelector('.benchmark-column__title')!;
+      fireEvent.click(title);
+      expect(onChangeModel).not.toHaveBeenCalled();
+    });
+
+    it('uses the original-specific idle placeholder', () => {
+      const { container } = render(() => (
+        <BenchmarkColumn
+          column={makeColumn({ isOriginal: true, status: 'idle' })}
+          isCheapest={false}
+          isFastest={false}
+          onRemove={() => {}}
+          onChangeModel={() => {}}
+          onRetry={() => {}}
+        />
+      ));
+      expect(container.textContent).toContain('Original recorded response');
+    });
+  });
+
   it('renders the Response headers details when headers are provided', () => {
     const col = makeColumn({
       status: 'success',

@@ -15,6 +15,7 @@ function renderPrompt(overrides: Partial<Parameters<typeof BenchmarkPrompt>[0]> 
       disabled={overrides.disabled ?? false}
       running={overrides.running ?? false}
       headersSlot={overrides.headersSlot}
+      replayBanner={overrides.replayBanner}
     />
   ));
   return { ...utils, onChange, onSubmit, onRecallPrevious };
@@ -74,5 +75,38 @@ describe('BenchmarkPrompt', () => {
   it('renders the optional headersSlot', () => {
     const { container } = renderPrompt({ headersSlot: <span data-testid="slot">S</span> });
     expect(container.querySelector('[data-testid="slot"]')).toBeDefined();
+  });
+
+  describe('replay mode', () => {
+    it('renders the banner (not the textarea) and labels send as Re-run', () => {
+      const { container } = renderPrompt({
+        replayBanner: {
+          prompt: 'original prompt',
+          recordedAt: '2026-04-23T10:00:00Z',
+          onExit: () => {},
+        },
+      });
+      expect(container.querySelector('.benchmark-prompt__banner')).toBeDefined();
+      expect(container.querySelector('textarea')).toBeNull();
+      expect(container.querySelector('.benchmark-prompt__send')?.textContent).toContain('Re-run');
+    });
+
+    it('fires the replayBanner.onExit callback when the banner × is clicked', () => {
+      const onExit = vi.fn();
+      const { container } = renderPrompt({
+        replayBanner: { prompt: 'p', recordedAt: '', onExit },
+      });
+      fireEvent.click(container.querySelector('.benchmark-prompt__banner-exit')!);
+      expect(onExit).toHaveBeenCalled();
+    });
+
+    it('keeps the send button enabled in replay mode even with an empty value', () => {
+      const { container } = renderPrompt({
+        value: '',
+        replayBanner: { prompt: 'p', recordedAt: '', onExit: () => {} },
+      });
+      const send = container.querySelector('.benchmark-prompt__send') as HTMLButtonElement;
+      expect(send.hasAttribute('disabled')).toBe(false);
+    });
   });
 });
