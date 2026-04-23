@@ -35,7 +35,7 @@ export function computeCutoff(interval: string): string {
 function intervalToMs(interval: string): number {
   const match = interval.match(/^(\d+)\s+(hour|hours|day|days)$/);
   if (!match) {
-    console.warn(`sql-dialect: unrecognized interval "${interval}", defaulting to 24 hours`);
+    console.warn(`postgres-sql: unrecognized interval "${interval}", defaulting to 24 hours`);
     return 24 * 60 * 60 * 1000;
   }
   const n = parseInt(match[1], 10);

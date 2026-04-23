@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
-import { timestampType, timestampDefault } from '../common/utils/sql-dialect';
+import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
 
 @Entity('email_provider_configs')
 @Index(['user_id'], { unique: true })

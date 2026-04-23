@@ -8,9 +8,9 @@ import {
   sqlSanitizeCost,
   timestampDefault,
   timestampType,
-} from './sql-dialect';
+} from './postgres-sql';
 
-describe('sql-dialect', () => {
+describe('postgres-sql', () => {
   describe('timestamp helpers', () => {
     it('uses `timestamp` as the column type', () => {
       expect(timestampType()).toBe('timestamp');

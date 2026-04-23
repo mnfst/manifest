@@ -5,6 +5,12 @@ const OverviewSkeleton = () => (
     <div class="chart-card">
       <div class="chart-card__header">
         <div class="chart-card__stat chart-card__stat--active">
+          <span class="chart-card__label">Messages</span>
+          <div class="chart-card__value-row">
+            <div class="skeleton skeleton--text" style="width: 50px; height: 28px;" />
+          </div>
+        </div>
+        <div class="chart-card__stat">
           <span class="chart-card__label">Cost</span>
           <div class="chart-card__value-row">
             <div class="skeleton skeleton--text" style="width: 80px; height: 28px;" />
@@ -14,12 +20,6 @@ const OverviewSkeleton = () => (
           <span class="chart-card__label">Token usage</span>
           <div class="chart-card__value-row">
             <div class="skeleton skeleton--text" style="width: 70px; height: 28px;" />
-          </div>
-        </div>
-        <div class="chart-card__stat">
-          <span class="chart-card__label">Messages</span>
-          <div class="chart-card__value-row">
-            <div class="skeleton skeleton--text" style="width: 50px; height: 28px;" />
           </div>
         </div>
       </div>

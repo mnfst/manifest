@@ -42,6 +42,14 @@ export interface ProviderDef {
   subscriptionSignInHint?: string;
   /** Show a beta badge next to the provider name. */
   beta?: boolean;
+  /**
+   * Default port for a local OpenAI-compatible server (LM Studio today).
+   * When set, clicking the tile in self-hosted mode opens the
+   * LocalServerDetailView, which probes
+   * `http://{localLlmHost}:{defaultLocalPort}/v1` and auto-connects the
+   * discovered models.
+   */
+  defaultLocalPort?: number;
 }
 
 /** UI-only overlay fields for each provider. The id must match a `SHARED_PROVIDERS` entry. */
@@ -62,6 +70,8 @@ interface ProviderUIOverlay {
   subscriptionSignInLabel?: string;
   subscriptionSignInHint?: string;
   beta?: boolean;
+  /** See ProviderDef.defaultLocalPort. */
+  defaultLocalPort?: number;
 }
 
 const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
@@ -111,6 +121,13 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     initial: 'G',
     subtitle: 'Gemini 2.5, Gemini 2.0 Flash',
     models: [],
+  },
+  lmstudio: {
+    initial: 'LM',
+    subtitle: 'Run GGUF models with a local server',
+    noKeyRequired: true,
+    models: [],
+    defaultLocalPort: 1234,
   },
   minimax: {
     initial: 'Mm',
@@ -232,6 +249,7 @@ const PROVIDER_ORDER = [
   'deepseek',
   'copilot',
   'gemini',
+  'lmstudio',
   'minimax',
   'mistral',
   'moonshot',

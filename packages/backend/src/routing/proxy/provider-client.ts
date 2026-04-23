@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { OPENAI_RESPONSES_ONLY_RE, stripVendorPrefix } from '../../common/constants/openai-models';
 import { PROVIDER_ENDPOINTS, ProviderEndpoint, resolveEndpointKey } from './provider-endpoints';
 import { resolveSubscriptionEndpointKey } from './provider-hooks';
 import { injectOpenRouterCacheControl } from './cache-injection';
@@ -51,8 +52,7 @@ function stripModelPrefix(model: string, endpointKey: string): string {
   // legitimate slash segment from the upstream model id
   // (e.g. "MiniMaxAI/MiniMax-2.7" or "accounts/fireworks/routers/...").
   if (endpointKey === 'custom') return model;
-  const slashIdx = model.indexOf('/');
-  return slashIdx > 0 ? model.substring(slashIdx + 1) : model;
+  return stripVendorPrefix(model);
 }
 
 @Injectable()
@@ -124,12 +124,14 @@ export class ProviderClient {
       const override = resolveSubscriptionEndpointKey(resolved);
       if (override) resolved = override;
     }
+    // OpenAI rejects these models on /v1/chat/completions; forward to /v1/responses.
+    if (resolved === 'openai' && OPENAI_RESPONSES_ONLY_RE.test(stripVendorPrefix(model))) {
+      resolved = 'openai-responses';
+    }
     if (resolved === 'opencode-go') {
       // OpenCode Go uses two different API formats depending on the model:
       // MiniMax models use Anthropic /v1/messages, all others use OpenAI /v1/chat/completions.
-      const slashIdx = model.indexOf('/');
-      const bare = slashIdx > 0 ? model.substring(slashIdx + 1) : model;
-      if (bare.toLowerCase().startsWith('minimax-')) {
+      if (stripVendorPrefix(model).toLowerCase().startsWith('minimax-')) {
         resolved = 'opencode-go-anthropic';
       }
     }

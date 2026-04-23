@@ -10,7 +10,10 @@ const PRIVATE_RANGES: { addr: bigint; mask: bigint }[] = [
   cidr('0.0.0.0', 8), // Current network
 ];
 
-const PRIVATE_V6_PREFIXES = ['::1', 'fc00::', 'fd00::', 'fe80::'];
+// ULA (fc00::/7) covers fc00::–fdff::, link-local is fe80::/10.
+// We match by two-character hex prefix to avoid false negatives on
+// addresses like fdc4:… that don't literally start with "fd00::".
+const PRIVATE_V6_PREFIXES = ['::1', 'fc', 'fd', 'fe80::'];
 
 function cidr(base: string, prefix: number): { addr: bigint; mask: bigint } {
   const addr = ipv4ToBigInt(base);

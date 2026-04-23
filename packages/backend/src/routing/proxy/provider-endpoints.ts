@@ -76,6 +76,14 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: () => '/codex/responses',
     format: 'chatgpt',
   },
+  // Standard OpenAI API key against api.openai.com/v1/responses — used for
+  // Codex, -pro, o1-pro, and deep-research models that reject /v1/chat/completions.
+  'openai-responses': {
+    baseUrl: 'https://api.openai.com',
+    buildHeaders: openaiHeaders,
+    buildPath: () => '/v1/responses',
+    format: 'chatgpt',
+  },
   anthropic: {
     baseUrl: 'https://api.anthropic.com',
     buildHeaders: anthropicHeaders,

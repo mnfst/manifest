@@ -100,7 +100,7 @@ const Overview: Component = () => {
     setUserSelectedRange(true);
     localStorage.setItem(RANGE_STORAGE_KEY, value);
   };
-  const [activeView, setActiveView] = createSignal<'cost' | 'tokens' | 'messages'>('cost');
+  const [activeView, setActiveView] = createSignal<'cost' | 'tokens' | 'messages'>('messages');
   const [setupOpen, setSetupOpen] = createSignal(
     isRecentlyCreated(decodeURIComponent(params.agentName)),
   );

@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
-import { timestampType, timestampDefault } from '../common/utils/sql-dialect';
+import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
 import { Agent } from './agent.entity';
 
 export interface CustomProviderModel {

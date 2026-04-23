@@ -44,12 +44,13 @@ describe('ChartCard', () => {
     const { container } = render(() => <ChartCard {...baseProps()} />);
     const stats = container.querySelectorAll('.chart-card__stat');
     expect(stats).toHaveLength(3);
-    expect(stats[0].textContent).toContain('Cost');
+    expect(stats[0].textContent).toContain('Messages');
+    expect(stats[1].textContent).toContain('Cost');
+    expect(stats[2].textContent).toContain('Token usage');
     // formatCost formats 12.34 → $12.34
     expect(container.textContent).toContain('$12.34');
     // formatNumber formats 1000 → 1k
     expect(container.textContent).toMatch(/1(,|\.)?\d*k?/i);
-    expect(container.textContent).toContain('Messages');
   });
 
   it('marks the active view and only renders that view\'s chart', () => {
@@ -71,7 +72,7 @@ describe('ChartCard', () => {
       <ChartCard {...baseProps({ onViewChange })} />
     ));
     const tiles = container.querySelectorAll('.chart-card__stat--clickable');
-    fireEvent.click(tiles[2]);
+    fireEvent.click(tiles[0]);
     expect(onViewChange).toHaveBeenCalledWith('messages');
   });
 

@@ -101,8 +101,12 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('opencodego')).toBe('opencode-go');
   });
 
-  it('resolves every built-in provider id and alias from the registry', () => {
+  it('resolves every proxy-capable provider id and alias from the registry', () => {
+    // tileOnly providers (LM Studio) don't have a fixed proxy endpoint —
+    // they deep-link to the local-server detail view and route through
+    // the `custom:<uuid>` path once connected.
     for (const entry of PROVIDER_REGISTRY) {
+      if (entry.tileOnly) continue;
       expect(resolveEndpointKey(entry.id)).not.toBeNull();
       for (const alias of entry.aliases) {
         expect(resolveEndpointKey(alias)).not.toBeNull();

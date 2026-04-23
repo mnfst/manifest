@@ -1,4 +1,4 @@
-import { createResource, createSignal, Index, For, Show, type Component } from 'solid-js';
+import { createResource, createSignal, Index, Show, type Component } from 'solid-js';
 import {
   createCustomProvider,
   deleteCustomProvider,
@@ -10,19 +10,6 @@ import {
 import { toast } from '../services/toast-store.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
 import type { CustomProviderPrefill } from '../services/routing-params.js';
-
-interface Preset {
-  label: string;
-  name: string;
-  baseUrl: string;
-}
-
-const LOCAL_SERVER_PRESETS: Preset[] = [
-  { label: 'Ollama', name: 'Ollama (host)', baseUrl: 'http://host.docker.internal:11434/v1' },
-  { label: 'vLLM', name: 'vLLM', baseUrl: 'http://host.docker.internal:8000/v1' },
-  { label: 'LM Studio', name: 'LM Studio', baseUrl: 'http://host.docker.internal:1234/v1' },
-  { label: 'llama.cpp', name: 'llama.cpp', baseUrl: 'http://host.docker.internal:8080/v1' },
-];
 
 interface Props {
   agentName: string;
@@ -77,15 +64,6 @@ const CustomProviderForm: Component<Props> = (props) => {
   const [probeBusy, setProbeBusy] = createSignal(false);
   const [probeError, setProbeError] = createSignal<string | null>(null);
   const [isSelfHosted] = createResource(() => checkIsSelfHosted());
-
-  const applyPreset = (preset: Preset) => {
-    setName(preset.name);
-    setBaseUrl(preset.baseUrl);
-    setApiKey('');
-    setEditingKey(true);
-    setError(null);
-    setProbeError(null);
-  };
 
   const handleProbe = async () => {
     const url = baseUrl().trim();
@@ -228,25 +206,6 @@ const CustomProviderForm: Component<Props> = (props) => {
         </div>
       </div>
 
-      <Show when={!isEdit() && isSelfHosted()}>
-        <div class="provider-detail__field">
-          <div class="provider-detail__label">Local server presets</div>
-          <div class="custom-provider-presets" style="display: flex; flex-wrap: wrap; gap: 8px;">
-            <For each={LOCAL_SERVER_PRESETS}>
-              {(preset) => (
-                <button
-                  type="button"
-                  class="btn btn--outline btn--sm"
-                  onClick={() => applyPreset(preset)}
-                >
-                  {preset.label}
-                </button>
-              )}
-            </For>
-          </div>
-        </div>
-      </Show>
-
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -261,7 +220,7 @@ const CustomProviderForm: Component<Props> = (props) => {
             id="cp-name"
             class="provider-detail__input"
             type="text"
-            placeholder="e.g. Groq, vLLM, Azure"
+            placeholder="e.g. Groq, Together, Azure"
             value={name()}
             onInput={(e) => {
               setName(e.currentTarget.value);

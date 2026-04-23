@@ -8,7 +8,7 @@ import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import type { MessageStatusFilter } from '../dto/messages-query.dto';
 
 const ERROR_STATUSES = ['error', 'fallback_error', 'rate_limited'] as const;
-import { computeCutoff, sqlCastFloat, sqlSanitizeCost } from '../../common/utils/sql-dialect';
+import { computeCutoff, sqlCastFloat, sqlSanitizeCost } from '../../common/utils/postgres-sql';
 import { inferProviderFromModel } from '../../common/utils/provider-inference';
 import { TtlCache } from '../../common/utils/ttl-cache';
 

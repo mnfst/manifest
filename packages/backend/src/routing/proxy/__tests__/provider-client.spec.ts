@@ -486,6 +486,213 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('resolveEndpoint - OpenAI Responses-only routing', () => {
+    // When a user authenticates with a normal OpenAI API key but requests
+    // a Codex / -pro / o1-pro / deep-research model, OpenAI rejects the call
+    // on /v1/chat/completions. The proxy transparently swaps to /v1/responses.
+    const responsesOnlyModels = [
+      'gpt-5.3-codex',
+      'gpt-5-codex',
+      'gpt-5.1-codex-mini',
+      'gpt-5.2-codex',
+    ];
+
+    it.each(responsesOnlyModels)(
+      'routes api_key + Codex model %s to /v1/responses with chatgpt format',
+      async (model) => {
+        mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+        const result = await client.forward({
+          provider: 'openai',
+          apiKey: 'sk-test',
+          model,
+          body,
+          stream: false,
+        });
+
+        const url = mockFetch.mock.calls[0][0] as string;
+        expect(url).toBe('https://api.openai.com/v1/responses');
+        expect(result.isChatGpt).toBe(true);
+        expect(result.isAnthropic).toBe(false);
+        expect(result.isGoogle).toBe(false);
+
+        // Plain openaiHeaders — Bearer + Content-Type only, no Codex CLI spoof.
+        const headers = mockFetch.mock.calls[0][1].headers;
+        expect(headers['Authorization']).toBe('Bearer sk-test');
+        expect(headers['Content-Type']).toBe('application/json');
+        expect(headers['originator']).toBeUndefined();
+
+        // Body is Responses-API shape (input/store/instructions), not Chat Completions.
+        const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+        expect(Array.isArray(sentBody.input)).toBe(true);
+        expect(sentBody.store).toBe(false);
+        expect(sentBody.instructions).toBeDefined();
+        expect(sentBody.messages).toBeUndefined();
+        expect(sentBody.model).toBe(model);
+      },
+    );
+
+    const proModels = ['gpt-5-pro', 'gpt-5.2-pro', 'gpt-5.4-pro'];
+
+    it.each(proModels)('routes api_key + %s to /v1/responses', async (model) => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model,
+        body,
+        stream: false,
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://api.openai.com/v1/responses');
+      expect(result.isChatGpt).toBe(true);
+    });
+
+    it('routes api_key + o1-pro to /v1/responses', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'o1-pro',
+        body,
+        stream: false,
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://api.openai.com/v1/responses');
+      expect(result.isChatGpt).toBe(true);
+    });
+
+    it('routes api_key + o4-mini-deep-research to /v1/responses', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'o4-mini-deep-research',
+        body,
+        stream: false,
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://api.openai.com/v1/responses');
+      expect(result.isChatGpt).toBe(true);
+    });
+
+    it('detects Responses-only models after stripping an OpenRouter-style vendor prefix', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'openai/gpt-5.3-codex',
+        body,
+        stream: false,
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://api.openai.com/v1/responses');
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      // Vendor prefix is stripped before being sent to OpenAI.
+      expect(sentBody.model).toBe('gpt-5.3-codex');
+    });
+
+    // Regression guard: models that DO support /v1/chat/completions must stay
+    // on the default OpenAI endpoint — we must not over-match the regex.
+    const chatCompatibleModels = [
+      'gpt-5',
+      'gpt-4o',
+      'gpt-4o-mini',
+      'gpt-5-chat-latest',
+      'codex-mini-latest',
+    ];
+
+    it.each(chatCompatibleModels)('leaves api_key + %s on /v1/chat/completions', async (model) => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model,
+        body,
+        stream: false,
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://api.openai.com/v1/chat/completions');
+      expect(result.isChatGpt).toBe(false);
+
+      // Body is Chat Completions shape (messages array, not input array).
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages).toBeDefined();
+      expect(sentBody.input).toBeUndefined();
+      expect(sentBody.store).toBeUndefined();
+    });
+
+    it('keeps subscription + Codex on the Codex backend (subscription override wins)', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'openai',
+        apiKey: 'oauth-token',
+        model: 'gpt-5.3-codex',
+        body,
+        stream: false,
+        authType: 'subscription',
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      // Must stay on chatgpt.com/backend-api (subscription), NOT swap to api.openai.com.
+      expect(url).toBe('https://chatgpt.com/backend-api/codex/responses');
+      expect(url).not.toContain('api.openai.com');
+      expect(result.isChatGpt).toBe(true);
+
+      // Subscription spoofs the Codex CLI user agent; the api_key responses
+      // path does not. This confirms we hit the subscription endpoint.
+      const headers = mockFetch.mock.calls[0][1].headers;
+      expect(headers['originator']).toBe('codex_cli_rs');
+    });
+
+    it('does not override custom endpoints when a Codex model is used through a custom provider', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const customEndpoint = {
+        baseUrl: 'https://proxy.example.com/v1',
+        buildHeaders: (key: string) => ({
+          Authorization: `Bearer ${key}`,
+          'Content-Type': 'application/json',
+        }),
+        buildPath: () => '/chat/completions',
+        format: 'openai' as const,
+      };
+
+      const result = await client.forward({
+        provider: 'custom:some-uuid',
+        apiKey: 'sk-custom',
+        model: 'gpt-5.3-codex',
+        body,
+        stream: false,
+        customEndpoint,
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      // customEndpoint short-circuits resolveEndpoint — the Responses-only
+      // branch must not fire and rewrite the URL to api.openai.com.
+      expect(url).toBe('https://proxy.example.com/v1/chat/completions');
+      expect(url).not.toContain('api.openai.com');
+      expect(result.isChatGpt).toBe(false);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      // Still Chat Completions shape — the custom endpoint is openai format.
+      expect(sentBody.messages).toBeDefined();
+      expect(sentBody.input).toBeUndefined();
+    });
+  });
+
   describe('Z.ai subscription provider', () => {
     it('routes to Coding Plan endpoint with subscription authType', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));

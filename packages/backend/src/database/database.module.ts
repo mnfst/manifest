@@ -17,6 +17,7 @@ import { UserProvider } from '../entities/user-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
+import { InstallMetadata } from '../entities/install-metadata.entity';
 import { DatabaseSeederService } from './database-seeder.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
@@ -67,6 +68,7 @@ import { AddSpecificityCategory1775300000000 } from './migrations/1775300000000-
 import { AddCallerAttribution1775400000000 } from './migrations/1775400000000-AddCallerAttribution';
 import { AddMessageProvider1775500000000 } from './migrations/1775500000000-AddMessageProvider';
 import { AddMessageFeedback1775600000000 } from './migrations/1775600000000-AddMessageFeedback';
+import { AddInstallMetadata1775700000000 } from './migrations/1775700000000-AddInstallMetadata';
 import { CleanupOrphanedCustomProviderRefs1776679833383 } from './migrations/1776679833383-CleanupOrphanedCustomProviderRefs';
 import { AddMessageRequestHeaders1776700000000 } from './migrations/1776700000000-AddMessageRequestHeaders';
 import { AddSpecificityMiscategorized1777000000000 } from './migrations/1777000000000-AddSpecificityMiscategorized';
@@ -88,6 +90,7 @@ const entities = [
   TierAssignment,
   CustomProvider,
   SpecificityAssignment,
+  InstallMetadata,
 ];
 
 const migrations = [
@@ -139,6 +142,7 @@ const migrations = [
   AddCallerAttribution1775400000000,
   AddMessageProvider1775500000000,
   AddMessageFeedback1775600000000,
+  AddInstallMetadata1775700000000,
   CleanupOrphanedCustomProviderRefs1776679833383,
   AddMessageRequestHeaders1776700000000,
   AddSpecificityMiscategorized1777000000000,

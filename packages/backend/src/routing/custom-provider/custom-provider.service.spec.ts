@@ -351,14 +351,14 @@ describe('CustomProviderService', () => {
       const { svc } = makeDeps({});
       global.fetch = jest
         .fn()
-        .mockResolvedValue(jsonResponse({ data: [] })) as unknown as typeof fetch;
+        .mockResolvedValue(jsonResponse({ data: [{ id: 'm1' }] })) as unknown as typeof fetch;
 
       await svc.probeModels('http://host.docker.internal:8000/v1');
       const headers = (global.fetch as jest.Mock).mock.calls[0][1].headers;
       expect(headers.Authorization).toBeUndefined();
     });
 
-    it('returns an empty array when the server returns no data', async () => {
+    it('returns an empty array when the server returns no models', async () => {
       const { svc } = makeDeps({});
       global.fetch = jest.fn().mockResolvedValue(jsonResponse({})) as unknown as typeof fetch;
 
@@ -378,6 +378,39 @@ describe('CustomProviderService', () => {
       expect(result).toEqual([{ model_name: 'm1' }]);
     });
 
+    it('filters out embedding / reranker / moderation models (they cannot serve chat)', async () => {
+      const { svc } = makeDeps({});
+      global.fetch = jest.fn().mockResolvedValue(
+        jsonResponse({
+          data: [
+            { id: 'google/gemma-4-e4b' },
+            { id: 'text-embedding-nomic-embed-text-v1.5' },
+            { id: 'bge-reranker-base' },
+            { id: 'openai/text-embedding-3-small' },
+            { id: 'text-moderation-007' },
+            { id: 'nomic-embed-text' },
+          ],
+        }),
+      ) as unknown as typeof fetch;
+
+      const result = await svc.probeModels('http://localhost:1234/v1');
+      // Only the LLM survives; all embedders / rerankers / moderation models
+      // are filtered out at probe time so they never reach the routing UI.
+      expect(result).toEqual([{ model_name: 'google/gemma-4-e4b' }]);
+    });
+
+    it('returns an empty array when every returned model is an embedder (nothing routable)', async () => {
+      const { svc } = makeDeps({});
+      global.fetch = jest.fn().mockResolvedValue(
+        jsonResponse({
+          data: [{ id: 'text-embedding-3-small' }, { id: 'nomic-embed-text-v1.5' }],
+        }),
+      ) as unknown as typeof fetch;
+
+      const result = await svc.probeModels('http://localhost:1234/v1');
+      expect(result).toEqual([]);
+    });
+
     it('rejects non-JSON responses (HTML, binary, no content-type)', async () => {
       const { svc } = makeDeps({});
       global.fetch = jest.fn().mockResolvedValue({
@@ -387,7 +420,7 @@ describe('CustomProviderService', () => {
       }) as unknown as typeof fetch;
 
       await expect(svc.probeModels('http://host.docker.internal:8000/v1')).rejects.toThrow(
-        /did not return JSON/,
+        /instead of JSON/,
       );
     });
 
@@ -441,7 +474,7 @@ describe('CustomProviderService', () => {
       global.fetch = jest.fn().mockRejectedValue(abortErr) as unknown as typeof fetch;
 
       await expect(svc.probeModels('http://host.docker.internal:8000/v1')).rejects.toThrow(
-        /Timed out probing/,
+        /No response from|loading a model/,
       );
     });
 
@@ -477,7 +510,7 @@ describe('CustomProviderService', () => {
         // Manually drive the AbortController.abort() callback registered
         // in probeModels so the timeout path is exercised end-to-end.
         fired!();
-        await expect(pending).rejects.toThrow(/Timed out probing/);
+        await expect(pending).rejects.toThrow(/No response from|loading a model/);
       } finally {
         global.setTimeout = realSetTimeout;
       }

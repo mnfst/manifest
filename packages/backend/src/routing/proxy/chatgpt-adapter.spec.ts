@@ -91,6 +91,74 @@ describe('chatgpt-adapter', () => {
         { type: 'function', name: 'add', parameters: { type: 'object' } },
       ]);
     });
+
+    // Integration-style check for the api.openai.com/v1/responses branch:
+    // Codex-family models (e.g. gpt-5.3-codex) route through this adapter
+    // when hit with an API key. The output must be a valid Responses API
+    // request body, not leak any Chat Completions-only fields.
+    it('produces a valid Responses API body for a Codex model with tools', () => {
+      const chatCompletionsBody = {
+        model: 'gpt-4o', // Should be overridden by the argument
+        messages: [{ role: 'user', content: 'Write a hello world in Python.' }],
+        stream: false,
+        max_tokens: 1024,
+        temperature: 0.5,
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'run_code',
+              description: 'Execute code in a sandbox',
+              parameters: {
+                type: 'object',
+                properties: { code: { type: 'string' } },
+                required: ['code'],
+              },
+            },
+          },
+        ],
+      };
+
+      const req = toResponsesRequest(chatCompletionsBody, 'gpt-5.3-codex');
+
+      // Required Responses API fields.
+      expect(req.model).toBe('gpt-5.3-codex');
+      expect(req.store).toBe(false);
+      expect(req.stream).toBe(false);
+      expect(req).toHaveProperty('instructions');
+      expect(typeof req.instructions).toBe('string');
+
+      // input is an array of { role, content } items, NOT a `messages` array.
+      expect(Array.isArray(req.input)).toBe(true);
+      const input = req.input as Array<Record<string, unknown>>;
+      expect(input).toHaveLength(1);
+      expect(input[0].role).toBe('user');
+      expect(Array.isArray(input[0].content)).toBe(true);
+      const content = input[0].content as Array<Record<string, unknown>>;
+      expect(content[0]).toMatchObject({
+        type: 'input_text',
+        text: 'Write a hello world in Python.',
+      });
+
+      // Tools are flattened — no nested `function` wrapper.
+      expect(req.tools).toEqual([
+        {
+          type: 'function',
+          name: 'run_code',
+          description: 'Execute code in a sandbox',
+          parameters: {
+            type: 'object',
+            properties: { code: { type: 'string' } },
+            required: ['code'],
+          },
+        },
+      ]);
+
+      // None of the Chat Completions-only fields must leak into the body
+      // — OpenAI's /v1/responses endpoint rejects or ignores them.
+      expect(req).not.toHaveProperty('messages');
+      expect(req).not.toHaveProperty('max_tokens');
+    });
   });
 
   describe('fromResponsesResponse', () => {

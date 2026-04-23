@@ -5,7 +5,7 @@ import { AgentMessage } from '../../entities/agent-message.entity';
 import { rangeToInterval, rangeToPreviousInterval } from '../../common/utils/range.util';
 import { MetricWithTrend, computeTrend, addTenantFilter } from './query-helpers';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
-import { computeCutoff, sqlSanitizeCost } from '../../common/utils/sql-dialect';
+import { computeCutoff, sqlSanitizeCost } from '../../common/utils/postgres-sql';
 
 export { MetricWithTrend };
 
