@@ -80,6 +80,7 @@ export class HeaderTierService {
       header_value: headerValue,
       badge_color: badgeColor,
       sort_order: nextOrder,
+      enabled: true,
       override_model: null,
       override_provider: null,
       override_auth_type: null,
@@ -112,6 +113,15 @@ export class HeaderTierService {
       row.badge_color = this.validateColor(patch.badge_color);
     }
     this.assertRuleAvailable(siblings, row.header_key, row.header_value);
+    row.updated_at = new Date().toISOString();
+    await this.repo.save(row);
+    this.routingCache.invalidateAgent(agentId);
+    return row;
+  }
+
+  async setEnabled(agentId: string, id: string, enabled: boolean): Promise<HeaderTier> {
+    const row = await this.findOrThrow(agentId, id);
+    row.enabled = enabled;
     row.updated_at = new Date().toISOString();
     await this.repo.save(row);
     this.routingCache.invalidateAgent(agentId);

@@ -1,4 +1,4 @@
-import { createEffect, createSignal, onCleanup, Show, type Component } from 'solid-js';
+import { createSignal, Show, type Component } from 'solid-js';
 import type {
   AuthType,
   AvailableModel,
@@ -38,17 +38,10 @@ function providerIdForModel(model: string, apiModels: AvailableModel[]): string 
 interface Props {
   agentName: string;
   tier: HeaderTier;
-  ordinal: number;
   models: AvailableModel[];
   customProviders: CustomProviderData[];
   connectedProviders: RoutingProvider[];
   onOverride: (model: string, provider: string, authType?: AuthType) => void | Promise<void>;
-  /** Clears the tier's primary model + fallbacks; surfaced via the kebab menu. */
-  onReset: () => void | Promise<void>;
-  /** Deletes the tier entirely; surfaced via the kebab menu (destructive). */
-  onDelete: () => void | Promise<void>;
-  /** Opens the shared HeaderTierModal in edit mode against this tier. */
-  onEdit: () => void;
   onFallbacksUpdate: (fallbacks: string[]) => void;
 }
 
@@ -56,18 +49,6 @@ const HeaderTierCard: Component<Props> = (props) => {
   type PickerMode = 'primary' | 'fallback' | null;
   const [pickerMode, setPickerMode] = createSignal<PickerMode>(null);
   const [snippetOpen, setSnippetOpen] = createSignal(false);
-  const [kebabOpen, setKebabOpen] = createSignal(false);
-  let kebabRef: HTMLDivElement | undefined;
-
-  // Close the kebab menu when a pointerdown lands outside its container.
-  createEffect(() => {
-    if (!kebabOpen()) return;
-    const handler = (e: PointerEvent) => {
-      if (kebabRef && !kebabRef.contains(e.target as Node)) setKebabOpen(false);
-    };
-    document.addEventListener('pointerdown', handler, true);
-    onCleanup(() => document.removeEventListener('pointerdown', handler, true));
-  });
 
   const currentModel = (): string | null => props.tier.override_model;
   const fallbacks = (): string[] => props.tier.fallback_models ?? [];
@@ -138,98 +119,32 @@ const HeaderTierCard: Component<Props> = (props) => {
     <div class="routing-card routing-card--header-tier">
       <div class="routing-card__header">
         <span class="routing-card__tier header-tier-card__title">
-          <span class="header-tier-card__ordinal">#{props.ordinal + 1}</span>
-          <span
-            class="header-tier-card__dot"
-            classList={{ [`tier-color--${props.tier.badge_color}`]: true }}
-            aria-hidden="true"
-          />
           <span class="header-tier-card__name">{props.tier.name}</span>
-        </span>
-        <span class="header-tier-card__actions">
-          <Show when={!currentModel()}>
-            <button class="routing-card__header-add" onClick={() => setPickerMode('primary')}>
-              + Add model
-            </button>
-          </Show>
           <button
             type="button"
-            class="routing-card__header-action"
+            class="header-tier-card__icon-btn"
             onClick={() => setSnippetOpen(true)}
             aria-label={`How to send the header for ${props.tier.name}`}
             title="How to send this header from your app"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="12"
-              height="12"
+              width="16"
+              height="16"
               fill="currentColor"
               viewBox="0 0 24 24"
               aria-hidden="true"
             >
-              <path d="M9.4 16.6 4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4Zm5.2 0L19.2 12l-4.6-4.6L16 6l6 6-6 6-1.4-1.4Z" />
+              <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4m0 6c-1.08 0-2-.92-2-2s.92-2 2-2 2 .92 2 2-.92 2-2 2" />
+              <path d="m20.42 13.4-.51-.29c.05-.37.08-.74.08-1.11s-.03-.74-.08-1.11l.51-.29c.96-.55 1.28-1.78.73-2.73l-1-1.73a2.006 2.006 0 0 0-2.73-.73l-.53.31c-.58-.46-1.22-.83-1.9-1.11v-.6c0-1.1-.9-2-2-2h-2c-1.1 0-2 .9-2 2v.6c-.67.28-1.31.66-1.9 1.11l-.53-.31c-.96-.55-2.18-.22-2.73.73l-1 1.73c-.55.96-.22 2.18.73 2.73l.51.29c-.05.37-.08.74-.08 1.11s.03.74.08 1.11l-.51.29c-.96.55-1.28 1.78-.73 2.73l1 1.73c.55.95 1.78 1.28 2.73.73l.53-.31c.58.46 1.22.83 1.9 1.11v.6c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2v-.6a8.7 8.7 0 0 0 1.9-1.11l.53.31c.95.55 2.18.22 2.73-.73l1-1.73c.55-.96.22-2.18-.73-2.73m-2.59-2.78c.11.45.17.92.17 1.38s-.06.92-.17 1.38a1 1 0 0 0 .47 1.11l1.12.65-1 1.73-1.14-.66c-.38-.22-.87-.16-1.19.14-.68.65-1.51 1.13-2.38 1.4-.42.13-.71.52-.71.96v1.3h-2v-1.3c0-.44-.29-.83-.71-.96-.88-.27-1.7-.75-2.38-1.4a1.01 1.01 0 0 0-1.19-.15l-1.14.66-1-1.73 1.12-.65c.39-.22.58-.68.47-1.11-.11-.45-.17-.92-.17-1.38s.06-.93.17-1.38A1 1 0 0 0 5.7 9.5l-1.12-.65 1-1.73 1.14.66c.38.22.87.16 1.19-.14.68-.65 1.51-1.13 2.38-1.4.42-.13.71-.52.71-.96v-1.3h2v1.3c0 .44.29.83.71.96.88.27 1.7.75 2.38 1.4.32.31.81.36 1.19.14l1.14-.66 1 1.73-1.12.65c-.39.22-.58.68-.47 1.11Z" />
             </svg>
-            Use
           </button>
-          <button
-            type="button"
-            class="routing-card__header-action"
-            onClick={() => props.onEdit()}
-            aria-label={`Edit ${props.tier.name}`}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="12"
-              height="12"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path d="M3 17.46V20.5c0 .28.22.5.5.5h3.04a.5.5 0 0 0 .35-.15l10.92-10.92-3.74-3.74L3.15 17.11a.5.5 0 0 0-.15.35Zm17.71-10.21a1 1 0 0 0 0-1.41l-2.55-2.55a1 1 0 0 0-1.41 0l-1.83 1.83 3.96 3.96 1.83-1.83Z" />
-            </svg>
-            Edit
-          </button>
-          <div class="header-tier-card__kebab" ref={kebabRef}>
-            <button
-              type="button"
-              class="header-tier-card__kebab-btn"
-              aria-haspopup="menu"
-              aria-expanded={kebabOpen()}
-              aria-label="More actions"
-              onClick={() => setKebabOpen((v) => !v)}
-            >
-              ⋯
-            </button>
-            <Show when={kebabOpen()}>
-              <div class="header-tier-card__menu" role="menu">
-                <Show when={currentModel()}>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    class="header-tier-card__menu-item"
-                    onClick={() => {
-                      setKebabOpen(false);
-                      props.onReset();
-                    }}
-                  >
-                    Reset model
-                  </button>
-                </Show>
-                <button
-                  type="button"
-                  role="menuitem"
-                  class="header-tier-card__menu-item header-tier-card__menu-item--danger"
-                  onClick={() => {
-                    setKebabOpen(false);
-                    if (confirm(`Delete tier "${props.tier.name}"?`)) props.onDelete();
-                  }}
-                >
-                  Delete tier
-                </button>
-              </div>
-            </Show>
-          </div>
         </span>
+        <Show when={!currentModel()}>
+          <button class="routing-card__header-add" onClick={() => setPickerMode('primary')}>
+            + Add model
+          </button>
+        </Show>
       </div>
 
       <code

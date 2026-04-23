@@ -109,6 +109,7 @@ const baseTier: HeaderTier = {
   header_value: 'premium',
   badge_color: 'violet',
   sort_order: 0,
+  enabled: true,
   override_model: 'gpt-4o',
   override_provider: 'openai',
   override_auth_type: 'api_key',
@@ -119,28 +120,20 @@ const baseTier: HeaderTier = {
 
 interface MountOptions {
   tier?: HeaderTier;
-  ordinal?: number;
   models?: never[];
   customProviders?: never[];
   connectedProviders?: never[];
   onOverride?: ReturnType<typeof vi.fn>;
-  onReset?: ReturnType<typeof vi.fn>;
-  onDelete?: ReturnType<typeof vi.fn>;
-  onEdit?: ReturnType<typeof vi.fn>;
   onFallbacksUpdate?: ReturnType<typeof vi.fn>;
 }
 
 function mount(opts: MountOptions = {}) {
   const onOverride = opts.onOverride ?? vi.fn();
-  const onReset = opts.onReset ?? vi.fn();
-  const onDelete = opts.onDelete ?? vi.fn();
-  const onEdit = opts.onEdit ?? vi.fn();
   const onFallbacksUpdate = opts.onFallbacksUpdate ?? vi.fn();
   const result = render(() => (
     <HeaderTierCard
       agentName="my-agent"
       tier={opts.tier ?? baseTier}
-      ordinal={opts.ordinal ?? 0}
       models={
         opts.models ??
         ([
@@ -156,13 +149,10 @@ function mount(opts: MountOptions = {}) {
       customProviders={opts.customProviders ?? []}
       connectedProviders={opts.connectedProviders ?? []}
       onOverride={onOverride}
-      onReset={onReset}
-      onDelete={onDelete}
-      onEdit={onEdit}
       onFallbacksUpdate={onFallbacksUpdate}
     />
   ));
-  return { ...result, onOverride, onReset, onDelete, onEdit, onFallbacksUpdate };
+  return { ...result, onOverride, onFallbacksUpdate };
 }
 
 describe('HeaderTierCard', () => {
@@ -171,12 +161,8 @@ describe('HeaderTierCard', () => {
     vi.spyOn(globalThis, 'confirm').mockReturnValue(true);
   });
 
-  it('renders ordinal, dot color, name, rule, and primary model chip', () => {
-    const { container, getByText } = mount({ ordinal: 2 });
-    expect(getByText('#3').textContent).toBe('#3');
-    expect(container.querySelector('.header-tier-card__dot')?.className).toContain(
-      'tier-color--violet',
-    );
+  it('renders name, rule, and primary model chip', () => {
+    const { container, getByText } = mount();
     expect(getByText('Premium')).toBeDefined();
     expect(container.textContent).toContain('x-manifest-tier: premium');
     expect(container.textContent).toContain('GPT-4o');
@@ -205,37 +191,9 @@ describe('HeaderTierCard', () => {
     expect(onOverride).toHaveBeenCalledWith('gpt-4o-mini', 'OpenAI', 'api_key');
   });
 
-  it('Edit button calls onEdit', () => {
-    const { container, onEdit } = mount();
-    const editBtn = Array.from(container.querySelectorAll('button')).find(
-      (b) => b.textContent?.trim() === 'Edit',
-    );
-    fireEvent.click(editBtn!);
-    expect(onEdit).toHaveBeenCalled();
-  });
-
-  it('Edit button is shown even when no model is set', () => {
-    const emptyTier: HeaderTier = { ...baseTier, override_model: null };
-    const { container } = mount({ tier: emptyTier });
-    const editBtn = Array.from(container.querySelectorAll('button')).find(
-      (b) => b.textContent?.trim() === 'Edit',
-    );
-    expect(editBtn).toBeDefined();
-  });
-
-  it('kebab menu → Reset model calls onReset and is hidden when no model is set', () => {
-    const { container, getByText, onReset } = mount();
-    fireEvent.click(container.querySelector('[aria-label="More actions"]')!);
-    fireEvent.click(getByText('Reset model'));
-    expect(onReset).toHaveBeenCalled();
-  });
-
-  it('Reset model menu item is hidden when no model is configured', () => {
-    const emptyTier: HeaderTier = { ...baseTier, override_model: null };
-    const { container, queryByText } = mount({ tier: emptyTier });
-    fireEvent.click(container.querySelector('[aria-label="More actions"]')!);
-    expect(queryByText('Reset model')).toBeNull();
-    expect(queryByText('Delete tier')).not.toBeNull();
+  it('renders gear icon button for snippet modal', () => {
+    const { container } = mount();
+    expect(container.querySelector('.header-tier-card__icon-btn')).not.toBeNull();
   });
 
   it('renders the FallbackList when a primary model is set', () => {
@@ -276,34 +234,9 @@ describe('HeaderTierCard', () => {
     expect(onFallbacksUpdate).toHaveBeenCalledWith(['mock-removed']);
   });
 
-  it('kebab menu → Delete calls onDelete after confirm', () => {
-    const { container, getByText, onDelete } = mount();
-    fireEvent.click(container.querySelector('[aria-label="More actions"]')!);
-    fireEvent.click(getByText('Delete tier'));
-    expect(onDelete).toHaveBeenCalled();
-  });
-
-  it('does not call onDelete when confirm is declined', () => {
-    vi.spyOn(globalThis, 'confirm').mockReturnValue(false);
-    const { container, getByText, onDelete } = mount();
-    fireEvent.click(container.querySelector('[aria-label="More actions"]')!);
-    fireEvent.click(getByText('Delete tier'));
-    expect(onDelete).not.toHaveBeenCalled();
-  });
-
-  it('closes the kebab menu on pointerdown outside the container', () => {
+  it('renders gear icon button for snippet modal', () => {
     const { container } = mount();
-    fireEvent.click(container.querySelector('[aria-label="More actions"]')!);
-    expect(container.querySelector('.header-tier-card__menu')).not.toBeNull();
-    fireEvent.pointerDown(document.body);
-    expect(container.querySelector('.header-tier-card__menu')).toBeNull();
-  });
-
-  it('keeps the kebab menu open when a pointerdown lands inside it', () => {
-    const { container, getByText } = mount();
-    fireEvent.click(container.querySelector('[aria-label="More actions"]')!);
-    fireEvent.pointerDown(getByText('Delete tier'));
-    expect(container.querySelector('.header-tier-card__menu')).not.toBeNull();
+    expect(container.querySelector('.header-tier-card__icon-btn')).not.toBeNull();
   });
 
   it('infers the provider id from the model prefix when override_provider is absent', () => {
@@ -410,13 +343,11 @@ describe('HeaderTierCard', () => {
     expect(container.querySelector('[data-testid="provider-icon"]')).toBeNull();
   });
 
-  it('"Use" button opens the SDK snippet modal', async () => {
+  it('gear icon button opens the SDK snippet modal', async () => {
     const { container, getByText } = mount();
-    const useBtn = Array.from(container.querySelectorAll('button')).find(
-      (b) => b.textContent?.trim() === 'Use',
-    );
-    expect(useBtn).toBeDefined();
-    fireEvent.click(useBtn!);
+    const gearBtn = container.querySelector('.header-tier-card__icon-btn');
+    expect(gearBtn).not.toBeNull();
+    fireEvent.click(gearBtn!);
     await waitFor(() => expect(getByText(/Send the .* header/)).toBeDefined());
   });
 

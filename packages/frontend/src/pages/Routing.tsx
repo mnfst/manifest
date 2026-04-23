@@ -280,18 +280,11 @@ const Routing: Component = () => {
             customProviders={() => customProviders() ?? []}
           />
 
-          <RoutingHeaderTiersSection
-            agentName={agentName}
-            models={() => models() ?? []}
-            customProviders={() => customProviders() ?? []}
-            connectedProviders={() => connectedProviders() ?? []}
-          />
-
           <div class="routing-section">
             <div class="routing-section__header">
-              <span class="routing-section__title">Generalist tiers</span>
+              <span class="routing-section__title">Complexity tiers</span>
               <span class="routing-section__subtitle">
-                Generalist tiers route requests depending on their complexity. Simple tasks get
+                Complexity tiers route requests depending on their complexity. Simple tasks get
                 cheap models, hard ones get the best.
               </span>
             </div>
@@ -376,6 +369,13 @@ const Routing: Component = () => {
             refetchSpecificity={async () => {
               await refetchSpecificity();
             }}
+          />
+
+          <RoutingHeaderTiersSection
+            agentName={agentName}
+            models={() => models() ?? []}
+            customProviders={() => customProviders() ?? []}
+            connectedProviders={() => connectedProviders() ?? []}
           />
 
           <RoutingFooter

@@ -5,6 +5,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Put,
 } from '@nestjs/common';
@@ -80,6 +81,17 @@ export class HeaderTierController {
   ) {
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
     return this.headerTierService.update(agent.id, id, body);
+  }
+
+  @Patch(':agentName/header-tiers/:id/toggle')
+  async toggle(
+    @CurrentUser() user: AuthUser,
+    @Param('agentName') agentName: string,
+    @Param('id') id: string,
+    @Body() body: { enabled: boolean },
+  ) {
+    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    return this.headerTierService.setEnabled(agent.id, id, body.enabled);
   }
 
   @Delete(':agentName/header-tiers/:id')

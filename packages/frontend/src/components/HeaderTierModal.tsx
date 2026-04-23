@@ -28,6 +28,10 @@ interface Props {
   editing?: HeaderTier;
   onClose: () => void;
   onSaved: (tier: HeaderTier) => void;
+  /** When set, shows a back arrow instead of close button. */
+  onBack?: () => void;
+  /** When set and editing, shows a Delete tier button. */
+  onDelete?: (id: string) => void;
 }
 
 const HeaderTierModal: Component<Props> = (props) => {
@@ -169,14 +173,41 @@ const HeaderTierModal: Component<Props> = (props) => {
         style={{ position: 'relative' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <button
-          type="button"
-          class="header-tier-modal__close"
-          onClick={props.onClose}
-          aria-label="Close"
+        <Show
+          when={props.onBack}
+          fallback={
+            <button
+              type="button"
+              class="modal__close header-tier-modal__close"
+              onClick={props.onClose}
+              aria-label="Close"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path d="m9.17 13.41-3.54 3.54a.996.996 0 0 0 .71 1.7c.26 0 .51-.1.71-.29l2.83-2.83L12 13.41l2.83 2.83 2.12 2.12c.2.2.45.29.71.29s.51-.1.71-.29a.996.996 0 0 0 0-1.41l-3.54-3.54L13.42 12l4.95-4.95a.996.996 0 1 0-1.41-1.41l-4.95 4.95-4.95-4.95a.996.996 0 1 0-1.41 1.41L10.6 12l-1.41 1.41Z" />
+              </svg>
+            </button>
+          }
         >
-          ×
-        </button>
+          <button type="button" class="modal-back-btn" onClick={props.onBack} aria-label="Back">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="M14.71 7.29a.996.996 0 0 0-1.41 0l-4 4a.996.996 0 0 0 0 1.41l4 4c.2.2.45.29.71.29s.51-.1.71-.29a.996.996 0 0 0 0-1.41L11.43 12l3.29-3.29a.996.996 0 0 0 0-1.41Z" />
+            </svg>
+          </button>
+        </Show>
         <h2 class="modal-card__title" id="header-tier-modal-title">
           {titleText}
         </h2>
@@ -249,12 +280,29 @@ const HeaderTierModal: Component<Props> = (props) => {
         </div>
 
         <div class="header-tier-modal__footer">
-          <button type="button" class="btn btn--ghost" onClick={props.onClose}>
-            Cancel
-          </button>
-          <button type="button" class="btn btn--primary" disabled={submitting()} onClick={submit}>
-            {submitLabel()}
-          </button>
+          <Show when={editingTier && props.onDelete}>
+            <button
+              type="button"
+              class="btn btn--outline header-tier-modal__delete-btn"
+              onClick={() => {
+                if (confirm(`Delete tier "${editingTier!.name}"?`)) {
+                  props.onDelete!(editingTier!.id);
+                }
+              }}
+            >
+              Delete tier
+            </button>
+          </Show>
+          <div class="header-tier-modal__footer-right">
+            <Show when={!props.onBack}>
+              <button type="button" class="btn btn--ghost" onClick={props.onClose}>
+                Cancel
+              </button>
+            </Show>
+            <button type="button" class="btn btn--primary" disabled={submitting()} onClick={submit}>
+              {submitLabel()}
+            </button>
+          </div>
         </div>
       </div>
     </div>

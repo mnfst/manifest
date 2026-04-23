@@ -609,6 +609,7 @@ describe('ResolveService', () => {
       override_provider: 'openai',
       override_auth_type: null,
       fallback_models: ['claude-sonnet-4'],
+      enabled: true,
     };
 
     it('matches the first tier with a configured model and returns reason=header-match', async () => {

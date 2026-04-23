@@ -181,7 +181,7 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
       }
       toast.success(`${active ? 'Enabled' : 'Disabled'} ${label} tier`);
     } catch {
-      toast.error('Failed to update specific tier');
+      toast.error('Failed to update capability tier');
     } finally {
       setToggling(null);
     }
@@ -191,14 +191,14 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
     <div class="routing-section">
       <div class="routing-section__header specificity-header">
         <div class="specificity-header__left">
-          <span class="routing-section__title">Specific tiers</span>
+          <span class="routing-section__title">Capability tiers</span>
           <span class="routing-section__subtitle">
-            Specific tiers override generalist routing when a request matches a specific task type.
-            Enable a tier and assign the best model for that job.
+            Capability tiers override generalist routing when a request matches a specific task
+            type. Enable a tier and assign the best model for that job.
           </span>
         </div>
         <button class="btn btn--primary btn--sm" onClick={() => setShowModal(true)}>
-          {hasAnyActive() ? 'Manage specific tiers' : 'Enable specific tiers'}
+          {hasAnyActive() ? 'Manage capability tiers' : 'Enable capability tiers'}
         </button>
       </div>
 
@@ -206,12 +206,12 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
         when={activeTiers().length > 0}
         fallback={
           <div class="specificity-empty">
-            <span class="specificity-empty__title">No specific tier yet</span>
+            <span class="specificity-empty__title">No capability tier yet</span>
             <span class="specificity-empty__desc">
-              Enable specific tiers to route specialized tasks to dedicated models.
+              Enable capability tiers to route specialized tasks to dedicated models.
             </span>
             <button class="btn btn--primary btn--sm" onClick={() => setShowModal(true)}>
-              Enable specific tiers
+              Enable capability tiers
             </button>
           </div>
         }
@@ -268,10 +268,10 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
             onClick={(e) => e.stopPropagation()}
           >
             <h2 id="specificity-modal-title" class="specificity-modal__title">
-              Manage specific tiers
+              Manage capability tiers
             </h2>
             <p class="specificity-modal__desc">
-              Enable specific tiers to route specialized tasks to dedicated models.
+              Enable capability tiers to route specialized tasks to dedicated models.
             </p>
             <div class="specificity-modal__list">
               <For each={SPECIFICITY_STAGES}>

@@ -58,7 +58,16 @@ const HeaderTierSnippetModal: Component<Props> = (props) => {
             Send the “{props.tier.name}” header
           </h2>
           <button class="modal__close" onClick={() => props.onClose()} aria-label="Close">
-            ×
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="m9.17 13.41-3.54 3.54a.996.996 0 0 0 .71 1.7c.26 0 .51-.1.71-.29l2.83-2.83L12 13.41l2.83 2.83 2.12 2.12c.2.2.45.29.71.29s.51-.1.71-.29a.996.996 0 0 0 0-1.41l-3.54-3.54L13.42 12l4.95-4.95a.996.996 0 1 0-1.41-1.41l-4.95 4.95-4.95-4.95a.996.996 0 1 0-1.41 1.41L10.6 12l-1.41 1.41Z" />
+            </svg>
           </button>
         </div>
         <p class="modal-card__desc" style="margin-top: 0;">

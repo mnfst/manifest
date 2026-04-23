@@ -23,19 +23,15 @@ vi.mock('../../src/components/HeaderTierCard.js', () => ({
   default: (props: {
     agentName: string;
     tier: HeaderTier;
-    ordinal: number;
     models: unknown[];
     customProviders: unknown[];
     connectedProviders: unknown[];
     onOverride: (m: string, p: string) => void;
-    onReset: () => void;
-    onDelete: () => void;
-    onEdit: () => void;
+    onFallbacksUpdate: () => void;
   }) => (
     <div
       data-testid={`card-${props.tier.id}`}
       data-agent-name={props.agentName}
-      data-ordinal={props.ordinal}
       data-models-len={props.models.length}
       data-custom-len={props.customProviders.length}
       data-connected-len={props.connectedProviders.length}
@@ -43,15 +39,6 @@ vi.mock('../../src/components/HeaderTierCard.js', () => ({
       <span>{props.tier.name}</span>
       <button data-testid={`override-${props.tier.id}`} onClick={() => props.onOverride('gpt-4o', 'OpenAI')}>
         override
-      </button>
-      <button data-testid={`reset-${props.tier.id}`} onClick={() => props.onReset()}>
-        reset
-      </button>
-      <button data-testid={`delete-${props.tier.id}`} onClick={() => props.onDelete()}>
-        delete
-      </button>
-      <button data-testid={`edit-${props.tier.id}`} onClick={() => props.onEdit()}>
-        edit
       </button>
     </div>
   ),
@@ -125,6 +112,7 @@ const baseTier: HeaderTier = {
   header_value: 'premium',
   badge_color: 'violet',
   sort_order: 0,
+  enabled: true,
   override_model: 'gpt-4o',
   override_provider: 'openai',
   override_auth_type: null,
@@ -169,9 +157,9 @@ describe('RoutingHeaderTiersSection', () => {
 
   it('opens the modal in create mode when the CTA is clicked', async () => {
     listHeaderTiersMock.mockResolvedValue([]);
-    const { getByText, getByTestId, queryByTestId } = mount();
-    await waitFor(() => getByText('+ Create custom tier'));
-    fireEvent.click(getByText('+ Create custom tier'));
+    const { getAllByText, getByTestId, queryByTestId } = mount();
+    await waitFor(() => getAllByText('Create custom tier'));
+    fireEvent.click(getAllByText('Create custom tier')[0]);
     const modal = getByTestId('mock-modal');
     expect(modal.getAttribute('data-mode')).toBe('create');
     expect(modal.getAttribute('data-editing-id')).toBe('');
@@ -179,21 +167,17 @@ describe('RoutingHeaderTiersSection', () => {
     expect(queryByTestId('mock-modal')).toBeNull();
   });
 
-  it('opens the modal in edit mode and forwards the edited tier when a card requests edit', async () => {
+  it('renders cards for enabled tiers', async () => {
     listHeaderTiersMock.mockResolvedValue([baseTier]);
     const { getByTestId } = mount();
-    await waitFor(() => getByTestId('card-ht-1'));
-    fireEvent.click(getByTestId('edit-ht-1'));
-    const modal = getByTestId('mock-modal');
-    expect(modal.getAttribute('data-mode')).toBe('edit');
-    expect(modal.getAttribute('data-editing-id')).toBe('ht-1');
+    await waitFor(() => expect(getByTestId('card-ht-1')).toBeDefined());
   });
 
   it('refetches tiers after the modal saves', async () => {
     listHeaderTiersMock.mockResolvedValue([]);
-    const { getByText, getByTestId } = mount();
-    await waitFor(() => getByText('+ Create custom tier'));
-    fireEvent.click(getByText('+ Create custom tier'));
+    const { getAllByText, getByTestId } = mount();
+    await waitFor(() => getAllByText('Create custom tier'));
+    fireEvent.click(getAllByText('Create custom tier')[0]);
     listHeaderTiersMock.mockResolvedValue([baseTier]);
     fireEvent.click(getByTestId('modal-saved'));
     await waitFor(() => expect(listHeaderTiersMock).toHaveBeenCalledTimes(2));
@@ -201,29 +185,18 @@ describe('RoutingHeaderTiersSection', () => {
 
   it('auto-opens the SDK snippet modal after a fresh tier is created', async () => {
     listHeaderTiersMock.mockResolvedValue([]);
-    const { getByText, getByTestId, queryByTestId } = mount();
-    await waitFor(() => getByText('+ Create custom tier'));
-    fireEvent.click(getByText('+ Create custom tier'));
+    const { getAllByText, getByTestId, queryByTestId } = mount();
+    await waitFor(() => getAllByText('Create custom tier'));
+    fireEvent.click(getAllByText('Create custom tier')[0]);
     fireEvent.click(getByTestId('modal-saved'));
     await waitFor(() => expect(getByTestId('mock-snippet-modal')).toBeDefined());
     fireEvent.click(getByTestId('mock-snippet-close'));
     expect(queryByTestId('mock-snippet-modal')).toBeNull();
   });
 
-  it('does NOT auto-open the snippet modal when an existing tier is edited', async () => {
-    listHeaderTiersMock.mockResolvedValue([baseTier]);
-    const { getByTestId, queryByTestId } = mount();
-    await waitFor(() => getByTestId('card-ht-1'));
-    fireEvent.click(getByTestId('edit-ht-1'));
-    fireEvent.click(getByTestId('modal-saved'));
-    expect(queryByTestId('mock-snippet-modal')).toBeNull();
-  });
-
-  it('override / reset / delete handlers call the API and refetch', async () => {
+  it('override handler calls the API and refetches', async () => {
     listHeaderTiersMock.mockResolvedValue([baseTier]);
     overrideHeaderTierMock.mockResolvedValue({});
-    resetHeaderTierMock.mockResolvedValue({});
-    deleteHeaderTierMock.mockResolvedValue({});
     const { getByTestId } = mount();
     await waitFor(() => getByTestId('card-ht-1'));
 
@@ -231,34 +204,16 @@ describe('RoutingHeaderTiersSection', () => {
     await waitFor(() =>
       expect(overrideHeaderTierMock).toHaveBeenCalledWith('my-agent', 'ht-1', 'gpt-4o', 'OpenAI', undefined),
     );
-
-    fireEvent.click(getByTestId('reset-ht-1'));
-    await waitFor(() =>
-      expect(resetHeaderTierMock).toHaveBeenCalledWith('my-agent', 'ht-1'),
-    );
-
-    fireEvent.click(getByTestId('delete-ht-1'));
-    await waitFor(() =>
-      expect(deleteHeaderTierMock).toHaveBeenCalledWith('my-agent', 'ht-1'),
-    );
   });
 
-  it('toasts errors from override / reset / delete handlers', async () => {
+  it('toasts errors from override handler', async () => {
     listHeaderTiersMock.mockResolvedValue([baseTier]);
     overrideHeaderTierMock.mockRejectedValue(new Error('override fail'));
-    resetHeaderTierMock.mockRejectedValue(new Error('reset fail'));
-    deleteHeaderTierMock.mockRejectedValue(new Error('delete fail'));
     const { getByTestId } = mount();
     await waitFor(() => getByTestId('card-ht-1'));
 
     fireEvent.click(getByTestId('override-ht-1'));
     await waitFor(() => expect(toastErrorMock).toHaveBeenCalledWith('override fail'));
-
-    fireEvent.click(getByTestId('reset-ht-1'));
-    await waitFor(() => expect(toastErrorMock).toHaveBeenCalledWith('reset fail'));
-
-    fireEvent.click(getByTestId('delete-ht-1'));
-    await waitFor(() => expect(toastErrorMock).toHaveBeenCalledWith('delete fail'));
   });
 
   it('falls back to a generic load message when the list rejects with a non-Error value', async () => {
@@ -269,21 +224,13 @@ describe('RoutingHeaderTiersSection', () => {
     );
   });
 
-  it('falls back to generic messages when override / reset / delete reject with non-Error values', async () => {
+  it('falls back to generic messages when override rejects with non-Error values', async () => {
     listHeaderTiersMock.mockResolvedValue([baseTier]);
     overrideHeaderTierMock.mockRejectedValue('plain string');
-    resetHeaderTierMock.mockRejectedValue('plain string');
-    deleteHeaderTierMock.mockRejectedValue('plain string');
     const { getByTestId } = mount();
     await waitFor(() => getByTestId('card-ht-1'));
 
     fireEvent.click(getByTestId('override-ht-1'));
     await waitFor(() => expect(toastErrorMock).toHaveBeenCalledWith('Failed to update tier'));
-
-    fireEvent.click(getByTestId('reset-ht-1'));
-    await waitFor(() => expect(toastErrorMock).toHaveBeenCalledWith('Failed to reset tier'));
-
-    fireEvent.click(getByTestId('delete-ht-1'));
-    await waitFor(() => expect(toastErrorMock).toHaveBeenCalledWith('Failed to delete tier'));
   });
 });

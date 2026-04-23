@@ -31,21 +31,27 @@
 
 /* ── Empty state ─────────────────────────────────── */
 .routing-section__empty {
-  padding: 32px 24px;
-  border: 1px dashed hsl(var(--border));
-  border-radius: var(--radius);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
-  color: hsl(var(--muted-foreground));
-  background: hsl(var(--muted) / 0.2);
+  padding: 48px 24px;
+  gap: 8px;
+  width: 100%;
+  background: hsl(var(--muted) / 0.45);
+  border-radius: var(--radius);
+  overflow: hidden;
 }
 .routing-section__empty-title {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: hsl(var(--foreground));
-  margin-bottom: 4px;
 }
 .routing-section__empty-desc {
   font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 8px;
   line-height: 1.5;
 }
 .routing-section__empty-desc code {
@@ -71,6 +77,7 @@
   align-items: center;
   gap: 6px;
   flex-wrap: nowrap;
+  margin-bottom: 8px;
 }
 
 /* Left: ordinal + dot + name. Truncates if it can't fit. */
@@ -88,21 +95,9 @@
 .header-tier-card__ordinal {
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
-  color: hsl(var(--muted-foreground));
-  font-weight: 500;
+  color: hsl(var(--foreground));
+  font-weight: 600;
   flex-shrink: 0;
-}
-
-.header-tier-card__dot {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.header-tier-card__dot[class*='tier-color--'] {
-  /* tier-color-* sets text colour too; we only want the bg. */
-  color: inherit;
 }
 
 .header-tier-card__name {
@@ -110,6 +105,31 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   min-width: 0;
+}
+
+.header-tier-card__icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: hsl(var(--muted) / 0.5);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
+}
+.header-tier-card__icon-btn:hover {
+  background: hsl(var(--muted) / 0.8);
+  color: hsl(var(--foreground));
+}
+.header-tier-card__icon-btn:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
 }
 
 /* Right: Reset / + Add model + kebab, all in one inline cluster mirroring
@@ -128,9 +148,8 @@
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
   color: hsl(var(--muted-foreground));
-  background: hsl(var(--muted) / 0.55);
-  padding: 2px 6px;
-  border-radius: 4px;
+  background: none;
+  padding: 0;
   margin-bottom: 8px;
   max-width: 100%;
   overflow: hidden;
@@ -207,6 +226,24 @@
   color: hsl(var(--destructive));
 }
 
+/* ── Manage custom-tiers modal ────────────────────── */
+.header-tier-manage-modal {
+  max-width: 480px;
+  width: 100%;
+}
+
+.header-tier-manage__create-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.header-tier-manage__footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
 /* ── Create custom-tier modal ─────────────────────── */
 /* Uses the shared .modal-overlay + .modal-card pattern. We keep
    .header-tier-modal-backdrop / .header-tier-modal__close as alias hooks
@@ -216,33 +253,31 @@
   max-width: 480px;
 }
 
-.header-tier-modal__close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 32px;
-  height: 32px;
+.header-tier-modal__back {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 32px;
+  height: 32px;
   background: transparent;
   border: none;
   color: hsl(var(--muted-foreground));
-  font-size: 20px;
-  line-height: 1;
   border-radius: var(--radius-sm);
   cursor: pointer;
+  margin-bottom: 8px;
   transition:
     background var(--transition-fast),
     color var(--transition-fast);
 }
-.header-tier-modal__close:hover {
+.header-tier-modal__back:hover {
   background: hsl(var(--muted) / 0.6);
   color: hsl(var(--foreground));
 }
-.header-tier-modal__close:focus-visible {
-  outline: 2px solid hsl(var(--ring));
-  outline-offset: 2px;
+
+.header-tier-modal__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
 }
 
 .header-tier-modal .modal-card__title {
@@ -257,13 +292,14 @@
 
 /* ── Color swatches ───────────────────────────────── */
 .header-tier-modal__swatches {
-  display: flex;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 6px;
 }
 
 .header-tier-modal__swatch {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   border: 1px solid hsl(var(--border));
   cursor: pointer;
@@ -290,28 +326,94 @@
 .header-tier-modal__swatch--slate {
   background: hsl(215 16% 47%);
 }
-.header-tier-modal__swatch--indigo {
-  background: hsl(239 68% 56%);
+.header-tier-modal__swatch--gray {
+  background: hsl(220 9% 46%);
 }
-.header-tier-modal__swatch--teal {
-  background: hsl(174 66% 42%);
+.header-tier-modal__swatch--zinc {
+  background: hsl(240 4% 46%);
+}
+.header-tier-modal__swatch--stone {
+  background: hsl(25 6% 45%);
+}
+.header-tier-modal__swatch--red {
+  background: hsl(0 72% 51%);
+}
+.header-tier-modal__swatch--orange {
+  background: hsl(25 95% 53%);
 }
 .header-tier-modal__swatch--amber {
   background: hsl(38 92% 50%);
 }
-.header-tier-modal__swatch--rose {
-  background: hsl(351 83% 58%);
+.header-tier-modal__swatch--yellow {
+  background: hsl(48 96% 53%);
+}
+.header-tier-modal__swatch--lime {
+  background: hsl(84 81% 44%);
+}
+.header-tier-modal__swatch--green {
+  background: hsl(142 71% 45%);
+}
+.header-tier-modal__swatch--emerald {
+  background: hsl(160 84% 39%);
+}
+.header-tier-modal__swatch--teal {
+  background: hsl(174 66% 42%);
+}
+.header-tier-modal__swatch--cyan {
+  background: hsl(188 86% 43%);
+}
+.header-tier-modal__swatch--sky {
+  background: hsl(199 89% 48%);
+}
+.header-tier-modal__swatch--blue {
+  background: hsl(217 91% 60%);
+}
+.header-tier-modal__swatch--indigo {
+  background: hsl(239 68% 56%);
 }
 .header-tier-modal__swatch--violet {
   background: hsl(270 67% 55%);
+}
+.header-tier-modal__swatch--purple {
+  background: hsl(271 81% 56%);
+}
+.header-tier-modal__swatch--fuchsia {
+  background: hsl(292 84% 61%);
+}
+.header-tier-modal__swatch--pink {
+  background: hsl(330 81% 60%);
+}
+.header-tier-modal__swatch--rose {
+  background: hsl(351 83% 58%);
+}
+.header-tier-modal__swatch--coral {
+  background: hsl(16 85% 58%);
+}
+.header-tier-modal__swatch--brown {
+  background: hsl(28 56% 40%);
+}
+.header-tier-modal__swatch--navy {
+  background: hsl(224 64% 33%);
 }
 
 /* ── Modal footer (cancel / create) ──────────────── */
 .header-tier-modal__footer {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   gap: 8px;
   margin-top: var(--gap-xl);
+}
+
+.header-tier-modal__footer-right {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.header-tier-modal__delete-btn {
+  color: hsl(var(--muted-foreground));
+  font-size: var(--font-size-sm);
 }
 
 /* ── HeaderComboBox (used inside the modal) ──────── */

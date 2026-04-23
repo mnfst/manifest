@@ -153,7 +153,8 @@ export class ResolveService {
     agentId: string,
     headers: IncomingHttpHeaders,
   ): Promise<ResolveResponse | null> {
-    const tiers = await this.headerTierService.list(agentId);
+    const allTiers = await this.headerTierService.list(agentId);
+    const tiers = allTiers.filter((t) => t.enabled);
     if (tiers.length === 0) return null;
 
     const match = tiers.find((t) => matchesHeaderRule(headers, t));

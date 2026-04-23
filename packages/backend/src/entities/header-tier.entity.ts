@@ -35,6 +35,9 @@ export class HeaderTier {
   @Column('integer', { default: 0 })
   sort_order!: number;
 
+  @Column('boolean', { default: true })
+  enabled!: boolean;
+
   @Column('varchar', { nullable: true })
   override_model!: string | null;
 

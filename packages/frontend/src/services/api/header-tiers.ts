@@ -10,6 +10,7 @@ export interface HeaderTier {
   header_value: string;
   badge_color: TierColor;
   sort_order: number;
+  enabled: boolean;
   override_model: string | null;
   override_provider: string | null;
   override_auth_type: AuthType | null;
@@ -59,6 +60,17 @@ export function updateHeaderTier(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(patch),
   });
+}
+
+export function toggleHeaderTier(agentName: string, id: string, enabled: boolean) {
+  return fetchMutate<HeaderTier>(
+    routingPath(agentName, `header-tiers/${encodeURIComponent(id)}/toggle`),
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled }),
+    },
+  );
 }
 
 export function deleteHeaderTier(agentName: string, id: string) {
