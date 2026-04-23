@@ -133,6 +133,18 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: 'sk-...',
   },
   {
+    id: 'nano-gpt',
+    displayName: 'NanoGPT',
+    aliases: ['nanogpt'],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+    color: '#0f172a',
+    keyPrefix: '',
+    minKeyLength: 20,
+    keyPlaceholder: 'API key',
+  },
+  {
     id: 'ollama',
     displayName: 'Ollama',
     aliases: [],

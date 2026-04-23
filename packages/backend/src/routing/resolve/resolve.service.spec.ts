@@ -545,6 +545,42 @@ describe('ResolveService', () => {
       expect(out.user_provider_id).toBeUndefined();
     });
 
+    it('drops override_provider_id when override_auth_type mismatches the active record auth_type', async () => {
+      scoring.scoreRequest.mockReturnValue({
+        tier: 'standard',
+        confidence: 0.5,
+        score: 20,
+        reason: 'scored',
+      });
+      const { svc } = makeService({
+        tiers: [
+          {
+            tier: 'standard',
+            override_model: 'gpt-4o',
+            override_provider: 'openai',
+            override_auth_type: 'subscription',
+            override_provider_id: 'prov-auth-mismatch',
+            auto_assigned_model: null,
+          },
+        ],
+        getEffectiveModel: jest.fn().mockResolvedValue('gpt-4o'),
+        hasActiveProvider: jest.fn().mockResolvedValue(true),
+        getActiveProviderRecordById: jest.fn().mockResolvedValue({
+          id: 'prov-auth-mismatch',
+          provider: 'openai',
+          auth_type: 'api_key',
+        }),
+        getAuthType: jest.fn().mockResolvedValue('api_key'),
+      });
+
+      const out = await svc.resolve('agent-1', [{ role: 'user', content: 'hi' }]);
+
+      // Provider resolves from override_provider string but the pin is dropped
+      // because the assignment expects 'subscription' but the record has 'api_key'.
+      expect(out.provider).toBe('openai');
+      expect(out.user_provider_id).toBeUndefined();
+    });
+
     it('drops override_provider_id when the pinned provider mismatches the resolved provider', async () => {
       scoring.scoreRequest.mockReturnValue({
         tier: 'standard',

@@ -864,6 +864,182 @@ describe('ProviderService', () => {
     });
   });
 
+  /* ── updateProviderAccount ── */
+
+  describe('updateProviderAccount', () => {
+    it('should throw NotFoundException when provider not found', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.updateProviderAccount('agent-1', 'missing-id', { accountLabel: 'work' }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should update account_label on the provider record', async () => {
+      const record = makeProvider({ id: 'prov-1', account_label: 'default' });
+      providerRepo.findOne.mockResolvedValue(record);
+
+      const result = await service.updateProviderAccount('agent-1', 'prov-1', {
+        accountLabel: 'work',
+      });
+
+      expect(record.account_label).toBe('work');
+      expect(providerRepo.save).toHaveBeenCalledWith(record);
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+      expect(result).toBe(record);
+    });
+
+    it('should throw BadRequestException when account_label conflicts with another active record', async () => {
+      const record = makeProvider({ id: 'prov-1', provider: 'openai', account_label: 'default' });
+      const conflict = makeProvider({ id: 'prov-2', provider: 'openai', account_label: 'work' });
+      // First call: find target record. Second call: uniqueness check.
+      providerRepo.findOne.mockResolvedValueOnce(record).mockResolvedValueOnce(conflict);
+
+      await expect(
+        service.updateProviderAccount('agent-1', 'prov-1', { accountLabel: 'work' }),
+      ).rejects.toThrow('Account label "work" already in use for openai');
+    });
+
+    it('should allow setting account_label to the same value (no conflict with self)', async () => {
+      const record = makeProvider({ id: 'prov-1', provider: 'openai', account_label: 'default' });
+      // Uniqueness check returns the same record (same id).
+      providerRepo.findOne.mockResolvedValueOnce(record).mockResolvedValueOnce(record);
+
+      const result = await service.updateProviderAccount('agent-1', 'prov-1', {
+        accountLabel: 'default',
+      });
+
+      expect(result.account_label).toBe('default');
+      expect(providerRepo.save).toHaveBeenCalled();
+    });
+
+    it('should set is_default=true and clear is_default on siblings', async () => {
+      const record = makeProvider({ id: 'prov-1', provider: 'openai', is_default: false });
+      const sibling = makeProvider({ id: 'prov-2', provider: 'openai', is_default: true });
+      // First findOne: target record. Second find: siblings.
+      providerRepo.findOne.mockResolvedValueOnce(record);
+      providerRepo.find.mockResolvedValueOnce([record, sibling]);
+
+      const result = await service.updateProviderAccount('agent-1', 'prov-1', {
+        isDefault: true,
+      });
+
+      expect(record.is_default).toBe(true);
+      expect(sibling.is_default).toBe(false);
+      expect(providerRepo.save).toHaveBeenCalledWith([sibling]);
+      expect(providerRepo.save).toHaveBeenCalledWith(record);
+      expect(result).toBe(record);
+    });
+
+    it('should set is_default=false without touching siblings', async () => {
+      const record = makeProvider({ id: 'prov-1', provider: 'openai', is_default: true });
+
+      providerRepo.findOne.mockResolvedValue(record);
+
+      const result = await service.updateProviderAccount('agent-1', 'prov-1', {
+        isDefault: false,
+      });
+
+      expect(record.is_default).toBe(false);
+      expect(providerRepo.save).toHaveBeenCalledWith(record);
+      expect(result).toBe(record);
+    });
+
+    it('should update both accountLabel and isDefault together', async () => {
+      const record = makeProvider({ id: 'prov-1', provider: 'openai', account_label: 'default' });
+      // findOne for target, findOne for label conflict (no conflict), find for siblings.
+      providerRepo.findOne.mockResolvedValueOnce(record).mockResolvedValueOnce(null);
+      providerRepo.find.mockResolvedValueOnce([record]);
+
+      const result = await service.updateProviderAccount('agent-1', 'prov-1', {
+        accountLabel: 'personal',
+        isDefault: true,
+      });
+
+      expect(result.account_label).toBe('personal');
+      expect(result.is_default).toBe(true);
+    });
+
+    it('should not clear siblings when setting isDefault=true and no sibling has is_default', async () => {
+      const record = makeProvider({ id: 'prov-1', provider: 'openai', is_default: false });
+      const sibling = makeProvider({ id: 'prov-2', provider: 'openai', is_default: false });
+
+      providerRepo.findOne.mockResolvedValueOnce(record);
+      providerRepo.find.mockResolvedValueOnce([record, sibling]);
+
+      await service.updateProviderAccount('agent-1', 'prov-1', { isDefault: true });
+
+      // No sibling has is_default=true, so no siblings need clearing.
+      // Only the target record is saved.
+      const saveCalls = providerRepo.save.mock.calls;
+      // Last save should be the target record with is_default=true
+      expect(saveCalls[saveCalls.length - 1][0]).toBe(record);
+      expect(record.is_default).toBe(true);
+    });
+  });
+
+  /* ── updateProviderApiKeyById ── */
+
+  describe('updateProviderApiKeyById', () => {
+    it('should throw NotFoundException when provider not found', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.updateProviderApiKeyById('agent-1', 'missing-id', 'sk-new-key'),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should update encrypted key and key_prefix', async () => {
+      const record = makeProvider({ api_key_encrypted: 'old-enc', key_prefix: 'sk-old-' });
+      providerRepo.findOne.mockResolvedValue(record);
+
+      const result = await service.updateProviderApiKeyById('agent-1', 'prov-1', 'sk-proj-newkey');
+
+      expect(record.api_key_encrypted).toBe('encrypted-value');
+      expect(record.key_prefix).toBe('sk-proj-');
+      expect(providerRepo.save).toHaveBeenCalledWith(record);
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+      expect(result).toBe(record);
+    });
+
+    it('should update region when provided', async () => {
+      const record = makeProvider({ region: null });
+      providerRepo.findOne.mockResolvedValue(record);
+
+      const result = await service.updateProviderApiKeyById('agent-1', 'prov-1', 'sk-key', 'us');
+
+      expect(record.region).toBe('us');
+      expect(result).toBe(record);
+    });
+
+    it('should not change region when undefined (not passed)', async () => {
+      const record = makeProvider({ region: 'singapore' });
+      providerRepo.findOne.mockResolvedValue(record);
+
+      await service.updateProviderApiKeyById('agent-1', 'prov-1', 'sk-key');
+
+      expect(record.region).toBe('singapore');
+    });
+
+    it('should set region to null when null is explicitly passed', async () => {
+      const record = makeProvider({ region: 'us' });
+      providerRepo.findOne.mockResolvedValue(record);
+
+      await service.updateProviderApiKeyById('agent-1', 'prov-1', 'sk-key', null);
+
+      expect(record.region).toBeNull();
+    });
+
+    it('should update updated_at timestamp', async () => {
+      const record = makeProvider({ updated_at: '2025-01-01T00:00:00Z' });
+      providerRepo.findOne.mockResolvedValue(record);
+
+      await service.updateProviderApiKeyById('agent-1', 'prov-1', 'sk-key');
+
+      expect(record.updated_at).not.toBe('2025-01-01T00:00:00Z');
+    });
+  });
+
   /* ── cleanupProviderReferences: custom provider + specificity (#1603) ── */
 
   describe('cleanupProviderReferences — custom provider + specificity', () => {

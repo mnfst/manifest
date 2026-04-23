@@ -66,6 +66,8 @@ interface MountOpts {
   selectedAuthType?: AuthType;
   editing?: boolean;
   keyInput?: string;
+  accountLabel?: string;
+  requireAccountLabel?: boolean;
   onBack?: () => void;
   onUpdate?: () => void;
 }
@@ -96,6 +98,8 @@ function mount(opts: MountOpts) {
       validationError={validationError}
       setValidationError={setValidationError}
       getKeyPrefixDisplay={() => 'sk-***'}
+      accountLabel={opts.accountLabel}
+      requireAccountLabel={opts.requireAccountLabel}
       onBack={onBack}
       onUpdate={onUpdate}
     />
@@ -299,9 +303,9 @@ describe('ProviderKeyForm', () => {
       });
 
       // Find the Save button (inside the editing view)
-      const saveBtn = Array.from(
-        container.querySelectorAll('.provider-detail__action'),
-      ).find((b) => b.textContent?.includes('Save')) as HTMLButtonElement;
+      const saveBtn = Array.from(container.querySelectorAll('.provider-detail__action')).find((b) =>
+        b.textContent?.includes('Save'),
+      ) as HTMLButtonElement;
       expect(saveBtn).not.toBeNull();
       fireEvent.click(saveBtn);
       await Promise.resolve();
@@ -322,9 +326,9 @@ describe('ProviderKeyForm', () => {
         isSubMode: true,
         keyInput: 'sess-token-abc',
       });
-      const saveBtn = Array.from(
-        container.querySelectorAll('.provider-detail__action'),
-      ).find((b) => b.textContent?.includes('Save')) as HTMLButtonElement;
+      const saveBtn = Array.from(container.querySelectorAll('.provider-detail__action')).find((b) =>
+        b.textContent?.includes('Save'),
+      ) as HTMLButtonElement;
       fireEvent.click(saveBtn);
       await Promise.resolve();
       await Promise.resolve();
@@ -345,9 +349,9 @@ describe('ProviderKeyForm', () => {
         isSubMode: true,
         keyInput: 'new-cloud-key',
       });
-      const saveBtn = Array.from(
-        container.querySelectorAll('.provider-detail__action'),
-      ).find((b) => b.textContent?.includes('Save')) as HTMLButtonElement;
+      const saveBtn = Array.from(container.querySelectorAll('.provider-detail__action')).find((b) =>
+        b.textContent?.includes('Save'),
+      ) as HTMLButtonElement;
       fireEvent.click(saveBtn);
       await Promise.resolve();
       await Promise.resolve();
@@ -392,7 +396,7 @@ describe('ProviderKeyForm', () => {
       fireEvent.click(disconnectBtn);
       await Promise.resolve();
       await Promise.resolve();
-      expect(revokeOpenaiOAuthMock).toHaveBeenCalledWith('test-agent');
+      expect(revokeOpenaiOAuthMock).toHaveBeenCalledWith('test-agent', undefined);
       expect(disconnectProviderMock).toHaveBeenCalled();
     });
 
@@ -486,14 +490,100 @@ describe('ProviderKeyForm', () => {
         editing: true,
         keyInput: 'sk-new',
       });
-      const editingInput = container.querySelector(
-        'input:not([disabled])',
-      ) as HTMLInputElement;
+      const editingInput = container.querySelector('input:not([disabled])') as HTMLInputElement;
       fireEvent.keyDown(editingInput, { key: 'Enter' });
       await Promise.resolve();
       await Promise.resolve();
       expect(connectProviderMock).toHaveBeenCalled();
       expect(toastSuccess).toHaveBeenCalledWith('OpenAI key updated');
+    });
+  });
+
+  describe('requireAccountLabel', () => {
+    it('blocks connect and sets validation error when requireAccountLabel is true but accountLabel is empty', async () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const { container } = mount({
+        provDef: def,
+        keyInput: 'sk-test',
+        requireAccountLabel: true,
+        accountLabel: '',
+      });
+
+      const connectBtn = container.querySelector('.provider-detail__action') as HTMLButtonElement;
+      fireEvent.click(connectBtn);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(connectProviderMock).not.toHaveBeenCalled();
+      const errorEl = container.querySelector('.provider-detail__error');
+      expect(errorEl).not.toBeNull();
+      expect(errorEl!.textContent).toBe('Account label is required to add another account.');
+    });
+
+    it('blocks update and sets validation error when requireAccountLabel is true but accountLabel is empty', async () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const { container } = mount({
+        provDef: def,
+        connected: true,
+        editing: true,
+        keyInput: 'sk-new',
+        requireAccountLabel: true,
+        accountLabel: '',
+      });
+
+      const saveBtn = Array.from(container.querySelectorAll('.provider-detail__action')).find((b) =>
+        b.textContent?.includes('Save'),
+      ) as HTMLButtonElement;
+      fireEvent.click(saveBtn);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(connectProviderMock).not.toHaveBeenCalled();
+      const errorEl = container.querySelector('.provider-detail__error');
+      expect(errorEl).not.toBeNull();
+    });
+
+    it('proceeds with connect when requireAccountLabel is true and accountLabel is provided', async () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const { container } = mount({
+        provDef: def,
+        keyInput: 'sk-test',
+        requireAccountLabel: true,
+        accountLabel: 'Work',
+      });
+
+      const connectBtn = container.querySelector('.provider-detail__action') as HTMLButtonElement;
+      fireEvent.click(connectBtn);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(connectProviderMock).toHaveBeenCalledWith('test-agent', {
+        provider: 'openai',
+        apiKey: 'sk-test',
+        authType: 'api_key',
+        accountLabel: 'Work',
+      });
+      expect(toastSuccess).toHaveBeenCalledWith('OpenAI connected');
+    });
+
+    it('proceeds without accountLabel when requireAccountLabel is false', async () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const { container } = mount({
+        provDef: def,
+        keyInput: 'sk-test',
+        requireAccountLabel: false,
+      });
+
+      const connectBtn = container.querySelector('.provider-detail__action') as HTMLButtonElement;
+      fireEvent.click(connectBtn);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(connectProviderMock).toHaveBeenCalledWith('test-agent', {
+        provider: 'openai',
+        apiKey: 'sk-test',
+        authType: 'api_key',
+      });
     });
   });
 });

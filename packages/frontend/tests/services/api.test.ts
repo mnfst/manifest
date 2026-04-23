@@ -51,6 +51,7 @@ import {
   getMessageDetails,
   flagMessageMiscategorized,
   clearMessageMiscategorized,
+  patchProviderAccount,
 } from '../../src/services/api.js';
 
 vi.mock('../../src/services/toast-store.js', () => ({
@@ -577,6 +578,33 @@ describe('connectProvider', () => {
     );
   });
 
+  it('POSTs with accountLabel when provided', async () => {
+    mockMutateOk({ id: '1', provider: 'openai', is_active: true });
+
+    await connectProvider('my-agent', {
+      provider: 'openai',
+      apiKey: 'sk-test',
+      accountLabel: 'Work',
+    });
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/v1/routing/my-agent/providers',
+      expect.objectContaining({
+        body: JSON.stringify({ provider: 'openai', apiKey: 'sk-test', accountLabel: 'Work' }),
+      }),
+    );
+  });
+
+  it('omits accountLabel when not provided', async () => {
+    mockMutateOk({ id: '1', provider: 'openai', is_active: true });
+
+    await connectProvider('my-agent', { provider: 'openai', apiKey: 'sk-test' });
+
+    const call = mockFetch.mock.calls[0];
+    const body = JSON.parse(call[1].body);
+    expect(body).not.toHaveProperty('accountLabel');
+  });
+
   it('throws and shows toast on error', async () => {
     const { toast } = await import('../../src/services/toast-store.js');
     mockMutateError(400, 'Invalid provider');
@@ -610,6 +638,23 @@ describe('getOpenaiOAuthUrl', () => {
     expect(url).toContain('/api/v1/oauth/openai/authorize');
     expect(url).toContain('agentName=my-agent');
   });
+
+  it('includes accountLabel param when provided', async () => {
+    mockOk({ url: 'https://auth.openai.com/oauth/authorize?state=abc' });
+
+    await getOpenaiOAuthUrl('my-agent', 'Work');
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain('agentName=my-agent');
+    expect(url).toContain('accountLabel=Work');
+  });
+
+  it('omits accountLabel when not provided', async () => {
+    mockOk({ url: 'https://auth.openai.com/oauth/authorize?state=abc' });
+
+    await getOpenaiOAuthUrl('my-agent');
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).not.toContain('accountLabel');
+  });
 });
 
 describe('revokeOpenaiOAuth', () => {
@@ -623,6 +668,24 @@ describe('revokeOpenaiOAuth', () => {
       '/api/v1/oauth/openai/revoke?agentName=my-agent',
       expect.objectContaining({ method: 'POST', credentials: 'include' }),
     );
+  });
+
+  it('includes providerId param when provided', async () => {
+    mockMutateOk({ ok: true });
+
+    await revokeOpenaiOAuth('my-agent', 'up-abc123');
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/v1/oauth/openai/revoke?agentName=my-agent&providerId=up-abc123',
+      expect.objectContaining({ method: 'POST', credentials: 'include' }),
+    );
+  });
+
+  it('omits providerId when not provided', async () => {
+    mockMutateOk({ ok: true });
+
+    await revokeOpenaiOAuth('my-agent');
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).not.toContain('providerId');
   });
 });
 
@@ -661,6 +724,36 @@ describe('startMinimaxOAuth', () => {
       '/api/v1/oauth/minimax/start?agentName=my-agent&region=cn',
       expect.objectContaining({ method: 'POST', credentials: 'include' }),
     );
+  });
+
+  it('includes accountLabel when provided', async () => {
+    mockMutateOk({
+      flowId: 'flow-2',
+      userCode: 'WXYZ-5678',
+      verificationUri: 'https://www.minimax.io/verify',
+      expiresAt: 1760000000000,
+      pollIntervalMs: 2000,
+    });
+
+    await startMinimaxOAuth('my-agent', 'global', 'Work');
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/v1/oauth/minimax/start?agentName=my-agent&region=global&accountLabel=Work',
+      expect.objectContaining({ method: 'POST', credentials: 'include' }),
+    );
+  });
+
+  it('omits accountLabel when not provided', async () => {
+    mockMutateOk({
+      flowId: 'flow-3',
+      userCode: 'XXXX-0000',
+      verificationUri: 'https://www.minimax.io/verify',
+      expiresAt: 1760000000000,
+      pollIntervalMs: 2000,
+    });
+
+    await startMinimaxOAuth('my-agent', 'global');
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).not.toContain('accountLabel');
   });
 });
 
@@ -722,6 +815,95 @@ describe('disconnectProvider', () => {
     const url = mockFetch.mock.calls[0]?.[0] as string;
     expect(url).toContain('/routing/my-agent/providers/openai?providerId=up-xyz');
     expect(url).not.toContain('authType');
+  });
+});
+
+describe('patchProviderAccount', () => {
+  it('PATCHes account label for a provider', async () => {
+    const payload = {
+      id: 'up-1',
+      provider: 'openai',
+      auth_type: 'api_key',
+      is_active: true,
+      account_label: 'Work',
+      is_default: false,
+    };
+    mockMutateOk(payload);
+
+    const result = await patchProviderAccount('my-agent', 'up-1', { accountLabel: 'Work' });
+    expect(result).toEqual(payload);
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/v1/routing/my-agent/providers/up-1/account',
+      expect.objectContaining({
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountLabel: 'Work' }),
+      }),
+    );
+  });
+
+  it('PATCHes isDefault flag', async () => {
+    mockMutateOk({
+      id: 'up-2',
+      provider: 'anthropic',
+      auth_type: 'subscription',
+      is_active: true,
+      account_label: 'Personal',
+      is_default: true,
+    });
+
+    await patchProviderAccount('my-agent', 'up-2', { isDefault: true });
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/v1/routing/my-agent/providers/up-2/account',
+      expect.objectContaining({
+        body: JSON.stringify({ isDefault: true }),
+      }),
+    );
+  });
+
+  it('PATCHes both accountLabel and isDefault together', async () => {
+    mockMutateOk({
+      id: 'up-3',
+      provider: 'openai',
+      auth_type: 'api_key',
+      is_active: true,
+      account_label: 'Prod',
+      is_default: true,
+    });
+
+    await patchProviderAccount('my-agent', 'up-3', { accountLabel: 'Prod', isDefault: true });
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/v1/routing/my-agent/providers/up-3/account',
+      expect.objectContaining({
+        body: JSON.stringify({ accountLabel: 'Prod', isDefault: true }),
+      }),
+    );
+  });
+
+  it('encodes providerId in URL', async () => {
+    mockMutateOk({
+      id: 'up/special',
+      provider: 'openai',
+      auth_type: 'api_key',
+      is_active: true,
+      account_label: 'Test',
+      is_default: false,
+    });
+
+    await patchProviderAccount('my-agent', 'up/special', { accountLabel: 'Test' });
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain('/providers/up%2Fspecial/account');
+  });
+
+  it('throws and shows toast on error', async () => {
+    const { toast } = await import('../../src/services/toast-store.js');
+    mockMutateError(404, 'Provider not found');
+
+    await expect(
+      patchProviderAccount('my-agent', 'up-missing', { accountLabel: 'X' }),
+    ).rejects.toThrow('Provider not found');
+    expect(toast.error).toHaveBeenCalledWith('Provider not found');
   });
 });
 
@@ -1365,6 +1547,31 @@ describe('copilotPollToken', () => {
   it('throws on non-ok response without showing toast', async () => {
     mockFetch.mockResolvedValueOnce({ ok: false, status: 503 });
     await expect(copilotPollToken('agent', 'dc_x')).rejects.toThrow('Poll failed: 503');
+  });
+
+  it('includes accountLabel in body when provided', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ status: 'complete' }) });
+
+    await copilotPollToken('my-agent', 'dc_abc', 'Work');
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/v1/routing/my-agent/copilot/poll-token',
+      expect.objectContaining({
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deviceCode: 'dc_abc', accountLabel: 'Work' }),
+      }),
+    );
+  });
+
+  it('omits accountLabel from body when not provided', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ status: 'pending' }) });
+
+    await copilotPollToken('my-agent', 'dc_abc');
+    const call = mockFetch.mock.calls[0];
+    const body = JSON.parse(call[1].body);
+    expect(body).toEqual({ deviceCode: 'dc_abc' });
+    expect(body).not.toHaveProperty('accountLabel');
   });
 });
 

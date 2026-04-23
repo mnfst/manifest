@@ -34,6 +34,12 @@ describe('OpenaiOauthService', () => {
     providerService = {
       upsertProvider: jest.fn().mockResolvedValue({ provider: {}, isNew: true }),
       recalculateTiers: jest.fn().mockResolvedValue(undefined),
+      getProviders: jest
+        .fn()
+        .mockResolvedValue([
+          { id: 'prov-1', provider: 'openai', auth_type: 'subscription', is_active: true },
+        ]),
+      updateProviderApiKeyById: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<ProviderService>;
 
     configService = {
@@ -282,12 +288,11 @@ describe('OpenaiOauthService', () => {
       const result = await service.unwrapToken(JSON.stringify(blob), 'agent-1', 'user-1');
 
       expect(result).toBe('new-access');
-      expect(providerService.upsertProvider).toHaveBeenCalledWith(
+      expect(providerService.getProviders).toHaveBeenCalledWith('agent-1');
+      expect(providerService.updateProviderApiKeyById).toHaveBeenCalledWith(
         'agent-1',
-        'user-1',
-        'openai',
+        'prov-1',
         expect.any(String),
-        'subscription',
       );
     });
 

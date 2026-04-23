@@ -112,6 +112,18 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: () => '/v1/messages',
     format: 'anthropic',
   },
+  'nano-gpt': {
+    baseUrl: 'https://nano-gpt.com/api',
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+  },
+  'nano-gpt-subscription': {
+    baseUrl: 'https://nano-gpt.com/api/subscription',
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+  },
   moonshot: {
     baseUrl: 'https://api.moonshot.ai',
     buildHeaders: openaiHeaders,
