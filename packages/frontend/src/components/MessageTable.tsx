@@ -12,6 +12,7 @@ export interface MessageTableProps {
   onFeedbackLike?: (id: string) => void;
   onFeedbackDislike?: (id: string) => void;
   onFeedbackClear?: (id: string) => void;
+  onOpenRecording?: (id: string) => void;
   rowIdPrefix?: string;
   showHeaderTooltips?: boolean;
   expandable?: boolean;
@@ -51,6 +52,7 @@ function ExpandableRow(props: {
     onFeedbackLike: props.tableProps.onFeedbackLike,
     onFeedbackDislike: props.tableProps.onFeedbackDislike,
     onFeedbackClear: props.tableProps.onFeedbackClear,
+    onOpenRecording: props.tableProps.onOpenRecording,
   };
 
   return (
@@ -93,6 +95,7 @@ function PlainRow(props: {
     onFeedbackLike: props.tableProps.onFeedbackLike,
     onFeedbackDislike: props.tableProps.onFeedbackDislike,
     onFeedbackClear: props.tableProps.onFeedbackClear,
+    onOpenRecording: props.tableProps.onOpenRecording,
   };
   return (
     <tr id={props.rowId}>

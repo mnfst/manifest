@@ -271,4 +271,44 @@ describe('AgentLifecycleService', () => {
       expect(mockManagerQb.set).toHaveBeenCalledWith({ name: 'new-agent' });
     });
   });
+
+  describe('setRecordMessages', () => {
+    it('updates the record_messages flag and returns the agent id', async () => {
+      mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-42', name: 'my-agent' });
+
+      const mockExecute = jest.fn().mockResolvedValue({});
+      const mockUpdateQb = {
+        update: jest.fn().mockReturnThis(),
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        execute: mockExecute,
+      };
+      mockAgentCreateQueryBuilder
+        .mockReturnValueOnce({
+          select: jest.fn().mockReturnThis(),
+          leftJoin: jest.fn().mockReturnThis(),
+          where: jest.fn().mockReturnThis(),
+          andWhere: jest.fn().mockReturnThis(),
+          orderBy: jest.fn().mockReturnThis(),
+          getOne: mockAgentGetOne,
+          getMany: jest.fn().mockResolvedValue([]),
+        })
+        .mockReturnValueOnce(mockUpdateQb);
+
+      const result = await service.setRecordMessages('test-user', 'my-agent', true);
+
+      expect(result).toEqual({ agentId: 'agent-id-42' });
+      expect(mockUpdateQb.set).toHaveBeenCalledWith({ record_messages: true });
+      expect(mockUpdateQb.where).toHaveBeenCalledWith('id = :id', { id: 'agent-id-42' });
+      expect(mockExecute).toHaveBeenCalledTimes(1);
+    });
+
+    it('throws NotFoundException when agent is not found', async () => {
+      mockAgentGetOne.mockResolvedValueOnce(null);
+
+      await expect(service.setRecordMessages('test-user', 'missing', false)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
 });
