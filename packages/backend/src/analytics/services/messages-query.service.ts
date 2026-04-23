@@ -45,6 +45,7 @@ export class MessagesQueryService {
     cursor?: string;
     agent_name?: string;
     status?: MessageStatusFilter;
+    recorded?: boolean;
   }) {
     const tenantId = (await this.tenantCache.resolve(params.userId)) ?? undefined;
     const baseQb = await this.buildBaseMessageQuery(params, tenantId);
@@ -106,6 +107,7 @@ export class MessagesQueryService {
       cost_max?: number;
       agent_name?: string;
       status?: MessageStatusFilter;
+      recorded?: boolean;
     },
     tenantId: string | undefined,
   ): Promise<SelectQueryBuilder<AgentMessage>> {
@@ -138,6 +140,10 @@ export class MessagesQueryService {
       qb.andWhere('at.status IN (:...errorStatuses)', { errorStatuses: ERROR_STATUSES });
     } else if (params.status) {
       qb.andWhere('at.status = :statusFilter', { statusFilter: params.status });
+    }
+
+    if (params.recorded) {
+      qb.andWhere('at.recorded = true');
     }
 
     if (params.provider) {
@@ -288,6 +294,7 @@ export class MessagesQueryService {
     cost_min?: number;
     cost_max?: number;
     status?: MessageStatusFilter;
+    recorded?: boolean;
   }): string {
     return [
       params.userId,
@@ -298,6 +305,7 @@ export class MessagesQueryService {
       params.cost_min ?? '',
       params.cost_max ?? '',
       params.status ?? '',
+      params.recorded ? '1' : '',
     ].join(':');
   }
 }

@@ -20,6 +20,7 @@ const mockGetMessageDetails = vi.fn();
 const mockGetRoutingStatus = vi.fn();
 const mockSetMessageFeedback = vi.fn();
 const mockClearMessageFeedback = vi.fn();
+const mockDeleteMessageRecording = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   getMessages: (...args: unknown[]) => mockGetMessages(...args),
   getCustomProviders: (...args: unknown[]) => mockGetCustomProviders(...args),
@@ -27,6 +28,7 @@ vi.mock("../../src/services/api.js", () => ({
   getRoutingStatus: (...args: unknown[]) => mockGetRoutingStatus(...args),
   setMessageFeedback: (...args: unknown[]) => mockSetMessageFeedback(...args),
   clearMessageFeedback: (...args: unknown[]) => mockClearMessageFeedback(...args),
+  deleteMessageRecording: (...args: unknown[]) => mockDeleteMessageRecording(...args),
 }));
 
 vi.mock("../../src/services/sse.js", () => ({
@@ -49,6 +51,8 @@ vi.mock("../../src/services/formatters.js", () => ({
   formatDuration: (ms: number) => ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`,
   formatErrorMessage: (s: string) => s,
   customProviderColor: vi.fn(() => '#6366f1'),
+  sortedHeaderEntries: (h: Record<string, string> | null | undefined) =>
+    Object.entries(h ?? {}).sort(([a], [b]) => a.localeCompare(b)),
 }));
 
 const mockCheckIsSelfHosted = vi.fn(() => Promise.resolve(false));
@@ -58,7 +62,13 @@ vi.mock("../../src/services/setup-status.js", () => ({
 
 vi.mock("../../src/components/SetupModal.jsx", () => ({
   default: (props: any) => (
-    <div data-testid="setup-modal" data-open={props.open ? "true" : "false"} data-agent={props.agentName ?? ""}>
+    <div
+      data-testid="setup-modal"
+      data-open={props.open ? "true" : "false"}
+      data-agent={props.agentName ?? ""}
+      data-platform={props.agentPlatform ?? ""}
+      data-category={props.agentCategory ?? ""}
+    >
       <button data-testid="setup-close" onClick={() => props.onClose?.()}>Close</button>
     </div>
   ),
@@ -1009,6 +1019,130 @@ describe("MessageLog", () => {
       fireEvent.click(likeBtn);
       await vi.waitFor(() => {
         expect(container.querySelector(".feedback-btn--active-like")).not.toBeNull();
+      });
+    });
+  });
+
+  describe("Recording filter", () => {
+    it("toggles the recorded query param when the filter chip is clicked", async () => {
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.querySelector(".msg-recorded-filter")).not.toBeNull();
+      });
+      const chip = container.querySelector(".msg-recorded-filter") as HTMLButtonElement;
+      mockGetMessages.mockClear();
+      fireEvent.click(chip);
+      await vi.waitFor(() => {
+        const calls = mockGetMessages.mock.calls;
+        const lastQ = calls[calls.length - 1]?.[0] ?? {};
+        expect(lastQ.recorded).toBe("true");
+      });
+      expect(chip.classList.contains("msg-recorded-filter--active")).toBe(true);
+    });
+
+    it("opens the recorded-message modal when the row dot icon is clicked", async () => {
+      const withRecording = {
+        ...messagesData,
+        items: [{ ...messagesData.items[0], recorded: true }, messagesData.items[1]],
+      };
+      mockGetMessages.mockResolvedValue(withRecording);
+      mockGetMessageDetails.mockResolvedValue({
+        message: {
+          id: withRecording.items[0].id,
+          timestamp: withRecording.items[0].timestamp,
+          model: "gpt-4o",
+          request_headers: {},
+          recorded: true,
+        },
+        recording: {
+          request_body: {},
+          response_body: null,
+          response_headers: {},
+          size_bytes: 0,
+          created_at: "",
+        },
+        llm_calls: [],
+        tool_executions: [],
+        agent_logs: [],
+      });
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.querySelector(".msg-recorded-btn")).not.toBeNull();
+      });
+      fireEvent.click(container.querySelector(".msg-recorded-btn") as HTMLElement);
+      await vi.waitFor(() => {
+        expect(document.body.textContent).toContain("Recorded message");
+      });
+    });
+
+    it("refetches the messages list after deleting a recording from the modal", async () => {
+      const withRecording = {
+        ...messagesData,
+        items: [{ ...messagesData.items[0], recorded: true }, messagesData.items[1]],
+      };
+      mockGetMessages.mockResolvedValue(withRecording);
+      mockGetMessageDetails.mockResolvedValue({
+        message: {
+          id: withRecording.items[0].id,
+          timestamp: withRecording.items[0].timestamp,
+          model: "gpt-4o",
+          request_headers: {},
+          recorded: true,
+        },
+        recording: {
+          request_body: {},
+          response_body: null,
+          response_headers: {},
+          size_bytes: 0,
+          created_at: "",
+        },
+        llm_calls: [],
+        tool_executions: [],
+        agent_logs: [],
+      });
+      mockDeleteMessageRecording.mockResolvedValue(undefined);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.querySelector(".msg-recorded-btn")).not.toBeNull();
+      });
+      // Open the recording modal
+      fireEvent.click(container.querySelector(".msg-recorded-btn") as HTMLElement);
+      await vi.waitFor(() => {
+        expect(document.body.textContent).toContain("Recorded message");
+      });
+      // Wait for the modal's own createResource to resolve (footer renders
+      // only after `data()?.recording` is truthy).
+      await vi.waitFor(() => {
+        const btn = Array.from(document.querySelectorAll("button")).find(
+          (b) => b.textContent?.trim() === "Delete recording",
+        );
+        expect(btn).not.toBeUndefined();
+      });
+      // Snapshot getMessages call count before delete
+      const callsBeforeDelete = mockGetMessages.mock.calls.length;
+      // Find and click "Delete recording" in the modal footer
+      const deleteBtn = Array.from(document.querySelectorAll("button")).find(
+        (b) => b.textContent?.trim() === "Delete recording",
+      ) as HTMLButtonElement;
+      expect(deleteBtn).not.toBeUndefined();
+      fireEvent.click(deleteBtn);
+      // Confirm the delete
+      await vi.waitFor(() => {
+        const confirmBtn = Array.from(document.querySelectorAll("button")).find(
+          (b) => b.textContent?.trim() === "Confirm delete",
+        );
+        expect(confirmBtn).not.toBeUndefined();
+      });
+      fireEvent.click(
+        Array.from(document.querySelectorAll("button")).find(
+          (b) => b.textContent?.trim() === "Confirm delete",
+        ) as HTMLButtonElement,
+      );
+      // deleteMessageRecording should have been called and MessageLog should refetch
+      await vi.waitFor(() => {
+        expect(mockDeleteMessageRecording).toHaveBeenCalledWith("msg-12345678");
+        expect(mockGetMessages.mock.calls.length).toBeGreaterThan(callsBeforeDelete);
       });
     });
   });

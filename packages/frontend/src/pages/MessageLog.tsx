@@ -16,6 +16,7 @@ import ErrorState from '../components/ErrorState.jsx';
 import FeedbackModal from '../components/FeedbackModal.jsx';
 import MessageTable from '../components/MessageTable.jsx';
 import Pagination from '../components/Pagination.jsx';
+import RecordedMessageModal from '../components/RecordedMessageModal.jsx';
 import Select from '../components/Select.jsx';
 import SetupModal from '../components/SetupModal.jsx';
 import { DETAILED_COLUMNS, type MessageRow } from '../components/message-table-types.js';
@@ -56,6 +57,8 @@ const MessageLog: Component = () => {
   const [providerFilter, setProviderFilter] = createSignal('');
   const [costMin, setCostMin] = createSignal('');
   const [costMax, setCostMax] = createSignal('');
+  const [recordedOnly, setRecordedOnly] = createSignal(false);
+  const [recordingModalId, setRecordingModalId] = createSignal<string | null>(null);
   const [setupOpen, setSetupOpen] = createSignal(false);
   const [setupCompleted] = createSignal(
     !!localStorage.getItem(`setup_completed_${params.agentName}`),
@@ -152,13 +155,16 @@ const MessageLog: Component = () => {
     costMaxTimer = setTimeout(() => setCostMax(val), 400);
   };
 
-  createEffect(on([providerFilter, costMin, costMax], () => pager.resetPage(), { defer: true }));
+  createEffect(
+    on([providerFilter, costMin, costMax, recordedOnly], () => pager.resetPage(), { defer: true }),
+  );
 
   const [data, { refetch }] = createResource(
     () => ({
       provider: providerFilter(),
       costMin: costMin(),
       costMax: costMax(),
+      recordedOnly: recordedOnly(),
       agentName: params.agentName,
       _ping: messagePing(),
       cursor: pager.currentCursor(),
@@ -169,6 +175,7 @@ const MessageLog: Component = () => {
       if (p.provider) q.provider = p.provider;
       if (p.costMin) q.cost_min = p.costMin;
       if (p.costMax) q.cost_max = p.costMax;
+      if (p.recordedOnly) q.recorded = 'true';
       if (p.agentName) q.agent_name = p.agentName;
       if (p.cursor) q.cursor = p.cursor;
       q.limit = String(p.limit);
@@ -185,7 +192,8 @@ const MessageLog: Component = () => {
     ),
   );
 
-  const hasActiveFilters = () => providerFilter() !== '' || costMin() !== '' || costMax() !== '';
+  const hasActiveFilters = () =>
+    providerFilter() !== '' || costMin() !== '' || costMax() !== '' || recordedOnly();
 
   const hasNoData = () => {
     const d = data();
@@ -200,6 +208,7 @@ const MessageLog: Component = () => {
     setProviderFilter('');
     setCostMin('');
     setCostMax('');
+    setRecordedOnly(false);
   };
 
   /** Resolve provider ID to display name */
@@ -249,6 +258,15 @@ const MessageLog: Component = () => {
               onChange={setProviderFilter}
               options={providerOptions()}
             />
+            <button
+              type="button"
+              class={`msg-recorded-filter${recordedOnly() ? ' msg-recorded-filter--active' : ''}`}
+              onClick={() => setRecordedOnly(!recordedOnly())}
+              aria-pressed={recordedOnly()}
+              title="Show only recorded messages"
+            >
+              Recorded only
+            </button>
             <div class="cost-range-filter">
               <input
                 type="number"
@@ -450,6 +468,7 @@ const MessageLog: Component = () => {
                   onFeedbackLike={isSelfHosted() ? undefined : handleFeedbackLike}
                   onFeedbackDislike={isSelfHosted() ? undefined : handleFeedbackDislike}
                   onFeedbackClear={isSelfHosted() ? undefined : handleFeedbackClear}
+                  onOpenRecording={(id) => setRecordingModalId(id)}
                   rowIdPrefix="msg-"
                   showHeaderTooltips
                   expandable
@@ -484,6 +503,13 @@ const MessageLog: Component = () => {
           onSubmit={handleFeedbackSubmit}
         />
       </Show>
+
+      <RecordedMessageModal
+        open={recordingModalId() !== null}
+        messageId={recordingModalId()}
+        onClose={() => setRecordingModalId(null)}
+        onDeleted={() => refetch()}
+      />
     </div>
   );
 };

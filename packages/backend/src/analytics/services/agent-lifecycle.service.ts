@@ -99,6 +99,24 @@ export class AgentLifecycleService {
       .execute();
   }
 
+  async setRecordMessages(
+    userId: string,
+    agentName: string,
+    enabled: boolean,
+  ): Promise<{ agentId: string }> {
+    const agent = await this.findAgentByUser(userId, agentName);
+    if (!agent) throw new NotFoundException(`Agent "${agentName}" not found`);
+
+    await this.agentRepo
+      .createQueryBuilder()
+      .update('agents')
+      .set({ record_messages: enabled })
+      .where('id = :id', { id: agent.id })
+      .execute();
+
+    return { agentId: agent.id };
+  }
+
   async renameAgent(
     userId: string,
     currentName: string,
