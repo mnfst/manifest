@@ -65,6 +65,10 @@ describe('isPrivateIp', () => {
     expect(isPrivateIp('fd00::1')).toBe(true);
   });
 
+  it('detects fdc4:f303:9324::254 as private IPv6 (ULA — Docker host.docker.internal)', () => {
+    expect(isPrivateIp('fdc4:f303:9324::254')).toBe(true);
+  });
+
   it('detects fe80::1 as private IPv6 (link-local)', () => {
     expect(isPrivateIp('fe80::1')).toBe(true);
   });
