@@ -46,6 +46,7 @@ import {
   clearFallbacks,
   getPricingHealth,
   refreshPricing,
+  getContextWindow,
   setMessageFeedback,
   clearMessageFeedback,
   getMessageDetails,
@@ -447,6 +448,52 @@ describe('updateAgent', () => {
 
     await expect(updateAgent('my-agent', { agent_category: 'bad' })).rejects.toThrow('Invalid category');
     expect(toast.error).toHaveBeenCalledWith('Invalid category');
+  });
+
+  // context_floor_override is the Phase 1 lever that drives GET /v1/models —
+  // make sure the PATCH body serialises numeric and null values as-is so the
+  // backend's class-validator DTO sees the right types.
+  it('serialises context_floor_override as a number in the PATCH body', async () => {
+    mockMutateOk({ context_floor_override: 50000 });
+
+    await updateAgent('my-agent', { context_floor_override: 50000 });
+
+    const call = mockFetch.mock.calls[0];
+    expect(JSON.parse(String((call?.[1] as RequestInit).body))).toEqual({
+      context_floor_override: 50000,
+    });
+  });
+
+  it('serialises context_floor_override: null to clear the override', async () => {
+    mockMutateOk({ context_floor_override: null });
+
+    await updateAgent('my-agent', { context_floor_override: null });
+
+    const call = mockFetch.mock.calls[0];
+    expect(JSON.parse(String((call?.[1] as RequestInit).body))).toEqual({
+      context_floor_override: null,
+    });
+  });
+});
+
+describe('getContextWindow', () => {
+  it('fetches /routing/:agentName/context-window and returns the floor', async () => {
+    const payload = { context_length: 128000, overridden: false };
+    mockOk(payload);
+
+    const result = await getContextWindow('my-agent');
+    expect(result).toEqual(payload);
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain('/api/v1/routing/my-agent/context-window');
+  });
+
+  it('URL-encodes the agent name', async () => {
+    mockOk({ context_length: 128000, overridden: false });
+
+    await getContextWindow('agent/with slash');
+
+    const url = mockFetch.mock.calls[0]?.[0] as string;
+    expect(url).toContain('/agent%2Fwith%20slash/context-window');
   });
 });
 

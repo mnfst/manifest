@@ -6,10 +6,33 @@ import { SpecificityPenaltyService } from '../routing-core/specificity-penalty.s
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { scoreRequest, ScorerInput, MomentumInput, scanMessages } from '../../scoring';
-import { Tier } from '../../scoring/types';
-import { ResolveResponse } from '../dto/resolve-response';
+import { Tier, TIERS } from '../../scoring/types';
+import {
+  ResolveResponse,
+  ResolveReason,
+  AuthType,
+  REASON_SIZE_ESCALATED,
+  REASON_CONTEXT_WINDOW_EXCEEDED,
+} from '../dto/resolve-response';
 import { inferProviderFromModelName } from '../../common/utils/provider-aliases';
+import { findFittingCandidate, FitCandidate, DEFAULT_RESERVED_OUTPUT_TOKENS } from './context-fit';
+import { TierAssignment } from '../../entities/tier-assignment.entity';
 import type { SpecificityCategory } from 'manifest-shared';
+
+/** Outcome of the score step that gets handed to the resolution helpers. */
+interface ScoredResult {
+  tier: Tier;
+  confidence: number;
+  score: number;
+  reason: ResolveReason;
+}
+
+/** A concrete tier + model pick from the size-aware walk. */
+interface TierPick {
+  tier: Tier;
+  assignment: TierAssignment;
+  fit: FitCandidate;
+}
 
 /**
  * When specificity detection is below this confidence, skip specificity
@@ -36,6 +59,13 @@ export class ResolveService {
     private readonly penaltyService: SpecificityPenaltyService,
   ) {}
 
+  /**
+   * @param estimatedTokens  When `>0`, the resolver runs the Phase 2
+   *   size-aware walk (filter tier candidates by context window, escalate
+   *   if nothing fits). When 0 or undefined, the legacy scored-tier pick
+   *   is used — used by heartbeat traffic and any caller that doesn't
+   *   need size-awareness (e.g. the /resolve REST endpoint).
+   */
   async resolve(
     agentId: string,
     messages: ScorerInput['messages'],
@@ -45,6 +75,7 @@ export class ResolveService {
     recentTiers?: MomentumInput['recentTiers'],
     specificityOverride?: string,
     recentCategories?: readonly SpecificityCategory[],
+    estimatedTokens?: number,
   ): Promise<ResolveResponse> {
     const specificityResult = await this.resolveSpecificity(
       agentId,
@@ -59,57 +90,225 @@ export class ResolveService {
     const momentum: MomentumInput | undefined =
       recentTiers && recentTiers.length > 0 ? { recentTiers } : undefined;
 
-    const result = scoreRequest(input, undefined, momentum);
-
+    const scored: ScoredResult = scoreRequest(input, undefined, momentum);
     const tiers = await this.tierService.getTiers(agentId);
-    const assignment = tiers.find((t) => t.tier === result.tier);
 
+    if (estimatedTokens !== undefined && estimatedTokens > 0) {
+      return this.resolveWithSizeCheck(agentId, tiers, scored, estimatedTokens, maxTokens);
+    }
+
+    return this.resolveForScoredTier(agentId, tiers, scored);
+  }
+
+  private async resolveForScoredTier(
+    agentId: string,
+    tiers: TierAssignment[],
+    scored: ScoredResult,
+  ): Promise<ResolveResponse> {
+    const assignment = tiers.find((t) => t.tier === scored.tier);
     if (!assignment) {
       this.logger.warn(
-        `No tier assignment found for agent=${agentId} tier=${result.tier} ` +
+        `No tier assignment found for agent=${agentId} tier=${scored.tier} ` +
           `(available tiers: ${tiers.map((t) => t.tier).join(', ') || 'none'})`,
       );
-      return {
-        tier: result.tier,
-        model: null,
-        provider: null,
-        confidence: result.confidence,
-        score: result.score,
-        reason: result.reason,
-      };
+      return this.emptyResponse(scored);
     }
 
     const model = await this.providerKeyService.getEffectiveModel(agentId, assignment);
-
     if (!model) {
       this.logger.warn(
-        `getEffectiveModel returned null for agent=${agentId} tier=${result.tier} ` +
+        `getEffectiveModel returned null for agent=${agentId} tier=${scored.tier} ` +
           `override=${assignment.override_model} auto=${assignment.auto_assigned_model}`,
       );
+      return this.emptyResponse(scored);
+    }
+
+    const { provider, authType } = await this.resolveProviderAndAuth(agentId, assignment, model);
+
+    return {
+      tier: scored.tier,
+      model,
+      provider,
+      confidence: scored.confidence,
+      score: scored.score,
+      reason: scored.reason,
+      auth_type: authType,
+    };
+  }
+
+  /**
+   * Size-aware variant — walks scored tier → higher tiers, picks the first
+   * model that fits, falls back to a `context_window_exceeded` response if
+   * nothing in any tier fits. Never silently routes to a too-small model
+   * (see #1617). Delegates the "which tier?" logic to `pickFittingTier` so
+   * this method just orchestrates the happy/sad branches.
+   */
+  private async resolveWithSizeCheck(
+    agentId: string,
+    tiers: TierAssignment[],
+    scored: ScoredResult,
+    estimatedTokens: number,
+    maxTokens: number | undefined,
+  ): Promise<ResolveResponse> {
+    const reservedOutput = maxTokens && maxTokens > 0 ? maxTokens : DEFAULT_RESERVED_OUTPUT_TOKENS;
+    const discovered = await this.discoveryService.getModelsForAgent(agentId);
+    const contextByModel = new Map(discovered.map((m) => [m.id, m.contextWindow]));
+    const walk = this.pickFittingTier(
+      tiers,
+      scored.tier,
+      contextByModel,
+      estimatedTokens,
+      reservedOutput,
+    );
+
+    if (!walk.pick) {
+      this.logger.warn(
+        `context_window_exceeded agent=${agentId} estimated=${estimatedTokens} ` +
+          `reserved=${reservedOutput} largest=${walk.largestSeen}`,
+      );
       return {
-        tier: result.tier,
+        tier: scored.tier,
         model: null,
         provider: null,
-        confidence: result.confidence,
-        score: result.score,
-        reason: result.reason,
+        confidence: scored.confidence,
+        score: scored.score,
+        reason: REASON_CONTEXT_WINDOW_EXCEEDED,
+        estimated_tokens: estimatedTokens,
+        reserved_output_tokens: reservedOutput,
+        largest_available_context: walk.largestSeen,
       };
     }
 
-    const provider = await this.resolveProvider(agentId, assignment, model);
-    const authType = provider
-      ? (assignment.override_auth_type ??
-        (await this.providerKeyService.getAuthType(agentId, provider)))
-      : undefined;
+    const { tier, assignment, fit } = walk.pick;
+    const { provider, authType } = await this.resolveProviderAndAuth(
+      agentId,
+      assignment,
+      fit.model,
+    );
+    const escalated = tier !== scored.tier;
 
     return {
-      tier: result.tier,
-      model,
+      tier,
+      model: fit.model,
       provider,
-      confidence: result.confidence,
-      score: result.score,
-      reason: result.reason,
+      confidence: scored.confidence,
+      score: scored.score,
+      reason: escalated ? REASON_SIZE_ESCALATED : scored.reason,
       auth_type: authType,
+      estimated_tokens: estimatedTokens,
+      used_context_window: fit.contextWindow,
+      size_escalated_from: escalated ? scored.tier : undefined,
+    };
+  }
+
+  /**
+   * Walks the tiers from the scored tier upward and returns the first
+   * tier whose candidates contain a model that fits. Also returns the
+   * largest context window seen across all walked tiers so the caller
+   * can build a useful `context_window_exceeded` error when nothing fits.
+   */
+  private pickFittingTier(
+    tiers: TierAssignment[],
+    scoredTier: Tier,
+    contextByModel: Map<string, number>,
+    estimatedTokens: number,
+    reservedOutput: number,
+  ): { pick: TierPick | null; largestSeen: number } {
+    // Cheapest fitting tier wins — walk upward from the scored tier.
+    const scoredIndex = TIERS.indexOf(scoredTier);
+    let largestSeen = 0;
+    let pick: TierPick | null = null;
+
+    for (let i = scoredIndex; i < TIERS.length; i++) {
+      const tier = TIERS[i]!;
+      const assignment = tiers.find((t) => t.tier === tier);
+      if (!assignment) continue;
+
+      const candidates = this.buildFitCandidates(assignment, contextByModel);
+      for (const { contextWindow } of candidates) {
+        if (contextWindow > largestSeen) largestSeen = contextWindow;
+      }
+
+      if (pick) continue;
+      const fit = findFittingCandidate(candidates, estimatedTokens, reservedOutput);
+      if (fit) pick = { tier, assignment, fit };
+    }
+
+    return { pick, largestSeen };
+  }
+
+  private buildFitCandidates(
+    assignment: TierAssignment,
+    contextByModel: Map<string, number>,
+  ): FitCandidate[] {
+    // Push override first (user intent wins), then auto-assigned as a live
+    // fallback for when the override is stale / points at a disconnected
+    // provider, then the configured fallback chain. Matches the resilience
+    // of `ProviderKeyService.getEffectiveModel` — without this, a stale
+    // override_model would eliminate the tier from the size-aware walk
+    // even when the auto-assigned model is perfectly serviceable.
+    const ordered: string[] = [];
+    if (assignment.override_model) ordered.push(assignment.override_model);
+    if (assignment.auto_assigned_model) ordered.push(assignment.auto_assigned_model);
+    if (assignment.fallback_models) ordered.push(...assignment.fallback_models);
+
+    const seen = new Set<string>();
+    const candidates: FitCandidate[] = [];
+    for (const model of ordered) {
+      if (seen.has(model)) continue;
+      seen.add(model);
+      const contextWindow = contextByModel.get(model);
+      if (contextWindow === undefined) continue;
+      if (contextWindow <= 0) {
+        // Misconfigured provider — log once so ops can track down the bad
+        // `cached_models` row instead of silently black-holing the model.
+        this.logger.debug(`Skipping model ${model}: non-positive contextWindow ${contextWindow}`);
+        continue;
+      }
+      candidates.push({ model, contextWindow });
+    }
+    return candidates;
+  }
+
+  /**
+   * Shared helper for the two success paths in this service: look up the
+   * provider for a chosen model, then resolve the auth type. Identical
+   * logic across both paths by design — the only variance is which model
+   * gets passed in.
+   *
+   * `override_auth_type` is applied **only** when the chosen model is the
+   * override_model itself. When we fell through to the auto-assigned
+   * model or a fallback (because the override was stale), inheriting the
+   * override's auth type would leak credentials to a different provider
+   * — e.g. the user pinned an OpenAI subscription model, it went stale,
+   * we fell through to a Claude model, and we'd reach for OpenAI
+   * subscription auth on an Anthropic model.
+   */
+  private async resolveProviderAndAuth(
+    agentId: string,
+    assignment: Pick<TierAssignment, 'override_model' | 'override_provider' | 'override_auth_type'>,
+    model: string,
+  ): Promise<{ provider: string | null; authType: AuthType | undefined }> {
+    const provider = await this.resolveProvider(agentId, assignment, model);
+    if (!provider) return { provider: null, authType: undefined };
+
+    const isOverrideModel = assignment.override_model === model;
+    const pinnedAuthType = isOverrideModel
+      ? (assignment.override_auth_type as AuthType | null)
+      : null;
+    const authType =
+      pinnedAuthType ?? (await this.providerKeyService.getAuthType(agentId, provider));
+    return { provider, authType };
+  }
+
+  private emptyResponse(scored: ScoredResult): ResolveResponse {
+    return {
+      tier: scored.tier,
+      model: null,
+      provider: null,
+      confidence: scored.confidence,
+      score: scored.score,
+      reason: scored.reason,
     };
   }
 

@@ -35,6 +35,7 @@ describe('ModelController', () => {
   let mockResolveAgent: Record<string, jest.Mock>;
   let mockCustomProviderService: Record<string, jest.Mock>;
   let mockPricingSync: Record<string, jest.Mock>;
+  let mockGetEffectiveContext: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -60,6 +61,10 @@ describe('ModelController', () => {
       refreshCache: jest.fn().mockResolvedValue(42),
     };
 
+    mockGetEffectiveContext = jest
+      .fn()
+      .mockResolvedValue({ contextLength: 128000, overridden: false });
+
     controller = new ModelController(
       mockProviderService as unknown as ProviderService,
       mockDiscoveryService as unknown as ModelDiscoveryService,
@@ -67,6 +72,7 @@ describe('ModelController', () => {
       mockResolveAgent as unknown as ResolveAgentService,
       mockCustomProviderService as unknown as CustomProviderService,
       mockPricingSync as unknown as PricingSyncService,
+      { getEffectiveContext: mockGetEffectiveContext } as never,
     );
   });
 
@@ -146,6 +152,33 @@ describe('ModelController', () => {
       expect(mockResolveAgent.resolve).toHaveBeenCalledWith('user-1', 'test-agent');
       expect(mockDiscoveryService.discoverAllForAgent).toHaveBeenCalledWith(TEST_AGENT_ID);
       expect(result).toEqual({ ok: true });
+    });
+  });
+
+  /* ── getContextWindow ── */
+
+  /**
+   * The Settings page's "Advertised context window" card calls this endpoint
+   * to render the live "Auto (N tokens)" label. The `overridden` flag also
+   * drives whether the UI starts in Custom mode on load.
+   */
+  describe('getContextWindow', () => {
+    it('returns the computed floor and overridden=false in auto mode', async () => {
+      mockGetEffectiveContext.mockResolvedValue({ contextLength: 128_000, overridden: false });
+
+      const result = await controller.getContextWindow(mockUser, mockAgentName);
+
+      expect(mockResolveAgent.resolve).toHaveBeenCalledWith('user-1', 'test-agent');
+      expect(mockGetEffectiveContext).toHaveBeenCalledWith(TEST_AGENT_ID);
+      expect(result).toEqual({ context_length: 128_000, overridden: false });
+    });
+
+    it('returns the override and overridden=true when the user set one', async () => {
+      mockGetEffectiveContext.mockResolvedValue({ contextLength: 50_000, overridden: true });
+
+      const result = await controller.getContextWindow(mockUser, mockAgentName);
+
+      expect(result).toEqual({ context_length: 50_000, overridden: true });
     });
   });
 

@@ -556,6 +556,7 @@ describe('ProxyService', () => {
       ['complex', 'complex'],
       undefined,
       undefined,
+      expect.any(Number),
     );
   });
 
@@ -638,6 +639,7 @@ describe('ProxyService', () => {
       undefined,
       undefined,
       undefined,
+      expect.any(Number),
     );
 
     // But the full body (with tools) should be forwarded to the provider
@@ -997,6 +999,99 @@ describe('ProxyService', () => {
 
       expect(resolveService.resolve).toHaveBeenCalled();
     });
+
+    it('falls through to size-aware routing when a tiny HEARTBEAT_OK prompt has a huge max_tokens (#1678 cubic P1 follow-up)', async () => {
+      // Second half of the heartbeat-gate bug: even with tiny input (a
+      // legitimate heartbeat-shaped body), a max_tokens reserve that
+      // would overflow the simple tier must still go through size-aware
+      // routing. Before the follow-up fix, gating only considered input
+      // size, so `{content: 'HEARTBEAT_OK', max_tokens: 500_000}` hit
+      // the simple tier and overflowed.
+      const tinyHeartbeatHugeMaxTokens = {
+        messages: [{ role: 'user', content: 'HEARTBEAT_OK' }],
+        max_tokens: 500_000,
+        stream: false,
+      };
+
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      resolveService.resolveForTier = jest.fn();
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body: tinyHeartbeatHugeMaxTokens,
+        sessionKey: 'sess-tiny-huge',
+      });
+
+      expect(resolveService.resolve).toHaveBeenCalled();
+      expect(resolveService.resolveForTier).not.toHaveBeenCalled();
+    });
+
+    it('falls through to size-aware routing when a large payload contains HEARTBEAT_OK as substring (#1678 cubic P1)', async () => {
+      // The heartbeat sentinel is matched via `.includes(...)`. Before the
+      // fix, a legitimate large user message that happened to mention
+      // HEARTBEAT_OK (e.g. a prompt asking "should I include HEARTBEAT_OK
+      // in my cron output?") would skip size-aware routing and fire at
+      // the `simple` tier, overflowing any small model pinned there.
+      // Gate: the heartbeat fast-path only applies when estimated tokens
+      // are under the real-heartbeat ceiling.
+      const largeContentWithSentinel = {
+        messages: [
+          {
+            role: 'user',
+            // Long enough to push estimated tokens past HEARTBEAT_TOKEN_CEILING (1000).
+            content: (
+              'Explain how heartbeat polling works in distributed systems. ' +
+              'Should I literally include HEARTBEAT_OK in the response body? '
+            ).repeat(200),
+          },
+        ],
+        stream: false,
+      };
+
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.8,
+        score: 0.1,
+        reason: 'scored',
+      });
+      resolveService.resolveForTier = jest.fn();
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body: largeContentWithSentinel,
+        sessionKey: 'sess-gated',
+      });
+
+      // The size-aware path (resolve) must be used — NOT the heartbeat
+      // fast-path (resolveForTier). Exactly the regression #1678 flagged.
+      expect(resolveService.resolve).toHaveBeenCalled();
+      expect(resolveService.resolveForTier).not.toHaveBeenCalled();
+    });
   });
 
   describe('system prompt stripping', () => {
@@ -1300,6 +1395,7 @@ describe('ProxyService', () => {
         undefined,
         undefined,
         undefined,
+        expect.any(Number),
       );
     });
   });
@@ -3357,6 +3453,41 @@ describe('ProxyService', () => {
       const lookup = callArgs.signatureLookup as (id: string) => string | null;
       expect(lookup('tc-42')).toBe('cached-sig-value');
       expect(lookup('nonexistent')).toBeNull();
+    });
+
+    it('returns the context-window-exceeded friendly response when ResolveService reports it', async () => {
+      // Phase 2: no tier contained a model that could fit the request.
+      // The proxy must produce a friendly-but-specific message so the user
+      // understands why the request didn't go out, and surface the numbers
+      // needed to act (estimated tokens, largest available window, URL).
+      resolveService.resolve.mockResolvedValue({
+        tier: 'reasoning',
+        model: null,
+        provider: null,
+        confidence: 1,
+        score: 0,
+        reason: 'context_window_exceeded',
+        estimated_tokens: 1_500_000,
+        largest_available_context: 200_000,
+      });
+
+      const result = await service.proxyRequest({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body,
+        sessionKey: 'default',
+        agentName: 'my-agent',
+      });
+
+      expect(result.forward.response.ok).toBe(true);
+      expect(result.meta.reason).toBe('context_window_exceeded');
+      const json = (await result.forward.response.json()) as Record<string, unknown>;
+      const choices = json.choices as { message: { content: string } }[];
+      expect(choices[0].message.content).toContain('1,500,000 tokens');
+      expect(choices[0].message.content).toContain('200,000');
+      expect(choices[0].message.content).toContain('/agents/my-agent/routing');
+      // Ensure we don't fall through to the no-provider message.
+      expect(choices[0].message.content).not.toContain('no providers are set up yet');
     });
 
     it('ignores invalid MiniMax resource URLs when forwarding subscription requests', async () => {

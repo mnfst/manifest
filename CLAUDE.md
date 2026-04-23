@@ -333,6 +333,8 @@ All analytics queries filter by user via `addTenantFilter(qb, userId)` from `que
 | POST | `/api/v1/routing/:agentName/ollama/sync` | Session/API Key | Sync Ollama models |
 | POST | `/api/v1/routing/resolve` | Bearer (mnfst_*) | Model resolution |
 | POST | `/v1/chat/completions` | Bearer (mnfst_*) | LLM proxy (OpenAI-compatible) |
+| GET | `/v1/models` | Bearer (mnfst_*) | OpenAI-compatible model listing; advertises `manifest/auto` with the honest `context_length` floor for the agent (Phase 1, #1617) |
+| GET | `/api/v1/routing/:agentName/context-window` | Session/API Key | Effective advertised context window + whether the user set an override (drives the Settings "Context window" card) |
 | GET | `/api/v1/events` | Session | SSE real-time events |
 | GET | `/api/v1/github/stars` | Public | GitHub star count |
 
@@ -363,7 +365,7 @@ See `packages/backend/.env.example` for all variables. Key ones:
 
 ## Domain Terminology
 
-- **Message**: The primary entity in the system. Every row in `agent_messages` is a Message. The UI labels them "Messages" everywhere. Key routing columns: `routing_tier` (complexity tier used), `routing_reason` (why — `scored`, `specificity`, `heartbeat`, etc.), `specificity_category` (which task-type category, null if complexity-routed).
+- **Message**: The primary entity in the system. Every row in `agent_messages` is a Message. The UI labels them "Messages" everywhere. Key routing columns: `routing_tier` (complexity tier used), `routing_reason` (why — `scored`, `specificity`, `heartbeat`, `size_escalated`, `context_window_exceeded`, …), `specificity_category` (which task-type category, null if complexity-routed).
 - **Tenant**: A user's data boundary. Created from `user.id` on first agent creation.
 - **Agent**: An AI agent owned by a tenant. Has a unique OTLP ingest key.
 
@@ -448,7 +450,9 @@ values with 400, so downgrades stay safe.
 - **LLM Routing**: Two-layer routing system with provider key management (AES-256-GCM encrypted) and OpenAI-compatible proxy at `/v1/chat/completions`:
   - **Complexity tiers** (always active): 4 tiers (simple/standard/complex/reasoning) based on request content scoring with 23 weighted keyword dimensions.
   - **Specificity routing** (opt-in): 9 task-type categories (coding, web_browsing, data_analysis, image_generation, video_generation, social_media, email_management, calendar_management, trading). When enabled, overrides complexity tiers. Detection uses keyword analysis on the last user message + tool name heuristics. Categories defined in `shared/src/specificity.ts`, keywords in `scoring/keywords.ts`, detection in `scoring/specificity-detector.ts`.
-  - **Resolution order**: specificity check (if any category active) → complexity scoring → tier assignment → provider/model resolution → proxy forward.
+  - **Context-aware size check** (Phase 2 — always active): before forwarding, the proxy estimates tokens for the full request via `routing/proxy/token-estimate.ts` (js-tiktoken `cl100k_base` + 1.1× safety multiplier). `ResolveService.resolveWithSizeCheck` then walks the scored tier's `(primary, ...fallbacks)` in order and picks the first candidate whose `contextWindow >= estimated + reservedOutput` (reservedOutput = `body.max_tokens ?? 4096`). If no model in the scored tier fits, escalate upward (`simple → standard → complex → reasoning`). If *nothing* fits in any tier, ResolveService returns `reason: 'context_window_exceeded'` and ProxyService surfaces a friendly chat-completion response with the estimated token count, largest available window, and a link to the Routing page — no silent truncation. Size-aware candidate filtering is the pure function `findFittingCandidate` in `routing/resolve/context-fit.ts`.
+  - **Resolution order**: specificity check (if any category active) → complexity scoring → tier assignment → **size-aware candidate pick within tier** → **tier escalation if no candidate fits** → provider/model resolution → proxy forward.
+  - **Size signals on the wire**: successful proxy responses emit `X-Manifest-Context-Estimated` and `X-Manifest-Context-Used`; when the size check bumped the tier, an additional `X-Manifest-Context-Escalated: <fromTier>-><toTier>` is emitted. Agents use these to adapt per-response without a second round trip (#1617). Header values are ASCII-only — Node's http layer silently drops headers containing Latin-1-incompatible characters.
 
 ## Providers & Models
 

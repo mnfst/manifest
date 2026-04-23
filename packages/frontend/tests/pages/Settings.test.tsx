@@ -20,6 +20,7 @@ const mockDeleteAgent = vi.fn();
 const mockRenameAgent = vi.fn();
 const mockRotateAgentKey = vi.fn();
 const mockUpdateAgent = vi.fn();
+const mockGetContextWindow = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   getAgentKey: (...args: unknown[]) => mockGetAgentKey(...args),
   getAgentInfo: (...args: unknown[]) => mockGetAgentInfo(...args),
@@ -27,10 +28,18 @@ vi.mock("../../src/services/api.js", () => ({
   renameAgent: (...args: unknown[]) => mockRenameAgent(...args),
   rotateAgentKey: (...args: unknown[]) => mockRotateAgentKey(...args),
   updateAgent: (...args: unknown[]) => mockUpdateAgent(...args),
+  getContextWindow: (...args: unknown[]) => mockGetContextWindow(...args),
 }));
 
+const mockToastError = vi.fn();
+const mockToastSuccess = vi.fn();
+
 vi.mock("../../src/services/toast-store.js", () => ({
-  toast: { error: vi.fn(), success: vi.fn(), warning: vi.fn() },
+  toast: {
+    error: (...args: unknown[]) => mockToastError(...args),
+    success: (...args: unknown[]) => mockToastSuccess(...args),
+    warning: vi.fn(),
+  },
 }));
 
 vi.mock("../../src/components/ErrorState.jsx", () => ({
@@ -126,11 +135,17 @@ describe("Settings", () => {
     mockAgentName = "test-agent";
     mockSetupThrows = false;
     mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_abc" });
-    mockGetAgentInfo.mockResolvedValue({ agent_name: "test-agent", agent_category: "personal", agent_platform: "openclaw" });
+    mockGetAgentInfo.mockResolvedValue({
+      agent_name: "test-agent",
+      agent_category: "personal",
+      agent_platform: "openclaw",
+      context_floor_override: null,
+    });
     mockDeleteAgent.mockResolvedValue(undefined);
     mockRenameAgent.mockResolvedValue({ renamed: true, name: "new-name" });
     mockRotateAgentKey.mockResolvedValue({ apiKey: "new-key" });
     mockUpdateAgent.mockResolvedValue({});
+    mockGetContextWindow.mockResolvedValue({ context_length: 128000, overridden: false });
   });
 
   it("renders Settings heading", () => {
@@ -246,10 +261,14 @@ describe("Settings", () => {
   });
 
   it("save button enables when agent name changes", () => {
-    render(() => <Settings />);
+    const { container } = render(() => <Settings />);
     const input = screen.getByLabelText("Agent name") as HTMLInputElement;
     fireEvent.input(input, { target: { value: "new-name" } });
-    const saveBtn = screen.getByText("Save") as HTMLButtonElement;
+    // With the new Context window card there are multiple Save buttons; grab
+    // the one in the Agent name card (first Save in document order).
+    const saveBtn = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.trim() === "Save",
+    ) as HTMLButtonElement;
     expect(saveBtn.disabled).toBe(false);
   });
 
@@ -257,9 +276,12 @@ describe("Settings", () => {
     const replaceFn = vi.fn();
     const originalLocation = window.location;
     Object.defineProperty(window, "location", { value: { ...originalLocation, replace: replaceFn }, writable: true, configurable: true });
-    render(() => <Settings />);
+    const { container } = render(() => <Settings />);
     fireEvent.input(screen.getByLabelText("Agent name"), { target: { value: "new-name" } });
-    fireEvent.click(screen.getByText("Save"));
+    const saveBtn = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.trim() === "Save",
+    ) as HTMLButtonElement;
+    fireEvent.click(saveBtn);
     await vi.waitFor(() => { expect(mockRenameAgent).toHaveBeenCalledWith("test-agent", "new-name"); });
     await vi.waitFor(() => { expect(replaceFn).toHaveBeenCalledWith("/agents/new-name/settings"); });
     Object.defineProperty(window, "location", { value: originalLocation, writable: true, configurable: true });
@@ -267,10 +289,13 @@ describe("Settings", () => {
 
   it("resets name on rename error", async () => {
     mockRenameAgent.mockRejectedValueOnce(new Error("Conflict"));
-    render(() => <Settings />);
+    const { container } = render(() => <Settings />);
     const input = screen.getByLabelText("Agent name") as HTMLInputElement;
     fireEvent.input(input, { target: { value: "bad-name" } });
-    fireEvent.click(screen.getByText("Save"));
+    const saveBtn = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.trim() === "Save",
+    ) as HTMLButtonElement;
+    fireEvent.click(saveBtn);
     await vi.waitFor(() => { expect(input.value).toBe("test-agent"); });
   });
 
@@ -521,6 +546,293 @@ describe("Settings", () => {
     const { container } = render(() => <Settings />);
     await vi.waitFor(() => {
       expect(container.textContent).toContain("mnfst_xyz...");
+    });
+  });
+
+  /**
+   * "Advertised context window" card — the UI lever for issues
+   * #1617 / #1612 / #1450. These tests defend the three behaviours a user
+   * actually goes through: prefill from /v1/models, save a custom override,
+   * and roll back to auto. If the input validation regresses we start
+   * sending `0` or `500` through PATCH again.
+   */
+  describe("context window card", () => {
+    it("renders the Auto option with the live context_length from getContextWindow", async () => {
+      mockGetContextWindow.mockResolvedValue({ context_length: 128000, overridden: false });
+      const { container } = render(() => <Settings />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("128,000 tokens");
+      });
+    });
+
+    it("starts in Custom mode with the current override when agentInfo.context_floor_override is set", async () => {
+      mockGetAgentInfo.mockResolvedValue({
+        agent_name: "test-agent",
+        agent_category: "personal",
+        agent_platform: "openclaw",
+        context_floor_override: 64000,
+      });
+      const { container } = render(() => <Settings />);
+      await vi.waitFor(() => {
+        const customInput = container.querySelector(
+          'input[aria-label="Custom context window in tokens"]',
+        ) as HTMLInputElement | null;
+        expect(customInput).not.toBeNull();
+        expect(customInput!.value).toBe("64000");
+      });
+    });
+
+    it("reveals the numeric input only when the Custom radio is selected", async () => {
+      const { container } = render(() => <Settings />);
+      await vi.waitFor(() => {
+        expect(mockGetAgentInfo).toHaveBeenCalled();
+      });
+      // No override → Auto by default → numeric input should not be in DOM.
+      expect(
+        container.querySelector('input[aria-label="Custom context window in tokens"]'),
+      ).toBeNull();
+
+      const customRadio = container.querySelector(
+        'input[name="ctx-mode"][value="custom"]',
+      ) as HTMLInputElement;
+      expect(customRadio).not.toBeNull();
+      fireEvent.click(customRadio);
+
+      await vi.waitFor(() => {
+        expect(
+          container.querySelector('input[aria-label="Custom context window in tokens"]'),
+        ).not.toBeNull();
+      });
+    });
+
+    it("saves a valid custom value by PATCH-ing context_floor_override as a number", async () => {
+      const { container } = render(() => <Settings />);
+      await vi.waitFor(() => {
+        expect(mockGetAgentInfo).toHaveBeenCalled();
+      });
+
+      fireEvent.click(
+        container.querySelector('input[name="ctx-mode"][value="custom"]') as HTMLInputElement,
+      );
+      await vi.waitFor(() => {
+        expect(
+          container.querySelector('input[aria-label="Custom context window in tokens"]'),
+        ).not.toBeNull();
+      });
+
+      const numericInput = container.querySelector(
+        'input[aria-label="Custom context window in tokens"]',
+      ) as HTMLInputElement;
+      fireEvent.input(numericInput, { target: { value: "64000" } });
+
+      // The Save button lives inside the Context window card — identify it by
+      // finding the card that owns the radiogroup and grabbing the Save button
+      // in its footer.
+      const cards = Array.from(container.querySelectorAll(".settings-card"));
+      const ctxCard = cards.find((c) =>
+        c.querySelector('[aria-label="Context window mode"]'),
+      )!;
+      const saveBtn = ctxCard.querySelector(
+        ".settings-card__footer button",
+      ) as HTMLButtonElement;
+      fireEvent.click(saveBtn);
+
+      await vi.waitFor(() => {
+        expect(mockUpdateAgent).toHaveBeenCalledWith("test-agent", {
+          context_floor_override: 64000,
+        });
+      });
+    });
+
+    it("saves Auto mode by PATCH-ing context_floor_override: null", async () => {
+      // Start in Custom so we can toggle back to Auto and prove the reset
+      // writes null (not the previous numeric value).
+      mockGetAgentInfo.mockResolvedValue({
+        agent_name: "test-agent",
+        agent_category: "personal",
+        agent_platform: "openclaw",
+        context_floor_override: 64000,
+      });
+      const { container } = render(() => <Settings />);
+      await vi.waitFor(() => {
+        const customInput = container.querySelector(
+          'input[aria-label="Custom context window in tokens"]',
+        ) as HTMLInputElement | null;
+        expect(customInput).not.toBeNull();
+      });
+
+      fireEvent.click(
+        container.querySelector('input[name="ctx-mode"][value="auto"]') as HTMLInputElement,
+      );
+
+      const cards = Array.from(container.querySelectorAll(".settings-card"));
+      const ctxCard = cards.find((c) =>
+        c.querySelector('[aria-label="Context window mode"]'),
+      )!;
+      const saveBtn = ctxCard.querySelector(
+        ".settings-card__footer button",
+      ) as HTMLButtonElement;
+      fireEvent.click(saveBtn);
+
+      await vi.waitFor(() => {
+        expect(mockUpdateAgent).toHaveBeenCalledWith("test-agent", {
+          context_floor_override: null,
+        });
+      });
+    });
+
+    it("rejects a value below 1024 with a toast and does NOT call updateAgent", async () => {
+      const { container } = render(() => <Settings />);
+      await vi.waitFor(() => {
+        expect(mockGetAgentInfo).toHaveBeenCalled();
+      });
+
+      fireEvent.click(
+        container.querySelector('input[name="ctx-mode"][value="custom"]') as HTMLInputElement,
+      );
+      await vi.waitFor(() => {
+        expect(
+          container.querySelector('input[aria-label="Custom context window in tokens"]'),
+        ).not.toBeNull();
+      });
+
+      fireEvent.input(
+        container.querySelector(
+          'input[aria-label="Custom context window in tokens"]',
+        ) as HTMLInputElement,
+        { target: { value: "500" } },
+      );
+
+      const cards = Array.from(container.querySelectorAll(".settings-card"));
+      const ctxCard = cards.find((c) =>
+        c.querySelector('[aria-label="Context window mode"]'),
+      )!;
+      const saveBtn = ctxCard.querySelector(
+        ".settings-card__footer button",
+      ) as HTMLButtonElement;
+      fireEvent.click(saveBtn);
+
+      await vi.waitFor(() => {
+        expect(mockToastError).toHaveBeenCalledWith(
+          expect.stringContaining("1,024"),
+        );
+      });
+      expect(mockUpdateAgent).not.toHaveBeenCalled();
+    });
+
+    it("rejects a non-integer value with a toast and does NOT call updateAgent", async () => {
+      const { container } = render(() => <Settings />);
+      await vi.waitFor(() => {
+        expect(mockGetAgentInfo).toHaveBeenCalled();
+      });
+
+      fireEvent.click(
+        container.querySelector('input[name="ctx-mode"][value="custom"]') as HTMLInputElement,
+      );
+      await vi.waitFor(() => {
+        expect(
+          container.querySelector('input[aria-label="Custom context window in tokens"]'),
+        ).not.toBeNull();
+      });
+
+      fireEvent.input(
+        container.querySelector(
+          'input[aria-label="Custom context window in tokens"]',
+        ) as HTMLInputElement,
+        { target: { value: "abc" } },
+      );
+
+      const cards = Array.from(container.querySelectorAll(".settings-card"));
+      const ctxCard = cards.find((c) =>
+        c.querySelector('[aria-label="Context window mode"]'),
+      )!;
+      const saveBtn = ctxCard.querySelector(
+        ".settings-card__footer button",
+      ) as HTMLButtonElement;
+      fireEvent.click(saveBtn);
+
+      await vi.waitFor(() => {
+        expect(mockToastError).toHaveBeenCalled();
+      });
+      expect(mockUpdateAgent).not.toHaveBeenCalled();
+    });
+
+    it("shows a success toast when the override saves", async () => {
+      const { container } = render(() => <Settings />);
+      await vi.waitFor(() => {
+        expect(mockGetAgentInfo).toHaveBeenCalled();
+      });
+
+      fireEvent.click(
+        container.querySelector('input[name="ctx-mode"][value="custom"]') as HTMLInputElement,
+      );
+      await vi.waitFor(() => {
+        expect(
+          container.querySelector('input[aria-label="Custom context window in tokens"]'),
+        ).not.toBeNull();
+      });
+
+      fireEvent.input(
+        container.querySelector(
+          'input[aria-label="Custom context window in tokens"]',
+        ) as HTMLInputElement,
+        { target: { value: "128000" } },
+      );
+
+      const cards = Array.from(container.querySelectorAll(".settings-card"));
+      const ctxCard = cards.find((c) =>
+        c.querySelector('[aria-label="Context window mode"]'),
+      )!;
+      const saveBtn = ctxCard.querySelector(
+        ".settings-card__footer button",
+      ) as HTMLButtonElement;
+      fireEvent.click(saveBtn);
+
+      await vi.waitFor(() => {
+        expect(mockToastSuccess).toHaveBeenCalledWith(
+          expect.stringContaining("Context window"),
+        );
+      });
+    });
+
+    it("swallows updateAgent errors (toast is handled by fetchMutate)", async () => {
+      mockUpdateAgent.mockRejectedValueOnce(new Error("network"));
+      const { container } = render(() => <Settings />);
+      await vi.waitFor(() => {
+        expect(mockGetAgentInfo).toHaveBeenCalled();
+      });
+
+      fireEvent.click(
+        container.querySelector('input[name="ctx-mode"][value="custom"]') as HTMLInputElement,
+      );
+      await vi.waitFor(() => {
+        expect(
+          container.querySelector('input[aria-label="Custom context window in tokens"]'),
+        ).not.toBeNull();
+      });
+      fireEvent.input(
+        container.querySelector(
+          'input[aria-label="Custom context window in tokens"]',
+        ) as HTMLInputElement,
+        { target: { value: "128000" } },
+      );
+
+      const cards = Array.from(container.querySelectorAll(".settings-card"));
+      const ctxCard = cards.find((c) =>
+        c.querySelector('[aria-label="Context window mode"]'),
+      )!;
+      const saveBtn = ctxCard.querySelector(
+        ".settings-card__footer button",
+      ) as HTMLButtonElement;
+      fireEvent.click(saveBtn);
+
+      await vi.waitFor(() => {
+        expect(mockUpdateAgent).toHaveBeenCalled();
+      });
+      // Save button must re-enable even though the PATCH rejected.
+      await vi.waitFor(() => {
+        expect(saveBtn.hasAttribute("disabled")).toBe(false);
+      });
     });
   });
 
