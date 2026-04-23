@@ -47,5 +47,6 @@ import { ProxyExceptionFilter } from './proxy-exception.filter';
     ThinkingBlockCache,
     ProxyExceptionFilter,
   ],
+  exports: [ProviderClient],
 })
 export class ProxyModule {}

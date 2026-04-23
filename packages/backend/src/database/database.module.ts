@@ -18,6 +18,8 @@ import { TierAssignment } from '../entities/tier-assignment.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
 import { InstallMetadata } from '../entities/install-metadata.entity';
+import { BenchmarkRun } from '../entities/benchmark-run.entity';
+import { BenchmarkColumn } from '../entities/benchmark-column.entity';
 import { DatabaseSeederService } from './database-seeder.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
@@ -72,6 +74,7 @@ import { AddInstallMetadata1775700000000 } from './migrations/1775700000000-AddI
 import { CleanupOrphanedCustomProviderRefs1776679833383 } from './migrations/1776679833383-CleanupOrphanedCustomProviderRefs';
 import { AddMessageRequestHeaders1776700000000 } from './migrations/1776700000000-AddMessageRequestHeaders';
 import { AddSpecificityMiscategorized1777000000000 } from './migrations/1777000000000-AddSpecificityMiscategorized';
+import { AddBenchmarkHistory1777100000000 } from './migrations/1777100000000-AddBenchmarkHistory';
 
 const entities = [
   AgentMessage,
@@ -90,6 +93,8 @@ const entities = [
   CustomProvider,
   SpecificityAssignment,
   InstallMetadata,
+  BenchmarkRun,
+  BenchmarkColumn,
 ];
 
 const migrations = [
@@ -145,6 +150,7 @@ const migrations = [
   CleanupOrphanedCustomProviderRefs1776679833383,
   AddMessageRequestHeaders1776700000000,
   AddSpecificityMiscategorized1777000000000,
+  AddBenchmarkHistory1777100000000,
 ];
 
 @Module({
