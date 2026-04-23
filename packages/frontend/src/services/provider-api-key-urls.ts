@@ -5,7 +5,6 @@ export const ROUTING_PROVIDER_API_KEY_URLS: Record<string, string> = {
   minimax: 'https://platform.minimax.io/docs/api-reference/api-overview',
   mistral: 'https://console.mistral.ai/api-keys/',
   moonshot: 'https://platform.moonshot.ai/',
-  ollama: 'https://ollama.com/download',
   'ollama-cloud': 'https://ollama.com/settings/keys',
   openai: 'https://platform.openai.com/api-keys',
   openrouter: 'https://openrouter.ai/keys',

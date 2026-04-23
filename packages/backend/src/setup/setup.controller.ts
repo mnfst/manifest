@@ -14,16 +14,13 @@ export class SetupController {
     socialProviders: string[];
     isSelfHosted: boolean;
     ollamaAvailable: boolean;
-    localLlmHost: string;
   }> {
     const selfHosted = this.setupService.isSelfHosted();
-    const ollamaAvailable = selfHosted ? await this.setupService.isOllamaAvailable() : false;
     return {
       needsSetup: await this.setupService.needsSetup(),
       socialProviders: this.setupService.getEnabledSocialProviders(),
       isSelfHosted: selfHosted,
-      ollamaAvailable,
-      localLlmHost: this.setupService.getLocalLlmHost(),
+      ollamaAvailable: selfHosted ? await this.setupService.isOllamaAvailable() : false,
     };
   }
 

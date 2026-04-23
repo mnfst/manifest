@@ -44,38 +44,6 @@ describe('SetupService', () => {
     jest.clearAllMocks();
   });
 
-  describe('getLocalLlmHost', () => {
-    let originalExistsSync: typeof import('fs').existsSync;
-    beforeEach(() => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      originalExistsSync = require('fs').existsSync;
-    });
-    afterEach(() => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require('fs').existsSync = originalExistsSync;
-    });
-
-    it("returns 'host.docker.internal' when /.dockerenv exists", () => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require('fs').existsSync = (p: string) => p === '/.dockerenv';
-      expect(service.getLocalLlmHost()).toBe('host.docker.internal');
-    });
-
-    it("returns 'localhost' when /.dockerenv is absent", () => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require('fs').existsSync = () => false;
-      expect(service.getLocalLlmHost()).toBe('localhost');
-    });
-
-    it("returns 'localhost' when existsSync throws", () => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require('fs').existsSync = () => {
-        throw new Error('EACCES');
-      };
-      expect(service.getLocalLlmHost()).toBe('localhost');
-    });
-  });
-
   describe('isSelfHosted', () => {
     const originalMode = process.env['MANIFEST_MODE'];
 

@@ -1,5 +1,4 @@
 import type { JSX } from 'solid-js';
-import { SHARED_PROVIDER_BY_ID_OR_ALIAS, normalizeProviderName } from 'manifest-shared';
 
 /**
  * Returns an inline SVG icon for a given provider ID, or null if no icon exists.
@@ -261,10 +260,6 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         </svg>
       );
 
-    /* ── LM Studio ───────────────────────────────── */
-    case 'lmstudio':
-      return <img src="/icons/lmstudio.png" alt="" style={s} />;
-
     /* ── OpenCode Go ──────────────────────────────── */
     case 'opencode-go':
       return (
@@ -383,11 +378,6 @@ function resolveCustomLogo(name: string, baseUrl?: string, modelName?: string): 
 /**
  * Returns an <img> icon for a custom provider if a known logo exists,
  * or null if no logo is available. Matches by name, base URL, or model name.
- *
- * Local-LLM custom providers (LM Studio, Ollama) share a
- * canonical display name across the codebase — we look those up against
- * the shared provider registry first so the branded `providerIcon` is
- * used everywhere, not a letter badge.
  */
 export function customProviderLogo(
   name: string,
@@ -395,16 +385,6 @@ export function customProviderLogo(
   baseUrl?: string,
   modelName?: string,
 ): JSX.Element | null {
-  const normalized = normalizeProviderName(name);
-  const shared =
-    SHARED_PROVIDER_BY_ID_OR_ALIAS.get(normalized) ??
-    SHARED_PROVIDER_BY_ID_OR_ALIAS.get(name) ??
-    SHARED_PROVIDER_BY_ID_OR_ALIAS.get(name.toLowerCase());
-  if (shared) {
-    const branded = providerIcon(shared.id, size);
-    if (branded) return branded;
-  }
-
   const logo = resolveCustomLogo(name, baseUrl, modelName);
   if (!logo) return null;
   return (

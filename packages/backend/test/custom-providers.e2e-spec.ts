@@ -255,13 +255,13 @@ describe('Custom Providers (e2e)', () => {
       .post(`/api/v1/routing/${agentName}/custom-providers`)
       .set(headers)
       .send({
-        name: 'Local OpenAI-compatible',
+        name: 'Local vLLM',
         base_url: 'http://localhost:8000/v1',
         models: [{ model_name: 'my-model' }],
       })
       .expect(201);
 
-    expect(res.body.name).toBe('Local OpenAI-compatible');
+    expect(res.body.name).toBe('Local vLLM');
     expect(res.body.has_api_key).toBe(false);
 
     // Cleanup

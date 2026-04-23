@@ -1,6 +1,5 @@
 import { createSignal, Show, type Component } from 'solid-js';
-import { normalizeProviderName } from 'manifest-shared';
-import { PROVIDERS, type ProviderDef } from '../services/providers.js';
+import { PROVIDERS } from '../services/providers.js';
 import {
   connectProvider,
   disconnectProvider,
@@ -12,7 +11,6 @@ import { toast } from '../services/toast-store.js';
 import type { CustomProviderPrefill, ProviderDeepLink } from '../services/routing-params.js';
 import CustomProviderForm from './CustomProviderForm.js';
 import CopilotDeviceLogin from './CopilotDeviceLogin.js';
-import LocalServerDetailView from './LocalServerDetailView.js';
 import ProviderDetailView from './ProviderDetailView.js';
 import ProviderApiKeyTab from './ProviderApiKeyTab.js';
 import ProviderSubscriptionTab from './ProviderSubscriptionTab.js';
@@ -47,14 +45,9 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     deepLinkProv?.subscriptionOnly ? 'subscription' : 'api_key',
   );
   const [showCustomForm, setShowCustomForm] = createSignal(!!props.customProviderPrefill);
-  const [tilePrefill, setTilePrefill] = createSignal<CustomProviderPrefill | null>(null);
   const [editingCustomProvider, setEditingCustomProvider] = createSignal<CustomProviderData | null>(
     null,
   );
-  const [localServerProvider, setLocalServerProvider] = createSignal<ProviderDef | null>(null);
-  const [localServerEditData, setLocalServerEditData] = createSignal<
-    CustomProviderData | undefined
-  >(undefined);
   const [busy, setBusy] = createSignal(false);
   const [keyInput, setKeyInput] = createSignal('');
   const [editing, setEditing] = createSignal(false);
@@ -90,30 +83,6 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     return !!p && p.is_active && !!provDef?.noKeyRequired;
   };
 
-  const resetToList = () => {
-    setSelectedProvider(null);
-    setShowCustomForm(false);
-    setTilePrefill(null);
-    setEditingCustomProvider(null);
-    setLocalServerProvider(null);
-    setLocalServerEditData(undefined);
-    setKeyInput('');
-    setEditing(false);
-    setValidationError(null);
-  };
-
-  const goBack = () => {
-    setDirection('back');
-    resetToList();
-  };
-
-  // Kept as an alias of goBack so callers that finish a flow (create /
-  // delete / connect) don't have to know how back-nav works.
-  const completeToList = () => {
-    setDirection('back');
-    resetToList();
-  };
-
   const openDetail = (provId: string, authType: AuthType) => {
     setDirection('forward');
     setSelectedProvider(provId);
@@ -123,30 +92,24 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     setValidationError(null);
   };
 
-  const openCustomForm = (prefill?: CustomProviderPrefill) => {
+  const goBack = () => {
+    setDirection('back');
+    setSelectedProvider(null);
+    setShowCustomForm(false);
+    setEditingCustomProvider(null);
+    setKeyInput('');
+    setEditing(false);
+    setValidationError(null);
+  };
+
+  const openCustomForm = () => {
     setDirection('forward');
-    setTilePrefill(prefill ?? null);
     setShowCustomForm(true);
   };
 
   const openEditCustom = (cp: CustomProviderData) => {
-    const normalized = normalizeProviderName(cp.name);
-    const localProv = PROVIDERS.find(
-      (p) => p.defaultLocalPort && normalizeProviderName(p.name) === normalized,
-    );
-    if (localProv) {
-      setDirection('forward');
-      setLocalServerProvider(localProv);
-      setLocalServerEditData(cp);
-      return;
-    }
     setDirection('forward');
     setEditingCustomProvider(cp);
-  };
-
-  const openLocalServer = (prov: ProviderDef) => {
-    setDirection('forward');
-    setLocalServerProvider(prov);
   };
 
   const handleSubscriptionToggle = async (provId: string) => {
@@ -185,40 +148,22 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
 
   return (
     <>
-      {/* -- Local Server Detail View (LM Studio) -- */}
-      <Show when={localServerProvider() && !showCustomForm() && !editingCustomProvider()}>
-        <div class="provider-modal__view provider-modal__view--from-right">
-          <LocalServerDetailView
-            agentName={props.agentName}
-            provider={localServerProvider()!}
-            editData={localServerEditData()}
-            onConnected={() => {
-              completeToList();
-              props.onUpdate();
-            }}
-            onBack={goBack}
-          />
-        </div>
-      </Show>
-
       {/* -- Custom Provider Form View (create or edit) -- */}
-      <Show when={(showCustomForm() || editingCustomProvider()) && !localServerProvider()}>
+      <Show when={showCustomForm() || editingCustomProvider()}>
         <div class="provider-modal__view provider-modal__view--from-right">
           <CustomProviderForm
             agentName={props.agentName}
             initialData={editingCustomProvider() ?? undefined}
             prefill={
-              !editingCustomProvider()
-                ? (tilePrefill() ?? props.customProviderPrefill ?? undefined)
-                : undefined
+              !editingCustomProvider() ? (props.customProviderPrefill ?? undefined) : undefined
             }
             onCreated={() => {
-              completeToList();
+              goBack();
               props.onUpdate();
             }}
             onBack={goBack}
             onDeleted={() => {
-              completeToList();
+              goBack();
               props.onUpdate();
             }}
           />
@@ -226,14 +171,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
       </Show>
 
       {/* -- List View -- */}
-      <Show
-        when={
-          selectedProvider() === null &&
-          !showCustomForm() &&
-          !editingCustomProvider() &&
-          !localServerProvider()
-        }
-      >
+      <Show when={selectedProvider() === null && !showCustomForm() && !editingCustomProvider()}>
         <div
           class="provider-modal__view"
           classList={{ 'provider-modal__view--from-left': direction() === 'back' }}
@@ -344,7 +282,6 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
               onOpenDetail={openDetail}
               onOpenCustomForm={openCustomForm}
               onEditCustom={openEditCustom}
-              onOpenLocalServer={openLocalServer}
             />
           </Show>
 

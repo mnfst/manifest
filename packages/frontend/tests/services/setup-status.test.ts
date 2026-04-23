@@ -4,7 +4,6 @@ import {
   checkSocialProviders,
   checkIsSelfHosted,
   checkIsOllamaAvailable,
-  checkLocalLlmHost,
   resetSetupStatus,
   createFirstAdmin,
 } from '../../src/services/setup-status';
@@ -218,40 +217,6 @@ describe('setup-status service', () => {
     it('returns false on fetch failure', async () => {
       vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
       expect(await checkIsOllamaAvailable()).toBe(false);
-    });
-  });
-
-  describe('checkLocalLlmHost', () => {
-    it('returns the backend-reported host', async () => {
-      vi.stubGlobal(
-        'fetch',
-        vi.fn().mockResolvedValue({
-          ok: true,
-          json: async () => ({ needsSetup: false, localLlmHost: 'host.docker.internal' }),
-        }),
-      );
-      expect(await checkLocalLlmHost()).toBe('host.docker.internal');
-    });
-
-    it("defaults to 'localhost' when the backend omits the field", async () => {
-      vi.stubGlobal(
-        'fetch',
-        vi.fn().mockResolvedValue({
-          ok: true,
-          json: async () => ({ needsSetup: false }),
-        }),
-      );
-      expect(await checkLocalLlmHost()).toBe('localhost');
-    });
-
-    it("defaults to 'localhost' on fetch failure", async () => {
-      vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
-      expect(await checkLocalLlmHost()).toBe('localhost');
-    });
-
-    it("defaults to 'localhost' when the backend returns a non-ok response", async () => {
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 500 }));
-      expect(await checkLocalLlmHost()).toBe('localhost');
     });
   });
 

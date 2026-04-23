@@ -1,5 +1,4 @@
 import { ConflictException, Injectable, Logger } from '@nestjs/common';
-import { existsSync } from 'fs';
 import { DataSource } from 'typeorm';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { OLLAMA_HOST } from '../common/constants/ollama';
@@ -24,20 +23,6 @@ export class SetupService {
    */
   isSelfHosted(): boolean {
     return isSelfHosted();
-  }
-
-  /**
-   * Returns the hostname the backend should use to reach host-installed
-   * LLM servers. Inside Docker the container reaches the host via
-   * `host.docker.internal` (mapped to the host-gateway in compose);
-   * on a native install, `localhost` resolves correctly.
-   */
-  getLocalLlmHost(): string {
-    try {
-      return existsSync('/.dockerenv') ? 'host.docker.internal' : 'localhost';
-    } catch {
-      return 'localhost';
-    }
   }
 
   /**

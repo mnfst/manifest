@@ -14,24 +14,8 @@ import { TierAutoAssignService } from '../routing-core/tier-auto-assign.service'
 import { CreateCustomProviderDto, UpdateCustomProviderDto } from '../dto/custom-provider.dto';
 import { validatePublicUrl } from '../../common/utils/url-validation';
 import { isSelfHosted } from '../../common/utils/detect-self-hosted';
-import { classifyProbeError } from './probe-error';
 
 const PROBE_TIMEOUT_MS = 5000;
-
-/**
- * OpenAI-compatible `/v1/models` endpoints return every model the server
- * knows about — including embedding / reranker / moderation models that
- * can't serve `/v1/chat/completions`. LM Studio silently redirects chat
- * calls to its loaded LLM, masking the problem; strict OpenAI-compatible
- * servers reject the call with 400. Either way, surfacing embedders in
- * the routing UI is misleading, so we filter them out at probe time.
- */
-const EMBEDDING_MODEL_PATTERN =
-  /(?:^|[\/_\-])embed(?:ding|dings|ed)?(?:[\/_\-]|$)|text[_\-]embedding|embedder|reranker|moderation/i;
-
-export function isEmbeddingModel(id: string): boolean {
-  return EMBEDDING_MODEL_PATTERN.test(id);
-}
 
 @Injectable()
 export class CustomProviderService {
@@ -208,8 +192,8 @@ export class CustomProviderService {
    * Probes the `{base_url}/models` endpoint of an OpenAI-compatible server
    * and returns the discovered model IDs. Used by the "Fetch models" button
    * in the custom-provider form so users connecting a local LLM server
-   * (LM Studio, Ollama-on-host, or any OpenAI-compatible endpoint) don't
-   * have to type each model name by hand.
+   * (vLLM, LM Studio, llama.cpp, Ollama-on-host) don't have to type each
+   * model name by hand.
    */
   async probeModels(baseUrl: string, apiKey?: string): Promise<{ model_name: string }[]> {
     try {
@@ -241,22 +225,26 @@ export class CustomProviderService {
         redirect: 'error',
       });
       if (!res.ok) {
-        throw new BadRequestException(classifyProbeError({ url, status: res.status }).message);
+        throw new BadRequestException(`Probe failed: ${res.status}`);
       }
+      // Guard against hostile endpoints returning non-JSON (HTML, binary, …).
       const contentType = res.headers.get('content-type') ?? '';
       if (!contentType.includes('application/json')) {
-        throw new BadRequestException(classifyProbeError({ url, contentType }).message);
+        throw new BadRequestException(
+          `${url} did not return JSON (got ${contentType || 'no content-type'})`,
+        );
       }
       const body = (await res.json()) as { data?: { id?: string }[] };
       const items = body?.data ?? [];
-      const filtered = items.filter(
-        (m): m is { id: string } =>
-          typeof m.id === 'string' && m.id.length > 0 && !isEmbeddingModel(m.id),
-      );
-      return filtered.map((m) => ({ model_name: m.id }));
+      return items
+        .filter((m): m is { id: string } => typeof m.id === 'string' && m.id.length > 0)
+        .map((m) => ({ model_name: m.id }));
     } catch (err) {
       if (err instanceof BadRequestException) throw err;
-      throw new BadRequestException(classifyProbeError({ url, error: err as Error }).message);
+      if (err instanceof Error && err.name === 'AbortError') {
+        throw new BadRequestException(`Timed out probing ${url} after ${PROBE_TIMEOUT_MS}ms`);
+      }
+      throw new BadRequestException(`Could not reach ${url}: ${(err as Error).message}`);
     } finally {
       clearTimeout(timeout);
     }

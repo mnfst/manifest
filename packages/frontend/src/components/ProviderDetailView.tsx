@@ -14,7 +14,6 @@ import CopyButton from './CopyButton.js';
 import ProviderKeyForm from './ProviderKeyForm.js';
 import OAuthDetailView from './OAuthDetailView.js';
 import DeviceCodeDetailView from './DeviceCodeDetailView.js';
-import { getRoutingProviderApiKeyUrl } from '../services/provider-api-key-urls.js';
 
 export interface ProviderDetailViewProps {
   provId: string;
@@ -305,17 +304,6 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
       <Show when={isOllama}>
         <div class="provider-detail__field">
           <span class="provider-detail__no-key">No API key required for local models</span>
-          <Show when={getRoutingProviderApiKeyUrl(props.provId)}>
-            <a
-              href={getRoutingProviderApiKeyUrl(props.provId)}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="provider-detail__docs-link"
-              style="margin-left: 8px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));"
-            >
-              Get {provDef.name} ↗
-            </a>
-          </Show>
         </div>
         <Show when={!connected()}>
           <button

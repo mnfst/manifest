@@ -39,7 +39,6 @@ describe('First-run setup wizard', () => {
       expect(res.body).toMatchObject({ needsSetup: true });
       expect(res.body).toHaveProperty('socialProviders');
       expect(res.body).toHaveProperty('isSelfHosted');
-      expect(res.body).toHaveProperty('localLlmHost');
       expect(res.body).toHaveProperty('ollamaAvailable');
     });
 

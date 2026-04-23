@@ -13,7 +13,6 @@ describe('SetupController', () => {
   let mockGetEnabledSocialProviders: jest.Mock;
   let mockIsSelfHosted: jest.Mock;
   let mockIsOllamaAvailable: jest.Mock;
-  let mockGetLocalLlmHost: jest.Mock;
 
   beforeEach(async () => {
     mockNeedsSetup = jest.fn();
@@ -21,7 +20,6 @@ describe('SetupController', () => {
     mockGetEnabledSocialProviders = jest.fn().mockReturnValue([]);
     mockIsSelfHosted = jest.fn().mockReturnValue(false);
     mockIsOllamaAvailable = jest.fn().mockResolvedValue(false);
-    mockGetLocalLlmHost = jest.fn().mockReturnValue('localhost');
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [SetupController],
@@ -34,7 +32,6 @@ describe('SetupController', () => {
             getEnabledSocialProviders: mockGetEnabledSocialProviders,
             isSelfHosted: mockIsSelfHosted,
             isOllamaAvailable: mockIsOllamaAvailable,
-            getLocalLlmHost: mockGetLocalLlmHost,
           },
         },
       ],
@@ -52,7 +49,6 @@ describe('SetupController', () => {
         socialProviders: [],
         isSelfHosted: false,
         ollamaAvailable: false,
-        localLlmHost: 'localhost',
       });
     });
 
@@ -64,7 +60,6 @@ describe('SetupController', () => {
         socialProviders: [],
         isSelfHosted: false,
         ollamaAvailable: false,
-        localLlmHost: 'localhost',
       });
     });
 
@@ -77,7 +72,6 @@ describe('SetupController', () => {
         socialProviders: ['google', 'github'],
         isSelfHosted: false,
         ollamaAvailable: false,
-        localLlmHost: 'localhost',
       });
     });
 
@@ -91,7 +85,6 @@ describe('SetupController', () => {
         socialProviders: [],
         isSelfHosted: true,
         ollamaAvailable: false,
-        localLlmHost: 'localhost',
       });
     });
 
@@ -105,16 +98,7 @@ describe('SetupController', () => {
         socialProviders: [],
         isSelfHosted: true,
         ollamaAvailable: true,
-        localLlmHost: 'localhost',
       });
-    });
-
-    it('returns host.docker.internal as localLlmHost when running inside Docker', async () => {
-      mockNeedsSetup.mockResolvedValue(false);
-      mockIsSelfHosted.mockReturnValue(true);
-      mockGetLocalLlmHost.mockReturnValue('host.docker.internal');
-      const result = await controller.getStatus();
-      expect(result.localLlmHost).toBe('host.docker.internal');
     });
 
     it('skips Ollama check in cloud mode (always false)', async () => {

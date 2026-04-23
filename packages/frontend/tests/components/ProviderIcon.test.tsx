@@ -106,31 +106,11 @@ describe("customProviderLogo", () => {
     expect(img).toBeNull();
   });
 
-  it.each([
-    ["LM Studio", "lmstudio"],
-    ["lm-studio", "lmstudio"],
-    ["Ollama", "ollama"],
-  ])(
-    "resolves %s to the branded local-LLM logo via the shared registry",
-    (name: string, expectedSrcMatch: string) => {
-      const { container } = render(() => <div>{customProviderLogo(name)}</div>);
-      const img = container.querySelector("img");
-      // Ollama renders as an inline SVG via providerIcon('ollama'), so it
-      // won't produce an <img>. The others have PNG icons.
-      if (img) {
-        expect(img.getAttribute("src")).toContain(expectedSrcMatch);
-      } else {
-        expect(container.querySelector("svg")).not.toBeNull();
-      }
-    },
-  );
-
-  it("returns the branded gemini icon (shared registry match) for provider name 'Gemini'", () => {
-    // "Gemini" normalizes to the shared provider id `gemini`, which has a
-    // branded SVG from `providerIcon`. Custom providers with a canonical
-    // shared name now prefer the branded icon over the legacy <img>.
+  it("returns gemini logo for provider name 'Gemini'", () => {
     const { container } = render(() => <div>{customProviderLogo("Gemini")}</div>);
-    expect(container.querySelector("svg")).not.toBeNull();
+    const img = container.querySelector("img");
+    expect(img).not.toBeNull();
+    expect(img!.getAttribute("src")).toBe("/icons/gemini.svg");
   });
 
   it("resolves gemini logo by googleapis base URL", () => {

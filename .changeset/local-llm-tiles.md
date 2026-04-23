@@ -1,5 +1,0 @@
----
-'manifest': minor
----
-
-Promote LM Studio to a first-class provider tile alongside Ollama. In the self-hosted version, clicking the LM Studio tile opens a dedicated detail view that probes `http://{localLlmHost}:1234/v1`, lists the loaded chat models, and connects them in one click — no URL typing, no manual pricing. A refresh icon re-probes after the user swaps models on the host. When the probe fails inside Docker, the detail view surfaces a two-path "Fix it" card: GUI toggle (LM Studio → Developer → "Serve on Local Network") and CLI one-liner (`lms server start --bind 0.0.0.0 --port 1234 --cors`) with a Copy button and a "one-time setup" reassurance. Embedding / reranker / moderation models are filtered out of the discovered list so they don't leak into the routing tier picker. Local-only tiles are disabled in cloud mode with an "Only available on self-hosted Manifest" hint. The `customProviderLogo` lookup now normalizes names against the shared registry, so an "LM Studio" custom provider shows the real logo everywhere (tier cards, Messages table, Model Prices, Fallback picker).
