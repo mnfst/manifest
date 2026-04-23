@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddBenchmarkHistory1777100000000 implements MigrationInterface {
-  name = 'AddBenchmarkHistory1777100000000';
+export class AddBenchmarkHistory1777300000000 implements MigrationInterface {
+  name = 'AddBenchmarkHistory1777300000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`

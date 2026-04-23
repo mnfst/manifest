@@ -14,6 +14,8 @@ vi.mock('../../src/services/formatters.js', () => ({
   formatDuration: (ms: number) => `${ms}ms`,
   formatTime: (t: string) => t,
   formatNumber: (v: number) => String(v),
+  sortedHeaderEntries: (h: Record<string, string> | null | undefined) =>
+    h ? Object.entries(h).sort(([a], [b]) => a.localeCompare(b)) : [],
 }));
 
 vi.mock('../../src/services/routing-utils.js', () => ({

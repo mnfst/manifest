@@ -524,6 +524,248 @@ describe("Settings", () => {
     });
   });
 
+  describe("Recording toggle", () => {
+    it("shows the recording card with toggle off by default", async () => {
+      mockGetAgentInfo.mockResolvedValue({
+        agent_name: "test-agent",
+        agent_category: "personal",
+        agent_platform: "openclaw",
+        record_messages: false,
+      });
+      const { container } = render(() => <Settings />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("Recording");
+        expect(container.textContent).toContain("Record messages");
+      });
+      const toggle = container.querySelector(
+        '[aria-label="Toggle message recording"] input[type="checkbox"]',
+      ) as HTMLInputElement;
+      expect(toggle).not.toBeNull();
+      expect(toggle.checked).toBe(false);
+      expect(container.querySelector(".recording-status-pill")).toBeNull();
+    });
+
+    it("shows the pulsing pill and a checked toggle when recording is on", async () => {
+      mockGetAgentInfo.mockResolvedValue({
+        agent_name: "test-agent",
+        agent_category: "personal",
+        agent_platform: "openclaw",
+        record_messages: true,
+      });
+      const { container } = render(() => <Settings />);
+      await vi.waitFor(() => {
+        expect(container.querySelector(".recording-status-pill")).not.toBeNull();
+      });
+      const toggle = container.querySelector(
+        '[aria-label="Toggle message recording"] input[type="checkbox"]',
+      ) as HTMLInputElement;
+      expect(toggle.checked).toBe(true);
+    });
+
+    it("calls updateAgent and shows enable toast when toggled on", async () => {
+      mockGetAgentInfo.mockResolvedValue({
+        agent_name: "test-agent",
+        agent_category: "personal",
+        agent_platform: "openclaw",
+        record_messages: false,
+      });
+      const { container } = render(() => <Settings />);
+      await vi.waitFor(() => {
+        expect(
+          container.querySelector('[aria-label="Toggle message recording"] input'),
+        ).not.toBeNull();
+      });
+      const toggle = container.querySelector(
+        '[aria-label="Toggle message recording"] input[type="checkbox"]',
+      ) as HTMLInputElement;
+      fireEvent.click(toggle);
+      await vi.waitFor(() => {
+        expect(mockUpdateAgent).toHaveBeenCalledWith("test-agent", {
+          record_messages: true,
+        });
+      });
+    });
+
+    it("handles toggle errors gracefully", async () => {
+      mockGetAgentInfo.mockResolvedValue({
+        agent_name: "test-agent",
+        agent_category: "personal",
+        agent_platform: "openclaw",
+        record_messages: false,
+      });
+      mockUpdateAgent.mockRejectedValueOnce(new Error("boom"));
+      const { container } = render(() => <Settings />);
+      await vi.waitFor(() => {
+        expect(
+          container.querySelector('[aria-label="Toggle message recording"] input'),
+        ).not.toBeNull();
+      });
+      const toggle = container.querySelector(
+        '[aria-label="Toggle message recording"] input[type="checkbox"]',
+      ) as HTMLInputElement;
+      fireEvent.click(toggle);
+      await vi.waitFor(() => {
+        expect(mockUpdateAgent).toHaveBeenCalled();
+      });
+    });
+
+    it("calls updateAgent and shows disable toast when toggled off", async () => {
+      mockGetAgentInfo.mockResolvedValue({
+        agent_name: "test-agent",
+        agent_category: "personal",
+        agent_platform: "openclaw",
+        record_messages: true,
+      });
+      const { toast } = await import("../../src/services/toast-store.js");
+      const { container } = render(() => <Settings />);
+      await vi.waitFor(() => {
+        expect(
+          container.querySelector('[aria-label="Toggle message recording"] input'),
+        ).not.toBeNull();
+      });
+      const toggle = container.querySelector(
+        '[aria-label="Toggle message recording"] input[type="checkbox"]',
+      ) as HTMLInputElement;
+      // Refetch returns "off" so the UI reflects the new state and subsequent
+      // toggles behave correctly, matching what the API would report.
+      mockGetAgentInfo.mockResolvedValueOnce({
+        agent_name: "test-agent",
+        agent_category: "personal",
+        agent_platform: "openclaw",
+        record_messages: false,
+      });
+      fireEvent.click(toggle);
+      await vi.waitFor(() => {
+        expect(mockUpdateAgent).toHaveBeenCalledWith("test-agent", {
+          record_messages: false,
+        });
+      });
+      await vi.waitFor(() => {
+        expect(toast.success).toHaveBeenCalledWith(
+          "Recording disabled. Existing recordings are kept.",
+        );
+      });
+    });
+
+    it("ignores rapid repeated toggle clicks while a save is in flight", async () => {
+      mockGetAgentInfo.mockResolvedValue({
+        agent_name: "test-agent",
+        agent_category: "personal",
+        agent_platform: "openclaw",
+        record_messages: false,
+      });
+      // Pending update so togglingRecording() stays true for the guard test
+      let resolveUpdate: (v: unknown) => void;
+      mockUpdateAgent.mockReturnValue(
+        new Promise((r) => {
+          resolveUpdate = r;
+        }),
+      );
+      const { container } = render(() => <Settings />);
+      await vi.waitFor(() => {
+        expect(
+          container.querySelector('[aria-label="Toggle message recording"] input'),
+        ).not.toBeNull();
+      });
+      const toggle = container.querySelector(
+        '[aria-label="Toggle message recording"] input[type="checkbox"]',
+      ) as HTMLInputElement;
+      fireEvent.click(toggle);
+      // The input is now disabled; simulating a programmatic click on the
+      // underlying onChange handler should short-circuit on togglingRecording().
+      fireEvent.change(toggle, { target: { checked: true } });
+      // Only one API call should have been made
+      expect(mockUpdateAgent).toHaveBeenCalledTimes(1);
+      resolveUpdate!({});
+    });
+  });
+
+  it("handles updateAgent rejection in type modal save without crashing", async () => {
+    mockUpdateAgent.mockRejectedValueOnce(new Error("type update failed"));
+    const { container } = render(() => <Settings />);
+    await vi.waitFor(() => {
+      const changeBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.includes("Change"),
+      );
+      expect(changeBtn).not.toBeUndefined();
+    });
+    fireEvent.click(
+      Array.from(container.querySelectorAll("button")).find((b) =>
+        b.textContent?.includes("Change"),
+      )!,
+    );
+    await vi.waitFor(() => {
+      expect(container.querySelector('[data-testid="agent-type-picker"]')).not.toBeNull();
+    });
+    fireEvent.click(container.querySelector('[data-testid="pick-app"]')!);
+    fireEvent.click(container.querySelector('[data-testid="pick-platform"]')!);
+    const modalSaveBtn = Array.from(
+      container.querySelectorAll(".modal-card__footer button"),
+    ).find((b) => b.textContent?.includes("Save")) as HTMLButtonElement;
+    fireEvent.click(modalSaveBtn);
+    await vi.waitFor(() => {
+      expect(mockUpdateAgent).toHaveBeenCalled();
+    });
+    // After the rejection, the modal should still be visible (not advanced to setup modal)
+    // and the Save button should be re-enabled (savingType back to false).
+    await vi.waitFor(() => {
+      const stillThere = container.querySelector(".modal-card__footer button");
+      expect(stillThere!.hasAttribute("disabled")).toBe(false);
+    });
+  });
+
+  it("closes the Change type modal when Escape is pressed", async () => {
+    const { container } = render(() => <Settings />);
+    await vi.waitFor(() => {
+      const changeBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.includes("Change"),
+      );
+      expect(changeBtn).not.toBeUndefined();
+    });
+    fireEvent.click(
+      Array.from(container.querySelectorAll("button")).find((b) =>
+        b.textContent?.includes("Change"),
+      )!,
+    );
+    await vi.waitFor(() => {
+      expect(container.querySelector('[data-testid="agent-type-picker"]')).not.toBeNull();
+    });
+    // The change-type modal is the second overlay — find the one hosting the picker
+    const pickerModal = container
+      .querySelector('[data-testid="agent-type-picker"]')!
+      .closest(".modal-overlay") as HTMLElement;
+    expect(pickerModal).not.toBeNull();
+    fireEvent.keyDown(pickerModal, { key: "Escape" });
+    await vi.waitFor(() => {
+      expect(container.querySelector('[data-testid="agent-type-picker"]')).toBeNull();
+    });
+  });
+
+  it("closes the Change type modal when clicking the overlay backdrop", async () => {
+    const { container } = render(() => <Settings />);
+    await vi.waitFor(() => {
+      const changeBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.includes("Change"),
+      );
+      expect(changeBtn).not.toBeUndefined();
+    });
+    fireEvent.click(
+      Array.from(container.querySelectorAll("button")).find((b) =>
+        b.textContent?.includes("Change"),
+      )!,
+    );
+    await vi.waitFor(() => {
+      expect(container.querySelector('[data-testid="agent-type-picker"]')).not.toBeNull();
+    });
+    const pickerModal = container
+      .querySelector('[data-testid="agent-type-picker"]')!
+      .closest(".modal-overlay") as HTMLElement;
+    fireEvent.click(pickerModal);
+    await vi.waitFor(() => {
+      expect(container.querySelector('[data-testid="agent-type-picker"]')).toBeNull();
+    });
+  });
+
   it("uses app.manifest.build URL when hostname matches", async () => {
     const originalLocation = window.location;
     Object.defineProperty(window, "location", {

@@ -27,6 +27,7 @@ import { SpecificityAssignment } from '../src/entities/specificity-assignment.en
 import { InstallMetadata } from '../src/entities/install-metadata.entity';
 import { BenchmarkRun } from '../src/entities/benchmark-run.entity';
 import { BenchmarkColumn } from '../src/entities/benchmark-column.entity';
+import { MessageRecording } from '../src/entities/message-recording.entity';
 import { HealthModule } from '../src/health/health.module';
 import { AnalyticsModule } from '../src/analytics/analytics.module';
 import { OtlpModule } from '../src/otlp/otlp.module';
@@ -45,7 +46,7 @@ export const TEST_TENANT_ID = 'test-tenant-001';
 export const TEST_AGENT_ID = 'test-agent-001';
 export const TEST_OTLP_KEY = 'mnfst_test-otlp-key-001';
 
-const entities = [AgentMessage, LlmCall, ToolExecution, AgentLog, ApiKey, Tenant, Agent, AgentApiKey, NotificationRule, NotificationLog, UserProvider, TierAssignment, CustomProvider, EmailProviderConfig, SpecificityAssignment, InstallMetadata, BenchmarkRun, BenchmarkColumn];
+const entities = [AgentMessage, LlmCall, ToolExecution, AgentLog, ApiKey, Tenant, Agent, AgentApiKey, NotificationRule, NotificationLog, UserProvider, TierAssignment, CustomProvider, EmailProviderConfig, SpecificityAssignment, InstallMetadata, BenchmarkRun, BenchmarkColumn, MessageRecording];
 const OPENROUTER_MODELS_URL = 'https://openrouter.ai/api/v1/models';
 const OPENROUTER_MODELS_FIXTURE = {
   data: [

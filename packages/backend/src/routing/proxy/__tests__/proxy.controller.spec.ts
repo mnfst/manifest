@@ -129,6 +129,7 @@ describe('ProxyController', () => {
       mockPricingCache as never,
       new ProxyMessageDedup(),
       { emit: jest.fn() } as unknown as IngestEventBusService,
+      { save: jest.fn() } as never,
     );
     controller = new ProxyController(
       proxyService as never,
@@ -137,6 +138,7 @@ describe('ProxyController', () => {
       recorder,
       new ThoughtSignatureCache(),
       new ThinkingBlockCache(),
+      { isRecording: jest.fn().mockResolvedValue(false), invalidate: jest.fn() } as never,
     );
   });
 
@@ -1725,6 +1727,7 @@ describe('ProxyController', () => {
         mockPricingCache as never,
         new ProxyMessageDedup(),
         { emit: jest.fn() } as unknown as IngestEventBusService,
+        { save: jest.fn() } as never,
       );
 
       const cooldownMap = (timedRecorder as any).rateLimitCooldown as Map<string, number>;
@@ -1746,6 +1749,7 @@ describe('ProxyController', () => {
         mockPricingCache as never,
         new ProxyMessageDedup(),
         { emit: jest.fn() } as unknown as IngestEventBusService,
+        { save: jest.fn() } as never,
       );
 
       timedRecorder.onModuleDestroy();

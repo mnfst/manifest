@@ -20,6 +20,7 @@ import { SpecificityAssignment } from '../entities/specificity-assignment.entity
 import { InstallMetadata } from '../entities/install-metadata.entity';
 import { BenchmarkRun } from '../entities/benchmark-run.entity';
 import { BenchmarkColumn } from '../entities/benchmark-column.entity';
+import { MessageRecording } from '../entities/message-recording.entity';
 import { DatabaseSeederService } from './database-seeder.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
@@ -74,7 +75,9 @@ import { AddInstallMetadata1775700000000 } from './migrations/1775700000000-AddI
 import { CleanupOrphanedCustomProviderRefs1776679833383 } from './migrations/1776679833383-CleanupOrphanedCustomProviderRefs';
 import { AddMessageRequestHeaders1776700000000 } from './migrations/1776700000000-AddMessageRequestHeaders';
 import { AddSpecificityMiscategorized1777000000000 } from './migrations/1777000000000-AddSpecificityMiscategorized';
-import { AddBenchmarkHistory1777100000000 } from './migrations/1777100000000-AddBenchmarkHistory';
+import { AddAgentRecordMessages1777100000000 } from './migrations/1777100000000-AddAgentRecordMessages';
+import { AddMessageRecordings1777200000000 } from './migrations/1777200000000-AddMessageRecordings';
+import { AddBenchmarkHistory1777300000000 } from './migrations/1777300000000-AddBenchmarkHistory';
 
 const entities = [
   AgentMessage,
@@ -95,6 +98,7 @@ const entities = [
   InstallMetadata,
   BenchmarkRun,
   BenchmarkColumn,
+  MessageRecording,
 ];
 
 const migrations = [
@@ -150,7 +154,9 @@ const migrations = [
   CleanupOrphanedCustomProviderRefs1776679833383,
   AddMessageRequestHeaders1776700000000,
   AddSpecificityMiscategorized1777000000000,
-  AddBenchmarkHistory1777100000000,
+  AddAgentRecordMessages1777100000000,
+  AddMessageRecordings1777200000000,
+  AddBenchmarkHistory1777300000000,
 ];
 
 @Module({
@@ -189,6 +195,7 @@ const migrations = [
       TierAssignment,
       CustomProvider,
       SpecificityAssignment,
+      MessageRecording,
     ]),
     ModelPricesModule,
   ],

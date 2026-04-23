@@ -83,12 +83,18 @@ export async function pipeStream(
   source: ReadableStream<Uint8Array>,
   dest: ExpressResponse,
   transform?: (chunk: string) => string | null,
+  onClientChunk?: (text: string) => void,
 ): Promise<StreamUsage | null> {
   const reader = source.getReader();
   const decoder = new TextDecoder();
   let sseBuffer = '';
   let passthroughBuffer = '';
   let capturedUsage: StreamUsage | null = null;
+
+  const writeOut = (s: string): void => {
+    dest.write(s);
+    if (onClientChunk) onClientChunk(s);
+  };
 
   try {
     let done = false;
@@ -112,13 +118,13 @@ export async function pipeStream(
           for (const event of events) {
             const transformed = transform(event);
             if (transformed) {
-              dest.write(transformed);
+              writeOut(transformed);
               const usage = extractUsageFromSse(transformed);
               if (usage) capturedUsage = usage;
             }
           }
         } else {
-          dest.write(text);
+          writeOut(text);
           passthroughBuffer += text;
           if (passthroughBuffer.length > MAX_SSE_BUFFER_SIZE) {
             throw new Error('SSE buffer overflow: provider sent data without event boundaries');
@@ -180,7 +186,7 @@ export async function pipeStream(
       if (payload && payload !== '[DONE]') {
         const transformed = transform(payload);
         if (transformed) {
-          dest.write(transformed);
+          writeOut(transformed);
           const usage = extractUsageFromSse(transformed);
           if (usage) capturedUsage = usage;
         }
@@ -191,7 +197,7 @@ export async function pipeStream(
     // Non-transformed streams (OpenAI) already include it from the provider.
     // Transformed streams (Google) need it added explicitly.
     if (transform) {
-      dest.write('data: [DONE]\n\n');
+      writeOut('data: [DONE]\n\n');
     }
   } finally {
     reader.releaseLock();
