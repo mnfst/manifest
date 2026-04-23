@@ -250,6 +250,64 @@ describe('Custom Providers (e2e)', () => {
       .expect(404);
   });
 
+  it('POST /custom-providers persists api_kind="anthropic" when requested', async () => {
+    const res = await request(app.getHttpServer())
+      .post(`/api/v1/routing/${agentName}/custom-providers`)
+      .set(headers)
+      .send({
+        name: 'Azure Claude',
+        base_url: 'https://my-azure.openai.azure.com',
+        api_kind: 'anthropic',
+        apiKey: 'sk-ant-test',
+        models: [{ model_name: 'claude-sonnet-4-5' }],
+      })
+      .expect(201);
+
+    expect(res.body.api_kind).toBe('anthropic');
+
+    const list = await request(app.getHttpServer())
+      .get(`/api/v1/routing/${agentName}/custom-providers`)
+      .set(headers)
+      .expect(200);
+    const created = list.body.find((p: { name: string }) => p.name === 'Azure Claude');
+    expect(created.api_kind).toBe('anthropic');
+
+    await request(app.getHttpServer())
+      .delete(`/api/v1/routing/${agentName}/custom-providers/${res.body.id}`)
+      .set(headers)
+      .expect(200);
+  });
+
+  it('POST /custom-providers defaults api_kind to "openai" when omitted', async () => {
+    const res = await request(app.getHttpServer())
+      .post(`/api/v1/routing/${agentName}/custom-providers`)
+      .set(headers)
+      .send({
+        name: 'No Kind',
+        base_url: 'https://api.example.com/v1',
+        models: [{ model_name: 'm' }],
+      })
+      .expect(201);
+    expect(res.body.api_kind).toBe('openai');
+    await request(app.getHttpServer())
+      .delete(`/api/v1/routing/${agentName}/custom-providers/${res.body.id}`)
+      .set(headers)
+      .expect(200);
+  });
+
+  it('POST /custom-providers rejects unknown api_kind', async () => {
+    await request(app.getHttpServer())
+      .post(`/api/v1/routing/${agentName}/custom-providers`)
+      .set(headers)
+      .send({
+        name: 'Bogus',
+        base_url: 'https://api.example.com/v1',
+        api_kind: 'google',
+        models: [{ model_name: 'm' }],
+      })
+      .expect(400);
+  });
+
   it('POST /custom-providers works without API key (local provider)', async () => {
     const res = await request(app.getHttpServer())
       .post(`/api/v1/routing/${agentName}/custom-providers`)

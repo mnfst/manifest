@@ -178,6 +178,21 @@ describe('CustomProviderService', () => {
         allowPrivate: true,
       });
     });
+
+    it('defaults api_kind to "openai" when the DTO omits it', async () => {
+      const { svc } = makeDeps({ findOneResults: [null] });
+      const cp = await svc.create('agent-1', 'user-1', dto);
+      expect(cp.api_kind).toBe('openai');
+    });
+
+    it('persists api_kind="anthropic" when requested', async () => {
+      const { svc } = makeDeps({ findOneResults: [null] });
+      const cp = await svc.create('agent-1', 'user-1', {
+        ...dto,
+        api_kind: 'anthropic',
+      });
+      expect(cp.api_kind).toBe('anthropic');
+    });
   });
 
   describe('update', () => {
@@ -266,6 +281,18 @@ describe('CustomProviderService', () => {
       // Edited prices must flow into the shared pricing cache so the next
       // proxied message picks up the new per-token cost.
       expect(reloadPricing).toHaveBeenCalledTimes(1);
+    });
+
+    it('updates api_kind when provided', async () => {
+      const existing = {
+        id: 'cp1',
+        agent_id: 'agent-1',
+        name: 'n',
+        api_kind: 'openai',
+      } as CustomProvider;
+      const { svc } = makeDeps({ findOneResults: [existing] });
+      await svc.update('agent-1', 'cp1', 'user-1', { api_kind: 'anthropic' });
+      expect(existing.api_kind).toBe('anthropic');
     });
 
     it('delegates tier recalculation to provider upsert when the api key is also updated', async () => {
@@ -385,6 +412,40 @@ describe('CustomProviderService', () => {
       await svc.probeModels('http://host.docker.internal:8000/v1');
       const headers = (global.fetch as jest.Mock).mock.calls[0][1].headers;
       expect(headers.Authorization).toBeUndefined();
+    });
+
+    it('hits /v1/models with Anthropic headers when apiKind is "anthropic"', async () => {
+      const { svc } = makeDeps({});
+      global.fetch = jest
+        .fn()
+        .mockResolvedValue(
+          jsonResponse({ data: [{ id: 'claude-sonnet-4-5' }, { id: 'claude-haiku-4-5' }] }),
+        ) as unknown as typeof fetch;
+
+      const result = await svc.probeModels('https://api.anthropic.com', 'sk-ant-x', 'anthropic');
+      expect(result).toEqual([
+        { model_name: 'claude-sonnet-4-5' },
+        { model_name: 'claude-haiku-4-5' },
+      ]);
+      expect((global.fetch as jest.Mock).mock.calls[0][0]).toBe(
+        'https://api.anthropic.com/v1/models',
+      );
+      const headers = (global.fetch as jest.Mock).mock.calls[0][1].headers;
+      expect(headers['x-api-key']).toBe('sk-ant-x');
+      expect(headers['anthropic-version']).toBe('2023-06-01');
+      // Bearer is OpenAI's scheme — must not leak into an Anthropic probe.
+      expect(headers.Authorization).toBeUndefined();
+    });
+
+    it('omits x-api-key when probing Anthropic without a key (still sends version header)', async () => {
+      const { svc } = makeDeps({});
+      global.fetch = jest
+        .fn()
+        .mockResolvedValue(jsonResponse({ data: [] })) as unknown as typeof fetch;
+      await svc.probeModels('https://api.anthropic.com', undefined, 'anthropic');
+      const headers = (global.fetch as jest.Mock).mock.calls[0][1].headers;
+      expect(headers['x-api-key']).toBeUndefined();
+      expect(headers['anthropic-version']).toBe('2023-06-01');
     });
 
     it('returns an empty array when the server returns no models', async () => {

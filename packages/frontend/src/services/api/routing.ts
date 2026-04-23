@@ -205,6 +205,8 @@ export function refreshPricing() {
 
 /* -- Routing: Custom Providers -- */
 
+export type CustomProviderApiKind = 'openai' | 'anthropic';
+
 export interface CustomProviderModel {
   model_name: string;
   input_price_per_million_tokens?: number;
@@ -216,6 +218,7 @@ export interface CustomProviderData {
   id: string;
   name: string;
   base_url: string;
+  api_kind: CustomProviderApiKind;
   has_api_key: boolean;
   models: CustomProviderModel[];
   created_at: string;
@@ -230,6 +233,7 @@ export function createCustomProvider(
   data: {
     name: string;
     base_url: string;
+    api_kind?: CustomProviderApiKind;
     apiKey?: string;
     models: CustomProviderModel[];
   },
@@ -247,6 +251,7 @@ export function updateCustomProvider(
   data: {
     name?: string;
     base_url?: string;
+    api_kind?: CustomProviderApiKind;
     apiKey?: string;
     models?: CustomProviderModel[];
   },
@@ -261,12 +266,17 @@ export function updateCustomProvider(
   );
 }
 
-export async function probeCustomProvider(agentName: string, base_url: string, apiKey?: string) {
+export async function probeCustomProvider(
+  agentName: string,
+  base_url: string,
+  apiKey?: string,
+  api_kind?: CustomProviderApiKind,
+) {
   const res = await fetch(`${BASE_URL}${routingPath(agentName, 'custom-providers/probe')}`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ base_url, apiKey }),
+    body: JSON.stringify({ base_url, apiKey, api_kind }),
   });
   if (!res.ok) {
     const message = await parseErrorMessage(res);

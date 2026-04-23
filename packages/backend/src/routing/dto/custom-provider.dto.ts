@@ -11,9 +11,13 @@ import {
   ArrayMinSize,
   ArrayMaxSize,
   IsUrl,
+  IsIn,
   Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+
+export const CUSTOM_PROVIDER_API_KINDS = ['openai', 'anthropic'] as const;
+export type CustomProviderApiKindDto = (typeof CUSTOM_PROVIDER_API_KINDS)[number];
 export class CustomProviderModelDto {
   @IsString()
   @IsNotEmpty()
@@ -55,6 +59,10 @@ export class CreateCustomProviderDto {
   base_url!: string;
 
   @IsOptional()
+  @IsIn(CUSTOM_PROVIDER_API_KINDS, { message: 'api_kind must be "openai" or "anthropic"' })
+  api_kind?: CustomProviderApiKindDto;
+
+  @IsOptional()
   @IsString()
   apiKey?: string;
 
@@ -71,6 +79,10 @@ export class ProbeCustomProviderDto {
   @IsNotEmpty()
   @IsUrl({ require_tld: false, require_protocol: true }, { message: 'Must be a valid URL' })
   base_url!: string;
+
+  @IsOptional()
+  @IsIn(CUSTOM_PROVIDER_API_KINDS, { message: 'api_kind must be "openai" or "anthropic"' })
+  api_kind?: CustomProviderApiKindDto;
 
   @IsOptional()
   @IsString()
@@ -93,6 +105,10 @@ export class UpdateCustomProviderDto {
   @IsNotEmpty()
   @IsUrl({ require_tld: false, require_protocol: true }, { message: 'Must be a valid URL' })
   base_url?: string;
+
+  @IsOptional()
+  @IsIn(CUSTOM_PROVIDER_API_KINDS, { message: 'api_kind must be "openai" or "anthropic"' })
+  api_kind?: CustomProviderApiKindDto;
 
   @IsOptional()
   @IsString()

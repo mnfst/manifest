@@ -923,3 +923,92 @@
 .dark .provider-icon--opencode-go-dark {
   display: inline;
 }
+
+/* ── API format toggle (custom provider form) ─────── */
+.provider-detail__format {
+  border: none;
+  padding: 0;
+  margin: 0 0 16px;
+  min-width: 0;
+}
+
+.provider-detail__format-legend {
+  padding: 0;
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: hsl(var(--foreground));
+  margin-bottom: 6px;
+}
+
+.provider-detail__format-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.provider-detail__format-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 12px;
+  background: hsl(var(--muted) / 0.4);
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.provider-detail__format-option:hover {
+  border-color: hsl(var(--ring) / 0.5);
+}
+
+.provider-detail__format-option--active {
+  border-color: hsl(var(--ring));
+  background: hsl(var(--background));
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.15);
+}
+
+.provider-detail__format-option--disabled,
+.provider-detail__format-option--disabled:hover {
+  cursor: not-allowed;
+  opacity: 0.6;
+  border-color: hsl(var(--border));
+}
+
+.provider-detail__format-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
+
+.provider-detail__format-option:focus-within {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.provider-detail__format-option-title {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.provider-detail__format-option-path {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  font-family: var(--font-mono, monospace);
+  line-height: 1.2;
+}
+
+.provider-detail__format-help {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  margin: 6px 0 0;
+}

@@ -240,6 +240,37 @@ describe('ProxyFallbackService', () => {
       });
     });
 
+    it('routes Anthropic-kind custom providers to /v1/messages with anthropic format', async () => {
+      customProviderRepo.findOne.mockResolvedValue({
+        id: 'cp-anth',
+        base_url: 'https://api.anthropic.com',
+        api_kind: 'anthropic',
+      } as never);
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: true,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'custom:cp-anth',
+        apiKey: 'sk-ant-key',
+        model: 'custom:cp-anth/claude-sonnet-4-5',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+      });
+
+      const forwardArgs = providerClient.forward.mock.calls[0][0];
+      expect(forwardArgs.model).toBe('claude-sonnet-4-5');
+      expect(forwardArgs.customEndpoint).toMatchObject({
+        baseUrl: 'https://api.anthropic.com',
+        format: 'anthropic',
+      });
+      expect(forwardArgs.customEndpoint?.buildPath('claude-sonnet-4-5')).toBe('/v1/messages');
+    });
+
     it('uses minimax subscription base URL override', async () => {
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),

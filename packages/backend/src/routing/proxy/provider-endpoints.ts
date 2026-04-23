@@ -200,9 +200,20 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
 };
 
 /** Build a ProviderEndpoint for a custom provider with the given base URL. */
-export function buildCustomEndpoint(baseUrl: string): ProviderEndpoint {
-  // Strip trailing /v1 (or /v1/) since openaiPath already includes /v1
+export function buildCustomEndpoint(
+  baseUrl: string,
+  apiKind: 'openai' | 'anthropic' = 'openai',
+): ProviderEndpoint {
+  // Strip trailing /v1 (or /v1/) since both buildPath callbacks include /v1.
   const normalized = normalizeProviderBaseUrl(baseUrl);
+  if (apiKind === 'anthropic') {
+    return {
+      baseUrl: normalized,
+      buildHeaders: anthropicHeaders,
+      buildPath: () => '/v1/messages',
+      format: 'anthropic',
+    };
+  }
   return {
     baseUrl: normalized,
     buildHeaders: openaiHeaders,

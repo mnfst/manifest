@@ -7,7 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
-import { CustomProvider } from '../../entities/custom-provider.entity';
+import { CustomProvider, CustomProviderApiKind } from '../../entities/custom-provider.entity';
 import { ProviderService } from '../routing-core/provider.service';
 import { RoutingCacheService } from '../routing-core/routing-cache.service';
 import { TierAutoAssignService } from '../routing-core/tier-auto-assign.service';
@@ -107,6 +107,7 @@ export class CustomProviderService {
       user_id: userId,
       name: dto.name,
       base_url: dto.base_url,
+      api_kind: dto.api_kind ?? 'openai',
       models: dto.models.map((m) => ({
         model_name: m.model_name,
         input_price_per_million_tokens: m.input_price_per_million_tokens,
@@ -156,6 +157,10 @@ export class CustomProviderService {
         throw new BadRequestException((err as Error).message);
       }
       cp.base_url = dto.base_url;
+    }
+
+    if (dto.api_kind !== undefined) {
+      cp.api_kind = dto.api_kind;
     }
 
     if (dto.models !== undefined) {
@@ -221,13 +226,18 @@ export class CustomProviderService {
   }
 
   /**
-   * Probes the `{base_url}/models` endpoint of an OpenAI-compatible server
-   * and returns the discovered model IDs. Used by the "Fetch models" button
-   * in the custom-provider form so users connecting a local LLM server
-   * (LM Studio, Ollama-on-host, or any OpenAI-compatible endpoint) don't
-   * have to type each model name by hand.
+   * Probes the `/models` endpoint of a custom provider and returns the
+   * discovered model IDs. Used by the "Fetch models" button in the form so
+   * users don't have to type each model name by hand. Both OpenAI's
+   * `GET {base}/models` and Anthropic's `GET {base}/v1/models` return a
+   * `{ data: [{ id }] }` shape — we only need to vary the path and the
+   * auth header scheme.
    */
-  async probeModels(baseUrl: string, apiKey?: string): Promise<{ model_name: string }[]> {
+  async probeModels(
+    baseUrl: string,
+    apiKey?: string,
+    apiKind: CustomProviderApiKind = 'openai',
+  ): Promise<{ model_name: string }[]> {
     try {
       await validatePublicUrl(baseUrl, { allowPrivate: isSelfHosted() });
     } catch (err) {
@@ -238,12 +248,18 @@ export class CustomProviderService {
     // on adversarial input (CodeQL js/polynomial-redos).
     let end = baseUrl.length;
     while (end > 0 && baseUrl.charCodeAt(end - 1) === 47 /* '/' */) end--;
-    const url = `${baseUrl.slice(0, end)}/models`;
+    const trimmed = baseUrl.slice(0, end);
+    const url = apiKind === 'anthropic' ? `${trimmed}/v1/models` : `${trimmed}/models`;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), PROBE_TIMEOUT_MS);
     try {
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+      if (apiKind === 'anthropic') {
+        headers['anthropic-version'] = '2023-06-01';
+        if (apiKey) headers['x-api-key'] = apiKey;
+      } else if (apiKey) {
+        headers['Authorization'] = `Bearer ${apiKey}`;
+      }
       // User-controlled URL is intentional here — this endpoint exists to
       // connect to operator-chosen LLM servers. validatePublicUrl() above is
       // our SSRF mitigation: cloud metadata is always blocked, private IPs
