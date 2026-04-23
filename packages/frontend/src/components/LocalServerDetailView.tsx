@@ -412,6 +412,8 @@ const FailureState: Component<{
 }> = (p) => {
   const errorMsg = () =>
     p.error instanceof Error ? p.error.message : 'Could not reach the server';
+  const [hostResource] = createResource(() => checkLocalLlmHost());
+  const isDocker = () => !!p.hint?.dockerBindNote && hostResource() === 'host.docker.internal';
   const [copied, setCopied] = createSignal(false);
   const copyCommand = async () => {
     if (!p.hint) return;
@@ -426,32 +428,40 @@ const FailureState: Component<{
 
   return (
     <div class="provider-detail__failure">
-      <div style="margin-bottom: 14px; display: flex; align-items: flex-start; gap: 8px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); padding: 12px 14px; background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: var(--radius); white-space: pre-line;">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          style="flex-shrink: 0; margin-top: 1px;"
-        >
-          <g fill="currentColor" opacity="0.4">
-            <path d="m19,3H5c-1.65,0-3,1.35-3,3v2c0,1.65,1.35,3,3,3h14c1.65,0,3-1.35,3-3v-2c0-1.65-1.35-3-3-3Zm1,5c0,.55-.45,1-1,1H5c-.55,0-1-.45-1-1v-2c0-.55.45-1,1-1h14c.55,0,1,.45,1,1v2Z" />
-          </g>
-          <g fill="currentColor" opacity="1">
-            <path d="m19,13H5c-1.65,0-3,1.35-3,3v2c0,1.65,1.35,3,3,3h14c1.65,0,3-1.35,3-3v-2c0-1.65-1.35-3-3-3Zm1,5c0,.55-.45,1-1,1H5c-.55,0-1-.45-1-1v-2c0-.55.45-1,1-1h14c.55,0,1,.45,1,1v2Z" />
-            <path d="M18 16A1 1 0 1 0 18 18 1 1 0 1 0 18 16z" />
-            <path d="M15 16A1 1 0 1 0 15 18 1 1 0 1 0 15 16z" />
-            <path d="M18 6A1 1 0 1 0 18 8 1 1 0 1 0 18 6z" />
-            <path d="M15 6A1 1 0 1 0 15 8 1 1 0 1 0 15 6z" />
-          </g>
-        </svg>
-        {errorMsg()}
-      </div>
+      {/* Docker caveat first — it's a prerequisite for the server to be reachable */}
+      <Show when={p.hint}>
+        <DockerCaveat hint={p.hint!} errorMsg={errorMsg()} />
+      </Show>
+
+      {/* Error card — only shown outside Docker (DockerCaveat renders it inline when in Docker) */}
+      <Show when={!isDocker()}>
+        <div style="margin-bottom: 14px; display: flex; align-items: flex-start; gap: 8px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); padding: 12px 14px; background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: var(--radius); white-space: pre-line;">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            style="flex-shrink: 0; margin-top: 1px;"
+          >
+            <g fill="currentColor" opacity="0.4">
+              <path d="m19,3H5c-1.65,0-3,1.35-3,3v2c0,1.65,1.35,3,3,3h14c1.65,0,3-1.35,3-3v-2c0-1.65-1.35-3-3-3Zm1,5c0,.55-.45,1-1,1H5c-.55,0-1-.45-1-1v-2c0-.55.45-1,1-1h14c.55,0,1,.45,1,1v2Z" />
+            </g>
+            <g fill="currentColor" opacity="1">
+              <path d="m19,13H5c-1.65,0-3,1.35-3,3v2c0,1.65,1.35,3,3,3h14c1.65,0,3-1.35,3-3v-2c0-1.65-1.35-3-3-3Zm1,5c0,.55-.45,1-1,1H5c-.55,0-1-.45-1-1v-2c0-.55.45-1,1-1h14c.55,0,1,.45,1,1v2Z" />
+              <path d="M18 16A1 1 0 1 0 18 18 1 1 0 1 0 18 16z" />
+              <path d="M15 16A1 1 0 1 0 15 18 1 1 0 1 0 15 16z" />
+              <path d="M18 6A1 1 0 1 0 18 8 1 1 0 1 0 18 6z" />
+              <path d="M15 6A1 1 0 1 0 15 8 1 1 0 1 0 15 6z" />
+            </g>
+          </svg>
+          {errorMsg()}
+        </div>
+      </Show>
 
       <Show when={p.hint}>
         <div class="provider-detail__setup" style="margin-bottom: 20px;">
           <div style="font-size: var(--font-size-sm); font-weight: 600; color: hsl(var(--foreground)); margin-bottom: 8px;">
-            Start server command
+            {isDocker() ? '2. Start server command' : 'Start server command'}
           </div>
           <div style="position: relative;">
             <pre
@@ -535,23 +545,18 @@ const FailureState: Component<{
           Retry
         </button>
       </div>
-
-      {/* Docker fix card lives here (failure-only) — when the probe
-          succeeds there's nothing to teach. */}
-      <Show when={p.hint}>
-        <DockerCaveat hint={p.hint!} />
-      </Show>
     </div>
   );
 };
 
-/* ── Docker caveat footer ─────────────────────────── */
+/* ── Docker caveat with GUI/CLI tabs ──────────────── */
 
-const DockerCaveat: Component<{ hint: LocalServerHint }> = (p) => {
+const DockerCaveat: Component<{ hint: LocalServerHint; errorMsg: string }> = (p) => {
   const [hostResource] = createResource(() => checkLocalLlmHost());
   const showCaveat = () => !!p.hint.dockerBindNote && hostResource() === 'host.docker.internal';
   const bindCommand = () => p.hint.dockerBindCommand ?? p.hint.setupCommand;
   const [copied, setCopied] = createSignal(false);
+  const [activeTab, setActiveTab] = createSignal<'gui' | 'cli'>('gui');
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(bindCommand());
@@ -566,42 +571,135 @@ const DockerCaveat: Component<{ hint: LocalServerHint }> = (p) => {
     <Show when={showCaveat()}>
       <div
         class="provider-detail__caveat"
-        style="margin-top: 20px; padding: 12px 14px; background: hsl(var(--warning) / 0.1); border-left: 3px solid hsl(var(--warning)); border-radius: var(--radius); font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));"
+        style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));"
       >
-        <div style="color: hsl(var(--foreground)); font-weight: 600; margin-bottom: 6px;">
-          Running Manifest in Docker
+        {/* Alert cards: overview of both problems */}
+        <div style="margin-bottom: 14px; display: flex; align-items: flex-start; gap: 8px; padding: 12px 14px; background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: var(--radius);">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+            style="flex-shrink: 0; margin-top: 1px;"
+          >
+            <path d="M20.17 9.82a5 5 0 0 0-.84.07 3.12 3.12 0 0 0-1.43-2.14l-.28-.16-.19.27a3.7 3.7 0 0 0-.51 1.19 2.84 2.84 0 0 0 .33 2.22 4.1 4.1 0 0 1-1.45.35H2.63a.63.63 0 0 0-.63.62 9.6 9.6 0 0 0 .58 3.39 5 5 0 0 0 2 2.6 8.86 8.86 0 0 0 4.42.95 13.3 13.3 0 0 0 2.42-.18 10.1 10.1 0 0 0 3.19-1.15A8.9 8.9 0 0 0 16.78 16a12 12 0 0 0 2.13-3.67h.19a3.08 3.08 0 0 0 2.23-.84 2.36 2.36 0 0 0 .59-.87l.08-.22-.2-.16a2.7 2.7 0 0 0-1.63-.42" />
+            <path d="M5.61 9.35H3.85a.16.16 0 0 0-.16.15v1.58a.16.16 0 0 0 .16.15h1.76a.16.16 0 0 0 .16-.15V9.5a.16.16 0 0 0-.16-.15m2.44 0H6.28a.16.16 0 0 0-.16.15v1.58a.16.16 0 0 0 .16.15h1.77a.15.15 0 0 0 .15-.15V9.5a.15.15 0 0 0-.15-.15m2.47 0H8.75a.15.15 0 0 0-.15.15v1.58a.15.15 0 0 0 .15.15h1.77a.15.15 0 0 0 .15-.15V9.5a.15.15 0 0 0-.15-.15m.67 0a.15.15 0 0 0-.19.15v1.58a.15.15 0 0 0 .15.15H13a.15.15 0 0 0 .15-.15V9.5a.15.15 0 0 0-.15-.15zM6.28 7.09H8a.16.16 0 0 1 .16.16v1.56A.16.16 0 0 1 8 9H6.28a.15.15 0 0 1-.15-.15V7.24a.15.15 0 0 1 .15-.15m2.47 0h1.77a.15.15 0 0 1 .15.15v1.57a.16.16 0 0 1-.16.16H8.75a.15.15 0 0 1-.15-.15V7.24a.15.15 0 0 1 .15-.15m2.44 0H13a.15.15 0 0 1 .15.15v1.57A.15.15 0 0 1 13 9h-1.81a.16.16 0 0 1-.19-.19V7.24a.15.15 0 0 1 .19-.15" />
+            <rect width="2.07" height="1.88" x="11.04" y="4.82" rx=".15" />
+            <path d="M13.65 9.35a.15.15 0 0 0-.15.15v1.58a.15.15 0 0 0 .15.15h1.77a.15.15 0 0 0 .15-.15V9.5a.15.15 0 0 0-.15-.15z" />
+          </svg>
+          <span>{p.hint.dockerBindNote}</span>
         </div>
-        <div style="margin-bottom: 10px;">{p.hint.dockerBindNote}</div>
 
+        <div style="margin-bottom: 20px; display: flex; align-items: flex-start; gap: 8px; padding: 12px 14px; background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: var(--radius); white-space: pre-line;">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            style="flex-shrink: 0; margin-top: 1px;"
+          >
+            <g fill="currentColor" opacity="0.4">
+              <path d="m19,3H5c-1.65,0-3,1.35-3,3v2c0,1.65,1.35,3,3,3h14c1.65,0,3-1.35,3-3v-2c0-1.65-1.35-3-3-3Zm1,5c0,.55-.45,1-1,1H5c-.55,0-1-.45-1-1v-2c0-.55.45-1,1-1h14c.55,0,1,.45,1,1v2Z" />
+            </g>
+            <g fill="currentColor" opacity="1">
+              <path d="m19,13H5c-1.65,0-3,1.35-3,3v2c0,1.65,1.35,3,3,3h14c1.65,0,3-1.35,3-3v-2c0-1.65-1.35-3-3-3Zm1,5c0,.55-.45,1-1,1H5c-.55,0-1-.45-1-1v-2c0-.55.45-1,1-1h14c.55,0,1,.45,1,1v2Z" />
+              <path d="M18 16A1 1 0 1 0 18 18 1 1 0 1 0 18 16z" />
+              <path d="M15 16A1 1 0 1 0 15 18 1 1 0 1 0 15 16z" />
+              <path d="M18 6A1 1 0 1 0 18 8 1 1 0 1 0 18 6z" />
+              <path d="M15 6A1 1 0 1 0 15 8 1 1 0 1 0 15 6z" />
+            </g>
+          </svg>
+          {p.errorMsg}
+        </div>
+
+        {/* Step 1: Running Manifest in Docker */}
+        <div style="font-size: var(--font-size-sm); font-weight: 600; color: hsl(var(--foreground)); margin-bottom: 12px;">
+          1. Running Manifest in Docker
+        </div>
+
+        {/* Tabs: GUI / CLI */}
         <Show when={p.hint.dockerGuiFix}>
-          <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px;">
-            <span style="flex-shrink: 0; color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; min-width: 32px;">
+          <div class="panel__tabs" style="margin-bottom: 12px; width: 100%;">
+            <button
+              type="button"
+              class="panel__tab"
+              classList={{ 'panel__tab--active': activeTab() === 'gui' }}
+              onClick={() => setActiveTab('gui')}
+              style="flex: 1;"
+            >
               GUI
-            </span>
-            <span style="color: hsl(var(--foreground));">{p.hint.dockerGuiFix}</span>
+            </button>
+            <button
+              type="button"
+              class="panel__tab"
+              classList={{ 'panel__tab--active': activeTab() === 'cli' }}
+              onClick={() => setActiveTab('cli')}
+              style="flex: 1;"
+            >
+              CLI
+            </button>
+          </div>
+
+          {/* GUI tab content */}
+          <Show when={activeTab() === 'gui'}>
+            <div style="margin-bottom: 16px; color: hsl(var(--foreground)); font-size: var(--font-size-sm);">
+              {p.hint.dockerGuiFix}
+            </div>
+          </Show>
+        </Show>
+
+        {/* CLI tab content (also shown when no GUI fix available) */}
+        <Show when={activeTab() === 'cli' || !p.hint.dockerGuiFix}>
+          <div style="position: relative; margin-bottom: 16px;">
+            <pre style="margin: 0; padding: 10px 40px 10px 12px; background: hsl(var(--muted)); border-radius: var(--radius); font-family: var(--font-mono, monospace); font-size: var(--font-size-xs); white-space: pre-wrap; word-break: break-all;">
+              {bindCommand()}
+            </pre>
+            <button
+              type="button"
+              onClick={copy}
+              title={copied() ? 'Copied!' : 'Copy'}
+              aria-label={copied() ? 'Copied' : 'Copy command'}
+              style="position: absolute; top: 50%; right: 8px; transform: translateY(-50%); display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: none; background: transparent; color: hsl(var(--muted-foreground)); cursor: pointer; border-radius: var(--radius);"
+            >
+              <Show
+                when={!copied()}
+                fallback={
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                }
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
+              </Show>
+            </button>
           </div>
         </Show>
 
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="flex-shrink: 0; color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; min-width: 32px;">
-            CLI
-          </span>
-          <code style="flex: 1; padding: 4px 8px; background: hsl(var(--muted)); border-radius: var(--radius); font-family: var(--font-mono, monospace); font-size: var(--font-size-xs); color: hsl(var(--foreground)); overflow-x: auto; white-space: nowrap;">
-            {bindCommand()}
-          </code>
-          <button
-            type="button"
-            onClick={copy}
-            aria-label={copied() ? 'Copied' : 'Copy command'}
-            style="flex-shrink: 0; padding: 4px 10px; background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: var(--radius); color: hsl(var(--foreground)); font-size: var(--font-size-xs); cursor: pointer;"
-          >
-            {copied() ? 'Copied' : 'Copy'}
-          </button>
-        </div>
-
         <Show when={p.hint.persistsBindAcrossLaunches}>
-          <div style="margin-top: 10px; font-size: var(--font-size-xs);">
-            One-time setup — the server remembers this setting across restarts.
+          <div style="margin-bottom: 20px; font-size: var(--font-size-xs);">
+            You only need to do this once. The server remembers this setting across restarts.
           </div>
         </Show>
       </div>

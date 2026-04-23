@@ -176,7 +176,9 @@ describe('LocalServerDetailView', () => {
 
     await waitFor(() => {
       expect(container.textContent).toContain('Running Manifest in Docker');
-      expect(container.textContent).toContain('--bind 0.0.0.0');
+      // CLI tab must be clicked to see the bind command
+      expect(container.textContent).toContain('GUI');
+      expect(container.textContent).toContain('CLI');
     });
   });
 
@@ -384,11 +386,20 @@ describe('LocalServerDetailView', () => {
       />
     ));
 
+    // Switch to CLI tab to reveal the copy button
+    const cliTab = await waitFor(() => {
+      const tabs = Array.from(container.querySelectorAll<HTMLButtonElement>('.provider-detail__caveat button'));
+      const t = tabs.find((el) => el.textContent?.trim() === 'CLI');
+      if (!t) throw new Error('CLI tab not yet rendered');
+      return t;
+    });
+    fireEvent.click(cliTab);
+
     const copyBtn = await waitFor(() => {
       const candidates = Array.from(
         container.querySelectorAll<HTMLButtonElement>('.provider-detail__caveat button'),
       );
-      const b = candidates.find((el) => el.textContent?.trim() === 'Copy');
+      const b = candidates.find((el) => el.title === 'Copy' || el.title === 'Copied!');
       if (!b) throw new Error('copy button not yet rendered');
       return b;
     });
@@ -397,8 +408,6 @@ describe('LocalServerDetailView', () => {
     await waitFor(() => {
       expect(writeText).toHaveBeenCalledWith(expect.stringContaining('--bind 0.0.0.0'));
     });
-    // Label flips to "Copied" briefly after a successful copy.
-    expect(copyBtn.textContent?.trim()).toBe('Copied');
   });
 
   it('falls back to the error toast when Copy-in-caveat rejects', async () => {
@@ -419,11 +428,20 @@ describe('LocalServerDetailView', () => {
       />
     ));
 
+    // Switch to CLI tab to reveal the copy button
+    const cliTab = await waitFor(() => {
+      const tabs = Array.from(container.querySelectorAll<HTMLButtonElement>('.provider-detail__caveat button'));
+      const t = tabs.find((el) => el.textContent?.trim() === 'CLI');
+      if (!t) throw new Error('CLI tab not yet rendered');
+      return t;
+    });
+    fireEvent.click(cliTab);
+
     const copyBtn = await waitFor(() => {
       const candidates = Array.from(
         container.querySelectorAll<HTMLButtonElement>('.provider-detail__caveat button'),
       );
-      const b = candidates.find((el) => el.textContent?.trim() === 'Copy');
+      const b = candidates.find((el) => el.title === 'Copy' || el.title === 'Copied!');
       if (!b) throw new Error('copy button not yet rendered');
       return b;
     });
@@ -703,10 +721,18 @@ describe('LocalServerDetailView', () => {
     await waitFor(() => {
       const caveat = container.querySelector('.provider-detail__caveat');
       expect(caveat).not.toBeNull();
-      // GUI path (the "Fix it" GUI label) and the copyable CLI with --bind.
+      // GUI tab is active by default — shows the GUI fix text.
       expect(caveat!.textContent).toContain('Serve on Local Network');
-      expect(caveat!.textContent).toContain('--bind 0.0.0.0');
-      expect(caveat!.textContent).toContain('One-time setup');
+      expect(caveat!.textContent).toContain('You only need to do this once');
+    });
+
+    // Switch to CLI tab and verify the bind command is shown.
+    const cliTab = Array.from(container.querySelectorAll<HTMLButtonElement>('.provider-detail__caveat button'))
+      .find((el) => el.textContent?.trim() === 'CLI')!;
+    fireEvent.click(cliTab);
+
+    await waitFor(() => {
+      expect(container.querySelector('.provider-detail__caveat')!.textContent).toContain('--bind 0.0.0.0');
     });
   });
 });

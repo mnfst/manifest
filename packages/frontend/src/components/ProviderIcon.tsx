@@ -263,7 +263,49 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
 
     /* ── LM Studio ───────────────────────────────── */
     case 'lmstudio':
-      return <img src="/icons/lmstudio.png" alt="" style={s} />;
+      return (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={size}
+          height={size}
+          viewBox="0 0 16 16"
+          fill="none"
+          style={s}
+        >
+          <rect width="16" height="16" fill="url(#lms-icon-grad)" rx="3" />
+          <g clip-path="url(#lms-icon-clip)">
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M3.42 3a.637.637 0 1 0 0 1.274h7.053a.637.637 0 0 0 0-1.274H3.42Zm2.547 1.665a.637.637 0 0 0 0 1.274h7.053a.637.637 0 0 0 0-1.274H5.967ZM3.812 6.968c0-.352.285-.638.637-.638h7.053a.637.637 0 0 1 0 1.274H4.449a.637.637 0 0 1-.637-.637ZM2.636 8.094a.637.637 0 0 0 0 1.274h7.054a.637.637 0 0 0 0-1.274H2.636Zm1.176 2.302c0-.352.285-.637.637-.637h7.053a.637.637 0 0 1 0 1.274H4.449a.637.637 0 0 1-.637-.637Zm4.702 1.028a.637.637 0 0 0 0 1.274h4.849a.637.637 0 0 0 0-1.274H8.514Z"
+              fill="#fff"
+              fill-opacity="0.3"
+            />
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M3.42 3a.637.637 0 1 0 0 1.274h5.143a.637.637 0 0 0 0-1.274H3.42Zm2.547 1.665a.637.637 0 0 0 0 1.274h5.143a.637.637 0 0 0 0-1.274H5.967ZM3.812 6.968c0-.352.285-.638.637-.638h5.143a.637.637 0 0 1 0 1.274H4.449a.637.637 0 0 1-.637-.637ZM2.636 8.094a.637.637 0 0 0 0 1.274h5.144a.637.637 0 0 0 0-1.274H2.636Zm1.176 2.302c0-.352.285-.637.637-.637h5.143a.637.637 0 0 1 0 1.274H4.449a.637.637 0 0 1-.637-.637Zm4.702 1.028a.637.637 0 0 0 0 1.274h2.89a.637.637 0 0 0 0-1.274h-2.89Z"
+              fill="#fff"
+            />
+          </g>
+          <defs>
+            <linearGradient
+              id="lms-icon-grad"
+              x1="0"
+              y1="0"
+              x2="16"
+              y2="16"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop stop-color="#6C79EF" />
+              <stop offset="1" stop-color="#4F14BE" />
+            </linearGradient>
+            <clipPath id="lms-icon-clip">
+              <rect width="12" height="12" fill="white" transform="translate(2 2)" />
+            </clipPath>
+          </defs>
+        </svg>
+      );
 
     /* ── OpenCode Go ──────────────────────────────── */
     case 'opencode-go':
