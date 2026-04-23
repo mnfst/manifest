@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { getFreeModels } from '../../src/services/api/free-models.js';
 import { submitOpenaiOAuthCallback } from '../../src/services/api/oauth.js';
-import { probeCustomProvider, refreshModels } from '../../src/services/api/routing.js';
+import { probeCustomProvider, refreshModels, deleteCustomProvider } from '../../src/services/api/routing.js';
 import {
   setSpecificityFallbacks,
   clearSpecificityFallbacks,
@@ -93,6 +93,15 @@ describe('api/routing', () => {
     const body = JSON.parse(init.body);
     expect(body.base_url).toBe('http://127.0.0.1:11434/v1');
     expect(body.apiKey).toBeUndefined();
+  });
+
+  it('deleteCustomProvider DELETEs the custom provider by ID', async () => {
+    mockOk({ ok: true });
+    const out = await deleteCustomProvider('demo-agent', 'cp-123');
+    expect(out).toEqual({ ok: true });
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe('/api/v1/routing/demo-agent/custom-providers/cp-123');
+    expect(init.method).toBe('DELETE');
   });
 });
 

@@ -125,7 +125,7 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
         <div>
           <h2 class="routing-section__title">Custom tiers</h2>
           <p class="routing-section__subtitle">
-            Route requests by HTTP header. Custom tiers run before complexity and capability tiers.
+            Route requests by HTTP header. Custom tiers run before complexity and specificity tiers.
           </p>
         </div>
         <button

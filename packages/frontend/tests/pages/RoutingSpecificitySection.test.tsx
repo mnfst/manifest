@@ -129,24 +129,24 @@ describe('RoutingSpecificitySection', () => {
 
   /* ---- Static rendering ---- */
 
-  it('renders "Capability tiers" title and subtitle', () => {
+  it('renders "Specificity tiers" title and subtitle', () => {
     render(() => <RoutingSpecificitySection {...makeProps()} />);
-    expect(screen.getByText('Capability tiers')).toBeDefined();
+    expect(screen.getByText('Specificity tiers')).toBeDefined();
     expect(
       screen.getByText(
-        'Capability tiers override generalist routing when a request matches a specific task type. Enable a tier and assign the best model for that job.',
+        'Specificity tiers override generalist routing when a request matches a specific task type. Enable a tier and assign the best model for that job.',
       ),
     ).toBeDefined();
   });
 
-  it('shows "Enable capability tiers" button when no tiers are active', () => {
+  it('shows "Enable specificity tiers" button when no tiers are active', () => {
     render(() => <RoutingSpecificitySection {...makeProps()} />);
-    const buttons = screen.getAllByText('Enable capability tiers');
+    const buttons = screen.getAllByText('Enable specificity tiers');
     // One in the header, one in the empty state
     expect(buttons.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('shows "Manage capability tiers" button when at least one tier is active', () => {
+  it('shows "Manage specificity tiers" button when at least one tier is active', () => {
     const props = makeProps({
       assignments: () => [
         {
@@ -164,14 +164,14 @@ describe('RoutingSpecificitySection', () => {
       ],
     });
     render(() => <RoutingSpecificitySection {...props} />);
-    expect(screen.getByText('Manage capability tiers')).toBeDefined();
+    expect(screen.getByText('Manage specificity tiers')).toBeDefined();
   });
 
-  it('shows empty state with "No capability tier yet" when no tiers active', () => {
+  it('shows empty state with "No specificity tier yet" when no tiers active', () => {
     render(() => <RoutingSpecificitySection {...makeProps()} />);
-    expect(screen.getByText('No capability tier yet')).toBeDefined();
+    expect(screen.getByText('No specificity tier yet')).toBeDefined();
     expect(
-      screen.getByText('Enable capability tiers to route specialized tasks to dedicated models.'),
+      screen.getByText('Enable specificity tiers to route specialized tasks to dedicated models.'),
     ).toBeDefined();
   });
 
@@ -214,11 +214,11 @@ describe('RoutingSpecificitySection', () => {
 
   it('opens modal on header button click and shows all SPECIFICITY_STAGES with toggles', async () => {
     render(() => <RoutingSpecificitySection {...makeProps()} />);
-    // Click the header "Enable capability tiers" button (first one found)
-    const headerBtn = screen.getAllByText('Enable capability tiers')[0];
+    // Click the header "Enable specificity tiers" button (first one found)
+    const headerBtn = screen.getAllByText('Enable specificity tiers')[0];
     fireEvent.click(headerBtn);
     await waitFor(() => {
-      expect(screen.getByText('Manage capability tiers')).toBeDefined();
+      expect(screen.getByText('Manage specificity tiers')).toBeDefined();
     });
     // All stages should appear
     for (const stage of MOCK_STAGES) {
@@ -233,8 +233,8 @@ describe('RoutingSpecificitySection', () => {
 
   it('opens modal on empty-state button click', async () => {
     render(() => <RoutingSpecificitySection {...makeProps()} />);
-    // The empty-state also has an "Enable capability tiers" button
-    const buttons = screen.getAllByText('Enable capability tiers');
+    // The empty-state also has an "Enable specificity tiers" button
+    const buttons = screen.getAllByText('Enable specificity tiers');
     fireEvent.click(buttons[buttons.length - 1]);
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeDefined();
@@ -243,7 +243,7 @@ describe('RoutingSpecificitySection', () => {
 
   it('closes modal on "Done" button click', async () => {
     render(() => <RoutingSpecificitySection {...makeProps()} />);
-    fireEvent.click(screen.getAllByText('Enable capability tiers')[0]);
+    fireEvent.click(screen.getAllByText('Enable specificity tiers')[0]);
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeDefined();
     });
@@ -255,7 +255,7 @@ describe('RoutingSpecificitySection', () => {
 
   it('closes modal on Escape key', async () => {
     render(() => <RoutingSpecificitySection {...makeProps()} />);
-    fireEvent.click(screen.getAllByText('Enable capability tiers')[0]);
+    fireEvent.click(screen.getAllByText('Enable specificity tiers')[0]);
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeDefined();
     });
@@ -268,7 +268,7 @@ describe('RoutingSpecificitySection', () => {
 
   it('closes modal on overlay click (e.target === e.currentTarget)', async () => {
     render(() => <RoutingSpecificitySection {...makeProps()} />);
-    fireEvent.click(screen.getAllByText('Enable capability tiers')[0]);
+    fireEvent.click(screen.getAllByText('Enable specificity tiers')[0]);
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeDefined();
     });
@@ -282,7 +282,7 @@ describe('RoutingSpecificitySection', () => {
 
   it('does NOT close modal when clicking inside the dialog card', async () => {
     render(() => <RoutingSpecificitySection {...makeProps()} />);
-    fireEvent.click(screen.getAllByText('Enable capability tiers')[0]);
+    fireEvent.click(screen.getAllByText('Enable specificity tiers')[0]);
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeDefined();
     });
@@ -300,7 +300,7 @@ describe('RoutingSpecificitySection', () => {
     render(() => <RoutingSpecificitySection {...props} />);
 
     // Open modal
-    fireEvent.click(screen.getAllByText('Enable capability tiers')[0]);
+    fireEvent.click(screen.getAllByText('Enable specificity tiers')[0]);
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeDefined();
     });
@@ -339,7 +339,7 @@ describe('RoutingSpecificitySection', () => {
     render(() => <RoutingSpecificitySection {...props} />);
 
     // Open modal
-    fireEvent.click(screen.getByText('Manage capability tiers'));
+    fireEvent.click(screen.getByText('Manage specificity tiers'));
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeDefined();
     });
@@ -361,7 +361,7 @@ describe('RoutingSpecificitySection', () => {
     const props = makeProps();
     render(() => <RoutingSpecificitySection {...props} />);
 
-    fireEvent.click(screen.getAllByText('Enable capability tiers')[0]);
+    fireEvent.click(screen.getAllByText('Enable specificity tiers')[0]);
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeDefined();
     });
@@ -369,7 +369,7 @@ describe('RoutingSpecificitySection', () => {
     fireEvent.click(screen.getByLabelText('Enable Coding'));
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Failed to update capability tier');
+      expect(toast.error).toHaveBeenCalledWith('Failed to update specificity tier');
     });
   });
 
@@ -379,7 +379,7 @@ describe('RoutingSpecificitySection', () => {
     });
     render(() => <RoutingSpecificitySection {...props} />);
 
-    fireEvent.click(screen.getAllByText('Enable capability tiers')[0]);
+    fireEvent.click(screen.getAllByText('Enable specificity tiers')[0]);
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeDefined();
     });
@@ -410,7 +410,7 @@ describe('RoutingSpecificitySection', () => {
     render(() => <RoutingSpecificitySection {...props} />);
 
     // Open modal and toggle -- should use refetchSpecificity
-    fireEvent.click(screen.getAllByText('Enable capability tiers')[0]);
+    fireEvent.click(screen.getAllByText('Enable specificity tiers')[0]);
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeDefined();
     });
@@ -431,7 +431,7 @@ describe('RoutingSpecificitySection', () => {
     render(() => <RoutingSpecificitySection {...props} />);
 
     // Open modal and toggle -- should fallback to refetchAll
-    fireEvent.click(screen.getAllByText('Enable capability tiers')[0]);
+    fireEvent.click(screen.getAllByText('Enable specificity tiers')[0]);
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeDefined();
     });
@@ -453,7 +453,7 @@ describe('RoutingSpecificitySection', () => {
     });
     render(() => <RoutingSpecificitySection {...props} />);
 
-    fireEvent.click(screen.getAllByText('Enable capability tiers')[0]);
+    fireEvent.click(screen.getAllByText('Enable specificity tiers')[0]);
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeDefined();
     });
@@ -504,13 +504,13 @@ describe('RoutingSpecificitySection', () => {
   it('handles undefined assignments gracefully', () => {
     const props = makeProps({ assignments: () => undefined });
     render(() => <RoutingSpecificitySection {...props} />);
-    expect(screen.getByText('No capability tier yet')).toBeDefined();
+    expect(screen.getByText('No specificity tier yet')).toBeDefined();
   });
 
   it('handles empty assignments array', () => {
     const props = makeProps({ assignments: () => [] });
     render(() => <RoutingSpecificitySection {...props} />);
-    expect(screen.getByText('No capability tier yet')).toBeDefined();
+    expect(screen.getByText('No specificity tier yet')).toBeDefined();
   });
 
   it('handles assignments with inactive tiers', () => {
@@ -533,9 +533,9 @@ describe('RoutingSpecificitySection', () => {
     render(() => <RoutingSpecificitySection {...props} />);
     // No tier card should be rendered since coding is not active
     expect(screen.queryByTestId('tier-card-coding')).toBeNull();
-    expect(screen.getByText('No capability tier yet')).toBeDefined();
+    expect(screen.getByText('No specificity tier yet')).toBeDefined();
     // Header button should say "Enable" not "Manage" since none are active
-    expect(screen.getAllByText('Enable capability tiers').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Enable specificity tiers').length).toBeGreaterThanOrEqual(1);
   });
 
   /* ---- RoutingTierCard prop callbacks ---- */
@@ -761,7 +761,7 @@ describe('RoutingSpecificitySection', () => {
     });
     render(() => <RoutingSpecificitySection {...props} />);
 
-    fireEvent.click(screen.getByText('Manage capability tiers'));
+    fireEvent.click(screen.getByText('Manage specificity tiers'));
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeDefined();
     });
