@@ -5,7 +5,6 @@ import { providerIcon } from './ProviderIcon.js';
 import {
   connectProvider,
   disconnectProvider,
-  revokeOpenaiOAuth,
   type RoutingProvider,
   type AuthType,
 } from '../services/api.js';
@@ -70,7 +69,6 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
     provDef.subscriptionAuthMode ?? (provDef.subscriptionKeyPlaceholder ? 'token' : undefined);
   const isPopupOAuthFlow = () => isSubMode() && subscriptionAuthMode() === 'popup_oauth';
   const isDeviceCodeFlow = () => isSubMode() && subscriptionAuthMode() === 'device_code';
-  const shouldRevokeOpenaiOAuth = () => props.provId === 'openai' && isPopupOAuthFlow();
   const isCommandOnly = () =>
     isSubMode() &&
     !!provDef.subscriptionCommand &&
@@ -106,9 +104,6 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
   const handleDisconnect = async () => {
     props.setBusy(true);
     try {
-      if (shouldRevokeOpenaiOAuth()) {
-        await revokeOpenaiOAuth(props.agentName).catch(() => {});
-      }
       const result = await disconnectProvider(
         props.agentName,
         props.provId,

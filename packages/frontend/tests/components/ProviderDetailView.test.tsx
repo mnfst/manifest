@@ -4,12 +4,10 @@ import { createSignal, type Accessor, type Setter } from 'solid-js';
 
 const mockConnectProvider = vi.fn();
 const mockDisconnectProvider = vi.fn();
-const mockRevokeOpenaiOAuth = vi.fn();
 
 vi.mock('../../src/services/api.js', () => ({
   connectProvider: (...args: unknown[]) => mockConnectProvider(...args),
   disconnectProvider: (...args: unknown[]) => mockDisconnectProvider(...args),
-  revokeOpenaiOAuth: (...args: unknown[]) => mockRevokeOpenaiOAuth(...args),
 }));
 
 vi.mock('../../src/services/toast-store.js', () => ({
@@ -78,7 +76,6 @@ describe('ProviderDetailView', () => {
     vi.clearAllMocks();
     mockConnectProvider.mockResolvedValue({});
     mockDisconnectProvider.mockResolvedValue({ notifications: [] });
-    mockRevokeOpenaiOAuth.mockResolvedValue({ ok: true });
   });
 
   describe('Ollama connect flow', () => {
@@ -195,31 +192,24 @@ describe('ProviderDetailView', () => {
     });
   });
 
-  describe('OpenAI OAuth revocation on disconnect', () => {
-    const connectedOpenaiSub: RoutingProvider[] = [
-      {
-        id: 'p1',
-        provider: 'openai',
-        auth_type: 'subscription',
-        is_active: true,
-        has_api_key: false,
-        connected_at: '2025-01-01',
-      },
-    ];
-
-    it('revokes OAuth before disconnecting OpenAI subscription (popup_oauth)', async () => {
+  describe('OpenAI subscription renders OAuthDetailView', () => {
+    it('renders OAuthDetailView for popup_oauth subscription flow', () => {
+      const connectedOpenaiSub: RoutingProvider[] = [
+        {
+          id: 'p1',
+          provider: 'openai',
+          auth_type: 'subscription',
+          is_active: true,
+          has_api_key: false,
+          connected_at: '2025-01-01',
+        },
+      ];
       const props = createTestProps({
         provId: 'openai',
         providers: connectedOpenaiSub,
         selectedAuthType: 'subscription',
       });
       render(() => <ProviderDetailView {...props} />);
-
-      // The OpenAI subscription with popup_oauth renders OAuthDetailView,
-      // but handleDisconnect is also available via command-only path.
-      // We verify revokeOpenaiOAuth is called when shouldRevokeOpenaiOAuth() is true.
-      // Since popup_oauth renders OAuthDetailView, the disconnect button is in that component.
-      // Let's verify the logic path works via the rendered component.
       expect(screen.getByTestId('oauth-detail-view')).toBeDefined();
     });
   });

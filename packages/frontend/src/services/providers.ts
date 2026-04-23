@@ -207,7 +207,8 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
   },
 };
 
-function buildProviderDef(shared: SharedProviderEntry): ProviderDef {
+/** @internal Exported for testing only */
+export function buildProviderDef(shared: SharedProviderEntry): ProviderDef {
   const overlay = PROVIDER_UI[shared.id];
   if (!overlay) {
     throw new Error(`Missing UI overlay for shared provider "${shared.id}"`);
