@@ -19,6 +19,8 @@ describe('AgentsController', () => {
   let mockConfigGet: jest.Mock;
   let mockDeleteAgent: jest.Mock;
   let mockRenameAgent: jest.Mock;
+  let mockUpdateAgentType: jest.Mock;
+  let mockUpdateContextFloorOverride: jest.Mock;
   let mockTenantResolve: jest.Mock;
 
   beforeEach(async () => {
@@ -31,6 +33,8 @@ describe('AgentsController', () => {
     mockConfigGet = jest.fn().mockReturnValue('');
     mockDeleteAgent = jest.fn().mockResolvedValue(undefined);
     mockRenameAgent = jest.fn().mockResolvedValue(undefined);
+    mockUpdateAgentType = jest.fn().mockResolvedValue(undefined);
+    mockUpdateContextFloorOverride = jest.fn().mockResolvedValue(undefined);
     mockTenantResolve = jest.fn().mockResolvedValue('tenant-123');
 
     const module: TestingModule = await Test.createTestingModule({
@@ -46,7 +50,8 @@ describe('AgentsController', () => {
           useValue: {
             deleteAgent: mockDeleteAgent,
             renameAgent: mockRenameAgent,
-            updateAgentType: jest.fn(),
+            updateAgentType: mockUpdateAgentType,
+            updateContextFloorOverride: mockUpdateContextFloorOverride,
           },
         },
         {
@@ -255,7 +260,6 @@ describe('AgentsController', () => {
   });
 
   it('passes category/platform to updateAgentType on PATCH', async () => {
-    const mockUpdateType = jest.fn().mockResolvedValue(undefined);
     const user = { id: 'u1' };
     const result = await controller.updateAgent(user as never, 'bot-1', {
       agent_category: 'app',
@@ -266,6 +270,57 @@ describe('AgentsController', () => {
       agent_category: 'app',
       agent_platform: 'openai-sdk',
     });
+  });
+
+  /**
+   * context_floor_override PATCH cases — the UI "Custom context window" card
+   * writes through this path. Defends issues #1617 / #1612 by making sure a
+   * user-entered override is actually persisted (not swallowed by the
+   * controller ignoring the field because the DTO treats it as optional).
+   */
+  it('calls updateContextFloorOverride with a numeric value on PATCH', async () => {
+    const user = { id: 'u1' };
+    const result = await controller.updateAgent(user as never, 'bot-1', {
+      context_floor_override: 50_000,
+    } as never);
+
+    expect(mockUpdateContextFloorOverride).toHaveBeenCalledWith('u1', 'bot-1', 50_000);
+    expect(result).toEqual({ context_floor_override: 50_000 });
+  });
+
+  it('calls updateContextFloorOverride with null to clear the override', async () => {
+    const user = { id: 'u1' };
+    const result = await controller.updateAgent(user as never, 'bot-1', {
+      context_floor_override: null,
+    } as never);
+
+    expect(mockUpdateContextFloorOverride).toHaveBeenCalledWith('u1', 'bot-1', null);
+    expect(result).toEqual({ context_floor_override: null });
+  });
+
+  it('does not call updateContextFloorOverride when the field is omitted', async () => {
+    // The field is optional — PATCH { agent_category: 'app' } must not wipe
+    // any existing override.
+    const user = { id: 'u1' };
+    await controller.updateAgent(user as never, 'bot-1', {
+      agent_category: 'app',
+    } as never);
+
+    expect(mockUpdateContextFloorOverride).not.toHaveBeenCalled();
+  });
+
+  it('routes context_floor_override to the NEW slug when renaming in the same PATCH', async () => {
+    // Rename-and-set-override in one PATCH is a real path in the Settings
+    // page. After renaming to `new-slug`, the lifecycle call has to target
+    // the new name, not the original.
+    const user = { id: 'u1' };
+    await controller.updateAgent(user as never, 'bot-1', {
+      name: 'New Slug',
+      context_floor_override: 64_000,
+    } as never);
+
+    expect(mockRenameAgent).toHaveBeenCalledWith('u1', 'bot-1', 'new-slug', 'New Slug');
+    expect(mockUpdateContextFloorOverride).toHaveBeenCalledWith('u1', 'new-slug', 64_000);
   });
 
   it('invalidates agent list cache after successful createAgent', async () => {

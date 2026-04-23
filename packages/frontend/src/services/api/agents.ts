@@ -9,6 +9,7 @@ export interface AgentInfo {
   display_name: string;
   agent_category: string | null;
   agent_platform: string | null;
+  context_floor_override: number | null;
 }
 
 export function getAgentInfo(agentName: string): Promise<AgentInfo | null> {
@@ -35,6 +36,7 @@ export function updateAgent(
     name?: string;
     agent_category?: string;
     agent_platform?: string;
+    context_floor_override?: number | null;
   },
 ) {
   return fetchMutate<Record<string, unknown>>(`/agents/${encodeURIComponent(currentName)}`, {

@@ -1,6 +1,13 @@
 import { Meta, Title } from '@solidjs/meta';
 import { useLocation, useNavigate, useParams } from '@solidjs/router';
-import { createResource, createSignal, ErrorBoundary, Show, type Component } from 'solid-js';
+import {
+  createEffect,
+  createResource,
+  createSignal,
+  ErrorBoundary,
+  Show,
+  type Component,
+} from 'solid-js';
 import CopyButton from '../components/CopyButton.jsx';
 import ErrorState from '../components/ErrorState.jsx';
 import AgentTypeGrid from '../components/AgentTypeGrid.jsx';
@@ -11,6 +18,7 @@ import {
   deleteAgent,
   getAgentInfo,
   getAgentKey,
+  getContextWindow,
   renameAgent,
   rotateAgentKey,
   updateAgent,
@@ -50,6 +58,51 @@ const Settings: Component = () => {
 
   const [agentInfo, { refetch: refetchInfo }] = createResource(() => agentName(), getAgentInfo);
   const [apiKeyData, { refetch: refetchKey }] = createResource(() => agentName(), getAgentKey);
+  const [contextWindow, { refetch: refetchContext }] = createResource(
+    () => agentName(),
+    getContextWindow,
+  );
+
+  const [ctxMode, setCtxMode] = createSignal<'auto' | 'custom'>('auto');
+  const [ctxValue, setCtxValue] = createSignal('');
+  const [ctxSaving, setCtxSaving] = createSignal(false);
+
+  createEffect(() => {
+    const info = agentInfo();
+    if (!info) return;
+    const override = info.context_floor_override ?? null;
+    if (override === null) {
+      setCtxMode('auto');
+      setCtxValue('');
+    } else {
+      setCtxMode('custom');
+      setCtxValue(String(override));
+    }
+  });
+
+  const handleSaveContext = async () => {
+    setCtxSaving(true);
+    try {
+      let override: number | null = null;
+      if (ctxMode() === 'custom') {
+        const parsed = Number(ctxValue());
+        if (!Number.isFinite(parsed) || !Number.isInteger(parsed) || parsed < 1024) {
+          toast.error('Context window must be an integer of at least 1,024 tokens');
+          setCtxSaving(false);
+          return;
+        }
+        override = parsed;
+      }
+      await updateAgent(agentName(), { context_floor_override: override });
+      await refetchInfo();
+      await refetchContext();
+      toast.success('Context window updated');
+    } catch {
+      /* toast handled by fetchMutate */
+    } finally {
+      setCtxSaving(false);
+    }
+  };
 
   const currentCategory = () => (agentInfo()?.agent_category as AgentCategory) ?? null;
   const currentPlatform = () => (agentInfo()?.agent_platform as AgentPlatform) ?? null;
@@ -215,6 +268,85 @@ const Settings: Component = () => {
               Change
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* -- Context window ----------------------------- */}
+      <h3 class="settings-section__title">Context window</h3>
+      <div class="settings-card">
+        <div class="settings-card__row">
+          <div class="settings-card__label">
+            <span class="settings-card__label-title">Advertised context window</span>
+            <span class="settings-card__label-desc">
+              The <code>context_length</code> your agent sees on <code>GET /v1/models</code>. In{' '}
+              <strong>Auto</strong> mode, Manifest advertises the smallest context among the models
+              this agent can be routed to — the honest floor any routed request will fit in. Use{' '}
+              <strong>Custom</strong> only if your client needs a specific value.
+            </span>
+          </div>
+          <div class="settings-card__control" style="flex-direction: column; gap: 8px;">
+            <div
+              role="radiogroup"
+              aria-label="Context window mode"
+              style="display: flex; gap: 12px;"
+            >
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input
+                  type="radio"
+                  name="ctx-mode"
+                  value="auto"
+                  checked={ctxMode() === 'auto'}
+                  onChange={() => setCtxMode('auto')}
+                />
+                <span>
+                  Auto{' '}
+                  <Show when={contextWindow()}>
+                    <span class="settings-card__label-desc">
+                      ({contextWindow()!.context_length.toLocaleString()} tokens)
+                    </span>
+                  </Show>
+                </span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input
+                  type="radio"
+                  name="ctx-mode"
+                  value="custom"
+                  checked={ctxMode() === 'custom'}
+                  onChange={() => setCtxMode('custom')}
+                />
+                <span>Custom</span>
+              </label>
+            </div>
+            <Show when={ctxMode() === 'custom'}>
+              <input
+                class="settings-card__input"
+                type="number"
+                min={1024}
+                step={1024}
+                aria-label="Custom context window in tokens"
+                placeholder="e.g. 128000"
+                value={ctxValue()}
+                onInput={(e) => setCtxValue(e.currentTarget.value)}
+              />
+            </Show>
+          </div>
+        </div>
+        <div class="settings-card__footer">
+          <button
+            class="btn btn--primary btn--sm"
+            onClick={handleSaveContext}
+            disabled={ctxSaving()}
+          >
+            {ctxSaving() ? (
+              <>
+                <span class="spinner" />
+                <span class="sr-only">Saving...</span>
+              </>
+            ) : (
+              'Save'
+            )}
+          </button>
         </div>
       </div>
 

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
+import { Agent } from '../../entities/agent.entity';
 import { RoutingCoreModule } from '../routing-core/routing-core.module';
 import { ModelPricesModule } from '../../model-prices/model-prices.module';
 import { ModelDiscoveryModule } from '../../model-discovery/model-discovery.module';
@@ -21,10 +22,11 @@ import { CopilotTokenService } from './copilot-token.service';
 import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
 import { ProxyExceptionFilter } from './proxy-exception.filter';
+import { ContextAdvertisementService } from './context-advertisement.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AgentMessage, CustomProvider]),
+    TypeOrmModule.forFeature([AgentMessage, CustomProvider, Agent]),
     RoutingCoreModule,
     ModelPricesModule,
     ModelDiscoveryModule,
@@ -46,6 +48,8 @@ import { ProxyExceptionFilter } from './proxy-exception.filter';
     ThoughtSignatureCache,
     ThinkingBlockCache,
     ProxyExceptionFilter,
+    ContextAdvertisementService,
   ],
+  exports: [ContextAdvertisementService],
 })
 export class ProxyModule {}

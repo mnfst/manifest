@@ -1,5 +1,6 @@
 import {
   Controller,
+  Get,
   Post,
   Req,
   Res,
@@ -31,6 +32,7 @@ import {
 } from './proxy-response-handler';
 import { ProxyExceptionFilter, isChatRenderingClient } from './proxy-exception.filter';
 import { sendFriendlyResponse } from './proxy-friendly-response';
+import { ContextAdvertisementService } from './context-advertisement.service';
 
 const MAX_SEEN_USERS = 10_000;
 const SEEN_USER_TTL_MS = 24 * 60 * 60 * 1000;
@@ -51,7 +53,34 @@ export class ProxyController {
     private readonly recorder: ProxyMessageRecorder,
     private readonly signatureCache: ThoughtSignatureCache,
     private readonly thinkingCache: ThinkingBlockCache,
+    private readonly contextAdvertisement: ContextAdvertisementService,
   ) {}
+
+  /**
+   * OpenAI-compatible model listing. Advertises `manifest/auto` with a
+   * dynamic `context_length` equal to the smallest context window across the
+   * agent's currently-routed models — the honest floor any request is
+   * guaranteed to fit in. Clients that compact against this value (OpenClaw,
+   * OpenRouter SDKs, etc.) stop overflowing routed models. See issues #1617,
+   * #1612 and #1450.
+   */
+  @Get('models')
+  async listModels(@Req() req: Request & { ingestionContext: IngestionContext }) {
+    const { agentId } = req.ingestionContext;
+    const { contextLength } = await this.contextAdvertisement.getEffectiveContext(agentId);
+    return {
+      object: 'list',
+      data: [
+        {
+          id: 'auto',
+          object: 'model',
+          created: Math.floor(Date.now() / 1000),
+          owned_by: 'manifest',
+          context_length: contextLength,
+        },
+      ],
+    };
+  }
 
   @Post('chat/completions')
   async chatCompletions(

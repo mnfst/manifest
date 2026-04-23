@@ -8,6 +8,7 @@ import { ModelDiscoveryService } from '../model-discovery/model-discovery.servic
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { PricingSyncService } from '../database/pricing-sync.service';
 import { AgentNameParamDto } from './dto/routing.dto';
+import { ContextAdvertisementService } from './proxy/context-advertisement.service';
 
 @Controller('api/v1/routing')
 export class ModelController {
@@ -18,6 +19,7 @@ export class ModelController {
     private readonly resolveAgentService: ResolveAgentService,
     private readonly customProviderService: CustomProviderService,
     private readonly pricingSync: PricingSyncService,
+    private readonly contextAdvertisement: ContextAdvertisementService,
   ) {}
 
   @Get('pricing-health')
@@ -49,6 +51,16 @@ export class ModelController {
   @Post('ollama/sync')
   async syncOllama() {
     return this.ollamaSync.sync();
+  }
+
+  @Get(':agentName/context-window')
+  async getContextWindow(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
+    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    const effective = await this.contextAdvertisement.getEffectiveContext(agent.id);
+    return {
+      context_length: effective.contextLength,
+      overridden: effective.overridden,
+    };
   }
 
   @Get(':agentName/available-models')
