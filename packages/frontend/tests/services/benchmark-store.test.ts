@@ -152,6 +152,97 @@ describe('createBenchmarkStore', () => {
     });
   });
 
+  describe('retryColumn', () => {
+    it('re-runs a single column with the latest prompt + headers', async () => {
+      const store = createBenchmarkStore('demo');
+      store.addColumn('openai/gpt-4o-mini', 'openai', 'api_key', 'A');
+      store.setPrompt('hello');
+      runBenchmarkMock.mockResolvedValueOnce({
+        content: 'first',
+        metrics: { cost: 0, inputTokens: 1, outputTokens: 1, durationMs: 10 },
+        headers: {},
+      });
+      await store.runAll();
+      runBenchmarkMock.mockClear();
+
+      runBenchmarkMock.mockResolvedValueOnce({
+        content: 'retry',
+        metrics: { cost: 0, inputTokens: 1, outputTokens: 1, durationMs: 10 },
+        headers: {},
+      });
+      const id = store.columns[0]!.id;
+      await store.retryColumn(id, { requestHeaders: { 'X-Title': 'r' } });
+      expect(runBenchmarkMock).toHaveBeenCalledTimes(1);
+      expect((runBenchmarkMock.mock.calls[0][0] as { requestHeaders: unknown }).requestHeaders).toEqual({
+        'X-Title': 'r',
+      });
+    });
+
+    it('is a no-op when retrying with no prompt at all', async () => {
+      const store = createBenchmarkStore('demo');
+      store.addColumn('openai/gpt-4o-mini', 'openai', 'api_key', 'A');
+      await store.retryColumn(store.columns[0]!.id);
+      expect(runBenchmarkMock).not.toHaveBeenCalled();
+    });
+
+    it('falls back to the last submitted prompt when the textarea is cleared', async () => {
+      const store = createBenchmarkStore('demo');
+      store.addColumn('openai/gpt-4o-mini', 'openai', 'api_key', 'A');
+      store.setPrompt('original');
+      runBenchmarkMock.mockResolvedValue({
+        content: 'ok',
+        metrics: { cost: 0, inputTokens: 1, outputTokens: 1, durationMs: 10 },
+        headers: {},
+      });
+      await store.runAll();
+      runBenchmarkMock.mockClear();
+      store.setPrompt('');
+      const id = store.columns[0]!.id;
+      await store.retryColumn(id);
+      expect(runBenchmarkMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('pickDefaults edge cases', () => {
+    it('caps the pair at two when multiple models exist per provider', () => {
+      const store = createBenchmarkStore('demo');
+      store.pickDefaults(
+        [
+          buildModel({ model_name: 'openai/gpt-4o', provider: 'openai' }),
+          buildModel({ model_name: 'openai/gpt-4o-mini', provider: 'openai' }),
+          buildModel({ model_name: 'openai/o1', provider: 'openai' }),
+        ],
+        [buildProvider({ provider: 'openai' })],
+      );
+      expect(store.columns.length).toBeLessThanOrEqual(2);
+    });
+
+    it('still picks two when every model in the pool is free', () => {
+      const store = createBenchmarkStore('demo');
+      store.pickDefaults(
+        [
+          buildModel({
+            model_name: 'openai/gpt-free',
+            provider: 'openai',
+            input_price_per_token: 0,
+            output_price_per_token: 0,
+          }),
+          buildModel({
+            model_name: 'anthropic/free-haiku',
+            provider: 'anthropic',
+            input_price_per_token: 0,
+            output_price_per_token: 0,
+          }),
+        ],
+        [
+          buildProvider({ provider: 'openai' }),
+          buildProvider({ id: 'p2', provider: 'anthropic' }),
+        ],
+      );
+      expect(store.columns).toHaveLength(2);
+    });
+  });
+
   describe('prompt recall', () => {
     it('recalls the last submitted prompt when requested', async () => {
       const store = createBenchmarkStore('demo');

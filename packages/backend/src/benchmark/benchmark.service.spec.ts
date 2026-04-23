@@ -186,6 +186,128 @@ describe('BenchmarkService', () => {
     expect(result.content).toBe('anthropic normalized');
   });
 
+  it('wraps a ProviderClient network error in a BadGatewayException', async () => {
+    const { service, mocks } = buildService();
+    mocks.providerClient.forward.mockRejectedValue(new Error('ECONNRESET'));
+    await expect(service.run(USER_ID, makeDto())).rejects.toBeInstanceOf(BadGatewayException);
+  });
+
+  it('throws BadGatewayException when the provider response is not JSON', async () => {
+    const { service, mocks } = buildService();
+    mocks.providerClient.forward.mockResolvedValue({
+      response: new Response('<html>oops</html>', {
+        status: 200,
+        headers: { 'content-type': 'text/html' },
+      }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    });
+    await expect(service.run(USER_ID, makeDto())).rejects.toMatchObject({
+      message: 'Provider returned a non-JSON response',
+    });
+  });
+
+  it('uses the ChatGPT (Responses API) converter when the provider response is in that format', async () => {
+    const { service, mocks } = buildService();
+    mocks.providerClient.forward.mockResolvedValue({
+      response: jsonResponse({ output: [] }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: true,
+    });
+    mocks.providerClient.convertChatGptResponse.mockReturnValue({
+      choices: [{ message: { content: 'chatgpt normalized' } }],
+      usage: { prompt_tokens: 1, completion_tokens: 1 },
+    });
+    const result = await service.run(USER_ID, makeDto());
+    expect(mocks.providerClient.convertChatGptResponse).toHaveBeenCalled();
+    expect(result.content).toBe('chatgpt normalized');
+  });
+
+  it('uses the Google converter when the provider response is in Google format', async () => {
+    const { service, mocks } = buildService();
+    mocks.providerClient.forward.mockResolvedValue({
+      response: jsonResponse({ candidates: [] }),
+      isGoogle: true,
+      isAnthropic: false,
+      isChatGpt: false,
+    });
+    mocks.providerClient.convertGoogleResponse.mockReturnValue({
+      choices: [{ message: { content: 'gemini normalized' } }],
+      usage: { prompt_tokens: 2, completion_tokens: 4 },
+    });
+    const result = await service.run(USER_ID, makeDto());
+    expect(mocks.providerClient.convertGoogleResponse).toHaveBeenCalled();
+    expect(result.content).toBe('gemini normalized');
+  });
+
+  it('extracts content from OpenAI-style array-of-parts responses', async () => {
+    const { service, mocks } = buildService();
+    mocks.providerClient.forward.mockResolvedValue({
+      response: jsonResponse({
+        choices: [
+          {
+            message: {
+              content: [
+                { type: 'text', text: 'Hello ' },
+                'bare string ',
+                { type: 'image', url: 'ignored' },
+                { text: 'world' },
+              ],
+            },
+          },
+        ],
+        usage: { prompt_tokens: 1, completion_tokens: 1 },
+      }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    });
+    const result = await service.run(USER_ID, makeDto());
+    expect(result.content).toBe('Hello bare string world');
+  });
+
+  it('falls back to the last message when there is no user message', async () => {
+    const { service, mocks } = buildService();
+    mocks.providerClient.forward.mockResolvedValue({
+      response: jsonResponse({
+        choices: [{ message: { content: 'ok' } }],
+        usage: { prompt_tokens: 1, completion_tokens: 1 },
+      }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    });
+    await service.run(
+      USER_ID,
+      makeDto({
+        messages: [
+          { role: 'system', content: 'you are a helper' },
+          { role: 'assistant', content: 'ack' },
+        ],
+      }),
+    );
+    expect(mocks.history.saveColumn).toHaveBeenCalledWith(
+      expect.objectContaining({ prompt: 'ack' }),
+    );
+  });
+
+  it('logs and swallows repo failures when recording an error row', async () => {
+    const { service, mocks } = buildService({
+      messageRepo: {
+        insert: jest.fn().mockRejectedValue(new Error('db down')),
+      },
+    });
+    mocks.providerClient.forward.mockResolvedValue({
+      response: new Response('boom', { status: 500 }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    });
+    await expect(service.run(USER_ID, makeDto())).rejects.toBeInstanceOf(BadGatewayException);
+  });
+
   it('only returns whitelisted response headers', async () => {
     const { service, mocks } = buildService();
     mocks.providerClient.forward.mockResolvedValue({
