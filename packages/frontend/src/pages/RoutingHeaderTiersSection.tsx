@@ -6,7 +6,6 @@ import {
   listHeaderTiers,
   deleteHeaderTier,
   overrideHeaderTier,
-  resetHeaderTier,
   toggleHeaderTier,
   type HeaderTier,
 } from '../services/api/header-tiers.js';
@@ -59,15 +58,6 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
       await refetch();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to update tier');
-    }
-  };
-
-  const handleReset = async (id: string): Promise<void> => {
-    try {
-      await resetHeaderTier(props.agentName(), id);
-      await refetch();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to reset tier');
     }
   };
 

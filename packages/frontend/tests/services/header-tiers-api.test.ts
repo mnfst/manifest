@@ -123,4 +123,15 @@ describe('header-tiers API client', () => {
     expect(url).toContain('/header-tiers/ht-1/fallbacks');
     expect(init.method).toBe('DELETE');
   });
+
+  it('toggleHeaderTier PATCHes the enabled flag', async () => {
+    const fetchMock = setupFetch({ id: 'ht-1', enabled: true });
+    const out = await api.toggleHeaderTier('my-agent', 'ht-1', true);
+    expect(out).toEqual({ id: 'ht-1', enabled: true });
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/header-tiers/ht-1/toggle');
+    expect(init.method).toBe('PATCH');
+    expect(init.headers['Content-Type']).toBe('application/json');
+    expect(JSON.parse(init.body)).toEqual({ enabled: true });
+  });
 });

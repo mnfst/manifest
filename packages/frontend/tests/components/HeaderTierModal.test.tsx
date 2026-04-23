@@ -79,6 +79,8 @@ interface MountOptions {
   editing?: HeaderTier;
   onClose?: () => void;
   onSaved?: (t: HeaderTier) => void;
+  onBack?: () => void;
+  onDelete?: (id: string) => void;
 }
 
 function mount(options: MountOptions = {}) {
@@ -91,6 +93,8 @@ function mount(options: MountOptions = {}) {
       editing={options.editing}
       onClose={onClose}
       onSaved={onSaved}
+      onBack={options.onBack}
+      onDelete={options.onDelete}
     />
   ));
   return { ...result, onClose, onSaved };
@@ -408,6 +412,33 @@ describe('HeaderTierModal', () => {
         const li = container.querySelector('li[data-sublabel]');
         expect(li?.getAttribute('data-sublabel')).toBe('4× seen');
       });
+    });
+
+    it('renders back button when onBack is provided', () => {
+      const onBack = vi.fn();
+      const { container } = mount({ editing: baseTier, onBack });
+      const backBtn = container.querySelector('[aria-label="Back"]');
+      expect(backBtn).not.toBeNull();
+      fireEvent.click(backBtn!);
+      expect(onBack).toHaveBeenCalled();
+    });
+
+    it('renders delete button when onDelete and editing are provided', () => {
+      const onDelete = vi.fn();
+      vi.stubGlobal('confirm', vi.fn().mockReturnValue(true));
+      const { getByText } = mount({ editing: baseTier, onDelete });
+      fireEvent.click(getByText('Delete tier'));
+      expect(onDelete).toHaveBeenCalledWith('ht-1');
+      vi.unstubAllGlobals();
+    });
+
+    it('does not call onDelete when confirm is cancelled', () => {
+      const onDelete = vi.fn();
+      vi.stubGlobal('confirm', vi.fn().mockReturnValue(false));
+      const { getByText } = mount({ editing: baseTier, onDelete });
+      fireEvent.click(getByText('Delete tier'));
+      expect(onDelete).not.toHaveBeenCalled();
+      vi.unstubAllGlobals();
     });
   });
 });
