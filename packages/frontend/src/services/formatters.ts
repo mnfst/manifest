@@ -144,3 +144,10 @@ export function formatRelativeTime(ts: string): string {
   if (diffDays === 1) return 'Yesterday';
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
+
+export function sortedHeaderEntries(
+  headers: Record<string, string> | null | undefined,
+): Array<[string, string]> {
+  if (!headers) return [];
+  return Object.entries(headers).sort(([a], [b]) => a.localeCompare(b));
+}

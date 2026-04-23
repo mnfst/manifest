@@ -18,6 +18,7 @@ import { TierAssignment } from '../entities/tier-assignment.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
 import { InstallMetadata } from '../entities/install-metadata.entity';
+import { MessageRecording } from '../entities/message-recording.entity';
 import { DatabaseSeederService } from './database-seeder.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
@@ -72,6 +73,8 @@ import { AddInstallMetadata1775700000000 } from './migrations/1775700000000-AddI
 import { CleanupOrphanedCustomProviderRefs1776679833383 } from './migrations/1776679833383-CleanupOrphanedCustomProviderRefs';
 import { AddMessageRequestHeaders1776700000000 } from './migrations/1776700000000-AddMessageRequestHeaders';
 import { AddSpecificityMiscategorized1777000000000 } from './migrations/1777000000000-AddSpecificityMiscategorized';
+import { AddAgentRecordMessages1777100000000 } from './migrations/1777100000000-AddAgentRecordMessages';
+import { AddMessageRecordings1777200000000 } from './migrations/1777200000000-AddMessageRecordings';
 
 const entities = [
   AgentMessage,
@@ -90,6 +93,7 @@ const entities = [
   CustomProvider,
   SpecificityAssignment,
   InstallMetadata,
+  MessageRecording,
 ];
 
 const migrations = [
@@ -145,6 +149,8 @@ const migrations = [
   CleanupOrphanedCustomProviderRefs1776679833383,
   AddMessageRequestHeaders1776700000000,
   AddSpecificityMiscategorized1777000000000,
+  AddAgentRecordMessages1777100000000,
+  AddMessageRecordings1777200000000,
 ];
 
 @Module({
@@ -183,6 +189,7 @@ const migrations = [
       TierAssignment,
       CustomProvider,
       SpecificityAssignment,
+      MessageRecording,
     ]),
     ModelPricesModule,
   ],

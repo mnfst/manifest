@@ -5,6 +5,7 @@ import { AgentMessage } from '../../entities/agent-message.entity';
 import { LlmCall } from '../../entities/llm-call.entity';
 import { ToolExecution } from '../../entities/tool-execution.entity';
 import { AgentLog } from '../../entities/agent-log.entity';
+import { MessageRecording, RecordingResponseBody } from '../../entities/message-recording.entity';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import type { CallerAttribution } from '../../routing/proxy/caller-classifier';
 
@@ -40,7 +41,15 @@ export interface MessageDetailResponse {
     feedback_details: string | null;
     request_headers: Record<string, string> | null;
     caller_attribution: CallerAttribution | null;
+    recorded: boolean;
   };
+  recording: {
+    request_body: Record<string, unknown> | null;
+    response_body: RecordingResponseBody | null;
+    response_headers: Record<string, string> | null;
+    size_bytes: number | null;
+    created_at: string;
+  } | null;
   llm_calls: {
     id: string;
     call_index: number | null;
@@ -85,6 +94,8 @@ export class MessageDetailsService {
     private readonly toolRepo: Repository<ToolExecution>,
     @InjectRepository(AgentLog)
     private readonly logRepo: Repository<AgentLog>,
+    @InjectRepository(MessageRecording)
+    private readonly recordingRepo: Repository<MessageRecording>,
     private readonly tenantCache: TenantCacheService,
   ) {}
 
@@ -115,9 +126,14 @@ export class MessageDetailsService {
           .orderBy('al.timestamp', 'ASC')
       : null;
 
-    const [llmCalls, agentLogs] = await Promise.all([
+    const recordingPromise = message.recorded
+      ? this.recordingRepo.findOne({ where: { message_id: message.id } })
+      : Promise.resolve(null);
+
+    const [llmCalls, agentLogs, recording] = await Promise.all([
       llmCallsQb.getMany(),
       logsQb ? logsQb.getMany() : Promise.resolve([]),
+      recordingPromise,
     ]);
 
     const llmCallIds = llmCalls.map((lc) => lc.id);
@@ -162,7 +178,17 @@ export class MessageDetailsService {
         feedback_details: message.feedback_details,
         request_headers: message.request_headers,
         caller_attribution: message.caller_attribution,
+        recorded: message.recorded,
       },
+      recording: recording
+        ? {
+            request_body: recording.request_body,
+            response_body: recording.response_body,
+            response_headers: recording.response_headers,
+            size_bytes: recording.size_bytes,
+            created_at: recording.created_at,
+          }
+        : null,
       llm_calls: llmCalls.map((lc) => ({
         id: lc.id,
         call_index: lc.call_index,

@@ -1,0 +1,526 @@
+/* ── Recording toggle pill (Settings page) ─────────────── */
+.recording-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: hsl(var(--destructive) / 0.12);
+  color: hsl(var(--destructive));
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+  margin-left: 8px;
+}
+
+.recording-status-pill__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: hsl(var(--destructive));
+  animation: recording-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes recording-pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ── Row indicator button in Messages list ─────────────── */
+.msg-recorded-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  margin-left: 4px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  opacity: 0.85;
+  transition: opacity var(--transition-fast);
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.msg-recorded-btn:hover,
+.msg-recorded-btn:focus-visible {
+  opacity: 1;
+  outline: none;
+  background: hsl(var(--destructive) / 0.08);
+}
+
+/* ── Recorded-only filter chip ─────────────────────────── */
+.msg-recorded-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
+  color: hsl(var(--muted-foreground));
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.msg-recorded-filter:hover {
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--border));
+}
+
+.msg-recorded-filter--active {
+  background: hsl(var(--destructive) / 0.12);
+  color: hsl(var(--destructive));
+  border-color: hsl(var(--destructive) / 0.4);
+}
+
+/* ── Recorded message modal ────────────────────────────── */
+.recorded-modal__card {
+  width: min(960px, 92vw);
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.recorded-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--gap-md);
+  padding: var(--gap-lg) var(--gap-lg) var(--gap-md);
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.recorded-modal__title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+}
+
+.recorded-modal__subheader {
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: hsl(var(--muted-foreground));
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+}
+
+.recorded-modal__sep {
+  opacity: 0.5;
+}
+
+.recorded-modal__close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.recorded-modal__close:hover {
+  color: hsl(var(--foreground));
+  background: hsl(var(--muted));
+}
+
+.recorded-modal__body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--gap-md) var(--gap-lg);
+}
+
+.recorded-modal__section {
+  margin-bottom: var(--gap-lg);
+}
+
+.recorded-modal__section-title {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin-bottom: var(--gap-sm);
+}
+
+.recorded-modal__subtitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 var(--gap-sm);
+}
+
+.recorded-modal__subsection {
+  margin-top: var(--gap-md);
+}
+
+.recorded-modal__subsection:first-of-type {
+  margin-top: 0;
+}
+
+/* ── Key / value rows (Parameters, Summary) ─────── */
+.recorded-modal__kv {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--gap-md);
+  row-gap: 4px;
+  padding: var(--gap-sm) var(--gap-md);
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.25);
+}
+
+.recorded-modal__kv-row {
+  display: contents;
+}
+
+.recorded-modal__kv-label {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+}
+
+.recorded-modal__kv-value {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--foreground));
+  word-break: break-word;
+}
+
+.recorded-modal__mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+/* ── Headers table ─────────────────────────────── */
+.recorded-modal__headers {
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: hsl(var(--muted) / 0.2);
+}
+
+.recorded-modal__header-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 240px) 1fr;
+  align-items: baseline;
+  column-gap: var(--gap-md);
+  padding: 6px var(--gap-md);
+  border-bottom: 1px solid hsl(var(--border));
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.recorded-modal__header-row:last-child {
+  border-bottom: none;
+}
+
+.recorded-modal__header-key {
+  color: hsl(var(--muted-foreground));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recorded-modal__header-val {
+  color: hsl(var(--foreground));
+  word-break: break-all;
+}
+
+/* ── Conversation turns ────────────────────────── */
+.recorded-modal__turns {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+}
+
+.recorded-modal__turn {
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--card));
+  padding: var(--gap-sm) var(--gap-md);
+}
+
+.recorded-modal__turn[data-role='user'] {
+  border-left: 3px solid hsl(217 91% 60%);
+}
+
+.recorded-modal__turn[data-role='assistant'] {
+  border-left: 3px solid hsl(142 71% 45%);
+}
+
+.recorded-modal__turn[data-role='system'] {
+  border-left: 3px solid hsl(var(--muted-foreground));
+}
+
+.recorded-modal__turn[data-role='tool'] {
+  border-left: 3px solid hsl(32 95% 54%);
+}
+
+.recorded-modal__turn-header {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  margin-bottom: 6px;
+}
+
+.recorded-modal__role {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+}
+
+.recorded-modal__role--user {
+  background: hsl(217 91% 60% / 0.15);
+  color: hsl(217 91% 60%);
+}
+
+.recorded-modal__role--assistant {
+  background: hsl(142 71% 45% / 0.15);
+  color: hsl(142 71% 45%);
+}
+
+.recorded-modal__role--system {
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+}
+
+.recorded-modal__role--tool {
+  background: hsl(32 95% 54% / 0.15);
+  color: hsl(32 95% 54%);
+}
+
+.recorded-modal__turn-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+}
+
+.recorded-modal__turn-text {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--foreground));
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+.recorded-modal__turn-part {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-xs);
+  font-size: var(--font-size-sm);
+}
+
+.recorded-modal__turn-inline {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  word-break: break-all;
+}
+
+/* ── Reply (response content) ──────────────────── */
+.recorded-modal__reply {
+  padding: var(--gap-sm) var(--gap-md);
+  border: 1px solid hsl(142 71% 45% / 0.3);
+  border-left: 3px solid hsl(142 71% 45%);
+  border-radius: var(--radius);
+  background: hsl(142 71% 45% / 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+}
+
+/* ── Tool calls ───────────────────────────────── */
+.recorded-modal__tool-calls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.recorded-modal__tool-call {
+  border: 1px dashed hsl(32 95% 54% / 0.4);
+  border-radius: var(--radius);
+  padding: 6px var(--gap-sm);
+  background: hsl(32 95% 54% / 0.05);
+}
+
+.recorded-modal__tool-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-sm);
+}
+
+/* ── Tools list ───────────────────────────────── */
+.recorded-modal__tools {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.recorded-modal__tool-def {
+  display: flex;
+  align-items: baseline;
+  gap: var(--gap-sm);
+  padding: 4px var(--gap-sm);
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.3);
+  font-size: var(--font-size-sm);
+}
+
+/* ── Pills (inline tags) ──────────────────────── */
+.recorded-modal__pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+}
+
+.recorded-modal__pill--tool {
+  background: hsl(32 95% 54% / 0.15);
+  color: hsl(32 95% 54%);
+}
+
+/* ── Usage pills ──────────────────────────────── */
+.recorded-modal__usage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-xs);
+}
+
+.recorded-modal__usage-pill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--muted) / 0.3);
+  font-size: 12px;
+}
+
+.recorded-modal__usage-label {
+  color: hsl(var(--muted-foreground));
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.recorded-modal__usage-value {
+  font-family: var(--font-mono);
+  color: hsl(var(--foreground));
+}
+
+.recorded-modal__usage-pill--total {
+  border-color: hsl(var(--foreground) / 0.3);
+  background: hsl(var(--foreground) / 0.05);
+}
+
+.recorded-modal__pre--tight {
+  max-height: 200px;
+  padding: 6px 8px;
+  font-size: 11px;
+}
+
+.recorded-modal__empty {
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.4);
+  color: hsl(var(--muted-foreground));
+  font-size: var(--font-size-sm);
+  font-style: italic;
+}
+
+.recorded-modal__muted {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  font-style: italic;
+  margin-bottom: 4px;
+}
+
+.recorded-modal__pre {
+  max-height: 420px;
+  overflow: auto;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.3);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: hsl(var(--foreground));
+  margin: 0;
+}
+
+.recorded-modal__footer {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  padding: var(--gap-md) var(--gap-lg);
+  border-top: 1px solid hsl(var(--border));
+  flex-wrap: wrap;
+}
+
+.recorded-modal__footer > .btn--outline {
+  margin-left: auto;
+}
+
+.recorded-modal__delete-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.recorded-modal__delete-btn:hover {
+  color: hsl(var(--destructive));
+}
+
+.recorded-modal__confirm-text {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--foreground));
+}
+
+.recorded-modal__loader,
+.recorded-modal__error {
+  padding: var(--gap-lg);
+  text-align: center;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--font-size-sm);
+}
+
+.recorded-modal__retry {
+  background: none;
+  border: none;
+  padding: 0;
+  color: hsl(var(--primary));
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: inherit;
+}

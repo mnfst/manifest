@@ -27,7 +27,9 @@ describe('ProxyMessageRecorder', () => {
     } as unknown as ModelPricingCacheService;
     const dedup = {} as ProxyMessageDedup;
     const eventBus = { emit: emitMock } as unknown as IngestEventBusService;
-    recorder = new ProxyMessageRecorder(repo, pricingCache, dedup, eventBus);
+    recorder = new ProxyMessageRecorder(repo, pricingCache, dedup, eventBus, {
+      save: jest.fn(),
+    } as never);
   });
 
   afterEach(() => {
@@ -548,7 +550,9 @@ describe('ProxyMessageRecorder', () => {
       const pricingCache = { getByModel: getByModelMock } as unknown as ModelPricingCacheService;
       const eventBus = { emit: emitMock } as unknown as IngestEventBusService;
       recorder.onModuleDestroy();
-      recorder = new ProxyMessageRecorder(repo, pricingCache, dedupWithLock, eventBus);
+      recorder = new ProxyMessageRecorder(repo, pricingCache, dedupWithLock, eventBus, {
+        save: jest.fn(),
+      } as never);
     });
 
     afterEach(() => {
@@ -874,7 +878,9 @@ describe('ProxyMessageRecorder', () => {
       const pricingCache = { getByModel: getByModelMock } as unknown as ModelPricingCacheService;
       const eventBus = { emit: emitMock } as unknown as IngestEventBusService;
       recorder.onModuleDestroy();
-      recorder = new ProxyMessageRecorder(repo, pricingCache, dedupWithLock, eventBus);
+      recorder = new ProxyMessageRecorder(repo, pricingCache, dedupWithLock, eventBus, {
+        save: jest.fn(),
+      } as never);
 
       // Insert path
       await recorder.recordSuccessMessage(
@@ -987,6 +993,103 @@ describe('ProxyMessageRecorder', () => {
       } finally {
         Date.now = realDateNow;
       }
+    });
+  });
+
+  describe('recordingPayload', () => {
+    it('persists a recording and sets recorded=true on the message (insert path)', async () => {
+      const saveMock = jest.fn().mockResolvedValue(undefined);
+      const dedupWithLock = {
+        normalizeSessionKey: jest.fn().mockReturnValue(null),
+        getSuccessWriteLockKey: jest.fn().mockReturnValue('lock'),
+        withSuccessWriteLock: jest
+          .fn()
+          .mockImplementation(async (_k: string, fn: () => Promise<void>) => fn()),
+        withAgentMessageTransaction: jest
+          .fn()
+          .mockImplementation(async (_r: unknown, _c: unknown, fn: (m: unknown) => Promise<void>) =>
+            fn({ insert: insertMock, update: jest.fn() }),
+          ),
+        findExistingSuccessMessage: jest.fn().mockResolvedValue(null),
+      } as unknown as ProxyMessageDedup;
+
+      const scopedRecorder = new ProxyMessageRecorder(
+        { insert: insertMock } as never,
+        { getByModel: getByModelMock } as never,
+        dedupWithLock,
+        { emit: emitMock } as never,
+        { save: saveMock } as never,
+      );
+
+      await scopedRecorder.recordSuccessMessage(
+        ctx,
+        'gpt-4o',
+        'standard',
+        'scored',
+        {
+          prompt_tokens: 10,
+          completion_tokens: 5,
+        },
+        {
+          recordingPayload: {
+            request_body: { messages: [{ role: 'user', content: 'hi' }] },
+            response_body: { type: 'json', body: { ok: true } },
+            response_headers: { 'content-type': 'application/json' },
+            size_bytes: 100,
+          },
+        },
+      );
+
+      expect(insertMock).toHaveBeenCalledTimes(1);
+      const inserted = insertMock.mock.calls[0][0];
+      expect(inserted.recorded).toBe(true);
+      expect(saveMock).toHaveBeenCalledTimes(1);
+      expect(saveMock.mock.calls[0][1].size_bytes).toBe(100);
+    });
+
+    it('swallows errors from the recording service without failing the insert', async () => {
+      const saveMock = jest.fn().mockRejectedValue(new Error('disk full'));
+      const dedupWithLock = {
+        normalizeSessionKey: jest.fn().mockReturnValue(null),
+        getSuccessWriteLockKey: jest.fn().mockReturnValue('lock'),
+        withSuccessWriteLock: jest
+          .fn()
+          .mockImplementation(async (_k: string, fn: () => Promise<void>) => fn()),
+        withAgentMessageTransaction: jest
+          .fn()
+          .mockImplementation(async (_r: unknown, _c: unknown, fn: (m: unknown) => Promise<void>) =>
+            fn({ insert: insertMock, update: jest.fn() }),
+          ),
+        findExistingSuccessMessage: jest.fn().mockResolvedValue(null),
+      } as unknown as ProxyMessageDedup;
+
+      const scopedRecorder = new ProxyMessageRecorder(
+        { insert: insertMock } as never,
+        { getByModel: getByModelMock } as never,
+        dedupWithLock,
+        { emit: emitMock } as never,
+        { save: saveMock } as never,
+      );
+
+      await expect(
+        scopedRecorder.recordSuccessMessage(
+          ctx,
+          'gpt-4o',
+          'standard',
+          'scored',
+          { prompt_tokens: 1, completion_tokens: 1 },
+          {
+            recordingPayload: {
+              request_body: {},
+              response_body: null,
+              response_headers: {},
+              size_bytes: 0,
+            },
+          },
+        ),
+      ).resolves.toBeUndefined();
+      expect(saveMock).toHaveBeenCalled();
+      expect(insertMock).toHaveBeenCalled();
     });
   });
 });
