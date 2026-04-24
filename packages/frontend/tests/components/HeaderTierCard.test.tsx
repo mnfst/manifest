@@ -53,6 +53,7 @@ vi.mock('../../src/components/FallbackList.js', () => ({
     models: unknown[];
     customProviders: unknown[];
     connectedProviders: unknown[];
+    primaryAuthType?: string | null;
     onAddFallback: () => void;
     onUpdate: (next: string[]) => void;
     persistFallbacks: (agent: string, tierId: string, models: string[]) => Promise<unknown>;
@@ -65,6 +66,7 @@ vi.mock('../../src/components/FallbackList.js', () => ({
       data-models-len={props.models.length}
       data-custom-len={props.customProviders.length}
       data-connected-len={props.connectedProviders.length}
+      data-primary-auth={props.primaryAuthType ?? ''}
     >
       <span data-testid="fallback-count">{props.fallbacks.length}</span>
       <button data-testid="add-fallback" onClick={props.onAddFallback}>
@@ -267,20 +269,22 @@ describe('HeaderTierCard', () => {
 
   it('falls back to subscription auth when no override_auth_type and provider is subscription', () => {
     const subTier: HeaderTier = { ...baseTier, override_auth_type: null };
-    const { container } = mount({
+    const { container, getByTestId } = mount({
       tier: subTier,
       connectedProviders: [{ provider: 'OpenAI', auth_type: 'subscription' }] as never,
     });
     expect(container.textContent).toContain('Included in subscription');
+    expect(getByTestId('mock-fallback-list').dataset.primaryAuth).toBe('subscription');
   });
 
   it('falls back to api_key auth when no override_auth_type and provider is api_key only', () => {
     const apiTier: HeaderTier = { ...baseTier, override_auth_type: null };
-    const { container } = mount({
+    const { container, getByTestId } = mount({
       tier: apiTier,
       connectedProviders: [{ provider: 'openai', auth_type: 'api_key' }] as never,
     });
     expect(container.querySelector('[data-testid="auth-api_key"]')).not.toBeNull();
+    expect(getByTestId('mock-fallback-list').dataset.primaryAuth).toBe('api_key');
   });
 
   it('renders no auth badge when override_auth_type is null and no providers match', () => {
