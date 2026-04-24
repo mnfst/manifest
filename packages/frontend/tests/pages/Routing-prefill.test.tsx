@@ -40,6 +40,10 @@ vi.mock('../../src/components/ModelPickerModal.js', () => ({
   default: () => null,
 }));
 
+vi.mock('../../src/services/api/header-tiers.js', () => ({
+  listHeaderTiers: vi.fn().mockResolvedValue([]),
+}));
+
 const mockGetProviders = vi.fn();
 const mockGetCustomProviders = vi.fn();
 

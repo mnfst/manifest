@@ -125,7 +125,7 @@ describe('RoutingComplexitySection', () => {
   it('renders the empty explainer panel when disabled', () => {
     render(() => <RoutingComplexitySection {...makeProps()} />);
     expect(screen.getByText('Complexity routing is off')).toBeDefined();
-    expect(screen.getByText('Turn on complexity routing')).toBeDefined();
+    expect(screen.getAllByText('Enable complexity routing').length).toBeGreaterThanOrEqual(1);
     expect(screen.queryByTestId('tier-card-simple')).toBeNull();
   });
 
@@ -171,7 +171,7 @@ describe('RoutingComplexitySection', () => {
   it('clicking the CTA turns complexity on', async () => {
     const onEnabledChange = vi.fn();
     render(() => <RoutingComplexitySection {...makeProps({ onEnabledChange })} />);
-    fireEvent.click(screen.getByText('Turn on complexity routing'));
+    fireEvent.click(screen.getAllByText('Enable complexity routing')[0]);
     await waitFor(() => {
       expect(mockToggleComplexity).toHaveBeenCalledWith('test-agent', true);
       expect(onEnabledChange).toHaveBeenCalledWith(true);
@@ -182,7 +182,7 @@ describe('RoutingComplexitySection', () => {
   it('shows an error toast when the toggle API fails', async () => {
     mockToggleComplexity.mockRejectedValueOnce(new Error('boom'));
     render(() => <RoutingComplexitySection {...makeProps()} />);
-    fireEvent.click(screen.getByText('Turn on complexity routing'));
+    fireEvent.click(screen.getAllByText('Enable complexity routing')[0]);
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('Failed to update complexity routing');
     });
@@ -194,7 +194,7 @@ describe('RoutingComplexitySection', () => {
     render(() =>
       <RoutingComplexitySection {...makeProps({ enabled: () => true, onEnabledChange })} />,
     );
-    fireEvent.click(screen.getByRole('switch'));
+    fireEvent.click(screen.getByText('Disable complexity routing'));
     await waitFor(() => {
       expect(mockToggleComplexity).toHaveBeenCalledWith('test-agent', false);
       expect(onEnabledChange).toHaveBeenCalledWith(false);
@@ -222,14 +222,14 @@ describe('RoutingComplexitySection', () => {
       ],
     });
     render(() => <RoutingComplexitySection {...props} />);
-    fireEvent.click(screen.getByRole('switch'));
+    fireEvent.click(screen.getByText('Disable complexity routing'));
 
     await waitFor(() => {
-      expect(screen.getByText('Turn off complexity routing?')).toBeDefined();
+      expect(screen.getByText('Disable complexity routing?')).toBeDefined();
     });
     expect(mockToggleComplexity).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByText('Turn off'));
+    fireEvent.click(screen.getByText('Disable'));
     await waitFor(() => {
       expect(mockToggleComplexity).toHaveBeenCalledWith('test-agent', false);
       expect(onEnabledChange).toHaveBeenCalledWith(false);
@@ -254,15 +254,15 @@ describe('RoutingComplexitySection', () => {
       ],
     });
     render(() => <RoutingComplexitySection {...props} />);
-    fireEvent.click(screen.getByRole('switch'));
+    fireEvent.click(screen.getByText('Disable complexity routing'));
     await waitFor(() => {
-      expect(screen.getByText('Turn off complexity routing?')).toBeDefined();
+      expect(screen.getByText('Disable complexity routing?')).toBeDefined();
     });
 
     const overlay = screen.getByRole('dialog').parentElement!;
     fireEvent.keyDown(overlay, { key: 'Escape' });
     await waitFor(() => {
-      expect(screen.queryByText('Turn off complexity routing?')).toBeNull();
+      expect(screen.queryByText('Disable complexity routing?')).toBeNull();
     });
   });
 
@@ -284,7 +284,7 @@ describe('RoutingComplexitySection', () => {
       ],
     });
     render(() => <RoutingComplexitySection {...props} />);
-    fireEvent.click(screen.getByRole('switch'));
+    fireEvent.click(screen.getByText('Disable complexity routing'));
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeDefined();
     });
@@ -315,14 +315,14 @@ describe('RoutingComplexitySection', () => {
       ],
     });
     render(() => <RoutingComplexitySection {...props} />);
-    fireEvent.click(screen.getByRole('switch'));
+    fireEvent.click(screen.getByText('Disable complexity routing'));
     await waitFor(() => {
-      expect(screen.getByText('Turn off complexity routing?')).toBeDefined();
+      expect(screen.getByText('Disable complexity routing?')).toBeDefined();
     });
 
     fireEvent.click(screen.getByText('Cancel'));
     await waitFor(() => {
-      expect(screen.queryByText('Turn off complexity routing?')).toBeNull();
+      expect(screen.queryByText('Disable complexity routing?')).toBeNull();
     });
     expect(mockToggleComplexity).not.toHaveBeenCalled();
     expect(onEnabledChange).not.toHaveBeenCalled();

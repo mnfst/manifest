@@ -8,7 +8,7 @@
 /* Section header row: title block + CTA, mirrors specificity layout. */
 .routing-section__header--header-tiers {
   flex-direction: row;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: var(--gap-md);
 }

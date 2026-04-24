@@ -1,13 +1,13 @@
 import { Show, type Component } from 'solid-js';
+import type {
+  AuthType,
+  AvailableModel,
+  CustomProviderData,
+  RoutingProvider,
+  TierAssignment,
+} from '../services/api.js';
 import { DEFAULT_STAGE } from '../services/providers.js';
 import RoutingTierCard from './RoutingTierCard.js';
-import type {
-  TierAssignment,
-  AvailableModel,
-  AuthType,
-  RoutingProvider,
-  CustomProviderData,
-} from '../services/api.js';
 
 export interface RoutingDefaultTierSectionProps {
   agentName: () => string;
@@ -28,44 +28,71 @@ export interface RoutingDefaultTierSectionProps {
   onFallbackUpdate: (tierId: string, fallbacks: string[]) => void;
   onAddFallback: (tierId: string) => void;
   getFallbacksFor: (tierId: string) => string[];
+  embedded?: boolean;
 }
 
 const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (props) => {
   const subtitle = () =>
     props.complexityEnabled()
-      ? 'Final fallback after complexity and task-specific rules.'
-      : 'Handles every request.';
+      ? 'Acts as a safety net and handles requests that complexity routing can\u2019t resolve'
+      : 'All requests route through this model';
+
+  const card = () => (
+    <div
+      class="routing-cards"
+      classList={{
+        'routing-cards--wide': !props.embedded,
+        'routing-cards--centered': !!props.embedded,
+      }}
+    >
+      <RoutingTierCard
+        stage={DEFAULT_STAGE}
+        tier={props.tier}
+        models={props.models}
+        customProviders={props.customProviders}
+        activeProviders={props.activeProviders}
+        tiersLoading={props.tiersLoading}
+        changingTier={props.changingTier}
+        resettingTier={props.resettingTier}
+        resettingAll={props.resettingAll}
+        addingFallback={props.addingFallback}
+        agentName={props.agentName}
+        onDropdownOpen={props.onDropdownOpen}
+        onOverride={props.onOverride}
+        onReset={props.onReset}
+        onFallbackUpdate={props.onFallbackUpdate}
+        onAddFallback={props.onAddFallback}
+        getFallbacksFor={props.getFallbacksFor}
+        connectedProviders={props.connectedProviders}
+      />
+    </div>
+  );
+
+  if (props.embedded) {
+    return (
+      <div>
+        <Show when={!props.tiersLoading}>
+          <span class="routing-section__subtitle" style="margin-bottom: 16px;">
+            {subtitle()}
+          </span>
+        </Show>
+        <div class="routing-cards-backdrop">{card()}</div>
+      </div>
+    );
+  }
 
   return (
-    <div class="routing-section">
+    <div
+      class="routing-section"
+      classList={{ 'routing-section--dimmed': props.complexityEnabled() }}
+    >
       <div class="routing-section__header">
         <span class="routing-section__title">Default model</span>
         <Show when={!props.tiersLoading}>
           <span class="routing-section__subtitle">{subtitle()}</span>
         </Show>
       </div>
-      <div class="routing-cards routing-cards--wide">
-        <RoutingTierCard
-          stage={DEFAULT_STAGE}
-          tier={props.tier}
-          models={props.models}
-          customProviders={props.customProviders}
-          activeProviders={props.activeProviders}
-          tiersLoading={props.tiersLoading}
-          changingTier={props.changingTier}
-          resettingTier={props.resettingTier}
-          resettingAll={props.resettingAll}
-          addingFallback={props.addingFallback}
-          agentName={props.agentName}
-          onDropdownOpen={props.onDropdownOpen}
-          onOverride={props.onOverride}
-          onReset={props.onReset}
-          onFallbackUpdate={props.onFallbackUpdate}
-          onAddFallback={props.onAddFallback}
-          getFallbacksFor={props.getFallbacksFor}
-          connectedProviders={props.connectedProviders}
-        />
-      </div>
+      {card()}
     </div>
   );
 };

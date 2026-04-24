@@ -150,6 +150,7 @@ export interface RoutingSpecificitySectionProps {
   onAddFallback: (category: string) => void;
   refetchAll: () => Promise<void>;
   refetchSpecificity?: () => Promise<void>;
+  embedded?: boolean;
 }
 
 function toTierAssignment(a: SpecificityAssignment | undefined): TierAssignment | undefined {
@@ -187,21 +188,14 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
     }
   };
 
-  return (
-    <div class="routing-section">
-      <div class="routing-section__header specificity-header">
-        <div class="specificity-header__left">
-          <span class="routing-section__title">Task-specific routing</span>
-          <span class="routing-section__subtitle">
-            Send specific kinds of work (coding, trading, image gen…) to dedicated models. Overrides
-            everything else.
-          </span>
-        </div>
-        <button class="btn btn--primary btn--sm" onClick={() => setShowModal(true)}>
-          {hasAnyActive() ? 'Manage task-specific routing' : 'Enable task-specific routing'}
-        </button>
-      </div>
+  const manageButton = () => (
+    <button class="btn btn--primary btn--sm" onClick={() => setShowModal(true)}>
+      {hasAnyActive() ? 'Manage task-specific routing' : 'Enable task-specific routing'}
+    </button>
+  );
 
+  const content = () => (
+    <>
       <Show
         when={activeTiers().length > 0}
         fallback={
@@ -343,6 +337,39 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
           </div>
         </div>
       </Show>
+    </>
+  );
+
+  if (props.embedded) {
+    return (
+      <div>
+        <div class="routing-section__header specificity-header" style="margin-bottom: 16px;">
+          <div class="specificity-header__left">
+            <span class="routing-section__subtitle">
+              Send specific kinds of work (coding, trading, image gen…) to dedicated models.
+              Overrides everything else.
+            </span>
+          </div>
+          {manageButton()}
+        </div>
+        {content()}
+      </div>
+    );
+  }
+
+  return (
+    <div class="routing-section">
+      <div class="routing-section__header specificity-header">
+        <div class="specificity-header__left">
+          <span class="routing-section__title">Task-specific routing</span>
+          <span class="routing-section__subtitle">
+            Send specific kinds of work (coding, trading, image gen…) to dedicated models. Overrides
+            everything else.
+          </span>
+        </div>
+        {manageButton()}
+      </div>
+      {content()}
     </div>
   );
 };

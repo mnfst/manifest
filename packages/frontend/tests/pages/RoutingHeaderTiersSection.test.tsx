@@ -256,7 +256,7 @@ describe('RoutingHeaderTiersSection', () => {
     listHeaderTiersMock.mockResolvedValue([baseTier]);
     const { container } = mount();
     // Wait for the resource to resolve and show the CTA
-    await waitFor(() => expect(container.textContent).toContain('Manage custom tiers'));
+    await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
     fireEvent.click(container.querySelector('.routing-section__cta')!);
     await waitFor(() => {
       expect(container.querySelector('[role="dialog"]')).not.toBeNull();
@@ -268,7 +268,7 @@ describe('RoutingHeaderTiersSection', () => {
   it('closes manage modal on Done click', async () => {
     listHeaderTiersMock.mockResolvedValue([baseTier]);
     const { container, getByText, queryByRole } = mount();
-    await waitFor(() => expect(container.textContent).toContain('Manage custom tiers'));
+    await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
     fireEvent.click(container.querySelector('.routing-section__cta')!);
     await waitFor(() => expect(getByText('Done')).toBeDefined());
     fireEvent.click(getByText('Done'));
@@ -278,7 +278,7 @@ describe('RoutingHeaderTiersSection', () => {
   it('closes manage modal on Escape', async () => {
     listHeaderTiersMock.mockResolvedValue([baseTier]);
     const { container, queryByRole } = mount();
-    await waitFor(() => expect(container.textContent).toContain('Manage custom tiers'));
+    await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
     fireEvent.click(container.querySelector('.routing-section__cta')!);
     await waitFor(() => {
       const overlay = container.querySelector('.modal-overlay');
@@ -291,7 +291,7 @@ describe('RoutingHeaderTiersSection', () => {
   it('closes manage modal on overlay click', async () => {
     listHeaderTiersMock.mockResolvedValue([baseTier]);
     const { container, queryByRole } = mount();
-    await waitFor(() => expect(container.textContent).toContain('Manage custom tiers'));
+    await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
     fireEvent.click(container.querySelector('.routing-section__cta')!);
     await waitFor(() => {
       expect(container.querySelector('.modal-overlay')).not.toBeNull();
@@ -303,7 +303,7 @@ describe('RoutingHeaderTiersSection', () => {
   it('does not close manage modal on dialog card click (stopPropagation)', async () => {
     listHeaderTiersMock.mockResolvedValue([baseTier]);
     const { container, getByRole } = mount();
-    await waitFor(() => expect(container.textContent).toContain('Manage custom tiers'));
+    await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
     fireEvent.click(container.querySelector('.routing-section__cta')!);
     await waitFor(() => expect(getByRole('dialog')).toBeDefined());
     fireEvent.click(getByRole('dialog'));
@@ -314,7 +314,7 @@ describe('RoutingHeaderTiersSection', () => {
     toggleHeaderTierMock.mockResolvedValue({ ...baseTier, enabled: false });
     listHeaderTiersMock.mockResolvedValue([baseTier]);
     const { container, getByLabelText } = mount();
-    await waitFor(() => expect(container.textContent).toContain('Manage custom tiers'));
+    await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
     fireEvent.click(container.querySelector('.routing-section__cta')!);
     await waitFor(() => expect(getByLabelText('Disable Premium')).toBeDefined());
     fireEvent.click(getByLabelText('Disable Premium'));
@@ -327,7 +327,7 @@ describe('RoutingHeaderTiersSection', () => {
     toggleHeaderTierMock.mockRejectedValue(new Error('toggle fail'));
     listHeaderTiersMock.mockResolvedValue([baseTier]);
     const { container, getByLabelText } = mount();
-    await waitFor(() => expect(container.textContent).toContain('Manage custom tiers'));
+    await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
     fireEvent.click(container.querySelector('.routing-section__cta')!);
     await waitFor(() => getByLabelText('Disable Premium'));
     fireEvent.click(getByLabelText('Disable Premium'));
@@ -338,7 +338,7 @@ describe('RoutingHeaderTiersSection', () => {
     toggleHeaderTierMock.mockRejectedValue('plain');
     listHeaderTiersMock.mockResolvedValue([baseTier]);
     const { container, getByLabelText } = mount();
-    await waitFor(() => expect(container.textContent).toContain('Manage custom tiers'));
+    await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
     fireEvent.click(container.querySelector('.routing-section__cta')!);
     await waitFor(() => getByLabelText('Disable Premium'));
     fireEvent.click(getByLabelText('Disable Premium'));
@@ -348,7 +348,7 @@ describe('RoutingHeaderTiersSection', () => {
   it('opens edit modal from manage modal row click', async () => {
     listHeaderTiersMock.mockResolvedValue([baseTier]);
     const { container, getByTestId } = mount();
-    await waitFor(() => expect(container.textContent).toContain('Manage custom tiers'));
+    await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
     fireEvent.click(container.querySelector('.routing-section__cta')!);
     await waitFor(() => {
       expect(container.querySelector('[role="button"]')).not.toBeNull();
@@ -366,7 +366,7 @@ describe('RoutingHeaderTiersSection', () => {
   it('opens edit modal from manage row via Enter key', async () => {
     listHeaderTiersMock.mockResolvedValue([baseTier]);
     const { container, getByTestId } = mount();
-    await waitFor(() => expect(container.textContent).toContain('Manage custom tiers'));
+    await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
     fireEvent.click(container.querySelector('.routing-section__cta')!);
     await waitFor(() => expect(container.querySelector('.specificity-modal__row')).not.toBeNull());
     fireEvent.keyDown(container.querySelector('.specificity-modal__row')!, { key: 'Enter' });
@@ -378,7 +378,7 @@ describe('RoutingHeaderTiersSection', () => {
   it('opens edit modal from manage row via Space key', async () => {
     listHeaderTiersMock.mockResolvedValue([baseTier]);
     const { container, getByTestId } = mount();
-    await waitFor(() => expect(container.textContent).toContain('Manage custom tiers'));
+    await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
     fireEvent.click(container.querySelector('.routing-section__cta')!);
     await waitFor(() => expect(container.querySelector('.specificity-modal__row')).not.toBeNull());
     fireEvent.keyDown(container.querySelector('.specificity-modal__row')!, { key: ' ' });
@@ -390,7 +390,7 @@ describe('RoutingHeaderTiersSection', () => {
   it('back from edit returns to manage modal', async () => {
     listHeaderTiersMock.mockResolvedValue([baseTier]);
     const { container, getByTestId, queryByTestId, getByText } = mount();
-    await waitFor(() => expect(container.textContent).toContain('Manage custom tiers'));
+    await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
     fireEvent.click(container.querySelector('.routing-section__cta')!);
     await waitFor(() => expect(container.querySelector('.specificity-modal__row')).not.toBeNull());
     fireEvent.click(container.querySelector('.specificity-modal__row')!);
@@ -406,7 +406,7 @@ describe('RoutingHeaderTiersSection', () => {
     deleteHeaderTierMock.mockResolvedValue({});
     listHeaderTiersMock.mockResolvedValue([baseTier]);
     const { container, getByTestId } = mount();
-    await waitFor(() => expect(container.textContent).toContain('Manage custom tiers'));
+    await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
     fireEvent.click(container.querySelector('.routing-section__cta')!);
     await waitFor(() => expect(container.querySelector('.specificity-modal__row')).not.toBeNull());
     fireEvent.click(container.querySelector('.specificity-modal__row')!);
@@ -421,7 +421,7 @@ describe('RoutingHeaderTiersSection', () => {
     deleteHeaderTierMock.mockRejectedValue(new Error('delete fail'));
     listHeaderTiersMock.mockResolvedValue([baseTier]);
     const { container, getByTestId } = mount();
-    await waitFor(() => expect(container.textContent).toContain('Manage custom tiers'));
+    await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
     fireEvent.click(container.querySelector('.routing-section__cta')!);
     await waitFor(() => expect(container.querySelector('.specificity-modal__row')).not.toBeNull());
     fireEvent.click(container.querySelector('.specificity-modal__row')!);
@@ -433,7 +433,7 @@ describe('RoutingHeaderTiersSection', () => {
   it('create-new-tier button from manage modal opens create modal', async () => {
     listHeaderTiersMock.mockResolvedValue([baseTier]);
     const { container, getByText, getByTestId } = mount();
-    await waitFor(() => expect(container.textContent).toContain('Manage custom tiers'));
+    await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
     fireEvent.click(container.querySelector('.routing-section__cta')!);
     await waitFor(() => getByText('Create new tier'));
     fireEvent.click(getByText('Create new tier'));
@@ -444,20 +444,20 @@ describe('RoutingHeaderTiersSection', () => {
     });
   });
 
-  it('shows empty-state "Manage custom tiers" button when tiers exist but none are enabled', async () => {
+  it('shows empty-state "Manage custom routing" button when tiers exist but none are enabled', async () => {
     const disabledTier = { ...baseTier, enabled: false };
     listHeaderTiersMock.mockResolvedValue([disabledTier]);
     const { container } = mount();
     await waitFor(() => {
       expect(container.textContent).toContain('No custom tier yet');
-      expect(container.textContent).toContain('Manage custom tiers');
+      expect(container.textContent).toContain('Manage custom routing');
     });
   });
 
   it('edit modal onSaved from edit mode does not open snippet modal', async () => {
     listHeaderTiersMock.mockResolvedValue([baseTier]);
     const { container, getByTestId, queryByTestId } = mount();
-    await waitFor(() => expect(container.textContent).toContain('Manage custom tiers'));
+    await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
     fireEvent.click(container.querySelector('.routing-section__cta')!);
     await waitFor(() => expect(container.querySelector('.specificity-modal__row')).not.toBeNull());
     fireEvent.click(container.querySelector('.specificity-modal__row')!);

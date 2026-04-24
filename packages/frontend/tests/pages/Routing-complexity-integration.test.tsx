@@ -51,6 +51,10 @@ vi.mock('../../src/services/routing-utils.js', () => ({
   inferProviderFromModel: () => null,
 }));
 
+vi.mock('../../src/services/api/header-tiers.js', () => ({
+  listHeaderTiers: vi.fn().mockResolvedValue([]),
+}));
+
 const mockGetProviders = vi.fn();
 const mockToggleComplexity = vi.fn();
 const mockGetComplexityStatus = vi.fn();
@@ -190,39 +194,39 @@ describe('Routing — default tier + complexity integration', () => {
     mockToggleComplexity.mockResolvedValue({ ok: true, enabled: true });
   });
 
-  it('renders all three sections with providers connected and complexity on', async () => {
+  it('renders tabs with Default as first tab and providers connected', async () => {
     render(() => <Routing />);
     await waitFor(() => {
-      // Section title + card header both read "Default model"
-      expect(screen.getAllByText('Default model').length).toBeGreaterThan(0);
+      expect(screen.getByRole('tablist')).toBeDefined();
     });
+    expect(screen.getByRole('tab', { name: /Default/ })).toBeDefined();
+    expect(screen.getByRole('tab', { name: /Complexity/ })).toBeDefined();
+    expect(screen.getByRole('tab', { name: /Task-specific/ })).toBeDefined();
+    expect(screen.getByRole('tab', { name: /Custom/ })).toBeDefined();
+    // Default tab content visible by default
+    expect(screen.getAllByText('Default model').length).toBeGreaterThan(0);
+  });
+
+  it('shows pipeline help button when complexity and specificity are both on', async () => {
+    render(() => <Routing />);
     await waitFor(() => {
-      expect(screen.getByText('Complexity routing')).toBeDefined();
-    });
-    expect(screen.getByText('Task-specific routing')).toBeDefined();
-    // Complexity on + specificity active → priority legend shown
-    await waitFor(() => {
-      expect(
-        screen.getByText(/Priority:.*Task-specific.*Complexity.*Default/),
-      ).toBeDefined();
+      expect(screen.getByLabelText('How routing works')).toBeDefined();
     });
   });
 
-  it('shows "Handles every request" subtitle when complexity is off', async () => {
+  it('shows "All requests" subtitle when complexity is off', async () => {
     mockGetComplexityStatus.mockResolvedValue({ enabled: false });
     render(() => <Routing />);
     await waitFor(() => {
-      expect(screen.getByText('Handles every request.')).toBeDefined();
+      expect(screen.getByText('All requests route through this model')).toBeDefined();
     });
-    // Complexity off → legend hidden
-    expect(screen.queryByText(/Priority:.*Task-specific/)).toBeNull();
   });
 
-  it('shows "Final fallback" subtitle when complexity is on', async () => {
+  it('shows "Safety net" subtitle when complexity is on', async () => {
     render(() => <Routing />);
     await waitFor(() => {
       expect(
-        screen.getByText('Final fallback after complexity and task-specific rules.'),
+        screen.getByText('Acts as a safety net and handles requests that complexity routing can\u2019t resolve'),
       ).toBeDefined();
     });
   });
@@ -230,23 +234,25 @@ describe('Routing — default tier + complexity integration', () => {
   it('flips the complexity switch and calls toggleComplexity', async () => {
     mockGetComplexityStatus.mockResolvedValue({ enabled: false });
     render(() => <Routing />);
+    await screen.findByRole('tablist');
+    fireEvent.click(screen.getByRole('tab', { name: /Complexity/ }));
     await waitFor(() => {
       expect(screen.getByText('Complexity routing is off')).toBeDefined();
     });
-    const switchBtn = screen.getByRole('switch');
-    fireEvent.click(switchBtn);
+    fireEvent.click(screen.getAllByText('Enable complexity routing')[0]);
     await waitFor(() => {
       expect(mockToggleComplexity).toHaveBeenCalledWith('test-agent', true);
     });
   });
 
-  it('hides the priority legend when only complexity is on without specificity', async () => {
+  it('hides pipeline description when complexity is off and no specificity', async () => {
+    mockGetComplexityStatus.mockResolvedValue({ enabled: false });
     const { getSpecificityAssignments } = await import('../../src/services/api.js');
     vi.mocked(getSpecificityAssignments).mockResolvedValue([]);
     render(() => <Routing />);
     await waitFor(() => {
-      expect(screen.getByText('Complexity routing')).toBeDefined();
+      expect(screen.getByRole('tablist')).toBeDefined();
     });
-    expect(screen.queryByText(/Priority:.*Task-specific/)).toBeNull();
+    expect(screen.queryByLabelText('How routing works')).toBeNull();
   });
 });

@@ -31,6 +31,10 @@ vi.mock("../../src/components/ProviderSelectModal.js", () => ({
   ),
 }));
 
+vi.mock('../../src/services/api/header-tiers.js', () => ({
+  listHeaderTiers: vi.fn().mockResolvedValue([]),
+}));
+
 const mockGetProviders = vi.fn();
 const mockGetCustomProviders = vi.fn();
 const mockDeactivateAllProviders = vi.fn();
@@ -102,6 +106,8 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("renders all four tier labels", async () => {
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     expect(await screen.findByText("Simple")).toBeDefined();
     expect(screen.getByText("Standard")).toBeDefined();
     expect(screen.getByText("Complex")).toBeDefined();
@@ -110,6 +116,8 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("renders tier labels", async () => {
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     expect(await screen.findByText("Simple")).toBeDefined();
     expect(screen.getByText("Standard")).toBeDefined();
     expect(screen.getByText("Complex")).toBeDefined();
@@ -118,6 +126,8 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("shows auto tag for non-override tiers", async () => {
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     const autoTags = await screen.findAllByText("auto");
     // simple, standard, reasoning are auto (3 tiers); complex has an override
     expect(autoTags.length).toBe(3);
@@ -125,12 +135,16 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("shows Change button for all tiers", async () => {
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     const editButtons = await screen.findAllByText("Change");
     expect(editButtons.length).toBe(4);
   });
 
   it("renders fallback empty state in tier cards", async () => {
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     const emptyStates = await screen.findAllByText("No fallback");
     expect(emptyStates.length).toBe(4); // one per tier
   });
@@ -169,6 +183,8 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("opens model picker when Change button is clicked", async () => {
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     const editButtons = await screen.findAllByText("Change");
     fireEvent.click(editButtons[0]);
     expect(await screen.findByText("Select a model")).toBeDefined();
@@ -176,6 +192,8 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("opens model picker when Change button is clicked on override tier", async () => {
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     const editButtons = await screen.findAllByText("Change");
     // complex tier (index 2) has an override
     fireEvent.click(editButtons[2]);
@@ -184,6 +202,8 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("shows tier label in model picker subtitle", async () => {
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     const overrideButtons = await screen.findAllByText("Change");
     // Click override for 'simple' tier
     fireEvent.click(overrideButtons[0]);
@@ -192,6 +212,8 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("closes model picker when close button is clicked", async () => {
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]);
     expect(await screen.findByText("Select a model")).toBeDefined();
@@ -206,6 +228,8 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("closes model picker on overlay click", async () => {
     const { container } = render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]);
     expect(await screen.findByText("Select a model")).toBeDefined();
@@ -220,6 +244,8 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("closes model picker on Escape key", async () => {
     const { container } = render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]);
     expect(await screen.findByText("Select a model")).toBeDefined();
@@ -234,6 +260,8 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("shows search input in model picker", async () => {
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]);
     expect(await screen.findByLabelText("Search models or providers")).toBeDefined();
@@ -241,6 +269,8 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("filters models by search query", async () => {
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]);
 
@@ -255,6 +285,8 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("shows 'No models match' when search has no results", async () => {
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]);
 
@@ -268,6 +300,8 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("selects a model and calls overrideTier", async () => {
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]);
     await screen.findByText("Select a model");
@@ -286,6 +320,8 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("shows (recommended) label for auto-assigned model", async () => {
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]); // simple tier, auto is gpt-4o-mini
 
@@ -296,6 +332,8 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("calls resetAllTiers when Reset all to auto is clicked", async () => {
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     const resetAllBtn = await screen.findByText("Reset all to auto");
     fireEvent.click(resetAllBtn);
 
@@ -311,6 +349,8 @@ describe("Routing — enabled state (providers active)", () => {
     let resolveResetAll: () => void;
     vi.mocked(resetAllTiers).mockReturnValue(new Promise<void>((r) => { resolveResetAll = r; }) as any);
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     const resetAllBtn = await screen.findByText("Reset all to auto") as HTMLButtonElement;
     fireEvent.click(resetAllBtn);
 
@@ -354,6 +394,8 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("displays model price labels", async () => {
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     // gpt-4o-mini: input 0.00000015 * 1M = $0.15
     await waitFor(() => {
       const text = document.body.textContent || "";
@@ -371,9 +413,11 @@ describe("Routing — enabled state (providers active)", () => {
     ]);
 
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     const addButtons = await screen.findAllByText("+ Add model");
-    // 4 complexity tiers + 1 default tier = 5 "+ Add model" CTAs
-    expect(addButtons.length).toBe(5);
+    // 4 complexity tiers visible in the active tab
+    expect(addButtons.length).toBe(4);
   });
 
   it("pluralizes provider count correctly", async () => {
@@ -392,6 +436,8 @@ describe("Routing — enabled state (providers active)", () => {
     ]);
 
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     expect(await screen.findByText("Included in subscription")).toBeDefined();
   });
 
@@ -408,6 +454,8 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("shows Reset button only for edited tiers", async () => {
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     await screen.findByText("Simple");
     const resetButtons = screen.queryAllByText("Reset");
     // Only "complex" tier has override_model set
@@ -423,6 +471,8 @@ describe("Routing — enabled state (providers active)", () => {
       { id: "4", user_id: "u1", tier: "reasoning", override_model: null, auto_assigned_model: "gpt-4o-mini", fallback_models: null, updated_at: "2025-01-01" } as any,
     ]);
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     await screen.findByText("Simple");
     // "simple" tier has fallbacks → Reset should appear
     const resetButtons = screen.queryAllByText("Reset");
@@ -431,6 +481,8 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("opens confirmation modal when Reset is clicked", async () => {
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     await screen.findByText("Simple");
     const resetBtn = screen.getByText("Reset");
     fireEvent.click(resetBtn);
@@ -441,6 +493,8 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("calls resetTier when confirmed", async () => {
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     await screen.findByText("Simple");
     const resetBtn = screen.getByText("Reset");
     fireEvent.click(resetBtn);
@@ -462,6 +516,8 @@ describe("Routing — enabled state (providers active)", () => {
 
   it("closes reset modal on Cancel", async () => {
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     await screen.findByText("Simple");
     const resetBtn = screen.getByText("Reset");
     fireEvent.click(resetBtn);
@@ -477,6 +533,8 @@ describe("Routing — enabled state (providers active)", () => {
   it("handles resetTier error gracefully", async () => {
     vi.mocked(resetTier).mockRejectedValueOnce(new Error("fail"));
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     await screen.findByText("Simple");
     const resetBtn = screen.getByText("Reset");
     fireEvent.click(resetBtn);
@@ -505,6 +563,8 @@ describe("Routing — pricing cache health banner", () => {
   it("does not show the banner when the pricing cache has models", async () => {
     vi.mocked(getPricingHealth).mockResolvedValue({ model_count: 100, last_fetched_at: "2026-04-13T00:00:00.000Z" });
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     await screen.findByText("Simple");
     expect(screen.queryByText(/Pricing catalog is empty/)).toBeNull();
   });
@@ -603,6 +663,8 @@ describe("Routing — helper functions", () => {
   it("handles overrideTier error gracefully", async () => {
     vi.mocked(overrideTier).mockRejectedValueOnce(new Error("fail"));
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     const overrideButtons = await screen.findAllByText("Change");
     fireEvent.click(overrideButtons[0]);
     await screen.findByText("Select a model");
@@ -619,6 +681,8 @@ describe("Routing — helper functions", () => {
   it("handles resetAllTiers error gracefully", async () => {
     vi.mocked(resetAllTiers).mockRejectedValueOnce(new Error("fail"));
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     const resetAllBtn = await screen.findByText("Reset all to auto");
     fireEvent.click(resetAllBtn);
 
@@ -684,6 +748,8 @@ describe("Routing — helper functions", () => {
     ]);
 
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     // The model should still be found via PROVIDERS fallback (gpt-4o-mini is in OpenAI's model list)
     await waitFor(() => {
       expect(screen.getByText("Simple")).toBeDefined();
@@ -699,6 +765,8 @@ describe("Routing — helper functions", () => {
     vi.mocked(getAvailableModels).mockResolvedValueOnce([]);
 
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     // The override model name should render (no provider icon since providerIdForModel returns undefined)
     await waitFor(() => {
       expect(screen.getByText("Simple")).toBeDefined();
@@ -720,6 +788,8 @@ describe("Routing — custom providers", () => {
     mockGetCustomProviders.mockResolvedValue([{ id: "cp-uuid", name: "Groq", base_url: "https://api.groq.com", has_api_key: true, models: [], created_at: "2025-01-01" }]);
 
     const { container } = render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     await waitFor(() => {
       // Custom provider branch: renders a letter icon instead of an SVG provider icon
       const letter = container.querySelector(".routing-providers-info .provider-card__logo-letter");
@@ -746,6 +816,8 @@ describe("Routing — custom providers", () => {
     mockGetCustomProviders.mockResolvedValue([{ id: "cp-uuid", name: "Groq", base_url: "https://api.groq.com", has_api_key: true, models: [], created_at: "2025-01-01" }]);
 
     const { container } = render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     await waitFor(() => {
       const letter = container.querySelector(".routing-card .provider-card__logo-letter");
       expect(letter).not.toBeNull();
@@ -770,6 +842,8 @@ describe("Routing — custom providers", () => {
     mockGetCustomProviders.mockResolvedValue([{ id: "cp-uuid", name: "Groq", base_url: "https://api.groq.com", has_api_key: true, models: [], created_at: "2025-01-01" }]);
 
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     await waitFor(() => {
       // labelFor should produce "Groq / my-llama"
       expect(screen.getByText("Groq / my-llama")).toBeDefined();
@@ -793,6 +867,8 @@ describe("Routing — custom providers", () => {
     mockGetCustomProviders.mockResolvedValue([{ id: "cp-uuid", name: "Groq", base_url: "https://api.groq.com", has_api_key: true, models: [], created_at: "2025-01-01" }]);
 
     const { container } = render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     await waitFor(() => {
       // null prices → pricePerM returns "—"
       expect(container.textContent).toContain("\u2014 in");
@@ -1029,6 +1105,8 @@ describe("Routing — fallback management", () => {
 
   it("opens fallback picker when Add fallback is clicked", async () => {
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     const addButtons = await screen.findAllByText("Add fallback");
     fireEvent.click(addButtons[0]);
     // The model picker modal should open
@@ -1037,6 +1115,8 @@ describe("Routing — fallback management", () => {
 
   it("calls setFallbacks when a fallback model is picked", async () => {
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     const addButtons = await screen.findAllByText("Add fallback");
     fireEvent.click(addButtons[0]); // simple tier
     await screen.findByText("Select a model");
@@ -1064,6 +1144,8 @@ describe("Routing — fallback management", () => {
 
     const { container } = render(() => <Routing />);
     // Simple tier has 1 fallback, so it shows the standalone "Add fallback" button (not inside empty state)
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     await screen.findAllByText("Add fallback");
     const standaloneAddBtn = container.querySelector(".fallback-list__add:not(.fallback-list__empty .fallback-list__add)") as HTMLButtonElement;
     fireEvent.click(standaloneAddBtn);
@@ -1078,6 +1160,8 @@ describe("Routing — fallback management", () => {
     let resolveSetFallbacks: () => void;
     vi.mocked(setFallbacks).mockReturnValueOnce(new Promise<void>((r) => { resolveSetFallbacks = r; }) as any);
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     const addButtons = await screen.findAllByText("Add fallback");
     fireEvent.click(addButtons[0]); // simple tier
     await screen.findByText("Select a model");
@@ -1097,6 +1181,8 @@ describe("Routing — fallback management", () => {
   it("handles setFallbacks error gracefully and rolls back optimistic state", async () => {
     vi.mocked(setFallbacks).mockRejectedValueOnce(new Error("fail"));
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     const addButtons = await screen.findAllByText("Add fallback");
     fireEvent.click(addButtons[0]);
     await screen.findByText("Select a model");
@@ -1119,6 +1205,8 @@ describe("Routing — fallback management", () => {
     ]);
 
     const { container } = render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     await waitFor(() => {
       const fallbackCards = container.querySelectorAll(".fallback-list__card");
       expect(fallbackCards.length).toBe(1);
@@ -1142,6 +1230,8 @@ describe("Routing — fallback management", () => {
     ]);
 
     const { container } = render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     // Wait for fallback list to render with custom provider fallback
     await waitFor(() => {
       const removeButtons = container.querySelectorAll(".fallback-list__remove");
@@ -1164,6 +1254,8 @@ describe("Routing — fallback management", () => {
 
   it("closes fallback picker when close button is clicked", async () => {
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     const addButtons = await screen.findAllByText("Add fallback");
     fireEvent.click(addButtons[0]);
     expect(await screen.findByText("Select a model")).toBeDefined();
@@ -1202,6 +1294,8 @@ describe("Routing — effectiveAuth case-insensitive matching", () => {
 
     render(() => <Routing />);
     // Should show "Included in subscription" because effectiveAuth matches "Anthropic" provider case-insensitively
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     expect(await screen.findByText("Included in subscription")).toBeDefined();
   });
 
@@ -1221,6 +1315,8 @@ describe("Routing — effectiveAuth case-insensitive matching", () => {
     ]);
 
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     expect(await screen.findByText("Included in subscription")).toBeDefined();
   });
 
@@ -1242,6 +1338,8 @@ describe("Routing — effectiveAuth case-insensitive matching", () => {
     ]);
 
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     // providerIdForModel returns "qwen" via the PROVIDERS model list fallback (line 52)
     // labelFor can't find modelInfo (empty apiModels) so renders raw model name
     await waitFor(() => {
@@ -1269,6 +1367,8 @@ describe("Routing — effectiveAuth case-insensitive matching", () => {
     ]);
 
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     // getModelLabel falls back to formatModelSlug: "my-unknown-model" → "My Unknown Model"
     await waitFor(() => {
       expect(screen.getByText("My Unknown Model")).toBeDefined();
@@ -1317,15 +1417,15 @@ describe("Routing — specificity routing", () => {
       { category: "coding", auto_assigned_model: "gpt-4o-mini", override_model: null, fallback_models: null, is_active: true } as any,
     ]);
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     await screen.findByText("Simple");
 
-    // Open fallback picker for the "coding" specificity category
-    // We need to trigger via the RoutingModals onAddFallback which calls handleAddFallback
-    // The fallback picker renders a ModelPickerModal; selecting a model triggers onAddFallback
-    // We simulate by directly finding the fallback picker and selecting a model
-    // Since the specificity section renders its own "Add fallback" buttons, find them
+    // Switch to the Task-specific tab to see specificity content
+    const taskTab = screen.getByRole("tab", { name: /Task-specific/ });
+    fireEvent.click(taskTab);
+
     await waitFor(() => {
-      // coding category should be in the specificity section
       expect(document.body.textContent).toContain("Coding");
     });
 
@@ -1348,6 +1448,8 @@ describe("Routing — specificity routing", () => {
   it("handleAddFallback routes to generalist API when tier is a generalist tier", async () => {
     vi.mocked(getSpecificityAssignments).mockResolvedValue([]);
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Complexity/ }));
     const addButtons = await screen.findAllByText("Add fallback");
     fireEvent.click(addButtons[0]); // simple tier
     await screen.findByText("Select a model");
@@ -1367,6 +1469,8 @@ describe("Routing — specificity routing", () => {
       { category: "coding", auto_assigned_model: "gpt-4o-mini", override_model: null, fallback_models: ["claude-opus-4-6"], is_active: true } as any,
     ]);
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Task-specific/ }));
     await waitFor(() => {
       expect(document.body.textContent).toContain("Coding");
     });
@@ -1387,6 +1491,8 @@ describe("Routing — specificity routing", () => {
     ]);
     vi.mocked(setSpecificityFallbacks).mockRejectedValueOnce(new Error("fail"));
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Task-specific/ }));
     await waitFor(() => {
       expect(document.body.textContent).toContain("Coding");
     });
@@ -1414,6 +1520,8 @@ describe("Routing — specificity routing", () => {
     ]);
 
     const { container } = render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Task-specific/ }));
     await waitFor(() => {
       expect(document.body.textContent).toContain("Coding");
     });
@@ -1439,6 +1547,8 @@ describe("Routing — specificity routing", () => {
     ]);
 
     const { container } = render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Task-specific/ }));
     await waitFor(() => {
       expect(document.body.textContent).toContain("Coding");
     });
@@ -1467,6 +1577,8 @@ describe("Routing — specificity routing", () => {
     vi.mocked(clearSpecificityFallbacks).mockRejectedValue(new Error("fail"));
 
     const { container } = render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Task-specific/ }));
     await waitFor(() => {
       expect(document.body.textContent).toContain("Coding");
     });
@@ -1490,11 +1602,9 @@ describe("Routing — specificity routing", () => {
     ]);
 
     render(() => <Routing />);
-    await screen.findByText("Simple");
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Task-specific/ }));
 
-    // Open fallback picker for "coding" category
-    // The getTier prop is used by RoutingModals' fallback picker to get current fallbacks
-    // When "coding" is opened as a fallback picker tier, getTier("coding") should return the specificity assignment
     await waitFor(() => {
       expect(document.body.textContent).toContain("Coding");
     });
@@ -1502,7 +1612,6 @@ describe("Routing — specificity routing", () => {
     // The coding specificity tier should show claude-opus-4-6 as its model
     // This exercises getTier returning the specificity assignment
     await waitFor(() => {
-      // The specificity section should render with the assigned model
       const body = document.body.textContent || "";
       expect(body).toContain("Claude Opus 4.6");
     });
@@ -1514,6 +1623,8 @@ describe("Routing — specificity routing", () => {
     ]);
 
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Task-specific/ }));
     await waitFor(() => {
       expect(document.body.textContent).toContain("Coding");
     });
@@ -1540,6 +1651,8 @@ describe("Routing — specificity routing", () => {
     vi.mocked(overrideSpecificity).mockRejectedValueOnce(new Error("fail"));
 
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Task-specific/ }));
     await waitFor(() => {
       expect(document.body.textContent).toContain("Coding");
     });
@@ -1563,6 +1676,8 @@ describe("Routing — specificity routing", () => {
     ]);
 
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Task-specific/ }));
     await waitFor(() => {
       expect(document.body.textContent).toContain("Coding");
     });
@@ -1593,6 +1708,8 @@ describe("Routing — specificity routing", () => {
     vi.mocked(resetSpecificity).mockRejectedValueOnce(new Error("fail"));
 
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Task-specific/ }));
     await waitFor(() => {
       expect(document.body.textContent).toContain("Coding");
     });
@@ -1618,6 +1735,8 @@ describe("Routing — specificity routing", () => {
     ]);
 
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Task-specific/ }));
     await waitFor(() => {
       expect(document.body.textContent).toContain("Coding");
     });
@@ -1644,6 +1763,8 @@ describe("Routing — specificity routing", () => {
     vi.mocked(overrideSpecificity).mockRejectedValueOnce(new Error("fail"));
 
     render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Task-specific/ }));
     await waitFor(() => {
       expect(document.body.textContent).toContain("Coding");
     });

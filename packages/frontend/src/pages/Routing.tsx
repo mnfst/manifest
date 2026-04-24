@@ -2,6 +2,8 @@ import { createSignal, createResource, createMemo, Show, type Component } from '
 import { useLocation, useParams, useSearchParams } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
 import RoutingModals from '../components/RoutingModals.js';
+import { buildPipelineHelp } from '../components/RoutingPipelineCard.js';
+import RoutingTabs from '../components/RoutingTabs.js';
 import { toast } from '../services/toast-store.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import RoutingDefaultTierSection from './RoutingDefaultTierSection.js';
@@ -15,6 +17,7 @@ import {
   RoutingFooter,
 } from './RoutingPanels.js';
 import { createRoutingActions } from './RoutingActions.js';
+import { listHeaderTiers, type HeaderTier } from '../services/api/header-tiers.js';
 import {
   getTierAssignments,
   getAvailableModels,
@@ -67,6 +70,11 @@ const Routing: Component = () => {
     getComplexityStatus,
   );
   const complexityEnabled = () => complexityStatus()?.enabled ?? false;
+  const [headerTiers, { refetch: refetchHeaderTiers }] = createResource(
+    () => agentName(),
+    (name) => listHeaderTiers(name).catch(() => [] as HeaderTier[]),
+  );
+  const hasCustomTiersEnabled = () => headerTiers()?.some((t) => t.enabled) ?? false;
   const [dropdownTier, setDropdownTier] = createSignal<string | null>(null);
   const [specificityDropdown, setSpecificityDropdown] = createSignal<string | null>(null);
   const [changingSpecificity, setChangingSpecificity] = createSignal<string | null>(null);
@@ -94,6 +102,7 @@ const Routing: Component = () => {
       refetchTiers(),
       refetchModels(),
       refetchSpecificity(),
+      refetchHeaderTiers(),
     ]);
   };
 
@@ -113,7 +122,6 @@ const Routing: Component = () => {
   };
 
   const hasAnySpecificityActive = () => specificityAssignments()?.some((a) => a.is_active) ?? false;
-  const showPriorityLegend = () => complexityEnabled() && hasAnySpecificityActive();
 
   const isSpecificityTier = (tierId: string) =>
     specificityAssignments()?.some((a) => a.category === tierId) ?? false;
@@ -289,117 +297,137 @@ const Routing: Component = () => {
             customProviders={() => customProviders() ?? []}
           />
 
-          <RoutingDefaultTierSection
-            agentName={agentName}
-            tier={() => actions.getTier('default')}
+          <RoutingTabs
             complexityEnabled={complexityEnabled}
-            models={() => models() ?? []}
-            customProviders={() => customProviders() ?? []}
-            activeProviders={activeProviders}
-            connectedProviders={() => connectedProviders() ?? []}
-            tiersLoading={tiers.loading}
-            changingTier={actions.changingTier}
-            resettingTier={actions.resettingTier}
-            resettingAll={actions.resettingAll}
-            addingFallback={actions.addingFallback}
-            onDropdownOpen={(tierId) => setDropdownTier(tierId)}
-            onOverride={handleOverride}
-            onReset={actions.handleReset}
-            onFallbackUpdate={actions.handleFallbackUpdate}
-            onAddFallback={(tierId) => setFallbackPickerTier(tierId)}
-            getFallbacksFor={actions.getFallbacksFor}
-          />
-
-          <RoutingComplexitySection
-            agentName={agentName}
-            enabled={complexityEnabled}
-            onEnabledChange={(next) => mutateComplexity({ enabled: next })}
-            tiers={() => tiers() ?? []}
-            models={() => models() ?? []}
-            customProviders={() => customProviders() ?? []}
-            activeProviders={activeProviders}
-            connectedProviders={() => connectedProviders() ?? []}
-            tiersLoading={tiers.loading}
-            changingTier={actions.changingTier}
-            resettingTier={actions.resettingTier}
-            resettingAll={actions.resettingAll}
-            addingFallback={actions.addingFallback}
-            onDropdownOpen={(tierId) => setDropdownTier(tierId)}
-            onOverride={handleOverride}
-            onReset={actions.handleReset}
-            onFallbackUpdate={actions.handleFallbackUpdate}
-            onAddFallback={(tierId) => setFallbackPickerTier(tierId)}
-            getFallbacksFor={actions.getFallbacksFor}
-            getTier={actions.getTier}
-          />
-
-          <RoutingSpecificitySection
-            agentName={agentName}
-            assignments={specificityAssignments}
-            models={() => models() ?? []}
-            customProviders={() => customProviders() ?? []}
-            activeProviders={activeProviders}
-            connectedProviders={() => connectedProviders() ?? []}
-            changingTier={changingSpecificity}
-            resettingTier={resettingSpecificity}
-            resettingAll={() => false}
-            addingFallback={() => null}
-            onDropdownOpen={(category) => setSpecificityDropdown(category)}
-            onOverride={async (category, model, provider, authType) => {
-              setChangingSpecificity(category);
-              try {
-                await overrideSpecificity(agentName(), category, model, provider, authType);
-                await refetchSpecificity();
-              } catch {
-                toast.error('Failed to update model');
-              } finally {
-                setChangingSpecificity(null);
-              }
+            specificityEnabled={hasAnySpecificityActive}
+            customEnabled={hasCustomTiersEnabled}
+            pipelineHelp={() =>
+              buildPipelineHelp(
+                complexityEnabled(),
+                hasAnySpecificityActive(),
+                hasCustomTiersEnabled(),
+              )
+            }
+          >
+            {{
+              default: (
+                <RoutingDefaultTierSection
+                  agentName={agentName}
+                  tier={() => actions.getTier('default')}
+                  complexityEnabled={complexityEnabled}
+                  models={() => models() ?? []}
+                  customProviders={() => customProviders() ?? []}
+                  activeProviders={activeProviders}
+                  connectedProviders={() => connectedProviders() ?? []}
+                  tiersLoading={tiers.loading}
+                  changingTier={actions.changingTier}
+                  resettingTier={actions.resettingTier}
+                  resettingAll={actions.resettingAll}
+                  addingFallback={actions.addingFallback}
+                  onDropdownOpen={(tierId) => setDropdownTier(tierId)}
+                  onOverride={handleOverride}
+                  onReset={actions.handleReset}
+                  onFallbackUpdate={actions.handleFallbackUpdate}
+                  onAddFallback={(tierId) => setFallbackPickerTier(tierId)}
+                  getFallbacksFor={actions.getFallbacksFor}
+                  embedded
+                />
+              ),
+              complexity: (
+                <RoutingComplexitySection
+                  agentName={agentName}
+                  enabled={complexityEnabled}
+                  onEnabledChange={(next) => mutateComplexity({ enabled: next })}
+                  tiers={() => tiers() ?? []}
+                  models={() => models() ?? []}
+                  customProviders={() => customProviders() ?? []}
+                  activeProviders={activeProviders}
+                  connectedProviders={() => connectedProviders() ?? []}
+                  tiersLoading={tiers.loading}
+                  changingTier={actions.changingTier}
+                  resettingTier={actions.resettingTier}
+                  resettingAll={actions.resettingAll}
+                  addingFallback={actions.addingFallback}
+                  onDropdownOpen={(tierId) => setDropdownTier(tierId)}
+                  onOverride={handleOverride}
+                  onReset={actions.handleReset}
+                  onFallbackUpdate={actions.handleFallbackUpdate}
+                  onAddFallback={(tierId) => setFallbackPickerTier(tierId)}
+                  getFallbacksFor={actions.getFallbacksFor}
+                  getTier={actions.getTier}
+                  embedded
+                />
+              ),
+              specificity: (
+                <RoutingSpecificitySection
+                  agentName={agentName}
+                  assignments={specificityAssignments}
+                  models={() => models() ?? []}
+                  customProviders={() => customProviders() ?? []}
+                  activeProviders={activeProviders}
+                  connectedProviders={() => connectedProviders() ?? []}
+                  changingTier={changingSpecificity}
+                  resettingTier={resettingSpecificity}
+                  resettingAll={() => false}
+                  addingFallback={() => null}
+                  onDropdownOpen={(category) => setSpecificityDropdown(category)}
+                  onOverride={async (category, model, provider, authType) => {
+                    setChangingSpecificity(category);
+                    try {
+                      await overrideSpecificity(agentName(), category, model, provider, authType);
+                      await refetchSpecificity();
+                    } catch {
+                      toast.error('Failed to update model');
+                    } finally {
+                      setChangingSpecificity(null);
+                    }
+                  }}
+                  onReset={async (category) => {
+                    setResettingSpecificity(category);
+                    try {
+                      await resetSpecificity(agentName(), category);
+                      await refetchSpecificity();
+                    } catch {
+                      toast.error('Failed to reset');
+                    } finally {
+                      setResettingSpecificity(null);
+                    }
+                  }}
+                  onFallbackUpdate={async (category, updatedFallbacks) => {
+                    try {
+                      if (updatedFallbacks.length === 0) {
+                        const { clearSpecificityFallbacks } = await import('../services/api.js');
+                        await clearSpecificityFallbacks(agentName(), category);
+                      } else {
+                        const { setSpecificityFallbacks } = await import('../services/api.js');
+                        await setSpecificityFallbacks(agentName(), category, updatedFallbacks);
+                      }
+                      await refetchSpecificity();
+                    } catch {
+                      toast.error('Failed to update fallbacks');
+                    }
+                  }}
+                  onAddFallback={(category) => setFallbackPickerTier(category)}
+                  refetchAll={refetchAll}
+                  refetchSpecificity={async () => {
+                    await refetchSpecificity();
+                  }}
+                  embedded
+                />
+              ),
+              custom: (
+                <RoutingHeaderTiersSection
+                  agentName={agentName}
+                  models={() => models() ?? []}
+                  customProviders={() => customProviders() ?? []}
+                  connectedProviders={() => connectedProviders() ?? []}
+                  externalTiers={() => headerTiers()}
+                  externalRefetch={() => void refetchHeaderTiers()}
+                  embedded
+                />
+              ),
             }}
-            onReset={async (category) => {
-              setResettingSpecificity(category);
-              try {
-                await resetSpecificity(agentName(), category);
-                await refetchSpecificity();
-              } catch {
-                toast.error('Failed to reset');
-              } finally {
-                setResettingSpecificity(null);
-              }
-            }}
-            onFallbackUpdate={async (category, updatedFallbacks) => {
-              try {
-                if (updatedFallbacks.length === 0) {
-                  const { clearSpecificityFallbacks } = await import('../services/api.js');
-                  await clearSpecificityFallbacks(agentName(), category);
-                } else {
-                  const { setSpecificityFallbacks } = await import('../services/api.js');
-                  await setSpecificityFallbacks(agentName(), category, updatedFallbacks);
-                }
-                await refetchSpecificity();
-              } catch {
-                toast.error('Failed to update fallbacks');
-              }
-            }}
-            onAddFallback={(category) => setFallbackPickerTier(category)}
-            refetchAll={refetchAll}
-            refetchSpecificity={async () => {
-              await refetchSpecificity();
-            }}
-          />
-
-          <RoutingHeaderTiersSection
-            agentName={agentName}
-            models={() => models() ?? []}
-            customProviders={() => customProviders() ?? []}
-            connectedProviders={() => connectedProviders() ?? []}
-          />
-
-          <Show when={showPriorityLegend()}>
-            <div class="routing-priority-legend">
-              Priority: Custom &rsaquo; Task-specific &rsaquo; Complexity &rsaquo; Default
-            </div>
-          </Show>
+          </RoutingTabs>
 
           <RoutingFooter
             disabling={actions.disabling}

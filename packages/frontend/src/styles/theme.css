@@ -205,7 +205,7 @@ h6 {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-bottom: var(--gap-xl);
+  margin-bottom: var(--gap-lg);
   padding-bottom: var(--gap-lg);
   border-bottom: 1px solid hsl(var(--border));
 }

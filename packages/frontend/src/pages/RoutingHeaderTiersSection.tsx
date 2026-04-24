@@ -18,20 +18,32 @@ import type {
 import { toast } from '../services/toast-store.js';
 import '../styles/routing-header-tiers.css';
 
-interface Props {
+export interface RoutingHeaderTiersSectionProps {
   agentName: Accessor<string>;
   models: Accessor<AvailableModel[]>;
   customProviders: Accessor<CustomProviderData[]>;
   connectedProviders: Accessor<RoutingProvider[]>;
+  externalTiers?: Accessor<HeaderTier[] | undefined>;
+  externalRefetch?: () => void;
+  embedded?: boolean;
 }
 
+type Props = RoutingHeaderTiersSectionProps;
+
 const RoutingHeaderTiersSection: Component<Props> = (props) => {
-  const [tiersRes, { refetch }] = createResource(props.agentName, (name) =>
-    listHeaderTiers(name).catch((err) => {
-      toast.error(err instanceof Error ? err.message : 'Failed to load custom tiers');
-      return [] as HeaderTier[];
-    }),
+  const [internalTiersRes, { refetch: internalRefetch }] = createResource(
+    () => (props.externalTiers ? false : props.agentName()),
+    (name) =>
+      listHeaderTiers(name as string).catch((err) => {
+        toast.error(err instanceof Error ? err.message : 'Failed to load custom tiers');
+        return [] as HeaderTier[];
+      }),
   );
+
+  const refetch = () => {
+    if (props.externalRefetch) props.externalRefetch();
+    else void internalRefetch();
+  };
 
   // Manage modal: lists all tiers. `null` = closed.
   const [manageOpen, setManageOpen] = createSignal(false);
@@ -44,7 +56,8 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
   // Which tier is currently being toggled (loading state).
   const [toggling, setToggling] = createSignal<string | null>(null);
 
-  const tiers = (): HeaderTier[] => tiersRes() ?? [];
+  const tiers = (): HeaderTier[] =>
+    (props.externalTiers ? props.externalTiers() : internalTiersRes()) ?? [];
   const enabledTiers = (): HeaderTier[] => tiers().filter((t) => t.enabled);
 
   const handleOverride = async (
@@ -109,24 +122,18 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
     setManageOpen(true);
   };
 
-  return (
-    <div class="routing-section routing-section--header-tiers">
-      <div class="routing-section__header routing-section__header--header-tiers">
-        <div>
-          <h2 class="routing-section__title">Custom tiers</h2>
-          <p class="routing-section__subtitle">
-            Route requests by HTTP header. Custom tiers run before complexity and specificity tiers.
-          </p>
-        </div>
-        <button
-          type="button"
-          class="btn btn--primary btn--sm routing-section__cta"
-          onClick={openCreateOrManage}
-        >
-          {tiers().length > 0 ? 'Manage custom tiers' : 'Create custom tier'}
-        </button>
-      </div>
+  const manageButton = () => (
+    <button
+      type="button"
+      class="btn btn--primary btn--sm routing-section__cta"
+      onClick={openCreateOrManage}
+    >
+      {tiers().length > 0 ? 'Manage custom routing' : 'Create custom tier'}
+    </button>
+  );
 
+  const content = () => (
+    <>
       <Show
         when={enabledTiers().length > 0}
         fallback={
@@ -137,7 +144,7 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
               force specific requests to a chosen model.
             </div>
             <button type="button" class="btn btn--primary btn--sm" onClick={openCreateOrManage}>
-              {tiers().length > 0 ? 'Manage custom tiers' : 'Create custom tier'}
+              {tiers().length > 0 ? 'Manage custom routing' : 'Create custom tier'}
             </button>
           </div>
         }
@@ -159,7 +166,7 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
         </div>
       </Show>
 
-      {/* ── Manage custom tiers modal ──────────────────── */}
+      {/* ── Manage custom routing modal ──────────────────── */}
       <Show when={manageOpen()}>
         <div
           class="modal-overlay"
@@ -178,7 +185,7 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
             onClick={(e) => e.stopPropagation()}
           >
             <h2 id="manage-tiers-title" class="specificity-modal__title">
-              Manage custom tiers
+              Manage custom routing
             </h2>
             <p class="specificity-modal__desc">
               Click a tier to edit its header rule, name, or color. Create new tiers or remove
@@ -297,6 +304,42 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
           />
         )}
       </Show>
+    </>
+  );
+
+  if (props.embedded) {
+    return (
+      <div>
+        <div
+          class="routing-section__header routing-section__header--header-tiers"
+          style="margin-bottom: 16px;"
+        >
+          <div>
+            <span class="routing-section__subtitle">
+              Route requests by HTTP header. Custom routing runs before complexity and task-specific
+              routing.
+            </span>
+          </div>
+          {manageButton()}
+        </div>
+        {content()}
+      </div>
+    );
+  }
+
+  return (
+    <div class="routing-section routing-section--header-tiers">
+      <div class="routing-section__header routing-section__header--header-tiers">
+        <div>
+          <h2 class="routing-section__title">Custom routing</h2>
+          <p class="routing-section__subtitle">
+            Route requests by HTTP header. Custom routing runs before complexity and task-specific
+            routing.
+          </p>
+        </div>
+        {manageButton()}
+      </div>
+      {content()}
     </div>
   );
 };

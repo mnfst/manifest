@@ -32,6 +32,7 @@ export interface RoutingComplexitySectionProps {
   onAddFallback: (tierId: string) => void;
   getFallbacksFor: (tierId: string) => string[];
   getTier: (tierId: string) => TierAssignment | undefined;
+  embedded?: boolean;
 }
 
 const RoutingComplexitySection: Component<RoutingComplexitySectionProps> = (props) => {
@@ -70,40 +71,39 @@ const RoutingComplexitySection: Component<RoutingComplexitySectionProps> = (prop
     void apply(next);
   };
 
-  return (
-    <div class="routing-section">
-      <div class="routing-section__header routing-section__header--with-control">
-        <div>
-          <span class="routing-section__title">Complexity routing</span>
-          <span class="routing-section__subtitle">
-            Picks a cheap model for easy requests and your best for the rest.
-          </span>
-        </div>
+  const actionButton = () => (
+    <Show
+      when={props.enabled()}
+      fallback={
         <button
-          class="routing-switch"
-          classList={{ 'routing-switch--on': props.enabled() }}
-          onClick={handleToggle}
+          class="btn btn--primary btn--sm"
           disabled={toggling()}
-          role="switch"
-          aria-checked={props.enabled()}
-          aria-label="Route by complexity"
+          onClick={() => void apply(true)}
         >
-          <span class="routing-switch__label">Route by complexity</span>
-          <span class="routing-switch__track">
-            <Show
-              when={!toggling()}
-              fallback={
-                <span class="routing-switch__thumb">
-                  <span class="spinner" style="width: 10px; height: 10px;" />
-                </span>
-              }
-            >
-              <span class="routing-switch__thumb" />
-            </Show>
-          </span>
+          {toggling() ? (
+            <span class="spinner" style="width: 14px; height: 14px;" />
+          ) : (
+            'Enable complexity routing'
+          )}
         </button>
-      </div>
+      }
+    >
+      <button
+        class="btn btn--outline btn--sm routing-complexity__disable"
+        disabled={toggling()}
+        onClick={handleToggle}
+      >
+        {toggling() ? (
+          <span class="spinner" style="width: 14px; height: 14px;" />
+        ) : (
+          'Disable complexity routing'
+        )}
+      </button>
+    </Show>
+  );
 
+  const content = () => (
+    <>
       <Show
         when={props.enabled()}
         fallback={
@@ -118,7 +118,7 @@ const RoutingComplexitySection: Component<RoutingComplexitySectionProps> = (prop
               disabled={toggling()}
               onClick={() => void apply(true)}
             >
-              Turn on complexity routing
+              Enable complexity routing
             </button>
           </div>
         }
@@ -172,7 +172,7 @@ const RoutingComplexitySection: Component<RoutingComplexitySectionProps> = (prop
               id="complexity-disable-title"
               style="margin: 0 0 12px; font-size: var(--font-size-lg); font-weight: 600;"
             >
-              Turn off complexity routing?
+              Disable complexity routing?
             </h2>
             <p style="margin: 0 0 20px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
               Your tier picks are kept. The Default model will handle every request that doesn't
@@ -190,12 +190,46 @@ const RoutingComplexitySection: Component<RoutingComplexitySectionProps> = (prop
                   void apply(false);
                 }}
               >
-                {toggling() ? <span class="spinner" /> : 'Turn off'}
+                {toggling() ? <span class="spinner" /> : 'Disable'}
               </button>
             </div>
           </div>
         </div>
       </Show>
+    </>
+  );
+
+  if (props.embedded) {
+    return (
+      <div>
+        <div
+          class="routing-section__header routing-section__header--with-control"
+          style="margin-bottom: 16px;"
+        >
+          <div>
+            <span class="routing-section__subtitle">
+              Picks a cheap model for easy requests and your best for the rest.
+            </span>
+          </div>
+          {actionButton()}
+        </div>
+        {content()}
+      </div>
+    );
+  }
+
+  return (
+    <div class="routing-section">
+      <div class="routing-section__header routing-section__header--with-control">
+        <div>
+          <span class="routing-section__title">Complexity routing</span>
+          <span class="routing-section__subtitle">
+            Picks a cheap model for easy requests and your best for the rest.
+          </span>
+        </div>
+        {actionButton()}
+      </div>
+      {content()}
     </div>
   );
 };
