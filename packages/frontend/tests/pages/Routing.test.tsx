@@ -895,6 +895,37 @@ describe("Routing — helper functions", () => {
       expect(screen.getByText("Simple")).toBeDefined();
     });
   });
+
+  it("calls toggleComplexity and mutates state when Route by complexity toggle is clicked", async () => {
+    const { toggleComplexity } = await import("../../src/services/api.js");
+    vi.mocked(toggleComplexity).mockResolvedValueOnce({ enabled: false });
+
+    render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Default/ }));
+    // Wait for the toggle to appear
+    const toggle = await screen.findByRole("button", { name: /Route by complexity/i });
+    fireEvent.click(toggle);
+
+    await waitFor(() => {
+      expect(toggleComplexity).toHaveBeenCalledWith("test-agent");
+    });
+  });
+
+  it("shows an error toast when toggleComplexity rejects", async () => {
+    const { toggleComplexity } = await import("../../src/services/api.js");
+    vi.mocked(toggleComplexity).mockRejectedValueOnce(new Error("network error"));
+
+    render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Default/ }));
+    const toggle = await screen.findByRole("button", { name: /Route by complexity/i });
+    fireEvent.click(toggle);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("Failed to toggle complexity routing");
+    });
+  });
 });
 
 describe("Routing — custom providers", () => {

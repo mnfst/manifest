@@ -434,6 +434,17 @@ describe('HeaderTierCard', () => {
     expect(onDisable).toHaveBeenCalledTimes(1);
   });
 
+  it('swallows errors thrown by resetHeaderTier without crashing', async () => {
+    resetHeaderTierMock.mockRejectedValue(new Error('reset boom'));
+    const { getByText } = mount();
+    const resetBtn = getByText('Reset');
+    expect(resetBtn).toBeDefined();
+    fireEvent.click(resetBtn);
+    await waitFor(() => expect(resetHeaderTierMock).toHaveBeenCalled());
+    // Component must still be in the DOM after the error
+    expect(getByText('Reset')).toBeDefined();
+  });
+
   it('falls back to the provider db-id when the model name has no recognizable prefix', () => {
     // model name has no known vendor prefix but the model entry still resolves
     // to a known provider via its `provider` field — we should fall back to it.
