@@ -2,7 +2,6 @@ import { Show, type Accessor, type Component } from 'solid-js';
 import ModelPickerModal from './ModelPickerModal.js';
 import ProviderSelectModal from './ProviderSelectModal.js';
 import RoutingInstructionModal from './RoutingInstructionModal.js';
-import { DisableRoutingModal } from '../pages/RoutingPanels.js';
 import type {
   TierAssignment,
   AuthType,
@@ -34,10 +33,6 @@ interface RoutingModalsProps {
   instructionModal: Accessor<'enable' | 'disable' | null>;
   instructionProvider: Accessor<string | null>;
   onInstructionClose: () => void;
-  confirmDisable: Accessor<boolean>;
-  disabling: Accessor<boolean>;
-  onDisableCancel: () => void;
-  onDisableConfirm: () => Promise<void>;
   models: () => AvailableModel[];
   tiers: () => TierAssignment[];
   specificityAssignments?: () => SpecificityAssignment[];
@@ -52,6 +47,7 @@ interface RoutingModalsProps {
     authType?: AuthType,
   ) => void;
   onProviderUpdate: () => Promise<void>;
+  onOpenProviderModal: () => void;
 }
 
 const RoutingModals: Component<RoutingModalsProps> = (props) => (
@@ -66,6 +62,10 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => (
           connectedProviders={props.connectedProviders()}
           onSelect={props.onOverride}
           onClose={props.onDropdownClose}
+          onConnectProviders={() => {
+            props.onDropdownClose();
+            props.onOpenProviderModal();
+          }}
         />
       )}
     </Show>
@@ -87,6 +87,10 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => (
               props.onSpecificityOverride?.(category(), model, provider, authType)
             }
             onClose={() => props.onSpecificityDropdownClose?.()}
+            onConnectProviders={() => {
+              props.onSpecificityDropdownClose?.();
+              props.onOpenProviderModal();
+            }}
           />
         );
       }}
@@ -115,6 +119,10 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => (
             connectedProviders={props.connectedProviders()}
             onSelect={props.onAddFallback}
             onClose={props.onFallbackPickerClose}
+            onConnectProviders={() => {
+              props.onFallbackPickerClose();
+              props.onOpenProviderModal();
+            }}
           />
         );
       }}
@@ -138,13 +146,6 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => (
       agentName={props.agentName()}
       connectedProvider={props.instructionProvider()}
       onClose={props.onInstructionClose}
-    />
-
-    <DisableRoutingModal
-      open={props.confirmDisable()}
-      disabling={props.disabling}
-      onCancel={props.onDisableCancel}
-      onConfirm={props.onDisableConfirm}
     />
   </>
 );

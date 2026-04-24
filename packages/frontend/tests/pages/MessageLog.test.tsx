@@ -166,7 +166,7 @@ describe("MessageLog", () => {
       expect(container.textContent).toContain("Total Tokens");
       expect(container.textContent).toContain("Model");
       expect(container.textContent).toContain("Cache");
-      expect(container.textContent).toContain("Duration");
+      expect(container.textContent).toContain("Latency");
       expect(container.textContent).toContain("Status");
     });
   });
@@ -528,24 +528,25 @@ describe("MessageLog", () => {
     expect(container.querySelector('[data-testid="setup-modal"]')).not.toBeNull();
   });
 
-  it("shows Enable routing button when setupCompleted but no providers", async () => {
+  it("shows Connect provider button when setupCompleted but no providers", async () => {
     localStorage.setItem("setup_completed_test-agent", "1");
     mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Enable routing");
+      expect(container.textContent).toContain("Connect provider");
       expect(container.textContent).toContain("Connect a provider to start routing LLM calls");
+      expect(container.textContent).not.toContain("Enable routing");
       const btn = container.querySelector('.empty-state button.btn--primary');
       expect(btn).not.toBeNull();
     });
   });
 
-  it("navigates to routing with openProviders state when Enable routing clicked", async () => {
+  it("navigates to routing with openProviders state when Connect provider clicked", async () => {
     localStorage.setItem("setup_completed_test-agent", "1");
     mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Enable routing");
+      expect(container.textContent).toContain("Connect provider");
     });
     const btn = container.querySelector('.empty-state button.btn--primary') as HTMLButtonElement;
     fireEvent.click(btn);
@@ -572,6 +573,7 @@ describe("MessageLog", () => {
     await vi.waitFor(() => {
       expect(container.textContent).toContain("Set up agent");
       expect(container.textContent).not.toContain("Enable routing");
+      expect(container.textContent).not.toContain("Connect provider");
     });
   });
 

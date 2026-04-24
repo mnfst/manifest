@@ -286,7 +286,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                           <th>Response Model</th>
                           <th>Input</th>
                           <th>Output</th>
-                          <th>Duration</th>
+                          <th>Latency</th>
                           <th>TTFT</th>
                         </tr>
                       </thead>
@@ -309,7 +309,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                       <thead>
                         <tr>
                           <th>Tool</th>
-                          <th>Duration</th>
+                          <th>Latency</th>
                           <th>Status</th>
                           <th>Error</th>
                         </tr>

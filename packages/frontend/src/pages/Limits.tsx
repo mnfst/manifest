@@ -190,10 +190,10 @@ const Limits: Component = () => {
             <line x1="12" y1="8" x2="12.01" y2="8" />
           </svg>
           <div>
-            <strong>Enable routing to set hard limits</strong>
+            <strong>Connect a provider to set hard limits</strong>
             <p>
               Hard limits automatically block proxy requests when usage exceeds a threshold. Email
-              alerts work without routing &mdash; only hard limits require it.
+              alerts work without a connected provider &mdash; only hard limits require one.
             </p>
           </div>
         </div>

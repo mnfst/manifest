@@ -1211,6 +1211,21 @@ describe('ModelDiscoveryService', () => {
       expect(result[0].authType).toBe('subscription');
     });
 
+    it('should stamp authType as local for Ollama providers', async () => {
+      const models = [makeModel({ id: 'llama3.1:8b' })];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(
+        makeProvider({
+          provider: 'ollama',
+          auth_type: 'local',
+          api_key_encrypted: null,
+        }),
+      );
+
+      expect(result[0].authType).toBe('local');
+    });
+
     it('should use subscription fallback when auth_type is subscription and no token', async () => {
       const orMap = new Map([
         [

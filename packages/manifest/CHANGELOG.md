@@ -1,5 +1,29 @@
 # manifest
 
+## 5.54.0
+
+### Minor Changes
+
+- 466e4cf: Drop the `Enable routing` relic: remove the empty-state card on the Routing page so tabs and tier cards render by default, drop the `complexity_routing_enabled` column and its endpoints/toggle (complexity scoring is always on), delete the bulk "Disable routing" button, rename cross-page CTAs from "Enable routing" to "Connect provider", and add a Connect-providers CTA inside the model picker's empty state.
+- d78828c: Surface local models (Ollama, LM Studio) as their own provider category. New `auth_type: 'local'` joins `api_key` and `subscription`; messages routed to local runners now carry a grey house badge in the message log, routing cards, and cost-by-model table. The Add Provider modal gets a third **Local** tab that appears only on self-hosted installs. Backfill migrations re-tag existing Ollama/LM Studio `user_providers` rows, and custom providers whose display name resolves to a canonical local runner are tagged `local` at insert time. Connecting/disconnecting a local provider works like the Subscription tab — click-to-disconnect flips the toggle and stops routing to it.
+
+## 5.53.0
+
+### Minor Changes
+
+- 039afbe: Duplicate an agent in one click — hover any agent card on the Workspace to reveal a menu with Duplicate and Delete, or use the new "Duplicate agent" button on the Settings page. Creates a new agent with a fresh API key and carries over every provider credential, custom provider, tier override, and specificity override. Messages, logs, and notification rules stay with the original.
+
+### Patch Changes
+
+- 5110901: Polish routing page copy and UX: rewrite tier descriptions, standardize casing and pluralization, always show the "How routing works" help button, toggle tiers by clicking the manage-modal row, and add a pen icon on custom tier cards to open the edit modal directly.
+- 91a7467: Low-risk cleanups from the 2026-04-23 OWASP audit that cause no behaviour change for operators or users:
+  - Scope agent rename cascades by `tenant_id` on `agent_messages` / `notification_rules` / `notification_logs`. Forward-only fix — no backfill — so any pre-existing row that was mislabelled when slugs collided across tenants stays as-is; new renames no longer touch other tenants' data.
+  - Replace `ApiKeyGuard.safeCompare` with `Buffer.from` + length-check + `timingSafeEqual`. Same observable behaviour; cleaner canonical pattern.
+  - Add a snapshot test for `ThresholdAlertEmail` against hostile agent names (angle brackets, attribute-context quote payloads) — verifies React's existing escaping, no runtime change.
+  - `npm audit fix` for the moderate `@nestjs/core` advisory (11.1.17 → 11.1.19).
+
+  All other findings from the audit are deferred — they required breaking changes or operator action and live in a separate tracking issue.
+
 ## 5.52.0
 
 ### Minor Changes

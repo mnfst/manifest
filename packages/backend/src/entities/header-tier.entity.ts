@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
 import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
-import type { TierColor } from 'manifest-shared';
+import type { AuthType, TierColor } from 'manifest-shared';
 
 @Entity('header_tiers')
 @Index(['agent_id', 'sort_order'])
@@ -45,7 +45,7 @@ export class HeaderTier {
   override_provider!: string | null;
 
   @Column('varchar', { nullable: true })
-  override_auth_type!: 'api_key' | 'subscription' | null;
+  override_auth_type!: AuthType | null;
 
   @Column('simple-json', { nullable: true })
   fallback_models!: string[] | null;

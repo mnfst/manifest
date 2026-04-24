@@ -565,6 +565,129 @@ describe("ModelPickerModal", () => {
     ).toBeDefined();
   });
 
+  it("shows the Local tab alongside API Keys when a local provider is connected", () => {
+    const providers = [
+      { id: "p1", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
+      { id: "p2", provider: "ollama", is_active: true, has_api_key: false, auth_type: "local" as const, connected_at: "2025-01-01" },
+    ];
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={[
+          { model_name: "llama3.1:8b", provider: "ollama", display_name: "Llama 3.1 8B", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: false, auth_type: "local" },
+          { model_name: "gpt-4o-mini", provider: "OpenAI", display_name: "GPT-4o Mini", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true, auth_type: "api_key" },
+        ] as never}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    expect(screen.getByText("Local")).toBeDefined();
+  });
+
+  it("defaults to the Local tab when only local providers are connected", () => {
+    const providers = [
+      { id: "p1", provider: "ollama", is_active: true, has_api_key: false, auth_type: "local" as const, connected_at: "2025-01-01" },
+    ];
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={[
+          { model_name: "llama3.1:8b", provider: "ollama", display_name: "Llama 3.1 8B", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: false, auth_type: "local" },
+        ] as never}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    // Single tab renders but it's Local and is selected.
+    expect(screen.queryByText("Local")).toBeNull(); // showTabs hides single-category strip
+    // "Runs on your machine" label appears instead of pricing.
+    expect(container.textContent).toContain("Runs on your machine");
+  });
+
+  it("switches to the Local tab and resets showFreeOnly", () => {
+    const providers = [
+      { id: "p1", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },
+      { id: "p2", provider: "ollama", is_active: true, has_api_key: false, auth_type: "local" as const, connected_at: "2025-01-01" },
+    ];
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={[
+          { model_name: "llama3.1:8b", provider: "ollama", display_name: "Llama 3.1 8B", input_price_per_token: 0, output_price_per_token: 0, context_window: 128000, capability_reasoning: false, capability_code: false, auth_type: "local" },
+          { model_name: "gpt-4o-mini", provider: "OpenAI", display_name: "GPT-4o Mini", input_price_per_token: 0.00000015, output_price_per_token: 0.0000006, context_window: 128000, capability_reasoning: false, capability_code: true, auth_type: "api_key" },
+        ] as never}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    // Flip on the free-only pill in the API Keys tab first.
+    const pill = container.querySelector('.routing-modal__filter-pill') as HTMLButtonElement;
+    fireEvent.click(pill);
+    // Switch to Local tab — showFreeOnly should reset (no filter bar renders).
+    fireEvent.click(screen.getByText("Local"));
+    expect(container.querySelector('.routing-modal__filter-bar')).toBeNull();
+    const localTab = screen.getByText("Local").closest("button")!;
+    expect(localTab.getAttribute("aria-selected")).toBe("true");
+  });
+
+  it("shows the local empty state when local is selected but no local providers are connected", () => {
+    // Force activeTab='local' by having a local connection with no models.
+    const providers = [
+      { id: "p1", provider: "ollama", is_active: true, has_api_key: false, auth_type: "local" as const, connected_at: "2025-01-01" },
+    ];
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={[]}
+        tiers={baseTiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    expect(
+      screen.getByText(/No local providers connected\. Connect Ollama or LM Studio to see models\./),
+    ).toBeDefined();
+  });
+
+  it("renders a Connect providers CTA in the empty state when onConnectProviders is provided", () => {
+    const onConnectProviders = vi.fn();
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={[]}
+        tiers={baseTiers}
+        connectedProviders={[]}
+        onSelect={onSelect}
+        onClose={onClose}
+        onConnectProviders={onConnectProviders}
+      />
+    ));
+    const cta = screen.getByRole("button", { name: "Connect providers" });
+    fireEvent.click(cta);
+    expect(onConnectProviders).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not render a Connect providers CTA when onConnectProviders is omitted", () => {
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={[]}
+        tiers={baseTiers}
+        connectedProviders={[]}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    expect(screen.queryByRole("button", { name: "Connect providers" })).toBeNull();
+  });
+
   it("resets showFreeOnly when switching to subscription tab", () => {
     const providers = [
       { id: "p1", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },

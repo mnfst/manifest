@@ -98,6 +98,16 @@
   color: #020817;
 }
 
+.provider-auth-badge--local {
+  background: #f72585;
+  color: #ffffff;
+}
+
+.dark .provider-auth-badge--local {
+  background: #f72585;
+  color: #ffffff;
+}
+
 .provider-auth-badge--overlay {
   width: 8px;
   height: 8px;
@@ -289,7 +299,7 @@
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .dark .routing-card {

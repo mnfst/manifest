@@ -128,12 +128,6 @@ describe('ST-02: Create agent', () => {
 
     smokeAgentName = res.body.agent.name;
     smokeOtlpKey = res.body.apiKey;
-
-    // New agents default to complexity routing off. The downstream smoke tests
-    // assert tier-based routing (simple/standard/complex/reasoning), so turn it on.
-    await auth(api().post(`/api/v1/routing/${smokeAgentName}/complexity/toggle`))
-      .send({ enabled: true })
-      .expect(201);
   });
 });
 
@@ -155,6 +149,13 @@ describe('ST-03: Seed agent data', () => {
 
     const tenantId = agents[0].tenant_id;
     const agentId = agents[0].id;
+
+    // Enable complexity routing so ST-05 tier routing tests can score requests
+    await ds.query(
+      `UPDATE agents SET complexity_routing_enabled = true WHERE id = $1`,
+      [agentId],
+    );
+
     // Use a timestamp 60s in the past so period boundary comparisons are safe
     const past = new Date(Date.now() - 60_000).toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
 

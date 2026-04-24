@@ -114,7 +114,7 @@ const HEADER_LABELS: Record<MessageColumnKey, string> = {
   output: 'Output',
   model: 'Model',
   cache: 'Cache',
-  duration: 'Duration',
+  duration: 'Latency',
   status: 'Status',
   feedback: '',
 };
