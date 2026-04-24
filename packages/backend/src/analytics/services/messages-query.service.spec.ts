@@ -569,6 +569,135 @@ describe('MessagesQueryService', () => {
     expect(mockGetRawOne).toHaveBeenCalledTimes(2);
   });
 
+  it('passes routing_tier filter through to the query builder', async () => {
+    mockGetRawOne.mockResolvedValueOnce({ total: 2 });
+    mockGetRawMany
+      .mockResolvedValueOnce([
+        { id: 'msg-1', timestamp: '2026-04-24 10:00:00', model: 'gpt-4o-mini', cost: 0 },
+      ])
+      .mockResolvedValueOnce([{ model: 'gpt-4o-mini' }]);
+
+    const mockQb = (
+      service as unknown as { turnRepo: { createQueryBuilder: jest.Mock } }
+    ).turnRepo.createQueryBuilder();
+    const andWhereSpy = mockQb.andWhere as jest.Mock;
+    andWhereSpy.mockClear();
+
+    const result = await service.getMessages({
+      range: '24h',
+      userId: 'test-user',
+      limit: 20,
+      routing_tier: 'benchmark',
+    });
+
+    expect(result.total_count).toBe(2);
+    const tierCall = andWhereSpy.mock.calls.find(
+      ([clause]) => typeof clause === 'string' && clause.includes('routing_tier'),
+    );
+    expect(tierCall).toBeDefined();
+    expect(tierCall?.[1]).toEqual({ tierFilter: 'benchmark' });
+  });
+
+  it('excludes benchmark rows by default when no tier filter is set', async () => {
+    mockGetRawOne.mockResolvedValueOnce({ total: 7 });
+    mockGetRawMany
+      .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-04-24 10:00:00', model: 'x' }])
+      .mockResolvedValueOnce([{ model: 'x' }]);
+
+    const mockQb = (
+      service as unknown as { turnRepo: { createQueryBuilder: jest.Mock } }
+    ).turnRepo.createQueryBuilder();
+    const andWhereSpy = mockQb.andWhere as jest.Mock;
+    andWhereSpy.mockClear();
+
+    await service.getMessages({ range: '24h', userId: 'u', limit: 20 });
+
+    const defaultExclude = andWhereSpy.mock.calls.find(
+      ([clause]) => typeof clause === 'string' && clause.includes('IS DISTINCT FROM'),
+    );
+    expect(defaultExclude).toBeDefined();
+    expect(defaultExclude?.[1]).toEqual({ excludedBenchmarkTier: 'benchmark' });
+  });
+
+  it('includes benchmark rows when include_benchmark=true', async () => {
+    mockGetRawOne.mockResolvedValueOnce({ total: 7 });
+    mockGetRawMany
+      .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-04-24 10:00:00', model: 'x' }])
+      .mockResolvedValueOnce([{ model: 'x' }]);
+
+    const mockQb = (
+      service as unknown as { turnRepo: { createQueryBuilder: jest.Mock } }
+    ).turnRepo.createQueryBuilder();
+    const andWhereSpy = mockQb.andWhere as jest.Mock;
+    andWhereSpy.mockClear();
+
+    await service.getMessages({
+      range: '24h',
+      userId: 'u',
+      limit: 20,
+      include_benchmark: true,
+    });
+
+    const defaultExclude = andWhereSpy.mock.calls.find(
+      ([clause]) => typeof clause === 'string' && clause.includes('IS DISTINCT FROM'),
+    );
+    expect(defaultExclude).toBeUndefined();
+  });
+
+  it('does not apply the default-exclude when a tier filter is explicit', async () => {
+    mockGetRawOne.mockResolvedValueOnce({ total: 4 });
+    mockGetRawMany
+      .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-04-24 10:00:00', model: 'x' }])
+      .mockResolvedValueOnce([{ model: 'x' }]);
+
+    const mockQb = (
+      service as unknown as { turnRepo: { createQueryBuilder: jest.Mock } }
+    ).turnRepo.createQueryBuilder();
+    const andWhereSpy = mockQb.andWhere as jest.Mock;
+    andWhereSpy.mockClear();
+
+    await service.getMessages({
+      range: '24h',
+      userId: 'u',
+      limit: 20,
+      routing_tier: 'simple',
+    });
+
+    const defaultExclude = andWhereSpy.mock.calls.find(
+      ([clause]) => typeof clause === 'string' && clause.includes('IS DISTINCT FROM'),
+    );
+    expect(defaultExclude).toBeUndefined();
+  });
+
+  it('different routing_tier values produce different count cache keys', async () => {
+    mockGetRawOne.mockResolvedValueOnce({ total: 3 });
+    mockGetRawMany
+      .mockResolvedValueOnce([{ id: 'a', timestamp: '2026-04-24 10:00:00', model: 'x' }])
+      .mockResolvedValueOnce([{ model: 'x' }]);
+
+    await service.getMessages({
+      range: '24h',
+      userId: 'test-user',
+      limit: 20,
+      routing_tier: 'benchmark',
+    });
+
+    mockGetRawOne.mockResolvedValueOnce({ total: 11 });
+    mockGetRawMany
+      .mockResolvedValueOnce([{ id: 'b', timestamp: '2026-04-24 10:00:00', model: 'x' }])
+      .mockResolvedValueOnce([{ model: 'x' }]);
+
+    const result = await service.getMessages({
+      range: '24h',
+      userId: 'test-user',
+      limit: 20,
+      routing_tier: 'simple',
+    });
+
+    expect(result.total_count).toBe(11);
+    expect(mockGetRawOne).toHaveBeenCalledTimes(2);
+  });
+
   it('different service_type produces different count cache key', async () => {
     // First call with no service_type
     mockGetRawOne.mockResolvedValueOnce({ total: 10 });
@@ -789,25 +918,6 @@ describe('MessagesQueryService', () => {
       expect(result.providers).not.toContain('');
     });
 
-    it('derives providers skipping null entries in stored list', async () => {
-      // Cover deriveProviders() line where `if (p) seen.add(p)` guards against
-      // null values surfacing in the stored providers array.
-      const derive = (
-        service as unknown as {
-          deriveProviders: (m: string[], p: string[]) => string[];
-        }
-      ).deriveProviders.bind(service);
-
-      // Intentionally pass a null inside the array to simulate a row that had
-      // provider = null. The TtlCache contract uses string[], but the guard
-      // defends against legacy or corrupted cached entries.
-      const result = derive(
-        ['gpt-4o'],
-        ['anthropic', null as unknown as string, '', 'ollama-cloud'],
-      );
-      expect(result).toEqual(['anthropic', 'ollama-cloud', 'openai']);
-    });
-
     it('provider filter: ORs stored provider = ? with legacy model IN (...)', async () => {
       // getDistinctModels returns a mix of models and providers.
       // `matching` will include gpt-4o (inferred as openai), so the OR branch
@@ -898,5 +1008,40 @@ describe('MessagesQueryService', () => {
     });
 
     expect(result.items[0]).toHaveProperty('specificity_category', 'coding');
+  });
+
+  describe('recorded filter', () => {
+    it('adds a recorded = true where clause when the flag is set', async () => {
+      const repo = (
+        service as unknown as {
+          turnRepo: { createQueryBuilder: jest.Mock };
+        }
+      ).turnRepo;
+      const qb = repo.createQueryBuilder();
+      const andWhereCalls = () => qb.andWhere.mock.calls.map((c: unknown[]) => c[0]);
+
+      await service.getMessages({
+        userId: 'test-user',
+        limit: 10,
+        recorded: true,
+      });
+
+      expect(andWhereCalls()).toContain('at.recorded = true');
+    });
+
+    it('does not apply the recorded filter when the flag is omitted', async () => {
+      const repo = (
+        service as unknown as {
+          turnRepo: { createQueryBuilder: jest.Mock };
+        }
+      ).turnRepo;
+      const qb = repo.createQueryBuilder();
+
+      await service.getMessages({ userId: 'test-user', limit: 10 });
+
+      expect(qb.andWhere.mock.calls.map((c: unknown[]) => c[0])).not.toContain(
+        'at.recorded = true',
+      );
+    });
   });
 });

@@ -85,6 +85,27 @@ const Settings: Component = () => {
   const [keyRevealed, setKeyRevealed] = createSignal(false);
   const keyData = () => (apiKeyData.error ? undefined : apiKeyData());
   const fullKey = () => rotatedKey() ?? keyData()?.apiKey ?? null;
+
+  const recording = () => agentInfo()?.record_messages === true;
+  const [togglingRecording, setTogglingRecording] = createSignal(false);
+
+  const handleToggleRecording = async (next: boolean) => {
+    if (togglingRecording()) return;
+    setTogglingRecording(true);
+    try {
+      await updateAgent(agentName(), { record_messages: next });
+      await refetchInfo();
+      toast.success(
+        next
+          ? 'Recording enabled. New messages will be captured.'
+          : 'Recording disabled. Existing recordings are kept.',
+      );
+    } catch {
+      /* error toast handled by fetchMutate */
+    } finally {
+      setTogglingRecording(false);
+    }
+  };
   const displayedKey = () => {
     const key = fullKey();
     if (!key) return `${keyData()?.keyPrefix ?? '...'}...`;
@@ -212,7 +233,7 @@ const Settings: Component = () => {
                 : ''}
             </span>
           </div>
-          <div class="settings-card__control" style="display: flex; justify-content: flex-end;">
+          <div class="settings-card__control settings-card__control--end">
             <button class="btn btn--outline btn--sm" onClick={openTypeModal}>
               Change
             </button>
@@ -320,6 +341,43 @@ const Settings: Component = () => {
           </div>
         </Show>
       </ErrorBoundary>
+
+      {/* -- Recording ---------------------------------- */}
+      <h3 class="settings-section__title">
+        Recording
+        <Show when={recording()}>
+          <span class="recording-status-pill" role="status" aria-live="polite">
+            <span class="recording-status-pill__dot" aria-hidden="true" />
+            <span>Recording</span>
+          </span>
+        </Show>
+      </h3>
+      <div class="settings-card">
+        <div class="settings-card__row">
+          <div class="settings-card__label">
+            <span class="settings-card__label-title">Record messages</span>
+            <span class="settings-card__label-desc">
+              Store the full request (messages, headers) and full response for every proxy call made
+              by this agent. Useful for debugging. Anyone with access to this workspace can read the
+              captured content.
+            </span>
+            <span class="settings-card__label-desc settings-card__label-desc--meta">
+              Retention: kept until you delete them.
+            </span>
+          </div>
+          <div class="settings-card__control settings-card__control--end">
+            <label class="notification-toggle" aria-label="Toggle message recording">
+              <input
+                type="checkbox"
+                checked={recording()}
+                disabled={togglingRecording() || agentInfo.loading}
+                onChange={(e) => handleToggleRecording(e.currentTarget.checked)}
+              />
+              <span class="notification-toggle__slider" />
+            </label>
+          </div>
+        </div>
+      </div>
 
       {/* -- Duplicate ---------------------------------- */}
       <h3 class="settings-section__title">Duplicate</h3>

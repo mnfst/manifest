@@ -50,6 +50,7 @@ import {
   getMessageDetails,
   flagMessageMiscategorized,
   clearMessageMiscategorized,
+  deleteMessageRecording,
 } from '../../src/services/api.js';
 
 vi.mock('../../src/services/toast-store.js', () => ({
@@ -1405,6 +1406,26 @@ describe('clearMessageMiscategorized', () => {
     await clearMessageMiscategorized('a/b');
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining('/messages/a%2Fb/miscategorized'),
+      expect.any(Object),
+    );
+  });
+});
+
+describe('deleteMessageRecording', () => {
+  it('DELETEs /messages/:id/recording', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, text: () => Promise.resolve('') });
+    await deleteMessageRecording('msg-42');
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/messages/msg-42/recording'),
+      expect.objectContaining({ method: 'DELETE' }),
+    );
+  });
+
+  it('encodes special characters in id', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, text: () => Promise.resolve('') });
+    await deleteMessageRecording('a/b');
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/messages/a%2Fb/recording'),
       expect.any(Object),
     );
   });

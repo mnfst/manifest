@@ -1,5 +1,6 @@
-import { Type } from 'class-transformer';
-import { IsIn, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsBoolean, IsIn, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import { ALL_TIERS, type MessageTier } from 'manifest-shared';
 
 export const MESSAGE_STATUS_FILTER_VALUES = [
   'ok',
@@ -55,4 +56,27 @@ export class MessagesQueryDto {
     message: `status must be one of: ${MESSAGE_STATUS_FILTER_VALUES.join(', ')}`,
   })
   status?: MessageStatusFilter;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === true || value === 'true' || value === '1')
+  recorded?: boolean;
+
+  @IsOptional()
+  @IsIn(ALL_TIERS, {
+    message: `routing_tier must be one of: ${ALL_TIERS.join(', ')}`,
+  })
+  routing_tier?: MessageTier;
+
+  /**
+   * When absent or false, benchmark rows (routing_tier='benchmark') are
+   * excluded from /messages by default — they have their own dedicated
+   * surface on the Benchmark page and would otherwise drown real agent
+   * traffic. An explicit `routing_tier=benchmark` filter wins over this
+   * default.
+   */
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === true || value === 'true' || value === '1')
+  include_benchmark?: boolean;
 }

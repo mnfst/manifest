@@ -1,5 +1,6 @@
 import { Entity, Column, PrimaryColumn } from 'typeorm';
 import { timestampType } from '../common/utils/postgres-sql';
+import { numericTransformer } from '../common/utils/numeric-transformer';
 
 @Entity('llm_calls')
 export class LlmCall {
@@ -45,7 +46,7 @@ export class LlmCall {
   @Column('integer', { nullable: true })
   ttft_ms!: number | null;
 
-  @Column('decimal', { precision: 3, scale: 2, nullable: true })
+  @Column('decimal', { precision: 3, scale: 2, nullable: true, transformer: numericTransformer })
   temperature!: number | null;
 
   @Column('integer', { nullable: true })

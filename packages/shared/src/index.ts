@@ -8,8 +8,25 @@ export {
   platformIcon,
 } from './agent-type';
 export type { AgentCategory, AgentPlatform } from './agent-type';
-export { TIERS, TIER_SLOTS, DEFAULT_TIER_SLOT, TIER_LABELS, TIER_DESCRIPTIONS } from './tiers';
-export type { Tier, TierSlot, DefaultTierSlot } from './tiers';
+export {
+  TIERS,
+  TIER_SLOTS,
+  DEFAULT_TIER_SLOT,
+  TIER_LABELS,
+  TIER_DESCRIPTIONS,
+  ALL_TIERS,
+  TIER_LABELS_ALL,
+} from './tiers';
+export type { Tier, TierSlot, DefaultTierSlot, MessageTier } from './tiers';
+export {
+  coerceContentToText,
+  detectRequestBodyFormat,
+  extractAssistantReply,
+  extractRequestMessages,
+  extractRequestTools,
+  normalizeRole,
+} from './chat-message';
+export type { ChatMessage, ChatTool, RequestBodyFormat, Role, ToolCall } from './chat-message';
 export { TIER_COLORS, DEFAULT_TIER_COLOR } from './tier-colors';
 export type { TierColor } from './tier-colors';
 export { SPECIFICITY_CATEGORIES } from './specificity';
@@ -36,3 +53,10 @@ export {
   getSubscriptionCapabilities,
 } from './subscription';
 export type { SubscriptionCapabilities, SubscriptionProviderConfig } from './subscription';
+export type {
+  BenchmarkMetrics,
+  BenchmarkRunResult,
+  BenchmarkHistoryColumn,
+  BenchmarkHistoryRunSummary,
+  BenchmarkHistoryRunDetail,
+} from './benchmark';

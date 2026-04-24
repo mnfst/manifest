@@ -71,4 +71,52 @@ describe('MessagesQueryDto', () => {
     const flat = errors.flatMap((e) => Object.values(e.constraints ?? {}));
     expect(flat.join('\n')).toMatch(/status must be one of/);
   });
+
+  it('coerces the recorded flag from common truthy values', async () => {
+    for (const value of [true, 'true', '1']) {
+      const dto = plainToInstance(MessagesQueryDto, { recorded: value });
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(0);
+      expect(dto.recorded).toBe(true);
+    }
+  });
+
+  it('treats other values for recorded as false', async () => {
+    const dto = plainToInstance(MessagesQueryDto, { recorded: 'no' });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+    expect(dto.recorded).toBe(false);
+  });
+
+  it('accepts each known routing_tier value including benchmark', async () => {
+    for (const tier of ['simple', 'standard', 'complex', 'reasoning', 'benchmark']) {
+      const dto = plainToInstance(MessagesQueryDto, { routing_tier: tier });
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(0);
+    }
+  });
+
+  it('rejects an unknown routing_tier value', async () => {
+    const dto = plainToInstance(MessagesQueryDto, { routing_tier: 'fanciful' });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+    const flat = errors.flatMap((e) => Object.values(e.constraints ?? {}));
+    expect(flat.join('\n')).toMatch(/routing_tier must be one of/);
+  });
+
+  it('coerces include_benchmark from common truthy values', async () => {
+    for (const value of [true, 'true', '1']) {
+      const dto = plainToInstance(MessagesQueryDto, { include_benchmark: value });
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(0);
+      expect(dto.include_benchmark).toBe(true);
+    }
+  });
+
+  it('treats other values for include_benchmark as false', async () => {
+    const dto = plainToInstance(MessagesQueryDto, { include_benchmark: 'nope' });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+    expect(dto.include_benchmark).toBe(false);
+  });
 });

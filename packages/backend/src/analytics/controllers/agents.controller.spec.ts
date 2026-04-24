@@ -10,6 +10,7 @@ import { AgentLifecycleService } from '../services/agent-lifecycle.service';
 import { AgentDuplicationService } from '../services/agent-duplication.service';
 import { ApiKeyGeneratorService } from '../../otlp/services/api-key.service';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
+import { AgentRecordingCacheService } from '../../common/services/agent-recording-cache.service';
 
 describe('AgentsController', () => {
   let controller: AgentsController;
@@ -65,7 +66,12 @@ describe('AgentsController', () => {
             deleteAgent: mockDeleteAgent,
             renameAgent: mockRenameAgent,
             updateAgentType: jest.fn(),
+            setRecordMessages: jest.fn().mockResolvedValue({ agentId: 'id-1' }),
           },
+        },
+        {
+          provide: AgentRecordingCacheService,
+          useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
         },
         {
           provide: ApiKeyGeneratorService,
@@ -212,7 +218,12 @@ describe('AgentsController', () => {
         { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
         {
           provide: AgentLifecycleService,
-          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn(), updateAgentType: jest.fn() },
+          useValue: {
+            deleteAgent: jest.fn(),
+            renameAgent: jest.fn(),
+            updateAgentType: jest.fn(),
+            setRecordMessages: jest.fn(),
+          },
         },
         {
           provide: ApiKeyGeneratorService,
@@ -220,6 +231,10 @@ describe('AgentsController', () => {
         },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
+        {
+          provide: AgentRecordingCacheService,
+          useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
+        },
         {
           provide: AgentDuplicationService,
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
@@ -263,7 +278,12 @@ describe('AgentsController', () => {
         { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
         {
           provide: AgentLifecycleService,
-          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn(), updateAgentType: jest.fn() },
+          useValue: {
+            deleteAgent: jest.fn(),
+            renameAgent: jest.fn(),
+            updateAgentType: jest.fn(),
+            setRecordMessages: jest.fn(),
+          },
         },
         {
           provide: ApiKeyGeneratorService,
@@ -271,6 +291,10 @@ describe('AgentsController', () => {
         },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
+        {
+          provide: AgentRecordingCacheService,
+          useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
+        },
         {
           provide: AgentDuplicationService,
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
@@ -302,6 +326,52 @@ describe('AgentsController', () => {
     });
   });
 
+  it('routes record_messages toggle through setRecordMessages and invalidates cache', async () => {
+    const mockSetRecord = jest.fn().mockResolvedValue({ agentId: 'id-7' });
+    const mockInvalidate = jest.fn();
+
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [CacheModule.register()],
+      controllers: [AgentsController],
+      providers: [
+        { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
+        {
+          provide: AgentLifecycleService,
+          useValue: {
+            deleteAgent: jest.fn(),
+            renameAgent: jest.fn(),
+            updateAgentType: jest.fn(),
+            setRecordMessages: mockSetRecord,
+          },
+        },
+        {
+          provide: ApiKeyGeneratorService,
+          useValue: { onboardAgent: jest.fn(), getKeyForAgent: jest.fn(), rotateKey: jest.fn() },
+        },
+        { provide: ConfigService, useValue: { get: jest.fn() } },
+        { provide: TenantCacheService, useValue: { resolve: jest.fn() } },
+        {
+          provide: AgentRecordingCacheService,
+          useValue: { isRecording: jest.fn(), invalidate: mockInvalidate },
+        },
+        {
+          provide: AgentDuplicationService,
+          useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
+        },
+      ],
+    }).compile();
+    const ctrl = module.get<AgentsController>(AgentsController);
+
+    const user = { id: 'u1' };
+    const result = await ctrl.updateAgent(user as never, 'bot-1', {
+      record_messages: true,
+    } as never);
+
+    expect(mockSetRecord).toHaveBeenCalledWith('u1', 'bot-1', true);
+    expect(mockInvalidate).toHaveBeenCalledWith('id-7');
+    expect(result).toMatchObject({ record_messages: true });
+  });
+
   it('invalidates agent list cache after successful createAgent', async () => {
     const mockOnboard = jest.fn().mockResolvedValue({
       tenantId: 't1',
@@ -315,7 +385,12 @@ describe('AgentsController', () => {
         { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
         {
           provide: AgentLifecycleService,
-          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn(), updateAgentType: jest.fn() },
+          useValue: {
+            deleteAgent: jest.fn(),
+            renameAgent: jest.fn(),
+            updateAgentType: jest.fn(),
+            setRecordMessages: jest.fn(),
+          },
         },
         {
           provide: ApiKeyGeneratorService,
@@ -323,6 +398,10 @@ describe('AgentsController', () => {
         },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
+        {
+          provide: AgentRecordingCacheService,
+          useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
+        },
         {
           provide: AgentDuplicationService,
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
@@ -349,7 +428,12 @@ describe('AgentsController', () => {
         { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
         {
           provide: AgentLifecycleService,
-          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn(), updateAgentType: jest.fn() },
+          useValue: {
+            deleteAgent: jest.fn(),
+            renameAgent: jest.fn(),
+            updateAgentType: jest.fn(),
+            setRecordMessages: jest.fn(),
+          },
         },
         {
           provide: ApiKeyGeneratorService,
@@ -357,6 +441,10 @@ describe('AgentsController', () => {
         },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
+        {
+          provide: AgentRecordingCacheService,
+          useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
+        },
         {
           provide: AgentDuplicationService,
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
@@ -382,7 +470,12 @@ describe('AgentsController', () => {
         { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
         {
           provide: AgentLifecycleService,
-          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn(), updateAgentType: jest.fn() },
+          useValue: {
+            deleteAgent: jest.fn(),
+            renameAgent: jest.fn(),
+            updateAgentType: jest.fn(),
+            setRecordMessages: jest.fn(),
+          },
         },
         {
           provide: ApiKeyGeneratorService,
@@ -390,6 +483,10 @@ describe('AgentsController', () => {
         },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
+        {
+          provide: AgentRecordingCacheService,
+          useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
+        },
         {
           provide: AgentDuplicationService,
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
@@ -467,7 +564,12 @@ describe('AgentsController', () => {
         { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
         {
           provide: AgentLifecycleService,
-          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn(), updateAgentType: jest.fn() },
+          useValue: {
+            deleteAgent: jest.fn(),
+            renameAgent: jest.fn(),
+            updateAgentType: jest.fn(),
+            setRecordMessages: jest.fn(),
+          },
         },
         {
           provide: ApiKeyGeneratorService,
@@ -475,6 +577,10 @@ describe('AgentsController', () => {
         },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
+        {
+          provide: AgentRecordingCacheService,
+          useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
+        },
         {
           provide: AgentDuplicationService,
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },

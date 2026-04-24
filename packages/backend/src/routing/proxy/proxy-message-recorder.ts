@@ -1,11 +1,13 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { AgentMessage } from '../../entities/agent-message.entity';
+import { RecordingResponseBody } from '../../entities/message-recording.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
+import { MessageRecordingService } from '../../analytics/services/message-recording.service';
 import { FailedFallback } from './proxy-fallback.service';
 import { StreamUsage } from './stream-writer';
 import { ProxyMessageDedup } from './proxy-message-dedup';
@@ -56,6 +58,13 @@ export interface FallbackSuccessOpts extends HeaderTierRef {
   requestHeaders?: Record<string, string> | null;
 }
 
+export interface SuccessRecordingPayload {
+  request_body: Record<string, unknown>;
+  response_body: RecordingResponseBody | null;
+  response_headers: Record<string, string>;
+  size_bytes: number;
+}
+
 export interface SuccessMessageOpts extends HeaderTierRef {
   traceId?: string;
   provider?: string;
@@ -65,6 +74,7 @@ export interface SuccessMessageOpts extends HeaderTierRef {
   specificityCategory?: string;
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
+  recordingPayload?: SuccessRecordingPayload;
 }
 
 function buildMessageRow(
@@ -88,6 +98,7 @@ function buildMessageRow(
 
 @Injectable()
 export class ProxyMessageRecorder implements OnModuleDestroy {
+  private readonly logger = new Logger(ProxyMessageRecorder.name);
   private readonly rateLimitCooldown = new Map<string, number>();
   private readonly RATE_LIMIT_COOLDOWN_MS = 60_000;
   private readonly MAX_COOLDOWN_ENTRIES = 1_000;
@@ -99,6 +110,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     private readonly pricingCache: ModelPricingCacheService,
     private readonly dedup: ProxyMessageDedup,
     private readonly eventBus: IngestEventBusService,
+    private readonly recordingService: MessageRecordingService,
   ) {
     this.cooldownCleanupTimer = setInterval(() => this.evictExpiredCooldowns(), 60_000);
     if (typeof this.cooldownCleanupTimer === 'object' && 'unref' in this.cooldownCleanupTimer) {
@@ -359,10 +371,12 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       specificityCategory,
       callerAttribution,
       requestHeaders,
+      recordingPayload,
       headerTierId,
       headerTierName,
       headerTierColor,
     } = opts ?? {};
+    const recorded = !!recordingPayload;
 
     const costUsd = computeTokenCost({
       inputTokens: usage.prompt_tokens,
@@ -375,6 +389,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const normalizedSessionKey = this.dedup.normalizeSessionKey(sessionKey);
 
     let wrote = false;
+    let writtenMessageId: string | null = null;
     await this.dedup.withSuccessWriteLock(
       this.dedup.getSuccessWriteLockKey(ctx, model, traceId, normalizedSessionKey),
       async () => {
@@ -409,6 +424,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               specificity_category: specificityCategory ?? null,
               caller_attribution: callerAttribution ?? null,
               request_headers: requestHeaders ?? null,
+              recorded,
               header_tier_id: headerTierId ?? null,
               header_tier_name: headerTierName ?? null,
               header_tier_color: headerTierColor ?? null,
@@ -417,11 +433,14 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
 
             await messageRepo.update({ id: existing.id }, updatePayload);
             wrote = true;
+            writtenMessageId = existing.id;
             return;
           }
 
+          const newId = uuid();
           await messageRepo.insert(
             buildMessageRow(ctx, {
+              id: newId,
               trace_id: traceId ?? null,
               session_key: normalizedSessionKey,
               timestamp: new Date().toISOString(),
@@ -442,16 +461,27 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               specificity_category: specificityCategory ?? null,
               caller_attribution: callerAttribution ?? null,
               request_headers: requestHeaders ?? null,
+              recorded,
               header_tier_id: headerTierId ?? null,
               header_tier_name: headerTierName ?? null,
               header_tier_color: headerTierColor ?? null,
             }),
           );
           wrote = true;
+          writtenMessageId = newId;
         });
       },
     );
-    if (wrote) this.eventBus.emit(ctx.userId);
+    if (wrote) {
+      this.eventBus.emit(ctx.userId);
+      if (recordingPayload && writtenMessageId) {
+        try {
+          await this.recordingService.save(writtenMessageId, recordingPayload);
+        } catch (err) {
+          this.logger.warn(`Failed to save message recording: ${String(err)}`);
+        }
+      }
+    }
   }
 
   private evictExpiredCooldowns(): void {

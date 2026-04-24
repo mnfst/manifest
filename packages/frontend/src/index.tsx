@@ -17,6 +17,7 @@ const Overview = lazy(() => import('./pages/Overview.jsx'));
 const MessageLog = lazy(() => import('./pages/MessageLog.jsx'));
 const Settings = lazy(() => import('./pages/Settings.jsx'));
 const Routing = lazy(() => import('./pages/Routing.jsx'));
+const Benchmark = lazy(() => import('./pages/Benchmark.jsx'));
 const Limits = lazy(() => import('./pages/Limits.jsx'));
 const Account = lazy(() => import('./pages/Account.jsx'));
 const Login = lazy(() => import('./pages/Login.jsx'));
@@ -60,6 +61,7 @@ render(
             <Route path="/messages" component={MessageLog} />
             <Route path="/settings/*" component={Settings} />
             <Route path="/routing" component={Routing} />
+            <Route path="/benchmark" component={Benchmark} />
             <Route path="/limits" component={Limits} />
             <Route path="/model-prices" component={ModelPrices} />
             <Route path="/free-models" component={FreeModels} />

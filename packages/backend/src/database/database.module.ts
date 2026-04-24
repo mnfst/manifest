@@ -19,6 +19,9 @@ import { CustomProvider } from '../entities/custom-provider.entity';
 import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
 import { HeaderTier } from '../entities/header-tier.entity';
 import { InstallMetadata } from '../entities/install-metadata.entity';
+import { BenchmarkRun } from '../entities/benchmark-run.entity';
+import { BenchmarkColumn } from '../entities/benchmark-column.entity';
+import { MessageRecording } from '../entities/message-recording.entity';
 import { DatabaseSeederService } from './database-seeder.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
@@ -74,8 +77,12 @@ import { CleanupOrphanedCustomProviderRefs1776679833383 } from './migrations/177
 import { AddMessageRequestHeaders1776700000000 } from './migrations/1776700000000-AddMessageRequestHeaders';
 import { AddHeaderTiers1776710000000 } from './migrations/1776710000000-AddHeaderTiers';
 import { AddSpecificityMiscategorized1777000000000 } from './migrations/1777000000000-AddSpecificityMiscategorized';
+import { AddAgentRecordMessages1777110000000 } from './migrations/1777110000000-AddAgentRecordMessages';
 import { AddComplexityRoutingFlag1777100000000 } from './migrations/1777100000000-AddComplexityRoutingFlag';
 import { AddHeaderTierEnabled1777100000000 } from './migrations/1777100000000-AddHeaderTierEnabled';
+import { AddMessageRecordings1777200000000 } from './migrations/1777200000000-AddMessageRecordings';
+import { AddBenchmarkHistory1777300000000 } from './migrations/1777300000000-AddBenchmarkHistory';
+import { BackfillBenchmarkTier1777400000000 } from './migrations/1777400000000-BackfillBenchmarkTier';
 import { DropComplexityRoutingFlag1780000000000 } from './migrations/1780000000000-DropComplexityRoutingFlag';
 
 const entities = [
@@ -96,6 +103,9 @@ const entities = [
   SpecificityAssignment,
   HeaderTier,
   InstallMetadata,
+  BenchmarkRun,
+  BenchmarkColumn,
+  MessageRecording,
 ];
 
 const migrations = [
@@ -152,8 +162,12 @@ const migrations = [
   AddMessageRequestHeaders1776700000000,
   AddHeaderTiers1776710000000,
   AddSpecificityMiscategorized1777000000000,
+  AddAgentRecordMessages1777110000000,
   AddComplexityRoutingFlag1777100000000,
   AddHeaderTierEnabled1777100000000,
+  AddMessageRecordings1777200000000,
+  AddBenchmarkHistory1777300000000,
+  BackfillBenchmarkTier1777400000000,
   DropComplexityRoutingFlag1780000000000,
 ];
 
@@ -193,6 +207,7 @@ const migrations = [
       TierAssignment,
       CustomProvider,
       SpecificityAssignment,
+      MessageRecording,
       HeaderTier,
     ]),
     ModelPricesModule,

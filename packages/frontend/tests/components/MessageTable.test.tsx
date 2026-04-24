@@ -916,4 +916,48 @@ describe('MessageTable', () => {
       expect(container.querySelector('.feedback-btn--active-dislike')).toBeNull();
     });
   });
+
+  describe('recorded indicator', () => {
+    it('renders the record dot button when row.recorded is true and a handler is provided', () => {
+      const onOpen = vi.fn();
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ recorded: true })]}
+          columns={['model']}
+          agentName="agent-1"
+          customProviderName={noopProvider}
+          onOpenRecording={onOpen}
+        />
+      ));
+      const btn = container.querySelector('.msg-recorded-btn') as HTMLButtonElement;
+      expect(btn).not.toBeNull();
+      fireEvent.click(btn);
+      expect(onOpen).toHaveBeenCalledTimes(1);
+    });
+
+    it('omits the record dot when row.recorded is false', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ recorded: false })]}
+          columns={['model']}
+          agentName="agent-1"
+          customProviderName={noopProvider}
+          onOpenRecording={vi.fn()}
+        />
+      ));
+      expect(container.querySelector('.msg-recorded-btn')).toBeNull();
+    });
+
+    it('omits the record dot when no onOpenRecording handler is given', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ recorded: true })]}
+          columns={['model']}
+          agentName="agent-1"
+          customProviderName={noopProvider}
+        />
+      ));
+      expect(container.querySelector('.msg-recorded-btn')).toBeNull();
+    });
+  });
 });

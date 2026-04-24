@@ -7,7 +7,12 @@ import {
   type MessageDetailToolExecution,
   type MessageDetailLog,
 } from '../services/api.js';
-import { formatDuration, formatTime, formatNumber } from '../services/formatters.js';
+import {
+  formatDuration,
+  formatTime,
+  formatNumber,
+  sortedHeaderEntries,
+} from '../services/formatters.js';
 import { inferProviderName } from '../services/routing-utils.js';
 import { getModelDisplayName } from '../services/model-display.js';
 
@@ -89,8 +94,7 @@ function LogRow(props: { log: MessageDetailLog }): JSX.Element {
 
 function RequestHeadersSection(props: { headers: Record<string, string> }): JSX.Element {
   const [open, setOpen] = createSignal(false);
-  const entries = (): Array<[string, string]> =>
-    Object.entries(props.headers).sort(([a], [b]) => a.localeCompare(b));
+  const entries = (): Array<[string, string]> => sortedHeaderEntries(props.headers);
   const tableId = `msg-detail-request-headers-${Math.random().toString(36).slice(2, 10)}`;
   return (
     <div class="msg-detail__section">

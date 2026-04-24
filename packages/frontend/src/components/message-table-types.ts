@@ -24,6 +24,7 @@ export interface MessageRow {
   cache_creation_tokens?: number | null;
   duration_ms?: number | null;
   feedback_rating?: string | null;
+  recorded?: boolean | null;
 }
 
 export type MessageColumnKey =

@@ -87,6 +87,7 @@ export const MESSAGE_ROW_SELECT_ALIASES = [
   'fallback_from_model',
   'fallback_index',
   'feedback_rating',
+  'recorded',
   'header_tier_id',
   'header_tier_name',
   'header_tier_color',
@@ -116,6 +117,7 @@ export function selectMessageRowColumns<T extends ObjectLiteral>(
     .addSelect('at.fallback_from_model', 'fallback_from_model')
     .addSelect('at.fallback_index', 'fallback_index')
     .addSelect('at.feedback_rating', 'feedback_rating')
+    .addSelect('at.recorded', 'recorded')
     .addSelect('at.header_tier_id', 'header_tier_id')
     .addSelect('at.header_tier_name', 'header_tier_name')
     .addSelect('at.header_tier_color', 'header_tier_color');

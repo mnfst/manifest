@@ -16,6 +16,7 @@ import ErrorState from '../components/ErrorState.jsx';
 import FeedbackModal from '../components/FeedbackModal.jsx';
 import MessageTable from '../components/MessageTable.jsx';
 import Pagination from '../components/Pagination.jsx';
+import RecordedMessageModal from '../components/RecordedMessageModal.jsx';
 import Select from '../components/Select.jsx';
 import SetupModal from '../components/SetupModal.jsx';
 import { DETAILED_COLUMNS, type MessageRow } from '../components/message-table-types.js';
@@ -32,6 +33,7 @@ import {
 import { createCursorPagination } from '../services/cursor-pagination.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
 import { PROVIDERS } from '../services/providers.js';
+import { ALL_TIERS, TIER_LABELS_ALL } from 'manifest-shared';
 import { checkIsSelfHosted } from '../services/setup-status.js';
 import { pingCount } from '../services/sse.js';
 import '../styles/overview.css';
@@ -54,8 +56,12 @@ const MessageLog: Component = () => {
   const columns = () =>
     isSelfHosted() ? DETAILED_COLUMNS.filter((c) => c !== 'feedback') : DETAILED_COLUMNS;
   const [providerFilter, setProviderFilter] = createSignal('');
+  const [tierFilter, setTierFilter] = createSignal('');
   const [costMin, setCostMin] = createSignal('');
   const [costMax, setCostMax] = createSignal('');
+  const [recordedOnly, setRecordedOnly] = createSignal(false);
+  const [includeBenchmark, setIncludeBenchmark] = createSignal(false);
+  const [recordingModalId, setRecordingModalId] = createSignal<string | null>(null);
   const [setupOpen, setSetupOpen] = createSignal(false);
   const [setupCompleted] = createSignal(
     !!localStorage.getItem(`setup_completed_${params.agentName}`),
@@ -152,13 +158,24 @@ const MessageLog: Component = () => {
     costMaxTimer = setTimeout(() => setCostMax(val), 400);
   };
 
-  createEffect(on([providerFilter, costMin, costMax], () => pager.resetPage(), { defer: true }));
+  createEffect(
+    on(
+      [providerFilter, tierFilter, costMin, costMax, recordedOnly, includeBenchmark],
+      () => pager.resetPage(),
+      {
+        defer: true,
+      },
+    ),
+  );
 
   const [data, { refetch }] = createResource(
     () => ({
       provider: providerFilter(),
+      tier: tierFilter(),
       costMin: costMin(),
       costMax: costMax(),
+      recordedOnly: recordedOnly(),
+      includeBenchmark: includeBenchmark(),
       agentName: params.agentName,
       _ping: pingCount(),
       cursor: pager.currentCursor(),
@@ -167,8 +184,11 @@ const MessageLog: Component = () => {
     (p) => {
       const q: Record<string, string> = {};
       if (p.provider) q.provider = p.provider;
+      if (p.tier) q.routing_tier = p.tier;
       if (p.costMin) q.cost_min = p.costMin;
       if (p.costMax) q.cost_max = p.costMax;
+      if (p.recordedOnly) q.recorded = 'true';
+      if (p.includeBenchmark) q.include_benchmark = 'true';
       if (p.agentName) q.agent_name = p.agentName;
       if (p.cursor) q.cursor = p.cursor;
       q.limit = String(p.limit);
@@ -185,7 +205,13 @@ const MessageLog: Component = () => {
     ),
   );
 
-  const hasActiveFilters = () => providerFilter() !== '' || costMin() !== '' || costMax() !== '';
+  const hasActiveFilters = () =>
+    providerFilter() !== '' ||
+    tierFilter() !== '' ||
+    costMin() !== '' ||
+    costMax() !== '' ||
+    recordedOnly() ||
+    includeBenchmark();
 
   const hasNoData = () => {
     const d = data();
@@ -198,9 +224,17 @@ const MessageLog: Component = () => {
 
   const clearFilters = () => {
     setProviderFilter('');
+    setTierFilter('');
     setCostMin('');
     setCostMax('');
+    setRecordedOnly(false);
+    setIncludeBenchmark(false);
   };
+
+  const tierOptions = [
+    { label: 'All tiers', value: '' },
+    ...ALL_TIERS.map((t) => ({ label: TIER_LABELS_ALL[t], value: t })),
+  ];
 
   /** Resolve provider ID to display name */
   const providerDisplayName = (id: string): string => {
@@ -249,6 +283,25 @@ const MessageLog: Component = () => {
               onChange={setProviderFilter}
               options={providerOptions()}
             />
+            <Select value={tierFilter()} onChange={setTierFilter} options={tierOptions} />
+            <button
+              type="button"
+              class={`msg-recorded-filter${recordedOnly() ? ' msg-recorded-filter--active' : ''}`}
+              onClick={() => setRecordedOnly(!recordedOnly())}
+              aria-pressed={recordedOnly()}
+              title="Show only recorded messages"
+            >
+              Recorded only
+            </button>
+            <button
+              type="button"
+              class={`msg-recorded-filter${includeBenchmark() ? ' msg-recorded-filter--active' : ''}`}
+              onClick={() => setIncludeBenchmark(!includeBenchmark())}
+              aria-pressed={includeBenchmark()}
+              title="Include benchmark calls in the list"
+            >
+              Include benchmarks
+            </button>
             <div class="cost-range-filter">
               <input
                 type="number"
@@ -450,6 +503,7 @@ const MessageLog: Component = () => {
                   onFeedbackLike={isSelfHosted() ? undefined : handleFeedbackLike}
                   onFeedbackDislike={isSelfHosted() ? undefined : handleFeedbackDislike}
                   onFeedbackClear={isSelfHosted() ? undefined : handleFeedbackClear}
+                  onOpenRecording={(id) => setRecordingModalId(id)}
                   rowIdPrefix="msg-"
                   showHeaderTooltips
                   expandable
@@ -484,6 +538,13 @@ const MessageLog: Component = () => {
           onSubmit={handleFeedbackSubmit}
         />
       </Show>
+
+      <RecordedMessageModal
+        open={recordingModalId() !== null}
+        messageId={recordingModalId()}
+        onClose={() => setRecordingModalId(null)}
+        onDeleted={() => refetch()}
+      />
     </div>
   );
 };
