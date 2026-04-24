@@ -87,13 +87,13 @@ describe('Benchmark E2E — POST /api/v1/benchmark/run', () => {
 
     const ds = app.get(DataSource);
     const rows = await ds.query(
-      `SELECT routing_reason, routing_tier, status, provider, model, input_tokens, output_tokens FROM agent_messages WHERE agent_id = $1 AND routing_reason = $2`,
+      `SELECT routing_reason, routing_tier, status, provider, model, input_tokens, output_tokens FROM agent_messages WHERE agent_id = $1 AND routing_tier = $2`,
       [TEST_AGENT_ID, 'benchmark'],
     );
     expect(rows.length).toBe(1);
     expect(rows[0]).toMatchObject({
-      routing_reason: 'benchmark',
-      routing_tier: null,
+      routing_tier: 'benchmark',
+      routing_reason: null,
       status: 'ok',
       provider: 'openai',
       model: 'gpt-4o-mini',

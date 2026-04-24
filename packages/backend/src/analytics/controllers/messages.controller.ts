@@ -43,6 +43,7 @@ export class MessagesController {
       agent_name: query.agent_name,
       status: query.status,
       recorded: query.recorded,
+      routing_tier: query.routing_tier,
     });
   }
 

@@ -14,3 +14,19 @@ export const TIER_DESCRIPTIONS: Readonly<Record<Tier, string>> = {
   complex: 'Tasks requiring high quality, nuance, or multi-step reasoning.',
   reasoning: 'Advanced reasoning, planning, and critical decision-making.',
 };
+
+/**
+ * Superset of the scoring-output `Tier` that includes non-scoring tier values
+ * which can legally appear in `agent_messages.routing_tier` — currently just
+ * `'benchmark'`, emitted by `/api/v1/benchmark/run`. Use this type (not `Tier`)
+ * for message badges, filters, and telemetry buckets. Do NOT use it in the
+ * scoring, routing, or tier-assignment layers — those consume the narrower
+ * `Tier` domain.
+ */
+export const ALL_TIERS = [...TIERS, 'benchmark'] as const;
+export type MessageTier = (typeof ALL_TIERS)[number];
+
+export const TIER_LABELS_ALL: Readonly<Record<MessageTier, string>> = {
+  ...TIER_LABELS,
+  benchmark: 'Benchmark',
+};

@@ -116,8 +116,8 @@ describe('BenchmarkService', () => {
     expect(mocks.messageRepo.insert).toHaveBeenCalledTimes(1);
     const row = mocks.messageRepo.insert.mock.calls[0][0];
     expect(row).toMatchObject({
-      routing_reason: 'benchmark',
-      routing_tier: null,
+      routing_tier: 'benchmark',
+      routing_reason: null,
       status: 'ok',
       provider: 'openai',
       model: 'openai/gpt-4o',
@@ -161,7 +161,7 @@ describe('BenchmarkService', () => {
     await expect(service.run(USER_ID, makeDto())).rejects.toBeInstanceOf(BadGatewayException);
     expect(mocks.messageRepo.insert).toHaveBeenCalledTimes(1);
     expect(mocks.messageRepo.insert.mock.calls[0][0]).toMatchObject({
-      routing_reason: 'benchmark',
+      routing_tier: 'benchmark',
       status: 'error',
       error_http_status: 429,
     });

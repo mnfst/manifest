@@ -103,6 +103,7 @@ export function getMessages(
     cost_min?: string;
     cost_max?: string;
     recorded?: string;
+    routing_tier?: string;
   } = {},
 ) {
   return fetchJson('/messages', params);
