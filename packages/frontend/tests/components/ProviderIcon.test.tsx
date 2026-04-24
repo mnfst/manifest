@@ -92,6 +92,24 @@ describe("customProviderLogo", () => {
     expect(img!.getAttribute("src")).toBe("/icons/cohere.svg");
   });
 
+  it("resolves Azure by name", () => {
+    const { container } = render(() => (
+      <div>{customProviderLogo("Microsoft Azure")}</div>
+    ));
+    const img = container.querySelector("img");
+    expect(img).not.toBeNull();
+    expect(img!.getAttribute("src")).toBe("/icons/azure.svg");
+  });
+
+  it("resolves Azure by base URL", () => {
+    const { container } = render(() => (
+      <div>{customProviderLogo("my-provider", 16, "https://my-instance.openai.azure.com/v1")}</div>
+    ));
+    const img = container.querySelector("img");
+    expect(img).not.toBeNull();
+    expect(img!.getAttribute("src")).toBe("/icons/azure.svg");
+  });
+
   it("returns null when base URL does not match any pattern", () => {
     const { container } = render(() => (
       <div>{customProviderLogo("custom", 16, "https://api.example.com/v1")}</div>
