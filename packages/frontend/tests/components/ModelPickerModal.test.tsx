@@ -302,6 +302,73 @@ describe("ModelPickerModal", () => {
     expect(onSelect).toHaveBeenCalledWith("simple", "claude-opus-4-6", "anthropic", "subscription");
   });
 
+  it("ignores stale override_auth_type when the primary is auto-assigned", () => {
+    const tiers = [
+      {
+        ...baseTiers[0],
+        auto_assigned_model: "gpt-5.4-mini",
+        override_model: null,
+        override_auth_type: "subscription" as const,
+      },
+    ];
+    const models = [
+      {
+        model_name: "gpt-5.4-mini",
+        provider: "OpenAI",
+        display_name: "GPT-5.4 Mini Subscription",
+        input_price_per_token: 0,
+        output_price_per_token: 0,
+        context_window: 128000,
+        capability_reasoning: true,
+        capability_code: true,
+        auth_type: "subscription" as const,
+      },
+      {
+        model_name: "gpt-5.4-mini",
+        provider: "OpenAI",
+        display_name: "GPT-5.4 Mini API Key",
+        input_price_per_token: 0.0000001,
+        output_price_per_token: 0.0000004,
+        context_window: 128000,
+        capability_reasoning: true,
+        capability_code: true,
+        auth_type: "api_key" as const,
+      },
+    ];
+    const providers = [
+      {
+        id: "p1",
+        provider: "openai",
+        is_active: true,
+        has_api_key: false,
+        auth_type: "subscription" as const,
+        connected_at: "2025-01-01",
+      },
+      {
+        id: "p2",
+        provider: "openai",
+        is_active: true,
+        has_api_key: true,
+        auth_type: "api_key" as const,
+        connected_at: "2025-01-01",
+      },
+    ];
+
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={models}
+        tiers={tiers}
+        connectedProviders={providers}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+
+    fireEvent.click(screen.getByText("API Keys"));
+    expect(screen.getByText("GPT-5.4 Mini API Key").parentElement?.textContent).toContain("Primary");
+  });
+
   it("filters subscription tab to only subscription providers' models", () => {
     const providers = [
       { id: "p1", provider: "anthropic", is_active: true, has_api_key: false, auth_type: "subscription" as const, connected_at: "2025-01-01" },

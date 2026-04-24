@@ -99,7 +99,10 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => (
           const t = props.getTier(tierId());
           return t ? (t.override_model ?? t.auto_assigned_model) : null;
         };
-        const effectiveAuthType = () => props.getTier(tierId())?.override_auth_type ?? null;
+        const effectiveAuthType = () => {
+          const t = props.getTier(tierId());
+          return t?.override_model ? (t.override_auth_type ?? null) : null;
+        };
         const isCurrentPrimary = (model: AvailableModel) =>
           model.model_name === effectiveModel() &&
           (!effectiveAuthType() || !model.auth_type || model.auth_type === effectiveAuthType());

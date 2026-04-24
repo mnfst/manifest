@@ -211,15 +211,15 @@ export class ModelDiscoveryService {
       if (p.provider.startsWith('custom:')) continue;
       const vendor = p.provider.toLowerCase();
       const providerAuthType = p.auth_type === 'subscription' ? 'subscription' : 'api_key';
+      const providerAuthSet = vendorAuthTypes.get(vendor) ?? new Set();
+      providerAuthSet.add(providerAuthType);
+      vendorAuthTypes.set(vendor, providerAuthSet);
 
       const rawCached = p.cached_models;
       if (!Array.isArray(rawCached)) continue;
       const cached = filterNonChatModels(rawCached, vendor);
       for (const m of cached) {
         const effectiveAuthType = m.authType ?? providerAuthType;
-        const authSet = vendorAuthTypes.get(vendor) ?? new Set();
-        authSet.add(effectiveAuthType);
-        vendorAuthTypes.set(vendor, authSet);
         // Deduplicate by model ID + auth type so subscription and API key
         // versions of the same model are kept as independent entries.
         const dedupeKey = `${m.id}::${effectiveAuthType}`;

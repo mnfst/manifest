@@ -163,7 +163,7 @@ const ModelPickerModal: Component<Props> = (props) => {
     const t = props.tiers.find((r) => r.tier === props.tierId);
     if (!t) return null;
     const primary = t.override_model ?? t.auto_assigned_model;
-    const primaryAuthType = t.override_auth_type;
+    const primaryAuthType = t.override_model ? t.override_auth_type : undefined;
     if (primary === modelName && (!primaryAuthType || !authType || authType === primaryAuthType)) {
       return 'Primary';
     }

@@ -1502,6 +1502,7 @@ describe('ModelDiscoveryService', () => {
         makeProvider({
           id: 'p1',
           provider: 'anthropic',
+          auth_type: 'subscription',
           cached_models: [
             makeModel({
               id: 'claude-sonnet-4',
@@ -1513,6 +1514,7 @@ describe('ModelDiscoveryService', () => {
         makeProvider({
           id: 'p2',
           provider: 'anthropic',
+          auth_type: 'subscription',
           cached_models: [
             makeModel({ id: 'claude-sonnet-4', provider: 'anthropic', authType: 'subscription' }),
           ],
@@ -1602,6 +1604,34 @@ describe('ModelDiscoveryService', () => {
       const miniSub = result.find((m) => m.id === 'gpt-5.4-mini' && m.authType === 'subscription');
       expect(miniSub).toBeDefined();
       expect(miniSub!.inputPricePerToken).toBe(0);
+    });
+
+    it('should mirror subscription models when the api_key provider has an empty model cache', async () => {
+      const providers = [
+        makeProvider({
+          id: 'sub',
+          provider: 'openai',
+          auth_type: 'subscription',
+          cached_models: [
+            makeModel({ id: 'gpt-5.4-mini', provider: 'openai', authType: 'subscription' }),
+          ],
+        }),
+        makeProvider({
+          id: 'key',
+          provider: 'openai',
+          auth_type: 'api_key',
+          cached_models: [],
+        }),
+      ];
+      providerRepo.find.mockResolvedValue(providers);
+      customProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getModelsForAgent('agent-1');
+
+      expect(result.find((m) => m.id === 'gpt-5.4-mini' && m.authType === 'api_key')).toBeDefined();
+      expect(
+        result.find((m) => m.id === 'gpt-5.4-mini' && m.authType === 'subscription'),
+      ).toBeDefined();
     });
 
     it('should not mirror subscription models when no api_key provider exists for that vendor', async () => {
