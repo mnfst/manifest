@@ -173,7 +173,11 @@ describe('AgentLifecycleService', () => {
     });
 
     it('should rename agent and update all related tables in a transaction', async () => {
-      mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-1', name: 'old-agent' });
+      mockAgentGetOne.mockResolvedValueOnce({
+        id: 'agent-id-1',
+        name: 'old-agent',
+        tenant_id: 'tenant-1',
+      });
       mockAgentGetOne.mockResolvedValueOnce(null);
 
       const mockExecute = jest.fn().mockResolvedValue({});
@@ -183,10 +187,12 @@ describe('AgentLifecycleService', () => {
         where: jest.fn().mockReturnThis(),
         execute: mockExecute,
       };
+      const mockManagerQuery = jest.fn().mockResolvedValue([]);
 
       mockTransaction.mockImplementation(async (cb: (...args: unknown[]) => unknown) => {
         const manager = {
           createQueryBuilder: jest.fn().mockReturnValue(mockManagerQb),
+          query: mockManagerQuery,
         };
         return cb(manager);
       });
@@ -194,7 +200,7 @@ describe('AgentLifecycleService', () => {
       await service.renameAgent('test-user', 'old-agent', 'new-agent', 'New Agent');
 
       expect(mockTransaction).toHaveBeenCalledTimes(1);
-      expect(mockExecute).toHaveBeenCalledTimes(4);
+      expect(mockExecute).toHaveBeenCalledTimes(3);
       expect(mockManagerQb.update).toHaveBeenCalledWith('agents');
       expect(mockManagerQb.set).toHaveBeenCalledWith({
         name: 'new-agent',
@@ -205,7 +211,22 @@ describe('AgentLifecycleService', () => {
       expect(updateCalls).toContain('agents');
       expect(updateCalls).toContain('agent_messages');
       expect(updateCalls).toContain('notification_rules');
-      expect(updateCalls).toContain('notification_logs');
+      expect(updateCalls).not.toContain('notification_logs');
+
+      const tenantScopedWhereCalls = mockManagerQb.where.mock.calls.filter(
+        (c: unknown[]) => typeof c[0] === 'string' && (c[0] as string).includes('tenant_id'),
+      );
+      expect(tenantScopedWhereCalls.length).toBe(2);
+      for (const call of tenantScopedWhereCalls) {
+        expect(call[1]).toEqual({ tenantId: 'tenant-1', currentName: 'old-agent' });
+      }
+
+      expect(mockManagerQuery).toHaveBeenCalledTimes(1);
+      const [logsSql, logsParams] = mockManagerQuery.mock.calls[0];
+      expect(logsSql).toContain('UPDATE notification_logs');
+      expect(logsSql).toContain('notification_rules');
+      expect(logsSql).toContain('tenant_id');
+      expect(logsParams).toEqual(['new-agent', 'tenant-1']);
     });
 
     it('should short-circuit when slug is unchanged and only update display_name', async () => {
@@ -247,7 +268,11 @@ describe('AgentLifecycleService', () => {
     });
 
     it('should rename without display_name when displayName is undefined', async () => {
-      mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-1', name: 'old-agent' });
+      mockAgentGetOne.mockResolvedValueOnce({
+        id: 'agent-id-1',
+        name: 'old-agent',
+        tenant_id: 'tenant-1',
+      });
       mockAgentGetOne.mockResolvedValueOnce(null);
 
       const mockExecute = jest.fn().mockResolvedValue({});
@@ -261,6 +286,7 @@ describe('AgentLifecycleService', () => {
       mockTransaction.mockImplementation(async (cb: (...args: unknown[]) => unknown) => {
         const manager = {
           createQueryBuilder: jest.fn().mockReturnValue(mockManagerQb),
+          query: jest.fn().mockResolvedValue([]),
         };
         return cb(manager);
       });

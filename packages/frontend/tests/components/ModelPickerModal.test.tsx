@@ -565,6 +565,38 @@ describe("ModelPickerModal", () => {
     ).toBeDefined();
   });
 
+  it("renders a Connect providers CTA in the empty state when onConnectProviders is provided", () => {
+    const onConnectProviders = vi.fn();
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={[]}
+        tiers={baseTiers}
+        connectedProviders={[]}
+        onSelect={onSelect}
+        onClose={onClose}
+        onConnectProviders={onConnectProviders}
+      />
+    ));
+    const cta = screen.getByRole("button", { name: "Connect providers" });
+    fireEvent.click(cta);
+    expect(onConnectProviders).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not render a Connect providers CTA when onConnectProviders is omitted", () => {
+    render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={[]}
+        tiers={baseTiers}
+        connectedProviders={[]}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    ));
+    expect(screen.queryByRole("button", { name: "Connect providers" })).toBeNull();
+  });
+
   it("resets showFreeOnly when switching to subscription tab", () => {
     const providers = [
       { id: "p1", provider: "openai", is_active: true, has_api_key: true, auth_type: "api_key" as const, connected_at: "2025-01-01" },

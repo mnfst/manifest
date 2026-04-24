@@ -9,7 +9,6 @@ interface Tab {
 }
 
 export interface RoutingTabsProps {
-  complexityEnabled: () => boolean;
   specificityEnabled: () => boolean;
   customEnabled: () => boolean;
   pipelineHelp?: () => JSX.Element | null;
@@ -27,7 +26,7 @@ const RoutingTabs: Component<RoutingTabsProps> = (props) => {
 
   const tabs: Tab[] = [
     { id: 'default', label: 'Default', dot: () => true },
-    { id: 'complexity', label: 'Complexity', dot: () => props.complexityEnabled() },
+    { id: 'complexity', label: 'Complexity', dot: () => true },
     { id: 'specificity', label: 'Task-specific', dot: () => props.specificityEnabled() },
     { id: 'custom', label: 'Custom', dot: () => props.customEnabled() },
   ];

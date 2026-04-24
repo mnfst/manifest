@@ -8,55 +8,47 @@ interface PipelineStep {
 
 /**
  * Builds the pipeline help modal content.
- * Returns null when no layers are active (Default only).
  */
-export function buildPipelineHelp(
-  complexity: boolean,
-  specificity: boolean,
-  custom: boolean,
-): JSX.Element | null {
-  const active = [custom, specificity, complexity].filter(Boolean).length;
-  if (active === 0) return null;
-
+export function buildPipelineHelp(specificity: boolean, custom: boolean): JSX.Element {
   const steps: PipelineStep[] = [];
   let n = 1;
 
   if (custom) {
     steps.push({
       num: n++,
-      name: 'Custom',
-      desc: 'Checked first. If a request header matches a custom routing rule, it routes there immediately.',
+      name: 'Custom routing',
+      desc: 'If a request header matches a custom tier rule, it is routed to the corresponding model.',
     });
   }
 
   if (specificity) {
     steps.push({
       num: n++,
-      name: 'Task-specific',
-      desc: 'If the request matches a task type like coding or trading, it goes to the dedicated model for that category.',
-    });
-  }
-
-  if (complexity) {
-    steps.push({
-      num: n++,
-      name: 'Complexity',
-      desc: 'The request gets scored and routed to the tier that fits its difficulty. Cheap models handle simple tasks, better ones take on harder work.',
+      name: 'Task-specific routing',
+      desc: 'Manifest semantically analyzes the query, and if it matches an active task-specific tier (coding, image generation\u2026), it is routed to the corresponding model.',
     });
   }
 
   steps.push({
+    num: n++,
+    name: 'Complexity routing',
+    desc: 'Manifest semantically analyzes the query, scores its complexity, and assigns it to a tier ranging from \u201csimple\u201d to \u201creasoning\u201d.',
+  });
+
+  steps.push({
     num: n,
-    name: 'Default',
-    desc: complexity
-      ? 'Catches any request that the other routing layers couldn\u2019t handle, for example when a complexity routing tier has no model assigned.'
-      : 'Handles every request that didn\u2019t match an earlier rule.',
+    name: 'Default routing',
+    desc: 'Catch-all for any query that has no matching tier assignment \u2014 falls back to the default model and its fallbacks.',
   });
 
   return (
     <div class="routing-pipeline-help-steps">
       <p class="routing-pipeline-help-summary">
-        Each request stops at the first match. Everything else falls through to the next step.
+        Routing is a powerful technique that allows Manifest to intercept queries on the fly and
+        redirect them to the corresponding model.
+      </p>
+      <p class="routing-pipeline-help-summary">
+        This is what your current configuration looks like:
       </p>
       {steps.map((step) => (
         <div class="routing-pipeline-help-step">

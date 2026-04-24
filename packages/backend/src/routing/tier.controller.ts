@@ -13,12 +13,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
 import { TierService } from './routing-core/tier.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
-import {
-  AgentNameParamDto,
-  SetOverrideDto,
-  SetFallbacksDto,
-  ToggleComplexityDto,
-} from './dto/routing.dto';
+import { AgentNameParamDto, SetOverrideDto, SetFallbacksDto } from './dto/routing.dto';
 
 @Controller('api/v1/routing')
 export class TierController {
@@ -31,24 +26,6 @@ export class TierController {
   async getTiers(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     return this.tierService.getTiers(agent.id, user.id);
-  }
-
-  @Get(':agentName/complexity')
-  async getComplexity(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    const enabled = await this.tierService.isComplexityEnabled(agent.id);
-    return { enabled };
-  }
-
-  @Post(':agentName/complexity/toggle')
-  async toggleComplexity(
-    @CurrentUser() user: AuthUser,
-    @Param() params: AgentNameParamDto,
-    @Body() body: ToggleComplexityDto,
-  ) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    await this.tierService.setComplexityEnabled(agent.id, body.enabled);
-    return { ok: true, enabled: body.enabled };
   }
 
   @Put(':agentName/tiers/:tier')

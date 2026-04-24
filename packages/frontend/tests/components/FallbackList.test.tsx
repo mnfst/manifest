@@ -70,7 +70,7 @@ describe("FallbackList", () => {
       <FallbackList {...defaultProps} fallbacks={[]} />
     ));
 
-    expect(screen.getByText("No fallback")).toBeDefined();
+    expect(screen.getByText("No fallbacks")).toBeDefined();
     expect(container.querySelector(".fallback-list__empty")).not.toBeNull();
     expect(container.querySelector(".fallback-list__items")).toBeNull();
   });

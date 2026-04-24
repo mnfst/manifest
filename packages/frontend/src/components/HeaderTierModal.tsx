@@ -157,7 +157,7 @@ const HeaderTierModal: Component<Props> = (props) => {
   const titleText = editingTier ? 'Edit custom tier' : 'Create custom tier';
   const descText = editingTier
     ? 'Update the header rule, name, or color for this tier. Model and fallbacks are managed on the card.'
-    : 'Route requests that carry a specific HTTP header to a model of your choice.';
+    : 'Custom routing lets you identify requests based on their headers and assign specific models to them.';
   const submitLabel = (): string => {
     if (editingTier) return submitting() ? 'Saving…' : 'Save changes';
     return submitting() ? 'Creating…' : 'Create tier';
@@ -222,7 +222,7 @@ const HeaderTierModal: Component<Props> = (props) => {
           classList={{ 'modal-card__input--error': nameError() !== undefined }}
           type="text"
           value={name()}
-          placeholder="Premium Users"
+          placeholder="My custom tier"
           maxlength={MAX_NAME_LEN}
           onInput={(e) => setName(e.currentTarget.value)}
         />
@@ -252,7 +252,7 @@ const HeaderTierModal: Component<Props> = (props) => {
           value={headerValue()}
           onInput={setHeaderValue}
           suggestions={valueSuggestions()}
-          placeholder="premium"
+          placeholder="custom-value"
           invalid={valueError() !== undefined}
           errorMessage={valueError()}
           disabled={!headerKey().trim()}

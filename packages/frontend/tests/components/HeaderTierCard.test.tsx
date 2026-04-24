@@ -125,11 +125,13 @@ interface MountOptions {
   connectedProviders?: never[];
   onOverride?: ReturnType<typeof vi.fn>;
   onFallbacksUpdate?: ReturnType<typeof vi.fn>;
+  onEdit?: ReturnType<typeof vi.fn>;
 }
 
 function mount(opts: MountOptions = {}) {
   const onOverride = opts.onOverride ?? vi.fn();
   const onFallbacksUpdate = opts.onFallbacksUpdate ?? vi.fn();
+  const onEdit = opts.onEdit;
   const result = render(() => (
     <HeaderTierCard
       agentName="my-agent"
@@ -150,9 +152,10 @@ function mount(opts: MountOptions = {}) {
       connectedProviders={opts.connectedProviders ?? []}
       onOverride={onOverride}
       onFallbacksUpdate={onFallbacksUpdate}
+      onEdit={onEdit}
     />
   ));
-  return { ...result, onOverride, onFallbacksUpdate };
+  return { ...result, onOverride, onFallbacksUpdate, onEdit };
 }
 
 describe('HeaderTierCard', () => {
@@ -349,6 +352,25 @@ describe('HeaderTierCard', () => {
     expect(gearBtn).not.toBeNull();
     fireEvent.click(gearBtn!);
     await waitFor(() => expect(getByText(/Send the .* header/)).toBeDefined());
+  });
+
+  it('renders the edit button only when onEdit is provided', () => {
+    const onEdit = vi.fn();
+    const { container: withEdit } = mount({ onEdit });
+    expect(withEdit.querySelector(`button[aria-label="Edit ${baseTier.name}"]`)).not.toBeNull();
+
+    const { container: withoutEdit } = mount();
+    expect(withoutEdit.querySelector('button[aria-label^="Edit "]')).toBeNull();
+  });
+
+  it('calls onEdit when the edit button is clicked', () => {
+    const onEdit = vi.fn();
+    const { container } = mount({ onEdit });
+    const editBtn = container.querySelector(
+      `button[aria-label="Edit ${baseTier.name}"]`,
+    ) as HTMLButtonElement;
+    fireEvent.click(editBtn);
+    expect(onEdit).toHaveBeenCalledTimes(1);
   });
 
   it('falls back to the provider db-id when the model name has no recognizable prefix', () => {

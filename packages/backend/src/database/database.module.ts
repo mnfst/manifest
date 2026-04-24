@@ -83,7 +83,7 @@ import { AddHeaderTierEnabled1777100000000 } from './migrations/1777100000000-Ad
 import { AddMessageRecordings1777200000000 } from './migrations/1777200000000-AddMessageRecordings';
 import { AddBenchmarkHistory1777300000000 } from './migrations/1777300000000-AddBenchmarkHistory';
 import { BackfillBenchmarkTier1777400000000 } from './migrations/1777400000000-BackfillBenchmarkTier';
-import { ReconcileAgentColumns1777500000000 } from './migrations/1777500000000-ReconcileAgentColumns';
+import { DropComplexityRoutingFlag1780000000000 } from './migrations/1780000000000-DropComplexityRoutingFlag';
 
 const entities = [
   AgentMessage,
@@ -168,7 +168,7 @@ const migrations = [
   AddMessageRecordings1777200000000,
   AddBenchmarkHistory1777300000000,
   BackfillBenchmarkTier1777400000000,
-  ReconcileAgentColumns1777500000000,
+  DropComplexityRoutingFlag1780000000000,
 ];
 
 @Module({

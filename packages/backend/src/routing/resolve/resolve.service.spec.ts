@@ -28,7 +28,6 @@ function makeService(overrides: {
 }) {
   const tierService: TierService = {
     getTiers: jest.fn().mockResolvedValue(overrides.tiers ?? []),
-    isComplexityEnabled: jest.fn().mockResolvedValue(true),
   } as unknown as TierService;
 
   const providerKeyService: ProviderKeyService = {

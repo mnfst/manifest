@@ -53,12 +53,6 @@ export function connectProvider(
   });
 }
 
-export function deactivateAllProviders(agentName: string) {
-  return fetchMutate<{ ok: boolean }>(routingPath(agentName, 'providers/deactivate-all'), {
-    method: 'POST',
-  });
-}
-
 export function disconnectProvider(agentName: string, provider: string, authType?: AuthType) {
   const base = routingPath(agentName, `providers/${encodeURIComponent(provider)}`);
   const path = authType ? `${base}?authType=${authType}` : base;
@@ -134,27 +128,6 @@ export function resetTier(agentName: string, tier: string) {
 
 export function resetAllTiers(agentName: string) {
   return fetchMutate(routingPath(agentName, 'tiers/reset-all'), { method: 'POST' });
-}
-
-/* -- Routing: Complexity toggle -- */
-
-export interface ComplexityStatus {
-  enabled: boolean;
-}
-
-export function getComplexityStatus(agentName: string) {
-  return fetchJson<ComplexityStatus>(routingPath(agentName, 'complexity'));
-}
-
-export function toggleComplexity(agentName: string, enabled: boolean) {
-  return fetchMutate<{ ok: boolean; enabled: boolean }>(
-    routingPath(agentName, 'complexity/toggle'),
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ enabled }),
-    },
-  );
 }
 
 /* -- Routing: Fallbacks -- */

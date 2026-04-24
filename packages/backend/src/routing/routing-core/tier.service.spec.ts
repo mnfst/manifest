@@ -59,7 +59,6 @@ describe('TierService', () => {
   let service: TierService;
   let providerRepo: ReturnType<typeof makeMockRepo>;
   let tierRepo: ReturnType<typeof makeMockRepo>;
-  let agentRepo: ReturnType<typeof makeMockRepo>;
   let autoAssign: { recalculate: jest.Mock };
   let routingCache: {
     getTiers: jest.Mock;
@@ -67,8 +66,6 @@ describe('TierService', () => {
     invalidateAgent: jest.Mock;
     getProviders: jest.Mock;
     setProviders: jest.Mock;
-    getComplexityEnabled: jest.Mock;
-    setComplexityEnabled: jest.Mock;
   };
   let providerService: { getProviders: jest.Mock };
   let discoveryService: { getModelsForAgent: jest.Mock };
@@ -77,7 +74,6 @@ describe('TierService', () => {
     jest.clearAllMocks();
     providerRepo = makeMockRepo();
     tierRepo = makeMockRepo();
-    agentRepo = makeMockRepo();
     autoAssign = { recalculate: jest.fn().mockResolvedValue(undefined) };
     routingCache = {
       getTiers: jest.fn().mockReturnValue(null),
@@ -85,8 +81,6 @@ describe('TierService', () => {
       invalidateAgent: jest.fn(),
       getProviders: jest.fn().mockReturnValue(null),
       setProviders: jest.fn(),
-      getComplexityEnabled: jest.fn().mockReturnValue(undefined),
-      setComplexityEnabled: jest.fn(),
     };
     providerService = { getProviders: jest.fn().mockResolvedValue([]) };
     discoveryService = {
@@ -101,7 +95,6 @@ describe('TierService', () => {
     service = new TierService(
       providerRepo as unknown as any,
       tierRepo as unknown as any,
-      agentRepo as unknown as any,
       autoAssign as unknown as TierAutoAssignService,
       routingCache as unknown as RoutingCacheService,
       providerService as unknown as ProviderService,

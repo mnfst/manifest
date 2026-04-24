@@ -4,14 +4,12 @@ import RoutingTabs from '../../src/components/RoutingTabs';
 
 function renderTabs(
   overrides: Partial<{
-    complexityEnabled: boolean;
     specificityEnabled: boolean;
     customEnabled: boolean;
   }> = {},
 ) {
   return render(() => (
     <RoutingTabs
-      complexityEnabled={() => overrides.complexityEnabled ?? false}
       specificityEnabled={() => overrides.specificityEnabled ?? false}
       customEnabled={() => overrides.customEnabled ?? false}
     >
@@ -91,23 +89,23 @@ describe('RoutingTabs', () => {
   });
 
   it('shows green dot for enabled layers and gray for disabled', () => {
-    const { container } = renderTabs({ complexityEnabled: true, specificityEnabled: false, customEnabled: true });
+    const { container } = renderTabs({ specificityEnabled: false, customEnabled: true });
     const dots = container.querySelectorAll('.routing-tabs__dot');
-    // Default (always on), complexity (on), specificity (off), custom (on)
+    // Default (always on), complexity (always on), specificity (off), custom (on)
     expect(dots[0].classList.contains('routing-tabs__dot--on')).toBe(true);
     expect(dots[1].classList.contains('routing-tabs__dot--on')).toBe(true);
     expect(dots[2].classList.contains('routing-tabs__dot--off')).toBe(true);
     expect(dots[3].classList.contains('routing-tabs__dot--on')).toBe(true);
   });
 
-  it('Default tab always has a green dot', () => {
+  it('Default and Complexity tabs always have a green dot', () => {
     const { container } = renderTabs();
     const dots = container.querySelectorAll('.routing-tabs__dot');
     expect(dots.length).toBe(4);
-    // Default dot is always on
+    // Default and Complexity dots are always on
     expect(dots[0].classList.contains('routing-tabs__dot--on')).toBe(true);
-    // Others are off
-    expect(dots[1].classList.contains('routing-tabs__dot--off')).toBe(true);
+    expect(dots[1].classList.contains('routing-tabs__dot--on')).toBe(true);
+    // Specificity and Custom are off by default
     expect(dots[2].classList.contains('routing-tabs__dot--off')).toBe(true);
     expect(dots[3].classList.contains('routing-tabs__dot--off')).toBe(true);
   });
@@ -124,7 +122,6 @@ describe('RoutingTabs', () => {
   it('shows help button when pipelineHelp returns content', () => {
     render(() => (
       <RoutingTabs
-        complexityEnabled={() => true}
         specificityEnabled={() => false}
         customEnabled={() => false}
         pipelineHelp={() => <div data-testid="help-content">Help text</div>}
@@ -143,7 +140,6 @@ describe('RoutingTabs', () => {
   it('does not show help button when pipelineHelp returns null', () => {
     render(() => (
       <RoutingTabs
-        complexityEnabled={() => false}
         specificityEnabled={() => false}
         customEnabled={() => false}
         pipelineHelp={() => null}
@@ -162,7 +158,6 @@ describe('RoutingTabs', () => {
   it('opens help modal on button click and shows content', async () => {
     render(() => (
       <RoutingTabs
-        complexityEnabled={() => true}
         specificityEnabled={() => false}
         customEnabled={() => false}
         pipelineHelp={() => <div data-testid="help-content">Pipeline info</div>}
@@ -186,7 +181,6 @@ describe('RoutingTabs', () => {
   it('closes help modal on "Got it" click', async () => {
     render(() => (
       <RoutingTabs
-        complexityEnabled={() => true}
         specificityEnabled={() => false}
         customEnabled={() => false}
         pipelineHelp={() => <div>Help</div>}
@@ -208,7 +202,6 @@ describe('RoutingTabs', () => {
   it('closes help modal on overlay click', async () => {
     render(() => (
       <RoutingTabs
-        complexityEnabled={() => true}
         specificityEnabled={() => false}
         customEnabled={() => false}
         pipelineHelp={() => <div>Help</div>}
@@ -231,7 +224,6 @@ describe('RoutingTabs', () => {
   it('closes help modal on Escape key', async () => {
     render(() => (
       <RoutingTabs
-        complexityEnabled={() => true}
         specificityEnabled={() => false}
         customEnabled={() => false}
         pipelineHelp={() => <div>Help</div>}
@@ -254,7 +246,6 @@ describe('RoutingTabs', () => {
   it('does not close help modal when clicking inside the dialog card', async () => {
     render(() => (
       <RoutingTabs
-        complexityEnabled={() => true}
         specificityEnabled={() => false}
         customEnabled={() => false}
         pipelineHelp={() => <div>Help</div>}

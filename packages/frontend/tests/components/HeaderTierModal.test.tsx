@@ -128,7 +128,7 @@ describe('HeaderTierModal', () => {
       const { container, getByText, getByPlaceholderText } = mount();
       fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: 'Test' } });
       fireEvent.input(getByPlaceholderText('x-manifest-tier'), { target: { value: 'authorization' } });
-      fireEvent.input(getByPlaceholderText('premium'), { target: { value: 'x' } });
+      fireEvent.input(getByPlaceholderText('custom-value'), { target: { value: 'x' } });
       fireEvent.click(getByText('Create tier'));
       expect(container.textContent).toContain('stripped for security');
       expect(createHeaderTierMock).not.toHaveBeenCalled();
@@ -138,7 +138,7 @@ describe('HeaderTierModal', () => {
       const { container, getByText, getByPlaceholderText } = mount();
       fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: 'Test' } });
       fireEvent.input(getByPlaceholderText('x-manifest-tier'), { target: { value: 'X_BAD' } });
-      fireEvent.input(getByPlaceholderText('premium'), { target: { value: 'v' } });
+      fireEvent.input(getByPlaceholderText('custom-value'), { target: { value: 'v' } });
       fireEvent.click(getByText('Create tier'));
       expect(container.textContent).toContain(
         'Header keys can only contain lowercase letters, digits, and hyphens',
@@ -151,7 +151,7 @@ describe('HeaderTierModal', () => {
       const nameInput = container.querySelector('input[type="text"]') as HTMLInputElement;
       fireEvent.input(nameInput, { target: { value: 'EXISTING' } });
       fireEvent.input(getByPlaceholderText('x-manifest-tier'), { target: { value: 'x-new' } });
-      fireEvent.input(getByPlaceholderText('premium'), { target: { value: 'v' } });
+      fireEvent.input(getByPlaceholderText('custom-value'), { target: { value: 'v' } });
       fireEvent.click(getByText('Create tier'));
       expect(container.textContent).toContain('A tier with this name already exists');
     });
@@ -161,7 +161,7 @@ describe('HeaderTierModal', () => {
       const nameInput = container.querySelector('input[type="text"]') as HTMLInputElement;
       fireEvent.input(nameInput, { target: { value: 'New Name' } });
       fireEvent.input(getByPlaceholderText('x-manifest-tier'), { target: { value: 'x-existing' } });
-      fireEvent.input(getByPlaceholderText('premium'), { target: { value: 'yes' } });
+      fireEvent.input(getByPlaceholderText('custom-value'), { target: { value: 'yes' } });
       fireEvent.click(getByText('Create tier'));
       expect(container.textContent).toContain('already matches this header key and value');
     });
@@ -173,7 +173,7 @@ describe('HeaderTierModal', () => {
       const nameInput = container.querySelector('input[type="text"]') as HTMLInputElement;
       fireEvent.input(nameInput, { target: { value: 'Premium' } });
       fireEvent.input(getByPlaceholderText('x-manifest-tier'), { target: { value: 'x-manifest-tier' } });
-      fireEvent.input(getByPlaceholderText('premium'), { target: { value: 'premium' } });
+      fireEvent.input(getByPlaceholderText('custom-value'), { target: { value: 'premium' } });
       const violet = container.querySelector('.header-tier-modal__swatch--violet') as HTMLElement;
       fireEvent.click(violet);
       fireEvent.click(getByText('Create tier'));
@@ -195,7 +195,7 @@ describe('HeaderTierModal', () => {
       const nameInput = container.querySelector('input[type="text"]') as HTMLInputElement;
       fireEvent.input(nameInput, { target: { value: 'X' } });
       fireEvent.input(getByPlaceholderText('x-manifest-tier'), { target: { value: 'x-a' } });
-      fireEvent.input(getByPlaceholderText('premium'), { target: { value: 'a' } });
+      fireEvent.input(getByPlaceholderText('custom-value'), { target: { value: 'a' } });
       fireEvent.click(getByText('Create tier'));
       await waitFor(() => expect(toastErrorMock).toHaveBeenCalledWith('boom'));
     });
@@ -206,7 +206,7 @@ describe('HeaderTierModal', () => {
       const nameInput = container.querySelector('input[type="text"]') as HTMLInputElement;
       fireEvent.input(nameInput, { target: { value: 'X' } });
       fireEvent.input(getByPlaceholderText('x-manifest-tier'), { target: { value: 'x-a' } });
-      fireEvent.input(getByPlaceholderText('premium'), { target: { value: 'a' } });
+      fireEvent.input(getByPlaceholderText('custom-value'), { target: { value: 'a' } });
       fireEvent.click(getByText('Create tier'));
       await waitFor(() => expect(toastErrorMock).toHaveBeenCalledWith('Failed to create tier'));
     });
@@ -216,7 +216,7 @@ describe('HeaderTierModal', () => {
       const nameInput = container.querySelector('input[type="text"]') as HTMLInputElement;
       fireEvent.input(nameInput, { target: { value: 'a'.repeat(33) } });
       fireEvent.input(getByPlaceholderText('x-manifest-tier'), { target: { value: 'x-a' } });
-      fireEvent.input(getByPlaceholderText('premium'), { target: { value: 'a' } });
+      fireEvent.input(getByPlaceholderText('custom-value'), { target: { value: 'a' } });
       fireEvent.click(getByText('Create tier'));
       expect(container.textContent).toContain('Name must be 32 characters or fewer');
       expect(createHeaderTierMock).not.toHaveBeenCalled();
@@ -227,7 +227,7 @@ describe('HeaderTierModal', () => {
       const nameInput = container.querySelector('input[type="text"]') as HTMLInputElement;
       fireEvent.input(nameInput, { target: { value: 'Name' } });
       fireEvent.input(getByPlaceholderText('x-manifest-tier'), { target: { value: 'x-a' } });
-      fireEvent.input(getByPlaceholderText('premium'), { target: { value: 'v'.repeat(129) } });
+      fireEvent.input(getByPlaceholderText('custom-value'), { target: { value: 'v'.repeat(129) } });
       fireEvent.click(getByText('Create tier'));
       expect(container.textContent).toContain('Header value must be 128 characters or fewer');
       expect(createHeaderTierMock).not.toHaveBeenCalled();
@@ -239,7 +239,7 @@ describe('HeaderTierModal', () => {
         const nameInput = container.querySelector('input[type="text"]') as HTMLInputElement;
         fireEvent.input(nameInput, { target: { value: 'Name' } });
         fireEvent.input(getByPlaceholderText('x-manifest-tier'), { target: { value: 'x-a' } });
-        fireEvent.input(getByPlaceholderText('premium'), { target: { value: bad } });
+        fireEvent.input(getByPlaceholderText('custom-value'), { target: { value: bad } });
         fireEvent.click(getByText('Create tier'));
         expect(container.textContent).toContain('cannot contain quotes or backslashes');
         expect(createHeaderTierMock).not.toHaveBeenCalled();
@@ -258,7 +258,7 @@ describe('HeaderTierModal', () => {
       const nameInput = container.querySelector('input[type="text"]') as HTMLInputElement;
       fireEvent.input(nameInput, { target: { value: 'Name' } });
       fireEvent.input(getByPlaceholderText('x-manifest-tier'), { target: { value: 'x-a' } });
-      fireEvent.input(getByPlaceholderText('premium'), { target: { value: 'a' } });
+      fireEvent.input(getByPlaceholderText('custom-value'), { target: { value: 'a' } });
       fireEvent.click(getByText('Create tier'));
       await waitFor(() => expect(getByText('Creating…')).toBeDefined());
       const submitBtn = getByText('Creating…') as HTMLButtonElement;
@@ -284,7 +284,7 @@ describe('HeaderTierModal', () => {
         (container.querySelector('input[placeholder="x-manifest-tier"]') as HTMLInputElement).value,
       ).toBe('x-existing');
       expect(
-        (container.querySelector('input[placeholder="premium"]') as HTMLInputElement).value,
+        (container.querySelector('input[placeholder="custom-value"]') as HTMLInputElement).value,
       ).toBe('yes');
       expect(
         container.querySelector('.header-tier-modal__swatch--rose')!.getAttribute('aria-checked'),

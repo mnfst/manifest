@@ -189,9 +189,11 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
   };
 
   const manageButton = () => (
-    <button class="btn btn--primary btn--sm" onClick={() => setShowModal(true)}>
-      {hasAnyActive() ? 'Manage task-specific routing' : 'Enable task-specific routing'}
-    </button>
+    <Show when={hasAnyActive()}>
+      <button class="btn btn--primary btn--sm" onClick={() => setShowModal(true)}>
+        Manage task-specific routing
+      </button>
+    </Show>
   );
 
   const content = () => (
@@ -200,12 +202,12 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
         when={activeTiers().length > 0}
         fallback={
           <div class="specificity-empty">
-            <span class="specificity-empty__title">No task-specific rules yet</span>
+            <span class="specificity-empty__title">No task-specific tiers yet</span>
             <span class="specificity-empty__desc">
               Route specialized tasks to dedicated models.
             </span>
             <button class="btn btn--primary btn--sm" onClick={() => setShowModal(true)}>
-              Enable task-specific routing
+              Add a task-specific tier
             </button>
           </div>
         }
@@ -265,7 +267,8 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
               Manage task-specific routing
             </h2>
             <p class="specificity-modal__desc">
-              Route specialized tasks to dedicated models. Overrides complexity and default.
+              Route specialized tasks to dedicated models. Overrides complexity and default routing
+              when a task matches.
             </p>
             <div class="specificity-modal__list">
               <For each={SPECIFICITY_STAGES}>
@@ -346,8 +349,8 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
         <div class="routing-section__header specificity-header" style="margin-bottom: 16px;">
           <div class="specificity-header__left">
             <span class="routing-section__subtitle">
-              Send specific kinds of work (coding, trading, image gen…) to dedicated models.
-              Overrides everything else.
+              Send specific tasks (coding, trading, image gen…) to dedicated models. Overrides
+              default and complexity routing when a task matches.
             </span>
           </div>
           {manageButton()}
@@ -363,8 +366,8 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
         <div class="specificity-header__left">
           <span class="routing-section__title">Task-specific routing</span>
           <span class="routing-section__subtitle">
-            Send specific kinds of work (coding, trading, image gen…) to dedicated models. Overrides
-            everything else.
+            Send specific tasks (coding, trading, image gen…) to dedicated models. Overrides default
+            and complexity routing when a task matches.
           </span>
         </div>
         {manageButton()}

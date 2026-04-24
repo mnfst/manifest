@@ -49,8 +49,6 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
   const [manageOpen, setManageOpen] = createSignal(false);
   // Create/edit modal: `null` = closed, `'new'` = create, otherwise editing.
   const [modalTier, setModalTier] = createSignal<HeaderTier | 'new' | null>(null);
-  // When editing from manage modal, track so we can go back.
-  const [editFromManage, setEditFromManage] = createSignal(false);
   // After a tier is freshly created, auto-open the SDK snippet modal.
   const [snippetTier, setSnippetTier] = createSignal<HeaderTier | null>(null);
   // Which tier is currently being toggled (loading state).
@@ -103,33 +101,21 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
     }
   };
 
-  const openEditFromManage = (tier: HeaderTier) => {
-    setManageOpen(false);
-    setEditFromManage(true);
-    setModalTier(tier);
-  };
-
-  const handleBackToManage = () => {
-    setModalTier(null);
-    setEditFromManage(false);
-    setManageOpen(true);
-  };
-
   const handleDeleteFromEdit = async (id: string) => {
     await handleDelete(id);
     setModalTier(null);
-    setEditFromManage(false);
-    setManageOpen(true);
   };
 
   const manageButton = () => (
-    <button
-      type="button"
-      class="btn btn--primary btn--sm routing-section__cta"
-      onClick={openCreateOrManage}
-    >
-      {tiers().length > 0 ? 'Manage custom routing' : 'Create custom tier'}
-    </button>
+    <Show when={tiers().length > 0}>
+      <button
+        type="button"
+        class="btn btn--primary btn--sm routing-section__cta"
+        onClick={openCreateOrManage}
+      >
+        Manage custom routing
+      </button>
+    </Show>
   );
 
   const content = () => (
@@ -138,10 +124,9 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
         when={enabledTiers().length > 0}
         fallback={
           <div class="routing-section__empty">
-            <div class="routing-section__empty-title">No custom tier yet</div>
+            <div class="routing-section__empty-title">No custom tiers activated</div>
             <div class="routing-section__empty-desc">
-              Create a tier triggered by a header like <code>x-manifest-tier: premium</code> to
-              force specific requests to a chosen model.
+              Create or activate custom tiers to route matching requests to the models you choose.
             </div>
             <button type="button" class="btn btn--primary btn--sm" onClick={openCreateOrManage}>
               {tiers().length > 0 ? 'Manage custom routing' : 'Create custom tier'}
@@ -160,6 +145,7 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
                 connectedProviders={props.connectedProviders()}
                 onOverride={(m, p, a) => handleOverride(tier.id, m, p, a)}
                 onFallbacksUpdate={() => refetch()}
+                onEdit={() => setModalTier(tier)}
               />
             )}
           </For>
@@ -188,24 +174,27 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
               Manage custom routing
             </h2>
             <p class="specificity-modal__desc">
-              Click a tier to edit its header rule, name, or color. Create new tiers or remove
-              existing ones.
+              Toggle tiers on or off. Create new tiers or edit them directly on their card.
             </p>
             <div class="specificity-modal__list">
               <For each={tiers()}>
                 {(tier) => {
                   const loading = () => toggling() === tier.id;
+                  const toggle = () => {
+                    if (!loading()) handleToggle(tier.id, !tier.enabled);
+                  };
                   return (
                     <div
                       class="specificity-modal__row"
                       role="button"
                       tabIndex={0}
+                      aria-pressed={tier.enabled}
                       style="cursor: pointer;"
-                      onClick={() => openEditFromManage(tier)}
+                      onClick={toggle}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
-                          openEditFromManage(tier);
+                          toggle();
                         }
                       }}
                     >
@@ -215,17 +204,12 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
                           {tier.header_key}: {tier.header_value}
                         </span>
                       </div>
-                      <button
+                      <span
                         class="specificity-modal__toggle"
                         classList={{
                           'specificity-modal__toggle--on': tier.enabled,
                         }}
-                        disabled={loading()}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!loading()) handleToggle(tier.id, !tier.enabled);
-                        }}
-                        aria-label={`${tier.enabled ? 'Disable' : 'Enable'} ${tier.name}`}
+                        aria-hidden="true"
                       >
                         <Show
                           when={loading()}
@@ -235,7 +219,7 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
                             <span class="spinner" style="width: 10px; height: 10px;" />
                           </span>
                         </Show>
-                      </button>
+                      </span>
                     </div>
                   );
                 }}
@@ -278,19 +262,14 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
             agentName={props.agentName()}
             existingTiers={tiers()}
             editing={state === 'new' ? undefined : state}
-            onClose={() => {
-              setModalTier(null);
-              setEditFromManage(false);
-            }}
+            onClose={() => setModalTier(null)}
             onSaved={(saved) => {
               const wasCreate = state === 'new';
               setModalTier(null);
-              setEditFromManage(false);
               refetch();
               if (wasCreate) setSnippetTier(saved);
             }}
-            onBack={editFromManage() ? handleBackToManage : undefined}
-            onDelete={editFromManage() ? handleDeleteFromEdit : undefined}
+            onDelete={state !== 'new' ? handleDeleteFromEdit : undefined}
           />
         )}
       </Show>
@@ -316,8 +295,8 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
         >
           <div>
             <span class="routing-section__subtitle">
-              Route requests by HTTP header. Custom routing runs before complexity and task-specific
-              routing.
+              Assign requests to tiers based on their HTTP headers. Custom routing is evaluated
+              before any other routing method.
             </span>
           </div>
           {manageButton()}
@@ -333,8 +312,8 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
         <div>
           <h2 class="routing-section__title">Custom routing</h2>
           <p class="routing-section__subtitle">
-            Route requests by HTTP header. Custom routing runs before complexity and task-specific
-            routing.
+            Assign requests to tiers based on their HTTP headers. Custom routing is evaluated before
+            any other routing method.
           </p>
         </div>
         {manageButton()}

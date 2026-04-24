@@ -29,6 +29,7 @@ vi.mock('../../src/components/HeaderTierCard.js', () => ({
     onOverride: (m: string, p: string) => void;
     onReset?: () => void;
     onFallbacksUpdate: () => void;
+    onEdit?: () => void;
   }) => (
     <div
       data-testid={`card-${props.tier.id}`}
@@ -41,6 +42,11 @@ vi.mock('../../src/components/HeaderTierCard.js', () => ({
       <button data-testid={`override-${props.tier.id}`} onClick={() => props.onOverride('gpt-4o', 'OpenAI')}>
         override
       </button>
+      {props.onEdit && (
+        <button data-testid={`edit-${props.tier.id}`} onClick={() => props.onEdit!()}>
+          edit
+        </button>
+      )}
     </div>
   ),
 }));
@@ -156,7 +162,7 @@ describe('RoutingHeaderTiersSection', () => {
   it('renders the empty state when no tiers exist', async () => {
     listHeaderTiersMock.mockResolvedValue([]);
     const { container } = mount();
-    await waitFor(() => expect(container.textContent).toContain('No custom tier yet'));
+    await waitFor(() => expect(container.textContent).toContain('No custom tiers activated'));
   });
 
   it('renders a card per tier when tiers load', async () => {
@@ -310,14 +316,40 @@ describe('RoutingHeaderTiersSection', () => {
     expect(getByRole('dialog')).toBeDefined();
   });
 
-  it('toggles a tier on/off from manage modal', async () => {
+  it('toggles a tier on/off by clicking the manage modal row', async () => {
     toggleHeaderTierMock.mockResolvedValue({ ...baseTier, enabled: false });
     listHeaderTiersMock.mockResolvedValue([baseTier]);
-    const { container, getByLabelText } = mount();
+    const { container } = mount();
     await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
     fireEvent.click(container.querySelector('.routing-section__cta')!);
-    await waitFor(() => expect(getByLabelText('Disable Premium')).toBeDefined());
-    fireEvent.click(getByLabelText('Disable Premium'));
+    await waitFor(() => expect(container.querySelector('.specificity-modal__row')).not.toBeNull());
+    fireEvent.click(container.querySelector('.specificity-modal__row')!);
+    await waitFor(() => {
+      expect(toggleHeaderTierMock).toHaveBeenCalledWith('my-agent', 'ht-1', false);
+    });
+  });
+
+  it('toggles a tier via Enter key on manage row', async () => {
+    toggleHeaderTierMock.mockResolvedValue({ ...baseTier, enabled: false });
+    listHeaderTiersMock.mockResolvedValue([baseTier]);
+    const { container } = mount();
+    await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
+    fireEvent.click(container.querySelector('.routing-section__cta')!);
+    await waitFor(() => expect(container.querySelector('.specificity-modal__row')).not.toBeNull());
+    fireEvent.keyDown(container.querySelector('.specificity-modal__row')!, { key: 'Enter' });
+    await waitFor(() => {
+      expect(toggleHeaderTierMock).toHaveBeenCalledWith('my-agent', 'ht-1', false);
+    });
+  });
+
+  it('toggles a tier via Space key on manage row', async () => {
+    toggleHeaderTierMock.mockResolvedValue({ ...baseTier, enabled: false });
+    listHeaderTiersMock.mockResolvedValue([baseTier]);
+    const { container } = mount();
+    await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
+    fireEvent.click(container.querySelector('.routing-section__cta')!);
+    await waitFor(() => expect(container.querySelector('.specificity-modal__row')).not.toBeNull());
+    fireEvent.keyDown(container.querySelector('.specificity-modal__row')!, { key: ' ' });
     await waitFor(() => {
       expect(toggleHeaderTierMock).toHaveBeenCalledWith('my-agent', 'ht-1', false);
     });
@@ -326,105 +358,59 @@ describe('RoutingHeaderTiersSection', () => {
   it('toasts error when toggle fails', async () => {
     toggleHeaderTierMock.mockRejectedValue(new Error('toggle fail'));
     listHeaderTiersMock.mockResolvedValue([baseTier]);
-    const { container, getByLabelText } = mount();
+    const { container } = mount();
     await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
     fireEvent.click(container.querySelector('.routing-section__cta')!);
-    await waitFor(() => getByLabelText('Disable Premium'));
-    fireEvent.click(getByLabelText('Disable Premium'));
+    await waitFor(() => expect(container.querySelector('.specificity-modal__row')).not.toBeNull());
+    fireEvent.click(container.querySelector('.specificity-modal__row')!);
     await waitFor(() => expect(toastErrorMock).toHaveBeenCalledWith('toggle fail'));
   });
 
   it('toasts generic error when toggle rejects with non-Error', async () => {
     toggleHeaderTierMock.mockRejectedValue('plain');
     listHeaderTiersMock.mockResolvedValue([baseTier]);
-    const { container, getByLabelText } = mount();
+    const { container } = mount();
     await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
     fireEvent.click(container.querySelector('.routing-section__cta')!);
-    await waitFor(() => getByLabelText('Disable Premium'));
-    fireEvent.click(getByLabelText('Disable Premium'));
+    await waitFor(() => expect(container.querySelector('.specificity-modal__row')).not.toBeNull());
+    fireEvent.click(container.querySelector('.specificity-modal__row')!);
     await waitFor(() => expect(toastErrorMock).toHaveBeenCalledWith('Failed to toggle tier'));
   });
 
-  it('opens edit modal from manage modal row click', async () => {
+  it('opens edit modal from the card edit button', async () => {
     listHeaderTiersMock.mockResolvedValue([baseTier]);
-    const { container, getByTestId } = mount();
-    await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
-    fireEvent.click(container.querySelector('.routing-section__cta')!);
-    await waitFor(() => {
-      expect(container.querySelector('[role="button"]')).not.toBeNull();
-    });
-    fireEvent.click(container.querySelector('.specificity-modal__row')!);
+    const { getByTestId } = mount();
+    await waitFor(() => expect(getByTestId('edit-ht-1')).toBeDefined());
+    fireEvent.click(getByTestId('edit-ht-1'));
     await waitFor(() => {
       const modal = getByTestId('mock-modal');
       expect(modal.getAttribute('data-mode')).toBe('edit');
       expect(modal.getAttribute('data-editing-id')).toBe('ht-1');
-      expect(modal.getAttribute('data-has-back')).toBe('true');
       expect(modal.getAttribute('data-has-delete')).toBe('true');
+      expect(modal.getAttribute('data-has-back')).toBe('false');
     });
   });
 
-  it('opens edit modal from manage row via Enter key', async () => {
-    listHeaderTiersMock.mockResolvedValue([baseTier]);
-    const { container, getByTestId } = mount();
-    await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
-    fireEvent.click(container.querySelector('.routing-section__cta')!);
-    await waitFor(() => expect(container.querySelector('.specificity-modal__row')).not.toBeNull());
-    fireEvent.keyDown(container.querySelector('.specificity-modal__row')!, { key: 'Enter' });
-    await waitFor(() => {
-      expect(getByTestId('mock-modal').getAttribute('data-mode')).toBe('edit');
-    });
-  });
-
-  it('opens edit modal from manage row via Space key', async () => {
-    listHeaderTiersMock.mockResolvedValue([baseTier]);
-    const { container, getByTestId } = mount();
-    await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
-    fireEvent.click(container.querySelector('.routing-section__cta')!);
-    await waitFor(() => expect(container.querySelector('.specificity-modal__row')).not.toBeNull());
-    fireEvent.keyDown(container.querySelector('.specificity-modal__row')!, { key: ' ' });
-    await waitFor(() => {
-      expect(getByTestId('mock-modal').getAttribute('data-mode')).toBe('edit');
-    });
-  });
-
-  it('back from edit returns to manage modal', async () => {
-    listHeaderTiersMock.mockResolvedValue([baseTier]);
-    const { container, getByTestId, queryByTestId, getByText } = mount();
-    await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
-    fireEvent.click(container.querySelector('.routing-section__cta')!);
-    await waitFor(() => expect(container.querySelector('.specificity-modal__row')).not.toBeNull());
-    fireEvent.click(container.querySelector('.specificity-modal__row')!);
-    await waitFor(() => getByTestId('modal-back'));
-    fireEvent.click(getByTestId('modal-back'));
-    await waitFor(() => {
-      expect(queryByTestId('mock-modal')).toBeNull();
-      expect(getByText('Done')).toBeDefined();
-    });
-  });
-
-  it('delete from edit removes tier and returns to manage', async () => {
+  it('delete from edit removes tier and closes modal', async () => {
     deleteHeaderTierMock.mockResolvedValue({});
     listHeaderTiersMock.mockResolvedValue([baseTier]);
-    const { container, getByTestId } = mount();
-    await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
-    fireEvent.click(container.querySelector('.routing-section__cta')!);
-    await waitFor(() => expect(container.querySelector('.specificity-modal__row')).not.toBeNull());
-    fireEvent.click(container.querySelector('.specificity-modal__row')!);
+    const { getByTestId, queryByTestId } = mount();
+    await waitFor(() => expect(getByTestId('edit-ht-1')).toBeDefined());
+    fireEvent.click(getByTestId('edit-ht-1'));
     await waitFor(() => getByTestId('modal-delete'));
     fireEvent.click(getByTestId('modal-delete'));
     await waitFor(() => {
       expect(deleteHeaderTierMock).toHaveBeenCalledWith('my-agent', 'ht-1');
+      expect(queryByTestId('mock-modal')).toBeNull();
     });
   });
 
   it('delete handler toasts error on failure', async () => {
     deleteHeaderTierMock.mockRejectedValue(new Error('delete fail'));
     listHeaderTiersMock.mockResolvedValue([baseTier]);
-    const { container, getByTestId } = mount();
-    await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
-    fireEvent.click(container.querySelector('.routing-section__cta')!);
-    await waitFor(() => expect(container.querySelector('.specificity-modal__row')).not.toBeNull());
-    fireEvent.click(container.querySelector('.specificity-modal__row')!);
+    const { getByTestId } = mount();
+    await waitFor(() => expect(getByTestId('edit-ht-1')).toBeDefined());
+    fireEvent.click(getByTestId('edit-ht-1'));
     await waitFor(() => getByTestId('modal-delete'));
     fireEvent.click(getByTestId('modal-delete'));
     await waitFor(() => expect(toastErrorMock).toHaveBeenCalledWith('delete fail'));
@@ -449,18 +435,16 @@ describe('RoutingHeaderTiersSection', () => {
     listHeaderTiersMock.mockResolvedValue([disabledTier]);
     const { container } = mount();
     await waitFor(() => {
-      expect(container.textContent).toContain('No custom tier yet');
+      expect(container.textContent).toContain('No custom tiers activated');
       expect(container.textContent).toContain('Manage custom routing');
     });
   });
 
   it('edit modal onSaved from edit mode does not open snippet modal', async () => {
     listHeaderTiersMock.mockResolvedValue([baseTier]);
-    const { container, getByTestId, queryByTestId } = mount();
-    await waitFor(() => expect(container.textContent).toContain('Manage custom routing'));
-    fireEvent.click(container.querySelector('.routing-section__cta')!);
-    await waitFor(() => expect(container.querySelector('.specificity-modal__row')).not.toBeNull());
-    fireEvent.click(container.querySelector('.specificity-modal__row')!);
+    const { getByTestId, queryByTestId } = mount();
+    await waitFor(() => expect(getByTestId('edit-ht-1')).toBeDefined());
+    fireEvent.click(getByTestId('edit-ht-1'));
     await waitFor(() => getByTestId('modal-saved'));
     listHeaderTiersMock.mockResolvedValue([baseTier]);
     fireEvent.click(getByTestId('modal-saved'));

@@ -320,9 +320,9 @@ const FallbackList: Component<FallbackListProps> = (props) => {
             >
               <path d="M6 22h2V8h4L7 2 2 8h4zM19 2h-2v14h-4l5 6 5-6h-4z" />
             </svg>
-            <span class="fallback-list__empty-title">No fallback</span>
+            <span class="fallback-list__empty-title">No fallbacks</span>
             <span class="fallback-list__empty-desc">
-              Add fallback models to guarantee responses at all times
+              Add fallback models to guarantee a response if the provider fails.
             </span>
             <button
               class="btn btn--outline btn--sm fallback-list__add"

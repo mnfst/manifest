@@ -1,59 +1,49 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@solidjs/testing-library';
-import { DisableRoutingModal } from '../../src/pages/RoutingPanels';
+import { RoutingFooter } from '../../src/pages/RoutingPanels';
 
-describe('DisableRoutingModal', () => {
-  it('renders dialog with role and aria-labelledby when open', () => {
-    const { container } = render(() => (
-      <DisableRoutingModal
-        open={true}
-        disabling={() => false}
-        onCancel={vi.fn()}
-        onConfirm={vi.fn()}
-      />
-    ));
-    const dialog = container.querySelector('[role="dialog"]');
-    expect(dialog).not.toBeNull();
-    expect(dialog!.getAttribute('aria-modal')).toBe('true');
-    expect(dialog!.getAttribute('aria-labelledby')).toBe('disable-routing-modal-title');
-    expect(container.querySelector('#disable-routing-modal-title')).not.toBeNull();
-  });
-
-  it('does not render when closed', () => {
-    const { container } = render(() => (
-      <DisableRoutingModal
-        open={false}
-        disabling={() => false}
-        onCancel={vi.fn()}
-        onConfirm={vi.fn()}
-      />
-    ));
-    expect(container.querySelector('[role="dialog"]')).toBeNull();
-  });
-
-  it('calls onCancel when Cancel button clicked', () => {
-    const onCancel = vi.fn();
+describe('RoutingFooter', () => {
+  it('renders setup instructions but no Disable routing button', () => {
+    const onResetAll = vi.fn();
+    const onShowInstructions = vi.fn();
     render(() => (
-      <DisableRoutingModal
-        open={true}
-        disabling={() => false}
-        onCancel={onCancel}
-        onConfirm={vi.fn()}
+      <RoutingFooter
+        hasOverrides={() => false}
+        resettingAll={() => false}
+        resettingTier={() => null}
+        onResetAll={onResetAll}
+        onShowInstructions={onShowInstructions}
       />
     ));
-    fireEvent.click(screen.getByText('Cancel'));
-    expect(onCancel).toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'Setup instructions' })).toBeDefined();
+    expect(screen.queryByRole('button', { name: /disable routing/i })).toBeNull();
   });
 
-  it('shows title text', () => {
+  it('shows the reset-all button when there are overrides', () => {
     render(() => (
-      <DisableRoutingModal
-        open={true}
-        disabling={() => false}
-        onCancel={vi.fn()}
-        onConfirm={vi.fn()}
+      <RoutingFooter
+        hasOverrides={() => true}
+        resettingAll={() => false}
+        resettingTier={() => null}
+        onResetAll={vi.fn()}
+        onShowInstructions={vi.fn()}
       />
     ));
-    expect(screen.getByText('Disable routing?')).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Reset all to auto' })).toBeDefined();
+  });
+
+  it('fires onShowInstructions when the setup link is clicked', () => {
+    const onShowInstructions = vi.fn();
+    render(() => (
+      <RoutingFooter
+        hasOverrides={() => false}
+        resettingAll={() => false}
+        resettingTier={() => null}
+        onResetAll={vi.fn()}
+        onShowInstructions={onShowInstructions}
+      />
+    ));
+    fireEvent.click(screen.getByRole('button', { name: 'Setup instructions' }));
+    expect(onShowInstructions).toHaveBeenCalled();
   });
 });

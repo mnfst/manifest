@@ -144,7 +144,7 @@ describe('MessageTable', () => {
       expect(headers[3]!.textContent).toContain('Message');
       expect(headers[5]!.textContent).toContain('Total Tokens');
       expect(headers[8]!.textContent).toContain('Cache');
-      expect(headers[9]!.textContent).toContain('Duration');
+      expect(headers[9]!.textContent).toContain('Latency');
       expect(headers[10]!.textContent).toContain('Status');
       // Tooltips should be present for token columns
       const tooltips = container.querySelectorAll('[data-testid="info-tooltip"]');
@@ -781,7 +781,7 @@ describe('MessageTable', () => {
       expect(headers[0]!.textContent).toContain('Date');
       expect(headers[1]!.textContent).toContain('Cost');
       expect(headers[2]!.textContent).toContain('Tokens');
-      expect(headers[3]!.textContent).toContain('Duration');
+      expect(headers[3]!.textContent).toContain('Latency');
       expect(headers[4]!.textContent).toContain('Status');
     });
   });

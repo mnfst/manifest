@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Agent } from '../../entities/agent.entity';
 import { UserProvider } from '../../entities/user-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { TierAutoAssignService } from './tier-auto-assign.service';
@@ -19,8 +18,6 @@ export class TierService {
     private readonly providerRepo: Repository<UserProvider>,
     @InjectRepository(TierAssignment)
     private readonly tierRepo: Repository<TierAssignment>,
-    @InjectRepository(Agent)
-    private readonly agentRepo: Repository<Agent>,
     private readonly autoAssign: TierAutoAssignService,
     private readonly routingCache: RoutingCacheService,
     private readonly providerService: ProviderService,
@@ -94,23 +91,6 @@ export class TierService {
     const merged = [...rows, ...created];
     this.routingCache.setTiers(agentId, merged);
     return merged;
-  }
-
-  async isComplexityEnabled(agentId: string): Promise<boolean> {
-    const cached = this.routingCache.getComplexityEnabled(agentId);
-    if (cached !== undefined) return cached;
-    const agent = await this.agentRepo.findOne({
-      where: { id: agentId },
-      select: ['id', 'complexity_routing_enabled'],
-    });
-    const enabled = agent?.complexity_routing_enabled ?? false;
-    this.routingCache.setComplexityEnabled(agentId, enabled);
-    return enabled;
-  }
-
-  async setComplexityEnabled(agentId: string, enabled: boolean): Promise<void> {
-    await this.agentRepo.update({ id: agentId }, { complexity_routing_enabled: enabled });
-    this.routingCache.invalidateAgent(agentId);
   }
 
   async setOverride(

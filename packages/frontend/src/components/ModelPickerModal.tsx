@@ -19,6 +19,7 @@ interface Props {
   connectedProviders?: RoutingProvider[];
   onSelect: (tierId: string, modelName: string, providerId: string, authType?: AuthType) => void;
   onClose: () => void;
+  onConnectProviders?: () => void;
 }
 
 /** Resolve a display label for a model name, handling vendor-prefixed IDs. */
@@ -442,6 +443,15 @@ const ModelPickerModal: Component<Props> = (props) => {
                   : isSub()
                     ? 'No subscription providers connected. Connect a provider to see models.'
                     : 'No API key providers connected. Connect a provider to see models.'}
+              <Show when={!search().trim() && !showFreeOnly() && props.onConnectProviders}>
+                <button
+                  class="btn btn--primary btn--sm"
+                  style="margin-top: 12px;"
+                  onClick={() => props.onConnectProviders?.()}
+                >
+                  Connect providers
+                </button>
+              </Show>
             </div>
           </Show>
         </div>
