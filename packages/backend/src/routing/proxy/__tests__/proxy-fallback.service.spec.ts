@@ -446,6 +446,7 @@ describe('ProxyFallbackService', () => {
       );
 
       expect(result.success).not.toBeNull();
+      expect(result.success!.authType).toBe('api_key');
       // getAuthType should have been called with the exclusion set
       expect(providerKeyService.getAuthType).toHaveBeenCalledWith(
         'agent-1',

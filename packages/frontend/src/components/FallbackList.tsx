@@ -3,6 +3,7 @@ import {
   clearFallbacks,
   setFallbacks,
   type AvailableModel,
+  type AuthType,
   type CustomProviderData,
   type RoutingProvider,
 } from '../services/api.js';
@@ -21,6 +22,8 @@ interface FallbackListProps {
   models: AvailableModel[];
   customProviders: CustomProviderData[];
   connectedProviders: RoutingProvider[];
+  primaryModel?: string | null;
+  primaryAuthType?: AuthType | null;
   onUpdate: (updatedFallbacks: string[]) => void;
   onAddFallback: () => void;
   adding?: boolean;
@@ -38,8 +41,19 @@ const FallbackList: Component<FallbackListProps> = (props) => {
   const [dropSlot, setDropSlot] = createSignal<number | null>(null);
   let listRef: HTMLDivElement | undefined;
 
+  const modelInfoFor = (model: string): AvailableModel | undefined => {
+    const matches = props.models.filter((m) => m.model_name === model);
+    if (props.primaryModel === model && props.primaryAuthType) {
+      const alternateAuth = matches.find(
+        (m) => m.auth_type && m.auth_type !== props.primaryAuthType,
+      );
+      if (alternateAuth) return alternateAuth;
+    }
+    return matches[0];
+  };
+
   const modelLabel = (model: string): string => {
-    const info = props.models.find((m) => m.model_name === model);
+    const info = modelInfoFor(model);
     if (info?.display_name) return info.display_name;
     if (info) {
       const provId = resolveProviderId(info.provider);
@@ -49,12 +63,14 @@ const FallbackList: Component<FallbackListProps> = (props) => {
   };
 
   const providerIdFor = (model: string): string | undefined => {
-    const info = props.models.find((m) => m.model_name === model);
+    const info = modelInfoFor(model);
     if (info) return resolveProviderId(info.provider);
     return undefined;
   };
 
-  const authTypeFor = (providerId: string | undefined): string | null => {
+  const authTypeFor = (model: string, providerId: string | undefined): AuthType | null => {
+    const info = modelInfoFor(model);
+    if (info?.auth_type) return info.auth_type;
     if (!providerId) return null;
     const provs = props.connectedProviders.filter(
       (p) => p.provider.toLowerCase() === providerId.toLowerCase(),
@@ -202,7 +218,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
             {(model, i) => {
               const provId = () => providerIdFor(model);
               const isCustom = () => provId()?.startsWith('custom:');
-              const auth = () => authTypeFor(provId());
+              const auth = () => authTypeFor(model, provId());
               const title = () => providerTitle(provId(), auth());
               return (
                 <>

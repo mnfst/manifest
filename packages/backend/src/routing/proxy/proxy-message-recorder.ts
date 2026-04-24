@@ -231,7 +231,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
           routing_reason: reason ?? null,
           fallback_from_model: primaryModel,
           fallback_index: f.fallbackIndex,
-          auth_type: authType ?? null,
+          auth_type: f.authType ?? authType ?? null,
           caller_attribution: callerAttribution ?? null,
           request_headers: requestHeaders ?? null,
           header_tier_id: headerTierId ?? null,

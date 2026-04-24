@@ -266,6 +266,8 @@ const HeaderTierCard: Component<Props> = (props) => {
             models={props.models}
             customProviders={props.customProviders}
             connectedProviders={props.connectedProviders}
+            primaryModel={currentModel()}
+            primaryAuthType={props.tier.override_auth_type}
             onUpdate={(updated) => props.onFallbacksUpdate(updated)}
             onAddFallback={() => setPickerMode('fallback')}
             persistFallbacks={(_agent, tierId, models) =>

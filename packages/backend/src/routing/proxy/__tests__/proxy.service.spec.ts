@@ -2177,6 +2177,7 @@ describe('ProxyService', () => {
         model: 'model-a',
         provider: 'ProvA',
         fallbackIndex: 0,
+        authType: 'api_key',
         status: 429,
         errorBody: 'rate limited',
       });
@@ -2541,6 +2542,8 @@ describe('ProxyService', () => {
       expect(result.meta.fallbackFromModel).toBe('claude-sonnet-4');
       expect(result.meta.model).toBe('gpt-4o');
       expect(result.meta.provider).toBe('OpenAI');
+      expect(result.meta.auth_type).toBe('api_key');
+      expect(result.meta.primaryAuthType).toBe('subscription');
       // Primary forwarded with subscription auth_type
       expect(providerClient.forward).toHaveBeenNthCalledWith(
         1,
@@ -2825,6 +2828,7 @@ describe('ProxyService', () => {
         model: 'deepseek-chat',
         provider: 'DeepSeek',
         fallbackIndex: 0,
+        authType: 'api_key',
         status: 504,
         errorBody: 'gateway timeout',
       });

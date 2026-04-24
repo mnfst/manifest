@@ -400,6 +400,8 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
               models={props.models()}
               customProviders={props.customProviders()}
               connectedProviders={props.activeProviders()}
+              primaryModel={eff()}
+              primaryAuthType={props.tier()?.override_auth_type ?? null}
               onUpdate={(updatedFallbacks) =>
                 props.onFallbackUpdate(props.stage.id, updatedFallbacks)
               }

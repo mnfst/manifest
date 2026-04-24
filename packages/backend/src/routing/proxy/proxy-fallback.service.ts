@@ -32,6 +32,7 @@ export interface FailedFallback {
   model: string;
   provider: string;
   fallbackIndex: number;
+  authType?: 'api_key' | 'subscription';
   status: number;
   errorBody: string;
 }
@@ -69,6 +70,7 @@ export class ProxyFallbackService {
       forward: ForwardResult;
       model: string;
       provider: string;
+      authType: 'api_key' | 'subscription';
       fallbackIndex: number;
     } | null;
     failures: FailedFallback[];
@@ -151,7 +153,7 @@ export class ProxyFallbackService {
       });
 
       if (forward.response.ok) {
-        return { success: { forward, model, provider, fallbackIndex: i }, failures };
+        return { success: { forward, model, provider, authType, fallbackIndex: i }, failures };
       }
 
       const errorBody = await forward.response.text();
@@ -159,6 +161,7 @@ export class ProxyFallbackService {
         model,
         provider,
         fallbackIndex: i,
+        authType,
         status: forward.response.status,
         errorBody,
       });

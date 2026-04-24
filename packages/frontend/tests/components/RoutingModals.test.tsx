@@ -188,4 +188,74 @@ describe("RoutingModals", () => {
     const modalButtons = document.querySelectorAll<HTMLButtonElement>(".routing-modal__model");
     expect(modalButtons.length).toBe(0);
   });
+
+  it("allows an API-key model as a fallback when the same model is the subscription primary", () => {
+    const tier = {
+      ...baseTiers[0],
+      override_model: "gpt-5.4-mini",
+      override_provider: "openai",
+      override_auth_type: "subscription" as const,
+      auto_assigned_model: null,
+    };
+    const models: AvailableModel[] = [
+      {
+        model_name: "gpt-5.4-mini",
+        provider: "OpenAI",
+        display_name: "GPT-5.4 Mini Subscription",
+        input_price_per_token: 0,
+        output_price_per_token: 0,
+        context_window: 128000,
+        capability_reasoning: true,
+        capability_code: true,
+        quality_score: 92,
+        auth_type: "subscription",
+      },
+      {
+        model_name: "gpt-5.4-mini",
+        provider: "OpenAI",
+        display_name: "GPT-5.4 Mini API Key",
+        input_price_per_token: 0.0000001,
+        output_price_per_token: 0.0000004,
+        context_window: 128000,
+        capability_reasoning: true,
+        capability_code: true,
+        quality_score: 92,
+        auth_type: "api_key",
+      },
+    ];
+    const providers: RoutingProvider[] = [
+      {
+        id: "p1",
+        provider: "openai",
+        auth_type: "subscription",
+        is_active: true,
+        has_api_key: false,
+        connected_at: "2025-01-01",
+      },
+      {
+        id: "p2",
+        provider: "openai",
+        auth_type: "api_key",
+        is_active: true,
+        has_api_key: true,
+        connected_at: "2025-01-01",
+      },
+    ];
+    const [fallbackPickerTier] = createSignal<string | null>("simple");
+
+    render(() => (
+      <RoutingModals
+        {...defaultProps()}
+        fallbackPickerTier={fallbackPickerTier}
+        models={() => models}
+        tiers={() => [tier]}
+        connectedProviders={() => providers}
+        getTier={(tierId: string) => (tierId === "simple" ? tier : undefined)}
+      />
+    ));
+
+    expect(screen.queryByText("GPT-5.4 Mini Subscription")).toBeNull();
+    fireEvent.click(screen.getByText("API Keys"));
+    expect(screen.getByText("GPT-5.4 Mini API Key")).toBeDefined();
+  });
 });

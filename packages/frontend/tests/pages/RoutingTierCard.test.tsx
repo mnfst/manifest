@@ -301,6 +301,19 @@ describe('RoutingTierCard', () => {
     expect(capturedFallbackListProps.persistClearFallbacks).toBe(clearFn);
   });
 
+  it('passes primary model auth context through to FallbackList', () => {
+    const tier = {
+      ...baseTier,
+      override_model: 'gpt-5.4-mini',
+      override_auth_type: 'subscription',
+    };
+
+    render(() => <RoutingTierCard {...baseProps} tier={() => tier as any} />);
+
+    expect(capturedFallbackListProps.primaryModel).toBe('gpt-5.4-mini');
+    expect(capturedFallbackListProps.primaryAuthType).toBe('subscription');
+  });
+
   it('handlePrimaryDropAtSlot swaps primary with first fallback', async () => {
     const onOverride = vi.fn();
     const onFallbackUpdate = vi.fn();

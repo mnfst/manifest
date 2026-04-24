@@ -84,6 +84,31 @@ describe("FallbackList", () => {
     expect(modelLabels.length).toBe(2);
   });
 
+  it("uses the alternate auth model metadata when fallback matches the subscription primary", () => {
+    const duplicateAuthModels = [
+      { model_name: "gpt-5.4-mini", provider: "OpenAI", auth_type: "subscription" },
+      { model_name: "gpt-5.4-mini", provider: "OpenAI", auth_type: "api_key" },
+    ] as any[];
+
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={["gpt-5.4-mini"]}
+        models={duplicateAuthModels}
+        connectedProviders={[
+          { provider: "openai", auth_type: "subscription", is_active: true },
+          { provider: "openai", auth_type: "api_key", is_active: true },
+        ] as any[]}
+        primaryModel="gpt-5.4-mini"
+        primaryAuthType="subscription"
+      />
+    ));
+
+    expect(container.querySelector(".fallback-list__icon")?.getAttribute("title")).toBe(
+      "OpenAI (API Key)",
+    );
+  });
+
   it("calls onAddFallback when add button in empty state clicked", () => {
     const onAddFallback = vi.fn();
     const { container } = render(() => (

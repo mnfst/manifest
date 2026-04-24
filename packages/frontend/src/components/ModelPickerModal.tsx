@@ -159,11 +159,14 @@ const ModelPickerModal: Component<Props> = (props) => {
   };
 
   /** Returns the role of a model in the current tier: "Primary", "Fallback 1", etc. or null */
-  const modelRole = (modelName: string): string | null => {
+  const modelRole = (modelName: string, authType?: AuthType): string | null => {
     const t = props.tiers.find((r) => r.tier === props.tierId);
     if (!t) return null;
     const primary = t.override_model ?? t.auto_assigned_model;
-    if (primary === modelName) return 'Primary';
+    const primaryAuthType = t.override_auth_type;
+    if (primary === modelName && (!primaryAuthType || !authType || authType === primaryAuthType)) {
+      return 'Primary';
+    }
     const fb = t.fallback_models ?? [];
     const fbIndex = fb.indexOf(modelName);
     if (fbIndex !== -1) return `Fallback ${fbIndex + 1}`;
@@ -406,7 +409,7 @@ const ModelPickerModal: Component<Props> = (props) => {
                         <Show when={isRecommended(model.value)}>
                           <span class="routing-modal__recommended"> (recommended)</span>
                         </Show>
-                        <Show when={modelRole(model.value)}>
+                        <Show when={modelRole(model.value, model.pricing.auth_type)}>
                           {(role) => <span class="routing-modal__role-tag">{role()}</span>}
                         </Show>
                       </span>

@@ -99,13 +99,14 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => (
           const t = props.getTier(tierId());
           return t ? (t.override_model ?? t.auto_assigned_model) : null;
         };
+        const effectiveAuthType = () => props.getTier(tierId())?.override_auth_type ?? null;
+        const isCurrentPrimary = (model: AvailableModel) =>
+          model.model_name === effectiveModel() &&
+          (!effectiveAuthType() || !model.auth_type || model.auth_type === effectiveAuthType());
         const filteredModels = () =>
           props
             .models()
-            .filter(
-              (m) =>
-                m.model_name !== effectiveModel() && !currentFallbacks().includes(m.model_name),
-            );
+            .filter((m) => !isCurrentPrimary(m) && !currentFallbacks().includes(m.model_name));
         return (
           <ModelPickerModal
             tierId={tierId()}

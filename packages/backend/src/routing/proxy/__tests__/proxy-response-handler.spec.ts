@@ -387,6 +387,8 @@ describe('proxy-response-handler', () => {
         fallbackFromModel: 'claude-sonnet-4',
         primaryErrorStatus: 503,
         primaryProvider: 'anthropic',
+        auth_type: 'api_key',
+        primaryAuthType: 'subscription',
       });
 
       recordFallbackFailures(testCtx, meta, undefined, recorder as any);
@@ -397,7 +399,7 @@ describe('proxy-response-handler', () => {
         'claude-sonnet-4',
         'Provider returned HTTP 503',
         expect.any(String),
-        undefined,
+        'subscription',
         { provider: 'anthropic', reason: 'auto', callerAttribution: undefined },
       );
     });
@@ -958,7 +960,11 @@ describe('proxy-response-handler', () => {
   describe('recordSuccess', () => {
     it('should record fallback success when fallbackFromModel is set with timestamp', () => {
       const recorder = mockRecorder();
-      const meta = makeMeta({ fallbackFromModel: 'gpt-4o', fallbackIndex: 1 });
+      const meta = makeMeta({
+        fallbackFromModel: 'gpt-4o',
+        fallbackIndex: 1,
+        auth_type: 'api_key',
+      });
       const usage: StreamUsage = { prompt_tokens: 100, completion_tokens: 50 };
 
       recordSuccess(
@@ -977,7 +983,7 @@ describe('proxy-response-handler', () => {
         fallbackFromModel: 'gpt-4o',
         fallbackIndex: 1,
         timestamp: '2025-01-01T00:00:00Z',
-        authType: undefined,
+        authType: 'api_key',
         reason: 'auto',
         usage,
       });

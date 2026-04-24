@@ -59,6 +59,7 @@ export interface RoutingMeta {
    * failure row to the correct vendor.
    */
   primaryProvider?: string;
+  primaryAuthType?: string;
 }
 
 export interface ProxyResult {
@@ -303,11 +304,13 @@ export class ProxyService {
         forward: success.forward,
         meta: this.buildBaseMeta(resolved, success.model, {
           provider: success.provider,
+          auth_type: success.authType,
           fallbackFromModel: primaryModel,
           fallbackIndex: success.fallbackIndex,
           primaryErrorStatus: primaryStatus,
           primaryErrorBody,
           primaryProvider: resolved.provider ?? undefined,
+          primaryAuthType: resolved.auth_type,
         }),
         failedFallbacks: failures,
       };

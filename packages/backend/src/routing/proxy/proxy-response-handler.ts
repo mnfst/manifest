@@ -207,7 +207,7 @@ export function recordFallbackFailures(
       meta.fallbackFromModel,
       meta.primaryErrorBody ?? `Provider returned HTTP ${meta.primaryErrorStatus ?? 500}`,
       new Date(fallbackBaseTime).toISOString(),
-      meta.auth_type,
+      meta.primaryAuthType ?? meta.auth_type,
       {
         // Use the primary provider explicitly — meta.provider holds the
         // succeeding fallback's provider in this flow, not the primary's.
