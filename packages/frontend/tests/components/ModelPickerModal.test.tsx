@@ -63,6 +63,13 @@ describe("ModelPickerModal", () => {
     expect(screen.getByText("Simple tier")).toBeDefined();
   });
 
+  it("shows Default tier subtitle for the default stage", () => {
+    render(() => (
+      <ModelPickerModal tierId="default" models={baseModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
+    ));
+    expect(screen.getByText("Default tier")).toBeDefined();
+  });
+
   it("renders model groups", () => {
     render(() => (
       <ModelPickerModal tierId="simple" models={baseModels} tiers={baseTiers} onSelect={onSelect} onClose={onClose} />
