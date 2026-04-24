@@ -58,12 +58,12 @@ const ModelPickerModal: Component<Props> = (props) => {
   // connected the default is 'api_key' — matches the pre-local behavior so
   // existing snapshots / tests that assume the free-models pill is visible
   // (only shown for api_key) don't start failing.
-  const initialTab: AuthType = hasSubscription()
-    ? 'subscription'
-    : hasLocal() && !hasApiKey()
-      ? 'local'
-      : 'api_key';
-  const [activeTab, setActiveTab] = createSignal<AuthType>(initialTab);
+  const resolveInitialTab = (): AuthType => {
+    if (hasSubscription()) return 'subscription';
+    if (hasLocal() && !hasApiKey()) return 'local';
+    return 'api_key';
+  };
+  const [activeTab, setActiveTab] = createSignal<AuthType>(resolveInitialTab());
   const [search, setSearch] = createSignal('');
   const [showFreeOnly, setShowFreeOnly] = createSignal(false);
 

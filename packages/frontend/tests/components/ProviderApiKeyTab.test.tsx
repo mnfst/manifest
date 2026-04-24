@@ -23,7 +23,6 @@ const baseProps = {
   onOpenDetail: vi.fn(),
   onOpenCustomForm: vi.fn(),
   onEditCustom: vi.fn(),
-  onOpenLocalServer: vi.fn(),
 };
 
 describe('ProviderApiKeyTab', () => {
@@ -37,7 +36,6 @@ describe('ProviderApiKeyTab', () => {
         onOpenDetail={vi.fn()}
         onOpenCustomForm={vi.fn()}
         onEditCustom={vi.fn()}
-        onOpenLocalServer={vi.fn()}
       />
     ));
     await flushMicrotasks();
@@ -69,7 +67,6 @@ describe('ProviderApiKeyTab', () => {
         onOpenDetail={vi.fn()}
         onOpenCustomForm={vi.fn()}
         onEditCustom={onEditCustom}
-        onOpenLocalServer={vi.fn()}
       />
     ));
     await flushMicrotasks();
@@ -95,7 +92,6 @@ describe('ProviderApiKeyTab', () => {
         onOpenDetail={vi.fn()}
         onOpenCustomForm={vi.fn()}
         onEditCustom={vi.fn()}
-        onOpenLocalServer={vi.fn()}
       />
     ));
     await flushMicrotasks();
@@ -119,7 +115,6 @@ describe('ProviderApiKeyTab', () => {
         onOpenDetail={vi.fn()}
         onOpenCustomForm={vi.fn()}
         onEditCustom={vi.fn()}
-        onOpenLocalServer={vi.fn()}
       />
     ));
     await flushMicrotasks();
@@ -149,7 +144,6 @@ describe('ProviderApiKeyTab', () => {
         onOpenDetail={vi.fn()}
         onOpenCustomForm={vi.fn()}
         onEditCustom={vi.fn()}
-        onOpenLocalServer={vi.fn()}
       />
     ));
     await flushMicrotasks();
@@ -173,7 +167,6 @@ describe('ProviderApiKeyTab', () => {
         onOpenDetail={vi.fn()}
         onOpenCustomForm={vi.fn()}
         onEditCustom={vi.fn()}
-        onOpenLocalServer={vi.fn()}
       />
     ));
     await flushMicrotasks();
@@ -192,7 +185,6 @@ describe('ProviderApiKeyTab', () => {
         onOpenDetail={vi.fn()}
         onOpenCustomForm={onOpenCustomForm}
         onEditCustom={vi.fn()}
-        onOpenLocalServer={vi.fn()}
       />
     ));
     await flushMicrotasks();
@@ -212,7 +204,6 @@ describe('ProviderApiKeyTab', () => {
         onOpenDetail={onOpenDetail}
         onOpenCustomForm={vi.fn()}
         onEditCustom={vi.fn()}
-        onOpenLocalServer={vi.fn()}
       />
     ));
     await flushMicrotasks();

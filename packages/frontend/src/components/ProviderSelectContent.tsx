@@ -402,7 +402,6 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
               onOpenDetail={openDetail}
               onOpenCustomForm={openCustomForm}
               onEditCustom={openEditCustom}
-              onOpenLocalServer={openLocalServer}
             />
           </Show>
 

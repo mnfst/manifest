@@ -134,6 +134,80 @@ describe("ProviderSelectContent", () => {
     expect(subTab.getAttribute("aria-selected")).toBe("true");
   });
 
+  it("disconnects a local provider when the toggle is clicked while ON", async () => {
+    const api = await import("../../src/services/api.js");
+    const disconnect = api.disconnectProvider as unknown as ReturnType<typeof vi.fn>;
+    disconnect.mockResolvedValueOnce({ notifications: ["cleared 2 overrides"] });
+    const onUpdateLocal = vi.fn();
+    const { container } = render(() => (
+      <ProviderSelectContent
+        agentName="test-agent"
+        providers={[
+          {
+            id: "prov-1",
+            provider: "ollama",
+            auth_type: "local",
+            is_active: true,
+            has_api_key: false,
+            connected_at: "2025-01-01",
+          },
+        ]}
+        onUpdate={onUpdateLocal}
+      />
+    ));
+    await waitFor(() => screen.getByText("Local"));
+    fireEvent.click(screen.getByText("Local"));
+    const ollamaTile = await waitFor(() => {
+      const tiles = Array.from(
+        container.querySelectorAll<HTMLButtonElement>("button.provider-toggle"),
+      );
+      const t = tiles.find((el) => el.textContent?.includes("Ollama"));
+      if (!t) throw new Error("Ollama tile not found");
+      return t;
+    });
+    // Toggle should be ON since the provider is connected with auth_type='local'
+    expect(ollamaTile.querySelector(".provider-toggle__switch--on")).not.toBeNull();
+    fireEvent.click(ollamaTile);
+    await waitFor(() => expect(disconnect).toHaveBeenCalledWith("test-agent", "ollama", "local"));
+    await waitFor(() => expect(onUpdateLocal).toHaveBeenCalled());
+  });
+
+  it("surfaces disconnect API errors via toast without onUpdate", async () => {
+    const api = await import("../../src/services/api.js");
+    const disconnect = api.disconnectProvider as unknown as ReturnType<typeof vi.fn>;
+    disconnect.mockRejectedValueOnce(new Error("boom"));
+    const onUpdateLocal = vi.fn();
+    const { container } = render(() => (
+      <ProviderSelectContent
+        agentName="test-agent"
+        providers={[
+          {
+            id: "prov-1",
+            provider: "ollama",
+            auth_type: "local",
+            is_active: true,
+            has_api_key: false,
+            connected_at: "2025-01-01",
+          },
+        ]}
+        onUpdate={onUpdateLocal}
+      />
+    ));
+    await waitFor(() => screen.getByText("Local"));
+    fireEvent.click(screen.getByText("Local"));
+    const ollamaTile = await waitFor(() => {
+      const tiles = Array.from(
+        container.querySelectorAll<HTMLButtonElement>("button.provider-toggle"),
+      );
+      const t = tiles.find((el) => el.textContent?.includes("Ollama"));
+      if (!t) throw new Error("Ollama tile not found");
+      return t;
+    });
+    fireEvent.click(ollamaTile);
+    await waitFor(() => expect(disconnect).toHaveBeenCalled());
+    expect(onUpdateLocal).not.toHaveBeenCalled();
+  });
+
   it("shows Z.ai GLM Coding Plan in the subscription tab", () => {
     render(() => (
       <ProviderSelectContent

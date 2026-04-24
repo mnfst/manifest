@@ -30,12 +30,6 @@ interface Props {
   onOpenDetail: (provId: string, authType: AuthType) => void;
   onOpenCustomForm: (prefill?: CustomProviderPrefill) => void;
   onEditCustom: (cp: CustomProviderData) => void;
-  /**
-   * Tile click for local server providers (LM Studio today) that have a
-   * `defaultLocalPort` — opens the auto-probing detail view instead of
-   * the generic custom-provider form.
-   */
-  onOpenLocalServer: (prov: ProviderDef) => void;
 }
 
 const ProviderApiKeyTab: Component<Props> = (props) => {
@@ -90,15 +84,11 @@ const ProviderApiKeyTab: Component<Props> = (props) => {
 
             const prov = item.prov;
             const connected = () => props.isConnected(prov.id) || props.isNoKeyConnected(prov.id);
-            const hasLocalPort = () => prov.defaultLocalPort !== undefined;
 
-            const handleClick = () => {
-              if (hasLocalPort()) {
-                props.onOpenLocalServer(prov);
-                return;
-              }
-              props.onOpenDetail(prov.id, 'api_key');
-            };
+            // localOnly tiles live under the Local tab now — the parent
+            // (ProviderSelectContent) filters them out of `apiKeyProviders`,
+            // so every standard tile here is an API-key provider.
+            const handleClick = () => props.onOpenDetail(prov.id, 'api_key');
 
             return (
               <button class="provider-toggle" onClick={handleClick}>
