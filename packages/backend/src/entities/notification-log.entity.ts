@@ -1,5 +1,6 @@
 import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
 import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
+import { numericTransformer } from '../common/utils/numeric-transformer';
 
 @Entity('notification_logs')
 @Index(['rule_id', 'period_start'], { unique: true })
@@ -16,10 +17,10 @@ export class NotificationLog {
   @Column(timestampType())
   period_end!: string;
 
-  @Column('decimal', { precision: 15, scale: 6 })
+  @Column('decimal', { precision: 15, scale: 6, transformer: numericTransformer })
   actual_value!: number;
 
-  @Column('decimal', { precision: 15, scale: 6 })
+  @Column('decimal', { precision: 15, scale: 6, transformer: numericTransformer })
   threshold_value!: number;
 
   @Column('varchar')

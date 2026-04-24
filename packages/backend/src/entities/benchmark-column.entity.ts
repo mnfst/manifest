@@ -1,5 +1,6 @@
 import { Entity, Column, PrimaryColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
+import { numericTransformer } from '../common/utils/numeric-transformer';
 import { BenchmarkRun } from './benchmark-run.entity';
 
 @Entity('benchmark_columns')
@@ -45,7 +46,7 @@ export class BenchmarkColumn {
   @Column('integer', { nullable: true })
   output_tokens!: number | null;
 
-  @Column('decimal', { precision: 10, scale: 6, nullable: true })
+  @Column('decimal', { precision: 10, scale: 6, nullable: true, transformer: numericTransformer })
   cost_usd!: number | null;
 
   @Column('integer', { nullable: true })

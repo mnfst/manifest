@@ -7,7 +7,7 @@ import {
   Show,
   type Component,
 } from 'solid-js';
-import { useParams } from '@solidjs/router';
+import { useParams, useSearchParams } from '@solidjs/router';
 import { Meta, Title } from '@solidjs/meta';
 import type { AuthType, BenchmarkHistoryRunSummary } from '../services/api.js';
 import {
@@ -21,6 +21,7 @@ import {
 } from '../services/api.js';
 import { extractRecordedAssistantText } from '../services/recording-extract.js';
 import { inferProviderFromModel } from '../services/routing-utils.js';
+import { coerceContentToText } from '../components/recorded-message-helpers.js';
 import { createBenchmarkStore, MAX_COLUMNS } from '../services/benchmark-store.js';
 import { toast } from '../services/toast-store.js';
 import BenchmarkColumn from '../components/benchmark/BenchmarkColumn.jsx';
@@ -31,6 +32,7 @@ import BenchmarkEmptyState from '../components/benchmark/BenchmarkEmptyState.jsx
 import BenchmarkHistoryDrawer from '../components/benchmark/BenchmarkHistoryDrawer.jsx';
 import RequestHeadersPopover, {
   blankEntry,
+  isBlockedHeaderKey,
   toHeaderRecord,
   type HeaderEntry,
 } from '../components/benchmark/RequestHeadersPopover.jsx';
@@ -46,6 +48,7 @@ import {
 
 const Benchmark: Component = () => {
   const params = useParams<{ agentName: string }>();
+  const [searchParams, setSearchParams] = useSearchParams<{ optimize?: string }>();
   const agentName = () => decodeURIComponent(params.agentName);
 
   const [available] = createResource(agentName, getAvailableModels);
@@ -183,15 +186,21 @@ const Benchmark: Component = () => {
         ? (recReq['messages'] as Array<{ role?: unknown; content?: unknown }>)
         : [];
       const lastUser = [...messagesArr].reverse().find((m) => m && m.role === 'user');
-      const promptText =
-        typeof lastUser?.content === 'string'
-          ? lastUser.content
-          : JSON.stringify(lastUser?.content ?? '').slice(0, 500);
+      // OpenClaw-style traffic sends content as an array of {type,text} parts.
+      // Flatten it so the replay banner shows a readable prompt, not the raw JSON.
+      const promptText = coerceContentToText(lastUser?.content).slice(0, 500);
       const modelName =
         detail.message.model ??
         (typeof recReq['model'] === 'string' ? (recReq['model'] as string) : 'unknown');
       const displayName = findDisplayName(available() ?? [], modelName);
-      const providerGuess = inferProviderFromModel(modelName) ?? 'unknown';
+      // Trust the recorded backend provider first — aggregators (ollama-cloud,
+      // openrouter) serve brand-named models (glm-*, qwen-*) that would
+      // otherwise infer the wrong logo + comparison label. Fall back to
+      // name-based inference only when the recording has no provider column.
+      const providerGuess =
+        detail.message.provider && detail.message.provider.trim() !== ''
+          ? detail.message.provider
+          : (inferProviderFromModel(modelName) ?? 'unknown');
       store.loadRecording(
         {
           messageId,
@@ -208,7 +217,7 @@ const Benchmark: Component = () => {
           status: 'success',
           response: extractRecordedAssistantText(detail.recording.response_body),
           metrics: {
-            cost: detail.message.cost_usd,
+            cost: detail.message.cost_usd ?? 0,
             inputTokens: detail.message.input_tokens,
             outputTokens: detail.message.output_tokens,
             durationMs: detail.message.duration_ms ?? 0,
@@ -216,11 +225,36 @@ const Benchmark: Component = () => {
           headers: detail.recording.response_headers ?? undefined,
         },
       );
+      // Pre-fill the benchmark's Request-headers popover with the original
+      // request headers so each replay call carries the same client context
+      // (user-agent, x-request-id, app hints) as the recording. Manifest-
+      // managed headers (auth, content-type, x-manifest-*) are dropped — the
+      // popover rejects them anyway and each provider gets its own auth.
+      const recHeaders = detail.message.request_headers ?? {};
+      const preloaded: HeaderEntry[] = Object.entries(recHeaders)
+        .filter(([k, v]) => k && v && !isBlockedHeaderKey(k))
+        .slice(0, 20)
+        .map(([key, value]) => ({ ...blankEntry(), key, value: String(value) }));
+      if (preloaded.length > 0) {
+        updateHeaders(preloaded);
+      }
       setReplayPickerOpen(false);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to load recording');
     }
   };
+
+  // Deep-link: the "Optimize" button on a recorded message opens Benchmark with
+  // ?optimize=<messageId>. Auto-pin the recording and clear the query param so
+  // refreshing the page doesn't re-trigger it.
+  const [optimizeHandled, setOptimizeHandled] = createSignal(false);
+  createEffect(() => {
+    const id = searchParams.optimize;
+    if (!id || optimizeHandled()) return;
+    setOptimizeHandled(true);
+    void handlePickRecording(id);
+    setSearchParams({ optimize: undefined }, { replace: true });
+  });
 
   const hasConnectedProviders = () => (providers() ?? []).some((p) => p.is_active);
   const winners = () => findWinners(store.columns);

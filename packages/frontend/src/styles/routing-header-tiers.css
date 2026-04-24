@@ -1,0 +1,529 @@
+/* Custom header-triggered routing tiers — section + card + create modal.
+   Reuses the shared .routing-card / .modal-overlay / .modal-card / .btn
+   classes from routing.css and modals.css; only adds the bits unique to
+   header tiers (ordinal, colored dot, rule chip, kebab menu, swatches). */
+
+/* ── Section CTA ─────────────────────────────────── */
+
+/* Section header row: title block + CTA, mirrors specificity layout. */
+.routing-section__header--header-tiers {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-md);
+}
+
+.routing-section__header--header-tiers > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* CTA matches the .btn .btn--outline shape so it lines up with other
+   "+ Add …" buttons across the app. We add a small tweak to keep the
+   leading "+" tight against the label. */
+.routing-section__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+/* ── Empty state ─────────────────────────────────── */
+.routing-section__empty {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 48px 24px;
+  gap: 8px;
+  width: 100%;
+  background: hsl(var(--muted) / 0.45);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.routing-section__empty-title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+.routing-section__empty-desc {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+.routing-section__empty-desc code {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  background: hsl(var(--muted) / 0.6);
+  padding: 1px 4px;
+  border-radius: 3px;
+  color: hsl(var(--foreground));
+}
+
+/* ── Header tier card ────────────────────────────── */
+/* Uses .routing-card + .routing-card__* from routing.css for shape and
+   primary-model rendering. We only add the title-row bits unique to
+   header tiers. min-width:0 keeps long titles from blowing out the
+   1fr grid track and forcing 2-up instead of 4-up. */
+
+.routing-card.routing-card--header-tier {
+  min-width: 0;
+}
+
+.routing-card--header-tier .routing-card__header {
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  margin-bottom: 8px;
+}
+
+/* Left: ordinal + dot + name. Truncates if it can't fit. */
+.header-tier-card__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-tier-card__ordinal {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  color: hsl(var(--foreground));
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.header-tier-card__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.header-tier-card__icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: hsl(var(--muted) / 0.5);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
+}
+.header-tier-card__icon-btn:hover {
+  background: hsl(var(--muted) / 0.8);
+  color: hsl(var(--foreground));
+}
+.header-tier-card__icon-btn:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Right: Reset / + Add model + kebab, all in one inline cluster mirroring
+   the generalist-card "Reset" placement. */
+.header-tier-card__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* Header rule chip (key:value), shown under the title row so the title row
+   can stay tidy in narrow card widths. */
+.header-tier-card__rule {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  background: none;
+  padding: 0;
+  margin-bottom: 8px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  align-self: flex-start;
+}
+
+/* Kebab trigger styled like the generalist card's reset button so the row
+   stays visually balanced. */
+.header-tier-card__kebab {
+  position: relative;
+  display: inline-flex;
+}
+
+.header-tier-card__kebab-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  font-size: 16px;
+  line-height: 1;
+  background: transparent;
+  border: none;
+  color: hsl(var(--muted-foreground));
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-family);
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
+}
+.header-tier-card__kebab-btn:hover {
+  background: hsl(var(--muted) / 0.5);
+  color: hsl(var(--foreground));
+}
+.header-tier-card__kebab-btn:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.header-tier-card__menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  min-width: 140px;
+  background: hsl(var(--popover, var(--card)));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.08);
+  z-index: 20;
+  padding: 4px;
+}
+
+.header-tier-card__menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 6px 10px;
+  font-size: var(--font-size-xs);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  font-family: var(--font-family);
+}
+.header-tier-card__menu-item:hover {
+  background: hsl(var(--muted) / 0.6);
+}
+.header-tier-card__menu-item--danger {
+  color: hsl(var(--destructive));
+}
+
+/* ── Manage custom-tiers modal ────────────────────── */
+.header-tier-manage-modal {
+  max-width: 480px;
+  width: 100%;
+}
+
+.header-tier-manage__create-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.header-tier-manage__footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+/* ── Create custom-tier modal ─────────────────────── */
+/* Uses the shared .modal-overlay + .modal-card pattern. We keep
+   .header-tier-modal-backdrop / .header-tier-modal__close as alias hooks
+   so existing tests and selectors still find them. */
+
+.modal-card.header-tier-modal {
+  max-width: 480px;
+}
+
+.header-tier-modal__back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  color: hsl(var(--muted-foreground));
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+.header-tier-modal__back:hover {
+  background: hsl(var(--muted) / 0.6);
+  color: hsl(var(--foreground));
+}
+
+.header-tier-modal__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+
+.header-tier-modal .modal-card__title {
+  padding-right: 40px;
+}
+
+.header-tier-modal__error {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--destructive));
+  margin-top: 4px;
+}
+
+/* ── Color swatches ───────────────────────────────── */
+.header-tier-modal__swatches {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 6px;
+}
+
+.header-tier-modal__swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid hsl(var(--border));
+  cursor: pointer;
+  padding: 0;
+  background-clip: padding-box;
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+.header-tier-modal__swatch:hover {
+  transform: scale(1.05);
+}
+.header-tier-modal__swatch:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+.header-tier-modal__swatch--active {
+  border-color: hsl(var(--foreground));
+  box-shadow:
+    0 0 0 2px hsl(var(--background)),
+    0 0 0 3px hsl(var(--foreground));
+}
+
+.header-tier-modal__swatch--slate {
+  background: hsl(215 16% 47%);
+}
+.header-tier-modal__swatch--gray {
+  background: hsl(220 9% 46%);
+}
+.header-tier-modal__swatch--zinc {
+  background: hsl(240 4% 46%);
+}
+.header-tier-modal__swatch--stone {
+  background: hsl(25 6% 45%);
+}
+.header-tier-modal__swatch--red {
+  background: hsl(0 72% 51%);
+}
+.header-tier-modal__swatch--orange {
+  background: hsl(25 95% 53%);
+}
+.header-tier-modal__swatch--amber {
+  background: hsl(38 92% 50%);
+}
+.header-tier-modal__swatch--yellow {
+  background: hsl(48 96% 53%);
+}
+.header-tier-modal__swatch--lime {
+  background: hsl(84 81% 44%);
+}
+.header-tier-modal__swatch--green {
+  background: hsl(142 71% 45%);
+}
+.header-tier-modal__swatch--emerald {
+  background: hsl(160 84% 39%);
+}
+.header-tier-modal__swatch--teal {
+  background: hsl(174 66% 42%);
+}
+.header-tier-modal__swatch--cyan {
+  background: hsl(188 86% 43%);
+}
+.header-tier-modal__swatch--sky {
+  background: hsl(199 89% 48%);
+}
+.header-tier-modal__swatch--blue {
+  background: hsl(217 91% 60%);
+}
+.header-tier-modal__swatch--indigo {
+  background: hsl(239 68% 56%);
+}
+.header-tier-modal__swatch--violet {
+  background: hsl(270 67% 55%);
+}
+.header-tier-modal__swatch--purple {
+  background: hsl(271 81% 56%);
+}
+.header-tier-modal__swatch--fuchsia {
+  background: hsl(292 84% 61%);
+}
+.header-tier-modal__swatch--pink {
+  background: hsl(330 81% 60%);
+}
+.header-tier-modal__swatch--rose {
+  background: hsl(351 83% 58%);
+}
+.header-tier-modal__swatch--coral {
+  background: hsl(16 85% 58%);
+}
+.header-tier-modal__swatch--brown {
+  background: hsl(28 56% 40%);
+}
+.header-tier-modal__swatch--navy {
+  background: hsl(224 64% 33%);
+}
+
+/* ── Modal footer (cancel / create) ──────────────── */
+.header-tier-modal__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-top: var(--gap-xl);
+}
+
+.header-tier-modal__footer-right {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.header-tier-modal__delete-btn {
+  color: hsl(var(--muted-foreground));
+  font-size: var(--font-size-sm);
+}
+
+/* ── HeaderComboBox (used inside the modal) ──────── */
+/* Visually identical to .modal-card__input — same height, border,
+   focus ring — but mono-font for the header key/value semantics. */
+
+.header-combo {
+  position: relative;
+}
+
+.header-combo__input {
+  width: 100%;
+  height: 2.25rem;
+  padding: 0 12px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-mono);
+  outline: none;
+  box-sizing: border-box;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.header-combo__input:focus {
+  border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+}
+
+.header-combo__input::placeholder {
+  color: hsl(var(--muted-foreground));
+}
+
+.header-combo__input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: hsl(var(--muted) / 0.3);
+}
+
+.header-combo--invalid .header-combo__input {
+  border-color: hsl(var(--destructive));
+}
+.header-combo--invalid .header-combo__input:focus {
+  box-shadow: 0 0 0 2px hsl(var(--destructive) / 0.2);
+}
+
+.header-combo__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  background: hsl(var(--popover, var(--card)));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.08);
+  list-style: none;
+  padding: 4px 0;
+  margin: 0;
+  z-index: 30;
+}
+
+.header-combo__option {
+  padding: 6px 12px;
+  cursor: pointer;
+  font-family: var(--font-family);
+}
+.header-combo__option--hover,
+.header-combo__option:hover {
+  background: hsl(var(--muted) / 0.6);
+}
+
+.header-combo__option-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.header-combo__option-label {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: hsl(var(--foreground));
+}
+
+.header-combo__option-group {
+  font-size: 10px;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.header-combo__option-sublabel {
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  margin-top: 2px;
+}
+
+.header-combo__option--free {
+  border-top: 1px solid hsl(var(--border));
+  color: hsl(var(--muted-foreground));
+  font-style: italic;
+}
+
+.header-combo__error {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--destructive));
+  margin-top: 4px;
+}

@@ -128,6 +128,12 @@ describe('ST-02: Create agent', () => {
 
     smokeAgentName = res.body.agent.name;
     smokeOtlpKey = res.body.apiKey;
+
+    // New agents default to complexity routing off. The downstream smoke tests
+    // assert tier-based routing (simple/standard/complex/reasoning), so turn it on.
+    await auth(api().post(`/api/v1/routing/${smokeAgentName}/complexity/toggle`))
+      .send({ enabled: true })
+      .expect(201);
   });
 });
 

@@ -13,15 +13,20 @@ import type { RunBenchmarkDto } from './dto/run-benchmark.dto';
 const USER_ID = 'user-1';
 const AGENT = { id: 'agent-1', tenant_id: 'tenant-1', name: 'demo' };
 
+// Minimum required shape — any missing DTO field would be a type error here
+// rather than a silent test-time failure. Extra fields (runId, position,
+// rawRequestBody, requestHeaders) are optional so the `Partial<>` overrides
+// handle them without a cast.
 function makeDto(overrides: Partial<RunBenchmarkDto> = {}): RunBenchmarkDto {
-  return {
-    agentName: 'demo',
-    model: 'openai/gpt-4o',
-    provider: 'openai',
-    authType: 'api_key',
-    messages: [{ role: 'user', content: 'hi' }],
-    ...overrides,
-  } as RunBenchmarkDto;
+  const base: Pick<RunBenchmarkDto, 'agentName' | 'model' | 'provider' | 'authType' | 'messages'> =
+    {
+      agentName: 'demo',
+      model: 'openai/gpt-4o',
+      provider: 'openai',
+      authType: 'api_key',
+      messages: [{ role: 'user', content: 'hi' }],
+    };
+  return { ...base, ...overrides };
 }
 
 function jsonResponse(
@@ -123,6 +128,7 @@ describe('BenchmarkService', () => {
       model: 'openai/gpt-4o',
       input_tokens: 10,
       output_tokens: 5,
+      recorded: false,
     });
     expect(mocks.eventBus.emit).toHaveBeenCalledWith(USER_ID);
   });
@@ -164,6 +170,7 @@ describe('BenchmarkService', () => {
       routing_tier: 'benchmark',
       status: 'error',
       error_http_status: 429,
+      recorded: false,
     });
   });
 

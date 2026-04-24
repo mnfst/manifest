@@ -44,6 +44,7 @@ export class MessagesController {
       status: query.status,
       recorded: query.recorded,
       routing_tier: query.routing_tier,
+      include_benchmark: query.include_benchmark,
     });
   }
 

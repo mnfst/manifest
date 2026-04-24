@@ -1,5 +1,6 @@
 import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
 import { timestampType } from '../common/utils/postgres-sql';
+import { numericTransformer } from '../common/utils/numeric-transformer';
 import type { CallerAttribution } from '../routing/proxy/caller-classifier';
 
 @Entity('agent_messages')
@@ -47,7 +48,7 @@ export class AgentMessage {
   @Column('integer', { default: 0 })
   cache_creation_tokens!: number;
 
-  @Column('decimal', { precision: 10, scale: 6, nullable: true })
+  @Column('decimal', { precision: 10, scale: 6, nullable: true, transformer: numericTransformer })
   cost_usd!: number | null;
 
   @Column('varchar', { default: 'ok' })
@@ -109,6 +110,15 @@ export class AgentMessage {
 
   @Column('simple-json', { nullable: true })
   request_headers!: Record<string, string> | null;
+
+  @Column('varchar', { nullable: true })
+  header_tier_id!: string | null;
+
+  @Column('varchar', { nullable: true })
+  header_tier_name!: string | null;
+
+  @Column('varchar', { nullable: true })
+  header_tier_color!: string | null;
 
   @Column('varchar', { nullable: true })
   feedback_rating!: string | null;

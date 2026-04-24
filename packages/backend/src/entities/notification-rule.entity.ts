@@ -1,5 +1,6 @@
 import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
 import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
+import { numericTransformer } from '../common/utils/numeric-transformer';
 
 @Entity('notification_rules')
 @Index(['tenant_id', 'agent_id'])
@@ -24,7 +25,7 @@ export class NotificationRule {
   @Column('varchar')
   metric_type!: 'tokens' | 'cost';
 
-  @Column('decimal', { precision: 15, scale: 6 })
+  @Column('decimal', { precision: 15, scale: 6, transformer: numericTransformer })
   threshold!: number;
 
   @Column('varchar')

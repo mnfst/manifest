@@ -16,6 +16,40 @@ const MODELS_CACHE_TTL_MS = 60_000;
 const COUNT_CACHE_TTL_MS = 30_000;
 const MAX_CACHE_ENTRIES = 5_000;
 
+/**
+ * Filter params that contribute to the count cache key. `limit` and `cursor`
+ * are deliberately excluded — the count is filter-scoped, not page-scoped.
+ * Keep this in sync with `MessagesQueryFilters`: adding a new filter here
+ * must land on both lists (the type enforces it).
+ */
+export interface MessagesQueryFilters {
+  userId: string;
+  range?: string;
+  provider?: string;
+  service_type?: string;
+  agent_name?: string;
+  cost_min?: number;
+  cost_max?: number;
+  status?: MessageStatusFilter;
+  recorded?: boolean;
+  routing_tier?: string;
+  include_benchmark?: boolean;
+}
+
+const COUNT_CACHE_KEY_FIELDS: ReadonlyArray<keyof MessagesQueryFilters> = [
+  'userId',
+  'range',
+  'provider',
+  'service_type',
+  'agent_name',
+  'cost_min',
+  'cost_max',
+  'status',
+  'recorded',
+  'routing_tier',
+  'include_benchmark',
+];
+
 @Injectable()
 export class MessagesQueryService {
   private readonly modelsCache = new TtlCache<string, { models: string[]; providers: string[] }>({
@@ -33,20 +67,7 @@ export class MessagesQueryService {
     private readonly tenantCache: TenantCacheService,
   ) {}
 
-  async getMessages(params: {
-    range?: string;
-    userId: string;
-    provider?: string;
-    service_type?: string;
-    cost_min?: number;
-    cost_max?: number;
-    limit: number;
-    cursor?: string;
-    agent_name?: string;
-    status?: MessageStatusFilter;
-    recorded?: boolean;
-    routing_tier?: string;
-  }) {
+  async getMessages(params: MessagesQueryFilters & { limit: number; cursor?: string }) {
     const tenantId = (await this.tenantCache.resolve(params.userId)) ?? undefined;
     const baseQb = await this.buildBaseMessageQuery(params, tenantId);
 
@@ -109,6 +130,7 @@ export class MessagesQueryService {
       status?: MessageStatusFilter;
       recorded?: boolean;
       routing_tier?: string;
+      include_benchmark?: boolean;
     },
     tenantId: string | undefined,
   ): Promise<SelectQueryBuilder<AgentMessage>> {
@@ -139,6 +161,13 @@ export class MessagesQueryService {
 
     if (params.routing_tier) {
       qb.andWhere('at.routing_tier = :tierFilter', { tierFilter: params.routing_tier });
+    } else if (!params.include_benchmark) {
+      // Default: hide benchmark rows from the generic messages feed.
+      // IS DISTINCT FROM keeps NULL-tier traffic (ordinary routing) and only
+      // filters out rows where routing_tier explicitly equals 'benchmark'.
+      qb.andWhere('at.routing_tier IS DISTINCT FROM :excludedBenchmarkTier', {
+        excludedBenchmarkTier: 'benchmark',
+      });
     }
 
     if (params.provider) {
@@ -277,29 +306,12 @@ export class MessagesQueryService {
     return result;
   }
 
-  private buildCountCacheKey(params: {
-    userId: string;
-    range?: string;
-    provider?: string;
-    service_type?: string;
-    agent_name?: string;
-    cost_min?: number;
-    cost_max?: number;
-    status?: MessageStatusFilter;
-    recorded?: boolean;
-    routing_tier?: string;
-  }): string {
-    return [
-      params.userId,
-      params.range ?? '',
-      params.provider ?? '',
-      params.service_type ?? '',
-      params.agent_name ?? '',
-      params.cost_min ?? '',
-      params.cost_max ?? '',
-      params.status ?? '',
-      params.recorded ? '1' : '',
-      params.routing_tier ?? '',
-    ].join(':');
+  private buildCountCacheKey(params: MessagesQueryFilters): string {
+    return COUNT_CACHE_KEY_FIELDS.map((key) => {
+      const v = params[key];
+      if (v == null || v === '') return '';
+      if (typeof v === 'boolean') return v ? '1' : '';
+      return String(v);
+    }).join(':');
   }
 }

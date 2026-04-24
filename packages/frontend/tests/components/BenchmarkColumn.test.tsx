@@ -12,8 +12,13 @@ vi.mock('../../src/components/ProviderIcon.jsx', () => ({
 }));
 
 vi.mock('../../src/services/routing-utils.js', () => ({
-  resolveProviderId: (p: string) => p.toLowerCase(),
-  inferProviderFromModel: (m: string) => (m.startsWith('openai/') ? 'openai' : null),
+  resolveProviderId: (p: string) => (p ? p.toLowerCase() : null),
+  inferProviderFromModel: (m: string) => {
+    if (m.startsWith('openai/')) return 'openai';
+    if (m.startsWith('glm-')) return 'zai';
+    if (m.startsWith('qwen')) return 'qwen';
+    return null;
+  },
 }));
 
 vi.mock('../../src/components/benchmark/MarkdownContent.jsx', () => ({
@@ -234,5 +239,40 @@ describe('BenchmarkColumn', () => {
     ));
     expect(container.querySelector('details.benchmark-column__headers')).toBeDefined();
     expect(container.textContent).toContain('x-request-id');
+  });
+
+  describe('provider logo resolution', () => {
+    it('renders the backend provider logo, not the model-name brand, for aggregator-proxied models', () => {
+      // glm-4.6 served by ollama-cloud should show the Ollama logo,
+      // not the Z.AI logo the model name would suggest.
+      const col = makeColumn({ model: 'glm-4.6', provider: 'ollama-cloud', displayName: 'glm-4.6' });
+      const { getByTestId, queryByTestId } = render(() => (
+        <BenchmarkColumn
+          column={col}
+          isCheapest={false}
+          isFastest={false}
+          onRemove={() => {}}
+          onChangeModel={() => {}}
+          onRetry={() => {}}
+        />
+      ));
+      expect(getByTestId('icon-ollama-cloud')).toBeDefined();
+      expect(queryByTestId('icon-zai')).toBeNull();
+    });
+
+    it('falls back to model-name inference only when the backend provider is empty', () => {
+      const col = makeColumn({ model: 'openai/gpt-4o', provider: '', displayName: 'GPT-4o' });
+      const { getByTestId } = render(() => (
+        <BenchmarkColumn
+          column={col}
+          isCheapest={false}
+          isFastest={false}
+          onRemove={() => {}}
+          onChangeModel={() => {}}
+          onRetry={() => {}}
+        />
+      ));
+      expect(getByTestId('icon-openai')).toBeDefined();
+    });
   });
 });

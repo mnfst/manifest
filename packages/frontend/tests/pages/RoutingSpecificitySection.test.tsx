@@ -129,24 +129,24 @@ describe('RoutingSpecificitySection', () => {
 
   /* ---- Static rendering ---- */
 
-  it('renders "Specific tiers" title and subtitle', () => {
+  it('renders "Task-specific routing" title and subtitle', () => {
     render(() => <RoutingSpecificitySection {...makeProps()} />);
-    expect(screen.getByText('Specific tiers')).toBeDefined();
+    expect(screen.getByText('Task-specific routing')).toBeDefined();
     expect(
       screen.getByText(
-        'Specific tiers override generalist routing when a request matches a specific task type. Enable a tier and assign the best model for that job.',
+        'Send specific kinds of work (coding, trading, image gen…) to dedicated models. Overrides everything else.',
       ),
     ).toBeDefined();
   });
 
-  it('shows "Enable specific tiers" button when no tiers are active', () => {
+  it('shows "Enable specificity tiers" button when no tiers are active', () => {
     render(() => <RoutingSpecificitySection {...makeProps()} />);
-    const buttons = screen.getAllByText('Enable specific tiers');
+    const buttons = screen.getAllByText('Enable task-specific routing');
     // One in the header, one in the empty state
     expect(buttons.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('shows "Manage specific tiers" button when at least one tier is active', () => {
+  it('shows "Manage specificity tiers" button when at least one tier is active', () => {
     const props = makeProps({
       assignments: () => [
         {
@@ -164,15 +164,13 @@ describe('RoutingSpecificitySection', () => {
       ],
     });
     render(() => <RoutingSpecificitySection {...props} />);
-    expect(screen.getByText('Manage specific tiers')).toBeDefined();
+    expect(screen.getByText('Manage task-specific routing')).toBeDefined();
   });
 
-  it('shows empty state with "No specific tier yet" when no tiers active', () => {
+  it('shows empty state with "No task-specific rules yet" when nothing active', () => {
     render(() => <RoutingSpecificitySection {...makeProps()} />);
-    expect(screen.getByText('No specific tier yet')).toBeDefined();
-    expect(
-      screen.getByText('Enable specific tiers to route specialized tasks to dedicated models.'),
-    ).toBeDefined();
+    expect(screen.getByText('No task-specific rules yet')).toBeDefined();
+    expect(screen.getByText('Route specialized tasks to dedicated models.')).toBeDefined();
   });
 
   it('renders RoutingTierCard for each active tier', () => {
@@ -215,10 +213,10 @@ describe('RoutingSpecificitySection', () => {
   it('opens modal on header button click and shows all SPECIFICITY_STAGES with toggles', async () => {
     render(() => <RoutingSpecificitySection {...makeProps()} />);
     // Click the header "Enable specific tiers" button (first one found)
-    const headerBtn = screen.getAllByText('Enable specific tiers')[0];
+    const headerBtn = screen.getAllByText('Enable task-specific routing')[0];
     fireEvent.click(headerBtn);
     await waitFor(() => {
-      expect(screen.getByText('Manage specific tiers')).toBeDefined();
+      expect(screen.getByText('Manage task-specific routing')).toBeDefined();
     });
     // All stages should appear
     for (const stage of MOCK_STAGES) {
@@ -234,7 +232,7 @@ describe('RoutingSpecificitySection', () => {
   it('opens modal on empty-state button click', async () => {
     render(() => <RoutingSpecificitySection {...makeProps()} />);
     // The empty-state also has an "Enable specific tiers" button
-    const buttons = screen.getAllByText('Enable specific tiers');
+    const buttons = screen.getAllByText('Enable task-specific routing');
     fireEvent.click(buttons[buttons.length - 1]);
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeDefined();
@@ -243,7 +241,7 @@ describe('RoutingSpecificitySection', () => {
 
   it('closes modal on "Done" button click', async () => {
     render(() => <RoutingSpecificitySection {...makeProps()} />);
-    fireEvent.click(screen.getAllByText('Enable specific tiers')[0]);
+    fireEvent.click(screen.getAllByText('Enable task-specific routing')[0]);
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeDefined();
     });
@@ -255,7 +253,7 @@ describe('RoutingSpecificitySection', () => {
 
   it('closes modal on Escape key', async () => {
     render(() => <RoutingSpecificitySection {...makeProps()} />);
-    fireEvent.click(screen.getAllByText('Enable specific tiers')[0]);
+    fireEvent.click(screen.getAllByText('Enable task-specific routing')[0]);
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeDefined();
     });
@@ -268,7 +266,7 @@ describe('RoutingSpecificitySection', () => {
 
   it('closes modal on overlay click (e.target === e.currentTarget)', async () => {
     render(() => <RoutingSpecificitySection {...makeProps()} />);
-    fireEvent.click(screen.getAllByText('Enable specific tiers')[0]);
+    fireEvent.click(screen.getAllByText('Enable task-specific routing')[0]);
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeDefined();
     });
@@ -282,7 +280,7 @@ describe('RoutingSpecificitySection', () => {
 
   it('does NOT close modal when clicking inside the dialog card', async () => {
     render(() => <RoutingSpecificitySection {...makeProps()} />);
-    fireEvent.click(screen.getAllByText('Enable specific tiers')[0]);
+    fireEvent.click(screen.getAllByText('Enable task-specific routing')[0]);
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeDefined();
     });
@@ -300,7 +298,7 @@ describe('RoutingSpecificitySection', () => {
     render(() => <RoutingSpecificitySection {...props} />);
 
     // Open modal
-    fireEvent.click(screen.getAllByText('Enable specific tiers')[0]);
+    fireEvent.click(screen.getAllByText('Enable task-specific routing')[0]);
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeDefined();
     });
@@ -314,7 +312,7 @@ describe('RoutingSpecificitySection', () => {
     });
     await waitFor(() => {
       expect(refetchSpecificity).toHaveBeenCalled();
-      expect(toast.success).toHaveBeenCalledWith('Enabled Coding tier');
+      expect(toast.success).toHaveBeenCalledWith('Enabled Coding routing');
     });
   });
 
@@ -339,7 +337,7 @@ describe('RoutingSpecificitySection', () => {
     render(() => <RoutingSpecificitySection {...props} />);
 
     // Open modal
-    fireEvent.click(screen.getByText('Manage specific tiers'));
+    fireEvent.click(screen.getByText('Manage task-specific routing'));
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeDefined();
     });
@@ -352,7 +350,7 @@ describe('RoutingSpecificitySection', () => {
       expect(mockToggleSpecificity).toHaveBeenCalledWith('test-agent', 'coding', false);
     });
     await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith('Disabled Coding tier');
+      expect(toast.success).toHaveBeenCalledWith('Disabled Coding routing');
     });
   });
 
@@ -361,7 +359,7 @@ describe('RoutingSpecificitySection', () => {
     const props = makeProps();
     render(() => <RoutingSpecificitySection {...props} />);
 
-    fireEvent.click(screen.getAllByText('Enable specific tiers')[0]);
+    fireEvent.click(screen.getAllByText('Enable task-specific routing')[0]);
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeDefined();
     });
@@ -369,7 +367,7 @@ describe('RoutingSpecificitySection', () => {
     fireEvent.click(screen.getByLabelText('Enable Coding'));
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Failed to update specific tier');
+      expect(toast.error).toHaveBeenCalledWith('Failed to update task-specific routing');
     });
   });
 
@@ -379,7 +377,7 @@ describe('RoutingSpecificitySection', () => {
     });
     render(() => <RoutingSpecificitySection {...props} />);
 
-    fireEvent.click(screen.getAllByText('Enable specific tiers')[0]);
+    fireEvent.click(screen.getAllByText('Enable task-specific routing')[0]);
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeDefined();
     });
@@ -410,7 +408,7 @@ describe('RoutingSpecificitySection', () => {
     render(() => <RoutingSpecificitySection {...props} />);
 
     // Open modal and toggle -- should use refetchSpecificity
-    fireEvent.click(screen.getAllByText('Enable specific tiers')[0]);
+    fireEvent.click(screen.getAllByText('Enable task-specific routing')[0]);
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeDefined();
     });
@@ -431,7 +429,7 @@ describe('RoutingSpecificitySection', () => {
     render(() => <RoutingSpecificitySection {...props} />);
 
     // Open modal and toggle -- should fallback to refetchAll
-    fireEvent.click(screen.getAllByText('Enable specific tiers')[0]);
+    fireEvent.click(screen.getAllByText('Enable task-specific routing')[0]);
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeDefined();
     });
@@ -453,7 +451,7 @@ describe('RoutingSpecificitySection', () => {
     });
     render(() => <RoutingSpecificitySection {...props} />);
 
-    fireEvent.click(screen.getAllByText('Enable specific tiers')[0]);
+    fireEvent.click(screen.getAllByText('Enable task-specific routing')[0]);
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeDefined();
     });
@@ -504,13 +502,13 @@ describe('RoutingSpecificitySection', () => {
   it('handles undefined assignments gracefully', () => {
     const props = makeProps({ assignments: () => undefined });
     render(() => <RoutingSpecificitySection {...props} />);
-    expect(screen.getByText('No specific tier yet')).toBeDefined();
+    expect(screen.getByText('No task-specific rules yet')).toBeDefined();
   });
 
   it('handles empty assignments array', () => {
     const props = makeProps({ assignments: () => [] });
     render(() => <RoutingSpecificitySection {...props} />);
-    expect(screen.getByText('No specific tier yet')).toBeDefined();
+    expect(screen.getByText('No task-specific rules yet')).toBeDefined();
   });
 
   it('handles assignments with inactive tiers', () => {
@@ -533,9 +531,9 @@ describe('RoutingSpecificitySection', () => {
     render(() => <RoutingSpecificitySection {...props} />);
     // No tier card should be rendered since coding is not active
     expect(screen.queryByTestId('tier-card-coding')).toBeNull();
-    expect(screen.getByText('No specific tier yet')).toBeDefined();
+    expect(screen.getByText('No task-specific rules yet')).toBeDefined();
     // Header button should say "Enable" not "Manage" since none are active
-    expect(screen.getAllByText('Enable specific tiers').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Enable task-specific routing').length).toBeGreaterThanOrEqual(1);
   });
 
   /* ---- RoutingTierCard prop callbacks ---- */
@@ -761,7 +759,7 @@ describe('RoutingSpecificitySection', () => {
     });
     render(() => <RoutingSpecificitySection {...props} />);
 
-    fireEvent.click(screen.getByText('Manage specific tiers'));
+    fireEvent.click(screen.getByText('Manage task-specific routing'));
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeDefined();
     });

@@ -136,6 +136,27 @@ export function resetAllTiers(agentName: string) {
   return fetchMutate(routingPath(agentName, 'tiers/reset-all'), { method: 'POST' });
 }
 
+/* -- Routing: Complexity toggle -- */
+
+export interface ComplexityStatus {
+  enabled: boolean;
+}
+
+export function getComplexityStatus(agentName: string) {
+  return fetchJson<ComplexityStatus>(routingPath(agentName, 'complexity'));
+}
+
+export function toggleComplexity(agentName: string, enabled: boolean) {
+  return fetchMutate<{ ok: boolean; enabled: boolean }>(
+    routingPath(agentName, 'complexity/toggle'),
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled }),
+    },
+  );
+}
+
 /* -- Routing: Fallbacks -- */
 
 export function getFallbacks(agentName: string, tier: string) {

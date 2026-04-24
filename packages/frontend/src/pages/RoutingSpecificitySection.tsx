@@ -150,6 +150,7 @@ export interface RoutingSpecificitySectionProps {
   onAddFallback: (category: string) => void;
   refetchAll: () => Promise<void>;
   refetchSpecificity?: () => Promise<void>;
+  embedded?: boolean;
 }
 
 function toTierAssignment(a: SpecificityAssignment | undefined): TierAssignment | undefined {
@@ -179,39 +180,32 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
       } else {
         await props.refetchAll();
       }
-      toast.success(`${active ? 'Enabled' : 'Disabled'} ${label} tier`);
+      toast.success(`${active ? 'Enabled' : 'Disabled'} ${label} routing`);
     } catch {
-      toast.error('Failed to update specific tier');
+      toast.error('Failed to update task-specific routing');
     } finally {
       setToggling(null);
     }
   };
 
-  return (
-    <div class="routing-section">
-      <div class="routing-section__header specificity-header">
-        <div class="specificity-header__left">
-          <span class="routing-section__title">Specific tiers</span>
-          <span class="routing-section__subtitle">
-            Specific tiers override generalist routing when a request matches a specific task type.
-            Enable a tier and assign the best model for that job.
-          </span>
-        </div>
-        <button class="btn btn--primary btn--sm" onClick={() => setShowModal(true)}>
-          {hasAnyActive() ? 'Manage specific tiers' : 'Enable specific tiers'}
-        </button>
-      </div>
+  const manageButton = () => (
+    <button class="btn btn--primary btn--sm" onClick={() => setShowModal(true)}>
+      {hasAnyActive() ? 'Manage task-specific routing' : 'Enable task-specific routing'}
+    </button>
+  );
 
+  const content = () => (
+    <>
       <Show
         when={activeTiers().length > 0}
         fallback={
           <div class="specificity-empty">
-            <span class="specificity-empty__title">No specific tier yet</span>
+            <span class="specificity-empty__title">No task-specific rules yet</span>
             <span class="specificity-empty__desc">
-              Enable specific tiers to route specialized tasks to dedicated models.
+              Route specialized tasks to dedicated models.
             </span>
             <button class="btn btn--primary btn--sm" onClick={() => setShowModal(true)}>
-              Enable specific tiers
+              Enable task-specific routing
             </button>
           </div>
         }
@@ -268,10 +262,10 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
             onClick={(e) => e.stopPropagation()}
           >
             <h2 id="specificity-modal-title" class="specificity-modal__title">
-              Manage specific tiers
+              Manage task-specific routing
             </h2>
             <p class="specificity-modal__desc">
-              Enable specific tiers to route specialized tasks to dedicated models.
+              Route specialized tasks to dedicated models. Overrides complexity and default.
             </p>
             <div class="specificity-modal__list">
               <For each={SPECIFICITY_STAGES}>
@@ -343,6 +337,39 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
           </div>
         </div>
       </Show>
+    </>
+  );
+
+  if (props.embedded) {
+    return (
+      <div>
+        <div class="routing-section__header specificity-header" style="margin-bottom: 16px;">
+          <div class="specificity-header__left">
+            <span class="routing-section__subtitle">
+              Send specific kinds of work (coding, trading, image gen…) to dedicated models.
+              Overrides everything else.
+            </span>
+          </div>
+          {manageButton()}
+        </div>
+        {content()}
+      </div>
+    );
+  }
+
+  return (
+    <div class="routing-section">
+      <div class="routing-section__header specificity-header">
+        <div class="specificity-header__left">
+          <span class="routing-section__title">Task-specific routing</span>
+          <span class="routing-section__subtitle">
+            Send specific kinds of work (coding, trading, image gen…) to dedicated models. Overrides
+            everything else.
+          </span>
+        </div>
+        {manageButton()}
+      </div>
+      {content()}
     </div>
   );
 };

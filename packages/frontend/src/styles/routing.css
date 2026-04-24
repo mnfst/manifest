@@ -1,5 +1,10 @@
 @import './routing-providers.css';
 @import './routing-modal.css';
+@import './routing-tabs.css';
+
+.routing-section--dimmed {
+  opacity: 0.75;
+}
 
 /* ── Enable card (disabled state) ─────────────────── */
 .routing-enable-card {
@@ -7,22 +12,23 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 48px 32px;
-  background: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
+  gap: 8px;
+  padding: 48px 24px;
+  margin-bottom: var(--gap-lg);
+  width: 100%;
+  background: hsl(var(--muted) / 0.45);
   border-radius: var(--radius);
 }
 
 .routing-enable-card__icon {
   color: hsl(var(--muted-foreground));
-  margin-bottom: var(--gap-lg);
 }
 
 .routing-enable-card__title {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: hsl(var(--foreground));
-  margin: 0 0 var(--gap-sm);
+  margin: 0;
 }
 
 .routing-enable-card__desc {
@@ -30,7 +36,7 @@
   color: hsl(var(--muted-foreground));
   max-width: 400px;
   line-height: 1.6;
-  margin: 0 0 var(--gap-xl);
+  margin: 0 0 8px;
 }
 
 /* ── Page header with connect button ──────────────── */
@@ -42,7 +48,7 @@
 
 /* ── Provider info display ───────────────────────── */
 .routing-providers-info {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: var(--gap-lg);
@@ -119,6 +125,10 @@
 }
 
 .routing-section__subtitle {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 32px;
   font-size: 14px;
   color: hsl(var(--muted-foreground));
   line-height: 1.5;
@@ -129,6 +139,146 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
+}
+
+.routing-cards--wide {
+  grid-template-columns: 1fr;
+}
+
+.routing-cards--centered {
+  grid-template-columns: 1fr;
+  max-width: calc(25% - 9px);
+  margin: 0 auto;
+}
+
+.routing-cards-backdrop {
+  padding: 16px;
+  background: hsl(var(--muted) / 0.45);
+  border-radius: var(--radius);
+}
+
+@media (max-width: 1024px) {
+  .routing-cards--centered {
+    max-width: calc(50% - 6px);
+  }
+}
+
+@media (max-width: 600px) {
+  .routing-cards--centered {
+    max-width: 100%;
+  }
+}
+
+.routing-section__header--with-control {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.routing-section__header--with-control > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+/* ── Complexity toggle switch ─────────────────────── */
+.routing-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  padding: 4px;
+  border-radius: var(--radius);
+  transition: color var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.routing-switch:hover:not(:disabled) {
+  color: hsl(var(--foreground));
+}
+
+.routing-switch:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.routing-switch__label {
+  font-weight: 500;
+}
+
+.routing-switch__track {
+  position: relative;
+  width: 34px;
+  height: 18px;
+  background: hsl(var(--border));
+  border-radius: 999px;
+  transition: background var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.routing-switch--on .routing-switch__track {
+  background: hsl(var(--primary, 221 83% 53%));
+}
+
+.routing-switch__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: left var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.routing-switch--on .routing-switch__thumb {
+  left: 18px;
+}
+
+/* ── Complexity empty state ───────────────────────── */
+.complexity-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 48px 24px;
+  width: 100%;
+  background: hsl(var(--muted) / 0.45);
+  border-radius: var(--radius);
+}
+
+.complexity-empty__title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.complexity-empty__desc {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+/* ── Priority legend ──────────────────────────────── */
+.routing-priority-legend {
+  margin-top: 4px;
+  margin-bottom: 12px;
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  text-align: right;
 }
 
 .routing-card {
@@ -153,7 +303,7 @@
   margin-bottom: 8px;
 }
 
-.routing-card__header-reset {
+.routing-card__header-action {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -168,11 +318,20 @@
   transition: color var(--transition-fast);
 }
 
-.routing-card__header-reset:hover {
+.routing-card__header-action:hover {
+  color: hsl(var(--foreground));
+}
+
+/**
+ * Destructive variant — applied only to actually-destructive actions
+ * (e.g. the Reset button on the generalist tier card). Non-destructive
+ * actions (Use, Edit) keep the neutral hover from `--header-action` above.
+ */
+.routing-card__header-action--danger:hover {
   color: hsl(var(--destructive));
 }
 
-.routing-card__header-reset:disabled {
+.routing-card__header-action:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -808,7 +967,7 @@
 
 /* ── Responsive ──────────────────────────────────── */
 @media (max-width: 1024px) {
-  .routing-cards {
+  .routing-cards:not(.routing-cards--wide) {
     grid-template-columns: repeat(2, 1fr);
   }
 }
@@ -816,6 +975,11 @@
 @media (max-width: 600px) {
   .routing-cards {
     grid-template-columns: 1fr;
+  }
+
+  .routing-section__header--with-control {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .provider-toggle__expand {

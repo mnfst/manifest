@@ -8,8 +8,27 @@ export {
   platformIcon,
 } from './agent-type';
 export type { AgentCategory, AgentPlatform } from './agent-type';
-export { TIERS, TIER_LABELS, TIER_DESCRIPTIONS, ALL_TIERS, TIER_LABELS_ALL } from './tiers';
-export type { Tier, MessageTier } from './tiers';
+export {
+  TIERS,
+  TIER_SLOTS,
+  DEFAULT_TIER_SLOT,
+  TIER_LABELS,
+  TIER_DESCRIPTIONS,
+  ALL_TIERS,
+  TIER_LABELS_ALL,
+} from './tiers';
+export type { Tier, TierSlot, DefaultTierSlot, MessageTier } from './tiers';
+export {
+  coerceContentToText,
+  detectRequestBodyFormat,
+  extractAssistantReply,
+  extractRequestMessages,
+  extractRequestTools,
+  normalizeRole,
+} from './chat-message';
+export type { ChatMessage, ChatTool, RequestBodyFormat, Role, ToolCall } from './chat-message';
+export { TIER_COLORS, DEFAULT_TIER_COLOR } from './tier-colors';
+export type { TierColor } from './tier-colors';
 export { SPECIFICITY_CATEGORIES } from './specificity';
 export type { SpecificityCategory } from './specificity';
 export { AUTH_TYPES } from './auth-types';

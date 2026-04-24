@@ -59,6 +59,7 @@ describe('TierService', () => {
   let service: TierService;
   let providerRepo: ReturnType<typeof makeMockRepo>;
   let tierRepo: ReturnType<typeof makeMockRepo>;
+  let agentRepo: ReturnType<typeof makeMockRepo>;
   let autoAssign: { recalculate: jest.Mock };
   let routingCache: {
     getTiers: jest.Mock;
@@ -66,6 +67,8 @@ describe('TierService', () => {
     invalidateAgent: jest.Mock;
     getProviders: jest.Mock;
     setProviders: jest.Mock;
+    getComplexityEnabled: jest.Mock;
+    setComplexityEnabled: jest.Mock;
   };
   let providerService: { getProviders: jest.Mock };
   let discoveryService: { getModelsForAgent: jest.Mock };
@@ -74,6 +77,7 @@ describe('TierService', () => {
     jest.clearAllMocks();
     providerRepo = makeMockRepo();
     tierRepo = makeMockRepo();
+    agentRepo = makeMockRepo();
     autoAssign = { recalculate: jest.fn().mockResolvedValue(undefined) };
     routingCache = {
       getTiers: jest.fn().mockReturnValue(null),
@@ -81,6 +85,8 @@ describe('TierService', () => {
       invalidateAgent: jest.fn(),
       getProviders: jest.fn().mockReturnValue(null),
       setProviders: jest.fn(),
+      getComplexityEnabled: jest.fn().mockReturnValue(undefined),
+      setComplexityEnabled: jest.fn(),
     };
     providerService = { getProviders: jest.fn().mockResolvedValue([]) };
     discoveryService = {
@@ -95,6 +101,7 @@ describe('TierService', () => {
     service = new TierService(
       providerRepo as unknown as any,
       tierRepo as unknown as any,
+      agentRepo as unknown as any,
       autoAssign as unknown as TierAutoAssignService,
       routingCache as unknown as RoutingCacheService,
       providerService as unknown as ProviderService,
@@ -158,28 +165,78 @@ describe('TierService', () => {
     });
 
     it('should fetch and cache existing tiers from DB', async () => {
-      const tiers = [makeTier({ tier: 'simple' }), makeTier({ id: 'tier-2', tier: 'complex' })];
+      const tiers = [
+        makeTier({ tier: 'simple' }),
+        makeTier({ id: 'tier-2', tier: 'standard' }),
+        makeTier({ id: 'tier-3', tier: 'complex' }),
+        makeTier({ id: 'tier-4', tier: 'reasoning' }),
+        makeTier({ id: 'tier-5', tier: 'default' }),
+      ];
       tierRepo.find.mockResolvedValue(tiers);
 
       const result = await service.getTiers('agent-1');
 
       expect(result).toEqual(tiers);
       expect(routingCache.setTiers).toHaveBeenCalledWith('agent-1', tiers);
+      expect(tierRepo.insert).not.toHaveBeenCalled();
     });
 
-    it('should create all 4 tier rows when none exist', async () => {
+    it('should create all 5 tier slots when none exist', async () => {
       tierRepo.find.mockResolvedValue([]);
 
       const result = await service.getTiers('agent-1', 'user-1');
 
       expect(tierRepo.insert).toHaveBeenCalled();
       const inserted = tierRepo.insert.mock.calls[0][0] as TierAssignment[];
-      expect(inserted).toHaveLength(4);
+      expect(inserted).toHaveLength(5);
       expect(inserted.map((t: TierAssignment) => t.tier)).toEqual(
-        expect.arrayContaining(['simple', 'standard', 'complex', 'reasoning']),
+        expect.arrayContaining(['simple', 'standard', 'complex', 'reasoning', 'default']),
       );
-      expect(result).toHaveLength(4);
+      expect(result).toHaveLength(5);
       expect(routingCache.setTiers).toHaveBeenCalledWith('agent-1', inserted);
+    });
+
+    it('fills in missing slots when some rows already exist (e.g. after migration)', async () => {
+      const partial = [makeTier({ tier: 'simple' }), makeTier({ id: 'tier-2', tier: 'standard' })];
+      tierRepo.find.mockResolvedValue(partial);
+
+      const result = await service.getTiers('agent-1', 'user-1');
+
+      expect(tierRepo.insert).toHaveBeenCalled();
+      const inserted = tierRepo.insert.mock.calls[0][0] as TierAssignment[];
+      expect(inserted.map((t: TierAssignment) => t.tier).sort()).toEqual([
+        'complex',
+        'default',
+        'reasoning',
+      ]);
+      expect(result).toHaveLength(5);
+    });
+
+    it('re-reads and returns existing rows when insert fails from a concurrent write', async () => {
+      tierRepo.find.mockResolvedValueOnce([]);
+      tierRepo.insert.mockRejectedValueOnce(new Error('unique violation'));
+      const racedTiers = [
+        makeTier({ tier: 'simple' }),
+        makeTier({ id: 'tier-2', tier: 'standard' }),
+        makeTier({ id: 'tier-3', tier: 'complex' }),
+        makeTier({ id: 'tier-4', tier: 'reasoning' }),
+        makeTier({ id: 'tier-5', tier: 'default' }),
+      ];
+      tierRepo.find.mockResolvedValueOnce(racedTiers);
+
+      const result = await service.getTiers('agent-1', 'user-1');
+
+      expect(result).toEqual(racedTiers);
+      expect(routingCache.setTiers).toHaveBeenCalledWith('agent-1', racedTiers);
+    });
+
+    it('rethrows insert failures when the re-read confirms no rows landed', async () => {
+      tierRepo.find.mockResolvedValueOnce([]); // initial read
+      const insertErr = new Error('FK violation');
+      tierRepo.insert.mockRejectedValueOnce(insertErr);
+      tierRepo.find.mockResolvedValueOnce([]); // re-read after failure: still empty
+
+      await expect(service.getTiers('agent-1', 'user-1')).rejects.toThrow('FK violation');
     });
 
     it('should use empty string for user_id when not provided', async () => {

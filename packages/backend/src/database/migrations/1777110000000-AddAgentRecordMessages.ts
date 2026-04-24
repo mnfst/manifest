@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddAgentRecordMessages1777100000000 implements MigrationInterface {
-  name = 'AddAgentRecordMessages1777100000000';
+export class AddAgentRecordMessages1777110000000 implements MigrationInterface {
+  name = 'AddAgentRecordMessages1777110000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(

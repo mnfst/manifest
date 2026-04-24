@@ -103,4 +103,20 @@ describe('MessagesQueryDto', () => {
     const flat = errors.flatMap((e) => Object.values(e.constraints ?? {}));
     expect(flat.join('\n')).toMatch(/routing_tier must be one of/);
   });
+
+  it('coerces include_benchmark from common truthy values', async () => {
+    for (const value of [true, 'true', '1']) {
+      const dto = plainToInstance(MessagesQueryDto, { include_benchmark: value });
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(0);
+      expect(dto.include_benchmark).toBe(true);
+    }
+  });
+
+  it('treats other values for include_benchmark as false', async () => {
+    const dto = plainToInstance(MessagesQueryDto, { include_benchmark: 'nope' });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+    expect(dto.include_benchmark).toBe(false);
+  });
 });

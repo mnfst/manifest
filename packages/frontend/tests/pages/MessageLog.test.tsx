@@ -6,6 +6,7 @@ const mockNavigate = vi.fn();
 vi.mock("@solidjs/router", () => ({
   useParams: () => ({ agentName: mockAgentName }),
   useNavigate: () => mockNavigate,
+  useLocation: () => ({ pathname: `/agents/${mockAgentName}/messages` }),
   A: (props: any) => <a href={props.href} style={props.style} class={props.class}>{props.children}</a>,
 }));
 
@@ -1051,6 +1052,42 @@ describe("MessageLog", () => {
     });
   });
 
+  describe("Include benchmarks filter", () => {
+    it("sends include_benchmark=true when the chip is toggled on", async () => {
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const chips = container.querySelectorAll(".msg-recorded-filter");
+        expect(chips.length).toBeGreaterThanOrEqual(2);
+      });
+      const chips = container.querySelectorAll(".msg-recorded-filter");
+      const benchmarkChip = Array.from(chips).find((c) => c.textContent?.includes("Include benchmarks")) as HTMLButtonElement;
+      expect(benchmarkChip).toBeDefined();
+      mockGetMessages.mockClear();
+      fireEvent.click(benchmarkChip);
+      await vi.waitFor(() => {
+        const calls = mockGetMessages.mock.calls;
+        const lastQ = calls[calls.length - 1]?.[0] ?? {};
+        expect(lastQ.include_benchmark).toBe("true");
+      });
+      expect(benchmarkChip.classList.contains("msg-recorded-filter--active")).toBe(true);
+    });
+
+    it("omits include_benchmark from the query when the chip is off", async () => {
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(mockGetMessages).toHaveBeenCalled();
+      });
+      const calls = mockGetMessages.mock.calls;
+      const firstQ = calls[0]?.[0] ?? {};
+      expect(firstQ.include_benchmark).toBeUndefined();
+      const chips = container.querySelectorAll(".msg-recorded-filter");
+      const benchmarkChip = Array.from(chips).find((c) => c.textContent?.includes("Include benchmarks")) as HTMLButtonElement;
+      expect(benchmarkChip.classList.contains("msg-recorded-filter--active")).toBe(false);
+    });
+  });
+
   describe("Recording filter", () => {
     it("toggles the recorded query param when the filter chip is clicked", async () => {
       mockGetMessages.mockResolvedValue(messagesData);
@@ -1134,26 +1171,27 @@ describe("MessageLog", () => {
       await vi.waitFor(() => {
         expect(container.querySelector(".msg-recorded-btn")).not.toBeNull();
       });
-      // Open the recording modal
+      // Open the recording drawer
       fireEvent.click(container.querySelector(".msg-recorded-btn") as HTMLElement);
       await vi.waitFor(() => {
         expect(document.body.textContent).toContain("Recorded message");
       });
-      // Wait for the modal's own createResource to resolve (footer renders
-      // only after `data()?.recording` is truthy).
+      // Open the overflow menu, then click Delete recording inside it.
+      await vi.waitFor(() => {
+        const overflow = document.querySelector(".recorded-drawer__overflow-btn");
+        expect(overflow).not.toBeNull();
+      });
+      fireEvent.click(document.querySelector(".recorded-drawer__overflow-btn") as HTMLElement);
       await vi.waitFor(() => {
         const btn = Array.from(document.querySelectorAll("button")).find(
           (b) => b.textContent?.trim() === "Delete recording",
         );
         expect(btn).not.toBeUndefined();
       });
-      // Snapshot getMessages call count before delete
       const callsBeforeDelete = mockGetMessages.mock.calls.length;
-      // Find and click "Delete recording" in the modal footer
       const deleteBtn = Array.from(document.querySelectorAll("button")).find(
         (b) => b.textContent?.trim() === "Delete recording",
       ) as HTMLButtonElement;
-      expect(deleteBtn).not.toBeUndefined();
       fireEvent.click(deleteBtn);
       // Confirm the delete
       await vi.waitFor(() => {

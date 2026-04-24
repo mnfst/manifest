@@ -87,7 +87,7 @@ describe('Benchmark E2E — POST /api/v1/benchmark/run', () => {
 
     const ds = app.get(DataSource);
     const rows = await ds.query(
-      `SELECT routing_reason, routing_tier, status, provider, model, input_tokens, output_tokens FROM agent_messages WHERE agent_id = $1 AND routing_tier = $2`,
+      `SELECT routing_reason, routing_tier, status, provider, model, input_tokens, output_tokens, recorded FROM agent_messages WHERE agent_id = $1 AND routing_tier = $2`,
       [TEST_AGENT_ID, 'benchmark'],
     );
     expect(rows.length).toBe(1);
@@ -99,7 +99,13 @@ describe('Benchmark E2E — POST /api/v1/benchmark/run', () => {
       model: 'gpt-4o-mini',
       input_tokens: 7,
       output_tokens: 3,
+      recorded: false,
     });
+    const recordings = await ds.query(
+      `SELECT count(*)::int AS n FROM message_recordings r JOIN agent_messages m ON m.id = r.message_id WHERE m.agent_id = $1 AND m.routing_tier = 'benchmark'`,
+      [TEST_AGENT_ID],
+    );
+    expect(recordings[0].n).toBe(0);
   });
 
   it('returns 404 when the requested provider is not connected for this agent', async () => {

@@ -15,6 +15,7 @@ export interface MessageDetailResponse {
     timestamp: string;
     agent_name: string | null;
     model: string | null;
+    provider: string | null;
     status: string;
     error_message: string | null;
     error_http_status: number | null;
@@ -42,6 +43,9 @@ export interface MessageDetailResponse {
     request_headers: Record<string, string> | null;
     caller_attribution: CallerAttribution | null;
     recorded: boolean;
+    header_tier_id: string | null;
+    header_tier_name: string | null;
+    header_tier_color: string | null;
   };
   recording: {
     request_body: Record<string, unknown> | null;
@@ -152,6 +156,7 @@ export class MessageDetailsService {
         timestamp: message.timestamp,
         agent_name: message.agent_name,
         model: message.model,
+        provider: message.provider,
         status: message.status,
         error_message: message.error_message,
         error_http_status: message.error_http_status,
@@ -179,6 +184,9 @@ export class MessageDetailsService {
         request_headers: message.request_headers,
         caller_attribution: message.caller_attribution,
         recorded: message.recorded,
+        header_tier_id: message.header_tier_id,
+        header_tier_name: message.header_tier_name,
+        header_tier_color: message.header_tier_color,
       },
       recording: recording
         ? {

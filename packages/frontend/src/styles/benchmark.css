@@ -29,7 +29,24 @@
 }
 
 .benchmark-column--original {
-  border-left: 2px solid hsl(var(--primary));
+  background: hsl(var(--muted) / 0.4);
+  border-color: hsl(var(--border));
+}
+
+.benchmark-column--original .benchmark-column__header {
+  background: hsl(var(--muted) / 0.5);
+}
+
+.benchmark-column--original .benchmark-column__body,
+.benchmark-column--original .benchmark-column__metrics,
+.benchmark-column--original .benchmark-column__headers {
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+}
+
+.benchmark-column--original .benchmark-column__name,
+.benchmark-column--original .benchmark-column__metric-value {
+  color: hsl(var(--muted-foreground));
 }
 
 .benchmark-column__title--static {

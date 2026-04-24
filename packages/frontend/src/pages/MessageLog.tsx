@@ -60,6 +60,7 @@ const MessageLog: Component = () => {
   const [costMin, setCostMin] = createSignal('');
   const [costMax, setCostMax] = createSignal('');
   const [recordedOnly, setRecordedOnly] = createSignal(false);
+  const [includeBenchmark, setIncludeBenchmark] = createSignal(false);
   const [recordingModalId, setRecordingModalId] = createSignal<string | null>(null);
   const [setupOpen, setSetupOpen] = createSignal(false);
   const [setupCompleted] = createSignal(
@@ -158,9 +159,13 @@ const MessageLog: Component = () => {
   };
 
   createEffect(
-    on([providerFilter, tierFilter, costMin, costMax, recordedOnly], () => pager.resetPage(), {
-      defer: true,
-    }),
+    on(
+      [providerFilter, tierFilter, costMin, costMax, recordedOnly, includeBenchmark],
+      () => pager.resetPage(),
+      {
+        defer: true,
+      },
+    ),
   );
 
   const [data, { refetch }] = createResource(
@@ -170,6 +175,7 @@ const MessageLog: Component = () => {
       costMin: costMin(),
       costMax: costMax(),
       recordedOnly: recordedOnly(),
+      includeBenchmark: includeBenchmark(),
       agentName: params.agentName,
       _ping: pingCount(),
       cursor: pager.currentCursor(),
@@ -182,6 +188,7 @@ const MessageLog: Component = () => {
       if (p.costMin) q.cost_min = p.costMin;
       if (p.costMax) q.cost_max = p.costMax;
       if (p.recordedOnly) q.recorded = 'true';
+      if (p.includeBenchmark) q.include_benchmark = 'true';
       if (p.agentName) q.agent_name = p.agentName;
       if (p.cursor) q.cursor = p.cursor;
       q.limit = String(p.limit);
@@ -203,7 +210,8 @@ const MessageLog: Component = () => {
     tierFilter() !== '' ||
     costMin() !== '' ||
     costMax() !== '' ||
-    recordedOnly();
+    recordedOnly() ||
+    includeBenchmark();
 
   const hasNoData = () => {
     const d = data();
@@ -220,6 +228,7 @@ const MessageLog: Component = () => {
     setCostMin('');
     setCostMax('');
     setRecordedOnly(false);
+    setIncludeBenchmark(false);
   };
 
   const tierOptions = [
@@ -283,6 +292,15 @@ const MessageLog: Component = () => {
               title="Show only recorded messages"
             >
               Recorded only
+            </button>
+            <button
+              type="button"
+              class={`msg-recorded-filter${includeBenchmark() ? ' msg-recorded-filter--active' : ''}`}
+              onClick={() => setIncludeBenchmark(!includeBenchmark())}
+              aria-pressed={includeBenchmark()}
+              title="Include benchmark calls in the list"
+            >
+              Include benchmarks
             </button>
             <div class="cost-range-filter">
               <input

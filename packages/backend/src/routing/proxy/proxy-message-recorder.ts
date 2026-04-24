@@ -15,7 +15,13 @@ import { computeTokenCost } from '../../common/utils/cost-calculator';
 import { scrubSecrets } from '../../common/utils/secret-scrub';
 import { CallerAttribution } from './caller-classifier';
 
-export interface ProviderErrorOpts {
+export interface HeaderTierRef {
+  headerTierId?: string | null;
+  headerTierName?: string | null;
+  headerTierColor?: string | null;
+}
+
+export interface ProviderErrorOpts extends HeaderTierRef {
   model?: string;
   provider?: string;
   tier?: string;
@@ -23,18 +29,30 @@ export interface ProviderErrorOpts {
   fallbackFromModel?: string;
   fallbackIndex?: number;
   authType?: string;
+  /**
+   * Why the tier was selected (e.g. 'header-match', 'specificity', 'scored').
+   * Persisted to agent_messages.routing_reason so single-shot upstream errors
+   * keep the same audit context as their successful siblings.
+   */
+  reason?: string;
   specificityCategory?: string;
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
 }
 
-export interface FallbackSuccessOpts {
+export interface FallbackSuccessOpts extends HeaderTierRef {
   traceId?: string;
   provider?: string;
   fallbackFromModel?: string;
   fallbackIndex?: number;
   timestamp?: string;
   authType?: string;
+  /**
+   * Why the primary tier was selected (e.g. 'header-match', 'specificity',
+   * 'scored'). Persisted to agent_messages.routing_reason so fallback rows
+   * keep the same audit context as their non-fallback siblings.
+   */
+  reason?: string;
   usage?: StreamUsage;
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
@@ -47,7 +65,7 @@ export interface SuccessRecordingPayload {
   size_bytes: number;
 }
 
-export interface SuccessMessageOpts {
+export interface SuccessMessageOpts extends HeaderTierRef {
   traceId?: string;
   provider?: string;
   authType?: string;
@@ -118,9 +136,13 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       fallbackFromModel,
       fallbackIndex,
       authType,
+      reason,
       specificityCategory,
       callerAttribution,
       requestHeaders,
+      headerTierId,
+      headerTierName,
+      headerTierColor,
     } = opts ?? {};
 
     if (httpStatus === 429) {
@@ -149,12 +171,16 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         model: model ?? null,
         provider: provider ?? null,
         routing_tier: tier ?? null,
+        routing_reason: reason ?? null,
         fallback_from_model: fallbackFromModel ?? null,
         fallback_index: fallbackIndex ?? null,
         auth_type: authType ?? null,
         specificity_category: specificityCategory ?? null,
         caller_attribution: callerAttribution ?? null,
         request_headers: requestHeaders ?? null,
+        header_tier_id: headerTierId ?? null,
+        header_tier_name: headerTierName ?? null,
+        header_tier_color: headerTierColor ?? null,
       }),
     );
     this.eventBus.emit(ctx.userId);
@@ -171,8 +197,12 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       markHandled?: boolean;
       lastAsError?: boolean;
       authType?: string;
+      reason?: string;
       callerAttribution?: CallerAttribution | null;
       requestHeaders?: Record<string, string> | null;
+      headerTierId?: string | null;
+      headerTierName?: string | null;
+      headerTierColor?: string | null;
     },
   ): Promise<void> {
     const {
@@ -181,8 +211,12 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       markHandled = false,
       lastAsError = false,
       authType,
+      reason,
       callerAttribution,
       requestHeaders,
+      headerTierId,
+      headerTierName,
+      headerTierColor,
     } = opts ?? {};
     for (let i = 0; i < failures.length; i++) {
       const f = failures[i];
@@ -206,11 +240,15 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
           model: f.model,
           provider: f.provider ?? null,
           routing_tier: tier,
+          routing_reason: reason ?? null,
           fallback_from_model: primaryModel,
           fallback_index: f.fallbackIndex,
           auth_type: authType ?? null,
           caller_attribution: callerAttribution ?? null,
           request_headers: requestHeaders ?? null,
+          header_tier_id: headerTierId ?? null,
+          header_tier_name: headerTierName ?? null,
+          header_tier_color: headerTierColor ?? null,
         }),
       );
     }
@@ -226,8 +264,12 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     authType?: string,
     opts?: {
       provider?: string;
+      reason?: string;
       callerAttribution?: CallerAttribution | null;
       requestHeaders?: Record<string, string> | null;
+      headerTierId?: string | null;
+      headerTierName?: string | null;
+      headerTierColor?: string | null;
     },
   ): Promise<void> {
     await this.messageRepo.insert(
@@ -238,11 +280,15 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         model,
         provider: opts?.provider ?? null,
         routing_tier: tier,
+        routing_reason: opts?.reason ?? null,
         fallback_from_model: null,
         fallback_index: null,
         auth_type: authType ?? null,
         caller_attribution: opts?.callerAttribution ?? null,
         request_headers: opts?.requestHeaders ?? null,
+        header_tier_id: opts?.headerTierId ?? null,
+        header_tier_name: opts?.headerTierName ?? null,
+        header_tier_color: opts?.headerTierColor ?? null,
       }),
     );
     this.eventBus.emit(ctx.userId);
@@ -261,9 +307,13 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       fallbackIndex,
       timestamp,
       authType,
+      reason,
       usage,
       callerAttribution,
       requestHeaders,
+      headerTierId,
+      headerTierName,
+      headerTierColor,
     } = opts ?? {};
 
     const inputTokens = usage?.prompt_tokens ?? 0;
@@ -285,6 +335,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         model,
         provider: provider ?? null,
         routing_tier: tier,
+        routing_reason: reason ?? null,
         input_tokens: inputTokens,
         output_tokens: outputTokens,
         cache_read_tokens: usage?.cache_read_tokens ?? 0,
@@ -295,6 +346,9 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         fallback_index: fallbackIndex ?? null,
         caller_attribution: callerAttribution ?? null,
         request_headers: requestHeaders ?? null,
+        header_tier_id: headerTierId ?? null,
+        header_tier_name: headerTierName ?? null,
+        header_tier_color: headerTierColor ?? null,
       }),
     );
     this.eventBus.emit(ctx.userId);
@@ -318,6 +372,9 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       callerAttribution,
       requestHeaders,
       recordingPayload,
+      headerTierId,
+      headerTierName,
+      headerTierColor,
     } = opts ?? {};
     const recorded = !!recordingPayload;
 
@@ -368,6 +425,9 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               caller_attribution: callerAttribution ?? null,
               request_headers: requestHeaders ?? null,
               recorded,
+              header_tier_id: headerTierId ?? null,
+              header_tier_name: headerTierName ?? null,
+              header_tier_color: headerTierColor ?? null,
             };
             if (normalizedSessionKey) updatePayload.session_key = normalizedSessionKey;
 
@@ -402,6 +462,9 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               caller_attribution: callerAttribution ?? null,
               request_headers: requestHeaders ?? null,
               recorded,
+              header_tier_id: headerTierId ?? null,
+              header_tier_name: headerTierName ?? null,
+              header_tier_color: headerTierColor ?? null,
             }),
           );
           wrote = true;

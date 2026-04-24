@@ -16,11 +16,15 @@ interface Props {
 }
 
 function providerIdFor(column: ColumnData): string {
-  return (
-    inferProviderFromModel(column.model) ??
-    resolveProviderId(column.provider) ??
-    column.provider.toLowerCase()
-  );
+  // Prefer the backend provider that actually served the call. Aggregators
+  // like ollama-cloud serve brand-named models (glm-4.6, qwen3-*) whose
+  // model-name prefix would otherwise make us render a foreign vendor's
+  // logo — the logo should reflect who runs the request, not who coined
+  // the name. Fall back to model-name inference only when we have no
+  // backend provider to go on.
+  const fromProvider =
+    resolveProviderId(column.provider) ?? (column.provider ? column.provider.toLowerCase() : null);
+  return fromProvider ?? inferProviderFromModel(column.model) ?? 'unknown';
 }
 
 const BenchmarkColumn: Component<Props> = (props) => {

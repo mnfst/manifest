@@ -224,7 +224,8 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
   },
 };
 
-function buildProviderDef(shared: SharedProviderEntry): ProviderDef {
+/** @internal Exported for testing only */
+export function buildProviderDef(shared: SharedProviderEntry): ProviderDef {
   const overlay = PROVIDER_UI[shared.id];
   if (!overlay) {
     throw new Error(`Missing UI overlay for shared provider "${shared.id}"`);
@@ -278,6 +279,13 @@ export interface StageDef {
   label: string;
   desc: string;
 }
+
+export const DEFAULT_STAGE: StageDef = {
+  id: 'default',
+  step: 0,
+  label: 'Default model',
+  desc: 'Handles every request.',
+};
 
 export const STAGES: StageDef[] = [
   {

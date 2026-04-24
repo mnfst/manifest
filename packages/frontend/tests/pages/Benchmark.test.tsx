@@ -3,8 +3,15 @@ import { render, fireEvent } from '@solidjs/testing-library';
 
 // ── Mocks ───────────────────────────────────────────────────────────────────
 
+const searchParamsStore = { optimize: undefined as string | undefined };
+const mockSetSearchParams = vi.fn((next: Record<string, string | undefined>) => {
+  Object.assign(searchParamsStore, next);
+});
 vi.mock('@solidjs/router', () => ({
   useParams: () => ({ agentName: 'demo-agent' }),
+  useSearchParams: () => [searchParamsStore, mockSetSearchParams],
+  useLocation: () => ({ pathname: '/agents/demo-agent/benchmark' }),
+  useNavigate: () => vi.fn(),
   A: (props: { href: string; children: unknown; class?: string }) => (
     <a href={props.href} class={props.class}>
       {props.children}

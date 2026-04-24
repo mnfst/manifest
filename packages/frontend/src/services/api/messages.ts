@@ -48,6 +48,7 @@ export interface MessageDetailResponse {
     timestamp: string;
     agent_name: string | null;
     model: string | null;
+    provider: string | null;
     status: string;
     error_message: string | null;
     description: string | null;
@@ -73,6 +74,9 @@ export interface MessageDetailResponse {
     feedback_details: string | null;
     request_headers: Record<string, string> | null;
     recorded: boolean;
+    header_tier_id: string | null;
+    header_tier_name: string | null;
+    header_tier_color: string | null;
     caller_attribution: {
       sdk?: string;
       sdkVersion?: string;
@@ -92,20 +96,22 @@ export interface MessageDetailResponse {
   agent_logs: MessageDetailLog[];
 }
 
-export function getMessages(
-  params: {
-    range?: string;
-    provider?: string;
-    service_type?: string;
-    cursor?: string;
-    limit?: string;
-    agent_name?: string;
-    cost_min?: string;
-    cost_max?: string;
-    recorded?: string;
-    routing_tier?: string;
-  } = {},
-) {
+export interface GetMessagesParams {
+  range?: string;
+  provider?: string;
+  service_type?: string;
+  cursor?: string;
+  limit?: string;
+  agent_name?: string;
+  cost_min?: string;
+  cost_max?: string;
+  recorded?: string;
+  routing_tier?: string;
+  include_benchmark?: string;
+  [key: string]: string | undefined;
+}
+
+export function getMessages(params: GetMessagesParams = {}) {
   return fetchJson('/messages', params);
 }
 

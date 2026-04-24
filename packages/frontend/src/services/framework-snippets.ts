@@ -69,7 +69,47 @@ export function storeFramework(id: FrameworkId): void {
   }
 }
 
-export function getPythonSnippets(baseUrl: string, apiKey: string): Snippet[] {
+export type CustomHeaders = Record<string, string>;
+
+/**
+ * `{"x-key": "value", "x-other": "v"}` rendered for the target language.
+ * Uses JSON.stringify for both keys and values so embedded quotes/backslashes
+ * are escaped properly even though we already reject them at input validation
+ * time — defense in depth against future regressions or bypasses.
+ */
+function renderHeadersDict(headers: CustomHeaders | undefined, lang: 'py' | 'ts'): string | null {
+  if (!headers) return null;
+  const entries = Object.entries(headers);
+  if (entries.length === 0) return null;
+  const inner = entries.map(([k, v]) => `${JSON.stringify(k)}: ${JSON.stringify(v)}`).join(', ');
+  return lang === 'py' ? `{${inner}}` : `{ ${inner} }`;
+}
+
+/**
+ * Renders a single header-line clause (e.g. `\n    default_headers={...},`)
+ * for splicing inside a snippet's constructor args. Returns '' when no headers
+ * are configured, so call sites collapse to no-op naturally.
+ */
+function headerLine(
+  headers: CustomHeaders | undefined,
+  syntax: 'py-kwarg' | 'ts-prop',
+  keyword: string,
+): string {
+  const lang = syntax === 'py-kwarg' ? 'py' : 'ts';
+  const dict = renderHeadersDict(headers, lang);
+  if (!dict) return '';
+  const indent = syntax === 'py-kwarg' ? '\n    ' : '\n  ';
+  const sep = syntax === 'py-kwarg' ? '=' : ': ';
+  return `${indent}${keyword}${sep}${dict},`;
+}
+
+export function getPythonSnippets(
+  baseUrl: string,
+  apiKey: string,
+  customHeaders?: CustomHeaders,
+): Snippet[] {
+  const langchainHeaders = headerLine(customHeaders, 'py-kwarg', 'default_headers');
+  const openaiHeaders = headerLine(customHeaders, 'py-kwarg', 'default_headers');
   return [
     {
       title: 'LangChain',
@@ -78,7 +118,7 @@ export function getPythonSnippets(baseUrl: string, apiKey: string): Snippet[] {
 llm = ChatOpenAI(
     base_url="${baseUrl}",
     api_key="${apiKey}",
-    model="auto",
+    model="auto",${langchainHeaders}
 )`,
     },
     {
@@ -87,7 +127,7 @@ llm = ChatOpenAI(
 
 client = OpenAI(
     base_url="${baseUrl}",
-    api_key="${apiKey}",
+    api_key="${apiKey}",${openaiHeaders}
 )
 
 response = client.chat.completions.create(
@@ -98,7 +138,12 @@ response = client.chat.completions.create(
   ];
 }
 
-export function getVercelPythonSnippet(baseUrl: string, apiKey: string): Snippet {
+export function getVercelPythonSnippet(
+  baseUrl: string,
+  apiKey: string,
+  customHeaders?: CustomHeaders,
+): Snippet {
+  const headersLine = headerLine(customHeaders, 'py-kwarg', 'default_headers');
   return {
     title: 'Vercel AI SDK (Python)',
     code: `# pip install ai-sdk
@@ -106,7 +151,7 @@ from ai_sdk import AIClient
 
 client = AIClient(
     base_url="${baseUrl}",
-    api_key="${apiKey}",
+    api_key="${apiKey}",${headersLine}
 )
 
 response = client.generate_text(
@@ -116,7 +161,13 @@ response = client.generate_text(
   };
 }
 
-export function getTypeScriptSnippets(baseUrl: string, apiKey: string): Snippet[] {
+export function getTypeScriptSnippets(
+  baseUrl: string,
+  apiKey: string,
+  customHeaders?: CustomHeaders,
+): Snippet[] {
+  const vercelHeaders = headerLine(customHeaders, 'ts-prop', 'headers');
+  const openaiHeaders = headerLine(customHeaders, 'ts-prop', 'defaultHeaders');
   return [
     {
       title: 'Vercel AI SDK',
@@ -125,7 +176,7 @@ import { generateText } from "ai";
 
 const manifest = createOpenAI({
   baseURL: "${baseUrl}",
-  apiKey: "${apiKey}",
+  apiKey: "${apiKey}",${vercelHeaders}
 });
 
 const { text } = await generateText({
@@ -139,7 +190,7 @@ const { text } = await generateText({
 
 const client = new OpenAI({
   baseURL: "${baseUrl}",
-  apiKey: "${apiKey}",
+  apiKey: "${apiKey}",${openaiHeaders}
 });
 
 const response = await client.chat.completions.create({
@@ -169,14 +220,26 @@ openclaw config set agents.defaults.model.primary ${model}
 openclaw gateway restart`;
 }
 
-export function getCurlSnippet(baseUrl: string, apiKey: string): Snippet[] {
+export function getCurlSnippet(
+  baseUrl: string,
+  apiKey: string,
+  customHeaders?: CustomHeaders,
+): Snippet[] {
+  // Wrap each header arg in single quotes so embedded double-quotes (already
+  // rejected at input validation but defended against here too) can't break
+  // out of the shell string.
+  const extraHeaders = customHeaders
+    ? Object.entries(customHeaders)
+        .map(([k, v]) => `  -H '${k}: ${v}' \\\n`)
+        .join('')
+    : '';
   return [
     {
       title: 'cURL',
       code: `curl -X POST ${baseUrl}/chat/completions \\
   -H "Authorization: Bearer ${apiKey}" \\
   -H "Content-Type: application/json" \\
-  -d '{
+${extraHeaders}  -d '{
     "model": "auto",
     "messages": [{"role": "user", "content": "Hello"}]
   }'`,
@@ -188,16 +251,17 @@ export function getSnippetsForFramework(
   id: FrameworkId,
   baseUrl: string,
   apiKey: string,
+  customHeaders?: CustomHeaders,
 ): Snippet[] {
   switch (id) {
     case 'python':
-      return getPythonSnippets(baseUrl, apiKey);
+      return getPythonSnippets(baseUrl, apiKey, customHeaders);
     case 'typescript':
-      return getTypeScriptSnippets(baseUrl, apiKey);
+      return getTypeScriptSnippets(baseUrl, apiKey, customHeaders);
     case 'openclaw':
       return [{ title: 'OpenClaw CLI', code: getOpenClawSnippet(baseUrl, apiKey) }];
     case 'curl':
-      return getCurlSnippet(baseUrl, apiKey);
+      return getCurlSnippet(baseUrl, apiKey, customHeaders);
   }
 }
 
@@ -242,20 +306,21 @@ export function getSnippetForToolkit(
   baseUrl: string,
   apiKey: string,
   openaiLang: OpenAILangId = 'python',
+  customHeaders?: CustomHeaders,
 ): Snippet {
   switch (id) {
     case 'openai-sdk':
       return openaiLang === 'python'
-        ? getPythonSnippets(baseUrl, apiKey)[1]!
-        : getTypeScriptSnippets(baseUrl, apiKey)[1]!;
+        ? getPythonSnippets(baseUrl, apiKey, customHeaders)[1]!
+        : getTypeScriptSnippets(baseUrl, apiKey, customHeaders)[1]!;
     case 'vercel-ai-sdk':
       return openaiLang === 'python'
-        ? getVercelPythonSnippet(baseUrl, apiKey)
-        : getTypeScriptSnippets(baseUrl, apiKey)[0]!;
+        ? getVercelPythonSnippet(baseUrl, apiKey, customHeaders)
+        : getTypeScriptSnippets(baseUrl, apiKey, customHeaders)[0]!;
     case 'langchain':
-      return getPythonSnippets(baseUrl, apiKey)[0]!;
+      return getPythonSnippets(baseUrl, apiKey, customHeaders)[0]!;
     case 'curl':
-      return getCurlSnippet(baseUrl, apiKey)[0]!;
+      return getCurlSnippet(baseUrl, apiKey, customHeaders)[0]!;
   }
 }
 
