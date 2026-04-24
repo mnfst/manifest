@@ -217,6 +217,57 @@ describe('createBenchmarkStore', () => {
       expect(store.columns.length).toBeLessThanOrEqual(2);
     });
 
+    it('includes the native model when picking across native and aggregator-proxy providers', () => {
+      // User has openai (native) and ollama-cloud (aggregator catalog with
+      // gemini-/glm-/gpt-oss proxies). The cross-provider pick should land
+      // on one openai native and one ollama-cloud entry (the second pick's
+      // bucket has only proxies, which is fine — user opted into ollama-cloud).
+      const store = createBenchmarkStore('demo');
+      store.pickDefaults(
+        [
+          buildModel({ model_name: 'openai/gpt-4o-mini', provider: 'openai' }),
+          buildModel({ model_name: 'gemini-3-flash-preview', provider: 'ollama-cloud' }),
+          buildModel({ model_name: 'glm-5.1', provider: 'ollama-cloud' }),
+        ],
+        [
+          buildProvider({ provider: 'openai' }),
+          buildProvider({ id: 'p2', provider: 'ollama-cloud', auth_type: 'subscription' }),
+        ],
+      );
+      expect(store.columns).toHaveLength(2);
+      expect(store.columns.some((c) => c.model.startsWith('openai/'))).toBe(true);
+    });
+
+    it('picks the openai-native model over proxy-branded siblings when both are served by openai', () => {
+      // Pathological: an openai-connected catalog somehow includes a model
+      // whose prefix belongs to another vendor. The pick should prefer the
+      // native openai/gpt-4o-mini, not the openai-labeled gemini-* imposter.
+      const store = createBenchmarkStore('demo');
+      store.pickDefaults(
+        [
+          buildModel({ model_name: 'openai/gpt-4o-mini', provider: 'openai' }),
+          buildModel({ model_name: 'gemini-imposter', provider: 'openai' }),
+        ],
+        [buildProvider({ provider: 'openai' })],
+      );
+      // Two models from one provider — picker should take both.
+      expect(store.columns).toHaveLength(2);
+      // Order should put the native first (gpt-4o-mini) before the proxied one.
+      expect(store.columns[0]!.model).toBe('openai/gpt-4o-mini');
+    });
+
+    it('falls back to aggregator-proxied models when the user only has an aggregator connected', () => {
+      const store = createBenchmarkStore('demo');
+      store.pickDefaults(
+        [
+          buildModel({ model_name: 'gemini-3-flash-preview', provider: 'ollama-cloud' }),
+          buildModel({ model_name: 'glm-5.1', provider: 'ollama-cloud' }),
+        ],
+        [buildProvider({ provider: 'ollama-cloud', auth_type: 'subscription' })],
+      );
+      expect(store.columns).toHaveLength(2);
+    });
+
     it('still picks two when every model in the pool is free', () => {
       const store = createBenchmarkStore('demo');
       store.pickDefaults(

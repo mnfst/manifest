@@ -290,20 +290,41 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
     }
     if (activeProviderIds.size === 0) return;
 
+    // Only keep models whose *backend* provider matches a connected one.
+    // Ignore prefix inference here — aggregators (ollama-cloud / openrouter)
+    // list brand-named models like gemini-3-flash-preview that rightfully
+    // route through them, and the connected-provider match is the real test
+    // of whether a call can succeed.
     const eligible = available.filter((m) => {
       if (!m.auth_type) return false;
-      const provId = providerIdForModel(m);
-      return activeProviderIds.has(provId) || activeProviderIds.has(m.provider.toLowerCase());
+      const dbId = resolveProviderId(m.provider) ?? m.provider.toLowerCase();
+      return activeProviderIds.has(dbId) || activeProviderIds.has(m.provider.toLowerCase());
     });
     if (eligible.length === 0) return;
 
     const byProvider = new Map<string, AvailableModel[]>();
     for (const m of eligible) {
-      const provId = providerIdForModel(m);
+      // Bucket by backend-declared provider (not prefix-inferred) — so the
+      // "cross-provider" picker across distinct buckets actually means
+      // distinct connected providers, not distinct brand hints.
+      const provId = resolveProviderId(m.provider) ?? m.provider.toLowerCase();
       const bucket = byProvider.get(provId) ?? [];
       bucket.push(m);
       byProvider.set(provId, bucket);
     }
+
+    // Prefer models whose name-inferred brand matches their backend provider
+    // (a "native" match) over aggregator proxies that borrow another vendor's
+    // brand — gemini-3-flash-preview served via ollama-cloud, etc.
+    const pickOne = (bucket: AvailableModel[], provId: string): AvailableModel | undefined => {
+      const paid = bucket.filter((m) => !isFree(m));
+      const pool = paid.length > 0 ? paid : bucket;
+      const natives = pool.filter((m) => {
+        const prefixId = inferProviderFromModel(m.model_name);
+        return !prefixId || prefixId === provId;
+      });
+      return shuffled(natives.length > 0 ? natives : pool)[0];
+    };
 
     const providerIds = shuffled([...byProvider.keys()]);
     const picks: AvailableModel[] = [];
@@ -312,15 +333,25 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
       for (const provId of providerIds) {
         const bucket = byProvider.get(provId);
         if (!bucket || bucket.length === 0) continue;
-        const paid = bucket.filter((m) => !isFree(m));
-        const pick = shuffled(paid.length > 0 ? paid : bucket)[0];
+        const pick = pickOne(bucket, provId);
         if (!pick) continue;
         picks.push(pick);
         if (picks.length === 2) break;
       }
     } else {
-      const soloBucket = byProvider.get(providerIds[0] ?? '') ?? [];
-      picks.push(...shuffled(soloBucket).slice(0, 2));
+      const provId = providerIds[0] ?? '';
+      const soloBucket = byProvider.get(provId) ?? [];
+      const natives = soloBucket.filter((m) => {
+        const prefixId = inferProviderFromModel(m.model_name);
+        return !prefixId || prefixId === provId;
+      });
+      // Take 2 from natives first; if we don't have enough, backfill with
+      // proxy-branded models so the user still sees two defaults.
+      const orderedPool = [
+        ...shuffled(natives),
+        ...shuffled(soloBucket.filter((m) => !natives.includes(m))),
+      ];
+      picks.push(...orderedPool.slice(0, 2));
     }
 
     if (picks.length === 0) return;
