@@ -113,4 +113,18 @@ describe('TierController', () => {
       BadRequestException,
     );
   });
+
+  it('GET complexity/status returns the current flag', async () => {
+    const result = await controller.getComplexityStatus(user, 'demo');
+    expect(result).toEqual({ enabled: true });
+  });
+
+  it('POST complexity/toggle flips the flag and invalidates cache', async () => {
+    const result = await controller.toggleComplexity(user, 'demo');
+    expect(result).toEqual({ enabled: false });
+    expect(agentRepo.update).toHaveBeenCalledWith('agent-1', {
+      complexity_routing_enabled: false,
+    });
+    expect(resolveAgentService.invalidate).toHaveBeenCalledWith('tenant-1', 'demo');
+  });
 });
