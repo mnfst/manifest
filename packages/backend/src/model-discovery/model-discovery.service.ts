@@ -205,15 +205,21 @@ export class ModelDiscoveryService {
 
     const models: DiscoveredModel[] = [];
     const seen = new Map<string, number>();
+    const vendorAuthTypes = new Map<string, Set<'api_key' | 'subscription'>>();
 
     for (const p of providers) {
       if (p.provider.startsWith('custom:')) continue;
+      const vendor = p.provider.toLowerCase();
+      const providerAuthType = p.auth_type === 'subscription' ? 'subscription' : 'api_key';
+
       const rawCached = p.cached_models;
       if (!Array.isArray(rawCached)) continue;
-      const cached = filterNonChatModels(rawCached, p.provider.toLowerCase());
-      const providerAuthType = p.auth_type === 'subscription' ? 'subscription' : 'api_key';
+      const cached = filterNonChatModels(rawCached, vendor);
       for (const m of cached) {
         const effectiveAuthType = m.authType ?? providerAuthType;
+        const authSet = vendorAuthTypes.get(vendor) ?? new Set();
+        authSet.add(effectiveAuthType);
+        vendorAuthTypes.set(vendor, authSet);
         // Deduplicate by model ID + auth type so subscription and API key
         // versions of the same model are kept as independent entries.
         const dedupeKey = `${m.id}::${effectiveAuthType}`;
@@ -223,6 +229,31 @@ export class ModelDiscoveryService {
         }
       }
     }
+
+    // Mirror subscription-discovered models into the API key list when the
+    // user has both auth types connected for the same vendor. Some provider
+    // APIs return different model sets per auth type (e.g. OpenAI's Codex
+    // endpoint lists gpt-5.x-mini but /v1/models sometimes does not), so
+    // without mirroring, models that are selectable via subscription would
+    // silently be missing from the API Keys tab. Re-run enrichModel to swap
+    // the subscription $0 price for the real per-token pricing.
+    const mirrored: DiscoveredModel[] = [];
+    for (let i = 0; i < models.length; i++) {
+      const m = models[i];
+      if (m.authType !== 'subscription') continue;
+      const vendor = m.provider.toLowerCase();
+      if (vendor.startsWith('custom:')) continue;
+      if (!vendorAuthTypes.get(vendor)?.has('api_key')) continue;
+      const dedupeKey = `${m.id}::api_key`;
+      if (seen.has(dedupeKey)) continue;
+      const reEnriched = this.enrichModel(
+        { ...m, inputPricePerToken: null, outputPricePerToken: null },
+        vendor,
+      );
+      seen.set(dedupeKey, models.length + mirrored.length);
+      mirrored.push({ ...reEnriched, authType: 'api_key' });
+    }
+    models.push(...mirrored);
 
     // Merge custom provider models
     const customProviders = await this.customProviderRepo.find({

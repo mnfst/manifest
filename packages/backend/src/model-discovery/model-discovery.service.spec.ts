@@ -1555,6 +1555,82 @@ describe('ModelDiscoveryService', () => {
       expect(result).toHaveLength(2);
       expect(result.map((m) => m.authType).sort()).toEqual(['api_key', 'subscription']);
     });
+
+    it('should mirror subscription-only models into api_key when both auth types are connected for the same vendor (issue #1708)', async () => {
+      // Regression: OpenAI's Codex (subscription) endpoint lists gpt-5.4-mini
+      // but /v1/models (api_key) sometimes omits it. With both auth types
+      // connected, the API Keys tab must still offer the model so users can
+      // pick it as a fallback against their primary subscription choice.
+      const providers = [
+        makeProvider({
+          id: 'sub',
+          provider: 'openai',
+          auth_type: 'subscription',
+          cached_models: [
+            makeModel({
+              id: 'gpt-5.4-mini',
+              provider: 'openai',
+              authType: 'subscription',
+              inputPricePerToken: 0,
+              outputPricePerToken: 0,
+            }),
+          ],
+        }),
+        makeProvider({
+          id: 'key',
+          provider: 'openai',
+          auth_type: 'api_key',
+          cached_models: [makeModel({ id: 'gpt-5.4', provider: 'openai', authType: 'api_key' })],
+        }),
+      ];
+      providerRepo.find.mockResolvedValue(providers);
+      customProviderRepo.find.mockResolvedValue([]);
+      mockPricingSync.lookupPricing.mockImplementation((key: string) => {
+        if (key === 'openai/gpt-5.4-mini') {
+          return { input: 0.0000001, output: 0.0000004 };
+        }
+        return null;
+      });
+
+      const result = await service.getModelsForAgent('agent-1');
+
+      const miniApiKey = result.find((m) => m.id === 'gpt-5.4-mini' && m.authType === 'api_key');
+      expect(miniApiKey).toBeDefined();
+      expect(miniApiKey!.inputPricePerToken).toBe(0.0000001);
+      expect(miniApiKey!.outputPricePerToken).toBe(0.0000004);
+      // Subscription variant preserved untouched
+      const miniSub = result.find((m) => m.id === 'gpt-5.4-mini' && m.authType === 'subscription');
+      expect(miniSub).toBeDefined();
+      expect(miniSub!.inputPricePerToken).toBe(0);
+    });
+
+    it('should not mirror subscription models when no api_key provider exists for that vendor', async () => {
+      const providers = [
+        makeProvider({
+          id: 'sub',
+          provider: 'openai',
+          auth_type: 'subscription',
+          cached_models: [
+            makeModel({ id: 'gpt-5.4-mini', provider: 'openai', authType: 'subscription' }),
+          ],
+        }),
+        makeProvider({
+          id: 'key',
+          provider: 'anthropic',
+          auth_type: 'api_key',
+          cached_models: [
+            makeModel({ id: 'claude-opus-4', provider: 'anthropic', authType: 'api_key' }),
+          ],
+        }),
+      ];
+      providerRepo.find.mockResolvedValue(providers);
+      customProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getModelsForAgent('agent-1');
+
+      expect(result.filter((m) => m.id === 'gpt-5.4-mini')).toHaveLength(1);
+      expect(result.find((m) => m.id === 'gpt-5.4-mini')!.authType).toBe('subscription');
+    });
   });
 
   /* ── buildSubscriptionFallbackModels ── */
