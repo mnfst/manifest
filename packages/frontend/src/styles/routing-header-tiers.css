@@ -87,8 +87,7 @@
   gap: 6px;
   min-width: 0;
   flex: 1 1 auto;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;
   white-space: nowrap;
 }
 
@@ -128,8 +127,9 @@
   color: hsl(var(--foreground));
 }
 .header-tier-card__icon-btn:focus-visible {
-  outline: 2px solid hsl(var(--ring));
-  outline-offset: 2px;
+  outline: none;
+  background: hsl(var(--muted) / 0.8);
+  color: hsl(var(--foreground));
 }
 
 /* Right: Reset / + Add model + kebab, all in one inline cluster mirroring

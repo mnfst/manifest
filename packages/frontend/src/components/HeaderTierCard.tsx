@@ -7,6 +7,7 @@ import type {
 } from '../services/api.js';
 import {
   type HeaderTier,
+  resetHeaderTier,
   setHeaderTierFallbacks,
   clearHeaderTierFallbacks,
 } from '../services/api/header-tiers.js';
@@ -44,12 +45,15 @@ interface Props {
   onOverride: (model: string, provider: string, authType?: AuthType) => void | Promise<void>;
   onFallbacksUpdate: (fallbacks: string[]) => void;
   onEdit?: () => void;
+  onDisable?: () => void;
 }
 
 const HeaderTierCard: Component<Props> = (props) => {
   type PickerMode = 'primary' | 'fallback' | null;
   const [pickerMode, setPickerMode] = createSignal<PickerMode>(null);
   const [snippetOpen, setSnippetOpen] = createSignal(false);
+  const [menuOpen, setMenuOpen] = createSignal(false);
+  const [resetting, setResetting] = createSignal(false);
 
   const currentModel = (): string | null => props.tier.override_model;
   const fallbacks = (): string[] => props.tier.fallback_models ?? [];
@@ -116,37 +120,30 @@ const HeaderTierCard: Component<Props> = (props) => {
     }
   };
 
+  const handleReset = async () => {
+    setResetting(true);
+    try {
+      await resetHeaderTier(props.agentName, props.tier.id);
+      props.onFallbacksUpdate([]);
+    } catch {
+      // silent
+    } finally {
+      setResetting(false);
+    }
+  };
+
   return (
     <div class="routing-card routing-card--header-tier">
       <div class="routing-card__header">
         <span class="routing-card__tier header-tier-card__title">
           <span class="header-tier-card__name">{props.tier.name}</span>
-          <button
-            type="button"
-            class="header-tier-card__icon-btn"
-            onClick={() => setSnippetOpen(true)}
-            aria-label={`How to send the header for ${props.tier.name}`}
-            title="How to send this header from your app"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4m0 6c-1.08 0-2-.92-2-2s.92-2 2-2 2 .92 2 2-.92 2-2 2" />
-              <path d="m20.42 13.4-.51-.29c.05-.37.08-.74.08-1.11s-.03-.74-.08-1.11l.51-.29c.96-.55 1.28-1.78.73-2.73l-1-1.73a2.006 2.006 0 0 0-2.73-.73l-.53.31c-.58-.46-1.22-.83-1.9-1.11v-.6c0-1.1-.9-2-2-2h-2c-1.1 0-2 .9-2 2v.6c-.67.28-1.31.66-1.9 1.11l-.53-.31c-.96-.55-2.18-.22-2.73.73l-1 1.73c-.55.96-.22 2.18.73 2.73l.51.29c-.05.37-.08.74-.08 1.11s.03.74.08 1.11l-.51.29c-.96.55-1.28 1.78-.73 2.73l1 1.73c.55.95 1.78 1.28 2.73.73l.53-.31c.58.46 1.22.83 1.9 1.11v.6c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2v-.6a8.7 8.7 0 0 0 1.9-1.11l.53.31c.95.55 2.18.22 2.73-.73l1-1.73c.55-.96.22-2.18-.73-2.73m-2.59-2.78c.11.45.17.92.17 1.38s-.06.92-.17 1.38a1 1 0 0 0 .47 1.11l1.12.65-1 1.73-1.14-.66c-.38-.22-.87-.16-1.19.14-.68.65-1.51 1.13-2.38 1.4-.42.13-.71.52-.71.96v1.3h-2v-1.3c0-.44-.29-.83-.71-.96-.88-.27-1.7-.75-2.38-1.4a1.01 1.01 0 0 0-1.19-.15l-1.14.66-1-1.73 1.12-.65c.39-.22.58-.68.47-1.11-.11-.45-.17-.92-.17-1.38s.06-.93.17-1.38A1 1 0 0 0 5.7 9.5l-1.12-.65 1-1.73 1.14.66c.38.22.87.16 1.19-.14.68-.65 1.51-1.13 2.38-1.4.42-.13.71-.52.71-.96v-1.3h2v1.3c0 .44.29.83.71.96.88.27 1.7.75 2.38 1.4.32.31.81.36 1.19.14l1.14-.66 1 1.73-1.12.65c-.39.22-.58.68-.47 1.11Z" />
-            </svg>
-          </button>
-          <Show when={props.onEdit}>
+          <div class="header-tier-card__kebab">
             <button
               type="button"
               class="header-tier-card__icon-btn"
-              onClick={() => props.onEdit?.()}
-              aria-label={`Edit ${props.tier.name}`}
-              title="Edit tier"
+              onClick={() => setMenuOpen(!menuOpen())}
+              aria-label={`Options for ${props.tier.name}`}
+              title="Options"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -156,14 +153,78 @@ const HeaderTierCard: Component<Props> = (props) => {
                 viewBox="0 0 24 24"
                 aria-hidden="true"
               >
-                <path d="M4 22h16v-2H4zM20.71 5.63l-2.34-2.34a1 1 0 0 0-1.41 0l-1.84 1.84 3.75 3.75 1.84-1.84a1 1 0 0 0 0-1.41zM3 17.25V21h3.75L17.81 9.94l-3.75-3.75z" />
+                <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4m0 6c-1.08 0-2-.92-2-2s.92-2 2-2 2 .92 2 2-.92 2-2 2" />
+                <path d="m20.42 13.4-.51-.29c.05-.37.08-.74.08-1.11s-.03-.74-.08-1.11l.51-.29c.96-.55 1.28-1.78.73-2.73l-1-1.73a2.006 2.006 0 0 0-2.73-.73l-.53.31c-.58-.46-1.22-.83-1.9-1.11v-.6c0-1.1-.9-2-2-2h-2c-1.1 0-2 .9-2 2v.6c-.67.28-1.31.66-1.9 1.11l-.53-.31c-.96-.55-2.18-.22-2.73.73l-1 1.73c-.55.96-.22 2.18.73 2.73l.51.29c-.05.37-.08.74-.08 1.11s.03.74.08 1.11l-.51.29c-.96.55-1.28 1.78-.73 2.73l1 1.73c.55.95 1.78 1.28 2.73.73l.53-.31c.58.46 1.22.83 1.9 1.11v.6c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2v-.6a8.7 8.7 0 0 0 1.9-1.11l.53.31c.95.55 2.18.22 2.73-.73l1-1.73c.55-.96.22-2.18-.73-2.73m-2.59-2.78c.11.45.17.92.17 1.38s-.06.92-.17 1.38a1 1 0 0 0 .47 1.11l1.12.65-1 1.73-1.14-.66c-.38-.22-.87-.16-1.19.14-.68.65-1.51 1.13-2.38 1.4-.42.13-.71.52-.71.96v1.3h-2v-1.3c0-.44-.29-.83-.71-.96-.88-.27-1.7-.75-2.38-1.4a1.01 1.01 0 0 0-1.19-.15l-1.14.66-1-1.73 1.12-.65c.39-.22.58-.68.47-1.11-.11-.45-.17-.92-.17-1.38s.06-.93.17-1.38A1 1 0 0 0 5.7 9.5l-1.12-.65 1-1.73 1.14.66c.38.22.87.16 1.19-.14.68-.65 1.51-1.13 2.38-1.4.42-.13.71-.52.71-.96v-1.3h2v1.3c0 .44.29.83.71.96.88.27 1.7.75 2.38 1.4.32.31.81.36 1.19.14l1.14-.66 1 1.73-1.12.65c-.39.22-.58.68-.47 1.11Z" />
               </svg>
             </button>
-          </Show>
+            <Show when={menuOpen()}>
+              <div class="header-tier-card__menu" onMouseLeave={() => setMenuOpen(false)}>
+                <button
+                  type="button"
+                  class="header-tier-card__menu-item"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setSnippetOpen(true);
+                  }}
+                >
+                  Send this header
+                </button>
+                <Show when={props.onEdit}>
+                  <button
+                    type="button"
+                    class="header-tier-card__menu-item"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      props.onEdit?.();
+                    }}
+                  >
+                    Edit tier
+                  </button>
+                </Show>
+                <Show when={props.onDisable}>
+                  <button
+                    type="button"
+                    class="header-tier-card__menu-item header-tier-card__menu-item--danger"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      props.onDisable?.();
+                    }}
+                  >
+                    Disable
+                  </button>
+                </Show>
+              </div>
+            </Show>
+          </div>
         </span>
-        <Show when={!currentModel()}>
-          <button class="routing-card__header-add" onClick={() => setPickerMode('primary')}>
-            + Add model
+        <Show
+          when={currentModel()}
+          fallback={
+            <button class="routing-card__header-add" onClick={() => setPickerMode('primary')}>
+              + Add model
+            </button>
+          }
+        >
+          <button
+            class="routing-card__header-action routing-card__header-action--danger"
+            onClick={handleReset}
+            disabled={resetting()}
+          >
+            {resetting() ? (
+              <span class="spinner" style="width: 12px; height: 12px;" />
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="12"
+                height="12"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path d="m7.77,12.97c.49.41,1.23.06,1.23-.58v-2.4h6c2.21,0,4,1.79,4,4v5c0,.55.45,1,1,1s1-.45,1-1v-5c0-3.31-2.69-6-6-6h-6v-2.4c0-.64-.74-.98-1.23-.58l-4.08,3.4c-.36.3-.36.85,0,1.15l4.08,3.4Z" />
+              </svg>
+            )}
+            Reset
           </button>
         </Show>
       </div>

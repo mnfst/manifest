@@ -1,4 +1,4 @@
-import { For, type Component } from 'solid-js';
+import { For, Show, type Component } from 'solid-js';
 import { STAGES } from '../services/providers.js';
 import RoutingTierCard from './RoutingTierCard.js';
 import type {
@@ -28,6 +28,9 @@ export interface RoutingComplexitySectionProps {
   onAddFallback: (tierId: string) => void;
   getFallbacksFor: (tierId: string) => string[];
   getTier: (tierId: string) => TierAssignment | undefined;
+  complexityEnabled: () => boolean;
+  togglingComplexity: () => boolean;
+  onToggleComplexity: () => void;
   embedded?: boolean;
 }
 
@@ -61,28 +64,66 @@ const RoutingComplexitySection: Component<RoutingComplexitySectionProps> = (prop
     </div>
   );
 
+  const toggle = () => (
+    <button
+      class="routing-switch"
+      classList={{ 'routing-switch--on': props.complexityEnabled() }}
+      disabled={props.togglingComplexity()}
+      onClick={() => props.onToggleComplexity()}
+      aria-pressed={props.complexityEnabled()}
+    >
+      <span class="routing-switch__label">
+        {props.complexityEnabled() ? 'Enabled' : 'Disabled'}
+      </span>
+      <span class="routing-switch__track">
+        <span class="routing-switch__thumb" />
+      </span>
+    </button>
+  );
+
+  const emptyState = () => (
+    <div class="complexity-empty">
+      <span class="complexity-empty__title">Complexity routing is off</span>
+      <span class="complexity-empty__desc">
+        All requests go through the default tier. Enable complexity routing to score each request
+        and route it to a matching tier.
+      </span>
+    </div>
+  );
+
   if (props.embedded) {
     return (
       <div>
-        <div class="routing-section__header" style="margin-bottom: 16px;">
+        <div
+          class="routing-section__header routing-section__header--with-control"
+          style="margin-bottom: 16px;"
+        >
           <span class="routing-section__subtitle">
             Analyzes the complexity of each request on the fly and routes it to the matching tier.
           </span>
+          {toggle()}
         </div>
-        {tierCards()}
+        <Show when={props.complexityEnabled()} fallback={emptyState()}>
+          {tierCards()}
+        </Show>
       </div>
     );
   }
 
   return (
     <div class="routing-section">
-      <div class="routing-section__header">
-        <span class="routing-section__title">Complexity routing</span>
-        <span class="routing-section__subtitle">
-          Analyzes the complexity of each request on the fly and routes it to the matching tier.
-        </span>
+      <div class="routing-section__header routing-section__header--with-control">
+        <div>
+          <span class="routing-section__title">Complexity routing</span>
+          <span class="routing-section__subtitle">
+            Analyzes the complexity of each request on the fly and routes it to the matching tier.
+          </span>
+        </div>
+        {toggle()}
       </div>
-      {tierCards()}
+      <Show when={props.complexityEnabled()} fallback={emptyState()}>
+        {tierCards()}
+      </Show>
     </div>
   );
 };

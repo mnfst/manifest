@@ -7,7 +7,6 @@ import RoutingTabs from '../components/RoutingTabs.js';
 import { toast } from '../services/toast-store.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import RoutingDefaultTierSection from './RoutingDefaultTierSection.js';
-import RoutingComplexitySection from './RoutingComplexitySection.js';
 import RoutingSpecificitySection from './RoutingSpecificitySection.js';
 import RoutingHeaderTiersSection from './RoutingHeaderTiersSection.js';
 import { RoutingLoadingSkeleton, ActiveProviderIcons, RoutingFooter } from './RoutingPanels.js';
@@ -24,6 +23,8 @@ import {
   refreshModels,
   getPricingHealth,
   refreshPricing,
+  getComplexityStatus,
+  toggleComplexity,
 } from '../services/api.js';
 import { parseCustomProviderParams, parseProviderDeepLink } from '../services/routing-params.js';
 
@@ -60,6 +61,23 @@ const Routing: Component = () => {
     () => agentName(),
     (name) => listHeaderTiers(name).catch(() => [] as HeaderTier[]),
   );
+  const [complexityStatus, { refetch: refetchComplexityStatus, mutate: mutateComplexityStatus }] =
+    createResource(() => agentName(), getComplexityStatus);
+  const [togglingComplexity, setTogglingComplexity] = createSignal(false);
+  const complexityEnabled = () => complexityStatus()?.enabled ?? true;
+
+  const handleToggleComplexity = async () => {
+    setTogglingComplexity(true);
+    try {
+      const result = await toggleComplexity(agentName());
+      mutateComplexityStatus(result);
+    } catch {
+      toast.error('Failed to toggle complexity routing');
+    } finally {
+      setTogglingComplexity(false);
+    }
+  };
+
   const hasCustomTiersEnabled = () => headerTiers()?.some((t) => t.enabled) ?? false;
   const [dropdownTier, setDropdownTier] = createSignal<string | null>(null);
   const [specificityDropdown, setSpecificityDropdown] = createSignal<string | null>(null);
@@ -278,7 +296,13 @@ const Routing: Component = () => {
         <RoutingTabs
           specificityEnabled={hasAnySpecificityActive}
           customEnabled={hasCustomTiersEnabled}
-          pipelineHelp={() => buildPipelineHelp(hasAnySpecificityActive(), hasCustomTiersEnabled())}
+          pipelineHelp={() =>
+            buildPipelineHelp(
+              hasAnySpecificityActive(),
+              hasCustomTiersEnabled(),
+              complexityEnabled(),
+            )
+          }
         >
           {{
             default: (
@@ -300,29 +324,10 @@ const Routing: Component = () => {
                 onFallbackUpdate={actions.handleFallbackUpdate}
                 onAddFallback={(tierId) => setFallbackPickerTier(tierId)}
                 getFallbacksFor={actions.getFallbacksFor}
-                embedded
-              />
-            ),
-            complexity: (
-              <RoutingComplexitySection
-                agentName={agentName}
-                tiers={() => tiers() ?? []}
-                models={() => models() ?? []}
-                customProviders={() => customProviders() ?? []}
-                activeProviders={activeProviders}
-                connectedProviders={() => connectedProviders() ?? []}
-                tiersLoading={tiers.loading}
-                changingTier={actions.changingTier}
-                resettingTier={actions.resettingTier}
-                resettingAll={actions.resettingAll}
-                addingFallback={actions.addingFallback}
-                onDropdownOpen={(tierId) => setDropdownTier(tierId)}
-                onOverride={handleOverride}
-                onReset={actions.handleReset}
-                onFallbackUpdate={actions.handleFallbackUpdate}
-                onAddFallback={(tierId) => setFallbackPickerTier(tierId)}
-                getFallbacksFor={actions.getFallbacksFor}
                 getTier={actions.getTier}
+                complexityEnabled={complexityEnabled}
+                togglingComplexity={togglingComplexity}
+                onToggleComplexity={handleToggleComplexity}
                 embedded
               />
             ),

@@ -8,18 +8,23 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { TIER_SLOTS } from 'manifest-shared';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
 import { TierService } from './routing-core/tier.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { AgentNameParamDto, SetOverrideDto, SetFallbacksDto } from './dto/routing.dto';
+import { Agent } from '../entities/agent.entity';
 
 @Controller('api/v1/routing')
 export class TierController {
   constructor(
     private readonly tierService: TierService,
     private readonly resolveAgentService: ResolveAgentService,
+    @InjectRepository(Agent)
+    private readonly agentRepo: Repository<Agent>,
   ) {}
 
   @Get(':agentName/tiers')
@@ -99,6 +104,21 @@ export class TierController {
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
     await this.tierService.clearFallbacks(agent.id, tier);
     return { ok: true };
+  }
+
+  @Get(':agentName/complexity/status')
+  async getComplexityStatus(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
+    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    return { enabled: agent.complexity_routing_enabled };
+  }
+
+  @Post(':agentName/complexity/toggle')
+  async toggleComplexity(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
+    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    const newValue = !agent.complexity_routing_enabled;
+    await this.agentRepo.update(agent.id, { complexity_routing_enabled: newValue });
+    this.resolveAgentService.invalidate(agent.tenant_id, agentName);
+    return { enabled: newValue };
   }
 
   private validateTier(tier: string): void {

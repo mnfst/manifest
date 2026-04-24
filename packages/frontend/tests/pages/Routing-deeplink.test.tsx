@@ -77,6 +77,8 @@ vi.mock('../../src/services/api.js', () => ({
   overrideSpecificity: vi.fn().mockResolvedValue({}),
   getPricingHealth: vi.fn().mockResolvedValue({ model_count: 100, last_fetched_at: '2026-04-13T00:00:00.000Z' }),
   refreshPricing: vi.fn().mockResolvedValue({ ok: true, model_count: 100, last_fetched_at: '2026-04-13T00:00:00.000Z' }),
+  getComplexityStatus: vi.fn().mockResolvedValue({ enabled: true }),
+  toggleComplexity: vi.fn().mockResolvedValue({ enabled: false }),
 }));
 
 vi.mock('../../src/services/routing-utils.js', () => ({

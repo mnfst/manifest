@@ -15,7 +15,6 @@ function renderTabs(
     >
       {{
         default: <div data-testid="default-content">Default content</div>,
-        complexity: <div data-testid="complexity-content">Complexity content</div>,
         specificity: <div data-testid="specificity-content">Specificity content</div>,
         custom: <div data-testid="custom-content">Custom content</div>,
       }}
@@ -24,10 +23,9 @@ function renderTabs(
 }
 
 describe('RoutingTabs', () => {
-  it('renders all four tab labels', () => {
+  it('renders all three tab labels', () => {
     renderTabs();
     expect(screen.getByRole('tab', { name: /Default/ })).toBeDefined();
-    expect(screen.getByRole('tab', { name: /Complexity/ })).toBeDefined();
     expect(screen.getByRole('tab', { name: /Task-specific/ })).toBeDefined();
     expect(screen.getByRole('tab', { name: /Custom/ })).toBeDefined();
   });
@@ -40,16 +38,8 @@ describe('RoutingTabs', () => {
   it('shows default content by default', () => {
     renderTabs();
     expect(screen.getByTestId('default-content')).toBeDefined();
-    expect(screen.queryByTestId('complexity-content')).toBeNull();
     expect(screen.queryByTestId('specificity-content')).toBeNull();
     expect(screen.queryByTestId('custom-content')).toBeNull();
-  });
-
-  it('switches to complexity tab on click', () => {
-    renderTabs();
-    fireEvent.click(screen.getByRole('tab', { name: /Complexity/ }));
-    expect(screen.queryByTestId('default-content')).toBeNull();
-    expect(screen.getByTestId('complexity-content')).toBeDefined();
   });
 
   it('switches to specificity tab on click', () => {
@@ -71,16 +61,16 @@ describe('RoutingTabs', () => {
     const defaultTab = screen.getByRole('tab', { name: /Default/ });
     expect(defaultTab.getAttribute('aria-selected')).toBe('true');
 
-    const complexityTab = screen.getByRole('tab', { name: /Complexity/ });
-    expect(complexityTab.getAttribute('aria-selected')).toBe('false');
+    const specificityTab = screen.getByRole('tab', { name: /Task-specific/ });
+    expect(specificityTab.getAttribute('aria-selected')).toBe('false');
   });
 
   it('updates aria-selected on tab switch', () => {
     renderTabs();
-    fireEvent.click(screen.getByRole('tab', { name: /Complexity/ }));
+    fireEvent.click(screen.getByRole('tab', { name: /Task-specific/ }));
 
     expect(screen.getByRole('tab', { name: /Default/ }).getAttribute('aria-selected')).toBe('false');
-    expect(screen.getByRole('tab', { name: /Complexity/ }).getAttribute('aria-selected')).toBe('true');
+    expect(screen.getByRole('tab', { name: /Task-specific/ }).getAttribute('aria-selected')).toBe('true');
   });
 
   it('renders tabpanel with correct role', () => {
@@ -91,23 +81,21 @@ describe('RoutingTabs', () => {
   it('shows green dot for enabled layers and gray for disabled', () => {
     const { container } = renderTabs({ specificityEnabled: false, customEnabled: true });
     const dots = container.querySelectorAll('.routing-tabs__dot');
-    // Default (always on), complexity (always on), specificity (off), custom (on)
+    // Default (always on), specificity (off), custom (on)
     expect(dots[0].classList.contains('routing-tabs__dot--on')).toBe(true);
-    expect(dots[1].classList.contains('routing-tabs__dot--on')).toBe(true);
-    expect(dots[2].classList.contains('routing-tabs__dot--off')).toBe(true);
-    expect(dots[3].classList.contains('routing-tabs__dot--on')).toBe(true);
+    expect(dots[1].classList.contains('routing-tabs__dot--off')).toBe(true);
+    expect(dots[2].classList.contains('routing-tabs__dot--on')).toBe(true);
   });
 
-  it('Default and Complexity tabs always have a green dot', () => {
+  it('Default tab always has a green dot; specificity and custom are off by default', () => {
     const { container } = renderTabs();
     const dots = container.querySelectorAll('.routing-tabs__dot');
-    expect(dots.length).toBe(4);
-    // Default and Complexity dots are always on
+    expect(dots.length).toBe(3);
+    // Default dot is always on
     expect(dots[0].classList.contains('routing-tabs__dot--on')).toBe(true);
-    expect(dots[1].classList.contains('routing-tabs__dot--on')).toBe(true);
     // Specificity and Custom are off by default
+    expect(dots[1].classList.contains('routing-tabs__dot--off')).toBe(true);
     expect(dots[2].classList.contains('routing-tabs__dot--off')).toBe(true);
-    expect(dots[3].classList.contains('routing-tabs__dot--off')).toBe(true);
   });
 
   it('applies active class to selected tab', () => {
@@ -128,7 +116,6 @@ describe('RoutingTabs', () => {
       >
         {{
           default: <div>Default</div>,
-          complexity: <div>Complexity</div>,
           specificity: <div>Specificity</div>,
           custom: <div>Custom</div>,
         }}
@@ -146,7 +133,6 @@ describe('RoutingTabs', () => {
       >
         {{
           default: <div>Default</div>,
-          complexity: <div>Complexity</div>,
           specificity: <div>Specificity</div>,
           custom: <div>Custom</div>,
         }}
@@ -164,7 +150,6 @@ describe('RoutingTabs', () => {
       >
         {{
           default: <div>Default</div>,
-          complexity: <div>Complexity</div>,
           specificity: <div>Specificity</div>,
           custom: <div>Custom</div>,
         }}
@@ -187,7 +172,6 @@ describe('RoutingTabs', () => {
       >
         {{
           default: <div>Default</div>,
-          complexity: <div>Complexity</div>,
           specificity: <div>Specificity</div>,
           custom: <div>Custom</div>,
         }}
@@ -208,7 +192,6 @@ describe('RoutingTabs', () => {
       >
         {{
           default: <div>Default</div>,
-          complexity: <div>Complexity</div>,
           specificity: <div>Specificity</div>,
           custom: <div>Custom</div>,
         }}
@@ -230,7 +213,6 @@ describe('RoutingTabs', () => {
       >
         {{
           default: <div>Default</div>,
-          complexity: <div>Complexity</div>,
           specificity: <div>Specificity</div>,
           custom: <div>Custom</div>,
         }}
@@ -252,7 +234,6 @@ describe('RoutingTabs', () => {
       >
         {{
           default: <div>Default</div>,
-          complexity: <div>Complexity</div>,
           specificity: <div>Specificity</div>,
           custom: <div>Custom</div>,
         }}

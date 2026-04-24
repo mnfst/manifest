@@ -1,4 +1,4 @@
-import { Show, type Component } from 'solid-js';
+import { For, Show, type Component } from 'solid-js';
 import type {
   AuthType,
   AvailableModel,
@@ -6,7 +6,7 @@ import type {
   RoutingProvider,
   TierAssignment,
 } from '../services/api.js';
-import { DEFAULT_STAGE } from '../services/providers.js';
+import { DEFAULT_STAGE, STAGES } from '../services/providers.js';
 import RoutingTierCard from './RoutingTierCard.js';
 
 export interface RoutingDefaultTierSectionProps {
@@ -27,14 +27,15 @@ export interface RoutingDefaultTierSectionProps {
   onFallbackUpdate: (tierId: string, fallbacks: string[]) => void;
   onAddFallback: (tierId: string) => void;
   getFallbacksFor: (tierId: string) => string[];
+  getTier: (tierId: string) => TierAssignment | undefined;
+  complexityEnabled: () => boolean;
+  togglingComplexity: () => boolean;
+  onToggleComplexity: () => void;
   embedded?: boolean;
 }
 
 const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (props) => {
-  const subtitle = () =>
-    'Acts as a safety net and handles requests that complexity routing can\u2019t resolve';
-
-  const card = () => (
+  const defaultCard = () => (
     <div
       class="routing-cards"
       classList={{
@@ -65,28 +66,86 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
     </div>
   );
 
+  const complexityCards = () => (
+    <div class="routing-cards">
+      <For each={STAGES}>
+        {(stage) => (
+          <RoutingTierCard
+            stage={stage}
+            tier={() => props.getTier(stage.id)}
+            models={props.models}
+            customProviders={props.customProviders}
+            activeProviders={props.activeProviders}
+            tiersLoading={props.tiersLoading}
+            changingTier={props.changingTier}
+            resettingTier={props.resettingTier}
+            resettingAll={props.resettingAll}
+            addingFallback={props.addingFallback}
+            agentName={props.agentName}
+            onDropdownOpen={props.onDropdownOpen}
+            onOverride={props.onOverride}
+            onReset={props.onReset}
+            onFallbackUpdate={props.onFallbackUpdate}
+            onAddFallback={props.onAddFallback}
+            getFallbacksFor={props.getFallbacksFor}
+            connectedProviders={props.connectedProviders}
+          />
+        )}
+      </For>
+    </div>
+  );
+
+  const switchButton = () => (
+    <button
+      class="routing-switch"
+      classList={{ 'routing-switch--on': props.complexityEnabled() }}
+      disabled={props.togglingComplexity()}
+      onClick={() => props.onToggleComplexity()}
+    >
+      <span class="routing-switch__label">Route by complexity</span>
+      <span class="routing-switch__track">
+        <span class="routing-switch__thumb" />
+      </span>
+    </button>
+  );
+
+  const subtitle = () =>
+    props.complexityEnabled()
+      ? 'Analyzes the complexity of each request on the fly and routes it to the matching tier.'
+      : 'Pick one model and up to 5 fallbacks as your default routing.';
+
   if (props.embedded) {
     return (
       <div>
-        <Show when={!props.tiersLoading}>
-          <span class="routing-section__subtitle" style="margin-bottom: 16px;">
-            {subtitle()}
-          </span>
+        <div
+          class="routing-section__header routing-section__header--with-control"
+          style="margin-bottom: 16px;"
+        >
+          <span class="routing-section__subtitle">{subtitle()}</span>
+          {switchButton()}
+        </div>
+        <Show
+          when={props.complexityEnabled()}
+          fallback={<div class="routing-cards-backdrop">{defaultCard()}</div>}
+        >
+          {complexityCards()}
         </Show>
-        <div class="routing-cards-backdrop">{card()}</div>
       </div>
     );
   }
 
   return (
-    <div class="routing-section routing-section--dimmed">
-      <div class="routing-section__header">
-        <span class="routing-section__title">Default model</span>
-        <Show when={!props.tiersLoading}>
+    <div class="routing-section">
+      <div class="routing-section__header routing-section__header--with-control">
+        <div>
+          <span class="routing-section__title">Default routing</span>
           <span class="routing-section__subtitle">{subtitle()}</span>
-        </Show>
+        </div>
+        {switchButton()}
       </div>
-      {card()}
+      <Show when={props.complexityEnabled()} fallback={defaultCard()}>
+        {complexityCards()}
+      </Show>
     </div>
   );
 };

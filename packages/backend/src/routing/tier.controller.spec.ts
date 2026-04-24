@@ -1,14 +1,22 @@
 import { BadRequestException } from '@nestjs/common';
+import { Repository } from 'typeorm';
 import { TierController } from './tier.controller';
 import { TierService } from './routing-core/tier.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
+import { Agent } from '../entities/agent.entity';
 import type { AuthUser } from '../auth/auth.instance';
 
 describe('TierController', () => {
   const user = { id: 'user-1' } as AuthUser;
-  const agent = { id: 'agent-1', name: 'demo' };
+  const agent = {
+    id: 'agent-1',
+    name: 'demo',
+    tenant_id: 'tenant-1',
+    complexity_routing_enabled: true,
+  };
   let tierService: jest.Mocked<Partial<TierService>>;
-  let resolveAgentService: { resolve: jest.Mock };
+  let resolveAgentService: { resolve: jest.Mock; invalidate: jest.Mock };
+  let agentRepo: jest.Mocked<Partial<Repository<Agent>>>;
   let controller: TierController;
 
   beforeEach(() => {
@@ -21,10 +29,17 @@ describe('TierController', () => {
       setFallbacks: jest.fn().mockResolvedValue([]),
       clearFallbacks: jest.fn().mockResolvedValue(undefined),
     };
-    resolveAgentService = { resolve: jest.fn().mockResolvedValue(agent) };
+    resolveAgentService = {
+      resolve: jest.fn().mockResolvedValue(agent),
+      invalidate: jest.fn(),
+    };
+    agentRepo = {
+      update: jest.fn().mockResolvedValue(undefined),
+    };
     controller = new TierController(
       tierService as unknown as TierService,
       resolveAgentService as unknown as ResolveAgentService,
+      agentRepo as unknown as Repository<Agent>,
     );
   });
 

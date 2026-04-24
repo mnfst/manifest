@@ -289,7 +289,7 @@
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .dark .routing-card {

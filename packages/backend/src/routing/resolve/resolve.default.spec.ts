@@ -4,6 +4,7 @@ jest.mock('../../scoring', () => {
   return { scoreRequest, scanMessages };
 });
 
+import { Repository } from 'typeorm';
 import { ResolveService } from './resolve.service';
 import { TierService } from '../routing-core/tier.service';
 import { ProviderKeyService } from '../routing-core/provider-key.service';
@@ -12,6 +13,7 @@ import { SpecificityPenaltyService } from '../routing-core/specificity-penalty.s
 import { HeaderTierService } from '../header-tiers/header-tier.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
+import { Agent } from '../../entities/agent.entity';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const scoring = require('../../scoring');
 
@@ -55,6 +57,9 @@ function buildService(opts: {
     {
       list: jest.fn().mockResolvedValue([]),
     } as unknown as HeaderTierService,
+    {
+      findOne: jest.fn().mockResolvedValue({ complexity_routing_enabled: true }),
+    } as unknown as Repository<Agent>,
   );
 }
 

@@ -77,6 +77,7 @@ import { AddSpecificityMiscategorized1777000000000 } from './migrations/17770000
 import { AddComplexityRoutingFlag1777100000000 } from './migrations/1777100000000-AddComplexityRoutingFlag';
 import { AddHeaderTierEnabled1777100000000 } from './migrations/1777100000000-AddHeaderTierEnabled';
 import { DropComplexityRoutingFlag1780000000000 } from './migrations/1780000000000-DropComplexityRoutingFlag';
+import { ReAddComplexityRoutingFlag1781000000000 } from './migrations/1781000000000-ReAddComplexityRoutingFlag';
 
 const entities = [
   AgentMessage,
@@ -155,6 +156,7 @@ const migrations = [
   AddComplexityRoutingFlag1777100000000,
   AddHeaderTierEnabled1777100000000,
   DropComplexityRoutingFlag1780000000000,
+  ReAddComplexityRoutingFlag1781000000000,
 ];
 
 @Module({

@@ -344,6 +344,9 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
 }
 
 const CUSTOM_PROVIDER_LOGOS: Record<string, string> = {
+  azure: '/icons/azure.svg',
+  'azure openai': '/icons/azure.svg',
+  'microsoft azure': '/icons/azure.svg',
   cerebras: '/icons/cerebras.svg',
   'cloudflare workers ai': '/icons/workersai.svg',
   cohere: '/icons/cohere.svg',
@@ -370,6 +373,7 @@ const CUSTOM_PROVIDER_LOGOS: Record<string, string> = {
 };
 
 const BASE_URL_TO_PROVIDER: [RegExp, string][] = [
+  [/\.azure\.com|azure\.openai\.com|openai\.azure\.com/i, 'azure'],
   [/api\.cerebras\.ai/i, 'cerebras'],
   [/api\.cloudflare\.com|workers\.ai/i, 'cloudflare workers ai'],
   [/cohere\.ai/i, 'cohere'],

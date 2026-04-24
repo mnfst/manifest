@@ -1,6 +1,6 @@
 import { createSignal, Show, type Component, type JSX } from 'solid-js';
 
-export type RoutingTabId = 'default' | 'complexity' | 'specificity' | 'custom';
+export type RoutingTabId = 'default' | 'specificity' | 'custom';
 
 interface Tab {
   id: RoutingTabId;
@@ -14,7 +14,6 @@ export interface RoutingTabsProps {
   pipelineHelp?: () => JSX.Element | null;
   children: {
     default: JSX.Element;
-    complexity: JSX.Element;
     specificity: JSX.Element;
     custom: JSX.Element;
   };
@@ -26,7 +25,6 @@ const RoutingTabs: Component<RoutingTabsProps> = (props) => {
 
   const tabs: Tab[] = [
     { id: 'default', label: 'Default', dot: () => true },
-    { id: 'complexity', label: 'Complexity', dot: () => true },
     { id: 'specificity', label: 'Task-specific', dot: () => props.specificityEnabled() },
     { id: 'custom', label: 'Custom', dot: () => props.customEnabled() },
   ];
@@ -88,7 +86,6 @@ const RoutingTabs: Component<RoutingTabsProps> = (props) => {
         aria-labelledby={`routing-tab-${activeTab()}`}
       >
         <Show when={activeTab() === 'default'}>{props.children.default}</Show>
-        <Show when={activeTab() === 'complexity'}>{props.children.complexity}</Show>
         <Show when={activeTab() === 'specificity'}>{props.children.specificity}</Show>
         <Show when={activeTab() === 'custom'}>{props.children.custom}</Show>
       </div>

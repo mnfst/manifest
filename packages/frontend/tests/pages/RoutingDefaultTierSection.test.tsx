@@ -8,6 +8,12 @@ vi.mock('../../src/services/providers.js', () => ({
     label: 'Default model',
     desc: 'Handles every request.',
   },
+  STAGES: [
+    { id: 'simple', step: 1, label: 'Simple', desc: 'Simple requests.' },
+    { id: 'standard', step: 2, label: 'Standard', desc: 'Standard requests.' },
+    { id: 'complex', step: 3, label: 'Complex', desc: 'Complex requests.' },
+    { id: 'reasoning', step: 4, label: 'Reasoning', desc: 'Reasoning requests.' },
+  ],
 }));
 
 vi.mock('../../src/pages/RoutingTierCard.js', () => ({
@@ -91,48 +97,104 @@ function makeProps(
     onFallbackUpdate: vi.fn(),
     onAddFallback: vi.fn(),
     getFallbacksFor: () => [],
+    getTier: () => undefined,
+    complexityEnabled: () => false,
+    togglingComplexity: () => false,
+    onToggleComplexity: vi.fn(),
     ...overrides,
   };
 }
 
 describe('RoutingDefaultTierSection', () => {
-  it('renders the Default model title in the section header', () => {
-    render(() => <RoutingDefaultTierSection {...makeProps()} />);
-    const matches = screen.getAllByText('Default model');
-    // One in the section header, one in the reused tier-card mock stub
-    expect(matches.length).toBeGreaterThanOrEqual(1);
-    expect(matches.some((el) => el.classList.contains('routing-section__title'))).toBe(true);
+  it('renders the "Default routing" title in the section header', () => {
+    const { container } = render(() => <RoutingDefaultTierSection {...makeProps()} />);
+    const title = container.querySelector('.routing-section__title');
+    expect(title).not.toBeNull();
+    expect(title!.textContent).toBe('Default routing');
   });
 
-  it('always describes the Default tier as a safety net (complexity routing is always on)', () => {
-    render(() => <RoutingDefaultTierSection {...makeProps()} />);
+  it('shows the simple-routing subtitle when complexity is disabled', () => {
+    render(() => <RoutingDefaultTierSection {...makeProps({ complexityEnabled: () => false })} />);
+    expect(
+      screen.getByText('Pick one model and up to 5 fallbacks as your default routing.'),
+    ).toBeDefined();
+  });
+
+  it('shows the complexity subtitle when complexity is enabled', () => {
+    render(() => <RoutingDefaultTierSection {...makeProps({ complexityEnabled: () => true })} />);
     expect(
       screen.getByText(
-        'Acts as a safety net and handles requests that complexity routing can\u2019t resolve',
+        'Analyzes the complexity of each request on the fly and routes it to the matching tier.',
       ),
     ).toBeDefined();
   });
 
-  it('always applies the dimmed class (complexity routing is always on)', () => {
+  it('does not apply a dimmed class', () => {
     const { container } = render(() => <RoutingDefaultTierSection {...makeProps()} />);
-    expect(container.querySelector('.routing-section--dimmed')).not.toBeNull();
+    expect(container.querySelector('.routing-section--dimmed')).toBeNull();
   });
 
-  it('renders a single default tier card', () => {
-    render(() => <RoutingDefaultTierSection {...makeProps()} />);
+  it('renders a single default tier card when complexity is disabled', () => {
+    render(() => <RoutingDefaultTierSection {...makeProps({ complexityEnabled: () => false })} />);
     expect(screen.getByTestId('tier-card-default')).toBeDefined();
+    expect(screen.queryByTestId('tier-card-simple')).toBeNull();
   });
 
-  it('skips subtitle while tiers are loading', () => {
-    render(() => <RoutingDefaultTierSection {...makeProps({ tiersLoading: true })} />);
-    expect(
-      screen.queryByText(
-        'Acts as a safety net and handles requests that complexity routing can\u2019t resolve',
-      ),
-    ).toBeNull();
+  it('renders complexity tier cards instead of the default card when complexity is enabled', () => {
+    render(() => <RoutingDefaultTierSection {...makeProps({ complexityEnabled: () => true })} />);
+    expect(screen.queryByTestId('tier-card-default')).toBeNull();
+    expect(screen.getByTestId('tier-card-simple')).toBeDefined();
+    expect(screen.getByTestId('tier-card-standard')).toBeDefined();
+    expect(screen.getByTestId('tier-card-complex')).toBeDefined();
+    expect(screen.getByTestId('tier-card-reasoning')).toBeDefined();
   });
 
-  it('forwards every handler prop to the inner tier card', () => {
+  it('wraps the default card in routing-cards-backdrop when embedded and complexity is disabled', () => {
+    const { container } = render(() =>
+      <RoutingDefaultTierSection
+        {...makeProps({ complexityEnabled: () => false, embedded: true })}
+      />,
+    );
+    const backdrop = container.querySelector('.routing-cards-backdrop');
+    expect(backdrop).not.toBeNull();
+    expect(backdrop!.querySelector('[data-testid="tier-card-default"]')).not.toBeNull();
+  });
+
+  it('renders the "Route by complexity" toggle button', () => {
+    render(() => <RoutingDefaultTierSection {...makeProps()} />);
+    expect(screen.getByText('Route by complexity')).toBeDefined();
+  });
+
+  it('calls onToggleComplexity when the toggle is clicked', () => {
+    const onToggleComplexity = vi.fn();
+    const { container } = render(() =>
+      <RoutingDefaultTierSection {...makeProps({ onToggleComplexity })} />,
+    );
+    const button = container.querySelector('.routing-switch') as HTMLButtonElement;
+    expect(button).not.toBeNull();
+    button.click();
+    expect(onToggleComplexity).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables the toggle button while togglingComplexity is true', () => {
+    const { container } = render(() =>
+      <RoutingDefaultTierSection {...makeProps({ togglingComplexity: () => true })} />,
+    );
+    const button = container.querySelector('.routing-switch') as HTMLButtonElement;
+    expect(button).not.toBeNull();
+    expect(button.disabled).toBe(true);
+  });
+
+  it('adds routing-switch--on class when complexity is enabled', () => {
+    const { container } = render(() =>
+      <RoutingDefaultTierSection {...makeProps({ complexityEnabled: () => true })} />,
+    );
+    const button = container.querySelector('.routing-switch');
+    expect(button).not.toBeNull();
+    expect(button!.classList.contains('routing-switch--on')).toBe(true);
+  });
+
+  it('forwards every handler prop to the default tier card', () => {
     const onDropdownOpen = vi.fn();
     const onOverride = vi.fn();
     const onReset = vi.fn();

@@ -27,6 +27,9 @@ export class Agent {
   @Column('boolean', { default: true })
   is_active!: boolean;
 
+  @Column('boolean', { default: false })
+  complexity_routing_enabled!: boolean;
+
   @ManyToOne(() => Tenant, (t) => t.agents, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tenant_id' })
   tenant!: Tenant;

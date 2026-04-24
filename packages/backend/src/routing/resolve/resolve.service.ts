@@ -1,4 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import type { IncomingHttpHeaders } from 'http';
 import { TierService } from '../routing-core/tier.service';
 import { ProviderKeyService } from '../routing-core/provider-key.service';
@@ -10,6 +12,7 @@ import { ModelDiscoveryService } from '../../model-discovery/model-discovery.ser
 import { scoreRequest, ScorerInput, MomentumInput, scanMessages } from '../../scoring';
 import { ResolveResponse } from '../dto/resolve-response';
 import { inferProviderFromModelName } from '../../common/utils/provider-aliases';
+import { Agent } from '../../entities/agent.entity';
 import type { SpecificityCategory, TierSlot } from 'manifest-shared';
 import type { HeaderTier } from '../../entities/header-tier.entity';
 
@@ -37,6 +40,8 @@ export class ResolveService {
     private readonly discoveryService: ModelDiscoveryService,
     private readonly penaltyService: SpecificityPenaltyService,
     private readonly headerTierService: HeaderTierService,
+    @InjectRepository(Agent)
+    private readonly agentRepo: Repository<Agent>,
   ) {}
 
   async resolve(
@@ -53,6 +58,11 @@ export class ResolveService {
     if (headers) {
       const headerTierResult = await this.resolveHeaderTier(agentId, headers);
       if (headerTierResult) return headerTierResult;
+    }
+
+    const agent = await this.agentRepo.findOne({ where: { id: agentId } });
+    if (agent && !agent.complexity_routing_enabled) {
+      return this.resolveForTier(agentId, 'default', 'default');
     }
 
     const specificityResult = await this.resolveSpecificity(

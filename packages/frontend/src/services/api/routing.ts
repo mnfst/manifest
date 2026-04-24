@@ -88,6 +88,22 @@ export async function copilotPollToken(agentName: string, deviceCode: string) {
   return res.json() as Promise<{ status: CopilotPollStatus }>;
 }
 
+/* -- Routing: Complexity Toggle -- */
+
+export interface ComplexityStatus {
+  enabled: boolean;
+}
+
+export function getComplexityStatus(agentName: string) {
+  return fetchJson<ComplexityStatus>(routingPath(agentName, 'complexity/status'));
+}
+
+export function toggleComplexity(agentName: string) {
+  return fetchMutate<ComplexityStatus>(routingPath(agentName, 'complexity/toggle'), {
+    method: 'POST',
+  });
+}
+
 /* -- Routing: Tier Assignments -- */
 
 export interface TierAssignment {

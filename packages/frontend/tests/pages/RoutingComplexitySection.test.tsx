@@ -92,6 +92,9 @@ function makeProps(
     onAddFallback: vi.fn(),
     getFallbacksFor: () => [],
     getTier: () => undefined,
+    complexityEnabled: () => true,
+    togglingComplexity: () => false,
+    onToggleComplexity: vi.fn(),
     ...overrides,
   };
 }
@@ -121,19 +124,48 @@ describe('RoutingComplexitySection', () => {
     ).toBeDefined();
   });
 
-  it('always renders the four tier cards (complexity routing is always on)', () => {
-    render(() => <RoutingComplexitySection {...makeProps()} />);
+  it('renders the four tier cards when complexityEnabled is true', () => {
+    render(() => <RoutingComplexitySection {...makeProps({ complexityEnabled: () => true })} />);
     expect(screen.getByTestId('tier-card-simple')).toBeDefined();
     expect(screen.getByTestId('tier-card-standard')).toBeDefined();
     expect(screen.getByTestId('tier-card-complex')).toBeDefined();
     expect(screen.getByTestId('tier-card-reasoning')).toBeDefined();
   });
 
-  it('does not render any enable/disable toggle', () => {
-    render(() => <RoutingComplexitySection {...makeProps()} />);
-    expect(screen.queryByText(/enable complexity routing/i)).toBeNull();
-    expect(screen.queryByText(/disable complexity routing/i)).toBeNull();
-    expect(screen.queryByText(/complexity routing is off/i)).toBeNull();
+  it('renders the toggle button showing "Enabled" when complexityEnabled is true', () => {
+    render(() => <RoutingComplexitySection {...makeProps({ complexityEnabled: () => true })} />);
+    expect(screen.getByText('Enabled')).toBeDefined();
+    expect(screen.queryByText('Disabled')).toBeNull();
+  });
+
+  it('renders the toggle button showing "Disabled" when complexityEnabled is false', () => {
+    render(() => <RoutingComplexitySection {...makeProps({ complexityEnabled: () => false })} />);
+    expect(screen.getByText('Disabled')).toBeDefined();
+    expect(screen.queryByText('Enabled')).toBeNull();
+  });
+
+  it('shows the empty state and hides tier cards when complexityEnabled is false', () => {
+    render(() => <RoutingComplexitySection {...makeProps({ complexityEnabled: () => false })} />);
+    expect(screen.getByText('Complexity routing is off')).toBeDefined();
+    expect(screen.queryByTestId('tier-card-simple')).toBeNull();
+    expect(screen.queryByTestId('tier-card-standard')).toBeNull();
+    expect(screen.queryByTestId('tier-card-complex')).toBeNull();
+    expect(screen.queryByTestId('tier-card-reasoning')).toBeNull();
+  });
+
+  it('calls onToggleComplexity when the toggle button is clicked', () => {
+    const onToggleComplexity = vi.fn();
+    render(() => <RoutingComplexitySection {...makeProps({ onToggleComplexity })} />);
+    (screen.getByText('Enabled').closest('button') as HTMLButtonElement).click();
+    expect(onToggleComplexity).toHaveBeenCalledOnce();
+  });
+
+  it('disables the toggle button while togglingComplexity is true', () => {
+    render(() =>
+      <RoutingComplexitySection {...makeProps({ togglingComplexity: () => true })} />,
+    );
+    const btn = screen.getByText('Enabled').closest('button') as HTMLButtonElement;
+    expect(btn.disabled).toBe(true);
   });
 
   it('forwards each tier-card handler to the parent', () => {

@@ -2,14 +2,18 @@ import type { JSX } from 'solid-js';
 
 interface PipelineStep {
   num: number;
-  name: string;
+  name: JSX.Element;
   desc: string;
 }
 
 /**
  * Builds the pipeline help modal content.
  */
-export function buildPipelineHelp(specificity: boolean, custom: boolean): JSX.Element {
+export function buildPipelineHelp(
+  specificity: boolean,
+  custom: boolean,
+  complexity: boolean,
+): JSX.Element {
   const steps: PipelineStep[] = [];
   let n = 1;
 
@@ -30,15 +34,19 @@ export function buildPipelineHelp(specificity: boolean, custom: boolean): JSX.El
   }
 
   steps.push({
-    num: n++,
-    name: 'Complexity routing',
-    desc: 'Manifest semantically analyzes the query, scores its complexity, and assigns it to a tier ranging from \u201csimple\u201d to \u201creasoning\u201d.',
-  });
-
-  steps.push({
     num: n,
-    name: 'Default routing',
-    desc: 'Catch-all for any query that has no matching tier assignment \u2014 falls back to the default model and its fallbacks.',
+    name: complexity ? (
+      <>
+        Default routing: <i>complexity</i>
+      </>
+    ) : (
+      <>
+        Default routing: <i>regular</i>
+      </>
+    ),
+    desc: complexity
+      ? 'Manifest semantically analyzes the query, scores its complexity, and assigns it to a tier ranging from \u201csimple\u201d to \u201creasoning\u201d.'
+      : 'All remaining requests go to the default model and its fallbacks.',
   });
 
   return (

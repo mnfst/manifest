@@ -146,6 +146,7 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
                 onOverride={(m, p, a) => handleOverride(tier.id, m, p, a)}
                 onFallbacksUpdate={() => refetch()}
                 onEdit={() => setModalTier(tier)}
+                onDisable={() => handleToggle(tier.id, false)}
               />
             )}
           </For>

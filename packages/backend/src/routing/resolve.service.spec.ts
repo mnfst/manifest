@@ -1,3 +1,4 @@
+import { Repository } from 'typeorm';
 import { ResolveService } from './resolve/resolve.service';
 import { TierService } from './routing-core/tier.service';
 import { ProviderKeyService } from './routing-core/provider-key.service';
@@ -6,6 +7,7 @@ import { SpecificityPenaltyService } from './routing-core/specificity-penalty.se
 import { HeaderTierService } from './header-tiers/header-tier.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { ModelDiscoveryService } from '../model-discovery/model-discovery.service';
+import { Agent } from '../entities/agent.entity';
 
 describe('ResolveService', () => {
   let service: ResolveService;
@@ -15,6 +17,7 @@ describe('ResolveService', () => {
   let mockPricingCache: Record<string, jest.Mock>;
   let mockDiscoveryService: Record<string, jest.Mock>;
   let mockPenaltyService: Record<string, jest.Mock>;
+  let mockAgentRepo: Record<string, jest.Mock>;
 
   beforeEach(() => {
     mockTierService = {
@@ -44,6 +47,9 @@ describe('ResolveService', () => {
     mockPenaltyService = {
       getPenaltiesForAgent: jest.fn().mockResolvedValue(new Map()),
     };
+    mockAgentRepo = {
+      findOne: jest.fn().mockResolvedValue({ complexity_routing_enabled: true }),
+    };
 
     service = new ResolveService(
       mockTierService as unknown as TierService,
@@ -53,6 +59,7 @@ describe('ResolveService', () => {
       mockDiscoveryService as unknown as ModelDiscoveryService,
       mockPenaltyService as unknown as SpecificityPenaltyService,
       { list: jest.fn().mockResolvedValue([]) } as unknown as HeaderTierService,
+      mockAgentRepo as unknown as Repository<Agent>,
     );
   });
 
