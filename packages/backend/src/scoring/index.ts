@@ -13,6 +13,7 @@ import {
   extractUserTexts,
   countConversationMessages,
   combinedText,
+  containsImage,
   ExtractedText,
 } from './text-extractor';
 import {
@@ -43,6 +44,7 @@ export type { MomentumInput } from './momentum';
 export { detectSpecificity } from './specificity-detector';
 export type { SpecificityResult } from './specificity-detector';
 export { scanMessages } from './scan-messages';
+export { containsImage } from './text-extractor';
 
 let defaultTrie: KeywordTrie | null = null;
 
@@ -92,6 +94,7 @@ interface StructuralDimContext {
   tools?: ScorerInput['tools'];
   toolChoice?: unknown;
   conversationCount: number;
+  hasImage: boolean;
 }
 
 type StructuralScorer = (ctx: StructuralDimContext) => number;
@@ -106,6 +109,7 @@ const STRUCTURAL_SCORERS = new Map<string, StructuralScorer>([
   ['repetitionRequests', (ctx) => scoreRepetitionRequests(ctx.combined)],
   ['toolCount', (ctx) => scoreToolCount(ctx.tools, ctx.toolChoice)],
   ['conversationDepth', (ctx) => scoreConversationDepth(ctx.conversationCount)],
+  ['visionInput', (ctx) => (ctx.hasImage ? 1 : 0)],
 ]);
 
 function scoreStructuralDimension(dim: DimensionConfig, ctx: StructuralDimContext): number {
@@ -219,6 +223,7 @@ export function scoreRequest(
     tools,
     toolChoice: tool_choice,
     conversationCount,
+    hasImage: containsImage(messages),
   };
   const { dimensions, rawScore } = scoreDimensions(config, allMatches, extracted, ctx);
 

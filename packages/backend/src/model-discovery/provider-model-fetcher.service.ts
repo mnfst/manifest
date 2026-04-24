@@ -11,6 +11,33 @@ const ANTHROPIC_DEFAULT_CONTEXT = 200000;
 const GEMINI_DEFAULT_CONTEXT = 1000000;
 const MINIMAX_SUBSCRIPTION_MODELS_URL = 'https://api.minimax.io/anthropic/v1/models?limit=100';
 
+/* ── Vision capability detection ── */
+
+/**
+ * Per-provider rules for detecting vision capability from a model id.
+ * Keyed by the config key used in PROVIDER_CONFIGS. Providers not listed
+ * here default to false (vision cannot be determined reliably without
+ * per-model metadata).
+ */
+const VISION_PATTERNS: Record<string, RegExp> = {
+  openai: /(?:^gpt-4o|^gpt-4-turbo|^gpt-4-.*-vision)/i,
+  anthropic: /(?:^claude-3|^claude-4|^opus-4)/i,
+  deepseek: /(?:^deepseek-vl2|^deepseek-v3)/i,
+  mistral: /(?:^mistral-large|pixtral)/i,
+  xai: /(?:^grok-2-vision|^grok-3)/i,
+  qwen: /(?:qwen-vl|^qvq|^qwq)/i,
+  zai: /(?:^glm-4v|^cogview)/i,
+};
+
+export function detectVisionCapability(modelId: string, provider: string): boolean {
+  // Gemini: all models accept images.
+  if (provider === 'gemini') return true;
+  // Normalize subscription variants to base provider key.
+  const base = provider.replace(/-subscription$/, '');
+  const pattern = VISION_PATTERNS[base];
+  return pattern ? pattern.test(modelId) : false;
+}
+
 /* ── Generic parser factory ── */
 
 interface ModelParserConfig<T> {
@@ -22,6 +49,7 @@ interface ModelParserConfig<T> {
   inputPricePerToken?: number | null;
   outputPricePerToken?: number | null;
   capabilityCode?: boolean;
+  capabilityVision?: boolean;
   qualityScore?: number;
 }
 
@@ -46,6 +74,7 @@ function createModelParser<T>(
           outputPricePerToken: config.outputPricePerToken ?? null,
           capabilityReasoning: false,
           capabilityCode: config.capabilityCode ?? false,
+          capabilityVision: detectVisionCapability(id, provider),
           qualityScore: config.qualityScore ?? 3,
         };
       });
@@ -210,6 +239,7 @@ function parseGemini(body: unknown, provider: string): DiscoveredModel[] {
         outputPricePerToken: null,
         capabilityReasoning: false,
         capabilityCode: false,
+        capabilityVision: detectVisionCapability(id, provider),
         qualityScore: 3,
       };
     });
@@ -260,6 +290,7 @@ function parseOpenRouter(body: unknown, provider: string): DiscoveredModel[] {
           completion !== null && Number.isFinite(completion) && completion >= 0 ? completion : null,
         capabilityReasoning: false,
         capabilityCode: false,
+        capabilityVision: false,
         qualityScore: 3,
       };
     });
@@ -520,6 +551,7 @@ export class ProviderModelFetcherService {
       outputPricePerToken: 0,
       capabilityReasoning: true,
       capabilityCode: true,
+      capabilityVision: false,
       qualityScore: 3,
     }));
   }

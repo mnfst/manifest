@@ -1,4 +1,9 @@
-import { extractUserTexts, countConversationMessages, combinedText } from '../text-extractor';
+import {
+  extractUserTexts,
+  countConversationMessages,
+  combinedText,
+  containsImage,
+} from '../text-extractor';
 
 describe('extractUserTexts', () => {
   it('returns empty for empty messages', () => {
@@ -192,5 +197,86 @@ describe('combinedText', () => {
 
   it('returns empty string for empty array', () => {
     expect(combinedText([])).toBe('');
+  });
+});
+
+describe('containsImage', () => {
+  it('returns false for empty messages', () => {
+    expect(containsImage([])).toBe(false);
+  });
+
+  it('returns false for string content', () => {
+    expect(containsImage([{ role: 'user', content: 'hello world' }])).toBe(false);
+  });
+
+  it('returns false for null or missing content', () => {
+    expect(containsImage([{ role: 'user', content: null }])).toBe(false);
+    expect(containsImage([{ role: 'user' }])).toBe(false);
+  });
+
+  it('detects OpenAI image_url content element', () => {
+    expect(
+      containsImage([
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: 'What is this?' },
+            { type: 'image_url', image_url: { url: 'https://example.com/img.png' } },
+          ],
+        },
+      ]),
+    ).toBe(true);
+  });
+
+  it('detects Anthropic image content element', () => {
+    expect(
+      containsImage([
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: 'Describe' },
+            { type: 'image', source: { type: 'base64', data: 'abc' } },
+          ],
+        },
+      ]),
+    ).toBe(true);
+  });
+
+  it('returns false for array content without image types', () => {
+    expect(
+      containsImage([
+        {
+          role: 'user',
+          content: [{ type: 'text', text: 'just words' }],
+        },
+      ]),
+    ).toBe(false);
+  });
+
+  it('ignores null and non-object elements inside the array', () => {
+    expect(
+      containsImage([
+        {
+          role: 'user',
+          content: [null, 'plain string', 42, { type: 'text', text: 'hi' }],
+        },
+      ]),
+    ).toBe(false);
+  });
+
+  it('detects an image in any message, not just the last', () => {
+    expect(
+      containsImage([
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: 'first' },
+            { type: 'image_url', image_url: { url: 'x' } },
+          ],
+        },
+        { role: 'assistant', content: 'reply' },
+        { role: 'user', content: 'second turn' },
+      ]),
+    ).toBe(true);
   });
 });

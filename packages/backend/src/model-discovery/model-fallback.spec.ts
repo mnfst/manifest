@@ -300,6 +300,7 @@ describe('supplementWithKnownModels', () => {
         outputPricePerToken: 0.02,
         capabilityReasoning: false,
         capabilityCode: false,
+        capabilityVision: false,
         qualityScore: 3,
       },
     ];
@@ -321,6 +322,7 @@ describe('supplementWithKnownModels', () => {
         outputPricePerToken: 0.075,
         capabilityReasoning: false,
         capabilityCode: false,
+        capabilityVision: false,
         qualityScore: 3,
       },
     ];

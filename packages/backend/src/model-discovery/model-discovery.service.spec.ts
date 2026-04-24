@@ -37,6 +37,7 @@ function makeModel(overrides: Partial<DiscoveredModel> = {}): DiscoveredModel {
     outputPricePerToken: null,
     capabilityReasoning: false,
     capabilityCode: false,
+    capabilityVision: false,
     qualityScore: 3,
     ...overrides,
   };

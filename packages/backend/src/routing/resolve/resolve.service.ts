@@ -7,11 +7,26 @@ import { SpecificityPenaltyService } from '../routing-core/specificity-penalty.s
 import { HeaderTierService } from '../header-tiers/header-tier.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
-import { scoreRequest, ScorerInput, MomentumInput, scanMessages } from '../../scoring';
+import {
+  scoreRequest,
+  ScorerInput,
+  MomentumInput,
+  scanMessages,
+  containsImage,
+} from '../../scoring';
 import { ResolveResponse } from '../dto/resolve-response';
 import { inferProviderFromModelName } from '../../common/utils/provider-aliases';
 import type { SpecificityCategory, TierSlot } from 'manifest-shared';
 import type { HeaderTier } from '../../entities/header-tier.entity';
+import type { TierAssignment } from '../../entities/tier-assignment.entity';
+
+const TIER_RANK: Record<string, number> = {
+  simple: 0,
+  standard: 1,
+  complex: 2,
+  reasoning: 3,
+  default: -1,
+};
 
 /**
  * When specificity detection is below this confidence, skip specificity
@@ -83,7 +98,16 @@ export class ResolveService {
       return this.resolveForTier(agentId, 'default', 'default');
     }
 
-    const model = await this.providerKeyService.getEffectiveModel(agentId, assignment);
+    const scoredModel = await this.providerKeyService.getEffectiveModel(agentId, assignment);
+    const needsVision = containsImage(messages);
+    const { model, resolvedAssignment, resolvedTier } = await this.applyVisionFilter(
+      agentId,
+      tiers,
+      assignment,
+      result.tier,
+      scoredModel,
+      needsVision,
+    );
 
     if (!model) {
       this.logger.warn(
@@ -100,14 +124,14 @@ export class ResolveService {
       };
     }
 
-    const provider = await this.resolveProvider(agentId, assignment, model);
+    const provider = await this.resolveProvider(agentId, resolvedAssignment, model);
     const authType = provider
-      ? (assignment.override_auth_type ??
+      ? (resolvedAssignment.override_auth_type ??
         (await this.providerKeyService.getAuthType(agentId, provider)))
       : undefined;
 
     return {
-      tier: result.tier,
+      tier: resolvedTier,
       model,
       provider,
       confidence: result.confidence,
@@ -115,6 +139,54 @@ export class ResolveService {
       reason: result.reason,
       auth_type: authType,
     };
+  }
+
+  /**
+   * When the request contains images, fall up to the next higher tier with a
+   * vision-capable model. If no tier has one, the scored model is returned
+   * unchanged with a warning — the proxy may still forward the request, but
+   * without vision support the model response will be text-only.
+   */
+  private async applyVisionFilter(
+    agentId: string,
+    tiers: TierAssignment[],
+    scoredAssignment: TierAssignment,
+    scoredTier: TierSlot,
+    scoredModel: string | null,
+    needsVision: boolean,
+  ): Promise<{
+    model: string | null;
+    resolvedAssignment: TierAssignment;
+    resolvedTier: TierSlot;
+  }> {
+    if (!needsVision || !scoredModel) {
+      return { model: scoredModel, resolvedAssignment: scoredAssignment, resolvedTier: scoredTier };
+    }
+
+    const scoredDiscovered = await this.discoveryService.getModelForAgent(agentId, scoredModel);
+    if (scoredDiscovered?.capabilityVision) {
+      return { model: scoredModel, resolvedAssignment: scoredAssignment, resolvedTier: scoredTier };
+    }
+
+    const scoredRank = TIER_RANK[scoredTier];
+    const higher = tiers
+      .filter((t) => TIER_RANK[t.tier] > scoredRank)
+      .sort((a, b) => TIER_RANK[a.tier] - TIER_RANK[b.tier]);
+
+    const match = await this.providerKeyService.getVisionCapableModel(agentId, higher);
+    if (match) {
+      return {
+        model: match.model,
+        resolvedAssignment: match.assignment,
+        resolvedTier: match.assignment.tier as TierSlot,
+      };
+    }
+
+    this.logger.warn(
+      `Request contains images but no tier has a vision-capable model for agent=${agentId} ` +
+        `(scored tier=${scoredTier}, scored model=${scoredModel}); falling through to non-vision model`,
+    );
+    return { model: scoredModel, resolvedAssignment: scoredAssignment, resolvedTier: scoredTier };
   }
 
   async resolveForTier(

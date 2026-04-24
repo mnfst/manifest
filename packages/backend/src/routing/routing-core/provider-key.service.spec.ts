@@ -585,4 +585,64 @@ describe('ProviderKeyService', () => {
       expect(result).toBe('claude-3-haiku');
     });
   });
+
+  /* ── getVisionCapableModel ── */
+
+  describe('getVisionCapableModel', () => {
+    function assignment(overrides: Partial<TierAssignment> = {}): TierAssignment {
+      return {
+        override_model: null,
+        auto_assigned_model: null,
+        tier: 'standard',
+        ...overrides,
+      } as TierAssignment;
+    }
+
+    it('returns null when no tiers have an effective model', async () => {
+      const result = await service.getVisionCapableModel('agent-1', [assignment()]);
+      expect(result).toBeNull();
+    });
+
+    it('returns null when the only model has no vision capability', async () => {
+      discoveryService.getModelForAgent.mockResolvedValue({
+        id: 'gpt-3.5-turbo',
+        capabilityVision: false,
+      });
+
+      const result = await service.getVisionCapableModel('agent-1', [
+        assignment({ auto_assigned_model: 'gpt-3.5-turbo' }),
+      ]);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns the first vision-capable tier in order', async () => {
+      const tiers = [
+        assignment({ tier: 'standard', auto_assigned_model: 'gpt-3.5-turbo' }),
+        assignment({ tier: 'complex', auto_assigned_model: 'gpt-4o' }),
+        assignment({ tier: 'reasoning', auto_assigned_model: 'claude-3-opus' }),
+      ];
+      discoveryService.getModelForAgent.mockImplementation(
+        async (_agentId: string, model: string) => {
+          if (model === 'gpt-4o') return { id: 'gpt-4o', capabilityVision: true };
+          if (model === 'claude-3-opus') return { id: 'claude-3-opus', capabilityVision: true };
+          return { id: model, capabilityVision: false };
+        },
+      );
+
+      const result = await service.getVisionCapableModel('agent-1', tiers);
+
+      expect(result).toEqual({ model: 'gpt-4o', assignment: tiers[1] });
+    });
+
+    it('skips assignments whose effective model is missing from discovery', async () => {
+      discoveryService.getModelForAgent.mockResolvedValue(null);
+
+      const result = await service.getVisionCapableModel('agent-1', [
+        assignment({ auto_assigned_model: 'phantom' }),
+      ]);
+
+      expect(result).toBeNull();
+    });
+  });
 });

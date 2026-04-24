@@ -1,7 +1,8 @@
 jest.mock('../../scoring', () => {
   const scoreRequest = jest.fn();
   const scanMessages = jest.fn();
-  return { scoreRequest, scanMessages };
+  const containsImage = jest.fn().mockReturnValue(false);
+  return { scoreRequest, scanMessages, containsImage };
 });
 
 import { ResolveService } from './resolve.service';

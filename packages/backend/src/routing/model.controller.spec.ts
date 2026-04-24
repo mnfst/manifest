@@ -22,6 +22,7 @@ function makeDiscovered(overrides: Partial<DiscoveredModel> = {}): DiscoveredMod
     outputPricePerToken: 0.00001,
     capabilityReasoning: false,
     capabilityCode: true,
+    capabilityVision: false,
     qualityScore: 3,
     ...overrides,
   };

@@ -72,3 +72,16 @@ export function countConversationMessages(messages: ScorerMessage[]): number {
 export function combinedText(extracted: ExtractedText[]): string {
   return extracted.map((e) => e.text).join('\n');
 }
+
+export function containsImage(messages: ScorerMessage[]): boolean {
+  for (const msg of messages) {
+    const content = msg.content;
+    if (!Array.isArray(content)) continue;
+    for (const element of content) {
+      if (!element || typeof element !== 'object') continue;
+      const type = (element as Record<string, unknown>).type;
+      if (type === 'image_url' || type === 'image') return true;
+    }
+  }
+  return false;
+}

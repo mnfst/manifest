@@ -112,6 +112,27 @@ export class ProviderKeyService {
     return assignment.auto_assigned_model;
   }
 
+  /**
+   * Find the first vision-capable model across the supplied tier assignments,
+   * in order. Returns the first assignment whose effective model exists in
+   * the agent's discovered model list with `capabilityVision: true`, or null
+   * if none of the candidates can accept images.
+   */
+  async getVisionCapableModel(
+    agentId: string,
+    tiers: TierAssignment[],
+  ): Promise<{ model: string; assignment: TierAssignment } | null> {
+    for (const assignment of tiers) {
+      const model = await this.getEffectiveModel(agentId, assignment);
+      if (!model) continue;
+      const discovered = await this.discoveryService.getModelForAgent(agentId, model);
+      if (discovered?.capabilityVision) {
+        return { model, assignment };
+      }
+    }
+    return null;
+  }
+
   private async resolveProviderApiKey(
     agentId: string,
     provider: string,

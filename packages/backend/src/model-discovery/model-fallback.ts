@@ -1,4 +1,5 @@
 import { DiscoveredModel } from './model-fetcher';
+import { detectVisionCapability } from './provider-model-fetcher.service';
 import {
   OPENROUTER_PREFIX_TO_PROVIDER,
   PROVIDER_BY_ID_OR_ALIAS,
@@ -160,6 +161,7 @@ export function buildModelsDevFallback(
     outputPricePerToken: e.outputPricePerToken,
     capabilityReasoning: e.reasoning ?? false,
     capabilityCode: e.toolCall ?? false,
+    capabilityVision: false,
     qualityScore: 3,
   }));
 }
@@ -204,6 +206,7 @@ export function buildFallbackModels(
       outputPricePerToken: entry.output,
       capabilityReasoning: false,
       capabilityCode: false,
+      capabilityVision: detectVisionCapability(modelId, providerId),
       qualityScore: 3,
     });
   }
@@ -255,6 +258,7 @@ export function buildSubscriptionFallbackModels(
         outputPricePerToken: entry.output,
         capabilityReasoning: false,
         capabilityCode: false,
+        capabilityVision: detectVisionCapability(modelId, providerId),
         qualityScore: 3,
       });
     }
@@ -280,6 +284,7 @@ export function buildSubscriptionFallbackModels(
       outputPricePerToken: 0,
       capabilityReasoning: false,
       capabilityCode: false,
+      capabilityVision: detectVisionCapability(modelId, providerId),
       qualityScore: 3,
     });
   }
@@ -319,6 +324,7 @@ export function supplementWithKnownModels(
       outputPricePerToken: 0,
       capabilityReasoning: false,
       capabilityCode: false,
+      capabilityVision: detectVisionCapability(modelId, providerId),
       qualityScore: 3,
     });
   }

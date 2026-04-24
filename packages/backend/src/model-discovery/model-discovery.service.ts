@@ -252,6 +252,7 @@ export class ModelDiscoveryService {
           outputPricePerToken: outputPerToken,
           capabilityReasoning: false,
           capabilityCode: false,
+          capabilityVision: false,
           qualityScore: 2,
         });
       }

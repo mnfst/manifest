@@ -15,6 +15,8 @@ export interface DiscoveredModel {
   outputPricePerToken: number | null;
   capabilityReasoning: boolean;
   capabilityCode: boolean;
+  capabilityVision: boolean;
+  capabilityVision: boolean;
   qualityScore: number;
   authType?: 'api_key' | 'subscription';
 }

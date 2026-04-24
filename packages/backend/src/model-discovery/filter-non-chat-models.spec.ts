@@ -16,6 +16,7 @@ function makeModel(id: string, provider = 'test'): DiscoveredModel {
     outputPricePerToken: null,
     capabilityReasoning: false,
     capabilityCode: false,
+    capabilityVision: false,
     qualityScore: 3,
   };
 }

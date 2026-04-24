@@ -325,7 +325,7 @@ describe('scoreRequest — tier compatibility', () => {
     const result = scoreRequest({
       messages: [{ role: 'user', content: 'test request' }],
     });
-    expect(result.dimensions).toHaveLength(31);
+    expect(result.dimensions).toHaveLength(32);
   });
 });
 
