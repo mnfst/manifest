@@ -97,6 +97,8 @@ vi.mock('../../src/components/ProviderIcon.js', () => ({
 vi.mock('../../src/components/AuthBadge.js', () => ({
   authBadgeFor: (t: string | null | undefined) =>
     t ? <span data-testid={`auth-${t}`} /> : null,
+  authLabel: (authType: string | null | undefined) =>
+    authType === 'subscription' ? 'Subscription' : authType === 'local' ? 'Local' : 'API Key',
 }));
 
 import HeaderTierCard from '../../src/components/HeaderTierCard';
@@ -288,6 +290,41 @@ describe('HeaderTierCard', () => {
     const { container } = mount({ tier: noAuthTier });
     // No connected providers → effectiveAuth() returns null → no badge.
     expect(container.querySelector('[data-testid^="auth-"]')).toBeNull();
+  });
+
+  it('falls back to local auth when the only connected provider is local (Ollama)', () => {
+    const tier: HeaderTier = { ...baseTier, override_auth_type: null, override_provider: 'ollama' };
+    const { container } = mount({
+      tier,
+      connectedProviders: [{ provider: 'ollama', auth_type: 'local' }] as never,
+    });
+    expect(container.querySelector('[data-testid="auth-local"]')).not.toBeNull();
+  });
+
+  it('prefers subscription over local when both are connected (precedence sub > api_key > local)', () => {
+    const tier: HeaderTier = { ...baseTier, override_auth_type: null };
+    const { container } = mount({
+      tier,
+      connectedProviders: [
+        { provider: 'openai', auth_type: 'local' },
+        { provider: 'openai', auth_type: 'subscription' },
+      ] as never,
+    });
+    expect(container.querySelector('[data-testid="auth-subscription"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="auth-local"]')).toBeNull();
+  });
+
+  it('prefers api_key over local when both are connected', () => {
+    const tier: HeaderTier = { ...baseTier, override_auth_type: null };
+    const { container } = mount({
+      tier,
+      connectedProviders: [
+        { provider: 'openai', auth_type: 'local' },
+        { provider: 'openai', auth_type: 'api_key' },
+      ] as never,
+    });
+    expect(container.querySelector('[data-testid="auth-api_key"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="auth-local"]')).toBeNull();
   });
 
   it('Change chip-action button opens the picker, stops propagation, and forwards selection', () => {

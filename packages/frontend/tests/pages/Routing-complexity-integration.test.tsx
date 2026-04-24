@@ -35,6 +35,8 @@ vi.mock('../../src/components/ModelPickerModal.js', () => ({
 
 vi.mock('../../src/components/AuthBadge.js', () => ({
   authBadgeFor: () => null,
+  authLabel: (authType: string | null | undefined) =>
+    authType === 'subscription' ? 'Subscription' : authType === 'local' ? 'Local' : 'API Key',
 }));
 
 vi.mock('../../src/components/FallbackList.js', () => ({

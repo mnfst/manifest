@@ -1,6 +1,7 @@
+import type { AuthType } from 'manifest-shared';
 import { BASE_URL, fetchJson, fetchMutate, parseErrorMessage, routingPath } from './core.js';
 
-export type AuthType = 'api_key' | 'subscription';
+export type { AuthType };
 
 export interface RoutingProvider {
   id: string;

@@ -46,11 +46,24 @@ const ModelPickerModal: Component<Props> = (props) => {
     (props.connectedProviders ?? []).some((p) => p.is_active && p.auth_type === 'subscription');
   const hasApiKey = () =>
     (props.connectedProviders ?? []).some((p) => p.is_active && p.auth_type === 'api_key');
-  const showTabs = () => hasSubscription() && hasApiKey();
+  const hasLocal = () =>
+    (props.connectedProviders ?? []).some((p) => p.is_active && p.auth_type === 'local');
+  // Show the tab strip whenever the user has models in more than one auth
+  // category — otherwise the picker is single-category and the tabs add
+  // noise. Local counts as its own category alongside subscription/api_key.
+  const showTabs = () => [hasSubscription(), hasApiKey(), hasLocal()].filter(Boolean).length > 1;
 
-  const [activeTab, setActiveTab] = createSignal<AuthType>(
-    hasSubscription() ? 'subscription' : 'api_key',
-  );
+  // Default to the first connected category (subscription > api_key > local)
+  // so the picker opens on something the user actually has. When nothing is
+  // connected the default is 'api_key' — matches the pre-local behavior so
+  // existing snapshots / tests that assume the free-models pill is visible
+  // (only shown for api_key) don't start failing.
+  const initialTab: AuthType = hasSubscription()
+    ? 'subscription'
+    : hasLocal() && !hasApiKey()
+      ? 'local'
+      : 'api_key';
+  const [activeTab, setActiveTab] = createSignal<AuthType>(initialTab);
   const [search, setSearch] = createSignal('');
   const [showFreeOnly, setShowFreeOnly] = createSignal(false);
 
@@ -181,6 +194,8 @@ const ModelPickerModal: Component<Props> = (props) => {
   };
 
   const isSub = () => activeTab() === 'subscription';
+  const isLocal = () => activeTab() === 'local';
+  const isPaid = () => !isSub() && !isLocal();
 
   return (
     <div
@@ -263,30 +278,57 @@ const ModelPickerModal: Component<Props> = (props) => {
                 </svg>
                 Subscription
               </button>
-              <button
-                role="tab"
-                aria-selected={activeTab() === 'api_key'}
-                class="panel__tab"
-                classList={{ 'panel__tab--active': activeTab() === 'api_key' }}
-                onClick={() => setActiveTab('api_key')}
-              >
-                <svg
-                  class="provider-modal__tab-icon"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                  style="color: #e59d55"
+              <Show when={hasApiKey()}>
+                <button
+                  role="tab"
+                  aria-selected={activeTab() === 'api_key'}
+                  class="panel__tab"
+                  classList={{ 'panel__tab--active': activeTab() === 'api_key' }}
+                  onClick={() => setActiveTab('api_key')}
                 >
-                  <path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4" />
-                </svg>
-                API Keys
-              </button>
+                  <svg
+                    class="provider-modal__tab-icon"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                    style="color: #e59d55"
+                  >
+                    <path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4" />
+                  </svg>
+                  API Keys
+                </button>
+              </Show>
+              <Show when={hasLocal()}>
+                <button
+                  role="tab"
+                  aria-selected={activeTab() === 'local'}
+                  class="panel__tab"
+                  classList={{ 'panel__tab--active': activeTab() === 'local' }}
+                  onClick={() => {
+                    setActiveTab('local');
+                    setShowFreeOnly(false);
+                  }}
+                >
+                  <svg
+                    class="provider-modal__tab-icon"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden="true"
+                    style="color: #6b7a8f"
+                  >
+                    <path d="M12 3 2 12h3v8h5v-5h4v5h5v-8h3L12 3z" />
+                  </svg>
+                  Local
+                </button>
+              </Show>
             </div>
           </div>
         </Show>
@@ -320,7 +362,7 @@ const ModelPickerModal: Component<Props> = (props) => {
           </div>
         </Show>
 
-        <Show when={!isSub()}>
+        <Show when={isPaid()}>
           <div class="routing-modal__filter-bar">
             <button
               type="button"
@@ -411,10 +453,10 @@ const ModelPickerModal: Component<Props> = (props) => {
                         </Show>
                       </span>
                       <Show
-                        when={!isSub()}
+                        when={isPaid()}
                         fallback={
                           <span class="routing-modal__model-id routing-modal__model-id--subscription">
-                            Included in subscription
+                            {isLocal() ? 'Runs on your machine' : 'Included in subscription'}
                           </span>
                         }
                       >
@@ -441,7 +483,9 @@ const ModelPickerModal: Component<Props> = (props) => {
                   ? 'No free models available from your connected providers.'
                   : isSub()
                     ? 'No subscription providers connected. Connect a provider to see models.'
-                    : 'No API key providers connected. Connect a provider to see models.'}
+                    : isLocal()
+                      ? 'No local providers connected. Connect Ollama or LM Studio to see models.'
+                      : 'No API key providers connected. Connect a provider to see models.'}
             </div>
           </Show>
         </div>

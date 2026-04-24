@@ -13,6 +13,7 @@ import {
   isManifestUsableProvider,
   isSupportedSubscriptionProvider,
 } from '../../common/utils/subscription-support';
+import type { AuthType } from 'manifest-shared';
 import { TIER_LABELS } from 'manifest-shared';
 import { detectQwenRegion, isQwenRegion, isQwenResolvedRegion } from '../qwen-region';
 
@@ -55,7 +56,7 @@ export class ProviderService {
     userId: string,
     provider: string,
     apiKey?: string,
-    authType?: 'api_key' | 'subscription',
+    authType?: AuthType,
     region?: string,
   ): Promise<{ provider: UserProvider; isNew: boolean }> {
     const effectiveAuthType = authType ?? 'api_key';
@@ -106,7 +107,7 @@ export class ProviderService {
 
   private async resolveProviderRegion(
     provider: string,
-    authType: 'api_key' | 'subscription',
+    authType: AuthType,
     requestedRegion: string | undefined,
     apiKey: string | undefined,
     existing: UserProvider | null,
@@ -206,7 +207,7 @@ export class ProviderService {
   async removeProvider(
     agentId: string,
     provider: string,
-    authType?: 'api_key' | 'subscription',
+    authType?: AuthType,
   ): Promise<{ notifications: string[] }> {
     const where: Record<string, unknown> = { agent_id: agentId, provider };
     if (authType) where.auth_type = authType;

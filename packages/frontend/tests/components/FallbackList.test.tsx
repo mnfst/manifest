@@ -19,6 +19,8 @@ vi.mock("../../src/components/ProviderIcon.js", () => ({
 
 vi.mock("../../src/components/AuthBadge.js", () => ({
   authBadgeFor: () => null,
+  authLabel: (authType: string | null | undefined) =>
+    authType === "subscription" ? "Subscription" : authType === "local" ? "Local" : "API Key",
 }));
 
 vi.mock("../../src/services/providers.js", () => ({

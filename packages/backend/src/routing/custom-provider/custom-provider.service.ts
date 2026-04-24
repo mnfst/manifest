@@ -7,6 +7,12 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
+import {
+  CANONICAL_LOCAL_IDS,
+  SHARED_PROVIDER_BY_ID_OR_ALIAS,
+  normalizeProviderName,
+} from 'manifest-shared';
+import type { AuthType } from 'manifest-shared';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { ProviderService } from '../routing-core/provider.service';
 import { RoutingCacheService } from '../routing-core/routing-cache.service';
@@ -32,6 +38,25 @@ const EMBEDDING_MODEL_PATTERN =
 
 export function isEmbeddingModel(id: string): boolean {
   return EMBEDDING_MODEL_PATTERN.test(id);
+}
+
+/**
+ * A custom provider whose display name resolves to a canonical local
+ * runner (Ollama, LM Studio) belongs under the Local tab, not API Keys.
+ * Used to stamp `auth_type: 'local'` on the companion user_providers row
+ * so messages routed through it carry the grey-house badge in the UI.
+ */
+export function isLocalCustomProviderName(name: string): boolean {
+  const normalized = normalizeProviderName(name);
+  const shared =
+    SHARED_PROVIDER_BY_ID_OR_ALIAS.get(normalized) ??
+    SHARED_PROVIDER_BY_ID_OR_ALIAS.get(name) ??
+    SHARED_PROVIDER_BY_ID_OR_ALIAS.get(name.toLowerCase());
+  return !!shared && CANONICAL_LOCAL_IDS.has(shared.id);
+}
+
+function authTypeForCustomProvider(name: string): AuthType {
+  return isLocalCustomProviderName(name) ? 'local' : 'api_key';
 }
 
 @Injectable()
@@ -117,8 +142,17 @@ export class CustomProviderService {
     });
     await this.repo.insert(cp);
 
-    // Create UserProvider + trigger tier recalculation
-    await this.providerService.upsertProvider(agentId, userId, provKey, dto.apiKey);
+    // Create UserProvider + trigger tier recalculation. When the display
+    // name resolves to Ollama / LM Studio we tag the row `'local'` so
+    // routed messages carry the grey-house badge and the row shows up
+    // under the Local tab.
+    await this.providerService.upsertProvider(
+      agentId,
+      userId,
+      provKey,
+      dto.apiKey,
+      authTypeForCustomProvider(dto.name),
+    );
 
     // Rebuild the shared pricing cache so the proxy can compute cost for
     // requests routed to this custom provider's models immediately (without
@@ -167,13 +201,17 @@ export class CustomProviderService {
       }));
     }
 
-    // Update API key if explicitly provided
+    // Update API key if explicitly provided. Preserve the auth_type
+    // derived from the (possibly renamed) display name so toggling between
+    // "LM Studio" ↔ a freeform name re-tags the companion user_providers
+    // row accordingly.
     if ('apiKey' in dto) {
       await this.providerService.upsertProvider(
         agentId,
         userId,
         CustomProviderService.providerKey(id),
         dto.apiKey,
+        authTypeForCustomProvider(cp.name),
       );
     }
 

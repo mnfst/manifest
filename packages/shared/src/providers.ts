@@ -239,6 +239,16 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
   },
 ] as const;
 
+/**
+ * Canonical IDs of providers that run on the user's own machine.
+ * Used by the backend (`getAuthType`) and the frontend (provider modal
+ * tabs, filtering) to decide whether a provider should be tagged
+ * `auth_type: 'local'` and surfaced under the Local tab.
+ */
+export const CANONICAL_LOCAL_IDS: ReadonlySet<string> = new Set(
+  SHARED_PROVIDERS.filter((p) => p.localOnly).map((p) => p.id),
+);
+
 /** Map from provider ID → shared entry. */
 export const SHARED_PROVIDER_BY_ID: ReadonlyMap<string, SharedProviderEntry> = new Map(
   SHARED_PROVIDERS.map((p) => [p.id, p]),

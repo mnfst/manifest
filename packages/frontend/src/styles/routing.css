@@ -98,6 +98,16 @@
   color: #020817;
 }
 
+.provider-auth-badge--local {
+  background: #6b7a8f;
+  color: #ffffff;
+}
+
+[data-theme='dark'] .provider-auth-badge--local {
+  background: #8a9bb3;
+  color: #020817;
+}
+
 .provider-auth-badge--overlay {
   width: 8px;
   height: 8px;

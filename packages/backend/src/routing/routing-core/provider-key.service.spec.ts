@@ -376,6 +376,51 @@ describe('ProviderKeyService', () => {
       // Empty set has size 0, so exclusion logic is skipped — defaults to subscription
       expect(result).toBe('subscription');
     });
+
+    it('should return local for Ollama providers', async () => {
+      providerService.getProviders.mockResolvedValue([
+        makeProvider({
+          provider: 'ollama',
+          auth_type: 'local',
+          api_key_encrypted: null,
+        }),
+      ]);
+
+      const result = await service.getAuthType('agent-1', 'ollama');
+
+      expect(result).toBe('local');
+    });
+
+    it('should return local for LM Studio providers', async () => {
+      providerService.getProviders.mockResolvedValue([
+        makeProvider({
+          provider: 'lmstudio',
+          auth_type: 'local',
+          api_key_encrypted: null,
+        }),
+      ]);
+
+      const result = await service.getAuthType('agent-1', 'lmstudio');
+
+      expect(result).toBe('local');
+    });
+
+    it('should still return local when a legacy Ollama row is mistagged as api_key', async () => {
+      // Safety net for rows that slipped through the migration or were
+      // created by an old backend: the canonical-local-ids set wins over
+      // the row's literal auth_type.
+      providerService.getProviders.mockResolvedValue([
+        makeProvider({
+          provider: 'ollama',
+          auth_type: 'api_key',
+          api_key_encrypted: null,
+        }),
+      ]);
+
+      const result = await service.getAuthType('agent-1', 'ollama');
+
+      expect(result).toBe('local');
+    });
   });
 
   /* ── hasActiveProvider ── */

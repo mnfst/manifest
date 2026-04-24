@@ -90,6 +90,8 @@ vi.mock('../../src/services/routing-utils.js', () => ({
 
 vi.mock('../../src/components/AuthBadge.js', () => ({
   authBadgeFor: () => null,
+  authLabel: (authType: string | null | undefined) =>
+    authType === 'subscription' ? 'Subscription' : authType === 'local' ? 'Local' : 'API Key',
 }));
 
 vi.mock('../../src/services/formatters.js', () => ({

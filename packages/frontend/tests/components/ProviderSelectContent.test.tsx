@@ -108,6 +108,32 @@ describe("ProviderSelectContent", () => {
     expect(screen.getByText("API Keys")).toBeDefined();
   });
 
+  it("reveals the Local tab once isSelfHosted resolves true", async () => {
+    render(() => (
+      <ProviderSelectContent
+        agentName="test-agent"
+        providers={[]}
+        onUpdate={onUpdate}
+      />
+    ));
+    // Subscription + API Keys are always present; Local shows up after
+    // the checkIsSelfHosted mock resolves.
+    await waitFor(() => expect(screen.getByText("Local")).toBeDefined());
+  });
+
+  it("defaults to the Subscription tab even in self-hosted mode", async () => {
+    render(() => (
+      <ProviderSelectContent
+        agentName="test-agent"
+        providers={[]}
+        onUpdate={onUpdate}
+      />
+    ));
+    await waitFor(() => screen.getByText("Local"));
+    const subTab = screen.getByText("Subscription").closest("button")!;
+    expect(subTab.getAttribute("aria-selected")).toBe("true");
+  });
+
   it("shows Z.ai GLM Coding Plan in the subscription tab", () => {
     render(() => (
       <ProviderSelectContent
@@ -207,10 +233,11 @@ describe("ProviderSelectContent", () => {
         />
       ));
 
-      // Switch to API Keys tab to see local-server tiles
-      fireEvent.click(screen.getByText("API Keys"));
+      // Wait for self-hosted to resolve, then switch to the Local tab (only
+      // rendered in self-hosted mode) where the LM Studio tile lives.
+      await waitFor(() => screen.getByText("Local"));
+      fireEvent.click(screen.getByText("Local"));
 
-      // Wait for self-hosted + server liveness to resolve so LM Studio is enabled
       const lmsBtn = await waitFor(() => {
         const b = Array.from(container.querySelectorAll<HTMLButtonElement>("button.provider-toggle")).find(
           (el) => el.textContent?.includes("LM Studio") && !el.disabled,
@@ -243,7 +270,8 @@ describe("ProviderSelectContent", () => {
         />
       ));
 
-      fireEvent.click(screen.getByText("API Keys"));
+      await waitFor(() => screen.getByText("Local"));
+      fireEvent.click(screen.getByText("Local"));
 
       const lmsBtn = await waitFor(() => {
         const b = Array.from(container.querySelectorAll<HTMLButtonElement>("button.provider-toggle")).find(
@@ -287,7 +315,8 @@ describe("ProviderSelectContent", () => {
         />
       ));
 
-      fireEvent.click(screen.getByText("API Keys"));
+      await waitFor(() => screen.getByText("Local"));
+      fireEvent.click(screen.getByText("Local"));
 
       // Click the custom provider toggle for LM Studio
       const lmsToggle = await waitFor(() => {
@@ -313,7 +342,8 @@ describe("ProviderSelectContent", () => {
         />
       ));
 
-      fireEvent.click(screen.getByText("API Keys"));
+      await waitFor(() => screen.getByText("Local"));
+      fireEvent.click(screen.getByText("Local"));
 
       const lmsBtn = await waitFor(() => {
         const b = Array.from(container.querySelectorAll<HTMLButtonElement>("button.provider-toggle")).find(

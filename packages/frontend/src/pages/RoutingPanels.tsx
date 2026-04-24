@@ -2,7 +2,7 @@ import { For, Show, createMemo, type Component } from 'solid-js';
 import { STAGES, PROVIDERS } from '../services/providers.js';
 import { providerIcon, customProviderLogo } from '../components/ProviderIcon.js';
 import { customProviderColor } from '../services/formatters.js';
-import { authBadgeFor } from '../components/AuthBadge.js';
+import { authBadgeFor, authLabel } from '../components/AuthBadge.js';
 import type { RoutingProvider, CustomProviderData } from '../services/api.js';
 
 /** Skeleton placeholder rendered while providers are loading with cached data visible. */
@@ -140,11 +140,10 @@ export const ActiveProviderIcons: Component<ActiveProviderIconsProps> = (props) 
             );
           }
           const provDef = PROVIDERS.find((p) => p.id === prov.provider);
-          const authLabel = prov.auth_type === 'subscription' ? 'Subscription' : 'API Key';
           return (
             <span
               class="routing-providers-info__icon"
-              title={`${provDef?.name ?? prov.provider} (${authLabel})`}
+              title={`${provDef?.name ?? prov.provider} (${authLabel(prov.auth_type)})`}
             >
               {providerIcon(prov.provider, 16)}
               {authBadgeFor(prov.auth_type, 12)}

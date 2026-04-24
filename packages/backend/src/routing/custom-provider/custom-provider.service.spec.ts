@@ -162,11 +162,53 @@ describe('CustomProviderService', () => {
       expect(cp.agent_id).toBe('agent-1');
       expect(cp.name).toBe('my-openai');
       expect(cp.models[0].context_window).toBe(128_000);
-      expect(upsertProvider).toHaveBeenCalledWith('agent-1', 'user-1', `custom:${cp.id}`, 'sk-x');
+      expect(upsertProvider).toHaveBeenCalledWith(
+        'agent-1',
+        'user-1',
+        `custom:${cp.id}`,
+        'sk-x',
+        'api_key',
+      );
       expect(validatePublicUrl).toHaveBeenCalledWith(dto.base_url, { allowPrivate: false });
       // Price lookup cache must be refreshed so the proxy can compute cost
       // for messages routed to this provider's models immediately.
       expect(reloadPricing).toHaveBeenCalledTimes(1);
+    });
+
+    it('tags the companion user_providers row as local when the name is LM Studio', async () => {
+      const { svc, upsertProvider } = makeDeps({ findOneResults: [null] });
+      await svc.create('agent-1', 'user-1', { ...dto, name: 'LM Studio' });
+      expect(upsertProvider).toHaveBeenCalledWith(
+        'agent-1',
+        'user-1',
+        expect.stringMatching(/^custom:/),
+        'sk-x',
+        'local',
+      );
+    });
+
+    it('normalizes the name for detection (lm-studio / LMSTUDIO both resolve to local)', async () => {
+      const { svc, upsertProvider } = makeDeps({ findOneResults: [null] });
+      await svc.create('agent-1', 'user-1', { ...dto, name: 'lm-studio' });
+      expect(upsertProvider).toHaveBeenLastCalledWith(
+        'agent-1',
+        'user-1',
+        expect.stringMatching(/^custom:/),
+        'sk-x',
+        'local',
+      );
+    });
+
+    it('keeps api_key tagging for freeform custom provider names', async () => {
+      const { svc, upsertProvider } = makeDeps({ findOneResults: [null] });
+      await svc.create('agent-1', 'user-1', { ...dto, name: 'My Home Server' });
+      expect(upsertProvider).toHaveBeenCalledWith(
+        'agent-1',
+        'user-1',
+        expect.stringMatching(/^custom:/),
+        'sk-x',
+        'api_key',
+      );
     });
 
     it('passes allowPrivate=true in the self-hosted version so private URLs are accepted', async () => {
@@ -284,7 +326,13 @@ describe('CustomProviderService', () => {
           },
         ],
       });
-      expect(upsertProvider).toHaveBeenCalledWith('agent-1', 'user-1', 'custom:cp1', 'sk-new');
+      expect(upsertProvider).toHaveBeenCalledWith(
+        'agent-1',
+        'user-1',
+        'custom:cp1',
+        'sk-new',
+        'api_key',
+      );
       // When api key is updated, the upsert triggers its own recalc — service should not double-call.
       expect(recalculate).not.toHaveBeenCalled();
       expect(existing.models[0].context_window).toBe(64_000);

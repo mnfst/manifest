@@ -85,8 +85,13 @@ const HeaderTierCard: Component<Props> = (props) => {
     const provs = props.connectedProviders.filter(
       (p) => p.provider.toLowerCase() === id.toLowerCase(),
     );
+    // Precedence subscription > api_key > local. Keep the "you already pay a
+    // sub" signal on top so a user with both a subscription and a local
+    // Ollama connection sees the subscription badge first; local is the
+    // weakest signal and only wins when it's the sole connection.
     if (provs.some((p) => p.auth_type === 'subscription')) return 'subscription';
     if (provs.some((p) => p.auth_type === 'api_key')) return 'api_key';
+    if (provs.some((p) => p.auth_type === 'local')) return 'local';
     return null;
   };
 

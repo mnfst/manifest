@@ -25,6 +25,8 @@ vi.mock('../../src/components/ProviderIcon.jsx', () => ({
 
 vi.mock('../../src/components/AuthBadge.js', () => ({
   authBadgeFor: () => null,
+  authLabel: (authType: string | null | undefined) =>
+    authType === 'subscription' ? 'Subscription' : authType === 'local' ? 'Local' : 'API Key',
 }));
 
 // Mutable refs for routing-utils so specific tests can exercise branches in
