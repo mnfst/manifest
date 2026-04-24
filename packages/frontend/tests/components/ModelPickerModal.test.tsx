@@ -366,7 +366,8 @@ describe("ModelPickerModal", () => {
     ));
 
     fireEvent.click(screen.getByText("API Keys"));
-    expect(screen.getByText("GPT-5.4 Mini API Key").parentElement?.textContent).toContain("Primary");
+    const apiKeyModel = screen.getByRole("button", { name: /GPT-5\.4 Mini API Key/ });
+    expect(apiKeyModel.textContent).toContain("Primary");
   });
 
   it("filters subscription tab to only subscription providers' models", () => {
