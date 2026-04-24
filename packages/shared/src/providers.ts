@@ -371,7 +371,7 @@ export const LOCAL_SERVER_HINTS: Readonly<Record<string, LocalServerHint>> = {
       './llama-server -m models/llama-3.1-8b-instruct.Q4_K_M.gguf --host 0.0.0.0 --port 8080',
     notReachableHint: {
       before:
-        'Recent llama.cpp builds expose /v1/models by default \u2014 if yours 404s, upgrade llama-server or use ',
+        'Recent llama.cpp builds expose /v1/models by default. If yours 404s, upgrade llama-server or use ',
       linkLabel: 'Add custom provider',
       after: ' to register the model manually.',
     },
