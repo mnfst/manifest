@@ -96,6 +96,13 @@ describe('SpaFallbackFilter', () => {
       expect(res.status).toHaveBeenCalledWith(404);
     });
 
+    it('returns JSON 404 for GET to /assets/ routes (stale chunks)', () => {
+      const { host, res } = createMockHost('GET', '/assets/MessageLog-vvlBBwmB.js');
+      filter.catch(exception, host);
+      expect(res.send).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(404);
+    });
+
     it('returns JSON 404 for non-GET requests', () => {
       const { host, res } = createMockHost('POST', '/agents/foo');
       filter.catch(exception, host);
