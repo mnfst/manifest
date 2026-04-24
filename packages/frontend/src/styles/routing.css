@@ -99,13 +99,13 @@
 }
 
 .provider-auth-badge--local {
-  background: #6b7a8f;
+  background: #f72585;
   color: #ffffff;
 }
 
 .dark .provider-auth-badge--local {
-  background: #8a9bb3;
-  color: #020817;
+  background: #f72585;
+  color: #ffffff;
 }
 
 .provider-auth-badge--overlay {

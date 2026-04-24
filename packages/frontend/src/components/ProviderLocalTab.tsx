@@ -71,8 +71,8 @@ const ProviderLocalTab: Component<Props> = (props) => {
   return (
     <>
       <div class="provider-modal__tab-hint">
-        Runs on your own machine. No key, no cost, no network — messages routed here are tagged with
-        a grey house badge.
+        Runs on your own machine. No key, no cost, no network. Messages routed here are tagged with
+        a pink tepee badge.
       </div>
       <div class="provider-modal__list">
         <For each={mergedProviders()}>

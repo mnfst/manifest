@@ -33,9 +33,9 @@ const KEY_ICON = (s: number) => (
   </svg>
 );
 
-const HOUSE_ICON = (s: number) => (
+const LOCAL_ICON = (s: number) => (
   <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <path d="M12 3 2 12h3v8h5v-5h4v5h5v-8h3L12 3z" />
+    <path d="m13.18 6.75 2.66-4.22-1.69-1.07L12 4.87 9.85 1.46 8.16 2.53l2.66 4.22-8.67 13.72A1.006 1.006 0 0 0 3 22.01h18c.36 0 .7-.2.88-.52s.16-.71-.03-1.02zM10.24 20 12 16.98 13.76 20zm5.83 0-3.21-5.5c-.36-.62-1.37-.62-1.73 0L7.92 20H4.81L12 8.62 19.19 20h-3.11Z" />
   </svg>
 );
 
@@ -80,7 +80,7 @@ export function authBadgeFor(
         role="img"
         aria-label="Local provider"
       >
-        {HOUSE_ICON(size * 0.7)}
+        {LOCAL_ICON(size * 0.7)}
       </span>
     );
   return null;
