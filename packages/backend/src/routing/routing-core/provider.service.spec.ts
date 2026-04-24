@@ -20,15 +20,34 @@ jest.mock('../../common/utils/subscription-support', () => ({
   }),
 }));
 
-function makeMockRepo() {
-  return {
-    find: jest.fn().mockResolvedValue([]),
-    findOne: jest.fn().mockResolvedValue(null),
-    save: jest.fn().mockImplementation((entity: unknown) => Promise.resolve(entity)),
-    insert: jest.fn().mockResolvedValue(undefined),
-    update: jest.fn().mockResolvedValue(undefined),
-    remove: jest.fn().mockResolvedValue(undefined),
+type MockRepo = {
+  find: jest.Mock;
+  findOne: jest.Mock;
+  save: jest.Mock;
+  insert: jest.Mock;
+  update: jest.Mock;
+  remove: jest.Mock;
+  manager: { transaction: jest.Mock };
+};
+
+function makeMockRepo(): MockRepo {
+  const find = jest.fn().mockResolvedValue([]);
+  const findOne = jest.fn().mockResolvedValue(null);
+  const save = jest.fn().mockImplementation((entity: unknown) => Promise.resolve(entity));
+  const insert = jest.fn().mockResolvedValue(undefined);
+  const update = jest.fn().mockResolvedValue(undefined);
+  const remove = jest.fn().mockResolvedValue(undefined);
+  const repoFacade = { find, findOne, save, insert, update, remove };
+  // The real Repository.manager.transaction(cb) invokes cb with an
+  // EntityManager; our mock invokes cb with a thin shim that routes
+  // getRepository() back to this same facade. Mirrors proxy-message-dedup's
+  // test setup so assertions stay at the repo level.
+  const manager = {
+    transaction: jest.fn(async (cb: (m: { getRepository: () => unknown }) => Promise<unknown>) =>
+      cb({ getRepository: () => repoFacade }),
+    ),
   };
+  return { find, findOne, save, insert, update, remove, manager };
 }
 
 function makeProvider(overrides: Partial<UserProvider> = {}): UserProvider {

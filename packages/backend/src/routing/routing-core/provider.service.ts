@@ -212,23 +212,32 @@ export class ProviderService {
    * tier assignments for what is visually just a name change.
    */
   async retagAuthType(agentId: string, provider: string, nextAuthType: AuthType): Promise<void> {
-    const rows = await this.providerRepo.find({ where: { agent_id: agentId, provider } });
-    const target = rows.find((r) => r.auth_type !== nextAuthType && r.is_active);
-    if (!target) return;
+    // Wrap the dedupe + flip in a transaction so a crash between the
+    // collision DELETE and the retag SAVE can't leave the row set in a
+    // half-updated state (losing the collision row while the source still
+    // carries the old auth_type).
+    const invalidated = await this.providerRepo.manager.transaction(async (manager) => {
+      const txRepo = manager.getRepository(UserProvider);
+      const rows = await txRepo.find({ where: { agent_id: agentId, provider } });
+      const target = rows.find((r) => r.auth_type !== nextAuthType && r.is_active);
+      if (!target) return false;
 
-    // Protect the unique (agent_id, provider, auth_type) index: if a row
-    // already exists for the destination auth_type, the UPDATE would fail.
-    // Drop the stale destination row first — the one we're retagging is
-    // authoritative.
-    const collision = rows.find((r) => r.auth_type === nextAuthType);
-    if (collision) {
-      await this.providerRepo.remove(collision);
-    }
+      // Protect the unique (agent_id, provider, auth_type) index: if a row
+      // already exists for the destination auth_type, the UPDATE would fail.
+      // Drop the stale destination row first — the one we're retagging is
+      // authoritative.
+      const collision = rows.find((r) => r.auth_type === nextAuthType);
+      if (collision) {
+        await txRepo.remove(collision);
+      }
 
-    target.auth_type = nextAuthType;
-    target.updated_at = new Date().toISOString();
-    await this.providerRepo.save(target);
-    this.routingCache.invalidateAgent(agentId);
+      target.auth_type = nextAuthType;
+      target.updated_at = new Date().toISOString();
+      await txRepo.save(target);
+      return true;
+    });
+
+    if (invalidated) this.routingCache.invalidateAgent(agentId);
   }
 
   async removeProvider(
