@@ -423,6 +423,40 @@ describe('ProviderApiKeyTab', () => {
     expect(onOpenDetail).not.toHaveBeenCalled();
   });
 
+  it('routes a clicked llama.cpp tile through onOpenLocalServer', async () => {
+    checkIsSelfHosted.mockResolvedValue(true);
+
+    const onOpenCustomForm = vi.fn();
+    const onOpenDetail = vi.fn();
+    const onOpenLocalServer = vi.fn();
+    const llamacppProv = provider({
+      id: 'llamacpp',
+      name: 'llama.cpp',
+      localOnly: true,
+      noKeyRequired: true,
+      defaultLocalPort: 8080,
+    } as ProviderDef);
+    const { container } = render(() => (
+      <ProviderApiKeyTab
+        apiKeyProviders={[llamacppProv]}
+        customProviders={[]}
+        isConnected={() => false}
+        isNoKeyConnected={() => false}
+        onOpenDetail={onOpenDetail}
+        onOpenCustomForm={onOpenCustomForm}
+        onEditCustom={vi.fn()}
+        onOpenLocalServer={onOpenLocalServer}
+      />
+    ));
+    await flushMicrotasks();
+
+    const btn = container.querySelector('button.provider-toggle') as HTMLButtonElement;
+    fireEvent.click(btn);
+    expect(onOpenLocalServer).toHaveBeenCalledWith(llamacppProv);
+    expect(onOpenCustomForm).not.toHaveBeenCalled();
+    expect(onOpenDetail).not.toHaveBeenCalled();
+  });
+
   it('routes a local-only tile without defaultLocalPort through onOpenDetail (Ollama path)', async () => {
     checkIsSelfHosted.mockResolvedValue(true);
 

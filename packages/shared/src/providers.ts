@@ -141,6 +141,19 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: 'sk-...',
   },
   {
+    id: 'llamacpp',
+    displayName: 'llama.cpp',
+    aliases: ['llama.cpp', 'llama-cpp'],
+    openRouterPrefixes: [],
+    requiresApiKey: false,
+    localOnly: true,
+    tileOnly: true,
+    color: '#2d2d2d',
+    keyPrefix: '',
+    minKeyLength: 0,
+    keyPlaceholder: '',
+  },
+  {
     id: 'lmstudio',
     displayName: 'LM Studio',
     aliases: ['lm-studio', 'lm studio'],
@@ -305,6 +318,19 @@ export interface LocalServerHint {
    * launch.
    */
   persistsBindAcrossLaunches?: boolean;
+  /**
+   * Optional extra copy shown in the failure state under the setup
+   * command, with a clickable link that opens the custom-provider form
+   * as an escape hatch. Used by llama.cpp to surface that pre-b3800
+   * builds don't expose `/v1/models` so the probe can 404 even when the
+   * server is up. Structured as three fields so the renderer doesn't
+   * have to parse a magic substring out of a free-form string.
+   */
+  notReachableHint?: {
+    before: string;
+    linkLabel: string;
+    after: string;
+  };
 }
 
 export const LOCAL_SERVER_HINTS: Readonly<Record<string, LocalServerHint>> = {
@@ -323,5 +349,21 @@ export const LOCAL_SERVER_HINTS: Readonly<Record<string, LocalServerHint>> = {
     dockerGuiFix:
       'LM Studio \u2192 \u2699 Developer \u2192 enable \u201cServe on Local Network\u201d',
     persistsBindAcrossLaunches: true,
+  },
+  llamacpp: {
+    defaultPort: 8080,
+    setupCommand:
+      './llama-server -m models/llama-3.1-8b-instruct.Q4_K_M.gguf --host 0.0.0.0 --port 8080',
+    installUrl: 'https://github.com/ggml-org/llama.cpp#readme',
+    dockerBindNote:
+      "llama-server only listens on 0.0.0.0 if you pass --host 0.0.0.0; the default bind isn't reachable from Docker.",
+    dockerBindCommand:
+      './llama-server -m models/llama-3.1-8b-instruct.Q4_K_M.gguf --host 0.0.0.0 --port 8080',
+    notReachableHint: {
+      before:
+        'Recent llama.cpp builds expose /v1/models by default \u2014 if yours 404s, upgrade llama-server or use ',
+      linkLabel: 'Add custom provider',
+      after: ' to register the model manually.',
+    },
   },
 };

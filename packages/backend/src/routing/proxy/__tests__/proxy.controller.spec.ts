@@ -6,6 +6,16 @@ import { IngestEventBusService } from '../../../common/services/ingest-event-bus
 import { ThoughtSignatureCache } from '../thought-signature-cache';
 import { ThinkingBlockCache } from '../thinking-block-cache';
 
+/**
+ * Flush enough microtasks for the recorder's fire-and-forget chain to
+ * complete. The chain is: `canonicalizeAgentMessageKeys` → `messageRepo.insert`
+ * → `.catch(...)` — three awaits in sequence. Ten rounds of `Promise.resolve`
+ * is deterministic (no timer involved) and forgiving if the chain grows.
+ */
+async function flushRecorderMicrotasks(): Promise<void> {
+  for (let i = 0; i < 10; i++) await Promise.resolve();
+}
+
 function mockResponse(): {
   res: Record<string, jest.Mock | boolean | number>;
   written: string[];
@@ -124,11 +134,22 @@ describe('ProxyController', () => {
     };
     mockMessageManager.getRepository.mockReturnValue(mockMessageRepo);
     mockPricingCache = { getByModel: jest.fn().mockReturnValue(undefined) };
+    const mockCustomProviders = {
+      canonicalizeAgentMessageKeys: jest
+        .fn()
+        .mockImplementation(
+          async (_agentId: string, provider: string | null, model: string | null) => ({
+            provider: provider ?? null,
+            model: model ?? null,
+          }),
+        ),
+    };
     recorder = new ProxyMessageRecorder(
       mockMessageRepo as never,
       mockPricingCache as never,
       new ProxyMessageDedup(),
       { emit: jest.fn() } as unknown as IngestEventBusService,
+      mockCustomProviders as never,
     );
     controller = new ProxyController(
       proxyService as never,
@@ -723,6 +744,7 @@ describe('ProxyController', () => {
     const { res } = mockResponse();
 
     await controller.chatCompletions(req as never, res as never);
+    await flushRecorderMicrotasks();
 
     expect(mockMessageRepo.insert).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -763,6 +785,7 @@ describe('ProxyController', () => {
     const { res } = mockResponse();
 
     await controller.chatCompletions(req as never, res as never);
+    await flushRecorderMicrotasks();
 
     expect(mockMessageRepo.insert).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -962,6 +985,7 @@ describe('ProxyController', () => {
       const { res } = mockResponse();
 
       await controller.chatCompletions(req as never, res as never);
+      await flushRecorderMicrotasks();
 
       expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1622,8 +1646,6 @@ describe('ProxyController', () => {
     });
 
     it('should allow recording after cooldown expires', async () => {
-      jest.useFakeTimers();
-
       const limitError = new HttpException('Limit exceeded', 429);
       proxyService.proxyRequest.mockRejectedValue(limitError);
 
@@ -1631,18 +1653,22 @@ describe('ProxyController', () => {
       const req1 = mockRequest({ messages: [{ role: 'user', content: 'a' }] });
       const { res: res1 } = mockResponse();
       await controller.chatCompletions(req1 as never, res1 as never);
+      await flushRecorderMicrotasks();
       expect(mockMessageRepo.insert).toHaveBeenCalledTimes(1);
 
-      // Advance past cooldown (60s)
-      jest.advanceTimersByTime(60_001);
+      // Expire the cooldown entry directly instead of advancing fake
+      // timers — fake timers would also freeze the microtask flush we
+      // rely on to wait for the recorder's fire-and-forget insert.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const map = (recorder as any).rateLimitCooldown as Map<string, number>;
+      map.set('tenant-1:agent-1', Date.now() - 120_000);
 
       // Second 429 after cooldown — should record again
       const req2 = mockRequest({ messages: [{ role: 'user', content: 'b' }] });
       const { res: res2 } = mockResponse();
       await controller.chatCompletions(req2 as never, res2 as never);
+      await flushRecorderMicrotasks();
       expect(mockMessageRepo.insert).toHaveBeenCalledTimes(2);
-
-      jest.useRealTimers();
     });
 
     it('should allow recording for different agents within cooldown', async () => {
@@ -1667,6 +1693,7 @@ describe('ProxyController', () => {
       };
       const { res: res2 } = mockResponse();
       await controller.chatCompletions(req2 as never, res2 as never);
+      await flushRecorderMicrotasks();
 
       expect(mockMessageRepo.insert).toHaveBeenCalledTimes(2);
     });
@@ -1731,6 +1758,16 @@ describe('ProxyController', () => {
         mockPricingCache as never,
         new ProxyMessageDedup(),
         { emit: jest.fn() } as unknown as IngestEventBusService,
+        {
+          canonicalizeAgentMessageKeys: jest
+            .fn()
+            .mockImplementation(
+              async (_agentId: string, provider: string | null, model: string | null) => ({
+                provider: provider ?? null,
+                model: model ?? null,
+              }),
+            ),
+        } as never,
       );
 
       const cooldownMap = (timedRecorder as any).rateLimitCooldown as Map<string, number>;
@@ -1752,6 +1789,16 @@ describe('ProxyController', () => {
         mockPricingCache as never,
         new ProxyMessageDedup(),
         { emit: jest.fn() } as unknown as IngestEventBusService,
+        {
+          canonicalizeAgentMessageKeys: jest
+            .fn()
+            .mockImplementation(
+              async (_agentId: string, provider: string | null, model: string | null) => ({
+                provider: provider ?? null,
+                model: model ?? null,
+              }),
+            ),
+        } as never,
       );
 
       timedRecorder.onModuleDestroy();

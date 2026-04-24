@@ -7,6 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
+import { SHARED_PROVIDER_BY_ID_OR_ALIAS, normalizeProviderName } from 'manifest-shared';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { ProviderService } from '../routing-core/provider.service';
 import { RoutingCacheService } from '../routing-core/routing-cache.service';
@@ -69,6 +70,76 @@ export class CustomProviderService {
   /** Extract the custom provider UUID from a provider key. */
   static extractId(providerKey: string): string {
     return providerKey.replace('custom:', '');
+  }
+
+  /**
+   * If `name` matches a `tileOnly: true` canonical provider from the shared
+   * registry (llama.cpp → `llamacpp`, LM Studio → `lmstudio`), return that
+   * canonical id. Otherwise return null. Used to surface tile-connected
+   * local servers as first-class providers in user-visible columns
+   * (`agent_messages.provider` / `.model`, dashboard aggregations) even
+   * though they're physically stored in `custom_providers`.
+   */
+  static canonicalTileIdForName(name: string): string | null {
+    const entry = SHARED_PROVIDER_BY_ID_OR_ALIAS.get(normalizeProviderName(name));
+    return entry?.tileOnly ? entry.id : null;
+  }
+
+  /**
+   * Rewrite a `(provider, model)` pair for the agent_messages log. When the
+   * pair resolves to a tile-connected canonical provider, substitute the
+   * canonical id so the DB / dashboard never exposes the internal
+   * `custom:<uuid>` key. Passthrough for every other case (non-custom
+   * providers, and user-defined custom providers that don't match a
+   * tile-only canonical).
+   */
+  // Overloads: narrow the output model type to whatever nullability the
+  // caller passed in for the input model. When `model` is a non-null
+  // string the rewrite path can only ever produce a non-null string, so
+  // downstream call sites don't need defensive `?? model` fallbacks.
+  async canonicalizeAgentMessageKeys(
+    agentId: string,
+    provider: string | null | undefined,
+    model: string,
+  ): Promise<{ provider: string | null; model: string }>;
+  async canonicalizeAgentMessageKeys(
+    agentId: string,
+    provider: string | null | undefined,
+    model: string | null | undefined,
+  ): Promise<{ provider: string | null; model: string | null }>;
+  async canonicalizeAgentMessageKeys(
+    agentId: string,
+    provider: string | null | undefined,
+    model: string | null | undefined,
+  ): Promise<{ provider: string | null; model: string | null }> {
+    const providerIsCustom = !!provider && CustomProviderService.isCustom(provider);
+    const modelMatch = model?.match(/^custom:([^/]+)\//);
+    if (!providerIsCustom && !modelMatch) {
+      return { provider: provider ?? null, model: model ?? null };
+    }
+
+    // Pick the UUID to look up: prefer the provider string, fall back to
+    // the `custom:<uuid>/` prefix on the model (fallback_from_model is the
+    // only place where we see a custom model without a matching provider
+    // on the same row).
+    const cpId = providerIsCustom
+      ? CustomProviderService.extractId(provider!)
+      : (modelMatch?.[1] ?? null);
+    if (!cpId) return { provider: provider ?? null, model: model ?? null };
+
+    const rows = await this.list(agentId);
+    const row = rows.find((r) => r.id === cpId);
+    if (!row) return { provider: provider ?? null, model: model ?? null };
+
+    const canonical = CustomProviderService.canonicalTileIdForName(row.name);
+    if (!canonical) return { provider: provider ?? null, model: model ?? null };
+
+    const rewrittenProvider = providerIsCustom ? canonical : (provider ?? null);
+    const rewrittenModel =
+      model && model.startsWith(`custom:${cpId}/`)
+        ? `${canonical}/${CustomProviderService.rawModelName(model)}`
+        : (model ?? null);
+    return { provider: rewrittenProvider, model: rewrittenModel };
   }
 
   async list(agentId: string): Promise<CustomProvider[]> {

@@ -197,6 +197,10 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
               props.onUpdate();
             }}
             onBack={goBack}
+            onOpenCustomForm={() => {
+              setLocalServerProvider(null);
+              openCustomForm();
+            }}
           />
         </div>
       </Show>

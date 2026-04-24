@@ -11,7 +11,7 @@ import { checkIsSelfHosted } from '../services/setup-status.js';
 // these, we treat it as "the" connection for that tile — we hide the
 // empty tileOnly entry and drop the "Custom" tag so the row doesn't look
 // like a secondary, off-brand copy.
-const CANONICAL_LOCAL_IDS = new Set(['lmstudio', 'ollama']);
+const CANONICAL_LOCAL_IDS = new Set(['llamacpp', 'lmstudio', 'ollama']);
 
 const resolveCanonicalId = (name: string): string | null => {
   const shared =

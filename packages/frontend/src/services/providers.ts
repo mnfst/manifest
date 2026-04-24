@@ -122,6 +122,13 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subtitle: 'Gemini 2.5, Gemini 2.0 Flash',
     models: [],
   },
+  llamacpp: {
+    initial: 'Lc',
+    subtitle: 'OpenAI-compatible server for GGUF models on CPU / Metal / CUDA',
+    noKeyRequired: true,
+    models: [],
+    defaultLocalPort: 8080,
+  },
   lmstudio: {
     initial: 'LM',
     subtitle: 'Run GGUF models with a local server',
@@ -250,6 +257,7 @@ const PROVIDER_ORDER = [
   'deepseek',
   'copilot',
   'gemini',
+  'llamacpp',
   'lmstudio',
   'minimax',
   'mistral',

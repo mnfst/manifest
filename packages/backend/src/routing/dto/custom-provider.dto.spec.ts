@@ -76,6 +76,16 @@ describe('CreateCustomProviderDto', () => {
     expect(nameError).toBeDefined();
   });
 
+  it('accepts a dot in the name (e.g. "llama.cpp")', async () => {
+    const dto = toDto({
+      name: 'llama.cpp',
+      base_url: 'http://localhost:8080/v1',
+      models: [{ model_name: 'qwen2.5-0.5b-q4.gguf' }],
+    });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+  });
+
   it('rejects name longer than 50 chars', async () => {
     const dto = toDto({
       name: 'a'.repeat(51),

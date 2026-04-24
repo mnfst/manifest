@@ -29,6 +29,13 @@ describe("providerIcon", () => {
     });
   }
 
+  it("returns an <img> for \"llamacpp\" pointing at the self-hosted icon", () => {
+    const { container } = render(() => <div>{providerIcon("llamacpp")}</div>);
+    const img = container.querySelector("img");
+    expect(img).not.toBeNull();
+    expect(img!.getAttribute("src")).toBe("/icons/llamacpp.png");
+  });
+
   it("returns null for unknown provider", () => {
     const { container } = render(() => <div>{providerIcon("unknown-provider")}</div>);
     const svg = container.querySelector("svg");
@@ -107,6 +114,8 @@ describe("customProviderLogo", () => {
   });
 
   it.each([
+    ["llama.cpp", "llamacpp"],
+    ["llama-cpp", "llamacpp"],
     ["LM Studio", "lmstudio"],
     ["lm-studio", "lmstudio"],
     ["Ollama", "ollama"],

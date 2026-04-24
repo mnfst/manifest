@@ -261,6 +261,19 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         </svg>
       );
 
+    /* ── llama.cpp ───────────────────────────────── */
+    case 'llamacpp':
+      return (
+        <img
+          src="/icons/llamacpp.png"
+          alt=""
+          width={size}
+          height={size}
+          style={{ ...s, 'object-fit': 'contain', 'border-radius': '3px' }}
+          aria-hidden="true"
+        />
+      );
+
     /* ── LM Studio ───────────────────────────────── */
     case 'lmstudio':
       return (

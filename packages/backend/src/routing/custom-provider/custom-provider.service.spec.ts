@@ -101,6 +101,156 @@ describe('CustomProviderService', () => {
       expect(CustomProviderService.isCustom('anthropic')).toBe(false);
       expect(CustomProviderService.extractId('custom:abc')).toBe('abc');
     });
+
+    it('maps tile-connected canonical names to their registry id', () => {
+      expect(CustomProviderService.canonicalTileIdForName('llama.cpp')).toBe('llamacpp');
+      expect(CustomProviderService.canonicalTileIdForName('llama-cpp')).toBe('llamacpp');
+      expect(CustomProviderService.canonicalTileIdForName('LM Studio')).toBe('lmstudio');
+      expect(CustomProviderService.canonicalTileIdForName('Groq')).toBeNull();
+      expect(CustomProviderService.canonicalTileIdForName('My Custom LLM')).toBeNull();
+    });
+  });
+
+  describe('canonicalizeAgentMessageKeys', () => {
+    it('rewrites provider + model when the custom provider is a tile-only canonical (llama.cpp)', async () => {
+      const row = {
+        id: 'cp-llamacpp',
+        agent_id: 'agent-1',
+        name: 'llama.cpp',
+      } as CustomProvider;
+      const { svc } = makeDeps({ cached: [row] });
+
+      const out = await svc.canonicalizeAgentMessageKeys(
+        'agent-1',
+        'custom:cp-llamacpp',
+        'custom:cp-llamacpp/qwen2.5-0.5b-q4.gguf',
+      );
+      expect(out).toEqual({ provider: 'llamacpp', model: 'llamacpp/qwen2.5-0.5b-q4.gguf' });
+    });
+
+    it('passes through user-defined custom providers that do not match a tile-only canonical', async () => {
+      const row = {
+        id: 'cp-mine',
+        agent_id: 'agent-1',
+        name: 'My Groq',
+      } as CustomProvider;
+      const { svc } = makeDeps({ cached: [row] });
+
+      const out = await svc.canonicalizeAgentMessageKeys(
+        'agent-1',
+        'custom:cp-mine',
+        'custom:cp-mine/llama-3.1-70b',
+      );
+      expect(out).toEqual({ provider: 'custom:cp-mine', model: 'custom:cp-mine/llama-3.1-70b' });
+    });
+
+    it('passes through cloud providers (no custom: prefix)', async () => {
+      const { svc } = makeDeps({ cached: [] });
+      const out = await svc.canonicalizeAgentMessageKeys(
+        'agent-1',
+        'anthropic',
+        'anthropic/claude-opus-4-6',
+      );
+      expect(out).toEqual({ provider: 'anthropic', model: 'anthropic/claude-opus-4-6' });
+    });
+
+    it('rewrites a custom-prefixed model string even when provider is null (fallback_from_model)', async () => {
+      const row = {
+        id: 'cp-llamacpp',
+        agent_id: 'agent-1',
+        name: 'llama.cpp',
+      } as CustomProvider;
+      const { svc } = makeDeps({ cached: [row] });
+      const out = await svc.canonicalizeAgentMessageKeys(
+        'agent-1',
+        null,
+        'custom:cp-llamacpp/qwen2.5-0.5b-q4.gguf',
+      );
+      expect(out).toEqual({ provider: null, model: 'llamacpp/qwen2.5-0.5b-q4.gguf' });
+    });
+
+    it('returns nulls when both provider and model are empty', async () => {
+      const { svc } = makeDeps({ cached: [] });
+      const out = await svc.canonicalizeAgentMessageKeys('agent-1', null, null);
+      expect(out).toEqual({ provider: null, model: null });
+    });
+
+    it('returns provider unchanged when the referenced custom provider no longer exists', async () => {
+      const { svc } = makeDeps({ cached: [] });
+      const out = await svc.canonicalizeAgentMessageKeys(
+        'agent-1',
+        'custom:deleted',
+        'custom:deleted/foo',
+      );
+      expect(out).toEqual({ provider: 'custom:deleted', model: 'custom:deleted/foo' });
+    });
+
+    it('returns the model unchanged when the fallback_from_model path references a deleted custom provider', async () => {
+      // fallback_from_model can carry a `custom:<uuid>/model` suffix after the
+      // backing provider row was removed — the canonicalizer must pass it
+      // through rather than silently dropping the reference.
+      const { svc } = makeDeps({ cached: [] });
+      const out = await svc.canonicalizeAgentMessageKeys(
+        'agent-1',
+        null,
+        'custom:missing-uuid/my-model',
+      );
+      expect(out).toEqual({ provider: null, model: 'custom:missing-uuid/my-model' });
+    });
+
+    it('rewrites only the provider when the model does not share the same custom prefix', async () => {
+      // On cross-provider fallback, `model` can reference a *different*
+      // upstream (e.g. the fallback landed on anthropic) while `provider`
+      // is still the custom tile — the provider column must canonicalize
+      // but the model must pass through untouched.
+      const row = {
+        id: 'cp-llamacpp',
+        agent_id: 'agent-1',
+        name: 'llama.cpp',
+      } as CustomProvider;
+      const { svc } = makeDeps({ cached: [row] });
+      const out = await svc.canonicalizeAgentMessageKeys(
+        'agent-1',
+        'custom:cp-llamacpp',
+        'anthropic/claude-opus-4-6',
+      );
+      expect(out).toEqual({ provider: 'llamacpp', model: 'anthropic/claude-opus-4-6' });
+    });
+
+    it('returns null model unchanged when the referenced provider row is missing', async () => {
+      // Combines the "row not found" branch with a null model — the
+      // canonicalizer must not invent a model string when none was supplied.
+      const { svc } = makeDeps({ cached: [] });
+      const out = await svc.canonicalizeAgentMessageKeys('agent-1', 'custom:deleted', null);
+      expect(out).toEqual({ provider: 'custom:deleted', model: null });
+    });
+
+    it('returns null model unchanged for a user-defined (non-tileOnly) custom provider', async () => {
+      // User-defined providers don't get canonicalized, and a missing model
+      // must stay missing — no accidental "my-groq/null" strings in the DB.
+      const row = {
+        id: 'cp-mine',
+        agent_id: 'agent-1',
+        name: 'My Groq',
+      } as CustomProvider;
+      const { svc } = makeDeps({ cached: [row] });
+      const out = await svc.canonicalizeAgentMessageKeys('agent-1', 'custom:cp-mine', null);
+      expect(out).toEqual({ provider: 'custom:cp-mine', model: null });
+    });
+
+    it('rewrites provider and leaves model null when model is unset for a tile-only custom provider', async () => {
+      // Some error paths record a provider without a model (e.g. pre-resolve
+      // failures). The provider still canonicalizes, and the model column
+      // must remain null rather than accidentally adopting a canonical prefix.
+      const row = {
+        id: 'cp-llamacpp',
+        agent_id: 'agent-1',
+        name: 'llama.cpp',
+      } as CustomProvider;
+      const { svc } = makeDeps({ cached: [row] });
+      const out = await svc.canonicalizeAgentMessageKeys('agent-1', 'custom:cp-llamacpp', null);
+      expect(out).toEqual({ provider: 'llamacpp', model: null });
+    });
   });
 
   describe('list', () => {
