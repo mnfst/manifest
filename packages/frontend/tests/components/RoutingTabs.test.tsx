@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen, fireEvent } from '@solidjs/testing-library';
+import { render, screen, fireEvent, waitFor } from '@solidjs/testing-library';
 import RoutingTabs from '../../src/components/RoutingTabs';
 
 function renderTabs(
@@ -117,5 +117,159 @@ describe('RoutingTabs', () => {
     const tabs = container.querySelectorAll('.panel__tab');
     expect(tabs[0].classList.contains('panel__tab--active')).toBe(true);
     expect(tabs[1].classList.contains('panel__tab--active')).toBe(false);
+  });
+
+  /* ---- Pipeline help modal ---- */
+
+  it('shows help button when pipelineHelp returns content', () => {
+    render(() => (
+      <RoutingTabs
+        complexityEnabled={() => true}
+        specificityEnabled={() => false}
+        customEnabled={() => false}
+        pipelineHelp={() => <div data-testid="help-content">Help text</div>}
+      >
+        {{
+          default: <div>Default</div>,
+          complexity: <div>Complexity</div>,
+          specificity: <div>Specificity</div>,
+          custom: <div>Custom</div>,
+        }}
+      </RoutingTabs>
+    ));
+    expect(screen.getByLabelText('How routing works')).toBeDefined();
+  });
+
+  it('does not show help button when pipelineHelp returns null', () => {
+    render(() => (
+      <RoutingTabs
+        complexityEnabled={() => false}
+        specificityEnabled={() => false}
+        customEnabled={() => false}
+        pipelineHelp={() => null}
+      >
+        {{
+          default: <div>Default</div>,
+          complexity: <div>Complexity</div>,
+          specificity: <div>Specificity</div>,
+          custom: <div>Custom</div>,
+        }}
+      </RoutingTabs>
+    ));
+    expect(screen.queryByLabelText('How routing works')).toBeNull();
+  });
+
+  it('opens help modal on button click and shows content', async () => {
+    render(() => (
+      <RoutingTabs
+        complexityEnabled={() => true}
+        specificityEnabled={() => false}
+        customEnabled={() => false}
+        pipelineHelp={() => <div data-testid="help-content">Pipeline info</div>}
+      >
+        {{
+          default: <div>Default</div>,
+          complexity: <div>Complexity</div>,
+          specificity: <div>Specificity</div>,
+          custom: <div>Custom</div>,
+        }}
+      </RoutingTabs>
+    ));
+    fireEvent.click(screen.getByLabelText('How routing works'));
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeDefined();
+      expect(screen.getByText('How routing works', { selector: 'h2' })).toBeDefined();
+      expect(screen.getByTestId('help-content')).toBeDefined();
+    });
+  });
+
+  it('closes help modal on "Got it" click', async () => {
+    render(() => (
+      <RoutingTabs
+        complexityEnabled={() => true}
+        specificityEnabled={() => false}
+        customEnabled={() => false}
+        pipelineHelp={() => <div>Help</div>}
+      >
+        {{
+          default: <div>Default</div>,
+          complexity: <div>Complexity</div>,
+          specificity: <div>Specificity</div>,
+          custom: <div>Custom</div>,
+        }}
+      </RoutingTabs>
+    ));
+    fireEvent.click(screen.getByLabelText('How routing works'));
+    await waitFor(() => expect(screen.getByRole('dialog')).toBeDefined());
+    fireEvent.click(screen.getByText('Got it'));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  });
+
+  it('closes help modal on overlay click', async () => {
+    render(() => (
+      <RoutingTabs
+        complexityEnabled={() => true}
+        specificityEnabled={() => false}
+        customEnabled={() => false}
+        pipelineHelp={() => <div>Help</div>}
+      >
+        {{
+          default: <div>Default</div>,
+          complexity: <div>Complexity</div>,
+          specificity: <div>Specificity</div>,
+          custom: <div>Custom</div>,
+        }}
+      </RoutingTabs>
+    ));
+    fireEvent.click(screen.getByLabelText('How routing works'));
+    await waitFor(() => expect(screen.getByRole('dialog')).toBeDefined());
+    const overlay = screen.getByRole('dialog').parentElement!;
+    fireEvent.click(overlay);
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  });
+
+  it('closes help modal on Escape key', async () => {
+    render(() => (
+      <RoutingTabs
+        complexityEnabled={() => true}
+        specificityEnabled={() => false}
+        customEnabled={() => false}
+        pipelineHelp={() => <div>Help</div>}
+      >
+        {{
+          default: <div>Default</div>,
+          complexity: <div>Complexity</div>,
+          specificity: <div>Specificity</div>,
+          custom: <div>Custom</div>,
+        }}
+      </RoutingTabs>
+    ));
+    fireEvent.click(screen.getByLabelText('How routing works'));
+    await waitFor(() => expect(screen.getByRole('dialog')).toBeDefined());
+    const overlay = screen.getByRole('dialog').parentElement!;
+    fireEvent.keyDown(overlay, { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  });
+
+  it('does not close help modal when clicking inside the dialog card', async () => {
+    render(() => (
+      <RoutingTabs
+        complexityEnabled={() => true}
+        specificityEnabled={() => false}
+        customEnabled={() => false}
+        pipelineHelp={() => <div>Help</div>}
+      >
+        {{
+          default: <div>Default</div>,
+          complexity: <div>Complexity</div>,
+          specificity: <div>Specificity</div>,
+          custom: <div>Custom</div>,
+        }}
+      </RoutingTabs>
+    ));
+    fireEvent.click(screen.getByLabelText('How routing works'));
+    await waitFor(() => expect(screen.getByRole('dialog')).toBeDefined());
+    fireEvent.click(screen.getByRole('dialog'));
+    expect(screen.getByRole('dialog')).toBeDefined();
   });
 });

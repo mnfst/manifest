@@ -104,6 +104,22 @@ describe("Routing — enabled state (providers active)", () => {
     expect(screen.getByText("Routing")).toBeDefined();
   });
 
+  it("renders Default tab with tier card and exercises its interactions", async () => {
+    render(() => <Routing />);
+    // Default tab is active by default — wait for the card to render
+    await waitFor(() => {
+      expect(screen.getAllByText("Default model").length).toBeGreaterThan(0);
+    });
+    // The "+ Add model" button on the default card triggers onDropdownOpen lambda
+    const addBtns = screen.getAllByText("+ Add model");
+    expect(addBtns.length).toBeGreaterThanOrEqual(1);
+    fireEvent.click(addBtns[0]);
+    // This opens the model picker
+    await waitFor(() => {
+      expect(screen.getByText("Select a model")).toBeDefined();
+    });
+  });
+
   it("renders all four tier labels", async () => {
     render(() => <Routing />);
     await screen.findByRole("tablist");
