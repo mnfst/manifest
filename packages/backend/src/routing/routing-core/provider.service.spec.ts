@@ -27,6 +27,7 @@ function makeMockRepo() {
     save: jest.fn().mockImplementation((entity: unknown) => Promise.resolve(entity)),
     insert: jest.fn().mockResolvedValue(undefined),
     update: jest.fn().mockResolvedValue(undefined),
+    remove: jest.fn().mockResolvedValue(undefined),
   };
 }
 
@@ -280,6 +281,55 @@ describe('ProviderService', () => {
       expect(providerRepo.insert).toHaveBeenCalled();
       expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1');
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+  });
+
+  /* ── retagAuthType ── */
+
+  describe('retagAuthType', () => {
+    it('flips auth_type in place on the existing row without touching tier overrides', async () => {
+      const existing = makeProvider({
+        id: 'p-1',
+        provider: 'custom:abc',
+        auth_type: 'api_key',
+        api_key_encrypted: 'enc',
+      });
+      providerRepo.find.mockResolvedValue([existing]);
+
+      await service.retagAuthType('agent-1', 'custom:abc', 'local');
+
+      expect(existing.auth_type).toBe('local');
+      expect(providerRepo.save).toHaveBeenCalledWith(existing);
+      expect(autoAssign.recalculate).not.toHaveBeenCalled();
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+
+    it('removes a colliding destination row before flipping, protecting the unique index', async () => {
+      const target = makeProvider({
+        id: 'p-target',
+        provider: 'custom:abc',
+        auth_type: 'api_key',
+      });
+      const collision = makeProvider({
+        id: 'p-collision',
+        provider: 'custom:abc',
+        auth_type: 'local',
+      });
+      providerRepo.find.mockResolvedValue([target, collision]);
+
+      await service.retagAuthType('agent-1', 'custom:abc', 'local');
+
+      expect(providerRepo.remove).toHaveBeenCalledWith(collision);
+      expect(target.auth_type).toBe('local');
+    });
+
+    it('is a no-op when no active row matches the source auth_type', async () => {
+      providerRepo.find.mockResolvedValue([]);
+
+      await service.retagAuthType('agent-1', 'custom:abc', 'local');
+
+      expect(providerRepo.save).not.toHaveBeenCalled();
+      expect(routingCache.invalidateAgent).not.toHaveBeenCalled();
     });
   });
 

@@ -173,6 +173,7 @@ export class CustomProviderService {
       throw new NotFoundException('Custom provider not found');
     }
 
+    const previousName = cp.name;
     if (dto.name !== undefined && dto.name !== cp.name) {
       const dup = await this.repo.findOne({
         where: { agent_id: agentId, name: dto.name },
@@ -201,6 +202,14 @@ export class CustomProviderService {
       }));
     }
 
+    // Retag auth_type when the name changes categories (freeform ↔ canonical
+    // local). This path fires even without an apiKey update because renaming
+    // "LM Studio" to "My Home Server" should move the row off the Local tab,
+    // and the reverse should light up the grey-house badge.
+    const nextAuthType = authTypeForCustomProvider(cp.name);
+    const nameCategoryChanged =
+      previousName !== cp.name && authTypeForCustomProvider(previousName) !== nextAuthType;
+
     // Update API key if explicitly provided. Preserve the auth_type
     // derived from the (possibly renamed) display name so toggling between
     // "LM Studio" ↔ a freeform name re-tags the companion user_providers
@@ -211,12 +220,22 @@ export class CustomProviderService {
         userId,
         CustomProviderService.providerKey(id),
         dto.apiKey,
-        authTypeForCustomProvider(cp.name),
+        nextAuthType,
+      );
+    } else if (nameCategoryChanged) {
+      // Rename-only path: flip auth_type in place so the row keeps its
+      // stored api_key_encrypted and tier overrides stay intact. Going
+      // through upsertProvider would insert a second row since the unique
+      // index is keyed on (agent_id, provider, auth_type).
+      await this.providerService.retagAuthType(
+        agentId,
+        CustomProviderService.providerKey(id),
+        nextAuthType,
       );
     }
 
     // Recalculate tiers when models changed (even without API key change)
-    if (dto.models !== undefined && !('apiKey' in dto)) {
+    if (dto.models !== undefined && !('apiKey' in dto) && !nameCategoryChanged) {
       await this.autoAssign.recalculate(agentId);
     }
 

@@ -405,21 +405,21 @@ describe('ProviderKeyService', () => {
       expect(result).toBe('local');
     });
 
-    it('should still return local when a legacy Ollama row is mistagged as api_key', async () => {
-      // Safety net for rows that slipped through the migration or were
-      // created by an old backend: the canonical-local-ids set wins over
-      // the row's literal auth_type.
+    it('trusts the row auth_type — does NOT override api_key → local by provider name alone', async () => {
+      // A row explicitly tagged api_key for 'ollama' (e.g. a user who
+      // hand-edited the DB) should not be silently retagged as local.
+      // Migrations handle the normal backfill; this service just reads.
       providerService.getProviders.mockResolvedValue([
         makeProvider({
           provider: 'ollama',
           auth_type: 'api_key',
-          api_key_encrypted: null,
+          api_key_encrypted: 'enc',
         }),
       ]);
 
       const result = await service.getAuthType('agent-1', 'ollama');
 
-      expect(result).toBe('local');
+      expect(result).toBe('api_key');
     });
   });
 

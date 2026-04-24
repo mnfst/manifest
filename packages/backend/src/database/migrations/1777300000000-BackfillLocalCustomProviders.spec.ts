@@ -40,14 +40,19 @@ describe('BackfillLocalCustomProviders1777300000000', () => {
   });
 
   describe('down', () => {
-    it('moves the re-tagged rows back to api_key', async () => {
+    it('dedupes colliding api_key rows first, then reverses the re-tag', async () => {
       await migration.down(queryRunner as unknown as QueryRunner);
 
       const sqls = queryRunner.query.mock.calls.map((c) => c[0] as string);
-      expect(sqls).toHaveLength(1);
-      expect(sqls[0]).toContain('UPDATE "user_providers"');
-      expect(sqls[0]).toContain(`SET "auth_type" = 'api_key'`);
+      expect(sqls).toHaveLength(2);
+
+      expect(sqls[0]).toContain('DELETE FROM "user_providers"');
       expect(sqls[0]).toContain(`u."auth_type" = 'local'`);
+      expect(sqls[0]).toContain(`v."auth_type" = 'api_key'`);
+
+      expect(sqls[1]).toContain('UPDATE "user_providers"');
+      expect(sqls[1]).toContain(`SET "auth_type" = 'api_key'`);
+      expect(sqls[1]).toContain(`u."auth_type" = 'local'`);
     });
   });
 });

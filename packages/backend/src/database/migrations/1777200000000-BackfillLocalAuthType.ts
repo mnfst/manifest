@@ -36,6 +36,24 @@ export class BackfillLocalAuthType1777200000000 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    // Mirror-image of up(): if an `api_key` row was created after the
+    // backfill ran (e.g. the user reconnected Ollama on an older binary
+    // that doesn't know about 'local'), the reverse UPDATE would collide
+    // with the unique (agent_id, provider, auth_type) index. Drop the
+    // stale 'local' row in that case — the 'api_key' row is authoritative
+    // under the pre-backfill scheme.
+    await queryRunner.query(`
+      DELETE FROM "user_providers" u
+      WHERE u."provider" IN ('ollama', 'lmstudio')
+        AND u."auth_type" = 'local'
+        AND EXISTS (
+          SELECT 1 FROM "user_providers" v
+          WHERE v."agent_id" = u."agent_id"
+            AND v."provider" = u."provider"
+            AND v."auth_type" = 'api_key'
+        )
+    `);
+
     await queryRunner.query(`
       UPDATE "user_providers"
       SET "auth_type" = 'api_key'

@@ -53,6 +53,27 @@ export class BackfillLocalCustomProviders1777300000000 implements MigrationInter
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    // Dedupe before reversing: if an api_key row for the same
+    // (agent_id, custom:<uuid>) materialized after the up() ran, the
+    // reverse UPDATE would collide with the unique index.
+    await queryRunner.query(`
+      DELETE FROM "user_providers" u
+      WHERE u."provider" LIKE 'custom:%'
+        AND u."auth_type" = 'local'
+        AND EXISTS (
+          SELECT 1 FROM "user_providers" v
+          WHERE v."agent_id" = u."agent_id"
+            AND v."provider" = u."provider"
+            AND v."auth_type" = 'api_key'
+        )
+        AND EXISTS (
+          SELECT 1 FROM "custom_providers" cp
+          WHERE ('custom:' || cp.id) = u."provider"
+            AND LOWER(REGEXP_REPLACE(cp.name, '[[:space:]._-]+', '', 'g'))
+                IN ('ollama', 'lmstudio')
+        )
+    `);
+
     await queryRunner.query(`
       UPDATE "user_providers" u
       SET "auth_type" = 'api_key'

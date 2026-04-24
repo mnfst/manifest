@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import type { AuthType } from 'manifest-shared';
-import { CANONICAL_LOCAL_IDS } from 'manifest-shared';
 import { UserProvider } from '../../entities/user-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
@@ -62,9 +61,12 @@ export class ProviderKeyService {
     // Local providers (Ollama, LM Studio) don't store a key — prefer them
     // explicitly before the key-based heuristics below so a local-only
     // record doesn't get overridden by a keyed record for a sibling alias.
-    const localMatch = matches.find(
-      (r) => r.auth_type === 'local' || CANONICAL_LOCAL_IDS.has(r.provider.toLowerCase()),
-    );
+    // We trust the DB row's auth_type here: both migrations and the
+    // insert-time tagging in CustomProviderService cover Ollama and LM
+    // Studio. Matching on CANONICAL_LOCAL_IDS alone would override a
+    // user who explicitly tagged the row as subscription (e.g. Ollama
+    // Cloud re-aliased) or hand-managed api_key, which is surprising.
+    const localMatch = matches.find((r) => r.auth_type === 'local');
     if (localMatch) return 'local';
     // Prefer subscription if both exist and the subscription record has a usable key
     const subMatch = matches.find((r) => r.auth_type === 'subscription' && r.api_key_encrypted);

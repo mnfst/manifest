@@ -250,34 +250,36 @@ const ModelPickerModal: Component<Props> = (props) => {
         <Show when={showTabs()}>
           <div class="provider-modal__tabs-wrapper">
             <div class="panel__tabs" role="tablist">
-              <button
-                role="tab"
-                aria-selected={activeTab() === 'subscription'}
-                class="panel__tab"
-                classList={{ 'panel__tab--active': activeTab() === 'subscription' }}
-                onClick={() => {
-                  setActiveTab('subscription');
-                  setShowFreeOnly(false);
-                }}
-              >
-                <svg
-                  class="provider-modal__tab-icon"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                  style="color: #1cc4bf"
+              <Show when={hasSubscription()}>
+                <button
+                  role="tab"
+                  aria-selected={activeTab() === 'subscription'}
+                  class="panel__tab"
+                  classList={{ 'panel__tab--active': activeTab() === 'subscription' }}
+                  onClick={() => {
+                    setActiveTab('subscription');
+                    setShowFreeOnly(false);
+                  }}
                 >
-                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
-                Subscription
-              </button>
+                  <svg
+                    class="provider-modal__tab-icon"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                    style="color: #1cc4bf"
+                  >
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  Subscription
+                </button>
+              </Show>
               <Show when={hasApiKey()}>
                 <button
                   role="tab"

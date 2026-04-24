@@ -36,7 +36,12 @@ function makeDeps(overrides: {
 
   const upsertProvider = jest.fn().mockResolvedValue({ provider: {} });
   const removeProvider = jest.fn().mockResolvedValue(undefined);
-  const providerService = { upsertProvider, removeProvider } as unknown as ProviderService;
+  const retagAuthType = jest.fn().mockResolvedValue(undefined);
+  const providerService = {
+    upsertProvider,
+    removeProvider,
+    retagAuthType,
+  } as unknown as ProviderService;
 
   const getCustomProviders = jest.fn().mockReturnValue(overrides.cached ?? null);
   const setCustomProviders = jest.fn();
@@ -70,6 +75,7 @@ function makeDeps(overrides: {
     remove,
     upsertProvider,
     removeProvider,
+    retagAuthType,
     getCustomProviders,
     setCustomProviders,
     invalidateAgent,
@@ -308,6 +314,40 @@ describe('CustomProviderService', () => {
       // Edited prices must flow into the shared pricing cache so the next
       // proxied message picks up the new per-token cost.
       expect(reloadPricing).toHaveBeenCalledTimes(1);
+    });
+
+    it('retags auth_type via ProviderService.retagAuthType when a rename crosses the local ↔ api_key boundary', async () => {
+      const existing = { id: 'cp1', agent_id: 'agent-1', name: 'LM Studio' } as CustomProvider;
+      const { svc, retagAuthType, upsertProvider, recalculate } = makeDeps({
+        findOneResults: [existing, null],
+      });
+      await svc.update('agent-1', 'cp1', 'user-1', { name: 'My Home Server' });
+      expect(retagAuthType).toHaveBeenCalledWith('agent-1', 'custom:cp1', 'api_key');
+      // No apiKey in the DTO, so upsertProvider must not fire.
+      expect(upsertProvider).not.toHaveBeenCalled();
+      // retagAuthType owns the cache invalidation; rename should not double-recalculate tiers.
+      expect(recalculate).not.toHaveBeenCalled();
+    });
+
+    it('retags local → api_key when renaming away from a canonical local name (LM Studio → Home Server)', async () => {
+      const existing = { id: 'cp1', agent_id: 'agent-1', name: 'LM Studio' } as CustomProvider;
+      const { svc, retagAuthType } = makeDeps({ findOneResults: [existing, null] });
+      await svc.update('agent-1', 'cp1', 'user-1', { name: 'Home Server' });
+      expect(retagAuthType).toHaveBeenLastCalledWith('agent-1', 'custom:cp1', 'api_key');
+    });
+
+    it('retags api_key → local when renaming into a canonical local name', async () => {
+      const existing = { id: 'cp1', agent_id: 'agent-1', name: 'Home Server' } as CustomProvider;
+      const { svc, retagAuthType } = makeDeps({ findOneResults: [existing, null] });
+      await svc.update('agent-1', 'cp1', 'user-1', { name: 'LM Studio' });
+      expect(retagAuthType).toHaveBeenLastCalledWith('agent-1', 'custom:cp1', 'local');
+    });
+
+    it('does not retag when a rename stays within the same category', async () => {
+      const existing = { id: 'cp1', agent_id: 'agent-1', name: 'Foo' } as CustomProvider;
+      const { svc, retagAuthType } = makeDeps({ findOneResults: [existing, null] });
+      await svc.update('agent-1', 'cp1', 'user-1', { name: 'Bar' });
+      expect(retagAuthType).not.toHaveBeenCalled();
     });
 
     it('delegates tier recalculation to provider upsert when the api key is also updated', async () => {

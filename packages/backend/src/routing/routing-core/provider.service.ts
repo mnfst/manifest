@@ -204,6 +204,33 @@ export class ProviderService {
     this.routingCache.invalidateAgent(agentId);
   }
 
+  /**
+   * Flip `auth_type` on an existing `user_providers` row in-place without
+   * deactivating it or cleaning up tier overrides. Used by custom-provider
+   * renames that cross the local ↔ api_key boundary (LM Studio ↔ freeform
+   * name), where going through removeProvider+upsertProvider would churn
+   * tier assignments for what is visually just a name change.
+   */
+  async retagAuthType(agentId: string, provider: string, nextAuthType: AuthType): Promise<void> {
+    const rows = await this.providerRepo.find({ where: { agent_id: agentId, provider } });
+    const target = rows.find((r) => r.auth_type !== nextAuthType && r.is_active);
+    if (!target) return;
+
+    // Protect the unique (agent_id, provider, auth_type) index: if a row
+    // already exists for the destination auth_type, the UPDATE would fail.
+    // Drop the stale destination row first — the one we're retagging is
+    // authoritative.
+    const collision = rows.find((r) => r.auth_type === nextAuthType);
+    if (collision) {
+      await this.providerRepo.remove(collision);
+    }
+
+    target.auth_type = nextAuthType;
+    target.updated_at = new Date().toISOString();
+    await this.providerRepo.save(target);
+    this.routingCache.invalidateAgent(agentId);
+  }
+
   async removeProvider(
     agentId: string,
     provider: string,

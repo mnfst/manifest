@@ -103,7 +103,7 @@
   color: #ffffff;
 }
 
-[data-theme='dark'] .provider-auth-badge--local {
+.dark .provider-auth-badge--local {
   background: #8a9bb3;
   color: #020817;
 }

@@ -37,15 +37,21 @@ describe('BackfillLocalAuthType1777200000000', () => {
   });
 
   describe('down', () => {
-    it('reverses the re-tag by moving local Ollama/LM Studio rows back to api_key', async () => {
+    it('dedupes colliding local rows first, then reverses the re-tag', async () => {
       await migration.down(queryRunner as unknown as QueryRunner);
 
       const sqls = queryRunner.query.mock.calls.map((c) => c[0] as string);
-      expect(sqls).toHaveLength(1);
-      expect(sqls[0]).toContain('UPDATE "user_providers"');
-      expect(sqls[0]).toContain(`SET "auth_type" = 'api_key'`);
-      expect(sqls[0]).toContain(`"provider" IN ('ollama', 'lmstudio')`);
-      expect(sqls[0]).toContain(`"auth_type" = 'local'`);
+      expect(sqls).toHaveLength(2);
+
+      // Dedupe mirrors up() but swaps the auth_type directions
+      expect(sqls[0]).toContain('DELETE FROM "user_providers"');
+      expect(sqls[0]).toContain(`u."auth_type" = 'local'`);
+      expect(sqls[0]).toContain(`v."auth_type" = 'api_key'`);
+
+      expect(sqls[1]).toContain('UPDATE "user_providers"');
+      expect(sqls[1]).toContain(`SET "auth_type" = 'api_key'`);
+      expect(sqls[1]).toContain(`"provider" IN ('ollama', 'lmstudio')`);
+      expect(sqls[1]).toContain(`"auth_type" = 'local'`);
     });
   });
 });
