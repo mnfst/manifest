@@ -24,6 +24,22 @@ export function extractUsageFromSse(sseText: string): StreamUsage | null {
           cache_creation_tokens: obj.usage.cache_creation_tokens,
         };
       }
+      if (obj.usage && typeof obj.usage.input_tokens === 'number') {
+        return {
+          prompt_tokens: obj.usage.input_tokens,
+          completion_tokens: obj.usage.output_tokens ?? 0,
+          cache_read_tokens: obj.usage.input_tokens_details?.cached_tokens,
+          cache_creation_tokens: 0,
+        };
+      }
+      if (obj.response?.usage && typeof obj.response.usage.input_tokens === 'number') {
+        return {
+          prompt_tokens: obj.response.usage.input_tokens,
+          completion_tokens: obj.response.usage.output_tokens ?? 0,
+          cache_read_tokens: obj.response.usage.input_tokens_details?.cached_tokens,
+          cache_creation_tokens: 0,
+        };
+      }
     } catch {
       /* ignore parse errors */
     }
@@ -135,6 +151,23 @@ export async function pipeStream(
                   cache_read_tokens: obj.usage.cache_read_tokens,
                   cache_creation_tokens: obj.usage.cache_creation_tokens,
                 };
+              } else if (obj.usage && typeof obj.usage.input_tokens === 'number') {
+                capturedUsage = {
+                  prompt_tokens: obj.usage.input_tokens,
+                  completion_tokens: obj.usage.output_tokens ?? 0,
+                  cache_read_tokens: obj.usage.input_tokens_details?.cached_tokens,
+                  cache_creation_tokens: 0,
+                };
+              } else if (
+                obj.response?.usage &&
+                typeof obj.response.usage.input_tokens === 'number'
+              ) {
+                capturedUsage = {
+                  prompt_tokens: obj.response.usage.input_tokens,
+                  completion_tokens: obj.response.usage.output_tokens ?? 0,
+                  cache_read_tokens: obj.response.usage.input_tokens_details?.cached_tokens,
+                  cache_creation_tokens: 0,
+                };
               }
             } catch {
               /* ignore non-JSON events */
@@ -162,6 +195,20 @@ export async function pipeStream(
               completion_tokens: obj.usage.completion_tokens ?? 0,
               cache_read_tokens: obj.usage.cache_read_tokens,
               cache_creation_tokens: obj.usage.cache_creation_tokens,
+            };
+          } else if (obj.usage && typeof obj.usage.input_tokens === 'number') {
+            capturedUsage = {
+              prompt_tokens: obj.usage.input_tokens,
+              completion_tokens: obj.usage.output_tokens ?? 0,
+              cache_read_tokens: obj.usage.input_tokens_details?.cached_tokens,
+              cache_creation_tokens: 0,
+            };
+          } else if (obj.response?.usage && typeof obj.response.usage.input_tokens === 'number') {
+            capturedUsage = {
+              prompt_tokens: obj.response.usage.input_tokens,
+              completion_tokens: obj.response.usage.output_tokens ?? 0,
+              cache_read_tokens: obj.response.usage.input_tokens_details?.cached_tokens,
+              cache_creation_tokens: 0,
             };
           }
         } catch {

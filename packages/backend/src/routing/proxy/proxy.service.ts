@@ -18,11 +18,17 @@ import {
   normalizeProviderModel,
   resolveApiKey,
 } from './proxy-fallback.service';
-import { ProxyRequestOptions, SignatureLookup, ThinkingBlockLookup } from './proxy-types';
+import {
+  ProxyApiMode,
+  ProxyRequestOptions,
+  SignatureLookup,
+  ThinkingBlockLookup,
+} from './proxy-types';
 import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
 import { buildFriendlyResponse, getDashboardUrl } from './proxy-friendly-response';
 import type { AuthType } from 'manifest-shared';
+import { toChatCompletionsRequest } from './responses-adapter';
 
 type ResolvedRouting = Awaited<ReturnType<ResolveService['resolve']>>;
 
@@ -97,16 +103,19 @@ export class ProxyService {
       specificityOverride,
       headers,
     } = opts;
-    this.validatePayload(body);
+    const apiMode = opts.apiMode ?? 'chat_completions';
+    const chatBody = apiMode === 'responses' ? toChatCompletionsRequest(body) : undefined;
+    const routingBody = chatBody ?? body;
+    this.validatePayload(routingBody);
 
     const limitMessage = await this.enforceLimits(tenantId, agentName);
     if (limitMessage) {
-      return buildFriendlyResponse(limitMessage, body.stream === true, 'limit_exceeded');
+      return buildFriendlyResponse(limitMessage, routingBody.stream === true, 'limit_exceeded');
     }
 
     const resolved = await this.resolveRouting(
       agentId,
-      body,
+      routingBody,
       sessionKey,
       specificityOverride,
       headers,
@@ -146,10 +155,12 @@ export class ProxyService {
       apiKey: credentials.apiKey,
       model: primaryModel,
       body,
+      chatBody,
       stream,
       sessionKey,
       signal,
       authType: resolved.auth_type,
+      apiMode,
       resourceUrl: credentials.resourceUrl,
       providerRegion: credentials.providerRegion,
       signatureLookup,
@@ -164,11 +175,13 @@ export class ProxyService {
         primaryModel,
         forward,
         body,
+        chatBody,
         stream,
         sessionKey,
         signal,
         signatureLookup,
         thinkingLookup,
+        apiMode,
       });
       if (fallbackResult) return fallbackResult;
     }
@@ -265,14 +278,27 @@ export class ProxyService {
     primaryModel: string;
     forward: ForwardResult;
     body: ProxyRequestOptions['body'];
+    chatBody?: ProxyRequestOptions['body'];
     stream: boolean;
     sessionKey: string;
     signal?: AbortSignal;
     signatureLookup: SignatureLookup;
     thinkingLookup: ThinkingBlockLookup;
+    apiMode: ProxyApiMode;
   }): Promise<ProxyResult | null> {
-    const { agentId, userId, resolved, primaryModel, forward, body, stream, sessionKey, signal } =
-      args;
+    const {
+      agentId,
+      userId,
+      resolved,
+      primaryModel,
+      forward,
+      body,
+      chatBody,
+      stream,
+      sessionKey,
+      signal,
+      apiMode,
+    } = args;
     const tiers = await this.tierService.getTiers(agentId);
     const assignment = tiers.find((t) => t.tier === resolved.tier);
     const fallbackModels = resolved.fallback_models ?? assignment?.fallback_models;
@@ -293,6 +319,8 @@ export class ProxyService {
       resolved.auth_type,
       args.signatureLookup,
       args.thinkingLookup,
+      apiMode,
+      chatBody,
     );
 
     this.recordTierIfScoring(sessionKey, resolved.tier);

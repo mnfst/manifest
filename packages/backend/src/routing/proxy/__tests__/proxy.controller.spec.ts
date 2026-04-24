@@ -181,6 +181,89 @@ describe('ProxyController', () => {
     expect(headers['X-Manifest-Reason']).toBe('scored');
   });
 
+  it('should expose /v1/responses and convert chat completions output to Responses format', async () => {
+    const responseBody = {
+      created: 1234,
+      model: 'gpt-4o',
+      choices: [{ message: { content: 'hello' } }],
+      usage: { prompt_tokens: 4, completion_tokens: 2, total_tokens: 6 },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: {
+        response: mockProviderResp,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      },
+      meta: {
+        tier: 'simple',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({ input: 'hi' });
+    const { res } = mockResponse();
+
+    await controller.responses(req as never, res as never);
+
+    expect(proxyService.proxyRequest).toHaveBeenCalledWith(
+      expect.objectContaining({ apiMode: 'responses', body: { input: 'hi' } }),
+    );
+    const json = (res.json as jest.Mock).mock.calls[0][0];
+    expect(json.object).toBe('response');
+    expect(json.output[0].content[0]).toEqual({
+      type: 'output_text',
+      text: 'hello',
+      annotations: [],
+    });
+    expect(json.usage.input_tokens).toBe(4);
+  });
+
+  it('should pass through native Responses JSON bodies', async () => {
+    const responseBody = {
+      id: 'resp_1',
+      object: 'response',
+      output: [{ type: 'message' }],
+      usage: { input_tokens: 5, output_tokens: 3, total_tokens: 8 },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: {
+        response: mockProviderResp,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+        isResponses: true,
+      },
+      meta: {
+        tier: 'simple',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({ input: 'hi' });
+    const { res } = mockResponse();
+
+    await controller.responses(req as never, res as never);
+
+    expect(res.json).toHaveBeenCalledWith(responseBody);
+  });
+
   it('should convert Google response for non-streaming', async () => {
     const googleBody = { candidates: [{ content: { parts: [{ text: 'hi' }] } }] };
     const convertedBody = { choices: [{ message: { content: 'hi' } }] };
