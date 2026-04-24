@@ -1,7 +1,7 @@
-import { AddCustomProviderApiKind1777100000000 } from './1777100000000-AddCustomProviderApiKind';
+import { AddCustomProviderApiKind1777200000000 } from './1777200000000-AddCustomProviderApiKind';
 
-describe('AddCustomProviderApiKind1777100000000', () => {
-  const migration = new AddCustomProviderApiKind1777100000000();
+describe('AddCustomProviderApiKind1777200000000', () => {
+  const migration = new AddCustomProviderApiKind1777200000000();
 
   it('adds api_kind column to custom_providers', async () => {
     const addColumn = jest.fn();

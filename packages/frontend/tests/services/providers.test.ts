@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { PROVIDERS, STAGES, getModelLabel, getProvider } from "../../src/services/providers";
+import { PROVIDERS, STAGES, getModelLabel, getProvider, buildProviderDef } from "../../src/services/providers";
 import { validateApiKey, validateSubscriptionKey } from "../../src/services/provider-utils";
 import { ROUTING_PROVIDER_API_KEY_URLS, EMAIL_PROVIDER_API_KEY_URLS, SUBSCRIPTION_PROVIDER_KEY_URLS, getRoutingProviderApiKeyUrl, getEmailProviderApiKeyUrl, getSubscriptionProviderKeyUrl } from "../../src/services/provider-api-key-urls";
 
@@ -473,5 +473,23 @@ describe("getEmailProviderApiKeyUrl", () => {
 
   it("returns undefined for an unknown provider", () => {
     expect(getEmailProviderApiKeyUrl("unknown")).toBeUndefined();
+  });
+});
+
+/* ── buildProviderDef error path ──────────────── */
+
+describe("buildProviderDef", () => {
+  it("throws when shared provider has no UI overlay", () => {
+    const fakeShared = {
+      id: "nonexistent-provider",
+      displayName: "Fake",
+      color: "#000",
+      keyPrefix: "",
+      minKeyLength: 0,
+      keyPlaceholder: "",
+    } as any;
+    expect(() => buildProviderDef(fakeShared)).toThrow(
+      'Missing UI overlay for shared provider "nonexistent-provider"',
+    );
   });
 });

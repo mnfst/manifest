@@ -6,9 +6,11 @@ import { Tenant } from '../entities/tenant.entity';
 import { LlmCall } from '../entities/llm-call.entity';
 import { ToolExecution } from '../entities/tool-execution.entity';
 import { AgentLog } from '../entities/agent-log.entity';
+import { CustomProvider } from '../entities/custom-provider.entity';
 import { OtlpModule } from '../otlp/otlp.module';
 import { RoutingCoreModule } from '../routing/routing-core/routing-core.module';
 import { AggregationService } from './services/aggregation.service';
+import { AgentDuplicationService } from './services/agent-duplication.service';
 import { AgentLifecycleService } from './services/agent-lifecycle.service';
 import { TimeseriesQueriesService } from './services/timeseries-queries.service';
 import { MessagesQueryService } from './services/messages-query.service';
@@ -25,7 +27,15 @@ import { AgentAnalyticsController } from './controllers/agent-analytics.controll
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AgentMessage, Agent, Tenant, LlmCall, ToolExecution, AgentLog]),
+    TypeOrmModule.forFeature([
+      AgentMessage,
+      Agent,
+      Tenant,
+      LlmCall,
+      ToolExecution,
+      AgentLog,
+      CustomProvider,
+    ]),
     OtlpModule,
     RoutingCoreModule,
   ],
@@ -39,6 +49,7 @@ import { AgentAnalyticsController } from './controllers/agent-analytics.controll
   ],
   providers: [
     AggregationService,
+    AgentDuplicationService,
     AgentLifecycleService,
     TimeseriesQueriesService,
     MessagesQueryService,

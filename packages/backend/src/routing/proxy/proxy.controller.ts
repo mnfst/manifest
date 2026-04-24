@@ -87,6 +87,7 @@ export class ProxyController {
         agentName: req.ingestionContext.agentName,
         signal: clientAbort.signal,
         specificityOverride,
+        headers: req.headers,
       });
 
       this.trackFirstProxyRequest(userId);

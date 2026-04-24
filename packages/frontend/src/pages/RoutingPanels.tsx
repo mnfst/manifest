@@ -87,11 +87,11 @@ export const EnableRoutingCard: Component<EnableRoutingCardProps> = (props) => (
     </div>
     <h2 class="routing-enable-card__title">Smart model routing</h2>
     <p class="routing-enable-card__desc">
-      Send simple tasks to cheap models, complex ones to better models. Connect your LLM providers
-      to get started.
+      Route each request to the right model based on complexity, task type, or custom rules. Connect
+      your LLM providers to get started.
     </p>
     <button class="btn btn--primary" onClick={() => props.onEnable()}>
-      Enable Routing
+      Enable routing
     </button>
   </div>
 );
@@ -178,7 +178,7 @@ export const RoutingFooter: Component<RoutingFooterProps> = (props) => (
       onClick={() => props.onDisable()}
       disabled={props.disabling()}
     >
-      {props.disabling() ? <span class="spinner" /> : 'Disable Routing'}
+      {props.disabling() ? <span class="spinner" /> : 'Disable routing'}
     </button>
     <Show when={props.hasOverrides()}>
       <button

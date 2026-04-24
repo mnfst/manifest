@@ -45,6 +45,7 @@
     --input: 36 25% 88%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
+    --radius-sm: 0.375rem;
 
     /* Chart palette */
     --chart-1: 178 75% 44%;
@@ -204,7 +205,7 @@ h6 {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-bottom: var(--gap-xl);
+  margin-bottom: var(--gap-lg);
   padding-bottom: var(--gap-lg);
   border-bottom: 1px solid hsl(var(--border));
 }

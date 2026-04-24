@@ -9,8 +9,8 @@ import { ForwardResult } from './provider-client';
 import { SessionMomentumService } from './session-momentum.service';
 import { LimitCheckService } from '../../notifications/services/limit-check.service';
 import { shouldTriggerFallback } from './fallback-status-codes';
-import { Tier, ScorerMessage } from '../../scoring/types';
-import type { SpecificityCategory } from 'manifest-shared';
+import { Tier, TIERS, ScorerMessage } from '../../scoring/types';
+import type { SpecificityCategory, TierSlot } from 'manifest-shared';
 import { SPECIFICITY_CATEGORIES } from 'manifest-shared';
 import {
   ProxyFallbackService,
@@ -38,13 +38,16 @@ const SCORING_RECENT_MESSAGES = 10;
 const MAX_MESSAGES_PER_REQUEST = 1000;
 
 export interface RoutingMeta {
-  tier: Tier;
+  tier: TierSlot;
   model: string;
   provider: string;
   confidence: number;
   reason: string;
   auth_type?: string;
   specificity_category?: string;
+  header_tier_id?: string;
+  header_tier_name?: string;
+  header_tier_color?: string;
   fallbackFromModel?: string;
   fallbackIndex?: number;
   primaryErrorStatus?: number;
@@ -83,8 +86,17 @@ export class ProxyService {
   ) {}
 
   async proxyRequest(opts: ProxyRequestOptions): Promise<ProxyResult> {
-    const { agentId, userId, body, sessionKey, tenantId, agentName, signal, specificityOverride } =
-      opts;
+    const {
+      agentId,
+      userId,
+      body,
+      sessionKey,
+      tenantId,
+      agentName,
+      signal,
+      specificityOverride,
+      headers,
+    } = opts;
     this.validatePayload(body);
 
     const limitMessage = await this.enforceLimits(tenantId, agentName);
@@ -92,7 +104,13 @@ export class ProxyService {
       return buildFriendlyResponse(limitMessage, body.stream === true, 'limit_exceeded');
     }
 
-    const resolved = await this.resolveRouting(agentId, body, sessionKey, specificityOverride);
+    const resolved = await this.resolveRouting(
+      agentId,
+      body,
+      sessionKey,
+      specificityOverride,
+      headers,
+    );
     if (!resolved.model || !resolved.provider) {
       this.logger.warn(
         `No model available for agent=${agentId}: ` +
@@ -155,12 +173,18 @@ export class ProxyService {
       if (fallbackResult) return fallbackResult;
     }
 
-    this.momentum.recordTier(sessionKey, resolved.tier as Tier);
+    this.recordTierIfScoring(sessionKey, resolved.tier);
     this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
     return {
       forward,
       meta: this.buildBaseMeta(resolved, primaryModel),
     };
+  }
+
+  private recordTierIfScoring(sessionKey: string, tier: TierSlot): void {
+    if ((TIERS as readonly string[]).includes(tier)) {
+      this.momentum.recordTier(sessionKey, tier as Tier);
+    }
   }
 
   private validatePayload(body: ProxyRequestOptions['body']): void {
@@ -181,6 +205,7 @@ export class ProxyService {
     body: ProxyRequestOptions['body'],
     sessionKey: string,
     specificityOverride: ProxyRequestOptions['specificityOverride'],
+    headers: ProxyRequestOptions['headers'],
   ) {
     const messages = body.messages as ScorerMessage[];
     const scoringMessages = this.filterScoringMessages(messages);
@@ -200,6 +225,7 @@ export class ProxyService {
           recentTiers,
           specificityOverride,
           recentCategories,
+          headers,
         );
   }
 
@@ -269,7 +295,7 @@ export class ProxyService {
       args.thinkingLookup,
     );
 
-    this.momentum.recordTier(sessionKey, resolved.tier as Tier);
+    this.recordTierIfScoring(sessionKey, resolved.tier);
     this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
 
     if (success) {
@@ -315,19 +341,25 @@ export class ProxyService {
       reason: string;
       auth_type?: string;
       specificity_category?: string;
+      header_tier_id?: string;
+      header_tier_name?: string;
+      header_tier_color?: string;
       provider?: string | null;
     },
     model: string,
     overrides: Partial<RoutingMeta> = {},
   ): RoutingMeta {
     return {
-      tier: resolved.tier as Tier,
+      tier: resolved.tier as TierSlot,
       model,
       provider: overrides.provider ?? resolved.provider ?? '',
       confidence: resolved.confidence,
       reason: resolved.reason,
       auth_type: resolved.auth_type,
       specificity_category: resolved.specificity_category,
+      header_tier_id: resolved.header_tier_id,
+      header_tier_name: resolved.header_tier_name,
+      header_tier_color: resolved.header_tier_color,
       ...overrides,
     };
   }

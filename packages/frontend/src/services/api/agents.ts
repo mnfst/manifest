@@ -58,6 +58,36 @@ export interface CreateAgentParams {
   agent_platform?: string;
 }
 
+export interface DuplicateAgentPreview {
+  copied: {
+    providers: number;
+    customProviders: number;
+    tierAssignments: number;
+    specificityAssignments: number;
+  };
+  suggested_name: string;
+}
+
+export function getDuplicatePreview(sourceName: string): Promise<DuplicateAgentPreview> {
+  return fetchJson<DuplicateAgentPreview>(
+    `/agents/${encodeURIComponent(sourceName)}/duplicate-preview`,
+  ) as Promise<DuplicateAgentPreview>;
+}
+
+export interface DuplicateAgentResult {
+  agent: { id: string; name: string; display_name: string };
+  apiKey: string;
+  copied: DuplicateAgentPreview['copied'];
+}
+
+export function duplicateAgent(sourceName: string, name: string) {
+  return fetchMutate<DuplicateAgentResult>(`/agents/${encodeURIComponent(sourceName)}/duplicate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+}
+
 export function createAgent(params: CreateAgentParams) {
   return fetchMutate<{
     agent: {

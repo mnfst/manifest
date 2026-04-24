@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
 
-export class AddCustomProviderApiKind1777100000000 implements MigrationInterface {
+export class AddCustomProviderApiKind1777200000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.addColumn(
       'custom_providers',

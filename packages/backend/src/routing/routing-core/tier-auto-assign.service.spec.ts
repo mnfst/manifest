@@ -213,7 +213,12 @@ describe('TierAutoAssignService', () => {
 
       expect(insert).toHaveBeenCalledTimes(1);
       const inserted = insert.mock.calls[0][0] as Record<string, unknown>[];
-      expect(inserted.map((r) => r.tier).sort()).toEqual(['complex', 'reasoning', 'standard']);
+      expect(inserted.map((r) => r.tier).sort()).toEqual([
+        'complex',
+        'default',
+        'reasoning',
+        'standard',
+      ]);
       for (const row of inserted) {
         expect(row.agent_id).toBe('agent-1');
         // Every tier should have picked something (non-null).

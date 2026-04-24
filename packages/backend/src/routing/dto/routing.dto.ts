@@ -4,12 +4,13 @@ import {
   IsNotEmpty,
   IsOptional,
   IsArray,
+  IsBoolean,
   ArrayMaxSize,
   Matches,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 
-import { TIERS, AUTH_TYPES } from 'manifest-shared';
+import { TIER_SLOTS, AUTH_TYPES } from 'manifest-shared';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
 
 const KNOWN_PROVIDER_IDS: readonly string[] = Array.from(PROVIDER_BY_ID_OR_ALIAS.keys());
@@ -22,8 +23,13 @@ export class AgentNameParamDto {
 }
 
 export class TierParamDto {
-  @IsIn(TIERS)
+  @IsIn(TIER_SLOTS)
   tier!: string;
+}
+
+export class ToggleComplexityDto {
+  @IsBoolean()
+  enabled!: boolean;
 }
 
 export class ProviderParamDto {

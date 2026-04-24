@@ -107,16 +107,33 @@ export class AgentLifecycleService {
         .where('id = :id', { id: agent.id })
         .execute();
 
-      const tables = ['agent_messages', 'notification_rules', 'notification_logs'];
+      // Scope all denormalised agent_name columns by tenant_id so we don't
+      // rewrite rows belonging to other tenants that happen to share the slug.
+      const tenantScoped = ['agent_messages', 'notification_rules'] as const;
       await Promise.all(
-        tables.map((table) =>
+        tenantScoped.map((table) =>
           manager
             .createQueryBuilder()
             .update(table)
             .set({ agent_name: newName })
-            .where('agent_name = :currentName', { currentName })
+            .where('tenant_id = :tenantId AND agent_name = :currentName', {
+              tenantId: agent.tenant_id,
+              currentName,
+            })
             .execute(),
         ),
+      );
+
+      // notification_logs has no tenant_id; scope by rule_id of rules that
+      // belong to this tenant. notification_rules were already renamed above,
+      // so we still match the target rules via tenant_id + the NEW name.
+      await manager.query(
+        `UPDATE notification_logs SET agent_name = $1
+         WHERE rule_id IN (
+           SELECT id FROM notification_rules
+           WHERE tenant_id = $2 AND agent_name = $1
+         )`,
+        [newName, agent.tenant_id],
       );
     });
   }

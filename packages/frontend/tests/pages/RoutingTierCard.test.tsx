@@ -245,7 +245,7 @@ describe('RoutingTierCard', () => {
   it('reset button appears in header when hasCustomizations (override set)', () => {
     // baseTier has override_model set, so hasCustomizations should be true
     const { container } = render(() => <RoutingTierCard {...baseProps} />);
-    const resetBtn = container.querySelector('.routing-card__header-reset');
+    const resetBtn = container.querySelector('.routing-card__header-action');
     expect(resetBtn).not.toBeNull();
     expect(resetBtn!.textContent).toContain('Reset');
   });
@@ -261,7 +261,7 @@ describe('RoutingTierCard', () => {
     const { container } = render(() => (
       <RoutingTierCard {...baseProps} tier={() => autoTier as any} />
     ));
-    const resetBtn = container.querySelector('.routing-card__header-reset');
+    const resetBtn = container.querySelector('.routing-card__header-action');
     expect(resetBtn).toBeNull();
   });
 
