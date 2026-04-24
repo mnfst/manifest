@@ -304,7 +304,7 @@ const Overview: Component = () => {
                     })
                   }
                 >
-                  Enable routing
+                  Connect provider
                 </button>
                 <div class="empty-state__img-wrapper">
                   <img

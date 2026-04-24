@@ -76,7 +76,6 @@ function makeProps(
   return {
     agentName: () => 'test-agent',
     tier: () => undefined,
-    complexityEnabled: () => false,
     models: () => [],
     customProviders: () => [],
     activeProviders: () => [],
@@ -105,32 +104,18 @@ describe('RoutingDefaultTierSection', () => {
     expect(matches.some((el) => el.classList.contains('routing-section__title'))).toBe(true);
   });
 
-  it('shows the "All requests" subtitle when complexity is off', () => {
-    render(() => <RoutingDefaultTierSection {...makeProps({ complexityEnabled: () => false })} />);
-    expect(screen.getByText('All requests are routed to this model, or to the fallback models if it fails.')).toBeDefined();
-  });
-
-  it('shows the "Safety net" subtitle when complexity is on', () => {
-    render(() =>
-      <RoutingDefaultTierSection {...makeProps({ complexityEnabled: () => true })} />,
-    );
+  it('always describes the Default tier as a safety net (complexity routing is always on)', () => {
+    render(() => <RoutingDefaultTierSection {...makeProps()} />);
     expect(
-      screen.getByText('Acts as a safety net and handles requests that complexity routing can\u2019t resolve'),
+      screen.getByText(
+        'Acts as a safety net and handles requests that complexity routing can\u2019t resolve',
+      ),
     ).toBeDefined();
   });
 
-  it('applies dimmed class when complexity is on', () => {
-    const { container } = render(() =>
-      <RoutingDefaultTierSection {...makeProps({ complexityEnabled: () => true })} />,
-    );
+  it('always applies the dimmed class (complexity routing is always on)', () => {
+    const { container } = render(() => <RoutingDefaultTierSection {...makeProps()} />);
     expect(container.querySelector('.routing-section--dimmed')).not.toBeNull();
-  });
-
-  it('does not apply dimmed class when complexity is off', () => {
-    const { container } = render(() =>
-      <RoutingDefaultTierSection {...makeProps({ complexityEnabled: () => false })} />,
-    );
-    expect(container.querySelector('.routing-section--dimmed')).toBeNull();
   });
 
   it('renders a single default tier card', () => {
@@ -140,9 +125,10 @@ describe('RoutingDefaultTierSection', () => {
 
   it('skips subtitle while tiers are loading', () => {
     render(() => <RoutingDefaultTierSection {...makeProps({ tiersLoading: true })} />);
-    expect(screen.queryByText('All requests are routed to this model, or to the fallback models if it fails.')).toBeNull();
     expect(
-      screen.queryByText('Acts as a safety net and handles requests that complexity routing can\u2019t resolve'),
+      screen.queryByText(
+        'Acts as a safety net and handles requests that complexity routing can\u2019t resolve',
+      ),
     ).toBeNull();
   });
 

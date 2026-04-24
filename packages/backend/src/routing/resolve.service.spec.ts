@@ -25,7 +25,6 @@ describe('ResolveService', () => {
         { tier: 'reasoning', override_model: null, auto_assigned_model: 'claude-opus-4-6' },
         { tier: 'default', override_model: null, auto_assigned_model: 'gpt-4o' },
       ]),
-      isComplexityEnabled: jest.fn().mockResolvedValue(true),
     };
     mockProviderKeyService = {
       getEffectiveModel: jest.fn(),

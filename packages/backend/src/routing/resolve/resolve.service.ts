@@ -64,14 +64,6 @@ export class ResolveService {
     );
     if (specificityResult) return specificityResult;
 
-    // Complexity routing is opt-in. When the agent has it disabled, every
-    // request (that didn't match specificity) routes through the 'default'
-    // tier — one model + fallbacks, no scoring.
-    const complexityEnabled = await this.tierService.isComplexityEnabled(agentId);
-    if (!complexityEnabled) {
-      return this.resolveForTier(agentId, 'default', 'default');
-    }
-
     const input: ScorerInput = { messages, tools, tool_choice: toolChoice, max_tokens: maxTokens };
     const momentum: MomentumInput | undefined =
       recentTiers && recentTiers.length > 0 ? { recentTiers } : undefined;

@@ -78,6 +78,7 @@ import { AddComplexityRoutingFlag1777100000000 } from './migrations/177710000000
 import { AddHeaderTierEnabled1777100000000 } from './migrations/1777100000000-AddHeaderTierEnabled';
 import { BackfillLocalAuthType1777200000000 } from './migrations/1777200000000-BackfillLocalAuthType';
 import { BackfillLocalCustomProviders1777300000000 } from './migrations/1777300000000-BackfillLocalCustomProviders';
+import { DropComplexityRoutingFlag1780000000000 } from './migrations/1780000000000-DropComplexityRoutingFlag';
 
 const entities = [
   AgentMessage,
@@ -157,6 +158,7 @@ const migrations = [
   AddHeaderTierEnabled1777100000000,
   BackfillLocalAuthType1777200000000,
   BackfillLocalCustomProviders1777300000000,
+  DropComplexityRoutingFlag1780000000000,
 ];
 
 @Module({

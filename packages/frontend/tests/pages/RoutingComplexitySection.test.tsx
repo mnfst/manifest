@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@solidjs/testing-library';
+import { render, screen } from '@solidjs/testing-library';
 
 vi.mock('../../src/services/providers.js', () => ({
   STAGES: [
@@ -8,15 +8,6 @@ vi.mock('../../src/services/providers.js', () => ({
     { id: 'complex', step: 3, label: 'Complex', desc: 'Complex tasks.' },
     { id: 'reasoning', step: 4, label: 'Reasoning', desc: 'Reasoning tasks.' },
   ],
-}));
-
-const mockToggleComplexity = vi.fn();
-vi.mock('../../src/services/api.js', () => ({
-  toggleComplexity: (...args: unknown[]) => mockToggleComplexity(...args),
-}));
-
-vi.mock('../../src/services/toast-store.js', () => ({
-  toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn() },
 }));
 
 vi.mock('../../src/pages/RoutingTierCard.js', () => ({
@@ -78,15 +69,12 @@ vi.mock('../../src/pages/RoutingTierCard.js', () => ({
 
 import RoutingComplexitySection from '../../src/pages/RoutingComplexitySection';
 import type { RoutingComplexitySectionProps } from '../../src/pages/RoutingComplexitySection';
-import { toast } from '../../src/services/toast-store.js';
 
 function makeProps(
   overrides: Partial<RoutingComplexitySectionProps> = {},
 ): RoutingComplexitySectionProps {
   return {
     agentName: () => 'test-agent',
-    enabled: () => false,
-    onEnabledChange: vi.fn(),
     tiers: () => [],
     models: () => [],
     customProviders: () => [],
@@ -111,31 +99,41 @@ function makeProps(
 describe('RoutingComplexitySection', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockToggleComplexity.mockResolvedValue({ ok: true, enabled: true });
   });
 
-  it('renders the section title + subtitle', () => {
+  it('renders the section title + subtitle in standalone mode', () => {
     render(() => <RoutingComplexitySection {...makeProps()} />);
     expect(screen.getByText('Complexity routing')).toBeDefined();
     expect(
-      screen.getByText('Analyzes the complexity of each request on the fly and routes it to the matching tier. Replaces default routing.'),
+      screen.getByText(
+        'Analyzes the complexity of each request on the fly and routes it to the matching tier.',
+      ),
     ).toBeDefined();
   });
 
-  it('renders the empty explainer panel when disabled', () => {
-    render(() => <RoutingComplexitySection {...makeProps()} />);
-    expect(screen.getByText('Complexity routing is off')).toBeDefined();
-    expect(screen.getAllByText('Enable complexity routing').length).toBeGreaterThanOrEqual(1);
-    expect(screen.queryByTestId('tier-card-simple')).toBeNull();
+  it('renders the subtitle but no title in embedded mode', () => {
+    render(() => <RoutingComplexitySection {...makeProps({ embedded: true })} />);
+    expect(screen.queryByText('Complexity routing')).toBeNull();
+    expect(
+      screen.getByText(
+        'Analyzes the complexity of each request on the fly and routes it to the matching tier.',
+      ),
+    ).toBeDefined();
   });
 
-  it('renders 4 tier cards when enabled', () => {
-    render(() => <RoutingComplexitySection {...makeProps({ enabled: () => true })} />);
+  it('always renders the four tier cards (complexity routing is always on)', () => {
+    render(() => <RoutingComplexitySection {...makeProps()} />);
     expect(screen.getByTestId('tier-card-simple')).toBeDefined();
     expect(screen.getByTestId('tier-card-standard')).toBeDefined();
     expect(screen.getByTestId('tier-card-complex')).toBeDefined();
     expect(screen.getByTestId('tier-card-reasoning')).toBeDefined();
-    expect(screen.queryByText('Complexity routing is off')).toBeNull();
+  });
+
+  it('does not render any enable/disable toggle', () => {
+    render(() => <RoutingComplexitySection {...makeProps()} />);
+    expect(screen.queryByText(/enable complexity routing/i)).toBeNull();
+    expect(screen.queryByText(/disable complexity routing/i)).toBeNull();
+    expect(screen.queryByText(/complexity routing is off/i)).toBeNull();
   });
 
   it('forwards each tier-card handler to the parent', () => {
@@ -146,14 +144,7 @@ describe('RoutingComplexitySection', () => {
     const onAddFallback = vi.fn();
     render(() => (
       <RoutingComplexitySection
-        {...makeProps({
-          enabled: () => true,
-          onDropdownOpen,
-          onOverride,
-          onReset,
-          onFallbackUpdate,
-          onAddFallback,
-        })}
+        {...makeProps({ onDropdownOpen, onOverride, onReset, onFallbackUpdate, onAddFallback })}
       />
     ));
     (screen.getByTestId('dropdown-simple') as HTMLButtonElement).click();
@@ -166,165 +157,5 @@ describe('RoutingComplexitySection', () => {
     expect(onReset).toHaveBeenCalledWith('simple');
     expect(onFallbackUpdate).toHaveBeenCalledWith('simple', ['m1']);
     expect(onAddFallback).toHaveBeenCalledWith('simple');
-  });
-
-  it('clicking the CTA turns complexity on', async () => {
-    const onEnabledChange = vi.fn();
-    render(() => <RoutingComplexitySection {...makeProps({ onEnabledChange })} />);
-    fireEvent.click(screen.getAllByText('Enable complexity routing')[0]);
-    await waitFor(() => {
-      expect(mockToggleComplexity).toHaveBeenCalledWith('test-agent', true);
-      expect(onEnabledChange).toHaveBeenCalledWith(true);
-      expect(toast.success).toHaveBeenCalledWith('Complexity routing on');
-    });
-  });
-
-  it('shows an error toast when the toggle API fails', async () => {
-    mockToggleComplexity.mockRejectedValueOnce(new Error('boom'));
-    render(() => <RoutingComplexitySection {...makeProps()} />);
-    fireEvent.click(screen.getAllByText('Enable complexity routing')[0]);
-    await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Failed to update complexity routing');
-    });
-  });
-
-  it('clicking the switch from on→off with no overrides applies immediately', async () => {
-    const onEnabledChange = vi.fn();
-    mockToggleComplexity.mockResolvedValue({ ok: true, enabled: false });
-    render(() =>
-      <RoutingComplexitySection {...makeProps({ enabled: () => true, onEnabledChange })} />,
-    );
-    fireEvent.click(screen.getByText('Disable complexity routing'));
-    await waitFor(() => {
-      expect(mockToggleComplexity).toHaveBeenCalledWith('test-agent', false);
-      expect(onEnabledChange).toHaveBeenCalledWith(false);
-      expect(toast.success).toHaveBeenCalledWith('Complexity routing off');
-    });
-  });
-
-  it('shows a confirmation dialog when turning off with existing overrides', async () => {
-    const onEnabledChange = vi.fn();
-    const props = makeProps({
-      enabled: () => true,
-      onEnabledChange,
-      tiers: () => [
-        {
-          id: '1',
-          agent_id: 'a',
-          tier: 'simple',
-          override_model: 'gpt-4o',
-          override_provider: 'openai',
-          override_auth_type: null,
-          auto_assigned_model: null,
-          fallback_models: null,
-          updated_at: '2025-01-01',
-        },
-      ],
-    });
-    render(() => <RoutingComplexitySection {...props} />);
-    fireEvent.click(screen.getByText('Disable complexity routing'));
-
-    await waitFor(() => {
-      expect(screen.getByText('Disable complexity routing?')).toBeDefined();
-    });
-    expect(mockToggleComplexity).not.toHaveBeenCalled();
-
-    fireEvent.click(screen.getByText('Disable'));
-    await waitFor(() => {
-      expect(mockToggleComplexity).toHaveBeenCalledWith('test-agent', false);
-      expect(onEnabledChange).toHaveBeenCalledWith(false);
-    });
-  });
-
-  it('closes the confirm dialog on Escape', async () => {
-    const props = makeProps({
-      enabled: () => true,
-      tiers: () => [
-        {
-          id: '1',
-          agent_id: 'a',
-          tier: 'simple',
-          override_model: 'gpt-4o',
-          override_provider: 'openai',
-          override_auth_type: null,
-          auto_assigned_model: null,
-          fallback_models: null,
-          updated_at: '2025-01-01',
-        },
-      ],
-    });
-    render(() => <RoutingComplexitySection {...props} />);
-    fireEvent.click(screen.getByText('Disable complexity routing'));
-    await waitFor(() => {
-      expect(screen.getByText('Disable complexity routing?')).toBeDefined();
-    });
-
-    const overlay = screen.getByRole('dialog').parentElement!;
-    fireEvent.keyDown(overlay, { key: 'Escape' });
-    await waitFor(() => {
-      expect(screen.queryByText('Disable complexity routing?')).toBeNull();
-    });
-  });
-
-  it('closes the confirm dialog on overlay click', async () => {
-    const props = makeProps({
-      enabled: () => true,
-      tiers: () => [
-        {
-          id: '1',
-          agent_id: 'a',
-          tier: 'simple',
-          override_model: 'gpt-4o',
-          override_provider: 'openai',
-          override_auth_type: null,
-          auto_assigned_model: null,
-          fallback_models: null,
-          updated_at: '2025-01-01',
-        },
-      ],
-    });
-    render(() => <RoutingComplexitySection {...props} />);
-    fireEvent.click(screen.getByText('Disable complexity routing'));
-    await waitFor(() => {
-      expect(screen.getByRole('dialog')).toBeDefined();
-    });
-    const overlay = screen.getByRole('dialog').parentElement!;
-    fireEvent.click(overlay);
-    await waitFor(() => {
-      expect(screen.queryByRole('dialog')).toBeNull();
-    });
-  });
-
-  it('cancelling the confirm dialog leaves the flag unchanged', async () => {
-    const onEnabledChange = vi.fn();
-    const props = makeProps({
-      enabled: () => true,
-      onEnabledChange,
-      tiers: () => [
-        {
-          id: '1',
-          agent_id: 'a',
-          tier: 'simple',
-          override_model: null,
-          override_provider: null,
-          override_auth_type: null,
-          auto_assigned_model: null,
-          fallback_models: ['gpt-4o'],
-          updated_at: '2025-01-01',
-        },
-      ],
-    });
-    render(() => <RoutingComplexitySection {...props} />);
-    fireEvent.click(screen.getByText('Disable complexity routing'));
-    await waitFor(() => {
-      expect(screen.getByText('Disable complexity routing?')).toBeDefined();
-    });
-
-    fireEvent.click(screen.getByText('Cancel'));
-    await waitFor(() => {
-      expect(screen.queryByText('Disable complexity routing?')).toBeNull();
-    });
-    expect(mockToggleComplexity).not.toHaveBeenCalled();
-    expect(onEnabledChange).not.toHaveBeenCalled();
   });
 });

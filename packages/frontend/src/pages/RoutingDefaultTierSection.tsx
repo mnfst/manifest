@@ -12,7 +12,6 @@ import RoutingTierCard from './RoutingTierCard.js';
 export interface RoutingDefaultTierSectionProps {
   agentName: () => string;
   tier: () => TierAssignment | undefined;
-  complexityEnabled: () => boolean;
   models: () => AvailableModel[];
   customProviders: () => CustomProviderData[];
   activeProviders: () => RoutingProvider[];
@@ -33,9 +32,7 @@ export interface RoutingDefaultTierSectionProps {
 
 const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (props) => {
   const subtitle = () =>
-    props.complexityEnabled()
-      ? 'Acts as a safety net and handles requests that complexity routing can\u2019t resolve'
-      : 'All requests are routed to this model, or to the fallback models if it fails.';
+    'Acts as a safety net and handles requests that complexity routing can\u2019t resolve';
 
   const card = () => (
     <div
@@ -82,10 +79,7 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
   }
 
   return (
-    <div
-      class="routing-section"
-      classList={{ 'routing-section--dimmed': props.complexityEnabled() }}
-    >
+    <div class="routing-section routing-section--dimmed">
       <div class="routing-section__header">
         <span class="routing-section__title">Default model</span>
         <Show when={!props.tiersLoading}>

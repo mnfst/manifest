@@ -14,8 +14,6 @@ describe('TierController', () => {
   beforeEach(() => {
     tierService = {
       getTiers: jest.fn().mockResolvedValue([]),
-      isComplexityEnabled: jest.fn().mockResolvedValue(true),
-      setComplexityEnabled: jest.fn().mockResolvedValue(undefined),
       setOverride: jest.fn(),
       clearOverride: jest.fn().mockResolvedValue(undefined),
       resetAllOverrides: jest.fn().mockResolvedValue(undefined),
@@ -35,23 +33,6 @@ describe('TierController', () => {
     const rows = await controller.getTiers(user, { agentName: 'demo' });
     expect(rows).toEqual([{ tier: 'simple' }]);
     expect(tierService.getTiers).toHaveBeenCalledWith('agent-1', 'user-1');
-  });
-
-  it('GET /complexity returns the current flag', async () => {
-    (tierService.isComplexityEnabled as jest.Mock).mockResolvedValue(true);
-    const result = await controller.getComplexity(user, { agentName: 'demo' });
-    expect(result).toEqual({ enabled: true });
-    expect(tierService.isComplexityEnabled).toHaveBeenCalledWith('agent-1');
-  });
-
-  it('POST /complexity/toggle updates the flag and echoes it back', async () => {
-    const result = await controller.toggleComplexity(
-      user,
-      { agentName: 'demo' },
-      { enabled: false },
-    );
-    expect(result).toEqual({ ok: true, enabled: false });
-    expect(tierService.setComplexityEnabled).toHaveBeenCalledWith('agent-1', false);
   });
 
   it('PUT /tiers/:tier accepts the default slot', async () => {
