@@ -613,7 +613,8 @@ describe("ProviderSelectContent", () => {
         />
       ));
 
-      fireEvent.click(screen.getByText("API Keys"));
+      await waitFor(() => screen.getByText("Local"));
+      fireEvent.click(screen.getByText("Local"));
 
       const llamaBtn = await waitFor(() => {
         const b = Array.from(container.querySelectorAll<HTMLButtonElement>("button.provider-toggle")).find(

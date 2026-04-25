@@ -29,11 +29,10 @@ describe("providerIcon", () => {
     });
   }
 
-  it("returns an <img> for \"llamacpp\" pointing at the self-hosted icon", () => {
+  it("returns an SVG for \"llamacpp\"", () => {
     const { container } = render(() => <div>{providerIcon("llamacpp")}</div>);
-    const img = container.querySelector("img");
-    expect(img).not.toBeNull();
-    expect(img!.getAttribute("src")).toBe("/icons/llamacpp.png");
+    const svg = container.querySelector("svg");
+    expect(svg).not.toBeNull();
   });
 
   it("returns null for unknown provider", () => {
