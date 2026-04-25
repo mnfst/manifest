@@ -976,6 +976,37 @@
   line-height: 1.5;
 }
 
+/* ── No providers empty state ──────────────────── */
+.routing-no-providers {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 48px 24px;
+  gap: 8px;
+  width: 100%;
+  background: hsl(var(--muted) / 0.45);
+  border-radius: var(--radius);
+}
+
+.routing-no-providers__icon {
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 4px;
+}
+
+.routing-no-providers__title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.routing-no-providers__desc {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
 /* ── Responsive ──────────────────────────────────── */
 @media (max-width: 1024px) {
   .routing-cards:not(.routing-cards--wide) {
