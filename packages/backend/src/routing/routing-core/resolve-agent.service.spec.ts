@@ -88,4 +88,18 @@ describe('ResolveAgentService', () => {
     expect(await svc.resolve('user-B', 'agent')).toBe(agentB);
     expect(findOne).toHaveBeenCalledTimes(2);
   });
+
+  it('invalidate removes the cached entry so the next resolve re-queries', async () => {
+    const agent = { id: 'agent-1', name: 'demo-agent' } as Agent;
+    tenantResolve.mockResolvedValue('tenant-1');
+    findOne.mockResolvedValue(agent);
+
+    await svc.resolve('user-1', 'demo-agent');
+    expect(findOne).toHaveBeenCalledTimes(1);
+
+    svc.invalidate('tenant-1', 'demo-agent');
+
+    await svc.resolve('user-1', 'demo-agent');
+    expect(findOne).toHaveBeenCalledTimes(2);
+  });
 });

@@ -306,9 +306,22 @@ ollama pull llama3.1:8b
 2. Providers → API Keys → click the **LM Studio** tile.
 3. Manifest probes `http://host.docker.internal:1234/v1`, discovers your loaded models, and connects them in one click.
 
+### llama.cpp
+
+1. Build `llama-server` from the [ggml-org/llama.cpp](https://github.com/ggml-org/llama.cpp) repo (or grab a release binary), then start it with a GGUF model bound to `0.0.0.0` so the Manifest container can reach it:
+
+   ```bash
+   ./llama-server -m models/llama-3.1-8b-instruct.Q4_K_M.gguf --host 0.0.0.0 --port 8080
+   ```
+
+   `llama-server` only listens on `0.0.0.0` if you pass `--host 0.0.0.0`; the default bind isn't reachable from Docker.
+
+2. Providers → API Keys → click the **llama.cpp** tile.
+3. Manifest probes `http://host.docker.internal:8080/v1`, lists the model your server loaded, and connects it in one click. Pre-b3800 builds that don't expose `/v1/models` get a hint to upgrade or fall back to **Add custom provider**.
+
 ### Any other OpenAI-compatible server
 
-For vLLM, llama.cpp, text-generation-webui, TogetherAI proxies, Azure OpenAI gateways, or anything else that speaks OpenAI's HTTP API:
+For vLLM, text-generation-webui, TogetherAI proxies, Azure OpenAI gateways, or anything else that speaks OpenAI's HTTP API:
 
 1. Start your server on the host bound to `0.0.0.0`.
 2. Providers → API Keys → **Add custom provider** → type the URL (e.g. `http://host.docker.internal:8000/v1`).

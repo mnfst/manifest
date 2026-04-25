@@ -22,6 +22,7 @@ export {
   SHARED_PROVIDERS,
   SHARED_PROVIDER_BY_ID,
   SHARED_PROVIDER_BY_ID_OR_ALIAS,
+  CANONICAL_LOCAL_IDS,
   LOCAL_SERVER_HINTS,
   normalizeProviderName,
 } from './providers';

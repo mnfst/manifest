@@ -4,7 +4,6 @@ import {
   IsNotEmpty,
   IsOptional,
   IsArray,
-  IsBoolean,
   ArrayMaxSize,
   Matches,
 } from 'class-validator';
@@ -25,11 +24,6 @@ export class AgentNameParamDto {
 export class TierParamDto {
   @IsIn(TIER_SLOTS)
   tier!: string;
-}
-
-export class ToggleComplexityDto {
-  @IsBoolean()
-  enabled!: boolean;
 }
 
 export class ProviderParamDto {

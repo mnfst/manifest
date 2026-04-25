@@ -4,6 +4,7 @@ import type { HeaderTier } from '../../src/services/api/header-tiers';
 
 const setHeaderTierFallbacksMock = vi.fn();
 const clearHeaderTierFallbacksMock = vi.fn();
+const resetHeaderTierMock = vi.fn();
 
 vi.mock('../../src/services/api/header-tiers.js', async (importOriginal) => {
   const actual = (await importOriginal()) as Record<string, unknown>;
@@ -11,6 +12,7 @@ vi.mock('../../src/services/api/header-tiers.js', async (importOriginal) => {
     ...actual,
     setHeaderTierFallbacks: (...args: unknown[]) => setHeaderTierFallbacksMock(...args),
     clearHeaderTierFallbacks: (...args: unknown[]) => clearHeaderTierFallbacksMock(...args),
+    resetHeaderTier: (...args: unknown[]) => resetHeaderTierMock(...args),
   };
 });
 
@@ -97,6 +99,19 @@ vi.mock('../../src/components/ProviderIcon.js', () => ({
 vi.mock('../../src/components/AuthBadge.js', () => ({
   authBadgeFor: (t: string | null | undefined) =>
     t ? <span data-testid={`auth-${t}`} /> : null,
+  authLabel: (authType: string | null | undefined) =>
+    authType === 'subscription' ? 'Subscription' : authType === 'local' ? 'Local' : 'API Key',
+}));
+
+vi.mock('../../src/components/HeaderTierSnippetModal.js', () => ({
+  default: (props: { tier: { name: string }; onClose: () => void }) => (
+    <div data-testid="mock-snippet-modal">
+      <span>Snippet for {props.tier.name}</span>
+      <button data-testid="snippet-close" onClick={props.onClose}>
+        close
+      </button>
+    </div>
+  ),
 }));
 
 import HeaderTierCard from '../../src/components/HeaderTierCard';
@@ -126,12 +141,14 @@ interface MountOptions {
   onOverride?: ReturnType<typeof vi.fn>;
   onFallbacksUpdate?: ReturnType<typeof vi.fn>;
   onEdit?: ReturnType<typeof vi.fn>;
+  onDisable?: ReturnType<typeof vi.fn>;
 }
 
 function mount(opts: MountOptions = {}) {
   const onOverride = opts.onOverride ?? vi.fn();
   const onFallbacksUpdate = opts.onFallbacksUpdate ?? vi.fn();
   const onEdit = opts.onEdit;
+  const onDisable = opts.onDisable;
   const result = render(() => (
     <HeaderTierCard
       agentName="my-agent"
@@ -153,9 +170,10 @@ function mount(opts: MountOptions = {}) {
       onOverride={onOverride}
       onFallbacksUpdate={onFallbacksUpdate}
       onEdit={onEdit}
+      onDisable={onDisable}
     />
   ));
-  return { ...result, onOverride, onFallbacksUpdate, onEdit };
+  return { ...result, onOverride, onFallbacksUpdate, onEdit, onDisable };
 }
 
 describe('HeaderTierCard', () => {
@@ -194,9 +212,12 @@ describe('HeaderTierCard', () => {
     expect(onOverride).toHaveBeenCalledWith('gpt-4o-mini', 'OpenAI', 'api_key');
   });
 
-  it('renders gear icon button for snippet modal', () => {
-    const { container } = mount();
-    expect(container.querySelector('.header-tier-card__icon-btn')).not.toBeNull();
+  it('renders gear icon button that opens a dropdown menu', () => {
+    const { container, getByText } = mount();
+    const gearBtn = container.querySelector('.header-tier-card__icon-btn');
+    expect(gearBtn).not.toBeNull();
+    fireEvent.click(gearBtn!);
+    expect(getByText('Send this header')).toBeDefined();
   });
 
   it('renders the FallbackList when a primary model is set', () => {
@@ -235,11 +256,6 @@ describe('HeaderTierCard', () => {
     const { getByTestId, onFallbacksUpdate } = mount();
     fireEvent.click(getByTestId('fallback-update'));
     expect(onFallbacksUpdate).toHaveBeenCalledWith(['mock-removed']);
-  });
-
-  it('renders gear icon button for snippet modal', () => {
-    const { container } = mount();
-    expect(container.querySelector('.header-tier-card__icon-btn')).not.toBeNull();
   });
 
   it('infers the provider id from the model prefix when override_provider is absent', () => {
@@ -288,6 +304,41 @@ describe('HeaderTierCard', () => {
     const { container } = mount({ tier: noAuthTier });
     // No connected providers → effectiveAuth() returns null → no badge.
     expect(container.querySelector('[data-testid^="auth-"]')).toBeNull();
+  });
+
+  it('falls back to local auth when the only connected provider is local (Ollama)', () => {
+    const tier: HeaderTier = { ...baseTier, override_auth_type: null, override_provider: 'ollama' };
+    const { container } = mount({
+      tier,
+      connectedProviders: [{ provider: 'ollama', auth_type: 'local' }] as never,
+    });
+    expect(container.querySelector('[data-testid="auth-local"]')).not.toBeNull();
+  });
+
+  it('prefers subscription over local when both are connected (precedence sub > api_key > local)', () => {
+    const tier: HeaderTier = { ...baseTier, override_auth_type: null };
+    const { container } = mount({
+      tier,
+      connectedProviders: [
+        { provider: 'openai', auth_type: 'local' },
+        { provider: 'openai', auth_type: 'subscription' },
+      ] as never,
+    });
+    expect(container.querySelector('[data-testid="auth-subscription"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="auth-local"]')).toBeNull();
+  });
+
+  it('prefers api_key over local when both are connected', () => {
+    const tier: HeaderTier = { ...baseTier, override_auth_type: null };
+    const { container } = mount({
+      tier,
+      connectedProviders: [
+        { provider: 'openai', auth_type: 'local' },
+        { provider: 'openai', auth_type: 'api_key' },
+      ] as never,
+    });
+    expect(container.querySelector('[data-testid="auth-api_key"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="auth-local"]')).toBeNull();
   });
 
   it('Change chip-action button opens the picker, stops propagation, and forwards selection', () => {
@@ -346,31 +397,89 @@ describe('HeaderTierCard', () => {
     expect(container.querySelector('[data-testid="provider-icon"]')).toBeNull();
   });
 
-  it('gear icon button opens the SDK snippet modal', async () => {
-    const { container, getByText } = mount();
+  it('gear icon button opens the SDK snippet modal via "Send this header" menu item', async () => {
+    const { container, getByText, getByTestId } = mount();
     const gearBtn = container.querySelector('.header-tier-card__icon-btn');
     expect(gearBtn).not.toBeNull();
     fireEvent.click(gearBtn!);
-    await waitFor(() => expect(getByText(/Send the .* header/)).toBeDefined());
+    const sendItem = getByText('Send this header');
+    expect(sendItem).toBeDefined();
+    fireEvent.click(sendItem);
+    await waitFor(() => expect(getByTestId('mock-snippet-modal')).toBeDefined());
   });
 
-  it('renders the edit button only when onEdit is provided', () => {
+  it('renders "Edit tier" in dropdown only when onEdit is provided', () => {
     const onEdit = vi.fn();
-    const { container: withEdit } = mount({ onEdit });
-    expect(withEdit.querySelector(`button[aria-label="Edit ${baseTier.name}"]`)).not.toBeNull();
+    const { container: withEdit, getByText: withEditGetByText } = mount({ onEdit });
+    const gearBtn = withEdit.querySelector('.header-tier-card__icon-btn')!;
+    fireEvent.click(gearBtn);
+    expect(withEditGetByText('Edit tier')).toBeDefined();
 
     const { container: withoutEdit } = mount();
-    expect(withoutEdit.querySelector('button[aria-label^="Edit "]')).toBeNull();
+    const gearBtn2 = withoutEdit.querySelector('.header-tier-card__icon-btn')!;
+    fireEvent.click(gearBtn2);
+    expect(withoutEdit.querySelector('.header-tier-card__menu')).not.toBeNull();
+    expect(withoutEdit.textContent).not.toContain('Edit tier');
   });
 
-  it('calls onEdit when the edit button is clicked', () => {
+  it('calls onEdit when "Edit tier" menu item is clicked', () => {
     const onEdit = vi.fn();
-    const { container } = mount({ onEdit });
-    const editBtn = container.querySelector(
-      `button[aria-label="Edit ${baseTier.name}"]`,
-    ) as HTMLButtonElement;
-    fireEvent.click(editBtn);
+    const { container, getByText } = mount({ onEdit });
+    const gearBtn = container.querySelector('.header-tier-card__icon-btn')!;
+    fireEvent.click(gearBtn);
+    fireEvent.click(getByText('Edit tier'));
     expect(onEdit).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders Reset button when a model is assigned and calls resetHeaderTier on click', async () => {
+    resetHeaderTierMock.mockResolvedValue(undefined);
+    const { getByText, onFallbacksUpdate } = mount();
+    const resetBtn = getByText('Reset');
+    expect(resetBtn).toBeDefined();
+    fireEvent.click(resetBtn);
+    await waitFor(() =>
+      expect(resetHeaderTierMock).toHaveBeenCalledWith('my-agent', 'ht-1'),
+    );
+    expect(onFallbacksUpdate).toHaveBeenCalledWith([]);
+  });
+
+  it('does not render Reset button when no model is assigned', () => {
+    const emptyTier: HeaderTier = { ...baseTier, override_model: null };
+    const { queryByText } = mount({ tier: emptyTier });
+    expect(queryByText('Reset')).toBeNull();
+  });
+
+  it('renders "Disable" in dropdown only when onDisable is provided', () => {
+    const onDisable = vi.fn();
+    const { container: withDisable, getByText: withDisableGetByText } = mount({ onDisable });
+    const gearBtn = withDisable.querySelector('.header-tier-card__icon-btn')!;
+    fireEvent.click(gearBtn);
+    expect(withDisableGetByText('Disable')).toBeDefined();
+
+    const { container: withoutDisable } = mount();
+    const gearBtn2 = withoutDisable.querySelector('.header-tier-card__icon-btn')!;
+    fireEvent.click(gearBtn2);
+    expect(withoutDisable.textContent).not.toContain('Disable');
+  });
+
+  it('calls onDisable when "Disable" menu item is clicked', () => {
+    const onDisable = vi.fn();
+    const { container, getByText } = mount({ onDisable });
+    const gearBtn = container.querySelector('.header-tier-card__icon-btn')!;
+    fireEvent.click(gearBtn);
+    fireEvent.click(getByText('Disable'));
+    expect(onDisable).toHaveBeenCalledTimes(1);
+  });
+
+  it('swallows errors thrown by resetHeaderTier without crashing', async () => {
+    resetHeaderTierMock.mockRejectedValue(new Error('reset boom'));
+    const { getByText } = mount();
+    const resetBtn = getByText('Reset');
+    expect(resetBtn).toBeDefined();
+    fireEvent.click(resetBtn);
+    await waitFor(() => expect(resetHeaderTierMock).toHaveBeenCalled());
+    // Component must still be in the DOM after the error
+    expect(getByText('Reset')).toBeDefined();
   });
 
   it('falls back to the provider db-id when the model name has no recognizable prefix', () => {

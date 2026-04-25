@@ -13,6 +13,7 @@ import {
   isManifestUsableProvider,
   isSupportedSubscriptionProvider,
 } from '../../common/utils/subscription-support';
+import type { AuthType } from 'manifest-shared';
 import { TIER_LABELS } from 'manifest-shared';
 import { detectQwenRegion, isQwenRegion, isQwenResolvedRegion } from '../qwen-region';
 
@@ -55,7 +56,7 @@ export class ProviderService {
     userId: string,
     provider: string,
     apiKey?: string,
-    authType?: 'api_key' | 'subscription',
+    authType?: AuthType,
     region?: string,
   ): Promise<{ provider: UserProvider; isNew: boolean }> {
     const effectiveAuthType = authType ?? 'api_key';
@@ -106,7 +107,7 @@ export class ProviderService {
 
   private async resolveProviderRegion(
     provider: string,
-    authType: 'api_key' | 'subscription',
+    authType: AuthType,
     requestedRegion: string | undefined,
     apiKey: string | undefined,
     existing: UserProvider | null,
@@ -203,10 +204,46 @@ export class ProviderService {
     this.routingCache.invalidateAgent(agentId);
   }
 
+  /**
+   * Flip `auth_type` on an existing `user_providers` row in-place without
+   * deactivating it or cleaning up tier overrides. Used by custom-provider
+   * renames that cross the local ↔ api_key boundary (LM Studio ↔ freeform
+   * name), where going through removeProvider+upsertProvider would churn
+   * tier assignments for what is visually just a name change.
+   */
+  async retagAuthType(agentId: string, provider: string, nextAuthType: AuthType): Promise<void> {
+    // Wrap the dedupe + flip in a transaction so a crash between the
+    // collision DELETE and the retag SAVE can't leave the row set in a
+    // half-updated state (losing the collision row while the source still
+    // carries the old auth_type).
+    const invalidated = await this.providerRepo.manager.transaction(async (manager) => {
+      const txRepo = manager.getRepository(UserProvider);
+      const rows = await txRepo.find({ where: { agent_id: agentId, provider } });
+      const target = rows.find((r) => r.auth_type !== nextAuthType && r.is_active);
+      if (!target) return false;
+
+      // Protect the unique (agent_id, provider, auth_type) index: if a row
+      // already exists for the destination auth_type, the UPDATE would fail.
+      // Drop the stale destination row first — the one we're retagging is
+      // authoritative.
+      const collision = rows.find((r) => r.auth_type === nextAuthType);
+      if (collision) {
+        await txRepo.remove(collision);
+      }
+
+      target.auth_type = nextAuthType;
+      target.updated_at = new Date().toISOString();
+      await txRepo.save(target);
+      return true;
+    });
+
+    if (invalidated) this.routingCache.invalidateAgent(agentId);
+  }
+
   async removeProvider(
     agentId: string,
     provider: string,
-    authType?: 'api_key' | 'subscription',
+    authType?: AuthType,
   ): Promise<{ notifications: string[] }> {
     const where: Record<string, unknown> = { agent_id: agentId, provider };
     if (authType) where.auth_type = authType;

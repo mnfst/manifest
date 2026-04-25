@@ -43,6 +43,21 @@ const lmsProv: ProviderDef = {
   defaultLocalPort: 1234,
 };
 
+const llamacppProv: ProviderDef = {
+  id: 'llamacpp',
+  name: 'llama.cpp',
+  color: '#2d2d2d',
+  initial: 'Lc',
+  subtitle: 'OpenAI-compatible server for GGUF models on CPU / Metal / CUDA',
+  keyPrefix: '',
+  minKeyLength: 0,
+  keyPlaceholder: '',
+  noKeyRequired: true,
+  localOnly: true,
+  models: [],
+  defaultLocalPort: 8080,
+};
+
 describe('LocalServerDetailView', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -703,6 +718,78 @@ describe('LocalServerDetailView', () => {
         'Copy failed — select the command and copy it manually',
       );
     });
+  });
+
+  it('renders the llama.cpp notReachableHint with a clickable "Add custom provider" link in FailureState', async () => {
+    mockProbe.mockRejectedValue(new Error('returned 404'));
+    const onOpenCustomForm = vi.fn();
+
+    const { container } = render(() => (
+      <LocalServerDetailView
+        agentName="a1"
+        provider={llamacppProv}
+        onConnected={vi.fn()}
+        onBack={vi.fn()}
+        onOpenCustomForm={onOpenCustomForm}
+      />
+    ));
+
+    await waitFor(() => {
+      expect(container.textContent).toContain('llama-server');
+      expect(container.textContent).toContain('--port 8080');
+      expect(container.textContent).toContain('Recent llama.cpp builds expose /v1/models');
+    });
+
+    const linkBtn = Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find(
+      (b) => b.textContent?.trim() === 'Add custom provider',
+    );
+    expect(linkBtn).toBeDefined();
+    fireEvent.click(linkBtn!);
+    expect(onOpenCustomForm).toHaveBeenCalled();
+  });
+
+  it('renders the notReachableHint link as a static span when no onOpenCustomForm callback is wired', async () => {
+    mockProbe.mockRejectedValue(new Error('returned 404'));
+
+    const { container } = render(() => (
+      <LocalServerDetailView
+        agentName="a1"
+        provider={llamacppProv}
+        onConnected={vi.fn()}
+        onBack={vi.fn()}
+      />
+    ));
+
+    await waitFor(() => {
+      expect(container.textContent).toContain('Recent llama.cpp builds expose /v1/models');
+    });
+
+    // No <button>Add custom provider</button>, but the label still renders
+    // inline so the hint is readable without a dead link.
+    const linkBtn = Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find(
+      (b) => b.textContent?.trim() === 'Add custom provider',
+    );
+    expect(linkBtn).toBeUndefined();
+    expect(container.textContent).toContain('Add custom provider');
+  });
+
+  it('does NOT render the LM-Studio GUI fallback copy when the provider is llama.cpp', async () => {
+    mockProbe.mockRejectedValue(new Error('No server is listening'));
+
+    const { container } = render(() => (
+      <LocalServerDetailView
+        agentName="a1"
+        provider={llamacppProv}
+        onConnected={vi.fn()}
+        onBack={vi.fn()}
+      />
+    ));
+
+    await waitFor(() => {
+      expect(container.textContent).toContain('<your-model>.gguf');
+    });
+    expect(container.textContent).not.toContain('Developer → Start Server');
+    expect(container.querySelector('video')).toBeNull();
   });
 
   it('renders the GUI fix row and one-time-setup line for LM Studio in Docker', async () => {

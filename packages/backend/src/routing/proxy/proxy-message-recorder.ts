@@ -12,6 +12,7 @@ import { ProxyMessageDedup } from './proxy-message-dedup';
 import { computeTokenCost } from '../../common/utils/cost-calculator';
 import { scrubSecrets } from '../../common/utils/secret-scrub';
 import { CallerAttribution } from './caller-classifier';
+import { CustomProviderService } from '../custom-provider/custom-provider.service';
 
 export interface HeaderTierRef {
   headerTierId?: string | null;
@@ -99,6 +100,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     private readonly pricingCache: ModelPricingCacheService,
     private readonly dedup: ProxyMessageDedup,
     private readonly eventBus: IngestEventBusService,
+    private readonly customProviders: CustomProviderService,
   ) {
     this.cooldownCleanupTimer = setInterval(() => this.evictExpiredCooldowns(), 60_000);
     if (typeof this.cooldownCleanupTimer === 'object' && 'unref' in this.cooldownCleanupTimer) {
@@ -149,6 +151,12 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
 
     const messageStatus = httpStatus === 429 ? 'rate_limited' : 'error';
 
+    const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
+      ctx.agentId,
+      provider,
+      model,
+    );
+
     await this.messageRepo.insert(
       buildMessageRow(ctx, {
         trace_id: traceId ?? null,
@@ -156,8 +164,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         status: messageStatus,
         error_message: scrubSecrets(errorMessage).slice(0, 2000),
         error_http_status: httpStatus,
-        model: model ?? null,
-        provider: provider ?? null,
+        model: canonical.model,
+        provider: canonical.provider,
         routing_tier: tier ?? null,
         routing_reason: reason ?? null,
         fallback_from_model: fallbackFromModel ?? null,
@@ -206,6 +214,12 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       headerTierName,
       headerTierColor,
     } = opts ?? {};
+    // primaryModel is loop-invariant — canonicalize once.
+    const canonicalPrimary = await this.customProviders.canonicalizeAgentMessageKeys(
+      ctx.agentId,
+      null,
+      primaryModel,
+    );
     for (let i = 0; i < failures.length; i++) {
       const f = failures[i];
       const ts = baseTimeMs
@@ -218,6 +232,11 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         : f.status === 429
           ? 'rate_limited'
           : 'error';
+      const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
+        ctx.agentId,
+        f.provider,
+        f.model,
+      );
       await this.messageRepo.insert(
         buildMessageRow(ctx, {
           trace_id: traceId ?? null,
@@ -225,11 +244,11 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
           status,
           error_message: scrubSecrets(f.errorBody).slice(0, 2000),
           error_http_status: f.status,
-          model: f.model,
-          provider: f.provider ?? null,
+          model: canonical.model,
+          provider: canonical.provider,
           routing_tier: tier,
           routing_reason: reason ?? null,
-          fallback_from_model: primaryModel,
+          fallback_from_model: canonicalPrimary.model,
           fallback_index: f.fallbackIndex,
           auth_type: authType ?? null,
           caller_attribution: callerAttribution ?? null,
@@ -260,13 +279,18 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       headerTierColor?: string | null;
     },
   ): Promise<void> {
+    const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
+      ctx.agentId,
+      opts?.provider,
+      model,
+    );
     await this.messageRepo.insert(
       buildMessageRow(ctx, {
         timestamp,
         status: 'fallback_error',
         error_message: errorBody.slice(0, 2000),
-        model,
-        provider: opts?.provider ?? null,
+        model: canonical.model,
+        provider: canonical.provider,
         routing_tier: tier,
         routing_reason: opts?.reason ?? null,
         fallback_from_model: null,
@@ -315,13 +339,24 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       isSubscription: authType === 'subscription',
     });
 
+    const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
+      ctx.agentId,
+      provider,
+      model,
+    );
+    const canonicalFallbackFrom = await this.customProviders.canonicalizeAgentMessageKeys(
+      ctx.agentId,
+      null,
+      fallbackFromModel,
+    );
+
     await this.messageRepo.insert(
       buildMessageRow(ctx, {
         trace_id: traceId ?? null,
         timestamp: timestamp ?? new Date().toISOString(),
         status: 'ok',
-        model,
-        provider: provider ?? null,
+        model: canonical.model,
+        provider: canonical.provider,
         routing_tier: tier,
         routing_reason: reason ?? null,
         input_tokens: inputTokens,
@@ -330,7 +365,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         cache_creation_tokens: usage?.cache_creation_tokens ?? 0,
         cost_usd: costUsd,
         auth_type: authType ?? null,
-        fallback_from_model: fallbackFromModel ?? null,
+        fallback_from_model: canonicalFallbackFrom.model,
         fallback_index: fallbackIndex ?? null,
         caller_attribution: callerAttribution ?? null,
         request_headers: requestHeaders ?? null,
@@ -372,17 +407,27 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       isSubscription: authType === 'subscription',
     });
 
+    // `model` is a required string, so the overload on
+    // `canonicalizeAgentMessageKeys` keeps `canonical.model` non-null.
+    const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
+      ctx.agentId,
+      provider,
+      model,
+    );
+    const canonicalModel = canonical.model;
+    const canonicalProvider = canonical.provider;
+
     const normalizedSessionKey = this.dedup.normalizeSessionKey(sessionKey);
 
     let wrote = false;
     await this.dedup.withSuccessWriteLock(
-      this.dedup.getSuccessWriteLockKey(ctx, model, traceId, normalizedSessionKey),
+      this.dedup.getSuccessWriteLockKey(ctx, canonicalModel, traceId, normalizedSessionKey),
       async () => {
         await this.dedup.withAgentMessageTransaction(this.messageRepo, ctx, async (messageRepo) => {
           const existing = await this.dedup.findExistingSuccessMessage(
             messageRepo,
             ctx,
-            model,
+            canonicalModel,
             usage,
             traceId,
             normalizedSessionKey,
@@ -394,8 +439,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
             if (hasRecordedTokens) return;
 
             const updatePayload: Partial<AgentMessage> = {
-              model,
-              provider: provider ?? null,
+              model: canonicalModel,
+              provider: canonicalProvider,
               routing_tier: tier,
               routing_reason: reason,
               input_tokens: usage.prompt_tokens,
@@ -426,8 +471,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               session_key: normalizedSessionKey,
               timestamp: new Date().toISOString(),
               status: 'ok',
-              model,
-              provider: provider ?? null,
+              model: canonicalModel,
+              provider: canonicalProvider,
               routing_tier: tier,
               routing_reason: reason,
               input_tokens: usage.prompt_tokens,

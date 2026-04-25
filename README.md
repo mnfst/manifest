@@ -76,7 +76,7 @@ Full self-hosting guide: [docker/DOCKER_README.md](docker/DOCKER_README.md).
 
 Every request to `manifest/auto` goes through a 23-dimension scoring algorithm (runs in under 2ms). The scorer picks a tier (simple, standard, complex, or reasoning) and routes to the best model in that tier from your connected providers.
 
-All routing data (tokens, costs, model, duration) is recorded automatically. You see it in the dashboard. No extra setup.
+All routing data (tokens, costs, model, latency) is recorded automatically. You see it in the dashboard. No extra setup.
 
 ## Manifest vs OpenRouter
 

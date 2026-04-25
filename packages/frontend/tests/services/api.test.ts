@@ -14,7 +14,6 @@ import {
   getModelPrices,
   getProviders,
   connectProvider,
-  deactivateAllProviders,
   disconnectProvider,
   copilotDeviceCode,
   copilotPollToken,
@@ -570,19 +569,6 @@ describe('connectProvider', () => {
 
     await expect(connectProvider('my-agent', { provider: '' })).rejects.toThrow('Invalid provider');
     expect(toast.error).toHaveBeenCalledWith('Invalid provider');
-  });
-});
-
-describe('deactivateAllProviders', () => {
-  it('POSTs to /routing/:agentName/providers/deactivate-all', async () => {
-    mockMutateOk({ ok: true });
-
-    const result = await deactivateAllProviders('my-agent');
-    expect(result).toEqual({ ok: true });
-    expect(mockFetch).toHaveBeenCalledWith(
-      '/api/v1/routing/my-agent/providers/deactivate-all',
-      expect.objectContaining({ method: 'POST', credentials: 'include' }),
-    );
   });
 });
 

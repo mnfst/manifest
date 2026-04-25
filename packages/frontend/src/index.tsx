@@ -1,6 +1,5 @@
 /* @refresh reload */
 import { render } from 'solid-js/web';
-import { lazy } from 'solid-js';
 import { Router, Route } from '@solidjs/router';
 import { MetaProvider, Title } from '@solidjs/meta';
 import App from './App.jsx';
@@ -10,23 +9,26 @@ import AgentGuard from './components/AgentGuard.jsx';
 import GuestGuard from './components/GuestGuard.jsx';
 import NotFound from './pages/NotFound.jsx';
 import ToastContainer from './components/ToastContainer.jsx';
+import { lazyReload, clearReloadFlag } from './services/lazy-reload.js';
 import type { ParentComponent } from 'solid-js';
 import './styles/theme.css';
 
-const Overview = lazy(() => import('./pages/Overview.jsx'));
-const MessageLog = lazy(() => import('./pages/MessageLog.jsx'));
-const Settings = lazy(() => import('./pages/Settings.jsx'));
-const Routing = lazy(() => import('./pages/Routing.jsx'));
-const Limits = lazy(() => import('./pages/Limits.jsx'));
-const Account = lazy(() => import('./pages/Account.jsx'));
-const Login = lazy(() => import('./pages/Login.jsx'));
-const Register = lazy(() => import('./pages/Register.jsx'));
-const ResetPassword = lazy(() => import('./pages/ResetPassword.jsx'));
-const Setup = lazy(() => import('./pages/Setup.jsx'));
-const ModelPrices = lazy(() => import('./pages/ModelPrices.jsx'));
-const Help = lazy(() => import('./pages/Help.jsx'));
-const FreeModels = lazy(() => import('./pages/FreeModels.jsx'));
-const ConnectProvider = lazy(() => import('./pages/ConnectProvider.jsx'));
+clearReloadFlag();
+
+const Overview = lazyReload(() => import('./pages/Overview.jsx'));
+const MessageLog = lazyReload(() => import('./pages/MessageLog.jsx'));
+const Settings = lazyReload(() => import('./pages/Settings.jsx'));
+const Routing = lazyReload(() => import('./pages/Routing.jsx'));
+const Limits = lazyReload(() => import('./pages/Limits.jsx'));
+const Account = lazyReload(() => import('./pages/Account.jsx'));
+const Login = lazyReload(() => import('./pages/Login.jsx'));
+const Register = lazyReload(() => import('./pages/Register.jsx'));
+const ResetPassword = lazyReload(() => import('./pages/ResetPassword.jsx'));
+const Setup = lazyReload(() => import('./pages/Setup.jsx'));
+const ModelPrices = lazyReload(() => import('./pages/ModelPrices.jsx'));
+const Help = lazyReload(() => import('./pages/Help.jsx'));
+const FreeModels = lazyReload(() => import('./pages/FreeModels.jsx'));
+const ConnectProvider = lazyReload(() => import('./pages/ConnectProvider.jsx'));
 
 const GuestLayout: ParentComponent = (props) => (
   <GuestGuard>

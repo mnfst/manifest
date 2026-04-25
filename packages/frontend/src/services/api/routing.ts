@@ -1,6 +1,7 @@
+import type { AuthType } from 'manifest-shared';
 import { BASE_URL, fetchJson, fetchMutate, parseErrorMessage, routingPath } from './core.js';
 
-export type AuthType = 'api_key' | 'subscription';
+export type { AuthType };
 
 export interface RoutingProvider {
   id: string;
@@ -53,12 +54,6 @@ export function connectProvider(
   });
 }
 
-export function deactivateAllProviders(agentName: string) {
-  return fetchMutate<{ ok: boolean }>(routingPath(agentName, 'providers/deactivate-all'), {
-    method: 'POST',
-  });
-}
-
 export function disconnectProvider(agentName: string, provider: string, authType?: AuthType) {
   const base = routingPath(agentName, `providers/${encodeURIComponent(provider)}`);
   const path = authType ? `${base}?authType=${authType}` : base;
@@ -92,6 +87,22 @@ export async function copilotPollToken(agentName: string, deviceCode: string) {
   });
   if (!res.ok) throw new Error(`Poll failed: ${res.status}`);
   return res.json() as Promise<{ status: CopilotPollStatus }>;
+}
+
+/* -- Routing: Complexity Toggle -- */
+
+export interface ComplexityStatus {
+  enabled: boolean;
+}
+
+export function getComplexityStatus(agentName: string) {
+  return fetchJson<ComplexityStatus>(routingPath(agentName, 'complexity/status'));
+}
+
+export function toggleComplexity(agentName: string) {
+  return fetchMutate<ComplexityStatus>(routingPath(agentName, 'complexity/toggle'), {
+    method: 'POST',
+  });
 }
 
 /* -- Routing: Tier Assignments -- */
@@ -134,27 +145,6 @@ export function resetTier(agentName: string, tier: string) {
 
 export function resetAllTiers(agentName: string) {
   return fetchMutate(routingPath(agentName, 'tiers/reset-all'), { method: 'POST' });
-}
-
-/* -- Routing: Complexity toggle -- */
-
-export interface ComplexityStatus {
-  enabled: boolean;
-}
-
-export function getComplexityStatus(agentName: string) {
-  return fetchJson<ComplexityStatus>(routingPath(agentName, 'complexity'));
-}
-
-export function toggleComplexity(agentName: string, enabled: boolean) {
-  return fetchMutate<{ ok: boolean; enabled: boolean }>(
-    routingPath(agentName, 'complexity/toggle'),
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ enabled }),
-    },
-  );
 }
 
 /* -- Routing: Fallbacks -- */

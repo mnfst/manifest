@@ -2,7 +2,7 @@ import { For, Show, createMemo, type Component } from 'solid-js';
 import { STAGES, PROVIDERS } from '../services/providers.js';
 import { providerIcon, customProviderLogo } from '../components/ProviderIcon.js';
 import { customProviderColor } from '../services/formatters.js';
-import { authBadgeFor } from '../components/AuthBadge.js';
+import { authBadgeFor, authLabel } from '../components/AuthBadge.js';
 import type { RoutingProvider, CustomProviderData } from '../services/api.js';
 
 /** Skeleton placeholder rendered while providers are loading with cached data visible. */
@@ -61,41 +61,6 @@ export const RoutingLoadingSkeleton: Component = () => (
   </>
 );
 
-export interface EnableRoutingCardProps {
-  onEnable: () => void;
-}
-
-/** CTA card shown when routing is not yet enabled. */
-export const EnableRoutingCard: Component<EnableRoutingCardProps> = (props) => (
-  <div class="routing-enable-card">
-    <div class="routing-enable-card__icon">
-      <svg
-        width="32"
-        height="32"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M12 2L2 7l10 5 10-5-10-5z" />
-        <path d="M2 17l10 5 10-5" />
-        <path d="M2 12l10 5 10-5" />
-      </svg>
-    </div>
-    <h2 class="routing-enable-card__title">Smart model routing</h2>
-    <p class="routing-enable-card__desc">
-      Route each request to the right model based on complexity, task type, or custom rules. Connect
-      your LLM providers to get started.
-    </p>
-    <button class="btn btn--primary" onClick={() => props.onEnable()}>
-      Enable routing
-    </button>
-  </div>
-);
-
 export interface ActiveProviderIconsProps {
   activeProviders: () => RoutingProvider[];
   customProviders: () => CustomProviderData[];
@@ -140,11 +105,10 @@ export const ActiveProviderIcons: Component<ActiveProviderIconsProps> = (props) 
             );
           }
           const provDef = PROVIDERS.find((p) => p.id === prov.provider);
-          const authLabel = prov.auth_type === 'subscription' ? 'Subscription' : 'API Key';
           return (
             <span
               class="routing-providers-info__icon"
-              title={`${provDef?.name ?? prov.provider} (${authLabel})`}
+              title={`${provDef?.name ?? prov.provider} (${authLabel(prov.auth_type)})`}
             >
               {providerIcon(prov.provider, 16)}
               {authBadgeFor(prov.auth_type, 12)}
@@ -161,25 +125,16 @@ export const ActiveProviderIcons: Component<ActiveProviderIconsProps> = (props) 
 );
 
 export interface RoutingFooterProps {
-  disabling: () => boolean;
   hasOverrides: () => boolean;
   resettingAll: () => boolean;
   resettingTier: () => string | null;
-  onDisable: () => void;
   onResetAll: () => void;
   onShowInstructions: () => void;
 }
 
-/** Footer bar with disable, reset-all, and setup instructions buttons. */
+/** Footer bar with reset-all and setup instructions buttons. */
 export const RoutingFooter: Component<RoutingFooterProps> = (props) => (
   <div class="routing-footer">
-    <button
-      class="routing-disable-btn"
-      onClick={() => props.onDisable()}
-      disabled={props.disabling()}
-    >
-      {props.disabling() ? <span class="spinner" /> : 'Disable routing'}
-    </button>
     <Show when={props.hasOverrides()}>
       <button
         class="btn btn--outline"
@@ -195,58 +150,4 @@ export const RoutingFooter: Component<RoutingFooterProps> = (props) => (
       Setup instructions
     </button>
   </div>
-);
-
-export interface DisableRoutingModalProps {
-  open: boolean;
-  disabling: () => boolean;
-  onCancel: () => void;
-  onConfirm: () => void;
-}
-
-/** Confirmation dialog shown before deactivating all routing providers. */
-export const DisableRoutingModal: Component<DisableRoutingModalProps> = (props) => (
-  <Show when={props.open}>
-    <div
-      class="modal-overlay"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) props.onCancel();
-      }}
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') props.onCancel();
-      }}
-    >
-      <div
-        class="modal-card"
-        style="max-width: 420px;"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="disable-routing-modal-title"
-      >
-        <h2
-          id="disable-routing-modal-title"
-          style="margin: 0 0 12px; font-size: var(--font-size-lg); font-weight: 600;"
-        >
-          Disable routing?
-        </h2>
-        <p style="margin: 0 0 20px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
-          All provider API keys and tier-to-model assignments will be permanently removed. If you
-          re-enable routing later, you will need to reconnect your providers and reconfigure each
-          tier.
-        </p>
-        <div style="display: flex; justify-content: flex-end; gap: 8px;">
-          <button class="btn btn--outline" onClick={() => props.onCancel()}>
-            Cancel
-          </button>
-          <button
-            class="btn btn--danger"
-            disabled={props.disabling()}
-            onClick={() => props.onConfirm()}
-          >
-            {props.disabling() ? <span class="spinner" /> : 'Disable'}
-          </button>
-        </div>
-      </div>
-    </div>
-  </Show>
 );

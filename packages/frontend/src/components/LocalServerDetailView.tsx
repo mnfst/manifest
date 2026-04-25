@@ -19,6 +19,13 @@ interface Props {
   editData?: CustomProviderData;
   onConnected: () => void;
   onBack: () => void;
+  /**
+   * Optional: open the generic custom-provider form as an escape hatch.
+   * Surfaced under the setup command when the provider hint supplies a
+   * `notReachableHint` (llama.cpp pre-b3800 builds don't expose
+   * `/v1/models`, so the probe can 404 even when the server is up).
+   */
+  onOpenCustomForm?: () => void;
 }
 
 interface ProbeState {
@@ -217,6 +224,7 @@ const LocalServerDetailView: Component<Props> = (props) => {
                   hint={hint()}
                   error={probe.error}
                   onRetry={retry}
+                  onOpenCustomForm={props.onOpenCustomForm}
                 />
               }
             >
@@ -409,6 +417,7 @@ const FailureState: Component<{
   hint?: LocalServerHint;
   error: unknown;
   onRetry: () => void;
+  onOpenCustomForm?: () => void;
 }> = (p) => {
   const errorMsg = () =>
     p.error instanceof Error ? p.error.message : 'Could not reach the server';
@@ -509,18 +518,50 @@ const FailureState: Component<{
               </Show>
             </button>
           </div>
-          <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin-top: 12px;">
-            Or open {p.providerName} → Developer → Start Server
-          </div>
-          <video
-            src="/icons/lmstudio-start-server.mp4"
-            autoplay
-            loop
-            muted
-            playsinline
-            disablepictureinpicture
-            style="margin-top: 12px; width: 100%; border-radius: var(--radius); border: 1px solid hsl(var(--border)); pointer-events: none;"
-          />
+          <Show when={p.hint!.setupNote}>
+            <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin-top: 8px; line-height: 1.5;">
+              {p.hint!.setupNote}
+            </div>
+          </Show>
+          {/* GUI-launch fallback + setup video are LM-Studio specific; gate
+              them on `persistsBindAcrossLaunches`, which today identifies
+              GUI-wrapped local providers (CLI-only providers like llama.cpp
+              don't have a "Developer → Start Server" menu to point at). */}
+          <Show when={p.hint!.persistsBindAcrossLaunches}>
+            <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin-top: 12px;">
+              Or open {p.providerName} → Developer → Start Server
+            </div>
+            <video
+              src="/icons/lmstudio-start-server.mp4"
+              autoplay
+              loop
+              muted
+              playsinline
+              disablepictureinpicture
+              style="margin-top: 12px; width: 100%; border-radius: var(--radius); border: 1px solid hsl(var(--border)); pointer-events: none;"
+            />
+          </Show>
+          <Show when={p.hint!.notReachableHint}>
+            {(hint) => (
+              <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin-top: 12px; line-height: 1.5;">
+                {hint().before}
+                <Show
+                  when={p.onOpenCustomForm}
+                  fallback={<span>&ldquo;{hint().linkLabel}&rdquo;</span>}
+                >
+                  <button
+                    type="button"
+                    class="link-button"
+                    onClick={p.onOpenCustomForm}
+                    style="background: none; border: none; padding: 0; color: hsl(var(--primary)); text-decoration: underline; cursor: pointer; font: inherit;"
+                  >
+                    {hint().linkLabel}
+                  </button>
+                </Show>
+                {hint().after}
+              </div>
+            )}
+          </Show>
         </div>
       </Show>
 

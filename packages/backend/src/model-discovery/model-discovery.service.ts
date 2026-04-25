@@ -1,6 +1,7 @@
 import { Injectable, Logger, Inject, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import type { AuthType } from 'manifest-shared';
 import { UserProvider } from '../entities/user-provider.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { ProviderModelFetcherService, filterNonChatModels } from './provider-model-fetcher.service';
@@ -156,10 +157,13 @@ export class ModelDiscoveryService {
       raw = await filterBySubscriptionAccess(raw, apiKey);
     }
 
-    const authType = provider.auth_type === 'subscription' ? 'subscription' : 'api_key';
+    // Preserve the full AuthType union (api_key / subscription / local) —
+    // narrowing to the two legacy values would drop the 'local' tag that the
+    // frontend uses to render the house badge and the Local tab.
+    const authType: AuthType = provider.auth_type;
     const enriched = raw.map((model) => ({
       ...this.enrichModel(model, provider.provider),
-      authType: authType as 'api_key' | 'subscription',
+      authType,
     }));
 
     // Filter out models confirmed to lack tool support (models.dev toolCall === false).
@@ -211,7 +215,7 @@ export class ModelDiscoveryService {
       const rawCached = p.cached_models;
       if (!Array.isArray(rawCached)) continue;
       const cached = filterNonChatModels(rawCached, p.provider.toLowerCase());
-      const providerAuthType = p.auth_type === 'subscription' ? 'subscription' : 'api_key';
+      const providerAuthType: AuthType = p.auth_type;
       for (const m of cached) {
         const effectiveAuthType = m.authType ?? providerAuthType;
         // Deduplicate by model ID + auth type so subscription and API key

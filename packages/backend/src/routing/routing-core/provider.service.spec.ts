@@ -20,14 +20,34 @@ jest.mock('../../common/utils/subscription-support', () => ({
   }),
 }));
 
-function makeMockRepo() {
-  return {
-    find: jest.fn().mockResolvedValue([]),
-    findOne: jest.fn().mockResolvedValue(null),
-    save: jest.fn().mockImplementation((entity: unknown) => Promise.resolve(entity)),
-    insert: jest.fn().mockResolvedValue(undefined),
-    update: jest.fn().mockResolvedValue(undefined),
+type MockRepo = {
+  find: jest.Mock;
+  findOne: jest.Mock;
+  save: jest.Mock;
+  insert: jest.Mock;
+  update: jest.Mock;
+  remove: jest.Mock;
+  manager: { transaction: jest.Mock };
+};
+
+function makeMockRepo(): MockRepo {
+  const find = jest.fn().mockResolvedValue([]);
+  const findOne = jest.fn().mockResolvedValue(null);
+  const save = jest.fn().mockImplementation((entity: unknown) => Promise.resolve(entity));
+  const insert = jest.fn().mockResolvedValue(undefined);
+  const update = jest.fn().mockResolvedValue(undefined);
+  const remove = jest.fn().mockResolvedValue(undefined);
+  const repoFacade = { find, findOne, save, insert, update, remove };
+  // The real Repository.manager.transaction(cb) invokes cb with an
+  // EntityManager; our mock invokes cb with a thin shim that routes
+  // getRepository() back to this same facade. Mirrors proxy-message-dedup's
+  // test setup so assertions stay at the repo level.
+  const manager = {
+    transaction: jest.fn(async (cb: (m: { getRepository: () => unknown }) => Promise<unknown>) =>
+      cb({ getRepository: () => repoFacade }),
+    ),
   };
+  return { find, findOne, save, insert, update, remove, manager };
 }
 
 function makeProvider(overrides: Partial<UserProvider> = {}): UserProvider {
@@ -280,6 +300,55 @@ describe('ProviderService', () => {
       expect(providerRepo.insert).toHaveBeenCalled();
       expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1');
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+  });
+
+  /* ── retagAuthType ── */
+
+  describe('retagAuthType', () => {
+    it('flips auth_type in place on the existing row without touching tier overrides', async () => {
+      const existing = makeProvider({
+        id: 'p-1',
+        provider: 'custom:abc',
+        auth_type: 'api_key',
+        api_key_encrypted: 'enc',
+      });
+      providerRepo.find.mockResolvedValue([existing]);
+
+      await service.retagAuthType('agent-1', 'custom:abc', 'local');
+
+      expect(existing.auth_type).toBe('local');
+      expect(providerRepo.save).toHaveBeenCalledWith(existing);
+      expect(autoAssign.recalculate).not.toHaveBeenCalled();
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+
+    it('removes a colliding destination row before flipping, protecting the unique index', async () => {
+      const target = makeProvider({
+        id: 'p-target',
+        provider: 'custom:abc',
+        auth_type: 'api_key',
+      });
+      const collision = makeProvider({
+        id: 'p-collision',
+        provider: 'custom:abc',
+        auth_type: 'local',
+      });
+      providerRepo.find.mockResolvedValue([target, collision]);
+
+      await service.retagAuthType('agent-1', 'custom:abc', 'local');
+
+      expect(providerRepo.remove).toHaveBeenCalledWith(collision);
+      expect(target.auth_type).toBe('local');
+    });
+
+    it('is a no-op when no active row matches the source auth_type', async () => {
+      providerRepo.find.mockResolvedValue([]);
+
+      await service.retagAuthType('agent-1', 'custom:abc', 'local');
+
+      expect(providerRepo.save).not.toHaveBeenCalled();
+      expect(routingCache.invalidateAgent).not.toHaveBeenCalled();
     });
   });
 

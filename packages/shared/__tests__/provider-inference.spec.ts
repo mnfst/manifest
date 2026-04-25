@@ -39,6 +39,8 @@ describe('inferProviderFromModel', () => {
     ['opencode-go/glm-5.1', 'opencode-go'],
     ['opencode-go/kimi-k2.5', 'opencode-go'],
     ['opencode-go/minimax-m2.7', 'opencode-go'],
+    ['llamacpp/Qwen3.5-9B-Q4_K_M.gguf', 'llamacpp'],
+    ['llamacpp/mistral-7b-instruct-v0.3.Q4_K_M.gguf', 'llamacpp'],
     ['openrouter/auto', 'openrouter'],
     ['anthropic/claude-sonnet-4', 'openrouter'],
   ])('infers %s as %s', (model, expected) => {

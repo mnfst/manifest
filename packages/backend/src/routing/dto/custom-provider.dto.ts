@@ -48,8 +48,8 @@ export class CreateCustomProviderDto {
   @IsNotEmpty()
   @MinLength(1)
   @MaxLength(50)
-  @Matches(/^[a-zA-Z0-9 _-]+$/, {
-    message: 'Name can only contain letters, numbers, spaces, hyphens, and underscores',
+  @Matches(/^[a-zA-Z0-9 ._-]+$/, {
+    message: 'Name can only contain letters, numbers, spaces, dots, hyphens, and underscores',
   })
   name!: string;
 
@@ -95,8 +95,8 @@ export class UpdateCustomProviderDto {
   @IsNotEmpty()
   @MinLength(1)
   @MaxLength(50)
-  @Matches(/^[a-zA-Z0-9 _-]+$/, {
-    message: 'Name can only contain letters, numbers, spaces, hyphens, and underscores',
+  @Matches(/^[a-zA-Z0-9 ._-]+$/, {
+    message: 'Name can only contain letters, numbers, spaces, dots, hyphens, and underscores',
   })
   name?: string;
 

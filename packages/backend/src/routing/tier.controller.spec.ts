@@ -1,21 +1,27 @@
 import { BadRequestException } from '@nestjs/common';
+import { Repository } from 'typeorm';
 import { TierController } from './tier.controller';
 import { TierService } from './routing-core/tier.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
+import { Agent } from '../entities/agent.entity';
 import type { AuthUser } from '../auth/auth.instance';
 
 describe('TierController', () => {
   const user = { id: 'user-1' } as AuthUser;
-  const agent = { id: 'agent-1', name: 'demo' };
+  const agent = {
+    id: 'agent-1',
+    name: 'demo',
+    tenant_id: 'tenant-1',
+    complexity_routing_enabled: true,
+  };
   let tierService: jest.Mocked<Partial<TierService>>;
-  let resolveAgentService: { resolve: jest.Mock };
+  let resolveAgentService: { resolve: jest.Mock; invalidate: jest.Mock };
+  let agentRepo: jest.Mocked<Partial<Repository<Agent>>>;
   let controller: TierController;
 
   beforeEach(() => {
     tierService = {
       getTiers: jest.fn().mockResolvedValue([]),
-      isComplexityEnabled: jest.fn().mockResolvedValue(true),
-      setComplexityEnabled: jest.fn().mockResolvedValue(undefined),
       setOverride: jest.fn(),
       clearOverride: jest.fn().mockResolvedValue(undefined),
       resetAllOverrides: jest.fn().mockResolvedValue(undefined),
@@ -23,10 +29,17 @@ describe('TierController', () => {
       setFallbacks: jest.fn().mockResolvedValue([]),
       clearFallbacks: jest.fn().mockResolvedValue(undefined),
     };
-    resolveAgentService = { resolve: jest.fn().mockResolvedValue(agent) };
+    resolveAgentService = {
+      resolve: jest.fn().mockResolvedValue(agent),
+      invalidate: jest.fn(),
+    };
+    agentRepo = {
+      update: jest.fn().mockResolvedValue(undefined),
+    };
     controller = new TierController(
       tierService as unknown as TierService,
       resolveAgentService as unknown as ResolveAgentService,
+      agentRepo as unknown as Repository<Agent>,
     );
   });
 
@@ -35,23 +48,6 @@ describe('TierController', () => {
     const rows = await controller.getTiers(user, { agentName: 'demo' });
     expect(rows).toEqual([{ tier: 'simple' }]);
     expect(tierService.getTiers).toHaveBeenCalledWith('agent-1', 'user-1');
-  });
-
-  it('GET /complexity returns the current flag', async () => {
-    (tierService.isComplexityEnabled as jest.Mock).mockResolvedValue(true);
-    const result = await controller.getComplexity(user, { agentName: 'demo' });
-    expect(result).toEqual({ enabled: true });
-    expect(tierService.isComplexityEnabled).toHaveBeenCalledWith('agent-1');
-  });
-
-  it('POST /complexity/toggle updates the flag and echoes it back', async () => {
-    const result = await controller.toggleComplexity(
-      user,
-      { agentName: 'demo' },
-      { enabled: false },
-    );
-    expect(result).toEqual({ ok: true, enabled: false });
-    expect(tierService.setComplexityEnabled).toHaveBeenCalledWith('agent-1', false);
   });
 
   it('PUT /tiers/:tier accepts the default slot', async () => {
@@ -116,5 +112,19 @@ describe('TierController', () => {
     await expect(controller.clearFallbacks(user, 'demo', 'bogus')).rejects.toBeInstanceOf(
       BadRequestException,
     );
+  });
+
+  it('GET complexity/status returns the current flag', async () => {
+    const result = await controller.getComplexityStatus(user, 'demo');
+    expect(result).toEqual({ enabled: true });
+  });
+
+  it('POST complexity/toggle flips the flag and invalidates cache', async () => {
+    const result = await controller.toggleComplexity(user, 'demo');
+    expect(result).toEqual({ enabled: false });
+    expect(agentRepo.update).toHaveBeenCalledWith('agent-1', {
+      complexity_routing_enabled: false,
+    });
+    expect(resolveAgentService.invalidate).toHaveBeenCalledWith('tenant-1', 'demo');
   });
 });

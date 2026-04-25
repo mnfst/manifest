@@ -141,6 +141,19 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: 'sk-...',
   },
   {
+    id: 'llamacpp',
+    displayName: 'llama.cpp',
+    aliases: ['llama.cpp', 'llama-cpp'],
+    openRouterPrefixes: [],
+    requiresApiKey: false,
+    localOnly: true,
+    tileOnly: true,
+    color: '#2d2d2d',
+    keyPrefix: '',
+    minKeyLength: 0,
+    keyPlaceholder: '',
+  },
+  {
     id: 'lmstudio',
     displayName: 'LM Studio',
     aliases: ['lm-studio', 'lm studio'],
@@ -239,6 +252,16 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
   },
 ] as const;
 
+/**
+ * Canonical IDs of providers that run on the user's own machine.
+ * Used by the backend (`getAuthType`) and the frontend (provider modal
+ * tabs, filtering) to decide whether a provider should be tagged
+ * `auth_type: 'local'` and surfaced under the Local tab.
+ */
+export const CANONICAL_LOCAL_IDS: ReadonlySet<string> = new Set(
+  SHARED_PROVIDERS.filter((p) => p.localOnly).map((p) => p.id),
+);
+
 /** Map from provider ID → shared entry. */
 export const SHARED_PROVIDER_BY_ID: ReadonlyMap<string, SharedProviderEntry> = new Map(
   SHARED_PROVIDERS.map((p) => [p.id, p]),
@@ -276,6 +299,8 @@ export interface LocalServerHint {
   defaultPort: number;
   /** One-line terminal command that starts the server with the right flags. */
   setupCommand: string;
+  /** Optional note displayed below the setup command (e.g. to explain placeholders). */
+  setupNote?: string;
   /** Where to send users who don't have the server installed yet (homepage / download page). */
   installUrl: string;
   /**
@@ -305,6 +330,19 @@ export interface LocalServerHint {
    * launch.
    */
   persistsBindAcrossLaunches?: boolean;
+  /**
+   * Optional extra copy shown in the failure state under the setup
+   * command, with a clickable link that opens the custom-provider form
+   * as an escape hatch. Used by llama.cpp to surface that pre-b3800
+   * builds don't expose `/v1/models` so the probe can 404 even when the
+   * server is up. Structured as three fields so the renderer doesn't
+   * have to parse a magic substring out of a free-form string.
+   */
+  notReachableHint?: {
+    before: string;
+    linkLabel: string;
+    after: string;
+  };
 }
 
 export const LOCAL_SERVER_HINTS: Readonly<Record<string, LocalServerHint>> = {
@@ -323,5 +361,20 @@ export const LOCAL_SERVER_HINTS: Readonly<Record<string, LocalServerHint>> = {
     dockerGuiFix:
       'LM Studio \u2192 \u2699 Developer \u2192 enable \u201cServe on Local Network\u201d',
     persistsBindAcrossLaunches: true,
+  },
+  llamacpp: {
+    defaultPort: 8080,
+    setupCommand: 'llama-server -m <your-model>.gguf --port 8080',
+    setupNote: 'Replace <your-model>.gguf with the path to a GGUF model on your machine.',
+    installUrl: 'https://github.com/ggml-org/llama.cpp#obtaining-and-quantizing-models',
+    dockerBindNote:
+      "llama-server only listens on 0.0.0.0 if you pass --host 0.0.0.0; the default bind isn't reachable from Docker.",
+    dockerBindCommand: 'llama-server -m <your-model>.gguf --host 0.0.0.0 --port 8080',
+    notReachableHint: {
+      before:
+        'Recent llama.cpp builds expose /v1/models by default. If yours 404s, upgrade llama-server or use ',
+      linkLabel: 'Add custom provider',
+      after: ' to register the model manually.',
+    },
   },
 };
