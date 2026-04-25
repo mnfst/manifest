@@ -736,7 +736,7 @@ describe('LocalServerDetailView', () => {
 
     await waitFor(() => {
       expect(container.textContent).toContain('llama-server');
-      expect(container.textContent).toContain('--host 0.0.0.0 --port 8080');
+      expect(container.textContent).toContain('--port 8080');
       expect(container.textContent).toContain('Recent llama.cpp builds expose /v1/models');
     });
 
@@ -786,7 +786,7 @@ describe('LocalServerDetailView', () => {
     ));
 
     await waitFor(() => {
-      expect(container.textContent).toContain('--host 0.0.0.0');
+      expect(container.textContent).toContain('<your-model>.gguf');
     });
     expect(container.textContent).not.toContain('Developer → Start Server');
     expect(container.querySelector('video')).toBeNull();
