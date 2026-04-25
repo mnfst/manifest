@@ -299,6 +299,8 @@ export interface LocalServerHint {
   defaultPort: number;
   /** One-line terminal command that starts the server with the right flags. */
   setupCommand: string;
+  /** Optional note displayed below the setup command (e.g. to explain placeholders). */
+  setupNote?: string;
   /** Where to send users who don't have the server installed yet (homepage / download page). */
   installUrl: string;
   /**
@@ -362,13 +364,12 @@ export const LOCAL_SERVER_HINTS: Readonly<Record<string, LocalServerHint>> = {
   },
   llamacpp: {
     defaultPort: 8080,
-    setupCommand:
-      './llama-server -m models/llama-3.1-8b-instruct.Q4_K_M.gguf --host 0.0.0.0 --port 8080',
-    installUrl: 'https://github.com/ggml-org/llama.cpp#readme',
+    setupCommand: 'llama-server -m <your-model>.gguf --port 8080',
+    setupNote: 'Replace <your-model>.gguf with the path to a GGUF model on your machine.',
+    installUrl: 'https://github.com/ggml-org/llama.cpp#obtaining-and-quantizing-models',
     dockerBindNote:
       "llama-server only listens on 0.0.0.0 if you pass --host 0.0.0.0; the default bind isn't reachable from Docker.",
-    dockerBindCommand:
-      './llama-server -m models/llama-3.1-8b-instruct.Q4_K_M.gguf --host 0.0.0.0 --port 8080',
+    dockerBindCommand: 'llama-server -m <your-model>.gguf --host 0.0.0.0 --port 8080',
     notReachableHint: {
       before:
         'Recent llama.cpp builds expose /v1/models by default. If yours 404s, upgrade llama-server or use ',

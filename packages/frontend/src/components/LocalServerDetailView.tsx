@@ -518,6 +518,11 @@ const FailureState: Component<{
               </Show>
             </button>
           </div>
+          <Show when={p.hint!.setupNote}>
+            <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin-top: 8px; line-height: 1.5;">
+              {p.hint!.setupNote}
+            </div>
+          </Show>
           {/* GUI-launch fallback + setup video are LM-Studio specific; gate
               them on `persistsBindAcrossLaunches`, which today identifies
               GUI-wrapped local providers (CLI-only providers like llama.cpp
