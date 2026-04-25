@@ -327,10 +327,10 @@ describe("ProviderSelectContent", () => {
       });
 
       // Back button dismisses the detail view and returns to the list
-      const backBtn = container.querySelector(".provider-detail__back") as HTMLButtonElement;
+      const backBtn = container.querySelector(".modal-back-btn") as HTMLButtonElement;
       fireEvent.click(backBtn);
       await waitFor(() => {
-        expect(container.querySelector(".provider-detail__back")).toBeNull();
+        expect(container.querySelector(".modal-back-btn")).toBeNull();
       });
     });
 
@@ -368,7 +368,7 @@ describe("ProviderSelectContent", () => {
       // After successful create, onConnected → goBack + onUpdate
       await waitFor(() => {
         expect(onUpdateLocal).toHaveBeenCalled();
-        expect(container.querySelector(".provider-detail__back")).toBeNull();
+        expect(container.querySelector(".modal-back-btn")).toBeNull();
       });
     });
 
@@ -555,7 +555,7 @@ describe("ProviderSelectContent", () => {
         // of an existing row).
         expect(form!.getAttribute('data-has-initial')).toBe('yes');
         expect(form!.getAttribute('data-has-prefill')).toBe('no');
-        expect(container.querySelector('.provider-detail__back')).toBeNull();
+        expect(container.querySelector('.modal-back-btn')).toBeNull();
       });
     });
 
@@ -635,12 +635,13 @@ describe("ProviderSelectContent", () => {
       });
       fireEvent.click(hintLink);
 
-      // After the click, the LocalServerDetailView "Back" chevron must be
-      // gone (we're no longer on that view) and the CustomProviderForm
-      // must be mounted — pick any anchor that only exists on that form.
+      // After the click, the LocalServerDetailView must be gone (we're no
+      // longer on that view) and the CustomProviderForm must be mounted.
+      // Both views share the .modal-back-btn class, so instead verify
+      // that a CustomProviderForm-specific element is present (name input).
       await waitFor(() => {
-        const backChevron = container.querySelector(".provider-detail__back");
-        expect(backChevron).toBeNull();
+        // LocalServerDetailView content must be gone
+        expect(container.textContent).not.toContain("llama-server");
         // CustomProviderForm surfaces inputs for name + base URL — check
         // for a text input with a placeholder or label that belongs to it.
         const inputs = container.querySelectorAll("input");

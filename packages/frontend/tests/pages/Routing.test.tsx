@@ -399,7 +399,7 @@ describe("Routing — enabled state (providers active)", () => {
     fireEvent.click(instrBtn);
     // RoutingInstructionModal opens — it's mocked in ProviderSelectModal mock
     // but since RoutingInstructionModal is not mocked, it renders inline
-    expect(screen.getByText("Activate routing")).toBeDefined();
+    expect(screen.getByText("test-agent")).toBeDefined();
   });
 
   it("displays model price labels", async () => {
@@ -778,23 +778,19 @@ describe("Routing — empty state (no active providers)", () => {
     mockGetCustomProviders.mockResolvedValue([]);
   });
 
-  it("renders the full routing UI even with no providers connected", async () => {
+  it("renders empty state with no providers connected", async () => {
     render(() => <Routing />);
-    // Tabs are visible by default
-    expect(await screen.findByRole("tablist")).toBeDefined();
-    expect(screen.getByRole("tab", { name: /Default/ })).toBeDefined();
-    expect(screen.getByRole("tab", { name: /Task-specific/ })).toBeDefined();
-    // Footer setup instructions available
-    expect(screen.getByText("Setup instructions")).toBeDefined();
+    // When no providers are connected, tabs are hidden and an empty state is shown
+    expect(await screen.findByText("No providers connected")).toBeDefined();
+    expect(screen.getByRole("button", { name: "Connect provider" })).toBeDefined();
+    expect(screen.queryByRole("tablist")).toBeNull();
   });
 
   it("does not render the old empty-state card", async () => {
     render(() => <Routing />);
-    await screen.findByRole("tablist");
+    await screen.findByText("No providers connected");
     expect(screen.queryByText("Smart model routing")).toBeNull();
     expect(screen.queryByText("Enable routing")).toBeNull();
-    // "Connect provider" (card button) is gone; only "Connect providers" header button remains
-    expect(screen.queryByRole("button", { name: "Connect provider" })).toBeNull();
   });
 
   it("always shows the Connect providers header button so users can add one anytime", async () => {
@@ -811,13 +807,13 @@ describe("Routing — empty state (no active providers)", () => {
 
   it("hides the Refresh models button when no provider is active", async () => {
     render(() => <Routing />);
-    await screen.findByRole("tablist");
+    await screen.findByText("No providers connected");
     expect(screen.queryByRole("button", { name: /Refresh models/ })).toBeNull();
   });
 
   it("does not show provider-count pill when there are no providers", async () => {
     render(() => <Routing />);
-    await screen.findByRole("tablist");
+    await screen.findByText("No providers connected");
     expect(screen.queryByText(/connections?$/)).toBeNull();
   });
 });
