@@ -4,7 +4,8 @@ import ModelSelectDropdown from './ModelSelectDropdown.jsx';
 import SetupStepAddProvider from './SetupStepAddProvider.jsx';
 import { PROVIDERS } from '../services/providers.js';
 import { getAgentKey } from '../services/api.js';
-import { agentPlatform } from '../services/agent-platform-store.js';
+import { agentPlatform, agentCategory } from '../services/agent-platform-store.js';
+import { platformIcon } from 'manifest-shared';
 
 interface Props {
   open: boolean;
@@ -78,13 +79,23 @@ const RoutingInstructionModal: Component<Props> = (props) => {
           aria-modal="true"
           aria-labelledby="routing-instruction-title"
         >
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-            <h2
-              id="routing-instruction-title"
-              style="margin: 0; font-size: var(--font-size-lg); font-weight: 600;"
-            >
-              {title()}
-            </h2>
+          <div class="setup-modal__header">
+            <div class="modal-card__title" id="routing-instruction-title">
+              <Show when={isEnable()}>
+                <Show when={platformIcon(agentPlatform(), agentCategory())}>
+                  <img
+                    src={platformIcon(agentPlatform(), agentCategory())}
+                    alt=""
+                    width="28"
+                    height="28"
+                    class="setup-modal__platform-icon"
+                  />
+                </Show>
+              </Show>
+              <Show when={isEnable()} fallback={<>Deactivate routing</>}>
+                Set up agent: <em>{props.agentName}</em>
+              </Show>
+            </div>
             <button class="modal__close" onClick={() => props.onClose()} aria-label="Close">
               <svg
                 width="16"
@@ -102,6 +113,11 @@ const RoutingInstructionModal: Component<Props> = (props) => {
               </svg>
             </button>
           </div>
+          <Show when={isEnable()}>
+            <p class="modal-card__desc">
+              Connect your agent to Manifest to start routing requests.
+            </p>
+          </Show>
 
           <Show
             when={isEnable()}

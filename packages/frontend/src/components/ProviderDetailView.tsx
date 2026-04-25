@@ -1,5 +1,4 @@
 import { Show, createSignal, type Component, type Accessor, type Setter } from 'solid-js';
-import { Portal as SolidPortal } from 'solid-js/web';
 import { PROVIDERS } from '../services/providers.js';
 import { providerIcon } from './ProviderIcon.js';
 import {
@@ -172,9 +171,6 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
             </Show>
           </div>
         </div>
-        <Show when={props.provId === 'anthropic'}>
-          <AnthropicCreditsLink />
-        </Show>
       </div>
 
       {/* Subscription sign-in URL instruction (token mode with external sign-in) */}
@@ -355,106 +351,6 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
           onUpdate={props.onUpdate}
         />
       </Show>
-    </div>
-  );
-};
-
-const AnthropicCreditsLink: Component = () => {
-  const [showTooltip, setShowTooltip] = createSignal(false);
-  const [tooltipPos, setTooltipPos] = createSignal({ top: 0, left: 0 });
-  let hideTimer: ReturnType<typeof setTimeout> | undefined;
-
-  const scheduleHide = () => {
-    hideTimer = setTimeout(() => setShowTooltip(false), 150);
-  };
-
-  const cancelHide = () => {
-    if (hideTimer) {
-      clearTimeout(hideTimer);
-      hideTimer = undefined;
-    }
-  };
-
-  const handleEnter = (e: MouseEvent) => {
-    cancelHide();
-    const el = e.currentTarget as HTMLElement;
-    const rect = el.getBoundingClientRect();
-    const tooltipWidth = 280;
-    let left = rect.left + rect.width / 2 - tooltipWidth / 2;
-    if (left + tooltipWidth > window.innerWidth - 8) left = window.innerWidth - tooltipWidth - 8;
-    if (left < 8) left = 8;
-    setTooltipPos({ top: rect.bottom + 4, left });
-    setShowTooltip(true);
-  };
-
-  return (
-    <div class="anthropic-credits">
-      <a
-        href="https://claude.ai/settings/usage"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="anthropic-credits__btn"
-      >
-        <svg
-          class="anthropic-credits__btn-icon"
-          xmlns="http://www.w3.org/2000/svg"
-          width="14"
-          height="14"
-          fill="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path d="m19,7h-.21c.13-.41.21-.9.21-1.5,0-1.93-1.57-3.5-3.5-3.5-1.62,0-2.7,1.48-3.4,3.09-.69-1.51-1.83-3.09-3.6-3.09-1.93,0-3.5,1.57-3.5,3.5,0,.6.08,1.09.21,1.5h-.21c-1.65,0-3,1.35-3,3,0,1.3.84,2.4,2,2.82v6.18c0,1.65,1.35,3,3,3h10c1.65,0,3-1.35,3-3v-6.18c1.16-.41,2-1.51,2-2.82,0-1.65-1.35-3-3-3Zm-3.5-3c.83,0,1.5.67,1.5,1.5,0,1.5-.63,1.5-1,1.5h-2.48c.51-1.58,1.25-3,1.98-3Zm-8.5,1.5c0-.83.67-1.5,1.5-1.5.89,0,1.71,1.53,2.2,3h-2.7c-.37,0-1,0-1-1.5Zm-2,3.5h6v2h-6c-.55,0-1-.45-1-1s.45-1,1-1Zm2,11c-.55,0-1-.45-1-1v-6h5v7h-4Zm10,0h-4v-7h5v6c0,.55-.45,1-1,1Zm2-9h-6v-1.92s.01-.06.02-.08h5.98c.55,0,1,.45,1,1s-.45,1-1,1Z" />
-        </svg>
-        Claim your credits on Claude
-      </a>
-      <div
-        class="anthropic-credits__info-wrapper"
-        onMouseEnter={handleEnter}
-        onMouseLeave={scheduleHide}
-      >
-        <svg
-          class="anthropic-credits__info-icon"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <circle cx="12" cy="12" r="10" />
-          <path d="M12 16v-4" />
-          <path d="M12 8h.01" />
-        </svg>
-        <Show when={showTooltip()}>
-          <SolidPortal>
-            <div
-              class="anthropic-credits__tooltip"
-              style={{ top: `${tooltipPos().top}px`, left: `${tooltipPos().left}px` }}
-              onMouseEnter={cancelHide}
-              onMouseLeave={scheduleHide}
-            >
-              <p>
-                Anthropic offers extra API credits to eligible Pro, Max, and Team plan subscribers.
-                Click the link to check your eligibility and available credits.
-              </p>
-              <p>
-                If you're not eligible, the page may not be accessible.{' '}
-                <a
-                  href="https://support.claude.com/en/articles/14246053-extra-usage-credit-for-pro-max-and-team-plans"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Learn more about eligibility
-                </a>
-              </p>
-            </div>
-          </SolidPortal>
-        </Show>
-      </div>
     </div>
   );
 };

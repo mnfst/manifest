@@ -262,33 +262,6 @@
   margin-bottom: 20px;
 }
 
-.provider-detail__back {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  padding: 8px;
-  margin: -8px;
-  margin-bottom: 4px;
-  color: hsl(var(--muted-foreground));
-  cursor: pointer;
-  transition: color var(--transition-fast);
-  /* Ensure 44px minimum touch target */
-  min-width: 44px;
-  min-height: 44px;
-}
-
-.provider-detail__back:hover {
-  color: hsl(var(--foreground));
-}
-
-.provider-detail__back:focus-visible {
-  outline: 2px solid hsl(var(--ring));
-  outline-offset: 2px;
-  border-radius: var(--radius);
-}
-
 .provider-detail__icon {
   max-width: 40px;
   display: flex;
@@ -321,90 +294,6 @@
   border-radius: var(--radius);
   background: hsl(var(--muted));
   color: hsl(var(--muted-foreground));
-}
-
-/* Anthropic credits link */
-.anthropic-credits {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-.anthropic-credits__btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 16px;
-  font-size: var(--font-size-xs);
-  font-weight: 500;
-  color: hsl(var(--background));
-  background: hsl(var(--foreground));
-  border: none;
-  border-radius: var(--radius);
-  text-decoration: none;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: opacity var(--transition-fast);
-}
-
-.anthropic-credits__btn:hover {
-  opacity: 0.85;
-}
-
-.anthropic-credits__btn-icon {
-  flex-shrink: 0;
-  display: block;
-}
-
-.anthropic-credits__info-wrapper {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  cursor: help;
-}
-
-.anthropic-credits__info-icon {
-  color: hsl(var(--muted-foreground));
-  transition: color var(--transition-fast);
-}
-
-.anthropic-credits__info-wrapper:hover .anthropic-credits__info-icon {
-  color: hsl(var(--foreground));
-}
-
-.anthropic-credits__tooltip {
-  position: fixed;
-  z-index: 10000;
-  width: 280px;
-  padding: 12px 14px;
-  background: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius-lg);
-  box-shadow:
-    0 8px 24px hsl(0 0% 0% / 0.12),
-    0 2px 8px hsl(0 0% 0% / 0.06);
-  font-size: var(--font-size-xs);
-  line-height: 1.5;
-  color: hsl(var(--foreground));
-}
-
-.anthropic-credits__tooltip p {
-  margin: 0;
-}
-
-.anthropic-credits__tooltip p + p {
-  margin-top: 8px;
-}
-
-.anthropic-credits__tooltip a {
-  color: hsl(var(--primary));
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.anthropic-credits__tooltip a:hover {
-  text-decoration-color: hsl(var(--primary) / 0.5);
 }
 
 .provider-detail__subtitle {
