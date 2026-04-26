@@ -22,12 +22,15 @@ interface SavingsCardProps {
 const SavingsCard: Component<SavingsCardProps> = (props) => {
   const [savings, { refetch, mutate }] = createResource(
     () => ({ range: props.range, agent: props.agentName, _ping: props.ping }),
-    (p) => getSavings(p.range, p.agent),
+    (p) => getSavings(p.range, p.agent).catch(() => null),
   );
 
   const [candidates] = createResource(
     () => props.agentName,
-    (name) => getBaselineCandidates(name),
+    (name) =>
+      getBaselineCandidates(name).catch(
+        () => [] as Awaited<ReturnType<typeof getBaselineCandidates>>,
+      ),
   );
 
   const [updating, setUpdating] = createSignal(false);
