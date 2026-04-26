@@ -130,4 +130,99 @@ describe('SavingsCard', () => {
     });
     expect(onOpen).toHaveBeenCalledWith('Claude Sonnet 4.5');
   });
+
+  it('populates baseline dropdown with candidates', async () => {
+    mockCandidatesResult = [
+      { id: 'model-a', display_name: 'Model A', provider: 'p1', input_price_per_token: 0.001, output_price_per_token: 0.002, price_per_million: 3.0, is_current: false },
+      { id: 'claude-sonnet-4-5', display_name: 'Claude Sonnet 4.5', provider: 'anthropic', input_price_per_token: 0.003, output_price_per_token: 0.015, price_per_million: 18.0, is_current: true },
+    ];
+    render(() => (
+      <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={noopData} />
+    ));
+    await vi.waitFor(() => {
+      expect(screen.getByLabelText('Baseline model')).toBeDefined();
+    });
+    screen.getByLabelText('Baseline model').click();
+    await vi.waitFor(() => {
+      expect(screen.getByText('Model A ($3.00/M)')).toBeDefined();
+    });
+  });
+
+  it('shows display name in select trigger', async () => {
+    render(() => (
+      <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={noopData} />
+    ));
+    await vi.waitFor(() => {
+      expect(screen.getByText('Claude Sonnet 4.5')).toBeDefined();
+    });
+  });
+
+  it('handles baseline change to a specific model', async () => {
+    const { updateBaseline: mockUpdate } = await import('../../src/services/api/analytics.js');
+    mockCandidatesResult = [
+      { id: 'gpt-4o', display_name: 'GPT-4o', provider: 'openai', input_price_per_token: 0.005, output_price_per_token: 0.015, price_per_million: 20.0, is_current: false },
+    ];
+    render(() => (
+      <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={noopData} />
+    ));
+    await vi.waitFor(() => {
+      screen.getByLabelText('Baseline model').click();
+    });
+    await vi.waitFor(() => {
+      screen.getByText('GPT-4o ($20.00/M)').click();
+    });
+    await vi.waitFor(() => {
+      expect(mockUpdate).toHaveBeenCalledWith('bot-1', 'gpt-4o');
+    });
+  });
+
+  it('handles baseline change to auto', async () => {
+    const { updateBaseline: mockUpdate } = await import('../../src/services/api/analytics.js');
+    render(() => (
+      <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={noopData} />
+    ));
+    await vi.waitFor(() => {
+      screen.getByLabelText('Baseline model').click();
+    });
+    await vi.waitFor(() => {
+      screen.getByText('Auto (cheapest that covers all tiers)').click();
+    });
+    await vi.waitFor(() => {
+      expect(mockUpdate).toHaveBeenCalledWith('bot-1', null);
+    });
+  });
+
+  it('shows toast on baseline update failure', async () => {
+    const { updateBaseline: mockUpdate } = await import('../../src/services/api/analytics.js');
+    const { toast: mockToast } = await import('../../src/services/toast-store.js');
+    (mockUpdate as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('fail'));
+    mockCandidatesResult = [
+      { id: 'gpt-4o', display_name: 'GPT-4o', provider: 'openai', input_price_per_token: 0.005, output_price_per_token: 0.015, price_per_million: 20.0, is_current: false },
+    ];
+    render(() => (
+      <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={noopData} />
+    ));
+    await vi.waitFor(() => {
+      screen.getByLabelText('Baseline model').click();
+    });
+    await vi.waitFor(() => {
+      screen.getByText('GPT-4o ($20.00/M)').click();
+    });
+    await vi.waitFor(() => {
+      expect(mockToast.error).toHaveBeenCalledWith('Failed to update baseline model');
+    });
+  });
+
+  it('returns __auto__ when baseline_model.id differs from is_current candidate', async () => {
+    mockCandidatesResult = [
+      { id: 'other-model', display_name: 'Other', provider: 'p1', input_price_per_token: 0.001, output_price_per_token: 0.002, price_per_million: 3.0, is_current: true },
+    ];
+    const onData = vi.fn();
+    render(() => (
+      <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={onData} />
+    ));
+    await vi.waitFor(() => {
+      expect(onData).toHaveBeenCalledWith(12.47, 67);
+    });
+  });
 });
