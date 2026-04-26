@@ -37,7 +37,15 @@ describe('ProxyMessageRecorder', () => {
           }),
         ),
     } as never;
-    recorder = new ProxyMessageRecorder(repo, pricingCache, dedup, eventBus, customProviders);
+    const providerService = { getProviders: jest.fn().mockResolvedValue([]) } as never;
+    recorder = new ProxyMessageRecorder(
+      repo,
+      pricingCache,
+      dedup,
+      eventBus,
+      customProviders,
+      providerService,
+    );
   });
 
   afterEach(() => {
@@ -621,12 +629,14 @@ describe('ProxyMessageRecorder', () => {
             }),
           ),
       } as never;
+      const providerService = { getProviders: jest.fn().mockResolvedValue([]) } as never;
       recorder = new ProxyMessageRecorder(
         repo,
         pricingCache,
         dedupWithLock,
         eventBus,
         passthroughCustomProviders,
+        providerService,
       );
     });
 
@@ -963,12 +973,14 @@ describe('ProxyMessageRecorder', () => {
             }),
           ),
       } as never;
+      const providerService = { getProviders: jest.fn().mockResolvedValue([]) } as never;
       recorder = new ProxyMessageRecorder(
         repo,
         pricingCache,
         dedupWithLock,
         eventBus,
         passthroughCustomProviders,
+        providerService,
       );
 
       // Insert path
@@ -1130,12 +1142,14 @@ describe('ProxyMessageRecorder with real CustomProviderService', () => {
       pricingCache,
     );
 
+    const mockProviderService = { getProviders: jest.fn().mockResolvedValue([]) } as never;
     const recorder = new ProxyMessageRecorder(
       messageRepo,
       pricingCache,
       dedup,
       eventBus,
       customProviders,
+      mockProviderService,
     );
     return { recorder, insertMock };
   }

@@ -150,6 +150,7 @@ describe('ProxyController', () => {
       new ProxyMessageDedup(),
       { emit: jest.fn() } as unknown as IngestEventBusService,
       mockCustomProviders as never,
+      { getProviders: jest.fn().mockResolvedValue([]) } as never,
     );
     controller = new ProxyController(
       proxyService as never,
@@ -1768,6 +1769,7 @@ describe('ProxyController', () => {
               }),
             ),
         } as never,
+        { getProviders: jest.fn().mockResolvedValue([]) } as never,
       );
 
       const cooldownMap = (timedRecorder as any).rateLimitCooldown as Map<string, number>;
@@ -1799,6 +1801,7 @@ describe('ProxyController', () => {
               }),
             ),
         } as never,
+        { getProviders: jest.fn().mockResolvedValue([]) } as never,
       );
 
       timedRecorder.onModuleDestroy();

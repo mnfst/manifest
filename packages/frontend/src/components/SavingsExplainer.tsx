@@ -47,11 +47,14 @@ const SavingsExplainer: Component<SavingsExplainerProps> = (props) => {
             messages to complex reasoning tasks.
           </p>
           <p>
-            By default, the cheapest reasoning-capable model is selected from all models your agent
-            has ever used, as well as models from your currently connected providers. If you used a
-            provider in the past and later disconnected it, its models remain available as baseline
-            candidates. You can change the baseline at any time from the dropdown on the Overview
-            page.
+            In auto mode, the baseline is computed per request. At the time each request is
+            processed, the cheapest reasoning-capable model from your connected providers is
+            selected as the baseline for that specific request. This means the baseline can vary
+            over time as you connect or disconnect providers.
+          </p>
+          <p>
+            You can also pick a specific model from the dropdown on the Overview page. In that case,
+            all requests are compared against that single model regardless of when they were made.
           </p>
           {props.baselineModelName && (
             <p>

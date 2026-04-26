@@ -13,6 +13,8 @@ import { computeTokenCost } from '../../common/utils/cost-calculator';
 import { scrubSecrets } from '../../common/utils/secret-scrub';
 import { CallerAttribution } from './caller-classifier';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
+import { ProviderService } from '../routing-core/provider.service';
+import { computeBaselineCost } from '../../common/utils/baseline-cost';
 
 export interface HeaderTierRef {
   headerTierId?: string | null;
@@ -101,6 +103,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     private readonly dedup: ProxyMessageDedup,
     private readonly eventBus: IngestEventBusService,
     private readonly customProviders: CustomProviderService,
+    private readonly providerService: ProviderService,
   ) {
     this.cooldownCleanupTimer = setInterval(() => this.evictExpiredCooldowns(), 60_000);
     if (typeof this.cooldownCleanupTimer === 'object' && 'unref' in this.cooldownCleanupTimer) {
@@ -339,6 +342,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       isSubscription: authType === 'subscription',
     });
 
+    const baseline = await this.computeBaseline(ctx.agentId, inputTokens, outputTokens);
+
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
       ctx.agentId,
       provider,
@@ -372,6 +377,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         header_tier_id: headerTierId ?? null,
         header_tier_name: headerTierName ?? null,
         header_tier_color: headerTierColor ?? null,
+        baseline_model_id: baseline?.modelId ?? null,
+        baseline_cost_usd: baseline?.cost ?? null,
       }),
     );
     this.eventBus.emit(ctx.userId);
@@ -406,6 +413,12 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       pricing: this.pricingCache.getByModel(model),
       isSubscription: authType === 'subscription',
     });
+
+    const baseline = await this.computeBaseline(
+      ctx.agentId,
+      usage.prompt_tokens,
+      usage.completion_tokens,
+    );
 
     // `model` is a required string, so the overload on
     // `canonicalizeAgentMessageKeys` keeps `canonical.model` non-null.
@@ -457,6 +470,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               header_tier_id: headerTierId ?? null,
               header_tier_name: headerTierName ?? null,
               header_tier_color: headerTierColor ?? null,
+              baseline_model_id: baseline?.modelId ?? null,
+              baseline_cost_usd: baseline?.cost ?? null,
             };
             if (normalizedSessionKey) updatePayload.session_key = normalizedSessionKey;
 
@@ -490,6 +505,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               header_tier_id: headerTierId ?? null,
               header_tier_name: headerTierName ?? null,
               header_tier_color: headerTierColor ?? null,
+              baseline_model_id: baseline?.modelId ?? null,
+              baseline_cost_usd: baseline?.cost ?? null,
             }),
           );
           wrote = true;
@@ -497,6 +514,19 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       },
     );
     if (wrote) this.eventBus.emit(ctx.userId);
+  }
+
+  private async computeBaseline(
+    agentId: string,
+    inputTokens: number,
+    outputTokens: number,
+  ): Promise<{ modelId: string; cost: number } | null> {
+    try {
+      const providers = await this.providerService.getProviders(agentId);
+      return computeBaselineCost(providers, inputTokens, outputTokens);
+    } catch {
+      return null;
+    }
   }
 
   private evictExpiredCooldowns(): void {

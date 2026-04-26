@@ -27,6 +27,7 @@ export interface SavingsResult {
   baseline_override_stale: boolean;
   request_count: number;
   trend_pct: number;
+  is_auto: boolean;
   savings_by_auth_type: {
     api_key: number;
     subscription: number;
@@ -42,70 +43,6 @@ export interface BaselineCandidate {
   output_price_per_token: number;
   price_per_million: number;
   is_current: boolean;
-}
-
-export function selectBaselineModel(
-  providers: UserProvider[],
-  historicalModels: BaselineModel[],
-): DiscoveredModel | null {
-  const allModels: DiscoveredModel[] = [];
-
-  for (const p of providers) {
-    if (!p.cached_models || !p.is_active) continue;
-    let models: DiscoveredModel[];
-    try {
-      models = typeof p.cached_models === 'string' ? JSON.parse(p.cached_models) : p.cached_models;
-    } catch {
-      continue;
-    }
-    if (!Array.isArray(models)) continue;
-    for (const m of models) {
-      if (
-        m &&
-        typeof m.inputPricePerToken === 'number' &&
-        typeof m.outputPricePerToken === 'number' &&
-        m.inputPricePerToken > 0 &&
-        m.outputPricePerToken > 0
-      ) {
-        allModels.push(m);
-      }
-    }
-  }
-
-  const seen = new Set(allModels.map((m) => m.id));
-  for (const h of historicalModels) {
-    if (!seen.has(h.id)) {
-      seen.add(h.id);
-      allModels.push({
-        id: h.id,
-        displayName: h.display_name,
-        provider: h.provider,
-        contextWindow: 0,
-        inputPricePerToken: h.input_price_per_token,
-        outputPricePerToken: h.output_price_per_token,
-        capabilityReasoning: false,
-        capabilityCode: false,
-        qualityScore: 0,
-      });
-    }
-  }
-
-  if (allModels.length === 0) return null;
-
-  const reasoningCapable = allModels.filter((m) => m.capabilityReasoning === true);
-
-  if (reasoningCapable.length > 0) {
-    reasoningCapable.sort(
-      (a, b) =>
-        a.inputPricePerToken! +
-        a.outputPricePerToken! -
-        (b.inputPricePerToken! + b.outputPricePerToken!),
-    );
-    return reasoningCapable[0]!;
-  }
-
-  const byQuality = [...allModels].sort((a, b) => (b.qualityScore ?? 0) - (a.qualityScore ?? 0));
-  return byQuality[0]!;
 }
 
 @Injectable()
@@ -132,8 +69,115 @@ export class SavingsQueryService {
 
     if (!agent) return this.emptySavings();
 
-    const { baseline, overrideStale } = await this.resolveBaseline(agent);
+    const isAuto = !agent.savings_baseline_model;
 
+    if (isAuto) {
+      return this.getSavingsAuto(range, userId, agentName, tenantId);
+    }
+
+    return this.getSavingsOverride(range, userId, agentName, agent, tenantId);
+  }
+
+  private async getSavingsAuto(
+    range: string,
+    userId: string,
+    agentName: string,
+    tenantId?: string,
+  ): Promise<SavingsResult> {
+    const cutoff = computeCutoff(rangeToInterval(range));
+    const prevCutoff = computeCutoff(rangeToPreviousInterval(range));
+    const safeCost = sqlSanitizeCost('at.cost_usd');
+    const safeBaseline = sqlSanitizeCost('at.baseline_cost_usd');
+
+    const qb = this.messageRepo.createQueryBuilder('at');
+    addTenantFilter(qb, userId, agentName, tenantId);
+    qb.andWhere('at.timestamp >= :cutoff', { cutoff });
+    qb.andWhere("at.status = 'ok'");
+
+    qb.select('COUNT(*)::int', 'request_count');
+    qb.addSelect(
+      `COALESCE(SUM(CASE WHEN ${safeCost} IS NOT NULL THEN ${safeCost} ELSE 0 END), 0)`,
+      'actual_cost',
+    );
+    qb.addSelect(
+      `COALESCE(SUM(CASE WHEN ${safeBaseline} IS NOT NULL THEN ${safeBaseline} ELSE 0 END), 0)`,
+      'baseline_cost',
+    );
+    qb.addSelect(
+      `COALESCE(SUM(
+        CASE WHEN ${safeBaseline} IS NOT NULL THEN ${safeBaseline} ELSE 0 END
+        - CASE WHEN ${safeCost} IS NOT NULL THEN ${safeCost} ELSE 0 END
+      ), 0)`,
+      'total_saved',
+    );
+    qb.addSelect(
+      `COALESCE(SUM(CASE WHEN at.auth_type = 'api_key' AND ${safeBaseline} IS NOT NULL THEN
+        ${safeBaseline} - CASE WHEN ${safeCost} IS NOT NULL THEN ${safeCost} ELSE 0 END
+        ELSE 0 END), 0)`,
+      'saved_api_key',
+    );
+    qb.addSelect(
+      `COALESCE(SUM(CASE WHEN at.auth_type = 'subscription' AND ${safeBaseline} IS NOT NULL THEN
+        ${safeBaseline} ELSE 0 END), 0)`,
+      'saved_subscription',
+    );
+    qb.addSelect(
+      `COALESCE(SUM(CASE WHEN at.auth_type = 'local' AND ${safeBaseline} IS NOT NULL THEN
+        ${safeBaseline} ELSE 0 END), 0)`,
+      'saved_local',
+    );
+
+    const row = await qb.getRawOne();
+
+    const totalSaved = Math.max(0, Number(row?.total_saved ?? 0));
+    const baselineCost = Number(row?.baseline_cost ?? 0);
+    const actualCost = Number(row?.actual_cost ?? 0);
+    const requestCount = Number(row?.request_count ?? 0);
+    const savingsPct = baselineCost > 0 ? Math.round((totalSaved / baselineCost) * 100) : 0;
+
+    const prevQb = this.messageRepo.createQueryBuilder('at');
+    addTenantFilter(prevQb, userId, agentName, tenantId);
+    prevQb.andWhere('at.timestamp >= :prevCutoff AND at.timestamp < :cutoff', {
+      prevCutoff,
+      cutoff,
+    });
+    prevQb.andWhere("at.status = 'ok'");
+    prevQb.select(
+      `COALESCE(SUM(
+        CASE WHEN ${safeBaseline} IS NOT NULL THEN ${safeBaseline} ELSE 0 END
+        - CASE WHEN ${safeCost} IS NOT NULL THEN ${safeCost} ELSE 0 END
+      ), 0)`,
+      'prev_saved',
+    );
+    const prevRow = await prevQb.getRawOne();
+    const prevSaved = Math.max(0, Number(prevRow?.prev_saved ?? 0));
+
+    return {
+      total_saved: totalSaved,
+      savings_pct: savingsPct,
+      actual_cost: actualCost,
+      baseline_cost: baselineCost,
+      baseline_model: null,
+      baseline_override_stale: false,
+      request_count: requestCount,
+      trend_pct: computeTrend(totalSaved, prevSaved),
+      is_auto: true,
+      savings_by_auth_type: {
+        api_key: Math.max(0, Number(row?.saved_api_key ?? 0)),
+        subscription: Math.max(0, Number(row?.saved_subscription ?? 0)),
+        local: Math.max(0, Number(row?.saved_local ?? 0)),
+      },
+    };
+  }
+
+  private async getSavingsOverride(
+    range: string,
+    userId: string,
+    agentName: string,
+    agent: Agent,
+    tenantId?: string,
+  ): Promise<SavingsResult> {
+    const { baseline, overrideStale } = await this.resolveOverrideBaseline(agent);
     if (!baseline) return this.emptySavings();
 
     const inputPrice = baseline.input_price_per_token;
@@ -141,7 +185,6 @@ export class SavingsQueryService {
 
     const cutoff = computeCutoff(rangeToInterval(range));
     const prevCutoff = computeCutoff(rangeToPreviousInterval(range));
-
     const safeCost = sqlSanitizeCost('at.cost_usd');
 
     const qb = this.messageRepo.createQueryBuilder('at');
@@ -222,6 +265,7 @@ export class SavingsQueryService {
       baseline_override_stale: overrideStale,
       request_count: requestCount,
       trend_pct: computeTrend(totalSaved, prevSaved),
+      is_auto: false,
       savings_by_auth_type: {
         api_key: Math.max(0, Number(row?.saved_api_key ?? 0)),
         subscription: Math.max(0, Number(row?.saved_subscription ?? 0)),
@@ -241,7 +285,6 @@ export class SavingsQueryService {
     const candidates: BaselineCandidate[] = [];
     const seen = new Set<string>();
 
-    // Models from currently connected providers
     for (const p of providers) {
       if (!p.cached_models) continue;
       let models: DiscoveredModel[];
@@ -277,7 +320,6 @@ export class SavingsQueryService {
       }
     }
 
-    // Historical models from past messages (not in current providers)
     const historical = await this.getHistoricalModels(agentId);
     for (const h of historical) {
       if (seen.has(h.id)) continue;
@@ -304,39 +346,32 @@ export class SavingsQueryService {
     });
   }
 
-  private async resolveBaseline(
+  private async resolveOverrideBaseline(
     agent: Agent,
   ): Promise<{ baseline: BaselineModel | null; overrideStale: boolean }> {
+    if (!agent.savings_baseline_model) {
+      return { baseline: null, overrideStale: false };
+    }
+
     const providers = await this.providerRepo.find({
       where: { agent_id: agent.id, is_active: true },
     });
 
-    const historical = await this.getHistoricalModels(agent.id);
-
-    if (agent.savings_baseline_model) {
-      // Check current providers first
-      const overrideModel = this.findModelById(providers, agent.savings_baseline_model);
-      if (overrideModel) {
-        return {
-          baseline: this.toBaselineModel(overrideModel),
-          overrideStale: false,
-        };
-      }
-      // Check historical models
-      const historicalMatch = historical.find((h) => h.id === agent.savings_baseline_model);
-      if (historicalMatch) {
-        return { baseline: historicalMatch, overrideStale: false };
-      }
-      // Override is truly stale (model not in providers or history)
+    const overrideModel = this.findModelById(providers, agent.savings_baseline_model);
+    if (overrideModel) {
+      return {
+        baseline: this.toBaselineModel(overrideModel),
+        overrideStale: false,
+      };
     }
 
-    const auto = selectBaselineModel(providers, historical);
-    if (!auto) return { baseline: null, overrideStale: false };
+    const historical = await this.getHistoricalModels(agent.id);
+    const historicalMatch = historical.find((h) => h.id === agent.savings_baseline_model);
+    if (historicalMatch) {
+      return { baseline: historicalMatch, overrideStale: false };
+    }
 
-    return {
-      baseline: this.toBaselineModel(auto),
-      overrideStale: !!agent.savings_baseline_model,
-    };
+    return { baseline: null, overrideStale: true };
   }
 
   private async getHistoricalModels(agentId: string): Promise<BaselineModel[]> {
@@ -416,6 +451,7 @@ export class SavingsQueryService {
       baseline_override_stale: false,
       request_count: 0,
       trend_pct: 0,
+      is_auto: true,
       savings_by_auth_type: {
         api_key: 0,
         subscription: 0,

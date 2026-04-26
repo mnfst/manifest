@@ -27,6 +27,7 @@ export interface SavingsData {
   baseline_override_stale: boolean;
   request_count: number;
   trend_pct: number;
+  is_auto: boolean;
   savings_by_auth_type: {
     api_key: number;
     subscription: number;

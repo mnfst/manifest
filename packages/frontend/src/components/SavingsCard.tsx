@@ -35,18 +35,24 @@ const SavingsCard: Component<SavingsCardProps> = (props) => {
 
   const [updating, setUpdating] = createSignal(false);
 
-  createEffect(() => {
+  const hasSavingsData = () => {
     const d = savings();
-    if (!d?.baseline_model || savings.loading || updating()) {
+    if (!d || savings.loading || updating()) return false;
+    return d.is_auto || !!d.baseline_model;
+  };
+
+  createEffect(() => {
+    if (!hasSavingsData()) {
       props.onData(null, null);
       return;
     }
+    const d = savings()!;
     props.onData(d.total_saved, d.savings_pct);
   });
 
   const baselineOptions = () => {
     const list: Array<{ label: string; value: string }> = [
-      { label: 'Auto (cheapest that covers all tiers)', value: '__auto__' },
+      { label: 'Auto (per-request baseline)', value: '__auto__' },
     ];
     const items = candidates();
     if (items) {
@@ -63,11 +69,13 @@ const SavingsCard: Component<SavingsCardProps> = (props) => {
   const currentBaselineValue = () => {
     const d = savings();
     if (!d?.baseline_model) return '__auto__';
-    const items = candidates();
-    if (items?.some((c) => c.is_current && c.id !== d.baseline_model!.id)) {
-      return '__auto__';
-    }
     return d.baseline_model.id;
+  };
+
+  const displayValue = () => {
+    const d = savings();
+    if (d?.is_auto) return 'Auto';
+    return d?.baseline_model?.display_name ?? undefined;
   };
 
   const handleBaselineChange = async (value: string) => {
@@ -85,14 +93,14 @@ const SavingsCard: Component<SavingsCardProps> = (props) => {
   };
 
   return (
-    <Show when={!savings.error && savings()?.baseline_model}>
+    <Show when={hasSavingsData()}>
       <span class="savings-controls__vs">vs</span>
       <Select
         value={currentBaselineValue()}
         onChange={handleBaselineChange}
         options={baselineOptions()}
         label="Baseline model"
-        displayValue={savings()?.baseline_model?.display_name ?? undefined}
+        displayValue={displayValue()}
       />
       <button
         class="savings-controls__info-btn"
