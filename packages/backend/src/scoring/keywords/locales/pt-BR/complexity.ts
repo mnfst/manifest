@@ -3,9 +3,12 @@
  * Merged with the base English set at scoring time when the prompt
  * language is detected as Portuguese (pt, pt-BR, pt-PT).
  *
- * Structure mirrors complexity.ts — each key matches a scoring dimension.
+ * Structure is typed as ComplexityDimensions — all 14 canonical dimensions
+ * must be present so the TypeScript compiler catches incomplete locales.
  */
-export const COMPLEXITY_KEYWORDS_PT_BR: Record<string, string[]> = {
+import { ComplexityDimensions } from '../index';
+
+export const COMPLEXITY_KEYWORDS_PT_BR: ComplexityDimensions = {
   formalLogic: [
     'prove',
     'prove que',
@@ -217,6 +220,40 @@ export const COMPLEXITY_KEYWORDS_PT_BR: Record<string, string[]> = {
     'formato estruturado',
     'me retorne',
     'retorne no formato',
+  ],
+
+  // Fix P2a: add missing canonical dimensions so type check passes
+  questionComplexity: [
+    'como x se relaciona com y',
+    'quais as implicações',
+    'sob quais condições',
+    'o que acontece quando',
+    'por que isso ocorre',
+    'como isso funciona',
+    'qual é o impacto de',
+    'em que contexto',
+    'qual a relação entre',
+  ],
+
+  domainSpecificity: [
+    'p-valor',
+    'hipaa',
+    'lgpd',
+    'gdpr',
+    'autovalor',
+    'transformada de fourier',
+    'bayesiano',
+    'genoma',
+    'sequenciamento',
+    'machine learning',
+    'aprendizado de máquina',
+    'rede neural',
+    'gradiente',
+    'backpropagation',
+    'criptografia assimétrica',
+    'blockchain',
+    'smart contract',
+    'computação quântica',
   ],
 
   agenticTasks: [

@@ -24,8 +24,27 @@ import { TRADING_KEYWORDS_PT_BR } from './pt-BR/trading';
 import { VIDEO_GENERATION_KEYWORDS_PT_BR } from './pt-BR/video-generation';
 import { WEB_BROWSING_KEYWORDS_PT_BR } from './pt-BR/web-browsing';
 
+// ─── Fix P2a: strict type matching all 14 canonical complexity dimensions ────
+// This ensures TypeScript catches incomplete locale files at compile time.
+export type ComplexityDimensions = {
+  formalLogic: string[];
+  analyticalReasoning: string[];
+  codeGeneration: string[];
+  codeReview: string[];
+  technicalTerms: string[];
+  simpleIndicators: string[];
+  multiStep: string[];
+  creative: string[];
+  questionComplexity: string[];
+  imperativeVerbs: string[];
+  outputFormat: string[];
+  domainSpecificity: string[];
+  agenticTasks: string[];
+  relay: string[];
+};
+
 export interface LocaleKeywords {
-  complexity: Record<string, string[]>;
+  complexity: ComplexityDimensions;
   calendarManagement: string[];
   dataAnalysis: string[];
   emailManagement: string[];
@@ -36,8 +55,29 @@ export interface LocaleKeywords {
   webBrowsing: string[];
 }
 
+// ─── Fix P1: franc-min returns ISO-639-3 codes; map them to BCP-47 ──────────
+// See: https://github.com/wooorm/franc#output
+// 'por' (Portuguese), 'spa' (Spanish), 'fra' (French), 'deu' (German), etc.
+const ISO639_3_TO_BCP47: Record<string, string> = {
+  por: 'pt',
+  spa: 'es',
+  fra: 'fr',
+  deu: 'de',
+  jpn: 'ja',
+  zho: 'zh',
+  kor: 'ko',
+  ita: 'it',
+  nld: 'nl',
+  pol: 'pl',
+  rus: 'ru',
+  tur: 'tr',
+  ara: 'ar',
+  hin: 'hi',
+  eng: 'en',
+};
+
 /**
- * Map from BCP-47 language tag (as returned by franc) to locale keyword sets.
+ * Map from BCP-47 language tag to locale keyword sets.
  * Add new locales here as they are implemented.
  */
 export const LOCALE_KEYWORDS: Record<string, LocaleKeywords> = {
@@ -71,34 +111,40 @@ export const LOCALE_KEYWORDS: Record<string, LocaleKeywords> = {
 
 /**
  * Detects the language of a text string.
- * Returns the BCP-47 language code (e.g. 'pt', 'en', 'es') or null if
- * detection confidence is too low (< 0.5).
  *
- * Uses franc-min for detection — install with: npm install franc-min
- * Falls back to MANIFEST_LOCALE env var if franc is unavailable.
+ * Returns a BCP-47 language code (e.g. 'pt', 'en', 'es') or null if
+ * detection is undetermined or confidence is too low.
+ *
+ * Fix P1: franc-min returns ISO-639-3 codes (e.g. 'por'), which are
+ * normalised here to BCP-47 (e.g. 'pt') before locale lookup.
+ *
+ * Falls back to MANIFEST_LOCALE env var if franc-min is not installed.
  */
 export function detectLanguage(text: string): string | null {
-  // 1. Check env override first
+  // 1. Env override always wins
   const envLocale = process.env.MANIFEST_LOCALE;
   if (envLocale) return envLocale;
 
-  // 2. Try franc-min for auto-detection
+  // 2. Try franc-min
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { franc } = require('franc-min') as { franc: (text: string) => string };
-    const lang = franc(text);
-    // franc returns 'und' when undetermined
-    if (lang && lang !== 'und') return lang;
+    const raw = franc(text); // e.g. 'por', 'eng', 'und'
+    if (!raw || raw === 'und') return null;
+    // Normalise ISO-639-3 → BCP-47
+    return ISO639_3_TO_BCP47[raw] ?? raw;
   } catch {
-    // franc-min not installed — skip detection, use English
+    // franc-min not installed — degrade to English-only
   }
 
   return null;
 }
 
 /**
- * Returns the locale keyword set for a given language code, or null if the
- * language is not supported (falls through to English-only scoring).
+ * Returns the locale keyword set for a given BCP-47 language code,
+ * or null if the language is unsupported (falls through to English scoring).
+ *
+ * Handles both exact matches ('pt-BR') and base-language fallbacks ('pt').
  */
 export function getLocaleKeywords(lang: string | null): LocaleKeywords | null {
   if (!lang) return null;
