@@ -14,6 +14,7 @@ import { scrubSecrets } from '../../common/utils/secret-scrub';
 import { CallerAttribution } from './caller-classifier';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
 import { ProviderService } from '../routing-core/provider.service';
+import { ModelsDevSyncService } from '../../database/models-dev-sync.service';
 import { computeBaselineCost } from '../../common/utils/baseline-cost';
 
 export interface HeaderTierRef {
@@ -104,6 +105,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     private readonly eventBus: IngestEventBusService,
     private readonly customProviders: CustomProviderService,
     private readonly providerService: ProviderService,
+    private readonly modelsDevSync: ModelsDevSyncService,
   ) {
     this.cooldownCleanupTimer = setInterval(() => this.evictExpiredCooldowns(), 60_000);
     if (typeof this.cooldownCleanupTimer === 'object' && 'unref' in this.cooldownCleanupTimer) {
@@ -523,7 +525,13 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
   ): Promise<{ modelId: string; cost: number } | null> {
     try {
       const providers = await this.providerService.getProviders(agentId);
-      return computeBaselineCost(providers, inputTokens, outputTokens);
+      return computeBaselineCost(
+        providers,
+        inputTokens,
+        outputTokens,
+        this.pricingCache,
+        this.modelsDevSync,
+      );
     } catch {
       return null;
     }

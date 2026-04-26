@@ -153,3 +153,58 @@
   border-radius: 50%;
   background: hsl(var(--muted-foreground) / 0.4);
 }
+
+/* ── Examples (Apple invoice style) ──────────────── */
+.savings-explainer__example {
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  margin-bottom: var(--gap-md);
+  overflow: hidden;
+}
+
+.savings-explainer__example--total {
+  border: none;
+  margin-top: var(--gap-sm);
+}
+
+.savings-explainer__example-title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  padding: var(--gap-sm) var(--gap-md);
+  background: hsl(var(--card));
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.savings-explainer__example-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--gap-xs) var(--gap-md);
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  border-bottom: 1px solid hsl(var(--border) / 0.5);
+}
+
+.savings-explainer__example-row:last-child {
+  border-bottom: none;
+}
+
+.savings-explainer__example-row--result {
+  background: hsl(var(--card));
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  padding: var(--gap-sm) var(--gap-md);
+}
+
+.savings-explainer__example-saved {
+  color: hsl(var(--success));
+  font-weight: 700;
+}
+
+.savings-explainer__example-note {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  padding: var(--gap-xs) var(--gap-md) var(--gap-sm);
+  font-style: italic;
+}

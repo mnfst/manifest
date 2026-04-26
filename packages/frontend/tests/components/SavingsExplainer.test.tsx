@@ -33,18 +33,30 @@ describe('SavingsExplainer', () => {
 
   it('renders all section headings', () => {
     render(() => <SavingsExplainer baselineModelName={null} onClose={() => {}} />);
-    expect(screen.getByText('The baseline model')).toBeDefined();
+    expect(screen.getByText('The baseline')).toBeDefined();
     expect(screen.getByText('The formula')).toBeDefined();
     expect(screen.getByText('How different setups are handled')).toBeDefined();
+    expect(screen.getByText('Examples')).toBeDefined();
     expect(screen.getByText('What is not included yet')).toBeDefined();
-    expect(screen.getByText('Can savings be negative?')).toBeDefined();
   });
 
-  it('renders auth type subsections', () => {
+  it('renders setup subsections', () => {
     render(() => <SavingsExplainer baselineModelName={null} onClose={() => {}} />);
     expect(screen.getByText('API key providers')).toBeDefined();
     expect(screen.getByText('Subscription providers')).toBeDefined();
     expect(screen.getByText('Local models')).toBeDefined();
-    expect(screen.getByText('Mixed setups')).toBeDefined();
+  });
+
+  it('renders examples', () => {
+    render(() => <SavingsExplainer baselineModelName={null} onClose={() => {}} />);
+    expect(screen.getByText('Model from a subscription provider')).toBeDefined();
+    expect(screen.getByText('Model from an API key provider, cheaper than baseline')).toBeDefined();
+    expect(screen.getByText('Model from an API key provider, more expensive than baseline')).toBeDefined();
+    expect(screen.getByText('Model from a local provider')).toBeDefined();
+  });
+
+  it('shows no-loss note on expensive model example', () => {
+    render(() => <SavingsExplainer baselineModelName={null} onClose={() => {}} />);
+    expect(screen.getByText('You chose a more capable model. No loss is recorded.')).toBeDefined();
   });
 });

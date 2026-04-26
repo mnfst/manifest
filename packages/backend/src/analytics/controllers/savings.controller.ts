@@ -1,6 +1,5 @@
-import { Controller, Get, Put, Query, Body } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { SavingsQueryDto } from '../../common/dto/savings-query.dto';
-import { UpdateBaselineDto } from '../../common/dto/update-baseline.dto';
 import { CurrentUser } from '../../auth/current-user.decorator';
 import { AuthUser } from '../../auth/auth.instance';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
@@ -18,20 +17,13 @@ export class SavingsController {
   @Get()
   async getSavings(@Query() query: SavingsQueryDto, @CurrentUser() user: AuthUser) {
     const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
-    return this.savingsQuery.getSavings(query.range, user.id, query.agent_name, tenantId);
-  }
-
-  @Put('baseline')
-  async updateBaseline(@Body() body: UpdateBaselineDto, @CurrentUser() user: AuthUser) {
-    const agent = await this.resolveAgent.resolve(user.id, body.agent_name);
-    await this.savingsQuery.updateBaseline(agent.id, body.model_id);
-
-    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
-    if (tenantId) {
-      this.resolveAgent.invalidate(tenantId, body.agent_name);
-    }
-
-    return this.savingsQuery.getSavings('30d', user.id, body.agent_name, tenantId);
+    return this.savingsQuery.getSavings(
+      query.range,
+      user.id,
+      query.agent_name,
+      tenantId,
+      query.baseline,
+    );
   }
 
   @Get('baseline-candidates')
@@ -40,6 +32,6 @@ export class SavingsController {
     @CurrentUser() user: AuthUser,
   ) {
     const agent = await this.resolveAgent.resolve(user.id, agentName);
-    return this.savingsQuery.getBaselineCandidates(agent.id, agent.savings_baseline_model);
+    return this.savingsQuery.getBaselineCandidates(agent.id, null);
   }
 }

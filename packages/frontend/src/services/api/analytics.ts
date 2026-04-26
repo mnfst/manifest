@@ -45,20 +45,20 @@ export interface BaselineCandidateData {
   is_current: boolean;
 }
 
-export function getSavings(range: string, agentName: string): Promise<SavingsData> {
-  return fetchJson<SavingsData>('/savings', { range, agent_name: agentName });
+export function getSavings(
+  range: string,
+  agentName: string,
+  baseline?: string,
+): Promise<SavingsData> {
+  return fetchJson<SavingsData>('/savings', {
+    range,
+    agent_name: agentName,
+    ...(baseline ? { baseline } : {}),
+  });
 }
 
 export function getBaselineCandidates(agentName: string): Promise<BaselineCandidateData[]> {
   return fetchJson<BaselineCandidateData[]>('/savings/baseline-candidates', {
     agent_name: agentName,
-  });
-}
-
-export function updateBaseline(agentName: string, modelId: string | null): Promise<SavingsData> {
-  return fetchMutate<SavingsData>('/savings/baseline', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ agent_name: agentName, model_id: modelId }),
   });
 }

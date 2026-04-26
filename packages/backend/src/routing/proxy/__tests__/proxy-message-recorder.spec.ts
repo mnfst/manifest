@@ -38,6 +38,7 @@ describe('ProxyMessageRecorder', () => {
         ),
     } as never;
     const providerService = { getProviders: jest.fn().mockResolvedValue([]) } as never;
+    const modelsDevSync = { lookupModel: jest.fn().mockReturnValue(null) } as never;
     recorder = new ProxyMessageRecorder(
       repo,
       pricingCache,
@@ -45,6 +46,7 @@ describe('ProxyMessageRecorder', () => {
       eventBus,
       customProviders,
       providerService,
+      modelsDevSync,
     );
   });
 
@@ -630,6 +632,7 @@ describe('ProxyMessageRecorder', () => {
           ),
       } as never;
       const providerService = { getProviders: jest.fn().mockResolvedValue([]) } as never;
+      const modelsDevSync = { lookupModel: jest.fn().mockReturnValue(null) } as never;
       recorder = new ProxyMessageRecorder(
         repo,
         pricingCache,
@@ -637,6 +640,7 @@ describe('ProxyMessageRecorder', () => {
         eventBus,
         passthroughCustomProviders,
         providerService,
+        modelsDevSync,
       );
     });
 
@@ -974,6 +978,7 @@ describe('ProxyMessageRecorder', () => {
           ),
       } as never;
       const providerService = { getProviders: jest.fn().mockResolvedValue([]) } as never;
+      const modelsDevSync = { lookupModel: jest.fn().mockReturnValue(null) } as never;
       recorder = new ProxyMessageRecorder(
         repo,
         pricingCache,
@@ -981,6 +986,7 @@ describe('ProxyMessageRecorder', () => {
         eventBus,
         passthroughCustomProviders,
         providerService,
+        modelsDevSync,
       );
 
       // Insert path
@@ -1143,6 +1149,7 @@ describe('ProxyMessageRecorder with real CustomProviderService', () => {
     );
 
     const mockProviderService = { getProviders: jest.fn().mockResolvedValue([]) } as never;
+    const mockModelsDevSync = { lookupModel: jest.fn().mockReturnValue(null) } as never;
     const recorder = new ProxyMessageRecorder(
       messageRepo,
       pricingCache,
@@ -1150,6 +1157,7 @@ describe('ProxyMessageRecorder with real CustomProviderService', () => {
       eventBus,
       customProviders,
       mockProviderService,
+      mockModelsDevSync,
     );
     return { recorder, insertMock };
   }

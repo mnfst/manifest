@@ -2,13 +2,13 @@ import {
   createResource,
   createSignal,
   createEffect,
+  untrack,
   Show,
   type Component,
   type JSX,
 } from 'solid-js';
 import Select from './Select.jsx';
-import { getSavings, getBaselineCandidates, updateBaseline } from '../services/api/analytics.js';
-import { toast } from '../services/toast-store.js';
+import { getSavings, getBaselineCandidates } from '../services/api/analytics.js';
 
 interface SavingsCardProps {
   agentName: string;
@@ -19,10 +19,23 @@ interface SavingsCardProps {
   children?: JSX.Element;
 }
 
+const STORAGE_KEY_PREFIX = 'manifest_savings_baseline_';
+
 const SavingsCard: Component<SavingsCardProps> = (props) => {
-  const [savings, { refetch, mutate }] = createResource(
-    () => ({ range: props.range, agent: props.agentName, _ping: props.ping }),
-    (p) => getSavings(p.range, p.agent).catch(() => null),
+  const storageKey = () => `${STORAGE_KEY_PREFIX}${props.agentName}`;
+
+  const [baselineOverride, setBaselineOverride] = createSignal<string | null>(
+    localStorage.getItem(storageKey()),
+  );
+
+  const [savings, { refetch }] = createResource(
+    () => ({
+      range: props.range,
+      agent: props.agentName,
+      _ping: props.ping,
+      baseline: baselineOverride(),
+    }),
+    (p) => getSavings(p.range, p.agent, p.baseline ?? undefined).catch(() => null),
   );
 
   const [candidates] = createResource(
@@ -33,21 +46,22 @@ const SavingsCard: Component<SavingsCardProps> = (props) => {
       ),
   );
 
-  const [updating, setUpdating] = createSignal(false);
-
   const hasSavingsData = () => {
     const d = savings();
-    if (!d || savings.loading || updating()) return false;
+    if (!d || savings.loading) return false;
     return d.is_auto || !!d.baseline_model;
   };
 
   createEffect(() => {
-    if (!hasSavingsData()) {
-      props.onData(null, null);
-      return;
-    }
-    const d = savings()!;
-    props.onData(d.total_saved, d.savings_pct);
+    const has = hasSavingsData();
+    const d = savings();
+    untrack(() => {
+      if (!has || !d) {
+        props.onData(null, null);
+      } else {
+        props.onData(d.total_saved, d.savings_pct);
+      }
+    });
   });
 
   const baselineOptions = () => {
@@ -67,9 +81,7 @@ const SavingsCard: Component<SavingsCardProps> = (props) => {
   };
 
   const currentBaselineValue = () => {
-    const d = savings();
-    if (!d?.baseline_model) return '__auto__';
-    return d.baseline_model.id;
+    return baselineOverride() ?? '__auto__';
   };
 
   const displayValue = () => {
@@ -78,17 +90,13 @@ const SavingsCard: Component<SavingsCardProps> = (props) => {
     return d?.baseline_model?.display_name ?? undefined;
   };
 
-  const handleBaselineChange = async (value: string) => {
-    const modelId = value === '__auto__' ? null : value;
-    setUpdating(true);
-    try {
-      const result = await updateBaseline(props.agentName, modelId);
-      mutate(result);
-    } catch {
-      toast.error('Failed to update baseline model');
-      refetch();
-    } finally {
-      setUpdating(false);
+  const handleBaselineChange = (value: string) => {
+    if (value === '__auto__') {
+      localStorage.removeItem(storageKey());
+      setBaselineOverride(null);
+    } else {
+      localStorage.setItem(storageKey(), value);
+      setBaselineOverride(value);
     }
   };
 

@@ -13,11 +13,6 @@ vi.mock('../../src/services/api/analytics.js', () => ({
       : Promise.resolve(mockSavingsResult),
   ),
   getBaselineCandidates: vi.fn(() => Promise.resolve(mockCandidatesResult)),
-  updateBaseline: vi.fn(() => Promise.resolve(mockSavingsResult)),
-}));
-
-vi.mock('../../src/services/toast-store.js', () => ({
-  toast: { error: vi.fn(), success: vi.fn() },
 }));
 
 import SavingsCard from '../../src/components/SavingsCard';
@@ -49,15 +44,6 @@ const OVERRIDE_SAVINGS: SavingsData = {
 
 const SAMPLE_CANDIDATES: BaselineCandidateData[] = [
   {
-    id: 'claude-sonnet-4-5',
-    display_name: 'Claude Sonnet 4.5',
-    provider: 'anthropic',
-    input_price_per_token: 0.000003,
-    output_price_per_token: 0.000015,
-    price_per_million: 18.0,
-    is_current: true,
-  },
-  {
     id: 'gpt-4o',
     display_name: 'GPT-4o',
     provider: 'openai',
@@ -76,6 +62,7 @@ describe('SavingsCard', () => {
     mockSavingsResult = AUTO_SAVINGS;
     mockCandidatesResult = SAMPLE_CANDIDATES;
     mockSavingsError = false;
+    localStorage.clear();
   });
 
   it('renders controls in auto mode', async () => {
@@ -108,6 +95,7 @@ describe('SavingsCard', () => {
 
   it('shows model name when override is set', async () => {
     mockSavingsResult = OVERRIDE_SAVINGS;
+    localStorage.setItem('manifest_savings_baseline_bot-1', 'claude-sonnet-4-5');
     render(() => (
       <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={noopData} />
     ));
@@ -151,18 +139,6 @@ describe('SavingsCard', () => {
     });
   });
 
-  it('calls onOpenExplainer on info click', async () => {
-    mockSavingsResult = OVERRIDE_SAVINGS;
-    const onOpen = vi.fn();
-    render(() => (
-      <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={onOpen} onData={noopData} />
-    ));
-    await vi.waitFor(() => {
-      screen.getByLabelText('How savings are calculated').click();
-    });
-    expect(onOpen).toHaveBeenCalledWith('Claude Sonnet 4.5');
-  });
-
   it('populates dropdown with candidates', async () => {
     render(() => (
       <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={noopData} />
@@ -175,8 +151,7 @@ describe('SavingsCard', () => {
     });
   });
 
-  it('handles baseline change to a model', async () => {
-    const { updateBaseline: mockUpdate } = await import('../../src/services/api/analytics.js');
+  it('stores override in localStorage on selection', async () => {
     render(() => (
       <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={noopData} />
     ));
@@ -186,14 +161,12 @@ describe('SavingsCard', () => {
     await vi.waitFor(() => {
       screen.getByText('GPT-4o ($20.00/M)').click();
     });
-    await vi.waitFor(() => {
-      expect(mockUpdate).toHaveBeenCalledWith('bot-1', 'gpt-4o');
-    });
+    expect(localStorage.getItem('manifest_savings_baseline_bot-1')).toBe('gpt-4o');
   });
 
-  it('handles baseline change to auto', async () => {
+  it('clears localStorage on auto selection', async () => {
+    localStorage.setItem('manifest_savings_baseline_bot-1', 'gpt-4o');
     mockSavingsResult = OVERRIDE_SAVINGS;
-    const { updateBaseline: mockUpdate } = await import('../../src/services/api/analytics.js');
     render(() => (
       <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={noopData} />
     ));
@@ -203,26 +176,6 @@ describe('SavingsCard', () => {
     await vi.waitFor(() => {
       screen.getByText('Auto (per-request baseline)').click();
     });
-    await vi.waitFor(() => {
-      expect(mockUpdate).toHaveBeenCalledWith('bot-1', null);
-    });
-  });
-
-  it('shows toast on baseline update failure', async () => {
-    const { updateBaseline: mockUpdate } = await import('../../src/services/api/analytics.js');
-    const { toast: mockToast } = await import('../../src/services/toast-store.js');
-    (mockUpdate as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('fail'));
-    render(() => (
-      <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={noopData} />
-    ));
-    await vi.waitFor(() => {
-      screen.getByLabelText('Baseline model').click();
-    });
-    await vi.waitFor(() => {
-      screen.getByText('GPT-4o ($20.00/M)').click();
-    });
-    await vi.waitFor(() => {
-      expect(mockToast.error).toHaveBeenCalledWith('Failed to update baseline model');
-    });
+    expect(localStorage.getItem('manifest_savings_baseline_bot-1')).toBeNull();
   });
 });

@@ -8,6 +8,8 @@ import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache
 import { rangeToInterval, rangeToPreviousInterval } from '../../common/utils/range.util';
 import { computeCutoff, sqlSanitizeCost } from '../../common/utils/postgres-sql';
 import { addTenantFilter, computeTrend } from './query-helpers';
+import { pickCheapestReasoningModel } from '../../common/utils/baseline-cost';
+import { ModelsDevSyncService } from '../../database/models-dev-sync.service';
 import type { DiscoveredModel } from '../../model-discovery/model-fetcher';
 
 export interface BaselineModel {
@@ -55,6 +57,7 @@ export class SavingsQueryService {
     @InjectRepository(UserProvider)
     private readonly providerRepo: Repository<UserProvider>,
     private readonly pricingCache: ModelPricingCacheService,
+    private readonly modelsDevSync: ModelsDevSyncService,
   ) {}
 
   async getSavings(
@@ -62,20 +65,19 @@ export class SavingsQueryService {
     userId: string,
     agentName: string,
     tenantId?: string,
+    baselineOverride?: string,
   ): Promise<SavingsResult> {
+    if (!baselineOverride) {
+      return this.getSavingsAuto(range, userId, agentName, tenantId);
+    }
+
     const agent = await this.agentRepo.findOne({
       where: tenantId ? { tenant_id: tenantId, name: agentName } : { name: agentName },
     });
 
     if (!agent) return this.emptySavings();
 
-    const isAuto = !agent.savings_baseline_model;
-
-    if (isAuto) {
-      return this.getSavingsAuto(range, userId, agentName, tenantId);
-    }
-
-    return this.getSavingsOverride(range, userId, agentName, agent, tenantId);
+    return this.getSavingsOverride(range, userId, agentName, agent, baselineOverride, tenantId);
   }
 
   private async getSavingsAuto(
@@ -84,52 +86,58 @@ export class SavingsQueryService {
     agentName: string,
     tenantId?: string,
   ): Promise<SavingsResult> {
+    // For messages with stored baseline_cost_usd (V2+), use it directly.
+    // For older messages without it (pre-V2), fall back to a query-time
+    // calculation using the cheapest reasoning model from current providers.
+    const fallback = await this.resolveFallbackBaseline(agentName, tenantId);
+    const fbInput = fallback?.input ?? 0;
+    const fbOutput = fallback?.output ?? 0;
+
     const cutoff = computeCutoff(rangeToInterval(range));
     const prevCutoff = computeCutoff(rangeToPreviousInterval(range));
     const safeCost = sqlSanitizeCost('at.cost_usd');
     const safeBaseline = sqlSanitizeCost('at.baseline_cost_usd');
+
+    // COALESCE: use stored baseline if available, otherwise compute from fallback prices
+    const baselineExpr = `COALESCE(
+      CASE WHEN ${safeBaseline} IS NOT NULL THEN ${safeBaseline} END,
+      at.input_tokens * :fbInput::double precision + at.output_tokens * :fbOutput::double precision
+    )`;
 
     const qb = this.messageRepo.createQueryBuilder('at');
     addTenantFilter(qb, userId, agentName, tenantId);
     qb.andWhere('at.timestamp >= :cutoff', { cutoff });
     qb.andWhere("at.status = 'ok'");
 
+    // Per-request savings clamped to 0: you never "lose" money by choosing
+    // a more expensive model. You either saved money or you didn't.
+    const perRequestSaved = `GREATEST(${baselineExpr} - CASE WHEN ${safeCost} IS NOT NULL THEN ${safeCost} ELSE 0 END, 0)`;
+
     qb.select('COUNT(*)::int', 'request_count');
     qb.addSelect(
       `COALESCE(SUM(CASE WHEN ${safeCost} IS NOT NULL THEN ${safeCost} ELSE 0 END), 0)`,
       'actual_cost',
     );
+    qb.addSelect(`COALESCE(SUM(${baselineExpr}), 0)`, 'baseline_cost');
+    qb.addSelect(`COALESCE(SUM(${perRequestSaved}), 0)`, 'total_saved');
     qb.addSelect(
-      `COALESCE(SUM(CASE WHEN ${safeBaseline} IS NOT NULL THEN ${safeBaseline} ELSE 0 END), 0)`,
-      'baseline_cost',
-    );
-    qb.addSelect(
-      `COALESCE(SUM(
-        CASE WHEN ${safeBaseline} IS NOT NULL THEN ${safeBaseline} ELSE 0 END
-        - CASE WHEN ${safeCost} IS NOT NULL THEN ${safeCost} ELSE 0 END
-      ), 0)`,
-      'total_saved',
-    );
-    qb.addSelect(
-      `COALESCE(SUM(CASE WHEN at.auth_type = 'api_key' AND ${safeBaseline} IS NOT NULL THEN
-        ${safeBaseline} - CASE WHEN ${safeCost} IS NOT NULL THEN ${safeCost} ELSE 0 END
-        ELSE 0 END), 0)`,
+      `COALESCE(SUM(CASE WHEN at.auth_type = 'api_key' THEN ${perRequestSaved} ELSE 0 END), 0)`,
       'saved_api_key',
     );
     qb.addSelect(
-      `COALESCE(SUM(CASE WHEN at.auth_type = 'subscription' AND ${safeBaseline} IS NOT NULL THEN
-        ${safeBaseline} ELSE 0 END), 0)`,
+      `COALESCE(SUM(CASE WHEN at.auth_type = 'subscription' THEN ${perRequestSaved} ELSE 0 END), 0)`,
       'saved_subscription',
     );
     qb.addSelect(
-      `COALESCE(SUM(CASE WHEN at.auth_type = 'local' AND ${safeBaseline} IS NOT NULL THEN
-        ${safeBaseline} ELSE 0 END), 0)`,
+      `COALESCE(SUM(CASE WHEN at.auth_type = 'local' THEN ${perRequestSaved} ELSE 0 END), 0)`,
       'saved_local',
     );
 
+    qb.setParameters({ fbInput, fbOutput });
+
     const row = await qb.getRawOne();
 
-    const totalSaved = Math.max(0, Number(row?.total_saved ?? 0));
+    const totalSaved = Number(row?.total_saved ?? 0);
     const baselineCost = Number(row?.baseline_cost ?? 0);
     const actualCost = Number(row?.actual_cost ?? 0);
     const requestCount = Number(row?.request_count ?? 0);
@@ -143,14 +151,12 @@ export class SavingsQueryService {
     });
     prevQb.andWhere("at.status = 'ok'");
     prevQb.select(
-      `COALESCE(SUM(
-        CASE WHEN ${safeBaseline} IS NOT NULL THEN ${safeBaseline} ELSE 0 END
-        - CASE WHEN ${safeCost} IS NOT NULL THEN ${safeCost} ELSE 0 END
-      ), 0)`,
+      `COALESCE(SUM(GREATEST(${baselineExpr} - CASE WHEN ${safeCost} IS NOT NULL THEN ${safeCost} ELSE 0 END, 0)), 0)`,
       'prev_saved',
     );
+    prevQb.setParameters({ fbInput, fbOutput });
     const prevRow = await prevQb.getRawOne();
-    const prevSaved = Math.max(0, Number(prevRow?.prev_saved ?? 0));
+    const prevSaved = Number(prevRow?.prev_saved ?? 0);
 
     return {
       total_saved: totalSaved,
@@ -175,9 +181,10 @@ export class SavingsQueryService {
     userId: string,
     agentName: string,
     agent: Agent,
+    baselineModelId: string,
     tenantId?: string,
   ): Promise<SavingsResult> {
-    const { baseline, overrideStale } = await this.resolveOverrideBaseline(agent);
+    const { baseline, overrideStale } = await this.resolveOverrideBaseline(agent, baselineModelId);
     if (!baseline) return this.emptySavings();
 
     const inputPrice = baseline.input_price_per_token;
@@ -192,39 +199,26 @@ export class SavingsQueryService {
     qb.andWhere('at.timestamp >= :cutoff', { cutoff });
     qb.andWhere("at.status = 'ok'");
 
+    const overrideBaselineExpr = `(at.input_tokens * :inputPrice::double precision + at.output_tokens * :outputPrice::double precision)`;
+    const overridePerRequestSaved = `GREATEST(${overrideBaselineExpr} - CASE WHEN ${safeCost} IS NOT NULL THEN ${safeCost} ELSE 0 END, 0)`;
+
     qb.select('COUNT(*)::int', 'request_count');
     qb.addSelect(
       `COALESCE(SUM(CASE WHEN ${safeCost} IS NOT NULL THEN ${safeCost} ELSE 0 END), 0)`,
       'actual_cost',
     );
+    qb.addSelect(`COALESCE(SUM(${overrideBaselineExpr}), 0)`, 'baseline_cost');
+    qb.addSelect(`COALESCE(SUM(${overridePerRequestSaved}), 0)`, 'total_saved');
     qb.addSelect(
-      `COALESCE(SUM(at.input_tokens * :inputPrice::double precision + at.output_tokens * :outputPrice::double precision), 0)`,
-      'baseline_cost',
-    );
-    qb.addSelect(
-      `COALESCE(SUM(
-        (at.input_tokens * :inputPrice::double precision + at.output_tokens * :outputPrice::double precision)
-        - CASE WHEN ${safeCost} IS NOT NULL THEN ${safeCost} ELSE 0 END
-      ), 0)`,
-      'total_saved',
-    );
-    qb.addSelect(
-      `COALESCE(SUM(CASE WHEN at.auth_type = 'api_key' THEN
-        (at.input_tokens * :inputPrice::double precision + at.output_tokens * :outputPrice::double precision)
-        - CASE WHEN ${safeCost} IS NOT NULL THEN ${safeCost} ELSE 0 END
-        ELSE 0 END), 0)`,
+      `COALESCE(SUM(CASE WHEN at.auth_type = 'api_key' THEN ${overridePerRequestSaved} ELSE 0 END), 0)`,
       'saved_api_key',
     );
     qb.addSelect(
-      `COALESCE(SUM(CASE WHEN at.auth_type = 'subscription' THEN
-        at.input_tokens * :inputPrice::double precision + at.output_tokens * :outputPrice::double precision
-        ELSE 0 END), 0)`,
+      `COALESCE(SUM(CASE WHEN at.auth_type = 'subscription' THEN ${overridePerRequestSaved} ELSE 0 END), 0)`,
       'saved_subscription',
     );
     qb.addSelect(
-      `COALESCE(SUM(CASE WHEN at.auth_type = 'local' THEN
-        at.input_tokens * :inputPrice::double precision + at.output_tokens * :outputPrice::double precision
-        ELSE 0 END), 0)`,
+      `COALESCE(SUM(CASE WHEN at.auth_type = 'local' THEN ${overridePerRequestSaved} ELSE 0 END), 0)`,
       'saved_local',
     );
 
@@ -232,7 +226,7 @@ export class SavingsQueryService {
 
     const row = await qb.getRawOne();
 
-    const totalSaved = Math.max(0, Number(row?.total_saved ?? 0));
+    const totalSaved = Number(row?.total_saved ?? 0);
     const baselineCost = Number(row?.baseline_cost ?? 0);
     const actualCost = Number(row?.actual_cost ?? 0);
     const requestCount = Number(row?.request_count ?? 0);
@@ -246,10 +240,10 @@ export class SavingsQueryService {
     });
     prevQb.andWhere("at.status = 'ok'");
     prevQb.select(
-      `COALESCE(SUM(
+      `COALESCE(SUM(GREATEST(
         (at.input_tokens * :inputPrice::double precision + at.output_tokens * :outputPrice::double precision)
         - CASE WHEN ${safeCost} IS NOT NULL THEN ${safeCost} ELSE 0 END
-      ), 0)`,
+      , 0)), 0)`,
       'prev_saved',
     );
     prevQb.setParameters({ inputPrice, outputPrice });
@@ -348,16 +342,13 @@ export class SavingsQueryService {
 
   private async resolveOverrideBaseline(
     agent: Agent,
+    modelId: string,
   ): Promise<{ baseline: BaselineModel | null; overrideStale: boolean }> {
-    if (!agent.savings_baseline_model) {
-      return { baseline: null, overrideStale: false };
-    }
-
     const providers = await this.providerRepo.find({
       where: { agent_id: agent.id, is_active: true },
     });
 
-    const overrideModel = this.findModelById(providers, agent.savings_baseline_model);
+    const overrideModel = this.findModelById(providers, modelId);
     if (overrideModel) {
       return {
         baseline: this.toBaselineModel(overrideModel),
@@ -366,7 +357,7 @@ export class SavingsQueryService {
     }
 
     const historical = await this.getHistoricalModels(agent.id);
-    const historicalMatch = historical.find((h) => h.id === agent.savings_baseline_model);
+    const historicalMatch = historical.find((h) => h.id === modelId);
     if (historicalMatch) {
       return { baseline: historicalMatch, overrideStale: false };
     }
@@ -429,6 +420,29 @@ export class SavingsQueryService {
       }
     }
     return null;
+  }
+
+  private async resolveFallbackBaseline(
+    agentName: string,
+    tenantId?: string,
+  ): Promise<{ input: number; output: number } | null> {
+    try {
+      const agent = await this.agentRepo.findOne({
+        where: tenantId ? { tenant_id: tenantId, name: agentName } : { name: agentName },
+      });
+      if (!agent) return null;
+      const providers = await this.providerRepo.find({
+        where: { agent_id: agent.id, is_active: true },
+      });
+      const model = pickCheapestReasoningModel(providers, this.pricingCache, this.modelsDevSync);
+      if (!model) return null;
+      return {
+        input: model.inputPricePerToken!,
+        output: model.outputPricePerToken!,
+      };
+    } catch {
+      return null;
+    }
   }
 
   private toBaselineModel(m: DiscoveredModel): BaselineModel {

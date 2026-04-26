@@ -1,4 +1,8 @@
-import { computeBaselineCost, pickCheapestReasoningModel } from './baseline-cost';
+import {
+  computeBaselineCost,
+  pickCheapestReasoningModel,
+  type PricingLookup,
+} from './baseline-cost';
 import type { UserProvider } from '../../entities/user-provider.entity';
 import type { DiscoveredModel } from '../../model-discovery/model-fetcher';
 
@@ -102,6 +106,77 @@ describe('pickCheapestReasoningModel', () => {
     ];
     expect(pickCheapestReasoningModel(providers)?.id).toBe('valid');
   });
+
+  it('enriches subscription models with real API pricing from lookup', () => {
+    const providers = [
+      provider([
+        model({
+          id: 'sub-model',
+          inputPricePerToken: 0,
+          outputPricePerToken: 0,
+          capabilityReasoning: false,
+        }),
+      ]),
+    ];
+    const lookup: PricingLookup = {
+      getByModel: (id: string) =>
+        id === 'sub-model'
+          ? {
+              input_price_per_token: 0.000001,
+              output_price_per_token: 0.000004,
+              provider: 'test',
+              model_name: 'sub-model',
+              display_name: 'Sub Model',
+            }
+          : undefined,
+    };
+    const result = pickCheapestReasoningModel(providers, lookup);
+    expect(result?.id).toBe('sub-model');
+    expect(result?.inputPricePerToken).toBe(0.000001);
+  });
+
+  it('prefers cheaper subscription model over expensive api_key model', () => {
+    const providers = [
+      provider([
+        model({
+          id: 'expensive-api',
+          inputPricePerToken: 0.00001,
+          outputPricePerToken: 0.00005,
+          capabilityReasoning: true,
+        }),
+        model({
+          id: 'cheap-sub',
+          inputPricePerToken: 0,
+          outputPricePerToken: 0,
+          capabilityReasoning: false,
+        }),
+      ]),
+    ];
+    const lookup: PricingLookup = {
+      getByModel: (id: string) =>
+        id === 'cheap-sub'
+          ? {
+              input_price_per_token: 0.000001,
+              output_price_per_token: 0.000002,
+              provider: 'test',
+              model_name: 'cheap-sub',
+              display_name: 'Cheap Sub',
+            }
+          : undefined,
+    };
+    // cheap-sub has no reasoning capability, so expensive-api wins
+    const result = pickCheapestReasoningModel(providers, lookup);
+    expect(result?.id).toBe('expensive-api');
+  });
+
+  it('deduplicates models across providers', () => {
+    const providers = [
+      provider([model({ id: 'same', capabilityReasoning: true })]),
+      provider([model({ id: 'same', capabilityReasoning: true })]),
+    ];
+    const result = pickCheapestReasoningModel(providers);
+    expect(result?.id).toBe('same');
+  });
 });
 
 describe('computeBaselineCost', () => {
@@ -139,5 +214,30 @@ describe('computeBaselineCost', () => {
     ];
     const result = computeBaselineCost(providers, 0, 0);
     expect(result!.cost).toBe(0);
+  });
+
+  it('passes pricing lookup to enrich subscription models', () => {
+    const providers = [
+      provider([
+        model({
+          id: 'sub-only',
+          inputPricePerToken: 0,
+          outputPricePerToken: 0,
+        }),
+      ]),
+    ];
+    const lookup: PricingLookup = {
+      getByModel: () => ({
+        input_price_per_token: 0.000002,
+        output_price_per_token: 0.000008,
+        provider: 'test',
+        model_name: 'sub-only',
+        display_name: 'Sub Only',
+      }),
+    };
+    const result = computeBaselineCost(providers, 10000, 500, lookup);
+    expect(result).not.toBeNull();
+    expect(result!.modelId).toBe('sub-only');
+    expect(result!.cost).toBeCloseTo(0.02 + 0.004, 6);
   });
 });

@@ -6,12 +6,30 @@ export interface BaselineCostResult {
   cost: number;
 }
 
+export interface PricingLookup {
+  getByModel(modelId: string):
+    | {
+        input_price_per_token: number | null;
+        output_price_per_token: number | null;
+        provider: string;
+        model_name: string;
+        display_name: string | null;
+      }
+    | undefined;
+}
+
+export interface CapabilityLookup {
+  lookupModel(providerId: string, modelId: string): { reasoning?: boolean } | null;
+}
+
 export function computeBaselineCost(
   providers: UserProvider[],
   inputTokens: number,
   outputTokens: number,
+  pricingLookup?: PricingLookup,
+  capabilityLookup?: CapabilityLookup,
 ): BaselineCostResult | null {
-  const model = pickCheapestReasoningModel(providers);
+  const model = pickCheapestReasoningModel(providers, pricingLookup, capabilityLookup);
   if (!model) return null;
 
   const cost = inputTokens * model.inputPricePerToken! + outputTokens * model.outputPricePerToken!;
@@ -19,8 +37,13 @@ export function computeBaselineCost(
   return { modelId: model.id, cost: cost < 0 ? 0 : cost };
 }
 
-export function pickCheapestReasoningModel(providers: UserProvider[]): DiscoveredModel | null {
+export function pickCheapestReasoningModel(
+  providers: UserProvider[],
+  pricingLookup?: PricingLookup,
+  capabilityLookup?: CapabilityLookup,
+): DiscoveredModel | null {
   const allModels: DiscoveredModel[] = [];
+  const seen = new Set<string>();
 
   for (const p of providers) {
     if (!p.cached_models || !p.is_active) continue;
@@ -32,14 +55,63 @@ export function pickCheapestReasoningModel(providers: UserProvider[]): Discovere
     }
     if (!Array.isArray(models)) continue;
     for (const m of models) {
+      if (!m || seen.has(m.id)) continue;
+      seen.add(m.id);
+
+      let inputPrice = m.inputPricePerToken;
+      let outputPrice = m.outputPricePerToken;
+      let reasoning = m.capabilityReasoning;
+
+      // For models with $0 or missing pricing (subscription/local),
+      // look up real API pricing and capabilities from global caches.
+      const needsEnrichment =
+        typeof inputPrice !== 'number' ||
+        typeof outputPrice !== 'number' ||
+        inputPrice <= 0 ||
+        outputPrice <= 0;
+
+      if (needsEnrichment && pricingLookup) {
+        const apiPricing = pricingLookup.getByModel(m.id);
+        if (
+          apiPricing &&
+          apiPricing.input_price_per_token != null &&
+          apiPricing.output_price_per_token != null &&
+          apiPricing.input_price_per_token > 0 &&
+          apiPricing.output_price_per_token > 0
+        ) {
+          inputPrice = apiPricing.input_price_per_token;
+          outputPrice = apiPricing.output_price_per_token;
+
+          // Also enrich capabilities from models.dev using the original provider
+          if (capabilityLookup && !reasoning) {
+            const providerSlug = apiPricing.provider?.toLowerCase() ?? '';
+            // Try multiple name variants to match models.dev entries
+            const pricingDisplayName = apiPricing.display_name ?? '';
+            const dashified = pricingDisplayName.replace(/\s+/g, '-');
+            const caps =
+              capabilityLookup.lookupModel(providerSlug, dashified) ??
+              capabilityLookup.lookupModel(providerSlug, pricingDisplayName) ??
+              capabilityLookup.lookupModel(providerSlug, m.id) ??
+              capabilityLookup.lookupModel(providerSlug, m.displayName ?? m.id);
+            if (caps?.reasoning) {
+              reasoning = true;
+            }
+          }
+        }
+      }
+
       if (
-        m &&
-        typeof m.inputPricePerToken === 'number' &&
-        typeof m.outputPricePerToken === 'number' &&
-        m.inputPricePerToken > 0 &&
-        m.outputPricePerToken > 0
+        typeof inputPrice === 'number' &&
+        typeof outputPrice === 'number' &&
+        inputPrice > 0 &&
+        outputPrice > 0
       ) {
-        allModels.push(m);
+        allModels.push({
+          ...m,
+          inputPricePerToken: inputPrice,
+          outputPricePerToken: outputPrice,
+          capabilityReasoning: reasoning ?? false,
+        });
       }
     }
   }

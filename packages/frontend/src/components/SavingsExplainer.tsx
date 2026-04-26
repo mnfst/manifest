@@ -35,26 +35,20 @@ const SavingsExplainer: Component<SavingsExplainerProps> = (props) => {
       <div class="savings-explainer__content">
         <h1>How savings are calculated</h1>
         <p class="savings-explainer__intro">
-          Savings compare what you actually paid for your routed requests against what you would
-          have paid using a single model for all of them.
+          For each request, savings are calculated by comparing what you actually paid against what
+          the cheapest reasoning-capable model would have cost for the same tokens.
         </p>
 
         <section class="savings-explainer__section">
-          <h2>The baseline model</h2>
+          <h2>The baseline</h2>
           <p>
-            The baseline is the model used as a reference point. It represents the single model you
-            would need if you had no routing and had to use one model for everything, from simple
-            messages to complex reasoning tasks.
+            In auto mode, the baseline is determined per request at the time it is processed. It is
+            the cheapest reasoning-capable model available from your connected providers at that
+            moment, priced at API rates.
           </p>
           <p>
-            In auto mode, the baseline is computed per request. At the time each request is
-            processed, the cheapest reasoning-capable model from your connected providers is
-            selected as the baseline for that specific request. This means the baseline can vary
-            over time as you connect or disconnect providers.
-          </p>
-          <p>
-            You can also pick a specific model from the dropdown on the Overview page. In that case,
-            all requests are compared against that single model regardless of when they were made.
+            You can also pick a specific model from the dropdown on the Overview page to compare all
+            requests against a single model.
           </p>
           {props.baselineModelName && (
             <p>
@@ -65,20 +59,16 @@ const SavingsExplainer: Component<SavingsExplainerProps> = (props) => {
 
         <section class="savings-explainer__section">
           <h2>The formula</h2>
-          <p>For each request, we compute:</p>
+          <p>For each request:</p>
           <div class="savings-explainer__formula">
-            <span>Savings = Baseline cost</span>
-            <span class="savings-explainer__formula-op">&minus;</span>
-            <span>Actual cost</span>
+            <span>Saved</span>
+            <span class="savings-explainer__formula-op">=</span>
+            <span>max(Baseline cost &minus; Actual cost, $0)</span>
           </div>
           <p>
-            <strong>Baseline cost</strong> is what the request would have cost using the baseline
-            model, calculated from the actual input and output token counts multiplied by the
-            baseline model's per-token pricing.
-          </p>
-          <p>
-            <strong>Actual cost</strong> is what was charged for the request based on the model that
-            handled it.
+            If the model you used costs less than the baseline, the difference is your saving for
+            that request. If it costs more, the saving is $0. Choosing a more expensive model is
+            your decision, not a loss.
           </p>
           <p>
             The total on the dashboard is the sum of per-request savings across all requests in the
@@ -92,38 +82,138 @@ const SavingsExplainer: Component<SavingsExplainerProps> = (props) => {
           <div class="savings-explainer__case">
             <h3>API key providers</h3>
             <p>
-              When requests go through API key providers, you pay per token. The savings are the
-              difference between what the baseline model would have cost and what the routed model
-              actually cost.
+              You pay per token. If the model you used is cheaper than the baseline, the difference
+              is your saving. If it costs more, the saving is $0.
             </p>
           </div>
 
           <div class="savings-explainer__case">
             <h3>Subscription providers</h3>
             <p>
-              With subscription providers (ChatGPT Pro, Claude Pro, etc.), the per-request cost is
-              $0 since the subscription covers usage. The savings shown represent what those same
-              requests would have cost at API rates using the baseline model. The subscription fee
-              itself is not factored in.
+              The per-request cost is $0 since the subscription covers usage. The saving is the full
+              baseline cost for those tokens. The subscription fee itself is not factored in.
             </p>
           </div>
 
           <div class="savings-explainer__case">
             <h3>Local models</h3>
             <p>
-              Requests handled by local models (Ollama, LM Studio, etc.) have a per-request cost of
-              $0. The savings represent what those requests would have cost using the baseline model
-              via API.
+              The per-request cost is $0. The saving is the full baseline cost for those tokens.
             </p>
           </div>
+        </section>
 
-          <div class="savings-explainer__case">
-            <h3>Mixed setups</h3>
-            <p>
-              When combining API keys, subscriptions, and local models, savings are calculated per
-              request based on how each request was handled. The total is the sum across all of
-              them.
-            </p>
+        <section class="savings-explainer__section">
+          <h2>Examples</h2>
+
+          <div class="savings-explainer__example">
+            <div class="savings-explainer__example-title">Model from a subscription provider</div>
+            <div class="savings-explainer__example-row">
+              <span>Model used</span>
+              <span>Kimi k2.5 via subscription</span>
+            </div>
+            <div class="savings-explainer__example-row">
+              <span>Tokens</span>
+              <span>25,000 input, 400 output</span>
+            </div>
+            <div class="savings-explainer__example-row">
+              <span>Actual cost</span>
+              <span>$0.00</span>
+            </div>
+            <div class="savings-explainer__example-row">
+              <span>Baseline, based on connected providers (DeepSeek v4 Flash)</span>
+              <span>$0.0035</span>
+            </div>
+            <div class="savings-explainer__example-row savings-explainer__example-row--result">
+              <span>Saved</span>
+              <span class="savings-explainer__example-saved">$0.0035</span>
+            </div>
+          </div>
+
+          <div class="savings-explainer__example">
+            <div class="savings-explainer__example-title">
+              Model from an API key provider, cheaper than baseline
+            </div>
+            <div class="savings-explainer__example-row">
+              <span>Model used</span>
+              <span>GPT-4.1 mini via API key</span>
+            </div>
+            <div class="savings-explainer__example-row">
+              <span>Tokens</span>
+              <span>10,000 input, 2,000 output</span>
+            </div>
+            <div class="savings-explainer__example-row">
+              <span>Actual cost</span>
+              <span>$0.0028</span>
+            </div>
+            <div class="savings-explainer__example-row">
+              <span>Baseline, based on connected providers (Claude Haiku 4.5)</span>
+              <span>$0.020</span>
+            </div>
+            <div class="savings-explainer__example-row savings-explainer__example-row--result">
+              <span>Saved</span>
+              <span class="savings-explainer__example-saved">$0.0172</span>
+            </div>
+          </div>
+
+          <div class="savings-explainer__example">
+            <div class="savings-explainer__example-title">
+              Model from an API key provider, more expensive than baseline
+            </div>
+            <div class="savings-explainer__example-row">
+              <span>Model used</span>
+              <span>Claude Sonnet 4.5 via API key</span>
+            </div>
+            <div class="savings-explainer__example-row">
+              <span>Tokens</span>
+              <span>20,000 input, 1,000 output</span>
+            </div>
+            <div class="savings-explainer__example-row">
+              <span>Actual cost</span>
+              <span>$0.075</span>
+            </div>
+            <div class="savings-explainer__example-row">
+              <span>Baseline, based on connected providers (DeepSeek v4 Flash)</span>
+              <span>$0.004</span>
+            </div>
+            <div class="savings-explainer__example-row savings-explainer__example-row--result">
+              <span>Saved</span>
+              <span>$0.00</span>
+            </div>
+            <div class="savings-explainer__example-note">
+              You chose a more capable model. No loss is recorded.
+            </div>
+          </div>
+
+          <div class="savings-explainer__example">
+            <div class="savings-explainer__example-title">Model from a local provider</div>
+            <div class="savings-explainer__example-row">
+              <span>Model used</span>
+              <span>Qwen 3 32B via Ollama (local)</span>
+            </div>
+            <div class="savings-explainer__example-row">
+              <span>Tokens</span>
+              <span>8,000 input, 3,000 output</span>
+            </div>
+            <div class="savings-explainer__example-row">
+              <span>Actual cost</span>
+              <span>$0.00</span>
+            </div>
+            <div class="savings-explainer__example-row">
+              <span>Baseline, based on connected providers (Claude Haiku 4.5)</span>
+              <span>$0.023</span>
+            </div>
+            <div class="savings-explainer__example-row savings-explainer__example-row--result">
+              <span>Saved</span>
+              <span class="savings-explainer__example-saved">$0.023</span>
+            </div>
+          </div>
+
+          <div class="savings-explainer__example savings-explainer__example--total">
+            <div class="savings-explainer__example-row savings-explainer__example-row--result">
+              <span>Total saved across 4 requests</span>
+              <span class="savings-explainer__example-saved">$0.0437</span>
+            </div>
           </div>
         </section>
 
@@ -145,15 +235,6 @@ const SavingsExplainer: Component<SavingsExplainerProps> = (props) => {
               API-equivalent cost but do not subtract the monthly subscription fee.
             </li>
           </ul>
-        </section>
-
-        <section class="savings-explainer__section">
-          <h2>Can savings be negative?</h2>
-          <p>
-            Individual requests can have negative savings if the model used for that request costs
-            more than the baseline. If the total across the entire time period is negative, the
-            dashboard shows $0.00.
-          </p>
         </section>
       </div>
     </div>
