@@ -129,4 +129,35 @@ describe('ChartCard', () => {
     const badge = container.querySelector('.trend--up-bad');
     expect(badge?.textContent).toBe('+999%');
   });
+
+  it('renders saved cost stat when savedCost is provided', () => {
+    const { container } = render(() => (
+      <ChartCard {...baseProps({ savedCost: 5.67, savedPct: 42 })} />
+    ));
+    expect(container.textContent).toContain('Saved cost');
+    expect(container.textContent).toContain('$5.67');
+    expect(container.querySelector('.chart-card__savings-pct')?.textContent).toBe('42%');
+  });
+
+  it('does not render savings area when savedCost is null', () => {
+    const { container } = render(() => (
+      <ChartCard {...baseProps({ savedCost: null, savedPct: null })} />
+    ));
+    expect(container.querySelector('.chart-card__savings-area')).toBeNull();
+  });
+
+  it('hides percentage badge when savedPct is 0', () => {
+    const { container } = render(() => (
+      <ChartCard {...baseProps({ savedCost: 0, savedPct: 0 })} />
+    ));
+    expect(container.querySelector('.chart-card__savings-pct')).toBeNull();
+  });
+
+  it('renders savedControls when provided', () => {
+    const controls = <span data-testid="test-controls">controls</span>;
+    const { container } = render(() => (
+      <ChartCard {...baseProps({ savedControls: controls })} />
+    ));
+    expect(container.querySelector('[data-testid="test-controls"]')).not.toBeNull();
+  });
 });

@@ -21,9 +21,8 @@ vi.mock("../../src/services/api.js", () => ({
 }));
 
 vi.mock("../../src/services/api/analytics.js", () => ({
-  getSavings: vi.fn(() => Promise.resolve({ total_saved: 0, savings_pct: 0, actual_cost: 0, baseline_cost: 0, baseline_model: null, baseline_override_stale: false, request_count: 0, trend_pct: 0, savings_by_auth_type: { api_key: 0, subscription: 0, local: 0 } })),
+  getSavings: vi.fn(() => Promise.resolve({ total_saved: 0, savings_pct: 0, actual_cost: 0, baseline_cost: 0, baseline_model: null, baseline_override_stale: false, request_count: 0, trend_pct: 0, is_auto: true, savings_by_auth_type: { api_key: 0, subscription: 0, local: 0 } })),
   getBaselineCandidates: vi.fn(() => Promise.resolve([])),
-  updateBaseline: vi.fn(() => Promise.resolve({})),
 }));
 
 vi.mock("../../src/services/toast-store.js", () => ({
