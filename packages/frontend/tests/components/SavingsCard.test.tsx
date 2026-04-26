@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@solidjs/testing-library';
-import type { SavingsData, BaselineCandidateData } from '../../src/services/api/analytics';
+import type { SavingsData, BaselineCandidateData } from '../../src/services/api/analytics.js';
 
 let mockSavingsResult: SavingsData | null = null;
 let mockCandidatesResult: BaselineCandidateData[] = [];
 let mockSavingsError = false;
 
-vi.mock('../../src/services/api.js', () => ({
+vi.mock('../../src/services/api/analytics.js', () => ({
   getSavings: vi.fn(() =>
     mockSavingsError
       ? Promise.reject(new Error('fail'))

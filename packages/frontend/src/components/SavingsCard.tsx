@@ -7,7 +7,7 @@ import {
   type JSX,
 } from 'solid-js';
 import Select from './Select.jsx';
-import { getSavings, getBaselineCandidates, updateBaseline } from '../services/api.js';
+import { getSavings, getBaselineCandidates, updateBaseline } from '../services/api/analytics.js';
 import { toast } from '../services/toast-store.js';
 
 interface SavingsCardProps {
