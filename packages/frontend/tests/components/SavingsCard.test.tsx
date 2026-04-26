@@ -115,8 +115,9 @@ describe('SavingsCard', () => {
     const { container } = render(() => (
       <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={noopData} />
     ));
-    await new Promise((r) => setTimeout(r, 50));
-    expect(container.querySelector('.savings-controls__vs')).toBeNull();
+    await vi.waitFor(() => {
+      expect(container.querySelector('.savings-controls__vs')).toBeNull();
+    });
   });
 
   it('calls onOpenExplainer when info button clicked', async () => {
