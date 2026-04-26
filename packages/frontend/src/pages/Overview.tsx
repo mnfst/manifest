@@ -35,7 +35,10 @@ import { preloadModelDisplayNames } from '../services/model-display.js';
 import { isRecentlyCreated } from '../services/recent-agents.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
 import { pingCount } from '../services/sse.js';
+import SavingsCard from '../components/SavingsCard.jsx';
+import SavingsExplainer from '../components/SavingsExplainer.jsx';
 import '../styles/overview.css';
+import '../styles/savings.css';
 
 interface OverviewData {
   summary: {
@@ -101,6 +104,10 @@ const Overview: Component = () => {
     localStorage.setItem(RANGE_STORAGE_KEY, value);
   };
   const [activeView, setActiveView] = createSignal<'cost' | 'tokens' | 'messages'>('messages');
+  const [explainerOpen, setExplainerOpen] = createSignal(false);
+  const [explainerBaseline, setExplainerBaseline] = createSignal<string | null>(null);
+  const [savedCost, setSavedCost] = createSignal<number | null>(null);
+  const [savedPct, setSavedPct] = createSignal<number | null>(null);
   const [setupOpen, setSetupOpen] = createSignal(
     isRecentlyCreated(decodeURIComponent(params.agentName)),
   );
@@ -221,65 +228,97 @@ const Overview: Component = () => {
 
   return (
     <div class="container--md">
-      <Title>
-        {agentDisplayName() ?? decodeURIComponent(params.agentName)} Overview - Manifest
-      </Title>
-      <Meta
-        name="description"
-        content={`Monitor ${agentDisplayName() ?? decodeURIComponent(params.agentName)} performance — costs, tokens, and activity.`}
-      />
-      <div class="page-header">
-        <div>
-          <h1 style="display: flex; align-items: center; gap: 10px;">
-            <Show when={agentPlatformIcon()}>
-              <img
-                src={agentPlatformIcon()}
-                alt=""
-                width="28"
-                height="28"
-                class="overview__platform-icon"
-                style="border-radius: 4px;"
+      <Show when={explainerOpen()}>
+        <SavingsExplainer
+          baselineModelName={explainerBaseline()}
+          onClose={() => setExplainerOpen(false)}
+        />
+      </Show>
+      <Show when={!explainerOpen()}>
+        <Title>
+          {agentDisplayName() ?? decodeURIComponent(params.agentName)} Overview - Manifest
+        </Title>
+        <Meta
+          name="description"
+          content={`Monitor ${agentDisplayName() ?? decodeURIComponent(params.agentName)} performance — costs, tokens, and activity.`}
+        />
+        <div class="page-header">
+          <div>
+            <h1 style="display: flex; align-items: center; gap: 10px;">
+              <Show when={agentPlatformIcon()}>
+                <img
+                  src={agentPlatformIcon()}
+                  alt=""
+                  width="28"
+                  height="28"
+                  class="overview__platform-icon"
+                  style="border-radius: 4px;"
+                />
+              </Show>
+              {agentDisplayName() ?? decodeURIComponent(params.agentName)} Overview
+            </h1>
+            <span class="breadcrumb">Real-time summary of spending, tokens, and messages</span>
+          </div>
+          <div class="header-controls">
+            <Show when={showDashboard()}>
+              <Select
+                value={range()}
+                onChange={handleRangeChange}
+                options={[
+                  { label: 'Last 24 hours', value: '24h' },
+                  { label: 'Last 7 days', value: '7d' },
+                  { label: 'Last 30 days', value: '30d' },
+                ]}
               />
             </Show>
-            {agentDisplayName() ?? decodeURIComponent(params.agentName)} Overview
-          </h1>
-          <span class="breadcrumb">Real-time summary of spending, tokens, and messages</span>
+            <Show when={showEmptyState() && !setupCompleted()}>
+              <button class="btn btn--primary btn--sm" onClick={() => setSetupOpen(true)}>
+                Set up agent
+              </button>
+            </Show>
+          </div>
         </div>
-        <div class="header-controls">
-          <Show when={showDashboard()}>
-            <Select
-              value={range()}
-              onChange={handleRangeChange}
-              options={[
-                { label: 'Last 24 hours', value: '24h' },
-                { label: 'Last 7 days', value: '7d' },
-                { label: 'Last 30 days', value: '30d' },
-              ]}
-            />
-          </Show>
-          <Show when={showEmptyState() && !setupCompleted()}>
-            <button class="btn btn--primary btn--sm" onClick={() => setSetupOpen(true)}>
-              Set up agent
-            </button>
-          </Show>
-        </div>
-      </div>
 
-      <Show when={data() !== undefined || !data.loading} fallback={<OverviewSkeleton />}>
-        <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>
-          <Show when={showEmptyState()}>
-            <Show
-              when={setupCompleted()}
-              fallback={
+        <Show when={data() !== undefined || !data.loading} fallback={<OverviewSkeleton />}>
+          <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>
+            <Show when={showEmptyState()}>
+              <Show
+                when={setupCompleted()}
+                fallback={
+                  <div class="empty-state">
+                    <div class="empty-state__title">No activity yet</div>
+                    <p>Set up your agent and send a message. Usage data shows up here.</p>
+                    <button
+                      class="btn btn--primary btn--sm"
+                      style="margin-top: var(--gap-md);"
+                      onClick={() => setSetupOpen(true)}
+                    >
+                      Set up agent
+                    </button>
+                    <div class="empty-state__img-wrapper">
+                      <img
+                        src="/example-overview.svg"
+                        alt="Example dashboard overview showing cost and token charts"
+                        class="empty-state__img"
+                        loading="lazy"
+                      />
+                    </div>
+                  </div>
+                }
+              >
                 <div class="empty-state">
                   <div class="empty-state__title">No activity yet</div>
-                  <p>Set up your agent and send a message. Usage data shows up here.</p>
+                  <p>Connect a provider to start routing LLM calls.</p>
                   <button
                     class="btn btn--primary btn--sm"
                     style="margin-top: var(--gap-md);"
-                    onClick={() => setSetupOpen(true)}
+                    onClick={() =>
+                      navigate(`/agents/${encodeURIComponent(params.agentName)}/routing`, {
+                        state: { openProviders: true },
+                      })
+                    }
                   >
-                    Set up agent
+                    Connect provider
                   </button>
                   <div class="empty-state__img-wrapper">
                     <img
@@ -290,125 +329,120 @@ const Overview: Component = () => {
                     />
                   </div>
                 </div>
-              }
-            >
-              <div class="empty-state">
-                <div class="empty-state__title">No activity yet</div>
-                <p>Connect a provider to start routing LLM calls.</p>
-                <button
-                  class="btn btn--primary btn--sm"
-                  style="margin-top: var(--gap-md);"
-                  onClick={() =>
-                    navigate(`/agents/${encodeURIComponent(params.agentName)}/routing`, {
-                      state: { openProviders: true },
-                    })
-                  }
-                >
-                  Connect provider
-                </button>
-                <div class="empty-state__img-wrapper">
-                  <img
-                    src="/example-overview.svg"
-                    alt="Example dashboard overview showing cost and token charts"
-                    class="empty-state__img"
-                    loading="lazy"
-                  />
-                </div>
-              </div>
+              </Show>
+            </Show>
+            <Show when={showDashboard()}>
+              {(_summary) => {
+                const d = () => data() as OverviewData;
+                return (
+                  <>
+                    <Show when={d().has_data === false}>
+                      <div class="waiting-banner">
+                        <i class="bxd bx-florist" />
+                        <p>
+                          No activity yet. Your dashboard updates seconds after the first LLM call.
+                        </p>
+                      </div>
+                    </Show>
+                    <ChartCard
+                      activeView={activeView()}
+                      onViewChange={setActiveView}
+                      costValue={d().summary?.cost_today?.value ?? 0}
+                      costTrendPct={d().summary?.cost_today?.trend_pct ?? 0}
+                      tokensValue={d().summary?.tokens_today?.value ?? 0}
+                      tokensTrendPct={d().summary?.tokens_today?.trend_pct ?? 0}
+                      messagesValue={d().summary?.messages?.value ?? 0}
+                      messagesTrendPct={d().summary?.messages?.trend_pct ?? 0}
+                      costUsage={d().cost_usage}
+                      tokenUsage={d().token_usage}
+                      messageChartData={messageChartData()}
+                      range={range()}
+                      savedCost={d().has_data !== false ? savedCost() : null}
+                      savedPct={d().has_data !== false ? savedPct() : null}
+                      savedControls={
+                        d().has_data !== false ? (
+                          <SavingsCard
+                            agentName={decodeURIComponent(params.agentName)}
+                            range={range()}
+                            ping={pingCount()}
+                            onOpenExplainer={(name) => {
+                              setExplainerBaseline(name);
+                              setExplainerOpen(true);
+                            }}
+                            onData={(cost, pct) => {
+                              setSavedCost(cost);
+                              setSavedPct(pct);
+                            }}
+                          />
+                        ) : undefined
+                      }
+                    />
+
+                    {/* Recent Messages */}
+                    <div class="panel">
+                      <div
+                        class="panel__title"
+                        style="display: flex; justify-content: space-between; align-items: center;"
+                      >
+                        Recent Messages
+                        <A href={`/agents/${params.agentName}/messages`} class="view-more-link">
+                          View more
+                        </A>
+                      </div>
+                      <MessageTable
+                        items={
+                          isSelfHosted()
+                            ? (d().recent_activity?.slice(0, 5) ?? [])
+                            : applyFeedbackOverrides(d().recent_activity?.slice(0, 5) ?? [])
+                        }
+                        columns={columns()}
+                        agentName={params.agentName}
+                        customProviderName={customProviderName}
+                        onFeedbackLike={isSelfHosted() ? undefined : handleFeedbackLike}
+                        onFeedbackDislike={isSelfHosted() ? undefined : handleFeedbackDislike}
+                        onFeedbackClear={isSelfHosted() ? undefined : handleFeedbackClear}
+                      />
+                    </div>
+
+                    <CostByModelTable
+                      rows={d().cost_by_model ?? []}
+                      customProviderName={customProviderName}
+                    />
+                  </>
+                );
+              }}
             </Show>
           </Show>
-          <Show when={showDashboard()}>
-            {(_summary) => {
-              const d = () => data() as OverviewData;
-              return (
-                <>
-                  <Show when={d().has_data === false}>
-                    <div class="waiting-banner">
-                      <i class="bxd bx-florist" />
-                      <p>
-                        No activity yet. Your dashboard updates seconds after the first LLM call.
-                      </p>
-                    </div>
-                  </Show>
-                  <ChartCard
-                    activeView={activeView()}
-                    onViewChange={setActiveView}
-                    costValue={d().summary?.cost_today?.value ?? 0}
-                    costTrendPct={d().summary?.cost_today?.trend_pct ?? 0}
-                    tokensValue={d().summary?.tokens_today?.value ?? 0}
-                    tokensTrendPct={d().summary?.tokens_today?.trend_pct ?? 0}
-                    messagesValue={d().summary?.messages?.value ?? 0}
-                    messagesTrendPct={d().summary?.messages?.trend_pct ?? 0}
-                    costUsage={d().cost_usage}
-                    tokenUsage={d().token_usage}
-                    messageChartData={messageChartData()}
-                    range={range()}
-                  />
-
-                  {/* Recent Messages */}
-                  <div class="panel">
-                    <div
-                      class="panel__title"
-                      style="display: flex; justify-content: space-between; align-items: center;"
-                    >
-                      Recent Messages
-                      <A href={`/agents/${params.agentName}/messages`} class="view-more-link">
-                        View more
-                      </A>
-                    </div>
-                    <MessageTable
-                      items={
-                        isSelfHosted()
-                          ? (d().recent_activity?.slice(0, 5) ?? [])
-                          : applyFeedbackOverrides(d().recent_activity?.slice(0, 5) ?? [])
-                      }
-                      columns={columns()}
-                      agentName={params.agentName}
-                      customProviderName={customProviderName}
-                      onFeedbackLike={isSelfHosted() ? undefined : handleFeedbackLike}
-                      onFeedbackDislike={isSelfHosted() ? undefined : handleFeedbackDislike}
-                      onFeedbackClear={isSelfHosted() ? undefined : handleFeedbackClear}
-                    />
-                  </div>
-
-                  <CostByModelTable
-                    rows={d().cost_by_model ?? []}
-                    customProviderName={customProviderName}
-                  />
-                </>
-              );
-            }}
-          </Show>
         </Show>
-      </Show>
 
-      <SetupModal
-        open={setupOpen()}
-        agentName={decodeURIComponent(params.agentName)}
-        apiKey={(location.state as { newApiKey?: string } | undefined)?.newApiKey ?? null}
-        agentPlatform={agentPlatform()}
-        agentCategory={agentCategory()}
-        onClose={() => {
-          localStorage.setItem(`setup_dismissed_${params.agentName}`, '1');
-          setSetupOpen(false);
-        }}
-        onDone={() => {
-          localStorage.setItem(`setup_completed_${params.agentName}`, '1');
-          setSetupCompleted(true);
-        }}
-        onGoToRouting={() => {
-          navigate(`/agents/${encodeURIComponent(params.agentName)}/routing`, {
-            state: { openProviders: true },
-          });
-        }}
-      />
-
-      <Show when={!isSelfHosted()}>
-        <FeedbackModal
-          open={feedbackModalOpen()}
-          onClose={() => setFeedbackModalOpen(false)}
-          onSubmit={handleFeedbackSubmit}
+        <SetupModal
+          open={setupOpen()}
+          agentName={decodeURIComponent(params.agentName)}
+          apiKey={(location.state as { newApiKey?: string } | undefined)?.newApiKey ?? null}
+          agentPlatform={agentPlatform()}
+          agentCategory={agentCategory()}
+          onClose={() => {
+            localStorage.setItem(`setup_dismissed_${params.agentName}`, '1');
+            setSetupOpen(false);
+          }}
+          onDone={() => {
+            localStorage.setItem(`setup_completed_${params.agentName}`, '1');
+            setSetupCompleted(true);
+          }}
+          onGoToRouting={() => {
+            navigate(`/agents/${encodeURIComponent(params.agentName)}/routing`, {
+              state: { openProviders: true },
+            });
+          }}
         />
+
+        <Show when={!isSelfHosted()}>
+          <FeedbackModal
+            open={feedbackModalOpen()}
+            onClose={() => setFeedbackModalOpen(false)}
+            onSubmit={handleFeedbackSubmit}
+          />
+        </Show>
       </Show>
     </div>
   );

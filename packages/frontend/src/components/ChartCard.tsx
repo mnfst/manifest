@@ -1,4 +1,4 @@
-import { Show, type Component } from 'solid-js';
+import { Show, type Component, type JSX } from 'solid-js';
 import CostChart from './CostChart.jsx';
 import InfoTooltip from './InfoTooltip.jsx';
 import SingleTokenChart from './SingleTokenChart.jsx';
@@ -45,6 +45,9 @@ interface ChartCardProps {
   }>;
   messageChartData: Array<{ time: string; value: number }>;
   range: string;
+  savedCost?: number | null;
+  savedPct?: number | null;
+  savedControls?: JSX.Element;
 }
 
 const ChartCard: Component<ChartCardProps> = (props) => (
@@ -86,6 +89,24 @@ const ChartCard: Component<ChartCardProps> = (props) => (
           {trendBadge(props.tokensTrendPct, props.tokensValue, 'inverted')}
         </div>
       </div>
+      <Show when={props.savedCost != null || props.savedControls}>
+        <div class="chart-card__savings-area">
+          <Show when={props.savedCost != null}>
+            <div class="chart-card__stat">
+              <span class="chart-card__label">Saved cost</span>
+              <div class="chart-card__value-row">
+                <span class="chart-card__value">{formatCost(props.savedCost!) ?? '$0.00'}</span>
+                <Show when={(props.savedPct ?? 0) > 0}>
+                  <span class="chart-card__savings-pct">{props.savedPct}%</span>
+                </Show>
+              </div>
+            </div>
+          </Show>
+          <Show when={props.savedControls}>
+            <div class="chart-card__savings-controls">{props.savedControls}</div>
+          </Show>
+        </div>
+      </Show>
     </div>
     <div class="chart-card__body">
       <Show when={props.activeView === 'cost'}>
