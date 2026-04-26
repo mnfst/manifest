@@ -39,6 +39,7 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
+    setupFiles: ["./tests/setup-savings-mock.ts"],
     transformMode: { web: [/\.[jt]sx?$/] },
     deps: {
       optimizer: { web: { include: ["solid-js"] } },
