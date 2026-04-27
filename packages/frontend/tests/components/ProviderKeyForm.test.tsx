@@ -697,5 +697,82 @@ describe('ProviderKeyForm', () => {
       expect(onBack).not.toHaveBeenCalled();
       expect(onUpdate).toHaveBeenCalled();
     });
+
+    it('inline rename for a chain row calls renameProviderKey and refreshes', async () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const onUpdate = vi.fn();
+      const { container, getByText } = mount({
+        provDef: def,
+        connected: true,
+        onUpdate,
+        providers: [
+          makeProvider({ id: 'p1', label: 'Personal', priority: 0 }),
+          makeProvider({ id: 'p2', label: 'Work', priority: 1 }),
+        ],
+      });
+      // Click the first row's Rename button.
+      const renameBtns = Array.from(container.querySelectorAll('button')).filter(
+        (b) => b.textContent === 'Rename',
+      );
+      fireEvent.click(renameBtns[0] as HTMLButtonElement);
+      const input = container.querySelector('input[type="text"]') as HTMLInputElement;
+      fireEvent.input(input, { target: { value: 'Home' } });
+      fireEvent.click(getByText('Save'));
+
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(renameProviderKeyMock).toHaveBeenCalledWith(
+        'test-agent',
+        'openai',
+        'Personal',
+        'Home',
+        'api_key',
+      );
+      expect(toastSuccess).toHaveBeenCalledWith('Renamed to "Home"');
+    });
+
+    it('AddAnotherKeyAction submits a new labeled key with the suggested default label', async () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const onUpdate = vi.fn();
+      const { container, getByText } = mount({
+        provDef: def,
+        connected: true,
+        onUpdate,
+        providers: [makeProvider({ id: 'p1', label: 'Default', priority: 0 })],
+      });
+      fireEvent.click(getByText('+ Add another key'));
+      // Form is now open. The api-key input has a placeholder "sk-...".
+      const apiKeyInput = container.querySelector(
+        'input[placeholder="sk-..."]',
+      ) as HTMLInputElement;
+      fireEvent.input(apiKeyInput, { target: { value: 'sk-second' } });
+      fireEvent.click(getByText('Add key'));
+
+      await Promise.resolve();
+      await Promise.resolve();
+      // Default suggestion for the 2nd key is "Key 2".
+      expect(connectProviderMock).toHaveBeenCalledWith('test-agent', {
+        provider: 'openai',
+        apiKey: 'sk-second',
+        authType: 'api_key',
+        label: 'Key 2',
+      });
+      expect(toastSuccess).toHaveBeenCalledWith('OpenAI key "Key 2" added');
+    });
+
+    it('AddAnotherKeyAction Cancel closes the form without submitting', () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const { container, getByText, queryByText } = mount({
+        provDef: def,
+        connected: true,
+        providers: [makeProvider({ id: 'p1', label: 'Default', priority: 0 })],
+      });
+      fireEvent.click(getByText('+ Add another key'));
+      expect(queryByText('Cancel')).toBeDefined();
+      fireEvent.click(getByText('Cancel'));
+      // Form collapses; the Cancel button is gone.
+      expect(container.querySelector('input[placeholder="sk-..."]')).toBeNull();
+      expect(connectProviderMock).not.toHaveBeenCalled();
+    });
   });
 });

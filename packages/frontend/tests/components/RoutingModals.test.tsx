@@ -158,6 +158,132 @@ describe("RoutingModals", () => {
     expect(onSpecificityDropdownClose).toHaveBeenCalled();
   });
 
+  describe("multi-key KeyPickerModal interception", () => {
+    const twoOpenAiKeys: RoutingProvider[] = [
+      {
+        id: "k1",
+        provider: "openai",
+        auth_type: "api_key" as const,
+        is_active: true,
+        has_api_key: true,
+        label: "Personal",
+        priority: 0,
+        connected_at: "2026-04-27",
+      } as RoutingProvider,
+      {
+        id: "k2",
+        provider: "openai",
+        auth_type: "api_key" as const,
+        is_active: true,
+        has_api_key: true,
+        label: "Work",
+        priority: 1,
+        connected_at: "2026-04-27",
+      } as RoutingProvider,
+    ];
+
+    it("forwards directly to onOverride when only one key exists for the resolved provider", async () => {
+      const [dropdownTier] = createSignal<string | null>("simple");
+      const onOverride = vi.fn();
+
+      render(() => (
+        <RoutingModals
+          {...defaultProps()}
+          dropdownTier={dropdownTier}
+          connectedProviders={() => baseProviders}
+          onOverride={onOverride}
+        />
+      ));
+
+      await screen.findByText("Select a model");
+      const modelButtons = document.querySelectorAll<HTMLButtonElement>(".routing-modal__model");
+      fireEvent.click(modelButtons[0]);
+
+      await waitFor(() => {
+        expect(onOverride).toHaveBeenCalled();
+      });
+      // No KeyPickerModal opened — passes through directly with no label.
+      expect(screen.queryByText(/Which OpenAI key/i)).toBeNull();
+    });
+
+    it("opens the KeyPickerModal when 2+ keys exist for the resolved provider", async () => {
+      const [dropdownTier] = createSignal<string | null>("simple");
+      const onOverride = vi.fn();
+
+      render(() => (
+        <RoutingModals
+          {...defaultProps()}
+          dropdownTier={dropdownTier}
+          connectedProviders={() => twoOpenAiKeys}
+          onOverride={onOverride}
+        />
+      ));
+
+      await screen.findByText("Select a model");
+      const modelButtons = document.querySelectorAll<HTMLButtonElement>(".routing-modal__model");
+      fireEvent.click(modelButtons[0]);
+
+      await waitFor(() => {
+        expect(screen.getByText(/Which OpenAI key/i)).toBeDefined();
+      });
+      // onOverride should NOT have been called yet — waiting on key pick.
+      expect(onOverride).not.toHaveBeenCalled();
+    });
+
+    it("forwards to onOverride with the chosen label after key pick", async () => {
+      const [dropdownTier] = createSignal<string | null>("simple");
+      const onOverride = vi.fn();
+
+      render(() => (
+        <RoutingModals
+          {...defaultProps()}
+          dropdownTier={dropdownTier}
+          connectedProviders={() => twoOpenAiKeys}
+          onOverride={onOverride}
+        />
+      ));
+
+      await screen.findByText("Select a model");
+      fireEvent.click(document.querySelectorAll<HTMLButtonElement>(".routing-modal__model")[0]);
+      await screen.findByText(/Which OpenAI key/i);
+
+      fireEvent.click(screen.getByText("Work"));
+
+      await waitFor(() => {
+        expect(onOverride).toHaveBeenCalled();
+      });
+      // 5th arg = label
+      expect(onOverride.mock.calls[0][4]).toBe("Work");
+    });
+
+    it("closes the KeyPickerModal without calling onOverride when × is clicked", async () => {
+      const [dropdownTier] = createSignal<string | null>("simple");
+      const onOverride = vi.fn();
+
+      render(() => (
+        <RoutingModals
+          {...defaultProps()}
+          dropdownTier={dropdownTier}
+          connectedProviders={() => twoOpenAiKeys}
+          onOverride={onOverride}
+        />
+      ));
+
+      await screen.findByText("Select a model");
+      fireEvent.click(document.querySelectorAll<HTMLButtonElement>(".routing-modal__model")[0]);
+      await screen.findByText(/Which OpenAI key/i);
+
+      // Find the close button on the key picker modal (last × button on screen).
+      const closeBtns = screen.getAllByLabelText("Close");
+      fireEvent.click(closeBtns[closeBtns.length - 1]);
+
+      await waitFor(() => {
+        expect(screen.queryByText(/Which OpenAI key/i)).toBeNull();
+      });
+      expect(onOverride).not.toHaveBeenCalled();
+    });
+  });
+
   it("fallback picker uses getTier to resolve specificity assignment fallbacks", () => {
     const specificityAssignment = {
       ...baseTiers[0],
