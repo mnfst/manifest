@@ -7,6 +7,7 @@ import {
   setFallbacks,
   type TierAssignment,
   type AuthType,
+  type RoutingProvider,
 } from '../services/api.js';
 
 interface RoutingActionsInput {
@@ -15,6 +16,7 @@ interface RoutingActionsInput {
   mutateTiers: Setter<TierAssignment[] | undefined>;
   refetchAll: () => Promise<void>;
   setInstructionModal: Setter<'enable' | 'disable' | null>;
+  connectedProviders: () => RoutingProvider[];
 }
 
 export function createRoutingActions(input: RoutingActionsInput) {

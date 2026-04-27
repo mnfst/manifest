@@ -116,6 +116,7 @@ const Routing: Component = () => {
     mutateTiers,
     refetchAll,
     setInstructionModal,
+    connectedProviders: () => connectedProviders() ?? [],
   });
 
   const handleOverride: typeof actions.handleOverride = async (...args) => {
