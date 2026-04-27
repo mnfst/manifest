@@ -38,8 +38,17 @@ export class AgentDuplicationService {
     private readonly routingCache: RoutingCacheService,
   ) {}
 
+  private static readonly CUSTOM_PREFIX = 'custom:';
+
   private generateOtlpKey(): string {
     return API_KEY_PREFIX + randomBytes(32).toString('base64url');
+  }
+
+  private remapCustomProviderRef(provider: string, idMap: Map<string, string>): string {
+    if (!provider.startsWith(AgentDuplicationService.CUSTOM_PREFIX)) return provider;
+    const oldId = provider.slice(AgentDuplicationService.CUSTOM_PREFIX.length);
+    const newId = idMap.get(oldId);
+    return newId ? `${AgentDuplicationService.CUSTOM_PREFIX}${newId}` : provider;
   }
 
   private async findOwnedAgent(userId: string, agentName: string): Promise<Agent | null> {
@@ -130,6 +139,28 @@ export class AgentDuplicationService {
         is_active: true,
       });
 
+      const customProviders = await manager
+        .getRepository(CustomProvider)
+        .find({ where: { agent_id: source.id } });
+      const customProviderIdMap = new Map<string, string>();
+      if (customProviders.length > 0) {
+        const newCustomProviders = customProviders.map((cp) => {
+          const newId = uuidv4();
+          customProviderIdMap.set(cp.id, newId);
+          return {
+            id: newId,
+            agent_id: newAgentId,
+            user_id: cp.user_id,
+            name: cp.name,
+            base_url: cp.base_url,
+            api_kind: cp.api_kind,
+            models: cp.models,
+            created_at: now,
+          };
+        });
+        await manager.getRepository(CustomProvider).insert(newCustomProviders);
+      }
+
       const providers = await manager
         .getRepository(UserProvider)
         .find({ where: { agent_id: source.id } });
@@ -139,7 +170,7 @@ export class AgentDuplicationService {
             id: uuidv4(),
             user_id: p.user_id,
             agent_id: newAgentId,
-            provider: p.provider,
+            provider: this.remapCustomProviderRef(p.provider, customProviderIdMap),
             api_key_encrypted: p.api_key_encrypted,
             key_prefix: p.key_prefix,
             auth_type: p.auth_type,
@@ -149,23 +180,6 @@ export class AgentDuplicationService {
             updated_at: now,
             cached_models: p.cached_models,
             models_fetched_at: p.models_fetched_at,
-          })),
-        );
-      }
-
-      const customProviders = await manager
-        .getRepository(CustomProvider)
-        .find({ where: { agent_id: source.id } });
-      if (customProviders.length > 0) {
-        await manager.getRepository(CustomProvider).insert(
-          customProviders.map((cp) => ({
-            id: uuidv4(),
-            agent_id: newAgentId,
-            user_id: cp.user_id,
-            name: cp.name,
-            base_url: cp.base_url,
-            models: cp.models,
-            created_at: now,
           })),
         );
       }
