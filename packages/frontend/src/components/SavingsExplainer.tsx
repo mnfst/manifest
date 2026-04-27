@@ -34,21 +34,22 @@ const SavingsExplainer: Component<SavingsExplainerProps> = (props) => {
 
       <div class="savings-explainer__content">
         <h1>How savings are calculated</h1>
-        <p class="savings-explainer__intro">
-          For each request, savings are calculated by comparing what you actually paid against what
-          the cheapest reasoning-capable model would have cost for the same tokens.
-        </p>
 
         <section class="savings-explainer__section">
           <h2>The baseline</h2>
           <p>
-            In auto mode, the baseline is determined per request at the time it is processed. It is
-            the cheapest reasoning-capable model available from your connected providers at that
-            moment, priced at API rates.
+            The baseline is your most expensive model. We consider it the one that would have been
+            needed to handle any request without routing.
           </p>
           <p>
-            You can also pick a specific model from the dropdown on the Overview page to compare all
-            requests against a single model.
+            Manifest goes through every model in your routing setup (tiers and fallbacks) and
+            compares their API key prices. Models on a subscription or running locally get priced at
+            what they'd cost as API keys at their original provider. Whichever model costs the most
+            at API key rates becomes the baseline.
+          </p>
+          <p>
+            You can override this by picking a specific model from the dropdown on the Overview
+            page.
           </p>
           {props.baselineModelName && (
             <p>
@@ -59,16 +60,15 @@ const SavingsExplainer: Component<SavingsExplainerProps> = (props) => {
 
         <section class="savings-explainer__section">
           <h2>The formula</h2>
-          <p>For each request:</p>
           <div class="savings-explainer__formula">
             <span>Saved</span>
             <span class="savings-explainer__formula-op">=</span>
-            <span>max(Baseline cost &minus; Actual cost, $0)</span>
+            <span>Baseline cost &minus; Actual cost</span>
           </div>
           <p>
-            If the model you used costs less than the baseline, the difference is your saving for
-            that request. If it costs more, the saving is $0. Choosing a more expensive model is
-            your decision, not a loss.
+            The baseline cost is what you would have paid if every request used your most expensive
+            model. The actual cost is what you really paid thanks to routing. The difference is your
+            saving.
           </p>
           <p>
             The total on the dashboard is the sum of per-request savings across all requests in the
@@ -82,8 +82,8 @@ const SavingsExplainer: Component<SavingsExplainerProps> = (props) => {
           <div class="savings-explainer__case">
             <h3>API key providers</h3>
             <p>
-              You pay per token. If the model you used is cheaper than the baseline, the difference
-              is your saving. If it costs more, the saving is $0.
+              You pay per token. If a cheaper model is used for the request, the difference with the
+              baseline is your saving.
             </p>
           </div>
 
@@ -107,35 +107,9 @@ const SavingsExplainer: Component<SavingsExplainerProps> = (props) => {
           <h2>Examples</h2>
 
           <div class="savings-explainer__example">
-            <div class="savings-explainer__example-title">Model from a subscription provider</div>
+            <div class="savings-explainer__example-title">Routing picks a cheap API model</div>
             <div class="savings-explainer__example-row">
-              <span>Model used</span>
-              <span>Kimi k2.5 via subscription</span>
-            </div>
-            <div class="savings-explainer__example-row">
-              <span>Tokens</span>
-              <span>25,000 input, 400 output</span>
-            </div>
-            <div class="savings-explainer__example-row">
-              <span>Actual cost</span>
-              <span>$0.00</span>
-            </div>
-            <div class="savings-explainer__example-row">
-              <span>Baseline, based on connected providers (DeepSeek v4 Flash)</span>
-              <span>$0.0035</span>
-            </div>
-            <div class="savings-explainer__example-row savings-explainer__example-row--result">
-              <span>Saved</span>
-              <span class="savings-explainer__example-saved">$0.0035</span>
-            </div>
-          </div>
-
-          <div class="savings-explainer__example">
-            <div class="savings-explainer__example-title">
-              Model from an API key provider, cheaper than baseline
-            </div>
-            <div class="savings-explainer__example-row">
-              <span>Model used</span>
+              <span>Model actually used</span>
               <span>GPT-4.1 mini via API key</span>
             </div>
             <div class="savings-explainer__example-row">
@@ -143,52 +117,55 @@ const SavingsExplainer: Component<SavingsExplainerProps> = (props) => {
               <span>10,000 input, 2,000 output</span>
             </div>
             <div class="savings-explainer__example-row">
+              <span>Most expensive model in your routing setup (baseline)</span>
+              <span>Claude Sonnet 4.5</span>
+            </div>
+            <div class="savings-explainer__example-row">
+              <span>Baseline cost</span>
+              <span>$0.060</span>
+            </div>
+            <div class="savings-explainer__example-row">
               <span>Actual cost</span>
               <span>$0.0028</span>
             </div>
-            <div class="savings-explainer__example-row">
-              <span>Baseline, based on connected providers (Claude Haiku 4.5)</span>
-              <span>$0.020</span>
-            </div>
             <div class="savings-explainer__example-row savings-explainer__example-row--result">
               <span>Saved</span>
-              <span class="savings-explainer__example-saved">$0.0172</span>
+              <span class="savings-explainer__example-saved">$0.0572</span>
             </div>
           </div>
 
           <div class="savings-explainer__example">
-            <div class="savings-explainer__example-title">
-              Model from an API key provider, more expensive than baseline
-            </div>
+            <div class="savings-explainer__example-title">Routing picks a subscription model</div>
             <div class="savings-explainer__example-row">
-              <span>Model used</span>
-              <span>Claude Sonnet 4.5 via API key</span>
+              <span>Model actually used</span>
+              <span>Kimi k2.5 via subscription</span>
             </div>
             <div class="savings-explainer__example-row">
               <span>Tokens</span>
-              <span>20,000 input, 1,000 output</span>
+              <span>25,000 input, 400 output</span>
+            </div>
+            <div class="savings-explainer__example-row">
+              <span>Most expensive model in your routing setup (baseline)</span>
+              <span>Claude Opus 4.6 (API equivalent)</span>
+            </div>
+            <div class="savings-explainer__example-row">
+              <span>Baseline cost</span>
+              <span>$0.382</span>
             </div>
             <div class="savings-explainer__example-row">
               <span>Actual cost</span>
-              <span>$0.075</span>
-            </div>
-            <div class="savings-explainer__example-row">
-              <span>Baseline, based on connected providers (DeepSeek v4 Flash)</span>
-              <span>$0.004</span>
+              <span>$0.00</span>
             </div>
             <div class="savings-explainer__example-row savings-explainer__example-row--result">
               <span>Saved</span>
-              <span>$0.00</span>
-            </div>
-            <div class="savings-explainer__example-note">
-              You chose a more capable model. No loss is recorded.
+              <span class="savings-explainer__example-saved">$0.382</span>
             </div>
           </div>
 
           <div class="savings-explainer__example">
-            <div class="savings-explainer__example-title">Model from a local provider</div>
+            <div class="savings-explainer__example-title">Routing picks a local model</div>
             <div class="savings-explainer__example-row">
-              <span>Model used</span>
+              <span>Model actually used</span>
               <span>Qwen 3 32B via Ollama (local)</span>
             </div>
             <div class="savings-explainer__example-row">
@@ -196,23 +173,20 @@ const SavingsExplainer: Component<SavingsExplainerProps> = (props) => {
               <span>8,000 input, 3,000 output</span>
             </div>
             <div class="savings-explainer__example-row">
+              <span>Most expensive model in your routing setup (baseline)</span>
+              <span>GPT-4.1</span>
+            </div>
+            <div class="savings-explainer__example-row">
+              <span>Baseline cost</span>
+              <span>$0.028</span>
+            </div>
+            <div class="savings-explainer__example-row">
               <span>Actual cost</span>
               <span>$0.00</span>
             </div>
-            <div class="savings-explainer__example-row">
-              <span>Baseline, based on connected providers (Claude Haiku 4.5)</span>
-              <span>$0.023</span>
-            </div>
             <div class="savings-explainer__example-row savings-explainer__example-row--result">
               <span>Saved</span>
-              <span class="savings-explainer__example-saved">$0.023</span>
-            </div>
-          </div>
-
-          <div class="savings-explainer__example savings-explainer__example--total">
-            <div class="savings-explainer__example-row savings-explainer__example-row--result">
-              <span>Total saved across 4 requests</span>
-              <span class="savings-explainer__example-saved">$0.0437</span>
+              <span class="savings-explainer__example-saved">$0.028</span>
             </div>
           </div>
         </section>

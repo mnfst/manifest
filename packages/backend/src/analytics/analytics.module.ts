@@ -8,6 +8,9 @@ import { ToolExecution } from '../entities/tool-execution.entity';
 import { AgentLog } from '../entities/agent-log.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { UserProvider } from '../entities/user-provider.entity';
+import { TierAssignment } from '../entities/tier-assignment.entity';
+import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
+import { HeaderTier } from '../entities/header-tier.entity';
 import { OtlpModule } from '../otlp/otlp.module';
 import { RoutingCoreModule } from '../routing/routing-core/routing-core.module';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
@@ -40,6 +43,9 @@ import { SavingsQueryService } from './services/savings-query.service';
       AgentLog,
       CustomProvider,
       UserProvider,
+      TierAssignment,
+      SpecificityAssignment,
+      HeaderTier,
     ]),
     OtlpModule,
     RoutingCoreModule,

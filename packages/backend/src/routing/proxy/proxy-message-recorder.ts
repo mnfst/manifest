@@ -14,8 +14,10 @@ import { scrubSecrets } from '../../common/utils/secret-scrub';
 import { CallerAttribution } from './caller-classifier';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
 import { ProviderService } from '../routing-core/provider.service';
-import { ModelsDevSyncService } from '../../database/models-dev-sync.service';
-import { computeBaselineCost } from '../../common/utils/baseline-cost';
+import { computeBaselineCost, collectRoutedModelIds } from '../../common/utils/baseline-cost';
+import { TierService } from '../routing-core/tier.service';
+import { SpecificityService } from '../routing-core/specificity.service';
+import { HeaderTierService } from '../header-tiers/header-tier.service';
 
 export interface HeaderTierRef {
   headerTierId?: string | null;
@@ -105,7 +107,9 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     private readonly eventBus: IngestEventBusService,
     private readonly customProviders: CustomProviderService,
     private readonly providerService: ProviderService,
-    private readonly modelsDevSync: ModelsDevSyncService,
+    private readonly tierService: TierService,
+    private readonly specificityService: SpecificityService,
+    private readonly headerTierService: HeaderTierService,
   ) {
     this.cooldownCleanupTimer = setInterval(() => this.evictExpiredCooldowns(), 60_000);
     if (typeof this.cooldownCleanupTimer === 'object' && 'unref' in this.cooldownCleanupTimer) {
@@ -524,13 +528,23 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     outputTokens: number,
   ): Promise<{ modelId: string; cost: number } | null> {
     try {
-      const providers = await this.providerService.getProviders(agentId);
+      const [providers, tiers, specificityAssignments, headerTiers] = await Promise.all([
+        this.providerService.getProviders(agentId),
+        this.tierService.getTiers(agentId),
+        this.specificityService.getAssignments(agentId),
+        this.headerTierService.list(agentId),
+      ]);
+      const routedModelIds = collectRoutedModelIds([
+        ...tiers,
+        ...specificityAssignments,
+        ...headerTiers,
+      ]);
       return computeBaselineCost(
         providers,
+        routedModelIds,
         inputTokens,
         outputTokens,
         this.pricingCache,
-        this.modelsDevSync,
       );
     } catch {
       return null;

@@ -4,6 +4,7 @@ import {
   createEffect,
   untrack,
   Show,
+  onCleanup,
   type Component,
   type JSX,
 } from 'solid-js';
@@ -20,6 +21,7 @@ interface SavingsCardProps {
 }
 
 const STORAGE_KEY_PREFIX = 'manifest_savings_baseline_';
+const TOOLTIP_HIDE_DELAY = 250;
 
 const SavingsCard: Component<SavingsCardProps> = (props) => {
   const storageKey = () => `${STORAGE_KEY_PREFIX}${props.agentName}`;
@@ -100,6 +102,32 @@ const SavingsCard: Component<SavingsCardProps> = (props) => {
     }
   };
 
+  /* ── Tooltip hover logic ── */
+  const [tooltipVisible, setTooltipVisible] = createSignal(false);
+  let hideTimer: ReturnType<typeof setTimeout> | undefined;
+
+  const showTooltip = () => {
+    if (hideTimer) {
+      clearTimeout(hideTimer);
+      hideTimer = undefined;
+    }
+    setTooltipVisible(true);
+  };
+
+  const scheduleHide = () => {
+    hideTimer = setTimeout(() => setTooltipVisible(false), TOOLTIP_HIDE_DELAY);
+  };
+
+  const handleMoreDetails = (e: MouseEvent) => {
+    e.preventDefault();
+    setTooltipVisible(false);
+    props.onOpenExplainer(savings()?.baseline_model?.display_name ?? null);
+  };
+
+  onCleanup(() => {
+    if (hideTimer) clearTimeout(hideTimer);
+  });
+
   return (
     <Show when={hasSavingsData()}>
       <span class="savings-controls__vs">vs</span>
@@ -110,28 +138,54 @@ const SavingsCard: Component<SavingsCardProps> = (props) => {
         label="Baseline model"
         displayValue={displayValue()}
       />
-      <button
-        class="savings-controls__info-btn"
-        onClick={() => props.onOpenExplainer(savings()?.baseline_model?.display_name ?? null)}
-        type="button"
-        aria-label="How savings are calculated"
+      <span
+        class="savings-controls__info-wrap"
+        onMouseEnter={showTooltip}
+        onMouseLeave={scheduleHide}
       >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
+        <button
+          class="savings-controls__info-btn"
+          type="button"
+          aria-label="How savings are calculated"
         >
-          <circle cx="12" cy="12" r="10" />
-          <line x1="12" y1="16" x2="12" y2="12" />
-          <line x1="12" y1="8" x2="12.01" y2="8" />
-        </svg>
-      </button>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="16" x2="12" y2="12" />
+            <line x1="12" y1="8" x2="12.01" y2="8" />
+          </svg>
+        </button>
+        <Show when={tooltipVisible()}>
+          <div class="savings-tooltip" onMouseEnter={showTooltip} onMouseLeave={scheduleHide}>
+            <p class="savings-tooltip__text">
+              Savings compare what you paid against what your most expensive model (at API key
+              rates) would have cost for the same request.
+            </p>
+            <a href="#" class="savings-tooltip__link" onClick={handleMoreDetails}>
+              More details
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path d="M9.29 16.71c.2.2.45.29.71.29s.51-.1.71-.29l4-4a.996.996 0 0 0 0-1.41l-4-4A.996.996 0 1 0 9.3 8.71L12.59 12 9.3 15.29a.996.996 0 0 0 0 1.41Z" />
+              </svg>
+            </a>
+          </div>
+        </Show>
+      </span>
     </Show>
   );
 };

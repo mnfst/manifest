@@ -8,9 +8,14 @@ import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache
 import { rangeToInterval, rangeToPreviousInterval } from '../../common/utils/range.util';
 import { computeCutoff, sqlSanitizeCost } from '../../common/utils/postgres-sql';
 import { addTenantFilter, computeTrend } from './query-helpers';
-import { pickCheapestReasoningModel } from '../../common/utils/baseline-cost';
-import { ModelsDevSyncService } from '../../database/models-dev-sync.service';
+import {
+  pickMostExpensiveRoutedModel,
+  collectRoutedModelIds,
+} from '../../common/utils/baseline-cost';
 import type { DiscoveredModel } from '../../model-discovery/model-fetcher';
+import { TierAssignment } from '../../entities/tier-assignment.entity';
+import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
+import { HeaderTier } from '../../entities/header-tier.entity';
 
 export interface BaselineModel {
   id: string;
@@ -56,8 +61,13 @@ export class SavingsQueryService {
     private readonly agentRepo: Repository<Agent>,
     @InjectRepository(UserProvider)
     private readonly providerRepo: Repository<UserProvider>,
+    @InjectRepository(TierAssignment)
+    private readonly tierRepo: Repository<TierAssignment>,
+    @InjectRepository(SpecificityAssignment)
+    private readonly specificityRepo: Repository<SpecificityAssignment>,
+    @InjectRepository(HeaderTier)
+    private readonly headerTierRepo: Repository<HeaderTier>,
     private readonly pricingCache: ModelPricingCacheService,
-    private readonly modelsDevSync: ModelsDevSyncService,
   ) {}
 
   async getSavings(
@@ -431,10 +441,18 @@ export class SavingsQueryService {
         where: tenantId ? { tenant_id: tenantId, name: agentName } : { name: agentName },
       });
       if (!agent) return null;
-      const providers = await this.providerRepo.find({
-        where: { agent_id: agent.id, is_active: true },
-      });
-      const model = pickCheapestReasoningModel(providers, this.pricingCache, this.modelsDevSync);
+      const [providers, tiers, specificityAssignments, headerTiers] = await Promise.all([
+        this.providerRepo.find({ where: { agent_id: agent.id, is_active: true } }),
+        this.tierRepo.find({ where: { agent_id: agent.id } }),
+        this.specificityRepo.find({ where: { agent_id: agent.id } }),
+        this.headerTierRepo.find({ where: { agent_id: agent.id } }),
+      ]);
+      const routedModelIds = collectRoutedModelIds([
+        ...tiers,
+        ...specificityAssignments,
+        ...headerTiers,
+      ]);
+      const model = pickMostExpensiveRoutedModel(providers, routedModelIds, this.pricingCache);
       if (!model) return null;
       return {
         input: model.inputPricePerToken!,

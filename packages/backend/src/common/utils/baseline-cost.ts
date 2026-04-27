@@ -22,14 +22,40 @@ export interface CapabilityLookup {
   lookupModel(providerId: string, modelId: string): { reasoning?: boolean } | null;
 }
 
+/** Minimal shape shared by TierAssignment, SpecificityAssignment, HeaderTier. */
+export interface RoutingSlot {
+  override_model: string | null;
+  auto_assigned_model?: string | null;
+  fallback_models: string[] | null;
+}
+
+/**
+ * Collect every unique model ID that is actively selected in the routing
+ * configuration: tier assignments, specificity assignments, and header tiers.
+ * Includes primaries (override or auto-assigned) and all fallbacks.
+ */
+export function collectRoutedModelIds(slots: RoutingSlot[]): string[] {
+  const ids = new Set<string>();
+  for (const slot of slots) {
+    const primary = slot.override_model ?? slot.auto_assigned_model ?? null;
+    if (primary) ids.add(primary);
+    if (slot.fallback_models) {
+      for (const fb of slot.fallback_models) {
+        if (fb) ids.add(fb);
+      }
+    }
+  }
+  return [...ids];
+}
+
 export function computeBaselineCost(
   providers: UserProvider[],
+  routedModelIds: string[],
   inputTokens: number,
   outputTokens: number,
   pricingLookup?: PricingLookup,
-  capabilityLookup?: CapabilityLookup,
 ): BaselineCostResult | null {
-  const model = pickCheapestReasoningModel(providers, pricingLookup, capabilityLookup);
+  const model = pickMostExpensiveRoutedModel(providers, routedModelIds, pricingLookup);
   if (!model) return null;
 
   const cost = inputTokens * model.inputPricePerToken! + outputTokens * model.outputPricePerToken!;
@@ -37,14 +63,23 @@ export function computeBaselineCost(
   return { modelId: model.id, cost: cost < 0 ? 0 : cost };
 }
 
-export function pickCheapestReasoningModel(
+/**
+ * Among all models actually selected in the user's routing config, find the
+ * one with the highest API-key-equivalent price (input + output per token).
+ * Subscription/local models are enriched with their real provider pricing so
+ * they compete on equal footing with API key models.
+ */
+export function pickMostExpensiveRoutedModel(
   providers: UserProvider[],
+  routedModelIds: string[],
   pricingLookup?: PricingLookup,
-  capabilityLookup?: CapabilityLookup,
 ): DiscoveredModel | null {
-  const allModels: DiscoveredModel[] = [];
-  const seen = new Set<string>();
+  if (routedModelIds.length === 0) return null;
 
+  const routedSet = new Set(routedModelIds);
+
+  // Build a map of all discovered models from active providers.
+  const modelMap = new Map<string, DiscoveredModel>();
   for (const p of providers) {
     if (!p.cached_models || !p.is_active) continue;
     let models: DiscoveredModel[];
@@ -55,81 +90,109 @@ export function pickCheapestReasoningModel(
     }
     if (!Array.isArray(models)) continue;
     for (const m of models) {
-      if (!m || seen.has(m.id)) continue;
-      seen.add(m.id);
-
-      let inputPrice = m.inputPricePerToken;
-      let outputPrice = m.outputPricePerToken;
-      let reasoning = m.capabilityReasoning;
-
-      // For models with $0 or missing pricing (subscription/local),
-      // look up real API pricing and capabilities from global caches.
-      const needsEnrichment =
-        typeof inputPrice !== 'number' ||
-        typeof outputPrice !== 'number' ||
-        inputPrice <= 0 ||
-        outputPrice <= 0;
-
-      if (needsEnrichment && pricingLookup) {
-        const apiPricing = pricingLookup.getByModel(m.id);
-        if (
-          apiPricing &&
-          apiPricing.input_price_per_token != null &&
-          apiPricing.output_price_per_token != null &&
-          apiPricing.input_price_per_token > 0 &&
-          apiPricing.output_price_per_token > 0
-        ) {
-          inputPrice = apiPricing.input_price_per_token;
-          outputPrice = apiPricing.output_price_per_token;
-
-          // Also enrich capabilities from models.dev using the original provider
-          if (capabilityLookup && !reasoning) {
-            const providerSlug = apiPricing.provider?.toLowerCase() ?? '';
-            // Try multiple name variants to match models.dev entries
-            const pricingDisplayName = apiPricing.display_name ?? '';
-            const dashified = pricingDisplayName.replace(/\s+/g, '-');
-            const caps =
-              capabilityLookup.lookupModel(providerSlug, dashified) ??
-              capabilityLookup.lookupModel(providerSlug, pricingDisplayName) ??
-              capabilityLookup.lookupModel(providerSlug, m.id) ??
-              capabilityLookup.lookupModel(providerSlug, m.displayName ?? m.id);
-            if (caps?.reasoning) {
-              reasoning = true;
-            }
-          }
-        }
-      }
-
-      if (
-        typeof inputPrice === 'number' &&
-        typeof outputPrice === 'number' &&
-        inputPrice > 0 &&
-        outputPrice > 0
-      ) {
-        allModels.push({
-          ...m,
-          inputPricePerToken: inputPrice,
-          outputPricePerToken: outputPrice,
-          capabilityReasoning: reasoning ?? false,
-        });
-      }
+      if (!m || !routedSet.has(m.id)) continue;
+      if (modelMap.has(m.id)) continue;
+      modelMap.set(m.id, m);
     }
   }
 
-  if (allModels.length === 0) return null;
+  // Enrich pricing and collect valid candidates.
+  const candidates: DiscoveredModel[] = [];
+  for (const m of modelMap.values()) {
+    let inputPrice = m.inputPricePerToken;
+    let outputPrice = m.outputPricePerToken;
 
-  const reasoningCapable = allModels.filter((m) => m.capabilityReasoning === true);
+    const needsEnrichment =
+      typeof inputPrice !== 'number' ||
+      typeof outputPrice !== 'number' ||
+      inputPrice <= 0 ||
+      outputPrice <= 0;
 
-  if (reasoningCapable.length > 0) {
-    reasoningCapable.sort(
-      (a, b) =>
-        a.inputPricePerToken! +
-        a.outputPricePerToken! -
-        (b.inputPricePerToken! + b.outputPricePerToken!),
-    );
-    return reasoningCapable[0]!;
+    if (needsEnrichment && pricingLookup) {
+      const apiPricing = pricingLookup.getByModel(m.id);
+      if (
+        apiPricing &&
+        apiPricing.input_price_per_token != null &&
+        apiPricing.output_price_per_token != null &&
+        apiPricing.input_price_per_token > 0 &&
+        apiPricing.output_price_per_token > 0
+      ) {
+        inputPrice = apiPricing.input_price_per_token;
+        outputPrice = apiPricing.output_price_per_token;
+      }
+    }
+
+    if (
+      typeof inputPrice === 'number' &&
+      typeof outputPrice === 'number' &&
+      inputPrice > 0 &&
+      outputPrice > 0
+    ) {
+      candidates.push({
+        ...m,
+        inputPricePerToken: inputPrice,
+        outputPricePerToken: outputPrice,
+      });
+    }
   }
 
-  const byQuality = [...allModels].sort((a, b) => (b.qualityScore ?? 0) - (a.qualityScore ?? 0));
-  return byQuality[0]!;
+  if (candidates.length === 0) {
+    // No routed models found in providers — try pricing lookup directly
+    // for models that may only exist in the global pricing cache.
+    if (pricingLookup) {
+      return pickMostExpensiveFromPricingLookup(routedModelIds, pricingLookup);
+    }
+    return null;
+  }
+
+  // Sort descending by total price, pick most expensive.
+  candidates.sort(
+    (a, b) =>
+      b.inputPricePerToken! +
+      b.outputPricePerToken! -
+      (a.inputPricePerToken! + a.outputPricePerToken!),
+  );
+  return candidates[0]!;
+}
+
+/**
+ * Last-resort: when no routed model was found in providers' cached_models,
+ * try to resolve pricing from the global cache (e.g. for models that were
+ * assigned but whose provider was since disconnected).
+ */
+function pickMostExpensiveFromPricingLookup(
+  routedModelIds: string[],
+  pricingLookup: PricingLookup,
+): DiscoveredModel | null {
+  let best: DiscoveredModel | null = null;
+  let bestTotal = -1;
+
+  for (const id of routedModelIds) {
+    const pricing = pricingLookup.getByModel(id);
+    if (
+      !pricing ||
+      pricing.input_price_per_token == null ||
+      pricing.output_price_per_token == null ||
+      pricing.input_price_per_token <= 0 ||
+      pricing.output_price_per_token <= 0
+    ) {
+      continue;
+    }
+    const total = pricing.input_price_per_token + pricing.output_price_per_token;
+    if (total > bestTotal) {
+      bestTotal = total;
+      best = {
+        id,
+        displayName: pricing.display_name ?? id,
+        provider: pricing.provider ?? 'unknown',
+        contextWindow: 0,
+        inputPricePerToken: pricing.input_price_per_token,
+        outputPricePerToken: pricing.output_price_per_token,
+        capabilityReasoning: false,
+        capabilityCode: false,
+        qualityScore: 0,
+      };
+    }
+  }
+  return best;
 }

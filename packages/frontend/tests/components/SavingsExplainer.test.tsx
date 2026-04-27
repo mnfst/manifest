@@ -49,14 +49,13 @@ describe('SavingsExplainer', () => {
 
   it('renders examples', () => {
     render(() => <SavingsExplainer baselineModelName={null} onClose={() => {}} />);
-    expect(screen.getByText('Model from a subscription provider')).toBeDefined();
-    expect(screen.getByText('Model from an API key provider, cheaper than baseline')).toBeDefined();
-    expect(screen.getByText('Model from an API key provider, more expensive than baseline')).toBeDefined();
-    expect(screen.getByText('Model from a local provider')).toBeDefined();
+    expect(screen.getByText('Routing picks a cheap API model')).toBeDefined();
+    expect(screen.getByText('Routing picks a subscription model')).toBeDefined();
+    expect(screen.getByText('Routing picks a local model')).toBeDefined();
   });
 
-  it('shows no-loss note on expensive model example', () => {
-    render(() => <SavingsExplainer baselineModelName={null} onClose={() => {}} />);
-    expect(screen.getByText('You chose a more capable model. No loss is recorded.')).toBeDefined();
+  it('renders baseline explanation', () => {
+    const { container } = render(() => <SavingsExplainer baselineModelName={null} onClose={() => {}} />);
+    expect(container.textContent).toContain('most expensive model');
   });
 });

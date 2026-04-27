@@ -4,6 +4,12 @@
   color: hsl(var(--muted-foreground));
 }
 
+.savings-controls__info-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
 .savings-controls__info-btn {
   display: inline-flex;
   align-items: center;
@@ -19,6 +25,50 @@
 
 .savings-controls__info-btn:hover {
   color: hsl(var(--foreground));
+}
+
+/* ── Savings tooltip ───────────────────────────────── */
+.savings-tooltip {
+  position: absolute;
+  top: calc(100% + 2px);
+  right: 0;
+  width: 280px;
+  padding: var(--gap-sm) var(--gap-md);
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: 0 2px 8px hsl(0 0% 0% / 0.08);
+  z-index: 50;
+}
+
+.savings-tooltip__text {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.5;
+  margin: 0 0 var(--gap-xs);
+}
+
+.savings-tooltip__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: hsl(var(--primary));
+  text-decoration: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius);
+  transition: background var(--transition-fast);
+}
+
+.savings-tooltip__link svg {
+  width: 14px;
+  height: 14px;
+}
+
+.savings-tooltip__link:hover {
+  background: hsl(var(--muted));
 }
 
 /* ── Savings Explainer (full-container overlay) ──── */

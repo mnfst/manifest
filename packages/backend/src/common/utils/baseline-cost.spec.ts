@@ -1,7 +1,9 @@
 import {
   computeBaselineCost,
-  pickCheapestReasoningModel,
+  pickMostExpensiveRoutedModel,
+  collectRoutedModelIds,
   type PricingLookup,
+  type RoutingSlot,
 } from './baseline-cost';
 import type { UserProvider } from '../../entities/user-provider.entity';
 import type { DiscoveredModel } from '../../model-discovery/model-fetcher';
@@ -29,82 +31,135 @@ function provider(models: DiscoveredModel[], overrides: Partial<UserProvider> = 
   } as unknown as UserProvider;
 }
 
-describe('pickCheapestReasoningModel', () => {
-  it('picks cheapest reasoning-capable model', () => {
+describe('collectRoutedModelIds', () => {
+  it('collects override_model, auto_assigned_model, and fallback_models', () => {
+    const slots: RoutingSlot[] = [
+      { override_model: 'gpt-4o', auto_assigned_model: 'gpt-3.5', fallback_models: ['claude-3'] },
+      { override_model: null, auto_assigned_model: 'gemini-pro', fallback_models: null },
+    ];
+    const ids = collectRoutedModelIds(slots);
+    expect(ids).toContain('gpt-4o');
+    expect(ids).toContain('claude-3');
+    expect(ids).toContain('gemini-pro');
+    // override takes priority, auto_assigned is not added when override exists
+    // but both are collected since they're different models in the routing
+    expect(ids.length).toBe(3);
+  });
+
+  it('prefers override_model over auto_assigned_model', () => {
+    const slots: RoutingSlot[] = [
+      { override_model: 'override', auto_assigned_model: 'auto', fallback_models: null },
+    ];
+    const ids = collectRoutedModelIds(slots);
+    expect(ids).toContain('override');
+    expect(ids).not.toContain('auto');
+  });
+
+  it('uses auto_assigned_model when override_model is null', () => {
+    const slots: RoutingSlot[] = [
+      { override_model: null, auto_assigned_model: 'auto', fallback_models: null },
+    ];
+    const ids = collectRoutedModelIds(slots);
+    expect(ids).toContain('auto');
+  });
+
+  it('returns empty array for empty slots', () => {
+    expect(collectRoutedModelIds([])).toEqual([]);
+  });
+
+  it('deduplicates model IDs', () => {
+    const slots: RoutingSlot[] = [
+      { override_model: 'gpt-4o', fallback_models: ['gpt-4o'] },
+      { override_model: 'gpt-4o', fallback_models: null },
+    ];
+    const ids = collectRoutedModelIds(slots);
+    expect(ids).toEqual(['gpt-4o']);
+  });
+
+  it('skips null/empty fallback entries', () => {
+    const slots: RoutingSlot[] = [
+      { override_model: 'gpt-4o', fallback_models: [null as unknown as string, '', 'claude-3'] },
+    ];
+    const ids = collectRoutedModelIds(slots);
+    expect(ids).toContain('gpt-4o');
+    expect(ids).toContain('claude-3');
+    expect(ids).not.toContain('');
+  });
+});
+
+describe('pickMostExpensiveRoutedModel', () => {
+  it('picks the most expensive model among routed IDs', () => {
     const providers = [
       provider([
+        model({
+          id: 'cheap',
+          inputPricePerToken: 0.000001,
+          outputPricePerToken: 0.000002,
+        }),
         model({
           id: 'expensive',
           inputPricePerToken: 0.00001,
           outputPricePerToken: 0.00003,
-          capabilityReasoning: true,
-        }),
-        model({
-          id: 'cheap-reasoning',
-          inputPricePerToken: 0.000002,
-          outputPricePerToken: 0.000008,
-          capabilityReasoning: true,
         }),
       ]),
     ];
-    expect(pickCheapestReasoningModel(providers)?.id).toBe('cheap-reasoning');
+    const result = pickMostExpensiveRoutedModel(providers, ['cheap', 'expensive']);
+    expect(result?.id).toBe('expensive');
   });
 
-  it('falls back to highest qualityScore when no reasoning model', () => {
+  it('only considers models in routedModelIds', () => {
     const providers = [
-      provider([model({ id: 'low-q', qualityScore: 2 }), model({ id: 'high-q', qualityScore: 5 })]),
+      provider([
+        model({
+          id: 'not-routed',
+          inputPricePerToken: 0.001,
+          outputPricePerToken: 0.001,
+        }),
+        model({
+          id: 'routed',
+          inputPricePerToken: 0.000001,
+          outputPricePerToken: 0.000002,
+        }),
+      ]),
     ];
-    expect(pickCheapestReasoningModel(providers)?.id).toBe('high-q');
+    const result = pickMostExpensiveRoutedModel(providers, ['routed']);
+    expect(result?.id).toBe('routed');
   });
 
-  it('returns null when no paid models', () => {
-    const providers = [provider([model({ inputPricePerToken: 0, outputPricePerToken: 0 })])];
-    expect(pickCheapestReasoningModel(providers)).toBeNull();
+  it('returns null when routedModelIds is empty', () => {
+    const providers = [provider([model()])];
+    expect(pickMostExpensiveRoutedModel(providers, [])).toBeNull();
   });
 
-  it('returns null for empty providers', () => {
-    expect(pickCheapestReasoningModel([])).toBeNull();
+  it('returns null when no routed models found in providers', () => {
+    const providers = [provider([model({ id: 'other' })])];
+    expect(pickMostExpensiveRoutedModel(providers, ['not-here'])).toBeNull();
   });
 
   it('skips inactive providers', () => {
-    const providers = [
-      provider([model({ id: 'inactive', capabilityReasoning: true })], { is_active: false }),
-    ];
-    expect(pickCheapestReasoningModel(providers)).toBeNull();
+    const providers = [provider([model({ id: 'inactive-model' })], { is_active: false })];
+    expect(pickMostExpensiveRoutedModel(providers, ['inactive-model'])).toBeNull();
   });
 
   it('skips null cached_models', () => {
     const providers = [provider([], { cached_models: null as never })];
-    expect(pickCheapestReasoningModel(providers)).toBeNull();
+    expect(pickMostExpensiveRoutedModel(providers, ['any'])).toBeNull();
   });
 
   it('handles JSON string cached_models', () => {
-    const models = [model({ id: 'from-json', capabilityReasoning: true })];
+    const models = [model({ id: 'from-json' })];
     const providers = [provider([], { cached_models: JSON.stringify(models) as never })];
-    expect(pickCheapestReasoningModel(providers)?.id).toBe('from-json');
+    const result = pickMostExpensiveRoutedModel(providers, ['from-json']);
+    expect(result?.id).toBe('from-json');
   });
 
   it('handles malformed JSON gracefully', () => {
     const providers = [
       provider([], { cached_models: 'not json{' as never }),
-      provider([model({ id: 'valid', capabilityReasoning: true })]),
+      provider([model({ id: 'valid' })]),
     ];
-    expect(pickCheapestReasoningModel(providers)?.id).toBe('valid');
-  });
-
-  it('skips models with null pricing', () => {
-    const providers = [
-      provider([
-        model({
-          id: 'null-price',
-          inputPricePerToken: null as never,
-          outputPricePerToken: null as never,
-          capabilityReasoning: true,
-        }),
-        model({ id: 'valid', capabilityReasoning: true }),
-      ]),
-    ];
-    expect(pickCheapestReasoningModel(providers)?.id).toBe('valid');
+    const result = pickMostExpensiveRoutedModel(providers, ['valid']);
+    expect(result?.id).toBe('valid');
   });
 
   it('enriches subscription models with real API pricing from lookup', () => {
@@ -114,7 +169,6 @@ describe('pickCheapestReasoningModel', () => {
           id: 'sub-model',
           inputPricePerToken: 0,
           outputPricePerToken: 0,
-          capabilityReasoning: false,
         }),
       ]),
     ];
@@ -130,75 +184,108 @@ describe('pickCheapestReasoningModel', () => {
             }
           : undefined,
     };
-    const result = pickCheapestReasoningModel(providers, lookup);
+    const result = pickMostExpensiveRoutedModel(providers, ['sub-model'], lookup);
     expect(result?.id).toBe('sub-model');
     expect(result?.inputPricePerToken).toBe(0.000001);
   });
 
-  it('prefers cheaper subscription model over expensive api_key model', () => {
+  it('picks subscription model when its API-equivalent price is highest', () => {
     const providers = [
       provider([
         model({
-          id: 'expensive-api',
-          inputPricePerToken: 0.00001,
-          outputPricePerToken: 0.00005,
-          capabilityReasoning: true,
+          id: 'api-model',
+          inputPricePerToken: 0.000005,
+          outputPricePerToken: 0.00001,
         }),
         model({
-          id: 'cheap-sub',
+          id: 'sub-model',
           inputPricePerToken: 0,
           outputPricePerToken: 0,
-          capabilityReasoning: false,
         }),
       ]),
     ];
     const lookup: PricingLookup = {
       getByModel: (id: string) =>
-        id === 'cheap-sub'
+        id === 'sub-model'
           ? {
-              input_price_per_token: 0.000001,
-              output_price_per_token: 0.000002,
-              provider: 'test',
-              model_name: 'cheap-sub',
-              display_name: 'Cheap Sub',
+              input_price_per_token: 0.00001,
+              output_price_per_token: 0.00005,
+              provider: 'Anthropic',
+              model_name: 'sub-model',
+              display_name: 'Claude Opus',
             }
           : undefined,
     };
-    // cheap-sub has no reasoning capability, so expensive-api wins
-    const result = pickCheapestReasoningModel(providers, lookup);
-    expect(result?.id).toBe('expensive-api');
+    const result = pickMostExpensiveRoutedModel(providers, ['api-model', 'sub-model'], lookup);
+    expect(result?.id).toBe('sub-model');
   });
 
   it('deduplicates models across providers', () => {
-    const providers = [
-      provider([model({ id: 'same', capabilityReasoning: true })]),
-      provider([model({ id: 'same', capabilityReasoning: true })]),
-    ];
-    const result = pickCheapestReasoningModel(providers);
+    const providers = [provider([model({ id: 'same' })]), provider([model({ id: 'same' })])];
+    const result = pickMostExpensiveRoutedModel(providers, ['same']);
     expect(result?.id).toBe('same');
+  });
+
+  it('skips models with null pricing that cannot be enriched', () => {
+    const providers = [
+      provider([
+        model({
+          id: 'null-price',
+          inputPricePerToken: null as never,
+          outputPricePerToken: null as never,
+        }),
+        model({ id: 'valid' }),
+      ]),
+    ];
+    const result = pickMostExpensiveRoutedModel(providers, ['null-price', 'valid']);
+    expect(result?.id).toBe('valid');
+  });
+
+  it('falls back to pricing lookup when model not in providers', () => {
+    const providers = [provider([model({ id: 'other' })])];
+    const lookup: PricingLookup = {
+      getByModel: (id: string) =>
+        id === 'orphaned'
+          ? {
+              input_price_per_token: 0.00002,
+              output_price_per_token: 0.00006,
+              provider: 'OpenAI',
+              model_name: 'orphaned',
+              display_name: 'GPT-5',
+            }
+          : undefined,
+    };
+    const result = pickMostExpensiveRoutedModel(providers, ['orphaned'], lookup);
+    expect(result?.id).toBe('orphaned');
+    expect(result?.inputPricePerToken).toBe(0.00002);
   });
 });
 
 describe('computeBaselineCost', () => {
-  it('computes cost using cheapest reasoning model', () => {
+  it('computes cost using most expensive routed model', () => {
     const providers = [
       provider([
         model({
-          id: 'baseline-model',
+          id: 'cheap-model',
           inputPricePerToken: 0.000001,
-          outputPricePerToken: 0.000005,
-          capabilityReasoning: true,
+          outputPricePerToken: 0.000002,
+        }),
+        model({
+          id: 'expensive-model',
+          inputPricePerToken: 0.00001,
+          outputPricePerToken: 0.00005,
         }),
       ]),
     ];
-    const result = computeBaselineCost(providers, 1000, 500);
+    const result = computeBaselineCost(providers, ['cheap-model', 'expensive-model'], 1000, 500);
     expect(result).not.toBeNull();
-    expect(result!.modelId).toBe('baseline-model');
-    expect(result!.cost).toBeCloseTo(0.001 + 0.0025, 6);
+    expect(result!.modelId).toBe('expensive-model');
+    // 1000 * 0.00001 + 500 * 0.00005 = 0.01 + 0.025 = 0.035
+    expect(result!.cost).toBeCloseTo(0.035, 6);
   });
 
-  it('returns null when no model available', () => {
-    expect(computeBaselineCost([], 1000, 500)).toBeNull();
+  it('returns null when no routed models', () => {
+    expect(computeBaselineCost([], [], 1000, 500)).toBeNull();
   });
 
   it('clamps negative cost to 0', () => {
@@ -208,11 +295,10 @@ describe('computeBaselineCost', () => {
           id: 'm',
           inputPricePerToken: 0.000001,
           outputPricePerToken: 0.000001,
-          capabilityReasoning: true,
         }),
       ]),
     ];
-    const result = computeBaselineCost(providers, 0, 0);
+    const result = computeBaselineCost(providers, ['m'], 0, 0);
     expect(result!.cost).toBe(0);
   });
 
@@ -235,7 +321,7 @@ describe('computeBaselineCost', () => {
         display_name: 'Sub Only',
       }),
     };
-    const result = computeBaselineCost(providers, 10000, 500, lookup);
+    const result = computeBaselineCost(providers, ['sub-only'], 10000, 500, lookup);
     expect(result).not.toBeNull();
     expect(result!.modelId).toBe('sub-only');
     expect(result!.cost).toBeCloseTo(0.02 + 0.004, 6);
