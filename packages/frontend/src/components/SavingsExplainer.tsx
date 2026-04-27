@@ -38,8 +38,9 @@ const SavingsExplainer: Component<SavingsExplainerProps> = (props) => {
         <section class="savings-explainer__section">
           <h2>The baseline</h2>
           <p>
-            The baseline is your most expensive model. We consider it the one that would have been
-            needed to handle any request without routing.
+            The baseline is the most expensive model in your routing setup at the time each request
+            is made. It represents what you would have paid without routing, since that model would
+            have been needed to handle any request.
           </p>
           <p>
             Manifest goes through every model in your routing setup (tiers and fallbacks) and

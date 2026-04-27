@@ -167,8 +167,8 @@ const SavingsCard: Component<SavingsCardProps> = (props) => {
         <Show when={tooltipVisible()}>
           <div class="savings-tooltip" onMouseEnter={showTooltip} onMouseLeave={scheduleHide}>
             <p class="savings-tooltip__text">
-              Savings compare what you paid against what your most expensive model (at API key
-              rates) would have cost for the same request.
+              Savings compare what you paid against what the most expensive model in your routing
+              setup (at API key rates) would have cost for the same request.
             </p>
             <a href="#" class="savings-tooltip__link" onClick={handleMoreDetails}>
               More details
