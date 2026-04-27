@@ -42,6 +42,19 @@ export class AddProviderKeyLabelAndPriority1782000000000 implements MigrationInt
       `ALTER TABLE "tier_assignments" DROP COLUMN IF EXISTS "override_provider_key_label"`,
     );
     await queryRunner.query(`DROP INDEX IF EXISTS "IDX_user_providers_agent_provider_auth_label"`);
+    // Before recreating the stricter pre-multi-key unique index, dedup any
+    // multi-key rows the user added while the new index was active. Keep
+    // the lowest-priority row per (agent, provider, auth_type) tuple — it's
+    // the one that resolves as the legacy primary anyway. Without this
+    // step, the CREATE UNIQUE INDEX below would fail with a duplicate-key
+    // error on any agent that has 2+ labeled keys for one provider.
+    await queryRunner.query(
+      `DELETE FROM "user_providers" a USING "user_providers" b ` +
+        `WHERE a.agent_id = b.agent_id ` +
+        `AND a.provider = b.provider ` +
+        `AND a.auth_type = b.auth_type ` +
+        `AND a.priority > b.priority`,
+    );
     await queryRunner.query(
       `CREATE UNIQUE INDEX "IDX_user_providers_agent_provider_auth" ` +
         `ON "user_providers" ("agent_id", "provider", "auth_type")`,

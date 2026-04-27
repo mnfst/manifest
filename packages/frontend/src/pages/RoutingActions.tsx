@@ -142,12 +142,15 @@ export function createRoutingActions(input: RoutingActionsInput) {
   ) => {
     const tier = getTier(tierId);
     const current = tier?.fallback_models ?? [];
-    if (current.includes(modelName)) return;
     // Inherit the primary's pinned key label when present, so a new fallback
     // doesn't silently fall back to a different account/credential than the
     // primary just because the user added it after pinning the primary.
     const primaryLabel = tier?.override_provider_key_label ?? null;
     const newEntry = primaryLabel ? `${modelName}||${primaryLabel}` : modelName;
+    // Dedupe on the encoded entry so a user can still pin the same model on
+    // two different keys (foo||Personal + foo||Work), but the exact same
+    // model+label combo can't appear twice.
+    if (current.includes(newEntry)) return;
     const updated = [...current, newEntry];
     setFallbackOverrides((prev) => ({ ...prev, [tierId]: updated }));
     setAddingFallback(tierId);

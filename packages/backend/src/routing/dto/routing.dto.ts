@@ -147,6 +147,7 @@ export class SetOverrideDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(MAX_PROVIDER_KEY_LABEL_LENGTH)
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   providerKeyLabel?: string;
 }
 

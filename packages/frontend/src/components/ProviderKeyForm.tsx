@@ -375,7 +375,13 @@ async function handleAddKey(
   label: string,
   apiKey: string,
 ): Promise<boolean> {
-  const result = validateApiKey(props.provDef, apiKey);
+  // Subscription-mode providers (Anthropic Pro, ChatGPT Plus, etc.) often
+  // validate paste tokens with a different prefix/format than their api_key
+  // counterparts. Branch the validator so the chain-add flow doesn't reject
+  // a valid setup token using the api-key rules.
+  const result = props.isSubMode()
+    ? validateSubscriptionKey(props.provDef, apiKey)
+    : validateApiKey(props.provDef, apiKey);
   if (!result.valid) {
     toast.error(result.error!);
     return false;
@@ -638,7 +644,13 @@ const KeyChainView: Component<KeyChainViewProps> = (props) => {
       <Show when={props.activeKeys().length < MAX_KEYS_PER_PROVIDER}>
         <AddAnotherKeyAction
           onAdd={async (label, apiKey) => {
-            const result = validateApiKey(props.provDef, apiKey);
+            // Subscription chains paste setup tokens, which validate
+            // differently from api keys. Pick the right validator based on
+            // the chain's auth_type.
+            const result =
+              props.authType() === 'subscription'
+                ? validateSubscriptionKey(props.provDef, apiKey)
+                : validateApiKey(props.provDef, apiKey);
             if (!result.valid) {
               toast.error(result.error!);
               return false;

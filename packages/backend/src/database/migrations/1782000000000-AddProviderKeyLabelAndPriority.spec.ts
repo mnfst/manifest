@@ -66,6 +66,17 @@ describe('AddProviderKeyLabelAndPriority1782000000000', () => {
         q.includes('CREATE UNIQUE INDEX "IDX_user_providers_agent_provider_auth"'),
       ),
     ).toBe(true);
+    // Multi-key dedup must run BEFORE recreating the stricter unique index,
+    // otherwise the CREATE fails on any agent that has 2+ labeled keys for
+    // one provider.
+    const dedupIdx = queries.findIndex(
+      (q) => q.includes('DELETE FROM "user_providers"') && q.includes('a.priority > b.priority'),
+    );
+    const stricterIdx = queries.findIndex((q) =>
+      q.includes('CREATE UNIQUE INDEX "IDX_user_providers_agent_provider_auth"'),
+    );
+    expect(dedupIdx).toBeGreaterThan(-1);
+    expect(stricterIdx).toBeGreaterThan(dedupIdx);
     expect(queries.some((q) => q.includes('DROP COLUMN IF EXISTS "priority"'))).toBe(true);
     expect(queries.some((q) => q.includes('DROP COLUMN IF EXISTS "label"'))).toBe(true);
   });

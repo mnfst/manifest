@@ -1,4 +1,5 @@
 import { IsString, IsNotEmpty, IsOptional, IsIn, IsBoolean, MaxLength } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { AUTH_TYPES } from 'manifest-shared';
 import { MAX_PROVIDER_KEY_LABEL_LENGTH } from './routing.dto';
 
@@ -20,6 +21,7 @@ export class SetSpecificityOverrideDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(MAX_PROVIDER_KEY_LABEL_LENGTH)
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   providerKeyLabel?: string;
 }
 
