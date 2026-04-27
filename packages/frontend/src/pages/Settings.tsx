@@ -6,7 +6,6 @@ import ErrorState from '../components/ErrorState.jsx';
 import AgentTypeGrid from '../components/AgentTypeGrid.jsx';
 import SetupStepAddProvider from '../components/SetupStepAddProvider.jsx';
 import SetupModal from '../components/SetupModal.jsx';
-import DuplicateAgentModal from '../components/DuplicateAgentModal.jsx';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import {
   deleteAgent,
@@ -45,7 +44,6 @@ const Settings: Component = () => {
   );
   const [showTypeModal, setShowTypeModal] = createSignal(false);
   const [showSetupModal, setShowSetupModal] = createSignal(false);
-  const [showDuplicateModal, setShowDuplicateModal] = createSignal(false);
   const [modalCategory, setModalCategory] = createSignal<AgentCategory | null>(null);
   const [modalPlatform, setModalPlatform] = createSignal<AgentPlatform | null>(null);
   const [savingType, setSavingType] = createSignal(false);
@@ -321,25 +319,6 @@ const Settings: Component = () => {
         </Show>
       </ErrorBoundary>
 
-      {/* -- Duplicate ---------------------------------- */}
-      <h3 class="settings-section__title">Duplicate</h3>
-      <div class="settings-card">
-        <div class="settings-card__row">
-          <div class="settings-card__label">
-            <span class="settings-card__label-title">Duplicate this agent</span>
-            <span class="settings-card__label-desc">
-              Creates a new agent with the same providers, routing tiers, and specificity overrides.
-              A fresh API key is generated. Messages and history stay with this agent.
-            </span>
-          </div>
-          <div class="settings-card__control">
-            <button class="btn btn--outline btn--sm" onClick={() => setShowDuplicateModal(true)}>
-              Duplicate agent
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* -- Danger Zone -------------------------------- */}
       <h3 class="settings-section__title settings-section__title--danger">Danger zone</h3>
       <div class="settings-card settings-card--danger">
@@ -511,12 +490,6 @@ const Settings: Component = () => {
         agentCategory={currentCategory()}
         onClose={() => setShowSetupModal(false)}
         onDone={() => setShowSetupModal(false)}
-      />
-
-      <DuplicateAgentModal
-        open={showDuplicateModal()}
-        sourceName={agentName()}
-        onClose={() => setShowDuplicateModal(false)}
       />
     </div>
   );

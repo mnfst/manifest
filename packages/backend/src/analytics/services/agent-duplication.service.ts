@@ -114,6 +114,7 @@ export class AgentDuplicationService {
         description: source.description,
         agent_category: source.agent_category,
         agent_platform: source.agent_platform,
+        complexity_routing_enabled: source.complexity_routing_enabled,
         is_active: true,
         tenant_id: source.tenant_id,
       });

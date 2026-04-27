@@ -200,6 +200,7 @@ describe('AgentDuplicationService', () => {
           description: 'a desc',
           agent_category: 'personal',
           agent_platform: 'openclaw',
+          complexity_routing_enabled: true,
         })
         .mockResolvedValueOnce(null);
 
@@ -278,6 +279,7 @@ describe('AgentDuplicationService', () => {
       expect(agentRow['name']).toBe('source-copy');
       expect(agentRow['tenant_id']).toBe('t1');
       expect(agentRow['agent_category']).toBe('personal');
+      expect(agentRow['complexity_routing_enabled']).toBe(true);
 
       expect(insertedRows['AgentApiKey']).toHaveLength(1);
       const [apiKeyRow] = insertedRows['AgentApiKey'] as Array<Record<string, unknown>>;

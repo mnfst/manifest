@@ -5,7 +5,7 @@ vi.mock('../../src/services/providers.js', () => ({
   DEFAULT_STAGE: {
     id: 'default',
     step: 0,
-    label: 'Default model',
+    label: 'Regular',
     desc: 'Handles every request.',
   },
   STAGES: [

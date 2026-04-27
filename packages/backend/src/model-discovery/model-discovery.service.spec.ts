@@ -430,6 +430,23 @@ describe('ModelDiscoveryService', () => {
       expect(result[1].displayName).toBe('custom-llm');
     });
 
+    it('should inherit auth_type from user_providers row for custom provider models', async () => {
+      const providers = [
+        makeProvider({
+          provider: 'custom:cp-1',
+          auth_type: 'local',
+          cached_models: null,
+        }),
+      ];
+      providerRepo.find.mockResolvedValue(providers);
+      customProviderRepo.find.mockResolvedValue([makeCustomProvider()]);
+
+      const result = await service.getModelsForAgent('agent-1');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].authType).toBe('local');
+    });
+
     it('should deduplicate models by id', async () => {
       const providers = [
         makeProvider({

@@ -82,15 +82,15 @@ const ProviderLocalTab: Component<Props> = (props) => {
               const providerKey = `custom:${cp.id}`;
               const connected = () => props.isConnected(providerKey);
               const handleClick = () => {
-                // When the provider is connected, a click on the tile
-                // disconnects it — same UX as the Subscription tab.
-                // Editing the base_url / model list happens from the
-                // routing card in the main page, not here.
+                props.onEditCustom(cp);
+              };
+              const handleToggle = (e: MouseEvent) => {
+                e.stopPropagation();
                 if (connected()) {
                   props.onToggle(providerKey);
-                  return;
+                } else {
+                  props.onEditCustom(cp);
                 }
-                props.onEditCustom(cp);
               };
               return (
                 <button class="provider-toggle" disabled={props.busy()} onClick={handleClick}>
@@ -110,6 +110,7 @@ const ProviderLocalTab: Component<Props> = (props) => {
                   <span
                     class="provider-toggle__switch"
                     classList={{ 'provider-toggle__switch--on': connected() }}
+                    onClick={handleToggle}
                   >
                     <span class="provider-toggle__switch-thumb" />
                   </span>
@@ -122,15 +123,19 @@ const ProviderLocalTab: Component<Props> = (props) => {
             const hasLocalPort = () => prov.defaultLocalPort !== undefined;
 
             const handleClick = () => {
-              if (connected()) {
-                props.onToggle(prov.id);
-                return;
-              }
               if (hasLocalPort()) {
                 props.onOpenLocalServer(prov);
                 return;
               }
               props.onOpenDetail(prov.id, 'local');
+            };
+            const handleToggle = (e: MouseEvent) => {
+              e.stopPropagation();
+              if (connected()) {
+                props.onToggle(prov.id);
+              } else {
+                handleClick();
+              }
             };
 
             return (
@@ -148,6 +153,7 @@ const ProviderLocalTab: Component<Props> = (props) => {
                 <span
                   class="provider-toggle__switch"
                   classList={{ 'provider-toggle__switch--on': connected() }}
+                  onClick={handleToggle}
                 >
                   <span class="provider-toggle__switch-thumb" />
                 </span>

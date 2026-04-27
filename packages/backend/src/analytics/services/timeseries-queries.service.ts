@@ -137,6 +137,7 @@ export class TimeseriesQueriesService {
       .addSelect('SUM(at.input_tokens + at.output_tokens)', 'tokens')
       .addSelect(`COALESCE(SUM(${sqlSanitizeCost('at.cost_usd')}), 0)`, 'estimated_cost')
       .addSelect('at.auth_type', 'auth_type')
+      .addSelect('at.provider', 'provider')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.model IS NOT NULL')
       .andWhere("at.model != ''");
@@ -144,6 +145,7 @@ export class TimeseriesQueriesService {
     const rows = await qb
       .groupBy('at.model')
       .addGroupBy('at.auth_type')
+      .addGroupBy('at.provider')
       .orderBy('tokens', 'DESC')
       .getRawMany();
 
@@ -159,6 +161,7 @@ export class TimeseriesQueriesService {
         totalTokens === 0 ? 0 : Math.round((Number(r['tokens'] ?? 0) / totalTokens) * 1000) / 10,
       estimated_cost: Number(r['estimated_cost'] ?? 0),
       auth_type: r['auth_type'] ? String(r['auth_type']) : null,
+      provider: r['provider'] ? String(r['provider']) : null,
     }));
   }
 

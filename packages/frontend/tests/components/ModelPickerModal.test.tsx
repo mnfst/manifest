@@ -652,7 +652,7 @@ describe("ModelPickerModal", () => {
       />
     ));
     expect(
-      screen.getByText(/No local providers connected\. Connect Ollama or LM Studio to see models\./),
+      screen.getByText(/No local providers connected\. Connect a local provider to see models\./),
     ).toBeDefined();
   });
 
