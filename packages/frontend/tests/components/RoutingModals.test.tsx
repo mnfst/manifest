@@ -256,6 +256,37 @@ describe("RoutingModals", () => {
       expect(onOverride.mock.calls[0][4]).toBe("Work");
     });
 
+    it("resolves the custom-provider display name in the KeyPickerModal title", async () => {
+      const [dropdownTier] = createSignal<string | null>("simple");
+      const customProviders: CustomProviderData[] = [
+        { id: "abc", name: "Together", base_url: "https://api.together.ai", api_kind: "openai", has_api_key: true, models: [], created_at: "2026-04-27" } as CustomProviderData,
+      ];
+      const customKeys: RoutingProvider[] = [
+        { id: "ck1", provider: "custom:abc", auth_type: "api_key", is_active: true, has_api_key: true, label: "Personal", priority: 0, connected_at: "2026-04-27" } as RoutingProvider,
+        { id: "ck2", provider: "custom:abc", auth_type: "api_key", is_active: true, has_api_key: true, label: "Work", priority: 1, connected_at: "2026-04-27" } as RoutingProvider,
+      ];
+      const customModels: AvailableModel[] = [
+        { model_name: "custom:abc/llama", provider: "custom:abc", display_name: "Llama 70B", input_price_per_token: 0, output_price_per_token: 0, context_window: 8192, capability_reasoning: false, capability_code: true } as AvailableModel,
+      ];
+
+      render(() => (
+        <RoutingModals
+          {...defaultProps()}
+          dropdownTier={dropdownTier}
+          models={() => customModels}
+          customProviders={() => customProviders}
+          connectedProviders={() => customKeys}
+        />
+      ));
+
+      await screen.findByText("Select a model");
+      fireEvent.click(document.querySelectorAll<HTMLButtonElement>(".routing-modal__model")[0]);
+
+      // The "Which Together key?" title resolves the custom provider's
+      // friendly name from `customProviders`, not the `custom:abc` id.
+      await screen.findByText(/Which Together key/i);
+    });
+
     it("closes the KeyPickerModal without calling onOverride when × is clicked", async () => {
       const [dropdownTier] = createSignal<string | null>("simple");
       const onOverride = vi.fn();

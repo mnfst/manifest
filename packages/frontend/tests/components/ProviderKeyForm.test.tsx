@@ -760,6 +760,97 @@ describe('ProviderKeyForm', () => {
       expect(toastSuccess).toHaveBeenCalledWith('OpenAI key "Key 2" added');
     });
 
+    it('list-mode AddAnotherKeyAction submits a 3rd key via connectProvider with the chain auth_type', async () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const onUpdate = vi.fn();
+      const { container, getByText } = mount({
+        provDef: def,
+        connected: true,
+        onUpdate,
+        providers: [
+          makeProvider({ id: 'p1', label: 'Personal', priority: 0 }),
+          makeProvider({ id: 'p2', label: 'Work', priority: 1 }),
+        ],
+      });
+      // List mode is active because there are 2 keys; Add another key sits
+      // below the <ul role=list>.
+      fireEvent.click(getByText('+ Add another key'));
+      // The api-key input has id="add-key-value".
+      const apiKeyInput = container.querySelector('#add-key-value') as HTMLInputElement;
+      fireEvent.input(apiKeyInput, { target: { value: 'sk-third' } });
+      fireEvent.click(getByText('Add key'));
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(connectProviderMock).toHaveBeenCalledWith('test-agent', {
+        provider: 'openai',
+        apiKey: 'sk-third',
+        authType: 'api_key',
+        label: 'Key 3',
+      });
+      expect(toastSuccess).toHaveBeenCalledWith('OpenAI key "Key 3" added');
+    });
+
+    it('list-mode AddAnotherKey routes through validateSubscriptionKey when chain is subscription', async () => {
+      const def = makeProviderDef({
+        id: 'anthropic',
+        name: 'Anthropic',
+        supportsSubscription: true,
+        subscriptionLabel: 'Claude Pro',
+      });
+      const { container, getByText } = mount({
+        provDef: def,
+        connected: true,
+        isSubMode: true,
+        selectedAuthType: 'subscription',
+        providers: [
+          makeProvider({
+            id: 's1',
+            provider: 'anthropic',
+            auth_type: 'subscription',
+            label: 'Personal',
+            priority: 0,
+          }),
+          makeProvider({
+            id: 's2',
+            provider: 'anthropic',
+            auth_type: 'subscription',
+            label: 'Work',
+            priority: 1,
+          }),
+        ],
+      });
+      fireEvent.click(getByText('+ Add another key'));
+      const tokenInput = container.querySelector('#add-key-value') as HTMLInputElement;
+      fireEvent.input(tokenInput, { target: { value: 'sub-third-token' } });
+      fireEvent.click(getByText('Add key'));
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(connectProviderMock).toHaveBeenCalledWith('test-agent', {
+        provider: 'anthropic',
+        apiKey: 'sub-third-token',
+        authType: 'subscription',
+        label: 'Key 3',
+      });
+    });
+
+    it('handleAddKey returns false when connectProvider rejects', async () => {
+      connectProviderMock.mockRejectedValueOnce(new Error('bad'));
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const { container, getByText } = mount({
+        provDef: def,
+        connected: true,
+        providers: [makeProvider({ id: 'p1', label: 'Default', priority: 0 })],
+      });
+      fireEvent.click(getByText('+ Add another key'));
+      const apiKeyInput = container.querySelector('#add-key-value') as HTMLInputElement;
+      fireEvent.input(apiKeyInput, { target: { value: 'sk-second' } });
+      fireEvent.click(getByText('Add key'));
+      await Promise.resolve();
+      await Promise.resolve();
+      // No success toast, form remains open (the catch returned false).
+      expect(toastSuccess).not.toHaveBeenCalled();
+    });
+
     it('AddAnotherKeyAction Cancel closes the form without submitting', () => {
       const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
       const { container, getByText, queryByText } = mount({
