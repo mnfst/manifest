@@ -934,6 +934,38 @@ describe("FallbackList", () => {
       expect(chip.textContent).toContain("Personal");
     });
 
+    it("renders a Clear pin option when the row is currently pinned", () => {
+      const { container, getByText } = render(() => (
+        <FallbackList {...multiKeyProps} fallbacks={["model-a||Work"]} />
+      ));
+      const chip = container.querySelector(".fallback-list__key-chip") as HTMLButtonElement;
+      fireEvent.click(chip);
+      expect(getByText("Clear pin")).toBeDefined();
+    });
+
+    it("does not render Clear pin when no label is currently set", () => {
+      const { container, queryByText } = render(() => (
+        <FallbackList {...multiKeyProps} fallbacks={["model-a"]} />
+      ));
+      const chip = container.querySelector(".fallback-list__key-chip") as HTMLButtonElement;
+      fireEvent.click(chip);
+      expect(queryByText("Clear pin")).toBeNull();
+    });
+
+    it("Clear pin strips the ||suffix from the entry and persists", async () => {
+      const onUpdate = vi.fn();
+      const { container, getByText } = render(() => (
+        <FallbackList {...multiKeyProps} fallbacks={["model-a||Work"]} onUpdate={onUpdate} />
+      ));
+      const chip = container.querySelector(".fallback-list__key-chip") as HTMLButtonElement;
+      fireEvent.click(chip);
+      fireEvent.click(getByText("Clear pin"));
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(onUpdate).toHaveBeenCalledWith(["model-a"]);
+      expect(mockSetFallbacks).toHaveBeenCalledWith("test-agent", "tier-1", ["model-a"]);
+    });
+
     it("opens the listbox and persists a new label via setFallbacks", async () => {
       const onUpdate = vi.fn();
       const { container, getByText } = render(() => (

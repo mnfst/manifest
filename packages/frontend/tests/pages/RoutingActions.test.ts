@@ -181,4 +181,29 @@ describe('RoutingActions.handleAddFallback inheriting the primary pin', () => {
 
     expect(setFallbacksMock).not.toHaveBeenCalled();
   });
+
+  it('dedupes on the encoded entry — same model with a different label is allowed', async () => {
+    const { actions } = setup([
+      makeTier({
+        override_provider_key_label: 'Work',
+        fallback_models: ['gpt-4o-mini||Personal'],
+      }),
+    ]);
+    await actions.handleAddFallback('standard', 'gpt-4o-mini', 'openai', 'api_key');
+    expect(setFallbacksMock).toHaveBeenCalledWith('test-agent', 'standard', [
+      'gpt-4o-mini||Personal',
+      'gpt-4o-mini||Work',
+    ]);
+  });
+
+  it('dedupes the same model+label combo even when added twice in a row', async () => {
+    const { actions } = setup([
+      makeTier({
+        override_provider_key_label: 'Work',
+        fallback_models: ['gpt-4o-mini||Work'],
+      }),
+    ]);
+    await actions.handleAddFallback('standard', 'gpt-4o-mini', 'openai', 'api_key');
+    expect(setFallbacksMock).not.toHaveBeenCalled();
+  });
 });
