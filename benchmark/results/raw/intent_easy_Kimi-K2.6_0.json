@@ -1,0 +1,12 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "intent_easy",
+  "case": 0,
+  "response": "cancel_subscription",
+  "score": 5,
+  "cost": 0.00033360000000000003,
+  "tokens": {
+    "input": 76,
+    "output": 120
+  }
+}

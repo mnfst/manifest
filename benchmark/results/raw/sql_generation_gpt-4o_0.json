@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o",
+  "task": "sql_generation",
+  "case": 0,
+  "response": "```sql\nSELECT DISTINCT c.id, c.name, c.email\nFROM customers c\nJOIN orders o ON c.id = o.customer_id\nWHERE c.signup_date >= CURRENT_DATE - INTERVAL '30 days';\n```",
+  "score": 4,
+  "cost": 0.0006475,
+  "tokens": {
+    "input": 83,
+    "output": 44
+  }
+}

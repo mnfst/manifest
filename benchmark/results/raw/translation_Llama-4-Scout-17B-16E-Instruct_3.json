@@ -1,0 +1,12 @@
+{
+  "model": "Llama-4-Scout-17B-16E-Instruct",
+  "task": "translation",
+  "case": 3,
+  "response": "Nous regrettons de vous informer que votre vol BA287 de Londres Heathrow \u00e0 San Francisco a \u00e9t\u00e9 retard\u00e9 d'environ 3 heures en raison de conditions m\u00e9t\u00e9orologiques d\u00e9favorables. Un bon de repas compl\u00e9mentaire a \u00e9t\u00e9 ajout\u00e9 \u00e0 votre r\u00e9servation. \n\nAlternatively, a slightly more formal version:\n\nNous avons le regret de vous informer que votre vol BA287 au d\u00e9part de Londres Heathrow \u00e0 destination de San Francisco a subi un retard d'environ 3 heures en raison de conditions m\u00e9t\u00e9orologiques d\u00e9favorables. Un bon de repas compl\u00e9mentaire a \u00e9t\u00e9 ajout\u00e9 \u00e0 votre r\u00e9servation pour vous permettre de patienter.",
+  "score": 5,
+  "cost": 3.264e-05,
+  "tokens": {
+    "input": 70,
+    "output": 122
+  }
+}

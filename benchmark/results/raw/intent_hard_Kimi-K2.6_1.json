@@ -1,0 +1,12 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "intent_hard",
+  "case": 1,
+  "response": "refund_request",
+  "score": 5,
+  "cost": 0.0010422,
+  "tokens": {
+    "input": 117,
+    "output": 405
+  }
+}

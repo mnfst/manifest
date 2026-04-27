@@ -1,0 +1,12 @@
+{
+  "model": "Codestral-2501",
+  "task": "intent_hard",
+  "case": 8,
+  "response": "order_tracking",
+  "score": 5,
+  "cost": 3.93e-05,
+  "tokens": {
+    "input": 119,
+    "output": 4
+  }
+}

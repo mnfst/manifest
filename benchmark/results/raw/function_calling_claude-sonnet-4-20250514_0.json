@@ -1,0 +1,12 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "function_calling",
+  "case": 0,
+  "response": "{\"name\": \"send_email\", \"arguments\": {\"to\": \"john@example.com\", \"subject\": \"Meeting Tomorrow\", \"body\": \"Hi John, can we meet at 2pm?\"}}",
+  "score": 5,
+  "cost": 0.001101,
+  "tokens": {
+    "input": 132,
+    "output": 47
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "entity_extraction",
+  "case": 4,
+  "response": "```json\n{\n  \"persons\": [\"Barack Obama\", \"Michelle Obama\", \"Brandon Johnson\", \"JB Pritzker\"],\n  \"organizations\": [\"Obama Presidential Center\"],\n  \"locations\": [\"South Side of Chicago\", \"Chicago\"]\n}\n```",
+  "score": 4,
+  "cost": 0.0016280000000000003,
+  "tokens": {
+    "input": 104,
+    "output": 344
+  }
+}

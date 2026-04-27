@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "extraction_hard",
+  "case": 2,
+  "response": "",
+  "score": 2,
+  "cost": 0.0090255,
+  "tokens": {
+    "input": 205,
+    "output": 2000
+  }
+}

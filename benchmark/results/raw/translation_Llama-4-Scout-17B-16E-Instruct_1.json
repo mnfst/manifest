@@ -1,0 +1,12 @@
+{
+  "model": "Llama-4-Scout-17B-16E-Instruct",
+  "task": "translation",
+  "case": 1,
+  "response": "Nos revenus trimestriels ont augment\u00e9 de 23 % d'une ann\u00e9e sur l'autre, principalement tir\u00e9s par l'adoption rapide de notre plateforme cloud sur le march\u00e9 europ\u00e9en. Les marges op\u00e9rationnelles se sont am\u00e9lior\u00e9es \u00e0 18,5 %, en hausse par rapport \u00e0 15,2 % au trimestre pr\u00e9c\u00e9dent.",
+  "score": 5,
+  "cost": 2.3970000000000003e-05,
+  "tokens": {
+    "input": 76,
+    "output": 65
+  }
+}

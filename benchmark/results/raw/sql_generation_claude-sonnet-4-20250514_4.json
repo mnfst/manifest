@@ -1,0 +1,12 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "sql_generation",
+  "case": 4,
+  "response": "```sql\nWITH monthly_signups AS (\n  SELECT \n    DATE_TRUNC('month', created_at) as month,\n    COUNT(*) as signups\n  FROM users\n  GROUP BY DATE_TRUNC('month', created_at)\n),\nmonthly_growth AS (\n  SELECT \n    month,\n    signups,\n    LAG(signups) OVER (ORDER BY month) as prev_month_signups\n  FROM monthly_signups\n)\nSELECT \n  month,\n  signups,\n  prev_month_signups,\n  CASE \n    WHEN prev_month_signups IS NULL OR prev_month_signups = 0 THEN NULL\n    ELSE ROUND(((signups - prev_month_signups) * 100.0 / prev_month_signups), 2)\n  END as growth_rate_percent\nFROM monthly_growth\nORDER BY month;\n```",
+  "score": 5,
+  "cost": 0.003537,
+  "tokens": {
+    "input": 69,
+    "output": 222
+  }
+}

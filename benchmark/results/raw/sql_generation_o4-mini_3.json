@@ -1,0 +1,12 @@
+{
+  "model": "o4-mini",
+  "task": "sql_generation",
+  "case": 3,
+  "response": "",
+  "score": 0,
+  "cost": 0.0014014000000000001,
+  "tokens": {
+    "input": 74,
+    "output": 300
+  }
+}

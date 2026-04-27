@@ -1,0 +1,52 @@
+# TaskBench Validation Run
+# 3 tasks x 3 models x 5 queries = 45 API calls
+# Estimated cost: ~$0.50-2.00
+
+description: "TaskBench validation: cost-quality tradeoffs across production LLM tasks"
+
+providers:
+  # Premium tier (~$3-15/M input tokens)
+  - id: openai:gpt-4o
+    label: GPT-4o (Premium)
+    config:
+      temperature: 0
+
+  # Standard tier (~$0.25-1/M input tokens)
+  - id: openai:gpt-4o-mini
+    label: GPT-4o-mini (Standard)
+    config:
+      temperature: 0
+
+  # Economy tier (~$0.05-0.25/M input tokens)
+  - id: openai:gpt-3.5-turbo
+    label: GPT-3.5-Turbo (Economy)
+    config:
+      temperature: 0
+
+# To add Anthropic models, uncomment and set ANTHROPIC_API_KEY:
+#  - id: anthropic:messages:claude-sonnet-4-20250514
+#    label: Claude Sonnet 4 (Premium)
+#    config:
+#      temperature: 0
+#  - id: anthropic:messages:claude-haiku-4-20250414
+#    label: Claude Haiku (Economy)
+#    config:
+#      temperature: 0
+
+# To add Google models, uncomment and set GOOGLE_API_KEY:
+#  - id: google:gemini-2.0-flash
+#    label: Gemini 2.0 Flash (Economy)
+
+prompts:
+  # Each task has its own prompt file
+  - file://tasks/intent_classification.txt
+  - file://tasks/email_summarization.txt
+  - file://tasks/sql_generation.txt
+
+tests: file://tests.yaml
+
+outputPath: results/validation-run.json
+
+defaultTest:
+  options:
+    transformVars: "{ ...vars }"

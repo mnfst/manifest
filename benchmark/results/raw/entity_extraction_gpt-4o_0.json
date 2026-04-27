@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o",
+  "task": "entity_extraction",
+  "case": 0,
+  "response": "```json\n{\n    \"persons\": [\"Elon Musk\"],\n    \"organizations\": [\"Tesla\"],\n    \"locations\": [\"Austin\", \"Texas\", \"Texas State Capitol\"]\n}\n```",
+  "score": 5,
+  "cost": 0.000605,
+  "tokens": {
+    "input": 94,
+    "output": 37
+  }
+}

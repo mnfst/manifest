@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "entity_extraction",
+  "case": 1,
+  "response": "{\"persons\":[\"Dr. Sarah Chen\"],\"organizations\":[\"MIT\",\"NeurIPS\",\"Google DeepMind\",\"Stanford University\"],\"locations\":[\"Vancouver\"]}",
+  "score": 5,
+  "cost": 0.000522,
+  "tokens": {
+    "input": 93,
+    "output": 42
+  }
+}

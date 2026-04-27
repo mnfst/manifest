@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "extraction_hard",
+  "case": 3,
+  "response": "```json\n{\"severity\": \"critical\", \"component\": \"checkout\", \"summary\": \"Checkout page broken, results in white screen after payment attempt.\", \"steps_to_reproduce\": [\"Add items to cart\", \"Navigate to checkout page\", \"Enter card information\", \"Click 'Pay'\"], \"expected_behavior\": \"Successful payment and order confirmation.\", \"actual_behavior\": \"Spinner for 30 seconds followed by a white screen with no error message. CORS error and 'undefined is not a function' error in console.\", \"environment\": {\"os\": \"windows 11\", \"browser\": \"chrome 121\"}}\n```",
+  "score": 5,
+  "cost": 7.06e-05,
+  "tokens": {
+    "input": 170,
+    "output": 134
+  }
+}

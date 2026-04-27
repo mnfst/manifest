@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "content_moderation",
+  "case": 3,
+  "response": "spam",
+  "score": 5,
+  "cost": 0.0005874000000000001,
+  "tokens": {
+    "input": 110,
+    "output": 106
+  }
+}

@@ -1,0 +1,5 @@
+{"input": "I need to cancel my subscription right away", "expected": "cancel_subscription"}
+{"input": "What time does your store close on Saturdays?", "expected": "store_hours"}
+{"input": "Can you help me reset my password? I forgot it", "expected": "password_reset"}
+{"input": "I want to upgrade to the premium plan", "expected": "upgrade_plan"}
+{"input": "Where is my order? It was supposed to arrive yesterday", "expected": "order_tracking"}

@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "email_summary",
+  "case": 2,
+  "response": "During penetration testing, a critical SQL injection vulnerability (CVSS 9.8) was discovered in the user authentication endpoint affecting versions v3.2.0 through v3.4.1. A patch is ready for review, and deployment of a hotfix is recommended within 24 hours.",
+  "score": 5,
+  "cost": 0.0016676000000000002,
+  "tokens": {
+    "input": 168,
+    "output": 337
+  }
+}

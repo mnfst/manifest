@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "intent_hard",
+  "case": 3,
+  "response": "upgrade_plan",
+  "score": 5,
+  "cost": 0.000334,
+  "tokens": {
+    "input": 119,
+    "output": 12
+  }
+}

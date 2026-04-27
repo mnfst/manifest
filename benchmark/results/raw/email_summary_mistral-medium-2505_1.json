@@ -1,0 +1,12 @@
+{
+  "model": "mistral-medium-2505",
+  "task": "email_summary",
+  "case": 1,
+  "response": "A misconfigured load balancer caused a 47-minute service outage affecting 12,000 users, which was resolved by rolling back the configuration. Action items include adding config validation to the CI pipeline, updating the runbook, and implementing automated alerts, with a request to review the attached post-mortem by Friday.",
+  "score": 5,
+  "cost": 0.0002208,
+  "tokens": {
+    "input": 197,
+    "output": 71
+  }
+}

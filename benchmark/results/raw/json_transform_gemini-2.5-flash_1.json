@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "json_transform",
+  "case": 1,
+  "response": "```json\n{\n  \"by_date\": {\n    \"2024-01-15\": {\n      \"total\": 165.50,\n      \"categories\": {\n        \"food\": 120.50,\n        \"transport\": 45.00\n      }\n    },\n    \"2024-01-16\": {\n      \"total\": 230.00,\n      \"categories\": {\n        \"food\": 200.00,\n        \"transport\": 30.00\n      }\n    }\n  }\n}\n```",
+  "score": 5,
+  "cost": 0.00011640000000000001,
+  "tokens": {
+    "input": 188,
+    "output": 147
+  }
+}

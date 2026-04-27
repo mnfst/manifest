@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "intent_easy",
+  "case": 9,
+  "response": "billing_inquiry",
+  "score": 0,
+  "cost": 0.000156,
+  "tokens": {
+    "input": 66,
+    "output": 3
+  }
+}

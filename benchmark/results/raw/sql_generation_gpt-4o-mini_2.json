@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "sql_generation",
+  "case": 2,
+  "response": "```sql\nSELECT p.id, p.name, SUM(oi.quantity * p.price) AS revenue\nFROM products p\nJOIN order_items oi ON p.id = oi.product_id\nJOIN orders o ON oi.order_id = o.id\nWHERE o.created_at >= DATE_TRUNC('quarter', CURRENT_DATE) - INTERVAL '1 quarter'\n  AND o.created_at < DATE_TRUNC('quarter', CURRENT_DATE)\nGROUP BY p.id, p.name\nORDER BY revenue DESC\nLIMIT 5;\n```",
+  "score": 5,
+  "cost": 7.379999999999999e-05,
+  "tokens": {
+    "input": 84,
+    "output": 102
+  }
+}

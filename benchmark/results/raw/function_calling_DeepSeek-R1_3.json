@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-R1",
+  "task": "function_calling",
+  "case": 3,
+  "response": "{\"name\": \"create_task\", \"arguments\": {\"title\": \"Review PR #42\", \"priority\": \"high\", \"assignee\": \"alice\", \"due_date\": \"next Friday\"}}",
+  "score": 4,
+  "cost": 0.0018108999999999998,
+  "tokens": {
+    "input": 127,
+    "output": 795
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "json_transform",
+  "case": 2,
+  "response": "{\"admins\": [\"Alice\", \"Charlie\"], \"users\": [\"Bob\"], \"inactive_count\": 1}",
+  "score": 5,
+  "cost": 0.0019908,
+  "tokens": {
+    "input": 130,
+    "output": 797
+  }
+}

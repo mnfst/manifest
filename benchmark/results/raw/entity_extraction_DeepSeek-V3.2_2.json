@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "entity_extraction",
+  "case": 2,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"United Nations Security Council\"],\n  \"locations\": [\"New York\", \"France\", \"United Kingdom\", \"China\", \"eastern Congo\"]\n}",
+  "score": 3,
+  "cost": 7.23e-05,
+  "tokens": {
+    "input": 87,
+    "output": 42
+  }
+}

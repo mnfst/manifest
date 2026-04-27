@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o",
+  "task": "function_calling",
+  "case": 0,
+  "response": "```json\n{\"name\": \"send_email\", \"arguments\": {\"to\": \"john@example.com\", \"subject\": \"Meeting Tomorrow\", \"body\": \"Hi John, can we meet at 2pm?\"}}\n```",
+  "score": 5,
+  "cost": 0.0007325,
+  "tokens": {
+    "input": 113,
+    "output": 45
+  }
+}

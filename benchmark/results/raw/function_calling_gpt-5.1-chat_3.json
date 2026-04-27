@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "function_calling",
+  "case": 3,
+  "response": "{\"name\":\"create_task\",\"arguments\":{\"title\":\"Review PR #42\",\"priority\":\"high\",\"assignee\":\"alice\",\"due_date\":\"next Friday\"}}",
+  "score": 5,
+  "cost": 0.000568,
+  "tokens": {
+    "input": 124,
+    "output": 40
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "Llama-4-Scout-17B-16E-Instruct",
+  "task": "translation",
+  "case": 0,
+  "response": "La limite de taux de l'API a \u00e9t\u00e9 d\u00e9pass\u00e9e. Veuillez attendre 60 secondes avant de r\u00e9essayer votre demande. Si cela persiste, envisagez de passer \u00e0 notre plan entreprise qui offre un d\u00e9bit 10 fois sup\u00e9rieur.",
+  "score": 5,
+  "cost": 1.955e-05,
+  "tokens": {
+    "input": 66,
+    "output": 49
+  }
+}

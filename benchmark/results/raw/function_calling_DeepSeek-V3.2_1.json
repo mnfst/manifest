@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "function_calling",
+  "case": 1,
+  "response": "{\n    \"name\": \"get_weather\",\n    \"arguments\": {\n        \"city\": \"Paris\"\n    }\n}",
+  "score": 4,
+  "cost": 5.92e-05,
+  "tokens": {
+    "input": 102,
+    "output": 26
+  }
+}

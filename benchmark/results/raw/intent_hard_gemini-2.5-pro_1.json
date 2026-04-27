@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "intent_hard",
+  "case": 1,
+  "response": "refund_request",
+  "score": 5,
+  "cost": 0.0001925,
+  "tokens": {
+    "input": 130,
+    "output": 3
+  }
+}

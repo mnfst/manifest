@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "reasoning",
+  "case": 0,
+  "response": "The meeting room can hold 3 meetings per day, each lasting 2 hours. It is available from 8 AM to 6 PM, which is a 10-hour window. There are mandatory 30-minute breaks between meetings, so for 3 meetings there are 2 breaks.\n\nTotal time occupied by meetings: 3 \u00d7 2 hours = 6 hours.  \nTotal break time: 2 \u00d7 0.5 hours = 1 hour.  \nCombined: 7 hours.\n\nThe room must be free by 6 PM, so the entire schedule (meetings + breaks) must end by 6 PM. Working backwards from 6 PM:\n\n- Third meeting ends at 6:00 PM, so it starts at 4:00 PM (2 hours earlier).  \n- Before that, there is a 30-minute break, so the second meeting must end by 3:30 PM.  \n- Second meeting is 2 hours, so it starts at 1:30 PM.  \n- Before that, another 30-minute break, so the first meeting must end by 1:00 PM.  \n- First meeting is 2 hours, so it starts at 11:00 AM.\n\nThis fits within the 8 AM opening (11:00 AM is after 8 AM), and the total span from 11:00 AM to 6:00 PM is exactly 7 hours.\n\nThe latest start time for the third meeting is therefore 4:00 PM. (Starting it any later would push the end past 6 PM.)\n\nANSWER: 4:00 PM",
+  "score": 4,
+  "cost": 0.002766,
+  "tokens": {
+    "input": 83,
+    "output": 325
+  }
+}

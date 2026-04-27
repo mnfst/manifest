@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "intent_easy",
+  "case": 8,
+  "response": "account_deletion",
+  "score": 5,
+  "cost": 0.000198,
+  "tokens": {
+    "input": 71,
+    "output": 7
+  }
+}

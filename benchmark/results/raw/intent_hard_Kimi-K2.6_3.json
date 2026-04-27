@@ -1,0 +1,12 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "intent_hard",
+  "case": 3,
+  "response": "upgrade_plan",
+  "score": 5,
+  "cost": 0.0008238,
+  "tokens": {
+    "input": 121,
+    "output": 313
+  }
+}

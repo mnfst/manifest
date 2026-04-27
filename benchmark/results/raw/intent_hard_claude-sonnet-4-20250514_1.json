@@ -1,0 +1,12 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "intent_hard",
+  "case": 1,
+  "response": "refund_request",
+  "score": 5,
+  "cost": 0.000525,
+  "tokens": {
+    "input": 140,
+    "output": 7
+  }
+}

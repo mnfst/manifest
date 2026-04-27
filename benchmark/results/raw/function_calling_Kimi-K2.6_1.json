@@ -1,0 +1,12 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "function_calling",
+  "case": 1,
+  "response": "{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Paris\"}}",
+  "score": 4,
+  "cost": 0.00047759999999999995,
+  "tokens": {
+    "input": 104,
+    "output": 173
+  }
+}

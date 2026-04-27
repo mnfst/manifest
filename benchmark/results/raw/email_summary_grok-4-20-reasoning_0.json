@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "email_summary",
+  "case": 0,
+  "response": "Sarah followed up on last week's Q3 budget discussion, highlighting that marketing exceeded its budget by 15% due to an unplanned August campaign while engineering is 8% under budget from delayed hiring, and proposed reallocating $50K from engineering to cover the overspend in order to stay within the overall quarterly target. She requested scheduling a 30-minute call this Thursday to discuss the reallocation and asked the team to confirm their availability.",
+  "score": 5,
+  "cost": 0.001026,
+  "tokens": {
+    "input": 165,
+    "output": 87
+  }
+}

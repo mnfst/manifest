@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "sql_generation",
+  "case": 4,
+  "response": "```sql\nWITH monthly_signups AS (\n  SELECT\n    DATE_TRUNC('month', created_at) AS month,\n    COUNT(*) AS new_users\n  FROM users\n  GROUP BY 1\n)\nSELECT\n  month,\n  new_users,\n  ROUND(\n    (new_users - LAG(new_users) OVER (ORDER BY month)) * 100.0 /\n    NULLIF(LAG(new_users) OVER (ORDER BY month), 0),\n    2\n  ) AS mom_growth_rate\nFROM monthly_signups\nORDER BY month;\n```",
+  "score": 5,
+  "cost": 0.001028,
+  "tokens": {
+    "input": 54,
+    "output": 115
+  }
+}

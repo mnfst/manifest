@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-R1",
+  "task": "entity_extraction",
+  "case": 1,
+  "response": "```json\n{\n  \"persons\": [\"Dr. Sarah Chen\"],\n  \"organizations\": [\"MIT\", \"NeurIPS\", \"Google DeepMind\", \"Stanford University\"],\n  \"locations\": [\"Vancouver\"]\n}\n```",
+  "score": 5,
+  "cost": 0.00093755,
+  "tokens": {
+    "input": 92,
+    "output": 405
+  }
+}

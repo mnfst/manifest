@@ -1,0 +1,12 @@
+{
+  "model": "mistral-medium-2505",
+  "task": "intent_easy",
+  "case": 6,
+  "response": "refund_request",
+  "score": 5,
+  "cost": 3.9200000000000004e-05,
+  "tokens": {
+    "input": 78,
+    "output": 4
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "sql_generation",
+  "case": 4,
+  "response": "```sql\nWITH monthly_signups AS (\n    SELECT\n        DATE_TRUNC('month', created_at) AS signup_month,\n        COUNT(id) AS current_month_signups\n    FROM\n        users\n    GROUP BY\n        DATE_TRUNC('month', created_at)\n),\nlagged_signups AS (\n    SELECT\n        signup_month,\n        current_month_signups,\n        LAG(current_month_signups, 1) OVER (ORDER BY signup_month) AS previous_month_signups\n    FROM\n        monthly_signups\n)\nSELECT\n    signup_month,\n    current_month_signups,\n    previous_month_signups,\n    CASE\n        WHEN previous_month_signups IS NULL OR previous_month_signups = 0 THEN NULL\n        ELSE (CAST(current_month_signups AS NUMERIC) - previous_month_signups) / previous_month_signups\n    END AS month_over_month_growth_rate\nFROM\n    lagged_signups\nORDER BY\n    signup_month;\n```",
+  "score": 5,
+  "cost": 0.0001599,
+  "tokens": {
+    "input": 62,
+    "output": 251
+  }
+}

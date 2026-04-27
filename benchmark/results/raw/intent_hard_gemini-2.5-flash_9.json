@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "intent_hard",
+  "case": 9,
+  "response": "account_deletion",
+  "score": 5,
+  "cost": 2.025e-05,
+  "tokens": {
+    "input": 123,
+    "output": 3
+  }
+}

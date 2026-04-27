@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-R1",
+  "task": "intent_easy",
+  "case": 2,
+  "response": "password_reset",
+  "score": 5,
+  "cost": 0.00048858,
+  "tokens": {
+    "input": 84,
+    "output": 202
+  }
+}

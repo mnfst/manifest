@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "json_transform",
+  "case": 4,
+  "response": "{\n  \"event_type\": \"signup\",\n  \"date\": \"2024-03-15\",\n  \"time\": \"14:30\",\n  \"user_id\": \"u_123\",\n  \"attribution\": {\n    \"source\": \"google_ads\",\n    \"platform\": \"mobile\"\n  }\n}",
+  "score": 4,
+  "cost": 0.000766,
+  "tokens": {
+    "input": 127,
+    "output": 64
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "entity_extraction",
+  "case": 1,
+  "response": "{\n  \"persons\": [\"Dr. Sarah Chen\"],\n  \"organizations\": [\"MIT\", \"NeurIPS\", \"Google DeepMind\", \"Stanford University\"],\n  \"locations\": [\"Vancouver\"]\n}",
+  "score": 5,
+  "cost": 0.001047,
+  "tokens": {
+    "input": 99,
+    "output": 50
+  }
+}

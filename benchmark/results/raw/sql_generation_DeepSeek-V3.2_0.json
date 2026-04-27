@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "sql_generation",
+  "case": 0,
+  "response": "```sql\nSELECT DISTINCT c.*\nFROM customers c\nINNER JOIN orders o ON c.id = o.customer_id\nWHERE c.signup_date >= CURRENT_DATE - INTERVAL '30 days'\n```",
+  "score": 5,
+  "cost": 7.27e-05,
+  "tokens": {
+    "input": 81,
+    "output": 44
+  }
+}

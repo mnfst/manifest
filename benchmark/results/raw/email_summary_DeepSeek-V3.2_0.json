@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "email_summary",
+  "case": 0,
+  "response": "The marketing department has overspent its Q3 budget while engineering is under budget, so Sarah proposes reallocating $50,000 from engineering to marketing to stay within the overall target. She requests the team confirm their availability for a 30-minute call this Thursday to discuss this.",
+  "score": 5,
+  "cost": 0.00011430000000000001,
+  "tokens": {
+    "input": 172,
+    "output": 57
+  }
+}

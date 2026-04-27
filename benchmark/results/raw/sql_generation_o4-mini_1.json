@@ -1,0 +1,12 @@
+{
+  "model": "o4-mini",
+  "task": "sql_generation",
+  "case": 1,
+  "response": "SELECT c.country,\n       AVG(o.total) AS average_order_value\nFROM orders o\nJOIN customers c ON o.customer_id = c.id\nGROUP BY c.country\nORDER BY average_order_value DESC;",
+  "score": 5,
+  "cost": 0.0011913000000000002,
+  "tokens": {
+    "input": 75,
+    "output": 252
+  }
+}

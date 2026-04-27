@@ -1,0 +1,12 @@
+{
+  "model": "o4-mini",
+  "task": "intent_easy",
+  "case": 8,
+  "response": "account_deletion",
+  "score": 5,
+  "cost": 0.00045650000000000004,
+  "tokens": {
+    "input": 71,
+    "output": 86
+  }
+}

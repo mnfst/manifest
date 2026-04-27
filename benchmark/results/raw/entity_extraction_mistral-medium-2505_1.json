@@ -1,0 +1,12 @@
+{
+  "model": "mistral-medium-2505",
+  "task": "entity_extraction",
+  "case": 1,
+  "response": "```json\n{\n  \"persons\": [\"Dr. Sarah Chen\"],\n  \"organizations\": [\"MIT\", \"NeurIPS\", \"Google DeepMind\", \"Stanford University\"],\n  \"locations\": [\"Vancouver\"]\n}\n```",
+  "score": 5,
+  "cost": 0.0001372,
+  "tokens": {
+    "input": 93,
+    "output": 50
+  }
+}

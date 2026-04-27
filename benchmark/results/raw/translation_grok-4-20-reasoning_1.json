@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "translation",
+  "case": 1,
+  "response": "**French:** Nos revenus trimestriels ont augment\u00e9 de 23 % d\u2019une ann\u00e9e sur l\u2019autre, port\u00e9s principalement par une forte adoption de notre plateforme cloud sur le march\u00e9 europ\u00e9en. Les marges op\u00e9rationnelles se sont am\u00e9lior\u00e9es \u00e0 18,5 %, contre 15,2 % au trimestre pr\u00e9c\u00e9dent.",
+  "score": 5,
+  "cost": 0.000628,
+  "tokens": {
+    "input": 66,
+    "output": 62
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "entity_extraction",
+  "case": 4,
+  "response": "```json\n{\n  \"persons\": [\n    \"Barack Obama\",\n    \"Michelle Obama\",\n    \"Brandon Johnson\",\n    \"JB Pritzker\"\n  ],\n  \"organizations\": [\n    \"Obama Presidential Center\"\n  ],\n  \"locations\": [\n    \"South Side\",\n    \"Chicago\",\n    \"Illinois\"\n  ]\n}\n```",
+  "score": 5,
+  "cost": 6.375e-05,
+  "tokens": {
+    "input": 85,
+    "output": 85
+  }
+}

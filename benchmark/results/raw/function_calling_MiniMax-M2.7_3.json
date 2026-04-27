@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "function_calling",
+  "case": 3,
+  "response": "{\"name\": \"create_task\", \"arguments\": {\"title\": \"Review PR #42\", \"priority\": \"high\", \"assignee\": \"alice\", \"due_date\": \"2024-12-13\"}}",
+  "score": 4,
+  "cost": 0.000825,
+  "tokens": {
+    "input": 158,
+    "output": 148
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "content_moderation",
+  "case": 1,
+  "response": "harassment",
+  "score": 5,
+  "cost": 0.0010272,
+  "tokens": {
+    "input": 64,
+    "output": 412
+  }
+}

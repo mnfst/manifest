@@ -1,0 +1,12 @@
+{
+  "model": "o4-mini",
+  "task": "extraction_hard",
+  "case": 4,
+  "response": "",
+  "score": 2,
+  "cost": 0.0023782,
+  "tokens": {
+    "input": 162,
+    "output": 500
+  }
+}

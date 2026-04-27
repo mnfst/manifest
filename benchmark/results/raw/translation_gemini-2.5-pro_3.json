@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "translation",
+  "case": 3,
+  "response": "Nous sommes au regret de vous informer que votre vol BA287 au d\u00e9part de Londres Heathrow et \u00e0 destination de San Francisco est retard\u00e9 d'environ 3 heures en raison de conditions m\u00e9t\u00e9orologiques d\u00e9favorables. Un bon-repas a \u00e9t\u00e9 ajout\u00e9 \u00e0 votre r\u00e9servation.",
+  "score": 5,
+  "cost": 0.00064125,
+  "tokens": {
+    "input": 65,
+    "output": 56
+  }
+}

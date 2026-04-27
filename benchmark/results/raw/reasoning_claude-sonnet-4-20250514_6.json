@@ -1,0 +1,12 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning",
+  "case": 6,
+  "response": "I need to calculate the shipping cost for each package based on the given pricing structure, then sum them up.\n\nLet me identify the pricing tiers:\n- Under 10kg: $5 base + $2/kg\n- 10-25kg: $5 base + $1.50/kg  \n- Over 25kg: flat $45\n\nNow I'll calculate the cost for each package:\n\nPackage 1: 8kg (under 10kg)\n- Uses tier 1: $5 base + $2/kg\n- Cost = $5 + (8 \u00d7 $2) = $5 + $16 = $21\n\nPackage 2: 15kg (between 10-25kg)\n- Uses tier 2: $5 base + $1.50/kg\n- Cost = $5 + (15 \u00d7 $1.50) = $5 + $22.50 = $27.50\n\nPackage 3: 30kg (over 25kg)\n- Uses tier 3: flat rate\n- Cost = $45\n\nTotal shipping cost:\n$21 + $27.50 + $45 = $93.50\n\nANSWER: $93.50",
+  "score": 5,
+  "cost": 0.004476,
+  "tokens": {
+    "input": 122,
+    "output": 274
+  }
+}

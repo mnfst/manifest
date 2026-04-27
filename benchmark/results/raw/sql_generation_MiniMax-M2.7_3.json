@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_generation",
+  "case": 3,
+  "response": "```sql\nSELECT *\nFROM employees\nWHERE id NOT IN (\n  SELECT employee_id\n  FROM expense_reports\n  WHERE YEAR(submitted_at) = YEAR(CURRENT_DATE)\n);\n```",
+  "score": 5,
+  "cost": 0.0031658000000000003,
+  "tokens": {
+    "input": 90,
+    "output": 697
+  }
+}

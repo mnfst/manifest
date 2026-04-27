@@ -1,0 +1,12 @@
+{
+  "model": "mistral-medium-2505",
+  "task": "sql_generation",
+  "case": 3,
+  "response": "```sql\nSELECT e.id, e.name, e.department, e.hire_date\nFROM employees e\nLEFT JOIN expense_reports er ON e.id = er.employee_id\n    AND YEAR(er.submitted_at) = YEAR(CURRENT_DATE)\nWHERE er.id IS NULL;\n```",
+  "score": 4,
+  "cost": 0.00015480000000000002,
+  "tokens": {
+    "input": 72,
+    "output": 63
+  }
+}

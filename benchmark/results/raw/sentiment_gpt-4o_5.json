@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o",
+  "task": "sentiment",
+  "case": 5,
+  "response": "negative",
+  "score": 5,
+  "cost": 0.00015,
+  "tokens": {
+    "input": 56,
+    "output": 1
+  }
+}

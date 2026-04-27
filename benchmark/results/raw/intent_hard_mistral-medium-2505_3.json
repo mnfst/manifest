@@ -1,0 +1,12 @@
+{
+  "model": "mistral-medium-2505",
+  "task": "intent_hard",
+  "case": 3,
+  "response": "upgrade_plan",
+  "score": 5,
+  "cost": 5.56e-05,
+  "tokens": {
+    "input": 124,
+    "output": 3
+  }
+}

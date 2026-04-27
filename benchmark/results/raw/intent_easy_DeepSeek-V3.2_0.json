@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "intent_easy",
+  "case": 0,
+  "response": "cancel_subscription",
+  "score": 5,
+  "cost": 2.84e-05,
+  "tokens": {
+    "input": 80,
+    "output": 4
+  }
+}

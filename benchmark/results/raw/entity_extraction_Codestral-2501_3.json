@@ -1,0 +1,12 @@
+{
+  "model": "Codestral-2501",
+  "task": "entity_extraction",
+  "case": 3,
+  "response": "```json\n{\n  \"persons\": [\"Tim Cook\"],\n  \"organizations\": [\"Apple\", \"Foxconn\", \"Chinese Ministry of Commerce\"],\n  \"locations\": [\"Shenzhen\", \"China\", \"Beijing\"]\n}\n```",
+  "score": 5,
+  "cost": 6.929999999999999e-05,
+  "tokens": {
+    "input": 84,
+    "output": 49
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "function_calling",
+  "case": 0,
+  "response": "{\n  \"name\": \"send_email\",\n  \"arguments\": {\n    \"to\": \"john@example.com\",\n    \"subject\": \"Meeting Tomorrow\",\n    \"body\": \"Hi John, can we meet at 2pm?\"\n  }\n}",
+  "score": 5,
+  "cost": 9.17e-05,
+  "tokens": {
+    "input": 115,
+    "output": 52
+  }
+}

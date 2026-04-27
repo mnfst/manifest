@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "intent_hard",
+  "case": 6,
+  "response": "downgrade_plan",
+  "score": 5,
+  "cost": 0.0008129000000000001,
+  "tokens": {
+    "input": 151,
+    "output": 147
+  }
+}

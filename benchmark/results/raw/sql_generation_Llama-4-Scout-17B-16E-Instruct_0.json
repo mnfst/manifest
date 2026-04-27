@@ -1,0 +1,12 @@
+{
+  "model": "Llama-4-Scout-17B-16E-Instruct",
+  "task": "sql_generation",
+  "case": 0,
+  "response": "```sql\nSELECT c.id, c.name, c.email, c.signup_date\nFROM customers c\nWHERE c.signup_date >= CURRENT_DATE - INTERVAL 30 DAY\nAND c.id IN (\n  SELECT o.customer_id\n  FROM orders o\n  GROUP BY o.customer_id\n  HAVING COUNT(o.id) >= 1\n);\n```",
+  "score": 5,
+  "cost": 2.669e-05,
+  "tokens": {
+    "input": 86,
+    "output": 71
+  }
+}

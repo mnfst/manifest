@@ -1,0 +1,12 @@
+{
+  "model": "mistral-medium-2505",
+  "task": "function_calling",
+  "case": 2,
+  "response": "```json\n{\"name\": \"search_files\", \"arguments\": {\"directory\": \"/src\", \"pattern\": \"*.py\", \"modified_within_days\": 7}}\n```",
+  "score": 5,
+  "cost": 0.00011280000000000002,
+  "tokens": {
+    "input": 97,
+    "output": 37
+  }
+}

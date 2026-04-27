@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "entity_extraction",
+  "case": 1,
+  "response": "{\n  \"persons\": [\"Dr. Sarah Chen\"],\n  \"organizations\": [\"MIT\", \"NeurIPS\", \"Google DeepMind\", \"Stanford University\"],\n  \"locations\": [\"Vancouver\"]\n}",
+  "score": 5,
+  "cost": 0.00049,
+  "tokens": {
+    "input": 85,
+    "output": 40
+  }
+}

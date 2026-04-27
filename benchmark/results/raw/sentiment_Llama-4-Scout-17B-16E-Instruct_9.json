@@ -1,0 +1,12 @@
+{
+  "model": "Llama-4-Scout-17B-16E-Instruct",
+  "task": "sentiment",
+  "case": 9,
+  "response": "neutral",
+  "score": 5,
+  "cost": 9.520000000000002e-06,
+  "tokens": {
+    "input": 54,
+    "output": 2
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "email_summary",
+  "case": 1,
+  "response": "A server outage was caused by a misconfigured load balancer, resulting in 47 minutes of degraded service. Action items include adding configuration validation to the CI pipeline, updating the relevant runbook, and implementing automated alerts.",
+  "score": 5,
+  "cost": 0.00010729999999999999,
+  "tokens": {
+    "input": 189,
+    "output": 46
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "entity_extraction",
+  "case": 3,
+  "response": "```json\n{\n  \"persons\": [\n    \"Tim Cook\"\n  ],\n  \"organizations\": [\n    \"Apple\",\n    \"Foxconn\",\n    \"Chinese Ministry of Commerce\"\n  ],\n  \"locations\": [\n    \"Shenzhen\",\n    \"China\",\n    \"Beijing\"\n  ]\n}\n```",
+  "score": 5,
+  "cost": 5.775e-05,
+  "tokens": {
+    "input": 81,
+    "output": 76
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "o4-mini",
+  "task": "translation",
+  "case": 0,
+  "response": "La limite de taux de l\u2019API a \u00e9t\u00e9 d\u00e9pass\u00e9e. Veuillez patienter 60 secondes avant de r\u00e9essayer votre requ\u00eate. Si ce probl\u00e8me persiste, envisagez de passer \u00e0 notre plan entreprise, qui offre un d\u00e9bit 10 fois plus \u00e9lev\u00e9.",
+  "score": 5,
+  "cost": 0.0029326,
+  "tokens": {
+    "input": 62,
+    "output": 651
+  }
+}

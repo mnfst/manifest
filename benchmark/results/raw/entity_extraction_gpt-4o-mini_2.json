@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "entity_extraction",
+  "case": 2,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\n    \"United Nations Security Council\",\n    \"France\",\n    \"United Kingdom\",\n    \"China\"\n  ],\n  \"locations\": [\n    \"New York\",\n    \"eastern Congo\"\n  ]\n}",
+  "score": 3,
+  "cost": 4.44e-05,
+  "tokens": {
+    "input": 88,
+    "output": 52
+  }
+}

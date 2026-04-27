@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o",
+  "task": "entity_extraction",
+  "case": 1,
+  "response": "```json\n{\n    \"persons\": [\n        \"Dr. Sarah Chen\"\n    ],\n    \"organizations\": [\n        \"MIT\",\n        \"NeurIPS\",\n        \"Google DeepMind\",\n        \"Stanford University\"\n    ],\n    \"locations\": [\n        \"Vancouver\"\n    ]\n}\n```",
+  "score": 5,
+  "cost": 0.000845,
+  "tokens": {
+    "input": 94,
+    "output": 61
+  }
+}

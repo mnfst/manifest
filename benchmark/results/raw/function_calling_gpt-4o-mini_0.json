@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "function_calling",
+  "case": 0,
+  "response": "{\"name\": \"send_email\", \"arguments\": {\"to\": \"john@example.com\", \"subject\": \"Meeting Tomorrow\", \"body\": \"Hi John, can we meet at 2pm?\"}}",
+  "score": 5,
+  "cost": 4.155e-05,
+  "tokens": {
+    "input": 113,
+    "output": 41
+  }
+}

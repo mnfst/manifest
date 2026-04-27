@@ -1,0 +1,12 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "sql_generation",
+  "case": 0,
+  "response": "```sql\nSELECT DISTINCT c.id, c.name, c.email, c.signup_date\nFROM customers c\nINNER JOIN orders o ON c.id = o.customer_id\nWHERE c.signup_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)\n```",
+  "score": 4,
+  "cost": 0.001371,
+  "tokens": {
+    "input": 92,
+    "output": 73
+  }
+}

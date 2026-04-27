@@ -1,0 +1,12 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "entity_extraction",
+  "case": 4,
+  "response": "{\n  \"persons\": [\"Barack Obama\", \"Michelle Obama\", \"Brandon Johnson\", \"JB Pritzker\"],\n  \"organizations\": [\"Obama Presidential Center\"],\n  \"locations\": [\"South Side of Chicago\", \"Illinois\"]\n}",
+  "score": 4,
+  "cost": 0.001107,
+  "tokens": {
+    "input": 94,
+    "output": 55
+  }
+}

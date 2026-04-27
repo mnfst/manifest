@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "intent_easy",
+  "case": 3,
+  "response": "upgrade_plan",
+  "score": 5,
+  "cost": 0.0009889,
+  "tokens": {
+    "input": 91,
+    "output": 202
+  }
+}

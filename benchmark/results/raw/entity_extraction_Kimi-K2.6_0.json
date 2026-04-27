@@ -1,0 +1,12 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "entity_extraction",
+  "case": 0,
+  "response": "{\"persons\": [\"Elon Musk\"], \"organizations\": [\"Tesla\"], \"locations\": [\"Austin\", \"Texas\", \"Texas State Capitol\"]}",
+  "score": 5,
+  "cost": 0.0022703999999999997,
+  "tokens": {
+    "input": 96,
+    "output": 922
+  }
+}

@@ -1,0 +1,118 @@
+# Task: Structured Data Extraction from messy real-world text
+# Eval: LLM-judge on JSON correctness and completeness
+
+description: "Structured Extraction (Hard) - extract structured JSON from messy text"
+
+providers:
+  - id: openai:gpt-4o
+    label: GPT-4o
+    config:
+      temperature: 0
+  - id: anthropic:messages:claude-sonnet-4-20250514
+    label: Claude Sonnet 4
+    config:
+      temperature: 0
+  - id: openai:gpt-4o-mini
+    label: GPT-4o-mini
+    config:
+      temperature: 0
+  - id: openai:gpt-3.5-turbo
+    label: GPT-3.5-Turbo
+    config:
+      temperature: 0
+
+prompts:
+  - |
+    Extract structured data from the following text. Return ONLY valid JSON matching the specified schema. No explanation.
+
+    Schema: {{schema}}
+
+    Text: {{input}}
+
+tests:
+  # Invoice with mixed formats and typos
+  - vars:
+      schema: '{"invoice_number": string, "date": "YYYY-MM-DD", "vendor": string, "items": [{"description": string, "quantity": number, "unit_price": number}], "total": number, "currency": string}'
+      input: "INVOICE #INV-2024-0847\nDate: March 15th, 2024\nFrom: Johnson & Sons LLC (dba TechSupply Co)\n\nItems:\n- 5x USB-C Cables (premium) @ $12.99 each\n- Office Chair, ergonomic mesh -- qty 2 -- $349.99/ea\n- 1 box of printer paper (A4, 5000 sheets) $45.50\n\nSubtotal: $824.42\nTax (8.25%): $68.01\nTotal Due: $892.43 USD\n\nPayment terms: Net 30"
+    assert:
+      - type: llm-rubric
+        value: |
+          Check JSON output for:
+          1. invoice_number: "INV-2024-0847" (must strip # prefix)
+          2. date: "2024-03-15" (must convert from "March 15th, 2024")
+          3. vendor: should be "Johnson & Sons LLC" or "TechSupply Co" (either acceptable)
+          4. items: exactly 3 items with correct quantities and prices (5, 12.99), (2, 349.99), (1, 45.50)
+          5. total: 892.43
+          6. currency: "USD"
+          7. Must be valid parseable JSON
+          Rate 5 if all correct. Rate 4 if valid JSON with 1 minor error. Rate 3 if structure right but 2+ errors. Rate 2 if invalid JSON. Rate 1 if not JSON.
+
+  # Job posting with implicit data
+  - vars:
+      schema: '{"title": string, "company": string, "location": {"city": string, "state": string, "remote": boolean}, "salary": {"min": number, "max": number, "currency": string}, "requirements": {"min_years_experience": number, "skills": [string]}, "benefits": [string]}'
+      input: "🚀 We're hiring! Senior Backend Engineer at CloudMatrix (Series B, $40M raised)\n\nBased in our Austin, TX office but open to remote candidates in the US.\n\nComp: $165-195K base + equity\n\nLooking for someone with 5+ years building distributed systems. Must know Go or Rust, Kubernetes, and have worked with event-driven architectures. Bonus points for Kafka experience.\n\nPerks include unlimited PTO, health/dental/vision, 401k match, and a $3K annual learning budget. Oh and we have a ping pong table (obligatory startup mention 😄)"
+    assert:
+      - type: llm-rubric
+        value: |
+          Check JSON:
+          1. title: "Senior Backend Engineer"
+          2. company: "CloudMatrix"
+          3. location: city "Austin", state "TX", remote true (it says "open to remote")
+          4. salary: min 165000, max 195000, currency "USD"
+          5. min_years_experience: 5
+          6. skills should include Go/Rust, Kubernetes, event-driven. Kafka is bonus, optional.
+          7. benefits should include PTO, health, 401k, learning budget (ping pong table is a joke, including it is fine)
+          Rate 5 if all correct. Rate 4 if minor issues. Rate 3 if structure ok but missed key fields. Rate 1 if not valid JSON.
+
+  # Bug report with technical noise
+  - vars:
+      schema: '{"severity": "critical|high|medium|low", "component": string, "summary": string, "steps_to_reproduce": [string], "expected_behavior": string, "actual_behavior": string, "environment": {"os": string, "browser": string, "version": string}}'
+      input: "hey so the checkout page is completely broken for me lol. im on chrome 121 on windows 11. basically i add stuff to cart, go to checkout, enter my credit card info and hit pay. the spinner shows up for like 30 seconds then i get a white screen. no error message nothing. checked the console and theres a CORS error and also something about 'undefined is not a function' in checkout.bundle.js line 847. happened 3 times in a row. kinda urgent because we have a sale going on rn and customers are probably hitting this too?? the same flow works fine on firefox btw"
+    assert:
+      - type: llm-rubric
+        value: |
+          Check JSON:
+          1. severity: should be "critical" or "high" (checkout is broken during a sale)
+          2. component: "checkout" or "checkout page" or "payment"
+          3. summary: should mention checkout/payment failure, white screen
+          4. steps: should include add to cart, go to checkout, enter card, click pay
+          5. expected: payment should process
+          6. actual: white screen after 30s spinner, CORS error, JS error
+          7. environment: Windows 11, Chrome 121
+          8. Must capture that Firefox works (useful diagnostic info)
+          Rate 5 if all correct and well-structured. Rate 3 if gets the gist but misses technical details. Rate 1 if not valid JSON.
+
+  # Resume/CV with inconsistent formatting
+  - vars:
+      schema: '{"name": string, "email": string, "current_role": {"title": string, "company": string, "start_date": "YYYY-MM"}, "education": [{"degree": string, "institution": string, "year": number}], "skills": [string], "years_of_experience": number}'
+      input: "SARAH CHEN | sarah.c@gmail.com | linkedin.com/in/sarahchen\n\nCurrently: Lead ML Engineer @ Anthropic (since Jan 2023)\n\nPreviously:\n• Staff Eng at Google Brain, 2019-2022\n• ML Engineer, Uber ATG, 2016-2019\n• Research intern @ DeepMind (summer 2015)\n\nEducation:\nMS Computer Science - Stanford '16\nBS Mathematics + CS double major, MIT 2014\n\nSkills: PyTorch, JAX, distributed training, transformer architectures, RLHF, kubernetes, terraform"
+    assert:
+      - type: llm-rubric
+        value: |
+          Check JSON:
+          1. name: "Sarah Chen"
+          2. email: "sarah.c@gmail.com"
+          3. current_role: title "Lead ML Engineer", company "Anthropic", start_date "2023-01"
+          4. education: Stanford MS CS 2016, MIT BS Math+CS 2014
+          5. skills: should capture the listed skills
+          6. years_of_experience: ~10-11 years (2015 intern to 2026, or 2016 first full role to 2026)
+          Rate 5 if all correct. Rate 4 if minor date/experience calc issues. Rate 3 if structure right but missed fields. Rate 1 if not JSON.
+
+  # Meeting notes with action items buried in conversation
+  - vars:
+      schema: '{"meeting_title": string, "date": "YYYY-MM-DD", "attendees": [string], "decisions": [string], "action_items": [{"owner": string, "task": string, "deadline": string}]}'
+      input: "Product sync - April 10 2026\n\nPresent: Jamie (PM), Priya (eng lead), Marcus (design), Lin (data)\n\nJamie opened with the Q2 roadmap update. We decided to push the recommendation engine to Q3 since Lin mentioned the data pipeline won't be ready until June. Marcus will have the new onboarding mockups done by next Friday (April 18). Priya raised a concern about tech debt in the auth module - we agreed to allocate 20% of sprint capacity to addressing it starting next sprint. Jamie will send the updated roadmap to stakeholders by EOD Monday. Lin needs to set up the new analytics dashboard before the May board meeting."
+    assert:
+      - type: llm-rubric
+        value: |
+          Check JSON:
+          1. date: "2026-04-10"
+          2. attendees: Jamie, Priya, Marcus, Lin (4 people)
+          3. decisions: push recommendation engine to Q3, allocate 20% to tech debt
+          4. action_items should have 3 items:
+             - Marcus: onboarding mockups by April 18
+             - Jamie: send roadmap by Monday (EOD)
+             - Lin: analytics dashboard before May board meeting
+          Rate 5 if all 3 action items captured with correct owners and deadlines. Rate 3 if some action items missing. Rate 1 if not JSON or completely wrong.
+
+outputPath: results/extraction_hard.json

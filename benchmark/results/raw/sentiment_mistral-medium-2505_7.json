@@ -1,0 +1,12 @@
+{
+  "model": "mistral-medium-2505",
+  "task": "sentiment",
+  "case": 7,
+  "response": "negative",
+  "score": 5,
+  "cost": 2.8400000000000003e-05,
+  "tokens": {
+    "input": 61,
+    "output": 2
+  }
+}

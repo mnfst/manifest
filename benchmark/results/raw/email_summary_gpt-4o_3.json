@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o",
+  "task": "email_summary",
+  "case": 3,
+  "response": "The March cohort of new hires rated their onboarding experience at 7.2/10, with positive feedback on the buddy system and timely IT equipment delivery, but noted issues with benefits enrollment clarity, delayed access to internal tools, and missing company culture handbooks. Lisa recommends prioritizing the resolution of the tools access delay.",
+  "score": 4,
+  "cost": 0.0010775,
+  "tokens": {
+    "input": 175,
+    "output": 64
+  }
+}

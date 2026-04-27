@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o",
+  "task": "translation",
+  "case": 0,
+  "response": "Le taux limite de l'API a \u00e9t\u00e9 d\u00e9pass\u00e9. Veuillez attendre 60 secondes avant de r\u00e9essayer votre demande. Si le probl\u00e8me persiste, envisagez de passer \u00e0 notre plan entreprise qui offre un d\u00e9bit 10 fois sup\u00e9rieur.",
+  "score": 5,
+  "cost": 0.0006475,
+  "tokens": {
+    "input": 63,
+    "output": 49
+  }
+}

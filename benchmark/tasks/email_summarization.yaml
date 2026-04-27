@@ -1,0 +1,88 @@
+# Task 2: Email Summarization
+# Eval: LLM-as-judge (1-5 scale)
+# Expected cost per query: $0.005-0.10
+
+description: "Email Summarization - summarize a business email in 2 sentences"
+
+providers:
+  - id: openai:gpt-4o
+    label: GPT-4o
+    config:
+      temperature: 0
+  - id: anthropic:messages:claude-sonnet-4-20250514
+    label: Claude Sonnet 4
+    config:
+      temperature: 0
+  - id: openai:gpt-4o-mini
+    label: GPT-4o-mini
+    config:
+      temperature: 0
+
+prompts:
+  - |
+    Summarize the following email in exactly 2 sentences. Capture the main point and any action items.
+
+    Email:
+    {{input}}
+
+    Summary:
+
+tests:
+  - vars:
+      input: "Subject: Q3 Budget Review Meeting\n\nHi team,\n\nI wanted to follow up on our discussion from last week regarding the Q3 budget allocation. After reviewing the numbers with finance, we've identified that the marketing department has exceeded their projected spend by 15%, primarily due to the unplanned campaign launch in August. However, the engineering team is currently 8% under budget due to delayed hiring.\n\nI'd like to propose we reallocate $50K from engineering's unused budget to cover marketing's overspend, rather than requesting additional funds from the board. This would keep us within our overall quarterly target.\n\nCan we schedule a 30-minute call this Thursday to discuss? Please confirm your availability.\n\nBest,\nSarah"
+    assert:
+      - type: llm-rubric
+        value: |
+          Rate this email summary on a 1-5 scale:
+          5 = Captures both the budget reallocation proposal ($50K from engineering to marketing) AND the Thursday meeting request
+          4 = Captures the main proposal but misses the meeting request or a key detail
+          3 = Gets the general topic right but misses the specific numbers or proposal
+          2 = Vaguely related but missing most key points
+          1 = Wrong, irrelevant, or empty
+          The summary must mention: budget reallocation, marketing overspend, and the proposed action.
+  - vars:
+      input: "Subject: Re: Server Outage Post-Mortem\n\nTeam,\n\nHere's the summary from yesterday's incident:\n\n- Root cause: A misconfigured load balancer rule deployed at 2:14 PM EST caused all traffic to route to a single node\n- Impact: 47 minutes of degraded service affecting approximately 12,000 users\n- Resolution: The on-call engineer (Mike) identified the issue at 2:38 PM and rolled back the configuration at 3:01 PM\n- Action items: (1) Add load balancer config validation to CI pipeline, (2) Update runbook for LB-related incidents, (3) Implement automated traffic distribution alerts\n\nThe full post-mortem document is attached. Please review and add any comments by Friday.\n\nThanks,\nJen"
+    assert:
+      - type: llm-rubric
+        value: |
+          Rate this email summary on a 1-5 scale:
+          5 = Captures the root cause (load balancer misconfiguration), impact (47 min, 12K users), and action items
+          4 = Captures root cause and impact but misses action items
+          3 = Gets the general topic (outage) but misses specifics
+          2 = Vaguely related
+          1 = Wrong or empty
+  - vars:
+      input: "Subject: Partnership Proposal - DataSync Inc.\n\nDear Alex,\n\nFollowing our conversation at the TechConnect conference, I'm writing to formally propose a strategic partnership between our companies. DataSync's real-time data synchronization technology could significantly enhance your platform's multi-region capabilities.\n\nWe're proposing a revenue-sharing model where we handle the data sync infrastructure and you integrate our SDK into your product. Based on our projections, this could reduce your customers' data latency by 60% while generating an estimated $2M in additional annual revenue for both parties.\n\nI've attached a detailed proposal document. Would you be available for a deeper technical discussion next week? Our CTO is eager to explore the integration architecture.\n\nLooking forward to your thoughts.\n\nRegards,\nMaria Chen\nCEO, DataSync Inc."
+    assert:
+      - type: llm-rubric
+        value: |
+          Rate this email summary on a 1-5 scale:
+          5 = Captures the partnership proposal, revenue-sharing model, 60% latency reduction, and meeting request
+          4 = Captures the proposal and key benefit but misses a detail
+          3 = Gets the general topic (partnership) but misses specifics
+          2 = Vaguely related
+          1 = Wrong or empty
+  - vars:
+      input: "Subject: Urgent: Security Vulnerability Disclosure\n\nHi Security Team,\n\nDuring our routine penetration testing, we discovered a critical SQL injection vulnerability in the user authentication endpoint (/api/v2/auth/login). An attacker could potentially bypass authentication and access any user account by injecting malicious SQL through the username field.\n\nSeverity: Critical (CVSS 9.8)\nAffected versions: v3.2.0 through v3.4.1\nRecommended fix: Parameterize the query in auth_controller.py line 142\n\nWe've prepared a patch that's ready for review. Given the severity, I recommend we fast-track this through the release process and deploy a hotfix within 24 hours.\n\nPlease treat this as confidential until the patch is deployed.\n\nBest,\nDavid - Security Team"
+    assert:
+      - type: llm-rubric
+        value: |
+          Rate this email summary on a 1-5 scale:
+          5 = Captures the SQL injection vulnerability, CVSS 9.8, affected versions, and 24-hour hotfix recommendation
+          4 = Captures the vulnerability and urgency but misses specifics
+          3 = Gets the general topic (security issue) but misses severity
+          2 = Vaguely related
+          1 = Wrong or empty
+  - vars:
+      input: "Subject: Employee Onboarding Feedback - March Cohort\n\nHi HR Team,\n\nI compiled feedback from the 8 new hires in our March cohort. Overall satisfaction score: 7.2/10, down from 8.1 in February.\n\nKey positives:\n- Buddy system was highly rated (avg 9.1/10)\n- IT equipment arrived on time for all 8 hires\n\nAreas for improvement:\n- 5 of 8 reported confusion about benefits enrollment deadline\n- Access to internal tools (Jira, Confluence) took 3-5 days instead of the target 1 day\n- No one received the company culture handbook mentioned in the offer letter\n\nI'd suggest we prioritize fixing the tools access delay — it directly impacts productivity in the first week.\n\nLet me know if you'd like to discuss.\n\nCheers,\nLisa"
+    assert:
+      - type: llm-rubric
+        value: |
+          Rate this email summary on a 1-5 scale:
+          5 = Captures the satisfaction drop (7.2 from 8.1), key positives (buddy system), and main issues (tool access delay)
+          4 = Captures the score and main recommendation but misses a detail
+          3 = Gets the general topic (onboarding feedback) but misses specifics
+          2 = Vaguely related
+          1 = Wrong or empty
+
+outputPath: results/email_summarization.json

@@ -1,0 +1,12 @@
+{
+  "model": "mistral-medium-2505",
+  "task": "email_summary",
+  "case": 2,
+  "response": "A critical SQL injection vulnerability was discovered in the user authentication endpoint, requiring immediate patching by parameterizing the query in auth_controller.py line 142. The security team must review and deploy the prepared hotfix within 24 hours due to the high severity (CVSS 9.8).",
+  "score": 5,
+  "cost": 0.0001884,
+  "tokens": {
+    "input": 161,
+    "output": 62
+  }
+}

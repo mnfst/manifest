@@ -1,0 +1,12 @@
+{
+  "model": "Llama-4-Scout-17B-16E-Instruct",
+  "task": "sql_generation",
+  "case": 4,
+  "response": "```sql\nWITH \n  monthly_signups AS (\n    SELECT \n      EXTRACT(MONTH FROM created_at) AS month,\n      EXTRACT(YEAR FROM created_at) AS year,\n      COUNT(id) AS num_signups\n    FROM \n      users\n    GROUP BY \n      EXTRACT(MONTH FROM created_at),\n      EXTRACT(YEAR FROM created_at)\n  ),\n  monthly_growth AS (\n    SELECT \n      year,\n      month,\n      num_signups,\n      LAG(num_signups) OVER (ORDER BY year, month) AS prev_month_signups\n    FROM \n      monthly_signups\n  )\nSELECT \n  year,\n  month,\n  num_signups,\n  ROUND(\n    (num_signups - prev_month_signups) / NULLIF(prev_month_signups, 0) * 100, \n    2\n  ) AS growth_rate\nFROM \n  monthly_growth\nORDER BY \n  year, \n  month;\n```",
+  "score": 5,
+  "cost": 4.5220000000000004e-05,
+  "tokens": {
+    "input": 64,
+    "output": 202
+  }
+}

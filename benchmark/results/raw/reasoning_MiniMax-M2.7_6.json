@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning",
+  "case": 6,
+  "response": "**Step\u2011by\u2011step calculation**\n\n1. **8\u202fkg package** \u2013 falls under \u201cunder 10\u202fkg\u201d.  \n   Cost = $5 (base) + $2\u202f\u00d7\u202f8\u202fkg = $5 + $16 = **$21**.\n\n2. **15\u202fkg package** \u2013 falls under \u201c10\u201325\u202fkg\u201d.  \n   Cost = $5 (base) + $1.50\u202f\u00d7\u202f15\u202fkg = $5 + $22.50 = **$27.50**.\n\n3. **30\u202fkg package** \u2013 falls under \u201cover 25\u202fkg\u201d.  \n   Flat rate = **$45**.\n\n4. **Total cost** = $21 + $27.50 + $45 = **$93.50**.\n\n**Answer**\n\nANSWER: $93.50",
+  "score": 5,
+  "cost": 0.0018909,
+  "tokens": {
+    "input": 127,
+    "output": 398
+  }
+}

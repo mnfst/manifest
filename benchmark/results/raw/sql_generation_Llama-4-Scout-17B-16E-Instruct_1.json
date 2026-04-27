@@ -1,0 +1,12 @@
+{
+  "model": "Llama-4-Scout-17B-16E-Instruct",
+  "task": "sql_generation",
+  "case": 1,
+  "response": "```sql\nSELECT \n  c.country, \n  AVG(o.total) AS avg_order_value\nFROM \n  orders o\n  JOIN customers c ON o.customer_id = c.id\nGROUP BY \n  c.country\nORDER BY \n  avg_order_value DESC;\n```",
+  "score": 5,
+  "cost": 2.2950000000000002e-05,
+  "tokens": {
+    "input": 79,
+    "output": 56
+  }
+}

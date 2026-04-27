@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "intent_easy",
+  "case": 4,
+  "response": "order_tracking",
+  "score": 5,
+  "cost": 0.000158,
+  "tokens": {
+    "input": 71,
+    "output": 2
+  }
+}

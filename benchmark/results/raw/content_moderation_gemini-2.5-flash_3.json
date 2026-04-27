@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "content_moderation",
+  "case": 3,
+  "response": "spam",
+  "score": 5,
+  "cost": 1.2e-05,
+  "tokens": {
+    "input": 76,
+    "output": 1
+  }
+}

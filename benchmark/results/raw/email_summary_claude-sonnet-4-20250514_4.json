@@ -1,0 +1,12 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "email_summary",
+  "case": 4,
+  "response": "Maria Chen from DataSync Inc. is proposing a strategic partnership that would integrate their real-time data synchronization technology into Alex's platform through a revenue-sharing model, potentially reducing customer data latency by 60% and generating $2M in additional annual revenue for both companies. The action item is to schedule a technical discussion meeting next week to explore the partnership further.",
+  "score": 5,
+  "cost": 0.001716,
+  "tokens": {
+    "input": 177,
+    "output": 79
+  }
+}

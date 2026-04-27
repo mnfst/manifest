@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-R1",
+  "task": "email_summary",
+  "case": 2,
+  "response": "",
+  "score": 5,
+  "cost": 0.0005237999999999999,
+  "tokens": {
+    "input": 156,
+    "output": 200
+  }
+}

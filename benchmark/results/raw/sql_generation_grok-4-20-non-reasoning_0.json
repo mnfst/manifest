@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "sql_generation",
+  "case": 0,
+  "response": "```sql\nSELECT DISTINCT c.id, c.name, c.email, c.signup_date\nFROM customers c\nJOIN orders o ON c.id = o.customer_id\nWHERE c.signup_date >= CURRENT_DATE - INTERVAL '30 days';\n```",
+  "score": 4,
+  "cost": 0.000528,
+  "tokens": {
+    "input": 76,
+    "output": 47
+  }
+}

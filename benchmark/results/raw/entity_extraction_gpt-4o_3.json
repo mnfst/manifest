@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o",
+  "task": "entity_extraction",
+  "case": 3,
+  "response": "```json\n{\n  \"persons\": [\n    \"Tim Cook\"\n  ],\n  \"organizations\": [\n    \"Apple\",\n    \"Foxconn\",\n    \"Chinese Ministry of Commerce\"\n  ],\n  \"locations\": [\n    \"Shenzhen\",\n    \"China\",\n    \"Beijing\"\n  ]\n}\n```",
+  "score": 5,
+  "cost": 0.00083,
+  "tokens": {
+    "input": 84,
+    "output": 62
+  }
+}

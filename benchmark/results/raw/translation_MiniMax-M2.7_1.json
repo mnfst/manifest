@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "translation",
+  "case": 1,
+  "response": "Notre chiffre d'affaires trimestriel a augment\u00e9 de\u202f23\u202f% en glissement annuel, port\u00e9 principalement par une forte adoption de notre plateforme cloud sur le march\u00e9 europ\u00e9en. La marge op\u00e9rationnelle s'est am\u00e9lior\u00e9e pour atteindre\u202f18,5\u202f%, contre\u202f15,2\u202f% au trimestre pr\u00e9c\u00e9dent.",
+  "score": 5,
+  "cost": 0.0016269000000000001,
+  "tokens": {
+    "input": 107,
+    "output": 343
+  }
+}

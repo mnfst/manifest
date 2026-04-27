@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "entity_extraction",
+  "case": 2,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"United Nations Security Council\"\n  ],\n  \"locations\": [\n    \"New York\",\n    \"France\",\n    \"United Kingdom\",\n    \"China\",\n    \"eastern Congo\"\n  ]\n}\n```",
+  "score": 4,
+  "cost": 0.00078375,
+  "tokens": {
+    "input": 83,
+    "output": 68
+  }
+}

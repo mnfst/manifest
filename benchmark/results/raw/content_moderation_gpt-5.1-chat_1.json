@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "content_moderation",
+  "case": 1,
+  "response": "harassment",
+  "score": 5,
+  "cost": 0.00022,
+  "tokens": {
+    "input": 62,
+    "output": 12
+  }
+}

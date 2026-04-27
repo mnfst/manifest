@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning",
+  "case": 6,
+  "response": "Here is the step-by-step solution:\n\n**Step 1: Calculate the cost for the first package (8kg).**\nThe weight is 8kg, which is under 10kg. The cost for this category is a $5 base fee plus $2 per kg.\nCost = $5 + ($2 * 8kg)\nCost = $5 + $16\nCost = $21\n\n**Step 2: Calculate the cost for the second package (15kg).**\nThe weight is 15kg, which is in the 10-25kg range. The cost for this category is a $5 base fee plus $1.50 per kg.\nCost = $5 + ($1.50 * 15kg)\nCost = $5 + $22.50\nCost = $27.50\n\n**Step 3: Calculate the cost for the third package (30kg).**\nThe weight is 30kg, which is over 25kg. The cost for this category is a flat rate.\nCost = $45\n\n**Step 4: Calculate the total shipping cost.**\nAdd the costs of all three packages together.\nTotal Cost = $21 + $27.50 + $45\nTotal Cost = $93.50\n\nANSWER: $93.50",
+  "score": 5,
+  "cost": 0.0031375,
+  "tokens": {
+    "input": 118,
+    "output": 299
+  }
+}

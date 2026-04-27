@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-R1",
+  "task": "content_moderation",
+  "case": 4,
+  "response": "safe",
+  "score": 5,
+  "cost": 0.00050384,
+  "tokens": {
+    "input": 56,
+    "output": 216
+  }
+}

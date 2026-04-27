@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "intent_easy",
+  "case": 4,
+  "response": "order_tracking",
+  "score": 5,
+  "cost": 1.44e-05,
+  "tokens": {
+    "input": 84,
+    "output": 3
+  }
+}

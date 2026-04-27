@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "json_transform",
+  "case": 0,
+  "response": "{\"full_name\": \"Jane Doe\", \"contact\": {\"email\": \"jane.doe@email.com\", \"phone\": \"+1-555-0123\"}, \"metadata\": {\"age\": 32}}",
+  "score": 5,
+  "cost": 0.000534,
+  "tokens": {
+    "input": 99,
+    "output": 42
+  }
+}

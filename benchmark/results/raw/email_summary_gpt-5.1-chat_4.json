@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary",
+  "case": 4,
+  "response": "Maria Chen proposes a strategic partnership in which your platform integrates DataSync\u2019s SDK under a revenue\u2011sharing model projected to cut customer data latency by 60% and generate about $2M annually for each company. She asks whether you are available for a deeper technical discussion next week.",
+  "score": 4,
+  "cost": 0.000834,
+  "tokens": {
+    "input": 153,
+    "output": 66
+  }
+}

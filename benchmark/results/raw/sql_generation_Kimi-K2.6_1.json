@@ -1,0 +1,12 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "sql_generation",
+  "case": 1,
+  "response": "",
+  "score": 0,
+  "cost": 0.0007662000000000001,
+  "tokens": {
+    "input": 77,
+    "output": 300
+  }
+}

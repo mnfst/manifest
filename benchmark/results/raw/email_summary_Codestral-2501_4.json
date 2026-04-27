@@ -1,0 +1,12 @@
+{
+  "model": "Codestral-2501",
+  "task": "email_summary",
+  "case": 4,
+  "response": "Maria Chen proposes a strategic partnership with DataSync Inc. to enhance Alex's platform's multi-region capabilities through real-time data synchronization, offering a revenue-sharing model and potential $2M in additional annual revenue. Maria invites Alex to a technical discussion next week.",
+  "score": 5,
+  "cost": 9.45e-05,
+  "tokens": {
+    "input": 156,
+    "output": 53
+  }
+}

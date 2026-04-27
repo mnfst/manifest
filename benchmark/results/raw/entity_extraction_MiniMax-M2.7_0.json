@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "entity_extraction",
+  "case": 0,
+  "response": "{\n  \"persons\": [\"Elon Musk\"],\n  \"organizations\": [\"Tesla\"],\n  \"locations\": [\"Austin\", \"Texas\", \"Texas State Capitol\"]\n}",
+  "score": 5,
+  "cost": 0.0027687000000000002,
+  "tokens": {
+    "input": 125,
+    "output": 598
+  }
+}

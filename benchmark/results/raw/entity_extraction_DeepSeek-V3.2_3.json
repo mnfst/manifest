@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "entity_extraction",
+  "case": 3,
+  "response": "{\n  \"persons\": [\"Tim Cook\"],\n  \"organizations\": [\"Apple\", \"Foxconn\", \"Chinese Ministry of Commerce\"],\n  \"locations\": [\"Shenzhen\", \"China\", \"Beijing\"]\n}",
+  "score": 5,
+  "cost": 7.390000000000001e-05,
+  "tokens": {
+    "input": 85,
+    "output": 44
+  }
+}

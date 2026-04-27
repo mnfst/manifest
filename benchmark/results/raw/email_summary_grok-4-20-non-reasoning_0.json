@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "email_summary",
+  "case": 0,
+  "response": "**Summary:**  \nSarah reported that marketing exceeded its Q3 budget by 15% due to an unplanned August campaign, while engineering is running 8% under budget from delayed hiring. She proposes reallocating $50K from engineering to cover the overspend and requests a 30-minute call this Thursday to discuss the plan.",
+  "score": 5,
+  "cost": 0.00085,
+  "tokens": {
+    "input": 165,
+    "output": 65
+  }
+}

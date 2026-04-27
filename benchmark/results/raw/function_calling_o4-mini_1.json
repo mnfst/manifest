@@ -1,0 +1,12 @@
+{
+  "model": "o4-mini",
+  "task": "function_calling",
+  "case": 1,
+  "response": "{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Paris\"}}",
+  "score": 4,
+  "cost": 0.0005456,
+  "tokens": {
+    "input": 100,
+    "output": 99
+  }
+}

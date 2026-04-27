@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "intent_easy",
+  "case": 9,
+  "response": "billing_inquiry",
+  "score": 0,
+  "cost": 1.425e-05,
+  "tokens": {
+    "input": 79,
+    "output": 4
+  }
+}

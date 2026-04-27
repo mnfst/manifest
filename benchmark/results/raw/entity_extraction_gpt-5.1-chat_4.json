@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "entity_extraction",
+  "case": 4,
+  "response": "{\n  \"persons\": [\n    \"Barack Obama\",\n    \"Michelle Obama\",\n    \"Brandon Johnson\",\n    \"JB Pritzker\"\n  ],\n  \"organizations\": [\n    \"Obama Presidential Center\"\n  ],\n  \"locations\": [\n    \"South Side of Chicago\",\n    \"Chicago\",\n    \"Illinois\"\n  ]\n}",
+  "score": 4,
+  "cost": 0.000754,
+  "tokens": {
+    "input": 89,
+    "output": 72
+  }
+}

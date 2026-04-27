@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "translation",
+  "case": 2,
+  "response": "To deploy the application, first ensure Docker is installed and running. Then execute 'docker compose up -d' from the project root. The service will be available on port 8080 after initialization completes.\n\nFrench: Pour d\u00e9ployer l\u2019application, v\u00e9rifiez d\u2019abord que Docker est install\u00e9 et en cours d\u2019ex\u00e9cution. Ex\u00e9cutez ensuite \u00ab docker compose up -d \u00bb depuis la racine du projet. Le service sera accessible sur le port 8080 une fois l\u2019initialisation termin\u00e9e.",
+  "score": 5,
+  "cost": 0.00098,
+  "tokens": {
+    "input": 66,
+    "output": 106
+  }
+}

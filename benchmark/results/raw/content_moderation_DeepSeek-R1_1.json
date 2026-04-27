@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-R1",
+  "task": "content_moderation",
+  "case": 1,
+  "response": "harassment",
+  "score": 5,
+  "cost": 0.00089477,
+  "tokens": {
+    "input": 62,
+    "output": 393
+  }
+}

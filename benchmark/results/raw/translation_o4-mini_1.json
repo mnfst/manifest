@@ -1,0 +1,12 @@
+{
+  "model": "o4-mini",
+  "task": "translation",
+  "case": 1,
+  "response": "Nos revenus trimestriels ont augment\u00e9 de 23 % en glissement annuel, principalement gr\u00e2ce \u00e0 la forte adoption de notre plateforme cloud sur le march\u00e9 europ\u00e9en. Les marges d\u2019exploitation se sont am\u00e9lior\u00e9es \u00e0 18,5 %, contre 15,2 % au trimestre pr\u00e9c\u00e9dent.",
+  "score": 5,
+  "cost": 0.0023936,
+  "tokens": {
+    "input": 72,
+    "output": 526
+  }
+}

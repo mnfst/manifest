@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning",
+  "case": 4,
+  "response": "ANSWER: 18",
+  "score": 1,
+  "cost": 0.001286,
+  "tokens": {
+    "input": 75,
+    "output": 142
+  }
+}

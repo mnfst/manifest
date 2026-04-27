@@ -1,0 +1,12 @@
+{
+  "model": "Llama-4-Scout-17B-16E-Instruct",
+  "task": "entity_extraction",
+  "case": 3,
+  "response": "```json\n{\n  \"persons\": [\"Tim Cook\"],\n  \"organizations\": [\"Apple\", \"Foxconn\", \"Chinese Ministry of Commerce\"],\n  \"locations\": [\"Shenzhen\", \"China\", \"Beijing\"]\n}\n```",
+  "score": 5,
+  "cost": 2.2950000000000002e-05,
+  "tokens": {
+    "input": 87,
+    "output": 48
+  }
+}

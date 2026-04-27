@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "email_summary",
+  "case": 3,
+  "response": "**Summary:**  \nLisa shared feedback from the March onboarding cohort, with an overall satisfaction score of 7.2/10 (down from 8.1 in February). While the buddy system and timely IT equipment were praised, key issues included confusion around benefits deadlines, delayed access to internal tools, and missing culture handbooks; she recommends prioritizing the tools access delay.",
+  "score": 4,
+  "cost": 0.000924,
+  "tokens": {
+    "input": 166,
+    "output": 74
+  }
+}

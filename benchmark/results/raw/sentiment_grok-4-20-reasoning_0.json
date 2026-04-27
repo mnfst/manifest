@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "sentiment",
+  "case": 0,
+  "response": "positive\n\n\n\\confidence{95}",
+  "score": 5,
+  "cost": 0.000148,
+  "tokens": {
+    "input": 46,
+    "output": 7
+  }
+}

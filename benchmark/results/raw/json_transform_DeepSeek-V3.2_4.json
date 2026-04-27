@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "json_transform",
+  "case": 4,
+  "response": "{\"event_type\": \"signup\", \"date\": \"2024-03-15\", \"time\": \"14:30\", \"user_id\": \"u_123\", \"attribution\": {\"source\": \"google_ads\", \"platform\": \"mobile\"}}",
+  "score": 4,
+  "cost": 0.00010210000000000002,
+  "tokens": {
+    "input": 135,
+    "output": 56
+  }
+}

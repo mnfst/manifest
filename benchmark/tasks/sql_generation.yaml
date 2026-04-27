@@ -1,0 +1,96 @@
+# Task 3: SQL Generation
+# Eval: LLM-as-judge (structural correctness since we can't execute)
+# Expected cost per query: $0.005-0.10
+
+description: "SQL Generation - generate SQL from natural language + schema"
+
+providers:
+  - id: openai:gpt-4o
+    label: GPT-4o
+    config:
+      temperature: 0
+  - id: anthropic:messages:claude-sonnet-4-20250514
+    label: Claude Sonnet 4
+    config:
+      temperature: 0
+  - id: openai:gpt-4o-mini
+    label: GPT-4o-mini
+    config:
+      temperature: 0
+
+prompts:
+  - |
+    Given the following database schema, write a SQL query to answer the question.
+    Return ONLY the SQL query, no explanation.
+
+    Schema:
+    {{schema}}
+
+    Question: {{input}}
+
+    SQL:
+
+tests:
+  - vars:
+      input: "Show me all customers who signed up in the last 30 days and have made at least one purchase"
+      schema: "Tables: customers (id, name, email, signup_date), orders (id, customer_id, total, created_at)"
+    assert:
+      - type: llm-rubric
+        value: |
+          Rate this SQL query on a 1-5 scale for correctness:
+          5 = Correctly joins customers and orders, filters by signup_date in last 30 days, and ensures at least one order (via JOIN or EXISTS/IN)
+          4 = Correct logic but minor syntax issues or non-standard date handling
+          3 = Right tables and general approach but wrong join condition or missing a filter
+          2 = Uses the right tables but logic is fundamentally wrong
+          1 = Wrong tables, syntax errors, or not SQL
+          Expected: JOIN customers with orders, filter signup_date >= 30 days ago, GROUP BY or use EXISTS
+  - vars:
+      input: "What is the average order value per country, sorted from highest to lowest?"
+      schema: "Tables: orders (id, customer_id, total, created_at), customers (id, name, email, country)"
+    assert:
+      - type: llm-rubric
+        value: |
+          Rate this SQL query on a 1-5 scale:
+          5 = Correctly joins orders with customers, uses AVG(total), groups by country, orders DESC
+          4 = Correct logic but minor issues (e.g., missing alias)
+          3 = Right approach but wrong aggregation or missing ORDER BY
+          2 = Wrong join or aggregation
+          1 = Not valid SQL or completely wrong
+  - vars:
+      input: "Find the top 5 products by revenue in the last quarter"
+      schema: "Tables: products (id, name, price, category), order_items (id, order_id, product_id, quantity), orders (id, total, created_at)"
+    assert:
+      - type: llm-rubric
+        value: |
+          Rate this SQL query on a 1-5 scale:
+          5 = Correctly joins 3 tables, calculates revenue (quantity * price or from order total), filters last quarter, LIMIT 5, ORDER BY DESC
+          4 = Correct logic but date filtering is approximate or minor issues
+          3 = Right tables but missing a join or wrong revenue calculation
+          2 = Missing key components
+          1 = Not valid SQL
+  - vars:
+      input: "List employees who have not submitted any expense reports this year"
+      schema: "Tables: employees (id, name, department, hire_date), expense_reports (id, employee_id, amount, submitted_at)"
+    assert:
+      - type: llm-rubric
+        value: |
+          Rate this SQL query on a 1-5 scale:
+          5 = Uses LEFT JOIN + IS NULL or NOT EXISTS/NOT IN, correctly filters expense_reports by current year
+          4 = Correct anti-join pattern but date filter is approximate
+          3 = Uses the right tables but wrong anti-join pattern (e.g., INNER JOIN instead of LEFT)
+          2 = Missing the anti-join logic entirely
+          1 = Not valid SQL
+  - vars:
+      input: "Calculate the month-over-month growth rate of new user signups"
+      schema: "Tables: users (id, email, created_at)"
+    assert:
+      - type: llm-rubric
+        value: |
+          Rate this SQL query on a 1-5 scale:
+          5 = Uses window function (LAG) or self-join to compare monthly counts, calculates percentage growth
+          4 = Correct approach but formula is slightly off or missing edge cases
+          3 = Gets monthly counts but doesn't calculate growth rate
+          2 = Wrong grouping or aggregation
+          1 = Not valid SQL
+
+outputPath: results/sql_generation.json

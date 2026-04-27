@@ -1,0 +1,110 @@
+# Task: Intent Classification - HARD (ambiguous, multi-intent, edge cases)
+# These should separate cheap models from expensive ones
+
+description: "Intent Classification (Hard) - ambiguous and multi-intent messages"
+
+providers:
+  - id: openai:gpt-4o
+    label: GPT-4o
+    config:
+      temperature: 0
+  - id: anthropic:messages:claude-sonnet-4-20250514
+    label: Claude Sonnet 4
+    config:
+      temperature: 0
+  - id: openai:gpt-4o-mini
+    label: GPT-4o-mini
+    config:
+      temperature: 0
+  - id: openai:gpt-3.5-turbo
+    label: GPT-3.5-Turbo
+    config:
+      temperature: 0
+
+prompts:
+  - |
+    Classify the following customer message into exactly one PRIMARY intent.
+    Available intents: cancel_subscription, billing_inquiry, refund_request,
+    technical_support, upgrade_plan, downgrade_plan, account_deletion,
+    password_reset, feature_request, bug_report, order_tracking,
+    shipping_issue, product_inquiry, complaint, compliment
+
+    If the message contains multiple intents, pick the PRIMARY one (the main
+    reason the customer is writing).
+
+    Respond with ONLY the intent label, nothing else.
+
+    Message: "{{input}}"
+
+tests:
+  # Ambiguous: sounds like cancellation but is really a billing question
+  - vars:
+      input: "I'm thinking about canceling because my last bill was way higher than expected. Can someone explain the charges?"
+    assert:
+      - type: contains
+        value: "billing_inquiry"
+
+  # Multi-intent: complaint + refund, primary is refund
+  - vars:
+      input: "This is the third time my order arrived damaged. I'm done. I want my money back for all three orders."
+    assert:
+      - type: contains
+        value: "refund_request"
+
+  # Sarcasm / indirect complaint
+  - vars:
+      input: "Oh great, another update that broke the search feature. Really love how every release makes things worse."
+    assert:
+      - type: contains
+        value: "bug_report"
+
+  # Upgrade disguised as a question
+  - vars:
+      input: "If I move to the business plan, would I get API access and priority support? My team is growing and we need more seats."
+    assert:
+      - type: contains
+        value: "upgrade_plan"
+
+  # Vague message that's actually a feature request
+  - vars:
+      input: "It would be really nice if the app could sync with Google Calendar. I keep missing meetings because I have to check two different apps."
+    assert:
+      - type: contains
+        value: "feature_request"
+
+  # Passive-aggressive compliment
+  - vars:
+      input: "I have to say, after months of terrible experiences, the new support team is actually helpful. Whatever you changed, keep doing it."
+    assert:
+      - type: contains
+        value: "compliment"
+
+  # Downgrade not cancel
+  - vars:
+      input: "I don't need all these enterprise features anymore since half my team left. Can I switch to a smaller plan without losing my data?"
+    assert:
+      - type: contains
+        value: "downgrade_plan"
+
+  # Technical issue described as user error
+  - vars:
+      input: "I might be doing something wrong but every time I try to export a PDF the app just spins forever and nothing downloads. Been happening since yesterday."
+    assert:
+      - type: contains
+        value: "technical_support"
+
+  # Order tracking with emotional language (not a complaint)
+  - vars:
+      input: "I'm freaking out a bit because I ordered a birthday present 2 weeks ago and the tracking hasn't updated since Tuesday. The party is this Saturday!!"
+    assert:
+      - type: contains
+        value: "order_tracking"
+
+  # Account deletion vs cancellation (subtle difference)
+  - vars:
+      input: "I need everything gone. Delete my account, my data, all of it. I don't want any trace of my information on your servers. GDPR."
+    assert:
+      - type: contains
+        value: "account_deletion"
+
+outputPath: results/intent_hard.json

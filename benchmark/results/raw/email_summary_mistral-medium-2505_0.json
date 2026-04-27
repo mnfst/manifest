@@ -1,0 +1,12 @@
+{
+  "model": "mistral-medium-2505",
+  "task": "email_summary",
+  "case": 0,
+  "response": "The email highlights a 15% overspend in marketing and an 8% underspend in engineering, proposing a $50K reallocation from engineering to marketing to stay within the Q3 budget. Sarah requests confirmation of availability for a 30-minute meeting this Thursday to discuss the proposal.",
+  "score": 5,
+  "cost": 0.0001968,
+  "tokens": {
+    "input": 177,
+    "output": 63
+  }
+}

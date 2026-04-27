@@ -1,0 +1,12 @@
+{
+  "model": "Llama-4-Scout-17B-16E-Instruct",
+  "task": "json_transform",
+  "case": 2,
+  "response": "```json\n{\n  \"admins\": [\"Alice\", \"Charlie\"],\n  \"users\": [\"Alice\", \"Bob\", \"Charlie\"],\n  \"inactive_count\": 1\n}\n```",
+  "score": 3,
+  "cost": 2.907e-05,
+  "tokens": {
+    "input": 132,
+    "output": 39
+  }
+}

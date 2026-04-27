@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning",
+  "case": 2,
+  "response": "The original price is \\$100.\n\n1. **20\u202f% off:**  \n   \\(100 \\times (1 - 0.20) = 100 \\times 0.80 = \\$80\\)\n\n2. **Additional 15\u202f% off:**  \n   \\(80 \\times (1 - 0.15) = 80 \\times 0.85 = \\$68\\)\n\n3. **Add 8.5\u202f% sales tax:**  \n   \\(68 \\times (1 + 0.085) = 68 \\times 1.085 = \\$73.78\\)\n\n**Final price:** \\$73.78  \n\nANSWER: 73.78",
+  "score": 5,
+  "cost": 0.0031680000000000002,
+  "tokens": {
+    "input": 120,
+    "output": 690
+  }
+}

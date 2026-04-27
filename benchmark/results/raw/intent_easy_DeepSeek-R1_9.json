@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-R1",
+  "task": "intent_easy",
+  "case": 9,
+  "response": "billing_inquiry",
+  "score": 0,
+  "cost": 0.0007924300000000001,
+  "tokens": {
+    "input": 79,
+    "output": 342
+  }
+}

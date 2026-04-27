@@ -1,0 +1,12 @@
+{
+  "model": "Llama-4-Scout-17B-16E-Instruct",
+  "task": "email_summary",
+  "case": 2,
+  "response": "Here is a 2-sentence summary of the email:\n\nA critical SQL injection vulnerability was discovered in the user authentication endpoint, allowing potential attackers to bypass authentication and access any user account, with a severity rating of CVSS 9.8. The recommended fix is to parameterize the query in auth_controller.py line 142, and a patch is ready for review with a suggested deployment timeframe of within 24 hours.",
+  "score": 5,
+  "cost": 4.097000000000001e-05,
+  "tokens": {
+    "input": 156,
+    "output": 85
+  }
+}

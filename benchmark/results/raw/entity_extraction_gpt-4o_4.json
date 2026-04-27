@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o",
+  "task": "entity_extraction",
+  "case": 4,
+  "response": "```json\n{\n  \"persons\": [\n    \"Barack Obama\",\n    \"Michelle Obama\",\n    \"Brandon Johnson\",\n    \"JB Pritzker\"\n  ],\n  \"organizations\": [\n    \"Obama Presidential Center\"\n  ],\n  \"locations\": [\n    \"South Side of Chicago\",\n    \"Illinois\"\n  ]\n}\n```",
+  "score": 4,
+  "cost": 0.000905,
+  "tokens": {
+    "input": 90,
+    "output": 68
+  }
+}

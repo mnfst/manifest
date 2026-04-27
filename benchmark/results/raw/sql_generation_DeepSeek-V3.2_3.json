@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "sql_generation",
+  "case": 3,
+  "response": "```sql\nSELECT e.*\nFROM employees e\nLEFT JOIN expense_reports er ON e.id = er.employee_id \n    AND YEAR(er.submitted_at) = YEAR(CURDATE())\nWHERE er.id IS NULL\n```",
+  "score": 5,
+  "cost": 7.580000000000001e-05,
+  "tokens": {
+    "input": 73,
+    "output": 49
+  }
+}

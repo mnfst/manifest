@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning",
+  "case": 4,
+  "response": "Here is the step-by-step solution:\n\n**Step 1: Calculate the snail's net progress per day.**\nThe snail climbs 3 feet during the day and slides back 2 feet at night.\nNet progress per 24-hour cycle = 3 feet (up) - 2 feet (down) = 1 foot.\n\n**Step 2: Determine the position of the snail before the final climb.**\nThe well is 20 feet deep. The snail escapes when it reaches the top during its 3-foot daytime climb. This means we need to find out when the snail is close enough to the top that a single day's climb will get it out.\nThe position needed before the final climb is 20 feet (total depth) - 3 feet (day's climb) = 17 feet.\n\n**Step 3: Calculate how many days it takes to reach 17 feet.**\nSince the snail makes a net progress of 1 foot each day, it will take 17 full days (and 17 nights) to reach a height of 17 feet. At the end of the 17th day, the snail is resting at the 17-foot mark.\n\n**Step 4: Determine the final day.**\nOn the morning of the next day, which is the 18th day, the snail starts at 17 feet. It then climbs its usual 3 feet.\n17 feet + 3 feet = 20 feet.\nAt this point, the snail has reached the top of the well and is out. It does not slide back down that night.\n\nTherefore, the snail reaches the top on the 18th day.\n\nANSWER: The 18th day",
+  "score": 1,
+  "cost": 0.00384125,
+  "tokens": {
+    "input": 73,
+    "output": 375
+  }
+}

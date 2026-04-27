@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "intent_hard",
+  "case": 4,
+  "response": "feature_request",
+  "score": 5,
+  "cost": 3.78e-05,
+  "tokens": {
+    "input": 115,
+    "output": 3
+  }
+}

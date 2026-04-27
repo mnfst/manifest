@@ -1,0 +1,12 @@
+{
+  "model": "Codestral-2501",
+  "task": "sql_generation",
+  "case": 4,
+  "response": "```sql\nWITH monthly_signups AS (\n    SELECT\n        DATE_TRUNC('month', created_at) AS month,\n        COUNT(id) AS new_signups\n    FROM\n        users\n    GROUP BY\n        DATE_TRUNC('month', created_at)\n),\nmonthly_growth AS (\n    SELECT\n        month,\n        new_signups,\n        LAG(new_signups) OVER (ORDER BY month) AS prev_month_signups\n    FROM\n        monthly_signups\n)\nSELECT\n    month,\n    new_signups,\n    prev_month_signups,\n    CASE\n        WHEN prev_month_signups = 0 THEN NULL\n        ELSE (new_signups - prev_month_signups) * 1.0 / prev_month_signups\n    END AS growth_rate\nFROM\n    monthly_growth\nORDER BY\n    month;\n```",
+  "score": 5,
+  "cost": 0.0001755,
+  "tokens": {
+    "input": 57,
+    "output": 176
+  }
+}

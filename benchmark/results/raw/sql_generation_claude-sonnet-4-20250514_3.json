@@ -1,0 +1,12 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "sql_generation",
+  "case": 3,
+  "response": "```sql\nSELECT e.id, e.name, e.department, e.hire_date\nFROM employees e\nLEFT JOIN expense_reports er ON e.id = er.employee_id AND YEAR(er.submitted_at) = YEAR(CURDATE())\nWHERE er.employee_id IS NULL;\n```",
+  "score": 5,
+  "cost": 0.001377,
+  "tokens": {
+    "input": 84,
+    "output": 75
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "test_generation",
+  "case": 2,
+  "response": "",
+  "score": 1,
+  "cost": 0.0090244,
+  "tokens": {
+    "input": 204,
+    "output": 2000
+  }
+}

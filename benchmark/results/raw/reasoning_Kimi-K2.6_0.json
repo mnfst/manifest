@@ -1,0 +1,12 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "reasoning",
+  "case": 0,
+  "response": "",
+  "score": 1,
+  "cost": 0.0019752,
+  "tokens": {
+    "input": 92,
+    "output": 800
+  }
+}

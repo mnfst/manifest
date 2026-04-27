@@ -1,0 +1,12 @@
+{
+  "model": "o4-mini",
+  "task": "entity_extraction",
+  "case": 4,
+  "response": "{\"persons\":[\"Barack Obama\",\"Michelle Obama\",\"Brandon Johnson\",\"JB Pritzker\"],\"organizations\":[\"Obama Presidential Center\"],\"locations\":[\"South Side of Chicago\",\"Chicago\",\"Illinois\"]}",
+  "score": 5,
+  "cost": 0.0017611,
+  "tokens": {
+    "input": 89,
+    "output": 378
+  }
+}

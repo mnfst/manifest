@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary",
+  "case": 1,
+  "response": "A misconfigured load balancer rule caused 47 minutes of degraded service for approximately 12,000 users, which was resolved by an on-call engineer rolling back the configuration. Action items include adding load balancer config validation to the CI pipeline, updating the runbook for LB-related incidents, and implementing automated traffic distribution alerts.",
+  "score": 5,
+  "cost": 7.125e-05,
+  "tokens": {
+    "input": 199,
+    "output": 69
+  }
+}

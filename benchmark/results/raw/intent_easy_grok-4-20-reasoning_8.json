@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "intent_easy",
+  "case": 8,
+  "response": "account_deletion",
+  "score": 5,
+  "cost": 0.000154,
+  "tokens": {
+    "input": 65,
+    "output": 3
+  }
+}

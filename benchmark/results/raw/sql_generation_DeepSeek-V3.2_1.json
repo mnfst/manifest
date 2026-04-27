@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "sql_generation",
+  "case": 1,
+  "response": "```sql\nSELECT \n    c.country,\n    AVG(o.total) AS average_order_value\nFROM \n    customers c\nJOIN \n    orders o ON c.id = o.customer_id\nGROUP BY \n    c.country\nORDER BY \n    average_order_value DESC;\n```",
+  "score": 5,
+  "cost": 8.9e-05,
+  "tokens": {
+    "input": 73,
+    "output": 61
+  }
+}

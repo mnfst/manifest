@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "sql_generation",
+  "case": 0,
+  "response": "```sql\nSELECT *\nFROM customers\nWHERE\n  signup_date >= date('now', '-30 days') AND id IN (SELECT customer_id FROM orders);\n```",
+  "score": 4,
+  "cost": 0.00048625,
+  "tokens": {
+    "input": 85,
+    "output": 38
+  }
+}

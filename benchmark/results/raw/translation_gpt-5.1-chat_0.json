@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "translation",
+  "case": 0,
+  "response": "L'API a d\u00e9pass\u00e9 la limite de d\u00e9bit. Veuillez attendre 60 secondes avant de r\u00e9essayer votre requ\u00eate. Si le probl\u00e8me persiste, envisagez de passer \u00e0 notre offre entreprise qui propose un d\u00e9bit dix fois sup\u00e9rieur.",
+  "score": 5,
+  "cost": 0.00054,
+  "tokens": {
+    "input": 62,
+    "output": 52
+  }
+}

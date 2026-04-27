@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "email_summary",
+  "case": 1,
+  "response": "The server outage was caused by a misconfigured load balancer rule that routed all traffic to a single node, resulting in 47 minutes of degraded service for ~12,000 users; the issue was identified by on-call engineer Mike at 2:38 PM and resolved via rollback at 3:01 PM. Action items are to add load balancer config validation to the CI pipeline, update the runbook for LB-related incidents, implement automated traffic distribution alerts, and for the team to review the attached post-mortem and submit comments by Friday.",
+  "score": 5,
+  "cost": 0.001214,
+  "tokens": {
+    "input": 179,
+    "output": 107
+  }
+}

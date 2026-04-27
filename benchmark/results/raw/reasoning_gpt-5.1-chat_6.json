@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning",
+  "case": 6,
+  "response": "The total cost is computed per the pricing rules:\n\n\u2022 8 kg: 5 + 2\u00d78 = 21  \n\u2022 15 kg: 5 + 1.5\u00d715 = 27.5  \n\u2022 30 kg: flat 45  \n\nTotal = 21 + 27.5 + 45 = 93.5\n\nANSWER: 93.5",
+  "score": 4,
+  "cost": 0.001446,
+  "tokens": {
+    "input": 111,
+    "output": 153
+  }
+}

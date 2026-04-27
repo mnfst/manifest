@@ -1,0 +1,12 @@
+{
+  "model": "Codestral-2501",
+  "task": "intent_hard",
+  "case": 6,
+  "response": "downgrade_plan",
+  "score": 5,
+  "cost": 4.14e-05,
+  "tokens": {
+    "input": 120,
+    "output": 6
+  }
+}

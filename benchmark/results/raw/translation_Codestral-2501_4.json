@@ -1,0 +1,12 @@
+{
+  "model": "Codestral-2501",
+  "task": "translation",
+  "case": 4,
+  "response": "The machine learning pipeline consists of three stages: data preprocessing with feature normalization, model training using gradient boosted trees, and inference serving via a REST endpoint with sub-100ms latency.\n\nFrench: Le pipeline de machine learning se compose de trois \u00e9tapes : le pr\u00e9traitement des donn\u00e9es avec la normalisation des caract\u00e9ristiques, l'entra\u00eenement du mod\u00e8le utilisant des arbres de gradient boost\u00e9s, et le service d'inf\u00e9rence via un point de terminaison REST avec une latence inf\u00e9rieure \u00e0 100 ms.",
+  "score": 5,
+  "cost": 0.0001122,
+  "tokens": {
+    "input": 62,
+    "output": 104
+  }
+}

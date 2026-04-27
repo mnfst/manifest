@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-R1",
+  "task": "reasoning",
+  "case": 5,
+  "response": "\n\nANSWER: Q4, 45%",
+  "score": 3,
+  "cost": 0.0017320699999999998,
+  "tokens": {
+    "input": 131,
+    "output": 758
+  }
+}

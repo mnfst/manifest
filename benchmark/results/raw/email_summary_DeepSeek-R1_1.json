@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-R1",
+  "task": "email_summary",
+  "case": 1,
+  "response": "\n\nA server outage caused by a misconfigured load balancer deployed at 2:14 PM EST led to 47 minutes of degraded service for 12,000 users, resolved after the on-call engineer rolled back the configuration by 3:01 PM. Action",
+  "score": 4,
+  "cost": 0.0005425,
+  "tokens": {
+    "input": 190,
+    "output": 200
+  }
+}

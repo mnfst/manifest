@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "sql_generation",
+  "case": 4,
+  "response": "SELECT\n  DATE_TRUNC('month', created_at) AS month,\n  COUNT(*) AS signups,\n  (COUNT(*) - LAG(COUNT(*)) OVER (ORDER BY DATE_TRUNC('month', created_at)))\n    / NULLIF(LAG(COUNT(*)) OVER (ORDER BY DATE_TRUNC('month', created_at)), 0) AS growth_rate\nFROM users\nGROUP BY DATE_TRUNC('month', created_at)\nORDER BY month;",
+  "score": 4,
+  "cost": 0.000952,
+  "tokens": {
+    "input": 60,
+    "output": 104
+  }
+}

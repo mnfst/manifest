@@ -1,0 +1,12 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "content_moderation",
+  "case": 3,
+  "response": "spam",
+  "score": 5,
+  "cost": 0.000318,
+  "tokens": {
+    "input": 86,
+    "output": 4
+  }
+}

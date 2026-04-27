@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "intent_hard",
+  "case": 1,
+  "response": "refund_request",
+  "score": 5,
+  "cost": 0.0008316000000000002,
+  "tokens": {
+    "input": 132,
+    "output": 156
+  }
+}

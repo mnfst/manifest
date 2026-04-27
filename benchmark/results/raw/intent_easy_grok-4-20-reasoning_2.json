@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "intent_easy",
+  "case": 2,
+  "response": "password_reset\n\n\n\\confidence{95}",
+  "score": 5,
+  "cost": 0.000206,
+  "tokens": {
+    "input": 71,
+    "output": 8
+  }
+}

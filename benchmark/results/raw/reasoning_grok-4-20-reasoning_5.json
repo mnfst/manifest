@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "reasoning",
+  "case": 5,
+  "response": "Q4, 45%  \nANSWER: Q4 45%",
+  "score": 2,
+  "cost": 0.000362,
+  "tokens": {
+    "input": 125,
+    "output": 14
+  }
+}

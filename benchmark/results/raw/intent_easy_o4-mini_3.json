@@ -1,0 +1,12 @@
+{
+  "model": "o4-mini",
+  "task": "intent_easy",
+  "case": 3,
+  "response": "upgrade_plan",
+  "score": 5,
+  "cost": 0.00017380000000000002,
+  "tokens": {
+    "input": 74,
+    "output": 21
+  }
+}

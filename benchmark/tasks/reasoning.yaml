@@ -1,0 +1,123 @@
+# Task: Multi-step Reasoning
+# This task should strongly differentiate cheap vs expensive models
+# Eval: exact match on final answer
+
+description: "Multi-step Reasoning - logic puzzles and word problems"
+
+providers:
+  - id: openai:gpt-4o
+    label: GPT-4o
+    config:
+      temperature: 0
+  - id: anthropic:messages:claude-sonnet-4-20250514
+    label: Claude Sonnet 4
+    config:
+      temperature: 0
+  - id: openai:gpt-4o-mini
+    label: GPT-4o-mini
+    config:
+      temperature: 0
+  - id: openai:gpt-3.5-turbo
+    label: GPT-3.5-Turbo
+    config:
+      temperature: 0
+
+prompts:
+  - |
+    Solve the following problem step by step. After your reasoning, write your final answer on the last line in this exact format:
+    ANSWER: <your answer>
+
+    Problem: {{input}}
+
+tests:
+  # Scheduling constraint
+  - vars:
+      input: "A meeting room can hold 3 meetings per day. Each meeting lasts 2 hours. The room is available from 8 AM to 6 PM with mandatory 30-minute breaks between meetings. What is the latest time the third meeting can start?"
+    assert:
+      - type: contains
+        value: "1:00 PM"
+
+  # Rate comparison with hidden conversion
+  - vars:
+      input: "Company A charges $0.003 per token for input and $0.015 per token for output. Company B charges $4 per million input tokens and $12 per million output tokens. A typical API call uses 800 input tokens and 200 output tokens. Which company is cheaper per call, and by how much? Give the answer in dollars, rounded to 4 decimal places."
+    assert:
+      - type: llm-rubric
+        value: |
+          The correct calculation:
+          Company A: (800 * 0.003) + (200 * 0.015) = 2.40 + 3.00 = $5.40
+          Company B: (800 * 4/1000000) + (200 * 12/1000000) = 0.0032 + 0.0024 = $0.0056
+          Company B is cheaper by $5.3944
+          Rate 5 if answer correctly identifies Company B as cheaper and gives roughly the right difference. Rate 1 if wrong company or wildly wrong numbers. Rate 3 if right company but calculation errors.
+
+  # Logic puzzle
+  - vars:
+      input: "Five developers (Alice, Bob, Carol, Dan, Eve) sit in a row. Alice sits next to Bob. Carol does not sit next to Dan. Eve sits at one of the ends. Bob sits in the middle (position 3). How many valid seating arrangements are there?"
+    assert:
+      - type: llm-rubric
+        value: |
+          Bob is in position 3. Alice must be next to Bob, so Alice is in position 2 or 4.
+          Eve is at position 1 or 5.
+          Carol and Dan cannot be adjacent.
+          Case 1: Alice in pos 2. Eve at pos 1 or 5. Then Carol and Dan fill remaining positions.
+          Case 2: Alice in pos 4. Eve at pos 1 or 5. Then Carol and Dan fill remaining positions.
+          Need to check Carol-Dan adjacency constraint for each case.
+          The answer is 4 valid arrangements.
+          Rate 5 if answer is 4 with correct reasoning. Rate 3 if close but wrong count. Rate 1 if totally wrong approach.
+
+  # Percentage chain
+  - vars:
+      input: "A product costs $100. It goes on sale for 20% off. Then an additional 15% discount is applied to the sale price. Finally, 8.5% sales tax is added. What is the final price?"
+    assert:
+      - type: llm-rubric
+        value: |
+          Step 1: $100 * 0.80 = $80 (20% off)
+          Step 2: $80 * 0.85 = $68 (additional 15% off)
+          Step 3: $68 * 1.085 = $73.78 (8.5% tax)
+          Rate 5 if final answer is $73.78. Rate 4 if very close (rounding difference). Rate 2 if they applied discounts wrong (e.g., 35% off instead of sequential). Rate 1 if completely wrong.
+
+  # Resource allocation
+  - vars:
+      input: "A startup has 3 engineers and needs to complete 5 tasks. Task A takes 2 days and must be done before Task C. Task B takes 3 days and has no dependencies. Task C takes 1 day and must be done before Task E. Task D takes 2 days and has no dependencies. Task E takes 1 day. Each engineer works on one task at a time. What is the minimum number of days to complete all tasks?"
+    assert:
+      - type: llm-rubric
+        value: |
+          Critical path: A(2) -> C(1) -> E(1) = 4 days
+          Parallel work: B(3) and D(2) can run alongside
+          With 3 engineers: Day 1-2: A, B, D in parallel. Day 3: C starts (A done), B continues. Day 4: E starts (C done), B done.
+          Minimum is 4 days.
+          Rate 5 if answer is 4 days with correct reasoning. Rate 3 if answer is 5 (missed parallelism). Rate 1 if way off.
+
+  # Tricky word problem
+  - vars:
+      input: "A snail climbs 3 feet during the day but slides back 2 feet at night. The well is 20 feet deep. On which day does the snail reach the top? Be careful with the last day."
+    assert:
+      - type: contains
+        value: "18"
+
+  # Data interpretation
+  - vars:
+      input: "A company's revenue was $1M in Q1, $1.2M in Q2, $0.9M in Q3, and $1.5M in Q4. Their costs were 60% of revenue in Q1, 65% in Q2, 70% in Q3, and 55% in Q4. In which quarter did they have the highest profit margin (as a percentage), and what was that margin?"
+    assert:
+      - type: llm-rubric
+        value: |
+          Q1: margin = 40% ($400K profit)
+          Q2: margin = 35% ($420K profit)
+          Q3: margin = 30% ($270K profit)
+          Q4: margin = 45% ($675K profit)
+          Highest margin: Q4 at 45%.
+          Note: highest MARGIN (%) is Q4, but highest absolute PROFIT is also Q4.
+          Rate 5 if Q4 and 45%. Rate 3 if right quarter but wrong percentage. Rate 1 if wrong quarter.
+
+  # Conditional logic
+  - vars:
+      input: "A shipping company charges: $5 base + $2/kg for packages under 10kg, $5 base + $1.50/kg for 10-25kg, and flat $45 for over 25kg. A customer ships 3 packages: 8kg, 15kg, and 30kg. What is the total shipping cost?"
+    assert:
+      - type: llm-rubric
+        value: |
+          Package 1 (8kg): $5 + (8 * $2) = $21
+          Package 2 (15kg): $5 + (15 * $1.50) = $27.50
+          Package 3 (30kg): flat $45
+          Total: $21 + $27.50 + $45 = $93.50
+          Rate 5 if $93.50. Rate 4 if close (minor arithmetic error). Rate 2 if wrong tier applied. Rate 1 if way off.
+
+outputPath: results/reasoning.json

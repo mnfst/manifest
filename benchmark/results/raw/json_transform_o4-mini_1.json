@@ -1,0 +1,12 @@
+{
+  "model": "o4-mini",
+  "task": "json_transform",
+  "case": 1,
+  "response": "{\"by_date\":{\"2024-01-15\":{\"total\":165.5,\"categories\":{\"food\":120.5,\"transport\":45.0}},\"2024-01-16\":{\"total\":230.0,\"categories\":{\"food\":200.0,\"transport\":30.0}}}}",
+  "score": 4,
+  "cost": 0.0024959,
+  "tokens": {
+    "input": 161,
+    "output": 527
+  }
+}

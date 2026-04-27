@@ -1,0 +1,12 @@
+{
+  "model": "o4-mini",
+  "task": "sentiment",
+  "case": 7,
+  "response": "negative",
+  "score": 5,
+  "cost": 0.000154,
+  "tokens": {
+    "input": 60,
+    "output": 20
+  }
+}

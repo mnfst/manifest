@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-R1",
+  "task": "intent_hard",
+  "case": 7,
+  "response": "bug_report",
+  "score": 0,
+  "cost": 0.00046404,
+  "tokens": {
+    "input": 123,
+    "output": 181
+  }
+}

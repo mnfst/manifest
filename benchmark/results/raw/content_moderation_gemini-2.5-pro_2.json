@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "content_moderation",
+  "case": 2,
+  "response": "safe",
+  "score": 5,
+  "cost": 8.25e-05,
+  "tokens": {
+    "input": 58,
+    "output": 1
+  }
+}

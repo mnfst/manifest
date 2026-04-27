@@ -1,0 +1,12 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "reasoning",
+  "case": 2,
+  "response": "Step 1: Apply the first discount of 20% to the original price.\n- Discount: \\(100 \\times 0.20 = 20\\)\n- Sale price: \\(100 - 20 = 80\\)\n\nStep 2: Apply the additional 15% discount to the sale price.\n- Discount: \\(80 \\times 0.15 = 12\\)\n- New price: \\(80 - 12 = 68\\)\n\nStep 3: Add 8.5% sales tax to the discounted price.\n- Tax: \\(68 \\times 0.085 = 5.78\\)\n- Final price: \\(68 + 5.78 = 73.78\\)\n\nANSWER: $73.78",
+  "score": 4,
+  "cost": 0.0012276,
+  "tokens": {
+    "input": 90,
+    "output": 489
+  }
+}

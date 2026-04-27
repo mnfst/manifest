@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "entity_extraction",
+  "case": 3,
+  "response": "{\n  \"persons\": [\"Tim Cook\"],\n  \"organizations\": [\"Apple\", \"Foxconn\", \"Chinese Ministry of Commerce\"],\n  \"locations\": [\"Shenzhen\", \"China\", \"Beijing\"]\n}",
+  "score": 5,
+  "cost": 0.000482,
+  "tokens": {
+    "input": 77,
+    "output": 41
+  }
+}

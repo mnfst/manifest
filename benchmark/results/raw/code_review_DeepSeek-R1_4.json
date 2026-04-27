@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-R1",
+  "task": "code_review",
+  "case": 4,
+  "response": "",
+  "score": 2,
+  "cost": 0.00442125,
+  "tokens": {
+    "input": 75,
+    "output": 2000
+  }
+}

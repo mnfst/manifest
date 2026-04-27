@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_generation",
+  "case": 0,
+  "response": "```sql\nSELECT c.*\nFROM customers c\nWHERE c.signup_date >= CURRENT_DATE - INTERVAL 30 DAY\n  AND EXISTS (\n    SELECT 1 FROM orders o WHERE o.customer_id = c.id\n  );\n```",
+  "score": 5,
+  "cost": 0.0016951000000000002,
+  "tokens": {
+    "input": 117,
+    "output": 356
+  }
+}

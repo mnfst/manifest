@@ -1,0 +1,2393 @@
+{
+  "evalId": "eval-lgw-2026-04-27T06:36:40",
+  "results": {
+    "version": 3,
+    "timestamp": "2026-04-27T06:36:40.556Z",
+    "prompts": [
+      {
+        "id": "ff31c617f199663f3e39ba9767c7ea2f709e75c4602715d01a21afe19396b4f9",
+        "raw": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\n{{schema}}\n\nQuestion: {{input}}\n\nSQL:\n",
+        "label": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\n{{schema}}\n\nQuestion: {{input}}\n\nSQL:\n",
+        "provider": "GPT-4o",
+        "metrics": {
+          "score": 25,
+          "testPassCount": 5,
+          "testFailCount": 0,
+          "testErrorCount": 0,
+          "assertPassCount": 5,
+          "assertFailCount": 0,
+          "totalLatencyMs": 7117,
+          "tokenUsage": {
+            "prompt": 379,
+            "completion": 392,
+            "cached": 0,
+            "total": 771,
+            "numRequests": 5,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            },
+            "assertions": {
+              "total": 7534,
+              "prompt": 1724,
+              "completion": 5810,
+              "cached": 0,
+              "numRequests": 0,
+              "completionDetails": {
+                "reasoning": 0,
+                "acceptedPrediction": 0,
+                "rejectedPrediction": 0
+              }
+            }
+          },
+          "namedScores": {},
+          "namedScoresCount": {},
+          "cost": 0.0048675
+        }
+      },
+      {
+        "id": "ff31c617f199663f3e39ba9767c7ea2f709e75c4602715d01a21afe19396b4f9",
+        "raw": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\n{{schema}}\n\nQuestion: {{input}}\n\nSQL:\n",
+        "label": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\n{{schema}}\n\nQuestion: {{input}}\n\nSQL:\n",
+        "provider": "Claude Sonnet 4",
+        "metrics": {
+          "score": 25,
+          "testPassCount": 5,
+          "testFailCount": 0,
+          "testErrorCount": 0,
+          "assertPassCount": 5,
+          "assertFailCount": 0,
+          "totalLatencyMs": 12099,
+          "tokenUsage": {
+            "prompt": 423,
+            "completion": 568,
+            "cached": 0,
+            "total": 991,
+            "numRequests": 5,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            },
+            "assertions": {
+              "total": 7511,
+              "prompt": 1756,
+              "completion": 5755,
+              "cached": 0,
+              "numRequests": 0,
+              "completionDetails": {
+                "reasoning": 0,
+                "acceptedPrediction": 0,
+                "rejectedPrediction": 0
+              }
+            }
+          },
+          "namedScores": {},
+          "namedScoresCount": {},
+          "cost": 0.009788999999999999
+        }
+      },
+      {
+        "id": "ff31c617f199663f3e39ba9767c7ea2f709e75c4602715d01a21afe19396b4f9",
+        "raw": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\n{{schema}}\n\nQuestion: {{input}}\n\nSQL:\n",
+        "label": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\n{{schema}}\n\nQuestion: {{input}}\n\nSQL:\n",
+        "provider": "GPT-4o-mini",
+        "metrics": {
+          "score": 25,
+          "testPassCount": 5,
+          "testFailCount": 0,
+          "testErrorCount": 0,
+          "assertPassCount": 5,
+          "assertFailCount": 0,
+          "totalLatencyMs": 10754,
+          "tokenUsage": {
+            "prompt": 379,
+            "completion": 375,
+            "cached": 0,
+            "total": 754,
+            "numRequests": 5,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            },
+            "assertions": {
+              "total": 7744,
+              "prompt": 1707,
+              "completion": 6037,
+              "cached": 0,
+              "numRequests": 0,
+              "completionDetails": {
+                "reasoning": 0,
+                "acceptedPrediction": 0,
+                "rejectedPrediction": 0
+              }
+            }
+          },
+          "namedScores": {},
+          "namedScoresCount": {},
+          "cost": 0.00028185
+        }
+      }
+    ],
+    "results": [
+      {
+        "cost": 0.00004125,
+        "gradingResult": {
+          "pass": true,
+          "score": 5,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1375,
+            "prompt": 350,
+            "completion": 1025,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this SQL query on a 1-5 scale for correctness:\n5 = Correctly joins customers and orders, filters by signup_date in last 30 days, and ensures at least one order (via JOIN or EXISTS/IN)\n4 = Correct logic but minor syntax issues or non-standard date handling\n3 = Right tables and general approach but wrong join condition or missing a filter\n2 = Uses the right tables but logic is fundamentally wrong\n1 = Wrong tables, syntax errors, or not SQL\nExpected: JOIN customers with orders, filter signup_date >= 30 days ago, GROUP BY or use EXISTS\n"
+              },
+              "pass": true,
+              "score": 5,
+              "reason": "Inner join on customers and orders ensures at least one order; WHERE filters customers with signup_date in the last 30 days using NOW() - INTERVAL 30 DAY; DISTINCT removes duplicates. Syntax is valid for MySQL.",
+              "tokensUsed": {
+                "total": 1375,
+                "prompt": 350,
+                "completion": 1025,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\n```sql\\nSELECT DISTINCT c.id, c.name, c.email, c.signup_date\\nFROM customers c\\nJOIN orders o ON c.id = o.customer_id\\nWHERE c.signup_date >= NOW() - INTERVAL 30 DAY;\\n```\\n</Output>\\n<Rubric>\\nRate this SQL query on a 1-5 scale for correctness:\\n5 = Correctly joins customers and orders, filters by signup_date in last 30 days, and ensures at least one order (via JOIN or EXISTS/IN)\\n4 = Correct logic but minor syntax issues or non-standard date handling\\n3 = Right tables and general approach but wrong join condition or missing a filter\\n2 = Uses the right tables but logic is fundamentally wrong\\n1 = Wrong tables, syntax errors, or not SQL\\nExpected: JOIN customers with orders, filter signup_date >= 30 days ago, GROUP BY or use EXISTS\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "d42f1a49-9707-4dda-b809-006b95ad8fd1",
+        "latencyMs": 1229,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\nTables: customers (id, name, email, signup_date), orders (id, customer_id, total, created_at)\n\nQuestion: Show me all customers who signed up in the last 30 days and have made at least one purchase\n\nSQL:\n",
+          "label": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\n{{schema}}\n\nQuestion: {{input}}\n\nSQL:\n",
+          "config": {}
+        },
+        "promptId": "ff31c617f199663f3e39ba9767c7ea2f709e75c4602715d01a21afe19396b4f9",
+        "promptIdx": 2,
+        "provider": {
+          "id": "openai:gpt-4o-mini",
+          "label": "GPT-4o-mini"
+        },
+        "response": {
+          "output": "```sql\nSELECT DISTINCT c.id, c.name, c.email, c.signup_date\nFROM customers c\nJOIN orders o ON c.id = o.customer_id\nWHERE c.signup_date >= NOW() - INTERVAL 30 DAY;\n```",
+          "tokenUsage": {
+            "total": 131,
+            "prompt": 83,
+            "completion": 48,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 1229,
+          "finishReason": "stop",
+          "cost": 0.00004125,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bd07289ca156a-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:36:41 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "975",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "_cfuvid=LsDZHJNvx50dhIoaMo4ivrpw.GWmiHU9a8Rs9UuvETU-1777271801840-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "vary": "Accept-Encoding",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "10000",
+                "x-ratelimit-limit-tokens": "200000",
+                "x-ratelimit-remaining-requests": "9999",
+                "x-ratelimit-remaining-tokens": "199913",
+                "x-ratelimit-reset-requests": "8.64s",
+                "x-ratelimit-reset-tokens": "25ms",
+                "x-request-id": "req_ddb3f1ce64554af0b6f9c8d066d25206"
+              }
+            }
+          }
+        },
+        "score": 5,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Show me all customers who signed up in the last 30 days and have made at least one purchase",
+            "schema": "Tables: customers (id, name, email, signup_date), orders (id, customer_id, total, created_at)"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this SQL query on a 1-5 scale for correctness:\n5 = Correctly joins customers and orders, filters by signup_date in last 30 days, and ensures at least one order (via JOIN or EXISTS/IN)\n4 = Correct logic but minor syntax issues or non-standard date handling\n3 = Right tables and general approach but wrong join condition or missing a filter\n2 = Uses the right tables but logic is fundamentally wrong\n1 = Wrong tables, syntax errors, or not SQL\nExpected: JOIN customers with orders, filter signup_date >= 30 days ago, GROUP BY or use EXISTS\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 0,
+        "vars": {
+          "input": "Show me all customers who signed up in the last 30 days and have made at least one purchase",
+          "schema": "Tables: customers (id, name, email, signup_date), orders (id, customer_id, total, created_at)"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bd07289ca156a-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:36:41 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "975",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "_cfuvid=LsDZHJNvx50dhIoaMo4ivrpw.GWmiHU9a8Rs9UuvETU-1777271801840-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "vary": "Accept-Encoding",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "10000",
+              "x-ratelimit-limit-tokens": "200000",
+              "x-ratelimit-remaining-requests": "9999",
+              "x-ratelimit-remaining-tokens": "199913",
+              "x-ratelimit-reset-requests": "8.64s",
+              "x-ratelimit-reset-tokens": "25ms",
+              "x-request-id": "req_ddb3f1ce64554af0b6f9c8d066d25206"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.001371,
+        "gradingResult": {
+          "pass": true,
+          "score": 5,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1515,
+            "prompt": 354,
+            "completion": 1161,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this SQL query on a 1-5 scale for correctness:\n5 = Correctly joins customers and orders, filters by signup_date in last 30 days, and ensures at least one order (via JOIN or EXISTS/IN)\n4 = Correct logic but minor syntax issues or non-standard date handling\n3 = Right tables and general approach but wrong join condition or missing a filter\n2 = Uses the right tables but logic is fundamentally wrong\n1 = Wrong tables, syntax errors, or not SQL\nExpected: JOIN customers with orders, filter signup_date >= 30 days ago, GROUP BY or use EXISTS\n"
+              },
+              "pass": true,
+              "score": 5,
+              "reason": "Correctly joins customers to orders on customer_id, filters signup_date to the last 30 days with DATE_SUB(CURDATE(), INTERVAL 30 DAY), and the INNER JOIN ensures at least one order; DISTINCT appropriately de-duplicates customers; syntax is valid.",
+              "tokensUsed": {
+                "total": 1515,
+                "prompt": 354,
+                "completion": 1161,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\n```sql\\nSELECT DISTINCT c.id, c.name, c.email, c.signup_date\\nFROM customers c\\nINNER JOIN orders o ON c.id = o.customer_id\\nWHERE c.signup_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)\\n```\\n</Output>\\n<Rubric>\\nRate this SQL query on a 1-5 scale for correctness:\\n5 = Correctly joins customers and orders, filters by signup_date in last 30 days, and ensures at least one order (via JOIN or EXISTS/IN)\\n4 = Correct logic but minor syntax issues or non-standard date handling\\n3 = Right tables and general approach but wrong join condition or missing a filter\\n2 = Uses the right tables but logic is fundamentally wrong\\n1 = Wrong tables, syntax errors, or not SQL\\nExpected: JOIN customers with orders, filter signup_date >= 30 days ago, GROUP BY or use EXISTS\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "d47e7771-8956-4ca8-a43d-af951486469e",
+        "latencyMs": 2437,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\nTables: customers (id, name, email, signup_date), orders (id, customer_id, total, created_at)\n\nQuestion: Show me all customers who signed up in the last 30 days and have made at least one purchase\n\nSQL:\n",
+          "label": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\n{{schema}}\n\nQuestion: {{input}}\n\nSQL:\n",
+          "config": {}
+        },
+        "promptId": "ff31c617f199663f3e39ba9767c7ea2f709e75c4602715d01a21afe19396b4f9",
+        "promptIdx": 1,
+        "provider": {
+          "id": "anthropic:messages:claude-sonnet-4-20250514",
+          "label": "Claude Sonnet 4"
+        },
+        "response": {
+          "output": "```sql\nSELECT DISTINCT c.id, c.name, c.email, c.signup_date\nFROM customers c\nINNER JOIN orders o ON c.id = o.customer_id\nWHERE c.signup_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)\n```",
+          "tokenUsage": {
+            "total": 165,
+            "prompt": 92,
+            "completion": 73
+          },
+          "finishReason": "stop",
+          "cost": 0.001371
+        },
+        "score": 5,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Show me all customers who signed up in the last 30 days and have made at least one purchase",
+            "schema": "Tables: customers (id, name, email, signup_date), orders (id, customer_id, total, created_at)"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this SQL query on a 1-5 scale for correctness:\n5 = Correctly joins customers and orders, filters by signup_date in last 30 days, and ensures at least one order (via JOIN or EXISTS/IN)\n4 = Correct logic but minor syntax issues or non-standard date handling\n3 = Right tables and general approach but wrong join condition or missing a filter\n2 = Uses the right tables but logic is fundamentally wrong\n1 = Wrong tables, syntax errors, or not SQL\nExpected: JOIN customers with orders, filter signup_date >= 30 days ago, GROUP BY or use EXISTS\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 0,
+        "vars": {
+          "input": "Show me all customers who signed up in the last 30 days and have made at least one purchase",
+          "schema": "Tables: customers (id, name, email, signup_date), orders (id, customer_id, total, created_at)"
+        },
+        "metadata": {
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.0006475000000000001,
+        "gradingResult": {
+          "pass": true,
+          "score": 5,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1828,
+            "prompt": 346,
+            "completion": 1482,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this SQL query on a 1-5 scale for correctness:\n5 = Correctly joins customers and orders, filters by signup_date in last 30 days, and ensures at least one order (via JOIN or EXISTS/IN)\n4 = Correct logic but minor syntax issues or non-standard date handling\n3 = Right tables and general approach but wrong join condition or missing a filter\n2 = Uses the right tables but logic is fundamentally wrong\n1 = Wrong tables, syntax errors, or not SQL\nExpected: JOIN customers with orders, filter signup_date >= 30 days ago, GROUP BY or use EXISTS\n"
+              },
+              "pass": true,
+              "score": 5,
+              "reason": "Correct inner join on c.id = o.customer_id ensures at least one order; WHERE filters c.signup_date to the last 30 days using CURRENT_DATE - INTERVAL '30 days'; DISTINCT appropriately deduplicates customers with multiple orders. Syntax is valid in PostgreSQL.",
+              "tokensUsed": {
+                "total": 1828,
+                "prompt": 346,
+                "completion": 1482,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\n```sql\\nSELECT DISTINCT c.id, c.name, c.email\\nFROM customers c\\nJOIN orders o ON c.id = o.customer_id\\nWHERE c.signup_date >= CURRENT_DATE - INTERVAL '30 days';\\n```\\n</Output>\\n<Rubric>\\nRate this SQL query on a 1-5 scale for correctness:\\n5 = Correctly joins customers and orders, filters by signup_date in last 30 days, and ensures at least one order (via JOIN or EXISTS/IN)\\n4 = Correct logic but minor syntax issues or non-standard date handling\\n3 = Right tables and general approach but wrong join condition or missing a filter\\n2 = Uses the right tables but logic is fundamentally wrong\\n1 = Wrong tables, syntax errors, or not SQL\\nExpected: JOIN customers with orders, filter signup_date >= 30 days ago, GROUP BY or use EXISTS\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "d289bef7-bc35-4cde-8260-6a23b03a937a",
+        "latencyMs": 985,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\nTables: customers (id, name, email, signup_date), orders (id, customer_id, total, created_at)\n\nQuestion: Show me all customers who signed up in the last 30 days and have made at least one purchase\n\nSQL:\n",
+          "label": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\n{{schema}}\n\nQuestion: {{input}}\n\nSQL:\n",
+          "config": {}
+        },
+        "promptId": "ff31c617f199663f3e39ba9767c7ea2f709e75c4602715d01a21afe19396b4f9",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:gpt-4o",
+          "label": "GPT-4o"
+        },
+        "response": {
+          "output": "```sql\nSELECT DISTINCT c.id, c.name, c.email\nFROM customers c\nJOIN orders o ON c.id = o.customer_id\nWHERE c.signup_date >= CURRENT_DATE - INTERVAL '30 days';\n```",
+          "tokenUsage": {
+            "total": 127,
+            "prompt": 83,
+            "completion": 44,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 985,
+          "finishReason": "stop",
+          "cost": 0.0006475000000000001,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bd0727fa92523-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:36:41 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "776",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=9NQjxwdqCps0WJdl1nXWhdW7Lu8a3DWgz02cN16Y5uw-1777271800.7170334-1.0.1.1-YCm8znmdG2s_ygBlPfMPhDfPv6UxCD46P0goxCkz2cwmKYqwliwconVUdCX7raULEWQDj.X8Cc2_iF8Aur6qbxmBPr.5wXCEU2dPOyA4YS0Yf.W4ZqRw.sY5M47Ugx0D; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:06:41 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "500",
+                "x-ratelimit-limit-tokens": "30000",
+                "x-ratelimit-remaining-requests": "499",
+                "x-ratelimit-remaining-tokens": "29914",
+                "x-ratelimit-reset-requests": "120ms",
+                "x-ratelimit-reset-tokens": "172ms",
+                "x-request-id": "req_ac54421a2d71403e9ea51226b01e6733"
+              }
+            }
+          }
+        },
+        "score": 5,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Show me all customers who signed up in the last 30 days and have made at least one purchase",
+            "schema": "Tables: customers (id, name, email, signup_date), orders (id, customer_id, total, created_at)"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this SQL query on a 1-5 scale for correctness:\n5 = Correctly joins customers and orders, filters by signup_date in last 30 days, and ensures at least one order (via JOIN or EXISTS/IN)\n4 = Correct logic but minor syntax issues or non-standard date handling\n3 = Right tables and general approach but wrong join condition or missing a filter\n2 = Uses the right tables but logic is fundamentally wrong\n1 = Wrong tables, syntax errors, or not SQL\nExpected: JOIN customers with orders, filter signup_date >= 30 days ago, GROUP BY or use EXISTS\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 0,
+        "vars": {
+          "input": "Show me all customers who signed up in the last 30 days and have made at least one purchase",
+          "schema": "Tables: customers (id, name, email, signup_date), orders (id, customer_id, total, created_at)"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bd0727fa92523-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:36:41 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "776",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=9NQjxwdqCps0WJdl1nXWhdW7Lu8a3DWgz02cN16Y5uw-1777271800.7170334-1.0.1.1-YCm8znmdG2s_ygBlPfMPhDfPv6UxCD46P0goxCkz2cwmKYqwliwconVUdCX7raULEWQDj.X8Cc2_iF8Aur6qbxmBPr.5wXCEU2dPOyA4YS0Yf.W4ZqRw.sY5M47Ugx0D; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:06:41 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "500",
+              "x-ratelimit-limit-tokens": "30000",
+              "x-ratelimit-remaining-requests": "499",
+              "x-ratelimit-remaining-tokens": "29914",
+              "x-ratelimit-reset-requests": "120ms",
+              "x-ratelimit-reset-tokens": "172ms",
+              "x-request-id": "req_ac54421a2d71403e9ea51226b01e6733"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.00063,
+        "gradingResult": {
+          "pass": true,
+          "score": 5,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1178,
+            "prompt": 297,
+            "completion": 881,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this SQL query on a 1-5 scale:\n5 = Correctly joins orders with customers, uses AVG(total), groups by country, orders DESC\n4 = Correct logic but minor issues (e.g., missing alias)\n3 = Right approach but wrong aggregation or missing ORDER BY\n2 = Wrong join or aggregation\n1 = Not valid SQL or completely wrong\n"
+              },
+              "pass": true,
+              "score": 5,
+              "reason": "Correctly joins orders to customers, uses AVG(o.total), groups by c.country, and orders by average_order_value DESC.",
+              "tokensUsed": {
+                "total": 1178,
+                "prompt": 297,
+                "completion": 881,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\n```sql\\nSELECT c.country, AVG(o.total) AS average_order_value\\nFROM orders o\\nJOIN customers c ON o.customer_id = c.id\\nGROUP BY c.country\\nORDER BY average_order_value DESC;\\n```\\n</Output>\\n<Rubric>\\nRate this SQL query on a 1-5 scale:\\n5 = Correctly joins orders with customers, uses AVG(total), groups by country, orders DESC\\n4 = Correct logic but minor issues (e.g., missing alias)\\n3 = Right approach but wrong aggregation or missing ORDER BY\\n2 = Wrong join or aggregation\\n1 = Not valid SQL or completely wrong\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "4f9dfd9b-6350-4750-ba7e-7afe1860576f",
+        "latencyMs": 1661,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\nTables: orders (id, customer_id, total, created_at), customers (id, name, email, country)\n\nQuestion: What is the average order value per country, sorted from highest to lowest?\n\nSQL:\n",
+          "label": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\n{{schema}}\n\nQuestion: {{input}}\n\nSQL:\n",
+          "config": {}
+        },
+        "promptId": "ff31c617f199663f3e39ba9767c7ea2f709e75c4602715d01a21afe19396b4f9",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:gpt-4o",
+          "label": "GPT-4o"
+        },
+        "response": {
+          "output": "```sql\nSELECT c.country, AVG(o.total) AS average_order_value\nFROM orders o\nJOIN customers c ON o.customer_id = c.id\nGROUP BY c.country\nORDER BY average_order_value DESC;\n```",
+          "tokenUsage": {
+            "total": 120,
+            "prompt": 76,
+            "completion": 44,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 1661,
+          "finishReason": "stop",
+          "cost": 0.00063,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bd0728e2bc236-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:36:42 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "1229",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=94HhoMbxInLjDuCJtmgy52HQo817ok0.l4Aul_ucW6U-1777271800.7245295-1.0.1.1-U6sYydI4XNxy4yJ73PVTWmUOcpC88CvczUCTgvBLZbHG0rOvP.TtKAE4gR1VIoESBmBCrMb3BcP0if9OM8qSGL4jpYS0VoReQ7J6v6B8fQSvRfteTcrKAZ7M9xvWVPPP; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:06:42 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "500",
+                "x-ratelimit-limit-tokens": "30000",
+                "x-ratelimit-remaining-requests": "499",
+                "x-ratelimit-remaining-tokens": "29919",
+                "x-ratelimit-reset-requests": "120ms",
+                "x-ratelimit-reset-tokens": "162ms",
+                "x-request-id": "req_b4a2843e8e184ceb91283de22c3b4bdd"
+              }
+            }
+          }
+        },
+        "score": 5,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "What is the average order value per country, sorted from highest to lowest?",
+            "schema": "Tables: orders (id, customer_id, total, created_at), customers (id, name, email, country)"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this SQL query on a 1-5 scale:\n5 = Correctly joins orders with customers, uses AVG(total), groups by country, orders DESC\n4 = Correct logic but minor issues (e.g., missing alias)\n3 = Right approach but wrong aggregation or missing ORDER BY\n2 = Wrong join or aggregation\n1 = Not valid SQL or completely wrong\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 1,
+        "vars": {
+          "input": "What is the average order value per country, sorted from highest to lowest?",
+          "schema": "Tables: orders (id, customer_id, total, created_at), customers (id, name, email, country)"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bd0728e2bc236-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:36:42 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "1229",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=94HhoMbxInLjDuCJtmgy52HQo817ok0.l4Aul_ucW6U-1777271800.7245295-1.0.1.1-U6sYydI4XNxy4yJ73PVTWmUOcpC88CvczUCTgvBLZbHG0rOvP.TtKAE4gR1VIoESBmBCrMb3BcP0if9OM8qSGL4jpYS0VoReQ7J6v6B8fQSvRfteTcrKAZ7M9xvWVPPP; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:06:42 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "500",
+              "x-ratelimit-limit-tokens": "30000",
+              "x-ratelimit-remaining-requests": "499",
+              "x-ratelimit-remaining-tokens": "29919",
+              "x-ratelimit-reset-requests": "120ms",
+              "x-ratelimit-reset-tokens": "162ms",
+              "x-request-id": "req_b4a2843e8e184ceb91283de22c3b4bdd"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.0000378,
+        "gradingResult": {
+          "pass": true,
+          "score": 5,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1179,
+            "prompt": 297,
+            "completion": 882,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this SQL query on a 1-5 scale:\n5 = Correctly joins orders with customers, uses AVG(total), groups by country, orders DESC\n4 = Correct logic but minor issues (e.g., missing alias)\n3 = Right approach but wrong aggregation or missing ORDER BY\n2 = Wrong join or aggregation\n1 = Not valid SQL or completely wrong\n"
+              },
+              "pass": true,
+              "score": 5,
+              "reason": "Correctly joins orders to customers on customer_id = id, uses AVG(o.total), groups by c.country, and orders by average_order_value DESC.",
+              "tokensUsed": {
+                "total": 1179,
+                "prompt": 297,
+                "completion": 882,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\n```sql\\nSELECT c.country, AVG(o.total) AS average_order_value\\nFROM orders o\\nJOIN customers c ON o.customer_id = c.id\\nGROUP BY c.country\\nORDER BY average_order_value DESC;\\n```\\n</Output>\\n<Rubric>\\nRate this SQL query on a 1-5 scale:\\n5 = Correctly joins orders with customers, uses AVG(total), groups by country, orders DESC\\n4 = Correct logic but minor issues (e.g., missing alias)\\n3 = Right approach but wrong aggregation or missing ORDER BY\\n2 = Wrong join or aggregation\\n1 = Not valid SQL or completely wrong\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "ee5f4ec7-11c4-4168-a210-27b1827f0541",
+        "latencyMs": 1586,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\nTables: orders (id, customer_id, total, created_at), customers (id, name, email, country)\n\nQuestion: What is the average order value per country, sorted from highest to lowest?\n\nSQL:\n",
+          "label": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\n{{schema}}\n\nQuestion: {{input}}\n\nSQL:\n",
+          "config": {}
+        },
+        "promptId": "ff31c617f199663f3e39ba9767c7ea2f709e75c4602715d01a21afe19396b4f9",
+        "promptIdx": 2,
+        "provider": {
+          "id": "openai:gpt-4o-mini",
+          "label": "GPT-4o-mini"
+        },
+        "response": {
+          "output": "```sql\nSELECT c.country, AVG(o.total) AS average_order_value\nFROM orders o\nJOIN customers c ON o.customer_id = c.id\nGROUP BY c.country\nORDER BY average_order_value DESC;\n```",
+          "tokenUsage": {
+            "total": 120,
+            "prompt": 76,
+            "completion": 44,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 1586,
+          "finishReason": "stop",
+          "cost": 0.0000378,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bd0db8e2edc04-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:36:59 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "1432",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=Rh1TTINSSczE_qQf0yFImi0sfGnlHPZYmTC7o.oQmqY-1777271817.529731-1.0.1.1-3vOaX2IUcmIOTd4hw4bPp_.Ew7TWPAelYpbtKvCaS5uqLOlFNg2iwnkHPc9qMh8C7EfThRfEAIJRQsynvDoaCxnOyqHIRD5ZHxqfzHaQC8cQ3mJyUYKX4c1KDFP3VMoK; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:06:59 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "10000",
+                "x-ratelimit-limit-tokens": "200000",
+                "x-ratelimit-remaining-requests": "9999",
+                "x-ratelimit-remaining-tokens": "199919",
+                "x-ratelimit-reset-requests": "8.64s",
+                "x-ratelimit-reset-tokens": "24ms",
+                "x-request-id": "req_294133d068674e3585b10394d4665226"
+              }
+            }
+          }
+        },
+        "score": 5,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "What is the average order value per country, sorted from highest to lowest?",
+            "schema": "Tables: orders (id, customer_id, total, created_at), customers (id, name, email, country)"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this SQL query on a 1-5 scale:\n5 = Correctly joins orders with customers, uses AVG(total), groups by country, orders DESC\n4 = Correct logic but minor issues (e.g., missing alias)\n3 = Right approach but wrong aggregation or missing ORDER BY\n2 = Wrong join or aggregation\n1 = Not valid SQL or completely wrong\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 1,
+        "vars": {
+          "input": "What is the average order value per country, sorted from highest to lowest?",
+          "schema": "Tables: orders (id, customer_id, total, created_at), customers (id, name, email, country)"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bd0db8e2edc04-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:36:59 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "1432",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=Rh1TTINSSczE_qQf0yFImi0sfGnlHPZYmTC7o.oQmqY-1777271817.529731-1.0.1.1-3vOaX2IUcmIOTd4hw4bPp_.Ew7TWPAelYpbtKvCaS5uqLOlFNg2iwnkHPc9qMh8C7EfThRfEAIJRQsynvDoaCxnOyqHIRD5ZHxqfzHaQC8cQ3mJyUYKX4c1KDFP3VMoK; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:06:59 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "10000",
+              "x-ratelimit-limit-tokens": "200000",
+              "x-ratelimit-remaining-requests": "9999",
+              "x-ratelimit-remaining-tokens": "199919",
+              "x-ratelimit-reset-requests": "8.64s",
+              "x-ratelimit-reset-tokens": "24ms",
+              "x-request-id": "req_294133d068674e3585b10394d4665226"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.001152,
+        "gradingResult": {
+          "pass": true,
+          "score": 5,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1369,
+            "prompt": 297,
+            "completion": 1072,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this SQL query on a 1-5 scale:\n5 = Correctly joins orders with customers, uses AVG(total), groups by country, orders DESC\n4 = Correct logic but minor issues (e.g., missing alias)\n3 = Right approach but wrong aggregation or missing ORDER BY\n2 = Wrong join or aggregation\n1 = Not valid SQL or completely wrong\n"
+              },
+              "pass": true,
+              "score": 5,
+              "reason": "Correctly joins orders with customers, uses AVG(o.total) with alias, groups by c.country, and orders by avg_order_value DESC",
+              "tokensUsed": {
+                "total": 1369,
+                "prompt": 297,
+                "completion": 1072,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\n```sql\\nSELECT c.country, AVG(o.total) as avg_order_value\\nFROM orders o\\nJOIN customers c ON o.customer_id = c.id\\nGROUP BY c.country\\nORDER BY avg_order_value DESC;\\n```\\n</Output>\\n<Rubric>\\nRate this SQL query on a 1-5 scale:\\n5 = Correctly joins orders with customers, uses AVG(total), groups by country, orders DESC\\n4 = Correct logic but minor issues (e.g., missing alias)\\n3 = Right approach but wrong aggregation or missing ORDER BY\\n2 = Wrong join or aggregation\\n1 = Not valid SQL or completely wrong\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "b1a705b0-4403-44b2-b53a-0e1cd053578c",
+        "latencyMs": 1623,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\nTables: orders (id, customer_id, total, created_at), customers (id, name, email, country)\n\nQuestion: What is the average order value per country, sorted from highest to lowest?\n\nSQL:\n",
+          "label": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\n{{schema}}\n\nQuestion: {{input}}\n\nSQL:\n",
+          "config": {}
+        },
+        "promptId": "ff31c617f199663f3e39ba9767c7ea2f709e75c4602715d01a21afe19396b4f9",
+        "promptIdx": 1,
+        "provider": {
+          "id": "anthropic:messages:claude-sonnet-4-20250514",
+          "label": "Claude Sonnet 4"
+        },
+        "response": {
+          "output": "```sql\nSELECT c.country, AVG(o.total) as avg_order_value\nFROM orders o\nJOIN customers c ON o.customer_id = c.id\nGROUP BY c.country\nORDER BY avg_order_value DESC;\n```",
+          "tokenUsage": {
+            "total": 144,
+            "prompt": 84,
+            "completion": 60
+          },
+          "finishReason": "stop",
+          "cost": 0.001152
+        },
+        "score": 5,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "What is the average order value per country, sorted from highest to lowest?",
+            "schema": "Tables: orders (id, customer_id, total, created_at), customers (id, name, email, country)"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this SQL query on a 1-5 scale:\n5 = Correctly joins orders with customers, uses AVG(total), groups by country, orders DESC\n4 = Correct logic but minor issues (e.g., missing alias)\n3 = Right approach but wrong aggregation or missing ORDER BY\n2 = Wrong join or aggregation\n1 = Not valid SQL or completely wrong\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 1,
+        "vars": {
+          "input": "What is the average order value per country, sorted from highest to lowest?",
+          "schema": "Tables: orders (id, customer_id, total, created_at), customers (id, name, email, country)"
+        },
+        "metadata": {
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.0012000000000000001,
+        "gradingResult": {
+          "pass": true,
+          "score": 5,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1834,
+            "prompt": 360,
+            "completion": 1474,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this SQL query on a 1-5 scale:\n5 = Correctly joins 3 tables, calculates revenue (quantity * price or from order total), filters last quarter, LIMIT 5, ORDER BY DESC\n4 = Correct logic but date filtering is approximate or minor issues\n3 = Right tables but missing a join or wrong revenue calculation\n2 = Missing key components\n1 = Not valid SQL\n"
+              },
+              "pass": true,
+              "score": 5,
+              "reason": "Joins 3 tables (products, order_items, orders), computes revenue as SUM(oi.quantity * p.price), correctly filters the previous quarter using date_trunc boundaries, orders by revenue DESC, and limits to 5.",
+              "tokensUsed": {
+                "total": 1834,
+                "prompt": 360,
+                "completion": 1474,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\n```sql\\nSELECT p.name, SUM(oi.quantity * p.price) AS revenue\\nFROM products p\\nJOIN order_items oi ON p.id = oi.product_id\\nJOIN orders o ON oi.order_id = o.id\\nWHERE o.created_at >= DATE_TRUNC('quarter', CURRENT_DATE) - INTERVAL '3 months'\\n  AND o.created_at < DATE_TRUNC('quarter', CURRENT_DATE)\\nGROUP BY p.id, p.name\\nORDER BY revenue DESC\\nLIMIT 5;\\n```\\n</Output>\\n<Rubric>\\nRate this SQL query on a 1-5 scale:\\n5 = Correctly joins 3 tables, calculates revenue (quantity * price or from order total), filters last quarter, LIMIT 5, ORDER BY DESC\\n4 = Correct logic but date filtering is approximate or minor issues\\n3 = Right tables but missing a join or wrong revenue calculation\\n2 = Missing key components\\n1 = Not valid SQL\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "4aa76fbe-4c08-4b33-b5c9-5173743f947b",
+        "latencyMs": 1338,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\nTables: products (id, name, price, category), order_items (id, order_id, product_id, quantity), orders (id, total, created_at)\n\nQuestion: Find the top 5 products by revenue in the last quarter\n\nSQL:\n",
+          "label": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\n{{schema}}\n\nQuestion: {{input}}\n\nSQL:\n",
+          "config": {}
+        },
+        "promptId": "ff31c617f199663f3e39ba9767c7ea2f709e75c4602715d01a21afe19396b4f9",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:gpt-4o",
+          "label": "GPT-4o"
+        },
+        "response": {
+          "output": "```sql\nSELECT p.name, SUM(oi.quantity * p.price) AS revenue\nFROM products p\nJOIN order_items oi ON p.id = oi.product_id\nJOIN orders o ON oi.order_id = o.id\nWHERE o.created_at >= DATE_TRUNC('quarter', CURRENT_DATE) - INTERVAL '3 months'\n  AND o.created_at < DATE_TRUNC('quarter', CURRENT_DATE)\nGROUP BY p.id, p.name\nORDER BY revenue DESC\nLIMIT 5;\n```",
+          "tokenUsage": {
+            "total": 183,
+            "prompt": 84,
+            "completion": 99,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 1338,
+          "finishReason": "stop",
+          "cost": 0.0012000000000000001,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bd0e0cf00ebe9-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:36:59 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "1157",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=LmmoncQpz0nozm3YJfvoUaFIPIj0gPZP1A02vfs208w-1777271818.3694425-1.0.1.1-FwuFx2bUWMQt1LIJaUnWsZknbngZcSRjwg6YdVgdt.xzHdAj0puLhQovPbKpXrIQzhNGscJTpm.olmuXe1sXQQgG0xwVFyf.laFZvz6_d4H9dN5ZJKA99ZkMLc4KtApv; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:06:59 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "500",
+                "x-ratelimit-limit-tokens": "30000",
+                "x-ratelimit-remaining-requests": "499",
+                "x-ratelimit-remaining-tokens": "29915",
+                "x-ratelimit-reset-requests": "120ms",
+                "x-ratelimit-reset-tokens": "170ms",
+                "x-request-id": "req_1cea8dd9be794df9b60e20b859c225d7"
+              }
+            }
+          }
+        },
+        "score": 5,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Find the top 5 products by revenue in the last quarter",
+            "schema": "Tables: products (id, name, price, category), order_items (id, order_id, product_id, quantity), orders (id, total, created_at)"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this SQL query on a 1-5 scale:\n5 = Correctly joins 3 tables, calculates revenue (quantity * price or from order total), filters last quarter, LIMIT 5, ORDER BY DESC\n4 = Correct logic but date filtering is approximate or minor issues\n3 = Right tables but missing a join or wrong revenue calculation\n2 = Missing key components\n1 = Not valid SQL\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 2,
+        "vars": {
+          "input": "Find the top 5 products by revenue in the last quarter",
+          "schema": "Tables: products (id, name, price, category), order_items (id, order_id, product_id, quantity), orders (id, total, created_at)"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bd0e0cf00ebe9-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:36:59 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "1157",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=LmmoncQpz0nozm3YJfvoUaFIPIj0gPZP1A02vfs208w-1777271818.3694425-1.0.1.1-FwuFx2bUWMQt1LIJaUnWsZknbngZcSRjwg6YdVgdt.xzHdAj0puLhQovPbKpXrIQzhNGscJTpm.olmuXe1sXQQgG0xwVFyf.laFZvz6_d4H9dN5ZJKA99ZkMLc4KtApv; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:06:59 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "500",
+              "x-ratelimit-limit-tokens": "30000",
+              "x-ratelimit-remaining-requests": "499",
+              "x-ratelimit-remaining-tokens": "29915",
+              "x-ratelimit-reset-requests": "120ms",
+              "x-ratelimit-reset-tokens": "170ms",
+              "x-request-id": "req_1cea8dd9be794df9b60e20b859c225d7"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.0019920000000000003,
+        "gradingResult": {
+          "pass": true,
+          "score": 5,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1575,
+            "prompt": 344,
+            "completion": 1231,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this SQL query on a 1-5 scale:\n5 = Correctly joins 3 tables, calculates revenue (quantity * price or from order total), filters last quarter, LIMIT 5, ORDER BY DESC\n4 = Correct logic but date filtering is approximate or minor issues\n3 = Right tables but missing a join or wrong revenue calculation\n2 = Missing key components\n1 = Not valid SQL\n"
+              },
+              "pass": true,
+              "score": 5,
+              "reason": "Joins products, order_items, and orders; calculates revenue as SUM(oi.quantity * p.price); filters the last 3 months (interpreted as last quarter) with DATE_SUB(CURDATE(), INTERVAL 3 MONTH); groups, orders by revenue DESC, and LIMIT 5.",
+              "tokensUsed": {
+                "total": 1575,
+                "prompt": 344,
+                "completion": 1231,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\n```sql\\nSELECT p.id, p.name, SUM(oi.quantity * p.price) as revenue\\nFROM products p\\nJOIN order_items oi ON p.id = oi.product_id\\nJOIN orders o ON oi.order_id = o.id\\nWHERE o.created_at >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)\\nGROUP BY p.id, p.name\\nORDER BY revenue DESC\\nLIMIT 5;\\n```\\n</Output>\\n<Rubric>\\nRate this SQL query on a 1-5 scale:\\n5 = Correctly joins 3 tables, calculates revenue (quantity * price or from order total), filters last quarter, LIMIT 5, ORDER BY DESC\\n4 = Correct logic but date filtering is approximate or minor issues\\n3 = Right tables but missing a join or wrong revenue calculation\\n2 = Missing key components\\n1 = Not valid SQL\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "f5daa3a5-ccef-4f70-87ee-45ba1a53d478",
+        "latencyMs": 2432,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\nTables: products (id, name, price, category), order_items (id, order_id, product_id, quantity), orders (id, total, created_at)\n\nQuestion: Find the top 5 products by revenue in the last quarter\n\nSQL:\n",
+          "label": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\n{{schema}}\n\nQuestion: {{input}}\n\nSQL:\n",
+          "config": {}
+        },
+        "promptId": "ff31c617f199663f3e39ba9767c7ea2f709e75c4602715d01a21afe19396b4f9",
+        "promptIdx": 1,
+        "provider": {
+          "id": "anthropic:messages:claude-sonnet-4-20250514",
+          "label": "Claude Sonnet 4"
+        },
+        "response": {
+          "output": "```sql\nSELECT p.id, p.name, SUM(oi.quantity * p.price) as revenue\nFROM products p\nJOIN order_items oi ON p.id = oi.product_id\nJOIN orders o ON oi.order_id = o.id\nWHERE o.created_at >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)\nGROUP BY p.id, p.name\nORDER BY revenue DESC\nLIMIT 5;\n```",
+          "tokenUsage": {
+            "total": 208,
+            "prompt": 94,
+            "completion": 114
+          },
+          "finishReason": "stop",
+          "cost": 0.0019920000000000003
+        },
+        "score": 5,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Find the top 5 products by revenue in the last quarter",
+            "schema": "Tables: products (id, name, price, category), order_items (id, order_id, product_id, quantity), orders (id, total, created_at)"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this SQL query on a 1-5 scale:\n5 = Correctly joins 3 tables, calculates revenue (quantity * price or from order total), filters last quarter, LIMIT 5, ORDER BY DESC\n4 = Correct logic but date filtering is approximate or minor issues\n3 = Right tables but missing a join or wrong revenue calculation\n2 = Missing key components\n1 = Not valid SQL\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 2,
+        "vars": {
+          "input": "Find the top 5 products by revenue in the last quarter",
+          "schema": "Tables: products (id, name, price, category), order_items (id, order_id, product_id, quantity), orders (id, total, created_at)"
+        },
+        "metadata": {
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.00007379999999999999,
+        "gradingResult": {
+          "pass": true,
+          "score": 5,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1378,
+            "prompt": 363,
+            "completion": 1015,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this SQL query on a 1-5 scale:\n5 = Correctly joins 3 tables, calculates revenue (quantity * price or from order total), filters last quarter, LIMIT 5, ORDER BY DESC\n4 = Correct logic but date filtering is approximate or minor issues\n3 = Right tables but missing a join or wrong revenue calculation\n2 = Missing key components\n1 = Not valid SQL\n"
+              },
+              "pass": true,
+              "score": 5,
+              "reason": "Joins products, order_items, and orders; sums quantity * p.price as revenue; filters the previous quarter window correctly; orders by revenue DESC; limits to 5.",
+              "tokensUsed": {
+                "total": 1378,
+                "prompt": 363,
+                "completion": 1015,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\n```sql\\nSELECT p.id, p.name, SUM(oi.quantity * p.price) AS revenue\\nFROM products p\\nJOIN order_items oi ON p.id = oi.product_id\\nJOIN orders o ON oi.order_id = o.id\\nWHERE o.created_at >= DATE_TRUNC('quarter', CURRENT_DATE) - INTERVAL '3 months'\\n  AND o.created_at < DATE_TRUNC('quarter', CURRENT_DATE)\\nGROUP BY p.id, p.name\\nORDER BY revenue DESC\\nLIMIT 5;\\n```\\n</Output>\\n<Rubric>\\nRate this SQL query on a 1-5 scale:\\n5 = Correctly joins 3 tables, calculates revenue (quantity * price or from order total), filters last quarter, LIMIT 5, ORDER BY DESC\\n4 = Correct logic but date filtering is approximate or minor issues\\n3 = Right tables but missing a join or wrong revenue calculation\\n2 = Missing key components\\n1 = Not valid SQL\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "df9fa507-7045-49da-9fdc-0a847b33c0d6",
+        "latencyMs": 2684,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\nTables: products (id, name, price, category), order_items (id, order_id, product_id, quantity), orders (id, total, created_at)\n\nQuestion: Find the top 5 products by revenue in the last quarter\n\nSQL:\n",
+          "label": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\n{{schema}}\n\nQuestion: {{input}}\n\nSQL:\n",
+          "config": {}
+        },
+        "promptId": "ff31c617f199663f3e39ba9767c7ea2f709e75c4602715d01a21afe19396b4f9",
+        "promptIdx": 2,
+        "provider": {
+          "id": "openai:gpt-4o-mini",
+          "label": "GPT-4o-mini"
+        },
+        "response": {
+          "output": "```sql\nSELECT p.id, p.name, SUM(oi.quantity * p.price) AS revenue\nFROM products p\nJOIN order_items oi ON p.id = oi.product_id\nJOIN orders o ON oi.order_id = o.id\nWHERE o.created_at >= DATE_TRUNC('quarter', CURRENT_DATE) - INTERVAL '3 months'\n  AND o.created_at < DATE_TRUNC('quarter', CURRENT_DATE)\nGROUP BY p.id, p.name\nORDER BY revenue DESC\nLIMIT 5;\n```",
+          "tokenUsage": {
+            "total": 186,
+            "prompt": 84,
+            "completion": 102,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 2684,
+          "finishReason": "stop",
+          "cost": 0.00007379999999999999,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bd1494fe55655-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:37:17 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "2531",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=WaRbRlgrE0rfhjVB.CaL1twfQyZykEok4SLV0MGzHpU-1777271835.0844765-1.0.1.1-nBCRIjgCIg_w1s6ChC7JiCnNXOpKLU92DfnmPbO6lkwwg7vVpZJeR21j6E4PwTd4aqb75ebNfNMJPJKAG03T0clfXmo1r_DDEWs4_sqyarbro7CPqcpv4OrFSovIHHWV; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:07:17 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "10000",
+                "x-ratelimit-limit-tokens": "200000",
+                "x-ratelimit-remaining-requests": "9999",
+                "x-ratelimit-remaining-tokens": "199915",
+                "x-ratelimit-reset-requests": "8.64s",
+                "x-ratelimit-reset-tokens": "25ms",
+                "x-request-id": "req_19ace856750449229d08cf201fccb160"
+              }
+            }
+          }
+        },
+        "score": 5,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Find the top 5 products by revenue in the last quarter",
+            "schema": "Tables: products (id, name, price, category), order_items (id, order_id, product_id, quantity), orders (id, total, created_at)"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this SQL query on a 1-5 scale:\n5 = Correctly joins 3 tables, calculates revenue (quantity * price or from order total), filters last quarter, LIMIT 5, ORDER BY DESC\n4 = Correct logic but date filtering is approximate or minor issues\n3 = Right tables but missing a join or wrong revenue calculation\n2 = Missing key components\n1 = Not valid SQL\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 2,
+        "vars": {
+          "input": "Find the top 5 products by revenue in the last quarter",
+          "schema": "Tables: products (id, name, price, category), order_items (id, order_id, product_id, quantity), orders (id, total, created_at)"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bd1494fe55655-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:37:17 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "2531",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=WaRbRlgrE0rfhjVB.CaL1twfQyZykEok4SLV0MGzHpU-1777271835.0844765-1.0.1.1-nBCRIjgCIg_w1s6ChC7JiCnNXOpKLU92DfnmPbO6lkwwg7vVpZJeR21j6E4PwTd4aqb75ebNfNMJPJKAG03T0clfXmo1r_DDEWs4_sqyarbro7CPqcpv4OrFSovIHHWV; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:07:17 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "10000",
+              "x-ratelimit-limit-tokens": "200000",
+              "x-ratelimit-remaining-requests": "9999",
+              "x-ratelimit-remaining-tokens": "199915",
+              "x-ratelimit-reset-requests": "8.64s",
+              "x-ratelimit-reset-tokens": "25ms",
+              "x-request-id": "req_19ace856750449229d08cf201fccb160"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.0013770000000000002,
+        "gradingResult": {
+          "pass": true,
+          "score": 5,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1339,
+            "prompt": 320,
+            "completion": 1019,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this SQL query on a 1-5 scale:\n5 = Uses LEFT JOIN + IS NULL or NOT EXISTS/NOT IN, correctly filters expense_reports by current year\n4 = Correct anti-join pattern but date filter is approximate\n3 = Uses the right tables but wrong anti-join pattern (e.g., INNER JOIN instead of LEFT)\n2 = Missing the anti-join logic entirely\n1 = Not valid SQL\n"
+              },
+              "pass": true,
+              "score": 5,
+              "reason": "Uses the correct anti-join pattern (LEFT JOIN with IS NULL) and correctly restricts expense_reports to the current calendar year via YEAR(er.submitted_at) = YEAR(CURDATE()).",
+              "tokensUsed": {
+                "total": 1339,
+                "prompt": 320,
+                "completion": 1019,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\n```sql\\nSELECT e.id, e.name, e.department, e.hire_date\\nFROM employees e\\nLEFT JOIN expense_reports er ON e.id = er.employee_id AND YEAR(er.submitted_at) = YEAR(CURDATE())\\nWHERE er.employee_id IS NULL;\\n```\\n</Output>\\n<Rubric>\\nRate this SQL query on a 1-5 scale:\\n5 = Uses LEFT JOIN + IS NULL or NOT EXISTS/NOT IN, correctly filters expense_reports by current year\\n4 = Correct anti-join pattern but date filter is approximate\\n3 = Uses the right tables but wrong anti-join pattern (e.g., INNER JOIN instead of LEFT)\\n2 = Missing the anti-join logic entirely\\n1 = Not valid SQL\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "c4c2e827-05a9-43cc-9ac1-fcf3047879d5",
+        "latencyMs": 1931,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\nTables: employees (id, name, department, hire_date), expense_reports (id, employee_id, amount, submitted_at)\n\nQuestion: List employees who have not submitted any expense reports this year\n\nSQL:\n",
+          "label": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\n{{schema}}\n\nQuestion: {{input}}\n\nSQL:\n",
+          "config": {}
+        },
+        "promptId": "ff31c617f199663f3e39ba9767c7ea2f709e75c4602715d01a21afe19396b4f9",
+        "promptIdx": 1,
+        "provider": {
+          "id": "anthropic:messages:claude-sonnet-4-20250514",
+          "label": "Claude Sonnet 4"
+        },
+        "response": {
+          "output": "```sql\nSELECT e.id, e.name, e.department, e.hire_date\nFROM employees e\nLEFT JOIN expense_reports er ON e.id = er.employee_id AND YEAR(er.submitted_at) = YEAR(CURDATE())\nWHERE er.employee_id IS NULL;\n```",
+          "tokenUsage": {
+            "total": 159,
+            "prompt": 84,
+            "completion": 75
+          },
+          "finishReason": "stop",
+          "cost": 0.0013770000000000002
+        },
+        "score": 5,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "List employees who have not submitted any expense reports this year",
+            "schema": "Tables: employees (id, name, department, hire_date), expense_reports (id, employee_id, amount, submitted_at)"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this SQL query on a 1-5 scale:\n5 = Uses LEFT JOIN + IS NULL or NOT EXISTS/NOT IN, correctly filters expense_reports by current year\n4 = Correct anti-join pattern but date filter is approximate\n3 = Uses the right tables but wrong anti-join pattern (e.g., INNER JOIN instead of LEFT)\n2 = Missing the anti-join logic entirely\n1 = Not valid SQL\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 3,
+        "vars": {
+          "input": "List employees who have not submitted any expense reports this year",
+          "schema": "Tables: employees (id, name, department, hire_date), expense_reports (id, employee_id, amount, submitted_at)"
+        },
+        "metadata": {
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.0006175,
+        "gradingResult": {
+          "pass": true,
+          "score": 5,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1323,
+            "prompt": 308,
+            "completion": 1015,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this SQL query on a 1-5 scale:\n5 = Uses LEFT JOIN + IS NULL or NOT EXISTS/NOT IN, correctly filters expense_reports by current year\n4 = Correct anti-join pattern but date filter is approximate\n3 = Uses the right tables but wrong anti-join pattern (e.g., INNER JOIN instead of LEFT)\n2 = Missing the anti-join logic entirely\n1 = Not valid SQL\n"
+              },
+              "pass": true,
+              "score": 5,
+              "reason": "Uses LEFT JOIN with IS NULL anti-join and correctly limits matches to the current year via YEAR(er.submitted_at) = YEAR(CURDATE()).",
+              "tokensUsed": {
+                "total": 1323,
+                "prompt": 308,
+                "completion": 1015,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\n```sql\\nSELECT e.name\\nFROM employees e\\nLEFT JOIN expense_reports er ON e.id = er.employee_id AND YEAR(er.submitted_at) = YEAR(CURDATE())\\nWHERE er.id IS NULL;\\n```\\n</Output>\\n<Rubric>\\nRate this SQL query on a 1-5 scale:\\n5 = Uses LEFT JOIN + IS NULL or NOT EXISTS/NOT IN, correctly filters expense_reports by current year\\n4 = Correct anti-join pattern but date filter is approximate\\n3 = Uses the right tables but wrong anti-join pattern (e.g., INNER JOIN instead of LEFT)\\n2 = Missing the anti-join logic entirely\\n1 = Not valid SQL\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "fc36879c-bf21-43a1-b1bb-45791f370fee",
+        "latencyMs": 942,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\nTables: employees (id, name, department, hire_date), expense_reports (id, employee_id, amount, submitted_at)\n\nQuestion: List employees who have not submitted any expense reports this year\n\nSQL:\n",
+          "label": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\n{{schema}}\n\nQuestion: {{input}}\n\nSQL:\n",
+          "config": {}
+        },
+        "promptId": "ff31c617f199663f3e39ba9767c7ea2f709e75c4602715d01a21afe19396b4f9",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:gpt-4o",
+          "label": "GPT-4o"
+        },
+        "response": {
+          "output": "```sql\nSELECT e.name\nFROM employees e\nLEFT JOIN expense_reports er ON e.id = er.employee_id AND YEAR(er.submitted_at) = YEAR(CURDATE())\nWHERE er.id IS NULL;\n```",
+          "tokenUsage": {
+            "total": 118,
+            "prompt": 75,
+            "completion": 43,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 942,
+          "finishReason": "stop",
+          "cost": 0.0006175,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bd156f9368627-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:37:18 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "787",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=Tzss8vGj6zasyL6YtX7oSpU1zJ8I_S1GAyhRZCz_DWw-1777271837.2723715-1.0.1.1-Wd_xwVAA47Y5zt8hnidpqWzoA4RBs43KWma34v9GJyY6o.AA_xYDoELHHzdy2sbVHy0eFOh2EguQr9chTZ4BMMwQfXYUAOyBYcr0V81gf4WE3IYhR66v03rIysuY15Pi; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:07:18 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "500",
+                "x-ratelimit-limit-tokens": "30000",
+                "x-ratelimit-remaining-requests": "499",
+                "x-ratelimit-remaining-tokens": "29916",
+                "x-ratelimit-reset-requests": "120ms",
+                "x-ratelimit-reset-tokens": "168ms",
+                "x-request-id": "req_78d7865a0e3945b89479d3c9796d3acd"
+              }
+            }
+          }
+        },
+        "score": 5,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "List employees who have not submitted any expense reports this year",
+            "schema": "Tables: employees (id, name, department, hire_date), expense_reports (id, employee_id, amount, submitted_at)"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this SQL query on a 1-5 scale:\n5 = Uses LEFT JOIN + IS NULL or NOT EXISTS/NOT IN, correctly filters expense_reports by current year\n4 = Correct anti-join pattern but date filter is approximate\n3 = Uses the right tables but wrong anti-join pattern (e.g., INNER JOIN instead of LEFT)\n2 = Missing the anti-join logic entirely\n1 = Not valid SQL\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 3,
+        "vars": {
+          "input": "List employees who have not submitted any expense reports this year",
+          "schema": "Tables: employees (id, name, department, hire_date), expense_reports (id, employee_id, amount, submitted_at)"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bd156f9368627-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:37:18 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "787",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=Tzss8vGj6zasyL6YtX7oSpU1zJ8I_S1GAyhRZCz_DWw-1777271837.2723715-1.0.1.1-Wd_xwVAA47Y5zt8hnidpqWzoA4RBs43KWma34v9GJyY6o.AA_xYDoELHHzdy2sbVHy0eFOh2EguQr9chTZ4BMMwQfXYUAOyBYcr0V81gf4WE3IYhR66v03rIysuY15Pi; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:07:18 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "500",
+              "x-ratelimit-limit-tokens": "30000",
+              "x-ratelimit-remaining-requests": "499",
+              "x-ratelimit-remaining-tokens": "29916",
+              "x-ratelimit-reset-requests": "120ms",
+              "x-ratelimit-reset-tokens": "168ms",
+              "x-request-id": "req_78d7865a0e3945b89479d3c9796d3acd"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.000038849999999999996,
+        "gradingResult": {
+          "pass": true,
+          "score": 5,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1394,
+            "prompt": 311,
+            "completion": 1083,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this SQL query on a 1-5 scale:\n5 = Uses LEFT JOIN + IS NULL or NOT EXISTS/NOT IN, correctly filters expense_reports by current year\n4 = Correct anti-join pattern but date filter is approximate\n3 = Uses the right tables but wrong anti-join pattern (e.g., INNER JOIN instead of LEFT)\n2 = Missing the anti-join logic entirely\n1 = Not valid SQL\n"
+              },
+              "pass": true,
+              "score": 5,
+              "reason": "Uses LEFT JOIN with IS NULL anti-join and correctly restricts matches to the current calendar year via YEAR(er.submitted_at) = YEAR(CURRENT_DATE) in the JOIN condition.",
+              "tokensUsed": {
+                "total": 1394,
+                "prompt": 311,
+                "completion": 1083,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\n```sql\\nSELECT e.id, e.name\\nFROM employees e\\nLEFT JOIN expense_reports er ON e.id = er.employee_id AND YEAR(er.submitted_at) = YEAR(CURRENT_DATE)\\nWHERE er.id IS NULL;\\n```\\n</Output>\\n<Rubric>\\nRate this SQL query on a 1-5 scale:\\n5 = Uses LEFT JOIN + IS NULL or NOT EXISTS/NOT IN, correctly filters expense_reports by current year\\n4 = Correct anti-join pattern but date filter is approximate\\n3 = Uses the right tables but wrong anti-join pattern (e.g., INNER JOIN instead of LEFT)\\n2 = Missing the anti-join logic entirely\\n1 = Not valid SQL\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "63645e94-6dc6-4bd4-a37a-0372b329c509",
+        "latencyMs": 2073,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\nTables: employees (id, name, department, hire_date), expense_reports (id, employee_id, amount, submitted_at)\n\nQuestion: List employees who have not submitted any expense reports this year\n\nSQL:\n",
+          "label": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\n{{schema}}\n\nQuestion: {{input}}\n\nSQL:\n",
+          "config": {}
+        },
+        "promptId": "ff31c617f199663f3e39ba9767c7ea2f709e75c4602715d01a21afe19396b4f9",
+        "promptIdx": 2,
+        "provider": {
+          "id": "openai:gpt-4o-mini",
+          "label": "GPT-4o-mini"
+        },
+        "response": {
+          "output": "```sql\nSELECT e.id, e.name\nFROM employees e\nLEFT JOIN expense_reports er ON e.id = er.employee_id AND YEAR(er.submitted_at) = YEAR(CURRENT_DATE)\nWHERE er.id IS NULL;\n```",
+          "tokenUsage": {
+            "total": 121,
+            "prompt": 75,
+            "completion": 46,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 2073,
+          "finishReason": "stop",
+          "cost": 0.000038849999999999996,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bd192add9e8d9-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:37:28 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "1901",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=uD0kF4qb.EQR4DCte.xV2_BFY_KpuaVY3oKg4ps7Kxk-1777271846.8299496-1.0.1.1-WeZPjTu.ERCXRbLP_Uaiy6zOJ1N7pF_vdOJA0776ZJppOfNKk7neOhWLdDoPU0Qs3pFVwvMcqLl8GqimFW33hIqm_PI6MRztCGBJAvAUcMiwZ8NZ8BTSUp5q9YdsQXYY; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:07:28 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "10000",
+                "x-ratelimit-limit-tokens": "200000",
+                "x-ratelimit-remaining-requests": "9999",
+                "x-ratelimit-remaining-tokens": "199916",
+                "x-ratelimit-reset-requests": "8.64s",
+                "x-ratelimit-reset-tokens": "25ms",
+                "x-request-id": "req_d26a5fa4d04d45289de1dbbf6019ae6b"
+              }
+            }
+          }
+        },
+        "score": 5,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "List employees who have not submitted any expense reports this year",
+            "schema": "Tables: employees (id, name, department, hire_date), expense_reports (id, employee_id, amount, submitted_at)"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this SQL query on a 1-5 scale:\n5 = Uses LEFT JOIN + IS NULL or NOT EXISTS/NOT IN, correctly filters expense_reports by current year\n4 = Correct anti-join pattern but date filter is approximate\n3 = Uses the right tables but wrong anti-join pattern (e.g., INNER JOIN instead of LEFT)\n2 = Missing the anti-join logic entirely\n1 = Not valid SQL\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 3,
+        "vars": {
+          "input": "List employees who have not submitted any expense reports this year",
+          "schema": "Tables: employees (id, name, department, hire_date), expense_reports (id, employee_id, amount, submitted_at)"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bd192add9e8d9-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:37:28 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "1901",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=uD0kF4qb.EQR4DCte.xV2_BFY_KpuaVY3oKg4ps7Kxk-1777271846.8299496-1.0.1.1-WeZPjTu.ERCXRbLP_Uaiy6zOJ1N7pF_vdOJA0776ZJppOfNKk7neOhWLdDoPU0Qs3pFVwvMcqLl8GqimFW33hIqm_PI6MRztCGBJAvAUcMiwZ8NZ8BTSUp5q9YdsQXYY; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:07:28 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "10000",
+              "x-ratelimit-limit-tokens": "200000",
+              "x-ratelimit-remaining-requests": "9999",
+              "x-ratelimit-remaining-tokens": "199916",
+              "x-ratelimit-reset-requests": "8.64s",
+              "x-ratelimit-reset-tokens": "25ms",
+              "x-request-id": "req_d26a5fa4d04d45289de1dbbf6019ae6b"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.0017725000000000002,
+        "gradingResult": {
+          "pass": true,
+          "score": 5,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1371,
+            "prompt": 413,
+            "completion": 958,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this SQL query on a 1-5 scale:\n5 = Uses window function (LAG) or self-join to compare monthly counts, calculates percentage growth\n4 = Correct approach but formula is slightly off or missing edge cases\n3 = Gets monthly counts but doesn't calculate growth rate\n2 = Wrong grouping or aggregation\n1 = Not valid SQL\n"
+              },
+              "pass": true,
+              "score": 5,
+              "reason": "The query aggregates monthly signups with DATE_TRUNC, uses LAG to get the previous month's count, casts to FLOAT to compute percentage growth, and avoids division by zero/handles first month by yielding NULL.",
+              "tokensUsed": {
+                "total": 1371,
+                "prompt": 413,
+                "completion": 958,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\n```sql\\nWITH monthly_signups AS (\\n    SELECT \\n        DATE_TRUNC('month', created_at) AS month,\\n        COUNT(id) AS signups\\n    FROM \\n        users\\n    GROUP BY \\n        DATE_TRUNC('month', created_at)\\n),\\ngrowth_rate AS (\\n    SELECT \\n        month,\\n        signups,\\n        LAG(signups) OVER (ORDER BY month) AS previous_month_signups\\n    FROM \\n        monthly_signups\\n)\\nSELECT \\n    month,\\n    signups,\\n    previous_month_signups,\\n    CASE \\n        WHEN previous_month_signups = 0 THEN NULL\\n        ELSE ((signups - previous_month_signups) / previous_month_signups::FLOAT) * 100\\n    END AS growth_rate_percentage\\nFROM \\n    growth_rate;\\n```\\n</Output>\\n<Rubric>\\nRate this SQL query on a 1-5 scale:\\n5 = Uses window function (LAG) or self-join to compare monthly counts, calculates percentage growth\\n4 = Correct approach but formula is slightly off or missing edge cases\\n3 = Gets monthly counts but doesn't calculate growth rate\\n2 = Wrong grouping or aggregation\\n1 = Not valid SQL\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "a214a630-5e08-41a8-a1e3-dc777b7bbaba",
+        "latencyMs": 2191,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\nTables: users (id, email, created_at)\n\nQuestion: Calculate the month-over-month growth rate of new user signups\n\nSQL:\n",
+          "label": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\n{{schema}}\n\nQuestion: {{input}}\n\nSQL:\n",
+          "config": {}
+        },
+        "promptId": "ff31c617f199663f3e39ba9767c7ea2f709e75c4602715d01a21afe19396b4f9",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:gpt-4o",
+          "label": "GPT-4o"
+        },
+        "response": {
+          "output": "```sql\nWITH monthly_signups AS (\n    SELECT \n        DATE_TRUNC('month', created_at) AS month,\n        COUNT(id) AS signups\n    FROM \n        users\n    GROUP BY \n        DATE_TRUNC('month', created_at)\n),\ngrowth_rate AS (\n    SELECT \n        month,\n        signups,\n        LAG(signups) OVER (ORDER BY month) AS previous_month_signups\n    FROM \n        monthly_signups\n)\nSELECT \n    month,\n    signups,\n    previous_month_signups,\n    CASE \n        WHEN previous_month_signups = 0 THEN NULL\n        ELSE ((signups - previous_month_signups) / previous_month_signups::FLOAT) * 100\n    END AS growth_rate_percentage\nFROM \n    growth_rate;\n```",
+          "tokenUsage": {
+            "total": 223,
+            "prompt": 61,
+            "completion": 162,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 2191,
+          "finishReason": "stop",
+          "cost": 0.0017725000000000002,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bd1a6580e50a1-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:37:32 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "1977",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=K3JQi1G3vloHJ1h2XVVbDdbqQWRvRE.6V5SRxLnRmXw-1777271849.9713957-1.0.1.1-P4Vt35iQBEzPgsQqa_lR0eWk40RdMiyD7Hne4IGQ2D3BAHRvmZonTcFAbzS7fERVi.gFdWkQg3vDsIHo_WMI15vPuKp8AEfb3Ek7fZJcLxRJxCU6ycge6FWNqLnTtmkE; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:07:32 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "500",
+                "x-ratelimit-limit-tokens": "30000",
+                "x-ratelimit-remaining-requests": "499",
+                "x-ratelimit-remaining-tokens": "29935",
+                "x-ratelimit-reset-requests": "120ms",
+                "x-ratelimit-reset-tokens": "130ms",
+                "x-request-id": "req_d42a2ebc4cdb44be9cffda761c7dbcd3"
+              }
+            }
+          }
+        },
+        "score": 5,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Calculate the month-over-month growth rate of new user signups",
+            "schema": "Tables: users (id, email, created_at)"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this SQL query on a 1-5 scale:\n5 = Uses window function (LAG) or self-join to compare monthly counts, calculates percentage growth\n4 = Correct approach but formula is slightly off or missing edge cases\n3 = Gets monthly counts but doesn't calculate growth rate\n2 = Wrong grouping or aggregation\n1 = Not valid SQL\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 4,
+        "vars": {
+          "input": "Calculate the month-over-month growth rate of new user signups",
+          "schema": "Tables: users (id, email, created_at)"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bd1a6580e50a1-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:37:32 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "1977",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=K3JQi1G3vloHJ1h2XVVbDdbqQWRvRE.6V5SRxLnRmXw-1777271849.9713957-1.0.1.1-P4Vt35iQBEzPgsQqa_lR0eWk40RdMiyD7Hne4IGQ2D3BAHRvmZonTcFAbzS7fERVi.gFdWkQg3vDsIHo_WMI15vPuKp8AEfb3Ek7fZJcLxRJxCU6ycge6FWNqLnTtmkE; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:07:32 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "500",
+              "x-ratelimit-limit-tokens": "30000",
+              "x-ratelimit-remaining-requests": "499",
+              "x-ratelimit-remaining-tokens": "29935",
+              "x-ratelimit-reset-requests": "120ms",
+              "x-ratelimit-reset-tokens": "130ms",
+              "x-request-id": "req_d42a2ebc4cdb44be9cffda761c7dbcd3"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.0038970000000000003,
+        "gradingResult": {
+          "pass": true,
+          "score": 5,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1713,
+            "prompt": 441,
+            "completion": 1272,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this SQL query on a 1-5 scale:\n5 = Uses window function (LAG) or self-join to compare monthly counts, calculates percentage growth\n4 = Correct approach but formula is slightly off or missing edge cases\n3 = Gets monthly counts but doesn't calculate growth rate\n2 = Wrong grouping or aggregation\n1 = Not valid SQL\n"
+              },
+              "pass": true,
+              "score": 5,
+              "reason": "Meets the 5 criteria: uses LAG window function to compare monthly signup counts and correctly calculates percentage growth (with CASE to avoid divide-by-zero), then rounds the result.",
+              "tokensUsed": {
+                "total": 1713,
+                "prompt": 441,
+                "completion": 1272,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\n```sql\\nWITH monthly_signups AS (\\n  SELECT \\n    DATE_TRUNC('month', created_at) AS month,\\n    COUNT(*) AS signups\\n  FROM users\\n  GROUP BY DATE_TRUNC('month', created_at)\\n),\\nmonthly_growth AS (\\n  SELECT \\n    month,\\n    signups,\\n    LAG(signups) OVER (ORDER BY month) AS prev_month_signups,\\n    CASE \\n      WHEN LAG(signups) OVER (ORDER BY month) > 0 \\n      THEN ((signups - LAG(signups) OVER (ORDER BY month)) * 100.0 / LAG(signups) OVER (ORDER BY month))\\n      ELSE NULL \\n    END AS growth_rate\\n  FROM monthly_signups\\n)\\nSELECT \\n  month,\\n  signups,\\n  prev_month_signups,\\n  ROUND(growth_rate, 2) AS growth_rate_percent\\nFROM monthly_growth\\nORDER BY month;\\n```\\n</Output>\\n<Rubric>\\nRate this SQL query on a 1-5 scale:\\n5 = Uses window function (LAG) or self-join to compare monthly counts, calculates percentage growth\\n4 = Correct approach but formula is slightly off or missing edge cases\\n3 = Gets monthly counts but doesn't calculate growth rate\\n2 = Wrong grouping or aggregation\\n1 = Not valid SQL\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "3ab24ec4-13d4-4f47-9341-f114b5d73262",
+        "latencyMs": 3676,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\nTables: users (id, email, created_at)\n\nQuestion: Calculate the month-over-month growth rate of new user signups\n\nSQL:\n",
+          "label": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\n{{schema}}\n\nQuestion: {{input}}\n\nSQL:\n",
+          "config": {}
+        },
+        "promptId": "ff31c617f199663f3e39ba9767c7ea2f709e75c4602715d01a21afe19396b4f9",
+        "promptIdx": 1,
+        "provider": {
+          "id": "anthropic:messages:claude-sonnet-4-20250514",
+          "label": "Claude Sonnet 4"
+        },
+        "response": {
+          "output": "```sql\nWITH monthly_signups AS (\n  SELECT \n    DATE_TRUNC('month', created_at) AS month,\n    COUNT(*) AS signups\n  FROM users\n  GROUP BY DATE_TRUNC('month', created_at)\n),\nmonthly_growth AS (\n  SELECT \n    month,\n    signups,\n    LAG(signups) OVER (ORDER BY month) AS prev_month_signups,\n    CASE \n      WHEN LAG(signups) OVER (ORDER BY month) > 0 \n      THEN ((signups - LAG(signups) OVER (ORDER BY month)) * 100.0 / LAG(signups) OVER (ORDER BY month))\n      ELSE NULL \n    END AS growth_rate\n  FROM monthly_signups\n)\nSELECT \n  month,\n  signups,\n  prev_month_signups,\n  ROUND(growth_rate, 2) AS growth_rate_percent\nFROM monthly_growth\nORDER BY month;\n```",
+          "tokenUsage": {
+            "total": 315,
+            "prompt": 69,
+            "completion": 246
+          },
+          "finishReason": "stop",
+          "cost": 0.0038970000000000003
+        },
+        "score": 5,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Calculate the month-over-month growth rate of new user signups",
+            "schema": "Tables: users (id, email, created_at)"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this SQL query on a 1-5 scale:\n5 = Uses window function (LAG) or self-join to compare monthly counts, calculates percentage growth\n4 = Correct approach but formula is slightly off or missing edge cases\n3 = Gets monthly counts but doesn't calculate growth rate\n2 = Wrong grouping or aggregation\n1 = Not valid SQL\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 4,
+        "vars": {
+          "input": "Calculate the month-over-month growth rate of new user signups",
+          "schema": "Tables: users (id, email, created_at)"
+        },
+        "metadata": {
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.00009015,
+        "gradingResult": {
+          "pass": true,
+          "score": 5,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 2418,
+            "prompt": 386,
+            "completion": 2032,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this SQL query on a 1-5 scale:\n5 = Uses window function (LAG) or self-join to compare monthly counts, calculates percentage growth\n4 = Correct approach but formula is slightly off or missing edge cases\n3 = Gets monthly counts but doesn't calculate growth rate\n2 = Wrong grouping or aggregation\n1 = Not valid SQL\n"
+              },
+              "pass": true,
+              "score": 5,
+              "reason": "Uses LAG to compare monthly counts and computes percentage growth with divide-by-zero handling; meets the level-5 criteria.",
+              "tokensUsed": {
+                "total": 2418,
+                "prompt": 386,
+                "completion": 2032,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\n```sql\\nSELECT \\n    DATE_FORMAT(created_at, '%Y-%m') AS signup_month,\\n    COUNT(*) AS new_signups,\\n    LAG(COUNT(*)) OVER (ORDER BY DATE_FORMAT(created_at, '%Y-%m')) AS previous_month_signups,\\n    (COUNT(*) - LAG(COUNT(*)) OVER (ORDER BY DATE_FORMAT(created_at, '%Y-%m'))) / NULLIF(LAG(COUNT(*)) OVER (ORDER BY DATE_FORMAT(created_at, '%Y-%m')), 0) * 1.0 AS growth_rate\\nFROM \\n    users\\nGROUP BY \\n    signup_month\\nORDER BY \\n    signup_month;\\n```\\n</Output>\\n<Rubric>\\nRate this SQL query on a 1-5 scale:\\n5 = Uses window function (LAG) or self-join to compare monthly counts, calculates percentage growth\\n4 = Correct approach but formula is slightly off or missing edge cases\\n3 = Gets monthly counts but doesn't calculate growth rate\\n2 = Wrong grouping or aggregation\\n1 = Not valid SQL\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "a1cad696-540f-4621-9410-9db0057d9ad6",
+        "latencyMs": 3182,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\nTables: users (id, email, created_at)\n\nQuestion: Calculate the month-over-month growth rate of new user signups\n\nSQL:\n",
+          "label": "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\n{{schema}}\n\nQuestion: {{input}}\n\nSQL:\n",
+          "config": {}
+        },
+        "promptId": "ff31c617f199663f3e39ba9767c7ea2f709e75c4602715d01a21afe19396b4f9",
+        "promptIdx": 2,
+        "provider": {
+          "id": "openai:gpt-4o-mini",
+          "label": "GPT-4o-mini"
+        },
+        "response": {
+          "output": "```sql\nSELECT \n    DATE_FORMAT(created_at, '%Y-%m') AS signup_month,\n    COUNT(*) AS new_signups,\n    LAG(COUNT(*)) OVER (ORDER BY DATE_FORMAT(created_at, '%Y-%m')) AS previous_month_signups,\n    (COUNT(*) - LAG(COUNT(*)) OVER (ORDER BY DATE_FORMAT(created_at, '%Y-%m'))) / NULLIF(LAG(COUNT(*)) OVER (ORDER BY DATE_FORMAT(created_at, '%Y-%m')), 0) * 1.0 AS growth_rate\nFROM \n    users\nGROUP BY \n    signup_month\nORDER BY \n    signup_month;\n```",
+          "tokenUsage": {
+            "total": 196,
+            "prompt": 61,
+            "completion": 135,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 3182,
+          "finishReason": "stop",
+          "cost": 0.00009015,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bd1c5fb6fd8a7-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:37:38 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "2884",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=NeQJrcHTyn8GgMLbsIl2ePrhPs8WRyZku552afq9NZM-1777271855.031466-1.0.1.1-vAbz5Pp815n11bVGhen.V0ZgCGuZtkR0K4DiUavRDniJkhXG8QSLZG936VYTzo7YQQRXFx9breVJt2zehHBoBqrZFWkp4KFiotM668DUGeGIlyB.OOu89f4e6c2stJ7B; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:07:38 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "10000",
+                "x-ratelimit-limit-tokens": "200000",
+                "x-ratelimit-remaining-requests": "9998",
+                "x-ratelimit-remaining-tokens": "199935",
+                "x-ratelimit-reset-requests": "8.941s",
+                "x-ratelimit-reset-tokens": "19ms",
+                "x-request-id": "req_de50dd491f9d4fd2a5c0d1694f0d6aa0"
+              }
+            }
+          }
+        },
+        "score": 5,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Calculate the month-over-month growth rate of new user signups",
+            "schema": "Tables: users (id, email, created_at)"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this SQL query on a 1-5 scale:\n5 = Uses window function (LAG) or self-join to compare monthly counts, calculates percentage growth\n4 = Correct approach but formula is slightly off or missing edge cases\n3 = Gets monthly counts but doesn't calculate growth rate\n2 = Wrong grouping or aggregation\n1 = Not valid SQL\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 4,
+        "vars": {
+          "input": "Calculate the month-over-month growth rate of new user signups",
+          "schema": "Tables: users (id, email, created_at)"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bd1c5fb6fd8a7-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:37:38 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "2884",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=NeQJrcHTyn8GgMLbsIl2ePrhPs8WRyZku552afq9NZM-1777271855.031466-1.0.1.1-vAbz5Pp815n11bVGhen.V0ZgCGuZtkR0K4DiUavRDniJkhXG8QSLZG936VYTzo7YQQRXFx9breVJt2zehHBoBqrZFWkp4KFiotM668DUGeGIlyB.OOu89f4e6c2stJ7B; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:07:38 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "10000",
+              "x-ratelimit-limit-tokens": "200000",
+              "x-ratelimit-remaining-requests": "9998",
+              "x-ratelimit-remaining-tokens": "199935",
+              "x-ratelimit-reset-requests": "8.941s",
+              "x-ratelimit-reset-tokens": "19ms",
+              "x-request-id": "req_de50dd491f9d4fd2a5c0d1694f0d6aa0"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      }
+    ],
+    "stats": {
+      "successes": 15,
+      "failures": 0,
+      "errors": 0,
+      "tokenUsage": {
+        "prompt": 1181,
+        "completion": 1335,
+        "cached": 0,
+        "total": 2516,
+        "numRequests": 15,
+        "completionDetails": {
+          "reasoning": 0,
+          "acceptedPrediction": 0,
+          "rejectedPrediction": 0
+        },
+        "assertions": {
+          "total": 22789,
+          "prompt": 5187,
+          "completion": 17602,
+          "cached": 0,
+          "numRequests": 0,
+          "completionDetails": {
+            "reasoning": 0,
+            "acceptedPrediction": 0,
+            "rejectedPrediction": 0
+          }
+        }
+      },
+      "durationMs": 90452
+    }
+  },
+  "config": {
+    "tags": {},
+    "description": "SQL Generation - generate SQL from natural language + schema",
+    "prompts": [
+      "Given the following database schema, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\nSchema:\n{{schema}}\n\nQuestion: {{input}}\n\nSQL:\n"
+    ],
+    "providers": [
+      {
+        "id": "openai:gpt-4o",
+        "label": "GPT-4o",
+        "config": {
+          "temperature": 0
+        }
+      },
+      {
+        "id": "anthropic:messages:claude-sonnet-4-20250514",
+        "label": "Claude Sonnet 4",
+        "config": {
+          "temperature": 0
+        }
+      },
+      {
+        "id": "openai:gpt-4o-mini",
+        "label": "GPT-4o-mini",
+        "config": {
+          "temperature": 0
+        }
+      }
+    ],
+    "tests": [
+      {
+        "vars": {
+          "input": "Show me all customers who signed up in the last 30 days and have made at least one purchase",
+          "schema": "Tables: customers (id, name, email, signup_date), orders (id, customer_id, total, created_at)"
+        },
+        "assert": [
+          {
+            "type": "llm-rubric",
+            "value": "Rate this SQL query on a 1-5 scale for correctness:\n5 = Correctly joins customers and orders, filters by signup_date in last 30 days, and ensures at least one order (via JOIN or EXISTS/IN)\n4 = Correct logic but minor syntax issues or non-standard date handling\n3 = Right tables and general approach but wrong join condition or missing a filter\n2 = Uses the right tables but logic is fundamentally wrong\n1 = Wrong tables, syntax errors, or not SQL\nExpected: JOIN customers with orders, filter signup_date >= 30 days ago, GROUP BY or use EXISTS\n"
+          }
+        ]
+      },
+      {
+        "vars": {
+          "input": "What is the average order value per country, sorted from highest to lowest?",
+          "schema": "Tables: orders (id, customer_id, total, created_at), customers (id, name, email, country)"
+        },
+        "assert": [
+          {
+            "type": "llm-rubric",
+            "value": "Rate this SQL query on a 1-5 scale:\n5 = Correctly joins orders with customers, uses AVG(total), groups by country, orders DESC\n4 = Correct logic but minor issues (e.g., missing alias)\n3 = Right approach but wrong aggregation or missing ORDER BY\n2 = Wrong join or aggregation\n1 = Not valid SQL or completely wrong\n"
+          }
+        ]
+      },
+      {
+        "vars": {
+          "input": "Find the top 5 products by revenue in the last quarter",
+          "schema": "Tables: products (id, name, price, category), order_items (id, order_id, product_id, quantity), orders (id, total, created_at)"
+        },
+        "assert": [
+          {
+            "type": "llm-rubric",
+            "value": "Rate this SQL query on a 1-5 scale:\n5 = Correctly joins 3 tables, calculates revenue (quantity * price or from order total), filters last quarter, LIMIT 5, ORDER BY DESC\n4 = Correct logic but date filtering is approximate or minor issues\n3 = Right tables but missing a join or wrong revenue calculation\n2 = Missing key components\n1 = Not valid SQL\n"
+          }
+        ]
+      },
+      {
+        "vars": {
+          "input": "List employees who have not submitted any expense reports this year",
+          "schema": "Tables: employees (id, name, department, hire_date), expense_reports (id, employee_id, amount, submitted_at)"
+        },
+        "assert": [
+          {
+            "type": "llm-rubric",
+            "value": "Rate this SQL query on a 1-5 scale:\n5 = Uses LEFT JOIN + IS NULL or NOT EXISTS/NOT IN, correctly filters expense_reports by current year\n4 = Correct anti-join pattern but date filter is approximate\n3 = Uses the right tables but wrong anti-join pattern (e.g., INNER JOIN instead of LEFT)\n2 = Missing the anti-join logic entirely\n1 = Not valid SQL\n"
+          }
+        ]
+      },
+      {
+        "vars": {
+          "input": "Calculate the month-over-month growth rate of new user signups",
+          "schema": "Tables: users (id, email, created_at)"
+        },
+        "assert": [
+          {
+            "type": "llm-rubric",
+            "value": "Rate this SQL query on a 1-5 scale:\n5 = Uses window function (LAG) or self-join to compare monthly counts, calculates percentage growth\n4 = Correct approach but formula is slightly off or missing edge cases\n3 = Gets monthly counts but doesn't calculate growth rate\n2 = Wrong grouping or aggregation\n1 = Not valid SQL\n"
+          }
+        ]
+      }
+    ],
+    "scenarios": [],
+    "env": {},
+    "outputPath": [
+      "results/sql_generation.json"
+    ],
+    "extensions": [],
+    "metadata": {},
+    "evaluateOptions": {}
+  },
+  "shareableUrl": null,
+  "metadata": {
+    "promptfooVersion": "0.120.19",
+    "nodeVersion": "v22.16.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "exportedAt": "2026-04-27T06:38:11.761Z",
+    "evaluationCreatedAt": "2026-04-27T06:36:40.556Z"
+  }
+}

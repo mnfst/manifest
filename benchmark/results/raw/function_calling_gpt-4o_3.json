@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o",
+  "task": "function_calling",
+  "case": 3,
+  "response": "```json\n{\n  \"name\": \"create_task\",\n  \"arguments\": {\n    \"title\": \"Review PR #42\",\n    \"priority\": \"high\",\n    \"assignee\": \"alice\",\n    \"due_date\": \"next Friday\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 0.0008625,
+  "tokens": {
+    "input": 125,
+    "output": 55
+  }
+}

@@ -1,0 +1,58 @@
+# Task 1: Intent Classification
+# Eval: exact match on the intent label
+# Expected cost per query: $0.001-0.05
+
+description: "Intent Classification - classify user message into a predefined intent"
+
+providers:
+  - id: openai:gpt-4o
+    label: GPT-4o
+    config:
+      temperature: 0
+  - id: anthropic:messages:claude-sonnet-4-20250514
+    label: Claude Sonnet 4
+    config:
+      temperature: 0
+  - id: openai:gpt-4o-mini
+    label: GPT-4o-mini
+    config:
+      temperature: 0
+
+prompts:
+  - |
+    Classify the following customer message into exactly one of these intents:
+    cancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,
+    billing_inquiry, refund_request, technical_support, account_deletion, general_inquiry
+
+    Respond with ONLY the intent label, nothing else.
+
+    Message: "{{input}}"
+
+tests:
+  - vars:
+      input: "I need to cancel my subscription right away"
+    assert:
+      - type: contains
+        value: "cancel_subscription"
+  - vars:
+      input: "What time does your store close on Saturdays?"
+    assert:
+      - type: contains
+        value: "store_hours"
+  - vars:
+      input: "Can you help me reset my password? I forgot it"
+    assert:
+      - type: contains
+        value: "password_reset"
+  - vars:
+      input: "I want to upgrade to the premium plan"
+    assert:
+      - type: contains
+        value: "upgrade_plan"
+  - vars:
+      input: "Where is my order? It was supposed to arrive yesterday"
+    assert:
+      - type: contains
+        value: "order_tracking"
+
+outputPath: results/intent_classification.json

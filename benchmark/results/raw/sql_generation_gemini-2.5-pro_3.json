@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "sql_generation",
+  "case": 3,
+  "response": "```sql\nSELECT T1.name\nFROM employees AS T1\nLEFT JOIN expense_reports AS T2\n  ON T1.id = T2.employee_id AND STRFTIME('%Y', T2.submitted_at) = STRFTIME('%Y', 'now')\nWHERE T2.id IS NULL;\n```",
+  "score": 4,
+  "cost": 0.00081625,
+  "tokens": {
+    "input": 77,
+    "output": 72
+  }
+}

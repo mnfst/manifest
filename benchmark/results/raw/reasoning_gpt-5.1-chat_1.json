@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning",
+  "case": 1,
+  "response": "Company A cost per call:\n- Input: 800 \u00d7 0.003 = 2.4  \n- Output: 200 \u00d7 0.015 = 3  \n- Total = 5.4\n\nCompany B cost per call:\n- Input: 800 \u00d7 (4 / 1,000,000) = 0.0032  \n- Output: 200 \u00d7 (12 / 1,000,000) = 0.0024  \n- Total = 0.0056\n\nDifference:\n5.4 \u2212 0.0056 = 5.3944\n\nANSWER: Company B is cheaper by $5.3944 per call.",
+  "score": 2,
+  "cost": 0.002416,
+  "tokens": {
+    "input": 104,
+    "output": 276
+  }
+}

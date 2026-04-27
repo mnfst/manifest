@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary",
+  "case": 2,
+  "response": "A critical SQL injection vulnerability was found in the /api/v2/auth/login endpoint affecting versions v3.2.0 to v3.4.1, and a patch is ready for review. The security team is advised to parameterize the query in auth_controller.py line 142 and deploy a hotfix within 24 hours.",
+  "score": 5,
+  "cost": 0.000876,
+  "tokens": {
+    "input": 154,
+    "output": 71
+  }
+}

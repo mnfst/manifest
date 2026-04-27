@@ -1,0 +1,12 @@
+{
+  "model": "mistral-medium-2505",
+  "task": "translation",
+  "case": 1,
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et la pr\u00e9cision technique :\n\n**Fran\u00e7ais :** Notre chiffre d'affaires trimestriel a augment\u00e9 de 23 % en glissement annuel, principalement gr\u00e2ce \u00e0 une adoption solide de notre plateforme cloud sur le march\u00e9 europ\u00e9en. Les marges op\u00e9rationnelles se sont am\u00e9lior\u00e9es pour atteindre 18,5 %, contre 15,2 % le trimestre pr\u00e9c\u00e9dent.\n\nCette traduction respecte le style professionnel et technique du texte original.",
+  "score": 5,
+  "cost": 0.00022559999999999998,
+  "tokens": {
+    "input": 74,
+    "output": 98
+  }
+}

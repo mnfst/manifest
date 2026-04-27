@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "translation",
+  "case": 0,
+  "response": "Voici la traduction en fran\u00e7ais, en maintenant le ton et la pr\u00e9cision technique :\n\n**French:** La limite de d\u00e9bit de l'API est d\u00e9pass\u00e9e. Veuillez patienter 60 secondes avant de r\u00e9essayer votre requ\u00eate. Si cela persiste, envisagez de passer \u00e0 notre offre entreprise qui offre un d\u00e9bit 10 fois sup\u00e9rieur.",
+  "score": 5,
+  "cost": 4.875e-05,
+  "tokens": {
+    "input": 61,
+    "output": 66
+  }
+}

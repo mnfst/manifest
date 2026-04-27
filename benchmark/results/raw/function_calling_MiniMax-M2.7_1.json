@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "function_calling",
+  "case": 1,
+  "response": "{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Paris\"}}",
+  "score": 4,
+  "cost": 0.0005115,
+  "tokens": {
+    "input": 137,
+    "output": 82
+  }
+}

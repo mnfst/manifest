@@ -1,0 +1,12 @@
+{
+  "model": "o4-mini",
+  "task": "intent_easy",
+  "case": 4,
+  "response": "order_tracking",
+  "score": 5,
+  "cost": 0.00017710000000000002,
+  "tokens": {
+    "input": 77,
+    "output": 21
+  }
+}

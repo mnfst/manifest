@@ -1,0 +1,12 @@
+{
+  "model": "mistral-medium-2505",
+  "task": "function_calling",
+  "case": 1,
+  "response": "```json\n{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Paris\"}}\n```",
+  "score": 4,
+  "cost": 8.680000000000001e-05,
+  "tokens": {
+    "input": 102,
+    "output": 23
+  }
+}

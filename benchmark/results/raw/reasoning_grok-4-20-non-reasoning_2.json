@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "reasoning",
+  "case": 2,
+  "response": "The product starts at $100.\n\nFirst, apply 20% off: 20% of 100 is 20, so the sale price is 100 - 20 = $80.\n\nNext, apply an additional 15% discount to the sale price: 15% of 80 is 12, so the price after this discount is 80 - 12 = $68.\n\nFinally, add 8.5% sales tax to this amount: 8.5% of 68 is 5.78, so the final price is 68 + 5.78 = $73.78.\n\nAlternatively, this can be calculated in one step using multipliers: 100 \u00d7 (1 - 0.20) \u00d7 (1 - 0.15) \u00d7 (1 + 0.085) = 100 \u00d7 0.8 \u00d7 0.85 \u00d7 1.085.\n\nFirst, 0.8 \u00d7 0.85 = 0.68.\n\nThen, 0.68 \u00d7 1.085 = 0.7378.\n\nFinally, 100 \u00d7 0.7378 = 73.78.\n\nANSWER: 73.78",
+  "score": 5,
+  "cost": 0.002098,
+  "tokens": {
+    "input": 81,
+    "output": 242
+  }
+}

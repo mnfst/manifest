@@ -1,0 +1,12 @@
+{
+  "model": "mistral-medium-2505",
+  "task": "translation",
+  "case": 0,
+  "response": "La limite de taux de l'API a \u00e9t\u00e9 d\u00e9pass\u00e9e. Veuillez attendre 60 secondes avant de r\u00e9essayer votre requ\u00eate. Si le probl\u00e8me persiste, envisagez de passer \u00e0 notre plan entreprise, qui offre un d\u00e9bit 10 fois sup\u00e9rieur.\n\n*(Note: \"Throughput\" is translated as \"d\u00e9bit\" in this context, which is the standard technical term in French for data transfer capacity. The tone remains professional and technical, matching the original.)*",
+  "score": 5,
+  "cost": 0.00022480000000000002,
+  "tokens": {
+    "input": 62,
+    "output": 100
+  }
+}

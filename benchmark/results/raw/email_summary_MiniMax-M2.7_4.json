@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "email_summary",
+  "case": 4,
+  "response": "DataSync Inc. is proposing a strategic partnership to integrate their real-time data synchronization technology into your platform, which could reduce data latency by 60% and generate $2M in additional annual revenue for both parties. They are requesting a technical discussion next week to explore this opportunity further.",
+  "score": 4,
+  "cost": 0.0013112,
+  "tokens": {
+    "input": 168,
+    "output": 256
+  }
+}

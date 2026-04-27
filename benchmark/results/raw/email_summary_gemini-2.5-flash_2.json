@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary",
+  "case": 2,
+  "response": "A critical SQL injection vulnerability (CVSS 9.8) was discovered in the user authentication endpoint, potentially allowing attackers to bypass authentication and access user accounts. A patch is ready, and a hotfix deployment within 24 hours is recommended by parameterizing the query in `auth_controller.py`.",
+  "score": 5,
+  "cost": 6.209999999999999e-05,
+  "tokens": {
+    "input": 166,
+    "output": 62
+  }
+}

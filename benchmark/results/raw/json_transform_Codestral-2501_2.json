@@ -1,0 +1,12 @@
+{
+  "model": "Codestral-2501",
+  "task": "json_transform",
+  "case": 2,
+  "response": "{\n  \"admins\": [\"Alice\", \"Charlie\"],\n  \"users\": [\"Bob\"],\n  \"inactive_count\": 1\n}",
+  "score": 5,
+  "cost": 6.51e-05,
+  "tokens": {
+    "input": 127,
+    "output": 30
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "Codestral-2501",
+  "task": "email_summary",
+  "case": 1,
+  "response": "The root cause of the server outage was a misconfigured load balancer rule that routed all traffic to a single node, leading to 47 minutes of degraded service for approximately 12,000 users. Action items include adding load balancer config validation to the CI pipeline, updating the runbook for LB-related incidents, and implementing automated traffic distribution alerts.",
+  "score": 5,
+  "cost": 0.00012839999999999998,
+  "tokens": {
+    "input": 197,
+    "output": 77
+  }
+}

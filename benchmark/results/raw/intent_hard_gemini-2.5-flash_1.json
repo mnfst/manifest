@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "intent_hard",
+  "case": 1,
+  "response": "refund_request",
+  "score": 5,
+  "cost": 2.13e-05,
+  "tokens": {
+    "input": 130,
+    "output": 3
+  }
+}

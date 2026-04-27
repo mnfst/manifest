@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "function_calling",
+  "case": 4,
+  "response": "{\"name\": \"resize_image\", \"arguments\": {\"path\": \"/uploads/photo.jpg\", \"width\": 800, \"height\": 600}}",
+  "score": 4,
+  "cost": 0.00043,
+  "tokens": {
+    "input": 95,
+    "output": 30
+  }
+}

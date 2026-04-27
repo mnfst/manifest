@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "intent_easy",
+  "case": 2,
+  "response": "password_reset",
+  "score": 5,
+  "cost": 0.000275,
+  "tokens": {
+    "input": 94,
+    "output": 39
+  }
+}

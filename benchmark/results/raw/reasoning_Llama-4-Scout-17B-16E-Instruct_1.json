@@ -1,0 +1,12 @@
+{
+  "model": "Llama-4-Scout-17B-16E-Instruct",
+  "task": "reasoning",
+  "case": 1,
+  "response": "To determine which company is cheaper per call and by how much, let's calculate the cost per call for each company.\n\n### Company A\n\n- Cost per input token: $0.003\n- Cost per output token: $0.015\n- Input tokens per call: 800\n- Output tokens per call: 200\n\nCost per call for Company A = (800 * $0.003) + (200 * $0.015)\n= $2.40 + $3.00\n= $5.40\n\n### Company B\n\n- Cost per million input tokens: $4\n- Cost per million output tokens: $12\n- Input tokens per call: 800\n- Output tokens per call: 200\n\nCost per call for input tokens for Company B = (800 / 1,000,000) * $4\n= 0.0008 * $4\n= $0.0032\n\nCost per call for output tokens for Company B = (200 / 1,000,000) * $12\n= 0.0002 * $12\n= $0.0024\n\nCost per call for Company B = $0.0032 + $0.0024\n= $0.0056\n\n### Comparison\n\nCost per call for Company A: $5.40\nCost per call for Company B: $0.0056\n\nCompany B is cheaper per call.\n\n### Difference in Cost\n\nDifference = $5.40 - $0.0056\n= $5.3944\n\nTo make it more understandable, let's round the difference to two decimal places:\n= $5.39\n\nTherefore, Company B is cheaper by $5.39 per call.\n\nANSWER: Company B, $5.39",
+  "score": 4,
+  "cost": 8.007000000000001e-05,
+  "tokens": {
+    "input": 108,
+    "output": 363
+  }
+}

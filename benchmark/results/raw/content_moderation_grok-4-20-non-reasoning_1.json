@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "content_moderation",
+  "case": 1,
+  "response": "harassment",
+  "score": 5,
+  "cost": 0.000128,
+  "tokens": {
+    "input": 56,
+    "output": 2
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "email_summary",
+  "case": 3,
+  "response": "The March new hire cohort reported a drop in onboarding satisfaction due to confusion over benefits, delayed access to tools, and a missing handbook. The suggested action is to prioritize fixing the delay in providing new hires with access to internal tools.",
+  "score": 3,
+  "cost": 0.00068625,
+  "tokens": {
+    "input": 181,
+    "output": 46
+  }
+}

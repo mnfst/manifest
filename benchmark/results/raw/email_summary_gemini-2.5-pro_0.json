@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "email_summary",
+  "case": 0,
+  "response": "Sarah is proposing to reallocate $50K from engineering's unused budget to cover marketing's overspend and stay within the overall quarterly target. The team needs to confirm their availability for a 30-minute call this Thursday to discuss this plan.",
+  "score": 5,
+  "cost": 0.00075875,
+  "tokens": {
+    "input": 183,
+    "output": 53
+  }
+}

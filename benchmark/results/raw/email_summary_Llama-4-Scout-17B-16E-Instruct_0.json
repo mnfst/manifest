@@ -1,0 +1,12 @@
+{
+  "model": "Llama-4-Scout-17B-16E-Instruct",
+  "task": "email_summary",
+  "case": 0,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe marketing department has exceeded its Q3 budget by 15% due to an unplanned campaign launch, while the engineering team is 8% under budget, and Sarah proposes reallocate $50K from engineering to cover marketing's overspend. A 30-minute call is scheduled for this Thursday to discuss the proposal, and team members are asked to confirm their availability.",
+  "score": 5,
+  "cost": 4.4710000000000004e-05,
+  "tokens": {
+    "input": 176,
+    "output": 87
+  }
+}

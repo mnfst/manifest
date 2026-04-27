@@ -1,0 +1,12 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "intent_easy",
+  "case": 2,
+  "response": "password_reset",
+  "score": 5,
+  "cost": 0.00039539999999999996,
+  "tokens": {
+    "input": 79,
+    "output": 145
+  }
+}

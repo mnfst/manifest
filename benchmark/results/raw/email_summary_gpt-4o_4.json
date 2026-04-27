@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o",
+  "task": "email_summary",
+  "case": 4,
+  "response": "Maria Chen from DataSync Inc. proposes a strategic partnership involving a revenue-sharing model where DataSync provides data synchronization technology to enhance Alex's platform, potentially reducing data latency by 60% and generating $2M in additional annual revenue. She requests a technical discussion next week to explore the proposal further.",
+  "score": 4,
+  "cost": 0.000985,
+  "tokens": {
+    "input": 154,
+    "output": 60
+  }
+}

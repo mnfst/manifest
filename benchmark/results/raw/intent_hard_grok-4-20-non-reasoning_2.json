@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "intent_hard",
+  "case": 2,
+  "response": "bug_report",
+  "score": 5,
+  "cost": 0.000228,
+  "tokens": {
+    "input": 106,
+    "output": 2
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-R1",
+  "task": "intent_easy",
+  "case": 1,
+  "response": "store_hours",
+  "score": 5,
+  "cost": 0.00062928,
+  "tokens": {
+    "input": 81,
+    "output": 267
+  }
+}

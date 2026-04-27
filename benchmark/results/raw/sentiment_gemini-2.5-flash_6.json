@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "sentiment",
+  "case": 6,
+  "response": "positive",
+  "score": 0,
+  "cost": 8.7e-06,
+  "tokens": {
+    "input": 54,
+    "output": 1
+  }
+}

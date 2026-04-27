@@ -1,0 +1,12 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "intent_easy",
+  "case": 7,
+  "response": "technical_support",
+  "score": 5,
+  "cost": 0.0003816,
+  "tokens": {
+    "input": 76,
+    "output": 140
+  }
+}

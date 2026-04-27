@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "intent_easy",
+  "case": 3,
+  "response": "upgrade_plan",
+  "score": 5,
+  "cost": 0.000152,
+  "tokens": {
+    "input": 68,
+    "output": 2
+  }
+}

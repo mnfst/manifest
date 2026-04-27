@@ -1,0 +1,12 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "intent_hard",
+  "case": 6,
+  "response": "downgrade_plan",
+  "score": 5,
+  "cost": 0.0006696,
+  "tokens": {
+    "input": 116,
+    "output": 250
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "o4-mini",
+  "task": "intent_easy",
+  "case": 9,
+  "response": "billing_inquiry",
+  "score": 0,
+  "cost": 0.0004576,
+  "tokens": {
+    "input": 72,
+    "output": 86
+  }
+}

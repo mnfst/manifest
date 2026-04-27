@@ -1,0 +1,12 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "translation",
+  "case": 1,
+  "response": "Notre chiffre d'affaires trimestriel a augment\u00e9 de 23 % sur un an, principalement tir\u00e9 par la forte adoption de notre plateforme cloud sur le march\u00e9 europ\u00e9en. Les marges op\u00e9rationnelles se sont am\u00e9lior\u00e9es pour atteindre 18,5 %, contre 15,2 % au trimestre pr\u00e9c\u00e9dent.",
+  "score": 5,
+  "cost": 0.0039108,
+  "tokens": {
+    "input": 74,
+    "output": 1611
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "o4-mini",
+  "task": "entity_extraction",
+  "case": 2,
+  "response": "{\"persons\": [], \"organizations\": [\"United Nations Security Council\"], \"locations\": [\"New York\", \"France\", \"United Kingdom\", \"China\", \"eastern Congo\"]}",
+  "score": 4,
+  "cost": 0.0023089,
+  "tokens": {
+    "input": 87,
+    "output": 503
+  }
+}

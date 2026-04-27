@@ -1,0 +1,12 @@
+{
+  "model": "o4-mini",
+  "task": "reasoning",
+  "case": 4,
+  "response": "",
+  "score": 1,
+  "cost": 0.0036025000000000007,
+  "tokens": {
+    "input": 75,
+    "output": 800
+  }
+}

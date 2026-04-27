@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation",
+  "case": 3,
+  "response": "Here are pytest\u2011style unit tests that cover happy paths, edge cases, and error cases.\n\n```python\nimport pytest\nfrom your_module import slugify\n\ndef test_slugify_happy_basic():\n    assert slugify(\"Hello World\") == \"hello-world\"\n\ndef test_slugify_happy_with_punctuation():\n    assert slugify(\"Hello, World!!!\") == \"hello-world\"\n\ndef test_slugify_happy_with_underscores():\n    assert slugify(\"hello_world_test\") == \"hello-world-test\"\n\ndef test_slugify_happy_with_mixed_spaces():\n    assert slugify(\"  Hello   World  \") == \"hello-world\"\n\ndef test_slugify_happy_collapse_multiple_hyphens():\n    assert slugify(\"Hello---World\") == \"hello-world\"\n\ndef test_slugify_removes_leading_and_trailing_hyphens():\n    assert slugify(\"---Hello World---\") == \"hello-world\"\n\ndef test_slugify_non_ascii_word_characters_kept():\n    # \\w includes some unicode word characters\n    assert slugify(\"caf\u00e9 d\u00e9j\u00e0 vu\") == \"caf\u00e9-d\u00e9j\u00e0-vu\"\n\ndef test_slugify_numbers_and_words():\n    assert slugify(\"Version 2.0 Release\") == \"version-20-release\"\n\n# Edge cases\ndef test_slugify_empty_string():\n    assert slugify(\"\") == \"\"\n\ndef test_slugify_only_spaces():\n    assert slugify(\"     \") == \"\"\n\ndef test_slugify_only_punctuation():\n    assert slugify(\"!!!???\") == \"\"\n\ndef test_slugify_only_hyphens():\n    assert slugify(\"---\") == \"\"\n\ndef test_slugify_mixed_symbols_removed():\n    assert slugify(\"@hello #world$\") == \"hello-world\"\n\n# Error cases\ndef test_slugify_non_string_input():\n    with pytest.raises(AttributeError):\n        slugify(None)\n\ndef test_slugify_int_input():\n    with pytest.raises(AttributeError):\n        slugify(123)\n```\n\nLet me know if you'd like property\u2011based tests (Hypothesis) as well.",
+  "score": 4,
+  "cost": 0.003564,
+  "tokens": {
+    "input": 110,
+    "output": 418
+  }
+}

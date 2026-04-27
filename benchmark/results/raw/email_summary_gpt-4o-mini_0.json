@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "email_summary",
+  "case": 0,
+  "response": "Sarah proposes reallocating $50K from the engineering department's unused budget to cover the marketing department's 15% overspend due to an unplanned campaign. She requests a 30-minute call this Thursday to discuss the proposal and asks the team to confirm their availability.",
+  "score": 5,
+  "cost": 5.85e-05,
+  "tokens": {
+    "input": 174,
+    "output": 54
+  }
+}

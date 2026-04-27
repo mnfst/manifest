@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning",
+  "case": 4,
+  "response": "The snail gains a net of \\(3-2 = 1\\) foot each full day. After \\(d\\) days (excluding the final climb), its height is \\(d\\) feet. On the next day it climbs another 3 feet, so its height becomes \\(d+3\\). It reaches the top (20\u202fft) when  \n\n\\[\nd+3 \\ge 20 \\quad\\Longrightarrow\\quad d \\ge 17.\n\\]\n\nThus after 17 days the snail is at 17\u202fft, and on day\u202f18 it climbs the remaining 3\u202fft to reach exactly 20\u202fft. Therefore, the snail reaches the top on **day\u202f18**.\n\n**Answer:** Day 18.  \nANSWER: 18",
+  "score": 4,
+  "cost": 0.0018953,
+  "tokens": {
+    "input": 91,
+    "output": 408
+  }
+}

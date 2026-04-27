@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "intent_easy",
+  "case": 0,
+  "response": "cancel_subscription",
+  "score": 5,
+  "cost": 0.000196,
+  "tokens": {
+    "input": 74,
+    "output": 6
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "o4-mini",
+  "task": "entity_extraction",
+  "case": 3,
+  "response": "{\"persons\":[\"Tim Cook\"],\"organizations\":[\"Apple\",\"Foxconn\",\"Chinese Ministry of Commerce\"],\"locations\":[\"Shenzhen\",\"China\",\"Beijing\"]}",
+  "score": 5,
+  "cost": 0.0011561000000000002,
+  "tokens": {
+    "input": 83,
+    "output": 242
+  }
+}

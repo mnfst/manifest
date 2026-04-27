@@ -1,0 +1,12 @@
+{
+  "model": "Llama-4-Scout-17B-16E-Instruct",
+  "task": "translation",
+  "case": 2,
+  "response": "Pour d\u00e9ployer l'application, assurez-vous d'abord que Docker est install\u00e9 et en cours d'ex\u00e9cution. Ex\u00e9cutez ensuite 'docker compose up -d' \u00e0 partir de la racine du projet. Le service sera disponible sur le port 8080 une fois l'initialisation termin\u00e9e.",
+  "score": 5,
+  "cost": 2.2440000000000002e-05,
+  "tokens": {
+    "input": 70,
+    "output": 62
+  }
+}

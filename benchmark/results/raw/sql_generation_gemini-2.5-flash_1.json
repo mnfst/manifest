@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "sql_generation",
+  "case": 1,
+  "response": "```sql\nSELECT c.country, AVG(o.total) AS average_order_value\nFROM orders AS o\nJOIN customers AS c\nON o.customer_id = c.id\nGROUP BY c.country\nORDER BY average_order_value DESC;\n```",
+  "score": 5,
+  "cost": 4.6949999999999996e-05,
+  "tokens": {
+    "input": 77,
+    "output": 59
+  }
+}

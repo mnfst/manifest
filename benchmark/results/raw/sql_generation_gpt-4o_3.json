@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o",
+  "task": "sql_generation",
+  "case": 3,
+  "response": "```sql\nSELECT e.name\nFROM employees e\nLEFT JOIN expense_reports er ON e.id = er.employee_id AND YEAR(er.submitted_at) = YEAR(CURDATE())\nWHERE er.id IS NULL;\n```",
+  "score": 5,
+  "cost": 0.0006175,
+  "tokens": {
+    "input": 75,
+    "output": 43
+  }
+}

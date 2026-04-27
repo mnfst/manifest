@@ -1,0 +1,12 @@
+{
+  "model": "mistral-medium-2505",
+  "task": "sql_generation",
+  "case": 1,
+  "response": "```sql\nSELECT\n    c.country,\n    AVG(o.total) AS average_order_value\nFROM\n    orders o\nJOIN\n    customers c ON o.customer_id = c.id\nGROUP BY\n    c.country\nORDER BY\n    average_order_value DESC;\n```",
+  "score": 5,
+  "cost": 0.00014480000000000002,
+  "tokens": {
+    "input": 72,
+    "output": 58
+  }
+}

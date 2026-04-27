@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "translation",
+  "case": 3,
+  "response": "Nous regrettons de vous informer que votre vol BA287 de Londres Heathrow \u00e0 San Francisco est retard\u00e9 d'environ 3 heures en raison de conditions m\u00e9t\u00e9orologiques d\u00e9favorables. Un bon pour un repas vous a \u00e9t\u00e9 offert et ajout\u00e9 \u00e0 votre r\u00e9servation.",
+  "score": 4,
+  "cost": 8.52e-05,
+  "tokens": {
+    "input": 64,
+    "output": 60
+  }
+}

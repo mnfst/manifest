@@ -1,0 +1,12 @@
+{
+  "model": "o4-mini",
+  "task": "intent_easy",
+  "case": 7,
+  "response": "technical_support",
+  "score": 5,
+  "cost": 0.00045540000000000006,
+  "tokens": {
+    "input": 74,
+    "output": 85
+  }
+}

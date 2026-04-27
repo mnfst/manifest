@@ -1,0 +1,12 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "intent_hard",
+  "case": 2,
+  "response": "bug_report",
+  "score": 5,
+  "cost": 0.0035315999999999998,
+  "tokens": {
+    "input": 114,
+    "output": 1443
+  }
+}

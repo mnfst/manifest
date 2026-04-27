@@ -1,0 +1,12 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "translation",
+  "case": 0,
+  "response": "La limite de d\u00e9bit de l'API a \u00e9t\u00e9 d\u00e9pass\u00e9e. Veuillez patienter 60 secondes avant de r\u00e9essayer votre requ\u00eate. Si ce probl\u00e8me persiste, envisagez de passer \u00e0 notre offre entreprise qui propose un d\u00e9bit 10 fois sup\u00e9rieur.",
+  "score": 5,
+  "cost": 0.001308,
+  "tokens": {
+    "input": 71,
+    "output": 73
+  }
+}

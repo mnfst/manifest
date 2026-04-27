@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "email_summary",
+  "case": 3,
+  "response": "The March onboarding cohort's satisfaction score dropped to 7.2, with key issues being confusion over benefits deadlines, delayed access to internal tools, and missing company handbooks. The main action item is to prioritize fixing the delay in tool access.",
+  "score": 3,
+  "cost": 0.0001066,
+  "tokens": {
+    "input": 172,
+    "output": 50
+  }
+}

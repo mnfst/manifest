@@ -1,0 +1,12 @@
+{
+  "model": "mistral-medium-2505",
+  "task": "extraction_hard",
+  "case": 3,
+  "response": "```json\n{\n  \"severity\": \"high\",\n  \"component\": \"checkout page\",\n  \"summary\": \"Checkout page fails with white screen after payment attempt\",\n  \"steps_to_reproduce\": [\n    \"Add items to cart\",\n    \"Go to checkout page\",\n    \"Enter card information\",\n    \"Click pay button\"\n  ],\n  \"expected_behavior\": \"Successful payment processing and order confirmation\",\n  \"actual_behavior\": \"Spinner for 30 seconds followed by white screen with no error message. Console shows CORS error and 'undefined is not a function' in checkout.bundle.js:847\",\n  \"environment\": {\n    \"os\": \"windows 11\",\n    \"browser\": \"chrome 121\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 0.00039319999999999996,
+  "tokens": {
+    "input": 173,
+    "output": 162
+  }
+}

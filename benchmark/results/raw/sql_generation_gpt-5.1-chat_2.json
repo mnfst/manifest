@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "sql_generation",
+  "case": 2,
+  "response": "SELECT p.id, p.name, SUM(p.price * oi.quantity) AS revenue\nFROM products p\nJOIN order_items oi ON oi.product_id = p.id\nJOIN orders o ON o.id = oi.order_id\nWHERE o.created_at >= DATE_TRUNC('quarter', CURRENT_DATE) - INTERVAL '3 months'\n  AND o.created_at <  DATE_TRUNC('quarter', CURRENT_DATE)\nGROUP BY p.id, p.name\nORDER BY revenue DESC\nLIMIT 5;",
+  "score": 5,
+  "cost": 0.00103,
+  "tokens": {
+    "input": 83,
+    "output": 108
+  }
+}

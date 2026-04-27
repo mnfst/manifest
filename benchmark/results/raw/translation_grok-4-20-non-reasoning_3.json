@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "translation",
+  "case": 3,
+  "response": "**French:** Nous avons le regret de vous informer que votre vol BA287 de Londres Heathrow \u00e0 San Francisco a \u00e9t\u00e9 retard\u00e9 d\u2019environ 3 heures en raison de conditions m\u00e9t\u00e9orologiques d\u00e9favorables. Un bon pour un repas gratuit a \u00e9t\u00e9 ajout\u00e9 \u00e0 votre r\u00e9servation.",
+  "score": 5,
+  "cost": 0.000568,
+  "tokens": {
+    "input": 60,
+    "output": 56
+  }
+}

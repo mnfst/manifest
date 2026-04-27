@@ -1,0 +1,12 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "extraction_hard",
+  "case": 3,
+  "response": "",
+  "score": 1,
+  "cost": 0.001299,
+  "tokens": {
+    "input": 165,
+    "output": 500
+  }
+}

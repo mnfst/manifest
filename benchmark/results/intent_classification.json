@@ -1,0 +1,2131 @@
+{
+  "evalId": "eval-NQm-2026-04-27T06:34:52",
+  "results": {
+    "version": 3,
+    "timestamp": "2026-04-27T06:34:52.030Z",
+    "prompts": [
+      {
+        "id": "f31755c4473940bd3fc8b8ccb47121feadef4efaf8fd108c9f8c044e96ebc463",
+        "raw": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"{{input}}\"\n",
+        "label": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"{{input}}\"\n",
+        "provider": "GPT-4o",
+        "metrics": {
+          "score": 5,
+          "testPassCount": 5,
+          "testFailCount": 0,
+          "testErrorCount": 0,
+          "assertPassCount": 5,
+          "assertFailCount": 0,
+          "totalLatencyMs": 3415,
+          "tokenUsage": {
+            "prompt": 381,
+            "completion": 10,
+            "cached": 0,
+            "total": 391,
+            "numRequests": 5,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            },
+            "assertions": {
+              "total": 0,
+              "prompt": 0,
+              "completion": 0,
+              "cached": 0,
+              "numRequests": 0,
+              "completionDetails": {
+                "reasoning": 0,
+                "acceptedPrediction": 0,
+                "rejectedPrediction": 0
+              }
+            }
+          },
+          "namedScores": {},
+          "namedScoresCount": {},
+          "cost": 0.0010525
+        }
+      },
+      {
+        "id": "f31755c4473940bd3fc8b8ccb47121feadef4efaf8fd108c9f8c044e96ebc463",
+        "raw": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"{{input}}\"\n",
+        "label": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"{{input}}\"\n",
+        "provider": "Claude Sonnet 4",
+        "metrics": {
+          "score": 5,
+          "testPassCount": 5,
+          "testFailCount": 0,
+          "testErrorCount": 0,
+          "assertPassCount": 5,
+          "assertFailCount": 0,
+          "totalLatencyMs": 8272,
+          "tokenUsage": {
+            "prompt": 453,
+            "completion": 30,
+            "cached": 0,
+            "total": 483,
+            "numRequests": 5,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            },
+            "assertions": {
+              "total": 0,
+              "prompt": 0,
+              "completion": 0,
+              "cached": 0,
+              "numRequests": 0,
+              "completionDetails": {
+                "reasoning": 0,
+                "acceptedPrediction": 0,
+                "rejectedPrediction": 0
+              }
+            }
+          },
+          "namedScores": {},
+          "namedScoresCount": {},
+          "cost": 0.0018090000000000003
+        }
+      },
+      {
+        "id": "f31755c4473940bd3fc8b8ccb47121feadef4efaf8fd108c9f8c044e96ebc463",
+        "raw": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"{{input}}\"\n",
+        "label": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"{{input}}\"\n",
+        "provider": "GPT-4o-mini",
+        "metrics": {
+          "score": 5,
+          "testPassCount": 5,
+          "testFailCount": 0,
+          "testErrorCount": 0,
+          "assertPassCount": 5,
+          "assertFailCount": 0,
+          "totalLatencyMs": 2876,
+          "tokenUsage": {
+            "prompt": 381,
+            "completion": 10,
+            "cached": 0,
+            "total": 391,
+            "numRequests": 5,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            },
+            "assertions": {
+              "total": 0,
+              "prompt": 0,
+              "completion": 0,
+              "cached": 0,
+              "numRequests": 0,
+              "completionDetails": {
+                "reasoning": 0,
+                "acceptedPrediction": 0,
+                "rejectedPrediction": 0
+              }
+            }
+          },
+          "namedScores": {},
+          "namedScoresCount": {},
+          "cost": 0.00006314999999999999
+        }
+      }
+    ],
+    "results": [
+      {
+        "cost": 0.00001245,
+        "gradingResult": {
+          "pass": true,
+          "score": 1,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "numRequests": 0
+          },
+          "componentResults": [
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "contains",
+                "value": "cancel_subscription"
+              }
+            }
+          ]
+        },
+        "id": "95e44ae3-dab7-4516-a2e1-e05ba2332da2",
+        "latencyMs": 804,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"I need to cancel my subscription right away\"\n",
+          "label": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"{{input}}\"\n",
+          "config": {}
+        },
+        "promptId": "f31755c4473940bd3fc8b8ccb47121feadef4efaf8fd108c9f8c044e96ebc463",
+        "promptIdx": 2,
+        "provider": {
+          "id": "openai:gpt-4o-mini",
+          "label": "GPT-4o-mini"
+        },
+        "response": {
+          "output": "cancel_subscription",
+          "tokenUsage": {
+            "total": 77,
+            "prompt": 75,
+            "completion": 2,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 804,
+          "finishReason": "stop",
+          "cost": 0.00001245,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bcdcd0e9aeb21-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:34:52 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "338",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=_35VlyWcVaO8Ddip0V_6R3pABrUzo_jhNV9iEh6TR7M-1777271692.3289132-1.0.1.1-2WwXxirtI_18Cu3_nasW63RuEqTmd_.l_irg.8FwCV_SnGKsRN2IFV86gTw1B5KLkQfXrQuqN9wHU7VDRnGbNIGFh8gQ.fZ7ztbg0tCogYsB0NRsVBU9tVJniFwu431I; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:04:52 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "10000",
+                "x-ratelimit-limit-tokens": "200000",
+                "x-ratelimit-remaining-requests": "9999",
+                "x-ratelimit-remaining-tokens": "199911",
+                "x-ratelimit-reset-requests": "8.64s",
+                "x-ratelimit-reset-tokens": "26ms",
+                "x-request-id": "req_db2d81e196f64499b3b391ad68a860ab"
+              }
+            }
+          }
+        },
+        "score": 1,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "I need to cancel my subscription right away"
+          },
+          "assert": [
+            {
+              "type": "contains",
+              "value": "cancel_subscription"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 0,
+        "vars": {
+          "input": "I need to cancel my subscription right away"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bcdcd0e9aeb21-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:34:52 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "338",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=_35VlyWcVaO8Ddip0V_6R3pABrUzo_jhNV9iEh6TR7M-1777271692.3289132-1.0.1.1-2WwXxirtI_18Cu3_nasW63RuEqTmd_.l_irg.8FwCV_SnGKsRN2IFV86gTw1B5KLkQfXrQuqN9wHU7VDRnGbNIGFh8gQ.fZ7ztbg0tCogYsB0NRsVBU9tVJniFwu431I; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:04:52 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "10000",
+              "x-ratelimit-limit-tokens": "200000",
+              "x-ratelimit-remaining-requests": "9999",
+              "x-ratelimit-remaining-tokens": "199911",
+              "x-ratelimit-reset-requests": "8.64s",
+              "x-ratelimit-reset-tokens": "26ms",
+              "x-request-id": "req_db2d81e196f64499b3b391ad68a860ab"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.0002075,
+        "gradingResult": {
+          "pass": true,
+          "score": 1,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "numRequests": 0
+          },
+          "componentResults": [
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "contains",
+                "value": "cancel_subscription"
+              }
+            }
+          ]
+        },
+        "id": "3fafeb3d-1519-4b85-8ca2-1ad20bcee131",
+        "latencyMs": 889,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"I need to cancel my subscription right away\"\n",
+          "label": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"{{input}}\"\n",
+          "config": {}
+        },
+        "promptId": "f31755c4473940bd3fc8b8ccb47121feadef4efaf8fd108c9f8c044e96ebc463",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:gpt-4o",
+          "label": "GPT-4o"
+        },
+        "response": {
+          "output": "cancel_subscription",
+          "tokenUsage": {
+            "total": 77,
+            "prompt": 75,
+            "completion": 2,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 889,
+          "finishReason": "stop",
+          "cost": 0.0002075,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bcdcd0f79faae-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:34:52 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "431",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=oG_bE9bKzenck9pjP0B16qTx4nOR0SwxST10bZ5iW7c-1777271692.329215-1.0.1.1-zG75a5bIYZGGh3G3Ua3703YfNKpU9T4ohAUHrB3OqJ8UH3IuQTOKbkdIVQvMACGwCg8cJMACF1WtRPCSAUajTonV.lu2q2SVLoF0Xjh4q4nu2qWh9eNx3h6X6VJDwt2M; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:04:52 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "500",
+                "x-ratelimit-limit-tokens": "30000",
+                "x-ratelimit-remaining-requests": "499",
+                "x-ratelimit-remaining-tokens": "29911",
+                "x-ratelimit-reset-requests": "120ms",
+                "x-ratelimit-reset-tokens": "178ms",
+                "x-request-id": "req_bc7a2792356e4846b5f7b1264194228e"
+              }
+            }
+          }
+        },
+        "score": 1,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "I need to cancel my subscription right away"
+          },
+          "assert": [
+            {
+              "type": "contains",
+              "value": "cancel_subscription"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 0,
+        "vars": {
+          "input": "I need to cancel my subscription right away"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bcdcd0f79faae-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:34:52 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "431",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=oG_bE9bKzenck9pjP0B16qTx4nOR0SwxST10bZ5iW7c-1777271692.329215-1.0.1.1-zG75a5bIYZGGh3G3Ua3703YfNKpU9T4ohAUHrB3OqJ8UH3IuQTOKbkdIVQvMACGwCg8cJMACF1WtRPCSAUajTonV.lu2q2SVLoF0Xjh4q4nu2qWh9eNx3h6X6VJDwt2M; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:04:52 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "500",
+              "x-ratelimit-limit-tokens": "30000",
+              "x-ratelimit-remaining-requests": "499",
+              "x-ratelimit-remaining-tokens": "29911",
+              "x-ratelimit-reset-requests": "120ms",
+              "x-ratelimit-reset-tokens": "178ms",
+              "x-request-id": "req_bc7a2792356e4846b5f7b1264194228e"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.000357,
+        "gradingResult": {
+          "pass": true,
+          "score": 1,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "numRequests": 0
+          },
+          "componentResults": [
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "contains",
+                "value": "cancel_subscription"
+              }
+            }
+          ]
+        },
+        "id": "b57feb6d-94b4-41ab-a753-8f0c197dcf8f",
+        "latencyMs": 1644,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"I need to cancel my subscription right away\"\n",
+          "label": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"{{input}}\"\n",
+          "config": {}
+        },
+        "promptId": "f31755c4473940bd3fc8b8ccb47121feadef4efaf8fd108c9f8c044e96ebc463",
+        "promptIdx": 1,
+        "provider": {
+          "id": "anthropic:messages:claude-sonnet-4-20250514",
+          "label": "Claude Sonnet 4"
+        },
+        "response": {
+          "output": "cancel_subscription",
+          "tokenUsage": {
+            "total": 95,
+            "prompt": 89,
+            "completion": 6
+          },
+          "finishReason": "stop",
+          "cost": 0.000357
+        },
+        "score": 1,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "I need to cancel my subscription right away"
+          },
+          "assert": [
+            {
+              "type": "contains",
+              "value": "cancel_subscription"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 0,
+        "vars": {
+          "input": "I need to cancel my subscription right away"
+        },
+        "metadata": {
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.0002075,
+        "gradingResult": {
+          "pass": true,
+          "score": 1,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "numRequests": 0
+          },
+          "componentResults": [
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "contains",
+                "value": "store_hours"
+              }
+            }
+          ]
+        },
+        "id": "c3c0ea57-2b95-469e-8376-7ba1d4807abd",
+        "latencyMs": 738,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"What time does your store close on Saturdays?\"\n",
+          "label": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"{{input}}\"\n",
+          "config": {}
+        },
+        "promptId": "f31755c4473940bd3fc8b8ccb47121feadef4efaf8fd108c9f8c044e96ebc463",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:gpt-4o",
+          "label": "GPT-4o"
+        },
+        "response": {
+          "output": "store_hours",
+          "tokenUsage": {
+            "total": 77,
+            "prompt": 75,
+            "completion": 2,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 738,
+          "finishReason": "stop",
+          "cost": 0.0002075,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bcdcd1a30cc8b-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:34:52 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "296",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=hvShmeCSXxaYaB3B4E9gW3uC4Dk48Vp.p0JnX9.W1aA-1777271692.3343816-1.0.1.1-49dZggbbSS3enJ68T7kuOjzEkmIHpIk4bcPzdfwJ_rsSv7_vNam1dhBnEuYUcI2OZassp_iOMNS6irfOSNvFILtA88SGs2wH15Zw4XiqffH7Ytnby5m9SSBaY2nWt2iY; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:04:52 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "500",
+                "x-ratelimit-limit-tokens": "30000",
+                "x-ratelimit-remaining-requests": "499",
+                "x-ratelimit-remaining-tokens": "29910",
+                "x-ratelimit-reset-requests": "120ms",
+                "x-ratelimit-reset-tokens": "180ms",
+                "x-request-id": "req_31fff31251b04898866941f2c6388be4"
+              }
+            }
+          }
+        },
+        "score": 1,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "What time does your store close on Saturdays?"
+          },
+          "assert": [
+            {
+              "type": "contains",
+              "value": "store_hours"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 1,
+        "vars": {
+          "input": "What time does your store close on Saturdays?"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bcdcd1a30cc8b-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:34:52 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "296",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=hvShmeCSXxaYaB3B4E9gW3uC4Dk48Vp.p0JnX9.W1aA-1777271692.3343816-1.0.1.1-49dZggbbSS3enJ68T7kuOjzEkmIHpIk4bcPzdfwJ_rsSv7_vNam1dhBnEuYUcI2OZassp_iOMNS6irfOSNvFILtA88SGs2wH15Zw4XiqffH7Ytnby5m9SSBaY2nWt2iY; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:04:52 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "500",
+              "x-ratelimit-limit-tokens": "30000",
+              "x-ratelimit-remaining-requests": "499",
+              "x-ratelimit-remaining-tokens": "29910",
+              "x-ratelimit-reset-requests": "120ms",
+              "x-ratelimit-reset-tokens": "180ms",
+              "x-request-id": "req_31fff31251b04898866941f2c6388be4"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.00001245,
+        "gradingResult": {
+          "pass": true,
+          "score": 1,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "numRequests": 0
+          },
+          "componentResults": [
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "contains",
+                "value": "store_hours"
+              }
+            }
+          ]
+        },
+        "id": "085e1145-4d93-4785-9913-1c11ca87fc1a",
+        "latencyMs": 555,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"What time does your store close on Saturdays?\"\n",
+          "label": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"{{input}}\"\n",
+          "config": {}
+        },
+        "promptId": "f31755c4473940bd3fc8b8ccb47121feadef4efaf8fd108c9f8c044e96ebc463",
+        "promptIdx": 2,
+        "provider": {
+          "id": "openai:gpt-4o-mini",
+          "label": "GPT-4o-mini"
+        },
+        "response": {
+          "output": "store_hours",
+          "tokenUsage": {
+            "total": 77,
+            "prompt": 75,
+            "completion": 2,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 555,
+          "finishReason": "stop",
+          "cost": 0.00001245,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bcdd14fa47ac4-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:34:53 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "373",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=McNN1HPedvId79ntTII2CwBBxd957rycrLFzZFP1Yag-1777271693.0021787-1.0.1.1-BxHlCd9aTMYZv4WthRQIPIs5aHTDjn5KBHhFMK9SnCBdCKQV_EP3adYYlTK1lXF.XYsDFv8LDiFPWmFkbhCLmGhBXRlmr6e8MY5VSQy28GhlLxgzAKjLGM4GDKTMKEiv; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:04:53 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "10000",
+                "x-ratelimit-limit-tokens": "200000",
+                "x-ratelimit-remaining-requests": "9998",
+                "x-ratelimit-remaining-tokens": "199910",
+                "x-ratelimit-reset-requests": "16.746s",
+                "x-ratelimit-reset-tokens": "27ms",
+                "x-request-id": "req_f24c0cf8e56c49338d598430db2d14cb"
+              }
+            }
+          }
+        },
+        "score": 1,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "What time does your store close on Saturdays?"
+          },
+          "assert": [
+            {
+              "type": "contains",
+              "value": "store_hours"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 1,
+        "vars": {
+          "input": "What time does your store close on Saturdays?"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bcdd14fa47ac4-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:34:53 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "373",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=McNN1HPedvId79ntTII2CwBBxd957rycrLFzZFP1Yag-1777271693.0021787-1.0.1.1-BxHlCd9aTMYZv4WthRQIPIs5aHTDjn5KBHhFMK9SnCBdCKQV_EP3adYYlTK1lXF.XYsDFv8LDiFPWmFkbhCLmGhBXRlmr6e8MY5VSQy28GhlLxgzAKjLGM4GDKTMKEiv; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:04:53 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "10000",
+              "x-ratelimit-limit-tokens": "200000",
+              "x-ratelimit-remaining-requests": "9998",
+              "x-ratelimit-remaining-tokens": "199910",
+              "x-ratelimit-reset-requests": "16.746s",
+              "x-ratelimit-reset-tokens": "27ms",
+              "x-request-id": "req_f24c0cf8e56c49338d598430db2d14cb"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.00036300000000000004,
+        "gradingResult": {
+          "pass": true,
+          "score": 1,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "numRequests": 0
+          },
+          "componentResults": [
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "contains",
+                "value": "store_hours"
+              }
+            }
+          ]
+        },
+        "id": "d0d60c17-85a8-4f3b-ab0d-bdec519fe720",
+        "latencyMs": 2361,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"What time does your store close on Saturdays?\"\n",
+          "label": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"{{input}}\"\n",
+          "config": {}
+        },
+        "promptId": "f31755c4473940bd3fc8b8ccb47121feadef4efaf8fd108c9f8c044e96ebc463",
+        "promptIdx": 1,
+        "provider": {
+          "id": "anthropic:messages:claude-sonnet-4-20250514",
+          "label": "Claude Sonnet 4"
+        },
+        "response": {
+          "output": "store_hours",
+          "tokenUsage": {
+            "total": 97,
+            "prompt": 91,
+            "completion": 6
+          },
+          "finishReason": "stop",
+          "cost": 0.00036300000000000004
+        },
+        "score": 1,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "What time does your store close on Saturdays?"
+          },
+          "assert": [
+            {
+              "type": "contains",
+              "value": "store_hours"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 1,
+        "vars": {
+          "input": "What time does your store close on Saturdays?"
+        },
+        "metadata": {
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.00021500000000000002,
+        "gradingResult": {
+          "pass": true,
+          "score": 1,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "numRequests": 0
+          },
+          "componentResults": [
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "contains",
+                "value": "password_reset"
+              }
+            }
+          ]
+        },
+        "id": "db8a995f-47ab-49c7-8d22-65c316c5db34",
+        "latencyMs": 591,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"Can you help me reset my password? I forgot it\"\n",
+          "label": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"{{input}}\"\n",
+          "config": {}
+        },
+        "promptId": "f31755c4473940bd3fc8b8ccb47121feadef4efaf8fd108c9f8c044e96ebc463",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:gpt-4o",
+          "label": "GPT-4o"
+        },
+        "response": {
+          "output": "password_reset",
+          "tokenUsage": {
+            "total": 80,
+            "prompt": 78,
+            "completion": 2,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 591,
+          "finishReason": "stop",
+          "cost": 0.00021500000000000002,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bcdd1ae91f4d9-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:34:53 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "425",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=GCZm.RnkA2qpIdMtLiI.HtL74PCcGK_4mfz_vg3Snzw-1777271693.0637517-1.0.1.1-RnENIsrxZj4JHmUpf7gO1ooDfSmEyvSpTblBPxD69NOJzhlxF3PyyIeT.qOSQEM9.TA.B1yGtEfrp1P2DhyoCtRnc_IYv0ahyxzxDORWWeuyEp4HvI0ZQ.RDar5Ina5e; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:04:53 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "500",
+                "x-ratelimit-limit-tokens": "30000",
+                "x-ratelimit-remaining-requests": "499",
+                "x-ratelimit-remaining-tokens": "29910",
+                "x-ratelimit-reset-requests": "120ms",
+                "x-ratelimit-reset-tokens": "180ms",
+                "x-request-id": "req_89b3f818e6234b6e8d8d334169cb8a02"
+              }
+            }
+          }
+        },
+        "score": 1,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Can you help me reset my password? I forgot it"
+          },
+          "assert": [
+            {
+              "type": "contains",
+              "value": "password_reset"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 2,
+        "vars": {
+          "input": "Can you help me reset my password? I forgot it"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bcdd1ae91f4d9-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:34:53 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "425",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=GCZm.RnkA2qpIdMtLiI.HtL74PCcGK_4mfz_vg3Snzw-1777271693.0637517-1.0.1.1-RnENIsrxZj4JHmUpf7gO1ooDfSmEyvSpTblBPxD69NOJzhlxF3PyyIeT.qOSQEM9.TA.B1yGtEfrp1P2DhyoCtRnc_IYv0ahyxzxDORWWeuyEp4HvI0ZQ.RDar5Ina5e; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:04:53 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "500",
+              "x-ratelimit-limit-tokens": "30000",
+              "x-ratelimit-remaining-requests": "499",
+              "x-ratelimit-remaining-tokens": "29910",
+              "x-ratelimit-reset-requests": "120ms",
+              "x-ratelimit-reset-tokens": "180ms",
+              "x-request-id": "req_89b3f818e6234b6e8d8d334169cb8a02"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.0000129,
+        "gradingResult": {
+          "pass": true,
+          "score": 1,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "numRequests": 0
+          },
+          "componentResults": [
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "contains",
+                "value": "password_reset"
+              }
+            }
+          ]
+        },
+        "id": "59cdfc6c-02aa-4c74-bc64-8e545c1ff88a",
+        "latencyMs": 498,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"Can you help me reset my password? I forgot it\"\n",
+          "label": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"{{input}}\"\n",
+          "config": {}
+        },
+        "promptId": "f31755c4473940bd3fc8b8ccb47121feadef4efaf8fd108c9f8c044e96ebc463",
+        "promptIdx": 2,
+        "provider": {
+          "id": "openai:gpt-4o-mini",
+          "label": "GPT-4o-mini"
+        },
+        "response": {
+          "output": "password_reset",
+          "tokenUsage": {
+            "total": 80,
+            "prompt": 78,
+            "completion": 2,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 498,
+          "finishReason": "stop",
+          "cost": 0.0000129,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bcdd57a271fa8-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:34:54 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "342",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=.xg_ekbIWCaDf6XWrBZUjGES43MhGCACapjUTxPkLj8-1777271693.6778915-1.0.1.1-4rPhko9ZN7DB_MEip8PlVVhnXQi2dVBSozVYDXG0wNaTKBLZkDMj8IVcW68_QDDwKbBaPFw2iULGk1Ix4tF0v9vPabBLRhs9ZVQt2GHs9LV7OFSAHBww0bbUCekvnTdu; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:04:54 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "10000",
+                "x-ratelimit-limit-tokens": "200000",
+                "x-ratelimit-remaining-requests": "9998",
+                "x-ratelimit-remaining-tokens": "199910",
+                "x-ratelimit-reset-requests": "16.601s",
+                "x-ratelimit-reset-tokens": "27ms",
+                "x-request-id": "req_d6cdcf7d56be47a2a1d1557ac3ce27ef"
+              }
+            }
+          }
+        },
+        "score": 1,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Can you help me reset my password? I forgot it"
+          },
+          "assert": [
+            {
+              "type": "contains",
+              "value": "password_reset"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 2,
+        "vars": {
+          "input": "Can you help me reset my password? I forgot it"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bcdd57a271fa8-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:34:54 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "342",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=.xg_ekbIWCaDf6XWrBZUjGES43MhGCACapjUTxPkLj8-1777271693.6778915-1.0.1.1-4rPhko9ZN7DB_MEip8PlVVhnXQi2dVBSozVYDXG0wNaTKBLZkDMj8IVcW68_QDDwKbBaPFw2iULGk1Ix4tF0v9vPabBLRhs9ZVQt2GHs9LV7OFSAHBww0bbUCekvnTdu; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:04:54 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "10000",
+              "x-ratelimit-limit-tokens": "200000",
+              "x-ratelimit-remaining-requests": "9998",
+              "x-ratelimit-remaining-tokens": "199910",
+              "x-ratelimit-reset-requests": "16.601s",
+              "x-ratelimit-reset-tokens": "27ms",
+              "x-request-id": "req_d6cdcf7d56be47a2a1d1557ac3ce27ef"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.000366,
+        "gradingResult": {
+          "pass": true,
+          "score": 1,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "numRequests": 0
+          },
+          "componentResults": [
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "contains",
+                "value": "password_reset"
+              }
+            }
+          ]
+        },
+        "id": "66e026c2-2d40-4b7a-9937-49ac46aceb14",
+        "latencyMs": 1544,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"Can you help me reset my password? I forgot it\"\n",
+          "label": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"{{input}}\"\n",
+          "config": {}
+        },
+        "promptId": "f31755c4473940bd3fc8b8ccb47121feadef4efaf8fd108c9f8c044e96ebc463",
+        "promptIdx": 1,
+        "provider": {
+          "id": "anthropic:messages:claude-sonnet-4-20250514",
+          "label": "Claude Sonnet 4"
+        },
+        "response": {
+          "output": "password_reset",
+          "tokenUsage": {
+            "total": 98,
+            "prompt": 92,
+            "completion": 6
+          },
+          "finishReason": "stop",
+          "cost": 0.000366
+        },
+        "score": 1,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Can you help me reset my password? I forgot it"
+          },
+          "assert": [
+            {
+              "type": "contains",
+              "value": "password_reset"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 2,
+        "vars": {
+          "input": "Can you help me reset my password? I forgot it"
+        },
+        "metadata": {
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.0002075,
+        "gradingResult": {
+          "pass": true,
+          "score": 1,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "numRequests": 0
+          },
+          "componentResults": [
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "contains",
+                "value": "upgrade_plan"
+              }
+            }
+          ]
+        },
+        "id": "a7cb6781-1386-4c70-99ac-79ca43f2623c",
+        "latencyMs": 736,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"I want to upgrade to the premium plan\"\n",
+          "label": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"{{input}}\"\n",
+          "config": {}
+        },
+        "promptId": "f31755c4473940bd3fc8b8ccb47121feadef4efaf8fd108c9f8c044e96ebc463",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:gpt-4o",
+          "label": "GPT-4o"
+        },
+        "response": {
+          "output": "upgrade_plan",
+          "tokenUsage": {
+            "total": 77,
+            "prompt": 75,
+            "completion": 2,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 736,
+          "finishReason": "stop",
+          "cost": 0.0002075,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bcdd6486433dc-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:34:54 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "526",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=PQBEC33n2JXd6oiWBMj5K1aN2sQJmadvLvlFj3zFsd0-1777271693.8093898-1.0.1.1-_hmlbLADJRydqHxHS8XD1TJLeDihRIvIrS62kpNtcjaQaygWigxt4LsjvKPtPyWy1MnZyuLoEH2v2Az6eisOHcaQb.Vmz6GVssOOJpbnee5pihniA41u0.qf3y18JuCY; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:04:54 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "500",
+                "x-ratelimit-limit-tokens": "30000",
+                "x-ratelimit-remaining-requests": "499",
+                "x-ratelimit-remaining-tokens": "29912",
+                "x-ratelimit-reset-requests": "120ms",
+                "x-ratelimit-reset-tokens": "176ms",
+                "x-request-id": "req_bc5a32a865ad4e5bbaa52c82eb97b96a"
+              }
+            }
+          }
+        },
+        "score": 1,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "I want to upgrade to the premium plan"
+          },
+          "assert": [
+            {
+              "type": "contains",
+              "value": "upgrade_plan"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 3,
+        "vars": {
+          "input": "I want to upgrade to the premium plan"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bcdd6486433dc-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:34:54 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "526",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=PQBEC33n2JXd6oiWBMj5K1aN2sQJmadvLvlFj3zFsd0-1777271693.8093898-1.0.1.1-_hmlbLADJRydqHxHS8XD1TJLeDihRIvIrS62kpNtcjaQaygWigxt4LsjvKPtPyWy1MnZyuLoEH2v2Az6eisOHcaQb.Vmz6GVssOOJpbnee5pihniA41u0.qf3y18JuCY; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:04:54 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "500",
+              "x-ratelimit-limit-tokens": "30000",
+              "x-ratelimit-remaining-requests": "499",
+              "x-ratelimit-remaining-tokens": "29912",
+              "x-ratelimit-reset-requests": "120ms",
+              "x-ratelimit-reset-tokens": "176ms",
+              "x-request-id": "req_bc5a32a865ad4e5bbaa52c82eb97b96a"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.00001245,
+        "gradingResult": {
+          "pass": true,
+          "score": 1,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "numRequests": 0
+          },
+          "componentResults": [
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "contains",
+                "value": "upgrade_plan"
+              }
+            }
+          ]
+        },
+        "id": "69902055-572f-4309-b677-889d85e613b2",
+        "latencyMs": 525,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"I want to upgrade to the premium plan\"\n",
+          "label": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"{{input}}\"\n",
+          "config": {}
+        },
+        "promptId": "f31755c4473940bd3fc8b8ccb47121feadef4efaf8fd108c9f8c044e96ebc463",
+        "promptIdx": 2,
+        "provider": {
+          "id": "openai:gpt-4o-mini",
+          "label": "GPT-4o-mini"
+        },
+        "response": {
+          "output": "upgrade_plan",
+          "tokenUsage": {
+            "total": 77,
+            "prompt": 75,
+            "completion": 2,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 525,
+          "finishReason": "stop",
+          "cost": 0.00001245,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bcddafb30f017-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:34:55 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "374",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=XgBxjbzNH123Q4IR03Z6BrBX3o8bq1qPFlJLfCUowN8-1777271694.5515087-1.0.1.1-Ig4TFpQMx7OSdGxhGgPl_552yqI_eatjku9ACKNQZk0vrYHT9fidIWsVCKZljvf6HvEmGyEI.v9aKCDJ3gDq38VK4z02vxhGS.5_bKn7Rh31vQkLNd5qk_1IcO8IO5x7; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:04:55 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "10000",
+                "x-ratelimit-limit-tokens": "200000",
+                "x-ratelimit-remaining-requests": "9996",
+                "x-ratelimit-remaining-tokens": "199912",
+                "x-ratelimit-reset-requests": "32.475s",
+                "x-ratelimit-reset-tokens": "26ms",
+                "x-request-id": "req_9a64b0ec85f54c7fb99691db7c067300"
+              }
+            }
+          }
+        },
+        "score": 1,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "I want to upgrade to the premium plan"
+          },
+          "assert": [
+            {
+              "type": "contains",
+              "value": "upgrade_plan"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 3,
+        "vars": {
+          "input": "I want to upgrade to the premium plan"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bcddafb30f017-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:34:55 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "374",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=XgBxjbzNH123Q4IR03Z6BrBX3o8bq1qPFlJLfCUowN8-1777271694.5515087-1.0.1.1-Ig4TFpQMx7OSdGxhGgPl_552yqI_eatjku9ACKNQZk0vrYHT9fidIWsVCKZljvf6HvEmGyEI.v9aKCDJ3gDq38VK4z02vxhGS.5_bKn7Rh31vQkLNd5qk_1IcO8IO5x7; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:04:55 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "10000",
+              "x-ratelimit-limit-tokens": "200000",
+              "x-ratelimit-remaining-requests": "9996",
+              "x-ratelimit-remaining-tokens": "199912",
+              "x-ratelimit-reset-requests": "32.475s",
+              "x-ratelimit-reset-tokens": "26ms",
+              "x-request-id": "req_9a64b0ec85f54c7fb99691db7c067300"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.000357,
+        "gradingResult": {
+          "pass": true,
+          "score": 1,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "numRequests": 0
+          },
+          "componentResults": [
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "contains",
+                "value": "upgrade_plan"
+              }
+            }
+          ]
+        },
+        "id": "81364d23-d126-485b-9e20-00f954b4b9f5",
+        "latencyMs": 1266,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"I want to upgrade to the premium plan\"\n",
+          "label": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"{{input}}\"\n",
+          "config": {}
+        },
+        "promptId": "f31755c4473940bd3fc8b8ccb47121feadef4efaf8fd108c9f8c044e96ebc463",
+        "promptIdx": 1,
+        "provider": {
+          "id": "anthropic:messages:claude-sonnet-4-20250514",
+          "label": "Claude Sonnet 4"
+        },
+        "response": {
+          "output": "upgrade_plan",
+          "tokenUsage": {
+            "total": 95,
+            "prompt": 89,
+            "completion": 6
+          },
+          "finishReason": "stop",
+          "cost": 0.000357
+        },
+        "score": 1,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "I want to upgrade to the premium plan"
+          },
+          "assert": [
+            {
+              "type": "contains",
+              "value": "upgrade_plan"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 3,
+        "vars": {
+          "input": "I want to upgrade to the premium plan"
+        },
+        "metadata": {
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.00021500000000000002,
+        "gradingResult": {
+          "pass": true,
+          "score": 1,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "numRequests": 0
+          },
+          "componentResults": [
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "contains",
+                "value": "order_tracking"
+              }
+            }
+          ]
+        },
+        "id": "a95949c6-b81e-4476-8476-a1405ef82743",
+        "latencyMs": 461,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"Where is my order? It was supposed to arrive yesterday\"\n",
+          "label": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"{{input}}\"\n",
+          "config": {}
+        },
+        "promptId": "f31755c4473940bd3fc8b8ccb47121feadef4efaf8fd108c9f8c044e96ebc463",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:gpt-4o",
+          "label": "GPT-4o"
+        },
+        "response": {
+          "output": "order_tracking",
+          "tokenUsage": {
+            "total": 80,
+            "prompt": 78,
+            "completion": 2,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 461,
+          "finishReason": "stop",
+          "cost": 0.00021500000000000002,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bcdde58bd29a0-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:34:55 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "300",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=zTUfp6U_a3E5VZTZlJzyhhNGmRjaAw8YVgHPtZX.vAw-1777271695.0973136-1.0.1.1-QYziatlBkOFWHVcyBWkvDLh00fQCqmEHVt8KNgK1eYpQX0yq84IuNRUqUBJwRQzKeZwqlMCDzgok3IJNdaFabObaq9IdLDow0eULt4dKKwcNK4QqptZ3zWJrDsqAXoHI; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:04:55 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "500",
+                "x-ratelimit-limit-tokens": "30000",
+                "x-ratelimit-remaining-requests": "499",
+                "x-ratelimit-remaining-tokens": "29908",
+                "x-ratelimit-reset-requests": "120ms",
+                "x-ratelimit-reset-tokens": "184ms",
+                "x-request-id": "req_ed2bd85d5a2144e189d028eb9d1a906d"
+              }
+            }
+          }
+        },
+        "score": 1,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Where is my order? It was supposed to arrive yesterday"
+          },
+          "assert": [
+            {
+              "type": "contains",
+              "value": "order_tracking"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 4,
+        "vars": {
+          "input": "Where is my order? It was supposed to arrive yesterday"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bcdde58bd29a0-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:34:55 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "300",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=zTUfp6U_a3E5VZTZlJzyhhNGmRjaAw8YVgHPtZX.vAw-1777271695.0973136-1.0.1.1-QYziatlBkOFWHVcyBWkvDLh00fQCqmEHVt8KNgK1eYpQX0yq84IuNRUqUBJwRQzKeZwqlMCDzgok3IJNdaFabObaq9IdLDow0eULt4dKKwcNK4QqptZ3zWJrDsqAXoHI; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:04:55 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "500",
+              "x-ratelimit-limit-tokens": "30000",
+              "x-ratelimit-remaining-requests": "499",
+              "x-ratelimit-remaining-tokens": "29908",
+              "x-ratelimit-reset-requests": "120ms",
+              "x-ratelimit-reset-tokens": "184ms",
+              "x-request-id": "req_ed2bd85d5a2144e189d028eb9d1a906d"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.0000129,
+        "gradingResult": {
+          "pass": true,
+          "score": 1,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "numRequests": 0
+          },
+          "componentResults": [
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "contains",
+                "value": "order_tracking"
+              }
+            }
+          ]
+        },
+        "id": "a37390fb-c2a9-4caf-a698-eb1d1339f312",
+        "latencyMs": 494,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"Where is my order? It was supposed to arrive yesterday\"\n",
+          "label": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"{{input}}\"\n",
+          "config": {}
+        },
+        "promptId": "f31755c4473940bd3fc8b8ccb47121feadef4efaf8fd108c9f8c044e96ebc463",
+        "promptIdx": 2,
+        "provider": {
+          "id": "openai:gpt-4o-mini",
+          "label": "GPT-4o-mini"
+        },
+        "response": {
+          "output": "order_tracking",
+          "tokenUsage": {
+            "total": 80,
+            "prompt": 78,
+            "completion": 2,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 494,
+          "finishReason": "stop",
+          "cost": 0.0000129,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bcddf988478eb-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:34:55 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "337",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=J.hGNdRcnZtprXrDUeJ7fnkQCHcLqhYWnp.Y7pyig.s-1777271695.2947817-1.0.1.1-U__CCNTVPHCNgDbqSxVJE_KA7PME6OhGTcLXzV0Z3iOxwAjNeHswRQwnyObo6fiJ4F5JlQ.6SNHcS0EE0Sp38_fJPOxkneiEpxmbOVUtIIWR8kjzTsBeOQ0ua6pF6JX3; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:04:55 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "10000",
+                "x-ratelimit-limit-tokens": "200000",
+                "x-ratelimit-remaining-requests": "9996",
+                "x-ratelimit-remaining-tokens": "199908",
+                "x-ratelimit-reset-requests": "31.735s",
+                "x-ratelimit-reset-tokens": "27ms",
+                "x-request-id": "req_10bfc14143684f669b8b1fdadcbacb81"
+              }
+            }
+          }
+        },
+        "score": 1,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Where is my order? It was supposed to arrive yesterday"
+          },
+          "assert": [
+            {
+              "type": "contains",
+              "value": "order_tracking"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 4,
+        "vars": {
+          "input": "Where is my order? It was supposed to arrive yesterday"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bcddf988478eb-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:34:55 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "337",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=J.hGNdRcnZtprXrDUeJ7fnkQCHcLqhYWnp.Y7pyig.s-1777271695.2947817-1.0.1.1-U__CCNTVPHCNgDbqSxVJE_KA7PME6OhGTcLXzV0Z3iOxwAjNeHswRQwnyObo6fiJ4F5JlQ.6SNHcS0EE0Sp38_fJPOxkneiEpxmbOVUtIIWR8kjzTsBeOQ0ua6pF6JX3; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:04:55 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "10000",
+              "x-ratelimit-limit-tokens": "200000",
+              "x-ratelimit-remaining-requests": "9996",
+              "x-ratelimit-remaining-tokens": "199908",
+              "x-ratelimit-reset-requests": "31.735s",
+              "x-ratelimit-reset-tokens": "27ms",
+              "x-request-id": "req_10bfc14143684f669b8b1fdadcbacb81"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.000366,
+        "gradingResult": {
+          "pass": true,
+          "score": 1,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "numRequests": 0
+          },
+          "componentResults": [
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "contains",
+                "value": "order_tracking"
+              }
+            }
+          ]
+        },
+        "id": "6b565a6e-3b33-4af1-84bf-bb1680ebf538",
+        "latencyMs": 1457,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"Where is my order? It was supposed to arrive yesterday\"\n",
+          "label": "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"{{input}}\"\n",
+          "config": {}
+        },
+        "promptId": "f31755c4473940bd3fc8b8ccb47121feadef4efaf8fd108c9f8c044e96ebc463",
+        "promptIdx": 1,
+        "provider": {
+          "id": "anthropic:messages:claude-sonnet-4-20250514",
+          "label": "Claude Sonnet 4"
+        },
+        "response": {
+          "output": "order_tracking",
+          "tokenUsage": {
+            "total": 98,
+            "prompt": 92,
+            "completion": 6
+          },
+          "finishReason": "stop",
+          "cost": 0.000366
+        },
+        "score": 1,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Where is my order? It was supposed to arrive yesterday"
+          },
+          "assert": [
+            {
+              "type": "contains",
+              "value": "order_tracking"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 4,
+        "vars": {
+          "input": "Where is my order? It was supposed to arrive yesterday"
+        },
+        "metadata": {
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      }
+    ],
+    "stats": {
+      "successes": 15,
+      "failures": 0,
+      "errors": 0,
+      "tokenUsage": {
+        "prompt": 1215,
+        "completion": 50,
+        "cached": 0,
+        "total": 1265,
+        "numRequests": 15,
+        "completionDetails": {
+          "reasoning": 0,
+          "acceptedPrediction": 0,
+          "rejectedPrediction": 0
+        },
+        "assertions": {
+          "total": 0,
+          "prompt": 0,
+          "completion": 0,
+          "cached": 0,
+          "numRequests": 0,
+          "completionDetails": {
+            "reasoning": 0,
+            "acceptedPrediction": 0,
+            "rejectedPrediction": 0
+          }
+        }
+      },
+      "durationMs": 4420
+    }
+  },
+  "config": {
+    "tags": {},
+    "description": "Intent Classification - classify user message into a predefined intent",
+    "prompts": [
+      "Classify the following customer message into exactly one of these intents:\ncancel_subscription, store_hours, password_reset, upgrade_plan, order_tracking,\nbilling_inquiry, refund_request, technical_support, account_deletion, general_inquiry\n\nRespond with ONLY the intent label, nothing else.\n\nMessage: \"{{input}}\"\n"
+    ],
+    "providers": [
+      {
+        "id": "openai:gpt-4o",
+        "label": "GPT-4o",
+        "config": {
+          "temperature": 0
+        }
+      },
+      {
+        "id": "anthropic:messages:claude-sonnet-4-20250514",
+        "label": "Claude Sonnet 4",
+        "config": {
+          "temperature": 0
+        }
+      },
+      {
+        "id": "openai:gpt-4o-mini",
+        "label": "GPT-4o-mini",
+        "config": {
+          "temperature": 0
+        }
+      }
+    ],
+    "tests": [
+      {
+        "vars": {
+          "input": "I need to cancel my subscription right away"
+        },
+        "assert": [
+          {
+            "type": "contains",
+            "value": "cancel_subscription"
+          }
+        ]
+      },
+      {
+        "vars": {
+          "input": "What time does your store close on Saturdays?"
+        },
+        "assert": [
+          {
+            "type": "contains",
+            "value": "store_hours"
+          }
+        ]
+      },
+      {
+        "vars": {
+          "input": "Can you help me reset my password? I forgot it"
+        },
+        "assert": [
+          {
+            "type": "contains",
+            "value": "password_reset"
+          }
+        ]
+      },
+      {
+        "vars": {
+          "input": "I want to upgrade to the premium plan"
+        },
+        "assert": [
+          {
+            "type": "contains",
+            "value": "upgrade_plan"
+          }
+        ]
+      },
+      {
+        "vars": {
+          "input": "Where is my order? It was supposed to arrive yesterday"
+        },
+        "assert": [
+          {
+            "type": "contains",
+            "value": "order_tracking"
+          }
+        ]
+      }
+    ],
+    "scenarios": [],
+    "env": {},
+    "outputPath": [
+      "results/intent_classification.json"
+    ],
+    "extensions": [],
+    "metadata": {},
+    "evaluateOptions": {}
+  },
+  "shareableUrl": null,
+  "metadata": {
+    "promptfooVersion": "0.120.19",
+    "nodeVersion": "v22.16.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "exportedAt": "2026-04-27T06:34:56.623Z",
+    "evaluationCreatedAt": "2026-04-27T06:34:52.030Z"
+  }
+}

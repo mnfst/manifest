@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "sql_generation",
+  "case": 2,
+  "response": "```sql\nSELECT \n    p.id,\n    p.name,\n    SUM(oi.quantity * p.price) AS revenue\nFROM \n    products p\n    JOIN order_items oi ON p.id = oi.product_id\n    JOIN orders o ON oi.order_id = o.id\nWHERE \n    o.created_at >= DATE_TRUNC('quarter', CURRENT_DATE - INTERVAL '3 months')\n    AND o.created_at < DATE_TRUNC('quarter', CURRENT_DATE)\nGROUP BY \n    p.id, p.name\nORDER BY \n    revenue DESC\nLIMIT 5;\n```",
+  "score": 5,
+  "cost": 0.00015740000000000003,
+  "tokens": {
+    "input": 81,
+    "output": 121
+  }
+}

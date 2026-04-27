@@ -1,0 +1,12 @@
+{
+  "model": "Codestral-2501",
+  "task": "sql_generation",
+  "case": 3,
+  "response": "```sql\nSELECT e.id, e.name, e.department, e.hire_date\nFROM employees e\nLEFT JOIN expense_reports er ON e.id = er.employee_id AND YEAR(er.submitted_at) = YEAR(CURDATE())\nWHERE er.id IS NULL;\n```",
+  "score": 5,
+  "cost": 7.65e-05,
+  "tokens": {
+    "input": 72,
+    "output": 61
+  }
+}

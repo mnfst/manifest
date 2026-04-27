@@ -1,0 +1,12 @@
+{
+  "model": "Llama-4-Scout-17B-16E-Instruct",
+  "task": "sql_generation",
+  "case": 2,
+  "response": "```sql\nSELECT \n  p.name, \n  SUM(oi.quantity * p.price) AS revenue\nFROM \n  products p\n  JOIN order_items oi ON p.id = oi.product_id\n  JOIN orders o ON oi.order_id = o.id\nWHERE \n  o.created_at >= NOW() - INTERVAL '3 month'\nGROUP BY \n  p.name\nORDER BY \n  revenue DESC\nLIMIT 5;\n```",
+  "score": 4,
+  "cost": 2.975e-05,
+  "tokens": {
+    "input": 87,
+    "output": 88
+  }
+}

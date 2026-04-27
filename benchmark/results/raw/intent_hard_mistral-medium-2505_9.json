@@ -1,0 +1,12 @@
+{
+  "model": "mistral-medium-2505",
+  "task": "intent_hard",
+  "case": 9,
+  "response": "account_deletion",
+  "score": 5,
+  "cost": 5.440000000000001e-05,
+  "tokens": {
+    "input": 116,
+    "output": 4
+  }
+}

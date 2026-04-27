@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary",
+  "case": 0,
+  "response": "Sarah proposes reallocating $50K from engineering's under-budget funds to cover marketing's 15% overspend, caused by an unplanned campaign, to keep the Q3 budget on target. A 30-minute call is requested for this Thursday to discuss the proposal; please confirm your availability.",
+  "score": 5,
+  "cost": 6.705e-05,
+  "tokens": {
+    "input": 183,
+    "output": 66
+  }
+}

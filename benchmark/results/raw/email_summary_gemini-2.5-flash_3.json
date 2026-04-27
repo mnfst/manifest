@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary",
+  "case": 3,
+  "response": "Lisa provided feedback on the March new hire onboarding, noting a drop in overall satisfaction to 7.2/10 despite positive feedback on the buddy system and timely IT equipment. Key issues requiring action include confusion over benefits enrollment deadlines, delayed access to internal tools (which Lisa suggests prioritizing), and the absence of the company culture handbook.",
+  "score": 4,
+  "cost": 6.735e-05,
+  "tokens": {
+    "input": 181,
+    "output": 67
+  }
+}

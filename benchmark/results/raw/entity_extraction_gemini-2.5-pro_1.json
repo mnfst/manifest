@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "entity_extraction",
+  "case": 1,
+  "response": "```json\n{\n  \"persons\": [\n    \"Sarah Chen\"\n  ],\n  \"organizations\": [\n    \"MIT\",\n    \"NeurIPS\",\n    \"Google DeepMind\",\n    \"Stanford University\"\n  ],\n  \"locations\": [\n    \"Vancouver\"\n  ]\n}\n```",
+  "score": 5,
+  "cost": 0.00081,
+  "tokens": {
+    "input": 88,
+    "output": 70
+  }
+}

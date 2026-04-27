@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o",
+  "task": "email_summary",
+  "case": 1,
+  "response": "The server outage was caused by a misconfigured load balancer rule, leading to 47 minutes of degraded service for about 12,000 users, and was resolved by rolling back the configuration. Action items include adding load balancer config validation to the CI pipeline, updating the runbook for load balancer incidents, and implementing automated traffic distribution alerts, with comments on the post-mortem document due by Friday.",
+  "score": 5,
+  "cost": 0.0013075,
+  "tokens": {
+    "input": 191,
+    "output": 83
+  }
+}

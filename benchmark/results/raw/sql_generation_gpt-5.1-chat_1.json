@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "sql_generation",
+  "case": 1,
+  "response": "SELECT c.country, AVG(o.total) AS average_order_value\nFROM orders o\nJOIN customers c ON o.customer_id = c.id\nGROUP BY c.country\nORDER BY average_order_value DESC;",
+  "score": 5,
+  "cost": 0.000502,
+  "tokens": {
+    "input": 75,
+    "output": 44
+  }
+}

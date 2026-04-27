@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "json_transform",
+  "case": 2,
+  "response": "{\"admins\":[\"Alice\",\"Charlie\"],\"users\":[\"Bob\"],\"inactive_count\":1}",
+  "score": 5,
+  "cost": 0.0016335,
+  "tokens": {
+    "input": 161,
+    "output": 331
+  }
+}

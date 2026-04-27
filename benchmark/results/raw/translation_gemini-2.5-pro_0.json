@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "translation",
+  "case": 0,
+  "response": "La limite de requ\u00eates de l'API a \u00e9t\u00e9 d\u00e9pass\u00e9e. Veuillez patienter 60 secondes avant de r\u00e9essayer votre requ\u00eate. Si le probl\u00e8me persiste, envisagez de passer \u00e0 notre forfait Entreprise qui offre un d\u00e9bit 10 fois plus \u00e9lev\u00e9.",
+  "score": 5,
+  "cost": 0.00059625,
+  "tokens": {
+    "input": 61,
+    "output": 52
+  }
+}

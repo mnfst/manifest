@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "email_summary",
+  "case": 3,
+  "response": "March cohort satisfaction dropped to 7.2/10, with delays in internal tool access (3-5 days vs. 1-day target) and benefits enrollment confusion cited as main concerns, despite strong ratings for the buddy system (9.1/10). Lisa recommends prioritizing the fix for tools access delays.",
+  "score": 4,
+  "cost": 0.0015433000000000003,
+  "tokens": {
+    "input": 187,
+    "output": 304
+  }
+}

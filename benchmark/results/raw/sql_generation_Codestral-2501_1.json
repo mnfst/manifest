@@ -1,0 +1,12 @@
+{
+  "model": "Codestral-2501",
+  "task": "sql_generation",
+  "case": 1,
+  "response": "```sql\nSELECT c.country, AVG(o.total) AS average_order_value\nFROM orders o\nJOIN customers c ON o.customer_id = c.id\nGROUP BY c.country\nORDER BY average_order_value DESC;\n```",
+  "score": 5,
+  "cost": 6.390000000000001e-05,
+  "tokens": {
+    "input": 72,
+    "output": 47
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "Llama-4-Scout-17B-16E-Instruct",
+  "task": "email_summary",
+  "case": 3,
+  "response": "Here is a 2-sentence summary of the email:\n\nThe March cohort of new hires reported an overall satisfaction score of 7.2/10, with areas for improvement including confusion about benefits enrollment, delayed access to internal tools, and not receiving the company culture handbook. To address these issues, Lisa suggests prioritizing fixing the tools access delay, which currently takes 3-5 days instead of the target 1 day.",
+  "score": 3,
+  "cost": 4.471000000000001e-05,
+  "tokens": {
+    "input": 177,
+    "output": 86
+  }
+}

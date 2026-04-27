@@ -1,0 +1,12 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "entity_extraction",
+  "case": 3,
+  "response": "{\"persons\": [\"Tim Cook\"], \"organizations\": [\"Apple\", \"Foxconn\", \"Chinese Ministry of Commerce\"], \"locations\": [\"Shenzhen\", \"China\", \"Beijing\"]}",
+  "score": 5,
+  "cost": 0.0020844,
+  "tokens": {
+    "input": 86,
+    "output": 847
+  }
+}

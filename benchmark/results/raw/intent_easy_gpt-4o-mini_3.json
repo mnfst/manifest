@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "intent_easy",
+  "case": 3,
+  "response": "upgrade_plan",
+  "score": 5,
+  "cost": 1.245e-05,
+  "tokens": {
+    "input": 75,
+    "output": 2
+  }
+}

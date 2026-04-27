@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-R1",
+  "task": "reasoning",
+  "case": 4,
+  "response": "",
+  "score": 1,
+  "cost": 0.0017927000000000002,
+  "tokens": {
+    "input": 74,
+    "output": 800
+  }
+}

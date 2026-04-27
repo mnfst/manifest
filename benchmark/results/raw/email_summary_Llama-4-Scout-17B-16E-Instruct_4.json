@@ -1,0 +1,12 @@
+{
+  "model": "Llama-4-Scout-17B-16E-Instruct",
+  "task": "email_summary",
+  "case": 4,
+  "response": "Here is a 2-sentence summary of the email:\n\nMaria Chen from DataSync Inc. is proposing a strategic partnership to integrate DataSync's real-time data synchronization technology into Alex's platform, which could reduce data latency by 60% and generate an estimated $2M in additional annual revenue. Maria requests a deeper technical discussion next week to explore the proposal, which involves a revenue-sharing model where DataSync handles the data sync infrastructure and Alex's company integrates their SDK.",
+  "score": 4,
+  "cost": 4.301e-05,
+  "tokens": {
+    "input": 157,
+    "output": 96
+  }
+}

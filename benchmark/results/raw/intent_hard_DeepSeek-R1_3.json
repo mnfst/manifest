@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-R1",
+  "task": "intent_hard",
+  "case": 3,
+  "response": "upgrade_plan",
+  "score": 5,
+  "cost": 0.00068196,
+  "tokens": {
+    "input": 129,
+    "output": 279
+  }
+}

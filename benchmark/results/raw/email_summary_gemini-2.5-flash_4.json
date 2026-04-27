@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary",
+  "case": 4,
+  "response": "Maria Chen from DataSync Inc. is formally proposing a strategic, revenue-sharing partnership to Alex, offering to enhance their platform's multi-region capabilities with DataSync's real-time data synchronization technology. This partnership is projected to reduce customer data latency by 60% and generate $2M in additional annual revenue for both, and Maria requests availability for a deeper technical discussion next week.",
+  "score": 4,
+  "cost": 7.35e-05,
+  "tokens": {
+    "input": 166,
+    "output": 81
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "Codestral-2501",
+  "task": "content_moderation",
+  "case": 0,
+  "response": "safe",
+  "score": 5,
+  "cost": 1.95e-05,
+  "tokens": {
+    "input": 59,
+    "output": 2
+  }
+}

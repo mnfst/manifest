@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o",
+  "task": "intent_easy",
+  "case": 4,
+  "response": "order_tracking",
+  "score": 5,
+  "cost": 0.000215,
+  "tokens": {
+    "input": 78,
+    "output": 2
+  }
+}

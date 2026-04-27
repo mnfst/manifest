@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary",
+  "case": 1,
+  "response": "The email reports that a misconfigured load balancer rule caused a 47\u2011minute service degradation, which was resolved by rolling back the configuration. Team members are asked to review the attached post\u2011mortem and provide comments by Friday, and action items include adding config validation to CI, updating the runbook, and implementing traffic distribution alerts.",
+  "score": 5,
+  "cost": 0.000956,
+  "tokens": {
+    "input": 190,
+    "output": 72
+  }
+}

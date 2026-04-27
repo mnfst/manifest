@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-R1",
+  "task": "translation",
+  "case": 2,
+  "response": "**French:**  \nPour d\u00e9ployer l'application, assurez-vous d'abord que Docker est install\u00e9 et en cours d'ex\u00e9cution. Ensuite, ex\u00e9cutez la commande `docker compose up -d` depuis la racine du projet. Le service sera disponible sur le port 8080 une fois l'initialisation termin\u00e9e.  \n\n**Explanation:**  \n- Maintained the imperative tone and technical precision.  \n- Used \"en cours d'ex\u00e9cution\" for \"running\" to specify the Docker daemon's active state.  \n- Retained the command `docker compose up -d` verbatim, as code/commands are typically not translated.  \n- Translated \"project root\" to \"racine du projet\" for clarity in a development context.  \n- Structured the final sentence to emphasize the service availability post-initialization (\"une fois l'initialisation termin\u00e9e\").",
+  "score": 5,
+  "cost": 0.00200675,
+  "tokens": {
+    "input": 65,
+    "output": 900
+  }
+}

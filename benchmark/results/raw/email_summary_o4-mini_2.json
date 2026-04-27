@@ -1,0 +1,12 @@
+{
+  "model": "o4-mini",
+  "task": "email_summary",
+  "case": 2,
+  "response": "",
+  "score": 5,
+  "cost": 0.0010494,
+  "tokens": {
+    "input": 154,
+    "output": 200
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "intent_easy",
+  "case": 5,
+  "response": "billing_inquiry",
+  "score": 5,
+  "cost": 0.000477,
+  "tokens": {
+    "input": 75,
+    "output": 180
+  }
+}

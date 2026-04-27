@@ -1,0 +1,12 @@
+{
+  "model": "Llama-4-Scout-17B-16E-Instruct",
+  "task": "reasoning",
+  "case": 6,
+  "response": "To find the total shipping cost, we need to calculate the cost for each package and then add them together.\n\n1. For the 8kg package: Since it's under 10kg, the cost is $5 base + $2/kg * 8kg = $5 + $16 = $21.\n\n2. For the 15kg package: Since it's between 10-25kg, the cost is $5 base + $1.50/kg * 15kg = $5 + $22.50 = $27.50.\n\n3. For the 30kg package: Since it's over 25kg, the cost is a flat $45.\n\nNow, we add the costs of all three packages together: $21 + $27.50 + $45 = $93.50.\n\nANSWER: $93.50",
+  "score": 5,
+  "cost": 4.828e-05,
+  "tokens": {
+    "input": 115,
+    "output": 169
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "Codestral-2501",
+  "task": "email_summary",
+  "case": 2,
+  "response": "The email reports a critical SQL injection vulnerability in the user authentication endpoint, which could allow attackers to bypass authentication and access any user account. The team is recommended to deploy a hotfix within 24 hours.",
+  "score": 5,
+  "cost": 8.7e-05,
+  "tokens": {
+    "input": 161,
+    "output": 43
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "entity_extraction",
+  "case": 1,
+  "response": "{\n  \"persons\": [\"Dr. Sarah Chen\"],\n  \"organizations\": [\"MIT\", \"Google DeepMind\", \"Stanford University\", \"NeurIPS\"],\n  \"locations\": [\"Vancouver\"]\n}",
+  "score": 5,
+  "cost": 0.0038654,
+  "tokens": {
+    "input": 126,
+    "output": 847
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "entity_extraction",
+  "case": 3,
+  "response": "```json\n{\n  \"persons\": [\"Tim Cook\"],\n  \"organizations\": [\"Apple\", \"Foxconn\", \"Chinese Ministry of Commerce\"],\n  \"locations\": [\"Shenzhen\", \"China\", \"Beijing\"]\n}\n```",
+  "score": 5,
+  "cost": 0.0007502,
+  "tokens": {
+    "input": 98,
+    "output": 146
+  }
+}

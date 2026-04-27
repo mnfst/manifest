@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "entity_extraction",
+  "case": 2,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"United Nations Security Council\"],\n  \"locations\": [\"New York\", \"France\", \"United Kingdom\", \"China\", \"eastern Congo\"]\n}",
+  "score": 3,
+  "cost": 0.0022726,
+  "tokens": {
+    "input": 122,
+    "output": 486
+  }
+}

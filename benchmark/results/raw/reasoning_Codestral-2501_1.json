@@ -1,0 +1,12 @@
+{
+  "model": "Codestral-2501",
+  "task": "reasoning",
+  "case": 1,
+  "response": "To determine which company is cheaper per call, we need to calculate the cost for a typical API call for both Company A and Company B.\n\n**Company A:**\n- Cost per input token: $0.003\n- Cost per output token: $0.015\n- Number of input tokens: 800\n- Number of output tokens: 200\n\nTotal cost for Company A:\n\\[ \\text{Total cost for Company A} = (0.003 \\times 800) + (0.015 \\times 200) \\]\n\\[ \\text{Total cost for Company A} = (0.24) + (3.00) \\]\n\\[ \\text{Total cost for Company A} = 3.24 \\]\n\n**Company B:**\n- Cost per million input tokens: $4\n- Cost per million output tokens: $12\n- Number of input tokens: 800\n- Number of output tokens: 200\n\nTotal cost for Company B:\n\\[ \\text{Total cost for Company B} = \\left(\\frac{4}{1,000,000} \\times 800\\right) + \\left(\\frac{12}{1,000,000} \\times 200\\right) \\]\n\\[ \\text{Total cost for Company B} = \\left(\\frac{4 \\times 800}{1,000,000}\\right) + \\left(\\frac{12 \\times 200}{1,000,000}\\right) \\]\n\\[ \\text{Total cost for Company B} = \\left(\\frac{3200}{1,000,000}\\right) + \\left(\\frac{2400}{1,000,000}\\right) \\]\n\\[ \\text{Total cost for Company B} = 0.0032 + 0.0024 \\]\n\\[ \\text{Total cost for Company B} = 0.0056 \\]\n\n**Comparison:**\n- Cost for Company A: $3.24\n- Cost for Company B: $0.0056\n\nTo find out by how much Company A is more expensive than Company B:\n\\[ \\text{Difference} = 3.24 - 0.0056 \\]\n\\[ \\text{Difference} = 3.2344 \\]\n\nANSWER: Company A is cheaper per call, and by $3.2344.",
+  "score": 4,
+  "cost": 0.0005316,
+  "tokens": {
+    "input": 113,
+    "output": 553
+  }
+}

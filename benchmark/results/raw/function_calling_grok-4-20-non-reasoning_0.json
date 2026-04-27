@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "function_calling",
+  "case": 0,
+  "response": "{\"name\": \"send_email\", \"arguments\": {\"to\": \"john@example.com\", \"subject\": \"Meeting Tomorrow\", \"body\": \"Hi John, can we meet at 2pm?\"}}",
+  "score": 5,
+  "cost": 0.00054,
+  "tokens": {
+    "input": 106,
+    "output": 41
+  }
+}

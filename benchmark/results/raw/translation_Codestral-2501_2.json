@@ -1,0 +1,12 @@
+{
+  "model": "Codestral-2501",
+  "task": "translation",
+  "case": 2,
+  "response": "Pour d\u00e9ployer l'application, assurez-vous d'abord que Docker est install\u00e9 et en cours d'ex\u00e9cution. Ensuite, ex\u00e9cutez 'docker compose up -d' depuis la racine du projet. Le service sera disponible sur le port 8080 apr\u00e8s la finalisation de l'initialisation.",
+  "score": 4,
+  "cost": 7.740000000000001e-05,
+  "tokens": {
+    "input": 66,
+    "output": 64
+  }
+}

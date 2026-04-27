@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-R1",
+  "task": "sql_generation",
+  "case": 0,
+  "response": "",
+  "score": 1,
+  "cost": 0.0007021,
+  "tokens": {
+    "input": 82,
+    "output": 300
+  }
+}

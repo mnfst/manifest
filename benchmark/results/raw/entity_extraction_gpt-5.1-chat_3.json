@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "entity_extraction",
+  "case": 3,
+  "response": "{\"persons\":[\"Tim Cook\"],\"organizations\":[\"Apple\",\"Foxconn\",\"Chinese Ministry of Commerce\"],\"locations\":[\"Shenzhen\",\"China\",\"Beijing\"]}",
+  "score": 5,
+  "cost": 0.000494,
+  "tokens": {
+    "input": 83,
+    "output": 41
+  }
+}

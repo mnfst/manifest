@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-R1",
+  "task": "intent_hard",
+  "case": 9,
+  "response": "account_deletion",
+  "score": 5,
+  "cost": 0.00062226,
+  "tokens": {
+    "input": 120,
+    "output": 254
+  }
+}

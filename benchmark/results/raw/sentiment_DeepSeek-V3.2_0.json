@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "sentiment",
+  "case": 0,
+  "response": "positive",
+  "score": 5,
+  "cost": 1.75e-05,
+  "tokens": {
+    "input": 51,
+    "output": 2
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "o4-mini",
+  "task": "intent_easy",
+  "case": 2,
+  "response": "password_reset",
+  "score": 5,
+  "cost": 0.00045870000000000004,
+  "tokens": {
+    "input": 77,
+    "output": 85
+  }
+}

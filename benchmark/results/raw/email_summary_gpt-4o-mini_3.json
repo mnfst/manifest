@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "email_summary",
+  "case": 3,
+  "response": "The March cohort of new hires reported an overall satisfaction score of 7.2/10, with positive feedback on the buddy system and timely IT equipment delivery, but highlighted confusion about benefits enrollment, delays in accessing internal tools, and the absence of the company culture handbook. Lisa recommends prioritizing the resolution of the tools access delay.",
+  "score": 4,
+  "cost": 6.584999999999999e-05,
+  "tokens": {
+    "input": 175,
+    "output": 66
+  }
+}

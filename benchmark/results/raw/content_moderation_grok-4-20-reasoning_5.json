@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "content_moderation",
+  "case": 5,
+  "response": "safe",
+  "score": 5,
+  "cost": 0.000132,
+  "tokens": {
+    "input": 62,
+    "output": 1
+  }
+}

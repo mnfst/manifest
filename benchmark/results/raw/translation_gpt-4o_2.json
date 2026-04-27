@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o",
+  "task": "translation",
+  "case": 2,
+  "response": "Pour d\u00e9ployer l'application, assurez-vous d'abord que Docker est install\u00e9 et en cours d'ex\u00e9cution. Ensuite, ex\u00e9cutez 'docker compose up -d' depuis la racine du projet. Le service sera disponible sur le port 8080 une fois l'initialisation termin\u00e9e.",
+  "score": 5,
+  "cost": 0.0007775,
+  "tokens": {
+    "input": 67,
+    "output": 61
+  }
+}

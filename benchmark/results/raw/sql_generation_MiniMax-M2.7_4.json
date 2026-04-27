@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_generation",
+  "case": 4,
+  "response": "WITH monthly_signups AS (\n    SELECT \n        DATE_TRUNC('month', created_at)::date AS month,\n        COUNT(*) AS signups\n    FROM users\n    GROUP BY DATE_TRUNC('month', created_at)\n),\ngrowth AS (\n    SELECT \n        month,\n        signups,\n        LAG(signups) OVER (ORDER BY month) AS prev_signups,\n        CASE WHEN LAG(signups) OVER (ORDER BY month) IS NULL THEN NULL\n             ELSE (signups - LAG(signups) OVER (ORDER BY month)) * 100.0 / LAG(signups) OVER (ORDER BY month)\n        END AS growth_rate\n    FROM monthly_signups\n)\nSELECT \n    month,\n    signups,\n    growth_rate\nFROM growth\nORDER BY month;",
+  "score": 5,
+  "cost": 0.0039864,
+  "tokens": {
+    "input": 92,
+    "output": 883
+  }
+}

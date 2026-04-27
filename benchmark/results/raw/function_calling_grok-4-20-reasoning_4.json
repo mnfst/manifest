@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "function_calling",
+  "case": 4,
+  "response": "{\"name\": \"resize_image\", \"arguments\": {\"path\": \"/uploads/photo.jpg\", \"width\": 800, \"height\": 600}}\n{\"name\": \"convert_format\", \"arguments\": {\"path\": \"/uploads/photo.jpg\", \"target_format\": \"PNG\"}}",
+  "score": 2,
+  "cost": 0.00063,
+  "tokens": {
+    "input": 95,
+    "output": 55
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "translation",
+  "case": 0,
+  "response": "**French:**  \nLa limite de taux de l\u2019API a \u00e9t\u00e9 d\u00e9pass\u00e9e. Veuillez patienter 60 secondes avant de r\u00e9essayer votre requ\u00eate. Si le probl\u00e8me persiste, envisagez de passer \u00e0 notre offre entreprise, qui propose un d\u00e9bit 10 fois sup\u00e9rieur.",
+  "score": 5,
+  "cost": 0.000552,
+  "tokens": {
+    "input": 56,
+    "output": 55
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "mistral-medium-2505",
+  "task": "email_summary",
+  "case": 3,
+  "response": "The March cohort's onboarding received an overall satisfaction score of 7.2/10, with praise for the buddy system and IT equipment delivery, but feedback highlighted issues with benefits enrollment deadlines, delayed tool access, and missing culture handbooks. Lisa recommends prioritizing the resolution of tool access delays.",
+  "score": 4,
+  "cost": 0.000198,
+  "tokens": {
+    "input": 180,
+    "output": 63
+  }
+}

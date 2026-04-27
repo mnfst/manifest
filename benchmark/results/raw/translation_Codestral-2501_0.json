@@ -1,0 +1,12 @@
+{
+  "model": "Codestral-2501",
+  "task": "translation",
+  "case": 0,
+  "response": "The French translation of the given English text, while maintaining the tone and technical accuracy, would be:\n\n\"Le taux limite de l'API a \u00e9t\u00e9 d\u00e9pass\u00e9. Veuillez attendre 60 secondes avant de r\u00e9essayer votre demande. Si le probl\u00e8me persiste, envisagez de passer \u00e0 notre plan d'entreprise qui offre un d\u00e9bit 10 fois sup\u00e9rieur.\"\n\nHere's a breakdown:\n- \"The API rate limit has been exceeded.\" translates to \"Le taux limite de l'API a \u00e9t\u00e9 d\u00e9pass\u00e9.\"\n- \"Please wait 60 seconds before retrying your request.\" translates to \"Veuillez attendre 60 secondes avant de r\u00e9essayer votre demande.\"\n- \"If this persists, consider upgrading to our enterprise plan which offers 10x higher throughput.\" translates to \"Si le probl\u00e8me persiste, envisagez de passer \u00e0 notre plan d'entreprise qui offre un d\u00e9bit 10 fois sup\u00e9rieur.\"",
+  "score": 5,
+  "cost": 0.00018869999999999998,
+  "tokens": {
+    "input": 62,
+    "output": 189
+  }
+}

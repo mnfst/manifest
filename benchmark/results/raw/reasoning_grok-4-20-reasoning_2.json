@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "reasoning",
+  "case": 2,
+  "response": "First, apply 20% off to the original $100 price:  \n$100 \\times 0.8 = 80$ (sale price after first discount).  \n\nNext, apply 15% off to the $80 sale price:  \n$80 \\times 0.85 = 68$ (price after second discount).  \n\nFinally, add 8.5% sales tax to the $68 price:  \n$68 \\times 1.085 = 73.78$.  \n\n(Alternatively, in one step: $100 \\times 0.8 \\times 0.85 \\times 1.085 = 73.78$.)  \n\nANSWER: $73.78",
+  "score": 4,
+  "cost": 0.001298,
+  "tokens": {
+    "input": 81,
+    "output": 142
+  }
+}

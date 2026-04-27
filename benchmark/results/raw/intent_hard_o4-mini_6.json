@@ -1,0 +1,12 @@
+{
+  "model": "o4-mini",
+  "task": "intent_hard",
+  "case": 6,
+  "response": "downgrade_plan",
+  "score": 5,
+  "cost": 0.0005082,
+  "tokens": {
+    "input": 114,
+    "output": 87
+  }
+}

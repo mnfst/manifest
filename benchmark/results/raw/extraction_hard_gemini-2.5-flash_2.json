@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "extraction_hard",
+  "case": 2,
+  "response": "```json\n{\n  \"meeting_title\": \"Product sync\",\n  \"date\": \"2026-04-10\",\n  \"attendees\": [\n    \"Jamie\",\n    \"Priya\",\n    \"Marcus\",\n    \"Lin\"\n  ],\n  \"decisions\": [\n    \"Push the recommendation engine to Q3 since data pipeline won't be ready until June.\",\n    \"Allocate 20% of sprint capacity to tech debt.\"\n  ],\n  \"action_items\": [\n    {\n      \"owner\": \"Marcus\",\n      \"task\": \"Have onboarding mockups\",\n      \"deadline\": \"2026-04-18\"\n    },\n    {\n      \"owner\": \"Jamie\",\n      \"task\": \"Send updated roadmap\",\n      \"deadline\": \"2026-04-13\"\n    },\n    {\n      \"owner\": \"Lin\",\n      \"task\": \"Needs analytics dashboard\",\n      \"deadline\": \"before May board meeting\"\n    }\n  ]\n}\n```",
+  "score": 3,
+  "cost": 0.00017145,
+  "tokens": {
+    "input": 175,
+    "output": 242
+  }
+}

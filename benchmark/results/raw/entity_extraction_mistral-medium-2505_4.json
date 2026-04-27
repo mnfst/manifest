@@ -1,0 +1,12 @@
+{
+  "model": "mistral-medium-2505",
+  "task": "entity_extraction",
+  "case": 4,
+  "response": "```json\n{\n  \"persons\": [\"Barack Obama\", \"Michelle Obama\", \"Brandon Johnson\", \"JB Pritzker\"],\n  \"organizations\": [\"Obama Presidential Center\"],\n  \"locations\": [\"South Side of Chicago\", \"Chicago\", \"Illinois\"]\n}\n```",
+  "score": 4,
+  "cost": 0.00015759999999999998,
+  "tokens": {
+    "input": 89,
+    "output": 61
+  }
+}

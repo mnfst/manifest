@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-R1",
+  "task": "intent_easy",
+  "case": 6,
+  "response": "refund_request",
+  "score": 5,
+  "cost": 0.0005728899999999999,
+  "tokens": {
+    "input": 82,
+    "output": 241
+  }
+}

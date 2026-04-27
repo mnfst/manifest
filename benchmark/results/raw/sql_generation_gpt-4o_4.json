@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o",
+  "task": "sql_generation",
+  "case": 4,
+  "response": "```sql\nWITH monthly_signups AS (\n    SELECT \n        DATE_TRUNC('month', created_at) AS month,\n        COUNT(id) AS signup_count\n    FROM \n        users\n    GROUP BY \n        DATE_TRUNC('month', created_at)\n),\ngrowth_rate AS (\n    SELECT \n        month,\n        signup_count,\n        LAG(signup_count) OVER (ORDER BY month) AS previous_signup_count\n    FROM \n        monthly_signups\n)\nSELECT \n    month,\n    signup_count,\n    previous_signup_count,\n    CASE \n        WHEN previous_signup_count = 0 THEN NULL\n        ELSE (signup_count - previous_signup_count) / previous_signup_count::FLOAT * 100\n    END AS growth_rate_percentage\nFROM \n    growth_rate;\n```",
+  "score": 5,
+  "cost": 0.0017225,
+  "tokens": {
+    "input": 61,
+    "output": 157
+  }
+}

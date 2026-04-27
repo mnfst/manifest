@@ -1,0 +1,12 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "reasoning",
+  "case": 6,
+  "response": "Step 1: Identify the cost formula for each package based on its weight.\n- 8 kg is under 10 kg: $5 base + $2 per kg\n- 15 kg is in the 10\u201325 kg range: $5 base + $1.50 per kg\n- 30 kg is over 25 kg: flat $45\n\nStep 2: Calculate the cost for the 8 kg package.\n$5 + ($2 \u00d7 8) = $5 + $16 = $21\n\nStep 3: Calculate the cost for the 15 kg package.\n$5 + ($1.50 \u00d7 15) = $5 + $22.50 = $27.50\n\nStep 4: Identify the cost for the 30 kg package.\nFlat rate = $45\n\nStep 5: Add the three costs together.\n$21 + $27.50 + $45 = $93.50\n\nANSWER: $93.50",
+  "score": 5,
+  "cost": 0.0015612,
+  "tokens": {
+    "input": 114,
+    "output": 622
+  }
+}

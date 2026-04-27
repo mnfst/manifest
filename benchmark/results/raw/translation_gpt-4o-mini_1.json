@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "translation",
+  "case": 1,
+  "response": "Notre chiffre d'affaires trimestriel a augment\u00e9 de 23 % d'une ann\u00e9e sur l'autre, principalement gr\u00e2ce \u00e0 une forte adoption de notre plateforme cloud sur le march\u00e9 europ\u00e9en. Les marges op\u00e9rationnelles se sont am\u00e9lior\u00e9es \u00e0 18,5 %, contre 15,2 % au trimestre pr\u00e9c\u00e9dent.",
+  "score": 5,
+  "cost": 4.695e-05,
+  "tokens": {
+    "input": 73,
+    "output": 60
+  }
+}

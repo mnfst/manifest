@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "reasoning",
+  "case": 2,
+  "response": "20% off of 100 gives 80.  \n15% off of 80 gives 68.  \nAdding 8.5% tax gives 73.78.\n\nANSWER: 73.78",
+  "score": 2,
+  "cost": 0.001094,
+  "tokens": {
+    "input": 87,
+    "output": 115
+  }
+}

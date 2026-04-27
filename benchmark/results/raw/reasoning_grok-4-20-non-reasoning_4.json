@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "reasoning",
+  "case": 4,
+  "response": "The snail climbs 3 feet up during the day and slides 2 feet down at night, for a net gain of 1 foot per full day-night cycle. However, on the final day, once it reaches or exceeds the top during its daytime climb, it doesn't slide back down.\n\nThe well is 20 feet deep.\n\nAfter 1 full day (day + night): 1 foot  \nAfter 2 full days: 2 feet  \n...  \nAfter 17 full days: 17 feet  \n\nOn the 18th day, it starts at 17 feet and climbs 3 feet, reaching 20 feet exactly. It has reached the top during the daytime climb on the 18th day, so it does not slide back.\n\nIt reaches the top on the 18th day.\n\nTo confirm with the general formula: For a well of depth H, up U=3, down D=2, net per day N=U-D=1.  \nThe snail needs to cover (H - U) with the net progress, then add the final day.  \n(20 - 3) / 1 = 17 days to get to 17 feet, then +1 day = 18th day.\n\nANSWER: 18",
+  "score": 5,
+  "cost": 0.002146,
+  "tokens": {
+    "input": 69,
+    "output": 251
+  }
+}

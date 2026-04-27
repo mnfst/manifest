@@ -1,0 +1,12 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "sql_generation",
+  "case": 2,
+  "response": "```sql\nSELECT p.id, p.name, SUM(oi.quantity * p.price) as revenue\nFROM products p\nJOIN order_items oi ON p.id = oi.product_id\nJOIN orders o ON oi.order_id = o.id\nWHERE o.created_at >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)\nGROUP BY p.id, p.name\nORDER BY revenue DESC\nLIMIT 5;\n```",
+  "score": 5,
+  "cost": 0.001992,
+  "tokens": {
+    "input": 94,
+    "output": 114
+  }
+}

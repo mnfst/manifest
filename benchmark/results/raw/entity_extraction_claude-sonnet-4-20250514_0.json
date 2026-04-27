@@ -1,0 +1,12 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "entity_extraction",
+  "case": 0,
+  "response": "{\n  \"persons\": [\"Elon Musk\"],\n  \"organizations\": [\"Tesla\", \"Texas State Capitol\"],\n  \"locations\": [\"Austin\", \"Texas\"]\n}",
+  "score": 4,
+  "cost": 0.000948,
+  "tokens": {
+    "input": 101,
+    "output": 43
+  }
+}

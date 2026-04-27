@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "intent_easy",
+  "case": 9,
+  "response": "billing_inquiry",
+  "score": 0,
+  "cost": 0.0010494,
+  "tokens": {
+    "input": 106,
+    "output": 212
+  }
+}

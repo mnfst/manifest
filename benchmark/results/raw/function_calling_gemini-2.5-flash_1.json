@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "function_calling",
+  "case": 1,
+  "response": "```json\n{\n  \"name\": \"get_weather\",\n  \"arguments\": {\n    \"city\": \"Paris\"\n  }\n}\n```",
+  "score": 4,
+  "cost": 3.72e-05,
+  "tokens": {
+    "input": 108,
+    "output": 35
+  }
+}

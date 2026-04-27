@@ -1,0 +1,12 @@
+{
+  "model": "Llama-4-Scout-17B-16E-Instruct",
+  "task": "function_calling",
+  "case": 1,
+  "response": "To fulfill the user request of finding out the current weather in Paris, we need to use the `get_weather` function. Since the request does not specify the units of measurement for the temperature, we will default to 'celsius' as per the function's definition.\n\nHere is the valid JSON for the function call:\n\n```json\n{\n  \"name\": \"get_weather\",\n  \"arguments\": {\n    \"city\": \"Paris\",\n    \"units\": \"celsius\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 3.468e-05,
+  "tokens": {
+    "input": 104,
+    "output": 100
+  }
+}

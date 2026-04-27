@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "extraction_hard",
+  "case": 2,
+  "response": "```json\n{\n    \"meeting_title\": \"Product sync\",\n    \"date\": \"2026-04-10\",\n    \"attendees\": [\"Jamie\", \"Priya\", \"Marcus\", \"Lin\"],\n    \"decisions\": [\"push the recommendation engine to Q3 since data pipeline won't be ready until June\", \"allocate 20% of sprint capacity to tech debt\"],\n    \"action_items\": [\n        {\"owner\": \"Marcus\", \"task\": \"have onboarding mockups\", \"deadline\": \"2026-04-18\"},\n        {\"owner\": \"Jamie\", \"task\": \"send updated roadmap\", \"deadline\": \"2026-04-15\"},\n        {\"owner\": \"Lin\", \"task\": \"needs analytics dashboard before May board meeting\", \"deadline\": \"2026-05-01\"}\n    ]\n}\n```",
+  "score": 3,
+  "cost": 0.00024880000000000003,
+  "tokens": {
+    "input": 173,
+    "output": 179
+  }
+}

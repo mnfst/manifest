@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-R1",
+  "task": "intent_hard",
+  "case": 5,
+  "response": "compliment",
+  "score": 5,
+  "cost": 0.0006578499999999999,
+  "tokens": {
+    "input": 121,
+    "output": 270
+  }
+}

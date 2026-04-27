@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "json_transform",
+  "case": 0,
+  "response": "```json\n{\"full_name\": \"Jane Doe\", \"contact\": {\"email\": \"jane.doe@email.com\", \"phone\": \"+1-555-0123\"}, \"metadata\": {\"age\": 32}}\n```",
+  "score": 5,
+  "cost": 0.00068125,
+  "tokens": {
+    "input": 113,
+    "output": 54
+  }
+}

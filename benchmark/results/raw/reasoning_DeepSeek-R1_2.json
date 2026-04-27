@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-R1",
+  "task": "reasoning",
+  "case": 2,
+  "response": "\n\nThe original price is $100.  \nFirst discount: 20% off.  \n$100 * 0.80 = $80.  \nSecond discount: 15% off the sale price.  \n$80 * 0.85 = $68.  \nAdding 8.5% sales tax:  \n$68 * 1.085 = $73.78.  \n\nANSWER: $73.78",
+  "score": 4,
+  "cost": 0.0017445499999999999,
+  "tokens": {
+    "input": 86,
+    "output": 775
+  }
+}

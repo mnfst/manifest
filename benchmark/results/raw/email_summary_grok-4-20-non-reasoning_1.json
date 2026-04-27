@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "email_summary",
+  "case": 1,
+  "response": "**Summary:** A misconfigured load balancer rule caused 47 minutes of degraded service for ~12,000 users yesterday, which was identified by Mike and resolved via rollback within 47 minutes. Action items include adding load balancer config validation to the CI pipeline, updating the LB incident runbook, and implementing automated traffic distribution alerts; please review the attached full post-mortem and submit comments by Friday.",
+  "score": 5,
+  "cost": 0.000982,
+  "tokens": {
+    "input": 179,
+    "output": 78
+  }
+}

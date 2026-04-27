@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "entity_extraction",
+  "case": 4,
+  "response": "{\n  \"persons\": [\n    \"Barack Obama\",\n    \"Michelle Obama\",\n    \"Brandon Johnson\",\n    \"JB Pritzker\"\n  ],\n  \"organizations\": [\n    \"Obama Presidential Center\"\n  ],\n  \"locations\": [\n    \"South Side\",\n    \"Chicago\",\n    \"Illinois\"\n  ]\n}",
+  "score": 4,
+  "cost": 5.31e-05,
+  "tokens": {
+    "input": 90,
+    "output": 66
+  }
+}

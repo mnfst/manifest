@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "json_transform",
+  "case": 1,
+  "response": "{\"by_date\":{\"2024-01-15\":{\"total\":165.50,\"categories\":{\"food\":120.50,\"transport\":45.00}},\"2024-01-16\":{\"total\":230.00,\"categories\":{\"food\":200.00,\"transport\":30.00}}}}",
+  "score": 5,
+  "cost": 0.0020768,
+  "tokens": {
+    "input": 192,
+    "output": 424
+  }
+}

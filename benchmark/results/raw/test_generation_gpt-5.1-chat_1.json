@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation",
+  "case": 1,
+  "response": "Here are pytest\u2011style unit tests that cover:\n\n\u2022 Happy paths  \n\u2022 Edge cases  \n\u2022 Error/invalid cases  \n\nNo special formatting used beyond bullets, as requested.\n\n--------------------------------------------\n\n```python\nimport pytest\nfrom your_module import parse_email\n\ndef test_parse_email_happy_path_simple():\n    result = parse_email(\"user@example.com\")\n    assert result == {\"local\": \"user\", \"domain\": \"example.com\"}\n\ndef test_parse_email_happy_path_subdomain():\n    result = parse_email(\"john.doe@mail.company.org\")\n    assert result == {\"local\": \"john.doe\", \"domain\": \"mail.company.org\"}\n\ndef test_parse_email_edge_local_with_symbols():\n    result = parse_email(\"user+tag@example.co.uk\")\n    assert result == {\"local\": \"user+tag\", \"domain\": \"example.co.uk\"}\n\ndef test_parse_email_none_input():\n    assert parse_email(None) is None\n\ndef test_parse_email_empty_string():\n    assert parse_email(\"\") is None\n\ndef test_parse_email_missing_at_symbol():\n    assert parse_email(\"invalidemail.com\") is None\n\ndef test_parse_email_multiple_at_symbols():\n    assert parse_email(\"a@b@c.com\") is None\n\ndef test_parse_email_empty_local_part():\n    assert parse_email(\"@example.com\") is None\n\ndef test_parse_email_empty_domain_part():\n    assert parse_email(\"user@\") is None\n\ndef test_parse_email_domain_missing_dot():\n    assert parse_email(\"user@examplecom\") is None\n\ndef test_parse_email_domain_starts_with_dot():\n    assert parse_email(\"user@.example\") is None\n\ndef test_parse_email_domain_ends_with_dot():\n    assert parse_email(\"user@example.\") is None\n```\n\n--------------------------------------------\n\nIf you want, I can also generate a parametrized version.",
+  "score": 4,
+  "cost": 0.003222,
+  "tokens": {
+    "input": 135,
+    "output": 369
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "sql_generation",
+  "case": 0,
+  "response": "SELECT *\nFROM customers c\nWHERE c.signup_date >= CURRENT_DATE - INTERVAL '30 days'\n  AND EXISTS (\n    SELECT 1\n    FROM orders o\n    WHERE o.customer_id = c.id\n  );",
+  "score": 5,
+  "cost": 0.000604,
+  "tokens": {
+    "input": 82,
+    "output": 55
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "intent_easy",
+  "case": 8,
+  "response": "account_deletion",
+  "score": 5,
+  "cost": 0.0003414,
+  "tokens": {
+    "input": 73,
+    "output": 124
+  }
+}

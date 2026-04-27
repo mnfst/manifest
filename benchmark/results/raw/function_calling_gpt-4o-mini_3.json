@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "function_calling",
+  "case": 3,
+  "response": "{\"name\": \"create_task\", \"arguments\": {\"title\": \"Review PR #42\", \"priority\": \"high\", \"assignee\": \"alice\", \"due_date\": \"2023-10-27\"}}",
+  "score": 4,
+  "cost": 4.515e-05,
+  "tokens": {
+    "input": 125,
+    "output": 44
+  }
+}

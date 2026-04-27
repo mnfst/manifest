@@ -1,0 +1,12 @@
+{
+  "model": "o4-mini",
+  "task": "intent_hard",
+  "case": 5,
+  "response": "compliment",
+  "score": 5,
+  "cost": 0.0002145,
+  "tokens": {
+    "input": 111,
+    "output": 21
+  }
+}

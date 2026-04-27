@@ -1,0 +1,12 @@
+{
+  "model": "o4-mini",
+  "task": "translation",
+  "case": 4,
+  "response": "Le pipeline de machine learning se compose de trois \u00e9tapes : le pr\u00e9traitement des donn\u00e9es avec normalisation des caract\u00e9ristiques, l\u2019entra\u00eenement du mod\u00e8le avec des arbres \u00e0 gradient boosting, et le service des inf\u00e9rences via un endpoint REST avec une latence inf\u00e9rieure \u00e0 100 ms.",
+  "score": 5,
+  "cost": 0.0055011,
+  "tokens": {
+    "input": 61,
+    "output": 1235
+  }
+}

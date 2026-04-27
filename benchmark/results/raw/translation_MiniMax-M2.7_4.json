@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "translation",
+  "case": 4,
+  "response": "Le pipeline d'apprentissage automatique se compose de trois \u00e9tapes\u00a0: le pr\u00e9traitement des donn\u00e9es avec normalisation des caract\u00e9ristiques, l'entra\u00eenement du mod\u00e8le \u00e0 l'aide d'arbres de gradient boost\u00e9s, et la diffusion de l'inf\u00e9rence via un point de terminaison REST avec une latence inf\u00e9rieure \u00e0 100\u202fms.",
+  "score": 5,
+  "cost": 0.0026631000000000003,
+  "tokens": {
+    "input": 93,
+    "output": 582
+  }
+}

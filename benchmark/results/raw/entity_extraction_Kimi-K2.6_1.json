@@ -1,0 +1,12 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "entity_extraction",
+  "case": 1,
+  "response": "{\"persons\": [\"Sarah Chen\"], \"organizations\": [\"MIT\", \"NeurIPS\", \"Google DeepMind\", \"Stanford University\"], \"locations\": [\"Vancouver\"]}",
+  "score": 5,
+  "cost": 0.003393,
+  "tokens": {
+    "input": 95,
+    "output": 1390
+  }
+}

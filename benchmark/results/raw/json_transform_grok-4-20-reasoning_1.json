@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "json_transform",
+  "case": 1,
+  "response": "{\n  \"by_date\": {\n    \"2024-01-15\": {\n      \"total\": 165.5,\n      \"categories\": {\n        \"food\": 120.5,\n        \"transport\": 45\n      }\n    },\n    \"2024-01-16\": {\n      \"total\": 230,\n      \"categories\": {\n        \"food\": 200,\n        \"transport\": 30\n      }\n    }\n  }\n}",
+  "score": 4,
+  "cost": 0.001058,
+  "tokens": {
+    "input": 153,
+    "output": 94
+  }
+}

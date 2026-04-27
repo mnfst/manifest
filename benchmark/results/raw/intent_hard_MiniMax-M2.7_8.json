@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "intent_hard",
+  "case": 8,
+  "response": "order_tracking",
+  "score": 5,
+  "cost": 0.0010736,
+  "tokens": {
+    "input": 148,
+    "output": 207
+  }
+}

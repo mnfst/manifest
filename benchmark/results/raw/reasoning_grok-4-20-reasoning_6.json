@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "reasoning",
+  "case": 6,
+  "response": "21 (for 8kg) + 27.5 (for 15kg) + 45 (for 30kg) = 93.5  \nANSWER: 93.5",
+  "score": 2,
+  "cost": 0.000522,
+  "tokens": {
+    "input": 105,
+    "output": 39
+  }
+}

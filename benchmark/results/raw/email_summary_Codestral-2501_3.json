@@ -1,0 +1,12 @@
+{
+  "model": "Codestral-2501",
+  "task": "email_summary",
+  "case": 3,
+  "response": "The March cohort's overall satisfaction score decreased to 7.2/10, with key positives including a highly rated buddy system and timely IT equipment delivery. Areas for improvement include confusion about benefits enrollment deadlines, delayed access to internal tools, and the lack of a company culture handbook. Lisa suggests prioritizing the tools access delay.",
+  "score": 4,
+  "cost": 0.00011609999999999999,
+  "tokens": {
+    "input": 180,
+    "output": 69
+  }
+}

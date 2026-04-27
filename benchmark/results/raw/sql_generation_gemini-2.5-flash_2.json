@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "sql_generation",
+  "case": 2,
+  "response": "```sql\nSELECT\n    p.name,\n    SUM(p.price * oi.quantity) AS total_revenue\nFROM\n    products AS p\nJOIN\n    order_items AS oi ON p.id = oi.product_id\nJOIN\n    orders AS o ON oi.order_id = o.id\nWHERE\n    o.created_at >= DATE_SUB(MAKEDATE(YEAR(CURDATE()), 1) + INTERVAL (QUARTER(CURDATE()) - 1) * 3 MONTH, INTERVAL 3 MONTH)\n    AND o.created_at < MAKEDATE(YEAR(CURDATE()), 1) + INTERVAL (QUARTER(CURDATE()) - 1) * 3 MONTH\nGROUP BY\n    p.name\nORDER BY\n    total_revenue DESC\nLIMIT 5;\n```",
+  "score": 4,
+  "cost": 0.00012090000000000001,
+  "tokens": {
+    "input": 86,
+    "output": 180
+  }
+}

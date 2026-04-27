@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "sentiment",
+  "case": 8,
+  "response": "positive",
+  "score": 5,
+  "cost": 7.25e-05,
+  "tokens": {
+    "input": 50,
+    "output": 1
+  }
+}

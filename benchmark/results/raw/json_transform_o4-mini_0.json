@@ -1,0 +1,12 @@
+{
+  "model": "o4-mini",
+  "task": "json_transform",
+  "case": 0,
+  "response": "{\"full_name\":\"Jane Doe\",\"contact\":{\"email\":\"jane.doe@email.com\",\"phone\":\"+1-555-0123\"},\"metadata\":{\"age\":32}}",
+  "score": 5,
+  "cost": 0.0011935,
+  "tokens": {
+    "input": 105,
+    "output": 245
+  }
+}

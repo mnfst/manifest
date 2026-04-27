@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-R1",
+  "task": "entity_extraction",
+  "case": 2,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"United Nations Security Council\"],\n  \"locations\": [\"New York\", \"France\", \"United Kingdom\", \"China\", \"eastern Congo\"]\n}\n```",
+  "score": 4,
+  "cost": 0.0017785,
+  "tokens": {
+    "input": 88,
+    "output": 790
+  }
+}

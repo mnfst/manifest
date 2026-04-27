@@ -1,0 +1,12 @@
+{
+  "model": "Codestral-2501",
+  "task": "reasoning",
+  "case": 6,
+  "response": "To solve this problem, we need to calculate the shipping cost for each package based on the given rates and then sum them up.\n\n1. **For the 8kg package:**\n   - The base charge is $5.\n   - The charge per kg for packages under 10kg is $2/kg.\n   - Total cost for the 8kg package = $5 + (8 kg * $2/kg) = $5 + $16 = $21.\n\n2. **For the 15kg package:**\n   - The base charge is $5.\n   - The charge per kg for packages between 10-25kg is $1.50/kg.\n   - Total cost for the 15kg package = $5 + (15 kg * $1.50/kg) = $5 + $22.50 = $27.50.\n\n3. **For the 30kg package:**\n   - The flat charge for packages over 25kg is $45.\n   - Total cost for the 30kg package = $45.\n\nNow, we sum up the costs for all three packages:\n- Total shipping cost = $21 + $27.50 + $45 = $93.50.\n\nANSWER: $93.50",
+  "score": 5,
+  "cost": 0.0002877,
+  "tokens": {
+    "input": 119,
+    "output": 280
+  }
+}

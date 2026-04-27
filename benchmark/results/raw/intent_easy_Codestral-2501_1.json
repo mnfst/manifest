@@ -1,0 +1,12 @@
+{
+  "model": "Codestral-2501",
+  "task": "intent_easy",
+  "case": 1,
+  "response": "store_hours",
+  "score": 5,
+  "cost": 2.73e-05,
+  "tokens": {
+    "input": 79,
+    "output": 4
+  }
+}

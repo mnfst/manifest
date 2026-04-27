@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "test_generation",
+  "case": 4,
+  "response": "Here are pytest-style unit tests in plain text (no markdown formatting). You can copy this directly into a test file such as test_is_business_hours.py.\n\nfrom datetime import datetime\nfrom your_module import is_business_hours\n\ndef test_happy_path_middle_of_business_day():\n    dt = datetime(2024, 5, 1, 10, 0)  # Wednesday, 10 AM\n    assert is_business_hours(dt) is True\n\ndef test_edge_case_start_of_business_hours():\n    dt = datetime(2024, 5, 1, 9, 0)  # Exactly 9 AM\n    assert is_business_hours(dt) is True\n\ndef test_edge_case_end_of_business_hours():\n    dt = datetime(2024, 5, 1, 17, 0)  # Exactly 5 PM\n    assert is_business_hours(dt) is False  # End is exclusive\n\ndef test_before_business_hours():\n    dt = datetime(2024, 5, 1, 8, 59)\n    assert is_business_hours(dt) is False\n\ndef test_after_business_hours():\n    dt = datetime(2024, 5, 1, 17, 1)\n    assert is_business_hours(dt) is False\n\ndef test_weekend_saturday():\n    dt = datetime(2024, 5, 4, 12, 0)  # Saturday\n    assert is_business_hours(dt) is False\n\ndef test_weekend_sunday():\n    dt = datetime(2024, 5, 5, 12, 0)  # Sunday\n    assert is_business_hours(dt) is False\n\ndef test_default_uses_now(monkeypatch):\n    fake_now = datetime(2024, 5, 1, 11, 0)  # Wednesday 11 AM\n    monkeypatch.setattr(\"your_module.datetime\", type(\"FakeDateTime\", (), {\n        \"now\": staticmethod(lambda: fake_now),\n        \"weekday\": datetime.weekday,\n    }))\n    assert is_business_hours() is True\n\ndef test_invalid_input_type():\n    try:\n        is_business_hours(\"not a datetime\")\n        assert False, \"Expected TypeError\"\n    except TypeError:\n        assert True\n\nIf you want, I can adjust for parametrization or provide more coverage.",
+  "score": 4,
+  "cost": 0.004678,
+  "tokens": {
+    "input": 123,
+    "output": 554
+  }
+}

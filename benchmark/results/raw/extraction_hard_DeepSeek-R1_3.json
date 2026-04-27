@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-R1",
+  "task": "extraction_hard",
+  "case": 3,
+  "response": "\n\n```json\n{\n  \"severity\": \"critical\",\n  \"component\": \"checkout page\",\n  \"summary\": \"Checkout page fails after payment submission, leading to a white screen with CORS and JavaScript errors in Chrome\",\n  \"steps_to_reproduce\": [\n    \"Add items to cart\",\n    \"Navigate to checkout page\",\n    \"Enter payment information\",\n    \"Click pay button\"\n  ],\n  \"expected_behavior\": \"Successful payment processing and order confirmation\",\n  \"actual_behavior\": \"30-second loading spinner followed by white screen, no error message. Console shows CORS error and 'undefined is not a function' in checkout.bundle.js:847\",\n  \"environment\": {\n    \"os\": \"Windows 11\",\n    \"browser\": \"Chrome 121\"\n  }\n}\n```",
+  "score": 4,
+  "cost": 0.0010861199999999999,
+  "tokens": {
+    "input": 171,
+    "output": 453
+  }
+}

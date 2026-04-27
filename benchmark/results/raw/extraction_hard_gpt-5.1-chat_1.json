@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "extraction_hard",
+  "case": 1,
+  "response": "{\"name\":\"Sarah Chen\",\"email\":\"sarah.c@gmail.com\",\"current_role\":{\"title\":\"Lead ML Engineer\",\"company\":\"Anthropic\"},\"education\":[{\"degree\":\"MS Computer Science\",\"institution\":\"Stanford\",\"year\":2016},{\"degree\":\"BS Mathematics and Computer Science\",\"institution\":\"MIT\",\"year\":2014}],\"skills\":[\"PyTorch\",\"JAX\",\"distributed training\",\"transformer architectures\",\"RLHF\"]}",
+  "score": 4,
+  "cost": 0.001104,
+  "tokens": {
+    "input": 172,
+    "output": 95
+  }
+}

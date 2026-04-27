@@ -1,0 +1,12 @@
+{
+  "model": "Codestral-2501",
+  "task": "translation",
+  "case": 1,
+  "response": "Our quarterly revenue increased by 23% year-over-year, driven primarily by strong adoption of our cloud platform in the European market. Operating margins improved to 18.5%, up from 15.2% in the prior quarter.\n\nFrench: Notre chiffre d'affaires trimestriel a augment\u00e9 de 23 % d'une ann\u00e9e sur l'autre, principalement en raison d'une adoption forte de notre plateforme cloud sur le march\u00e9 europ\u00e9en. Les marges op\u00e9rationnelles ont augment\u00e9 \u00e0 18,5 %, contre 15,2 % au trimestre pr\u00e9c\u00e9dent.",
+  "score": 5,
+  "cost": 0.0001275,
+  "tokens": {
+    "input": 74,
+    "output": 117
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "entity_extraction",
+  "case": 0,
+  "response": "{\n  \"persons\": [\"Elon Musk\"],\n  \"organizations\": [\"Tesla\"],\n  \"locations\": [\"Austin\", \"Texas\", \"Texas State Capitol\"]\n}",
+  "score": 5,
+  "cost": 0.000438,
+  "tokens": {
+    "input": 87,
+    "output": 33
+  }
+}

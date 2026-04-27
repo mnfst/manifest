@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "reasoning",
+  "case": 2,
+  "response": "Here's a step-by-step solution:\n\n1.  **Calculate the price after the first discount:**\n    The original price is $100.\n    The first discount is 20% off.\n    Discount amount = 20% of $100 = 0.20 * $100 = $20\n    Price after first discount = $100 - $20 = $80\n\n2.  **Calculate the price after the additional discount:**\n    The additional discount is 15% off the sale price (which is $80).\n    Discount amount = 15% of $80 = 0.15 * $80 = $12\n    Price after second discount = $80 - $12 = $68\n\n3.  **Calculate the final price after adding sales tax:**\n    The sales tax is 8.5% of the discounted price (which is $68).\n    Sales tax amount = 8.5% of $68 = 0.085 * $68 = $5.78\n    Final price = Price after second discount + Sales tax amount\n    Final price = $68 + $5.78 = $73.78\n\nThe final price is $73.78.\n\nANSWER: $73.78",
+  "score": 5,
+  "cost": 0.0001914,
+  "tokens": {
+    "input": 88,
+    "output": 297
+  }
+}

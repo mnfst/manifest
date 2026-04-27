@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "sentiment",
+  "case": 4,
+  "response": "neutral",
+  "score": 5,
+  "cost": 0.000102,
+  "tokens": {
+    "input": 47,
+    "output": 1
+  }
+}

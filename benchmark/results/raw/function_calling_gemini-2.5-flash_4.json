@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "function_calling",
+  "case": 4,
+  "response": "```json\n{\n  \"name\": \"resize_image\",\n  \"arguments\": {\n    \"path\": \"/uploads/photo.jpg\",\n    \"width\": 800,\n    \"height\": 600\n  }\n}\n```",
+  "score": 4,
+  "cost": 5.205e-05,
+  "tokens": {
+    "input": 115,
+    "output": 58
+  }
+}

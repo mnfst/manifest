@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary",
+  "case": 0,
+  "response": "The email explains that marketing exceeded its Q3 budget while engineering is under budget, and proposes reallocating $50K from engineering to cover the shortfall. Sarah asks the team to confirm their availability for a 30\u2011minute call on Thursday to discuss the proposal.",
+  "score": 5,
+  "cost": 0.000802,
+  "tokens": {
+    "input": 173,
+    "output": 57
+  }
+}

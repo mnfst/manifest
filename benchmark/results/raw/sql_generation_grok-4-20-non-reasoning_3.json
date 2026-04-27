@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "sql_generation",
+  "case": 3,
+  "response": "```sql\nSELECT e.id, e.name\nFROM employees e\nLEFT JOIN expense_reports er \n  ON e.id = er.employee_id \n  AND er.submitted_at >= DATE_TRUNC('year', CURRENT_DATE)\nWHERE er.id IS NULL;\n```",
+  "score": 5,
+  "cost": 0.000552,
+  "tokens": {
+    "input": 68,
+    "output": 52
+  }
+}

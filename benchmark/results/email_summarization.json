@@ -1,0 +1,2356 @@
+{
+  "evalId": "eval-70n-2026-04-27T06:35:19",
+  "results": {
+    "version": 3,
+    "timestamp": "2026-04-27T06:35:19.330Z",
+    "prompts": [
+      {
+        "id": "beac30650eb39c4848a08e55926a1ccae3f4f3b8c20cf2cfa80548885142effb",
+        "raw": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\n{{input}}\n\nSummary:\n",
+        "label": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\n{{input}}\n\nSummary:\n",
+        "provider": "GPT-4o",
+        "metrics": {
+          "score": 23,
+          "testPassCount": 5,
+          "testFailCount": 0,
+          "testErrorCount": 0,
+          "assertPassCount": 5,
+          "assertFailCount": 0,
+          "totalLatencyMs": 6146,
+          "tokenUsage": {
+            "prompt": 933,
+            "completion": 358,
+            "cached": 0,
+            "total": 1291,
+            "numRequests": 5,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            },
+            "assertions": {
+              "total": 6542,
+              "prompt": 1673,
+              "completion": 4869,
+              "cached": 0,
+              "numRequests": 0,
+              "completionDetails": {
+                "reasoning": 0,
+                "acceptedPrediction": 0,
+                "rejectedPrediction": 0
+              }
+            }
+          },
+          "namedScores": {},
+          "namedScoresCount": {},
+          "cost": 0.005912500000000001
+        }
+      },
+      {
+        "id": "beac30650eb39c4848a08e55926a1ccae3f4f3b8c20cf2cfa80548885142effb",
+        "raw": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\n{{input}}\n\nSummary:\n",
+        "label": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\n{{input}}\n\nSummary:\n",
+        "provider": "Claude Sonnet 4",
+        "metrics": {
+          "score": 25,
+          "testPassCount": 5,
+          "testFailCount": 0,
+          "testErrorCount": 0,
+          "assertPassCount": 5,
+          "assertFailCount": 0,
+          "totalLatencyMs": 13890,
+          "tokenUsage": {
+            "prompt": 1066,
+            "completion": 416,
+            "cached": 0,
+            "total": 1482,
+            "numRequests": 5,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            },
+            "assertions": {
+              "total": 6057,
+              "prompt": 1687,
+              "completion": 4370,
+              "cached": 0,
+              "numRequests": 0,
+              "completionDetails": {
+                "reasoning": 0,
+                "acceptedPrediction": 0,
+                "rejectedPrediction": 0
+              }
+            }
+          },
+          "namedScores": {},
+          "namedScoresCount": {},
+          "cost": 0.009438
+        }
+      },
+      {
+        "id": "beac30650eb39c4848a08e55926a1ccae3f4f3b8c20cf2cfa80548885142effb",
+        "raw": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\n{{input}}\n\nSummary:\n",
+        "label": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\n{{input}}\n\nSummary:\n",
+        "provider": "GPT-4o-mini",
+        "metrics": {
+          "score": 23,
+          "testPassCount": 5,
+          "testFailCount": 0,
+          "testErrorCount": 0,
+          "assertPassCount": 5,
+          "assertFailCount": 0,
+          "totalLatencyMs": 8472,
+          "tokenUsage": {
+            "prompt": 933,
+            "completion": 329,
+            "cached": 0,
+            "total": 1262,
+            "numRequests": 5,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            },
+            "assertions": {
+              "total": 6493,
+              "prompt": 1644,
+              "completion": 4849,
+              "cached": 0,
+              "numRequests": 0,
+              "completionDetails": {
+                "reasoning": 0,
+                "acceptedPrediction": 0,
+                "rejectedPrediction": 0
+              }
+            }
+          },
+          "namedScores": {},
+          "namedScoresCount": {},
+          "cost": 0.00033735
+        }
+      }
+    ],
+    "results": [
+      {
+        "cost": 0.0000585,
+        "gradingResult": {
+          "pass": true,
+          "score": 5,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 977,
+            "prompt": 339,
+            "completion": 638,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this email summary on a 1-5 scale:\n5 = Captures both the budget reallocation proposal ($50K from engineering to marketing) AND the Thursday meeting request\n4 = Captures the main proposal but misses the meeting request or a key detail\n3 = Gets the general topic right but misses the specific numbers or proposal\n2 = Vaguely related but missing most key points\n1 = Wrong, irrelevant, or empty\nThe summary must mention: budget reallocation, marketing overspend, and the proposed action.\n"
+              },
+              "pass": true,
+              "score": 5,
+              "reason": "Summary mentions budget reallocation ($50K from engineering to marketing), states marketing’s 15% overspend, and includes the Thursday 30-minute meeting request—capturing both the proposal and the meeting ask.",
+              "tokensUsed": {
+                "total": 977,
+                "prompt": 339,
+                "completion": 638,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\nSarah proposes reallocating $50K from the engineering department's unused budget to cover the marketing department's 15% overspend due to an unplanned campaign. She requests a 30-minute call this Thursday to discuss the proposal and asks the team to confirm their availability.\\n</Output>\\n<Rubric>\\nRate this email summary on a 1-5 scale:\\n5 = Captures both the budget reallocation proposal ($50K from engineering to marketing) AND the Thursday meeting request\\n4 = Captures the main proposal but misses the meeting request or a key detail\\n3 = Gets the general topic right but misses the specific numbers or proposal\\n2 = Vaguely related but missing most key points\\n1 = Wrong, irrelevant, or empty\\nThe summary must mention: budget reallocation, marketing overspend, and the proposed action.\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "b7a323b2-333a-4642-9e7b-cb9d4710922a",
+        "latencyMs": 1512,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\nSubject: Q3 Budget Review Meeting\n\nHi team,\n\nI wanted to follow up on our discussion from last week regarding the Q3 budget allocation. After reviewing the numbers with finance, we've identified that the marketing department has exceeded their projected spend by 15%, primarily due to the unplanned campaign launch in August. However, the engineering team is currently 8% under budget due to delayed hiring.\n\nI'd like to propose we reallocate $50K from engineering's unused budget to cover marketing's overspend, rather than requesting additional funds from the board. This would keep us within our overall quarterly target.\n\nCan we schedule a 30-minute call this Thursday to discuss? Please confirm your availability.\n\nBest,\nSarah\n\nSummary:\n",
+          "label": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\n{{input}}\n\nSummary:\n",
+          "config": {}
+        },
+        "promptId": "beac30650eb39c4848a08e55926a1ccae3f4f3b8c20cf2cfa80548885142effb",
+        "promptIdx": 2,
+        "provider": {
+          "id": "openai:gpt-4o-mini",
+          "label": "GPT-4o-mini"
+        },
+        "response": {
+          "output": "Sarah proposes reallocating $50K from the engineering department's unused budget to cover the marketing department's 15% overspend due to an unplanned campaign. She requests a 30-minute call this Thursday to discuss the proposal and asks the team to confirm their availability.",
+          "tokenUsage": {
+            "total": 228,
+            "prompt": 174,
+            "completion": 54,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 1512,
+          "finishReason": "stop",
+          "cost": 0.0000585,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bce76cd2d174a-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:35:20 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "1292",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=m0Awr.IL9DxSffPjygT9IASz.ydhOtKYKCLrb1w7hAg-1777271719.4844255-1.0.1.1-vDMm.fC_7B3WjeQ5F.RqeazJskAykhLfbGnli2jUqx5Mj1xhGYd9o8E.K6WD0zcMTc8ta_Oz3srlc.2l4SN5SVU0JF35K7IGeOlESMm_5jaTJOUaYefTWCZBcI9eJzRZ; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:05:20 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "10000",
+                "x-ratelimit-limit-tokens": "200000",
+                "x-ratelimit-remaining-requests": "9997",
+                "x-ratelimit-remaining-tokens": "199785",
+                "x-ratelimit-reset-requests": "24.794s",
+                "x-ratelimit-reset-tokens": "64ms",
+                "x-request-id": "req_ebcead464e4d4453b95c4f099fa17ca5"
+              }
+            }
+          }
+        },
+        "score": 5,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Subject: Q3 Budget Review Meeting\n\nHi team,\n\nI wanted to follow up on our discussion from last week regarding the Q3 budget allocation. After reviewing the numbers with finance, we've identified that the marketing department has exceeded their projected spend by 15%, primarily due to the unplanned campaign launch in August. However, the engineering team is currently 8% under budget due to delayed hiring.\n\nI'd like to propose we reallocate $50K from engineering's unused budget to cover marketing's overspend, rather than requesting additional funds from the board. This would keep us within our overall quarterly target.\n\nCan we schedule a 30-minute call this Thursday to discuss? Please confirm your availability.\n\nBest,\nSarah"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this email summary on a 1-5 scale:\n5 = Captures both the budget reallocation proposal ($50K from engineering to marketing) AND the Thursday meeting request\n4 = Captures the main proposal but misses the meeting request or a key detail\n3 = Gets the general topic right but misses the specific numbers or proposal\n2 = Vaguely related but missing most key points\n1 = Wrong, irrelevant, or empty\nThe summary must mention: budget reallocation, marketing overspend, and the proposed action.\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 0,
+        "vars": {
+          "input": "Subject: Q3 Budget Review Meeting\n\nHi team,\n\nI wanted to follow up on our discussion from last week regarding the Q3 budget allocation. After reviewing the numbers with finance, we've identified that the marketing department has exceeded their projected spend by 15%, primarily due to the unplanned campaign launch in August. However, the engineering team is currently 8% under budget due to delayed hiring.\n\nI'd like to propose we reallocate $50K from engineering's unused budget to cover marketing's overspend, rather than requesting additional funds from the board. This would keep us within our overall quarterly target.\n\nCan we schedule a 30-minute call this Thursday to discuss? Please confirm your availability.\n\nBest,\nSarah"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bce76cd2d174a-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:35:20 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "1292",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=m0Awr.IL9DxSffPjygT9IASz.ydhOtKYKCLrb1w7hAg-1777271719.4844255-1.0.1.1-vDMm.fC_7B3WjeQ5F.RqeazJskAykhLfbGnli2jUqx5Mj1xhGYd9o8E.K6WD0zcMTc8ta_Oz3srlc.2l4SN5SVU0JF35K7IGeOlESMm_5jaTJOUaYefTWCZBcI9eJzRZ; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:05:20 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "10000",
+              "x-ratelimit-limit-tokens": "200000",
+              "x-ratelimit-remaining-requests": "9997",
+              "x-ratelimit-remaining-tokens": "199785",
+              "x-ratelimit-reset-requests": "24.794s",
+              "x-ratelimit-reset-tokens": "64ms",
+              "x-request-id": "req_ebcead464e4d4453b95c4f099fa17ca5"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.0015930000000000002,
+        "gradingResult": {
+          "pass": true,
+          "score": 5,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1258,
+            "prompt": 345,
+            "completion": 913,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this email summary on a 1-5 scale:\n5 = Captures both the budget reallocation proposal ($50K from engineering to marketing) AND the Thursday meeting request\n4 = Captures the main proposal but misses the meeting request or a key detail\n3 = Gets the general topic right but misses the specific numbers or proposal\n2 = Vaguely related but missing most key points\n1 = Wrong, irrelevant, or empty\nThe summary must mention: budget reallocation, marketing overspend, and the proposed action.\n"
+              },
+              "pass": true,
+              "score": 5,
+              "reason": "The summary mentions marketing overspend (15%), engineering under budget (8%), the budget reallocation of $50K from engineering to marketing, and the proposed action (a 30-minute call on Thursday). It captures both the reallocation proposal and the Thursday meeting request, satisfying the must-mention items.",
+              "tokensUsed": {
+                "total": 1258,
+                "prompt": 345,
+                "completion": 913,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\nThe Q3 budget review shows marketing exceeded their budget by 15% due to an unplanned August campaign, while engineering is 8% under budget due to delayed hiring. Sarah proposes reallocating $50K from engineering to marketing and requests a 30-minute call this Thursday to discuss the proposal.\\n</Output>\\n<Rubric>\\nRate this email summary on a 1-5 scale:\\n5 = Captures both the budget reallocation proposal ($50K from engineering to marketing) AND the Thursday meeting request\\n4 = Captures the main proposal but misses the meeting request or a key detail\\n3 = Gets the general topic right but misses the specific numbers or proposal\\n2 = Vaguely related but missing most key points\\n1 = Wrong, irrelevant, or empty\\nThe summary must mention: budget reallocation, marketing overspend, and the proposed action.\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "88278fad-2524-4f0a-bbf3-7d956c754e17",
+        "latencyMs": 2471,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\nSubject: Q3 Budget Review Meeting\n\nHi team,\n\nI wanted to follow up on our discussion from last week regarding the Q3 budget allocation. After reviewing the numbers with finance, we've identified that the marketing department has exceeded their projected spend by 15%, primarily due to the unplanned campaign launch in August. However, the engineering team is currently 8% under budget due to delayed hiring.\n\nI'd like to propose we reallocate $50K from engineering's unused budget to cover marketing's overspend, rather than requesting additional funds from the board. This would keep us within our overall quarterly target.\n\nCan we schedule a 30-minute call this Thursday to discuss? Please confirm your availability.\n\nBest,\nSarah\n\nSummary:\n",
+          "label": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\n{{input}}\n\nSummary:\n",
+          "config": {}
+        },
+        "promptId": "beac30650eb39c4848a08e55926a1ccae3f4f3b8c20cf2cfa80548885142effb",
+        "promptIdx": 1,
+        "provider": {
+          "id": "anthropic:messages:claude-sonnet-4-20250514",
+          "label": "Claude Sonnet 4"
+        },
+        "response": {
+          "output": "The Q3 budget review shows marketing exceeded their budget by 15% due to an unplanned August campaign, while engineering is 8% under budget due to delayed hiring. Sarah proposes reallocating $50K from engineering to marketing and requests a 30-minute call this Thursday to discuss the proposal.",
+          "tokenUsage": {
+            "total": 259,
+            "prompt": 191,
+            "completion": 68
+          },
+          "finishReason": "stop",
+          "cost": 0.0015930000000000002
+        },
+        "score": 5,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Subject: Q3 Budget Review Meeting\n\nHi team,\n\nI wanted to follow up on our discussion from last week regarding the Q3 budget allocation. After reviewing the numbers with finance, we've identified that the marketing department has exceeded their projected spend by 15%, primarily due to the unplanned campaign launch in August. However, the engineering team is currently 8% under budget due to delayed hiring.\n\nI'd like to propose we reallocate $50K from engineering's unused budget to cover marketing's overspend, rather than requesting additional funds from the board. This would keep us within our overall quarterly target.\n\nCan we schedule a 30-minute call this Thursday to discuss? Please confirm your availability.\n\nBest,\nSarah"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this email summary on a 1-5 scale:\n5 = Captures both the budget reallocation proposal ($50K from engineering to marketing) AND the Thursday meeting request\n4 = Captures the main proposal but misses the meeting request or a key detail\n3 = Gets the general topic right but misses the specific numbers or proposal\n2 = Vaguely related but missing most key points\n1 = Wrong, irrelevant, or empty\nThe summary must mention: budget reallocation, marketing overspend, and the proposed action.\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 0,
+        "vars": {
+          "input": "Subject: Q3 Budget Review Meeting\n\nHi team,\n\nI wanted to follow up on our discussion from last week regarding the Q3 budget allocation. After reviewing the numbers with finance, we've identified that the marketing department has exceeded their projected spend by 15%, primarily due to the unplanned campaign launch in August. However, the engineering team is currently 8% under budget due to delayed hiring.\n\nI'd like to propose we reallocate $50K from engineering's unused budget to cover marketing's overspend, rather than requesting additional funds from the board. This would keep us within our overall quarterly target.\n\nCan we schedule a 30-minute call this Thursday to discuss? Please confirm your availability.\n\nBest,\nSarah"
+        },
+        "metadata": {
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.0010050000000000003,
+        "gradingResult": {
+          "pass": true,
+          "score": 5,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1437,
+            "prompt": 342,
+            "completion": 1095,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this email summary on a 1-5 scale:\n5 = Captures both the budget reallocation proposal ($50K from engineering to marketing) AND the Thursday meeting request\n4 = Captures the main proposal but misses the meeting request or a key detail\n3 = Gets the general topic right but misses the specific numbers or proposal\n2 = Vaguely related but missing most key points\n1 = Wrong, irrelevant, or empty\nThe summary must mention: budget reallocation, marketing overspend, and the proposed action.\n"
+              },
+              "pass": true,
+              "score": 5,
+              "reason": "Captures the $50K budget reallocation from engineering to marketing to address a 15% marketing overspend and includes the Thursday 30-minute call request; it mentions budget reallocation, marketing overspend, and the proposed action.",
+              "tokensUsed": {
+                "total": 1437,
+                "prompt": 342,
+                "completion": 1095,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\nSarah proposes reallocating $50K from the engineering department's unused budget to cover the marketing department's 15% overspend, keeping the overall Q3 budget within target. She requests a 30-minute call on Thursday to discuss this proposal and asks the team to confirm their availability.\\n</Output>\\n<Rubric>\\nRate this email summary on a 1-5 scale:\\n5 = Captures both the budget reallocation proposal ($50K from engineering to marketing) AND the Thursday meeting request\\n4 = Captures the main proposal but misses the meeting request or a key detail\\n3 = Gets the general topic right but misses the specific numbers or proposal\\n2 = Vaguely related but missing most key points\\n1 = Wrong, irrelevant, or empty\\nThe summary must mention: budget reallocation, marketing overspend, and the proposed action.\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "1a903ddb-5a11-42f6-b705-a61df9b76e08",
+        "latencyMs": 1286,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\nSubject: Q3 Budget Review Meeting\n\nHi team,\n\nI wanted to follow up on our discussion from last week regarding the Q3 budget allocation. After reviewing the numbers with finance, we've identified that the marketing department has exceeded their projected spend by 15%, primarily due to the unplanned campaign launch in August. However, the engineering team is currently 8% under budget due to delayed hiring.\n\nI'd like to propose we reallocate $50K from engineering's unused budget to cover marketing's overspend, rather than requesting additional funds from the board. This would keep us within our overall quarterly target.\n\nCan we schedule a 30-minute call this Thursday to discuss? Please confirm your availability.\n\nBest,\nSarah\n\nSummary:\n",
+          "label": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\n{{input}}\n\nSummary:\n",
+          "config": {}
+        },
+        "promptId": "beac30650eb39c4848a08e55926a1ccae3f4f3b8c20cf2cfa80548885142effb",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:gpt-4o",
+          "label": "GPT-4o"
+        },
+        "response": {
+          "output": "Sarah proposes reallocating $50K from the engineering department's unused budget to cover the marketing department's 15% overspend, keeping the overall Q3 budget within target. She requests a 30-minute call on Thursday to discuss this proposal and asks the team to confirm their availability.",
+          "tokenUsage": {
+            "total": 231,
+            "prompt": 174,
+            "completion": 57,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 1286,
+          "finishReason": "stop",
+          "cost": 0.0010050000000000003,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bce76bf998462-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:35:20 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "1114",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=tWsVlhUxthawttIzV67gIK_6lRgE7rXog.GAcvBXyyM-1777271719.4793165-1.0.1.1-UXmzPJhFAkwQtHhypYzBeuuGFSxG6FmxsWHEQGZjK0yWX0K6i2BAsPJjOnGANbgHgDD0Jh6ymUnfYIJE.COZDzDKGdASvyN9QbwV7J6esBqaPLSUWJjk3_VxtGUviFiS; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:05:20 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "500",
+                "x-ratelimit-limit-tokens": "30000",
+                "x-ratelimit-remaining-requests": "499",
+                "x-ratelimit-remaining-tokens": "29785",
+                "x-ratelimit-reset-requests": "120ms",
+                "x-ratelimit-reset-tokens": "430ms",
+                "x-request-id": "req_b1d5a46927a44e198c04cbe2158dc972"
+              }
+            }
+          }
+        },
+        "score": 5,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Subject: Q3 Budget Review Meeting\n\nHi team,\n\nI wanted to follow up on our discussion from last week regarding the Q3 budget allocation. After reviewing the numbers with finance, we've identified that the marketing department has exceeded their projected spend by 15%, primarily due to the unplanned campaign launch in August. However, the engineering team is currently 8% under budget due to delayed hiring.\n\nI'd like to propose we reallocate $50K from engineering's unused budget to cover marketing's overspend, rather than requesting additional funds from the board. This would keep us within our overall quarterly target.\n\nCan we schedule a 30-minute call this Thursday to discuss? Please confirm your availability.\n\nBest,\nSarah"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this email summary on a 1-5 scale:\n5 = Captures both the budget reallocation proposal ($50K from engineering to marketing) AND the Thursday meeting request\n4 = Captures the main proposal but misses the meeting request or a key detail\n3 = Gets the general topic right but misses the specific numbers or proposal\n2 = Vaguely related but missing most key points\n1 = Wrong, irrelevant, or empty\nThe summary must mention: budget reallocation, marketing overspend, and the proposed action.\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 0,
+        "vars": {
+          "input": "Subject: Q3 Budget Review Meeting\n\nHi team,\n\nI wanted to follow up on our discussion from last week regarding the Q3 budget allocation. After reviewing the numbers with finance, we've identified that the marketing department has exceeded their projected spend by 15%, primarily due to the unplanned campaign launch in August. However, the engineering team is currently 8% under budget due to delayed hiring.\n\nI'd like to propose we reallocate $50K from engineering's unused budget to cover marketing's overspend, rather than requesting additional funds from the board. This would keep us within our overall quarterly target.\n\nCan we schedule a 30-minute call this Thursday to discuss? Please confirm your availability.\n\nBest,\nSarah"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bce76bf998462-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:35:20 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "1114",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=tWsVlhUxthawttIzV67gIK_6lRgE7rXog.GAcvBXyyM-1777271719.4793165-1.0.1.1-UXmzPJhFAkwQtHhypYzBeuuGFSxG6FmxsWHEQGZjK0yWX0K6i2BAsPJjOnGANbgHgDD0Jh6ymUnfYIJE.COZDzDKGdASvyN9QbwV7J6esBqaPLSUWJjk3_VxtGUviFiS; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:05:20 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "500",
+              "x-ratelimit-limit-tokens": "30000",
+              "x-ratelimit-remaining-requests": "499",
+              "x-ratelimit-remaining-tokens": "29785",
+              "x-ratelimit-reset-requests": "120ms",
+              "x-ratelimit-reset-tokens": "430ms",
+              "x-request-id": "req_b1d5a46927a44e198c04cbe2158dc972"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.0013275000000000001,
+        "gradingResult": {
+          "pass": true,
+          "score": 5,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1112,
+            "prompt": 343,
+            "completion": 769,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the root cause (load balancer misconfiguration), impact (47 min, 12K users), and action items\n4 = Captures root cause and impact but misses action items\n3 = Gets the general topic (outage) but misses specifics\n2 = Vaguely related\n1 = Wrong or empty\n"
+              },
+              "pass": true,
+              "score": 5,
+              "reason": "Includes root cause (misconfigured load balancer rule), clear impact (47 minutes, ~12,000 users), and concrete action items (CI validation, runbook update, traffic alerts), plus remediation and follow-up deadline.",
+              "tokensUsed": {
+                "total": 1112,
+                "prompt": 343,
+                "completion": 769,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\nThe server outage was caused by a misconfigured load balancer rule, leading to 47 minutes of degraded service for about 12,000 users, which was resolved by rolling back the configuration. Action items include adding load balancer config validation to the CI pipeline, updating the runbook for load balancer-related incidents, and implementing automated traffic distribution alerts, with comments on the full post-mortem document due by Friday.\\n</Output>\\n<Rubric>\\nRate this email summary on a 1-5 scale:\\n5 = Captures the root cause (load balancer misconfiguration), impact (47 min, 12K users), and action items\\n4 = Captures root cause and impact but misses action items\\n3 = Gets the general topic (outage) but misses specifics\\n2 = Vaguely related\\n1 = Wrong or empty\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "23d4e6f4-3d8b-4431-a4b7-983d442b8e24",
+        "latencyMs": 1419,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\nSubject: Re: Server Outage Post-Mortem\n\nTeam,\n\nHere's the summary from yesterday's incident:\n\n- Root cause: A misconfigured load balancer rule deployed at 2:14 PM EST caused all traffic to route to a single node\n- Impact: 47 minutes of degraded service affecting approximately 12,000 users\n- Resolution: The on-call engineer (Mike) identified the issue at 2:38 PM and rolled back the configuration at 3:01 PM\n- Action items: (1) Add load balancer config validation to CI pipeline, (2) Update runbook for LB-related incidents, (3) Implement automated traffic distribution alerts\n\nThe full post-mortem document is attached. Please review and add any comments by Friday.\n\nThanks,\nJen\n\nSummary:\n",
+          "label": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\n{{input}}\n\nSummary:\n",
+          "config": {}
+        },
+        "promptId": "beac30650eb39c4848a08e55926a1ccae3f4f3b8c20cf2cfa80548885142effb",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:gpt-4o",
+          "label": "GPT-4o"
+        },
+        "response": {
+          "output": "The server outage was caused by a misconfigured load balancer rule, leading to 47 minutes of degraded service for about 12,000 users, which was resolved by rolling back the configuration. Action items include adding load balancer config validation to the CI pipeline, updating the runbook for load balancer-related incidents, and implementing automated traffic distribution alerts, with comments on the full post-mortem document due by Friday.",
+          "tokenUsage": {
+            "total": 276,
+            "prompt": 191,
+            "completion": 85,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 1419,
+          "finishReason": "stop",
+          "cost": 0.0013275000000000001,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bce76bc7dcf12-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:35:20 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "1171",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=PYBLgbivmhoJD.ha6wf7Y6SUg2p8ZP_7EP4HgbH6.Po-1777271719.4790175-1.0.1.1-MFmsrb0Yj5aDuetCxfCsAIcaLxop2K.Wgwyun7eoViXGVnzKJof4cq_0zDzYjlShGo2jUYio_OFJ9vU9oq373gWXoXRKLEull5OgcFjA7KXn718aUudsLxv4TKvVvlc_; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:05:20 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "500",
+                "x-ratelimit-limit-tokens": "30000",
+                "x-ratelimit-remaining-requests": "498",
+                "x-ratelimit-remaining-tokens": "29584",
+                "x-ratelimit-reset-requests": "237ms",
+                "x-ratelimit-reset-tokens": "831ms",
+                "x-request-id": "req_848599a5fd934775aad53d3581474695"
+              }
+            }
+          }
+        },
+        "score": 5,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Subject: Re: Server Outage Post-Mortem\n\nTeam,\n\nHere's the summary from yesterday's incident:\n\n- Root cause: A misconfigured load balancer rule deployed at 2:14 PM EST caused all traffic to route to a single node\n- Impact: 47 minutes of degraded service affecting approximately 12,000 users\n- Resolution: The on-call engineer (Mike) identified the issue at 2:38 PM and rolled back the configuration at 3:01 PM\n- Action items: (1) Add load balancer config validation to CI pipeline, (2) Update runbook for LB-related incidents, (3) Implement automated traffic distribution alerts\n\nThe full post-mortem document is attached. Please review and add any comments by Friday.\n\nThanks,\nJen"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the root cause (load balancer misconfiguration), impact (47 min, 12K users), and action items\n4 = Captures root cause and impact but misses action items\n3 = Gets the general topic (outage) but misses specifics\n2 = Vaguely related\n1 = Wrong or empty\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 1,
+        "vars": {
+          "input": "Subject: Re: Server Outage Post-Mortem\n\nTeam,\n\nHere's the summary from yesterday's incident:\n\n- Root cause: A misconfigured load balancer rule deployed at 2:14 PM EST caused all traffic to route to a single node\n- Impact: 47 minutes of degraded service affecting approximately 12,000 users\n- Resolution: The on-call engineer (Mike) identified the issue at 2:38 PM and rolled back the configuration at 3:01 PM\n- Action items: (1) Add load balancer config validation to CI pipeline, (2) Update runbook for LB-related incidents, (3) Implement automated traffic distribution alerts\n\nThe full post-mortem document is attached. Please review and add any comments by Friday.\n\nThanks,\nJen"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bce76bc7dcf12-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:35:20 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "1171",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=PYBLgbivmhoJD.ha6wf7Y6SUg2p8ZP_7EP4HgbH6.Po-1777271719.4790175-1.0.1.1-MFmsrb0Yj5aDuetCxfCsAIcaLxop2K.Wgwyun7eoViXGVnzKJof4cq_0zDzYjlShGo2jUYio_OFJ9vU9oq373gWXoXRKLEull5OgcFjA7KXn718aUudsLxv4TKvVvlc_; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:05:20 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "500",
+              "x-ratelimit-limit-tokens": "30000",
+              "x-ratelimit-remaining-requests": "498",
+              "x-ratelimit-remaining-tokens": "29584",
+              "x-ratelimit-reset-requests": "237ms",
+              "x-ratelimit-reset-tokens": "831ms",
+              "x-request-id": "req_848599a5fd934775aad53d3581474695"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.00007605,
+        "gradingResult": {
+          "pass": true,
+          "score": 5,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1110,
+            "prompt": 337,
+            "completion": 773,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the root cause (load balancer misconfiguration), impact (47 min, 12K users), and action items\n4 = Captures root cause and impact but misses action items\n3 = Gets the general topic (outage) but misses specifics\n2 = Vaguely related\n1 = Wrong or empty\n"
+              },
+              "pass": true,
+              "score": 5,
+              "reason": "Captures the root cause (load balancer misconfiguration), impact (47 minutes, ~12,000 users), and clear action items (CI validation, runbook update, automated alerts, request for comments), matching the 5-level criteria.",
+              "tokensUsed": {
+                "total": 1110,
+                "prompt": 337,
+                "completion": 773,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\nThe email summarizes a server outage caused by a misconfigured load balancer rule, which led to 47 minutes of degraded service for about 12,000 users. Action items include adding load balancer configuration validation to the CI pipeline, updating the runbook for related incidents, and implementing automated traffic distribution alerts, with a request for team comments on the attached post-mortem document by Friday.\\n</Output>\\n<Rubric>\\nRate this email summary on a 1-5 scale:\\n5 = Captures the root cause (load balancer misconfiguration), impact (47 min, 12K users), and action items\\n4 = Captures root cause and impact but misses action items\\n3 = Gets the general topic (outage) but misses specifics\\n2 = Vaguely related\\n1 = Wrong or empty\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "41c607ee-bc9d-4eae-babc-9eb8afbc3947",
+        "latencyMs": 1904,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\nSubject: Re: Server Outage Post-Mortem\n\nTeam,\n\nHere's the summary from yesterday's incident:\n\n- Root cause: A misconfigured load balancer rule deployed at 2:14 PM EST caused all traffic to route to a single node\n- Impact: 47 minutes of degraded service affecting approximately 12,000 users\n- Resolution: The on-call engineer (Mike) identified the issue at 2:38 PM and rolled back the configuration at 3:01 PM\n- Action items: (1) Add load balancer config validation to CI pipeline, (2) Update runbook for LB-related incidents, (3) Implement automated traffic distribution alerts\n\nThe full post-mortem document is attached. Please review and add any comments by Friday.\n\nThanks,\nJen\n\nSummary:\n",
+          "label": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\n{{input}}\n\nSummary:\n",
+          "config": {}
+        },
+        "promptId": "beac30650eb39c4848a08e55926a1ccae3f4f3b8c20cf2cfa80548885142effb",
+        "promptIdx": 2,
+        "provider": {
+          "id": "openai:gpt-4o-mini",
+          "label": "GPT-4o-mini"
+        },
+        "response": {
+          "output": "The email summarizes a server outage caused by a misconfigured load balancer rule, which led to 47 minutes of degraded service for about 12,000 users. Action items include adding load balancer configuration validation to the CI pipeline, updating the runbook for related incidents, and implementing automated traffic distribution alerts, with a request for team comments on the attached post-mortem document by Friday.",
+          "tokenUsage": {
+            "total": 270,
+            "prompt": 191,
+            "completion": 79,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 1904,
+          "finishReason": "stop",
+          "cost": 0.00007605,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bceb708a14b6f-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:35:31 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "1634",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=pH20pCl2Ilqye1pRkfa_cigqOWf468oFmSXsWHx4hsU-1777271729.7688735-1.0.1.1-xcfuuh0dZdxU4a4EjDp.dBXtPQczQcIo5XCAudeJdG5klYugngi63ZFxhqqpydpjRyMI2VhwFuh2ofi1WuH1kFMS_9yptdyEQ2frzcAxV1qycW5YyqRXSrI._Z.QA_0U; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:05:31 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "10000",
+                "x-ratelimit-limit-tokens": "200000",
+                "x-ratelimit-remaining-requests": "9997",
+                "x-ratelimit-remaining-tokens": "199798",
+                "x-ratelimit-reset-requests": "23.068s",
+                "x-ratelimit-reset-tokens": "60ms",
+                "x-request-id": "req_cf51ec72df4446a9ab7c0f784e72e889"
+              }
+            }
+          }
+        },
+        "score": 5,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Subject: Re: Server Outage Post-Mortem\n\nTeam,\n\nHere's the summary from yesterday's incident:\n\n- Root cause: A misconfigured load balancer rule deployed at 2:14 PM EST caused all traffic to route to a single node\n- Impact: 47 minutes of degraded service affecting approximately 12,000 users\n- Resolution: The on-call engineer (Mike) identified the issue at 2:38 PM and rolled back the configuration at 3:01 PM\n- Action items: (1) Add load balancer config validation to CI pipeline, (2) Update runbook for LB-related incidents, (3) Implement automated traffic distribution alerts\n\nThe full post-mortem document is attached. Please review and add any comments by Friday.\n\nThanks,\nJen"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the root cause (load balancer misconfiguration), impact (47 min, 12K users), and action items\n4 = Captures root cause and impact but misses action items\n3 = Gets the general topic (outage) but misses specifics\n2 = Vaguely related\n1 = Wrong or empty\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 1,
+        "vars": {
+          "input": "Subject: Re: Server Outage Post-Mortem\n\nTeam,\n\nHere's the summary from yesterday's incident:\n\n- Root cause: A misconfigured load balancer rule deployed at 2:14 PM EST caused all traffic to route to a single node\n- Impact: 47 minutes of degraded service affecting approximately 12,000 users\n- Resolution: The on-call engineer (Mike) identified the issue at 2:38 PM and rolled back the configuration at 3:01 PM\n- Action items: (1) Add load balancer config validation to CI pipeline, (2) Update runbook for LB-related incidents, (3) Implement automated traffic distribution alerts\n\nThe full post-mortem document is attached. Please review and add any comments by Friday.\n\nThanks,\nJen"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bceb708a14b6f-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:35:31 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "1634",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=pH20pCl2Ilqye1pRkfa_cigqOWf468oFmSXsWHx4hsU-1777271729.7688735-1.0.1.1-xcfuuh0dZdxU4a4EjDp.dBXtPQczQcIo5XCAudeJdG5klYugngi63ZFxhqqpydpjRyMI2VhwFuh2ofi1WuH1kFMS_9yptdyEQ2frzcAxV1qycW5YyqRXSrI._Z.QA_0U; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:05:31 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "10000",
+              "x-ratelimit-limit-tokens": "200000",
+              "x-ratelimit-remaining-requests": "9997",
+              "x-ratelimit-remaining-tokens": "199798",
+              "x-ratelimit-reset-requests": "23.068s",
+              "x-ratelimit-reset-tokens": "60ms",
+              "x-request-id": "req_cf51ec72df4446a9ab7c0f784e72e889"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.001962,
+        "gradingResult": {
+          "pass": true,
+          "score": 5,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1247,
+            "prompt": 338,
+            "completion": 909,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the root cause (load balancer misconfiguration), impact (47 min, 12K users), and action items\n4 = Captures root cause and impact but misses action items\n3 = Gets the general topic (outage) but misses specifics\n2 = Vaguely related\n1 = Wrong or empty\n"
+              },
+              "pass": true,
+              "score": 5,
+              "reason": "Includes the specific root cause (misconfigured load balancer rule routing all traffic to one node), the impact (47-minute outage affecting ~12,000 users), and clear action items (CI validation, runbook updates, alerts, post-mortem review).",
+              "tokensUsed": {
+                "total": 1247,
+                "prompt": 338,
+                "completion": 909,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\nYesterday's 47-minute server outage was caused by a misconfigured load balancer rule that routed all traffic to a single node, affecting approximately 12,000 users before being resolved by rolling back the configuration. The team needs to add load balancer validation to the CI pipeline, update incident runbooks, implement automated alerts, and review the full post-mortem document with comments due by Friday.\\n</Output>\\n<Rubric>\\nRate this email summary on a 1-5 scale:\\n5 = Captures the root cause (load balancer misconfiguration), impact (47 min, 12K users), and action items\\n4 = Captures root cause and impact but misses action items\\n3 = Gets the general topic (outage) but misses specifics\\n2 = Vaguely related\\n1 = Wrong or empty\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "a3ceb00c-4631-4c23-84d0-ee736f14125b",
+        "latencyMs": 2708,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\nSubject: Re: Server Outage Post-Mortem\n\nTeam,\n\nHere's the summary from yesterday's incident:\n\n- Root cause: A misconfigured load balancer rule deployed at 2:14 PM EST caused all traffic to route to a single node\n- Impact: 47 minutes of degraded service affecting approximately 12,000 users\n- Resolution: The on-call engineer (Mike) identified the issue at 2:38 PM and rolled back the configuration at 3:01 PM\n- Action items: (1) Add load balancer config validation to CI pipeline, (2) Update runbook for LB-related incidents, (3) Implement automated traffic distribution alerts\n\nThe full post-mortem document is attached. Please review and add any comments by Friday.\n\nThanks,\nJen\n\nSummary:\n",
+          "label": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\n{{input}}\n\nSummary:\n",
+          "config": {}
+        },
+        "promptId": "beac30650eb39c4848a08e55926a1ccae3f4f3b8c20cf2cfa80548885142effb",
+        "promptIdx": 1,
+        "provider": {
+          "id": "anthropic:messages:claude-sonnet-4-20250514",
+          "label": "Claude Sonnet 4"
+        },
+        "response": {
+          "output": "Yesterday's 47-minute server outage was caused by a misconfigured load balancer rule that routed all traffic to a single node, affecting approximately 12,000 users before being resolved by rolling back the configuration. The team needs to add load balancer validation to the CI pipeline, update incident runbooks, implement automated alerts, and review the full post-mortem document with comments due by Friday.",
+          "tokenUsage": {
+            "total": 302,
+            "prompt": 214,
+            "completion": 88
+          },
+          "finishReason": "stop",
+          "cost": 0.001962
+        },
+        "score": 5,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Subject: Re: Server Outage Post-Mortem\n\nTeam,\n\nHere's the summary from yesterday's incident:\n\n- Root cause: A misconfigured load balancer rule deployed at 2:14 PM EST caused all traffic to route to a single node\n- Impact: 47 minutes of degraded service affecting approximately 12,000 users\n- Resolution: The on-call engineer (Mike) identified the issue at 2:38 PM and rolled back the configuration at 3:01 PM\n- Action items: (1) Add load balancer config validation to CI pipeline, (2) Update runbook for LB-related incidents, (3) Implement automated traffic distribution alerts\n\nThe full post-mortem document is attached. Please review and add any comments by Friday.\n\nThanks,\nJen"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the root cause (load balancer misconfiguration), impact (47 min, 12K users), and action items\n4 = Captures root cause and impact but misses action items\n3 = Gets the general topic (outage) but misses specifics\n2 = Vaguely related\n1 = Wrong or empty\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 1,
+        "vars": {
+          "input": "Subject: Re: Server Outage Post-Mortem\n\nTeam,\n\nHere's the summary from yesterday's incident:\n\n- Root cause: A misconfigured load balancer rule deployed at 2:14 PM EST caused all traffic to route to a single node\n- Impact: 47 minutes of degraded service affecting approximately 12,000 users\n- Resolution: The on-call engineer (Mike) identified the issue at 2:38 PM and rolled back the configuration at 3:01 PM\n- Action items: (1) Add load balancer config validation to CI pipeline, (2) Update runbook for LB-related incidents, (3) Implement automated traffic distribution alerts\n\nThe full post-mortem document is attached. Please review and add any comments by Friday.\n\nThanks,\nJen"
+        },
+        "metadata": {
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.0011175000000000002,
+        "gradingResult": {
+          "pass": true,
+          "score": 5,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 953,
+            "prompt": 319,
+            "completion": 634,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the partnership proposal, revenue-sharing model, 60% latency reduction, and meeting request\n4 = Captures the proposal and key benefit but misses a detail\n3 = Gets the general topic (partnership) but misses specifics\n2 = Vaguely related\n1 = Wrong or empty\n"
+              },
+              "pass": true,
+              "score": 5,
+              "reason": "Includes partnership proposal, revenue-sharing model, 60% latency reduction, and a meeting request (plus extra details like $2M revenue and attached proposal).",
+              "tokensUsed": {
+                "total": 953,
+                "prompt": 319,
+                "completion": 634,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\nMaria Chen from DataSync Inc. proposes a strategic partnership involving a revenue-sharing model to integrate their real-time data synchronization technology into Alex's platform, potentially reducing data latency by 60% and generating $2M in additional annual revenue. She has attached a detailed proposal and requests a technical discussion next week to explore the integration architecture.\\n</Output>\\n<Rubric>\\nRate this email summary on a 1-5 scale:\\n5 = Captures the partnership proposal, revenue-sharing model, 60% latency reduction, and meeting request\\n4 = Captures the proposal and key benefit but misses a detail\\n3 = Gets the general topic (partnership) but misses specifics\\n2 = Vaguely related\\n1 = Wrong or empty\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "d4a8505f-f134-416e-aa13-f69ccef4e873",
+        "latencyMs": 1118,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\nSubject: Partnership Proposal - DataSync Inc.\n\nDear Alex,\n\nFollowing our conversation at the TechConnect conference, I'm writing to formally propose a strategic partnership between our companies. DataSync's real-time data synchronization technology could significantly enhance your platform's multi-region capabilities.\n\nWe're proposing a revenue-sharing model where we handle the data sync infrastructure and you integrate our SDK into your product. Based on our projections, this could reduce your customers' data latency by 60% while generating an estimated $2M in additional annual revenue for both parties.\n\nI've attached a detailed proposal document. Would you be available for a deeper technical discussion next week? Our CTO is eager to explore the integration architecture.\n\nLooking forward to your thoughts.\n\nRegards,\nMaria Chen\nCEO, DataSync Inc.\n\nSummary:\n",
+          "label": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\n{{input}}\n\nSummary:\n",
+          "config": {}
+        },
+        "promptId": "beac30650eb39c4848a08e55926a1ccae3f4f3b8c20cf2cfa80548885142effb",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:gpt-4o",
+          "label": "GPT-4o"
+        },
+        "response": {
+          "output": "Maria Chen from DataSync Inc. proposes a strategic partnership involving a revenue-sharing model to integrate their real-time data synchronization technology into Alex's platform, potentially reducing data latency by 60% and generating $2M in additional annual revenue. She has attached a detailed proposal and requests a technical discussion next week to explore the integration architecture.",
+          "tokenUsage": {
+            "total": 249,
+            "prompt": 183,
+            "completion": 66,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 1118,
+          "finishReason": "stop",
+          "cost": 0.0011175000000000002,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bcec6fb0197d9-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:35:33 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "848",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=3HdRleIt7uvoTNjOS4FQccsIzrwvj5hehTdX1Hr7EaU-1777271732.318665-1.0.1.1-vnWQY3lnoLYw3F9tk7iliOecOWCS.1lQRZcaisHKXCTq_lDaD_z7JiKpf2FxOM.kgHTHGzCdxeWzL21gwklGbucotFJXTwbOautM81kuEn81oQhGivYxsfUUxKCPmEwY; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:05:33 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "500",
+                "x-ratelimit-limit-tokens": "30000",
+                "x-ratelimit-remaining-requests": "499",
+                "x-ratelimit-remaining-tokens": "29754",
+                "x-ratelimit-reset-requests": "120ms",
+                "x-ratelimit-reset-tokens": "492ms",
+                "x-request-id": "req_a0f65449a4904147befafcb98c124ebc"
+              }
+            }
+          }
+        },
+        "score": 5,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Subject: Partnership Proposal - DataSync Inc.\n\nDear Alex,\n\nFollowing our conversation at the TechConnect conference, I'm writing to formally propose a strategic partnership between our companies. DataSync's real-time data synchronization technology could significantly enhance your platform's multi-region capabilities.\n\nWe're proposing a revenue-sharing model where we handle the data sync infrastructure and you integrate our SDK into your product. Based on our projections, this could reduce your customers' data latency by 60% while generating an estimated $2M in additional annual revenue for both parties.\n\nI've attached a detailed proposal document. Would you be available for a deeper technical discussion next week? Our CTO is eager to explore the integration architecture.\n\nLooking forward to your thoughts.\n\nRegards,\nMaria Chen\nCEO, DataSync Inc."
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the partnership proposal, revenue-sharing model, 60% latency reduction, and meeting request\n4 = Captures the proposal and key benefit but misses a detail\n3 = Gets the general topic (partnership) but misses specifics\n2 = Vaguely related\n1 = Wrong or empty\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 2,
+        "vars": {
+          "input": "Subject: Partnership Proposal - DataSync Inc.\n\nDear Alex,\n\nFollowing our conversation at the TechConnect conference, I'm writing to formally propose a strategic partnership between our companies. DataSync's real-time data synchronization technology could significantly enhance your platform's multi-region capabilities.\n\nWe're proposing a revenue-sharing model where we handle the data sync infrastructure and you integrate our SDK into your product. Based on our projections, this could reduce your customers' data latency by 60% while generating an estimated $2M in additional annual revenue for both parties.\n\nI've attached a detailed proposal document. Would you be available for a deeper technical discussion next week? Our CTO is eager to explore the integration architecture.\n\nLooking forward to your thoughts.\n\nRegards,\nMaria Chen\nCEO, DataSync Inc."
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bcec6fb0197d9-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:35:33 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "848",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=3HdRleIt7uvoTNjOS4FQccsIzrwvj5hehTdX1Hr7EaU-1777271732.318665-1.0.1.1-vnWQY3lnoLYw3F9tk7iliOecOWCS.1lQRZcaisHKXCTq_lDaD_z7JiKpf2FxOM.kgHTHGzCdxeWzL21gwklGbucotFJXTwbOautM81kuEn81oQhGivYxsfUUxKCPmEwY; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:05:33 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "500",
+              "x-ratelimit-limit-tokens": "30000",
+              "x-ratelimit-remaining-requests": "499",
+              "x-ratelimit-remaining-tokens": "29754",
+              "x-ratelimit-reset-requests": "120ms",
+              "x-ratelimit-reset-tokens": "492ms",
+              "x-request-id": "req_a0f65449a4904147befafcb98c124ebc"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.001872,
+        "gradingResult": {
+          "pass": true,
+          "score": 5,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1142,
+            "prompt": 327,
+            "completion": 815,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the partnership proposal, revenue-sharing model, 60% latency reduction, and meeting request\n4 = Captures the proposal and key benefit but misses a detail\n3 = Gets the general topic (partnership) but misses specifics\n2 = Vaguely related\n1 = Wrong or empty\n"
+              },
+              "pass": true,
+              "score": 5,
+              "reason": "The summary includes the partnership proposal, revenue-sharing model, 60% latency reduction, and a meeting request with the CTO.",
+              "tokensUsed": {
+                "total": 1142,
+                "prompt": 327,
+                "completion": 815,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\nMaria Chen from DataSync Inc. is proposing a strategic partnership that would integrate their real-time data synchronization technology into Alex's platform through a revenue-sharing model, potentially reducing customer data latency by 60% and generating $2M annually for both companies. She has attached a detailed proposal and is requesting a technical discussion meeting next week with their CTO to explore the integration architecture.\\n</Output>\\n<Rubric>\\nRate this email summary on a 1-5 scale:\\n5 = Captures the partnership proposal, revenue-sharing model, 60% latency reduction, and meeting request\\n4 = Captures the proposal and key benefit but misses a detail\\n3 = Gets the general topic (partnership) but misses specifics\\n2 = Vaguely related\\n1 = Wrong or empty\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "d80c90de-02cd-413c-b776-fd7ad52b4468",
+        "latencyMs": 2983,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\nSubject: Partnership Proposal - DataSync Inc.\n\nDear Alex,\n\nFollowing our conversation at the TechConnect conference, I'm writing to formally propose a strategic partnership between our companies. DataSync's real-time data synchronization technology could significantly enhance your platform's multi-region capabilities.\n\nWe're proposing a revenue-sharing model where we handle the data sync infrastructure and you integrate our SDK into your product. Based on our projections, this could reduce your customers' data latency by 60% while generating an estimated $2M in additional annual revenue for both parties.\n\nI've attached a detailed proposal document. Would you be available for a deeper technical discussion next week? Our CTO is eager to explore the integration architecture.\n\nLooking forward to your thoughts.\n\nRegards,\nMaria Chen\nCEO, DataSync Inc.\n\nSummary:\n",
+          "label": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\n{{input}}\n\nSummary:\n",
+          "config": {}
+        },
+        "promptId": "beac30650eb39c4848a08e55926a1ccae3f4f3b8c20cf2cfa80548885142effb",
+        "promptIdx": 1,
+        "provider": {
+          "id": "anthropic:messages:claude-sonnet-4-20250514",
+          "label": "Claude Sonnet 4"
+        },
+        "response": {
+          "output": "Maria Chen from DataSync Inc. is proposing a strategic partnership that would integrate their real-time data synchronization technology into Alex's platform through a revenue-sharing model, potentially reducing customer data latency by 60% and generating $2M annually for both companies. She has attached a detailed proposal and is requesting a technical discussion meeting next week with their CTO to explore the integration architecture.",
+          "tokenUsage": {
+            "total": 292,
+            "prompt": 209,
+            "completion": 83
+          },
+          "finishReason": "stop",
+          "cost": 0.001872
+        },
+        "score": 5,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Subject: Partnership Proposal - DataSync Inc.\n\nDear Alex,\n\nFollowing our conversation at the TechConnect conference, I'm writing to formally propose a strategic partnership between our companies. DataSync's real-time data synchronization technology could significantly enhance your platform's multi-region capabilities.\n\nWe're proposing a revenue-sharing model where we handle the data sync infrastructure and you integrate our SDK into your product. Based on our projections, this could reduce your customers' data latency by 60% while generating an estimated $2M in additional annual revenue for both parties.\n\nI've attached a detailed proposal document. Would you be available for a deeper technical discussion next week? Our CTO is eager to explore the integration architecture.\n\nLooking forward to your thoughts.\n\nRegards,\nMaria Chen\nCEO, DataSync Inc."
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the partnership proposal, revenue-sharing model, 60% latency reduction, and meeting request\n4 = Captures the proposal and key benefit but misses a detail\n3 = Gets the general topic (partnership) but misses specifics\n2 = Vaguely related\n1 = Wrong or empty\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 2,
+        "vars": {
+          "input": "Subject: Partnership Proposal - DataSync Inc.\n\nDear Alex,\n\nFollowing our conversation at the TechConnect conference, I'm writing to formally propose a strategic partnership between our companies. DataSync's real-time data synchronization technology could significantly enhance your platform's multi-region capabilities.\n\nWe're proposing a revenue-sharing model where we handle the data sync infrastructure and you integrate our SDK into your product. Based on our projections, this could reduce your customers' data latency by 60% while generating an estimated $2M in additional annual revenue for both parties.\n\nI've attached a detailed proposal document. Would you be available for a deeper technical discussion next week? Our CTO is eager to explore the integration architecture.\n\nLooking forward to your thoughts.\n\nRegards,\nMaria Chen\nCEO, DataSync Inc."
+        },
+        "metadata": {
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.00007185,
+        "gradingResult": {
+          "pass": true,
+          "score": 5,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1206,
+            "prompt": 327,
+            "completion": 879,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the partnership proposal, revenue-sharing model, 60% latency reduction, and meeting request\n4 = Captures the proposal and key benefit but misses a detail\n3 = Gets the general topic (partnership) but misses specifics\n2 = Vaguely related\n1 = Wrong or empty\n"
+              },
+              "pass": true,
+              "score": 5,
+              "reason": "The summary includes the partnership proposal, revenue-sharing model, 60% latency reduction, and a request for a technical discussion next week.",
+              "tokensUsed": {
+                "total": 1206,
+                "prompt": 327,
+                "completion": 879,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\nMaria Chen from DataSync Inc. is proposing a strategic partnership to enhance Alex's platform with their real-time data synchronization technology, suggesting a revenue-sharing model that could reduce data latency by 60% and generate an estimated $2M in additional annual revenue for both companies. She has attached a detailed proposal and is requesting a technical discussion next week to explore the integration architecture.\\n</Output>\\n<Rubric>\\nRate this email summary on a 1-5 scale:\\n5 = Captures the partnership proposal, revenue-sharing model, 60% latency reduction, and meeting request\\n4 = Captures the proposal and key benefit but misses a detail\\n3 = Gets the general topic (partnership) but misses specifics\\n2 = Vaguely related\\n1 = Wrong or empty\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "eada0065-2811-47da-a43b-c931b9dda2c5",
+        "latencyMs": 1962,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\nSubject: Partnership Proposal - DataSync Inc.\n\nDear Alex,\n\nFollowing our conversation at the TechConnect conference, I'm writing to formally propose a strategic partnership between our companies. DataSync's real-time data synchronization technology could significantly enhance your platform's multi-region capabilities.\n\nWe're proposing a revenue-sharing model where we handle the data sync infrastructure and you integrate our SDK into your product. Based on our projections, this could reduce your customers' data latency by 60% while generating an estimated $2M in additional annual revenue for both parties.\n\nI've attached a detailed proposal document. Would you be available for a deeper technical discussion next week? Our CTO is eager to explore the integration architecture.\n\nLooking forward to your thoughts.\n\nRegards,\nMaria Chen\nCEO, DataSync Inc.\n\nSummary:\n",
+          "label": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\n{{input}}\n\nSummary:\n",
+          "config": {}
+        },
+        "promptId": "beac30650eb39c4848a08e55926a1ccae3f4f3b8c20cf2cfa80548885142effb",
+        "promptIdx": 2,
+        "provider": {
+          "id": "openai:gpt-4o-mini",
+          "label": "GPT-4o-mini"
+        },
+        "response": {
+          "output": "Maria Chen from DataSync Inc. is proposing a strategic partnership to enhance Alex's platform with their real-time data synchronization technology, suggesting a revenue-sharing model that could reduce data latency by 60% and generate an estimated $2M in additional annual revenue for both companies. She has attached a detailed proposal and is requesting a technical discussion next week to explore the integration architecture.",
+          "tokenUsage": {
+            "total": 257,
+            "prompt": 183,
+            "completion": 74,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 1962,
+          "finishReason": "stop",
+          "cost": 0.00007185,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bcefe0cdefa49-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:35:42 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "1750",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=BMpHVGxJDcGuKO3iyPzhMX3TpoWOhiCId1c.O3IsFx8-1777271741.1213024-1.0.1.1-YM8M6Q7ujd6WcIsdDwILTRjXqjzK4pUTEatIYc8EOJfYs8HmGWBhLC9nuUyIuVH.vLecneeCtt_pAch.HQ.tuHD3OXvNLvepYvBxeIR.hBASKk7RZw3JPs72IoQd7CfL; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:05:42 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "10000",
+                "x-ratelimit-limit-tokens": "200000",
+                "x-ratelimit-remaining-requests": "9997",
+                "x-ratelimit-remaining-tokens": "199754",
+                "x-ratelimit-reset-requests": "20.997s",
+                "x-ratelimit-reset-tokens": "73ms",
+                "x-request-id": "req_2ad960f9455e4a148454f7531a642a97"
+              }
+            }
+          }
+        },
+        "score": 5,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Subject: Partnership Proposal - DataSync Inc.\n\nDear Alex,\n\nFollowing our conversation at the TechConnect conference, I'm writing to formally propose a strategic partnership between our companies. DataSync's real-time data synchronization technology could significantly enhance your platform's multi-region capabilities.\n\nWe're proposing a revenue-sharing model where we handle the data sync infrastructure and you integrate our SDK into your product. Based on our projections, this could reduce your customers' data latency by 60% while generating an estimated $2M in additional annual revenue for both parties.\n\nI've attached a detailed proposal document. Would you be available for a deeper technical discussion next week? Our CTO is eager to explore the integration architecture.\n\nLooking forward to your thoughts.\n\nRegards,\nMaria Chen\nCEO, DataSync Inc."
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the partnership proposal, revenue-sharing model, 60% latency reduction, and meeting request\n4 = Captures the proposal and key benefit but misses a detail\n3 = Gets the general topic (partnership) but misses specifics\n2 = Vaguely related\n1 = Wrong or empty\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 2,
+        "vars": {
+          "input": "Subject: Partnership Proposal - DataSync Inc.\n\nDear Alex,\n\nFollowing our conversation at the TechConnect conference, I'm writing to formally propose a strategic partnership between our companies. DataSync's real-time data synchronization technology could significantly enhance your platform's multi-region capabilities.\n\nWe're proposing a revenue-sharing model where we handle the data sync infrastructure and you integrate our SDK into your product. Based on our projections, this could reduce your customers' data latency by 60% while generating an estimated $2M in additional annual revenue for both parties.\n\nI've attached a detailed proposal document. Would you be available for a deeper technical discussion next week? Our CTO is eager to explore the integration architecture.\n\nLooking forward to your thoughts.\n\nRegards,\nMaria Chen\nCEO, DataSync Inc."
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bcefe0cdefa49-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:35:42 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "1750",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=BMpHVGxJDcGuKO3iyPzhMX3TpoWOhiCId1c.O3IsFx8-1777271741.1213024-1.0.1.1-YM8M6Q7ujd6WcIsdDwILTRjXqjzK4pUTEatIYc8EOJfYs8HmGWBhLC9nuUyIuVH.vLecneeCtt_pAch.HQ.tuHD3OXvNLvepYvBxeIR.hBASKk7RZw3JPs72IoQd7CfL; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:05:42 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "10000",
+              "x-ratelimit-limit-tokens": "200000",
+              "x-ratelimit-remaining-requests": "9997",
+              "x-ratelimit-remaining-tokens": "199754",
+              "x-ratelimit-reset-requests": "20.997s",
+              "x-ratelimit-reset-tokens": "73ms",
+              "x-request-id": "req_2ad960f9455e4a148454f7531a642a97"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.0012525000000000001,
+        "gradingResult": {
+          "pass": true,
+          "score": 4,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1296,
+            "prompt": 335,
+            "completion": 961,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the SQL injection vulnerability, CVSS 9.8, affected versions, and 24-hour hotfix recommendation\n4 = Captures the vulnerability and urgency but misses specifics\n3 = Gets the general topic (security issue) but misses severity\n2 = Vaguely related\n1 = Wrong or empty\n"
+              },
+              "pass": true,
+              "score": 4,
+              "reason": "Includes the SQL injection vulnerability, affected versions, and a 24-hour hotfix recommendation, but does not mention CVSS 9.8, so it misses a key specific required for a 5.",
+              "tokensUsed": {
+                "total": 1296,
+                "prompt": 335,
+                "completion": 961,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\nThe Security Team discovered a critical SQL injection vulnerability in the user authentication endpoint that could allow attackers to bypass authentication, affecting versions v3.2.0 through v3.4.1. A patch is ready for review, and due to the severity, it is recommended to fast-track the release and deploy a hotfix within 24 hours while keeping the information confidential until the patch is deployed.\\n</Output>\\n<Rubric>\\nRate this email summary on a 1-5 scale:\\n5 = Captures the SQL injection vulnerability, CVSS 9.8, affected versions, and 24-hour hotfix recommendation\\n4 = Captures the vulnerability and urgency but misses specifics\\n3 = Gets the general topic (security issue) but misses severity\\n2 = Vaguely related\\n1 = Wrong or empty\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "682cf1a7-6fde-420d-bcb4-fbd266bca57b",
+        "latencyMs": 1249,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\nSubject: Urgent: Security Vulnerability Disclosure\n\nHi Security Team,\n\nDuring our routine penetration testing, we discovered a critical SQL injection vulnerability in the user authentication endpoint (/api/v2/auth/login). An attacker could potentially bypass authentication and access any user account by injecting malicious SQL through the username field.\n\nSeverity: Critical (CVSS 9.8)\nAffected versions: v3.2.0 through v3.4.1\nRecommended fix: Parameterize the query in auth_controller.py line 142\n\nWe've prepared a patch that's ready for review. Given the severity, I recommend we fast-track this through the release process and deploy a hotfix within 24 hours.\n\nPlease treat this as confidential until the patch is deployed.\n\nBest,\nDavid - Security Team\n\nSummary:\n",
+          "label": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\n{{input}}\n\nSummary:\n",
+          "config": {}
+        },
+        "promptId": "beac30650eb39c4848a08e55926a1ccae3f4f3b8c20cf2cfa80548885142effb",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:gpt-4o",
+          "label": "GPT-4o"
+        },
+        "response": {
+          "output": "The Security Team discovered a critical SQL injection vulnerability in the user authentication endpoint that could allow attackers to bypass authentication, affecting versions v3.2.0 through v3.4.1. A patch is ready for review, and due to the severity, it is recommended to fast-track the release and deploy a hotfix within 24 hours while keeping the information confidential until the patch is deployed.",
+          "tokenUsage": {
+            "total": 264,
+            "prompt": 185,
+            "completion": 79,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 1249,
+          "finishReason": "stop",
+          "cost": 0.0012525000000000001,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bcf091abb6ad3-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:35:44 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "1079",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=G.kpfVIeo7TE26mU9YQFmo9lNWMqQsO53pDj.8qh4Kk-1777271742.8926976-1.0.1.1-O4VMJCGpXMm.OLeMqxH3QI3YD4o8RPuJONIMrfNpn5cY5tqyRQ5x0kmH0NWzqF14k6qrmwaJ_YiFkX9UMIbh_0r0Z7nRJeYtTbcgupTN3q9JTiJW7bM_Fj5jOEl8SSz5; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:05:44 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "500",
+                "x-ratelimit-limit-tokens": "30000",
+                "x-ratelimit-remaining-requests": "499",
+                "x-ratelimit-remaining-tokens": "29779",
+                "x-ratelimit-reset-requests": "120ms",
+                "x-ratelimit-reset-tokens": "442ms",
+                "x-request-id": "req_001c2b194d874017b84c66a7c900cbb2"
+              }
+            }
+          }
+        },
+        "score": 4,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Subject: Urgent: Security Vulnerability Disclosure\n\nHi Security Team,\n\nDuring our routine penetration testing, we discovered a critical SQL injection vulnerability in the user authentication endpoint (/api/v2/auth/login). An attacker could potentially bypass authentication and access any user account by injecting malicious SQL through the username field.\n\nSeverity: Critical (CVSS 9.8)\nAffected versions: v3.2.0 through v3.4.1\nRecommended fix: Parameterize the query in auth_controller.py line 142\n\nWe've prepared a patch that's ready for review. Given the severity, I recommend we fast-track this through the release process and deploy a hotfix within 24 hours.\n\nPlease treat this as confidential until the patch is deployed.\n\nBest,\nDavid - Security Team"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the SQL injection vulnerability, CVSS 9.8, affected versions, and 24-hour hotfix recommendation\n4 = Captures the vulnerability and urgency but misses specifics\n3 = Gets the general topic (security issue) but misses severity\n2 = Vaguely related\n1 = Wrong or empty\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 3,
+        "vars": {
+          "input": "Subject: Urgent: Security Vulnerability Disclosure\n\nHi Security Team,\n\nDuring our routine penetration testing, we discovered a critical SQL injection vulnerability in the user authentication endpoint (/api/v2/auth/login). An attacker could potentially bypass authentication and access any user account by injecting malicious SQL through the username field.\n\nSeverity: Critical (CVSS 9.8)\nAffected versions: v3.2.0 through v3.4.1\nRecommended fix: Parameterize the query in auth_controller.py line 142\n\nWe've prepared a patch that's ready for review. Given the severity, I recommend we fast-track this through the release process and deploy a hotfix within 24 hours.\n\nPlease treat this as confidential until the patch is deployed.\n\nBest,\nDavid - Security Team"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bcf091abb6ad3-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:35:44 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "1079",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=G.kpfVIeo7TE26mU9YQFmo9lNWMqQsO53pDj.8qh4Kk-1777271742.8926976-1.0.1.1-O4VMJCGpXMm.OLeMqxH3QI3YD4o8RPuJONIMrfNpn5cY5tqyRQ5x0kmH0NWzqF14k6qrmwaJ_YiFkX9UMIbh_0r0Z7nRJeYtTbcgupTN3q9JTiJW7bM_Fj5jOEl8SSz5; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:05:44 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "500",
+              "x-ratelimit-limit-tokens": "30000",
+              "x-ratelimit-remaining-requests": "499",
+              "x-ratelimit-remaining-tokens": "29779",
+              "x-ratelimit-reset-requests": "120ms",
+              "x-ratelimit-reset-tokens": "442ms",
+              "x-request-id": "req_001c2b194d874017b84c66a7c900cbb2"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.0020940000000000004,
+        "gradingResult": {
+          "pass": true,
+          "score": 5,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1313,
+            "prompt": 341,
+            "completion": 972,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the SQL injection vulnerability, CVSS 9.8, affected versions, and 24-hour hotfix recommendation\n4 = Captures the vulnerability and urgency but misses specifics\n3 = Gets the general topic (security issue) but misses severity\n2 = Vaguely related\n1 = Wrong or empty\n"
+              },
+              "pass": true,
+              "score": 5,
+              "reason": "The summary clearly states a critical SQL injection vulnerability with CVSS 9.8, specifies affected versions v3.2.0–v3.4.1, and recommends a 24-hour expedited patch (parameterizing the query at auth_controller.py line 142).",
+              "tokensUsed": {
+                "total": 1313,
+                "prompt": 341,
+                "completion": 972,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\nA critical SQL injection vulnerability (CVSS 9.8) was discovered in the user authentication endpoint that could allow attackers to bypass login and access any user account in versions v3.2.0 through v3.4.1. The security team recommends fast-tracking a prepared patch through the release process for deployment within 24 hours, with the fix involving parameterizing the query in auth_controller.py line 142.\\n</Output>\\n<Rubric>\\nRate this email summary on a 1-5 scale:\\n5 = Captures the SQL injection vulnerability, CVSS 9.8, affected versions, and 24-hour hotfix recommendation\\n4 = Captures the vulnerability and urgency but misses specifics\\n3 = Gets the general topic (security issue) but misses severity\\n2 = Vaguely related\\n1 = Wrong or empty\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "a87c3ea1-e85d-4290-b7ac-9e94c53c1f6b",
+        "latencyMs": 2739,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\nSubject: Urgent: Security Vulnerability Disclosure\n\nHi Security Team,\n\nDuring our routine penetration testing, we discovered a critical SQL injection vulnerability in the user authentication endpoint (/api/v2/auth/login). An attacker could potentially bypass authentication and access any user account by injecting malicious SQL through the username field.\n\nSeverity: Critical (CVSS 9.8)\nAffected versions: v3.2.0 through v3.4.1\nRecommended fix: Parameterize the query in auth_controller.py line 142\n\nWe've prepared a patch that's ready for review. Given the severity, I recommend we fast-track this through the release process and deploy a hotfix within 24 hours.\n\nPlease treat this as confidential until the patch is deployed.\n\nBest,\nDavid - Security Team\n\nSummary:\n",
+          "label": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\n{{input}}\n\nSummary:\n",
+          "config": {}
+        },
+        "promptId": "beac30650eb39c4848a08e55926a1ccae3f4f3b8c20cf2cfa80548885142effb",
+        "promptIdx": 1,
+        "provider": {
+          "id": "anthropic:messages:claude-sonnet-4-20250514",
+          "label": "Claude Sonnet 4"
+        },
+        "response": {
+          "output": "A critical SQL injection vulnerability (CVSS 9.8) was discovered in the user authentication endpoint that could allow attackers to bypass login and access any user account in versions v3.2.0 through v3.4.1. The security team recommends fast-tracking a prepared patch through the release process for deployment within 24 hours, with the fix involving parameterizing the query in auth_controller.py line 142.",
+          "tokenUsage": {
+            "total": 314,
+            "prompt": 218,
+            "completion": 96
+          },
+          "finishReason": "stop",
+          "cost": 0.0020940000000000004
+        },
+        "score": 5,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Subject: Urgent: Security Vulnerability Disclosure\n\nHi Security Team,\n\nDuring our routine penetration testing, we discovered a critical SQL injection vulnerability in the user authentication endpoint (/api/v2/auth/login). An attacker could potentially bypass authentication and access any user account by injecting malicious SQL through the username field.\n\nSeverity: Critical (CVSS 9.8)\nAffected versions: v3.2.0 through v3.4.1\nRecommended fix: Parameterize the query in auth_controller.py line 142\n\nWe've prepared a patch that's ready for review. Given the severity, I recommend we fast-track this through the release process and deploy a hotfix within 24 hours.\n\nPlease treat this as confidential until the patch is deployed.\n\nBest,\nDavid - Security Team"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the SQL injection vulnerability, CVSS 9.8, affected versions, and 24-hour hotfix recommendation\n4 = Captures the vulnerability and urgency but misses specifics\n3 = Gets the general topic (security issue) but misses severity\n2 = Vaguely related\n1 = Wrong or empty\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 3,
+        "vars": {
+          "input": "Subject: Urgent: Security Vulnerability Disclosure\n\nHi Security Team,\n\nDuring our routine penetration testing, we discovered a critical SQL injection vulnerability in the user authentication endpoint (/api/v2/auth/login). An attacker could potentially bypass authentication and access any user account by injecting malicious SQL through the username field.\n\nSeverity: Critical (CVSS 9.8)\nAffected versions: v3.2.0 through v3.4.1\nRecommended fix: Parameterize the query in auth_controller.py line 142\n\nWe've prepared a patch that's ready for review. Given the severity, I recommend we fast-track this through the release process and deploy a hotfix within 24 hours.\n\nPlease treat this as confidential until the patch is deployed.\n\nBest,\nDavid - Security Team"
+        },
+        "metadata": {
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.00006255,
+        "gradingResult": {
+          "pass": true,
+          "score": 4,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1274,
+            "prompt": 314,
+            "completion": 960,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the SQL injection vulnerability, CVSS 9.8, affected versions, and 24-hour hotfix recommendation\n4 = Captures the vulnerability and urgency but misses specifics\n3 = Gets the general topic (security issue) but misses severity\n2 = Vaguely related\n1 = Wrong or empty\n"
+              },
+              "pass": true,
+              "score": 4,
+              "reason": "Mentions a critical SQL injection in the auth endpoint and a 24-hour hotfix, but omits CVSS 9.8 and affected versions, so it fits level 4.",
+              "tokensUsed": {
+                "total": 1274,
+                "prompt": 314,
+                "completion": 960,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\nA critical SQL injection vulnerability has been discovered in the user authentication endpoint, allowing potential bypass of authentication for user accounts. The security team is advised to review the prepared patch and fast-track its deployment as a hotfix within 24 hours, while keeping the information confidential until the patch is released.\\n</Output>\\n<Rubric>\\nRate this email summary on a 1-5 scale:\\n5 = Captures the SQL injection vulnerability, CVSS 9.8, affected versions, and 24-hour hotfix recommendation\\n4 = Captures the vulnerability and urgency but misses specifics\\n3 = Gets the general topic (security issue) but misses severity\\n2 = Vaguely related\\n1 = Wrong or empty\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "a861bdf4-4b15-47bd-8763-c9928980dccd",
+        "latencyMs": 1415,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\nSubject: Urgent: Security Vulnerability Disclosure\n\nHi Security Team,\n\nDuring our routine penetration testing, we discovered a critical SQL injection vulnerability in the user authentication endpoint (/api/v2/auth/login). An attacker could potentially bypass authentication and access any user account by injecting malicious SQL through the username field.\n\nSeverity: Critical (CVSS 9.8)\nAffected versions: v3.2.0 through v3.4.1\nRecommended fix: Parameterize the query in auth_controller.py line 142\n\nWe've prepared a patch that's ready for review. Given the severity, I recommend we fast-track this through the release process and deploy a hotfix within 24 hours.\n\nPlease treat this as confidential until the patch is deployed.\n\nBest,\nDavid - Security Team\n\nSummary:\n",
+          "label": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\n{{input}}\n\nSummary:\n",
+          "config": {}
+        },
+        "promptId": "beac30650eb39c4848a08e55926a1ccae3f4f3b8c20cf2cfa80548885142effb",
+        "promptIdx": 2,
+        "provider": {
+          "id": "openai:gpt-4o-mini",
+          "label": "GPT-4o-mini"
+        },
+        "response": {
+          "output": "A critical SQL injection vulnerability has been discovered in the user authentication endpoint, allowing potential bypass of authentication for user accounts. The security team is advised to review the prepared patch and fast-track its deployment as a hotfix within 24 hours, while keeping the information confidential until the patch is released.",
+          "tokenUsage": {
+            "total": 243,
+            "prompt": 185,
+            "completion": 58,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 1415,
+          "finishReason": "stop",
+          "cost": 0.00006255,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bcf39bf07cf2b-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:35:52 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "1249",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=OES3b1OdsUPPThNIkLLT78TIwAKgremEK2yrFtTGyvA-1777271750.67417-1.0.1.1-sPUoDXocnUOBdk0AlZDJl7drV3JlOdC03KMWfHHmg9i_ZwrKz7GwRNIioTYMF_0WAO9FC.wq5NtgxyGtDJhVqMg4Fe.LuDWtrIQ5POQIBXEfYU3cDvL_rbpff6.CrC3J; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:05:52 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "10000",
+                "x-ratelimit-limit-tokens": "200000",
+                "x-ratelimit-remaining-requests": "9997",
+                "x-ratelimit-remaining-tokens": "199779",
+                "x-ratelimit-reset-requests": "19.548s",
+                "x-ratelimit-reset-tokens": "66ms",
+                "x-request-id": "req_4b2da28b645647b39b13ab44d808402e"
+              }
+            }
+          }
+        },
+        "score": 4,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Subject: Urgent: Security Vulnerability Disclosure\n\nHi Security Team,\n\nDuring our routine penetration testing, we discovered a critical SQL injection vulnerability in the user authentication endpoint (/api/v2/auth/login). An attacker could potentially bypass authentication and access any user account by injecting malicious SQL through the username field.\n\nSeverity: Critical (CVSS 9.8)\nAffected versions: v3.2.0 through v3.4.1\nRecommended fix: Parameterize the query in auth_controller.py line 142\n\nWe've prepared a patch that's ready for review. Given the severity, I recommend we fast-track this through the release process and deploy a hotfix within 24 hours.\n\nPlease treat this as confidential until the patch is deployed.\n\nBest,\nDavid - Security Team"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the SQL injection vulnerability, CVSS 9.8, affected versions, and 24-hour hotfix recommendation\n4 = Captures the vulnerability and urgency but misses specifics\n3 = Gets the general topic (security issue) but misses severity\n2 = Vaguely related\n1 = Wrong or empty\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 3,
+        "vars": {
+          "input": "Subject: Urgent: Security Vulnerability Disclosure\n\nHi Security Team,\n\nDuring our routine penetration testing, we discovered a critical SQL injection vulnerability in the user authentication endpoint (/api/v2/auth/login). An attacker could potentially bypass authentication and access any user account by injecting malicious SQL through the username field.\n\nSeverity: Critical (CVSS 9.8)\nAffected versions: v3.2.0 through v3.4.1\nRecommended fix: Parameterize the query in auth_controller.py line 142\n\nWe've prepared a patch that's ready for review. Given the severity, I recommend we fast-track this through the release process and deploy a hotfix within 24 hours.\n\nPlease treat this as confidential until the patch is deployed.\n\nBest,\nDavid - Security Team"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bcf39bf07cf2b-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:35:52 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "1249",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=OES3b1OdsUPPThNIkLLT78TIwAKgremEK2yrFtTGyvA-1777271750.67417-1.0.1.1-sPUoDXocnUOBdk0AlZDJl7drV3JlOdC03KMWfHHmg9i_ZwrKz7GwRNIioTYMF_0WAO9FC.wq5NtgxyGtDJhVqMg4Fe.LuDWtrIQ5POQIBXEfYU3cDvL_rbpff6.CrC3J; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:05:52 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "10000",
+              "x-ratelimit-limit-tokens": "200000",
+              "x-ratelimit-remaining-requests": "9997",
+              "x-ratelimit-remaining-tokens": "199779",
+              "x-ratelimit-reset-requests": "19.548s",
+              "x-ratelimit-reset-tokens": "66ms",
+              "x-request-id": "req_4b2da28b645647b39b13ab44d808402e"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.0019169999999999999,
+        "gradingResult": {
+          "pass": true,
+          "score": 5,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1097,
+            "prompt": 336,
+            "completion": 761,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the satisfaction drop (7.2 from 8.1), key positives (buddy system), and main issues (tool access delay)\n4 = Captures the score and main recommendation but misses a detail\n3 = Gets the general topic (onboarding feedback) but misses specifics\n2 = Vaguely related\n1 = Wrong or empty\n"
+              },
+              "pass": true,
+              "score": 5,
+              "reason": "Captures the specific drop (8.1 to 7.2), notes the buddy system as a positive, and highlights tool access delays as the main issue and recommendation.",
+              "tokensUsed": {
+                "total": 1097,
+                "prompt": 336,
+                "completion": 761,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\nThe March employee onboarding cohort showed a decline in satisfaction from 8.1/10 to 7.2/10, with issues including delayed access to internal tools, benefits enrollment confusion, and missing culture handbooks, though the buddy system performed well. Lisa recommends prioritizing the fix for tools access delays since they directly impact new hire productivity in their first week.\\n</Output>\\n<Rubric>\\nRate this email summary on a 1-5 scale:\\n5 = Captures the satisfaction drop (7.2 from 8.1), key positives (buddy system), and main issues (tool access delay)\\n4 = Captures the score and main recommendation but misses a detail\\n3 = Gets the general topic (onboarding feedback) but misses specifics\\n2 = Vaguely related\\n1 = Wrong or empty\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "498199e7-6432-454f-a166-afe7814086f2",
+        "latencyMs": 2989,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\nSubject: Employee Onboarding Feedback - March Cohort\n\nHi HR Team,\n\nI compiled feedback from the 8 new hires in our March cohort. Overall satisfaction score: 7.2/10, down from 8.1 in February.\n\nKey positives:\n- Buddy system was highly rated (avg 9.1/10)\n- IT equipment arrived on time for all 8 hires\n\nAreas for improvement:\n- 5 of 8 reported confusion about benefits enrollment deadline\n- Access to internal tools (Jira, Confluence) took 3-5 days instead of the target 1 day\n- No one received the company culture handbook mentioned in the offer letter\n\nI'd suggest we prioritize fixing the tools access delay — it directly impacts productivity in the first week.\n\nLet me know if you'd like to discuss.\n\nCheers,\nLisa\n\nSummary:\n",
+          "label": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\n{{input}}\n\nSummary:\n",
+          "config": {}
+        },
+        "promptId": "beac30650eb39c4848a08e55926a1ccae3f4f3b8c20cf2cfa80548885142effb",
+        "promptIdx": 1,
+        "provider": {
+          "id": "anthropic:messages:claude-sonnet-4-20250514",
+          "label": "Claude Sonnet 4"
+        },
+        "response": {
+          "output": "The March employee onboarding cohort showed a decline in satisfaction from 8.1/10 to 7.2/10, with issues including delayed access to internal tools, benefits enrollment confusion, and missing culture handbooks, though the buddy system performed well. Lisa recommends prioritizing the fix for tools access delays since they directly impact new hire productivity in their first week.",
+          "tokenUsage": {
+            "total": 315,
+            "prompt": 234,
+            "completion": 81
+          },
+          "finishReason": "stop",
+          "cost": 0.0019169999999999999
+        },
+        "score": 5,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Subject: Employee Onboarding Feedback - March Cohort\n\nHi HR Team,\n\nI compiled feedback from the 8 new hires in our March cohort. Overall satisfaction score: 7.2/10, down from 8.1 in February.\n\nKey positives:\n- Buddy system was highly rated (avg 9.1/10)\n- IT equipment arrived on time for all 8 hires\n\nAreas for improvement:\n- 5 of 8 reported confusion about benefits enrollment deadline\n- Access to internal tools (Jira, Confluence) took 3-5 days instead of the target 1 day\n- No one received the company culture handbook mentioned in the offer letter\n\nI'd suggest we prioritize fixing the tools access delay — it directly impacts productivity in the first week.\n\nLet me know if you'd like to discuss.\n\nCheers,\nLisa"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the satisfaction drop (7.2 from 8.1), key positives (buddy system), and main issues (tool access delay)\n4 = Captures the score and main recommendation but misses a detail\n3 = Gets the general topic (onboarding feedback) but misses specifics\n2 = Vaguely related\n1 = Wrong or empty\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 4,
+        "vars": {
+          "input": "Subject: Employee Onboarding Feedback - March Cohort\n\nHi HR Team,\n\nI compiled feedback from the 8 new hires in our March cohort. Overall satisfaction score: 7.2/10, down from 8.1 in February.\n\nKey positives:\n- Buddy system was highly rated (avg 9.1/10)\n- IT equipment arrived on time for all 8 hires\n\nAreas for improvement:\n- 5 of 8 reported confusion about benefits enrollment deadline\n- Access to internal tools (Jira, Confluence) took 3-5 days instead of the target 1 day\n- No one received the company culture handbook mentioned in the offer letter\n\nI'd suggest we prioritize fixing the tools access delay — it directly impacts productivity in the first week.\n\nLet me know if you'd like to discuss.\n\nCheers,\nLisa"
+        },
+        "metadata": {
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.0012100000000000001,
+        "gradingResult": {
+          "pass": true,
+          "score": 4,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1744,
+            "prompt": 334,
+            "completion": 1410,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the satisfaction drop (7.2 from 8.1), key positives (buddy system), and main issues (tool access delay)\n4 = Captures the score and main recommendation but misses a detail\n3 = Gets the general topic (onboarding feedback) but misses specifics\n2 = Vaguely related\n1 = Wrong or empty\n"
+              },
+              "pass": true,
+              "score": 4,
+              "reason": "Includes the 7.2 score, key positive (buddy system), and the main issue/recommendation to prioritize resolving tool access delays, but it does not mention the prior 8.1 baseline (the satisfaction drop).",
+              "tokensUsed": {
+                "total": 1744,
+                "prompt": 334,
+                "completion": 1410,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\nThe March cohort of new hires rated their onboarding experience at 7.2/10, with positive feedback on the buddy system and timely IT equipment delivery, but noted issues with benefits enrollment clarity, delayed access to internal tools, and missing company culture handbooks. Lisa suggests prioritizing the resolution of the tools access delay to enhance productivity in the first week.\\n</Output>\\n<Rubric>\\nRate this email summary on a 1-5 scale:\\n5 = Captures the satisfaction drop (7.2 from 8.1), key positives (buddy system), and main issues (tool access delay)\\n4 = Captures the score and main recommendation but misses a detail\\n3 = Gets the general topic (onboarding feedback) but misses specifics\\n2 = Vaguely related\\n1 = Wrong or empty\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "96089e4b-f9f0-483d-a307-ca182ca21e24",
+        "latencyMs": 1074,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\nSubject: Employee Onboarding Feedback - March Cohort\n\nHi HR Team,\n\nI compiled feedback from the 8 new hires in our March cohort. Overall satisfaction score: 7.2/10, down from 8.1 in February.\n\nKey positives:\n- Buddy system was highly rated (avg 9.1/10)\n- IT equipment arrived on time for all 8 hires\n\nAreas for improvement:\n- 5 of 8 reported confusion about benefits enrollment deadline\n- Access to internal tools (Jira, Confluence) took 3-5 days instead of the target 1 day\n- No one received the company culture handbook mentioned in the offer letter\n\nI'd suggest we prioritize fixing the tools access delay — it directly impacts productivity in the first week.\n\nLet me know if you'd like to discuss.\n\nCheers,\nLisa\n\nSummary:\n",
+          "label": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\n{{input}}\n\nSummary:\n",
+          "config": {}
+        },
+        "promptId": "beac30650eb39c4848a08e55926a1ccae3f4f3b8c20cf2cfa80548885142effb",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:gpt-4o",
+          "label": "GPT-4o"
+        },
+        "response": {
+          "output": "The March cohort of new hires rated their onboarding experience at 7.2/10, with positive feedback on the buddy system and timely IT equipment delivery, but noted issues with benefits enrollment clarity, delayed access to internal tools, and missing company culture handbooks. Lisa suggests prioritizing the resolution of the tools access delay to enhance productivity in the first week.",
+          "tokenUsage": {
+            "total": 271,
+            "prompt": 200,
+            "completion": 71,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 1074,
+          "finishReason": "stop",
+          "cost": 0.0012100000000000001,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bcf51ff7be6fa-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:35:55 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "908",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=naTYK4libLVPwYsuggyT8.7Ixe7FSR3dY5tBHi0SKeI-1777271754.5555701-1.0.1.1-Il6.FAcSBTcQ2GEtdGHleV3mKi4jdPBGZYiHdG8sxedZuQIgeA2W9RV597Utycqc0TZrGHY32o6PxQUegHgSVds0n0ioVp01n6aTvr1FScFoH0Foi3cOcUL8aHdMuYcb; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:05:55 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "500",
+                "x-ratelimit-limit-tokens": "30000",
+                "x-ratelimit-remaining-requests": "499",
+                "x-ratelimit-remaining-tokens": "29789",
+                "x-ratelimit-reset-requests": "120ms",
+                "x-ratelimit-reset-tokens": "422ms",
+                "x-request-id": "req_bebb9e6e587246cfa563018b0e3bfbb6"
+              }
+            }
+          }
+        },
+        "score": 4,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Subject: Employee Onboarding Feedback - March Cohort\n\nHi HR Team,\n\nI compiled feedback from the 8 new hires in our March cohort. Overall satisfaction score: 7.2/10, down from 8.1 in February.\n\nKey positives:\n- Buddy system was highly rated (avg 9.1/10)\n- IT equipment arrived on time for all 8 hires\n\nAreas for improvement:\n- 5 of 8 reported confusion about benefits enrollment deadline\n- Access to internal tools (Jira, Confluence) took 3-5 days instead of the target 1 day\n- No one received the company culture handbook mentioned in the offer letter\n\nI'd suggest we prioritize fixing the tools access delay — it directly impacts productivity in the first week.\n\nLet me know if you'd like to discuss.\n\nCheers,\nLisa"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the satisfaction drop (7.2 from 8.1), key positives (buddy system), and main issues (tool access delay)\n4 = Captures the score and main recommendation but misses a detail\n3 = Gets the general topic (onboarding feedback) but misses specifics\n2 = Vaguely related\n1 = Wrong or empty\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 4,
+        "vars": {
+          "input": "Subject: Employee Onboarding Feedback - March Cohort\n\nHi HR Team,\n\nI compiled feedback from the 8 new hires in our March cohort. Overall satisfaction score: 7.2/10, down from 8.1 in February.\n\nKey positives:\n- Buddy system was highly rated (avg 9.1/10)\n- IT equipment arrived on time for all 8 hires\n\nAreas for improvement:\n- 5 of 8 reported confusion about benefits enrollment deadline\n- Access to internal tools (Jira, Confluence) took 3-5 days instead of the target 1 day\n- No one received the company culture handbook mentioned in the offer letter\n\nI'd suggest we prioritize fixing the tools access delay — it directly impacts productivity in the first week.\n\nLet me know if you'd like to discuss.\n\nCheers,\nLisa"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bcf51ff7be6fa-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:35:55 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "908",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=naTYK4libLVPwYsuggyT8.7Ixe7FSR3dY5tBHi0SKeI-1777271754.5555701-1.0.1.1-Il6.FAcSBTcQ2GEtdGHleV3mKi4jdPBGZYiHdG8sxedZuQIgeA2W9RV597Utycqc0TZrGHY32o6PxQUegHgSVds0n0ioVp01n6aTvr1FScFoH0Foi3cOcUL8aHdMuYcb; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:05:55 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "500",
+              "x-ratelimit-limit-tokens": "30000",
+              "x-ratelimit-remaining-requests": "499",
+              "x-ratelimit-remaining-tokens": "29789",
+              "x-ratelimit-reset-requests": "120ms",
+              "x-ratelimit-reset-tokens": "422ms",
+              "x-request-id": "req_bebb9e6e587246cfa563018b0e3bfbb6"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.0000684,
+        "gradingResult": {
+          "pass": true,
+          "score": 4,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1926,
+            "prompt": 327,
+            "completion": 1599,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the satisfaction drop (7.2 from 8.1), key positives (buddy system), and main issues (tool access delay)\n4 = Captures the score and main recommendation but misses a detail\n3 = Gets the general topic (onboarding feedback) but misses specifics\n2 = Vaguely related\n1 = Wrong or empty\n"
+              },
+              "pass": true,
+              "score": 4,
+              "reason": "Includes the 7.2 score, highlights the buddy system as a positive, identifies tool access delays and recommends prioritizing their resolution, but omits the prior 8.1 score and the explicit drop context.",
+              "tokensUsed": {
+                "total": 1926,
+                "prompt": 327,
+                "completion": 1599,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\nThe March cohort of new hires reported an overall satisfaction score of 7.2/10, highlighting the success of the buddy system but indicating confusion about benefits enrollment and delays in accessing internal tools. Lisa recommends prioritizing the resolution of the tools access delay, as it affects productivity, and invites further discussion on the feedback.\\n</Output>\\n<Rubric>\\nRate this email summary on a 1-5 scale:\\n5 = Captures the satisfaction drop (7.2 from 8.1), key positives (buddy system), and main issues (tool access delay)\\n4 = Captures the score and main recommendation but misses a detail\\n3 = Gets the general topic (onboarding feedback) but misses specifics\\n2 = Vaguely related\\n1 = Wrong or empty\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "ecf77432-77c6-4bde-8a1f-8409e12c8a77",
+        "latencyMs": 1679,
+        "namedScores": {},
+        "prompt": {
+          "raw": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\nSubject: Employee Onboarding Feedback - March Cohort\n\nHi HR Team,\n\nI compiled feedback from the 8 new hires in our March cohort. Overall satisfaction score: 7.2/10, down from 8.1 in February.\n\nKey positives:\n- Buddy system was highly rated (avg 9.1/10)\n- IT equipment arrived on time for all 8 hires\n\nAreas for improvement:\n- 5 of 8 reported confusion about benefits enrollment deadline\n- Access to internal tools (Jira, Confluence) took 3-5 days instead of the target 1 day\n- No one received the company culture handbook mentioned in the offer letter\n\nI'd suggest we prioritize fixing the tools access delay — it directly impacts productivity in the first week.\n\nLet me know if you'd like to discuss.\n\nCheers,\nLisa\n\nSummary:\n",
+          "label": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\n{{input}}\n\nSummary:\n",
+          "config": {}
+        },
+        "promptId": "beac30650eb39c4848a08e55926a1ccae3f4f3b8c20cf2cfa80548885142effb",
+        "promptIdx": 2,
+        "provider": {
+          "id": "openai:gpt-4o-mini",
+          "label": "GPT-4o-mini"
+        },
+        "response": {
+          "output": "The March cohort of new hires reported an overall satisfaction score of 7.2/10, highlighting the success of the buddy system but indicating confusion about benefits enrollment and delays in accessing internal tools. Lisa recommends prioritizing the resolution of the tools access delay, as it affects productivity, and invites further discussion on the feedback.",
+          "tokenUsage": {
+            "total": 264,
+            "prompt": 200,
+            "completion": 64,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 1679,
+          "finishReason": "stop",
+          "cost": 0.0000684,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "9f2bcf713ad352aa-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Mon, 27 Apr 2026 06:36:01 GMT",
+                "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+                "openai-processing-ms": "1489",
+                "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+                "openai-version": "2020-10-01",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=5SJ.Ar_D0C2rs24kucfr3dK.G19v79G_KtHXg0Lys0k-1777271759.553363-1.0.1.1-8WLTjR65KcOzDVYduUUQryMs_w2riEHoWrzAVOUUbY1Zd4ySjugZLe4ZkgPkCcwihFE9hdfuq5_XEHYuzOCNN8nZQQ7ZA1cF4nY4F_ijyE3u0yA21cYasJv8jp0p5T7C; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:06:01 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "v0.1",
+                "x-ratelimit-limit-requests": "10000",
+                "x-ratelimit-limit-tokens": "200000",
+                "x-ratelimit-remaining-requests": "9997",
+                "x-ratelimit-remaining-tokens": "199789",
+                "x-ratelimit-reset-requests": "19.293s",
+                "x-ratelimit-reset-tokens": "63ms",
+                "x-request-id": "req_1d9670ff955b4c57bdd4343c496ad5be"
+              }
+            }
+          }
+        },
+        "score": 4,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "input": "Subject: Employee Onboarding Feedback - March Cohort\n\nHi HR Team,\n\nI compiled feedback from the 8 new hires in our March cohort. Overall satisfaction score: 7.2/10, down from 8.1 in February.\n\nKey positives:\n- Buddy system was highly rated (avg 9.1/10)\n- IT equipment arrived on time for all 8 hires\n\nAreas for improvement:\n- 5 of 8 reported confusion about benefits enrollment deadline\n- Access to internal tools (Jira, Confluence) took 3-5 days instead of the target 1 day\n- No one received the company culture handbook mentioned in the offer letter\n\nI'd suggest we prioritize fixing the tools access delay — it directly impacts productivity in the first week.\n\nLet me know if you'd like to discuss.\n\nCheers,\nLisa"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the satisfaction drop (7.2 from 8.1), key positives (buddy system), and main issues (tool access delay)\n4 = Captures the score and main recommendation but misses a detail\n3 = Gets the general topic (onboarding feedback) but misses specifics\n2 = Vaguely related\n1 = Wrong or empty\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 4,
+        "vars": {
+          "input": "Subject: Employee Onboarding Feedback - March Cohort\n\nHi HR Team,\n\nI compiled feedback from the 8 new hires in our March cohort. Overall satisfaction score: 7.2/10, down from 8.1 in February.\n\nKey positives:\n- Buddy system was highly rated (avg 9.1/10)\n- IT equipment arrived on time for all 8 hires\n\nAreas for improvement:\n- 5 of 8 reported confusion about benefits enrollment deadline\n- Access to internal tools (Jira, Confluence) took 3-5 days instead of the target 1 day\n- No one received the company culture handbook mentioned in the offer letter\n\nI'd suggest we prioritize fixing the tools access delay — it directly impacts productivity in the first week.\n\nLet me know if you'd like to discuss.\n\nCheers,\nLisa"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "9f2bcf713ad352aa-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Mon, 27 Apr 2026 06:36:01 GMT",
+              "openai-organization": "user-rhxow72mxdosq7aairjccumr",
+              "openai-processing-ms": "1489",
+              "openai-project": "proj_WG0nPq5gHabn8iVCW1svyGy1",
+              "openai-version": "2020-10-01",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=5SJ.Ar_D0C2rs24kucfr3dK.G19v79G_KtHXg0Lys0k-1777271759.553363-1.0.1.1-8WLTjR65KcOzDVYduUUQryMs_w2riEHoWrzAVOUUbY1Zd4ySjugZLe4ZkgPkCcwihFE9hdfuq5_XEHYuzOCNN8nZQQ7ZA1cF4nY4F_ijyE3u0yA21cYasJv8jp0p5T7C; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Mon, 27 Apr 2026 07:06:01 GMT",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "v0.1",
+              "x-ratelimit-limit-requests": "10000",
+              "x-ratelimit-limit-tokens": "200000",
+              "x-ratelimit-remaining-requests": "9997",
+              "x-ratelimit-remaining-tokens": "199789",
+              "x-ratelimit-reset-requests": "19.293s",
+              "x-ratelimit-reset-tokens": "63ms",
+              "x-request-id": "req_1d9670ff955b4c57bdd4343c496ad5be"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      }
+    ],
+    "stats": {
+      "successes": 15,
+      "failures": 0,
+      "errors": 0,
+      "tokenUsage": {
+        "prompt": 2932,
+        "completion": 1103,
+        "cached": 0,
+        "total": 4035,
+        "numRequests": 15,
+        "completionDetails": {
+          "reasoning": 0,
+          "acceptedPrediction": 0,
+          "rejectedPrediction": 0
+        },
+        "assertions": {
+          "total": 19092,
+          "prompt": 5004,
+          "completion": 14088,
+          "cached": 0,
+          "numRequests": 0,
+          "completionDetails": {
+            "reasoning": 0,
+            "acceptedPrediction": 0,
+            "rejectedPrediction": 0
+          }
+        }
+      },
+      "durationMs": 60088
+    }
+  },
+  "config": {
+    "tags": {},
+    "description": "Email Summarization - summarize a business email in 2 sentences",
+    "prompts": [
+      "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\n{{input}}\n\nSummary:\n"
+    ],
+    "providers": [
+      {
+        "id": "openai:gpt-4o",
+        "label": "GPT-4o",
+        "config": {
+          "temperature": 0
+        }
+      },
+      {
+        "id": "anthropic:messages:claude-sonnet-4-20250514",
+        "label": "Claude Sonnet 4",
+        "config": {
+          "temperature": 0
+        }
+      },
+      {
+        "id": "openai:gpt-4o-mini",
+        "label": "GPT-4o-mini",
+        "config": {
+          "temperature": 0
+        }
+      }
+    ],
+    "tests": [
+      {
+        "vars": {
+          "input": "Subject: Q3 Budget Review Meeting\n\nHi team,\n\nI wanted to follow up on our discussion from last week regarding the Q3 budget allocation. After reviewing the numbers with finance, we've identified that the marketing department has exceeded their projected spend by 15%, primarily due to the unplanned campaign launch in August. However, the engineering team is currently 8% under budget due to delayed hiring.\n\nI'd like to propose we reallocate $50K from engineering's unused budget to cover marketing's overspend, rather than requesting additional funds from the board. This would keep us within our overall quarterly target.\n\nCan we schedule a 30-minute call this Thursday to discuss? Please confirm your availability.\n\nBest,\nSarah"
+        },
+        "assert": [
+          {
+            "type": "llm-rubric",
+            "value": "Rate this email summary on a 1-5 scale:\n5 = Captures both the budget reallocation proposal ($50K from engineering to marketing) AND the Thursday meeting request\n4 = Captures the main proposal but misses the meeting request or a key detail\n3 = Gets the general topic right but misses the specific numbers or proposal\n2 = Vaguely related but missing most key points\n1 = Wrong, irrelevant, or empty\nThe summary must mention: budget reallocation, marketing overspend, and the proposed action.\n"
+          }
+        ]
+      },
+      {
+        "vars": {
+          "input": "Subject: Re: Server Outage Post-Mortem\n\nTeam,\n\nHere's the summary from yesterday's incident:\n\n- Root cause: A misconfigured load balancer rule deployed at 2:14 PM EST caused all traffic to route to a single node\n- Impact: 47 minutes of degraded service affecting approximately 12,000 users\n- Resolution: The on-call engineer (Mike) identified the issue at 2:38 PM and rolled back the configuration at 3:01 PM\n- Action items: (1) Add load balancer config validation to CI pipeline, (2) Update runbook for LB-related incidents, (3) Implement automated traffic distribution alerts\n\nThe full post-mortem document is attached. Please review and add any comments by Friday.\n\nThanks,\nJen"
+        },
+        "assert": [
+          {
+            "type": "llm-rubric",
+            "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the root cause (load balancer misconfiguration), impact (47 min, 12K users), and action items\n4 = Captures root cause and impact but misses action items\n3 = Gets the general topic (outage) but misses specifics\n2 = Vaguely related\n1 = Wrong or empty\n"
+          }
+        ]
+      },
+      {
+        "vars": {
+          "input": "Subject: Partnership Proposal - DataSync Inc.\n\nDear Alex,\n\nFollowing our conversation at the TechConnect conference, I'm writing to formally propose a strategic partnership between our companies. DataSync's real-time data synchronization technology could significantly enhance your platform's multi-region capabilities.\n\nWe're proposing a revenue-sharing model where we handle the data sync infrastructure and you integrate our SDK into your product. Based on our projections, this could reduce your customers' data latency by 60% while generating an estimated $2M in additional annual revenue for both parties.\n\nI've attached a detailed proposal document. Would you be available for a deeper technical discussion next week? Our CTO is eager to explore the integration architecture.\n\nLooking forward to your thoughts.\n\nRegards,\nMaria Chen\nCEO, DataSync Inc."
+        },
+        "assert": [
+          {
+            "type": "llm-rubric",
+            "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the partnership proposal, revenue-sharing model, 60% latency reduction, and meeting request\n4 = Captures the proposal and key benefit but misses a detail\n3 = Gets the general topic (partnership) but misses specifics\n2 = Vaguely related\n1 = Wrong or empty\n"
+          }
+        ]
+      },
+      {
+        "vars": {
+          "input": "Subject: Urgent: Security Vulnerability Disclosure\n\nHi Security Team,\n\nDuring our routine penetration testing, we discovered a critical SQL injection vulnerability in the user authentication endpoint (/api/v2/auth/login). An attacker could potentially bypass authentication and access any user account by injecting malicious SQL through the username field.\n\nSeverity: Critical (CVSS 9.8)\nAffected versions: v3.2.0 through v3.4.1\nRecommended fix: Parameterize the query in auth_controller.py line 142\n\nWe've prepared a patch that's ready for review. Given the severity, I recommend we fast-track this through the release process and deploy a hotfix within 24 hours.\n\nPlease treat this as confidential until the patch is deployed.\n\nBest,\nDavid - Security Team"
+        },
+        "assert": [
+          {
+            "type": "llm-rubric",
+            "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the SQL injection vulnerability, CVSS 9.8, affected versions, and 24-hour hotfix recommendation\n4 = Captures the vulnerability and urgency but misses specifics\n3 = Gets the general topic (security issue) but misses severity\n2 = Vaguely related\n1 = Wrong or empty\n"
+          }
+        ]
+      },
+      {
+        "vars": {
+          "input": "Subject: Employee Onboarding Feedback - March Cohort\n\nHi HR Team,\n\nI compiled feedback from the 8 new hires in our March cohort. Overall satisfaction score: 7.2/10, down from 8.1 in February.\n\nKey positives:\n- Buddy system was highly rated (avg 9.1/10)\n- IT equipment arrived on time for all 8 hires\n\nAreas for improvement:\n- 5 of 8 reported confusion about benefits enrollment deadline\n- Access to internal tools (Jira, Confluence) took 3-5 days instead of the target 1 day\n- No one received the company culture handbook mentioned in the offer letter\n\nI'd suggest we prioritize fixing the tools access delay — it directly impacts productivity in the first week.\n\nLet me know if you'd like to discuss.\n\nCheers,\nLisa"
+        },
+        "assert": [
+          {
+            "type": "llm-rubric",
+            "value": "Rate this email summary on a 1-5 scale:\n5 = Captures the satisfaction drop (7.2 from 8.1), key positives (buddy system), and main issues (tool access delay)\n4 = Captures the score and main recommendation but misses a detail\n3 = Gets the general topic (onboarding feedback) but misses specifics\n2 = Vaguely related\n1 = Wrong or empty\n"
+          }
+        ]
+      }
+    ],
+    "scenarios": [],
+    "env": {},
+    "outputPath": [
+      "results/email_summarization.json"
+    ],
+    "extensions": [],
+    "metadata": {},
+    "evaluateOptions": {}
+  },
+  "shareableUrl": null,
+  "metadata": {
+    "promptfooVersion": "0.120.19",
+    "nodeVersion": "v22.16.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "exportedAt": "2026-04-27T06:36:19.600Z",
+    "evaluationCreatedAt": "2026-04-27T06:35:19.330Z"
+  }
+}

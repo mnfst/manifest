@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-R1",
+  "task": "json_transform",
+  "case": 2,
+  "response": "{\"admins\": [\"Alice\", \"Charlie\"], \"users\": [\"Bob\"], \"inactive_count\": 1}",
+  "score": 5,
+  "cost": 0.00162147,
+  "tokens": {
+    "input": 129,
+    "output": 708
+  }
+}

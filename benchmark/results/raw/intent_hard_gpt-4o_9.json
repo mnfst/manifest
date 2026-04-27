@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o",
+  "task": "intent_hard",
+  "case": 9,
+  "response": "account_deletion",
+  "score": 5,
+  "cost": 0.0003075,
+  "tokens": {
+    "input": 111,
+    "output": 3
+  }
+}

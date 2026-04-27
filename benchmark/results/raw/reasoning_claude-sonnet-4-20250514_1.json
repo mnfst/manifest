@@ -1,0 +1,12 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning",
+  "case": 1,
+  "response": "I need to calculate the cost per API call for both companies and compare them.\n\n**Company A's pricing:**\n- Input: $0.003 per token\n- Output: $0.015 per token\n\n**Company B's pricing:**\n- Input: $4 per million tokens = $4/1,000,000 = $0.000004 per token\n- Output: $12 per million tokens = $12/1,000,000 = $0.000012 per token\n\n**Typical API call:**\n- 800 input tokens\n- 200 output tokens\n\n**Company A cost per call:**\n- Input cost: 800 \u00d7 $0.003 = $2.40\n- Output cost: 200 \u00d7 $0.015 = $3.00\n- Total: $2.40 + $3.00 = $5.40\n\n**Company B cost per call:**\n- Input cost: 800 \u00d7 $0.000004 = $0.0032\n- Output cost: 200 \u00d7 $0.000012 = $0.0024\n- Total: $0.0032 + $0.0024 = $0.0056\n\n**Comparison:**\n- Company A: $5.40 per call\n- Company B: $0.0056 per call\n\nCompany B is cheaper by: $5.40 - $0.0056 = $5.3944 per call\n\nANSWER: Company B is cheaper by $5.39 per call.",
+  "score": 2,
+  "cost": 0.005565,
+  "tokens": {
+    "input": 115,
+    "output": 348
+  }
+}

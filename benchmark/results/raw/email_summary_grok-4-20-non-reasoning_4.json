@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "email_summary",
+  "case": 4,
+  "response": "**Summary:**  \nMaria Chen from DataSync Inc. formally proposes a strategic partnership to integrate their real-time data synchronization technology into the recipient\u2019s platform, aiming to reduce data latency by 60% and generate an estimated $2M in additional annual revenue for both parties through a revenue-sharing model.  \n\nThe main action item is to schedule a deeper technical discussion next week.",
+  "score": 4,
+  "cost": 0.000884,
+  "tokens": {
+    "input": 146,
+    "output": 74
+  }
+}

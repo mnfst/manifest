@@ -1,0 +1,12 @@
+{
+  "model": "mistral-medium-2505",
+  "task": "sql_generation",
+  "case": 0,
+  "response": "```sql\nSELECT DISTINCT c.id, c.name, c.email, c.signup_date\nFROM customers c\nJOIN orders o ON c.id = o.customer_id\nWHERE c.signup_date >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)\nAND o.id IS NOT NULL;\n```",
+  "score": 4,
+  "cost": 0.00016,
+  "tokens": {
+    "input": 80,
+    "output": 64
+  }
+}

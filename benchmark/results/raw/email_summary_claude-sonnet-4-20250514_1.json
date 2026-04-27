@@ -1,0 +1,12 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "email_summary",
+  "case": 1,
+  "response": "A misconfigured load balancer rule caused 47 minutes of degraded service affecting 12,000 users yesterday, which was resolved by rolling back the configuration. The team needs to review the attached post-mortem document by Friday and implement three action items: add config validation to CI pipeline, update the runbook, and implement automated alerts.",
+  "score": 5,
+  "cost": 0.001767,
+  "tokens": {
+    "input": 214,
+    "output": 75
+  }
+}

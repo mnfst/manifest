@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "sql_generation",
+  "case": 0,
+  "response": "```sql\nSELECT * FROM customers \nWHERE signup_date >= CURDATE() - INTERVAL 30 DAY \nAND id IN (SELECT customer_id FROM orders);\n```",
+  "score": 5,
+  "cost": 0.000408,
+  "tokens": {
+    "input": 76,
+    "output": 32
+  }
+}

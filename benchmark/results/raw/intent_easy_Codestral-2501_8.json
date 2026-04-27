@@ -1,0 +1,12 @@
+{
+  "model": "Codestral-2501",
+  "task": "intent_easy",
+  "case": 8,
+  "response": "account_deletion",
+  "score": 5,
+  "cost": 2.58e-05,
+  "tokens": {
+    "input": 74,
+    "output": 4
+  }
+}

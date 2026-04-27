@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "entity_extraction",
+  "case": 0,
+  "response": "{\n  \"persons\": [\"Elon Musk\"],\n  \"organizations\": [\"Tesla\"],\n  \"locations\": [\"Austin\", \"Texas\", \"Texas State Capitol\"]\n}",
+  "score": 5,
+  "cost": 6.75e-05,
+  "tokens": {
+    "input": 93,
+    "output": 36
+  }
+}

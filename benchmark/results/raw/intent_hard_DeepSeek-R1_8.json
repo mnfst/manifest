@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-R1",
+  "task": "intent_hard",
+  "case": 8,
+  "response": "order_tracking",
+  "score": 5,
+  "cost": 0.00062227,
+  "tokens": {
+    "input": 124,
+    "output": 253
+  }
+}

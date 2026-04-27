@@ -1,0 +1,12 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_generation",
+  "case": 1,
+  "response": "SELECT c.country, AVG(o.total) AS average_order_value\nFROM orders o\nJOIN customers c ON o.customer_id = c.id\nGROUP BY c.country\nORDER BY average_order_value DESC;",
+  "score": 5,
+  "cost": 0.0015961,
+  "tokens": {
+    "input": 107,
+    "output": 336
+  }
+}

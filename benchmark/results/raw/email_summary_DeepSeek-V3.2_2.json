@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "email_summary",
+  "case": 2,
+  "response": "A critical SQL injection vulnerability has been discovered in the user authentication endpoint, posing a severe security risk. The team must review and deploy a prepared patch as a hotfix within 24 hours.",
+  "score": 5,
+  "cost": 8.94e-05,
+  "tokens": {
+    "input": 155,
+    "output": 39
+  }
+}

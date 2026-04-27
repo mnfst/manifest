@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "translation",
+  "case": 1,
+  "response": "Notre chiffre d'affaires trimestriel a augment\u00e9 de 23 % en glissement annuel, port\u00e9 principalement par la forte adoption de notre plateforme cloud sur le march\u00e9 europ\u00e9en. La marge op\u00e9rationnelle s'est am\u00e9lior\u00e9e pour atteindre 18,5 %, contre 15,2 % au trimestre pr\u00e9c\u00e9dent.",
+  "score": 5,
+  "cost": 0.0007225,
+  "tokens": {
+    "input": 74,
+    "output": 63
+  }
+}

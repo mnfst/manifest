@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o",
+  "task": "intent_hard",
+  "case": 1,
+  "response": "refund_request",
+  "score": 5,
+  "cost": 0.00031,
+  "tokens": {
+    "input": 116,
+    "output": 2
+  }
+}

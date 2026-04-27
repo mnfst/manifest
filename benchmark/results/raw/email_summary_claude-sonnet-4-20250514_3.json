@@ -1,0 +1,12 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "email_summary",
+  "case": 3,
+  "response": "The March employee onboarding cohort showed decreased satisfaction (7.2/10 vs 8.1/10 in February), with new hires experiencing confusion about benefits deadlines, delayed access to internal tools, and missing company culture handbooks, though the buddy system and IT equipment delivery performed well. Lisa recommends prioritizing the fix for the tools access delay as the main action item.",
+  "score": 4,
+  "cost": 0.001893,
+  "tokens": {
+    "input": 206,
+    "output": 85
+  }
+}

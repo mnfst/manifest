@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "entity_extraction",
+  "case": 0,
+  "response": "```json\n{\n  \"persons\": [\n    \"Elon Musk\"\n  ],\n  \"organizations\": [\n    \"Tesla\"\n  ],\n  \"locations\": [\n    \"Austin\",\n    \"Texas\",\n    \"Texas State Capitol\"\n  ]\n}\n```",
+  "score": 5,
+  "cost": 5.145e-05,
+  "tokens": {
+    "input": 91,
+    "output": 63
+  }
+}

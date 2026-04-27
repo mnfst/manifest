@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "intent_easy",
+  "case": 5,
+  "response": "billing_inquiry",
+  "score": 5,
+  "cost": 0.00014,
+  "tokens": {
+    "input": 80,
+    "output": 4
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o",
+  "task": "intent_hard",
+  "case": 7,
+  "response": "technical_support",
+  "score": 5,
+  "cost": 0.000305,
+  "tokens": {
+    "input": 114,
+    "output": 2
+  }
+}

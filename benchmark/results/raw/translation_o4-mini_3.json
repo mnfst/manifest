@@ -1,0 +1,12 @@
+{
+  "model": "o4-mini",
+  "task": "translation",
+  "case": 3,
+  "response": "Nous avons le regret de vous informer que votre vol BA287 de Londres-Heathrow \u00e0 destination de San Francisco est retard\u00e9 d\u2019environ trois heures en raison de conditions m\u00e9t\u00e9orologiques d\u00e9favorables. Un bon repas offert a \u00e9t\u00e9 ajout\u00e9 \u00e0 votre r\u00e9servation.",
+  "score": 5,
+  "cost": 0.002079,
+  "tokens": {
+    "input": 66,
+    "output": 456
+  }
+}

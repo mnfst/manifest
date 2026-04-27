@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "sql_generation",
+  "case": 4,
+  "response": "```sql\nSELECT \n    DATE_FORMAT(created_at, '%Y-%m') AS signup_month,\n    COUNT(*) AS new_signups,\n    LAG(COUNT(*)) OVER (ORDER BY DATE_FORMAT(created_at, '%Y-%m')) AS previous_month_signups,\n    (COUNT(*) - LAG(COUNT(*)) OVER (ORDER BY DATE_FORMAT(created_at, '%Y-%m'))) / NULLIF(LAG(COUNT(*)) OVER (ORDER BY DATE_FORMAT(created_at, '%Y-%m')), 0) * 1.0 AS growth_rate\nFROM \n    users\nGROUP BY \n    signup_month\nORDER BY \n    signup_month;\n```",
+  "score": 3,
+  "cost": 9.015000000000001e-05,
+  "tokens": {
+    "input": 61,
+    "output": 135
+  }
+}

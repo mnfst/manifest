@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o",
+  "task": "json_transform",
+  "case": 2,
+  "response": "```json\n{\n    \"admins\": [\"Alice\", \"Charlie\"],\n    \"users\": [\"Bob\"],\n    \"inactive_count\": 1\n}\n```",
+  "score": 5,
+  "cost": 0.00063,
+  "tokens": {
+    "input": 128,
+    "output": 31
+  }
+}

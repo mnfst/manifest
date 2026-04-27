@@ -1,0 +1,12 @@
+{
+  "model": "Codestral-2501",
+  "task": "intent_easy",
+  "case": 2,
+  "response": "password_reset",
+  "score": 5,
+  "cost": 2.67e-05,
+  "tokens": {
+    "input": 80,
+    "output": 3
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "sentiment",
+  "case": 9,
+  "response": "neutral",
+  "score": 5,
+  "cost": 0.0003126,
+  "tokens": {
+    "input": 53,
+    "output": 117
+  }
+}

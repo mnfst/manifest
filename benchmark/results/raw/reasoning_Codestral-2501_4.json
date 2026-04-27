@@ -1,0 +1,12 @@
+{
+  "model": "Codestral-2501",
+  "task": "reasoning",
+  "case": 4,
+  "response": "To solve this problem, we need to determine how much progress the snail makes each day and when it will finally reach the top of the well.\n\n1. **Calculate the net progress per day:**\n   - During the day, the snail climbs 3 feet.\n   - At night, the snail slides back 2 feet.\n   - Therefore, the net progress per day is \\(3 \\text{ feet} - 2 \\text{ feet} = 1 \\text{ foot}\\).\n\n2. **Determine the progress on the final day:**\n   - On the final day, the snail will climb out of the well without sliding back.\n   - Let's denote the day the snail reaches the top as day \\(D\\).\n\n3. **Calculate the total distance climbed by day \\(D-1\\):**\n   - By day \\(D-1\\), the snail will have climbed \\(1 \\text{ foot per day} \\times (D-1) \\text{ days} = D-1 \\text{ feet}\\).\n\n4. **Calculate the distance climbed on day \\(D\\):**\n   - On day \\(D\\), the snail will climb the remaining distance to reach the top.\n   - The remaining distance is \\(20 \\text{ feet} - (D-1) \\text{ feet} = 21 - D \\text{ feet}\\).\n\n5. **Set up the equation for the final day:**\n   - On day \\(D\\), the snail climbs \\(21 - D \\text{ feet}\\) and reaches the top without sliding back.\n   - Therefore, \\(21 - D \\leq 3 \\text{ feet}\\) (since the snail can climb at most 3 feet in a day).\n\n6. **Solve for \\(D\\):**\n   - \\(21 - D \\leq 3\\)\n   - \\(D \\geq 18\\)\n\nSince \\(D\\) must be an integer and the snail cannot reach the top on the same day it starts sliding back, we need to check the day before \\(D = 18\\).\n\n- On day 17, the snail climbs \\(17 \\text{ feet}\\).\n- On day 18, the snail climbs \\(3 \\text{ feet}\\) and reaches the top.\n\nTherefore, the snail reaches the top on day 18.\n\nANSWER: 18",
+  "score": 4,
+  "cost": 0.000471,
+  "tokens": {
+    "input": 79,
+    "output": 497
+  }
+}

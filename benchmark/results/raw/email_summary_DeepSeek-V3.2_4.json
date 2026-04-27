@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "email_summary",
+  "case": 4,
+  "response": "DataSync Inc. proposes a strategic partnership to integrate their technology, which could reduce your platform's data latency by 60% and generate significant shared revenue. They request a meeting next week for a deeper technical discussion.",
+  "score": 4,
+  "cost": 9.46e-05,
+  "tokens": {
+    "input": 154,
+    "output": 44
+  }
+}

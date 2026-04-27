@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "email_summary",
+  "case": 4,
+  "response": "Maria Chen from DataSync Inc. is proposing a strategic partnership to enhance Alex's platform with their real-time data synchronization technology, suggesting a revenue-sharing model that could reduce data latency by 60% and generate an estimated $2M in additional annual revenue for both parties. She requests a meeting for a deeper technical discussion next week.",
+  "score": 4,
+  "cost": 6.27e-05,
+  "tokens": {
+    "input": 154,
+    "output": 66
+  }
+}

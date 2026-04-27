@@ -1,0 +1,12 @@
+{
+  "model": "Codestral-2501",
+  "task": "sql_generation",
+  "case": 2,
+  "response": "```sql\nSELECT p.name, SUM(oi.quantity * p.price) AS revenue\nFROM products p\nJOIN order_items oi ON p.id = oi.product_id\nJOIN orders o ON oi.order_id = o.id\nWHERE o.created_at >= DATEADD(quarter, -1, GETDATE())\nGROUP BY p.name\nORDER BY revenue DESC\nLIMIT 5;\n```",
+  "score": 4,
+  "cost": 9.87e-05,
+  "tokens": {
+    "input": 80,
+    "output": 83
+  }
+}

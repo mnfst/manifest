@@ -1,0 +1,12 @@
+{
+  "model": "Codestral-2501",
+  "task": "sentiment",
+  "case": 8,
+  "response": "positive",
+  "score": 5,
+  "cost": 1.74e-05,
+  "tokens": {
+    "input": 52,
+    "output": 2
+  }
+}

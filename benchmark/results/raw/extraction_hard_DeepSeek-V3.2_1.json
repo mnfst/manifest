@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "extraction_hard",
+  "case": 1,
+  "response": "```json\n{\n    \"name\": \"SARAH CHEN\",\n    \"email\": \"sarah.c@gmail.com\",\n    \"current_role\": {\n        \"title\": \"Lead ML Engineer\",\n        \"company\": \"Anthropic\"\n    },\n    \"education\": [\n        {\n            \"degree\": \"MS Computer Science\",\n            \"institution\": \"Stanford\",\n            \"year\": 2016\n        },\n        {\n            \"degree\": \"BS Mathematics + CS\",\n            \"institution\": \"MIT\",\n            \"year\": 2014\n        }\n    ],\n    \"skills\": [\"PyTorch\", \"JAX\", \"distributed training\", \"transformer architectures\", \"RLHF\"]\n}\n```",
+  "score": 4,
+  "cost": 0.00021420000000000003,
+  "tokens": {
+    "input": 175,
+    "output": 147
+  }
+}

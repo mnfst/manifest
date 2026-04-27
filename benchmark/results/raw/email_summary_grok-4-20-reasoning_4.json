@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "email_summary",
+  "case": 4,
+  "response": "Maria Chen from DataSync Inc. formally proposes a strategic partnership to integrate their real-time data synchronization technology into the recipient's platform via a revenue-sharing model, which would reduce customer data latency by 60% and generate an estimated $2M in additional annual revenue for both parties. She requests availability for a deeper technical discussion next week.",
+  "score": 4,
+  "cost": 0.000828,
+  "tokens": {
+    "input": 146,
+    "output": 67
+  }
+}

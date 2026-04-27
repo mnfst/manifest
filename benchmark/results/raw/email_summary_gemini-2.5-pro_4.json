@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "email_summary",
+  "case": 4,
+  "response": "Maria Chen from DataSync Inc. is proposing a revenue-sharing partnership to integrate their data synchronization technology, which is projected to reduce data latency and increase annual revenue. She is asking if you are available for a technical discussion next week to explore the proposal further.",
+  "score": 4,
+  "cost": 0.0007275,
+  "tokens": {
+    "input": 166,
+    "output": 52
+  }
+}

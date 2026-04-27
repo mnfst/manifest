@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "function_calling",
+  "case": 0,
+  "response": "```json\n{\n  \"name\": \"send_email\",\n  \"arguments\": {\n    \"to\": \"john@example.com\",\n    \"subject\": \"Meeting Tomorrow\",\n    \"body\": \"Hi John, can we meet at 2pm?\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 5.715e-05,
+  "tokens": {
+    "input": 121,
+    "output": 65
+  }
+}

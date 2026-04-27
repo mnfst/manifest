@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "email_summary",
+  "case": 3,
+  "response": "The March new\u2011hire cohort reported a drop in overall satisfaction, highlighting confusion about benefits deadlines, delayed access to internal tools, and missing culture handbooks, though the buddy system and timely IT equipment were strong positives. Lisa recommends prioritizing the fix for the tools\u2011access delay.",
+  "score": 4,
+  "cost": 0.000828,
+  "tokens": {
+    "input": 174,
+    "output": 60
+  }
+}

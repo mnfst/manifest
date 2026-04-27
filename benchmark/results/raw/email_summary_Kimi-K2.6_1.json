@@ -1,0 +1,12 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "email_summary",
+  "case": 1,
+  "response": "",
+  "score": 4,
+  "cost": 0.0005928,
+  "tokens": {
+    "input": 188,
+    "output": 200
+  }
+}

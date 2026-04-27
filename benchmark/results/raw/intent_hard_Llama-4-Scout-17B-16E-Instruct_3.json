@@ -1,0 +1,12 @@
+{
+  "model": "Llama-4-Scout-17B-16E-Instruct",
+  "task": "intent_hard",
+  "case": 3,
+  "response": "upgrade_plan",
+  "score": 5,
+  "cost": 2.1760000000000002e-05,
+  "tokens": {
+    "input": 125,
+    "output": 3
+  }
+}

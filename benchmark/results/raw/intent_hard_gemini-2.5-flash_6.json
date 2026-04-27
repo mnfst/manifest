@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "intent_hard",
+  "case": 6,
+  "response": "downgrade_plan",
+  "score": 5,
+  "cost": 2.2349999999999998e-05,
+  "tokens": {
+    "input": 129,
+    "output": 5
+  }
+}

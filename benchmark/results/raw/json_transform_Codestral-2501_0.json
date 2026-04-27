@@ -1,0 +1,12 @@
+{
+  "model": "Codestral-2501",
+  "task": "json_transform",
+  "case": 0,
+  "response": "```json\n{\n  \"full_name\": \"Jane Doe\",\n  \"contact\": {\n    \"email\": \"jane.doe@email.com\",\n    \"phone\": \"+1-555-0123\"\n  },\n  \"metadata\": {\n    \"age\": 32\n  }\n}\n```",
+  "score": 5,
+  "cost": 9.330000000000002e-05,
+  "tokens": {
+    "input": 110,
+    "output": 67
+  }
+}

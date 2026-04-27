@@ -1,0 +1,12 @@
+{
+  "model": "Codestral-2501",
+  "task": "intent_easy",
+  "case": 7,
+  "response": "technical_support",
+  "score": 5,
+  "cost": 2.67e-05,
+  "tokens": {
+    "input": 77,
+    "output": 4
+  }
+}

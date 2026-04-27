@@ -1,0 +1,12 @@
+{
+  "model": "o4-mini",
+  "task": "content_moderation",
+  "case": 4,
+  "response": "safe",
+  "score": 5,
+  "cost": 0.0004323,
+  "tokens": {
+    "input": 57,
+    "output": 84
+  }
+}

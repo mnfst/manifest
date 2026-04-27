@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "translation",
+  "case": 4,
+  "response": "**French:** Le pipeline d'apprentissage automatique comprend trois \u00e9tapes : le pr\u00e9traitement des donn\u00e9es avec normalisation des caract\u00e9ristiques, l'entra\u00eenement du mod\u00e8le \u00e0 l'aide d'arbres boost\u00e9s par gradient, et le servage d'inf\u00e9rences via un point de terminaison REST avec une latence inf\u00e9rieure \u00e0 100 ms.",
+  "score": 5,
+  "cost": 0.00063,
+  "tokens": {
+    "input": 55,
+    "output": 65
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "sql_generation",
+  "case": 4,
+  "response": "```sql\nWITH monthly_signups AS (\n    SELECT \n        DATE_TRUNC('month', created_at) AS month,\n        COUNT(*) AS new_users\n    FROM users\n    GROUP BY DATE_TRUNC('month', created_at)\n)\nSELECT \n    curr.month,\n    curr.new_users,\n    LAG(curr.new_users) OVER (ORDER BY curr.month) AS prev_month_users,\n    ROUND(\n        ((curr.new_users - LAG(curr.new_users) OVER (ORDER BY curr.month)) * 100.0 / \n        NULLIF(LAG(curr.new_users) OVER (ORDER BY curr.month), 0)), \n        2\n    ) AS growth_rate_percent\nFROM monthly_signups curr\nORDER BY curr.month;\n```",
+  "score": 4,
+  "cost": 0.0001912,
+  "tokens": {
+    "input": 58,
+    "output": 158
+  }
+}

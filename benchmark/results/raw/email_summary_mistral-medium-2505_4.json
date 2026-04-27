@@ -1,0 +1,12 @@
+{
+  "model": "mistral-medium-2505",
+  "task": "email_summary",
+  "case": 4,
+  "response": "DataSync Inc. proposes a strategic partnership with a revenue-sharing model to enhance multi-region capabilities using their real-time data synchronization technology, potentially reducing latency by 60% and generating $2M in additional annual revenue. Maria Chen requests a technical discussion next week to explore the proposal further.",
+  "score": 5,
+  "cost": 0.00018240000000000002,
+  "tokens": {
+    "input": 156,
+    "output": 60
+  }
+}

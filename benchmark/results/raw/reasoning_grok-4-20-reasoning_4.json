@@ -1,0 +1,12 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "reasoning",
+  "case": 4,
+  "response": "The snail makes a net gain of 1 foot per full day-night cycle (climbs 3 feet during the day but slides back 2 feet at night). However, on the final day, it reaches the top during its daytime climb and does not slide back.\n\nPosition at the start of day \\(n\\) is \\(n-1\\) feet.  \nDuring day \\(n\\), it climbs to \\((n-1) + 3 = n + 2\\) feet.  \nIt reaches or exceeds 20 feet when \\(n + 2 \\geq 20\\), so \\(n \\geq 18\\).\n\nVerification by simulation:  \n- After 17 full cycles (17 days and 17 nights), position is 17 feet at the start of day 18.  \n- On day 18, it climbs from 17 to 20 feet exactly and exits (no slide).  \n\nFor a smaller example: If the well is 4 feet deep, it exits on day 2 (from 1 + 3 = 4), which matches the logic.  \nThus, for 20 feet, it reaches the top on day 18.\n\nANSWER: 18",
+  "score": 5,
+  "cost": 0.002042,
+  "tokens": {
+    "input": 69,
+    "output": 238
+  }
+}

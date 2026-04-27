@@ -1,0 +1,12 @@
+{
+  "model": "Llama-4-Scout-17B-16E-Instruct",
+  "task": "entity_extraction",
+  "case": 1,
+  "response": "```json\n{\n  \"persons\": [\"Sarah Chen\"],\n  \"organizations\": [\"MIT\", \"NeurIPS\", \"Google DeepMind\", \"Stanford University\"],\n  \"locations\": [\"Vancouver\"]\n}\n```",
+  "score": 5,
+  "cost": 2.397e-05,
+  "tokens": {
+    "input": 96,
+    "output": 45
+  }
+}

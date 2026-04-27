@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o",
+  "task": "email_summary",
+  "case": 2,
+  "response": "David from the security team has identified a critical SQL injection vulnerability in the user authentication endpoint, affecting versions v3.2.0 through v3.4.1, and recommends deploying a hotfix within 24 hours. A patch has been prepared and is ready for review, with the suggested fix involving parameterizing the query in auth_controller.py at line 142.",
+  "score": 5,
+  "cost": 0.0011275,
+  "tokens": {
+    "input": 155,
+    "output": 74
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "Llama-4-Scout-17B-16E-Instruct",
+  "task": "entity_extraction",
+  "case": 0,
+  "response": "```json\n{\n  \"persons\": [\"Elon Musk\"],\n  \"organizations\": [\"Tesla\"],\n  \"locations\": [\"Austin\", \"Texas\", \"Texas State Capitol\"]\n}\n```",
+  "score": 5,
+  "cost": 2.2950000000000002e-05,
+  "tokens": {
+    "input": 97,
+    "output": 38
+  }
+}

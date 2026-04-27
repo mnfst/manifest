@@ -1,0 +1,12 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "function_calling",
+  "case": 3,
+  "response": "```json\n{\n  \"name\": \"create_task\",\n  \"arguments\": {\n    \"title\": \"Review PR #42\",\n    \"priority\": \"high\",\n    \"assignee\": \"alice\",\n    \"due_date\": \"next Friday\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 6.0299999999999995e-05,
+  "tokens": {
+    "input": 134,
+    "output": 67
+  }
+}

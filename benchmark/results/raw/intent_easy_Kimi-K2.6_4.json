@@ -1,0 +1,12 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "intent_easy",
+  "case": 4,
+  "response": "order_tracking",
+  "score": 5,
+  "cost": 0.00035459999999999995,
+  "tokens": {
+    "input": 79,
+    "output": 128
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "entity_extraction",
+  "case": 0,
+  "response": "{\"persons\": [\"Elon Musk\"], \"organizations\": [\"Tesla\"], \"locations\": [\"Austin\", \"Texas\", \"Texas State Capitol\"]}",
+  "score": 5,
+  "cost": 0.000498,
+  "tokens": {
+    "input": 93,
+    "output": 39
+  }
+}

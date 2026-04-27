@@ -1,0 +1,12 @@
+{
+  "model": "Codestral-2501",
+  "task": "email_summary",
+  "case": 0,
+  "response": "Sarah proposes reallocating $50K from engineering's under-budget to cover marketing's overspend to stay within the Q3 budget target. She requests a 30-minute call this Thursday to discuss further.",
+  "score": 5,
+  "cost": 9.36e-05,
+  "tokens": {
+    "input": 177,
+    "output": 45
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "email_summary",
+  "case": 0,
+  "response": "The Q3 budget review shows marketing exceeded their budget by 15% due to an unplanned August campaign, while engineering is 8% under budget due to delayed hiring, prompting Sarah to propose reallocating $50K between departments to stay within the overall quarterly target. The team needs to confirm availability for a 30-minute call this Thursday to discuss the proposed budget reallocation.",
+  "score": 5,
+  "cost": 0.001848,
+  "tokens": {
+    "input": 191,
+    "output": 85
+  }
+}

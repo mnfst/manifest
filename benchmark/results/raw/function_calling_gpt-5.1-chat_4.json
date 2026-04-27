@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "function_calling",
+  "case": 4,
+  "response": "{\"name\": \"resize_image\", \"arguments\": {\"path\": \"/uploads/photo.jpg\", \"width\": 800, \"height\": 600}}",
+  "score": 4,
+  "cost": 0.001034,
+  "tokens": {
+    "input": 101,
+    "output": 104
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "model": "gpt-4o",
+  "task": "content_moderation",
+  "case": 3,
+  "response": "spam",
+  "score": 5,
+  "cost": 0.0002,
+  "tokens": {
+    "input": 76,
+    "output": 1
+  }
+}
