@@ -787,19 +787,6 @@ export class ProviderService {
     }
   }
 
-  private nextDefaultLabel(existing: UserProvider[]): string {
-    if (existing.length === 0) return DEFAULT_LABEL;
-    let n = existing.length + 1;
-    const used = new Set(existing.map((r) => r.label.toLowerCase()));
-    // 'Key 2' for the second key, increment until we find a free slot.
-    // Fall through to a uuid-suffixed label if 1..50 are all taken.
-    for (let i = 0; i < MAX_KEYS_PER_PROVIDER + 5; i++) {
-      const candidate = `Key ${n + i}`;
-      if (!used.has(candidate.toLowerCase())) return candidate;
-    }
-    return `Key ${randomUUID().slice(0, 8)}`;
-  }
-
   private decryptOrNull(encrypted: string): string | null {
     try {
       return decrypt(encrypted, getEncryptionSecret());

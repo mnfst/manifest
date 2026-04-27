@@ -9,6 +9,7 @@ import { SpecificityAssignment } from '../../entities/specificity-assignment.ent
 
 jest.mock('../../common/utils/crypto.util', () => ({
   encrypt: jest.fn().mockReturnValue('encrypted-value'),
+  decrypt: jest.fn().mockReturnValue('decrypted-value'),
   getEncryptionSecret: jest.fn().mockReturnValue('secret'),
 }));
 
@@ -1052,6 +1053,54 @@ describe('ProviderService', () => {
         ),
       ).rejects.toThrow(/at most 50/);
     });
+
+    it('rejects same-value duplicate keys with the conflicting label in the message', async () => {
+      // Mock decryption to round-trip a known plaintext value so the dup
+      // check actually finds the conflict on the existing 'Personal' row.
+      const cryptoMock = jest.requireMock('../../common/utils/crypto.util');
+      cryptoMock.decrypt.mockReturnValueOnce('sk-shared');
+      const personal = makeProvider({
+        id: 'p1',
+        label: 'Personal',
+        priority: 0,
+        api_key_encrypted: 'enc-shared',
+      });
+      providerRepo.find.mockResolvedValue([personal]);
+
+      await expect(
+        service.upsertProvider(
+          'agent-1',
+          'user-1',
+          'openai',
+          'sk-shared',
+          'api_key',
+          undefined,
+          'Work',
+        ),
+      ).rejects.toThrow(/already saved.*"Personal"/);
+    });
+
+    it('skips dup-check rows whose api_key fails to decrypt (defensive)', async () => {
+      // A row whose ciphertext is corrupt should not block adding a new key.
+      // decryptOrNull returns null and the conflict iteration continues.
+      const cryptoMock = jest.requireMock('../../common/utils/crypto.util');
+      cryptoMock.decrypt.mockImplementationOnce(() => {
+        throw new Error('boom');
+      });
+      const corrupt = makeProvider({ label: 'Corrupt', api_key_encrypted: 'bad-cipher' });
+      providerRepo.find.mockResolvedValue([corrupt]);
+
+      const result = await service.upsertProvider(
+        'agent-1',
+        'user-1',
+        'openai',
+        'sk-fresh',
+        'api_key',
+        undefined,
+        'Work',
+      );
+      expect(result.isNew).toBe(true);
+    });
   });
 
   describe('renameKey', () => {
@@ -1215,6 +1264,104 @@ describe('ProviderService', () => {
 
       expect(pinnedTier.override_provider_key_label).toBeNull();
       expect(tierRepo.save).toHaveBeenCalledWith([pinnedTier]);
+    });
+
+    it('clears override_provider_key_label on specificity rows referencing the deleted key', async () => {
+      const primary = makeProvider({ id: 'p1', label: 'Personal', priority: 0 });
+      const work = makeProvider({ id: 'p2', label: 'Work', priority: 1 });
+      const pinnedSpec: SpecificityAssignment = Object.assign(new SpecificityAssignment(), {
+        id: 'spec-1',
+        user_id: 'user-1',
+        agent_id: 'agent-1',
+        category: 'coding',
+        is_active: true,
+        override_model: 'gpt-4o',
+        override_provider: 'openai',
+        override_auth_type: 'api_key',
+        override_provider_key_label: 'Work',
+        auto_assigned_model: null,
+        fallback_models: null,
+        updated_at: '2025-01-01T00:00:00Z',
+      });
+      providerRepo.find.mockResolvedValueOnce([primary, work]).mockResolvedValueOnce([primary]);
+      tierRepo.find.mockResolvedValue([]);
+      specificityRepo.find.mockResolvedValue([pinnedSpec]);
+
+      await service.removeProvider('agent-1', 'openai', 'api_key', 'Work');
+
+      expect(pinnedSpec.override_provider_key_label).toBeNull();
+      expect(specificityRepo.save).toHaveBeenCalledWith([pinnedSpec]);
+    });
+
+    it('renumbers remaining keys to a contiguous priority sequence', async () => {
+      const primary = makeProvider({ id: 'p1', label: 'Personal', priority: 0 });
+      const work = makeProvider({ id: 'p2', label: 'Work', priority: 1 });
+      const office = makeProvider({ id: 'p3', label: 'Office', priority: 2 });
+      // 1st find: removeKeyByLabel matching lookup. 2nd find: renumberPriorities
+      // returns the rows after the delete, with stale priorities 0,2.
+      providerRepo.find
+        .mockResolvedValueOnce([primary, work, office])
+        .mockResolvedValueOnce([primary, office]);
+      tierRepo.find.mockResolvedValue([]);
+      specificityRepo.find.mockResolvedValue([]);
+
+      await service.removeProvider('agent-1', 'openai', 'api_key', 'Work');
+
+      // Office had priority=2; should be renumbered to 1 so the chain is 0,1.
+      expect(office.priority).toBe(1);
+      expect(providerRepo.save).toHaveBeenCalledWith([primary, office]);
+    });
+
+    it('does not save when priorities are already contiguous', async () => {
+      const primary = makeProvider({ id: 'p1', label: 'Personal', priority: 0 });
+      const work = makeProvider({ id: 'p2', label: 'Work', priority: 1 });
+      // Delete the LAST key (priority=1) → remaining row already has
+      // priority=0, so renumber sees no work to do and skips the save.
+      providerRepo.find.mockResolvedValueOnce([primary, work]).mockResolvedValueOnce([primary]);
+      tierRepo.find.mockResolvedValue([]);
+      specificityRepo.find.mockResolvedValue([]);
+
+      const saveCallsBefore = providerRepo.save.mock.calls.length;
+      await service.removeProvider('agent-1', 'openai', 'api_key', 'Work');
+
+      // Only the relabel-cleanup call (if any). renumberPriorities should not
+      // have appended a save since priorities were already 0,1 before delete.
+      const renumberSaves = providerRepo.save.mock.calls
+        .slice(saveCallsBefore)
+        .filter((call) => Array.isArray(call[0]) && call[0].includes(primary));
+      expect(renumberSaves).toHaveLength(0);
+    });
+  });
+
+  /* ── normalizeLabel via upsertProvider (covers the validation surface) ── */
+
+  describe('normalizeLabel', () => {
+    it('rejects custom labels for local auth_type', async () => {
+      await expect(
+        service.upsertProvider(
+          'agent-1',
+          'user-1',
+          'ollama',
+          undefined,
+          'local',
+          undefined,
+          'Custom',
+        ),
+      ).rejects.toThrow(/local providers/);
+    });
+
+    it('accepts the default "Default" label for local auth_type', async () => {
+      providerRepo.find.mockResolvedValue([]);
+      const result = await service.upsertProvider(
+        'agent-1',
+        'user-1',
+        'ollama',
+        undefined,
+        'local',
+        undefined,
+        'Default',
+      );
+      expect(result.isNew).toBe(true);
     });
   });
 });

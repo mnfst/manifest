@@ -875,4 +875,79 @@ describe("FallbackList", () => {
 
     expect(onFallbackDragEnd).toHaveBeenCalled();
   });
+
+  describe("multi-key chip", () => {
+    const multiKeyProps = {
+      ...defaultProps,
+      connectedProviders: [
+        {
+          id: "p1",
+          provider: "openai",
+          auth_type: "api_key",
+          is_active: true,
+          has_api_key: true,
+          label: "Personal",
+          priority: 0,
+          key_prefix: "sk-pers-",
+        },
+        {
+          id: "p2",
+          provider: "openai",
+          auth_type: "api_key",
+          is_active: true,
+          has_api_key: true,
+          label: "Work",
+          priority: 1,
+          key_prefix: "sk-work-",
+        },
+      ] as any[],
+    };
+
+    it("hides the chip when only one key is connected", () => {
+      const { queryByLabelText } = render(() => (
+        <FallbackList {...defaultProps} fallbacks={["model-a"]} />
+      ));
+      expect(queryByLabelText(/API key for/i)).toBeNull();
+    });
+
+    it("renders the chip on the row when 2+ keys exist for the resolved provider", () => {
+      const { getByLabelText } = render(() => (
+        <FallbackList {...multiKeyProps} fallbacks={["model-a"]} />
+      ));
+      expect(getByLabelText(/API key for/i)).toBeDefined();
+    });
+
+    it("shows the pinned label parsed off the ||suffix", () => {
+      const { container } = render(() => (
+        <FallbackList {...multiKeyProps} fallbacks={["model-a||Work"]} />
+      ));
+      const chip = container.querySelector(".fallback-list__key-chip") as HTMLElement;
+      expect(chip).not.toBeNull();
+      expect(chip.textContent).toContain("Work");
+    });
+
+    it("falls back to the first key's label when nothing is pinned", () => {
+      const { container } = render(() => (
+        <FallbackList {...multiKeyProps} fallbacks={["model-a"]} />
+      ));
+      const chip = container.querySelector(".fallback-list__key-chip") as HTMLElement;
+      expect(chip.textContent).toContain("Personal");
+    });
+
+    it("opens the listbox and persists a new label via setFallbacks", async () => {
+      const onUpdate = vi.fn();
+      const { container, getByText } = render(() => (
+        <FallbackList {...multiKeyProps} fallbacks={["model-a"]} onUpdate={onUpdate} />
+      ));
+      const chip = container.querySelector(".fallback-list__key-chip") as HTMLButtonElement;
+      fireEvent.click(chip);
+      // Listbox is now visible.
+      expect(container.querySelector('ul[role="listbox"]')).toBeDefined();
+      fireEvent.click(getByText("Work"));
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(onUpdate).toHaveBeenCalledWith(["model-a||Work"]);
+      expect(mockSetFallbacks).toHaveBeenCalledWith("test-agent", "tier-1", ["model-a||Work"]);
+    });
+  });
 });

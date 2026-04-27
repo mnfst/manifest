@@ -593,6 +593,102 @@ describe('RoutingTierCard', () => {
     });
   });
 
+  describe('PrimaryKeyChip', () => {
+    const multiKeyTier = {
+      ...baseTier,
+      override_model: 'gpt-4o',
+      override_provider: 'openai',
+      override_auth_type: 'api_key',
+      override_provider_key_label: null,
+    };
+
+    const multiKeyProviders = [
+      {
+        id: 'p1',
+        provider: 'openai',
+        auth_type: 'api_key',
+        is_active: true,
+        has_api_key: true,
+        label: 'Personal',
+        priority: 0,
+      },
+      {
+        id: 'p2',
+        provider: 'openai',
+        auth_type: 'api_key',
+        is_active: true,
+        has_api_key: true,
+        label: 'Work',
+        priority: 1,
+      },
+    ];
+
+    it('hides the chip when only one key is connected', () => {
+      const oneKey = [multiKeyProviders[0]];
+      const { container } = render(() => (
+        <RoutingTierCard
+          {...baseProps}
+          tier={() => multiKeyTier as any}
+          activeProviders={() => oneKey as any}
+          connectedProviders={() => oneKey as any}
+        />
+      ));
+      expect(container.querySelector('.routing-card__key-chip')).toBeNull();
+    });
+
+    it('renders the chip showing the first key when nothing is pinned', () => {
+      const { container } = render(() => (
+        <RoutingTierCard
+          {...baseProps}
+          tier={() => multiKeyTier as any}
+          activeProviders={() => multiKeyProviders as any}
+          connectedProviders={() => multiKeyProviders as any}
+        />
+      ));
+      const chip = container.querySelector('.routing-card__key-chip') as HTMLElement;
+      expect(chip).not.toBeNull();
+      expect(chip.textContent).toContain('Personal');
+    });
+
+    it('shows the pinned label when override_provider_key_label is set', () => {
+      const pinned = { ...multiKeyTier, override_provider_key_label: 'Work' };
+      const { container } = render(() => (
+        <RoutingTierCard
+          {...baseProps}
+          tier={() => pinned as any}
+          activeProviders={() => multiKeyProviders as any}
+          connectedProviders={() => multiKeyProviders as any}
+        />
+      ));
+      const chip = container.querySelector('.routing-card__key-chip') as HTMLElement;
+      expect(chip.textContent).toContain('Work');
+    });
+
+    it('opens the listbox and calls onPinKey with the chosen label', async () => {
+      const onPinKey = vi.fn();
+      const { container, getByText } = render(() => (
+        <RoutingTierCard
+          {...baseProps}
+          tier={() => multiKeyTier as any}
+          activeProviders={() => multiKeyProviders as any}
+          connectedProviders={() => multiKeyProviders as any}
+          onPinKey={onPinKey}
+        />
+      ));
+      const chip = container.querySelector('.routing-card__key-chip') as HTMLButtonElement;
+      fireEvent.click(chip);
+      expect(container.querySelector('ul[role="listbox"]')).toBeDefined();
+      fireEvent.click(getByText('Work'));
+      // (tierId, providerId, label, authType?)
+      expect(onPinKey).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        'Work',
+        expect.any(String),
+      );
+    });
+  });
+
   it('swapPrimaryWithFallback is no-op when fallback index out of range', async () => {
     const onOverride = vi.fn();
     const onFallbackUpdate = vi.fn();
