@@ -82,6 +82,10 @@ vi.mock('../../src/pages/RoutingTierCard.js', () => ({
           data-testid={`add-fallback-${props.stage?.id}`}
           onClick={() => props.onAddFallback?.(props.stage?.id)}
         >add-fallback</button>
+        <button
+          data-testid={`pin-key-${props.stage?.id}`}
+          onClick={() => props.onPinKey?.(props.stage?.id, 'openai', 'Work', 'api_key')}
+        >pin-key</button>
       </div>
     );
   },
@@ -769,5 +773,30 @@ describe('RoutingSpecificitySection', () => {
 
     const browsingToggle = screen.getByLabelText('Enable Web Browsing');
     expect(browsingToggle.classList.contains('specificity-modal__toggle--on')).toBe(false);
+  });
+
+  it('forwards onPinKey from RoutingTierCard up to the section consumer', () => {
+    const onPinKey = vi.fn();
+    const props = makeProps({
+      onPinKey,
+      assignments: () => [
+        {
+          id: '1',
+          agent_id: 'a1',
+          category: 'coding',
+          is_active: true,
+          override_model: null,
+          override_provider: null,
+          override_auth_type: null,
+          override_provider_key_label: null,
+          auto_assigned_model: null,
+          fallback_models: null,
+          updated_at: '2025-01-01',
+        },
+      ],
+    });
+    render(() => <RoutingSpecificitySection {...props} />);
+    fireEvent.click(screen.getByTestId('pin-key-coding'));
+    expect(onPinKey).toHaveBeenCalledWith('coding', 'openai', 'Work', 'api_key');
   });
 });
