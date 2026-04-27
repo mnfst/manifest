@@ -123,6 +123,7 @@ export class ProxyService {
     const credentials = await this.resolveCredentials(agentId, userId, {
       provider: resolved.provider,
       auth_type: resolved.auth_type,
+      provider_key_label: resolved.provider_key_label,
     });
     if (credentials === null) {
       const dashboardUrl = getDashboardUrl(this.config, agentName, 'routing');
@@ -232,12 +233,13 @@ export class ProxyService {
   private async resolveCredentials(
     agentId: string,
     userId: string,
-    resolved: { provider: string; auth_type?: AuthType },
+    resolved: { provider: string; auth_type?: AuthType; provider_key_label?: string },
   ): Promise<{ apiKey: string; resourceUrl?: string; providerRegion?: string | null } | null> {
     const apiKey = await this.providerKeyService.getProviderApiKey(
       agentId,
       resolved.provider,
       resolved.auth_type,
+      resolved.provider_key_label,
     );
     if (apiKey === null) return null;
 
@@ -254,6 +256,7 @@ export class ProxyService {
       agentId,
       resolved.provider,
       resolved.auth_type,
+      resolved.provider_key_label,
     );
     return { ...unwrapped, providerRegion };
   }

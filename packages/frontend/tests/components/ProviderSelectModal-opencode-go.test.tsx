@@ -157,6 +157,7 @@ describe("OpenCode Go subscription detail view", () => {
         "test-agent",
         "opencode-go",
         "subscription",
+        undefined,
       );
     });
     expect(onUpdate).toHaveBeenCalled();

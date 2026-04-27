@@ -17,6 +17,10 @@ import type { AuthType } from 'manifest-shared';
 import { TIER_LABELS } from 'manifest-shared';
 import { detectQwenRegion, isQwenRegion, isQwenResolvedRegion } from '../qwen-region';
 
+const MAX_KEYS_PER_PROVIDER = 5;
+const MAX_LABEL_LENGTH = 50;
+const DEFAULT_LABEL = 'Default';
+
 @Injectable()
 export class ProviderService {
   private readonly logger = new Logger(ProviderService.name);
@@ -58,10 +62,31 @@ export class ProviderService {
     apiKey?: string,
     authType?: AuthType,
     region?: string,
+    label?: string,
   ): Promise<{ provider: UserProvider; isNew: boolean }> {
     const effectiveAuthType = authType ?? 'api_key';
+    const trimmedLabel = this.normalizeLabel(label, effectiveAuthType);
+
+    if (trimmedLabel) {
+      return this.upsertProviderWithLabel(
+        agentId,
+        userId,
+        provider,
+        apiKey,
+        effectiveAuthType,
+        region,
+        trimmedLabel,
+      );
+    }
+
+    // Legacy single-key path: matches on (agent_id, provider, auth_type) +
+    // label='Default' and updates the existing row in place. Preserves the
+    // back-compat surface for clients that don't know about labels — the
+    // migration backfilled every pre-existing row with label='Default', so
+    // this lookup is unambiguous (the unique index guarantees at most one
+    // 'Default' row per tuple).
     const existing = await this.providerRepo.findOne({
-      where: { agent_id: agentId, provider, auth_type: effectiveAuthType },
+      where: { agent_id: agentId, provider, auth_type: effectiveAuthType, label: DEFAULT_LABEL },
     });
     const resolvedRegion = await this.resolveProviderRegion(
       provider,
@@ -92,6 +117,8 @@ export class ProviderService {
       agent_id: agentId,
       provider,
       auth_type: effectiveAuthType,
+      label: DEFAULT_LABEL,
+      priority: 0,
       api_key_encrypted: apiKeyEncrypted,
       key_prefix: keyPrefix,
       region: resolvedRegion,
@@ -103,6 +130,160 @@ export class ProviderService {
     await this.providerRepo.insert(record);
     await this.afterProviderInsert(agentId);
     return { provider: record, isNew: true };
+  }
+
+  private async upsertProviderWithLabel(
+    agentId: string,
+    userId: string,
+    provider: string,
+    apiKey: string | undefined,
+    authType: AuthType,
+    region: string | undefined,
+    label: string,
+  ): Promise<{ provider: UserProvider; isNew: boolean }> {
+    const existingRows = await this.providerRepo.find({
+      where: { agent_id: agentId, provider, auth_type: authType },
+    });
+    const existing =
+      existingRows.find((r) => r.label.toLowerCase() === label.toLowerCase()) ?? null;
+    const resolvedRegion = await this.resolveProviderRegion(
+      provider,
+      authType,
+      region,
+      apiKey,
+      existing,
+    );
+    const apiKeyEncrypted = apiKey ? encrypt(apiKey, getEncryptionSecret()) : null;
+    const keyPrefix = apiKey ? apiKey.substring(0, 8) : null;
+
+    if (existing) {
+      if (apiKeyEncrypted !== null) {
+        existing.api_key_encrypted = apiKeyEncrypted;
+        existing.key_prefix = keyPrefix;
+      }
+      existing.region = resolvedRegion;
+      existing.is_active = true;
+      existing.updated_at = new Date().toISOString();
+      await this.providerRepo.save(existing);
+      await this.afterProviderInsert(agentId);
+      return { provider: existing, isNew: false };
+    }
+
+    const activeCount = existingRows.filter((r) => r.is_active).length;
+    if (activeCount >= MAX_KEYS_PER_PROVIDER) {
+      throw new BadRequestException(
+        `You can connect at most ${MAX_KEYS_PER_PROVIDER} keys per provider`,
+      );
+    }
+
+    // Reject duplicate-value submissions: a different label on top of an
+    // already-stored key value is just clutter (charges still hit the same
+    // upstream account). The unique index protects label uniqueness; this
+    // catches the value-side collision the index can't see.
+    if (apiKey) {
+      const conflict = existingRows.find(
+        (r) =>
+          r.is_active &&
+          !!r.api_key_encrypted &&
+          this.decryptOrNull(r.api_key_encrypted) === apiKey,
+      );
+      if (conflict) {
+        throw new BadRequestException(
+          `That key is already saved for this provider as "${conflict.label}"`,
+        );
+      }
+    }
+
+    const record: UserProvider = Object.assign(new UserProvider(), {
+      id: randomUUID(),
+      user_id: userId,
+      agent_id: agentId,
+      provider,
+      auth_type: authType,
+      label,
+      priority: this.nextPriority(existingRows),
+      api_key_encrypted: apiKeyEncrypted,
+      key_prefix: keyPrefix,
+      region: resolvedRegion,
+      is_active: true,
+      connected_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+
+    await this.providerRepo.insert(record);
+    await this.afterProviderInsert(agentId);
+    return { provider: record, isNew: true };
+  }
+
+  async renameKey(
+    agentId: string,
+    provider: string,
+    authType: AuthType,
+    currentLabel: string,
+    newLabel: string,
+  ): Promise<UserProvider> {
+    const trimmed = newLabel.trim();
+    this.assertLabelLooksValid(trimmed);
+
+    const rows = await this.providerRepo.find({
+      where: { agent_id: agentId, provider, auth_type: authType },
+    });
+    const target = rows.find((r) => r.label.toLowerCase() === currentLabel.toLowerCase());
+    if (!target) throw new NotFoundException('Provider key not found');
+    if (rows.some((r) => r.id !== target.id && r.label.toLowerCase() === trimmed.toLowerCase())) {
+      throw new BadRequestException(`A key named "${trimmed}" already exists for this provider`);
+    }
+
+    const previousLabel = target.label;
+    target.label = trimmed;
+    target.updated_at = new Date().toISOString();
+    await this.providerRepo.save(target);
+    await this.relabelOverrides(agentId, provider, authType, previousLabel, trimmed);
+    this.routingCache.invalidateAgent(agentId);
+    return target;
+  }
+
+  async reorderKeys(
+    agentId: string,
+    provider: string,
+    authType: AuthType,
+    orderedLabels: string[],
+  ): Promise<UserProvider[]> {
+    const allRows = await this.providerRepo.find({
+      where: { agent_id: agentId, provider, auth_type: authType },
+    });
+    const rows = allRows.filter((r) => r.is_active);
+    if (rows.length === 0) throw new NotFoundException('Provider not found');
+
+    const byLabel = new Map(rows.map((r) => [r.label.toLowerCase(), r]));
+    if (orderedLabels.length !== rows.length) {
+      throw new BadRequestException(
+        `Reorder must include exactly ${rows.length} labels for this provider`,
+      );
+    }
+    const seen = new Set<string>();
+    for (const label of orderedLabels) {
+      const lower = label.toLowerCase();
+      if (seen.has(lower)) {
+        throw new BadRequestException(`Duplicate label "${label}" in reorder request`);
+      }
+      seen.add(lower);
+      if (!byLabel.has(lower)) {
+        throw new BadRequestException(`Unknown label "${label}" in reorder request`);
+      }
+    }
+
+    const now = new Date().toISOString();
+    const updated: UserProvider[] = [];
+    for (let i = 0; i < orderedLabels.length; i++) {
+      const row = byLabel.get(orderedLabels[i].toLowerCase())!;
+      row.priority = i;
+      row.updated_at = now;
+      updated.push(row);
+    }
+    await this.providerRepo.save(updated);
+    this.routingCache.invalidateAgent(agentId);
+    return updated;
   }
 
   private async resolveProviderRegion(
@@ -187,6 +368,8 @@ export class ProviderService {
       agent_id: agentId,
       provider,
       auth_type: 'subscription',
+      label: DEFAULT_LABEL,
+      priority: 0,
       api_key_encrypted: null,
       key_prefix: null,
       is_active: true,
@@ -222,11 +405,12 @@ export class ProviderService {
       const target = rows.find((r) => r.auth_type !== nextAuthType && r.is_active);
       if (!target) return false;
 
-      // Protect the unique (agent_id, provider, auth_type) index: if a row
-      // already exists for the destination auth_type, the UPDATE would fail.
-      // Drop the stale destination row first — the one we're retagging is
-      // authoritative.
-      const collision = rows.find((r) => r.auth_type === nextAuthType);
+      // Protect the unique index on (agent_id, provider, auth_type, LOWER(label)):
+      // if a row already exists for the destination auth_type with the same
+      // label, the UPDATE would fail. Drop the stale destination row first.
+      const collision = rows.find(
+        (r) => r.auth_type === nextAuthType && r.label.toLowerCase() === target.label.toLowerCase(),
+      );
       if (collision) {
         await txRepo.remove(collision);
       }
@@ -244,17 +428,32 @@ export class ProviderService {
     agentId: string,
     provider: string,
     authType?: AuthType,
+    label?: string,
   ): Promise<{ notifications: string[] }> {
-    const where: Record<string, unknown> = { agent_id: agentId, provider };
+    if (label) {
+      return this.removeKeyByLabel(agentId, provider, authType, label);
+    }
+
+    // Legacy disconnect: deactivate every active key for the (provider,
+    // [auth_type]) tuple. Falls back to findOne for compatibility with the
+    // already-disconnected case so tier-cleanup still runs.
+    const where: Record<string, unknown> = { agent_id: agentId, provider, is_active: true };
     if (authType) where.auth_type = authType;
+    const activeRows = await this.providerRepo.find({ where });
 
-    const existing = await this.providerRepo.findOne({ where });
-    if (!existing) throw new NotFoundException('Provider not found');
-
-    // Deactivate this record
-    existing.is_active = false;
-    existing.updated_at = new Date().toISOString();
-    await this.providerRepo.save(existing);
+    if (activeRows.length === 0) {
+      const fallbackWhere: Record<string, unknown> = { agent_id: agentId, provider };
+      if (authType) fallbackWhere.auth_type = authType;
+      const any = await this.providerRepo.findOne({ where: fallbackWhere });
+      if (!any) throw new NotFoundException('Provider not found');
+    } else {
+      const now = new Date().toISOString();
+      for (const row of activeRows) {
+        row.is_active = false;
+        row.updated_at = now;
+      }
+      await this.providerRepo.save(activeRows);
+    }
     const otherActive = await this.providerRepo.find({
       where: { agent_id: agentId, provider, is_active: true },
     });
@@ -289,6 +488,44 @@ export class ProviderService {
 
     return { notifications };
   }
+
+  /**
+   * Delete a single labeled key from a provider's chain. If it was the last
+   * key for the (agent, provider, auth_type) tuple, falls through to the
+   * existing whole-provider teardown so tier overrides get cleaned up.
+   */
+  private async removeKeyByLabel(
+    agentId: string,
+    provider: string,
+    authType: AuthType | undefined,
+    label: string,
+  ): Promise<{ notifications: string[] }> {
+    const where: Record<string, unknown> = { agent_id: agentId, provider };
+    if (authType) where.auth_type = authType;
+    const matching = await this.providerRepo.find({ where });
+    if (matching.length === 0) throw new NotFoundException('Provider not found');
+
+    const target = matching.find((r) => r.label.toLowerCase() === label.toLowerCase());
+    if (!target) throw new NotFoundException('Provider key not found');
+
+    const stillHasOtherKeys = matching.some(
+      (r) => r.id !== target.id && r.is_active && isManifestUsableProvider(r),
+    );
+
+    if (!stillHasOtherKeys) {
+      // Last key — delegate to the no-label path which performs the full
+      // tier-cleanup teardown. We pass authType through so the lookup
+      // matches what we just deleted.
+      return this.removeProvider(agentId, provider, target.auth_type);
+    }
+
+    await this.providerRepo.remove(target);
+    await this.relabelOverrides(agentId, provider, target.auth_type, target.label, null);
+    await this.renumberPriorities(agentId, provider, target.auth_type);
+    this.routingCache.invalidateAgent(agentId);
+    return { notifications: [] };
+  }
+
   async deactivateAllProviders(agentId: string): Promise<void> {
     await this.providerRepo.update(
       { agent_id: agentId },
@@ -300,6 +537,7 @@ export class ProviderService {
         override_model: null,
         override_provider: null,
         override_auth_type: null,
+        override_provider_key_label: null,
         fallback_models: null,
         updated_at: new Date().toISOString(),
       },
@@ -394,6 +632,7 @@ export class ProviderService {
         tier.override_model = null;
         tier.override_provider = null;
         tier.override_auth_type = null;
+        tier.override_provider_key_label = null;
         tier.updated_at = new Date().toISOString();
         tiersToSave.push(tier);
       }
@@ -427,6 +666,7 @@ export class ProviderService {
         row.override_model = null;
         row.override_provider = null;
         row.override_auth_type = null;
+        row.override_provider_key_label = null;
         changed = true;
       }
       if (row.fallback_models && row.fallback_models.length > 0) {
@@ -444,5 +684,133 @@ export class ProviderService {
     if (specToSave.length > 0) await this.specificityRepo.save(specToSave);
 
     return { invalidated, hadTierAssignments };
+  }
+
+  /**
+   * Update tier_assignments and specificity_assignments rows that reference a
+   * specific provider key by label. Pass `nextLabel = null` to clear the
+   * binding (used when the key is deleted — the assignment then resolves to
+   * the new primary key).
+   */
+  private async relabelOverrides(
+    agentId: string,
+    provider: string,
+    authType: AuthType,
+    previousLabel: string,
+    nextLabel: string | null,
+  ): Promise<void> {
+    const providerLower = provider.toLowerCase();
+    const previousLower = previousLabel.toLowerCase();
+    const matchesAssignment = (row: {
+      override_provider: string | null;
+      override_auth_type: string | null;
+      override_provider_key_label: string | null;
+    }): boolean => {
+      if (!row.override_provider_key_label) return false;
+      if (row.override_provider_key_label.toLowerCase() !== previousLower) return false;
+      if (row.override_provider?.toLowerCase() !== providerLower) return false;
+      if (row.override_auth_type && row.override_auth_type !== authType) return false;
+      return true;
+    };
+
+    const tiers = await this.tierRepo.find({ where: { agent_id: agentId } });
+    const tiersToSave = tiers.filter(matchesAssignment);
+    if (tiersToSave.length > 0) {
+      const now = new Date().toISOString();
+      for (const t of tiersToSave) {
+        t.override_provider_key_label = nextLabel;
+        t.updated_at = now;
+      }
+      await this.tierRepo.save(tiersToSave);
+    }
+
+    const specs = await this.specificityRepo.find({ where: { agent_id: agentId } });
+    const specsToSave = specs.filter(matchesAssignment);
+    if (specsToSave.length > 0) {
+      const now = new Date().toISOString();
+      for (const s of specsToSave) {
+        s.override_provider_key_label = nextLabel;
+        s.updated_at = now;
+      }
+      await this.specificityRepo.save(specsToSave);
+    }
+  }
+
+  private async renumberPriorities(
+    agentId: string,
+    provider: string,
+    authType: AuthType,
+  ): Promise<void> {
+    const allRows = await this.providerRepo.find({
+      where: { agent_id: agentId, provider, auth_type: authType },
+      order: { priority: 'ASC' },
+    });
+    // Only contiguous-renumber active rows. Inactive rows are deactivated
+    // history; their priorities don't affect the user-visible chain and we
+    // don't want to "re-promote" a dormant key by collapsing the index.
+    const rows = allRows.filter((r) => r.is_active);
+    const now = new Date().toISOString();
+    let changed = false;
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i].priority !== i) {
+        rows[i].priority = i;
+        rows[i].updated_at = now;
+        changed = true;
+      }
+    }
+    if (changed) await this.providerRepo.save(rows);
+  }
+
+  private normalizeLabel(label: string | undefined, authType: AuthType): string | undefined {
+    if (label === undefined) return undefined;
+    const trimmed = label.trim();
+    if (trimmed.length === 0) {
+      throw new BadRequestException('Key name must not be empty');
+    }
+    // Local providers (Ollama, LM Studio) don't store credentials, so a
+    // multi-key chain has no semantic meaning — keep them at one row.
+    if (authType === 'local' && trimmed.toLowerCase() !== DEFAULT_LABEL.toLowerCase()) {
+      throw new BadRequestException(
+        `Custom key names are not supported for local providers (got auth_type=${authType})`,
+      );
+    }
+    this.assertLabelLooksValid(trimmed);
+    return trimmed;
+  }
+
+  private assertLabelLooksValid(label: string): void {
+    if (label.length === 0) {
+      throw new BadRequestException('Key name must not be empty');
+    }
+    if (label.length > MAX_LABEL_LENGTH) {
+      throw new BadRequestException(`Key name must be at most ${MAX_LABEL_LENGTH} characters`);
+    }
+  }
+
+  private nextDefaultLabel(existing: UserProvider[]): string {
+    if (existing.length === 0) return DEFAULT_LABEL;
+    let n = existing.length + 1;
+    const used = new Set(existing.map((r) => r.label.toLowerCase()));
+    // 'Key 2' for the second key, increment until we find a free slot.
+    // Fall through to a uuid-suffixed label if 1..50 are all taken.
+    for (let i = 0; i < MAX_KEYS_PER_PROVIDER + 5; i++) {
+      const candidate = `Key ${n + i}`;
+      if (!used.has(candidate.toLowerCase())) return candidate;
+    }
+    return `Key ${randomUUID().slice(0, 8)}`;
+  }
+
+  private decryptOrNull(encrypted: string): string | null {
+    try {
+      return decrypt(encrypted, getEncryptionSecret());
+    } catch {
+      return null;
+    }
+  }
+
+  private nextPriority(existing: UserProvider[]): number {
+    const active = existing.filter((r) => r.is_active);
+    if (active.length === 0) return 0;
+    return Math.max(...active.map((r) => r.priority)) + 1;
   }
 }

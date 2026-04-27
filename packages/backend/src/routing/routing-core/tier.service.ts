@@ -100,6 +100,7 @@ export class TierService {
     model: string,
     provider?: string,
     authType?: 'api_key' | 'subscription',
+    providerKeyLabel?: string,
   ): Promise<TierAssignment> {
     const available = await this.discoveryService.getModelsForAgent(agentId);
     const matches = available.filter((m) => m.id === model);
@@ -132,6 +133,7 @@ export class TierService {
       existing.override_model = model;
       existing.override_provider = provider ?? null;
       existing.override_auth_type = authType ?? null;
+      existing.override_provider_key_label = providerKeyLabel ?? null;
       if (existing.fallback_models?.includes(model)) {
         const filtered = existing.fallback_models.filter((m) => m !== model);
         existing.fallback_models = filtered.length > 0 ? filtered : null;
@@ -150,6 +152,7 @@ export class TierService {
       override_model: model,
       override_provider: provider ?? null,
       override_auth_type: authType ?? null,
+      override_provider_key_label: providerKeyLabel ?? null,
       auto_assigned_model: null,
     });
 
@@ -158,7 +161,8 @@ export class TierService {
     } catch {
       // Concurrent insert — retry as update
       const retry = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
-      if (retry) return this.setOverride(agentId, userId, tier, model, provider, authType);
+      if (retry)
+        return this.setOverride(agentId, userId, tier, model, provider, authType, providerKeyLabel);
     }
     this.routingCache.invalidateAgent(agentId);
     return record;
@@ -173,6 +177,7 @@ export class TierService {
     existing.override_model = null;
     existing.override_provider = null;
     existing.override_auth_type = null;
+    existing.override_provider_key_label = null;
     existing.updated_at = new Date().toISOString();
     await this.tierRepo.save(existing);
     this.routingCache.invalidateAgent(agentId);
@@ -185,6 +190,7 @@ export class TierService {
         override_model: null,
         override_provider: null,
         override_auth_type: null,
+        override_provider_key_label: null,
         fallback_models: null,
         updated_at: new Date().toISOString(),
       },

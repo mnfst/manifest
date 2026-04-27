@@ -29,6 +29,9 @@ export class SpecificityAssignment {
   override_auth_type!: 'api_key' | 'subscription' | null;
 
   @Column('varchar', { nullable: true })
+  override_provider_key_label!: string | null;
+
+  @Column('varchar', { nullable: true })
   auto_assigned_model!: string | null;
 
   @Column('simple-json', { nullable: true })

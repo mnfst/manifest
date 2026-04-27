@@ -10,6 +10,13 @@ export interface RoutingProvider {
   is_active: boolean;
   has_api_key: boolean;
   key_prefix?: string | null;
+  /**
+   * User-facing key label. Defaults to "Default" for legacy single-key
+   * providers; multi-key chains expose user-supplied names like "Personal"
+   * or "Work" and are ordered by `priority` (0 = primary).
+   */
+  label: string;
+  priority: number;
   region?: string | null;
   connected_at: string;
 }
@@ -39,13 +46,15 @@ export function getProviders(agentName: string) {
 
 export function connectProvider(
   agentName: string,
-  data: { provider: string; apiKey?: string; authType?: AuthType },
+  data: { provider: string; apiKey?: string; authType?: AuthType; label?: string },
 ) {
   return fetchMutate<{
     id: string;
     provider: string;
     auth_type: AuthType;
     is_active: boolean;
+    label: string;
+    priority: number;
     region?: string | null;
   }>(routingPath(agentName, 'providers'), {
     method: 'POST',
@@ -54,10 +63,55 @@ export function connectProvider(
   });
 }
 
-export function disconnectProvider(agentName: string, provider: string, authType?: AuthType) {
+export function disconnectProvider(
+  agentName: string,
+  provider: string,
+  authType?: AuthType,
+  label?: string,
+) {
   const base = routingPath(agentName, `providers/${encodeURIComponent(provider)}`);
-  const path = authType ? `${base}?authType=${authType}` : base;
+  const params = new URLSearchParams();
+  if (authType) params.set('authType', authType);
+  if (label) params.set('label', label);
+  const qs = params.toString();
+  const path = qs ? `${base}?${qs}` : base;
   return fetchMutate<{ ok: boolean; notifications: string[] }>(path, { method: 'DELETE' });
+}
+
+export function renameProviderKey(
+  agentName: string,
+  provider: string,
+  currentLabel: string,
+  newLabel: string,
+  authType?: AuthType,
+) {
+  return fetchMutate<{ id: string; label: string; priority: number }>(
+    routingPath(
+      agentName,
+      `providers/${encodeURIComponent(provider)}/keys/${encodeURIComponent(currentLabel)}`,
+    ),
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ newLabel, ...(authType && { authType }) }),
+    },
+  );
+}
+
+export function reorderProviderKeys(
+  agentName: string,
+  provider: string,
+  labels: string[],
+  authType?: AuthType,
+) {
+  return fetchMutate<Array<{ id: string; label: string; priority: number }>>(
+    routingPath(agentName, `providers/${encodeURIComponent(provider)}/keys/order`),
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ labels, ...(authType && { authType }) }),
+    },
+  );
 }
 
 /* -- Routing: Copilot Device Login -- */
@@ -114,6 +168,12 @@ export interface TierAssignment {
   override_model: string | null;
   override_provider: string | null;
   override_auth_type: AuthType | null;
+  /**
+   * Optional pin to a specific provider key by user-supplied label. Mirrors
+   * `override_provider` (loose string ref) — when the labeled key is gone,
+   * the proxy falls back to the priority-0 (primary) key for the provider.
+   */
+  override_provider_key_label: string | null;
   auto_assigned_model: string | null;
   fallback_models: string[] | null;
   updated_at: string;
@@ -129,11 +189,17 @@ export function overrideTier(
   model: string,
   provider: string,
   authType?: AuthType,
+  providerKeyLabel?: string,
 ) {
   return fetchMutate<TierAssignment>(routingPath(agentName, `tiers/${encodeURIComponent(tier)}`), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model, provider, ...(authType && { authType }) }),
+    body: JSON.stringify({
+      model,
+      provider,
+      ...(authType && { authType }),
+      ...(providerKeyLabel && { providerKeyLabel }),
+    }),
   });
 }
 

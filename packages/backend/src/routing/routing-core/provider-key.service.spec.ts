@@ -1,5 +1,5 @@
 import { ProviderKeyService } from './provider-key.service';
-import { RoutingCacheService } from './routing-cache.service';
+import { CachedProviderKey, RoutingCacheService } from './routing-cache.service';
 import { ProviderService } from './provider.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
@@ -32,8 +32,11 @@ function makeProvider(overrides: Partial<UserProvider> = {}): UserProvider {
     agent_id: 'agent-1',
     provider: 'openai',
     auth_type: 'api_key' as const,
+    label: 'Default',
+    priority: 0,
     api_key_encrypted: 'encrypted-data',
     key_prefix: 'sk-proj-',
+    region: null,
     is_active: true,
     connected_at: '2025-01-01T00:00:00Z',
     updated_at: '2025-01-01T00:00:00Z',
@@ -49,8 +52,8 @@ describe('ProviderKeyService', () => {
   let pricingCache: { getByModel: jest.Mock };
   let discoveryService: { getModelForAgent: jest.Mock };
   let routingCache: {
-    getApiKey: jest.Mock;
-    setApiKey: jest.Mock;
+    getProviderKeys: jest.Mock;
+    setProviderKeys: jest.Mock;
     getProviders: jest.Mock;
     setProviders: jest.Mock;
   };
@@ -63,8 +66,8 @@ describe('ProviderKeyService', () => {
     pricingCache = { getByModel: jest.fn().mockReturnValue(undefined) };
     discoveryService = { getModelForAgent: jest.fn().mockResolvedValue(null) };
     routingCache = {
-      getApiKey: jest.fn().mockReturnValue(undefined),
-      setApiKey: jest.fn(),
+      getProviderKeys: jest.fn().mockReturnValue(undefined),
+      setProviderKeys: jest.fn(),
       getProviders: jest.fn().mockReturnValue(null),
       setProviders: jest.fn(),
     };
@@ -86,11 +89,14 @@ describe('ProviderKeyService', () => {
       const result = await service.getProviderApiKey('agent-1', 'Ollama');
 
       expect(result).toBe('');
-      expect(routingCache.getApiKey).not.toHaveBeenCalled();
+      expect(routingCache.getProviderKeys).not.toHaveBeenCalled();
     });
 
     it('should return cached key when available', async () => {
-      routingCache.getApiKey.mockReturnValue('cached-key');
+      const cached: CachedProviderKey[] = [
+        { id: 'p1', label: 'Default', priority: 0, apiKey: 'cached-key', region: null },
+      ];
+      routingCache.getProviderKeys.mockReturnValue(cached);
 
       const result = await service.getProviderApiKey('agent-1', 'openai');
 
@@ -104,10 +110,10 @@ describe('ProviderKeyService', () => {
       const result = await service.getProviderApiKey('agent-1', 'openai');
 
       expect(result).toBe('decrypted-key-value');
-      expect(routingCache.setApiKey).toHaveBeenCalledWith(
+      expect(routingCache.setProviderKeys).toHaveBeenCalledWith(
         'agent-1',
         'openai',
-        'decrypted-key-value',
+        expect.arrayContaining([expect.objectContaining({ apiKey: 'decrypted-key-value' })]),
         undefined,
       );
     });
@@ -119,11 +125,15 @@ describe('ProviderKeyService', () => {
 
       await service.getProviderApiKey('agent-1', 'openai', 'subscription');
 
-      expect(routingCache.getApiKey).toHaveBeenCalledWith('agent-1', 'openai', 'subscription');
-      expect(routingCache.setApiKey).toHaveBeenCalledWith(
+      expect(routingCache.getProviderKeys).toHaveBeenCalledWith(
         'agent-1',
         'openai',
-        'decrypted-key-value',
+        'subscription',
+      );
+      expect(routingCache.setProviderKeys).toHaveBeenCalledWith(
+        'agent-1',
+        'openai',
+        expect.any(Array),
         'subscription',
       );
     });
@@ -135,15 +145,42 @@ describe('ProviderKeyService', () => {
 
       expect(result).toBeNull();
     });
+
+    it('returns the labeled key when label is supplied', async () => {
+      const primary = makeProvider({ id: 'p1', label: 'Personal', priority: 0 });
+      const work = makeProvider({
+        id: 'p2',
+        label: 'Work',
+        priority: 1,
+        api_key_encrypted: 'enc-work',
+      });
+      providerRepo.find.mockResolvedValue([primary, work]);
+      mockDecrypt.mockImplementation((enc: string) =>
+        enc === 'enc-work' ? 'work-decrypted' : 'personal-decrypted',
+      );
+
+      const result = await service.getProviderApiKey('agent-1', 'openai', undefined, 'Work');
+
+      expect(result).toBe('work-decrypted');
+    });
+
+    it('falls back to the primary key when the labeled key is missing', async () => {
+      const primary = makeProvider({ id: 'p1', label: 'Default', priority: 0 });
+      providerRepo.find.mockResolvedValue([primary]);
+
+      const result = await service.getProviderApiKey('agent-1', 'openai', undefined, 'NotThere');
+
+      expect(result).toBe('decrypted-key-value');
+    });
   });
 
-  /* ── resolveProviderApiKey (private, via getProviderApiKey) ── */
+  /* ── resolveProviderKeys (private, via getProviderApiKey) ── */
 
-  describe('resolveProviderApiKey for custom: providers', () => {
+  describe('custom: providers', () => {
     it('should handle custom provider with encrypted key', async () => {
-      providerRepo.findOne.mockResolvedValue(
+      providerRepo.find.mockResolvedValue([
         makeProvider({ provider: 'custom:cp-123', api_key_encrypted: 'enc-custom' }),
-      );
+      ]);
 
       const result = await service.getProviderApiKey('agent-1', 'custom:cp-123');
 
@@ -151,9 +188,9 @@ describe('ProviderKeyService', () => {
     });
 
     it('should return empty string for custom provider without key', async () => {
-      providerRepo.findOne.mockResolvedValue(
+      providerRepo.find.mockResolvedValue([
         makeProvider({ provider: 'custom:cp-123', api_key_encrypted: null }),
-      );
+      ]);
 
       const result = await service.getProviderApiKey('agent-1', 'custom:cp-123');
 
@@ -161,7 +198,7 @@ describe('ProviderKeyService', () => {
     });
 
     it('should return null for non-existent custom provider', async () => {
-      providerRepo.findOne.mockResolvedValue(null);
+      providerRepo.find.mockResolvedValue([]);
 
       const result = await service.getProviderApiKey('agent-1', 'custom:cp-missing');
 
@@ -172,9 +209,9 @@ describe('ProviderKeyService', () => {
       mockDecrypt.mockImplementationOnce(() => {
         throw new Error('decrypt failed');
       });
-      providerRepo.findOne.mockResolvedValue(
+      providerRepo.find.mockResolvedValue([
         makeProvider({ provider: 'custom:cp-123', api_key_encrypted: 'bad-enc' }),
-      );
+      ]);
 
       const result = await service.getProviderApiKey('agent-1', 'custom:cp-123');
 
@@ -182,7 +219,7 @@ describe('ProviderKeyService', () => {
     });
   });
 
-  describe('resolveProviderApiKey with preferredAuthType', () => {
+  describe('with preferredAuthType', () => {
     it('should only consider matching auth type when specified', async () => {
       const apiKeyProvider = makeProvider({
         id: 'p1',
@@ -241,8 +278,8 @@ describe('ProviderKeyService', () => {
     });
 
     it('should skip candidates without encrypted key', async () => {
-      const noKey = makeProvider({ id: 'p1', api_key_encrypted: null });
-      const withKey = makeProvider({ id: 'p2', api_key_encrypted: 'enc-valid' });
+      const noKey = makeProvider({ id: 'p1', api_key_encrypted: null, priority: 0 });
+      const withKey = makeProvider({ id: 'p2', api_key_encrypted: 'enc-valid', priority: 1 });
       providerRepo.find.mockResolvedValue([noKey, withKey]);
 
       const result = await service.getProviderApiKey('agent-1', 'openai');

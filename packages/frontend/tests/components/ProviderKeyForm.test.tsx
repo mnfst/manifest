@@ -2,18 +2,22 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, screen } from '@solidjs/testing-library';
 import { createSignal } from 'solid-js';
 import type { ProviderDef } from '../../src/services/providers';
-import type { AuthType } from '../../src/services/api';
+import type { AuthType, RoutingProvider } from '../../src/services/api';
 
 /* ── API mocks ──────────────────────────────────────────────── */
 
 const connectProviderMock = vi.fn().mockResolvedValue({});
 const disconnectProviderMock = vi.fn().mockResolvedValue({});
 const revokeOpenaiOAuthMock = vi.fn().mockResolvedValue(undefined);
+const renameProviderKeyMock = vi.fn().mockResolvedValue({});
+const reorderProviderKeysMock = vi.fn().mockResolvedValue([]);
 
 vi.mock('../../src/services/api.js', () => ({
   connectProvider: (...args: unknown[]) => connectProviderMock(...args),
   disconnectProvider: (...args: unknown[]) => disconnectProviderMock(...args),
   revokeOpenaiOAuth: (...args: unknown[]) => revokeOpenaiOAuthMock(...args),
+  renameProviderKey: (...args: unknown[]) => renameProviderKeyMock(...args),
+  reorderProviderKeys: (...args: unknown[]) => reorderProviderKeysMock(...args),
 }));
 
 vi.mock('../../src/services/provider-utils.js', () => ({
@@ -66,6 +70,7 @@ interface MountOpts {
   selectedAuthType?: AuthType;
   editing?: boolean;
   keyInput?: string;
+  providers?: RoutingProvider[];
   onBack?: () => void;
   onUpdate?: () => void;
 }
@@ -96,6 +101,7 @@ function mount(opts: MountOpts) {
       validationError={validationError}
       setValidationError={setValidationError}
       getKeyPrefixDisplay={() => 'sk-***'}
+      providers={opts.providers}
       onBack={onBack}
       onUpdate={onUpdate}
     />
@@ -494,6 +500,202 @@ describe('ProviderKeyForm', () => {
       await Promise.resolve();
       expect(connectProviderMock).toHaveBeenCalled();
       expect(toastSuccess).toHaveBeenCalledWith('OpenAI key updated');
+    });
+  });
+
+  /* ── multi-key chain (api_key only) ─────────────────────────── */
+
+  function makeProvider(overrides: Partial<RoutingProvider> = {}): RoutingProvider {
+    return {
+      id: 'p1',
+      provider: 'openai',
+      auth_type: 'api_key',
+      is_active: true,
+      has_api_key: true,
+      key_prefix: 'sk-test-',
+      label: 'Default',
+      priority: 0,
+      region: null,
+      connected_at: '2026-04-27',
+      ...overrides,
+    };
+  }
+
+  describe('multi-key chain', () => {
+    it('shows the legacy single-key view (no list, no Primary badge) when only one key is connected', () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const { container } = mount({
+        provDef: def,
+        connected: true,
+        providers: [makeProvider()],
+      });
+      // Header still says "API Key" (singular).
+      expect(container.querySelector('.provider-detail__label')!.textContent).toBe('API Key');
+      // The legacy disabled key input is rendered; there's no <ul role=list>.
+      expect(container.querySelector('input[disabled]')).toBeDefined();
+      expect(container.querySelector('ul[role="list"]')).toBeNull();
+    });
+
+    it('shows the "+ Add another key" link only for api_key providers below the single-key row', () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const { getByText } = mount({
+        provDef: def,
+        connected: true,
+        providers: [makeProvider()],
+      });
+      expect(getByText('+ Add another key')).toBeDefined();
+    });
+
+    it('shows "+ Add another key" for subscription providers (multi-account chain)', () => {
+      const def = makeProviderDef({
+        id: 'anthropic',
+        name: 'Anthropic',
+        supportsSubscription: true,
+        subscriptionLabel: 'Claude Pro',
+      });
+      const { getByText } = mount({
+        provDef: def,
+        connected: true,
+        isSubMode: true,
+        selectedAuthType: 'subscription',
+        providers: [
+          makeProvider({ provider: 'anthropic', auth_type: 'subscription', label: 'Default' }),
+        ],
+      });
+      expect(getByText('+ Add another key')).toBeDefined();
+    });
+
+    it('does not show "+ Add another key" for local providers (Ollama)', () => {
+      const def = makeProviderDef({ id: 'ollama', name: 'Ollama' });
+      const { queryByText } = mount({
+        provDef: def,
+        connected: true,
+        selectedAuthType: 'local',
+        providers: [
+          makeProvider({
+            provider: 'ollama',
+            auth_type: 'local',
+            label: 'Default',
+            has_api_key: false,
+          }),
+        ],
+      });
+      expect(queryByText('+ Add another key')).toBeNull();
+    });
+
+    it('switches to list mode (header "API Keys", <ul role="list">) when 2+ keys exist', () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const { container } = mount({
+        provDef: def,
+        connected: true,
+        providers: [
+          makeProvider({ id: 'p1', label: 'Personal', priority: 0 }),
+          makeProvider({ id: 'p2', label: 'Work', priority: 1 }),
+        ],
+      });
+      expect(container.querySelector('.provider-detail__label')!.textContent).toBe('API Keys');
+      expect(container.querySelector('ul[role="list"]')).toBeDefined();
+    });
+
+    it('renders each key by its label without chain badges', () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const { getByText, queryByText } = mount({
+        provDef: def,
+        connected: true,
+        providers: [
+          makeProvider({ id: 'p1', label: 'Personal', priority: 0 }),
+          makeProvider({ id: 'p2', label: 'Work', priority: 1 }),
+        ],
+      });
+      expect(getByText('Personal')).toBeDefined();
+      expect(getByText('Work')).toBeDefined();
+      // No "Primary" / "Fallback N" — keys are equal, fallback is configured
+      // separately via the existing model-fallback UI.
+      expect(queryByText('Primary')).toBeNull();
+      expect(queryByText('Fallback 1')).toBeNull();
+    });
+
+    it('rename invokes renameProviderKey with the auth_type and refreshes', async () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const onUpdate = vi.fn();
+      const { container, getByText } = mount({
+        provDef: def,
+        connected: true,
+        onUpdate,
+        providers: [
+          makeProvider({ id: 'p1', label: 'Personal', priority: 0 }),
+          makeProvider({ id: 'p2', label: 'Work', priority: 1 }),
+        ],
+      });
+      // Open rename for the first row (Personal).
+      const renameButtons = container.querySelectorAll('button');
+      const personalRename = Array.from(renameButtons).find(
+        (b) => b.textContent === 'Rename',
+      ) as HTMLButtonElement;
+      fireEvent.click(personalRename);
+
+      const renameInput = container.querySelector(
+        'input[aria-label="Rename Personal"]',
+      ) as HTMLInputElement;
+      fireEvent.input(renameInput, { target: { value: 'Home' } });
+      fireEvent.click(getByText('Save'));
+
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(renameProviderKeyMock).toHaveBeenCalledWith(
+        'test-agent',
+        'openai',
+        'Personal',
+        'Home',
+        'api_key',
+      );
+      expect(onUpdate).toHaveBeenCalled();
+    });
+
+    it('does not render reorder controls — keys are equal credentials, not a chain', () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const { container } = mount({
+        provDef: def,
+        connected: true,
+        providers: [
+          makeProvider({ id: 'p1', label: 'Personal', priority: 0 }),
+          makeProvider({ id: 'p2', label: 'Work', priority: 1 }),
+        ],
+      });
+      expect(container.querySelector('button[aria-label="Move Personal down"]')).toBeNull();
+      expect(container.querySelector('button[aria-label="Move Work up"]')).toBeNull();
+    });
+
+    it('trash icon on a list row deletes by label without unmounting the modal', async () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const onBack = vi.fn();
+      const onUpdate = vi.fn();
+      const { container } = mount({
+        provDef: def,
+        connected: true,
+        onBack,
+        onUpdate,
+        providers: [
+          makeProvider({ id: 'p1', label: 'Personal', priority: 0 }),
+          makeProvider({ id: 'p2', label: 'Work', priority: 1 }),
+        ],
+      });
+      const deleteWork = container.querySelector(
+        'button[aria-label="Delete key Work"]',
+      ) as HTMLButtonElement;
+      fireEvent.click(deleteWork);
+
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(disconnectProviderMock).toHaveBeenCalledWith(
+        'test-agent',
+        'openai',
+        'api_key',
+        'Work',
+      );
+      // Stays on the modal so the user can keep editing the chain.
+      expect(onBack).not.toHaveBeenCalled();
+      expect(onUpdate).toHaveBeenCalled();
     });
   });
 });

@@ -335,7 +335,7 @@ describe("Routing — enabled state (providers active)", () => {
     fireEvent.click(modelButtons[modelButtons.length - 1]);
 
     await waitFor(() => {
-      expect(overrideTier).toHaveBeenCalledWith("test-agent", "simple", "claude-opus-4-6", "anthropic", "api_key");
+      expect(overrideTier).toHaveBeenCalledWith("test-agent", "simple", "claude-opus-4-6", "anthropic", "api_key", undefined);
     });
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith("Routing updated");
@@ -1781,7 +1781,7 @@ describe("Routing — specificity routing", () => {
     fireEvent.click(modalButtons[0]);
 
     await waitFor(() => {
-      expect(overrideSpecificity).toHaveBeenCalledWith("test-agent", "coding", expect.any(String), expect.any(String), expect.any(String));
+      expect(overrideSpecificity).toHaveBeenCalledWith("test-agent", "coding", expect.any(String), expect.any(String), expect.any(String), undefined);
     });
   });
 

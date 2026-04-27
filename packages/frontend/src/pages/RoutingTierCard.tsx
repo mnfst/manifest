@@ -61,6 +61,12 @@ export interface RoutingTierCardProps {
   agentName: () => string;
   onDropdownOpen: (tierId: string) => void;
   onOverride: (tierId: string, model: string, providerId: string, authType?: AuthType) => void;
+  onPinKey?: (
+    tierId: string,
+    providerId: string,
+    providerKeyLabel: string | null,
+    authType?: AuthType,
+  ) => void;
   onReset: (tierId: string) => void;
   onFallbackUpdate: (tierId: string, fallbacks: string[]) => void;
   onAddFallback: (tierId: string) => void;
@@ -354,6 +360,24 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                           <Show when={!isManual()}>
                             <span class="routing-card__auto-tag">auto</span>
                           </Show>
+                          <PrimaryKeyChip
+                            tier={props.tier}
+                            provId={provId}
+                            effectiveAuth={effectiveAuth}
+                            connectedProviders={props.connectedProviders}
+                            modelLabel={labelFor(modelName())}
+                            onPinKey={(label) => {
+                              const id = provId();
+                              if (!id) return;
+                              props.onPinKey?.(
+                                props.stage.id,
+                                id,
+                                label,
+                                effectiveAuth() ?? undefined,
+                              );
+                            }}
+                            disabled={() => props.changingTier() === props.stage.id}
+                          />
                         </div>
                         <button
                           class="routing-card__chip-action"
@@ -461,6 +485,101 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
         </div>
       </Show>
     </div>
+  );
+};
+
+/**
+ * Compact inline chip for the primary model row that shows the currently-
+ * pinned provider key and lets the user change it without leaving the card.
+ * Mirrors the pill on each fallback row so multi-key users see a consistent
+ * affordance across primary + fallbacks. Renders nothing when only one key
+ * exists for the provider — single-key users never see it.
+ */
+interface PrimaryKeyChipProps {
+  tier: () => TierAssignment | undefined;
+  provId: () => string | undefined;
+  effectiveAuth: () => AuthType | null;
+  connectedProviders: () => RoutingProvider[];
+  modelLabel: string;
+  onPinKey: (label: string | null) => void;
+  disabled: () => boolean;
+}
+
+const PrimaryKeyChip: Component<PrimaryKeyChipProps> = (props) => {
+  const [open, setOpen] = createSignal(false);
+
+  const keys = () => {
+    const id = props.provId();
+    const auth = props.effectiveAuth();
+    if (!id || !auth || auth === 'local') return [];
+    return props
+      .connectedProviders()
+      .filter(
+        (p) =>
+          p.provider.toLowerCase() === id.toLowerCase() &&
+          p.auth_type === auth &&
+          p.is_active &&
+          p.has_api_key,
+      )
+      .slice()
+      .sort((a, b) => a.priority - b.priority);
+  };
+
+  const pinned = () => props.tier()?.override_provider_key_label ?? null;
+  const displayLabel = () => pinned() ?? keys()[0]?.label ?? '';
+
+  return (
+    <Show when={keys().length > 1}>
+      <span style="position: relative; display: inline-flex; flex-shrink: 0;">
+        <button
+          type="button"
+          class="routing-card__key-chip"
+          aria-haspopup="listbox"
+          aria-expanded={open()}
+          aria-label={`API key for ${props.modelLabel}: currently ${displayLabel()}. Click to change.`}
+          title={displayLabel()}
+          disabled={props.disabled()}
+          onClick={() => setOpen(!open())}
+          style="background: hsl(var(--muted) / 0.5); border: 1px solid hsl(var(--border)); border-radius: 999px; padding: 2px 8px; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); cursor: pointer; max-width: 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-flex; align-items: center; gap: 3px; margin-left: 4px;"
+        >
+          <span style="overflow: hidden; text-overflow: ellipsis;">{displayLabel()}</span>
+          <span aria-hidden="true">▾</span>
+        </button>
+        <Show when={open()}>
+          <ul
+            role="listbox"
+            aria-label="Choose API key"
+            style="position: absolute; top: 100%; left: 0; margin-top: 4px; list-style: none; padding: 4px; min-width: 140px; border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--background)); box-shadow: 0 4px 12px hsl(var(--foreground) / 0.08); z-index: 10; display: flex; flex-direction: column; gap: 2px;"
+          >
+            <For each={keys()}>
+              {(k) => (
+                <li>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={
+                      pinned()
+                        ? pinned()!.toLowerCase() === k.label.toLowerCase()
+                        : displayLabel().toLowerCase() === k.label.toLowerCase()
+                    }
+                    disabled={props.disabled()}
+                    onClick={() => {
+                      setOpen(false);
+                      if (pinned()?.toLowerCase() !== k.label.toLowerCase()) {
+                        props.onPinKey(k.label);
+                      }
+                    }}
+                    style="width: 100%; text-align: left; background: none; border: none; padding: 4px 6px; cursor: pointer; border-radius: 4px; font-size: var(--font-size-xs);"
+                  >
+                    {k.label}
+                  </button>
+                </li>
+              )}
+            </For>
+          </ul>
+        </Show>
+      </span>
+    </Show>
   );
 };
 

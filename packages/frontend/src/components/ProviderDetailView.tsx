@@ -347,6 +347,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
           validationError={props.validationError}
           setValidationError={props.setValidationError}
           getKeyPrefixDisplay={getKeyPrefixDisplay}
+          providers={props.providers}
           onBack={props.onBack}
           onUpdate={props.onUpdate}
         />

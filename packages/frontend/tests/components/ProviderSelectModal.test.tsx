@@ -540,7 +540,7 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByLabelText('Disconnect provider'));
 
       await waitFor(() => {
-        expect(mockDisconnectProvider).toHaveBeenCalledWith('test-agent', 'openai', 'api_key');
+        expect(mockDisconnectProvider).toHaveBeenCalledWith('test-agent', 'openai', 'api_key', undefined);
       });
       expect(onUpdate).toHaveBeenCalled();
     });
@@ -1054,6 +1054,7 @@ describe('ProviderSelectModal', () => {
           'test-agent',
           'anthropic',
           'subscription',
+          undefined,
         );
       });
       expect(onUpdate).toHaveBeenCalled();

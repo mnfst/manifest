@@ -73,6 +73,7 @@ export class SpecificityService {
     model: string,
     provider?: string,
     authType?: 'api_key' | 'subscription',
+    providerKeyLabel?: string,
   ): Promise<SpecificityAssignment> {
     const existing = await this.repo.findOne({ where: { agent_id: agentId, category } });
 
@@ -80,6 +81,7 @@ export class SpecificityService {
       existing.override_model = model;
       existing.override_provider = provider ?? null;
       existing.override_auth_type = authType ?? null;
+      existing.override_provider_key_label = providerKeyLabel ?? null;
       existing.is_active = true;
       existing.updated_at = new Date().toISOString();
       await this.repo.save(existing);
@@ -96,6 +98,7 @@ export class SpecificityService {
       override_model: model,
       override_provider: provider ?? null,
       override_auth_type: authType ?? null,
+      override_provider_key_label: providerKeyLabel ?? null,
       auto_assigned_model: null,
       fallback_models: null,
     });
@@ -104,7 +107,16 @@ export class SpecificityService {
       await this.repo.insert(record);
     } catch {
       const retry = await this.repo.findOne({ where: { agent_id: agentId, category } });
-      if (retry) return this.setOverride(agentId, userId, category, model, provider, authType);
+      if (retry)
+        return this.setOverride(
+          agentId,
+          userId,
+          category,
+          model,
+          provider,
+          authType,
+          providerKeyLabel,
+        );
     }
     this.routingCache.invalidateAgent(agentId);
     return record;
@@ -117,6 +129,7 @@ export class SpecificityService {
     existing.override_model = null;
     existing.override_provider = null;
     existing.override_auth_type = null;
+    existing.override_provider_key_label = null;
     existing.fallback_models = null;
     existing.updated_at = new Date().toISOString();
     await this.repo.save(existing);
@@ -150,6 +163,7 @@ export class SpecificityService {
         override_model: null,
         override_provider: null,
         override_auth_type: null,
+        override_provider_key_label: null,
         fallback_models: null,
         updated_at: new Date().toISOString(),
       },

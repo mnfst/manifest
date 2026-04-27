@@ -18,6 +18,7 @@ import { CopilotTokenService } from './copilot-token.service';
 import { buildProviderExtraHeaders } from './provider-hooks';
 import { shouldTriggerFallback } from './fallback-status-codes';
 import { inferProviderFromModelName } from '../../common/utils/provider-aliases';
+import { parseFallbackEntry } from 'manifest-shared';
 import { normalizeMinimaxSubscriptionBaseUrl } from '../provider-base-url';
 import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../qwen-region';
 import { normalizeAnthropicShortModelId } from '../../common/utils/anthropic-model-id';
@@ -83,7 +84,10 @@ export class ProxyFallbackService {
     }
 
     for (let i = 0; i < fallbackModels.length; i++) {
-      const requestedModel = fallbackModels[i];
+      // Each fallback may carry a `||<keyLabel>` suffix that pins it to a
+      // specific provider key. Parse that off before any provider lookup —
+      // the bare model name is what the upstream API expects.
+      const { model: requestedModel, providerKeyLabel } = parseFallbackEntry(fallbackModels[i]);
       const pricing = this.pricingCache.getByModel(requestedModel);
 
       // Determine provider: custom prefix -> model name inference -> pricing cache -> user's connected providers
@@ -108,7 +112,12 @@ export class ProxyFallbackService {
       const model = normalizeProviderModel(provider, requestedModel);
       const excludeAuth = failedAuthByProvider.get(provider.toLowerCase());
       const authType = await this.providerKeyService.getAuthType(agentId, provider, excludeAuth);
-      let apiKey = await this.providerKeyService.getProviderApiKey(agentId, provider, authType);
+      let apiKey = await this.providerKeyService.getProviderApiKey(
+        agentId,
+        provider,
+        authType,
+        providerKeyLabel,
+      );
       if (apiKey === null) {
         this.logger.debug(
           `Fallback ${i}: skipping model=${model} provider=${provider} (no API key)`,
@@ -129,6 +138,7 @@ export class ProxyFallbackService {
         agentId,
         provider,
         authType,
+        providerKeyLabel,
       );
 
       this.logger.log(

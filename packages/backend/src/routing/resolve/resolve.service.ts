@@ -124,6 +124,7 @@ export class ResolveService {
       score: result.score,
       reason: result.reason,
       auth_type: authType,
+      provider_key_label: assignment.override_provider_key_label ?? undefined,
     };
   }
 
@@ -155,6 +156,7 @@ export class ResolveService {
       reason,
       auth_type: authType,
       fallback_models: assignment.fallback_models ?? null,
+      provider_key_label: assignment.override_provider_key_label ?? undefined,
     };
   }
 
@@ -275,6 +277,7 @@ export class ResolveService {
       auth_type: authType,
       specificity_category: detected.category,
       fallback_models: assignment.fallback_models ?? null,
+      provider_key_label: assignment.override_provider_key_label ?? undefined,
     };
   }
 

@@ -13,6 +13,14 @@ interface CachedEntry<T> {
   expiresAt: number;
 }
 
+export interface CachedProviderKey {
+  id: string;
+  label: string;
+  priority: number;
+  apiKey: string | null;
+  region: string | null;
+}
+
 function getOrExpire<T>(map: Map<string, CachedEntry<T>>, key: string): T | undefined {
   const cached = map.get(key);
   if (!cached) return undefined;
@@ -34,7 +42,7 @@ export class RoutingCacheService {
   private readonly tiers = new Map<string, CachedEntry<TierAssignment[]>>();
   private readonly providers = new Map<string, CachedEntry<UserProvider[]>>();
   private readonly customProviders = new Map<string, CachedEntry<CustomProvider[]>>();
-  private readonly apiKeys = new Map<string, CachedEntry<string | null>>();
+  private readonly providerKeys = new Map<string, CachedEntry<CachedProviderKey[]>>();
   private readonly specificity = new Map<string, CachedEntry<SpecificityAssignment[]>>();
   private readonly headerTiers = new Map<string, CachedEntry<HeaderTier[]>>();
 
@@ -62,12 +70,21 @@ export class RoutingCacheService {
     setWithEviction(this.customProviders, agentId, data);
   }
 
-  getApiKey(agentId: string, provider: string, authType?: string): string | null | undefined {
-    return getOrExpire(this.apiKeys, `${agentId}:${provider}:${authType ?? 'default'}`);
+  getProviderKeys(
+    agentId: string,
+    provider: string,
+    authType?: string,
+  ): CachedProviderKey[] | undefined {
+    return getOrExpire(this.providerKeys, `${agentId}:${provider}:${authType ?? 'default'}`);
   }
 
-  setApiKey(agentId: string, provider: string, apiKey: string | null, authType?: string): void {
-    setWithEviction(this.apiKeys, `${agentId}:${provider}:${authType ?? 'default'}`, apiKey);
+  setProviderKeys(
+    agentId: string,
+    provider: string,
+    keys: CachedProviderKey[],
+    authType?: string,
+  ): void {
+    setWithEviction(this.providerKeys, `${agentId}:${provider}:${authType ?? 'default'}`, keys);
   }
 
   getSpecificity(agentId: string): SpecificityAssignment[] | null {
@@ -93,7 +110,7 @@ export class RoutingCacheService {
     this.specificity.delete(agentId);
     this.headerTiers.delete(agentId);
     const prefix = `${agentId}:`;
-    const toDelete = [...this.apiKeys.keys()].filter((k) => k.startsWith(prefix));
-    for (const k of toDelete) this.apiKeys.delete(k);
+    const toDelete = [...this.providerKeys.keys()].filter((k) => k.startsWith(prefix));
+    for (const k of toDelete) this.providerKeys.delete(k);
   }
 }

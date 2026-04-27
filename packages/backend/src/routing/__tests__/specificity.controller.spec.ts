@@ -69,6 +69,7 @@ describe('SpecificityController', () => {
         'gpt-4o',
         'openai',
         'api_key',
+        undefined,
       );
       expect(result).toBe(override);
     });

@@ -57,6 +57,8 @@ function makeProvider(overrides: Partial<UserProvider> = {}): UserProvider {
     agent_id: 'agent-1',
     provider: 'openai',
     auth_type: 'api_key' as const,
+    label: 'Default',
+    priority: 0,
     api_key_encrypted: 'enc-key',
     key_prefix: 'sk-proj-',
     is_active: true,
@@ -213,7 +215,12 @@ describe('ProviderService', () => {
 
       expect(providerRepo.findOne).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { agent_id: 'agent-1', provider: 'openai', auth_type: 'api_key' },
+          where: {
+            agent_id: 'agent-1',
+            provider: 'openai',
+            auth_type: 'api_key',
+            label: 'Default',
+          },
         }),
       );
       expect(result.provider.auth_type).toBe('api_key');
@@ -226,7 +233,12 @@ describe('ProviderService', () => {
 
       expect(providerRepo.findOne).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { agent_id: 'agent-1', provider: 'anthropic', auth_type: 'subscription' },
+          where: {
+            agent_id: 'agent-1',
+            provider: 'anthropic',
+            auth_type: 'subscription',
+            label: 'Default',
+          },
         }),
       );
     });
@@ -356,6 +368,7 @@ describe('ProviderService', () => {
 
   describe('removeProvider', () => {
     it('should throw NotFoundException when provider not found', async () => {
+      providerRepo.find.mockResolvedValue([]);
       providerRepo.findOne.mockResolvedValue(null);
 
       await expect(service.removeProvider('agent-1', 'openai')).rejects.toThrow(NotFoundException);
@@ -363,9 +376,10 @@ describe('ProviderService', () => {
 
     it('should deactivate provider and skip override clearing when other active provider exists', async () => {
       const existing = makeProvider({ is_active: true });
-      providerRepo.findOne.mockResolvedValue(existing);
-      // Other active provider of same type that is usable (api_key)
-      providerRepo.find.mockResolvedValue([makeProvider({ id: 'p2', auth_type: 'api_key' })]);
+      // First find: activeRows lookup. Second find: otherActive query.
+      providerRepo.find
+        .mockResolvedValueOnce([existing])
+        .mockResolvedValueOnce([makeProvider({ id: 'p2', auth_type: 'api_key' })]);
 
       const result = await service.removeProvider('agent-1', 'openai');
 
@@ -376,8 +390,7 @@ describe('ProviderService', () => {
 
     it('should clear tier assignments when no other active provider', async () => {
       const existing = makeProvider({ is_active: true });
-      providerRepo.findOne.mockResolvedValue(existing);
-      providerRepo.find.mockResolvedValue([]);
+      providerRepo.find.mockResolvedValueOnce([existing]).mockResolvedValueOnce([]);
       tierRepo.find
         .mockResolvedValueOnce([]) // overrides query
         .mockResolvedValueOnce([]); // allTiers query
@@ -390,8 +403,7 @@ describe('ProviderService', () => {
 
     it('should generate notifications for invalidated tier overrides', async () => {
       const existing = makeProvider({ is_active: true });
-      providerRepo.findOne.mockResolvedValue(existing);
-      providerRepo.find.mockResolvedValue([]);
+      providerRepo.find.mockResolvedValueOnce([existing]).mockResolvedValueOnce([]);
 
       const overrideTier = makeTier({
         override_model: 'gpt-4o',
@@ -422,8 +434,7 @@ describe('ProviderService', () => {
 
     it('should generate notification without model when auto_assigned_model is null', async () => {
       const existing = makeProvider({ is_active: true });
-      providerRepo.findOne.mockResolvedValue(existing);
-      providerRepo.find.mockResolvedValue([]);
+      providerRepo.find.mockResolvedValueOnce([existing]).mockResolvedValueOnce([]);
 
       const overrideTier = makeTier({
         override_model: 'gpt-4o',
@@ -449,21 +460,19 @@ describe('ProviderService', () => {
 
     it('should pass authType filter when provided', async () => {
       const existing = makeProvider({ is_active: true });
-      providerRepo.findOne.mockResolvedValue(existing);
-      providerRepo.find.mockResolvedValue([]);
+      providerRepo.find.mockResolvedValueOnce([existing]).mockResolvedValueOnce([]);
       tierRepo.find.mockResolvedValue([]);
 
       await service.removeProvider('agent-1', 'openai', 'api_key');
 
-      expect(providerRepo.findOne).toHaveBeenCalledWith({
-        where: { agent_id: 'agent-1', provider: 'openai', auth_type: 'api_key' },
+      expect(providerRepo.find).toHaveBeenCalledWith({
+        where: { agent_id: 'agent-1', provider: 'openai', auth_type: 'api_key', is_active: true },
       });
     });
 
     it('should use tier label for unknown tier names', async () => {
       const existing = makeProvider({ is_active: true });
-      providerRepo.findOne.mockResolvedValue(existing);
-      providerRepo.find.mockResolvedValue([]);
+      providerRepo.find.mockResolvedValueOnce([existing]).mockResolvedValueOnce([]);
 
       const overrideTier = makeTier({
         override_model: 'gpt-4o',
@@ -503,6 +512,7 @@ describe('ProviderService', () => {
           override_model: null,
           override_provider: null,
           override_auth_type: null,
+          override_provider_key_label: null,
           fallback_models: null,
         }),
       );
@@ -929,6 +939,282 @@ describe('ProviderService', () => {
       await service.removeProvider('agent-1', 'custom:abc-123');
 
       expect(specificityRepo.save).not.toHaveBeenCalled();
+    });
+  });
+
+  /* ── multi-key support ── */
+
+  describe('upsertProvider with label', () => {
+    it('inserts a new key with the given label and next priority', async () => {
+      const existing = makeProvider({ id: 'p1', label: 'Default', priority: 0 });
+      providerRepo.find.mockResolvedValue([existing]);
+
+      const result = await service.upsertProvider(
+        'agent-1',
+        'user-1',
+        'openai',
+        'sk-second',
+        'api_key',
+        undefined,
+        'Work',
+      );
+
+      expect(result.isNew).toBe(true);
+      expect(result.provider.label).toBe('Work');
+      expect(result.provider.priority).toBe(1);
+      expect(providerRepo.insert).toHaveBeenCalled();
+    });
+
+    it('updates an existing key when the label matches (case-insensitive)', async () => {
+      const existing = makeProvider({ id: 'p1', label: 'Personal', priority: 0 });
+      providerRepo.find.mockResolvedValue([existing]);
+
+      const result = await service.upsertProvider(
+        'agent-1',
+        'user-1',
+        'openai',
+        'sk-rotated',
+        'api_key',
+        undefined,
+        'personal',
+      );
+
+      expect(result.isNew).toBe(false);
+      expect(existing.api_key_encrypted).toBe('encrypted-value');
+      expect(providerRepo.insert).not.toHaveBeenCalled();
+    });
+
+    it('throws when the per-provider cap (5) is reached for api_key', async () => {
+      const rows = [0, 1, 2, 3, 4].map((i) =>
+        makeProvider({ id: `p${i}`, label: `Key ${i + 1}`, priority: i }),
+      );
+      providerRepo.find.mockResolvedValue(rows);
+
+      await expect(
+        service.upsertProvider(
+          'agent-1',
+          'user-1',
+          'openai',
+          'sk-sixth',
+          'api_key',
+          undefined,
+          'Sixth',
+        ),
+      ).rejects.toThrow(/at most 5/);
+    });
+
+    it('rejects custom labels for local auth_type', async () => {
+      await expect(
+        service.upsertProvider(
+          'agent-1',
+          'user-1',
+          'ollama',
+          undefined,
+          'local',
+          undefined,
+          'Custom',
+        ),
+      ).rejects.toThrow(/local providers/);
+    });
+
+    it('accepts custom labels for subscription auth_type', async () => {
+      providerRepo.find.mockResolvedValue([]);
+      const result = await service.upsertProvider(
+        'agent-1',
+        'user-1',
+        'anthropic',
+        'token',
+        'subscription',
+        undefined,
+        'Work',
+      );
+      expect(result.isNew).toBe(true);
+      expect(result.provider.label).toBe('Work');
+      expect(result.provider.auth_type).toBe('subscription');
+    });
+
+    it('rejects empty/whitespace labels', async () => {
+      await expect(
+        service.upsertProvider('agent-1', 'user-1', 'openai', 'sk', 'api_key', undefined, '   '),
+      ).rejects.toThrow(/empty/);
+    });
+
+    it('rejects labels longer than 50 chars', async () => {
+      await expect(
+        service.upsertProvider(
+          'agent-1',
+          'user-1',
+          'openai',
+          'sk',
+          'api_key',
+          undefined,
+          'a'.repeat(51),
+        ),
+      ).rejects.toThrow(/at most 50/);
+    });
+  });
+
+  describe('renameKey', () => {
+    it('renames an existing key and propagates the new label to tier overrides', async () => {
+      const existing = makeProvider({ label: 'Personal' });
+      const tier = makeTier({
+        override_provider: 'openai',
+        override_auth_type: 'api_key',
+        override_provider_key_label: 'Personal',
+      });
+      providerRepo.find.mockResolvedValue([existing]);
+      tierRepo.find.mockResolvedValue([tier]);
+      specificityRepo.find.mockResolvedValue([]);
+
+      const result = await service.renameKey('agent-1', 'openai', 'api_key', 'Personal', 'Work');
+
+      expect(result.label).toBe('Work');
+      expect(tier.override_provider_key_label).toBe('Work');
+      expect(tierRepo.save).toHaveBeenCalledWith([tier]);
+    });
+
+    it('rejects renaming to a label already used by another key', async () => {
+      const a = makeProvider({ id: 'p1', label: 'Personal' });
+      const b = makeProvider({ id: 'p2', label: 'Work' });
+      providerRepo.find.mockResolvedValue([a, b]);
+
+      await expect(
+        service.renameKey('agent-1', 'openai', 'api_key', 'Personal', 'Work'),
+      ).rejects.toThrow(/already exists/);
+    });
+
+    it('throws NotFound when the source label is not present', async () => {
+      providerRepo.find.mockResolvedValue([makeProvider({ label: 'Personal' })]);
+
+      await expect(
+        service.renameKey('agent-1', 'openai', 'api_key', 'Missing', 'New'),
+      ).rejects.toThrow(/Provider key not found/);
+    });
+  });
+
+  describe('reorderKeys', () => {
+    it('writes priority by array index and saves all rows', async () => {
+      const a = makeProvider({ id: 'p1', label: 'Personal', priority: 0 });
+      const b = makeProvider({ id: 'p2', label: 'Work', priority: 1 });
+      providerRepo.find.mockResolvedValue([a, b]);
+
+      const result = await service.reorderKeys('agent-1', 'openai', 'api_key', [
+        'Work',
+        'Personal',
+      ]);
+
+      expect(result.find((r) => r.id === 'p2')!.priority).toBe(0);
+      expect(result.find((r) => r.id === 'p1')!.priority).toBe(1);
+      expect(providerRepo.save).toHaveBeenCalled();
+    });
+
+    it('rejects when label list length differs from row count', async () => {
+      providerRepo.find.mockResolvedValue([
+        makeProvider({ label: 'Personal' }),
+        makeProvider({ id: 'p2', label: 'Work' }),
+      ]);
+
+      await expect(
+        service.reorderKeys('agent-1', 'openai', 'api_key', ['Personal']),
+      ).rejects.toThrow(/exactly 2/);
+    });
+
+    it('rejects unknown labels in the order list', async () => {
+      providerRepo.find.mockResolvedValue([makeProvider({ label: 'Personal' })]);
+
+      await expect(service.reorderKeys('agent-1', 'openai', 'api_key', ['Other'])).rejects.toThrow(
+        /Unknown label/,
+      );
+    });
+
+    it('rejects duplicate labels in the order list', async () => {
+      const a = makeProvider({ id: 'p1', label: 'Personal' });
+      const b = makeProvider({ id: 'p2', label: 'Work' });
+      providerRepo.find.mockResolvedValue([a, b]);
+
+      await expect(
+        service.reorderKeys('agent-1', 'openai', 'api_key', ['Personal', 'Personal']),
+      ).rejects.toThrow(/Duplicate label/);
+    });
+
+    it('throws NotFound when no keys exist for the provider', async () => {
+      providerRepo.find.mockResolvedValue([]);
+
+      await expect(service.reorderKeys('agent-1', 'openai', 'api_key', [])).rejects.toThrow(
+        /Provider not found/,
+      );
+    });
+  });
+
+  describe('removeProvider with label', () => {
+    it('hard-deletes the labeled key when other keys remain and renumbers priorities', async () => {
+      const primary = makeProvider({ id: 'p1', label: 'Personal', priority: 0 });
+      const work = makeProvider({ id: 'p2', label: 'Work', priority: 1 });
+      providerRepo.find
+        .mockResolvedValueOnce([primary, work]) // initial label lookup
+        .mockResolvedValueOnce([primary]); // renumber: remaining rows after delete
+      tierRepo.find.mockResolvedValue([]);
+      specificityRepo.find.mockResolvedValue([]);
+
+      const result = await service.removeProvider('agent-1', 'openai', 'api_key', 'Work');
+
+      expect(providerRepo.remove).toHaveBeenCalledWith(work);
+      expect(result).toEqual({ notifications: [] });
+    });
+
+    it('falls through to whole-provider teardown when the deleted key was the last one', async () => {
+      const only = makeProvider({ id: 'p1', label: 'Personal', priority: 0 });
+      // 1st find: removeKeyByLabel matching lookup. 2nd: legacy active-rows
+      // lookup (still returns the row because we haven't deactivated yet).
+      // 3rd: otherActive query after deactivation returns [].
+      providerRepo.find
+        .mockResolvedValueOnce([only])
+        .mockResolvedValueOnce([only])
+        .mockResolvedValueOnce([]);
+      providerRepo.findOne.mockResolvedValue(only);
+      tierRepo.find.mockResolvedValue([]);
+      specificityRepo.find.mockResolvedValue([]);
+
+      const result = await service.removeProvider('agent-1', 'openai', 'api_key', 'Personal');
+
+      expect(only.is_active).toBe(false);
+      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1');
+      expect(result.notifications).toEqual([]);
+    });
+
+    it('throws NotFound when the labeled key does not exist', async () => {
+      providerRepo.find.mockResolvedValue([makeProvider({ label: 'Personal' })]);
+
+      await expect(
+        service.removeProvider('agent-1', 'openai', 'api_key', 'Missing'),
+      ).rejects.toThrow(/Provider key not found/);
+    });
+
+    it('throws NotFound when no rows match (provider, auth_type)', async () => {
+      providerRepo.find.mockResolvedValue([]);
+
+      await expect(
+        service.removeProvider('agent-1', 'openai', 'api_key', 'Personal'),
+      ).rejects.toThrow(/Provider not found/);
+    });
+
+    it('clears override_provider_key_label on tier rows referencing the deleted key', async () => {
+      const primary = makeProvider({ id: 'p1', label: 'Personal', priority: 0 });
+      const work = makeProvider({ id: 'p2', label: 'Work', priority: 1 });
+      const pinnedTier = makeTier({
+        tier: 'complex',
+        override_provider: 'openai',
+        override_auth_type: 'api_key',
+        override_provider_key_label: 'Work',
+      });
+      providerRepo.find.mockResolvedValueOnce([primary, work]).mockResolvedValueOnce([primary]);
+      tierRepo.find.mockResolvedValue([pinnedTier]);
+      specificityRepo.find.mockResolvedValue([]);
+
+      await service.removeProvider('agent-1', 'openai', 'api_key', 'Work');
+
+      expect(pinnedTier.override_provider_key_label).toBeNull();
+      expect(tierRepo.save).toHaveBeenCalledWith([pinnedTier]);
     });
   });
 });

@@ -38,6 +38,7 @@ export function createRoutingActions(input: RoutingActionsInput) {
     modelName: string,
     providerId: string,
     authType?: AuthType,
+    providerKeyLabel?: string,
   ) => {
     setChangingTier(tierId);
     try {
@@ -47,9 +48,45 @@ export function createRoutingActions(input: RoutingActionsInput) {
         modelName,
         providerId,
         authType,
+        providerKeyLabel,
       );
       input.mutateTiers((prev) => prev?.map((t) => (t.tier === tierId ? updated : t)));
       toast.success('Routing updated');
+    } catch {
+      // error toast from fetchMutate
+    } finally {
+      setChangingTier(null);
+    }
+  };
+
+  /**
+   * Pin a tier to a specific provider key label.
+   * Re-uses the existing PUT /tiers/:tier endpoint by re-sending the current
+   * model — the only delta is the new providerKeyLabel. The caller supplies
+   * the resolved providerId because tiers in `auto` mode have a null
+   * override_provider, and the DTO requires a non-empty value.
+   */
+  const handlePinKey = async (
+    tierId: string,
+    providerId: string,
+    providerKeyLabel: string | null,
+    authType?: AuthType,
+  ) => {
+    const tier = getTier(tierId);
+    const model = tier?.override_model ?? tier?.auto_assigned_model;
+    if (!tier || !model || !providerId) return;
+    setChangingTier(tierId);
+    try {
+      const updated = await overrideTier(
+        input.agentName(),
+        tierId,
+        model,
+        providerId,
+        authType ?? tier.override_auth_type ?? undefined,
+        providerKeyLabel ?? undefined,
+      );
+      input.mutateTiers((prev) => prev?.map((t) => (t.tier === tierId ? updated : t)));
+      toast.success(providerKeyLabel ? `Pinned to "${providerKeyLabel}" key` : 'Key pin cleared');
     } catch {
       // error toast from fetchMutate
     } finally {
@@ -106,7 +143,12 @@ export function createRoutingActions(input: RoutingActionsInput) {
     const tier = getTier(tierId);
     const current = tier?.fallback_models ?? [];
     if (current.includes(modelName)) return;
-    const updated = [...current, modelName];
+    // Inherit the primary's pinned key label when present, so a new fallback
+    // doesn't silently fall back to a different account/credential than the
+    // primary just because the user added it after pinning the primary.
+    const primaryLabel = tier?.override_provider_key_label ?? null;
+    const newEntry = primaryLabel ? `${modelName}||${primaryLabel}` : modelName;
+    const updated = [...current, newEntry];
     setFallbackOverrides((prev) => ({ ...prev, [tierId]: updated }));
     setAddingFallback(tierId);
     try {
@@ -150,6 +192,7 @@ export function createRoutingActions(input: RoutingActionsInput) {
     getTier,
     getFallbacksFor,
     handleOverride,
+    handlePinKey,
     handleResetAll,
     handleReset,
     handleAddFallback,

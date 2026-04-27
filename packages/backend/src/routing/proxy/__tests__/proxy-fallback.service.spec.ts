@@ -483,11 +483,48 @@ describe('ProxyFallbackService', () => {
         'Anthropic',
         new Set(['subscription']),
       );
-      // getProviderApiKey should use the alternate auth type
+      // getProviderApiKey should use the alternate auth type. The 4th arg is
+      // the optional providerKeyLabel — undefined when the fallback entry
+      // has no `||<label>` suffix.
       expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
         'agent-1',
         'Anthropic',
         'api_key',
+        undefined,
+      );
+    });
+
+    it('parses ||<label> suffix off fallback entries and forwards it to getProviderApiKey', async () => {
+      providerKeyService.getAuthType.mockResolvedValue('api_key');
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-work-key');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      pricingCache.getByModel.mockReturnValue({ provider: 'Google' } as never);
+
+      const result = await service.tryFallbacks(
+        'agent-1',
+        'user-1',
+        ['gemini-2.5-flash||Work'],
+        body,
+        false,
+        'sess-1',
+        'gpt-4o',
+      );
+
+      expect(result.success).not.toBeNull();
+      expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
+        'agent-1',
+        'Google',
+        'api_key',
+        'Work',
+      );
+      // The bare model name (without the suffix) is what gets forwarded upstream.
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({ model: 'gemini-2.5-flash' }),
       );
     });
 

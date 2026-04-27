@@ -9,6 +9,7 @@ export interface SpecificityAssignment {
   override_model: string | null;
   override_provider: string | null;
   override_auth_type: AuthType | null;
+  override_provider_key_label: string | null;
   auto_assigned_model: string | null;
   fallback_models: string[] | null;
   updated_at: string;
@@ -35,13 +36,19 @@ export function overrideSpecificity(
   model: string,
   provider: string,
   authType?: AuthType,
+  providerKeyLabel?: string,
 ) {
   return fetchMutate<SpecificityAssignment>(
     routingPath(agentName, `specificity/${encodeURIComponent(category)}`),
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, provider, ...(authType && { authType }) }),
+      body: JSON.stringify({
+        model,
+        provider,
+        ...(authType && { authType }),
+        ...(providerKeyLabel && { providerKeyLabel }),
+      }),
     },
   );
 }

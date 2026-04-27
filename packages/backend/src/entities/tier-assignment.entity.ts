@@ -27,6 +27,9 @@ export class TierAssignment {
   override_auth_type!: AuthType | null;
 
   @Column('varchar', { nullable: true })
+  override_provider_key_label!: string | null;
+
+  @Column('varchar', { nullable: true })
   auto_assigned_model!: string | null;
 
   @Column('simple-json', { nullable: true })

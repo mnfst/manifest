@@ -40,6 +40,7 @@ describe('ProxyService', () => {
 
     providerKeyService = {
       getProviderApiKey: jest.fn(),
+      getProviderKeys: jest.fn().mockResolvedValue([]),
       getProviderRegion: jest.fn().mockResolvedValue(null),
       getAuthType: jest.fn().mockResolvedValue('api_key'),
       findProviderForModel: jest.fn().mockResolvedValue(undefined),
@@ -2436,12 +2437,15 @@ describe('ProxyService', () => {
         'Anthropic',
         undefined,
       );
-      // getProviderApiKey was called with subscription for the fallback
+      // getProviderApiKey was called with subscription for the fallback.
+      // The 4th arg is the optional providerKeyLabel (undefined when the
+      // fallback entry has no `||<label>` suffix).
       expect(providerKeyService.getProviderApiKey).toHaveBeenNthCalledWith(
         2,
         'agent-1',
         'Anthropic',
         'subscription',
+        undefined,
       );
     });
 

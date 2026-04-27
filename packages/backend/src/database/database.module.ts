@@ -82,6 +82,7 @@ import { BackfillLocalAuthType1777200000000 } from './migrations/1777200000000-B
 import { BackfillLocalCustomProviders1777300000000 } from './migrations/1777300000000-BackfillLocalCustomProviders';
 import { DropComplexityRoutingFlag1780000000000 } from './migrations/1780000000000-DropComplexityRoutingFlag';
 import { ReAddComplexityRoutingFlag1781000000000 } from './migrations/1781000000000-ReAddComplexityRoutingFlag';
+import { AddProviderKeyLabelAndPriority1782000000000 } from './migrations/1782000000000-AddProviderKeyLabelAndPriority';
 
 const entities = [
   AgentMessage,
@@ -165,6 +166,7 @@ const migrations = [
   BackfillLocalCustomProviders1777300000000,
   DropComplexityRoutingFlag1780000000000,
   ReAddComplexityRoutingFlag1781000000000,
+  AddProviderKeyLabelAndPriority1782000000000,
 ];
 
 @Module({

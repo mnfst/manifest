@@ -13,6 +13,7 @@ import { resolveProviderId, stripCustomPrefix } from '../services/routing-utils.
 import { toast } from '../services/toast-store.js';
 import { authBadgeFor } from './AuthBadge.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.js';
+import { encodeFallbackEntry, parseFallbackEntry } from 'manifest-shared';
 
 interface FallbackListProps {
   agentName: string;
@@ -46,6 +47,48 @@ const FallbackList: Component<FallbackListProps> = (props) => {
       if (provId) return getModelLabel(provId, model);
     }
     return stripCustomPrefix(model);
+  };
+
+  /**
+   * Active labeled keys for (provider, auth_type), sorted by priority. Used
+   * to decide whether to render the key chip on a fallback row — chip only
+   * shows when 2+ keys exist (single-key users see the row exactly as
+   * before).
+   */
+  const keysForFallback = (
+    providerId: string | undefined,
+    auth: string | null,
+  ): RoutingProvider[] => {
+    if (!providerId || !auth || auth === 'local') return [];
+    return props.connectedProviders
+      .filter(
+        (p) =>
+          p.provider.toLowerCase() === providerId.toLowerCase() &&
+          p.auth_type === auth &&
+          p.is_active &&
+          p.has_api_key,
+      )
+      .slice()
+      .sort((a, b) => a.priority - b.priority);
+  };
+
+  const setLabelAt = async (index: number, newLabel: string | null) => {
+    const original = [...props.fallbacks];
+    const updated = props.fallbacks.map((entry, i) => {
+      if (i !== index) return entry;
+      const parsed = parseFallbackEntry(entry);
+      return encodeFallbackEntry({
+        model: parsed.model,
+        providerKeyLabel: newLabel ?? undefined,
+      });
+    });
+    props.onUpdate(updated);
+    try {
+      await persistSet(props.agentName, props.tier, updated);
+      toast.success(newLabel ? `Fallback pinned to "${newLabel}"` : 'Fallback key pin cleared');
+    } catch {
+      props.onUpdate(original);
+    }
   };
 
   const providerIdFor = (model: string): string | undefined => {
@@ -199,11 +242,15 @@ const FallbackList: Component<FallbackListProps> = (props) => {
           onDragEnd={handleDragEnd}
         >
           <For each={props.fallbacks}>
-            {(model, i) => {
-              const provId = () => providerIdFor(model);
+            {(entry, i) => {
+              const parsed = () => parseFallbackEntry(entry);
+              const model = () => parsed().model;
+              const pinnedLabel = () => parsed().providerKeyLabel;
+              const provId = () => providerIdFor(model());
               const isCustom = () => provId()?.startsWith('custom:');
               const auth = () => authTypeFor(provId());
               const title = () => providerTitle(provId(), auth());
+              const keys = () => keysForFallback(provId(), auth());
               return (
                 <>
                   <div
@@ -239,7 +286,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                     <Show when={isCustom()}>
                       {(() => {
                         const cp = props.customProviders.find((c) => `custom:${c.id}` === provId());
-                        const logo = customProviderLogo(cp?.name ?? '', 14, cp?.base_url, model);
+                        const logo = customProviderLogo(cp?.name ?? '', 14, cp?.base_url, model());
                         if (logo) {
                           return (
                             <span class="fallback-list__icon" title={cp?.name ?? 'Custom'}>
@@ -265,12 +312,20 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                         );
                       })()}
                     </Show>
-                    <span class="fallback-list__model">{modelLabel(model)}</span>
+                    <span class="fallback-list__model">{modelLabel(model())}</span>
+                    <Show when={keys().length > 1}>
+                      <FallbackKeyChip
+                        keys={keys()}
+                        currentLabel={pinnedLabel()}
+                        modelLabel={modelLabel(model())}
+                        onPick={(label) => setLabelAt(i(), label)}
+                      />
+                    </Show>
                     <button
                       class="fallback-list__remove"
                       onClick={() => handleRemove(i())}
                       title="Remove fallback"
-                      aria-label={`Remove ${modelLabel(model)}`}
+                      aria-label={`Remove ${modelLabel(model())}`}
                       disabled={removingIndex() !== null}
                     >
                       {removingIndex() === i() ? (
@@ -377,6 +432,73 @@ const FallbackList: Component<FallbackListProps> = (props) => {
         </Show>
       </Show>
     </div>
+  );
+};
+
+/**
+ * Compact inline pill that shows the currently-pinned API key for a fallback
+ * row and lets the user pick a different one. Renders only when the row's
+ * provider has 2+ active keys, so single-key users never see it.
+ */
+interface FallbackKeyChipProps {
+  keys: RoutingProvider[];
+  currentLabel: string | undefined;
+  modelLabel: string;
+  onPick: (label: string | null) => void;
+}
+
+const FallbackKeyChip: Component<FallbackKeyChipProps> = (props) => {
+  const [open, setOpen] = createSignal(false);
+  const displayLabel = () => props.currentLabel ?? props.keys[0]?.label ?? '';
+
+  return (
+    <span style="position: relative; display: inline-flex; flex-shrink: 0;">
+      <button
+        type="button"
+        class="fallback-list__key-chip"
+        aria-haspopup="listbox"
+        aria-expanded={open()}
+        aria-label={`API key for ${props.modelLabel}: currently ${displayLabel()}. Click to change.`}
+        title={displayLabel()}
+        onClick={() => setOpen(!open())}
+        style="background: hsl(var(--muted) / 0.5); border: 1px solid hsl(var(--border)); border-radius: 999px; padding: 2px 8px; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); cursor: pointer; max-width: 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-flex; align-items: center; gap: 3px;"
+      >
+        <span style="overflow: hidden; text-overflow: ellipsis;">{displayLabel()}</span>
+        <span aria-hidden="true">▾</span>
+      </button>
+      <Show when={open()}>
+        <ul
+          role="listbox"
+          aria-label="Choose API key"
+          style="position: absolute; top: 100%; right: 0; margin-top: 4px; list-style: none; padding: 4px; min-width: 140px; border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--background)); box-shadow: 0 4px 12px hsl(var(--foreground) / 0.08); z-index: 10; display: flex; flex-direction: column; gap: 2px;"
+        >
+          <For each={props.keys}>
+            {(k) => (
+              <li>
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={
+                    props.currentLabel
+                      ? props.currentLabel.toLowerCase() === k.label.toLowerCase()
+                      : displayLabel().toLowerCase() === k.label.toLowerCase()
+                  }
+                  onClick={() => {
+                    setOpen(false);
+                    if ((props.currentLabel ?? '').toLowerCase() !== k.label.toLowerCase()) {
+                      props.onPick(k.label);
+                    }
+                  }}
+                  style="width: 100%; text-align: left; background: none; border: none; padding: 4px 6px; cursor: pointer; border-radius: 4px; font-size: var(--font-size-xs);"
+                >
+                  {k.label}
+                </button>
+              </li>
+            )}
+          </For>
+        </ul>
+      </Show>
+    </span>
   );
 };
 

@@ -6,6 +6,8 @@ import {
   IsArray,
   ArrayMaxSize,
   Matches,
+  MaxLength,
+  ArrayMinSize,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 
@@ -13,6 +15,8 @@ import { TIER_SLOTS, AUTH_TYPES } from 'manifest-shared';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
 
 const KNOWN_PROVIDER_IDS: readonly string[] = Array.from(PROVIDER_BY_ID_OR_ALIAS.keys());
+
+export const MAX_PROVIDER_KEY_LABEL_LENGTH = 50;
 
 export class AgentNameParamDto {
   @IsString()
@@ -52,6 +56,13 @@ export class ConnectProviderDto {
   @IsOptional()
   @IsString()
   region?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(MAX_PROVIDER_KEY_LABEL_LENGTH)
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  label?: string;
 }
 
 export class AgentProviderParamDto {
@@ -65,7 +76,54 @@ export class AgentProviderParamDto {
   provider!: string;
 }
 
+export class AgentProviderKeyParamDto {
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^[a-zA-Z0-9_-]+$/, { message: 'Invalid agent name' })
+  agentName!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  provider!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(MAX_PROVIDER_KEY_LABEL_LENGTH)
+  label!: string;
+}
+
 export class RemoveProviderQueryDto {
+  @IsOptional()
+  @IsIn(AUTH_TYPES)
+  authType?: 'api_key' | 'subscription';
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(MAX_PROVIDER_KEY_LABEL_LENGTH)
+  label?: string;
+}
+
+export class RenameProviderKeyDto {
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(MAX_PROVIDER_KEY_LABEL_LENGTH)
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  newLabel!: string;
+
+  @IsOptional()
+  @IsIn(AUTH_TYPES)
+  authType?: 'api_key' | 'subscription';
+}
+
+export class ReorderProviderKeysDto {
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(5)
+  @IsString({ each: true })
+  @IsNotEmpty({ each: true })
+  labels!: string[];
+
   @IsOptional()
   @IsIn(AUTH_TYPES)
   authType?: 'api_key' | 'subscription';
@@ -84,6 +142,12 @@ export class SetOverrideDto {
   @IsOptional()
   @IsIn(AUTH_TYPES)
   authType?: 'api_key' | 'subscription';
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(MAX_PROVIDER_KEY_LABEL_LENGTH)
+  providerKeyLabel?: string;
 }
 
 export class CopilotPollDto {
