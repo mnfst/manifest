@@ -1921,4 +1921,49 @@ describe("Routing — specificity routing", () => {
       expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("Failed to update"));
     });
   });
+
+  it("specificity handleSpecificityPinKey persists the label via overrideSpecificity", async () => {
+    vi.mocked(getSpecificityAssignments).mockResolvedValue([
+      {
+        category: "coding",
+        auto_assigned_model: "gpt-4o-mini",
+        override_model: null,
+        override_provider: null,
+        override_auth_type: null,
+        override_provider_key_label: null,
+        fallback_models: null,
+        is_active: true,
+      } as any,
+    ]);
+    // Two OpenAI api_key keys for the agent so the chip renders.
+    mockGetProviders.mockResolvedValue([
+      { id: "k1", provider: "openai", auth_type: "api_key", is_active: true, has_api_key: true, label: "Personal", priority: 0 },
+      { id: "k2", provider: "openai", auth_type: "api_key", is_active: true, has_api_key: true, label: "Work", priority: 1 },
+    ]);
+    vi.mocked(overrideSpecificity).mockResolvedValueOnce({} as any);
+
+    render(() => <Routing />);
+    await screen.findByRole("tablist");
+    fireEvent.click(screen.getByRole("tab", { name: /Task-specific/ }));
+    await waitFor(() => {
+      expect(document.body.textContent).toContain("Coding");
+    });
+
+    // Open the inline key chip on the specificity card.
+    const chips = document.querySelectorAll<HTMLButtonElement>(".routing-card__key-chip");
+    expect(chips.length).toBeGreaterThan(0);
+    fireEvent.click(chips[chips.length - 1]);
+    fireEvent.click(screen.getByText("Work"));
+
+    await waitFor(() => {
+      expect(overrideSpecificity).toHaveBeenCalledWith(
+        "test-agent",
+        "coding",
+        "gpt-4o-mini",
+        "openai",
+        expect.anything(),
+        "Work",
+      );
+    });
+  });
 });
