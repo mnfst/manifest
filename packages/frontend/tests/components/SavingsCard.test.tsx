@@ -178,4 +178,79 @@ describe('SavingsCard', () => {
     });
     expect(localStorage.getItem('manifest_savings_baseline_bot-1')).toBeNull();
   });
+
+  it('shows tooltip on hover over info wrapper', async () => {
+    const { container } = render(() => (
+      <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={noopData} />
+    ));
+    await vi.waitFor(() => {
+      expect(container.querySelector('.savings-controls__info-wrap')).not.toBeNull();
+    });
+    const wrap = container.querySelector('.savings-controls__info-wrap')!;
+    wrap.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+    await vi.waitFor(() => {
+      expect(container.querySelector('.savings-tooltip')).not.toBeNull();
+    });
+  });
+
+  it('hides tooltip after mouseleave with delay', async () => {
+    vi.useFakeTimers();
+    const { container } = render(() => (
+      <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={noopData} />
+    ));
+    await vi.waitFor(() => {
+      expect(container.querySelector('.savings-controls__info-wrap')).not.toBeNull();
+    });
+    const wrap = container.querySelector('.savings-controls__info-wrap')!;
+    wrap.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+    await vi.waitFor(() => {
+      expect(container.querySelector('.savings-tooltip')).not.toBeNull();
+    });
+    wrap.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
+    vi.advanceTimersByTime(300);
+    expect(container.querySelector('.savings-tooltip')).toBeNull();
+    vi.useRealTimers();
+  });
+
+  it('cancels hide timer when re-entering before delay expires', async () => {
+    vi.useFakeTimers();
+    const { container } = render(() => (
+      <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={noopData} />
+    ));
+    await vi.waitFor(() => {
+      expect(container.querySelector('.savings-controls__info-wrap')).not.toBeNull();
+    });
+    const wrap = container.querySelector('.savings-controls__info-wrap')!;
+    wrap.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+    await vi.waitFor(() => {
+      expect(container.querySelector('.savings-tooltip')).not.toBeNull();
+    });
+    // Leave then re-enter before delay fires
+    wrap.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
+    vi.advanceTimersByTime(100); // less than 250ms delay
+    wrap.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+    vi.advanceTimersByTime(300); // past original delay
+    // Tooltip should still be visible because re-enter cancelled the timer
+    expect(container.querySelector('.savings-tooltip')).not.toBeNull();
+    vi.useRealTimers();
+  });
+
+  it('calls onOpenExplainer and closes tooltip when "More details" is clicked', async () => {
+    const onOpen = vi.fn();
+    const { container } = render(() => (
+      <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={onOpen} onData={noopData} />
+    ));
+    await vi.waitFor(() => {
+      expect(container.querySelector('.savings-controls__info-wrap')).not.toBeNull();
+    });
+    const wrap = container.querySelector('.savings-controls__info-wrap')!;
+    wrap.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+    await vi.waitFor(() => {
+      expect(container.querySelector('.savings-tooltip__link')).not.toBeNull();
+    });
+    const link = container.querySelector('.savings-tooltip__link') as HTMLAnchorElement;
+    link.click();
+    expect(onOpen).toHaveBeenCalledWith(null);
+    expect(container.querySelector('.savings-tooltip')).toBeNull();
+  });
 });
