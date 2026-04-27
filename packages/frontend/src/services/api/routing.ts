@@ -1,6 +1,7 @@
+import type { AuthType } from 'manifest-shared';
 import { BASE_URL, fetchJson, fetchMutate, parseErrorMessage, routingPath } from './core.js';
 
-export type AuthType = 'api_key' | 'subscription';
+export type { AuthType };
 
 export interface RoutingProvider {
   /** UserProvider.id — exact database row identity for multi-account disambiguation. */
@@ -55,12 +56,6 @@ export function connectProvider(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
-  });
-}
-
-export function deactivateAllProviders(agentName: string) {
-  return fetchMutate<{ ok: boolean }>(routingPath(agentName, 'providers/deactivate-all'), {
-    method: 'POST',
   });
 }
 
@@ -130,6 +125,22 @@ export async function copilotPollToken(
   });
   if (!res.ok) throw new Error(`Poll failed: ${res.status}`);
   return res.json() as Promise<{ status: CopilotPollStatus }>;
+}
+
+/* -- Routing: Complexity Toggle -- */
+
+export interface ComplexityStatus {
+  enabled: boolean;
+}
+
+export function getComplexityStatus(agentName: string) {
+  return fetchJson<ComplexityStatus>(routingPath(agentName, 'complexity/status'));
+}
+
+export function toggleComplexity(agentName: string) {
+  return fetchMutate<ComplexityStatus>(routingPath(agentName, 'complexity/toggle'), {
+    method: 'POST',
+  });
 }
 
 /* -- Routing: Tier Assignments -- */
@@ -251,6 +262,8 @@ export function refreshPricing() {
 
 /* -- Routing: Custom Providers -- */
 
+export type CustomProviderApiKind = 'openai' | 'anthropic';
+
 export interface CustomProviderModel {
   model_name: string;
   input_price_per_million_tokens?: number;
@@ -262,6 +275,7 @@ export interface CustomProviderData {
   id: string;
   name: string;
   base_url: string;
+  api_kind: CustomProviderApiKind;
   has_api_key: boolean;
   models: CustomProviderModel[];
   created_at: string;
@@ -276,6 +290,7 @@ export function createCustomProvider(
   data: {
     name: string;
     base_url: string;
+    api_kind?: CustomProviderApiKind;
     apiKey?: string;
     models: CustomProviderModel[];
   },
@@ -293,6 +308,7 @@ export function updateCustomProvider(
   data: {
     name?: string;
     base_url?: string;
+    api_kind?: CustomProviderApiKind;
     apiKey?: string;
     models?: CustomProviderModel[];
   },
@@ -307,12 +323,17 @@ export function updateCustomProvider(
   );
 }
 
-export async function probeCustomProvider(agentName: string, base_url: string, apiKey?: string) {
+export async function probeCustomProvider(
+  agentName: string,
+  base_url: string,
+  apiKey?: string,
+  api_kind?: CustomProviderApiKind,
+) {
   const res = await fetch(`${BASE_URL}${routingPath(agentName, 'custom-providers/probe')}`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ base_url, apiKey }),
+    body: JSON.stringify({ base_url, apiKey, api_kind }),
   });
   if (!res.ok) {
     const message = await parseErrorMessage(res);

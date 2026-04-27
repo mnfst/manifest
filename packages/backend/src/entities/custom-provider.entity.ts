@@ -9,6 +9,8 @@ export interface CustomProviderModel {
   context_window?: number;
 }
 
+export type CustomProviderApiKind = 'openai' | 'anthropic';
+
 @Entity('custom_providers')
 @Index(['agent_id', 'name'], { unique: true })
 export class CustomProvider {
@@ -26,6 +28,9 @@ export class CustomProvider {
 
   @Column('varchar')
   base_url!: string;
+
+  @Column('varchar', { default: 'openai' })
+  api_kind!: CustomProviderApiKind;
 
   @Column('simple-json')
   models!: CustomProviderModel[];

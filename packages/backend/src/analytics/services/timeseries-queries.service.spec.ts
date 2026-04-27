@@ -115,8 +115,20 @@ describe('TimeseriesQueriesService', () => {
   describe('getCostByModel', () => {
     it('computes share_pct for each model', async () => {
       mockGetRawMany.mockResolvedValue([
-        { model: 'claude-opus-4-6', tokens: 700, estimated_cost: 10.0, auth_type: 'subscription' },
-        { model: 'gpt-4o', tokens: 300, estimated_cost: 5.0, auth_type: 'api_key' },
+        {
+          model: 'claude-opus-4-6',
+          tokens: 700,
+          estimated_cost: 10.0,
+          auth_type: 'subscription',
+          provider: 'anthropic',
+        },
+        {
+          model: 'gpt-4o',
+          tokens: 300,
+          estimated_cost: 5.0,
+          auth_type: 'api_key',
+          provider: 'openai',
+        },
       ]);
 
       const result = await service.getCostByModel('7d', 'u1');
@@ -125,6 +137,8 @@ describe('TimeseriesQueriesService', () => {
       expect(result[1].share_pct).toBe(30);
       expect(result[0].auth_type).toBe('subscription');
       expect(result[1].auth_type).toBe('api_key');
+      expect(result[0].provider).toBe('anthropic');
+      expect(result[1].provider).toBe('openai');
     });
 
     it('returns display_name from model_pricing when available', async () => {
@@ -135,6 +149,7 @@ describe('TimeseriesQueriesService', () => {
           tokens: 500,
           estimated_cost: 2.0,
           auth_type: null,
+          provider: 'openai',
         },
       ]);
 
@@ -144,7 +159,13 @@ describe('TimeseriesQueriesService', () => {
 
     it('falls back to model slug when display_name is missing', async () => {
       mockGetRawMany.mockResolvedValue([
-        { model: 'custom-model', tokens: 100, estimated_cost: 1.0, auth_type: null },
+        {
+          model: 'custom-model',
+          tokens: 100,
+          estimated_cost: 1.0,
+          auth_type: null,
+          provider: null,
+        },
       ]);
 
       const result = await service.getCostByModel('7d', 'u1');
@@ -152,11 +173,14 @@ describe('TimeseriesQueriesService', () => {
     });
 
     it('returns 0 share_pct when total tokens is 0', async () => {
-      mockGetRawMany.mockResolvedValue([{ model: 'test', tokens: 0, estimated_cost: 0 }]);
+      mockGetRawMany.mockResolvedValue([
+        { model: 'test', tokens: 0, estimated_cost: 0, provider: null },
+      ]);
 
       const result = await service.getCostByModel('7d', 'u1');
       expect(result[0].share_pct).toBe(0);
       expect(result[0].auth_type).toBeNull();
+      expect(result[0].provider).toBeNull();
     });
   });
 

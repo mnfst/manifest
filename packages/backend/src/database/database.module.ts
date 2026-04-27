@@ -17,6 +17,7 @@ import { UserProvider } from '../entities/user-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
+import { HeaderTier } from '../entities/header-tier.entity';
 import { InstallMetadata } from '../entities/install-metadata.entity';
 import { DatabaseSeederService } from './database-seeder.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
@@ -71,8 +72,17 @@ import { AddMessageFeedback1775600000000 } from './migrations/1775600000000-AddM
 import { AddInstallMetadata1775700000000 } from './migrations/1775700000000-AddInstallMetadata';
 import { CleanupOrphanedCustomProviderRefs1776679833383 } from './migrations/1776679833383-CleanupOrphanedCustomProviderRefs';
 import { AddMessageRequestHeaders1776700000000 } from './migrations/1776700000000-AddMessageRequestHeaders';
+import { AddHeaderTiers1776710000000 } from './migrations/1776710000000-AddHeaderTiers';
 import { AddSpecificityMiscategorized1777000000000 } from './migrations/1777000000000-AddSpecificityMiscategorized';
-import { MultiAccountProvider1777100000000 } from './migrations/1777100000000-MultiAccountProvider';
+import { AddComplexityRoutingFlag1777100000000 } from './migrations/1777100000000-AddComplexityRoutingFlag';
+import { AddHeaderTierEnabled1777100000000 } from './migrations/1777100000000-AddHeaderTierEnabled';
+import { AddCustomProviderApiKind1777200000000 } from './migrations/1777200000000-AddCustomProviderApiKind';
+import { CanonicalizeTileProviderMessages1777200000000 } from './migrations/1777200000000-CanonicalizeTileProviderMessages';
+import { BackfillLocalAuthType1777200000000 } from './migrations/1777200000000-BackfillLocalAuthType';
+import { BackfillLocalCustomProviders1777300000000 } from './migrations/1777300000000-BackfillLocalCustomProviders';
+import { DropComplexityRoutingFlag1780000000000 } from './migrations/1780000000000-DropComplexityRoutingFlag';
+import { ReAddComplexityRoutingFlag1781000000000 } from './migrations/1781000000000-ReAddComplexityRoutingFlag';
+import { MultiAccountProvider1782000000000 } from './migrations/1782000000000-MultiAccountProvider';
 
 const entities = [
   AgentMessage,
@@ -90,6 +100,7 @@ const entities = [
   TierAssignment,
   CustomProvider,
   SpecificityAssignment,
+  HeaderTier,
   InstallMetadata,
 ];
 
@@ -145,8 +156,17 @@ const migrations = [
   AddInstallMetadata1775700000000,
   CleanupOrphanedCustomProviderRefs1776679833383,
   AddMessageRequestHeaders1776700000000,
+  AddHeaderTiers1776710000000,
   AddSpecificityMiscategorized1777000000000,
-  MultiAccountProvider1777100000000,
+  AddComplexityRoutingFlag1777100000000,
+  AddHeaderTierEnabled1777100000000,
+  AddCustomProviderApiKind1777200000000,
+  CanonicalizeTileProviderMessages1777200000000,
+  BackfillLocalAuthType1777200000000,
+  BackfillLocalCustomProviders1777300000000,
+  DropComplexityRoutingFlag1780000000000,
+  ReAddComplexityRoutingFlag1781000000000,
+  MultiAccountProvider1782000000000,
 ];
 
 @Module({
@@ -185,6 +205,7 @@ const migrations = [
       TierAssignment,
       CustomProvider,
       SpecificityAssignment,
+      HeaderTier,
     ]),
     ModelPricesModule,
   ],

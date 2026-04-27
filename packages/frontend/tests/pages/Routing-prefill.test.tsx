@@ -40,6 +40,10 @@ vi.mock('../../src/components/ModelPickerModal.js', () => ({
   default: () => null,
 }));
 
+vi.mock('../../src/services/api/header-tiers.js', () => ({
+  listHeaderTiers: vi.fn().mockResolvedValue([]),
+}));
+
 const mockGetProviders = vi.fn();
 const mockGetCustomProviders = vi.fn();
 
@@ -53,7 +57,6 @@ vi.mock('../../src/services/api.js', () => ({
   getAvailableModels: vi.fn().mockResolvedValue([]),
   getProviders: (...args: unknown[]) => mockGetProviders(...args),
   connectProvider: vi.fn().mockResolvedValue({}),
-  deactivateAllProviders: vi.fn().mockResolvedValue({}),
   overrideTier: vi.fn().mockResolvedValue({}),
   resetTier: vi.fn().mockResolvedValue({}),
   resetAllTiers: vi.fn().mockResolvedValue({}),
@@ -70,6 +73,8 @@ vi.mock('../../src/services/api.js', () => ({
   overrideSpecificity: vi.fn().mockResolvedValue({}),
   getPricingHealth: vi.fn().mockResolvedValue({ model_count: 100, last_fetched_at: '2026-04-13T00:00:00.000Z' }),
   refreshPricing: vi.fn().mockResolvedValue({ ok: true, model_count: 100, last_fetched_at: '2026-04-13T00:00:00.000Z' }),
+  getComplexityStatus: vi.fn().mockResolvedValue({ enabled: true }),
+  toggleComplexity: vi.fn().mockResolvedValue({ enabled: false }),
 }));
 
 vi.mock('../../src/services/routing-utils.js', () => ({
@@ -80,6 +85,8 @@ vi.mock('../../src/services/routing-utils.js', () => ({
 
 vi.mock('../../src/components/AuthBadge.js', () => ({
   authBadgeFor: () => null,
+  authLabel: (authType: string | null | undefined) =>
+    authType === 'subscription' ? 'Subscription' : authType === 'local' ? 'Local' : 'API Key',
 }));
 
 vi.mock('../../src/services/formatters.js', () => ({

@@ -1,4 +1,4 @@
-import { createSignal, Show, type Component } from 'solid-js';
+import { createSignal, onMount, Show, type Component } from 'solid-js';
 import { normalizeProviderName } from 'manifest-shared';
 import { PROVIDERS, type ProviderDef } from '../services/providers.js';
 import {
@@ -10,11 +10,13 @@ import {
 } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
 import type { CustomProviderPrefill, ProviderDeepLink } from '../services/routing-params.js';
+import { checkIsSelfHosted } from '../services/setup-status.js';
 import CustomProviderForm from './CustomProviderForm.js';
 import CopilotDeviceLogin from './CopilotDeviceLogin.js';
 import LocalServerDetailView from './LocalServerDetailView.js';
 import ProviderDetailView from './ProviderDetailView.js';
 import ProviderApiKeyTab from './ProviderApiKeyTab.js';
+import ProviderLocalTab from './ProviderLocalTab.js';
 import ProviderSubscriptionTab from './ProviderSubscriptionTab.js';
 
 export interface ProviderSelectContentProps {
@@ -39,7 +41,13 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
   const deepLink = props.providerDeepLink;
   const deepLinkProv = deepLink ? PROVIDERS.find((p) => p.id === deepLink.providerId) : null;
 
-  const [activeTab, setActiveTab] = createSignal<'subscription' | 'api_key'>('subscription');
+  const [activeTab, setActiveTab] = createSignal<'subscription' | 'api_key' | 'local'>(
+    'subscription',
+  );
+  const [isSelfHosted, setIsSelfHosted] = createSignal(false);
+  onMount(async () => {
+    setIsSelfHosted(await checkIsSelfHosted());
+  });
   const [selectedProvider, setSelectedProvider] = createSignal<string | null>(
     deepLinkProv ? deepLinkProv.id : null,
   );
@@ -61,10 +69,8 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
   const [validationError, setValidationError] = createSignal<string | null>(null);
   const [direction, setDirection] = createSignal<'forward' | 'back' | null>(null);
   const subscriptionProviders = () => PROVIDERS.filter((p) => p.supportsSubscription);
-  const apiKeyProviders = () => {
-    const filtered = PROVIDERS.filter((p) => !p.subscriptionOnly);
-    return [...filtered].sort((a, b) => (a.localOnly ? 1 : 0) - (b.localOnly ? 1 : 0));
-  };
+  const apiKeyProviders = () => PROVIDERS.filter((p) => !p.subscriptionOnly && !p.localOnly);
+  const localProviders = () => PROVIDERS.filter((p) => p.localOnly);
 
   const getProviderByAuth = (provId: string, authType: AuthType) =>
     props.providers.find(
@@ -98,6 +104,16 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     const p = getProviderByAuth(provId, 'api_key');
     const provDef = PROVIDERS.find((pr) => pr.id === provId);
     return !!p && p.is_active && !!provDef?.noKeyRequired;
+  };
+
+  // Local-tab connection check: Ollama / LM Studio rows carry
+  // `auth_type: 'local'` after the backfill migrations. Ignoring that would
+  // leave the Local tab's toggles permanently off even once the user
+  // connects the provider (its counterpart auth_type='api_key' row no
+  // longer exists).
+  const isLocalConnected = (provId: string): boolean => {
+    const p = getProviderByAuth(provId, 'local');
+    return !!p && p.is_active;
   };
 
   const resetToList = () => {
@@ -159,6 +175,26 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     setLocalServerProvider(prov);
   };
 
+  const handleLocalToggle = async (providerKey: string) => {
+    // The Local tab's toggle-off action deactivates the user_providers row
+    // without touching the custom_providers row (for LM Studio): the user
+    // can flip it back on via the same tile, and the backend cleans up
+    // dangling tier overrides as part of disconnect.
+    setBusy(true);
+    try {
+      const result = await disconnectProvider(props.agentName, providerKey, 'local');
+      if (result?.notifications?.length) {
+        for (const msg of result.notifications) toast.error(msg);
+      }
+      toast.success('Provider disconnected');
+      props.onUpdate();
+    } catch {
+      // error toast from fetchMutate
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const handleSubscriptionToggle = async (provId: string) => {
     const provDef = PROVIDERS.find((p) => p.id === provId);
     if (!provDef) return;
@@ -212,6 +248,10 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
               props.onUpdate();
             }}
             onBack={goBack}
+            onOpenCustomForm={() => {
+              setLocalServerProvider(null);
+              openCustomForm();
+            }}
           />
         </div>
       </Show>
@@ -334,6 +374,28 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
                 </svg>
                 API Keys
               </button>
+              <Show when={isSelfHosted()}>
+                <button
+                  role="tab"
+                  aria-selected={activeTab() === 'local'}
+                  class="panel__tab"
+                  classList={{ 'panel__tab--active': activeTab() === 'local' }}
+                  onClick={() => setActiveTab('local')}
+                >
+                  <svg
+                    class="provider-modal__tab-icon"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden="true"
+                    style="color: #F72585"
+                  >
+                    <path d="m13.18 6.75 2.66-4.22-1.69-1.07L12 4.87 9.85 1.46 8.16 2.53l2.66 4.22-8.67 13.72A1.006 1.006 0 0 0 3 22.01h18c.36 0 .7-.2.88-.52s.16-.71-.03-1.02zM10.24 20 12 16.98 13.76 20zm5.83 0-3.21-5.5c-.36-.62-1.37-.62-1.73 0L7.92 20H4.81L12 8.62 19.19 20h-3.11Z" />
+                  </svg>
+                  Local
+                </button>
+              </Show>
             </div>
           </div>
 
@@ -361,6 +423,19 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
               onOpenCustomForm={openCustomForm}
               onEditCustom={openEditCustom}
               providers={props.providers}
+            />
+          </Show>
+
+          {/* -- Local Tab (self-hosted only) -- */}
+          <Show when={activeTab() === 'local' && isSelfHosted()}>
+            <ProviderLocalTab
+              localProviders={localProviders()}
+              customProviders={props.customProviders ?? []}
+              isConnected={isLocalConnected}
+              onToggle={handleLocalToggle}
+              busy={busy}
+              onOpenDetail={openDetail}
+              onEditCustom={openEditCustom}
               onOpenLocalServer={openLocalServer}
             />
           </Show>

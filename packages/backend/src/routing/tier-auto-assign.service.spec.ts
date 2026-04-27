@@ -412,7 +412,7 @@ describe('TierAutoAssignService', () => {
       const inserted = mockTierRepo.insert.mock.calls[0][0] as {
         auto_assigned_model: string;
       }[];
-      expect(inserted).toHaveLength(4);
+      expect(inserted).toHaveLength(5);
       for (const record of inserted) {
         expect(record.auto_assigned_model).toBe('gpt-4o');
       }
@@ -428,7 +428,7 @@ describe('TierAutoAssignService', () => {
       const inserted = mockTierRepo.insert.mock.calls[0][0] as {
         auto_assigned_model: string | null;
       }[];
-      expect(inserted).toHaveLength(4);
+      expect(inserted).toHaveLength(5);
       for (const record of inserted) {
         expect(record.auto_assigned_model).toBeNull();
       }
@@ -439,7 +439,7 @@ describe('TierAutoAssignService', () => {
       mockDiscoveryService.getModelsForAgent.mockResolvedValue([model]);
 
       mockTierRepo.find.mockResolvedValue(
-        ['simple', 'standard', 'complex', 'reasoning'].map((tier) => ({
+        ['simple', 'standard', 'complex', 'reasoning', 'default'].map((tier) => ({
           id: `existing-${tier}`,
           agent_id: 'agent-1',
           tier,
@@ -456,7 +456,7 @@ describe('TierAutoAssignService', () => {
       const saved = mockTierRepo.save.mock.calls[0][0] as {
         auto_assigned_model: string;
       }[];
-      expect(saved).toHaveLength(4);
+      expect(saved).toHaveLength(5);
       for (const record of saved) {
         expect(record.auto_assigned_model).toBe('gpt-4o');
       }
@@ -466,7 +466,7 @@ describe('TierAutoAssignService', () => {
       mockDiscoveryService.getModelsForAgent.mockResolvedValue([]);
 
       mockTierRepo.find.mockResolvedValue(
-        ['simple', 'standard', 'complex', 'reasoning'].map((tier) => ({
+        ['simple', 'standard', 'complex', 'reasoning', 'default'].map((tier) => ({
           id: `existing-${tier}`,
           agent_id: 'agent-1',
           tier,
@@ -482,7 +482,7 @@ describe('TierAutoAssignService', () => {
       const saved = mockTierRepo.save.mock.calls[0][0] as {
         auto_assigned_model: string | null;
       }[];
-      expect(saved).toHaveLength(4);
+      expect(saved).toHaveLength(5);
       for (const record of saved) {
         expect(record.auto_assigned_model).toBeNull();
       }
@@ -515,7 +515,7 @@ describe('TierAutoAssignService', () => {
       const inserted = mockTierRepo.insert.mock.calls[0][0] as {
         auto_assigned_model: string;
       }[];
-      expect(inserted).toHaveLength(4);
+      expect(inserted).toHaveLength(5);
       for (const record of inserted) {
         expect(record.auto_assigned_model).toBe('claude-sonnet-4');
       }
@@ -537,7 +537,7 @@ describe('TierAutoAssignService', () => {
       const inserted = mockTierRepo.insert.mock.calls[0][0] as {
         auto_assigned_model: string;
       }[];
-      expect(inserted).toHaveLength(4);
+      expect(inserted).toHaveLength(5);
       for (const record of inserted) {
         expect(record.auto_assigned_model).toBe('gpt-4o');
       }
@@ -569,7 +569,7 @@ describe('TierAutoAssignService', () => {
       const inserted = mockTierRepo.insert.mock.calls[0][0] as {
         auto_assigned_model: string;
       }[];
-      expect(inserted).toHaveLength(4);
+      expect(inserted).toHaveLength(5);
       for (const record of inserted) {
         expect(record.auto_assigned_model).toBe('claude-sonnet-4');
       }

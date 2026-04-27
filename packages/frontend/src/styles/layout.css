@@ -95,7 +95,7 @@ body {
   justify-content: space-between;
   align-items: flex-end;
   gap: 16px;
-  margin-bottom: var(--gap-xl);
+  margin-bottom: var(--gap-lg);
   padding-bottom: var(--gap-lg);
   border-bottom: 1px solid hsl(var(--border));
 }

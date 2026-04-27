@@ -1,7 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { getFreeModels } from '../../src/services/api/free-models.js';
 import { submitOpenaiOAuthCallback } from '../../src/services/api/oauth.js';
-import { probeCustomProvider, refreshModels } from '../../src/services/api/routing.js';
+import {
+  probeCustomProvider,
+  refreshModels,
+  deleteCustomProvider,
+  updateCustomProvider,
+  createCustomProvider,
+} from '../../src/services/api/routing.js';
 import {
   setSpecificityFallbacks,
   clearSpecificityFallbacks,
@@ -93,6 +99,48 @@ describe('api/routing', () => {
     const body = JSON.parse(init.body);
     expect(body.base_url).toBe('http://127.0.0.1:11434/v1');
     expect(body.apiKey).toBeUndefined();
+  });
+
+  it('deleteCustomProvider DELETEs the custom provider by ID', async () => {
+    mockOk({ ok: true });
+    const out = await deleteCustomProvider('demo-agent', 'cp-123');
+    expect(out).toEqual({ ok: true });
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe('/api/v1/routing/demo-agent/custom-providers/cp-123');
+    expect(init.method).toBe('DELETE');
+  });
+
+  it('createCustomProvider POSTs with name, base_url, and models', async () => {
+    const payload = { id: 'cp-new', name: 'My LLM', base_url: 'http://localhost:8080/v1', has_api_key: false, models: [], created_at: '2025-01-01' };
+    mockOk(payload);
+    const out = await createCustomProvider('demo-agent', {
+      name: 'My LLM',
+      base_url: 'http://localhost:8080/v1',
+      models: [],
+    });
+    expect(out).toEqual(payload);
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe('/api/v1/routing/demo-agent/custom-providers');
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(init.body)).toEqual({
+      name: 'My LLM',
+      base_url: 'http://localhost:8080/v1',
+      models: [],
+    });
+  });
+
+  it('updateCustomProvider PUTs updated fields for an existing provider', async () => {
+    const payload = { id: 'cp-1', name: 'Updated', base_url: 'http://new:8080/v1', has_api_key: true, models: [], created_at: '2025-01-01' };
+    mockOk(payload);
+    const out = await updateCustomProvider('demo-agent', 'cp-1', {
+      name: 'Updated',
+      base_url: 'http://new:8080/v1',
+    });
+    expect(out).toEqual(payload);
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe('/api/v1/routing/demo-agent/custom-providers/cp-1');
+    expect(init.method).toBe('PUT');
+    expect(init.headers['Content-Type']).toBe('application/json');
   });
 });
 

@@ -19,6 +19,13 @@ interface Props {
   editData?: CustomProviderData;
   onConnected: () => void;
   onBack: () => void;
+  /**
+   * Optional: open the generic custom-provider form as an escape hatch.
+   * Surfaced under the setup command when the provider hint supplies a
+   * `notReachableHint` (llama.cpp pre-b3800 builds don't expose
+   * `/v1/models`, so the probe can 404 even when the server is up).
+   */
+  onOpenCustomForm?: () => void;
 }
 
 interface ProbeState {
@@ -145,19 +152,16 @@ const LocalServerDetailView: Component<Props> = (props) => {
 
   return (
     <div class="provider-detail">
-      <button class="provider-detail__back" onClick={props.onBack} aria-label="Back to providers">
+      <button class="modal-back-btn" onClick={props.onBack} aria-label="Back to providers">
         <svg
+          xmlns="http://www.w3.org/2000/svg"
           width="16"
           height="16"
+          fill="currentColor"
           viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
           aria-hidden="true"
         >
-          <path d="m15 18-6-6 6-6" />
+          <path d="M14.71 7.29a.996.996 0 0 0-1.41 0l-4 4a.996.996 0 0 0 0 1.41l4 4c.2.2.45.29.71.29s.51-.1.71-.29a.996.996 0 0 0 0-1.41L11.43 12l3.29-3.29a.996.996 0 0 0 0-1.41Z" />
         </svg>
       </button>
 
@@ -217,6 +221,7 @@ const LocalServerDetailView: Component<Props> = (props) => {
                   hint={hint()}
                   error={probe.error}
                   onRetry={retry}
+                  onOpenCustomForm={props.onOpenCustomForm}
                 />
               }
             >
@@ -409,6 +414,7 @@ const FailureState: Component<{
   hint?: LocalServerHint;
   error: unknown;
   onRetry: () => void;
+  onOpenCustomForm?: () => void;
 }> = (p) => {
   const errorMsg = () =>
     p.error instanceof Error ? p.error.message : 'Could not reach the server';
@@ -509,18 +515,50 @@ const FailureState: Component<{
               </Show>
             </button>
           </div>
-          <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin-top: 12px;">
-            Or open {p.providerName} → Developer → Start Server
-          </div>
-          <video
-            src="/icons/lmstudio-start-server.mp4"
-            autoplay
-            loop
-            muted
-            playsinline
-            disablepictureinpicture
-            style="margin-top: 12px; width: 100%; border-radius: var(--radius); border: 1px solid hsl(var(--border)); pointer-events: none;"
-          />
+          <Show when={p.hint!.setupNote}>
+            <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin-top: 8px; line-height: 1.5;">
+              {p.hint!.setupNote}
+            </div>
+          </Show>
+          {/* GUI-launch fallback + setup video are LM-Studio specific; gate
+              them on `persistsBindAcrossLaunches`, which today identifies
+              GUI-wrapped local providers (CLI-only providers like llama.cpp
+              don't have a "Developer → Start Server" menu to point at). */}
+          <Show when={p.hint!.persistsBindAcrossLaunches}>
+            <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin-top: 12px;">
+              Or open {p.providerName} → Developer → Start Server
+            </div>
+            <video
+              src="/icons/lmstudio-start-server.mp4"
+              autoplay
+              loop
+              muted
+              playsinline
+              disablepictureinpicture
+              style="margin-top: 12px; width: 100%; border-radius: var(--radius); border: 1px solid hsl(var(--border)); pointer-events: none;"
+            />
+          </Show>
+          <Show when={p.hint!.notReachableHint}>
+            {(hint) => (
+              <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin-top: 12px; line-height: 1.5;">
+                {hint().before}
+                <Show
+                  when={p.onOpenCustomForm}
+                  fallback={<span>&ldquo;{hint().linkLabel}&rdquo;</span>}
+                >
+                  <button
+                    type="button"
+                    class="link-button"
+                    onClick={p.onOpenCustomForm}
+                    style="background: none; border: none; padding: 0; color: hsl(var(--primary)); text-decoration: underline; cursor: pointer; font: inherit;"
+                  >
+                    {hint().linkLabel}
+                  </button>
+                </Show>
+                {hint().after}
+              </div>
+            )}
+          </Show>
         </div>
       </Show>
 

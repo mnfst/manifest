@@ -260,8 +260,22 @@ describe('CustomProviderController', () => {
       expect(mockCustomProviderService.probeModels).toHaveBeenCalledWith(
         'http://host.docker.internal:8000/v1',
         'sk-x',
+        undefined,
       );
       expect(result).toEqual({ models: [{ model_name: 'm1' }, { model_name: 'm2' }] });
+    });
+
+    it('forwards api_kind to the service when provided in the body', async () => {
+      await controller.probe(mockUser, 'test-agent', {
+        base_url: 'https://api.anthropic.com',
+        apiKey: 'sk-ant-x',
+        api_kind: 'anthropic',
+      } as never);
+      expect(mockCustomProviderService.probeModels).toHaveBeenCalledWith(
+        'https://api.anthropic.com',
+        'sk-ant-x',
+        'anthropic',
+      );
     });
 
     it('propagates NotFoundException from resolveAgent (unauthorized agent)', async () => {

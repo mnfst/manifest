@@ -257,7 +257,7 @@ export class ProxyFallbackService {
       const cpId = CustomProviderService.extractId(provider);
       const cp = await this.customProviderRepo.findOne({ where: { id: cpId } });
       if (cp) {
-        customEndpoint = buildCustomEndpoint(cp.base_url);
+        customEndpoint = buildCustomEndpoint(cp.base_url, cp.api_kind ?? 'openai');
         forwardModel = CustomProviderService.rawModelName(opts.model);
       }
     } else if (resolveEndpointKey(provider) === 'qwen' && isQwenResolvedRegion(providerRegion)) {

@@ -14,7 +14,13 @@ vi.mock("../../src/services/api.js", () => ({
 
 vi.mock("../../src/services/agent-platform-store.js", () => ({
   agentPlatform: () => "openclaw",
+  agentCategory: () => null,
 }));
+
+vi.mock("manifest-shared", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("manifest-shared")>();
+  return { ...actual, platformIcon: () => undefined };
+});
 
 vi.mock("../../src/components/SetupStepAddProvider.jsx", () => ({
   default: (props: any) => (
@@ -49,11 +55,11 @@ describe("RoutingInstructionModal", () => {
     expect(container.querySelector(".modal-overlay")).toBeNull();
   });
 
-  it("shows 'Activate routing' title in enable mode", () => {
+  it("shows 'Set up agent' title in enable mode", () => {
     render(() => (
       <RoutingInstructionModal open={true} mode="enable" agentName="test-agent" onClose={() => {}} />
     ));
-    expect(screen.getByText("Activate routing")).toBeDefined();
+    expect(screen.getByText("test-agent")).toBeDefined();
   });
 
   it("shows SetupStepAddProvider in enable mode", () => {

@@ -117,4 +117,28 @@ describe('CostByModelTable', () => {
     // Tooltip on the outer wrapper reflects the auth label.
     expect(providerCell?.innerHTML).toContain('Subscription');
   });
+
+  it('prefers the stored provider over model-name inference', () => {
+    // Model name starts with "minimax-" which would infer MiniMax,
+    // but the stored provider is "ollama" — icon tooltip should say Ollama.
+    const { container } = render(() => (
+      <CostByModelTable
+        rows={[row({ model: 'minimax-chat', provider: 'ollama', auth_type: 'api_key' })]}
+        customProviderName={() => undefined}
+      />
+    ));
+    const providerSpan = container.querySelector('tbody tr td span[title]');
+    expect(providerSpan?.getAttribute('title')).toContain('Ollama');
+  });
+
+  it('falls back to model-name inference when provider is null', () => {
+    const { container } = render(() => (
+      <CostByModelTable
+        rows={[row({ model: 'claude-opus-4', provider: null, auth_type: 'api_key' })]}
+        customProviderName={() => undefined}
+      />
+    ));
+    const providerSpan = container.querySelector('tbody tr td span[title]');
+    expect(providerSpan?.getAttribute('title')).toContain('Anthropic');
+  });
 });

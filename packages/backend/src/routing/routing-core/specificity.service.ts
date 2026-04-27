@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
+import type { AuthType } from 'manifest-shared';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
 import { RoutingCacheService } from './routing-cache.service';
 import { UserProvider } from '../../entities/user-provider.entity';
@@ -75,7 +76,7 @@ export class SpecificityService {
     category: string,
     model: string,
     provider?: string,
-    authType?: 'api_key' | 'subscription',
+    authType?: AuthType,
     overrideProviderId?: string,
   ): Promise<SpecificityAssignment> {
     // Resolve provider details from overrideProviderId when given.

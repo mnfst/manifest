@@ -1,0 +1,169 @@
+/* ── Pipeline help button ── */
+
+.routing-pipeline-help {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  padding: 4px 0 4px 8px;
+  background: none;
+  border: none;
+  border-radius: var(--radius);
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.routing-pipeline-help:hover {
+  color: hsl(var(--foreground));
+  background: hsl(var(--muted) / 0.5);
+}
+
+.routing-pipeline-help__label {
+  font-size: 12px;
+  font-style: italic;
+  font-family: var(--font-family);
+}
+
+/* ── Pipeline help modal steps ── */
+
+.routing-pipeline-help-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.routing-pipeline-help-step {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-left: 30px;
+  padding-bottom: 16px;
+  position: relative;
+}
+
+.routing-pipeline-help-step:not(:last-of-type)::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 22px;
+  bottom: 0;
+  width: 1px;
+  background: hsl(var(--border));
+}
+
+.routing-pipeline-help-step:last-of-type {
+  padding-bottom: 0;
+}
+
+.routing-pipeline-help-step__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.routing-pipeline-help-step__num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+  position: absolute;
+  left: 0;
+  z-index: 1;
+}
+
+.routing-pipeline-help-step__tag {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: var(--radius-sm);
+  background: hsl(var(--muted));
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.routing-pipeline-help-step__desc {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.5;
+}
+
+.routing-pipeline-help-summary {
+  margin: 0 0 16px;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* ── Complexity disable button ── */
+
+.routing-complexity__disable {
+  opacity: 0.6;
+  font-size: var(--font-size-xs);
+}
+
+.routing-complexity__disable:hover {
+  opacity: 1;
+}
+
+/* ── Routing tabs wrapper ── */
+
+.routing-tabs {
+  margin-top: 4px;
+}
+
+.routing-tabs__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.routing-tabs .panel__tab {
+  gap: 8px;
+}
+
+/* ── Dot indicator ── */
+
+.routing-tabs__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.routing-tabs__dot--on {
+  background: #5ecfca;
+}
+
+.routing-tabs__dot--off {
+  background: hsl(var(--muted-foreground) / 0.35);
+}
+
+/* ── Arrow between tabs ── */
+
+.routing-tabs__arrow {
+  flex-shrink: 0;
+  color: hsl(var(--muted-foreground) / 0.5);
+  margin: 0 4px;
+}
+
+/* ── Tab panel ── */
+
+.routing-tabs__panel {
+  min-height: 120px;
+}
+
+.routing-tabs__panel .routing-section__header {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}

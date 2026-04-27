@@ -63,6 +63,7 @@ interface OverviewData {
     share_pct: number;
     estimated_cost: number;
     auth_type: string | null;
+    provider?: string | null;
   }>;
   recent_activity: MessageRow[];
   active_skills: Array<{
@@ -304,7 +305,7 @@ const Overview: Component = () => {
                     })
                   }
                 >
-                  Enable routing
+                  Connect provider
                 </button>
                 <div class="empty-state__img-wrapper">
                   <img

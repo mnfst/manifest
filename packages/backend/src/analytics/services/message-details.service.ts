@@ -40,6 +40,9 @@ export interface MessageDetailResponse {
     feedback_details: string | null;
     request_headers: Record<string, string> | null;
     caller_attribution: CallerAttribution | null;
+    header_tier_id: string | null;
+    header_tier_name: string | null;
+    header_tier_color: string | null;
   };
   llm_calls: {
     id: string;
@@ -162,6 +165,9 @@ export class MessageDetailsService {
         feedback_details: message.feedback_details,
         request_headers: message.request_headers,
         caller_attribution: message.caller_attribution,
+        header_tier_id: message.header_tier_id,
+        header_tier_name: message.header_tier_name,
+        header_tier_color: message.header_tier_color,
       },
       llm_calls: llmCalls.map((lc) => ({
         id: lc.id,

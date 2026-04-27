@@ -1,15 +1,30 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { TIER_SLOTS } from 'manifest-shared';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
 import { TierService } from './routing-core/tier.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { AgentNameParamDto, SetOverrideDto, SetFallbacksDto } from './dto/routing.dto';
+import { Agent } from '../entities/agent.entity';
 
 @Controller('api/v1/routing')
 export class TierController {
   constructor(
     private readonly tierService: TierService,
     private readonly resolveAgentService: ResolveAgentService,
+    @InjectRepository(Agent)
+    private readonly agentRepo: Repository<Agent>,
   ) {}
 
   @Get(':agentName/tiers')
@@ -25,6 +40,7 @@ export class TierController {
     @Param('tier') tier: string,
     @Body() body: SetOverrideDto,
   ) {
+    this.validateTier(tier);
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
     return this.tierService.setOverride(
       agent.id,
@@ -43,6 +59,7 @@ export class TierController {
     @Param('agentName') agentName: string,
     @Param('tier') tier: string,
   ) {
+    this.validateTier(tier);
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
     await this.tierService.clearOverride(agent.id, tier);
     return { ok: true };
@@ -61,6 +78,7 @@ export class TierController {
     @Param('agentName') agentName: string,
     @Param('tier') tier: string,
   ) {
+    this.validateTier(tier);
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
     return this.tierService.getFallbacks(agent.id, tier);
   }
@@ -72,6 +90,7 @@ export class TierController {
     @Param('tier') tier: string,
     @Body() body: SetFallbacksDto,
   ) {
+    this.validateTier(tier);
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
     return this.tierService.setFallbacks(agent.id, tier, body.models);
   }
@@ -82,8 +101,32 @@ export class TierController {
     @Param('agentName') agentName: string,
     @Param('tier') tier: string,
   ) {
+    this.validateTier(tier);
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
     await this.tierService.clearFallbacks(agent.id, tier);
     return { ok: true };
+  }
+
+  @Get(':agentName/complexity/status')
+  async getComplexityStatus(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
+    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    return { enabled: agent.complexity_routing_enabled };
+  }
+
+  @Post(':agentName/complexity/toggle')
+  async toggleComplexity(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
+    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    const newValue = !agent.complexity_routing_enabled;
+    await this.agentRepo.update(agent.id, { complexity_routing_enabled: newValue });
+    this.resolveAgentService.invalidate(agent.tenant_id, agentName);
+    return { enabled: newValue };
+  }
+
+  private validateTier(tier: string): void {
+    if (!(TIER_SLOTS as readonly string[]).includes(tier)) {
+      throw new BadRequestException(
+        `Invalid tier: ${tier}. Must be one of: ${TIER_SLOTS.join(', ')}`,
+      );
+    }
   }
 }

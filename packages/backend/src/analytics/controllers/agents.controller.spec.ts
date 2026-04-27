@@ -7,6 +7,7 @@ import { QueryFailedError } from 'typeorm';
 import { AgentsController } from './agents.controller';
 import { TimeseriesQueriesService } from '../services/timeseries-queries.service';
 import { AgentLifecycleService } from '../services/agent-lifecycle.service';
+import { AgentDuplicationService } from '../services/agent-duplication.service';
 import { ApiKeyGeneratorService } from '../../otlp/services/api-key.service';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 
@@ -20,6 +21,9 @@ describe('AgentsController', () => {
   let mockDeleteAgent: jest.Mock;
   let mockRenameAgent: jest.Mock;
   let mockTenantResolve: jest.Mock;
+  let mockDuplicate: jest.Mock;
+  let mockGetCopySummary: jest.Mock;
+  let mockSuggestName: jest.Mock;
 
   beforeEach(async () => {
     mockGetAgentList = jest.fn().mockResolvedValue([
@@ -32,6 +36,20 @@ describe('AgentsController', () => {
     mockDeleteAgent = jest.fn().mockResolvedValue(undefined);
     mockRenameAgent = jest.fn().mockResolvedValue(undefined);
     mockTenantResolve = jest.fn().mockResolvedValue('tenant-123');
+    mockDuplicate = jest.fn().mockResolvedValue({
+      agentId: 'new-id',
+      agentName: 'bot-copy',
+      displayName: 'bot-copy',
+      apiKey: 'mnfst_new',
+      copied: { providers: 1, customProviders: 0, tierAssignments: 2, specificityAssignments: 0 },
+    });
+    mockGetCopySummary = jest.fn().mockResolvedValue({
+      providers: 1,
+      customProviders: 0,
+      tierAssignments: 2,
+      specificityAssignments: 0,
+    });
+    mockSuggestName = jest.fn().mockResolvedValue('bot-copy');
 
     const module: TestingModule = await Test.createTestingModule({
       imports: [CacheModule.register()],
@@ -55,6 +73,14 @@ describe('AgentsController', () => {
             onboardAgent: jest.fn(),
             getKeyForAgent: mockGetKeyForAgent,
             rotateKey: mockRotateKey,
+          },
+        },
+        {
+          provide: AgentDuplicationService,
+          useValue: {
+            duplicate: mockDuplicate,
+            getCopySummary: mockGetCopySummary,
+            suggestName: mockSuggestName,
           },
         },
         {
@@ -194,6 +220,10 @@ describe('AgentsController', () => {
         },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
+        {
+          provide: AgentDuplicationService,
+          useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -241,6 +271,10 @@ describe('AgentsController', () => {
         },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
+        {
+          provide: AgentDuplicationService,
+          useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -289,6 +323,10 @@ describe('AgentsController', () => {
         },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
+        {
+          provide: AgentDuplicationService,
+          useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -319,6 +357,10 @@ describe('AgentsController', () => {
         },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
+        {
+          provide: AgentDuplicationService,
+          useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -348,6 +390,10 @@ describe('AgentsController', () => {
         },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
+        {
+          provide: AgentDuplicationService,
+          useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -356,6 +402,59 @@ describe('AgentsController', () => {
     await expect(ctrl.createAgent(user as never, { name: 'My Agent' } as never)).rejects.toThrow(
       ConflictException,
     );
+  });
+
+  it('returns duplicate preview with copy counts and suggested name', async () => {
+    const user = { id: 'u1' };
+    const result = await controller.getDuplicatePreview(user as never, 'bot-1');
+
+    expect(result).toEqual({
+      copied: { providers: 1, customProviders: 0, tierAssignments: 2, specificityAssignments: 0 },
+      suggested_name: 'bot-copy',
+    });
+    expect(mockGetCopySummary).toHaveBeenCalledWith('u1', 'bot-1');
+    expect(mockSuggestName).toHaveBeenCalledWith('u1', 'bot-1');
+  });
+
+  it('duplicates agent and invalidates cache', async () => {
+    const user = { id: 'u1' };
+    const result = await controller.duplicateAgent(user as never, 'bot-1', {
+      name: 'Bot Copy',
+    } as never);
+
+    expect(result.agent.name).toBe('bot-copy');
+    expect(result.apiKey).toBe('mnfst_new');
+    expect(result.copied.providers).toBe(1);
+    expect(mockDuplicate).toHaveBeenCalledWith('u1', 'bot-1', {
+      name: 'bot-copy',
+      displayName: 'Bot Copy',
+    });
+    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents');
+  });
+
+  it('rejects duplicateAgent with empty slug', async () => {
+    const user = { id: 'u1' };
+    await expect(
+      controller.duplicateAgent(user as never, 'bot-1', { name: '!!!' } as never),
+    ).rejects.toThrow(BadRequestException);
+  });
+
+  it('converts duplicate-name QueryFailedError into ConflictException on duplicateAgent', async () => {
+    mockDuplicate.mockRejectedValueOnce(
+      new QueryFailedError('INSERT', [], new Error('unique constraint violation')),
+    );
+    const user = { id: 'u1' };
+    await expect(
+      controller.duplicateAgent(user as never, 'bot-1', { name: 'bot-copy' } as never),
+    ).rejects.toThrow(ConflictException);
+  });
+
+  it('re-throws non-duplicate errors from duplicate()', async () => {
+    mockDuplicate.mockRejectedValueOnce(new Error('boom'));
+    const user = { id: 'u1' };
+    await expect(
+      controller.duplicateAgent(user as never, 'bot-1', { name: 'bot-copy' } as never),
+    ).rejects.toThrow('boom');
   });
 
   it('re-throws non-duplicate QueryFailedError from onboardAgent', async () => {
@@ -376,6 +475,10 @@ describe('AgentsController', () => {
         },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
+        {
+          provide: AgentDuplicationService,
+          useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
+        },
       ],
     }).compile();
 

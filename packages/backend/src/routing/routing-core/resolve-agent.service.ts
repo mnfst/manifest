@@ -44,4 +44,8 @@ export class ResolveAgentService {
     this.cache.set(cacheKey, { agent, expiresAt: Date.now() + TTL_MS });
     return agent;
   }
+
+  invalidate(tenantId: string, agentName: string): void {
+    this.cache.delete(`${tenantId}:${agentName}`);
+  }
 }

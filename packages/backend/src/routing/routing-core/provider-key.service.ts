@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import type { AuthType } from 'manifest-shared';
 import { UserProvider } from '../../entities/user-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
@@ -30,7 +31,7 @@ export class ProviderKeyService {
   async getProviderApiKey(
     agentId: string,
     provider: string,
-    authType?: 'api_key' | 'subscription',
+    authType?: AuthType,
     userProviderId?: string,
   ): Promise<string | null> {
     // Ollama runs locally — no API key needed
@@ -51,7 +52,7 @@ export class ProviderKeyService {
     provider: string,
     excludeAuthTypes?: Set<string>,
     userProviderId?: string,
-  ): Promise<'api_key' | 'subscription'> {
+  ): Promise<AuthType> {
     if (userProviderId) {
       const exact = await this.findActiveProviderRecordById(agentId, userProviderId);
       return exact?.auth_type ?? 'api_key';
@@ -66,6 +67,16 @@ export class ProviderKeyService {
       const filtered = matches.filter((r) => !excludeAuthTypes.has(r.auth_type));
       if (filtered.length > 0) matches = filtered;
     }
+    // Local providers (Ollama, LM Studio) don't store a key — prefer them
+    // explicitly before the key-based heuristics below so a local-only
+    // record doesn't get overridden by a keyed record for a sibling alias.
+    // We trust the DB row's auth_type here: both migrations and the
+    // insert-time tagging in CustomProviderService cover Ollama and LM
+    // Studio. Matching on CANONICAL_LOCAL_IDS alone would override a
+    // user who explicitly tagged the row as subscription (e.g. Ollama
+    // Cloud re-aliased) or hand-managed api_key, which is surprising.
+    const localMatch = matches.find((r) => r.auth_type === 'local');
+    if (localMatch) return 'local';
     // Prefer subscription if both exist and the subscription record has a usable key
     const subMatch = matches.find((r) => r.auth_type === 'subscription' && r.api_key_encrypted);
     if (subMatch) return 'subscription';
@@ -84,7 +95,7 @@ export class ProviderKeyService {
   async getProviderRegion(
     agentId: string,
     provider: string,
-    authType?: 'api_key' | 'subscription',
+    authType?: AuthType,
     userProviderId?: string,
   ): Promise<string | null> {
     if (userProviderId) {
@@ -137,7 +148,7 @@ export class ProviderKeyService {
   private async resolveProviderApiKey(
     agentId: string,
     provider: string,
-    preferredAuthType?: 'api_key' | 'subscription',
+    preferredAuthType?: AuthType,
   ): Promise<string | null> {
     // Custom providers: exact match on provider key, allow empty key for local endpoints
     if (provider.startsWith('custom:')) {

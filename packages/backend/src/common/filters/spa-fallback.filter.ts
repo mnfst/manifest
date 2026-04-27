@@ -5,7 +5,7 @@ import { readFileSync } from 'fs';
 import { resolveFrontendDir } from '../utils/frontend-path';
 import { rewriteOgTags } from '../utils/og-rewrite';
 
-const API_PREFIXES = ['/api/', '/otlp/', '/v1/'];
+const NON_SPA_PREFIXES = ['/api/', '/otlp/', '/v1/', '/assets/'];
 
 @Catch(NotFoundException)
 export class SpaFallbackFilter implements ExceptionFilter {
@@ -26,7 +26,7 @@ export class SpaFallbackFilter implements ExceptionFilter {
     if (
       req.method !== 'GET' ||
       !this.indexContent ||
-      API_PREFIXES.some((p) => req.originalUrl.startsWith(p))
+      NON_SPA_PREFIXES.some((p) => req.originalUrl.startsWith(p))
     ) {
       const response = exception.getResponse();
       const status = exception.getStatus();

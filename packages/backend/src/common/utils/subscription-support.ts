@@ -1,8 +1,9 @@
+import type { AuthType } from 'manifest-shared';
 import { supportsSubscriptionProvider } from 'manifest-shared';
 
 type ProviderAuthRecord = {
   provider: string;
-  auth_type?: 'api_key' | 'subscription' | null;
+  auth_type?: AuthType | null;
 };
 
 export function isSupportedSubscriptionProvider(provider: string): boolean {

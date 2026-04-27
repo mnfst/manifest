@@ -14,10 +14,41 @@ vi.mock("@solidjs/meta", () => ({
 
 const mockGetAgents = vi.fn();
 const mockCreateAgent = vi.fn();
+const mockDeleteAgent = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   getAgents: (...args: unknown[]) => mockGetAgents(...args),
   createAgent: (...args: unknown[]) => mockCreateAgent(...args),
+  deleteAgent: (...args: unknown[]) => mockDeleteAgent(...args),
 }));
+
+vi.mock("../../src/components/DuplicateAgentModal.jsx", async () => {
+  const { Show } = await import("solid-js");
+  return {
+    default: (props: {
+      open: boolean;
+      sourceName: string;
+      onClose: () => void;
+      onDuplicated?: () => void;
+    }) => (
+      <Show when={props.open}>
+        <div data-testid="duplicate-modal" data-source={props.sourceName}>
+          <button data-testid="duplicate-modal-close" onClick={() => props.onClose()}>
+            close
+          </button>
+          <button
+            data-testid="duplicate-modal-done"
+            onClick={() => {
+              props.onDuplicated?.();
+              props.onClose();
+            }}
+          >
+            done
+          </button>
+        </div>
+      </Show>
+    ),
+  };
+});
 
 vi.mock("../../src/services/toast-store.js", () => ({
   toast: { error: vi.fn(), success: vi.fn(), warning: vi.fn() },
@@ -403,5 +434,176 @@ describe("Workspace", () => {
       expect(picker!.getAttribute("data-disabled")).toBe("true");
     });
     resolveCreate!({ agent: { name: "test" }, apiKey: "k" });
+  });
+
+  describe("agent card menu", () => {
+    const clickKebab = async (container: HTMLElement) => {
+      await vi.waitFor(() => {
+        const trigger = container.querySelector(".agent-card__menu-trigger");
+        expect(trigger).not.toBeNull();
+      });
+      const trigger = container.querySelector(".agent-card__menu-trigger") as HTMLButtonElement;
+      fireEvent.click(trigger);
+    };
+
+    it("opens kebab popover with Duplicate and Delete", async () => {
+      const { container } = render(() => <Workspace />);
+      await clickKebab(container);
+      expect(container.querySelector(".agent-card__menu-popover")).not.toBeNull();
+      expect(container.textContent).toContain("Duplicate");
+      expect(container.textContent).toContain("Delete");
+    });
+
+    it("toggles the popover closed on a second trigger click", async () => {
+      const { container } = render(() => <Workspace />);
+      await clickKebab(container);
+      await clickKebab(container);
+      expect(container.querySelector(".agent-card__menu-popover")).toBeNull();
+    });
+
+    it("closes the popover when clicking outside", async () => {
+      const { container } = render(() => <Workspace />);
+      await clickKebab(container);
+      expect(container.querySelector(".agent-card__menu-popover")).not.toBeNull();
+      fireEvent.click(document.body);
+      expect(container.querySelector(".agent-card__menu-popover")).toBeNull();
+    });
+
+    it("closes the popover on Escape", async () => {
+      const { container } = render(() => <Workspace />);
+      await clickKebab(container);
+      fireEvent.keyDown(document, { key: "Escape" });
+      expect(container.querySelector(".agent-card__menu-popover")).toBeNull();
+    });
+
+    it("ignores Escape when popover is already closed", async () => {
+      const { container } = render(() => <Workspace />);
+      await vi.waitFor(() => {
+        expect(container.querySelector(".agent-card__menu-trigger")).not.toBeNull();
+      });
+      fireEvent.keyDown(document, { key: "Escape" });
+      expect(container.querySelector(".agent-card__menu-popover")).toBeNull();
+    });
+
+    it("opens the DuplicateAgentModal when Duplicate is clicked", async () => {
+      const { container, getByTestId } = render(() => <Workspace />);
+      await clickKebab(container);
+      fireEvent.click(screen.getByText("Duplicate"));
+      const modal = getByTestId("duplicate-modal");
+      expect(modal.getAttribute("data-source")).toBe("demo-agent");
+    });
+
+    it("closes the DuplicateAgentModal when the user cancels", async () => {
+      const { container, getByTestId, queryByTestId } = render(() => <Workspace />);
+      await clickKebab(container);
+      fireEvent.click(screen.getByText("Duplicate"));
+      expect(getByTestId("duplicate-modal")).toBeDefined();
+      fireEvent.click(getByTestId("duplicate-modal-close"));
+      expect(queryByTestId("duplicate-modal")).toBeNull();
+    });
+
+    it("refetches agents after a successful duplicate", async () => {
+      const { container, getByTestId } = render(() => <Workspace />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("Demo Agent");
+      });
+      expect(mockGetAgents).toHaveBeenCalledTimes(1);
+      await clickKebab(container);
+      fireEvent.click(screen.getByText("Duplicate"));
+      fireEvent.click(getByTestId("duplicate-modal-done"));
+      await vi.waitFor(() => {
+        expect(mockGetAgents).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    it("opens the delete confirmation modal when Delete is clicked", async () => {
+      const { container } = render(() => <Workspace />);
+      await clickKebab(container);
+      fireEvent.click(screen.getByText("Delete"));
+      expect(container.textContent).toContain("Delete demo-agent");
+      expect(container.querySelector('input[placeholder="demo-agent"]')).not.toBeNull();
+    });
+
+    it("requires exact name match before enabling delete button", async () => {
+      const { container } = render(() => <Workspace />);
+      await clickKebab(container);
+      fireEvent.click(screen.getByText("Delete"));
+      const deleteBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.trim() === "Delete agent",
+      ) as HTMLButtonElement;
+      expect(deleteBtn.hasAttribute("disabled")).toBe(true);
+      const input = container.querySelector('input[placeholder="demo-agent"]') as HTMLInputElement;
+      fireEvent.input(input, { target: { value: "wrong-name" } });
+      expect(deleteBtn.hasAttribute("disabled")).toBe(true);
+      fireEvent.input(input, { target: { value: "demo-agent" } });
+      expect(deleteBtn.hasAttribute("disabled")).toBe(false);
+    });
+
+    it("deletes the agent and refetches after confirmation", async () => {
+      mockDeleteAgent.mockResolvedValue({ deleted: true });
+      const { container } = render(() => <Workspace />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("Demo Agent");
+      });
+      await clickKebab(container);
+      fireEvent.click(screen.getByText("Delete"));
+      const input = container.querySelector('input[placeholder="demo-agent"]') as HTMLInputElement;
+      fireEvent.input(input, { target: { value: "demo-agent" } });
+      const deleteBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.trim() === "Delete agent",
+      ) as HTMLButtonElement;
+      fireEvent.click(deleteBtn);
+      await vi.waitFor(() => {
+        expect(mockDeleteAgent).toHaveBeenCalledWith("demo-agent");
+        expect(mockGetAgents).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    it("keeps the modal open when deletion fails so the user can retry", async () => {
+      mockDeleteAgent.mockRejectedValue(new Error("boom"));
+      const { container } = render(() => <Workspace />);
+      await clickKebab(container);
+      fireEvent.click(screen.getByText("Delete"));
+      const input = container.querySelector('input[placeholder="demo-agent"]') as HTMLInputElement;
+      fireEvent.input(input, { target: { value: "demo-agent" } });
+      const deleteBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.trim() === "Delete agent",
+      ) as HTMLButtonElement;
+      fireEvent.click(deleteBtn);
+      await vi.waitFor(() => {
+        expect(mockDeleteAgent).toHaveBeenCalled();
+      });
+      expect(container.textContent).toContain("Delete demo-agent");
+    });
+
+    it("cancels the delete modal without deleting", async () => {
+      const { container } = render(() => <Workspace />);
+      await clickKebab(container);
+      fireEvent.click(screen.getByText("Delete"));
+      const cancelBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.trim() === "Cancel",
+      ) as HTMLButtonElement;
+      fireEvent.click(cancelBtn);
+      expect(container.textContent).not.toContain("Delete demo-agent");
+      expect(mockDeleteAgent).not.toHaveBeenCalled();
+    });
+
+    it("closes the delete modal when the backdrop is clicked", async () => {
+      const { container } = render(() => <Workspace />);
+      await clickKebab(container);
+      fireEvent.click(screen.getByText("Delete"));
+      const overlay = container.querySelector(".modal-overlay") as HTMLDivElement;
+      fireEvent.click(overlay);
+      expect(container.textContent).not.toContain("Delete demo-agent");
+    });
+
+    it("closes the delete modal on Escape from the overlay", async () => {
+      const { container } = render(() => <Workspace />);
+      await clickKebab(container);
+      fireEvent.click(screen.getByText("Delete"));
+      const overlay = container.querySelector(".modal-overlay") as HTMLDivElement;
+      fireEvent.keyDown(overlay, { key: "Escape" });
+      expect(container.textContent).not.toContain("Delete demo-agent");
+    });
   });
 });

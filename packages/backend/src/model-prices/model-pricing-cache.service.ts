@@ -1,4 +1,6 @@
 import { Injectable, Logger, OnApplicationBootstrap, Inject, Optional } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Cron } from '@nestjs/schedule';
 import { buildAliasMap, resolveModelName } from './model-name-normalizer';
 import { PricingSyncService } from '../database/pricing-sync.service';
@@ -9,10 +11,14 @@ import {
   PROVIDER_BY_ID_OR_ALIAS,
 } from '../common/constants/providers';
 import { ProviderModelRegistryService } from '../model-discovery/provider-model-registry.service';
+import { CustomProvider } from '../entities/custom-provider.entity';
+
+const CUSTOM_PROVIDER_LABEL = 'Custom';
 
 /**
  * Lightweight pricing entry used for cost calculation and provider detection.
- * Reads from models.dev (preferred) and OpenRouter cache (fallback).
+ * Reads from models.dev (preferred), OpenRouter cache (fallback), and the
+ * `custom_providers` table (user-defined OpenAI-compatible endpoints).
  */
 export interface PricingEntry {
   model_name: string;
@@ -22,8 +28,8 @@ export interface PricingEntry {
   display_name: string | null;
   /** True if confirmed via provider-native API, false if unverified, undefined if no data. */
   validated?: boolean;
-  /** Data source: models.dev (curated, native IDs) or openrouter (broad coverage). */
-  source?: 'models.dev' | 'openrouter';
+  /** Data source: models.dev (curated), openrouter (broad), or custom (user-defined). */
+  source?: 'models.dev' | 'openrouter' | 'custom';
 }
 
 @Injectable()
@@ -40,6 +46,9 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
     @Optional()
     @Inject(ProviderModelRegistryService)
     private readonly modelRegistry: ProviderModelRegistryService | null,
+    @Optional()
+    @InjectRepository(CustomProvider)
+    private readonly customProviderRepo: Repository<CustomProvider> | null = null,
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {
@@ -83,6 +92,11 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
     // Overlay models.dev entries (curated, native IDs — preferred source)
     this.loadModelsDevEntries();
 
+    // Overlay user-defined custom provider pricing (from the custom_providers
+    // table). Keyed by `custom:<uuid>/<model_name>` — the same identifier
+    // written to agent_messages.model, so cost lookups hit.
+    await this.loadCustomProviderEntries();
+
     this.aliasMap = buildAliasMap([...this.cache.keys()]);
     this.logger.log(`Loaded ${this.cache.size} pricing entries`);
   }
@@ -100,9 +114,15 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
   getAll(): PricingEntry[] {
     // Deduplicate: canonical aliases point to the same model_name,
     // so filter to unique model_name values.
+    //
+    // Custom provider entries (keyed by `custom:<uuid>/...`) are excluded
+    // here because the public /api/v1/model-prices endpoint is not scoped
+    // by user — returning them would leak one tenant's custom providers
+    // to every other tenant.
     const seen = new Set<string>();
     const result: PricingEntry[] = [];
     for (const entry of this.cache.values()) {
+      if (entry.source === 'custom') continue;
       if (!seen.has(entry.model_name)) {
         seen.add(entry.model_name);
         result.push(entry);
@@ -192,6 +212,62 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
 
     if (count > 0) {
       this.logger.log(`Overlaid ${count} models.dev pricing entries`);
+    }
+  }
+
+  /**
+   * Load user-defined pricing for custom (OpenAI-compatible) providers.
+   *
+   * The proxy writes `custom:<uuid>/<model_name>` to agent_messages.model
+   * and the cost recorder calls getByModel() with that exact string — so we
+   * index custom pricing under the same key. UUIDs are globally unique
+   * (randomUUID), so cross-tenant collisions are impossible.
+   *
+   * Prices are stored per million tokens in the entity; divide by 1e6 to
+   * match PricingEntry's per-token contract.
+   */
+  private async loadCustomProviderEntries(): Promise<void> {
+    if (!this.customProviderRepo) return;
+
+    let rows: CustomProvider[];
+    try {
+      rows = await this.customProviderRepo.find();
+    } catch (err) {
+      this.logger.warn(`Failed to load custom provider pricing: ${(err as Error).message}`);
+      return;
+    }
+
+    let count = 0;
+    for (const cp of rows) {
+      if (!Array.isArray(cp.models)) continue;
+      for (const model of cp.models) {
+        if (!model.model_name) continue;
+        const inputPerToken =
+          model.input_price_per_million_tokens != null
+            ? model.input_price_per_million_tokens / 1_000_000
+            : null;
+        const outputPerToken =
+          model.output_price_per_million_tokens != null
+            ? model.output_price_per_million_tokens / 1_000_000
+            : null;
+        // Skip entries without any pricing — nothing to compute from.
+        if (inputPerToken === null && outputPerToken === null) continue;
+
+        const key = `custom:${cp.id}/${model.model_name}`;
+        this.cache.set(key, {
+          model_name: key,
+          provider: CUSTOM_PROVIDER_LABEL,
+          input_price_per_token: inputPerToken,
+          output_price_per_token: outputPerToken,
+          display_name: model.model_name,
+          source: 'custom',
+        });
+        count++;
+      }
+    }
+
+    if (count > 0) {
+      this.logger.log(`Loaded ${count} custom provider pricing entries`);
     }
   }
 

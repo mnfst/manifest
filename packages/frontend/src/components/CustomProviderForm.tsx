@@ -4,12 +4,18 @@ import {
   deleteCustomProvider,
   probeCustomProvider,
   updateCustomProvider,
+  type CustomProviderApiKind,
   type CustomProviderModel,
   type CustomProviderData,
 } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
 import type { CustomProviderPrefill } from '../services/routing-params.js';
+
+const BASE_URL_PLACEHOLDERS: Record<CustomProviderApiKind, string> = {
+  openai: 'https://api.example.com/v1',
+  anthropic: 'https://api.anthropic.com',
+};
 
 interface Props {
   agentName: string;
@@ -53,6 +59,9 @@ const CustomProviderForm: Component<Props> = (props) => {
   const [baseUrl, setBaseUrl] = createSignal(
     props.initialData?.base_url ?? props.prefill?.baseUrl ?? '',
   );
+  const [apiKind, setApiKind] = createSignal<CustomProviderApiKind>(
+    props.initialData?.api_kind ?? 'openai',
+  );
   const [apiKey, setApiKey] = createSignal(props.prefill?.apiKey ?? '');
   const [editingKey, setEditingKey] = createSignal(false);
   const [rows, setRows] = createSignal<ModelRow[]>(
@@ -78,6 +87,7 @@ const CustomProviderForm: Component<Props> = (props) => {
         props.agentName,
         url,
         apiKey().trim() || undefined,
+        apiKind(),
       );
       if (models.length === 0) {
         setProbeError('Server returned no models');
@@ -125,6 +135,7 @@ const CustomProviderForm: Component<Props> = (props) => {
       await createCustomProvider(props.agentName, {
         name: name().trim(),
         base_url: baseUrl().trim(),
+        api_kind: apiKind(),
         apiKey: apiKey().trim() || undefined,
         models: buildModels(),
       });
@@ -181,19 +192,16 @@ const CustomProviderForm: Component<Props> = (props) => {
 
   return (
     <div class="provider-detail">
-      <button class="provider-detail__back" onClick={props.onBack} aria-label="Back to providers">
+      <button class="modal-back-btn" onClick={props.onBack} aria-label="Back to providers">
         <svg
+          xmlns="http://www.w3.org/2000/svg"
           width="16"
           height="16"
+          fill="currentColor"
           viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
           aria-hidden="true"
         >
-          <path d="m15 18-6-6 6-6" />
+          <path d="M14.71 7.29a.996.996 0 0 0-1.41 0l-4 4a.996.996 0 0 0 0 1.41l4 4c.2.2.45.29.71.29s.51-.1.71-.29a.996.996 0 0 0 0-1.41L11.43 12l3.29-3.29a.996.996 0 0 0 0-1.41Z" />
         </svg>
       </button>
 
@@ -202,7 +210,9 @@ const CustomProviderForm: Component<Props> = (props) => {
           <div class="routing-modal__title">
             {isEdit() ? 'Edit custom provider' : 'Add custom provider'}
           </div>
-          <div class="routing-modal__subtitle">Connect any OpenAI-compatible endpoint</div>
+          <div class="routing-modal__subtitle">
+            Connect any OpenAI- or Anthropic-compatible endpoint
+          </div>
         </div>
       </div>
 
@@ -229,6 +239,53 @@ const CustomProviderForm: Component<Props> = (props) => {
           />
         </div>
 
+        <fieldset
+          class="provider-detail__format"
+          aria-describedby="cp-format-help"
+          disabled={isEdit()}
+        >
+          <legend class="provider-detail__format-legend">API format</legend>
+          <div class="provider-detail__format-options" role="radiogroup">
+            <label
+              class={`provider-detail__format-option${
+                apiKind() === 'openai' ? ' provider-detail__format-option--active' : ''
+              }${isEdit() ? ' provider-detail__format-option--disabled' : ''}`}
+            >
+              <input
+                type="radio"
+                name="cp-api-format"
+                value="openai"
+                checked={apiKind() === 'openai'}
+                disabled={isEdit()}
+                onChange={() => setApiKind('openai')}
+              />
+              <span class="provider-detail__format-option-title">OpenAI</span>
+              <span class="provider-detail__format-option-path">/v1/chat/completions</span>
+            </label>
+            <label
+              class={`provider-detail__format-option${
+                apiKind() === 'anthropic' ? ' provider-detail__format-option--active' : ''
+              }${isEdit() ? ' provider-detail__format-option--disabled' : ''}`}
+            >
+              <input
+                type="radio"
+                name="cp-api-format"
+                value="anthropic"
+                checked={apiKind() === 'anthropic'}
+                disabled={isEdit()}
+                onChange={() => setApiKind('anthropic')}
+              />
+              <span class="provider-detail__format-option-title">Anthropic</span>
+              <span class="provider-detail__format-option-path">/v1/messages</span>
+            </label>
+          </div>
+          <p id="cp-format-help" class="provider-detail__format-help">
+            <Show when={isEdit()} fallback={<>Most providers use OpenAI format.</>}>
+              Format can't be changed after creation. Delete and recreate to switch.
+            </Show>
+          </p>
+        </fieldset>
+
         <div class="provider-detail__field">
           <label class="provider-detail__label" for="cp-base-url">
             Base URL
@@ -238,7 +295,7 @@ const CustomProviderForm: Component<Props> = (props) => {
               id="cp-base-url"
               class="provider-detail__input"
               type="url"
-              placeholder="https://api.example.com/v1"
+              placeholder={BASE_URL_PLACEHOLDERS[apiKind()]}
               value={baseUrl()}
               onInput={(e) => {
                 setBaseUrl(e.currentTarget.value);
@@ -251,7 +308,11 @@ const CustomProviderForm: Component<Props> = (props) => {
               class="btn btn--outline btn--sm"
               onClick={handleProbe}
               disabled={probeBusy() || !baseUrl().trim()}
-              aria-label="Fetch models from the server's /v1/models endpoint"
+              aria-label={
+                apiKind() === 'anthropic'
+                  ? "Fetch models from the server's /v1/models endpoint"
+                  : "Fetch models from the server's /models endpoint"
+              }
             >
               {probeBusy() ? <span class="spinner" /> : 'Fetch models'}
             </button>

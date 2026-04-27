@@ -1,5 +1,6 @@
 import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
 import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
+import type { AuthType } from 'manifest-shared';
 
 @Entity('specificity_assignments')
 @Index(['agent_id', 'category'], { unique: true })
@@ -29,7 +30,7 @@ export class SpecificityAssignment {
   override_provider_id!: string | null;
 
   @Column('varchar', { nullable: true })
-  override_auth_type!: 'api_key' | 'subscription' | null;
+  override_auth_type!: AuthType | null;
 
   @Column('varchar', { nullable: true })
   auto_assigned_model!: string | null;

@@ -175,6 +175,10 @@
   background: hsl(var(--destructive) / 0.1);
   color: hsl(var(--destructive));
 }
+.tier-badge--default {
+  background: hsl(var(--chart-1) / 0.15);
+  color: hsl(var(--chart-1));
+}
 .tier-badge--specificity {
   background: hsl(270 60% 50% / 0.12);
   color: hsl(270 60% 45%);
@@ -182,6 +186,112 @@
 .tier-badge--fallback {
   background: hsl(var(--muted-foreground) / 0.1);
   color: hsl(var(--muted-foreground));
+}
+
+/* Custom header-triggered tier badge — color comes from tier-color-* classes. */
+.tier-badge--custom {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Tier color palette (shared between badges + dots) ── */
+.tier-color--slate {
+  background: hsl(215 16% 47% / 0.14);
+  color: hsl(215 20% 38%);
+}
+.tier-color--gray {
+  background: hsl(220 9% 46% / 0.14);
+  color: hsl(220 12% 36%);
+}
+.tier-color--zinc {
+  background: hsl(240 4% 46% / 0.14);
+  color: hsl(240 6% 36%);
+}
+.tier-color--stone {
+  background: hsl(25 6% 45% / 0.14);
+  color: hsl(25 8% 35%);
+}
+.tier-color--red {
+  background: hsl(0 72% 51% / 0.14);
+  color: hsl(0 70% 42%);
+}
+.tier-color--orange {
+  background: hsl(25 95% 53% / 0.14);
+  color: hsl(25 90% 42%);
+}
+.tier-color--amber {
+  background: hsl(38 92% 50% / 0.16);
+  color: hsl(35 90% 40%);
+}
+.tier-color--yellow {
+  background: hsl(48 96% 53% / 0.16);
+  color: hsl(48 90% 38%);
+}
+.tier-color--lime {
+  background: hsl(84 81% 44% / 0.14);
+  color: hsl(84 75% 34%);
+}
+.tier-color--green {
+  background: hsl(142 71% 45% / 0.14);
+  color: hsl(142 65% 35%);
+}
+.tier-color--emerald {
+  background: hsl(160 84% 39% / 0.14);
+  color: hsl(160 78% 30%);
+}
+.tier-color--teal {
+  background: hsl(174 66% 42% / 0.14);
+  color: hsl(174 70% 32%);
+}
+.tier-color--cyan {
+  background: hsl(188 86% 43% / 0.14);
+  color: hsl(188 80% 33%);
+}
+.tier-color--sky {
+  background: hsl(199 89% 48% / 0.14);
+  color: hsl(199 82% 38%);
+}
+.tier-color--blue {
+  background: hsl(217 91% 60% / 0.14);
+  color: hsl(217 85% 50%);
+}
+.tier-color--indigo {
+  background: hsl(239 68% 56% / 0.14);
+  color: hsl(239 60% 48%);
+}
+.tier-color--violet {
+  background: hsl(270 67% 55% / 0.14);
+  color: hsl(270 60% 45%);
+}
+.tier-color--purple {
+  background: hsl(271 81% 56% / 0.14);
+  color: hsl(271 72% 46%);
+}
+.tier-color--fuchsia {
+  background: hsl(292 84% 61% / 0.14);
+  color: hsl(292 76% 50%);
+}
+.tier-color--pink {
+  background: hsl(330 81% 60% / 0.14);
+  color: hsl(330 74% 50%);
+}
+.tier-color--rose {
+  background: hsl(351 83% 58% / 0.14);
+  color: hsl(351 80% 48%);
+}
+.tier-color--coral {
+  background: hsl(16 85% 58% / 0.14);
+  color: hsl(16 78% 46%);
+}
+.tier-color--brown {
+  background: hsl(28 56% 40% / 0.14);
+  color: hsl(28 50% 32%);
+}
+.tier-color--navy {
+  background: hsl(224 64% 33% / 0.14);
+  color: hsl(224 58% 28%);
 }
 
 /* ── Security Events ─────────────────────────────── */

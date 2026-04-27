@@ -1,10 +1,13 @@
+import { Repository } from 'typeorm';
 import { ResolveService } from './resolve/resolve.service';
 import { TierService } from './routing-core/tier.service';
 import { ProviderKeyService } from './routing-core/provider-key.service';
 import { SpecificityService } from './routing-core/specificity.service';
 import { SpecificityPenaltyService } from './routing-core/specificity-penalty.service';
+import { HeaderTierService } from './header-tiers/header-tier.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { ModelDiscoveryService } from '../model-discovery/model-discovery.service';
+import { Agent } from '../entities/agent.entity';
 
 describe('ResolveService', () => {
   let service: ResolveService;
@@ -14,6 +17,7 @@ describe('ResolveService', () => {
   let mockPricingCache: Record<string, jest.Mock>;
   let mockDiscoveryService: Record<string, jest.Mock>;
   let mockPenaltyService: Record<string, jest.Mock>;
+  let mockAgentRepo: Record<string, jest.Mock>;
 
   beforeEach(() => {
     mockTierService = {
@@ -22,6 +26,7 @@ describe('ResolveService', () => {
         { tier: 'standard', override_model: null, auto_assigned_model: 'gpt-4o' },
         { tier: 'complex', override_model: null, auto_assigned_model: 'claude-sonnet-4' },
         { tier: 'reasoning', override_model: null, auto_assigned_model: 'claude-opus-4-6' },
+        { tier: 'default', override_model: null, auto_assigned_model: 'gpt-4o' },
       ]),
     };
     mockProviderKeyService = {
@@ -42,6 +47,9 @@ describe('ResolveService', () => {
     mockPenaltyService = {
       getPenaltiesForAgent: jest.fn().mockResolvedValue(new Map()),
     };
+    mockAgentRepo = {
+      findOne: jest.fn().mockResolvedValue({ complexity_routing_enabled: true }),
+    };
 
     service = new ResolveService(
       mockTierService as unknown as TierService,
@@ -50,6 +58,8 @@ describe('ResolveService', () => {
       mockPricingCache as unknown as ModelPricingCacheService,
       mockDiscoveryService as unknown as ModelDiscoveryService,
       mockPenaltyService as unknown as SpecificityPenaltyService,
+      { list: jest.fn().mockResolvedValue([]) } as unknown as HeaderTierService,
+      mockAgentRepo as unknown as Repository<Agent>,
     );
   });
 
@@ -170,18 +180,21 @@ describe('ResolveService', () => {
     });
   });
 
-  it('should log available tiers when no assignment matches scored tier', async () => {
-    // Set up tiers that do NOT include the scored tier (simple).
-    // scoreRequest returns 'simple' for short messages but we only provide 'complex'.
+  it('falls back to the default tier when no assignment matches the scored tier', async () => {
+    // When the scored tier has no assignment, resolve() now hands the request
+    // to the default tier as a catch-all instead of returning a null model.
     mockTierService.getTiers.mockResolvedValue([
       { tier: 'complex', override_model: null, auto_assigned_model: 'claude-sonnet-4' },
+      { tier: 'default', override_model: null, auto_assigned_model: 'gpt-4o-mini' },
     ]);
+    mockProviderKeyService.getEffectiveModel.mockResolvedValue('gpt-4o-mini');
+    mockPricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' });
 
     const result = await service.resolve('agent-1', [{ role: 'user', content: 'hello' }]);
 
-    expect(result.model).toBeNull();
-    expect(result.provider).toBeNull();
-    expect(result.tier).toBe('simple');
+    expect(result.tier).toBe('default');
+    expect(result.reason).toBe('default');
+    expect(result.model).toBe('gpt-4o-mini');
   });
 
   describe('auth_type resolution', () => {

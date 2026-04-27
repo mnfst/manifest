@@ -6,6 +6,8 @@
  * DiscoveredModel objects cached in user_providers.cached_models.
  */
 
+import type { AuthType } from 'manifest-shared';
+
 export interface DiscoveredModel {
   id: string;
   displayName: string;
@@ -16,7 +18,7 @@ export interface DiscoveredModel {
   capabilityReasoning: boolean;
   capabilityCode: boolean;
   qualityScore: number;
-  authType?: 'api_key' | 'subscription';
+  authType?: AuthType;
 }
 
 export interface FetcherConfig {

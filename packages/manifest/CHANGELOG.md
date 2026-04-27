@@ -1,5 +1,59 @@
 # manifest
 
+## 5.55.0
+
+### Minor Changes
+
+- 5bafaad: feat(providers): support Anthropic-compatible custom providers
+
+  Custom providers can now speak the Anthropic Messages API (`/v1/messages`) in addition to OpenAI's `/v1/chat/completions`. When adding a custom provider, pick the API format in the new segmented control on the form — Manifest's existing Anthropic adapter handles the translation so agents continue to call the OpenAI-compatible proxy unchanged. Useful for Azure's Anthropic endpoint and any other gateway that exposes the native Anthropic protocol.
+
+### Patch Changes
+
+- d6afa94: Add a llama.cpp provider tile to the API Keys tab in the self-hosted version. Clicking it probes `http://localhost:8080/v1/models` on the default llama-server port, lists every model the server exposes, and lets you connect them in one click. Pre-b3800 llama.cpp builds that don't expose `/v1/models` get a hint to upgrade or fall back to the custom-provider form. Messages and dashboard filters render llama.cpp and LM Studio as first-class providers instead of opaque `custom:<uuid>` rows.
+
+## 5.54.0
+
+### Minor Changes
+
+- 466e4cf: Drop the `Enable routing` relic: remove the empty-state card on the Routing page so tabs and tier cards render by default, drop the `complexity_routing_enabled` column and its endpoints/toggle (complexity scoring is always on), delete the bulk "Disable routing" button, rename cross-page CTAs from "Enable routing" to "Connect provider", and add a Connect-providers CTA inside the model picker's empty state.
+- d78828c: Surface local models (Ollama, LM Studio) as their own provider category. New `auth_type: 'local'` joins `api_key` and `subscription`; messages routed to local runners now carry a grey house badge in the message log, routing cards, and cost-by-model table. The Add Provider modal gets a third **Local** tab that appears only on self-hosted installs. Backfill migrations re-tag existing Ollama/LM Studio `user_providers` rows, and custom providers whose display name resolves to a canonical local runner are tagged `local` at insert time. Connecting/disconnecting a local provider works like the Subscription tab — click-to-disconnect flips the toggle and stops routing to it.
+
+## 5.53.0
+
+### Minor Changes
+
+- 039afbe: Duplicate an agent in one click — hover any agent card on the Workspace to reveal a menu with Duplicate and Delete, or use the new "Duplicate agent" button on the Settings page. Creates a new agent with a fresh API key and carries over every provider credential, custom provider, tier override, and specificity override. Messages, logs, and notification rules stay with the original.
+
+### Patch Changes
+
+- 5110901: Polish routing page copy and UX: rewrite tier descriptions, standardize casing and pluralization, always show the "How routing works" help button, toggle tiers by clicking the manage-modal row, and add a pen icon on custom tier cards to open the edit modal directly.
+- 91a7467: Low-risk cleanups from the 2026-04-23 OWASP audit that cause no behaviour change for operators or users:
+  - Scope agent rename cascades by `tenant_id` on `agent_messages` / `notification_rules` / `notification_logs`. Forward-only fix — no backfill — so any pre-existing row that was mislabelled when slugs collided across tenants stays as-is; new renames no longer touch other tenants' data.
+  - Replace `ApiKeyGuard.safeCompare` with `Buffer.from` + length-check + `timingSafeEqual`. Same observable behaviour; cleaner canonical pattern.
+  - Add a snapshot test for `ThresholdAlertEmail` against hostile agent names (angle brackets, attribute-context quote payloads) — verifies React's existing escaping, no runtime change.
+  - `npm audit fix` for the moderate `@nestjs/core` advisory (11.1.17 → 11.1.19).
+
+  All other findings from the audit are deferred — they required breaking changes or operator action and live in a separate tracking issue.
+
+## 5.52.0
+
+### Minor Changes
+
+- f8e00c9: Make complexity routing optional. New agents now default to a single "Default" tier that handles every request — pick one model and you're routing. Complexity routing (four tiers scored by request content) becomes an opt-in toggle on the Routing page alongside the existing task-specific routing. Existing agents keep complexity routing on with their tier picks preserved.
+
+## 5.51.0
+
+### Minor Changes
+
+- 910b191: Add custom header-triggered routing tiers. Configure a tier keyed to an HTTP header key+value pair (e.g. `x-manifest-tier: premium`) and every matching request routes directly to that tier's model, overriding specificity and complexity. Each tier gets a user-picked name + color that shows as a badge on the message row. The create modal autocompletes the header key from the keys Manifest has already seen in the last 7 days, grouped by the SDK that sent them, with example values. Sensitive headers (`authorization`, `cookie`, …) are blocked from being used as match rules.
+
+## 5.50.1
+
+### Patch Changes
+
+- 37308ea: Fix cost column showing "—" for self-hosted custom provider messages. Prices entered via the custom provider form are now indexed into the shared pricing cache under `custom:<uuid>/<model>` — the same key the proxy writes to `agent_messages.model` — so the cost recorder can look them up when a request is routed. The cache refreshes immediately on create, model edits, and delete, so new prices take effect without waiting for the daily 5am reload. Custom entries are scoped out of the public `/api/v1/model-prices` list so one tenant's providers can't leak into another's. Existing messages recorded with `cost_usd = null` stay null (no price snapshot is stored per message); only new messages benefit.
+
 ## 5.50.0
 
 ### Minor Changes

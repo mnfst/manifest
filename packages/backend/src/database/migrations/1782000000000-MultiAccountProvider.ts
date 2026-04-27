@@ -13,8 +13,8 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * - Adds nullable `override_provider_id` to `tier_assignments` and
  *   `specificity_assignments` (references `user_providers.id`).
  */
-export class MultiAccountProvider1777100000000 implements MigrationInterface {
-  name = 'MultiAccountProvider1777100000000';
+export class MultiAccountProvider1782000000000 implements MigrationInterface {
+  name = 'MultiAccountProvider1782000000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // --- user_providers: new columns ---

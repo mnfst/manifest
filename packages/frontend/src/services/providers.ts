@@ -122,6 +122,13 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subtitle: 'Gemini 2.5, Gemini 2.0 Flash',
     models: [],
   },
+  llamacpp: {
+    initial: 'Lc',
+    subtitle: 'OpenAI-compatible server for GGUF models on CPU / Metal / CUDA',
+    noKeyRequired: true,
+    models: [],
+    defaultLocalPort: 8080,
+  },
   lmstudio: {
     initial: 'LM',
     subtitle: 'Run GGUF models with a local server',
@@ -224,7 +231,8 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
   },
 };
 
-function buildProviderDef(shared: SharedProviderEntry): ProviderDef {
+/** @internal Exported for testing only */
+export function buildProviderDef(shared: SharedProviderEntry): ProviderDef {
   const overlay = PROVIDER_UI[shared.id];
   if (!overlay) {
     throw new Error(`Missing UI overlay for shared provider "${shared.id}"`);
@@ -249,6 +257,7 @@ const PROVIDER_ORDER = [
   'deepseek',
   'copilot',
   'gemini',
+  'llamacpp',
   'lmstudio',
   'minimax',
   'mistral',
@@ -278,6 +287,13 @@ export interface StageDef {
   label: string;
   desc: string;
 }
+
+export const DEFAULT_STAGE: StageDef = {
+  id: 'default',
+  step: 0,
+  label: 'Regular',
+  desc: 'Handles every request.',
+};
 
 export const STAGES: StageDef[] = [
   {

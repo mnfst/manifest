@@ -511,6 +511,28 @@
   background: hsl(var(--accent));
 }
 
+/* ── Gear Button ─────────────────────────────────── */
+.header__gear-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.header__gear-btn:hover {
+  color: hsl(var(--foreground));
+  background: hsl(var(--accent));
+}
+
 /* ── Docs Link ───────────────────────────────────── */
 .header__docs-link {
   display: inline-flex;

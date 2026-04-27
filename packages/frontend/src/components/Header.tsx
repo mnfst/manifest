@@ -5,6 +5,7 @@ import { authClient } from '../services/auth-client.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import { agentPlatformIcon } from '../services/agent-platform-store.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
+import DuplicateAgentModal from './DuplicateAgentModal.jsx';
 
 const GITHUB_REPO = 'mnfst/manifest';
 const STAR_DISMISSED_KEY = 'github-star-dismissed';
@@ -16,6 +17,8 @@ const Header: Component = () => {
   const getAgentName = useAgentName();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = createSignal(false);
+  const [gearOpen, setGearOpen] = createSignal(false);
+  const [duplicateOpen, setDuplicateOpen] = createSignal(false);
   const [starCount, setStarCount] = createSignal<number | null>(null);
   const [starDismissed, setStarDismissed] = createSignal(
     sessionStorage.getItem(STAR_DISMISSED_KEY) === 'true',
@@ -81,10 +84,13 @@ const Header: Component = () => {
     if (!target.closest('.header__user')) {
       setMenuOpen(false);
     }
+    if (!target.closest('.header__gear')) {
+      setGearOpen(false);
+    }
   };
 
   createEffect(() => {
-    if (menuOpen()) {
+    if (menuOpen() || gearOpen()) {
       document.addEventListener('click', handleClickOutside);
       onCleanup(() => document.removeEventListener('click', handleClickOutside));
     }
@@ -128,7 +134,74 @@ const Header: Component = () => {
                 class="header__breadcrumb-icon"
               />
             </Show>
-            {agentDisplayName() ?? getAgentName()}
+            <span>{agentDisplayName() ?? getAgentName()}</span>
+            <div class="header__gear" style="position: relative;">
+              <button
+                class="header__gear-btn"
+                onClick={() => setGearOpen(!gearOpen())}
+                aria-label="Agent actions"
+                aria-haspopup="menu"
+                aria-expanded={gearOpen()}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4m0 6c-1.08 0-2-.92-2-2s.92-2 2-2 2 .92 2 2-.92 2-2 2" />
+                  <path d="m20.42 13.4-.51-.29c.05-.37.08-.74.08-1.11s-.03-.74-.08-1.11l.51-.29c.96-.55 1.28-1.78.73-2.73l-1-1.73a2.006 2.006 0 0 0-2.73-.73l-.53.31c-.58-.46-1.22-.83-1.9-1.11v-.6c0-1.1-.9-2-2-2h-2c-1.1 0-2 .9-2 2v.6c-.67.28-1.31.66-1.9 1.11l-.53-.31c-.96-.55-2.18-.22-2.73.73l-1 1.73c-.55.96-.22 2.18.73 2.73l.51.29c-.05.37-.08.74-.08 1.11s.03.74.08 1.11l-.51.29c-.96.55-1.28 1.78-.73 2.73l1 1.73c.55.95 1.77 1.28 2.73.73l.53-.31c.58.46 1.22.83 1.9 1.11v.6c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2v-.6a8.7 8.7 0 0 0 1.9-1.11l.53.31c.95.55 2.18.22 2.73-.73l1-1.73c.55-.96.22-2.18-.73-2.73m-2.59-2.78c.11.45.17.92.17 1.38s-.06.92-.17 1.38a1 1 0 0 0 .47 1.11l1.12.65-1 1.73-1.14-.66c-.38-.22-.87-.16-1.19.14-.68.65-1.51 1.13-2.38 1.4-.42.13-.71.52-.71.96v1.3h-2v-1.3c0-.44-.29-.83-.71-.96-.88-.27-1.7-.75-2.38-1.4a1.01 1.01 0 0 0-1.19-.15l-1.14.66-1-1.73 1.12-.65c.39-.22.58-.68.47-1.11-.11-.45-.17-.92-.17-1.38s.06-.93.17-1.38A1 1 0 0 0 5.7 9.5l-1.12-.65 1-1.73 1.14.66c.38.22.87.16 1.19-.14.68-.65 1.51-1.13 2.38-1.4.42-.13.71-.52.71-.96v-1.3h2v1.3c0 .44.29.83.71.96.88.27 1.7.75 2.38 1.4.32.31.81.36 1.19.14l1.14-.66 1 1.73-1.12.65c-.39.22-.58.68-.47 1.11Z" />
+                </svg>
+              </button>
+              <Show when={gearOpen()}>
+                <div class="header__dropdown" role="menu" style="left: 0; right: auto;">
+                  <A
+                    href={`/agents/${encodeURIComponent(getAgentName()!)}/settings`}
+                    class="header__dropdown-item"
+                    role="menuitem"
+                    onClick={() => setGearOpen(false)}
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <circle cx="12" cy="12" r="3" />
+                      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                    </svg>
+                    Settings
+                  </A>
+                  <button
+                    class="header__dropdown-item"
+                    role="menuitem"
+                    onClick={() => {
+                      setGearOpen(false);
+                      setDuplicateOpen(true);
+                    }}
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path d="M20 2H10c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2m0 12H10V4h10z" />
+                      <path d="M4 22h10c1.1 0 2-.9 2-2v-2h-2v2H4V10h2V8H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2m10-10h2v-2h2V8h-2V6h-2v2h-2v2h2z" />
+                    </svg>
+                    Duplicate agent
+                  </button>
+                </div>
+              </Show>
+            </div>
           </span>
         </Show>
       </div>
@@ -263,6 +336,11 @@ const Header: Component = () => {
           </Show>
         </div>
       </div>
+      <DuplicateAgentModal
+        open={duplicateOpen()}
+        sourceName={getAgentName() ?? ''}
+        onClose={() => setDuplicateOpen(false)}
+      />
     </header>
   );
 };

@@ -108,6 +108,15 @@ export class AgentMessage {
   request_headers!: Record<string, string> | null;
 
   @Column('varchar', { nullable: true })
+  header_tier_id!: string | null;
+
+  @Column('varchar', { nullable: true })
+  header_tier_name!: string | null;
+
+  @Column('varchar', { nullable: true })
+  header_tier_color!: string | null;
+
+  @Column('varchar', { nullable: true })
   feedback_rating!: string | null;
 
   @Column('varchar', { nullable: true })

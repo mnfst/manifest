@@ -35,6 +35,7 @@ describe("CustomProviderForm", () => {
       id: "cp-1",
       name: "Groq",
       base_url: "https://api.groq.com/openai/v1",
+      api_kind: "openai",
       has_api_key: true,
       models: [{ model_name: "llama-3.1-70b" }],
       created_at: "2026-03-04T00:00:00Z",
@@ -43,6 +44,7 @@ describe("CustomProviderForm", () => {
       id: "cp-1",
       name: "Updated Groq",
       base_url: "https://api.groq.com/openai/v1",
+      api_kind: "openai",
       has_api_key: true,
       models: [{ model_name: "llama-3.1-70b" }],
       created_at: "2026-03-04T00:00:00Z",
@@ -106,6 +108,7 @@ describe("CustomProviderForm", () => {
       expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
         name: "Groq",
         base_url: "https://api.groq.com/v1",
+        api_kind: "openai",
         apiKey: undefined,
         models: [{ model_name: "llama-3.1-70b" }],
       });
@@ -170,6 +173,7 @@ describe("CustomProviderForm", () => {
       expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
         name: "Groq",
         base_url: "https://api.groq.com/v1",
+        api_kind: "openai",
         apiKey: "gsk_test123",
         models: [{ model_name: "llama-3.1-70b" }],
       });
@@ -203,6 +207,7 @@ describe("CustomProviderForm", () => {
       expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
         name: "Groq",
         base_url: "https://api.groq.com/v1",
+        api_kind: "openai",
         apiKey: undefined,
         models: [
           {
@@ -242,6 +247,7 @@ describe("CustomProviderForm", () => {
       expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
         name: "Groq",
         base_url: "https://api.groq.com/v1",
+        api_kind: "openai",
         apiKey: undefined,
         models: [
           {
@@ -421,6 +427,7 @@ describe("CustomProviderForm", () => {
       expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
         name: "Test",
         base_url: "https://api.example.com/v1",
+        api_kind: "openai",
         apiKey: undefined,
         models: [{ model_name: "model-a" }],
       });
@@ -483,6 +490,7 @@ describe("CustomProviderForm — Fetch models probe", () => {
         "test-agent",
         "http://host.docker.internal:8000/v1",
         undefined,
+        "openai",
       );
       const inputs = screen.getAllByPlaceholderText("Model name") as HTMLInputElement[];
       expect(inputs).toHaveLength(2);
@@ -547,6 +555,7 @@ describe("CustomProviderForm — prefill from URL params", () => {
       id: "cp-1",
       name: "Groq",
       base_url: "https://api.groq.com/v1",
+      api_kind: "openai",
       has_api_key: true,
       models: [{ model_name: "llama-3.1-70b" }],
       created_at: "2026-03-04T00:00:00Z",
@@ -624,6 +633,7 @@ describe("CustomProviderForm — prefill from URL params", () => {
       expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
         name: "Groq",
         base_url: "https://api.groq.com/v1",
+        api_kind: "openai",
         apiKey: undefined,
         models: [{ model_name: "llama-3.1-70b" }],
       });
@@ -640,6 +650,7 @@ describe("CustomProviderForm — edit mode", () => {
     id: "cp-1",
     name: "Groq",
     base_url: "https://api.groq.com/openai/v1",
+    api_kind: "openai" as const,
     has_api_key: true,
     models: [
       {
@@ -1091,6 +1102,149 @@ describe("CustomProviderForm — probe edge cases and model-row interactions", (
   });
 });
 
+describe("CustomProviderForm — API format selector", () => {
+  const onCreated = vi.fn();
+  const onBack = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockCreateCustomProvider.mockResolvedValue({
+      id: "cp-1",
+      name: "Azure Claude",
+      base_url: "https://api.anthropic.com",
+      api_kind: "anthropic",
+      has_api_key: true,
+      models: [{ model_name: "claude-sonnet-4-5" }],
+      created_at: "2026-03-04T00:00:00Z",
+    });
+  });
+
+  it("defaults to the OpenAI option and shows both paths", () => {
+    render(() => (
+      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+    ));
+
+    const openaiRadio = screen.getByRole("radio", { name: /OpenAI/ }) as HTMLInputElement;
+    const anthropicRadio = screen.getByRole("radio", { name: /Anthropic/ }) as HTMLInputElement;
+    expect(openaiRadio.checked).toBe(true);
+    expect(anthropicRadio.checked).toBe(false);
+    expect(screen.getByText("/v1/chat/completions")).toBeDefined();
+    expect(screen.getByText("/v1/messages")).toBeDefined();
+    expect(screen.getByText("Most providers use OpenAI format.")).toBeDefined();
+  });
+
+  it("swaps the base URL placeholder when Anthropic is selected", async () => {
+    render(() => (
+      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+    ));
+
+    expect(screen.getByPlaceholderText("https://api.example.com/v1")).toBeDefined();
+
+    const anthropicRadio = screen.getByRole("radio", { name: /Anthropic/ });
+    fireEvent.click(anthropicRadio);
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("https://api.anthropic.com")).toBeDefined();
+      expect(screen.queryByPlaceholderText("https://api.example.com/v1")).toBeNull();
+    });
+  });
+
+  it("submits api_kind='anthropic' after selecting the Anthropic option", async () => {
+    render(() => (
+      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+    ));
+
+    fireEvent.click(screen.getByRole("radio", { name: /Anthropic/ }));
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("https://api.anthropic.com")).toBeDefined();
+    });
+
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
+      target: { value: "Azure Claude" },
+    });
+    fireEvent.input(screen.getByPlaceholderText("https://api.anthropic.com"), {
+      target: { value: "https://api.anthropic.com" },
+    });
+    fireEvent.input(screen.getByPlaceholderText("Model name"), {
+      target: { value: "claude-sonnet-4-5" },
+    });
+
+    fireEvent.click(screen.getByText("Connect"));
+
+    await waitFor(() => {
+      expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
+        name: "Azure Claude",
+        base_url: "https://api.anthropic.com",
+        api_kind: "anthropic",
+        apiKey: undefined,
+        models: [{ model_name: "claude-sonnet-4-5" }],
+      });
+    });
+  });
+
+  it("passes the selected api_kind to the probe call", async () => {
+    mockProbeCustomProvider.mockResolvedValue({
+      models: [{ model_name: "claude-sonnet-4-5" }],
+    });
+
+    render(() => (
+      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+    ));
+
+    fireEvent.click(screen.getByRole("radio", { name: /Anthropic/ }));
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("https://api.anthropic.com")).toBeDefined();
+    });
+
+    fireEvent.input(screen.getByPlaceholderText("https://api.anthropic.com"), {
+      target: { value: "https://api.anthropic.com" },
+    });
+
+    fireEvent.click(screen.getByText("Fetch models"));
+
+    await waitFor(() => {
+      expect(mockProbeCustomProvider).toHaveBeenCalledWith(
+        "test-agent",
+        "https://api.anthropic.com",
+        undefined,
+        "anthropic",
+      );
+    });
+  });
+
+  it("locks the format control and shows a muted note in edit mode", () => {
+    const initialData = {
+      id: "cp-1",
+      name: "Azure Claude",
+      base_url: "https://api.anthropic.com",
+      api_kind: "anthropic" as const,
+      has_api_key: true,
+      models: [{ model_name: "claude-sonnet-4-5" }],
+      created_at: "2026-03-04T00:00:00Z",
+    };
+
+    render(() => (
+      <CustomProviderForm
+        agentName="test-agent"
+        onCreated={onCreated}
+        onBack={onBack}
+        initialData={initialData}
+      />
+    ));
+
+    const anthropicRadio = screen.getByRole("radio", { name: /Anthropic/ }) as HTMLInputElement;
+    const openaiRadio = screen.getByRole("radio", { name: /OpenAI/ }) as HTMLInputElement;
+    expect(anthropicRadio.checked).toBe(true);
+    expect(anthropicRadio.disabled).toBe(true);
+    expect(openaiRadio.disabled).toBe(true);
+    expect(
+      screen.getByText(/Format can't be changed after creation/),
+    ).toBeDefined();
+  });
+});
+
 describe("CustomProviderForm — edit mode: extra API key + delete UI branches", () => {
   const onCreated = vi.fn();
   const onBack = vi.fn();
@@ -1099,6 +1253,7 @@ describe("CustomProviderForm — edit mode: extra API key + delete UI branches",
     id: "cp-1",
     name: "Groq",
     base_url: "https://api.groq.com/openai/v1",
+    api_kind: "openai" as const,
     has_api_key: true,
     models: [
       {

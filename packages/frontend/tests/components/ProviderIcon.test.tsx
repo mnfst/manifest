@@ -29,6 +29,12 @@ describe("providerIcon", () => {
     });
   }
 
+  it("returns an SVG for \"llamacpp\"", () => {
+    const { container } = render(() => <div>{providerIcon("llamacpp")}</div>);
+    const svg = container.querySelector("svg");
+    expect(svg).not.toBeNull();
+  });
+
   it("returns null for unknown provider", () => {
     const { container } = render(() => <div>{providerIcon("unknown-provider")}</div>);
     const svg = container.querySelector("svg");
@@ -92,6 +98,24 @@ describe("customProviderLogo", () => {
     expect(img!.getAttribute("src")).toBe("/icons/cohere.svg");
   });
 
+  it("resolves Azure by name", () => {
+    const { container } = render(() => (
+      <div>{customProviderLogo("Microsoft Azure")}</div>
+    ));
+    const img = container.querySelector("img");
+    expect(img).not.toBeNull();
+    expect(img!.getAttribute("src")).toBe("/icons/azure.svg");
+  });
+
+  it("resolves Azure by base URL", () => {
+    const { container } = render(() => (
+      <div>{customProviderLogo("my-provider", 16, "https://my-instance.openai.azure.com/v1")}</div>
+    ));
+    const img = container.querySelector("img");
+    expect(img).not.toBeNull();
+    expect(img!.getAttribute("src")).toBe("/icons/azure.svg");
+  });
+
   it("returns null when base URL does not match any pattern", () => {
     const { container } = render(() => (
       <div>{customProviderLogo("custom", 16, "https://api.example.com/v1")}</div>
@@ -107,6 +131,8 @@ describe("customProviderLogo", () => {
   });
 
   it.each([
+    ["llama.cpp", "llamacpp"],
+    ["llama-cpp", "llamacpp"],
     ["LM Studio", "lmstudio"],
     ["lm-studio", "lmstudio"],
     ["Ollama", "ollama"],

@@ -35,6 +35,7 @@ export class CustomProviderController {
         id: cp.id,
         name: cp.name,
         base_url: cp.base_url,
+        api_kind: cp.api_kind,
         has_api_key: !!up?.api_key_encrypted,
         models: cp.models,
         created_at: cp.created_at,
@@ -51,7 +52,11 @@ export class CustomProviderController {
     // Resolve for authz — user must own the agent before the server probes
     // anything on their behalf.
     await this.resolveAgentService.resolve(user.id, agentName);
-    const models = await this.customProviderService.probeModels(body.base_url, body.apiKey);
+    const models = await this.customProviderService.probeModels(
+      body.base_url,
+      body.apiKey,
+      body.api_kind,
+    );
     return { models };
   }
 
@@ -72,6 +77,7 @@ export class CustomProviderController {
       id: cp.id,
       name: cp.name,
       base_url: cp.base_url,
+      api_kind: cp.api_kind,
       has_api_key: !!up?.api_key_encrypted,
       models: cp.models,
       created_at: cp.created_at,
@@ -96,6 +102,7 @@ export class CustomProviderController {
       id: cp.id,
       name: cp.name,
       base_url: cp.base_url,
+      api_kind: cp.api_kind,
       has_api_key: !!up?.api_key_encrypted,
       models: cp.models,
       created_at: cp.created_at,

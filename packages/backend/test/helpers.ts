@@ -24,6 +24,7 @@ import { TierAssignment } from '../src/entities/tier-assignment.entity';
 import { CustomProvider } from '../src/entities/custom-provider.entity';
 import { EmailProviderConfig } from '../src/entities/email-provider-config.entity';
 import { SpecificityAssignment } from '../src/entities/specificity-assignment.entity';
+import { HeaderTier } from '../src/entities/header-tier.entity';
 import { InstallMetadata } from '../src/entities/install-metadata.entity';
 import { HealthModule } from '../src/health/health.module';
 import { AnalyticsModule } from '../src/analytics/analytics.module';
@@ -42,7 +43,7 @@ export const TEST_TENANT_ID = 'test-tenant-001';
 export const TEST_AGENT_ID = 'test-agent-001';
 export const TEST_OTLP_KEY = 'mnfst_test-otlp-key-001';
 
-const entities = [AgentMessage, LlmCall, ToolExecution, AgentLog, ApiKey, Tenant, Agent, AgentApiKey, NotificationRule, NotificationLog, UserProvider, TierAssignment, CustomProvider, EmailProviderConfig, SpecificityAssignment, InstallMetadata];
+const entities = [AgentMessage, LlmCall, ToolExecution, AgentLog, ApiKey, Tenant, Agent, AgentApiKey, NotificationRule, NotificationLog, UserProvider, TierAssignment, CustomProvider, EmailProviderConfig, SpecificityAssignment, HeaderTier, InstallMetadata];
 const OPENROUTER_MODELS_URL = 'https://openrouter.ai/api/v1/models';
 const OPENROUTER_MODELS_FIXTURE = {
   data: [
@@ -190,7 +191,7 @@ export async function createTestApp(): Promise<INestApplication> {
       [TEST_TENANT_ID, TEST_USER_ID, 'Test Org', now, now],
     );
     await ds.query(
-      `INSERT INTO agents (id, name, display_name, description, is_active, tenant_id, created_at, updated_at) VALUES ($1,$2,$3,$4,true,$5,$6,$7)`,
+      `INSERT INTO agents (id, name, display_name, description, is_active, complexity_routing_enabled, tenant_id, created_at, updated_at) VALUES ($1,$2,$3,$4,true,true,$5,$6,$7)`,
       [TEST_AGENT_ID, 'test-agent', 'Test Agent', 'Test agent', TEST_TENANT_ID, now, now],
     );
     await ds.query(

@@ -8,8 +8,10 @@ export {
   platformIcon,
 } from './agent-type';
 export type { AgentCategory, AgentPlatform } from './agent-type';
-export { TIERS, TIER_LABELS, TIER_DESCRIPTIONS } from './tiers';
-export type { Tier } from './tiers';
+export { TIERS, TIER_SLOTS, DEFAULT_TIER_SLOT, TIER_LABELS, TIER_DESCRIPTIONS } from './tiers';
+export type { Tier, TierSlot, DefaultTierSlot } from './tiers';
+export { TIER_COLORS, DEFAULT_TIER_COLOR } from './tier-colors';
+export type { TierColor } from './tier-colors';
 export { SPECIFICITY_CATEGORIES } from './specificity';
 export type { SpecificityCategory } from './specificity';
 export { AUTH_TYPES } from './auth-types';
@@ -20,6 +22,7 @@ export {
   SHARED_PROVIDERS,
   SHARED_PROVIDER_BY_ID,
   SHARED_PROVIDER_BY_ID_OR_ALIAS,
+  CANONICAL_LOCAL_IDS,
   LOCAL_SERVER_HINTS,
   normalizeProviderName,
 } from './providers';

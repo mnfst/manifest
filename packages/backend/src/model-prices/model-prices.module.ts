@@ -7,9 +7,10 @@ import { PricingSyncService } from '../database/pricing-sync.service';
 import { ModelsDevSyncService } from '../database/models-dev-sync.service';
 import { ProviderModelRegistryService } from '../model-discovery/provider-model-registry.service';
 import { UserProvider } from '../entities/user-provider.entity';
+import { CustomProvider } from '../entities/custom-provider.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserProvider])],
+  imports: [TypeOrmModule.forFeature([UserProvider, CustomProvider])],
   controllers: [ModelPricesController],
   providers: [
     ModelPricesService,
