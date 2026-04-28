@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "To determine how many books each child got, we start by finding the total number of books Sarah bought. \n\nSarah spent $300, and each book costs $15. The total number of books is calculated by dividing the total amount spent by the cost per book:  \nTotal books = Total cost / Cost per book = $300 / $15 = 20 books.  \n\nNext, Sarah gives an equal number of these books to her 4 kids. The number of books each child gets is the total number of books divided by the number of kids:  \nBooks per child = Total books / Number of kids = 20 / 4 = 5.  \n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.00016402500000000002,
+  "expected": "5",
+  "tokens": {
+    "input": 167,
+    "output": 505
+  }
+}

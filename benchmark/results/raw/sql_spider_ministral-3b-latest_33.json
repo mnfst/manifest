@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 33,
+  "response": "```sql\nSELECT TOP 3 e.episode_id, e.title AS episode_name, e.rating\nFROM episodes e\nJOIN tv_series s ON e.series_id = s.series_id\nORDER BY e.rating DESC;\n```",
+  "score": 4,
+  "cost": 5e-06,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 51
+  }
+}

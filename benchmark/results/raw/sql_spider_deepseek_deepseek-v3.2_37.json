@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "sql_spider",
+  "case": 37,
+  "response": "```sql\nSELECT song_name, song_release_year \nFROM singer \nJOIN song ON singer.singer_id = song.singer_id \nWHERE singer.age = (SELECT MIN(age) FROM singer);\n```",
+  "score": 4,
+  "cost": 6.790000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 44
+  }
+}

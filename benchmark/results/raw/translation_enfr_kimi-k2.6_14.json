@@ -2,12 +2,12 @@
   "model": "kimi-k2.6",
   "task": "translation_enfr",
   "case": 14,
-  "response": "",
-  "score": 4,
-  "cost": 0.0048336,
+  "response": "Le Comit\u00e9 se f\u00e9licite de la pr\u00e9sentation du rapport initial de l'\u00c9tat partie et se r\u00e9jouit du dialogue constructif et fructueux engag\u00e9 avec une d\u00e9l\u00e9gation comp\u00e9tente de haut niveau.",
+  "score": 5,
+  "cost": 0.0030575999999999997,
   "expected": "",
   "tokens": {
     "input": 56,
-    "output": 2000
+    "output": 1260
   }
 }

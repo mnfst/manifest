@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "sql_spider",
+  "case": 0,
+  "response": "```sql\nWITH ranked_players AS (\n    SELECT\n        height,\n        total_winnings,\n        RANK() OVER (ORDER BY total_winnings DESC) AS money_rank\n    FROM players\n    ORDER BY height DESC\n    LIMIT 1\n)\nSELECT money_rank\nFROM ranked_players;\n```",
+  "score": 3,
+  "cost": 0.00015680000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 65
+  }
+}

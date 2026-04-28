@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "sql_spider",
+  "case": 8,
+  "response": "```sql\nSELECT\n  COUNT(DISTINCT T2.Language)\nFROM country AS T1\nINNER JOIN countrylanguage AS T2\n  ON T1.Code = T2.CountryCode\nWHERE\n  T1.IndepYear < 1930 AND T2.IsOfficial = 'T';\n```",
+  "score": 5,
+  "cost": 5.415e-05,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 70
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "sql_spider",
+  "case": 7,
+  "response": "SELECT count(*) FROM cars WHERE Year = 1980",
+  "score": 5,
+  "cost": 0.001257,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 1237
+  }
+}

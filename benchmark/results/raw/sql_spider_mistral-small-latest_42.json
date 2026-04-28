@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "sql_spider",
+  "case": 42,
+  "response": "```sql\nSELECT id\nFROM cre_Doc_Template_Mgt.templates\nWHERE description = 'Presentation';\n```",
+  "score": 5,
+  "cost": 1.59e-05,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 25
+  }
+}

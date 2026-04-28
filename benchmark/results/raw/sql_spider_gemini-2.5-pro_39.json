@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "sql_spider",
+  "case": 39,
+  "response": "```sql\nSELECT T1.Name, T2.Orchestra_Name\nFROM conductor AS T1\nJOIN conduction AS T3\n  ON T1.Conductor_ID = T3.Conductor_ID\nJOIN orchestra AS T2\n  ON T3.Orchestra_ID = T2.Orchestra_ID;\n```",
+  "score": 5,
+  "cost": 0.000855,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 76
+  }
+}

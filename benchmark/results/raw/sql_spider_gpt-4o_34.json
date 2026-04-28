@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "sql_spider",
+  "case": 34,
+  "response": "```sql\nSELECT * FROM hiring;\n```",
+  "score": 3,
+  "cost": 0.000265,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 9
+  }
+}

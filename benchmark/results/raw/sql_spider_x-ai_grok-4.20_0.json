@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "sql_spider",
+  "case": 0,
+  "response": "```sql\nSELECT Money_Rank\nFROM poker_player\nORDER BY Height DESC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 0.000546,
+  "expected": "",
+  "tokens": {
+    "input": 185,
+    "output": 22
+  }
+}

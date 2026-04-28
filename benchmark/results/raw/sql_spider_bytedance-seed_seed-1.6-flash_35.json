@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 35,
+  "response": "SELECT c.name\nFROM conductor c\nJOIN orchestra_conductors oc ON c.conductor_id = oc.conductor_id\nGROUP BY c.conductor_id, c.name\nORDER BY COUNT(DISTINCT oc.orchestra_id) DESC\nLIMIT 1;",
+  "score": 5,
+  "cost": 0.00022957499999999998,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 727
+  }
+}

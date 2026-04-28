@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "Here is the step-by-step solution:\n\n1. **Find Alexandra's amount:**  \n   Alexandra raised **$430**.\n\n2. **Find Kim's amount:**  \n   Kim raised $320 more than Alexandra.  \n   $430 + $320 = **$750**.\n\n3. **Find Sarah's amount:**  \n   Sarah raised **$300**.\n\n4. **Find Maryam's amount:**  \n   Maryam raised $400 more than Sarah.  \n   $300 + $400 = **$700**.\n\n5. **Calculate the total:**  \n   $750 (Kim) + $430 (Alexandra) + $700 (Maryam) + $300 (Sarah) = **$2,180**.\n\nANSWER: 2180",
+  "score": 5,
+  "cost": 0.0017514,
+  "expected": "2280",
+  "tokens": {
+    "input": 95,
+    "output": 706
+  }
+}

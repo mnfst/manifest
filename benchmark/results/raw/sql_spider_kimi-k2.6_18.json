@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "sql_spider",
+  "case": 18,
+  "response": "```sql\nSELECT country FROM singer WHERE age > 40\nINTERSECT\nSELECT country FROM singer WHERE age < 30\n```",
+  "score": 3,
+  "cost": 0.0025284,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 1034
+  }
+}

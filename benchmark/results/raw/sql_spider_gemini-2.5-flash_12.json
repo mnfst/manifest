@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "sql_spider",
+  "case": 12,
+  "response": "```sql\nSELECT\n  p.id,\n  p.role,\n  p.first_name\nFROM professionals AS p\nJOIN treatments AS t\n  ON p.id = t.professional_id\nGROUP BY\n  p.id,\n  p.role,\n  p.first_name\nHAVING\n  COUNT(t.id) >= 2;\n```",
+  "score": 5,
+  "cost": 6.255e-05,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 84
+  }
+}

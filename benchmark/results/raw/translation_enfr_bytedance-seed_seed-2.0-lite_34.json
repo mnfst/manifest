@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 34,
+  "response": "Sydney, Esther sera dans mon bureau.",
+  "score": 5,
+  "cost": 0.00021925,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 200
+  }
+}

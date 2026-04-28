@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "Alright, let\u2019s solve it step by step.  \n\n**Step 1: Mitchell\u2019s earnings**  \nMitchell sold 21 lemonades at $4 each:  \n\\[\n21 \\times 4 = 84\n\\]  \nSo Mitchell made $84.  \n\n**Step 2: Liam\u2019s earnings**  \nLiam made $63 (given in the problem).  \n\n**Step 3: Difference**  \n\\[\n84 - 63 = 21\n\\]  \n\nMitchell made $21 more than Liam.  \n\n**Step 4: Final answer**  \nANSWER: 21",
+  "score": 5,
+  "cost": 0.0001597,
+  "expected": "21",
+  "tokens": {
+    "input": 102,
+    "output": 122
+  }
+}

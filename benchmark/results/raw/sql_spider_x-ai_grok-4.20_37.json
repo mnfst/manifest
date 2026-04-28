@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "sql_spider",
+  "case": 37,
+  "response": "```sql\nSELECT song_name, song_release_year\nFROM singer\nJOIN song ON singer.singer_id = song.singer_id\nORDER BY singer.age ASC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 0.000684,
+  "expected": "",
+  "tokens": {
+    "input": 190,
+    "output": 38
+  }
+}

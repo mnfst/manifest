@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "sql_spider",
+  "case": 37,
+  "response": "```sql\nSELECT s.name, so.release_year\nFROM singers s\nJOIN songs so ON s.id = so.singer_id\nWHERE s.birth_date = (SELECT MAX(birth_date) FROM singers);\n```",
+  "score": 4,
+  "cost": 3.705e-05,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 43
+  }
+}

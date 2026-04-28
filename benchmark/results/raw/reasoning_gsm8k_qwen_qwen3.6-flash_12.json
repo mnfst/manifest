@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 12,
+  "response": "Step 1: Determine how long Jim reads each time. He reads for half as long as he watches TV, so reading time = 2 hours / 2 = 1 hour.\nStep 2: Calculate the total time spent per session (TV + reading). 2 hours (TV) + 1 hour (reading) = 3 hours per session.\nStep 3: Calculate the total time spent per week. He does this routine 3 times a week, so 3 hours/session \u00d7 3 sessions/week = 9 hours per week.\nStep 4: Calculate the total time spent over 4 weeks. 9 hours/week \u00d7 4 weeks = 36 hours.\n\nANSWER: 36",
+  "score": 5,
+  "cost": 0.00169475,
+  "expected": "36",
+  "tokens": {
+    "input": 95,
+    "output": 1671
+  }
+}

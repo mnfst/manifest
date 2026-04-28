@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "intent_clinc150",
+  "case": 2,
+  "response": "report_lost_card",
+  "score": 5,
+  "cost": 0.0001485,
+  "expected": "report_lost_card",
+  "tokens": {
+    "input": 572,
+    "output": 5
+  }
+}

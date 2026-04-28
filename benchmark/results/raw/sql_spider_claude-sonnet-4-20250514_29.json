@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "sql_spider",
+  "case": 29,
+  "response": "```sql\nSELECT COUNT(DISTINCT language) FROM countrylanguage;\n```",
+  "score": 5,
+  "cost": 0.000543,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 21
+  }
+}

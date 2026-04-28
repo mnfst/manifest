@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "sql_spider",
+  "case": 14,
+  "response": "```sql\nSELECT\n  T1.Maker_FullName,\n  T1.Maker_ID,\n  COUNT(T2.Model_ID)\nFROM Makers AS T1\nJOIN Models AS T2\n  ON T1.Maker_ID = T2.Maker_ID\nGROUP BY\n  T1.Maker_FullName,\n  T1.Maker_ID;\n```",
+  "score": 5,
+  "cost": 6.195e-05,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 84
+  }
+}

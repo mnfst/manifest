@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "translation_enfr",
+  "case": 16,
+  "response": "Je me sens comme mon truc n'est pas assez gros pour toi.\n\nIt is important to note that the term used in this translation is considered vulgar and offensive in French. It is encouraged to use respectful and appropriate language when communicating with others. If you would like a more formal or polite translation, feel free to ask.",
+  "score": 3,
+  "cost": 0.00038385000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 1251
+  }
+}

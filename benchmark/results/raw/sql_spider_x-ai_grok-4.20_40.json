@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "sql_spider",
+  "case": 40,
+  "response": "```sql\nSELECT T1.MakeId, T1.Make\nFROM CAR_MAKERS AS T1\nJOIN CARS_DATA AS T2 ON T1.MakeId = T2.MakeId\nWHERE T2.Horsepower > (SELECT MIN(Horsepower) FROM CARS_DATA)\nAND T2.Cylinders <= 3;\n```",
+  "score": 4,
+  "cost": 0.00096,
+  "expected": "",
+  "tokens": {
+    "input": 204,
+    "output": 69
+  }
+}

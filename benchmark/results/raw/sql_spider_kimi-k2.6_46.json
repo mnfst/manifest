@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "sql_spider",
+  "case": 46,
+  "response": "```sql\nSELECT GovernmentForm, SUM(Population) AS TotalPopulation\nFROM country\nGROUP BY GovernmentForm\nHAVING AVG(LifeExpectancy) > 72;\n```",
+  "score": 3,
+  "cost": 0.0008711999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 341
+  }
+}

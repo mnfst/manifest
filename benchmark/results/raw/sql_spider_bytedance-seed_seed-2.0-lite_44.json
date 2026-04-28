@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "sql_spider",
+  "case": 44,
+  "response": "SELECT airport_code FROM (\n    SELECT airport_code, COUNT(*) AS total_flights\n    FROM (\n        SELECT origin_airport_code AS airport_code FROM flight_2.flights\n        UNION ALL\n        SELECT destination_airport_code AS airport_code FROM flight_2.flights\n    ) AS all_flight_airports\n    GROUP BY airport_code\n    ORDER BY total_flights ASC\n    FETCH FIRST 1 ROW ONLY\n);",
+  "score": 4,
+  "cost": 0.001092,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 1063
+  }
+}

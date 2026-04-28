@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "translation_enfr",
+  "case": 16,
+  "response": "J'ai l'impression que ma bite n'est pas assez grosse pour toi. \n\n*(Note: Use \"vous\" instead of \"toi\" if addressing someone formally or plural.)*",
+  "score": 5,
+  "cost": 0.0016155,
+  "expected": "",
+  "tokens": {
+    "input": 42,
+    "output": 1605
+  }
+}

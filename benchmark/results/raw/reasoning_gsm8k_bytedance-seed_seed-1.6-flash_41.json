@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "To solve the problem, we start by defining variables for the number of copies sold by Harald and Marilyn. Let \\( H \\) represent the number of copies Harald sold. Since Marilyn's sales are 10 times Harald's, Marilyn sold \\( 10H \\) copies.\n\nThe total number of copies sold combined is 88,000. This gives us the equation:  \n\\( H + 10H = 88{,}000 \\)  \n\nCombining like terms, we get:  \n\\( 11H = 88{,}000 \\)  \n\nTo find \\( H \\), we divide both sides of the equation by 11:  \n\\( H = \\frac{88{,}000}{11} = 8{,}000 \\)  \n\nThus, Harald sold 8,000 copies.  \n\nANSWER: 8000",
+  "score": 5,
+  "cost": 0.00019559999999999998,
+  "expected": "8000",
+  "tokens": {
+    "input": 156,
+    "output": 613
+  }
+}

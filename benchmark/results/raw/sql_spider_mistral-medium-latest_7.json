@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "sql_spider",
+  "case": 7,
+  "response": "```sql\nSELECT COUNT(*) AS number_of_cars_made\nFROM cars\nWHERE YEAR(manufacture_date) = 1980;\n```",
+  "score": 4,
+  "cost": 9.76e-05,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 35
+  }
+}

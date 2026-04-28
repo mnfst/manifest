@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "ner_extraction",
+  "case": 35,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"European Space Agency\", \"NASA\"],\n  \"locations\": [\"lunar south pole\"]\n}",
+  "score": 4,
+  "cost": 0.0064701,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 1225
+  }
+}

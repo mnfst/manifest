@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "sql_spider",
+  "case": 2,
+  "response": "```sql\nSELECT s.stadium_name, s.capacity\nFROM stadium s\nJOIN concert c ON s.stadium_id = c.stadium_id\nWHERE c.concert_date > '2013-12-31'\nGROUP BY s.stadium_id, s.stadium_name, s.capacity\nORDER BY COUNT(*) DESC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 0.000626,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 79
+  }
+}

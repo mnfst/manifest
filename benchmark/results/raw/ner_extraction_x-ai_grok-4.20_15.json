@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "ner_extraction",
+  "case": 15,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"SpaceX\", \"Starlink\"],\n  \"locations\": [\"Cape Canaveral\"]\n}",
+  "score": 4,
+  "cost": 0.00061,
+  "expected": "",
+  "tokens": {
+    "input": 189,
+    "output": 29
+  }
+}

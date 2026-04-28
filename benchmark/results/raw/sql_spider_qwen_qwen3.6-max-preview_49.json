@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "sql_spider",
+  "case": 49,
+  "response": "SELECT Hometown FROM teacher GROUP BY Hometown HAVING count(Teacher_ID) >= 2",
+  "score": 5,
+  "cost": 0.0087438,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 1662
+  }
+}

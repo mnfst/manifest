@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "sql_spider",
+  "case": 36,
+  "response": "",
+  "score": 0,
+  "cost": 0.004842600000000001,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 2000
+  }
+}

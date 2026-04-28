@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "ner_extraction",
+  "case": 49,
+  "response": "{\n  \"persons\": [\"Pope Francis\"],\n  \"organizations\": [],\n  \"locations\": [\"St. Peter Square\", \"Vatican\"]\n}",
+  "score": 4,
+  "cost": 5.4550000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 33
+  }
+}

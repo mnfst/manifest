@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "sql_spider",
+  "case": 30,
+  "response": "SELECT AVG(winner_rank) FROM matches;",
+  "score": 4,
+  "cost": 0.0023087999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 944
+  }
+}

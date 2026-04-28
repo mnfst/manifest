@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "sql_spider",
+  "case": 8,
+  "response": "```sql\nSELECT COUNT(DISTINCT language) \nFROM country_language \nWHERE country_code IN (\n    SELECT code \n    FROM country \n    WHERE indep_year < 1930\n) \nAND is_official = 'T';\n```",
+  "score": 5,
+  "cost": 7.56e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 51
+  }
+}

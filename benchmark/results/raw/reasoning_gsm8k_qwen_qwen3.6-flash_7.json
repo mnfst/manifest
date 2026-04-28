@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "Step 1: Convert the quantities from dozens to individual units.\n- 20 dozen cups = 20 \u00d7 12 = 240 cups.\n- Half a dozen plates = 0.5 \u00d7 12 = 6 plates.\n\nStep 2: Calculate the total cost of the plates.\n- Each plate costs $6000.\n- Total cost for 6 plates = 6 \u00d7 $6000 = $36,000.\n\nStep 3: Determine the total cost of the cups.\n- The problem states that the 240 cups cost $1200 less than the total cost of the plates.\n- Total cost of cups = $36,000 - $1,200 = $34,800.\n\nStep 4: Calculate the cost per cup.\n- Cost per cup = Total cost of cups \u00f7 Number of cups\n- Cost per cup = $34,800 \u00f7 240 = $145.\n\nANSWER: 145",
+  "score": 5,
+  "cost": 0.00191025,
+  "expected": "145",
+  "tokens": {
+    "input": 85,
+    "output": 1889
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "ner_extraction",
+  "case": 18,
+  "response": "{\n  \"persons\": [\"Sarah Chen\"],\n  \"organizations\": [\"MIT\"],\n  \"locations\": []\n}",
+  "score": 4,
+  "cost": 0.000544,
+  "expected": "",
+  "tokens": {
+    "input": 184,
+    "output": 22
+  }
+}

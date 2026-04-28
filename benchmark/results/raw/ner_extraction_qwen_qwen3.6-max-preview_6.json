@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "ner_extraction",
+  "case": 6,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"Amazon\"],\n  \"locations\": [\"Nashville\", \"Davidson County\"]\n}",
+  "score": 5,
+  "cost": 0.0021346,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 391
+  }
+}

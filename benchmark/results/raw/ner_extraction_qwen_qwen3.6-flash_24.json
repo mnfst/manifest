@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "ner_extraction",
+  "case": 24,
+  "response": "{\"persons\": [], \"organizations\": [\"Indian Space Research Organisation\"], \"locations\": [\"Sriharikota\"]}",
+  "score": 4,
+  "cost": 0.00122625,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 1207
+  }
+}

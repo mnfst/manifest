@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "intent_clinc150",
+  "case": 11,
+  "response": "travel_alert",
+  "score": 5,
+  "cost": 0.001268,
+  "expected": "travel_alert",
+  "tokens": {
+    "input": 626,
+    "output": 2
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "sql_spider",
+  "case": 46,
+  "response": "```sql\nSELECT \n    c.GovernmentForm,\n    SUM(c.Population) AS TotalPopulation\nFROM Country c\nGROUP BY c.GovernmentForm\nHAVING AVG(c.LifeExpectancy) > 72\nORDER BY c.GovernmentForm;\n```",
+  "score": 3,
+  "cost": 0.000372,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 74
+  }
+}

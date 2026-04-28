@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 15,
+  "response": "```sql\nSELECT\n    MIN(share) AS minimum_share,\n    MAX(share) AS maximum_share\nFROM tvshow;\n```",
+  "score": 5,
+  "cost": 3.84e-06,
+  "expected": "",
+  "tokens": {
+    "input": 65,
+    "output": 31
+  }
+}

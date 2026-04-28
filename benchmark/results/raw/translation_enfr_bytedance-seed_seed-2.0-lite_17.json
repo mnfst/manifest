@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 17,
+  "response": "Source : examplereferenceletter.com\n\nThe term \"Source\" is the standard citation lead-in in French, matching the original context, and domain names/URLs are preserved as-is per standard translation conventions for web addresses. The space added before the colon follows French typographical rules.",
+  "score": 5,
+  "cost": 0.000412,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 393
+  }
+}

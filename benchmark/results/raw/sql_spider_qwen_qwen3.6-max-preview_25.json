@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "sql_spider",
+  "case": 25,
+  "response": "SELECT Title FROM Cartoon WHERE Directed_by = 'Ben Jones'",
+  "score": 5,
+  "cost": 0.0058799,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 1112
+  }
+}

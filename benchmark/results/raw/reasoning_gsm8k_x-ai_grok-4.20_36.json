@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "Elaine starts with 20 cards.\n\nIn the first month, she collects three times the initial amount: 3 * 20 = 60 cards.\n\nIn the second month, she collects 20 fewer than the first month: 60 - 20 = 40 cards.\n\nCombined from first and second months: 60 + 40 = 100 cards.\n\nIn the third month, she collects twice that combined amount: 2 * 100 = 200 cards.\n\nTotal collected over three months: 60 + 40 + 200 = 300 cards.\n\nAdding the initial amount: 20 + 300 = 320 cards in total now.\n\nANSWER: 320",
+  "score": 5,
+  "cost": 0.001546,
+  "expected": "320",
+  "tokens": {
+    "input": 229,
+    "output": 136
+  }
+}

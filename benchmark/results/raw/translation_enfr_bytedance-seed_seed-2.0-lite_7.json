@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 7,
+  "response": "Services de placement. C'est g\u00e9n\u00e9reux.\n\nThis translation preserves the original conversational, understated tone: \"Services de placement\" is the standard, widely used French term for professional placement/recruitment services, and \"C'est g\u00e9n\u00e9reux\" matches the simple, natural delivery of the original line's comment about the offering being generous.",
+  "score": 5,
+  "cost": 0.00026,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 241
+  }
+}

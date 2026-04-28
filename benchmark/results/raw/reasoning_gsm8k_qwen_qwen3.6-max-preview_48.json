@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "Jamaal starts with an 8-pound weight.\nFirst, he increases the weight by 50%. To find the increased amount, we calculate 50% of 8:\n0.50 \u00d7 8 = 4 pounds.\nAdding this to the original weight gives the new, heavier weight:\n8 + 4 = 12 pounds.\nSince 12 pounds is too heavy, he switches to a weight that is 2 pounds lighter:\n12 - 2 = 10 pounds.\nTherefore, the weight he now uses is 10 pounds.\n\nANSWER: 10",
+  "score": 5,
+  "cost": 0.005846100000000001,
+  "expected": "10",
+  "tokens": {
+    "input": 109,
+    "output": 1097
+  }
+}

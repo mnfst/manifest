@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "sql_spider",
+  "case": 28,
+  "response": "SELECT Nationality FROM people GROUP BY Nationality HAVING COUNT(*) >= 2;",
+  "score": 5,
+  "cost": 0.00477,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 42
+  }
+}

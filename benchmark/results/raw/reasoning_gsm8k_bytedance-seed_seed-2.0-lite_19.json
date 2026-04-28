@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 19,
+  "response": "To solve the problem, we add up all the kittens the Doubtfire family has, step by step:\n\n1. First, count the adopted kittens the sisters are bringing home: that is 7 kittens.\n2. Next, calculate how many kittens Patchy (the first house cat) had. The problem states Patchy has had thrice (3 times) the number of adopted kittens. So Patchy's kittens = 3 * 7 = 21.\n3. Add Trixie's (the second house cat) kittens: Trixie had 12 kittens.\n4. Sum all kittens to get the total: 7 (adopted) + 21 (Patchy's) + 12 (Trixie's) = 40.\n\nANSWER: 40",
+  "score": 5,
+  "cost": 0.000878,
+  "expected": "40",
+  "tokens": {
+    "input": 168,
+    "output": 836
+  }
+}

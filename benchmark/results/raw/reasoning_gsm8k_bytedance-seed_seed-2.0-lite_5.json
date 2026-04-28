@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "Let's break down the problem step by step to calculate the remaining number of fairies:\n\n1. **Initial number of fairies**: Katelyn first saw 50 fairies, so the starting count is 50.\n2. **New fairies that join**: A friend sees half as many fairies as Katelyn initially saw come from the east. Half of 50 is \\(50 \\div 2 = 25\\). These 25 fairies join the existing group, so the total becomes \\(50 + 25 = 75\\).\n3. **Fairies that fly away**: 30 fairies leave the group. Subtract this from the current total: \\(75 - 30 = 45\\).\n\nANSWER: 45",
+  "score": 5,
+  "cost": 0.00055675,
+  "expected": "45",
+  "tokens": {
+    "input": 163,
+    "output": 516
+  }
+}

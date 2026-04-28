@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "translation_enfr",
+  "case": 2,
+  "response": "J\u00e9sus s'approcha et dit clairement avec bienveillance : \"C'est moi.\" Cette parole devint le fondement de la foi des ap\u00f4tres.",
+  "score": 5,
+  "cost": 5.3700000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 52,
+    "output": 37
+  }
+}

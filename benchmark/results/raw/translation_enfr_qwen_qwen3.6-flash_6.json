@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "translation_enfr",
+  "case": 6,
+  "response": "En ce moment, c'est ce diable qui roule sur Wangan.",
+  "score": 4,
+  "cost": 0.001426,
+  "expected": "",
+  "tokens": {
+    "input": 40,
+    "output": 1416
+  }
+}

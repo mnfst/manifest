@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "ner_extraction",
+  "case": 29,
+  "response": "",
+  "score": 0,
+  "cost": 0.0048444,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 2000
+  }
+}

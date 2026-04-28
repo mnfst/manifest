@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "sql_spider",
+  "case": 30,
+  "response": "```sql\nSELECT AVG(winner_rank) as average_rank\nFROM matches\nWHERE winner_rank IS NOT NULL;\n```",
+  "score": 5,
+  "cost": 0.0001904,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 32
+  }
+}

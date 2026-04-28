@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "ner_extraction",
+  "case": 6,
+  "response": "{\"persons\": [], \"organizations\": [\"Amazon\"], \"locations\": [\"Nashville\", \"Davidson County\"]}",
+  "score": 5,
+  "cost": 0.0006917999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 270
+  }
+}

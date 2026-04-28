@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "The problem states: George ordered 600 burritos. There are 50 students, each given 10 burritos. Mr. George eats 20 burritos. We need to find the leftover burritos.\n\nFirst, calculate total burritos given to students: 50 students * 10 burritos each = 500 burritos.\n\nThen, Mr. George eats 20 burritos.\n\nSo, total burritos consumed: 500 + 20 = 520.\n\nLeftover: 600 - 520 = 80.\n\nThe problem says \"with Mr. George eating 20 of them\" \u2013 \"them\" likely refers to the burritos, but it's a bit ambiguous. However, it doesn't specify that he's eating from the students' share or anything. The straightforward interpretation is total ordered minus distributed to students minus what George ate.\n\nThe question is \"calculate the total number of leftover burritos from the picnic?\" which implies after everyone has eaten what they were supposed to.\n\nThis seems like it might be a trick question or from those viral math problems that are worded to confuse.\n\n\"each student was given ten burritos, with Mr. George eating 20 of them\"\n\nThe \"with\" might be connecting to the giving, but that doesn't make much sense.\n\nPerhaps it's a poorly worded problem meant to be simple subtraction.\n\n600 total.\n\nStudents take 50*10=500.\n\nGeorge eats 20, so 520 eaten, 80 left.\n\nI think 80 is the answer they're looking for. It doesn't seem like there's missing information or anything.\n\nThe problem is to solve it step by step and put the answer in the specified format.\n\nSo, let's do it properly.",
+  "score": 4,
+  "cost": 0.003136,
+  "expected": "80",
+  "tokens": {
+    "input": 216,
+    "output": 338
+  }
+}

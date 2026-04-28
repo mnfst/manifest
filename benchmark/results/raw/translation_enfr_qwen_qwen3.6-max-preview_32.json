@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "translation_enfr",
+  "case": 32,
+  "response": "Les \u00c9tats membres, les institutions de l'Union et le SEAE peuvent proposer le d\u00e9tachement de personnel aupr\u00e8s du RSUE.",
+  "score": 4,
+  "cost": 0.008457800000000001,
+  "expected": "",
+  "tokens": {
+    "input": 54,
+    "output": 1613
+  }
+}

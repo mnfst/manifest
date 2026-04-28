@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "```sql\nSELECT airport_code, airport_name\nFROM airports\nWHERE airport_code NOT IN (\n    SELECT DISTINCT departure_airport FROM flights WHERE departure_airport IS NOT NULL\n    UNION\n    SELECT DISTINCT arrival_airport FROM flights WHERE arrival_airport IS NOT NULL\n);\n```",
+  "score": 4,
+  "cost": 0.001236,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 67
+  }
+}

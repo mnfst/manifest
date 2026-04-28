@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "SELECT AirportCode FROM airports WHERE AirportCode NOT IN (SELECT SourceAirport FROM flights UNION SELECT DestAirport FROM flights);",
+  "score": 5,
+  "cost": 0.00657,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 66
+  }
+}

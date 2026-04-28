@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "translation_enfr",
+  "case": 25,
+  "response": "2. Le 21 f\u00e9vrier, le sous-secr\u00e9taire d\u2019\u00c9tat \u00e0 la Guerre, Jos\u00e9 Asenio, fut limog\u00e9, puis arr\u00eat\u00e9 peu apr\u00e8s en m\u00eame temps que le colonel Villalba, pour avoir trahi M\u00e1laga.",
+  "score": 5,
+  "cost": 0.000724,
+  "expected": "",
+  "tokens": {
+    "input": 178,
+    "output": 46
+  }
+}

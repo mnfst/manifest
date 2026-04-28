@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "ner_extraction",
+  "case": 13,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"Oxford University\", \"Pfizer\"],\n  \"locations\": []\n}",
+  "score": 4,
+  "cost": 0.0006490500000000001,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 2127
+  }
+}

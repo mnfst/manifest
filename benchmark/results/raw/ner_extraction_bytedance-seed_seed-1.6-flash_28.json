@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "ner_extraction",
+  "case": 28,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"Johns Hopkins University\"],\n  \"locations\": [\"Baltimore\"]\n}",
+  "score": 4,
+  "cost": 7.9125e-05,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 227
+  }
+}

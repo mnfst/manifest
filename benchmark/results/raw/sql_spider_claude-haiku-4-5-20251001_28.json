@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "sql_spider",
+  "case": 28,
+  "response": "```sql\nSELECT nationality\nFROM poker_player\nGROUP BY nationality\nHAVING COUNT(*) >= 2;\n```",
+  "score": 5,
+  "cost": 0.0001792,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 29
+  }
+}

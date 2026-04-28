@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 22,
+  "response": "Rafaela received tips from 40 customers, each giving $20.  \nRafaela's total = 40 \u00d7 $20 = $800.\n\nJulieta received 10% less than Rafaela.  \n10% of $800 = 0.10 \u00d7 $800 = $80.  \nJulieta's total = $800 \u2212 $80 = $720.\n\nCombined total = $800 + $720 = $1520.\n\nANSWER: 1520",
+  "score": 2,
+  "cost": 0.0013548,
+  "expected": "1520",
+  "tokens": {
+    "input": 94,
+    "output": 541
+  }
+}

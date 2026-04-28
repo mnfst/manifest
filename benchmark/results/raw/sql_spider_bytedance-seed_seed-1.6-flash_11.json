@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 11,
+  "response": "SELECT name\nFROM country\nWHERE continent = 'Africa'\nAND population < (SELECT MIN(population) FROM country WHERE continent = 'Asia');",
+  "score": 5,
+  "cost": 0.00037679999999999994,
+  "expected": "",
+  "tokens": {
+    "input": 156,
+    "output": 1217
+  }
+}

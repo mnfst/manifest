@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 37,
+  "response": "Let\u2019s go step by step.  \n\n---\n\n**Step 1: Votes for candidate A**  \nTotal voters = 100  \nCandidate A got \\( 20\\% \\) of votes:  \n\\[\nA = 20\\% \\times 100 = 20 \\text{ votes}\n\\]\n\n---\n\n**Step 2: Votes for candidate B**  \nCandidate B got \\( 50\\% \\) more than candidate A\u2019s votes.  \n\u201c50% more than A\u2019s votes\u201d means:  \n\\[\nB = A + 50\\% \\times A = A \\times (1 + 0.5) = 20 \\times 1.5 = 30 \\text{ votes}\n\\]\n\n---\n\n**Step 3: Votes for candidate C**  \nTotal votes = 100  \n\\[\nC = 100 - A - B = 100 - 20 - 30 = 50\n\\]\n\n---\n\n**Step 4: Final answer**  \n\\[\n\\boxed{50}\n\\]\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.00025465,
+  "expected": "50",
+  "tokens": {
+    "input": 99,
+    "output": 209
+  }
+}

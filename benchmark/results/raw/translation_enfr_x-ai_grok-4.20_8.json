@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "translation_enfr",
+  "case": 8,
+  "response": "Et il a dit : \u00ab Bien s\u00fbr. \u00bb Et j\u2019ai dit : \u00ab Bon, je me demande o\u00f9 \u00e7a va se passer. \u00bb",
+  "score": 4,
+  "cost": 0.000546,
+  "expected": "",
+  "tokens": {
+    "input": 161,
+    "output": 28
+  }
+}

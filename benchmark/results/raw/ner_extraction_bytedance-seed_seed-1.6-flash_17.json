@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "ner_extraction",
+  "case": 17,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"Toyota\"],\n  \"locations\": [\"Greensboro\", \"North Carolina\"]\n}",
+  "score": 5,
+  "cost": 9.547499999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 281
+  }
+}

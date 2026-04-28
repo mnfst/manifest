@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "sql_spider",
+  "case": 39,
+  "response": "```sql\nSELECT c.name AS conductor_name, o.name AS orchestra_name\nFROM conductors c\nJOIN orchestras o ON c.id = o.conductor_id;\n```",
+  "score": 5,
+  "cost": 3.285e-05,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 35
+  }
+}

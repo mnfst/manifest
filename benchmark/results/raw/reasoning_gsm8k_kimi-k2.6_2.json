@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "Step 1: Find the time spent sailing away.\nTom sails from 1 PM to 4 PM, which is 3 hours.\n\nStep 2: Calculate the distance traveled.\nDistance = rate \u00d7 time = 10 miles/hour \u00d7 3 hours = 30 miles.\n\nStep 3: Calculate the time to return.\nHe travels back the same 30 miles at 6 miles per hour.\nTime = distance \u00f7 rate = 30 miles \u00f7 6 miles/hour = 5 hours.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.0008868,
+  "expected": "5",
+  "tokens": {
+    "input": 90,
+    "output": 347
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 45,
+  "response": "To determine how many wheels Henry will have left, we first calculate the total number of wheels needed for all the toys and then subtract that from the initial number of wheels.\n\n\n### Step 1: Calculate wheels for cars  \nHenry has 57 cars, and each car requires 4 wheels.  \nTotal wheels for cars = \\( 57 \\times 4 = 228 \\)  \n\n\n### Step 2: Calculate wheels for motorcycles  \nHenry has 73 motorcycles, and each motorcycle requires 2 wheels.  \nTotal wheels for motorcycles = \\( 73 \\times 2 = 146 \\)  \n\n\n### Step 3: Total wheels used  \nAdd the wheels for cars and motorcycles:  \nTotal wheels used = \\( 228 + 146 = 374 \\)  \n\n\n### Step 4: Wheels left  \nHenry starts with 650 wheels. Subtract the total wheels used:  \nWheels left = \\( 650 - 374 = 276 \\)  \n\n\nANSWER: 276",
+  "score": 5,
+  "cost": 0.00022522499999999999,
+  "expected": "276",
+  "tokens": {
+    "input": 183,
+    "output": 705
+  }
+}

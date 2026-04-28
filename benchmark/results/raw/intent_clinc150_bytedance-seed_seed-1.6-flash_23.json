@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "intent_clinc150",
+  "case": 23,
+  "response": "direct_deposit",
+  "score": 0,
+  "cost": 9.6e-05,
+  "expected": "account_blocked",
+  "tokens": {
+    "input": 640,
+    "output": 160
+  }
+}

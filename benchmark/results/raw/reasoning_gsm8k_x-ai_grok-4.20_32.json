@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "reasoning_gsm8k",
+  "case": 32,
+  "response": "The area of a rectangle is length times width, so if the area is 360 square feet and the length is 3 yards, first convert the length to feet since the area is in feet.\n\n3 yards is 9 feet (since 1 yard = 3 feet).\n\nSo, length = 9 feet.\n\nWidth = area / length = 360 / 9 = 40 feet.\n\nPerimeter of a rectangle is 2*(length + width) = 2*(9 + 40) = 2*49 = 98 feet.\n\nANSWER: 98",
+  "score": 4,
+  "cost": 0.001308,
+  "expected": "98",
+  "tokens": {
+    "input": 190,
+    "output": 116
+  }
+}

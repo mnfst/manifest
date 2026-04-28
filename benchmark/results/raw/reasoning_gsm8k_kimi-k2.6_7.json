@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "Step 1: Find the total cost of half a dozen plates.  \nHalf a dozen = 6 plates.  \n6 \u00d7 $6000 = $36,000.\n\nStep 2: Find the total cost of twenty dozen cups.  \nThis cost is $1,200 less than the plates\u2019 total:  \n$36,000 \u2212 $1,200 = $34,800.\n\nStep 3: Determine how many cups there are.  \nTwenty dozen = 20 \u00d7 12 = 240 cups.\n\nStep 4: Calculate the cost of each cup.  \n$34,800 \u00f7 240 = $145.\n\nANSWER: 145",
+  "score": 5,
+  "cost": 0.0028506,
+  "expected": "145",
+  "tokens": {
+    "input": 75,
+    "output": 1169
+  }
+}

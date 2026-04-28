@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "sql_spider",
+  "case": 26,
+  "response": "SELECT COUNT(*) FROM flights f JOIN airports a1 ON f.SourceAirport = a1.AirportCode JOIN airports a2 ON f.DestAirport = a2.AirportCode WHERE a1.City = 'Aberdeen' AND a2.City = 'Ashley';",
+  "score": 5,
+  "cost": 0.00993,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 108
+  }
+}

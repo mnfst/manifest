@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "First, add together the fractions of a skein that Mariah and her grandma used.\n\nMariah used: \\( \\frac{1}{4} \\) skein  \nGrandma used: \\( \\frac{1}{2} \\) skein  \n\nTo add these, use a common denominator:\n\\[\n\\frac{1}{4} + \\frac{1}{2} = \\frac{1}{4} + \\frac{2}{4} = \\frac{3}{4} \\text{ skein}\n\\]\n\nNext, convert \\( \\frac{3}{4} \\) of a skein into yards. Since one skein has 364 yards:\n\\[\n\\frac{3}{4} \\times 364 = \\frac{364}{4} \\times 3 = 91 \\times 3 = 273\n\\]\n\nSo they used 273 yards of yarn altogether.\n\nANSWER: 273",
+  "score": 5,
+  "cost": 0.0012084,
+  "expected": "273",
+  "tokens": {
+    "input": 102,
+    "output": 478
+  }
+}

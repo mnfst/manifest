@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "ner_extraction",
+  "case": 36,
+  "response": "{\"persons\": [\"Warren Buffett\"], \"organizations\": [\"Bank of America\", \"SEC\"], \"locations\": []}",
+  "score": 5,
+  "cost": 0.0012804000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 515
+  }
+}

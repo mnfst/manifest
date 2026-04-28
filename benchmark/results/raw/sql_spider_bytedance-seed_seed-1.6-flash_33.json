@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 33,
+  "response": "SELECT title, rating\nFROM episodes\nORDER BY rating DESC\nLIMIT 3;",
+  "score": 5,
+  "cost": 0.000159975,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 494
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "ner_extraction",
+  "case": 42,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"African Union\"\n  ],\n  \"locations\": [\n    \"Addis Ababa\",\n    \"Sudan\",\n    \"Egypt\",\n    \"Ethiopia\"\n  ]\n}\n```",
+  "score": 4,
+  "cost": 0.0008958000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 354
+  }
+}

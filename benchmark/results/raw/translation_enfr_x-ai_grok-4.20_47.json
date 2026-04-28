@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "translation_enfr",
+  "case": 47,
+  "response": "**French:**  \nLa r\u00e9pression de ce type, conjugu\u00e9e aux arrestations ces derni\u00e8res semaines de repr\u00e9sentants d\u2019institutions humanitaires, de syndicats et de journalistes accus\u00e9s de diffuser de pr\u00e9tendues \u00ab fausses informations \u00bb, a l\u00e9gitimement suscit\u00e9 l\u2019inqui\u00e9tude de la communaut\u00e9 internationale.",
+  "score": 5,
+  "cost": 0.000848,
+  "expected": "",
+  "tokens": {
+    "input": 180,
+    "output": 61
+  }
+}

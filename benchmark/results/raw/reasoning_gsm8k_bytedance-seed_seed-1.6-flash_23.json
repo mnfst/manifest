@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 23,
+  "response": "To solve the problem, we start by determining the original cost per balloon and then calculate the total cost after the price increase.\n\n\n### Step 1: Find the original cost per balloon  \nThe total cost to fill 20 balloons is $900. The original cost per balloon is:  \n\\[\n\\text{Original cost per balloon} = \\frac{\\text{Total cost}}{\\text{Number of balloons}} = \\frac{900}{20} = 45\n\\]  \nSo, the original cost per balloon is $45.  \n\n\n### Step 2: Calculate the new cost per balloon after the increase  \nThe cost per balloon increases by $20. The new cost per balloon is:  \n\\[\n\\text{New cost per balloon} = \\text{Original cost per balloon} + \\text{Increase} = 45 + 20 = 65\n\\]  \nThus, the new cost per balloon is $65.  \n\n\n### Step 3: Compute the total cost for 170 balloons after the increase  \nThe total cost to fill 170 balloons at the new price is:  \n\\[\n\\text{Total cost} = \\text{Number of balloons} \\times \\text{New cost per balloon} = 170 \\times 65 = 11,\\!050\n\\]  \n\n\nANSWER: 11050",
+  "score": 5,
+  "cost": 0.00024494999999999996,
+  "expected": "11050",
+  "tokens": {
+    "input": 182,
+    "output": 771
+  }
+}

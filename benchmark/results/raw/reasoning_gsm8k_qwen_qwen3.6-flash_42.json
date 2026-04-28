@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 42,
+  "response": "To find the total number of children in the drill, we can calculate it step by step:\n\n1. **Find the number of children in one school:** Each school has 7 rows, and each row contains 8 children. Multiply the number of rows by the number of children per row:\n   7 rows \u00d7 8 children/row = 56 children per school.\n\n2. **Find the total number of children across all schools:** There are 5 different schools participating. Multiply the number of children per school by the number of schools:\n   56 children/school \u00d7 5 schools = 280 children.\n\nTherefore, the total number of children in the drill is 280.\n\nANSWER: 280",
+  "score": 5,
+  "cost": 0.00134525,
+  "expected": "280",
+  "tokens": {
+    "input": 101,
+    "output": 1320
+  }
+}

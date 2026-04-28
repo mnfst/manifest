@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_spider",
+  "case": 28,
+  "response": "SELECT nationality FROM poker_player GROUP BY nationality HAVING COUNT(*) >= 2;",
+  "score": 5,
+  "cost": 0.0018326000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 391
+  }
+}

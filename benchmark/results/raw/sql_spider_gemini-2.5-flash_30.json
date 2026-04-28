@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "sql_spider",
+  "case": 30,
+  "response": "```sql\nSELECT AVG(winner_rank) FROM matches;\n```",
+  "score": 4,
+  "cost": 1.95e-05,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 15
+  }
+}

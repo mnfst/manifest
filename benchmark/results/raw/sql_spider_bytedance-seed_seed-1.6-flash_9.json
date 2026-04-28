@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 9,
+  "response": "SELECT c.country_name\nFROM countries c\nINNER JOIN car_makers cm ON c.country_id = cm.country_id\nGROUP BY c.country_name\nORDER BY COUNT(cm.car_maker_id) DESC\nLIMIT 1;",
+  "score": 5,
+  "cost": 0.00019769999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 621
+  }
+}

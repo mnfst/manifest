@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "translation_enfr",
+  "case": 12,
+  "response": "Ce premier r\u00e9sultat, jug\u00e9 exceptionnel, a permis l'identification de 80 signaux acoustiques diff\u00e9rents \u00e0 proximit\u00e9 des Rocas Consag. Ces r\u00e9sultats confirment les \u00e9tudes ant\u00e9rieures sur la r\u00e9partition du vaquita dans la r\u00e9gion.",
+  "score": 5,
+  "cost": 0.0176592,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 3378
+  }
+}

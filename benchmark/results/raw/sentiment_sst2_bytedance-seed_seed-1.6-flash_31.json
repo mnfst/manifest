@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sentiment_sst2",
+  "case": 31,
+  "response": "negative\nThe text poses a question that seems to question the necessity or value of making a documentary about",
+  "score": 5,
+  "cost": 0.0001677,
+  "expected": "negative",
+  "tokens": {
+    "input": 124,
+    "output": 528
+  }
+}

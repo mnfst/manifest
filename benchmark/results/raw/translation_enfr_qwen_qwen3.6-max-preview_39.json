@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "translation_enfr",
+  "case": 39,
+  "response": "Tu sais d'o\u00f9 vient l'argent ? \n\n*(Note: Use \"Savez-vous d'o\u00f9 vient l'argent ?\" if a formal or plural \"you\" is required by context.)*",
+  "score": 5,
+  "cost": 0.0045903,
+  "expected": "",
+  "tokens": {
+    "input": 39,
+    "output": 873
+  }
+}

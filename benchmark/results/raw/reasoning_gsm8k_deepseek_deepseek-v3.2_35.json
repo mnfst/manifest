@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 35,
+  "response": "Let\u2019s break it down step by step.  \n\n**Step 1: Cost for peaches**  \nPrice per pound = $2.00  \nPounds picked = 6  \nCost = \\( 6 \\times 2.00 = 12.00 \\) dollars  \n\n**Step 2: Cost for plums**  \nPrice per pound = $1.00  \nPounds picked = 8  \nCost = \\( 8 \\times 1.00 = 8.00 \\) dollars  \n\n**Step 3: Cost for apricots**  \nPrice per pound = $3.00  \nPounds picked = 6  \nCost = \\( 6 \\times 3.00 = 18.00 \\) dollars  \n\n**Step 4: Total cost**  \n\\( 12.00 + 8.00 + 18.00 = 38.00 \\) dollars  \n\nANSWER: 38.00",
+  "score": 5,
+  "cost": 0.00023545,
+  "expected": "38",
+  "tokens": {
+    "input": 119,
+    "output": 187
+  }
+}

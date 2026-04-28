@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_spider",
+  "case": 11,
+  "response": "SELECT name FROM country WHERE continent = 'Africa' AND population < (SELECT MIN(population) FROM country WHERE continent = 'Asia');",
+  "score": 5,
+  "cost": 0.0025201,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 550
+  }
+}

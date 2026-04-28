@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "sql_spider",
+  "case": 30,
+  "response": "```sql\nSELECT avg(winner_rank) FROM matches\n```",
+  "score": 4,
+  "cost": 0.0002275,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 14
+  }
+}

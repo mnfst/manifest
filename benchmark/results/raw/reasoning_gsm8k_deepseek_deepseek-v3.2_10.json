@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 10,
+  "response": "Let's break it down step by step.  \n\n**Step 1 \u2013 Determine how much water each setting removes per day:**  \n- Low: 1 liter/day  \n- Medium: twice as much as low \u2192 \\( 2 \\times 1 = 2 \\) liters/day  \n- High: twice as much as medium \u2192 \\( 2 \\times 2 = 4 \\) liters/day  \n\n**Step 2 \u2013 Calculate water removed in each period:**  \n- Low for 3 days: \\( 3 \\times 1 = 3 \\) liters  \n- Medium for 3 days: \\( 3 \\times 2 = 6 \\) liters  \n- High for 5 days: \\( 5 \\times 4 = 20 \\) liters  \n\n**Step 3 \u2013 Sum them up:**  \nTotal = \\( 3 + 6 + 20 = 29 \\) liters  \n\n**Answer:**  \nANSWER: 29",
+  "score": 5,
+  "cost": 0.00025605,
+  "expected": "29",
+  "tokens": {
+    "input": 197,
+    "output": 188
+  }
+}

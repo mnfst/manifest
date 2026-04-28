@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "sql_spider",
+  "case": 11,
+  "response": "```sql\nSELECT Name\nFROM country\nWHERE Continent = 'Africa'\nAND population < (SELECT MIN(population) FROM country WHERE Continent = 'Asia');\n```",
+  "score": 5,
+  "cost": 0.000648,
+  "expected": "",
+  "tokens": {
+    "input": 192,
+    "output": 33
+  }
+}

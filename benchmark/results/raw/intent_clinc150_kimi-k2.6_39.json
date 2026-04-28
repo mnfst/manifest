@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "intent_clinc150",
+  "case": 39,
+  "response": "how_old_are_you",
+  "score": 5,
+  "cost": 0.0007524,
+  "expected": "how_old_are_you",
+  "tokens": {
+    "input": 518,
+    "output": 184
+  }
+}

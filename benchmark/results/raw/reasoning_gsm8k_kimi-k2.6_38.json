@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 38,
+  "response": "**Step 1:** Find the total number of ratio parts.  \nThe ratio is 3:2, so the total parts are  \n\\(3 + 2 = 5\\) parts.\n\n**Step 2:** Determine the value of one part.  \nThe total amount is $100, so each part is  \n\\(\\frac{100}{5} = 20\\) dollars.\n\n**Step 3:** Calculate Gerald\u2019s initial share.  \nGerald gets 3 parts:  \n\\(3 \\times 20 = 60\\) dollars.\n\n**Step 4:** Subtract the amount Gerald spent.  \nHe spent $10 on a book, so he has  \n\\(60 - 10 = 50\\) dollars left.\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.0008717999999999999,
+  "expected": "50",
+  "tokens": {
+    "input": 73,
+    "output": 345
+  }
+}

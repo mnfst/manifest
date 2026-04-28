@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 38,
+  "response": "Cela ne peut que mener au chaos et \u00e0 la terreur.",
+  "score": 5,
+  "cost": 0.00033825,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 319
+  }
+}

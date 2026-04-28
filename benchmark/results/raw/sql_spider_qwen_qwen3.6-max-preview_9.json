@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "sql_spider",
+  "case": 9,
+  "response": "SELECT T1.CountryName\nFROM countries AS T1\nJOIN car_makers AS T2\n  ON T1.CountryId  =  T2.Country\nGROUP BY T1.CountryName\nORDER BY count(T2.Id) DESC\nLIMIT 1",
+  "score": 4,
+  "cost": 0.0112424,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 2142
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 1,
+  "response": "SELECT AVG(mpg) AS average_mpg FROM cars WHERE cylinders = 4;",
+  "score": 5,
+  "cost": 8.6325e-05,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 249
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "ner_extraction",
+  "case": 34,
+  "response": "{\n  \"persons\": [\"Gordon Ramsay\"],\n  \"organizations\": [\"Bellagio\"],\n  \"locations\": [\"Las Vegas\"]\n}",
+  "score": 4,
+  "cost": 0.00013807499999999998,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 423
+  }
+}

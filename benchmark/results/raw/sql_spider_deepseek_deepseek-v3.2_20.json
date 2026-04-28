@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "sql_spider",
+  "case": 20,
+  "response": "```sql\nSELECT a.Abbreviation, a.Country\nFROM Airline a\nJOIN Flight f ON a.Airline_ID = f.Airline_ID\nGROUP BY a.Airline_ID, a.Abbreviation, a.Country\nORDER BY COUNT(f.Flight_ID) ASC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 9.305000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 68
+  }
+}

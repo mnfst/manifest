@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 1,
+  "response": "Kalinda\u2019s rate: 4 pieces per minute.  \nHer mom\u2019s rate: half of Kalinda\u2019s rate, so \\(4 \\div 2 = 2\\) pieces per minute.  \nCombined rate: \\(4 + 2 = 6\\) pieces per minute.  \nTotal pieces to place: 360.  \nTime in minutes: \\(360 \\div 6 = 60\\) minutes.  \nConvert minutes to hours: \\(60 \\text{ minutes} = 1 \\text{ hour}\\).  \n\nANSWER: 1",
+  "score": 5,
+  "cost": 0.001281,
+  "expected": "1",
+  "tokens": {
+    "input": 95,
+    "output": 510
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "ner_extraction",
+  "case": 46,
+  "response": "{\"persons\": [\"Liang Rubo\"], \"organizations\": [\"ByteDance\", \"Senate Commerce Committee\", \"TikTok\"], \"locations\": [\"Washington\"]}",
+  "score": 5,
+  "cost": 0.0023526,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 961
+  }
+}

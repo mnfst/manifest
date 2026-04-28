@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "reasoning_gsm8k",
+  "case": 27,
+  "response": "Let $x$ be the number of vacuum cleaners Melanie started with.\n\n**Step 1: Green house**\nShe sold $\\frac{1}{3}$ of her vacuums. The amount remaining is:\n$x - \\frac{1}{3}x = \\frac{2}{3}x$\n\n**Step 2: Red house**\nShe sold 2 more vacuums. The amount remaining is:\n$\\frac{2}{3}x - 2$\n\n**Step 3: Orange house**\nShe sold half of what was left. This means the other half remains. The amount remaining after this sale is:\n$\\frac{1}{2}\\left(\\frac{2}{3}x - 2\\right)$\n\n**Step 4: Set up the equation**\nWe are told she has 5 vacuum cleaners left, so:\n$\\frac{1}{2}\\left(\\frac{2}{3}x - 2\\right) = 5$\n\n**Step 5: Solve for $x$**\nMultiply both sides by 2:\n$\\frac{2}{3}x - 2 = 10$\n\nAdd 2 to both sides:\n$\\frac{2}{3}x = 12$\n\nMultiply both sides by $\\frac{3}{2}$:\n$x = 12 \\times \\frac{3}{2} = 18$\n\n**Verification:**\n- Start with 18 vacuums.\n- Green house: Sells $\\frac{1}{3}$ of 18 = 6. Remaining: 12.\n- Red house: Sells 2. Remaining: 10.\n- Orange house: Sells half of 10 = 5. Remaining: 5.\nThis matches the problem statement exactly.\n\nANSWER: 18",
+  "score": 5,
+  "cost": 0.0093405,
+  "expected": "18",
+  "tokens": {
+    "input": 105,
+    "output": 1770
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "Step 1: Find the amount raised by Alexandra. The problem directly states that Alexandra raises $430.\n\nStep 2: Find the amount raised by Kim. Kim raises $320 more than Alexandra, so Kim raises $430 + $320 = $750.\n\nStep 3: Find the amount raised by Sarah. The problem directly states that Sarah raises $300.\n\nStep 4: Find the amount raised by Maryam. Maryam raises $400 more than Sarah, so Maryam raises $300 + $400 = $700.\n\nStep 5: Calculate the total amount raised by all four girls. Add their individual amounts together:\nTotal = Alexandra + Kim + Sarah + Maryam\nTotal = $430 + $750 + $300 + $700\nTotal = ($430 + $750) + ($300 + $700)\nTotal = $1,180 + $1,000\nTotal = $2,180\n\nANSWER: 2180",
+  "score": 5,
+  "cost": 0.00194725,
+  "expected": "2280",
+  "tokens": {
+    "input": 109,
+    "output": 1920
+  }
+}

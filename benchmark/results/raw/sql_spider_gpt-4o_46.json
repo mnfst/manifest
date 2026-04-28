@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "sql_spider",
+  "case": 46,
+  "response": "```sql\nSELECT government_form, SUM(population) AS total_population\nFROM countries\nWHERE government_form IN (\n    SELECT government_form\n    FROM countries\n    GROUP BY government_form\n    HAVING AVG(life_expectancy) > 72\n)\nGROUP BY government_form;\n```",
+  "score": 4,
+  "cost": 0.0008,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 58
+  }
+}

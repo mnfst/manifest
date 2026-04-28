@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 26,
+  "response": "```sql\nSELECT COUNT(*) AS total_flights\nFROM flights\nWHERE departure_city = 'Aberdeen'\n  AND destination_city = 'Ashley';\n```",
+  "score": 5,
+  "cost": 4.360000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 34
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 19,
+  "response": "SELECT DISTINCT m.name FROM makers m JOIN cars c ON m.maker_id = c.maker_id WHERE c.year = 1970;",
+  "score": 5,
+  "cost": 0.00013132499999999998,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 398
+  }
+}

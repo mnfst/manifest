@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "sql_spider",
+  "case": 45,
+  "response": "SELECT T1.first_name , T2.description FROM professionals AS T1 JOIN treatments AS T2 ON T1.professional_id  =  T2.professional_id",
+  "score": 4,
+  "cost": 0.002747,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 2726
+  }
+}

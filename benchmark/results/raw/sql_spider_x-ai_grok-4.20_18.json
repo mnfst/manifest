@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "sql_spider",
+  "case": 18,
+  "response": "```sql\nSELECT DISTINCT country\nFROM singer\nWHERE age > 40\nUNION\nSELECT DISTINCT country\nFROM singer\nWHERE age < 30;\n```",
+  "score": 5,
+  "cost": 0.00065,
+  "expected": "",
+  "tokens": {
+    "input": 193,
+    "output": 33
+  }
+}

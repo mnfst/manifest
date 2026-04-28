@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "translation_enfr",
   "case": 19,
-  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens de l'original :\n\n**FTI \u2014 Privil\u00e8ges et conditions**\n\n*(Si \"FTI\" est un acronyme ou un nom propre, il peut rester inchang\u00e9 en fran\u00e7ais.)*",
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens de l'original :\n\n**FTI \u2014 Privil\u00e8ges et conditions**\n\n*(Si \"FTI\" est un acronyme ou un nom propre, il reste inchang\u00e9 en fran\u00e7ais.)*",
   "score": 5,
-  "cost": 0.00012440000000000002,
+  "cost": 0.0001224,
   "expected": "",
   "tokens": {
     "input": 31,
-    "output": 56
+    "output": 55
   }
 }

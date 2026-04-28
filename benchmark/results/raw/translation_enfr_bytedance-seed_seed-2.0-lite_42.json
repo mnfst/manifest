@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 42,
+  "response": "Ce premier recensement fut r\u00e9alis\u00e9 lorsque Quirinus \u00e9tait gouverneur de Syrie. Tout le monde devait se faire enregistrer dans sa ville natale. C\u2019est pourquoi chacun se mit en route pour sa propre cit\u00e9 ; Joseph lui aussi partit de Nazareth, en Galil\u00e9e. Comme il appartenait \u00e0 la famille de David, dont il \u00e9tait un descendant, il se rendit en Jud\u00e9e, dans la ville de David, Bethl\u00e9em, pour s\u2019y faire enregistrer avec Marie, son \u00e9pouse, qui \u00e9tait enceinte.\n\nThis translation retains the formal, reverent narrative tone of the original biblical passage, uses historically consistent naming for Quirinus that aligns with the English source, and preserves every detail of the original text's meaning.",
+  "score": 5,
+  "cost": 0.001565,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 1527
+  }
+}

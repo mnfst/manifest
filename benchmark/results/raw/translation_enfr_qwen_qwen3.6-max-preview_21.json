@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "translation_enfr",
+  "case": 21,
+  "response": "\u00ab Bien, pourriez-vous lire ceci, s'il vous pla\u00eet ? \u00bb",
+  "score": 4,
+  "cost": 0.015675400000000003,
+  "expected": "",
+  "tokens": {
+    "input": 42,
+    "output": 3004
+  }
+}

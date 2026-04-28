@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 20,
+  "response": "To solve the problem, we break it down step by step:\n\n1. First, calculate the total daily food cost for all fish. Jen has 3 fish, and each needs $1 of food per day. The daily total cost is:\n   3 fish \u00d7 $1 per fish/day = $3 per day.\n\n2. Next, confirm the number of days in May. May has 31 days, which is a standard calendar fact.\n\n3. Calculate the total monthly food cost by multiplying the daily cost by the number of days in May:\n   $3/day \u00d7 31 days = $93.\n\nANSWER: 93",
+  "score": 5,
+  "cost": 0.0005085,
+  "expected": "93",
+  "tokens": {
+    "input": 118,
+    "output": 479
+  }
+}

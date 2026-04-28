@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "sql_spider",
+  "case": 26,
+  "response": "```sql\nSELECT COUNT(*)\nFROM flights AS T1\nINNER JOIN airports AS T2\n  ON T1.departure_airport_id = T2.airport_id\nINNER JOIN cities AS T3\n  ON T2.city_id = T3.city_id\nINNER JOIN airports AS T4\n  ON T1.destination_airport_id = T4.airport_id\nINNER JOIN cities AS T5\n  ON T4.city_id = T5.city_id\nWHERE\n  T3.city_name = 'Aberdeen' AND T5.city_name = 'Ashley';\n```",
+  "score": 5,
+  "cost": 9.285e-05,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 136
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "sql_spider",
+  "case": 10,
+  "response": "```sql\nSELECT SUM(surface_area) AS total_surface_area\nFROM countries\nWHERE region = 'Caribbean';\n```",
+  "score": 5,
+  "cost": 0.000425,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 24
+  }
+}

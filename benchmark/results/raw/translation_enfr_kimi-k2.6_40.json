@@ -3,11 +3,11 @@
   "task": "translation_enfr",
   "case": 40,
   "response": "Nous avons juste besoin d'obtenir plus d'informations.",
-  "score": 5,
-  "cost": 0.0013613999999999998,
+  "score": 4,
+  "cost": 0.002091,
   "expected": "",
   "tokens": {
     "input": 33,
-    "output": 559
+    "output": 863
   }
 }

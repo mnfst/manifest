@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "ner_extraction",
+  "case": 47,
+  "response": "{\n  \"persons\": [\"Alain Aspect\"],\n  \"organizations\": [\"Universite Paris-Saclay\"],\n  \"locations\": [\"Stockholm\"]\n}",
+  "score": 5,
+  "cost": 0.0016397999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 664
+  }
+}

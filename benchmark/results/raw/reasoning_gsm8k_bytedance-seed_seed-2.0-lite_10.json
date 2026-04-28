@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 10,
+  "response": "First, calculate the daily water removal rate for each speed:\n1.  Low setting: The problem states this removes 1 liter per day.\n2.  Medium setting: This removes twice the low setting rate. That's 2 * 1 = 2 liters per day.\n3.  High setting: This removes twice the medium setting rate. That's 2 * 2 = 4 liters per day.\n\nNext, calculate the total water removed for each period of use:\n1.  Low setting (3 days): 3 days * 1 liter/day = 3 liters.\n2.  Medium setting (3 days): 3 days * 2 liters/day = 6 liters.\n3.  High setting (5 days): 5 days * 4 liters/day = 20 liters.\n\nFinally, sum the totals to get the overall amount of water removed: 3 + 6 + 20 = 29 liters.\n\nANSWER: 29",
+  "score": 5,
+  "cost": 0.000817,
+  "expected": "29",
+  "tokens": {
+    "input": 248,
+    "output": 755
+  }
+}

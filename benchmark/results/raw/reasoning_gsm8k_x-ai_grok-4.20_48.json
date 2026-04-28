@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "Jamaal starts with an 8-pound weight.\n\nHe increases that by 50%, which means multiplying by 1.5 (or adding half of 8, which is 4).\n\n8 * 1.5 = 12 pounds. So the increased weight is 12 pounds.\n\nThis is too heavy, so he uses a weight that is 2 pounds lighter than 12 pounds.\n\n12 - 2 = 10 pounds.\n\nThe weight he now uses is 10 pounds.\n\nANSWER: 10",
+  "score": 5,
+  "cost": 0.001256,
+  "expected": "10",
+  "tokens": {
+    "input": 216,
+    "output": 103
+  }
+}

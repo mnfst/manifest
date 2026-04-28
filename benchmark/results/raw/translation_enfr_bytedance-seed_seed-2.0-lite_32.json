@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 32,
+  "response": "Les \u00c9tats membres, les institutions de l'Union et le SEAE (Service europ\u00e9en pour l'action ext\u00e9rieure, l'\u00e9quivalent fran\u00e7ais de l'EEAS) peuvent proposer le d\u00e9tachement de personnel aupr\u00e8s du RSUE (Repr\u00e9sentant sp\u00e9cial de l'Union europ\u00e9enne, l'\u00e9quivalent fran\u00e7ais de l'EUSR).\n\nCette traduction respecte le ton formel et officiel du texte original (un document administratif de l'UE) et utilise la terminologie r\u00e9glementaire standardis\u00e9e employ\u00e9e dans les textes en langue fran\u00e7aise de l'Union europ\u00e9enne.",
+  "score": 5,
+  "cost": 0.00067625,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 653
+  }
+}

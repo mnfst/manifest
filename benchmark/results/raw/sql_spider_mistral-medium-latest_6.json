@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "sql_spider",
+  "case": 6,
+  "response": "```sql\nSELECT DISTINCT a.airline_name\nFROM airlines a\nJOIN flights f ON a.airline_id = f.airline_id\nJOIN airports ap ON f.destination_airport_id = ap.airport_id\nWHERE ap.iata_code = 'AHD';\n```",
+  "score": 5,
+  "cost": 0.00015480000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 64
+  }
+}

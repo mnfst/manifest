@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "sql_spider",
+  "case": 26,
+  "response": "```sql\nSELECT COUNT(*) AS flight_count\nFROM flights\nWHERE departure_city = 'Aberdeen' AND destination_city = 'Ashley';\n```",
+  "score": 5,
+  "cost": 2.91e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 29
+  }
+}

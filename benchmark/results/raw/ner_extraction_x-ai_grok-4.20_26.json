@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "ner_extraction",
+  "case": 26,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"Supreme Court\", \"ACLU\"],\n  \"locations\": [\"Texas\"]\n}",
+  "score": 4,
+  "cost": 0.000582,
+  "expected": "",
+  "tokens": {
+    "input": 187,
+    "output": 26
+  }
+}

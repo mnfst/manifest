@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "intent_clinc150",
+  "case": 23,
+  "response": "account_blocked",
+  "score": 5,
+  "cost": 0.00082675,
+  "expected": "account_blocked",
+  "tokens": {
+    "input": 511,
+    "output": 699
+  }
+}

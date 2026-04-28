@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "translation_enfr",
+  "case": 46,
+  "response": "J'ai re\u00e7u sept propositions de r\u00e9solution conform\u00e9ment \u00e0 l'article 37 du r\u00e8glement int\u00e9rieur.",
+  "score": 5,
+  "cost": 0.005846100000000001,
+  "expected": "",
+  "tokens": {
+    "input": 49,
+    "output": 1112
+  }
+}

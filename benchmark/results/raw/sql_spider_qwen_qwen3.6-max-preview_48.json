@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "sql_spider",
+  "case": 48,
+  "response": "SELECT Model FROM cars_data WHERE Weight < (SELECT avg(Weight) FROM cars_data)",
+  "score": 5,
+  "cost": 0.0081042,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 1538
+  }
+}

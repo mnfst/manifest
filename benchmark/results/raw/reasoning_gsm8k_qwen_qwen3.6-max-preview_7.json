@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "Here is the step-by-step solution:\n\n**Step 1: Calculate the total cost of the plates.**\nHalf a dozen equals 6 plates. Since each plate costs $6000, the total cost for the plates is:\n6 plates \u00d7 $6000/plate = $36,000\n\n**Step 2: Calculate the total cost of the cups.**\nThe problem states that the cups cost $1,200 less than the total cost of the plates:\n$36,000 - $1,200 = $34,800\n\n**Step 3: Determine the total number of cups.**\nTwenty dozen cups means:\n20 \u00d7 12 = 240 cups\n\n**Step 4: Calculate the cost of each cup.**\nDivide the total cost of the cups by the number of cups to find the unit price:\n$34,800 \u00f7 240 cups = $145 per cup\n\nANSWER: 145",
+  "score": 5,
+  "cost": 0.0099749,
+  "expected": "145",
+  "tokens": {
+    "input": 85,
+    "output": 1897
+  }
+}

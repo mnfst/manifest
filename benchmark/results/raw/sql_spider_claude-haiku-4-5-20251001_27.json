@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "```sql\nSELECT DISTINCT c.name\nFROM country c\nWHERE c.code IN (\n    SELECT code FROM countrylanguage WHERE language = 'English'\n)\nAND c.code IN (\n    SELECT code FROM countrylanguage WHERE language = 'French'\n)\n```",
+  "score": 5,
+  "cost": 0.0003344,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 68
+  }
+}

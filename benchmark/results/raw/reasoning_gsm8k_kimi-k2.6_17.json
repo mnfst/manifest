@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 17,
+  "response": "Step 1: Calculate the total cost of the books.\nTed buys 3 books at $16 each.\n3 \u00d7 $16 = $48\n\nStep 2: Calculate the total cost of the pencils.\nTed buys 3 pencils at $6 each.\n3 \u00d7 $6 = $18\n\nStep 3: Calculate the total amount spent.\nAdd the cost of the books and the pencils together.\n$48 + $18 = $66\n\nNote: The $200 Ted started with is not needed to answer how much he spent in total.\n\nANSWER: 66",
+  "score": 5,
+  "cost": 0.000888,
+  "expected": "66",
+  "tokens": {
+    "input": 76,
+    "output": 351
+  }
+}

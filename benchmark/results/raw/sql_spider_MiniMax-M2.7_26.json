@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_spider",
+  "case": 26,
+  "response": "```sql\nSELECT COUNT(*) \nFROM flights \nWHERE departure_city = 'Aberdeen' \nAND destination_city = 'Ashley';\n```",
+  "score": 5,
+  "cost": 0.0009548000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 194
+  }
+}

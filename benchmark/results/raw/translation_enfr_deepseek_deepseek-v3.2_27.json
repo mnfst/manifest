@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "translation_enfr",
+  "case": 27,
+  "response": "Les crit\u00e8res du DSMIV pour l'intoxication alcoolique sont similaires, avec l'ajout d'un ou plusieurs des signes suivants : discours bredouillant, incoordination, d\u00e9marche instable, nystagmus, alt\u00e9ration de l'attention ou de la m\u00e9moire, stupeur ou coma.",
+  "score": 5,
+  "cost": 9.525e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 70
+  }
+}

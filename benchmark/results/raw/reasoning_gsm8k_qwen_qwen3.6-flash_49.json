@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 49,
+  "response": "Step 1: Calculate the combined age of the sisters. There are 3 sisters, and each is 16 years old.\n3 \u00d7 16 = 48 years\n\nStep 2: Determine the age of the older brother. The younger brother is 12 years old, which is half the age of the older brother.\n12 \u00d7 2 = 24 years\n\nStep 3: Calculate the combined age of the brothers.\n12 + 24 = 36 years\n\nStep 4: Add the combined ages of the sisters and brothers to find the total age of all siblings.\n48 + 36 = 84 years\n\nANSWER: 84",
+  "score": 5,
+  "cost": 0.0015235,
+  "expected": "84",
+  "tokens": {
+    "input": 106,
+    "output": 1497
+  }
+}

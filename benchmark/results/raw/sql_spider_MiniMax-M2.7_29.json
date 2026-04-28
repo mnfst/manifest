@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_spider",
+  "case": 29,
+  "response": "SELECT COUNT(DISTINCT language) FROM countrylanguage;",
+  "score": 5,
+  "cost": 0.0024123,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 523
+  }
+}

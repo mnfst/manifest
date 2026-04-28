@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 1,
+  "response": "Hommejeunechh, 49 ans, Pays-de-la-Loire (Angers)\n\nNote: This translation preserves the concise, profile-listing tone of the original text. The unique username Hommejeunechh is kept unmodified as it is a personal screen name, and the place names Pays-de-la-Loire and Angers are already official French proper nouns that required no adjustment. \"49 years old\" is translated to the natural, common shorthand 49 ans used in French personal profiles and casual listings.",
+  "score": 5,
+  "cost": 0.0008715,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 849
+  }
+}

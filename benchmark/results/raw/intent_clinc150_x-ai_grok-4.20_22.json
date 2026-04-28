@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "intent_clinc150",
+  "case": 22,
+  "response": "transfer",
+  "score": 5,
+  "cost": 0.001268,
+  "expected": "transfer",
+  "tokens": {
+    "input": 630,
+    "output": 1
+  }
+}

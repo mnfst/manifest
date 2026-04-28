@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "ner_extraction",
+  "case": 26,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"Supreme Court\", \"ACLU\"],\n  \"locations\": [\"Texas\"]\n}",
+  "score": 4,
+  "cost": 4.965000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 29
+  }
+}

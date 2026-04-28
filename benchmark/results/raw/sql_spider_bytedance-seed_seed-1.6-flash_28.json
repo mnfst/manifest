@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 28,
+  "response": "SELECT nationality\nFROM poker_players\nGROUP BY nationality\nHAVING COUNT(*) >= 2;",
+  "score": 5,
+  "cost": 0.000100125,
+  "expected": "",
+  "tokens": {
+    "input": 151,
+    "output": 296
+  }
+}

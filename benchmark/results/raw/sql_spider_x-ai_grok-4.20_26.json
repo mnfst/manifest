@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "sql_spider",
+  "case": 26,
+  "response": "```sql\nSELECT COUNT(*) \nFROM flights \nWHERE origin_city = 'Aberdeen' \nAND dest_city = 'Ashley';\n```",
+  "score": 5,
+  "cost": 0.000602,
+  "expected": "",
+  "tokens": {
+    "input": 193,
+    "output": 27
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "sql_spider",
+  "case": 19,
+  "response": "SELECT DISTINCT cm.FullName FROM car_makers cm JOIN model_list ml ON cm.Id = ml.Maker JOIN car_names cn ON ml.Model = cn.Model JOIN cars_data cd ON cn.MakeId = cd.Id WHERE cd.Year = 1970;",
+  "score": 4,
+  "cost": 0.01017,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 113
+  }
+}

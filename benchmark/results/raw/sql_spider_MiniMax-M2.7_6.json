@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_spider",
+  "case": 6,
+  "response": "```sql\nSELECT DISTINCT a.airline_name\nFROM airlines a\nJOIN flights f\n  ON a.airline_id = f.airline_id\nWHERE f.destination_airport = 'AHD';\n```",
+  "score": 5,
+  "cost": 0.0020823,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 447
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "reasoning_gsm8k",
+  "case": 38,
+  "response": "Here is the step-by-step solution:\n\n1. **Find the total number of parts in the ratio:** The ratio 3:2 means the money is divided into 3 + 2 = 5 equal parts.\n2. **Calculate the value of one part:** Divide the total amount by the total number of parts: $100 \u00f7 5 = $20 per part.\n3. **Determine Gerald's initial share:** Gerald's portion corresponds to 3 parts, so he initially received 3 \u00d7 $20 = $60.\n4. **Subtract the amount spent:** Gerald spent $10 on a book, so the amount he has left is $60 - $10 = $50.\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.006518200000000001,
+  "expected": "50",
+  "tokens": {
+    "input": 82,
+    "output": 1233
+  }
+}

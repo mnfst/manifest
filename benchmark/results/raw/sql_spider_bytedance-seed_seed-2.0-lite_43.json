@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "sql_spider",
+  "case": 43,
+  "response": "SELECT COUNT(*) AS cars_with_over_6_cylinders FROM car_1.cars WHERE cylinders > 6;",
+  "score": 5,
+  "cost": 0.0002895,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 261
+  }
+}

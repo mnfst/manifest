@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "To solve the problem, we first calculate how much money Mitchell earned, then find the difference between Mitchell's earnings and Liam's earnings.\n\nStep 1: Calculate Mitchell's total earnings. Mitchell sold 21 lemonades at $4 each. To find his total, multiply the number of lemonades by the price per lemonade:\n21 * 4 = $84.\n\nStep 2: Find the difference between Mitchell's and Liam's earnings. Liam made $63. Subtract Liam's earnings from Mitchell's earnings to find how much more Mitchell made:\n84 - 63 = $21.\n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.000404,
+  "expected": "21",
+  "tokens": {
+    "input": 152,
+    "output": 366
+  }
+}

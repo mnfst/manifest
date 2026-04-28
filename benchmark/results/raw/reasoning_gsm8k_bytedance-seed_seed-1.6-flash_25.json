@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "To determine how much money John had leftover after paying his debts, we break down the problem step by step:\n\n\n### Step 1: Calculate the loan amount  \nJohn's house is worth $250,000, and he gets a loan worth 40% of that.  \nLoan amount = 40% of $250,000  \n= \\(0.4 \\times 250,000 = 100,000\\)  \n\n\n### Step 2: Calculate the amount used to pay debts  \nHe uses 60% of the loan to pay off his debts.  \nDebt payment = 60% of $100,000  \n= \\(0.6 \\times 100,000 = 60,000\\)  \n\n\n### Step 3: Calculate the leftover money  \nThe leftover money is the loan amount minus the debt payment.  \nLeftover = Loan amount - Debt payment  \n= \\(100,000 - 60,000 = 40,000\\)  \n\n\nANSWER: 40000",
+  "score": 5,
+  "cost": 0.00027915,
+  "expected": "40,000",
+  "tokens": {
+    "input": 186,
+    "output": 884
+  }
+}

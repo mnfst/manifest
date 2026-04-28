@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "Here's how to solve the problem step-by-step:\n\n1. **Calculate the total travel time going:** Tom travels from 1 PM to 4 PM, which is a total of 3 hours.\n\n2. **Calculate the distance traveled:** Since Tom travels at 10 miles per hour for 3 hours, the distance he covers is 10 mph * 3 hours = 30 miles.\n\n3. **Calculate the return travel time:** Tom travels back the same 30 miles at a rate of 6 mph. The time it takes him to return is 30 miles / 6 mph = 5 hours.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 6.54e-05,
+  "expected": "5",
+  "tokens": {
+    "input": 86,
+    "output": 142
+  }
+}

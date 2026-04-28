@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "**Step 1:** Identify the initial number of fairies.  \nKatelyn originally saw **50** fairies.\n\n**Step 2:** Determine how many new fairies joined.  \nHer friend saw half as many fairies as Katelyn saw:  \n\\( 50 \\div 2 = 25 \\) fairies came from the east and joined the group.\n\n**Step 3:** Calculate the total after the new fairies arrived.  \n\\( 50 + 25 = 75 \\) fairies.\n\n**Step 4:** Subtract the fairies that flew away.  \nTen minutes later, 30 fairies left:  \n\\( 75 - 30 = 45 \\) fairies.\n\nANSWER: 45",
+  "score": 5,
+  "cost": 0.0020597999999999997,
+  "expected": "45",
+  "tokens": {
+    "input": 117,
+    "output": 829
+  }
+}

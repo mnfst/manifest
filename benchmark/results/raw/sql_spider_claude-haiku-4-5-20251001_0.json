@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "sql_spider",
+  "case": 0,
+  "response": "```sql\nSELECT money_rank\nFROM poker_player\nORDER BY height DESC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 0.0001744,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 28
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "translation_enfr",
+  "case": 4,
+  "response": "Avait votre mari invit\u00e9 le lieutenant Gilbert chez vous ?  \n\n\nThis translation maintains the past perfect tense (\"avait invit\u00e9\") to reflect the \"had\" in the original, uses \"chez vous\" for natural phrasing of \"to your house,\" and includes \"le\" before \"lieutenant Gilbert\" for grammatical accuracy in French. The tone remains polite and inquisitive, matching the original.",
+  "score": 5,
+  "cost": 0.00016319999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 516
+  }
+}

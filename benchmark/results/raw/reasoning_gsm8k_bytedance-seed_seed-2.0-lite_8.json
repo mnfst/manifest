@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "To solve this problem, we break it down step by step:\n\n1. First, identify the base number of students from last year: Last year's enrollment = 50 students.\n2. A 20% increase means we calculate 20% of last year's enrollment to find the number of additional students this year. 20% converts to the decimal 0.2, so:\n   Additional students = 20% of 50 = 0.2 * 50 = 10 students.\n3. Add the additional students to last year's total to get this year's enrollment:\n   This year's enrollment = Last year's enrollment + additional students = 50 + 10 = 60.\n\nANSWER: 60",
+  "score": 5,
+  "cost": 0.000511,
+  "expected": "60",
+  "tokens": {
+    "input": 128,
+    "output": 479
+  }
+}

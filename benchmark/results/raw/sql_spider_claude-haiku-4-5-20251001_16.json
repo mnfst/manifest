@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "sql_spider",
+  "case": 16,
+  "response": "```sql\nSELECT COUNT(DISTINCT country_code) AS number_of_distinct_countries\nFROM players;\n```",
+  "score": 5,
+  "cost": 0.0001784,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 29
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "sql_spider",
+  "case": 6,
+  "response": "```sql\nSELECT DISTINCT airline\nFROM flights\nWHERE destination_airport = 'AHD';\n```",
+  "score": 5,
+  "cost": 0.000639,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 27
+  }
+}

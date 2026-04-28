@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "sql_spider",
+  "case": 45,
+  "response": "SELECT T1.first_name , T3.treatment_type_description FROM Professionals AS T1 JOIN Treatments AS T2 ON T1.professional_id  =  T2.professional_id JOIN Treatment_Types AS T3 ON T2.treatment_type_code  =  T3.treatment_type_code",
+  "score": 4,
+  "cost": 0.010691200000000001,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 2035
+  }
+}

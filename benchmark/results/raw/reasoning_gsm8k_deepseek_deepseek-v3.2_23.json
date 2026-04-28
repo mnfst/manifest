@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 23,
+  "response": "Let\u2019s break this down step by step.  \n\n---\n\n**Step 1: Find the original cost per balloon**  \nTotal cost for 20 balloons = $900  \nOriginal cost per balloon = \\( \\frac{900}{20} = 45 \\) dollars.\n\n---\n\n**Step 2: Find the new cost per balloon after increase**  \nIncrease per balloon = $20  \nNew cost per balloon = \\( 45 + 20 = 65 \\) dollars.\n\n---\n\n**Step 3: Find cost for 170 balloons at new price**  \nCost = \\( 170 \\times 65 \\)  \n\nFirst: \\( 170 \\times 60 = 10200 \\)  \nThen: \\( 170 \\times 5 = 850 \\)  \nTotal = \\( 10200 + 850 = 11050 \\).\n\n---\n\n**Step 4: Final answer**  \nANSWER: 11050",
+  "score": 4,
+  "cost": 0.00022520000000000003,
+  "expected": "11050",
+  "tokens": {
+    "input": 100,
+    "output": 182
+  }
+}

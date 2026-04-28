@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "sql_spider",
+  "case": 40,
+  "response": "```sql\nSELECT makeid, make\nFROM car_1\nWHERE horsepower > (SELECT MIN(horsepower) FROM car_1)\n  AND cylinders <= 3;\n```",
+  "score": 5,
+  "cost": 2.15e-05,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 39
+  }
+}

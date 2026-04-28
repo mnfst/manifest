@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "To solve the problem, we calculate the class's total profit step by step:\n\n### Step 1: Calculate total number of lollipops sold\nThere are 30 students, and each sold an average of 10 lollipops. The total number of lollipops sold is:\n\\[ 30 \\text{ students} \\times 10 \\text{ lollipops/student} = 300 \\text{ lollipops} \\]\n\n### Step 2: Calculate profit per lollipop\nThe selling price per lollipop is $0.8, and the cost to buy each lollipop is $0.5. Profit per lollipop is the difference between selling price and cost:\n\\[ \\$0.8 - \\$0.5 = \\$0.3 \\text{ profit per lollipop} \\]\n\n### Step 3: Calculate total profit\nMultiply the profit per lollipop by the total number of lollipops sold to get the total money raised:\n\\[ 300 \\text{ lollipops} \\times \\$0.3/\\text{lollipop} = \\$90 \\]\n\nANSWER: 90",
+  "score": 5,
+  "cost": 0.000849,
+  "expected": "90",
+  "tokens": {
+    "input": 168,
+    "output": 807
+  }
+}

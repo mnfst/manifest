@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 21,
+  "response": "```sql\nSELECT flight_number\nFROM flights\nWHERE airline_id = (SELECT airline_id FROM airlines WHERE airline_name = 'United Airlines');\n```",
+  "score": 5,
+  "cost": 3.7999999999999996e-06,
+  "expected": "",
+  "tokens": {
+    "input": 65,
+    "output": 30
+  }
+}

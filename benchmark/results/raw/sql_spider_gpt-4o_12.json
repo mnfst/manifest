@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "sql_spider",
+  "case": 12,
+  "response": "```sql\nSELECT professional_id, role, first_name\nFROM professionals\nWHERE professional_id IN (\n    SELECT professional_id\n    FROM treatments\n    GROUP BY professional_id\n    HAVING COUNT(*) >= 2\n);\n```",
+  "score": 5,
+  "cost": 0.000665,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 46
+  }
+}

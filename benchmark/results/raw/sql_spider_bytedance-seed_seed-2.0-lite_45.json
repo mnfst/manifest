@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "sql_spider",
+  "case": 45,
+  "response": "SELECT DISTINCT p.first_name, t.description AS treatment_description\nFROM professionals p\nINNER JOIN treatment_records tr ON p.professional_id = tr.professional_id\nINNER JOIN treatments t ON tr.treatment_id = t.treatment_id;",
+  "score": 5,
+  "cost": 0.0005395,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 509
+  }
+}

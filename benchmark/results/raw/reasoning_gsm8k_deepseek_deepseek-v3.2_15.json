@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 15,
+  "response": "Let\u2019s go step by step.  \n\n**Step 1: Joey\u2019s initial points**  \nJoey starts with 214 points.  \n\n**Step 2: Joey\u2019s score during his turn**  \nHe scores 26 points.  \nJoey\u2019s new total:  \n\\[\n214 + 26 = 240\n\\]\n\n**Step 3: Marcy\u2019s initial points**  \nMarcy starts with 225 points.  \n\n**Step 4: Marcy\u2019s score during her turn**  \nShe scores 10 points.  \nMarcy\u2019s new total:  \n\\[\n225 + 10 = 235\n\\]\n\n**Step 5: Difference in points**  \nJoey\u2019s points \u2212 Marcy\u2019s points:  \n\\[\n240 - 235 = 5\n\\]\n\n**Step 6: Conclusion**  \nJoey is winning by 5 points.  \n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.00022765,
+  "expected": "5",
+  "tokens": {
+    "input": 79,
+    "output": 189
+  }
+}

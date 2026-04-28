@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 44,
+  "response": "First, we resolve the logical consistency of the problem (the first line contains a common transposition error, and the intended setup is that 20 stalls each start with 20 cows, which aligns with the rest of the problem's details):\n\nStep 1: Calculate how many new cows are added to each stall. Mr. Sylas has 40 new cows to split equally across 20 stalls. New cows per stall = 40 total new cows / 20 stalls = 2 cows per stall.\n\nStep 2: Find the total number of cows per stall after adding the new cows. Each stall originally had 20 cows, so new total per stall = 20 original cows + 2 new cows = 22 cows per stall.\n\nStep 3: Calculate the total number of cows in 8 stalls. Total cows for 8 stalls = 8 stalls * 22 cows per stall = 176.\n\nANSWER: 176",
+  "score": 5,
+  "cost": 0.00182675,
+  "expected": "192",
+  "tokens": {
+    "input": 135,
+    "output": 1793
+  }
+}

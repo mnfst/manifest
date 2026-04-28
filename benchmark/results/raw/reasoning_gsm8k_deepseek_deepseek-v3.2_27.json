@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 27,
+  "response": "Alright, let\u2019s go step-by-step.  \n\n---\n\n**Step 1: Define the variable**  \nLet \\( N \\) = number of vacuum cleaners Melanie started with.\n\n---\n\n**Step 2: First sale \u2014 green house**  \nShe sold \\( \\frac{1}{3}N \\) at the green house.  \nRemaining after green house:  \n\\[\nN - \\frac{1}{3}N = \\frac{2}{3}N\n\\]\n\n---\n\n**Step 3: Second sale \u2014 red house**  \nShe sold 2 more to the red house.  \nRemaining after red house:  \n\\[\n\\frac{2}{3}N - 2\n\\]\n\n---\n\n**Step 4: Third sale \u2014 orange house**  \nShe sold **half of what was left** at the orange house.  \n\u201cWhat was left\u201d after red house = \\( \\frac{2}{3}N - 2 \\).  \nHalf of that is sold, so she sells \\( \\frac{1}{2} \\left( \\frac{2}{3}N - 2 \\right) \\).  \nRemaining after orange house:  \n\\[\n\\left( \\frac{2}{3}N - 2 \\right) - \\frac{1}{2} \\left( \\frac{2}{3}N - 2 \\right) = \\frac{1}{2} \\left( \\frac{2}{3}N - 2 \\right)\n\\]\n\n---\n\n**Step 5: Set up final equation**  \nAfter orange house, she has 5 vacuum cleaners left:  \n\\[\n\\frac{1}{2} \\left( \\frac{2}{3}N - 2 \\right) = 5\n\\]\n\n---\n\n**Step 6: Solve**  \nMultiply both sides by 2:  \n\\[\n\\frac{2}{3}N - 2 = 10\n\\]  \n\\[\n\\frac{2}{3}N = 12\n\\]  \n\\[\nN = 12 \\times \\frac{3}{2} = 18\n\\]\n\n---\n\n**Step 7: Check**  \nStart: 18  \nGreen house: \\( \\frac13 \\times 18 = 6 \\) sold \u2192 left \\( 12 \\)  \nRed house: 2 sold \u2192 left \\( 10 \\)  \nOrange house: half of 10 = 5 sold \u2192 left \\( 5 \\) \u2714\n\n---\n\nANSWER: 18",
+  "score": 4,
+  "cost": 0.00058035,
+  "expected": "18",
+  "tokens": {
+    "input": 95,
+    "output": 506
+  }
+}

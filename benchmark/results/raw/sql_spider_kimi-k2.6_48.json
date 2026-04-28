@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "sql_spider",
+  "case": 48,
+  "response": "SELECT model FROM cars WHERE weight < (SELECT AVG(weight) FROM cars);",
+  "score": 5,
+  "cost": 0.0013242,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 533
+  }
+}

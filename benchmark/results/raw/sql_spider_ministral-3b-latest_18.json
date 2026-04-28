@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 18,
+  "response": "```sql\nSELECT DISTINCT c.country\nFROM concert_singer.singers s1\nJOIN concert_singer.singers s2 ON s1.singer_id = s2.singer_id\nWHERE s1.age > 40 AND s2.age < 30;\n```",
+  "score": 2,
+  "cost": 5.48e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 61
+  }
+}

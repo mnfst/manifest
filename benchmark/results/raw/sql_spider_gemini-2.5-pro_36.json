@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "sql_spider",
+  "case": 36,
+  "response": "```sql\nSELECT T1.name FROM Highschooler AS T1 INNER JOIN Likes AS T2 ON T1.ID = T2.ID2 GROUP BY T2.ID2 ORDER BY count(*) DESC LIMIT 1\n```",
+  "score": 4,
+  "cost": 0.00057625,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 49
+  }
+}

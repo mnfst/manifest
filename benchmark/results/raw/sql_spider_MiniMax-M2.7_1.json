@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_spider",
+  "case": 1,
+  "response": "SELECT AVG(mpg) FROM cars WHERE cylinders = 4;",
+  "score": 5,
+  "cost": 0.0058025,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 1292
+  }
+}

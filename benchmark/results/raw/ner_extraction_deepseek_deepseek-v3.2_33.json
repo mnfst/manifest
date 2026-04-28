@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "ner_extraction",
+  "case": 33,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"International Monetary Fund\"],\n  \"locations\": [\"Latin America\"]\n}",
+  "score": 5,
+  "cost": 4.585e-05,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 26
+  }
+}

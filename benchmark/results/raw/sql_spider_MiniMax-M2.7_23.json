@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_spider",
+  "case": 23,
+  "response": "SELECT production_code, channel  \nFROM tvshow  \nWHERE type = 'Cartoon'  \nORDER BY aired_date DESC  \nLIMIT 1;",
+  "score": 5,
+  "cost": 0.004433000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 981
+  }
+}

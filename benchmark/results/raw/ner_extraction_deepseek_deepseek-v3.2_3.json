@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "ner_extraction",
+  "case": 3,
+  "response": "{\n  \"persons\": [\"Maria Garcia\"],\n  \"organizations\": [\"Microsoft\", \"ACM\"],\n  \"locations\": [\"Seattle\"]\n}",
+  "score": 5,
+  "cost": 4.965000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 29
+  }
+}

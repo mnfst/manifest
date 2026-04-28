@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "translation_enfr",
+  "case": 11,
+  "response": "French: Un grand nombre d'attractions et de produits touristiques (th\u00e9, itin\u00e9raires culturels, stations de sant\u00e9 et de bien-\u00eatre et spas, gastronomie, activit\u00e9s nautiques, etc.) ont \u00e9t\u00e9 identifi\u00e9s sur la destination, n\u00e9cessitant un d\u00e9veloppement interd\u00e9pendant en raison de leur isolement, de leurs compl\u00e9mentarit\u00e9s et de leur profil relativement homog\u00e8ne.",
+  "score": 4,
+  "cost": 0.0236249,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 4522
+  }
+}

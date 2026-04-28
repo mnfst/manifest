@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "sql_spider",
+  "case": 29,
+  "response": "```sql\nSELECT count(DISTINCT language)\nFROM countrylanguage;\n```",
+  "score": 5,
+  "cost": 1.35e-05,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 17
+  }
+}

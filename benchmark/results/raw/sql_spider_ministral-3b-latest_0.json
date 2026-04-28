@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 0,
+  "response": "```sql\nSELECT p.money_rank\nFROM poker_player p\nJOIN (\n    SELECT player_id, MAX(height) AS max_height\n    FROM poker_player\n    GROUP BY player_id\n) tallest ON p.player_id = tallest.player_id\nWHERE p.height = tallest.max_height;\n```",
+  "score": 3,
+  "cost": 5.24e-06,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 64
+  }
+}

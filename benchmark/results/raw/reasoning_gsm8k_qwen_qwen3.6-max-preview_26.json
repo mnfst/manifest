@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "To find out how many more dollars Mitchell made than Liam, follow these steps:\n\n1. **Calculate Mitchell's total earnings:** \n   Mitchell sold 21 lemonades at $4 each.\n   21 \u00d7 $4 = $84\n\n2. **Find the difference between Mitchell's and Liam's earnings:**\n   Liam made $63, and Mitchell made $84.\n   $84 - $63 = $21\n\nMitchell made $21 more than Liam that weekend.\n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.0042198,
+  "expected": "21",
+  "tokens": {
+    "input": 114,
+    "output": 783
+  }
+}

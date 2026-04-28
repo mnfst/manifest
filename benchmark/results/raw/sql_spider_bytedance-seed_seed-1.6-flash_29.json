@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 29,
+  "response": "SELECT COUNT(DISTINCT language) AS unique_languages_count FROM countrylanguage;",
+  "score": 5,
+  "cost": 8.047499999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 231
+  }
+}

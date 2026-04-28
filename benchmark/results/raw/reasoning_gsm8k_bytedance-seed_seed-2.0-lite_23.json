@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 23,
+  "response": "To solve the problem, we work step by step:\n\n1. **Calculate the original cost per balloon**:\n   The total cost to fill 20 balloons originally was $900. The original cost per balloon is:\n   \\( \\frac{\\text{Total original cost}}{\\text{Number of balloons}} = \\frac{900}{20} = 45 \\) dollars per balloon.\n\n2. **Find the new cost per balloon after the increase**:\n   The price per balloon increased by $20, so the new cost per balloon is:\n   \\( 45 + 20 = 65 \\) dollars per balloon.\n\n3. **Calculate the total cost for 170 balloons at the new price**:\n   Multiply the new per-balloon cost by the number of balloons Bentley fills:\n   \\( 170 \\times 65 = 11050 \\).\n\nANSWER: 11050",
+  "score": 5,
+  "cost": 0.000628,
+  "expected": "11050",
+  "tokens": {
+    "input": 148,
+    "output": 591
+  }
+}

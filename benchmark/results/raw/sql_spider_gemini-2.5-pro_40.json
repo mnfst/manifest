@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "sql_spider",
+  "case": 40,
+  "response": "```sql\nSELECT DISTINCT T1.makeid, T1.make\nFROM makes AS T1\nINNER JOIN cars_data AS T2\n  ON T1.makeid = T2.make\nWHERE\n  T2.horsepower > (\n    SELECT MIN(horsepower) FROM cars_data\n  ) AND T2.cylinders <= 3;\n```",
+  "score": 4,
+  "cost": 0.00089875,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 79
+  }
+}

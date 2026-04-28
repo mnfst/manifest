@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "sql_spider",
+  "case": 47,
+  "response": "```sql\nSELECT type_code FROM template_type WHERE description = 'Book';\n```",
+  "score": 5,
+  "cost": 3.745e-05,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 17
+  }
+}

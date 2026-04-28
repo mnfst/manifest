@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "sql_spider",
+  "case": 7,
+  "response": "SELECT COUNT(*) FROM cars WHERE year = 1980;",
+  "score": 5,
+  "cost": 0.0039378,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 1623
+  }
+}

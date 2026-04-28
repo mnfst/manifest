@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "translation_enfr",
+  "case": 37,
+  "response": "Le paragraphe 104(1.1) est modifi\u00e9 afin de pr\u00e9ciser qu'il s'applique nonobstant le paragraphe 248(25) de la Loi. Le paragraphe 248(25) de la Loi \u00e9nonce, pour d'autres fins de la Loi, les circonstances dans lesquelles une personne ou une soci\u00e9t\u00e9 de personnes est consid\u00e9r\u00e9e comme \u00ab int\u00e9ress\u00e9e \u00e0 titre b\u00e9n\u00e9ficiaire \u00bb dans une fiducie.",
+  "score": 5,
+  "cost": 0.003394,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 3368
+  }
+}

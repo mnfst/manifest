@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "sql_spider",
+  "case": 29,
+  "response": "```sql\nSELECT COUNT(DISTINCT language) AS unique_languages\nFROM world_1.country_language;\n```",
+  "score": 5,
+  "cost": 1.47e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 23
+  }
+}

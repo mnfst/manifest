@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 12,
+  "response": "Let\u2019s break this down step by step.  \n\n---\n\n**Step 1: Daily TV time**  \nJim spends 2 hours watching TV each day he does this routine.  \n\n**Step 2: Daily reading time**  \nHe reads for half as long as he watches TV:  \n\\[\n\\frac{1}{2} \\times 2 \\text{ hours} = 1 \\text{ hour reading}\n\\]\n\n**Step 3: Total time per day**  \n\\[\n2 \\text{ hours (TV)} + 1 \\text{ hour (reading)} = 3 \\text{ hours per day}\n\\]\n\n**Step 4: Days per week**  \nHe does this 3 times a week.  \n\\[\n3 \\text{ hours/day} \\times 3 \\text{ days/week} = 9 \\text{ hours/week}\n\\]\n\n**Step 5: Total time in 4 weeks**  \n\\[\n9 \\text{ hours/week} \\times 4 \\text{ weeks} = 36 \\text{ hours}\n\\]\n\n---\n\nANSWER: 36",
+  "score": 5,
+  "cost": 0.00026805000000000004,
+  "expected": "36",
+  "tokens": {
+    "input": 91,
+    "output": 223
+  }
+}

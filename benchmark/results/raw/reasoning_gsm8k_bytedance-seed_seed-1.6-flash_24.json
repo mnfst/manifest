@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "To determine the profit the class raised, we follow these steps:\n\n\n### Step 1: Calculate the total number of lollipops sold  \nThere are 30 students, and each sold 10 lollipops.  \nTotal lollipops sold = \\( 30 \\text{ students} \\times 10 \\text{ lollipops/student} = 300 \\text{ lollipops} \\).  \n\n\n### Step 2: Calculate total revenue from sales  \nThe lollipops were sold for $0.8 each.  \nTotal revenue = \\( 300 \\text{ lollipops} \\times \\$0.8/\\text{lollypop} = \\$240 \\).  \n\n\n### Step 3: Calculate total cost to buy lollipops  \nThe class bought lollipops for $0.5 each.  \nTotal cost = \\( 300 \\text{ lollipops} \\times \\$0.5/\\text{lollypop} = \\$150 \\).  \n\n\n### Step 4: Calculate profit  \nProfit is revenue minus cost.  \nProfit = \\( \\$240 - \\$150 = \\$90 \\).  \n\n\nANSWER: 90",
+  "score": 5,
+  "cost": 0.00040454999999999994,
+  "expected": "90",
+  "tokens": {
+    "input": 202,
+    "output": 1298
+  }
+}

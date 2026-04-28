@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "sql_spider",
+  "case": 33,
+  "response": "```sql\nSELECT Title, Rating\nFROM Episodes\nORDER BY Rating DESC\nLIMIT 3;\n```",
+  "score": 5,
+  "cost": 0.000315,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 22
+  }
+}

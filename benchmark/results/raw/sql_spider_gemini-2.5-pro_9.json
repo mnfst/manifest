@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "sql_spider",
+  "case": 9,
+  "response": "```sql\nSELECT T2.CountryName\nFROM car_makers AS T1\nINNER JOIN countries AS T2\n  ON T1.Country = T2.ContId\nGROUP BY\n  T2.CountryName\nORDER BY\n  COUNT(T1.Id) DESC\nLIMIT 1;\n```",
+  "score": 3,
+  "cost": 0.00075875,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 67
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "Here is the step-by-step solution:\n\n1. **Identify the number of boys:** The problem directly states that there are 30 boys in the classroom.\n2. **Calculate the number of girls:** There are 3 times as many girls as boys. Multiply the number of boys by 3:\n   30 boys \u00d7 3 = 90 girls\n3. **Calculate the number of nongendered children:** There are 1/10 as many nongendered children as boys. Multiply the number of boys by 1/10:\n   30 boys \u00d7 (1/10) = 3 nongendered children\n4. **Find the total number of children:** Add the number of boys, girls, and nongendered children together:\n   30 + 90 + 3 = 123\n\nANSWER: 123",
+  "score": 2,
+  "cost": 0.006165899999999999,
+  "expected": "123",
+  "tokens": {
+    "input": 99,
+    "output": 1161
+  }
+}

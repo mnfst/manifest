@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "ner_extraction",
+  "case": 44,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [],\n  \"locations\": [\"Puerto Rico\", \"Dominican Republic\"]\n}",
+  "score": 4,
+  "cost": 8.782500000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 256
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "Step 1: Find out how many pomelos Eve has left.\nEve originally had 20 pomelos. She is left with 1/4 of her original amount.\nRemaining pomelos = 20 \u00d7 (1/4) = 5 pomelos.\n\nStep 2: Calculate how many pomelos Eve gave away.\nTo find the number of pomelos given to her friend, subtract the remaining amount from the original amount.\nPomelos given away = Original amount - Remaining amount\nPomelos given away = 20 - 5 = 15.\n\nANSWER: 15",
+  "score": 5,
+  "cost": 0.005016700000000001,
+  "expected": "15",
+  "tokens": {
+    "input": 91,
+    "output": 942
+  }
+}

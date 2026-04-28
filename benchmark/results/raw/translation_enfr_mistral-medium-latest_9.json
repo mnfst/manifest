@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "translation_enfr",
   "case": 9,
-  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens du texte original :\n\n**\u00ab** De son c\u00f4t\u00e9, le deuxi\u00e8me atelier s\u2019est concentr\u00e9 sur la mise en \u0153uvre des recommandations formul\u00e9es par les organes de suivi des trait\u00e9s \u00e0 l\u2019intention de l\u2019\u00c9tat du Cameroun, conform\u00e9ment aux instruments internationaux et r\u00e9gionaux, concernant ses obligations envers les populations autochtones. **\u00bb**\n\n*Variante l\u00e9g\u00e8rement plus fluide (si le contexte le permet) :*\n*\u00ab* Pour sa part, le second atelier a port\u00e9 sur l\u2019application des recommandations adress\u00e9es par les organes de contr\u00f4le des trait\u00e9s \u00e0 l\u2019\u00c9tat camerounais, au regard des conventions internationales et r\u00e9gionales, relatives \u00e0 ses engagements envers les peuples autochtones. *\u00bb*",
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens du texte original :\n\n**\u00ab** De son c\u00f4t\u00e9, le deuxi\u00e8me atelier s\u2019est concentr\u00e9 sur la mise en \u0153uvre des recommandations formul\u00e9es par les organes de suivi des trait\u00e9s \u00e0 l\u2019intention de l\u2019\u00c9tat du Cameroun, conform\u00e9ment aux instruments internationaux et r\u00e9gionaux, concernant ses obligations envers les populations autochtones. **\u00bb**\n\n*Variante l\u00e9g\u00e8rement plus fluide (si le contexte le permet) :*\n*\u00ab* Pour sa part, le second atelier a port\u00e9 sur l\u2019application des recommandations adress\u00e9es par les organes de contr\u00f4le des trait\u00e9s \u00e0 l\u2019\u00c9tat camerounais, au regard des engagements internationaux et r\u00e9gionaux, relatifs \u00e0 ses obligations envers les peuples autochtones. *\u00bb*",
   "score": 5,
-  "cost": 0.0003376,
+  "cost": 0.0003416,
   "expected": "",
   "tokens": {
     "input": 64,
-    "output": 156
+    "output": 158
   }
 }

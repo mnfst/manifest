@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "sql_spider",
+  "case": 19,
+  "response": "SELECT T1.Maker FROM car_makers AS T1 JOIN model_list AS T2 ON T1.Id  =  T2.Maker JOIN car_names AS T3 ON T2.Model  =  T3.Model JOIN cars_data AS T4 ON T3.MakeId  =  T4.Id WHERE T4.Year  =  1970",
+  "score": 4,
+  "cost": 0.0130507,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 2488
+  }
+}

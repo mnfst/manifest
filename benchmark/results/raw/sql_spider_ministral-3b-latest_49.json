@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 49,
+  "response": "```sql\nSELECT c.hometown\nFROM course_teach ct\nJOIN teachers t ON ct.teacher_id = t.id\nJOIN course_teach ct2 ON t.id = ct2.teacher_id\nWHERE ct.hometown = ct2.hometown\nAND ct.hometown IS NOT NULL;\n```",
+  "score": 3,
+  "cost": 5.5200000000000005e-06,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 70
+  }
+}

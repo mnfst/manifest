@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "translation_enfr",
+  "case": 39,
+  "response": "Tu sais d'o\u00f9 vient l'argent ? \n\n*(Note : Utilisez \"Vous savez d'o\u00f9 vient l'argent ?\" si vous vous adressez \u00e0 plusieurs personnes ou dans un contexte formel.)*",
+  "score": 5,
+  "cost": 0.00158075,
+  "expected": "",
+  "tokens": {
+    "input": 39,
+    "output": 1571
+  }
+}

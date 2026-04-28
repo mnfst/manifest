@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 25,
+  "response": "```sql\nSELECT title, year\nFROM tvshows\nWHERE genre = 'Cartoon'\n  AND director = 'Ben Jones';\n```",
+  "score": 5,
+  "cost": 3.7599999999999996e-06,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 30
+  }
+}

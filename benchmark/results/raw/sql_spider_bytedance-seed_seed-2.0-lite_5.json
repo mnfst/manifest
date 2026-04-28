@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "SELECT a.airport_code, a.airport_name\nFROM airports a\nWHERE NOT EXISTS (\n    SELECT 1\n    FROM flights f\n    WHERE f.origin_airport_code = a.airport_code\n       OR f.destination_airport_code = a.airport_code\n);",
+  "score": 5,
+  "cost": 0.00071175,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 683
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "sql_spider",
+  "case": 47,
+  "response": "```sql\nSELECT type_code\nFROM TemplateType\nWHERE description = 'Book';\n```",
+  "score": 5,
+  "cost": 2.3549999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 20
+  }
+}

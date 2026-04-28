@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "Step 1: Identify the number of students enrolled last year.  \nLast year's enrollment = 50 students.\n\nStep 2: Calculate the increase in enrollment.  \nA 20% increase means we find 20% of 50.  \n20% of 50 = 0.20 \u00d7 50 = 10 students.\n\nStep 3: Add the increase to last year's enrollment to find this year's enrollment.  \n50 + 10 = 60 students.\n\n(Alternatively, 120% of 50 = 1.20 \u00d7 50 = 60.)\n\nANSWER: 60",
+  "score": 5,
+  "cost": 0.0009732,
+  "expected": "60",
+  "tokens": {
+    "input": 82,
+    "output": 385
+  }
+}

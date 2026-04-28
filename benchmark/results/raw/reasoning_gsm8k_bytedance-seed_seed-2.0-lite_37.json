@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 37,
+  "response": "To solve the problem, we calculate the votes for each candidate step by step, starting with the given total of 100 voters:\n\n1. **Calculate candidate A's votes**:  \nCandidate A got 20% of the total votes. For 100 voters, 20% of 100 = \\(0.2 \\times 100 = 20\\) votes. So A received 20 votes.\n\n2. **Calculate candidate B's votes**:  \nCandidate B got 50% more votes than candidate A. First, find 50% of A's vote count: 50% of 20 = \\(0.5 \\times 20 = 10\\) votes. Add this to A's votes to get B's total: \\(20 + 10 = 30\\) votes. So B received 30 votes.\n\n3. **Calculate candidate C's votes**:  \nThe remaining votes go to candidate C. Add the votes for A and B first: \\(20 + 30 = 50\\) votes. Subtract this sum from the total number of voters to find C's votes: \\(100 - 50 = 50\\).\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.00106125,
+  "expected": "50",
+  "tokens": {
+    "input": 145,
+    "output": 1025
+  }
+}

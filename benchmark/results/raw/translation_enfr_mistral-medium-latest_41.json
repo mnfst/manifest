@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "translation_enfr",
+  "case": 41,
+  "response": "Voici une traduction qui conserve le ton familier et l'intention du message original :\n\n**\"T\u2019es pas \u00e0 la DGA, l\u00e0. Fais gaffe et ferme ta gueule.\"**\n\n*(Explications :*\n- *\"You ain't\"* \u2192 *\"T\u2019es pas\"* (familier, comme dans l'original).\n- *\"Just zoom in\"* \u2192 *\"Fais gaffe\"* (litt\u00e9ralement \"fais attention\", mais dans ce contexte, \u00e7a sous-entend \"concentre-toi\" ou \"occupe-toi de tes affaires\").\n- *\"Shut the fuck up\"* \u2192 *\"Ferme ta gueule\"* (\u00e9quivalent vulgaire en fran\u00e7ais).\n- *\"DGA\"* est gard\u00e9 tel quel, car c\u2019est un acronyme sp\u00e9cifique (probablement *Direction G\u00e9n\u00e9rale de l'Armement* en contexte fran\u00e7ais, ou un autre organisme selon le contexte).*)\n\nSi le contexte est diff\u00e9rent (ex. : *DGA* = autre chose), pr\u00e9cisez-le pour ajuster la traduction.",
+  "score": 3,
+  "cost": 0.0004376,
+  "expected": "",
+  "tokens": {
+    "input": 39,
+    "output": 211
+  }
+}

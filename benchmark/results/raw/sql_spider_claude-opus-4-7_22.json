@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "sql_spider",
+  "case": 22,
+  "response": "SELECT section_name FROM Sections ORDER BY section_name DESC;",
+  "score": 5,
+  "cost": 0.004005,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 30
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "Step 1: Determine the duration of the outbound trip.\nTom sails from 1 PM to 4 PM, which is a total of 3 hours.\n\nStep 2: Calculate the distance traveled.\nDistance = Speed \u00d7 Time\nDistance = 10 mph \u00d7 3 hours = 30 miles.\n\nStep 3: Calculate the time required for the return trip.\nThe return trip covers the same distance (30 miles), and his return speed is 6 mph.\nTime = Distance / Speed\nTime = 30 miles / 6 mph = 5 hours.\n\nTherefore, it takes him 5 hours to get back.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.00135625,
+  "expected": "5",
+  "tokens": {
+    "input": 97,
+    "output": 1332
+  }
+}

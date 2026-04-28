@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "sql_spider",
+  "case": 34,
+  "response": "SELECT * FROM hiring;",
+  "score": 3,
+  "cost": 0.00282,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 16
+  }
+}

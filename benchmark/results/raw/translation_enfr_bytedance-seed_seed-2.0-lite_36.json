@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 36,
+  "response": "Plus tu te d\u00e9bats, plus \u00e7a va \u00eatre g\u00eanant pour tout le monde.\n\nThis translation preserves the original's casual, blunt warning tone: the French \"se d\u00e9bats\" captures the active, resistant \"struggle\" implied in the original line, \"\u00e7a va \u00eatre\" matches the informal contraction \"gonna be\", and \"g\u00eanant\" carries the exact awkward, uncomfortable connotation of the English \"awkward\" in this context.",
+  "score": 5,
+  "cost": 0.00068475,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 664
+  }
+}

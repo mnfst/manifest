@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "sql_spider",
+  "case": 23,
+  "response": "```sql\nSELECT T1.production_code ,  T2.channel FROM cartoon AS T1 JOIN channel AS T2 ON T1.channel_id  =  T2.id ORDER BY T1.air_date DESC LIMIT 1\n```",
+  "score": 4,
+  "cost": 0.0006275,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 54
+  }
+}

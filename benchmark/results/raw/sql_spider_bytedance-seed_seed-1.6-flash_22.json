@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 22,
+  "response": "SELECT section_name FROM sections ORDER BY section_name DESC;",
+  "score": 5,
+  "cost": 6.705e-05,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 185
+  }
+}

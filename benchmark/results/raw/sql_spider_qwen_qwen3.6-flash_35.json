@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "sql_spider",
+  "case": 35,
+  "response": "SELECT c.name \nFROM conductor c \nJOIN orchestra o ON c.conductor_id = o.conductor_id \nGROUP BY c.conductor_id \nORDER BY COUNT(o.orchestra_id) DESC \nLIMIT 1;",
+  "score": 4,
+  "cost": 0.00241925,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 2399
+  }
+}

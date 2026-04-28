@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "sql_spider",
+  "case": 10,
+  "response": "```sql\nSELECT SUM(SurfaceArea)\nFROM country\nWHERE Region = 'Caribbean';\n```",
+  "score": 5,
+  "cost": 1.55e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 21
+  }
+}

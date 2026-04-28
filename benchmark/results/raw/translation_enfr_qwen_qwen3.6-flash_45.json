@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "translation_enfr",
+  "case": 45,
+  "response": "La fraude fiscale a pris de l'ampleur en Tunisie, entra\u00eenant un manque significatif de ressources publiques, a d\u00e9clar\u00e9 l'ancien chef du gouvernement int\u00e9rimaire Ali Larayedh en juin 2013, cit\u00e9 par le journal Business Flood.",
+  "score": 5,
+  "cost": 0.002973,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 2955
+  }
+}

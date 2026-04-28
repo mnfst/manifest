@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "translation_enfr",
+  "case": 10,
+  "response": "Peut-\u00eatre d\u00e9gager quelques indices, pour nous rapprocher de l'animal responsable.\n\n*(Note : \"d\u00e9gager\" est plus idiomatique en fran\u00e7ais dans un contexte d'enqu\u00eate que \"g\u00e9n\u00e9rer\", qui sonne tr\u00e8s technique. Si le contexte est informatique/IA, on peut conserver \"g\u00e9n\u00e9rer\". \"Responsable\" rend naturellement \"who did this\" tout en conservant le ton proc\u00e9dural/investigatif de l'original.)*",
+  "score": 4,
+  "cost": 0.0158821,
+  "expected": "",
+  "tokens": {
+    "input": 45,
+    "output": 3043
+  }
+}

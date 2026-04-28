@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "ner_extraction",
+  "case": 40,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\n    \"Reserve Bank of Australia\",\n    \"Goldman Sachs\"\n  ],\n  \"locations\": [\n    \"Australia\"\n  ]\n}",
+  "score": 4,
+  "cost": 9.839999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 148,
+    "output": 291
+  }
+}

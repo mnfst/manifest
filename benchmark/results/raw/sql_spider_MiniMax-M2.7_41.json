@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_spider",
+  "case": 41,
+  "response": "SELECT population FROM district WHERE district_name = 'Gelderland'",
+  "score": 3,
+  "cost": 0.004241600000000001,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 943
+  }
+}

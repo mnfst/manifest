@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "intent_clinc150",
+  "case": 41,
+  "response": "bill_due",
+  "score": 5,
+  "cost": 0.0006695999999999999,
+  "expected": "bill_due",
+  "tokens": {
+    "input": 516,
+    "output": 150
+  }
+}

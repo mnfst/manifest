@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "sql_spider",
+  "case": 1,
+  "response": "```sql\nSELECT AVG(mpg) FROM cars WHERE cylinders = 4;\n```",
+  "score": 5,
+  "cost": 0.0002725,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 18
+  }
+}

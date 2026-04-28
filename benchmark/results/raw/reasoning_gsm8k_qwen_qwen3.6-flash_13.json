@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "Step 1: Calculate the total cost of the materials and construction.\n$500 (materials) + $800 (construction) = $1,300\n\nStep 2: Calculate the insurance cost. The problem states she pays 10% of the total cost so far (\"that\") for insurance.\n10% of $1,300 = 0.10 \u00d7 $1,300 = $130\n\nStep 3: Add the insurance cost to the previous total to find the final amount paid.\n$1,300 + $130 = $1,430\n\nJanet paid a total of $1,430.\n\nANSWER: 1430",
+  "score": 5,
+  "cost": 0.00203025,
+  "expected": "1430",
+  "tokens": {
+    "input": 109,
+    "output": 2003
+  }
+}

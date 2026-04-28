@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "ner_extraction",
+  "case": 29,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"Tokyo Stock Exchange\", \"Nikkei 225\"],\n  \"locations\": [\"Tokyo\"]\n}",
+  "score": 4,
+  "cost": 0.000237225,
+  "expected": "",
+  "tokens": {
+    "input": 151,
+    "output": 753
+  }
+}

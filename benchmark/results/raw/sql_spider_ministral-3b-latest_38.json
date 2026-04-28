@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 38,
+  "response": "```sql\nSELECT\n    c.country_name,\n    COUNT(DISTINCT l.language_name) AS language_count\nFROM\n    country c\nJOIN\n    language l ON c.country_code = l.country_code\nGROUP BY\n    c.country_name\nHAVING\n    COUNT(DISTINCT l.language_name) > 2;\n```",
+  "score": 5,
+  "cost": 5.92e-06,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 69
+  }
+}

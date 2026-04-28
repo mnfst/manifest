@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 12,
+  "response": "To solve the problem, we break down Jim's routine step by step:\n\n1.  **Calculate time spent on one full routine (TV + reading):**\n    -   Jim spends 2 hours watching TV per routine.\n    -   He reads for half as long as he watches TV: \\( \\frac{2}{2} = 1 \\) hour of reading per routine.\n    -   Total time per routine: \\( 2 + 1 = 3 \\) hours.\n\n2.  **Calculate weekly time spent on these activities:**\n    -   He does this routine 3 times per week.\n    -   Weekly total time: \\( 3 \\text{ hours/routine} \\times 3 \\text{ routines/week} = 9 \\) hours/week.\n\n3.  **Calculate total time over 4 weeks:**\n    -   Total time across 4 weeks: \\( 9 \\text{ hours/week} \\times 4 \\text{ weeks} = 36 \\) hours.\n\nANSWER: 36",
+  "score": 5,
+  "cost": 0.00074225,
+  "expected": "36",
+  "tokens": {
+    "input": 133,
+    "output": 709
+  }
+}

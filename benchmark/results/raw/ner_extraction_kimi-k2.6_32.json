@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "ner_extraction",
+  "case": 32,
+  "response": "{\"persons\": [\"Serena Williams\"], \"organizations\": [\"ESPY\"], \"locations\": [\"Los Angeles\"]}",
+  "score": 5,
+  "cost": 0.0022224,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 908
+  }
+}

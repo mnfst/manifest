@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "sql_spider",
+  "case": 25,
+  "response": "```sql\nSELECT * \nFROM cartoons \nWHERE director = 'Ben Jones';\n```",
+  "score": 5,
+  "cost": 2.0399999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 17
+  }
+}

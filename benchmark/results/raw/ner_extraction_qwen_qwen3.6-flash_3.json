@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "ner_extraction",
+  "case": 3,
+  "response": "{\"persons\": [\"Maria Garcia\"], \"organizations\": [\"Microsoft\"], \"locations\": [\"Seattle\"]}",
+  "score": 5,
+  "cost": 0.00115525,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 1136
+  }
+}

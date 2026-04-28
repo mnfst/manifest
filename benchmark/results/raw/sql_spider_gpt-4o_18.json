@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "sql_spider",
+  "case": 18,
+  "response": "```sql\nSELECT DISTINCT country\nFROM singers\nWHERE (age > 40 OR age < 30)\nGROUP BY country\nHAVING COUNT(DISTINCT CASE WHEN age > 40 THEN singer_id END) > 0\n   AND COUNT(DISTINCT CASE WHEN age < 30 THEN singer_id END) > 0;\n```",
+  "score": 4,
+  "cost": 0.000885,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 69
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_spider",
+  "case": 15,
+  "response": "```sql\nSELECT MIN(share) AS min_share, MAX(share) AS max_share FROM tv_shows;\n```",
+  "score": 5,
+  "cost": 0.0013629,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 289
+  }
+}

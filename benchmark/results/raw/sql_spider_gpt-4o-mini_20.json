@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "sql_spider",
+  "case": 20,
+  "response": "```sql\nSELECT airline_abbreviation, country\nFROM airlines\nWHERE airline_id = (\n    SELECT airline_id\n    FROM flights\n    GROUP BY airline_id\n    ORDER BY COUNT(*) ASC\n    LIMIT 1\n);\n```",
+  "score": 4,
+  "cost": 3.96e-05,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 47
+  }
+}

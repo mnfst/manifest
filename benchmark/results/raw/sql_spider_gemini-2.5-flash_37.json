@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "sql_spider",
+  "case": 37,
+  "response": "```sql\nSELECT T1.song_name, T1.release_year FROM song AS T1 JOIN singer AS T2 ON T1.singer_id = T2.singer_id WHERE T2.age = (SELECT MIN(age) FROM singer)\n```",
+  "score": 3,
+  "cost": 4.575e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 58
+  }
+}

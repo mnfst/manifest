@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "intent_clinc150",
+  "case": 43,
+  "response": "book_flight",
+  "score": 5,
+  "cost": 0.001294,
+  "expected": "book_flight",
+  "tokens": {
+    "input": 635,
+    "output": 3
+  }
+}

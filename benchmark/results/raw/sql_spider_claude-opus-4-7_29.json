@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "sql_spider",
+  "case": 29,
+  "response": "SELECT COUNT(DISTINCT Language) FROM countrylanguage;",
+  "score": 5,
+  "cost": 0.003975,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 32
+  }
+}

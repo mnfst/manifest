@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "First, add the cost of the materials and the jeweler\u2019s fee:\n\n$500 + $800 = $1,300\n\nNext, calculate the insurance, which is 10% of that total:\n\n10% of $1,300 = 0.10 \u00d7 $1,300 = $130\n\nFinally, add the insurance cost to the previous total to find the overall amount Janet paid:\n\n$1,300 + $130 = $1,430\n\nANSWER: 1430",
+  "score": 5,
+  "cost": 0.0016908,
+  "expected": "1430",
+  "tokens": {
+    "input": 98,
+    "output": 680
+  }
+}

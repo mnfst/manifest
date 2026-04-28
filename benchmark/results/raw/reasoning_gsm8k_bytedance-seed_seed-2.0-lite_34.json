@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 34,
+  "response": "To solve the problem, we calculate the total cost of all expenses first, then split that total evenly between the 3 friends.\n\n### Step 1: Calculate food costs\nThe friends spent $20.25 on tickets. Food cost $4.50 less than tickets, so:\nFood cost = Ticket cost - $4.50 = $20.25 - $4.50 = $15.75\n\n### Step 2: Calculate ride costs\nThere are 2 rides, each costing $33. Total ride cost:\nTotal ride cost = 2 * $33 = $66\n\n### Step 3: Sum all total expenses\nAdd up the cost of tickets, food, and rides:\nTotal cost = Ticket cost + Food cost + Ride cost = $20.25 + $15.75 + $66 = $102\n\n### Step 4: Split the total cost evenly between 3 friends\nEach friend pays:\n$102 / 3 = $34\n\nANSWER: 34",
+  "score": 5,
+  "cost": 0.0010525,
+  "expected": "34",
+  "tokens": {
+    "input": 154,
+    "output": 1014
+  }
+}

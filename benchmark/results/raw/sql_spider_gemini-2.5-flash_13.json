@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "sql_spider",
+  "case": 13,
+  "response": "```sql\nSELECT MAX(release_date) FROM transcripts;\n```",
+  "score": 5,
+  "cost": 1.9350000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 15
+  }
+}

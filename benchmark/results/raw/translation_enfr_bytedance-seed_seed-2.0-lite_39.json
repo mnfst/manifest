@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 39,
+  "response": "Sais-tu d'o\u00f9 vient l'argent?\n\nThis translation matches the casual, conversational tone of the original English question, which uses the contraction \"money's\" for an informal, everyday context. If you needed to address someone formally (such as a stranger, superior, or elder), the formal equivalent would be: Savez-vous d'o\u00f9 vient l'argent?",
+  "score": 5,
+  "cost": 0.00050825,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 489
+  }
+}

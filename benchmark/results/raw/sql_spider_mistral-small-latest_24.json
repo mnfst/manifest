@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "sql_spider",
+  "case": 24,
+  "response": "```sql\nSELECT EXTRACT(YEAR FROM concert_date) AS year, COUNT(*) AS concert_count\nFROM concert\nGROUP BY EXTRACT(YEAR FROM concert_date)\nORDER BY concert_count DESC\nLIMIT 1;\n```",
+  "score": 5,
+  "cost": 2.25e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 49
+  }
+}

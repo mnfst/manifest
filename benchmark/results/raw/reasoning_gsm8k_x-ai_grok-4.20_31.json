@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "The problem states: If a classroom has 3 times as many girls as they do boys, and 1/10 as many nongendered children as they do boys, and the classroom has 30 boys. How many total children does it have?\n\nFirst, identify the number of boys: 30.\n\nNumber of girls = 3 times boys = 3 \u00d7 30 = 90.\n\nNumber of nongendered children = 1/10 as many as boys = (1/10) \u00d7 30 = 3.\n\nTotal children = boys + girls + nongendered = 30 + 90 + 3 = 123.\n\nANSWER: 123",
+  "score": 2,
+  "cost": 0.001488,
+  "expected": "123",
+  "tokens": {
+    "input": 204,
+    "output": 135
+  }
+}

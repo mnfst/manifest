@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 8,
+  "response": "```sql\nSELECT COUNT(DISTINCT country.language) AS total_unique_languages\nFROM country\nJOIN country_language ON country.country_code = country_language.country_code\nWHERE country.year_of_independence < 1930;\n```",
+  "score": 4,
+  "cost": 5.0800000000000005e-06,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 48
+  }
+}

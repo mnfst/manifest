@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "intent_clinc150",
+  "case": 22,
+  "response": "transfer",
+  "score": 5,
+  "cost": 0.0012649,
+  "expected": "transfer",
+  "tokens": {
+    "input": 513,
+    "output": 115
+  }
+}

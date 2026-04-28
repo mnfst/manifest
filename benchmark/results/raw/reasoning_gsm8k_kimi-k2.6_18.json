@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "Eve started with 20 pomelos.  \nShe is left with \\( \\frac{1}{4} \\) of what she originally had:  \n\\[\n\\frac{1}{4} \\times 20 = 5\n\\]  \nSo she has 5 pomelos remaining.  \nTo find how many she gave away, subtract what remains from the original amount:  \n\\[\n20 - 5 = 15\n\\]\n\nANSWER: 15",
+  "score": 5,
+  "cost": 0.0006384,
+  "expected": "15",
+  "tokens": {
+    "input": 88,
+    "output": 244
+  }
+}

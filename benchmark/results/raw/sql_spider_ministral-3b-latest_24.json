@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 24,
+  "response": "```sql\nSELECT year\nFROM concerts\nGROUP BY year\nORDER BY COUNT(*) DESC\nLIMIT 1;\n```",
+  "score": 5,
+  "cost": 3.6800000000000003e-06,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 26
+  }
+}

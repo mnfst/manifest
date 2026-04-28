@@ -2,12 +2,12 @@
   "model": "kimi-k2.6",
   "task": "translation_enfr",
   "case": 43,
-  "response": "L'appareil se fixe simplement \u00e0 l'appuie-t\u00eate du si\u00e8ge du conducteur \u00e0 l'aide d'une sangle \u00e9lastique r\u00e9sistante. Dans cette",
+  "response": "L'unit\u00e9 se fixe simplement \u00e0 l'appuie-t\u00eate du si\u00e8ge du conducteur \u00e0 l'aide d'une sangle \u00e9lastique r\u00e9sistante. Dans ce",
   "score": 4,
-  "cost": 0.0035472000000000004,
+  "cost": 0.0039864,
   "expected": "",
   "tokens": {
     "input": 48,
-    "output": 1466
+    "output": 1649
   }
 }

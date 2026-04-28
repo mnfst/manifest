@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "sql_spider",
+  "case": 14,
+  "response": "SELECT T1.maker_name , T1.maker_id , count(T2.model_id) FROM maker AS T1 JOIN model AS T2 ON T1.maker_id  =  T2.maker_id GROUP BY T1.maker_id",
+  "score": 4,
+  "cost": 0.0022395,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 2218
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "To solve the problem, we first calculate how much each girl raised individually, then sum their amounts to get the total.\n\n### Step 1: Calculate Alexandra and Kim's fundraising amounts\nThe problem states Alexandra raised $430.  \nKim raises $320 more than Alexandra, so Kim's total is:  \n$430 + $320 = $750.\n\n### Step 2: Calculate Sarah and Maryam's fundraising amounts\nSarah raised $300, per the problem.  \nMaryam raises $400 more than Sarah, so Maryam's total is:  \n$300 + $400 = $700.\n\n### Step 3: Sum all amounts to get the total\nAdd up all four girls' fundraising totals:  \nAlexandra ($430) + Kim ($750) + Sarah ($300) + Maryam ($700) = $430 + $750 + $300 + $700 = $2180.\n\nANSWER: 2180",
+  "score": 5,
+  "cost": 0.00095475,
+  "expected": "2280",
+  "tokens": {
+    "input": 147,
+    "output": 918
+  }
+}

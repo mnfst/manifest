@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "intent_clinc150",
+  "case": 39,
+  "response": "how_old_are_you",
+  "score": 5,
+  "cost": 0.000209,
+  "expected": "how_old_are_you",
+  "tokens": {
+    "input": 604,
+    "output": 58
+  }
+}

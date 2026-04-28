@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 30,
+  "response": "SELECT AVG(winner_rank) AS average_winner_rank FROM matches;",
+  "score": 4,
+  "cost": 8.4225e-05,
+  "expected": "",
+  "tokens": {
+    "input": 151,
+    "output": 243
+  }
+}

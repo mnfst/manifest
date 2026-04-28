@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "intent_clinc150",
+  "case": 40,
+  "response": "mpg",
+  "score": 5,
+  "cost": 0.00021225,
+  "expected": "mpg",
+  "tokens": {
+    "input": 509,
+    "output": 85
+  }
+}

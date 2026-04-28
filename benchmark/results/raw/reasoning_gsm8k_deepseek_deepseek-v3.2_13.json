@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "Let\u2019s break it down step by step.  \n\n1. **Material cost**: $500  \n2. **Jeweler construction cost**: $800  \n3. **Total before insurance**:  \n\\[\n500 + 800 = 1300\n\\]  \n4. **Insurance cost**: 10% of $1300  \n\\[\n0.10 \\times 1300 = 130\n\\]  \n5. **Total paid**:  \n\\[\n1300 + 130 = 1430\n\\]  \n\nANSWER: 1430",
+  "score": 5,
+  "cost": 0.000146,
+  "expected": "1430",
+  "tokens": {
+    "input": 100,
+    "output": 110
+  }
+}

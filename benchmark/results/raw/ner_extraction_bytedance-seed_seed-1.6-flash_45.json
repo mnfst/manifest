@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "ner_extraction",
+  "case": 45,
+  "response": "{\n  \"persons\": [\"Leonardo da Vinci\"],\n  \"organizations\": [\"The Louvre Museum\"],\n  \"locations\": [\"Paris\"]\n}",
+  "score": 5,
+  "cost": 0.00032744999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 1054
+  }
+}

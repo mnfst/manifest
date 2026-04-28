@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "The problem states: Some people got on a bus at the terminal. At the first bus stop, 5 more people got in. Then at the second bus stop, 7 people got down and 8 more got in. If there were a total of 20 people heading to the third stop, how many people got on the bus at the terminal?\n\nLet's define the unknown: let \\( x \\) be the number of people who got on at the terminal.\n\nAfter the terminal, at the first stop: 5 more get in. So now there are \\( x + 5 \\) people on the bus.\n\nAt the second stop: 7 people get down, so subtract 7: \\( x + 5 - 7 = x - 2 \\).\n\nThen 8 more get in: \\( x - 2 + 8 = x + 6 \\).\n\nIt says there were a total of 20 people heading to the third stop. So after the second stop, there are 20 people on the bus going to the third stop.\n\nTherefore: \\( x + 6 = 20 \\).\n\nSolving for x: \\( x = 20 - 6 = 14 \\).\n\nLet me double-check.\n\nStart with 14.\n\nFirst stop: +5 \u2192 19.\n\nSecond stop: -7 \u2192 12, then +8 \u2192 20.\n\nYes, 20 heading to the third stop. Perfect.\n\nThe phrasing \"heading to the third stop\" might be a bit ambiguous, but I think it means there are 20 people on the bus as it heads to the third stop.\n\nI don't see any other interpretation that makes sense.\n\nSo the answer should be 14.",
+  "score": 0,
+  "cost": 0.003184,
+  "expected": "14",
+  "tokens": {
+    "input": 224,
+    "output": 342
+  }
+}

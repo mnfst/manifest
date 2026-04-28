@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "sql_spider",
+  "case": 43,
+  "response": "```sql\nSELECT COUNT(*) \nFROM cars \nWHERE cylinders > 6;\n```",
+  "score": 5,
+  "cost": 0.0003425,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 17
+  }
+}

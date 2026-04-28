@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "sql_spider",
+  "case": 2,
+  "response": "```sql\nSELECT s.name, s.capacity\nFROM stadium s\nWHERE s.stadium_id IN (\n  SELECT c.stadium_id\n  FROM concert c\n  WHERE YEAR(c.concert_date) > 2013\n  GROUP BY c.stadium_id\n  ORDER BY COUNT(*) DESC\n  LIMIT 1\n)\n```",
+  "score": 4,
+  "cost": 0.0004,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 83
+  }
+}

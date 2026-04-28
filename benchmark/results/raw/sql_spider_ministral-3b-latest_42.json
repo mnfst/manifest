@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 42,
+  "response": "```sql\nSELECT template_id\nFROM doc_templates\nWHERE description = 'Presentation';\n```",
+  "score": 5,
+  "cost": 3.68e-06,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 20
+  }
+}

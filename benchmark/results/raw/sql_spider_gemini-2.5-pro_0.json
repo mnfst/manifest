@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "sql_spider",
+  "case": 0,
+  "response": "```sql\nSELECT T1.money_rank\nFROM (\n  SELECT\n    player_id,\n    RANK() OVER (ORDER BY Earnings DESC) AS money_rank\n  FROM Poker_Player\n) AS T1\nJOIN Poker_Player AS T2\n  ON T1.player_id = T2.player_id\nORDER BY\n  T2.Height DESC\nLIMIT 1;\n```",
+  "score": 3,
+  "cost": 0.00097625,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 89
+  }
+}

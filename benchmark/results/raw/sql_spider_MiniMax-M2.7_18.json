@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_spider",
+  "case": 18,
+  "response": "SELECT country FROM singer WHERE age > 40 INTERSECT SELECT country FROM singer WHERE age < 30;",
+  "score": 4,
+  "cost": 0.003124,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 682
+  }
+}

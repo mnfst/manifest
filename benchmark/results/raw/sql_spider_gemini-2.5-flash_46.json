@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "sql_spider",
+  "case": 46,
+  "response": "```sql\nSELECT GovernmentForm, SUM(Population)\nFROM Country\nGROUP BY GovernmentForm\nHAVING AVG(LifeExpectancy) > 72;\n```",
+  "score": 3,
+  "cost": 3.4049999999999994e-05,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 35
+  }
+}

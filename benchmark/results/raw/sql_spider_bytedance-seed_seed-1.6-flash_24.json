@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 24,
+  "response": "SELECT year\nFROM concerts\nGROUP BY year\nHAVING COUNT(*) = (SELECT MAX(concert_count) FROM (SELECT COUNT(*) AS concert_count FROM concerts GROUP BY year) AS temp);",
+  "score": 4,
+  "cost": 0.000354375,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 1144
+  }
+}

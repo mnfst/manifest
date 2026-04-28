@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "ner_extraction",
+  "case": 2,
+  "response": "{\"persons\": [], \"organizations\": [\"Google DeepMind\", \"Nature\"], \"locations\": []}",
+  "score": 4,
+  "cost": 0.000971,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 953
+  }
+}

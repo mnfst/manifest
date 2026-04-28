@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "sql_spider",
+  "case": 42,
+  "response": "```sql\nSELECT template_id \nFROM templates \nWHERE description = 'Presentation';\n```",
+  "score": 5,
+  "cost": 0.000651,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 26
+  }
+}

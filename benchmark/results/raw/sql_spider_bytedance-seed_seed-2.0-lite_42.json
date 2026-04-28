@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "sql_spider",
+  "case": 42,
+  "response": "SELECT template_id AS id\nFROM cre_Doc_Template_Mgt.doc_templates\nWHERE description = 'Presentation';",
+  "score": 5,
+  "cost": 0.00058725,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 557
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "sql_spider",
+  "case": 4,
+  "response": "```sql\nSELECT sum(Bonus) FROM evaluation\n```",
+  "score": 5,
+  "cost": 0.00020625,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 12
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 30,
+  "response": "```sql\nSELECT AVG(rank) AS average_rank_for_winners\nFROM matches\nWHERE outcome = 'winner'\nAND player_type = 'winner';\n```",
+  "score": 3,
+  "cost": 4.08e-06,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 34
+  }
+}

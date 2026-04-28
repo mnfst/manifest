@@ -4,10 +4,10 @@
   "case": 0,
   "response": "Je sais comment aider, et je veux le faire.",
   "score": 5,
-  "cost": 0.0020399999999999997,
+  "cost": 0.0013055999999999999,
   "expected": "",
   "tokens": {
     "input": 36,
-    "output": 841
+    "output": 535
   }
 }

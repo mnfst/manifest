@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 26,
+  "response": "Au contraire, cela sugg\u00e9rait que l\u2019arm\u00e9e occupe un r\u00f4le secondaire dans les op\u00e9rations antiterroristes.\n\nThis translation preserves the formal, analytical policy-focused tone of the original text, uses correct French grammatical structure (subjunctive mood after the verb of suggestion *sugg\u00e9rer que*), and retains the core contrast conveyed by \"instead\" with the naturally fitting French framing *Au contraire*. Standard terminology for counter-terrorism operations in French is used to match the original\u2019s context.",
+  "score": 5,
+  "cost": 0.000507,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 485
+  }
+}

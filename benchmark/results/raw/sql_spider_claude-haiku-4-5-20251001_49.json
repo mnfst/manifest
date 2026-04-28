@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "sql_spider",
+  "case": 49,
+  "response": "```sql\nSELECT hometown\nFROM teacher\nGROUP BY hometown\nHAVING COUNT(*) >= 2;\n```",
+  "score": 5,
+  "cost": 0.0001712,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 27
+  }
+}

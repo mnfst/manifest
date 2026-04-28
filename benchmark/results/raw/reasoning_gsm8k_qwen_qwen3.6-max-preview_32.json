@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "reasoning_gsm8k",
+  "case": 32,
+  "response": "First, convert the given length from yards to feet. Since 1 yard equals 3 feet:\nLength = 3 yards \u00d7 3 feet/yard = 9 feet.\n\nNext, use the area formula for a rectangle (Area = length \u00d7 width) to find the width. We are given that the area is 360 square feet:\n360 sq ft = 9 ft \u00d7 width\nwidth = 360 / 9 = 40 feet.\n\nNow, calculate the perimeter using the formula Perimeter = 2 \u00d7 (length + width):\nPerimeter = 2 \u00d7 (9 ft + 40 ft) = 2 \u00d7 49 ft = 98 feet.\n\nANSWER: 98",
+  "score": 5,
+  "cost": 0.0066833000000000005,
+  "expected": "98",
+  "tokens": {
+    "input": 85,
+    "output": 1264
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "sql_spider",
+  "case": 33,
+  "response": "SELECT Episode, Rating FROM tv_series ORDER BY Rating DESC LIMIT 3",
+  "score": 4,
+  "cost": 0.0100373,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 1909
+  }
+}

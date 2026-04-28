@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "sql_spider",
+  "case": 20,
+  "response": "```sql\nSELECT abbrev, country\nFROM airlines\nWHERE airline_id = (\n    SELECT airline_id\n    FROM flights\n    GROUP BY airline_id\n    ORDER BY COUNT(*) ASC\n    LIMIT 1\n);\n```",
+  "score": 4,
+  "cost": 0.00075,
+  "expected": "",
+  "tokens": {
+    "input": 191,
+    "output": 46
+  }
+}

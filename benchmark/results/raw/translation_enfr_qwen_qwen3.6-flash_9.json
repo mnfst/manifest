@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "translation_enfr",
+  "case": 9,
+  "response": "Pour sa part, le deuxi\u00e8me atelier a port\u00e9 sur la mise en \u0153uvre des recommandations formul\u00e9es par les organes de surveillance des organes conventionnels \u00e0 l'\u00c9tat du Cameroun, conform\u00e9ment aux trait\u00e9s internationaux et r\u00e9gionaux, relatives \u00e0 ses obligations \u00e0 l'\u00e9gard des populations autochtones.",
+  "score": 4,
+  "cost": 0.002818,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 2800
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "translation_enfr",
+  "case": 37,
+  "response": "La sous-section 104(1.1) est modifi\u00e9e pour pr\u00e9ciser qu'elle s'applique sans pr\u00e9judice de la sous-section 248(25) de la loi. La sous-section 248(25) de la loi d\u00e9crit, pour d'autres fins de la loi, les circonstances dans lesquelles une personne ou un partenariat est consid\u00e9r\u00e9e comme ayant un \u00ab int\u00e9r\u00eat b\u00e9n\u00e9ficiaire \u00bb dans une fiducie.  \n\n\n**Notes sur la traduction** :  \n- \"Notwithstanding\" est traduit par \"sans pr\u00e9judice de\", un locution juridique courante en fran\u00e7ais pour exprimer l'exception.  \n- \"Beneficially interested\" est rendu par \"int\u00e9r\u00eat b\u00e9n\u00e9ficiaire\", terme standard en droit fiscal et de fiducie.  \n- \"Partnership\" est traduit par \"partenariat\", qui convient pour d\u00e9signer un groupe de personnes associ\u00e9es dans une activit\u00e9 \u00e9conomique.  \n- \"Trust\" est traduit par \"fiducie\", le terme juridique fran\u00e7ais le plus appropri\u00e9 pour d\u00e9signer un dispositif de gestion de biens.  \n- La structure des phrases est maintenue pour conserver la clart\u00e9 et la formalit\u00e9 du texte juridique.",
+  "score": 5,
+  "cost": 0.00032625,
+  "expected": "",
+  "tokens": {
+    "input": 174,
+    "output": 1044
+  }
+}

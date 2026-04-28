@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "intent_clinc150",
+  "case": 48,
+  "response": "application_status",
+  "score": 5,
+  "cost": 0.0008232000000000001,
+  "expected": "application_status",
+  "tokens": {
+    "input": 520,
+    "output": 213
+  }
+}

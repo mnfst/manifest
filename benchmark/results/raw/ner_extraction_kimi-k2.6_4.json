@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "ner_extraction",
+  "case": 4,
+  "response": "{\"persons\": [], \"organizations\": [\"Bank of England\", \"European Central Bank\"], \"locations\": [\"Frankfurt\"]}",
+  "score": 4,
+  "cost": 0.0005592,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 215
+  }
+}

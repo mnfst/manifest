@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "To solve the problem, we break it into two key steps: first calculate the total number of books Sarah bought, then find how many books each child receives.\n\n### Step 1: Calculate the total number of books Sarah purchased\nSarah spent $300 total, and each book costs $15. To find the total number of books, divide the total amount spent by the cost per book:\nTotal books = Total spend \u00f7 Cost per book = $300 \u00f7 $15 = 20 books.\n\n### Step 2: Calculate the number of books each child gets\nSarah splits the 20 books equally among 4 kids. Divide the total number of books by the number of children:\nBooks per child = Total books \u00f7 Number of kids = 20 \u00f7 4 = 5.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.00077225,
+  "expected": "5",
+  "tokens": {
+    "input": 133,
+    "output": 739
+  }
+}

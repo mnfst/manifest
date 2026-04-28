@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "sql_spider",
+  "case": 35,
+  "response": "SELECT c.name\nFROM conductors c\nINNER JOIN orchestra_conductors oc ON c.conductor_id = oc.conductor_id\nGROUP BY c.conductor_id, c.name\nORDER BY COUNT(DISTINCT oc.orchestra_id) DESC\nFETCH FIRST 1 ROW ONLY;",
+  "score": 4,
+  "cost": 0.00119875,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 1169
+  }
+}

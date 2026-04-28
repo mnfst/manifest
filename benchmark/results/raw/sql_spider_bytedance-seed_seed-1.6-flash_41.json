@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 41,
+  "response": "SELECT population FROM districts WHERE name = 'Gelderland';",
+  "score": 3,
+  "cost": 0.00037777499999999995,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 1222
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 31,
+  "response": "SELECT DISTINCT a.airline_name\nFROM airlines a\nINNER JOIN flights f ON a.airline_id = f.airline_id\nWHERE f.departure_airport = 'AHD';",
+  "score": 5,
+  "cost": 0.00016155000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 500
+  }
+}

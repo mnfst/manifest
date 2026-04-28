@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "sql_spider",
+  "case": 18,
+  "response": "```sql\nSELECT T1.country FROM singer AS T1 WHERE T1.age > 40 INTERSECT SELECT T2.country FROM singer AS T2 WHERE T2.age < 30\n```",
+  "score": 4,
+  "cost": 3.93e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 46
+  }
+}

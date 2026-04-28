@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "ner_extraction",
+  "case": 47,
+  "response": "```json\n{\n  \"persons\": [\"Alain Aspect\"],\n  \"organizations\": [\"Nobel Prize\", \"Universite Paris-Saclay\"],\n  \"locations\": [\"Stockholm\"]\n}\n```",
+  "score": 4,
+  "cost": 0.00011520000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 43
+  }
+}

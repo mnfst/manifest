@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "ner_extraction",
+  "case": 14,
+  "response": "{\n  \"persons\": [\"Jerome Powell\"],\n  \"organizations\": [\"Federal Reserve\", \"Congress\"],\n  \"locations\": [\"Washington DC\"]\n}",
+  "score": 5,
+  "cost": 0.000608,
+  "expected": "",
+  "tokens": {
+    "input": 184,
+    "output": 30
+  }
+}

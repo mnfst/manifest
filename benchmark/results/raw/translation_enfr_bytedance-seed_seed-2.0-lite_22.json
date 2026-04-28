@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 22,
+  "response": "Si le revenu et/ou la situation d\u2019emploi d\u2019une personne change, il peut y avoir un transfert de responsabilit\u00e9 institutionnelle, auquel cas une nouvelle \u00e9valuation sera r\u00e9alis\u00e9e.\n\nThis translation preserves the original\u2019s formal, administrative tone (appropriate for the official context of the source text, which refers to public benefit or institutional eligibility processes). All terms align with standard French administrative usage: *situation d\u2019emploi* is the standard translation for \"employment status\" in this context, *auquel cas* matches the formal framing of \"in which case\", and the impersonal passive structure preserves the neutral, official tone of the original.",
+  "score": 5,
+  "cost": 0.0016015,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 1577
+  }
+}

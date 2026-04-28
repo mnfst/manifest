@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 14,
+  "response": "Step 1: Find the total weekly insect consumption for all ten ducks.\nEach duck eats 3.5 pounds per week, so for 10 ducks:\n3.5 \u00d7 10 = 35 pounds per week\n\nStep 2: Convert the weekly total to a daily amount.\nThere are 7 days in a week, so divide the weekly total by 7:\n35 \u00f7 7 = 5 pounds per day\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.000921,
+  "expected": "5",
+  "tokens": {
+    "input": 79,
+    "output": 364
+  }
+}

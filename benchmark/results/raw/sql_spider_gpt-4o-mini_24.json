@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "sql_spider",
+  "case": 24,
+  "response": "```sql\nSELECT YEAR(concert_date) AS concert_year, COUNT(*) AS concert_count\nFROM concerts\nGROUP BY concert_year\nORDER BY concert_count DESC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 3.3299999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 38
+  }
+}

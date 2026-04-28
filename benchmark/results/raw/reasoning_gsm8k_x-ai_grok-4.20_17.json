@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "reasoning_gsm8k",
+  "case": 17,
+  "response": "Ted starts with $200, but that initial amount isn't needed to find out how much he spent.\n\nHe buys 3 books at $16 each, so the cost for books is 3 \u00d7 16 = 48 dollars.\n\nHe buys 3 pencils at $6 each, so the cost for pencils is 3 \u00d7 6 = 18 dollars.\n\nTotal spent is the sum of these: 48 + 18 = 66 dollars.\n\nANSWER: 66",
+  "score": 5,
+  "cost": 0.001132,
+  "expected": "66",
+  "tokens": {
+    "input": 190,
+    "output": 94
+  }
+}

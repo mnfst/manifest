@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 37,
+  "response": "Step 1: Find the number of votes candidate A received.  \n20% of 100 voters = 0.20 \u00d7 100 = 20 votes.\n\nStep 2: Find the number of votes candidate B received.  \nB got 50% more than A.  \n50% of 20 = 0.50 \u00d7 20 = 10 votes.  \nSo B got 20 + 10 = 30 votes.\n\nStep 3: Find the number of votes candidate C received.  \nTotal votes = 100.  \nC\u2019s votes = 100 \u2212 A\u2019s votes \u2212 B\u2019s votes = 100 \u2212 20 \u2212 30 = 50 votes.\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.0011214,
+  "expected": "50",
+  "tokens": {
+    "input": 97,
+    "output": 443
+  }
+}

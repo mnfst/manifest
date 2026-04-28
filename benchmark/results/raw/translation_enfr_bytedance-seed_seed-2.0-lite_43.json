@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 43,
+  "response": "L\u2019unit\u00e9 se fixe simplement \u00e0 l\u2019appuie-t\u00eate du si\u00e8ge du conducteur gr\u00e2ce \u00e0 une solide sangle \u00e9lastique.\n*Nota : Le texte anglais original fourni est incomplet, s\u2019arr\u00eatant sur la phrase fragmentaire \u00ab In this \u00bb ; ce fragment partiel ne peut pas \u00eatre traduit pleinement sans le reste du contexte pour compl\u00e9ter la pens\u00e9e.*",
+  "score": 4,
+  "cost": 0.0006685,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 646
+  }
+}

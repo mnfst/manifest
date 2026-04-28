@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "translation_enfr",
+  "case": 26,
+  "response": "Il sugg\u00e9rait plut\u00f4t que l'arm\u00e9e devait jouer un r\u00f4le secondaire dans les op\u00e9rations antiterroristes.",
+  "score": 4,
+  "cost": 4.13e-05,
+  "expected": "",
+  "tokens": {
+    "input": 42,
+    "output": 28
+  }
+}

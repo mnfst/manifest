@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "translation_enfr",
+  "case": 22,
+  "response": "French: Si les revenus et/ou la situation professionnelle d'une personne changent, un transfert de responsabilit\u00e9 institutionnelle peut intervenir, auquel cas une nouvelle \u00e9valuation sera effectu\u00e9e.",
+  "score": 5,
+  "cost": 0.0127192,
+  "expected": "",
+  "tokens": {
+    "input": 60,
+    "output": 2431
+  }
+}

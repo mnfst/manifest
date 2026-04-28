@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_spider",
+  "case": 0,
+  "response": "SELECT money_rank FROM poker_player WHERE height = (SELECT MAX(height) FROM poker_player);",
+  "score": 4,
+  "cost": 0.0024430999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 530
+  }
+}

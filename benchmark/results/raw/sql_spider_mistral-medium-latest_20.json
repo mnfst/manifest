@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "sql_spider",
+  "case": 20,
+  "response": "```sql\nSELECT a.abbreviation, a.country\nFROM airlines a\nJOIN (\n    SELECT airline_id, COUNT(*) AS flight_count\n    FROM flights\n    GROUP BY airline_id\n    ORDER BY flight_count ASC\n    LIMIT 1\n) f ON a.id = f.airline_id;\n```",
+  "score": 4,
+  "cost": 0.0001608,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 66
+  }
+}

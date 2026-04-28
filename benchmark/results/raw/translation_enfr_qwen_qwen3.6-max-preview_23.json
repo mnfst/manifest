@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "Les \u00e9vacuateurs de crues capables de faire face aux \u00e9v\u00e9nements de crue postul\u00e9s sont int\u00e9gr\u00e9s soit aux ouvrages du barrage, soit construits en tant qu'ouvrages ind\u00e9pendants.",
+  "score": 5,
+  "cost": 0.0228228,
+  "expected": "",
+  "tokens": {
+    "input": 56,
+    "output": 4375
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 3,
+  "response": "First, calculate the age of James' younger son. The older son is 12, and the younger son is 4 years younger:  \n12 - 4 = 8 years old.  \n\nNext, find the total number of candles James needs, which is the sum of both sons' ages (one candle per year of age):  \n12 + 8 = 20 total candles.  \n\nThen, calculate how many packs of candles James must buy. Each pack has 5 candles:  \n20 \u00f7 5 = 4 packs.  \n\nFinally, calculate the total cost. Each pack costs $3:  \n4 \u00d7 $3 = $12.  \n\nANSWER: 12",
+  "score": 5,
+  "cost": 0.00054275,
+  "expected": "12",
+  "tokens": {
+    "input": 135,
+    "output": 509
+  }
+}

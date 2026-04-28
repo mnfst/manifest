@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "sql_spider",
+  "case": 8,
+  "response": "```sql\nSELECT COUNT(DISTINCT language) AS total_unique_languages\nFROM world_1.countries\nJOIN world_1.country_languages ON countries.code = country_languages.country_code\nWHERE countries.founding_year < 1930;\n```",
+  "score": 4,
+  "cost": 2.53e-05,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 54
+  }
+}

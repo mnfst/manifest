@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "translation_enfr",
+  "case": 14,
+  "response": "Le Comit\u00e9 se f\u00e9licite de la soumission du rapport initial de l'\u00c9tat partie et est satisfait du dialogue constructif et fructueux engag\u00e9 avec une d\u00e9l\u00e9gation de haut niveau comp\u00e9tente.",
+  "score": 5,
+  "cost": 6.534999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 59,
+    "output": 46
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "translation_enfr",
+  "case": 14,
+  "response": "Le Comit\u00e9 salue la soumission du rapport initial de l'\u00c9tat partie et est gratifi\u00e9 par le dialogue constructif et fructueux initi\u00e9 avec une d\u00e9l\u00e9gation de haut niveau comp\u00e9tente.  \n\n\n### Notes sur la traduction :  \n- \"Welcomes\" est traduit par \"salue\" pour conserver le ton officiel et formel propre \u00e0 un comit\u00e9 international.  \n- \"Submission\" est rendu par \"soumission\", terme couramment utilis\u00e9 dans le contexte des rapports officiels.  \n- \"Is gratified by\" est traduit par \"est gratifi\u00e9 par\" pour exprimer une satisfaction constructive, plus adapt\u00e9e au cadre international que \"est ravi\" (qui est plus \u00e9motionnel).  \n- \"Constructive and fruitful dialogue\" devient \"dialogue constructif et fructueux\", un \u00e9quivalent naturel en fran\u00e7ais.  \n- \"Initiated with a competent high-level delegation\" est traduit par \"initi\u00e9 avec une d\u00e9l\u00e9gation de haut niveau comp\u00e9tente\", l'ordre \"de haut niveau comp\u00e9tente\" \u00e9tant plus fluide en fran\u00e7ais.  \n\nCette traduction maintient l'\u00e9quilibre entre formel et clart\u00e9, gardant intact le sens original.",
+  "score": 5,
+  "cost": 0.000331275,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 1071
+  }
+}

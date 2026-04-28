@@ -2,12 +2,12 @@
   "model": "kimi-k2.6",
   "task": "translation_enfr",
   "case": 41,
-  "response": "T'es pas \u00e0 la DGA. Zoome et ferme ta gueule.",
+  "response": "T'es pas \u00e0 la DGA. Fais juste un zoom et ferme ta gueule.",
   "score": 4,
-  "cost": 0.0034379999999999997,
+  "cost": 0.0033131999999999997,
   "expected": "",
   "tokens": {
     "input": 42,
-    "output": 1422
+    "output": 1370
   }
 }

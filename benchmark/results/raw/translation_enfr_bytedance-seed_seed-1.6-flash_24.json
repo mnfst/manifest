@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "translation_enfr",
+  "case": 24,
+  "response": "Le programme de nutrition urbaine de l'UNICEF \u00e0 Nairobi est directionn\u00e9 par une femme et promeut le cr\u00e9dit aux groupes de femmes qui commercialisent des aliments.  \n\n\n**Explanation**:  \n- \"The urban nutrition program of UNICEF in Nairobi\" is translated as *\"Le programme de nutrition urbaine de l'UNICEF \u00e0 Nairobi\"* (formal and precise, maintaining the institutional tone).  \n- \"Is headed by a woman\" becomes *\"est directionn\u00e9 par une femme\"* (using \"directionn\u00e9\" to convey leadership, fitting UNICEF's formal context).  \n- \"Promotes credit to women's groups\" is rendered as *\"promeut le cr\u00e9dit aux groupes de femmes\"* (clear and direct).  \n- \"Who market food\" is translated as *\"qui commercialisent des aliments\"* (using \"commercialisent\" to capture the sense of \"marketing\" as active distribution, while keeping the meaning intact).  \n\nThe translation preserves the original tone (formal, factual) and meaning, with natural phrasing in French.",
+  "score": 4,
+  "cost": 0.0002151,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 685
+  }
+}

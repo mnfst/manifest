@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "translation_enfr",
+  "case": 34,
+  "response": "Sydney, Esther sera dans mon bureau.  \n\nThis translation maintains the original tone (a straightforward statement) and meaning, with \"Sydney\" and \"Esther\" retained as proper nouns, \"sera\" (future of \"\u00eatre\") for \"will be,\" and \"dans mon bureau\" for \"in my office.\"",
+  "score": 5,
+  "cost": 0.000108825,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 335
+  }
+}

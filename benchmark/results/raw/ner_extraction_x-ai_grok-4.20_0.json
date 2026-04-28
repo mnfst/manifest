@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "ner_extraction",
+  "case": 0,
+  "response": "{\n  \"persons\": [\"Tim Cook\"],\n  \"organizations\": [\"Apple\", \"Samsung\"],\n  \"locations\": [\"Las Vegas\"]\n}",
+  "score": 5,
+  "cost": 0.000598,
+  "expected": "",
+  "tokens": {
+    "input": 187,
+    "output": 28
+  }
+}

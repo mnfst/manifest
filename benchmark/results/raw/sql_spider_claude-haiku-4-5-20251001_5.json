@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "```sql\nSELECT airport_id, airport_name\nFROM airports\nWHERE airport_id NOT IN (\n    SELECT DISTINCT departure_airport_id FROM flights\n    UNION\n    SELECT DISTINCT arrival_airport_id FROM flights\n);\n```",
+  "score": 5,
+  "cost": 0.00028960000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 57
+  }
+}

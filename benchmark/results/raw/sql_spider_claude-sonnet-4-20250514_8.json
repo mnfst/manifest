@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "sql_spider",
+  "case": 8,
+  "response": "```sql\nSELECT COUNT(DISTINCT cl.language)\nFROM country c\nJOIN countrylanguage cl ON c.code = cl.countrycode\nWHERE c.indepyear < 1930 AND cl.isofficial = 'T'\n```",
+  "score": 5,
+  "cost": 0.001191,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 62
+  }
+}

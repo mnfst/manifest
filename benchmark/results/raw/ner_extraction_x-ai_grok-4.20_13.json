@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "ner_extraction",
+  "case": 13,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"Oxford University\", \"Pfizer\"],\n  \"locations\": []\n}",
+  "score": 4,
+  "cost": 0.00056,
+  "expected": "",
+  "tokens": {
+    "input": 184,
+    "output": 24
+  }
+}

@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "translation_enfr",
   "case": 3,
-  "response": "Voici une traduction fid\u00e8le qui conserve le ton et le sens du texte original :\n\n*\u00ab Il n\u2019existe aucune autre explication \u00e0 l\u2019allocation parcimonieuse de 10 ou 12 millions d\u2019ECU, somme que nous savons tous insuffisante, ne serait-ce que pour construire un seul navire \u00e9quip\u00e9 des moyens modernes n\u00e9cessaires \u00e0 l\u2019exercice d\u2019une fonction de contr\u00f4le dans le secteur de la p\u00eache. \u00bb*\n\n**Variante l\u00e9g\u00e8rement plus fluide (si le contexte le permet) :**\n*\u00ab Cette attribution mesquine de 10 \u00e0 12 millions d\u2019ECU \u2013 que nous savons tous insuffisante pour financer ne f\u00fbt-ce qu\u2019un seul navire dot\u00e9 des \u00e9quipements modernes indispensables au contr\u00f4le des p\u00eaches \u2013 ne s\u2019explique par rien d\u2019autre. \u00bb*\n\n---\n**Notes :**\n- *\"Parsimonious grant\"* est rendu par *\u00ab allocation parcimonieuse \u00bb* (litt\u00e9raire) ou *\u00ab attribution mesquine \u00bb* (plus critique, selon l\u2019intention).\n- *\u00ab Do not even suffice to build \u00bb* devient *\u00ab insuffisante, ne serait-ce que pour construire \u00bb* pour insister sur l\u2019insuffisance flagrante.\n- *\u00ab Modern means of carrying out a monitoring function \u00bb* est traduit par *\u00ab moyens modernes n\u00e9cessaires \u00e0 l\u2019exercice d\u2019une fonction de contr\u00f4le \u00bb* (pr\u00e9cis et technique).\n- *\u00ab Fisheries sector \u00bb* \u2192 *\u00ab secteur de la p\u00eache \u00bb* (terme standard en fran\u00e7ais).\n\nSi le texte s\u2019inscrit dans un discours politique ou technique, la premi\u00e8re version est pr\u00e9f\u00e9rable pour son formalisme. La seconde ajoute une nuance plus engag\u00e9e. \u00c0 adapter selon le contexte !",
-  "score": 4,
-  "cost": 0.0007084,
+  "response": "Voici une traduction fid\u00e8le qui conserve le ton et le sens du texte original :\n\n*\u00ab Il n\u2019existe aucune autre explication \u00e0 l\u2019allocation mesquine de 10 ou 12 millions d\u2019ECU, somme que nous savons tous insuffisante pour financer ne serait-ce que la construction d\u2019un seul navire \u00e9quip\u00e9 des moyens modernes n\u00e9cessaires \u00e0 l\u2019exercice d\u2019une fonction de contr\u00f4le dans le secteur de la p\u00eache. \u00bb*\n\n**Variantes possibles selon le contexte :**\n- *\"octroi chiche\"* (plus formel que *\"mesquine\"*)\n- *\"subvention d\u00e9risoire\"* (si l'accent est mis sur l'insuffisance plut\u00f4t que sur l'avarice)\n- *\"comme chacun le sait\"* (alternative \u00e0 *\"que nous savons tous\"* pour un registre l\u00e9g\u00e8rement plus neutre).\n\nCette traduction garde la critique implicite du montant allou\u00e9 tout en restant naturelle en fran\u00e7ais. Vous souhaitez des ajustements pour un ton plus technique, diplomatique ou percutant ?",
+  "score": 5,
+  "cost": 0.00044239999999999997,
   "expected": "",
   "tokens": {
     "input": 76,
-    "output": 339
+    "output": 206
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_spider",
+  "case": 24,
+  "response": "SELECT EXTRACT(YEAR FROM concert_date) AS year\nFROM concerts\nGROUP BY EXTRACT(YEAR FROM concert_date)\nORDER BY COUNT(*) DESC\nLIMIT 1;",
+  "score": 5,
+  "cost": 0.0039468,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 876
+  }
+}

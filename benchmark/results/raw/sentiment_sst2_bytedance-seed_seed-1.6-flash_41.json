@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sentiment_sst2",
+  "case": 41,
+  "response": "positive",
+  "score": 5,
+  "cost": 4.425e-05,
+  "expected": "positive",
+  "tokens": {
+    "input": 146,
+    "output": 111
+  }
+}

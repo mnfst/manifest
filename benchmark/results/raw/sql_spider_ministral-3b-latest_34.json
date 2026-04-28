@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 34,
+  "response": "```sql\nSELECT\n    e.employee_id,\n    e.first_name,\n    e.last_name,\n    e.hire_date,\n    e.job_title,\n    e.department_id,\n    d.department_name,\n    e.salary,\n    e.hire_reason,\n    e.hiring_manager_id,\n    h.hiring_manager_name,\n    e.evaluation_score,\n    e.evaluation_date,\n    e.evaluation_comments\nFROM\n    employees e\nLEFT JOIN\n    departments d ON e.department_id = d.department_id\nLEFT JOIN\n    managers h ON e.hiring_manager_id = h.manager_id\nWHERE\n    e.hire_date IS NOT NULL;\n```",
+  "score": 5,
+  "cost": 8.279999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 141
+  }
+}

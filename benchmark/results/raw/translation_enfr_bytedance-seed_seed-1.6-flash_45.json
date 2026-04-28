@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "translation_enfr",
+  "case": 45,
+  "response": "L'\u00e9vasion fiscale a augment\u00e9 en Tunisie, causant un manque consid\u00e9rable de ressources publiques, a d\u00e9clar\u00e9 Ali Larayedh, ancien chef du gouvernement int\u00e9rim, en juin 2013, cit\u00e9 par le journal *Business Flood*.  \n\n\n**Notes sur la traduction** :  \n- \"Tax evasion\" est traduit par \"l'\u00e9vasion fiscale\" (terminologie standard en droit fiscal).  \n- \"Has grown\" se traduit par \"a augment\u00e9\" (plus pr\u00e9cis que \"a cro\u00eess\u00e9\" dans ce contexte).  \n- \"Significant shortfall\" est rendu par \"manque consid\u00e9rable\" (exprimer \"manque\" pour \"shortfall\" et \"consid\u00e9rable\" pour \"significant\").  \n- \"In terms of public resources\" est simplifi\u00e9 en \"de ressources publiques\" (plus concis sans perte de sens).  \n- \"Former head of the interim government\" devient \"ancien chef du gouvernement int\u00e9rim\" ( \"chef\" convient pour \"head\" dans un contexte gouvernemental).  \n- \"Quoted by the newspaper\" est traduit par \"cit\u00e9 par le journal\" ( \"cit\u00e9\" est le terme standard pour \"quoted\" dans les citations de presse).  \n- Le nom du journal est conserv\u00e9 tel quel, avec une majuscule initiale, et entre crochets si n\u00e9cessaire, mais ici \"Business Flood\" est utilis\u00e9 tel qu'il est (comme dans l'original).  \n\nLa structure et le ton sont maintenus, restant formel et conforme \u00e0 la nature informative de l'\u00e9nonc\u00e9.",
+  "score": 5,
+  "cost": 0.00036854999999999993,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 1192
+  }
+}

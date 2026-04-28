@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sentiment_sst2",
+  "case": 5,
+  "response": "negative\nThe text acknowledges a potential positive for some (\"might love\") but introduces a negative aspect for",
+  "score": 5,
+  "cost": 0.00020842499999999998,
+  "expected": "negative",
+  "tokens": {
+    "input": 131,
+    "output": 662
+  }
+}

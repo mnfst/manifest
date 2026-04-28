@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "translation_enfr",
+  "case": 37,
+  "response": "Le paragraphe 104(1.1) est modifi\u00e9 pour pr\u00e9ciser qu'il s'applique malgr\u00e9 le paragraphe 248(25) de la Loi. Le paragraphe 248(25) de la Loi d\u00e9crit, pour d'autres fins de la Loi, les circonstances dans lesquelles une personne ou une soci\u00e9t\u00e9 de personnes est consid\u00e9r\u00e9e comme ayant un \u00ab int\u00e9r\u00eat b\u00e9n\u00e9ficiaire \u00bb dans une fiducie.",
+  "score": 5,
+  "cost": 0.0001331,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 101
+  }
+}

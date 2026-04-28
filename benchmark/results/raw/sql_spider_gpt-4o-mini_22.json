@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "sql_spider",
+  "case": 22,
+  "response": "```sql\nSELECT section_name \nFROM student_transcripts_tracking.sections \nORDER BY section_name DESC;\n```",
+  "score": 5,
+  "cost": 2.3549999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 21
+  }
+}

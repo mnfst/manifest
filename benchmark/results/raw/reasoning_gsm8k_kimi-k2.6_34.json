@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 34,
+  "response": "Step 1: Find the cost of the food.  \nThey spent $4.50 less on food than on tickets:  \n$20.25 - $4.50 = $15.75.\n\nStep 2: Find the total cost of the rides.  \n2 rides at $33 each:  \n2 \u00d7 $33 = $66.\n\nStep 3: Add all the costs together.  \nTickets: $20.25  \nFood: $15.75  \nRides: $66  \nTotal = $20.25 + $15.75 + $66 = $102.\n\nStep 4: Split the total evenly among the 3 friends.  \n$102 \u00f7 3 = $34.\n\nANSWER: 34",
+  "score": 5,
+  "cost": 0.0013931999999999998,
+  "expected": "34",
+  "tokens": {
+    "input": 106,
+    "output": 554
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "ner_extraction",
+  "case": 30,
+  "response": "{\n  \"persons\": [\"Justin Trudeau\"],\n  \"organizations\": [\"United Nations\", \"General Assembly\"],\n  \"locations\": [\"Canada\", \"New York\"]\n}",
+  "score": 4,
+  "cost": 0.000636,
+  "expected": "",
+  "tokens": {
+    "input": 186,
+    "output": 33
+  }
+}

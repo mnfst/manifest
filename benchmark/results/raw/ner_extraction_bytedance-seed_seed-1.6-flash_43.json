@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "ner_extraction",
+  "case": 43,
+  "response": "{\n  \"persons\": [\"Satya Nadella\"],\n  \"organizations\": [\"Microsoft\", \"OpenAI\"],\n  \"locations\": []\n}",
+  "score": 5,
+  "cost": 0.00010140000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 300
+  }
+}

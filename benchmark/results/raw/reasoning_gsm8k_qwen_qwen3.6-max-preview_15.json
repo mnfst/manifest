@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "reasoning_gsm8k",
+  "case": 15,
+  "response": "First, calculate Joey's new total score after his turn:\n214 (initial points) + 26 (points scored) = 240 points\n\nNext, calculate Marcy's new total score after her turn:\n225 (initial points) + 10 (points scored) = 235 points\n\nFinally, subtract Marcy's score from Joey's score to find out by how many points Joey is winning:\n240 - 235 = 5 points\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.0045136,
+  "expected": "5",
+  "tokens": {
+    "input": 96,
+    "output": 844
+  }
+}

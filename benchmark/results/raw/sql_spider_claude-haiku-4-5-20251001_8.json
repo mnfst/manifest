@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "sql_spider",
+  "case": 8,
+  "response": "```sql\nSELECT COUNT(DISTINCT l.language)\nFROM countries c\nJOIN country_languages l ON c.code = l.country_code\nWHERE c.founded < 1930\nAND l.is_official = true;\n```",
+  "score": 4,
+  "cost": 0.00029360000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 56
+  }
+}

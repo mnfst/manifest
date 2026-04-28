@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 3,
+  "response": "```sql\nSELECT DISTINCT w1.country\nFROM world_1 w1\nWHERE w1.continent = 'Africa'\nAND w1.population < (\n    SELECT MIN(w2.population)\n    FROM world_1 w2\n    WHERE w2.continent = 'Asia'\n);\n```",
+  "score": 5,
+  "cost": 5.3599999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 63
+  }
+}

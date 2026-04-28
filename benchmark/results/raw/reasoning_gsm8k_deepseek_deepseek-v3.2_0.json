@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "Let\u2019s go step by step.  \n\n---\n\n**Step 1: Alexandra\u2019s amount**  \nAlexandra raises $430.  \n\n---\n\n**Step 2: Kim\u2019s amount**  \nKim raises $320 more than Alexandra:  \n\\[\n430 + 320 = 750\n\\]  \nSo Kim raises $750.  \n\n---\n\n**Step 3: Sarah\u2019s amount**  \nSarah raises $300.  \n\n---\n\n**Step 4: Maryam\u2019s amount**  \nMaryam raises $400 more than Sarah:  \n\\[\n300 + 400 = 700\n\\]  \nSo Maryam raises $700.  \n\n---\n\n**Step 5: Total money raised**  \n\\[\n\\text{Alexandra} = 430  \n\\]\n\\[\n\\text{Kim} = 750  \n\\]\n\\[\n\\text{Sarah} = 300  \n\\]\n\\[\n\\text{Maryam} = 700  \n\\]\n\\[\n\\text{Total} = 430 + 750 + 300 + 700\n\\]  \n\\[\n430 + 750 = 1180  \n\\]\n\\[\n1180 + 300 = 1480  \n\\]\n\\[\n1480 + 700 = 2180\n\\]  \n\n---\n\nANSWER: 2180",
+  "score": 5,
+  "cost": 0.00030655,
+  "expected": "2280",
+  "tokens": {
+    "input": 91,
+    "output": 258
+  }
+}

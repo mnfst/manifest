@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 15,
+  "response": "**Step 1:** Calculate Joey's score after his turn.  \nJoey started with 214 points and scored 26 more.  \n214 + 26 = 240 points.\n\n**Step 2:** Calculate Marcy's score after her turn.  \nMarcy started with 225 points and scored 10 more.  \n225 + 10 = 235 points.\n\n**Step 3:** Find the difference between their scores.  \n240 \u2212 235 = 5 points.\n\nJoey is winning by 5 points.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.000939,
+  "expected": "5",
+  "tokens": {
+    "input": 85,
+    "output": 370
+  }
+}

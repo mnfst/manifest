@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 23,
+  "response": "First, find the original cost per balloon:\n\n\\[\n\\frac{900}{20} = 45\n\\]\n\nSo each balloon originally cost \\\\(45.\n\nNext, find the new cost per balloon after the increase:\n\n\\[\n45 + 20 = 65\n\\]\n\nNow calculate the total cost for 170 balloons at the new price:\n\n\\[\n170 \\times 65 = 11050\n\\]\n\nBentley paid \\\\)11,050.\n\nANSWER: 11050",
+  "score": 5,
+  "cost": 0.0012323999999999998,
+  "expected": "11050",
+  "tokens": {
+    "input": 98,
+    "output": 489
+  }
+}

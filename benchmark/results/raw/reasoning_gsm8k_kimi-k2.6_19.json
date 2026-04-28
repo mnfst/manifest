@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 19,
+  "response": "Step 1: Identify the number of adopted kittens.  \nThe sisters have 7 adopted kittens.\n\nStep 2: Find how many kittens Patchy had.  \nPatchy had thrice the number of adopted kittens.  \n\\(3 \\times 7 = 21\\) kittens.\n\nStep 3: Identify how many kittens Trixie had.  \nTrixie had 12 kittens.\n\nStep 4: Add all the kittens together.  \n\\(7 + 21 + 12 = 40\\).\n\nANSWER: 40",
+  "score": 5,
+  "cost": 0.0017898,
+  "expected": "40",
+  "tokens": {
+    "input": 123,
+    "output": 715
+  }
+}

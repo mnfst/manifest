@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "To solve the problem, we break it down step by step:\n\n1.  First, identify the original number of pomelos Eve had: Eve started with 20 pomelos.\n2.  Calculate how many pomelos Eve has left. The problem states she is left with 1/4 of her original amount. To find this value:\n    Number of pomelos left = Original number \u00d7 1/4 = 20 \u00d7 (1/4) = 5.\n3.  Find the number of pomelos Eve gave away by subtracting the remaining pomelos from the original number:\n    Pomelos given away = Original number - Remaining number = 20 - 5 = 15.\n\nANSWER: 15",
+  "score": 5,
+  "cost": 0.00042525,
+  "expected": "15",
+  "tokens": {
+    "input": 129,
+    "output": 393
+  }
+}

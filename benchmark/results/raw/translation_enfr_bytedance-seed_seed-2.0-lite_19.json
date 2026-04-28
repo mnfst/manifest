@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 19,
+  "response": "FTI \u2014 Privil\u00e8ges et conditions\n\nNote: FTI is retained as an untranslated proper acronym, which is standard practice for specific organizational, regulatory, or corporate abbreviations in French formal documents. The translation matches the original's concise, formal heading tone, omitting articles just like the original English heading to preserve its structure as a section title.",
+  "score": 5,
+  "cost": 0.000716,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 697
+  }
+}

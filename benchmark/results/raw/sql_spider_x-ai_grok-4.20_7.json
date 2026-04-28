@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "sql_spider",
+  "case": 7,
+  "response": "```sql\nSELECT COUNT(*) FROM cars WHERE year = 1980;\n```",
+  "score": 5,
+  "cost": 0.0005,
+  "expected": "",
+  "tokens": {
+    "input": 186,
+    "output": 16
+  }
+}

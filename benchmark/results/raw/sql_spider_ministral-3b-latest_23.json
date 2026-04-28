@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 23,
+  "response": "```sql\nSELECT t.production_code, c.channel_name\nFROM tvshow.shows t\nJOIN tvshow.channels c ON t.channel_id = c.channel_id\nWHERE t.show_type = 'Cartoon'\nORDER BY t.air_date DESC\nLIMIT 1;\n```",
+  "score": 5,
+  "cost": 5.12e-06,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 60
+  }
+}

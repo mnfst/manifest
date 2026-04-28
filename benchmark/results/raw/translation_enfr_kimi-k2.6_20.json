@@ -2,12 +2,12 @@
   "model": "kimi-k2.6",
   "task": "translation_enfr",
   "case": 20,
-  "response": "Je dirais que c'est de faible valeur, dans le meilleur des cas.",
-  "score": 5,
-  "cost": 0.0036804,
+  "response": "Je dirais que c'est de peu de valeur, au mieux.",
+  "score": 4,
+  "cost": 0.0041724,
   "expected": "",
   "tokens": {
     "input": 34,
-    "output": 1525
+    "output": 1730
   }
 }

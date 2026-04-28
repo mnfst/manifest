@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "sql_spider",
+  "case": 15,
+  "response": "```sql\nSELECT MIN(share) AS minimum_share, MAX(share) AS maximum_share\nFROM tv_series;\n```",
+  "score": 5,
+  "cost": 0.004351799999999999,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 1796
+  }
+}

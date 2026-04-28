@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "ner_extraction",
+  "case": 33,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"International Monetary Fund\"],\n  \"locations\": [\"Latin America\"]\n}",
+  "score": 5,
+  "cost": 8.069999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 148,
+    "output": 232
+  }
+}

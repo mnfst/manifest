@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "To solve the problem, we calculate the number of each group of children and sum them to get the total:\n\n1.  **Number of boys**: The problem directly states there are 30 boys.\n2.  **Number of girls**: There are 3 times as many girls as boys. So:\n    Number of girls = 3 \u00d7 number of boys = 3 \u00d7 30 = 90.\n3.  **Number of nongendered children**: There are 1/10 as many nongendered children as boys. So:\n    Number of nongendered children = (1/10) \u00d7 number of boys = (1/10) \u00d7 30 = 3.\n\nAdd these together to get the total number of children:\nTotal = boys + girls + nongendered children = 30 + 90 + 3 = 123.\n\nANSWER: 123",
+  "score": 4,
+  "cost": 0.00060625,
+  "expected": "123",
+  "tokens": {
+    "input": 137,
+    "output": 572
+  }
+}

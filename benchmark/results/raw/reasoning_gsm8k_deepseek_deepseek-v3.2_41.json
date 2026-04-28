@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "Let\u2019s go step-by-step.  \n\n---\n\n**Step 1: Define variables**  \nLet \\( H \\) = number of copies Harald sold.  \nLet \\( M \\) = number of copies Marilyn sold.  \n\n---\n\n**Step 2: Translate the problem into equations**  \nWe are told:  \n\\[\nM = 10 \\times H\n\\]  \nAlso, combined sales:  \n\\[\nM + H = 88{,}000\n\\]  \n\n---\n\n**Step 3: Substitute**  \nSubstitute \\( M = 10H \\) into \\( M + H = 88{,}000 \\):  \n\\[\n10H + H = 88{,}000\n\\]  \n\\[\n11H = 88{,}000\n\\]  \n\n---\n\n**Step 4: Solve for \\( H \\)**  \n\\[\nH = \\frac{88{,}000}{11}\n\\]  \n\\[\nH = 8{,}000\n\\]  \n\n---\n\n**Step 5: Conclusion**  \nHarald sold \\( 8{,}000 \\) copies.  \n\n---\n\nANSWER: 8000",
+  "score": 5,
+  "cost": 0.0002633,
+  "expected": "8000",
+  "tokens": {
+    "input": 72,
+    "output": 223
+  }
+}

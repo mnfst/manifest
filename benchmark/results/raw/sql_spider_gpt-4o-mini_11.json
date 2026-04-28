@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "sql_spider",
+  "case": 11,
+  "response": "```sql\nSELECT country_name\nFROM world_1.countries\nWHERE continent = 'Africa' AND population < ALL (SELECT population FROM world_1.countries WHERE continent = 'Asia');\n```",
+  "score": 5,
+  "cost": 3.555e-05,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 40
+  }
+}

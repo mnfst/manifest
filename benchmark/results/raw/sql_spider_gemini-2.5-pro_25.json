@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "sql_spider",
+  "case": 25,
+  "response": "```sql\nSELECT T1.Title FROM cartoon AS T1 JOIN cartoon_director AS T2 ON T1.id  =  T2.Cartoon_ID JOIN Director AS T3 ON T2.Director_ID  =  T3.id WHERE T3.Name  =  'Ben Jones'\n```",
+  "score": 4,
+  "cost": 0.0007525,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 67
+  }
+}

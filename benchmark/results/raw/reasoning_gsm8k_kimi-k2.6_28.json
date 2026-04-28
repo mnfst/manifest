@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "Let \\( x \\) be the number of people who got on the bus at the terminal.\n\n1. **After the terminal:**  \n   \\( x \\) people are on the bus.\n\n2. **After the first bus stop:**  \n   5 more people got in.  \n   Total = \\( x + 5 \\)\n\n3. **After the second bus stop:**  \n   7 people got down and 8 people got in.  \n   Total = \\( (x + 5) - 7 + 8 = x + 6 \\)\n\n4. **Set up the equation:**  \n   We are told there are 20 people heading to the third stop.  \n   \\[\n   x + 6 = 20\n   \\]\n\n5. **Solve for \\( x \\):**  \n   \\[\n   x = 20 - 6 = 14\n   \\]\n\nSo, 14 people got on the bus at the terminal.\n\nANSWER: 14",
+  "score": 5,
+  "cost": 0.0009107999999999999,
+  "expected": "14",
+  "tokens": {
+    "input": 110,
+    "output": 352
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "reasoning_gsm8k",
+  "case": 10,
+  "response": "The problem describes a dehumidifier with three speeds: low, medium, and high.\n\nLow setting removes 1 liter per day.\n\nMedium removes twice as much as low, so 2 liters per day.\n\nHigh removes twice as much as medium, so 4 liters per day.\n\nBrian ran it for 3 days on low: 3 days * 1 L/day = 3 liters.\n\nThen 3 days on medium: 3 * 2 = 6 liters.\n\nThen 5 days on high: 5 * 4 = 20 liters.\n\nTotal: 3 + 6 + 20 = 29 liters.\n\nThe problem asks for the total amount of water removed, in liters.\n\nSo, the answer should be 29.\n\nLet me double-check.\n\nLow: 1 L/day\n\nMedium: 2 * low = 2 L/day\n\nHigh: 2 * medium = 4 L/day\n\nDays: 3 low, 3 medium, 5 high.\n\n3*1 = 3\n\n3*2 = 6\n\n5*4 = 20\n\nTotal 29.\n\nYes.\n\nANSWER: 29",
+  "score": 5,
+  "cost": 0.002492,
+  "expected": "29",
+  "tokens": {
+    "input": 314,
+    "output": 233
+  }
+}

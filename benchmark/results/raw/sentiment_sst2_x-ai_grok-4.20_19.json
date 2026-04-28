@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "sentiment_sst2",
+  "case": 19,
+  "response": "positive",
+  "score": 5,
+  "cost": 0.000342,
+  "expected": "positive",
+  "tokens": {
+    "input": 167,
+    "output": 1
+  }
+}

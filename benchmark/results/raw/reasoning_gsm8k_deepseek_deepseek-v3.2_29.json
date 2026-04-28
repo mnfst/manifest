@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "Let\u2019s break this down step by step.  \n\n---\n\n**Step 1: Red cars**  \nRed cars = \\( 12 \\)  \n\n**Step 2: Green cars**  \nThey have 2 fewer green cars than red cars:  \n\\[\n\\text{Green cars} = 12 - 2 = 10\n\\]\n\n**Step 3: Blue cars**  \nThey have 3 times the number of blue cars as green cars:  \n\\[\n\\text{Blue cars} = 3 \\times 10 = 30\n\\]\n\n**Step 4: Total cars without yellow**  \n\\[\n\\text{Red} + \\text{Green} + \\text{Blue} = 12 + 10 + 30 = 52\n\\]\n\n**Step 5: Yellow cars**  \nTotal cars = 75  \n\\[\n\\text{Yellow cars} = 75 - 52 = 23\n\\]\n\n---\n\nANSWER: 23",
+  "score": 5,
+  "cost": 0.00024005,
+  "expected": "23",
+  "tokens": {
+    "input": 111,
+    "output": 193
+  }
+}

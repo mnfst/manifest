@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "```sql\nSELECT airport_code \nFROM airports \nWHERE airport_code NOT IN (\n    SELECT departure_airport FROM flights\n    UNION\n    SELECT arrival_airport FROM flights\n);\n```",
+  "score": 5,
+  "cost": 5.9650000000000007e-05,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 39
+  }
+}

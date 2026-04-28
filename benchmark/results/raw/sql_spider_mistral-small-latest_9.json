@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "sql_spider",
+  "case": 9,
+  "response": "```sql\nSELECT country_name\nFROM car_1.countries\nWHERE country_id = (\n    SELECT country_id\n    FROM car_1.makers\n    GROUP BY country_id\n    ORDER BY COUNT(*) DESC\n    LIMIT 1\n);\n```",
+  "score": 4,
+  "cost": 2.4e-05,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 53
+  }
+}

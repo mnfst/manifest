@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "sql_spider",
+  "case": 46,
+  "response": "```sql\nSELECT government_form, SUM(population) AS total_population\nFROM world_1.country\nWHERE life_expectancy > 72\nGROUP BY government_form;\n```",
+  "score": 3,
+  "cost": 2.1700000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 40
+  }
+}

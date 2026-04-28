@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 12,
+  "response": "SELECT p.id, p.role, p.first_name\nFROM professionals p\nJOIN treatments t ON p.id = t.professional_id\nGROUP BY p.id, p.role, p.first_name\nHAVING COUNT(t.id) >= 2;",
+  "score": 5,
+  "cost": 0.000192075,
+  "expected": "",
+  "tokens": {
+    "input": 161,
+    "output": 600
+  }
+}

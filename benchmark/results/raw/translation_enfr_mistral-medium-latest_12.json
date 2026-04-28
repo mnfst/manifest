@@ -2,7 +2,7 @@
   "model": "mistral-medium-latest",
   "task": "translation_enfr",
   "case": 12,
-  "response": "Ce premier r\u00e9sultat, jug\u00e9 exceptionnel, a permis d'identifier **80 signaux acoustiques distincts** \u00e0 proximit\u00e9 des **Rocas Consag**. Ces r\u00e9sultats confirment les \u00e9tudes ant\u00e9rieures sur la **r\u00e9partition de la vaquita** dans la r\u00e9gion.\n\n*(Note : J\u2019ai l\u00e9g\u00e8rement adapt\u00e9 \"acoustic signals\" en \"signaux acoustiques distincts\" pour une fluidit\u00e9 naturelle en fran\u00e7ais, tout en conservant le sens technique. \"Rocas Consag\" est conserv\u00e9 tel quel, car il s\u2019agit probablement d\u2019un nom propre. \"Vaquita\" reste inchang\u00e9, car c\u2019est le nom scientifique/courant de l\u2019esp\u00e8ce en fran\u00e7ais.)*",
+  "response": "Ce premier r\u00e9sultat, jug\u00e9 exceptionnel, a permis d'identifier **80 signaux acoustiques distincts** \u00e0 proximit\u00e9 des **Rocas Consag**. Ces r\u00e9sultats confirment les \u00e9tudes ant\u00e9rieures sur la **r\u00e9partition de la vaquita** dans la r\u00e9gion.\n\n*(Note : J\u2019ai l\u00e9g\u00e8rement adapt\u00e9 \"acoustic signals\" en \"signaux acoustiques distincts\" pour une fluidit\u00e9 naturelle en fran\u00e7ais, tout en conservant le sens technique. \"Rocas Consag\" est conserv\u00e9 tel quel, car il s\u2019agit probablement d\u2019un nom propre. \"Vaquita\" reste inchang\u00e9, car c\u2019est le nom scientifique/courant de ce marsouin en fran\u00e7ais.)*",
   "score": 5,
   "cost": 0.0003036,
   "expected": "",

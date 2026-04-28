@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 3,
+  "response": "Let\u2019s break it down step by step.  \n\n**Step 1: Determine the ages of the two sons.**  \nThe older son is 12 years old.  \nThe younger son is 4 years younger:  \n\\( 12 - 4 = 8 \\) years old.  \n\n**Step 2: Find the total number of candles needed.**  \nEach son gets a number of candles equal to his age:  \n\\( 12 + 8 = 20 \\) candles.  \n\n**Step 3: Determine how many packs of candles to buy.**  \nEach pack contains 5 candles.  \n\\( 20 \\div 5 = 4 \\) packs.  \n\n**Step 4: Calculate the total cost.**  \nEach pack costs $3.  \n\\( 4 \\times 3 = 12 \\) dollars.  \n\nANSWER: 12",
+  "score": 5,
+  "cost": 0.0002133,
+  "expected": "12",
+  "tokens": {
+    "input": 92,
+    "output": 173
+  }
+}

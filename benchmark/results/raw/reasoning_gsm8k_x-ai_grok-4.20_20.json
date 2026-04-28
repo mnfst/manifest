@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "reasoning_gsm8k",
+  "case": 20,
+  "response": "The problem states: Jen got 3 fish. They each need $1 worth of food a day. How much does she spend on food in the month of May?\n\nFirst, determine the number of days in May. May has 31 days.\n\nEach fish needs $1 worth of food per day, and there are 3 fish. So, the daily food cost is 3 * $1 = $3 per day.\n\nFor 31 days, the total cost is 31 days * $3/day = $93.\n\nThe problem says \"they each need $1 worth of food a day,\" which means $1 per fish per day.\n\nIt assumes she feeds them every day in May, with no other complications.\n\nSo, the calculation is straightforward: 3 fish * $1/fish/day * 31 days = $93.\n\nANSWER: 93",
+  "score": 5,
+  "cost": 0.00176,
+  "expected": "93",
+  "tokens": {
+    "input": 188,
+    "output": 173
+  }
+}

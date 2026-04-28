@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "translation_enfr",
+  "case": 9,
+  "response": "De son c\u00f4t\u00e9, le deuxi\u00e8me atelier a port\u00e9 sur la mise en \u0153uvre des recommandations formul\u00e9es par les organes de surveillance des corps de trait\u00e9 \u00e0 l'\u00c9tat du Cameroun, en conformit\u00e9 avec les trait\u00e9s internationaux et r\u00e9gionaux, en ce qui concerne ses obligations envers les populations indig\u00e8nes.  \n\n\n### Notes sur la traduction :  \n- \"On its part\" est traduit par \"De son c\u00f4t\u00e9\" pour maintenir la neutralit\u00e9 et la formalit\u00e9.  \n- \"Focused on the implementation\" devient \"a port\u00e9 sur la mise en \u0153uvre\" (expression courante en fran\u00e7ais pour indiquer un axe de travail).  \n- \"Recommendations made by supervisory organs of treaty bodies\" est traduit par \"recommandations formul\u00e9es par les organes de surveillance des corps de trait\u00e9\" ( \"formul\u00e9es\" capture la notion de propositions ou d'\u00e9nonc\u00e9s, et \"corps de trait\u00e9\" est le terme standard pour \"treaty bodies\" en droit international).  \n- \"To the State of Cameroon\" est rendu par \"\u00e0 l'\u00c9tat du Cameroun\" pour pr\u00e9cision.  \n- \"In accordance with international and regional treaties\" est traduit par \"en conformit\u00e9 avec les trait\u00e9s internationaux et r\u00e9gionaux\".  \n- \"On its obligations towards indigenous populations\" est traduit par \"en ce qui concerne ses obligations envers les populations indig\u00e8nes\" ( \"en ce qui concerne\" relie clairement les trait\u00e9s aux obligations sp\u00e9cifiques).  \n\nLa structure et le ton restent conformes \u00e0 l'original, avec une expression fluide en fran\u00e7ais.",
+  "score": 4,
+  "cost": 0.000503475,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 1642
+  }
+}

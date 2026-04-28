@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "translation_enfr",
   "case": 27,
-  "response": "Les crit\u00e8res du **DSM-IV** pour l'**ivresse alcoolique** sont similaires, avec l'ajout d'**un ou plusieurs** des signes suivants : **parole tra\u00eenante**, **manque de coordination**, **d\u00e9marche instable**, **nystagmus**, **alt\u00e9ration de l'attention ou de la m\u00e9moire**, **stupor** ou **coma**.\n\n*(Note : J'ai conserv\u00e9 le ton clinique et pr\u00e9cis du texte original tout en adaptant la terminologie m\u00e9dicale fran\u00e7aise courante.)*",
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens du texte original :\n\n**\u00ab Les crit\u00e8res du DSM-IV pour l\u2019intoxication alcoolique sont similaires, avec l\u2019ajout d\u2019un ou plusieurs des signes suivants : parole tra\u00eenante, incoordination, d\u00e9marche instable, nystagmus, alt\u00e9ration de l\u2019attention ou de la m\u00e9moire, stupeur ou coma. \u00bb**\n\n*Remarques :*\n- **\"DSM-IV\"** reste inchang\u00e9 (acronyme international).\n- **\"Slurred speech\"** \u2192 *\"parole tra\u00eenante\"* (terme m\u00e9dical courant en fran\u00e7ais).\n- **\"Uncoordination\"** \u2192 *\"incoordination\"* (adapt\u00e9 au contexte m\u00e9dical).\n- **\"Stupor\"** \u2192 *\"stupeur\"* (terme technique en psychiatrie/neurologie).\n- La structure est fid\u00e8le \u00e0 l\u2019original pour une clart\u00e9 clinique.\n\nSi vous souhaitez une version plus fluide ou adapt\u00e9e \u00e0 un public sp\u00e9cifique (grand public, \u00e9tudiants, etc.), je peux ajuster le style.",
   "score": 5,
-  "cost": 0.0002536,
+  "cost": 0.0004736,
   "expected": "",
   "tokens": {
     "input": 74,
-    "output": 112
+    "output": 222
   }
 }

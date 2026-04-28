@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 47,
+  "response": "SELECT type_code FROM Template_Type WHERE description = 'Book';",
+  "score": 5,
+  "cost": 7.4775e-05,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 210
+  }
+}

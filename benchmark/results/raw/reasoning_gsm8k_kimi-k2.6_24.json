@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "Here is the step-by-step solution:\n\n1. **Find the total number of lollipops sold.**\n   - 30 students \u00d7 10 lollipops per student = 300 lollipops\n\n2. **Calculate the total revenue from sales.**\n   - 300 lollipops \u00d7 $0.80 per lollipop = $240\n\n3. **Calculate the total cost of the lollipops.**\n   - 300 lollipops \u00d7 $0.50 per lollipop = $150\n\n4. **Calculate the profit.**\n   - Profit = Revenue \u2212 Cost\n   - Profit = $240 \u2212 $150 = $90\n\n   (Alternatively, the profit per lollipop is $0.80 \u2212 $0.50 = $0.30, and 300 lollipops \u00d7 $0.30 = $90.)\n\nANSWER: 90",
+  "score": 5,
+  "cost": 0.001398,
+  "expected": "90",
+  "tokens": {
+    "input": 118,
+    "output": 553
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "sql_spider",
+  "case": 44,
+  "response": "```sql\nSELECT airport_code\nFROM airports\nWHERE num_flights = (SELECT MIN(num_flights) FROM airports);\n```",
+  "score": 4,
+  "cost": 1.66e-05,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 29
+  }
+}

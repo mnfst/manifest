@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "ner_extraction",
+  "case": 12,
+  "response": "{\"persons\": [\"Jensen Huang\"], \"organizations\": [\"Nvidia\"], \"locations\": [\"San Jose\"]}",
+  "score": 5,
+  "cost": 0.003621,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 1490
+  }
+}

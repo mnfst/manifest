@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "ner_extraction",
+  "case": 32,
+  "response": "{\n  \"persons\": [\"Serena Williams\"],\n  \"organizations\": [],\n  \"locations\": [\"Los Angeles\"]\n}",
+  "score": 4,
+  "cost": 0.0001284,
+  "expected": "",
+  "tokens": {
+    "input": 148,
+    "output": 391
+  }
+}

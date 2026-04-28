@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "sql_spider",
+  "case": 36,
+  "response": "SELECT T1.name FROM Highschooler AS T1 JOIN Likes AS T2 ON T1.ID = T2.liked_id GROUP BY T2.liked_id ORDER BY COUNT(*) DESC LIMIT 1;",
+  "score": 3,
+  "cost": 0.008235,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 89
+  }
+}

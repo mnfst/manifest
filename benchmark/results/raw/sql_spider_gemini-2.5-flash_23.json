@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "sql_spider",
+  "case": 23,
+  "response": "```sql\nSELECT\n  E.production_code,\n  E.channel\nFROM episodes AS E\nJOIN shows AS S\n  ON E.show_id = S.show_id\nWHERE\n  S.genre = 'Cartoon'\nORDER BY\n  E.air_date DESC\nLIMIT 1;\n```",
+  "score": 5,
+  "cost": 5.25e-05,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 70
+  }
+}

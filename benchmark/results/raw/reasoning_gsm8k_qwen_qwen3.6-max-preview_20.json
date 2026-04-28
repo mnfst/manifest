@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "reasoning_gsm8k",
+  "case": 20,
+  "response": "Step 1: Calculate the daily cost of food for all the fish. Jen has 3 fish, and each fish requires $1 worth of food per day. \nDaily cost = 3 fish \u00d7 $1/fish = $3 per day.\n\nStep 2: Determine the number of days in the month of May. May always has 31 days.\n\nStep 3: Calculate the total cost for the entire month. Multiply the daily cost by the number of days in May.\nTotal cost = $3/day \u00d7 31 days = $93.\n\nANSWER: 93",
+  "score": 5,
+  "cost": 0.0059851999999999995,
+  "expected": "93",
+  "tokens": {
+    "input": 80,
+    "output": 1131
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 15,
+  "response": "First, calculate Joey's final score by adding the points he scored to his initial total:\n214 + 26 = 240 points.\n\nNext, calculate Marcy's final score by adding the points she scored to her initial total:\n225 + 10 = 235 points.\n\nFinally, find the difference between their scores to determine by how many points Joey is winning:\n240 - 235 = 5 points.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.001117,
+  "expected": "5",
+  "tokens": {
+    "input": 96,
+    "output": 1093
+  }
+}

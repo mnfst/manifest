@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "sql_spider",
+  "case": 9,
+  "response": "SELECT c.CountryName FROM countries c JOIN car_makers m ON c.CountryId = m.Country GROUP BY c.CountryName ORDER BY COUNT(*) DESC LIMIT 1;",
+  "score": 4,
+  "cost": 0.007425,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 78
+  }
+}

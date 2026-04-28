@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "sql_spider",
+  "case": 24,
+  "response": "```sql\nSELECT year, COUNT(*) AS concert_count\nFROM concert\nGROUP BY year\nORDER BY concert_count DESC\nLIMIT 1;\n```",
+  "score": 5,
+  "cost": 5.3450000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 32
+  }
+}

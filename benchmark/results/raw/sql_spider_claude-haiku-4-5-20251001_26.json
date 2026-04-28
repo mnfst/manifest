@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "sql_spider",
+  "case": 26,
+  "response": "```sql\nSELECT COUNT(*) \nFROM flights f\nJOIN airports a1 ON f.departure_airport_id = a1.airport_id\nJOIN airports a2 ON f.arrival_airport_id = a2.airport_id\nWHERE a1.city = 'Aberdeen' \nAND a2.city = 'Ashley'\n```",
+  "score": 5,
+  "cost": 0.0003968,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 82
+  }
+}

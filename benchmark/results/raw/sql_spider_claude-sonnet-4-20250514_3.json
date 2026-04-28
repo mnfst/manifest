@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "sql_spider",
+  "case": 3,
+  "response": "```sql\nSELECT c1.Name\nFROM country c1\nWHERE c1.Continent = 'Africa'\nAND c1.Population < (\n    SELECT MIN(c2.Population)\n    FROM country c2\n    WHERE c2.Continent = 'Asia'\n    AND c2.Population > 0\n);\n```",
+  "score": 5,
+  "cost": 0.001428,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 79
+  }
+}

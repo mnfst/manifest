@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "To determine the total amount of money the girls raised, we first calculate the amount each girl raised individually and then sum them up.\n\n\n### Step 1: Calculate Kim's amount  \nAlexandra raises $430, and Kim raises $320 more than Alexandra.  \nKim's amount = Alexandra's amount + $320 = $430 + $320 = $750  \n\n\n### Step 2: Calculate Maryam's amount  \nSarah raises $300, and Maryam raises $400 more than Sarah.  \nMaryam's amount = Sarah's amount + $400 = $300 + $400 = $700  \n\n\n### Step 3: Sum all amounts  \nThe amounts raised by the girls are:  \n- Alexandra: $430  \n- Kim: $750  \n- Sarah: $300  \n- Maryam: $700  \n\nTotal = $430 + $750 + $300 + $700  \n\nAdding step-by-step:  \n$430 + $750 = $1,180  \n$1,180 + $300 = $1,480  \n$1,480 + $700 = $2,180  \n\n\nANSWER: 2180",
+  "score": 5,
+  "cost": 0.00026197499999999996,
+  "expected": "2280",
+  "tokens": {
+    "input": 181,
+    "output": 828
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 35,
+  "response": "[reporter masculin n\u00b01 \u00e0 la t\u00e9l\u00e9vision] Un accident est survenu juste apr\u00e8s 10 heures du matin.\n\nThis translation preserves the straightforward, urgent tone of a live TV news report: \"est survenu\" is the standard phrasing French news outlets use to report accidents or unplanned events, matching the formal yet clear tone of the original line, and the speaker notation in brackets aligns with standard transcript formatting for French broadcast media.",
+  "score": 5,
+  "cost": 0.00083625,
+  "expected": "",
+  "tokens": {
+    "input": 89,
+    "output": 814
+  }
+}

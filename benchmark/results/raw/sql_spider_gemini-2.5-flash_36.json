@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "sql_spider",
+  "case": 36,
+  "response": "```sql\nSELECT student_name\nFROM students\nORDER BY likes DESC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 2.3549999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 22
+  }
+}

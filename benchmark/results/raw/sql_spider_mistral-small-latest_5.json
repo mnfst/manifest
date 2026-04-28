@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "```sql\nSELECT a.airport_id, a.airport_name\nFROM flight_2.airports a\nWHERE a.airport_id NOT IN (\n    SELECT DISTINCT departure_airport_id FROM flight_2.flights\n    UNION\n    SELECT DISTINCT arrival_airport_id FROM flight_2.flights\n);\n```",
+  "score": 5,
+  "cost": 2.94e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 72
+  }
+}

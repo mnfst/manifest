@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "sql_spider",
+  "case": 26,
+  "response": "```sql\nSELECT COUNT(*) \nFROM flights f\nJOIN cities origin ON f.departure_city_id = origin.city_id\nJOIN cities dest ON f.destination_city_id = dest.city_id\nWHERE origin.city_name = 'Aberdeen' \n  AND dest.city_name = 'Ashley';\n```",
+  "score": 5,
+  "cost": 9.16e-05,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 66
+  }
+}

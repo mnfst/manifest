@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "Let $x$ represent the number of people who got on the bus at the terminal.\n\n**Step 1: Track the number of people after the first stop.**\nAt the first stop, 5 more people got on the bus.\nNumber of people = $x + 5$\n\n**Step 2: Track the number of people after the second stop.**\nAt the second stop, 7 people got off and 8 people got on.\nNumber of people = $(x + 5) - 7 + 8$\nSimplify the expression: $x + 5 - 7 + 8 = x + 6$\n\n**Step 3: Set up the equation using the final count.**\nWe are told that after the second stop, there are 20 people heading to the third stop.\nSo, $x + 6 = 20$\n\n**Step 4: Solve for $x$.**\nSubtract 6 from both sides:\n$x = 20 - 6$\n$x = 14$\n\n**Step 5: Verify the solution.**\nStart with 14 people at the terminal.\nFirst stop: $14 + 5 = 19$ people.\nSecond stop: $19 - 7 + 8 = 20$ people.\nThis matches the given information perfectly.\n\nANSWER: 14",
+  "score": 5,
+  "cost": 0.0073749,
+  "expected": "14",
+  "tokens": {
+    "input": 117,
+    "output": 1389
+  }
+}

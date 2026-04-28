@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "translation_enfr",
+  "case": 17,
+  "response": "**French:** Source : examplereferenceletter.com",
+  "score": 5,
+  "cost": 0.000386,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 11
+  }
+}

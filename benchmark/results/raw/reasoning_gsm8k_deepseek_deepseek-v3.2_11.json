@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "Let\u2019s go step by step.  \n\n**Step 1: Total burritos ordered**  \nGeorge ordered 600 burritos.  \n\n**Step -2: Burritos eaten by students**  \nThere were 50 students, each given 10 burritos.  \nBurritos eaten by students = \\( 50 \\times 10 = 500 \\).  \n\n**Step 3: Burritos eaten by Mr. George**  \nMr. George ate 20 burritos.  \n\n**Step 4: Total burritos eaten**  \nTotal eaten = \\( 500 + 20 = 520 \\).  \n\n**Step 5: Leftover burritos**  \nLeftover = Total ordered \u2212 Total eaten  \n\\( 600 - 520 = 80 \\).  \n\nANSWER: 80",
+  "score": 5,
+  "cost": 0.0002005,
+  "expected": "80",
+  "tokens": {
+    "input": 98,
+    "output": 160
+  }
+}

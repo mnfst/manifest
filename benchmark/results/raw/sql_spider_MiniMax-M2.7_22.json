@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_spider",
+  "case": 22,
+  "response": "```sql\nSELECT name FROM sections ORDER BY name DESC;\n```",
+  "score": 5,
+  "cost": 0.0011484000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 239
+  }
+}

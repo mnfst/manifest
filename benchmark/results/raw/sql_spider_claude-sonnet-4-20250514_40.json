@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "sql_spider",
+  "case": 40,
+  "response": "```sql\nSELECT DISTINCT c.MakeId, m.Make\nFROM Cars c\nJOIN Makes m ON c.MakeId = m.MakeId\nWHERE c.Horsepower > (SELECT MIN(Horsepower) FROM Cars)\nAND c.Cylinders <= 3;\n```",
+  "score": 5,
+  "cost": 0.001377,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 72
+  }
+}

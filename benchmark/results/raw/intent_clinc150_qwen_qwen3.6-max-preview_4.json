@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "intent_clinc150",
+  "case": 4,
+  "response": "uber",
+  "score": 5,
+  "cost": 0.0012103,
+  "expected": "uber",
+  "tokens": {
+    "input": 515,
+    "output": 104
+  }
+}

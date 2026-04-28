@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "intent_clinc150",
+  "case": 12,
+  "response": "oil_change_how",
+  "score": 5,
+  "cost": 0.0012441,
+  "expected": "oil_change_how",
+  "tokens": {
+    "input": 509,
+    "output": 112
+  }
+}

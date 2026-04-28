@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "sql_spider",
+  "case": 45,
+  "response": "```sql\nSELECT p.first_name, t.description\nFROM professionals p\nJOIN treatments t ON p.professional_id = t.professional_id;\n```",
+  "score": 5,
+  "cost": 0.000624,
+  "expected": "",
+  "tokens": {
+    "input": 192,
+    "output": 30
+  }
+}

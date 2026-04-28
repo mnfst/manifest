@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "ner_extraction",
+  "case": 14,
+  "response": "{\n  \"persons\": [\"Jerome Powell\"],\n  \"organizations\": [\"Federal Reserve\", \"Congress\"],\n  \"locations\": [\"Washington DC\"]\n}",
+  "score": 5,
+  "cost": 9.465000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 279
+  }
+}

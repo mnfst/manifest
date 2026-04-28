@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "intent_clinc150",
+  "case": 41,
+  "response": "bill_due",
+  "score": 5,
+  "cost": 0.00014505,
+  "expected": "bill_due",
+  "tokens": {
+    "input": 567,
+    "output": 3
+  }
+}

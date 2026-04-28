@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_spider",
+  "case": 10,
+  "response": "SELECT SUM(SurfaceArea) FROM countries WHERE Region = 'Caribbean';",
+  "score": 5,
+  "cost": 0.0016115000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 340
+  }
+}

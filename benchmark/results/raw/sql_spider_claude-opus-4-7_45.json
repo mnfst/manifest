@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "sql_spider",
+  "case": 45,
+  "response": "SELECT p.first_name, t.description FROM professionals p JOIN treatments tr ON p.professional_id = tr.professional_id JOIN treatment_types t ON tr.treatment_type_code = t.treatment_type_code",
+  "score": 4,
+  "cost": 0.007785,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 81
+  }
+}

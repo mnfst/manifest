@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 14,
+  "response": "Le Comit\u00e9 accueille avec satisfaction la soumission du rapport initial de l'\u00c9tat partie et se f\u00e9licite du dialogue constructif et fructueux qu'il a engag\u00e9 avec une d\u00e9l\u00e9gation comp\u00e9tente de haut niveau.\n\nThis translation adheres to the formal, official tone of UN/human rights treaty body documentation (the context of this original text), using standard French legal and diplomatic terminology to preserve the full original meaning.",
+  "score": 5,
+  "cost": 0.00091775,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 893
+  }
+}

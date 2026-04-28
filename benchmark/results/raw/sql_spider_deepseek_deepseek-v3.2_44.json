@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "sql_spider",
+  "case": 44,
+  "response": "```sql\nSELECT departure_airport\nFROM flights\nGROUP BY departure_airport\nORDER BY COUNT(*) ASC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 5.22e-05,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 32
+  }
+}

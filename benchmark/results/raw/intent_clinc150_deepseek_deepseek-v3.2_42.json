@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "intent_clinc150",
+  "case": 42,
+  "response": "next_song",
+  "score": 5,
+  "cost": 0.00014480000000000002,
+  "expected": "next_song",
+  "tokens": {
+    "input": 566,
+    "output": 3
+  }
+}

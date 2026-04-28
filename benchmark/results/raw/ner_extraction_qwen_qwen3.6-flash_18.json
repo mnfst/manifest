@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "ner_extraction",
+  "case": 18,
+  "response": "{\"persons\": [\"Sarah Chen\"], \"organizations\": [\"MIT\", \"Science magazine\"], \"locations\": []}",
+  "score": 5,
+  "cost": 0.00091825,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 900
+  }
+}

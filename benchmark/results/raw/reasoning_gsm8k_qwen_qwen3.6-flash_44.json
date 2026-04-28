@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 44,
+  "response": "Step 1: Identify the number of stalls. Although the first sentence mentions \"Ten stalls,\" the distribution instruction explicitly states the new cows are placed into \"each of the twenty stalls.\" We will use 20 stalls for the calculation.\n\nStep 2: Calculate the number of new cows added to each stall. Mr. Sylas buys 40 cows and divides them equally among the 20 stalls:\n40 cows \u00f7 20 stalls = 2 new cows per stall.\n\nStep 3: Determine the new total number of cows per stall. Each stall originally contained 20 cows. Adding the 2 new cows gives:\n20 + 2 = 22 cows per stall.\n\nStep 4: Calculate the total number of cows in 8 stalls. Multiply the number of stalls by the updated cows per stall:\n8 stalls \u00d7 22 cows/stall = 176 cows.\n\nANSWER: 176",
+  "score": 5,
+  "cost": 0.00334625,
+  "expected": "192",
+  "tokens": {
+    "input": 97,
+    "output": 3322
+  }
+}

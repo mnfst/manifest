@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 14,
+  "response": "To solve the problem, we break it down step by step:\n\n1.  First, calculate the total weekly insect needs for the entire flock of 10 ducks. Each duck eats 3.5 pounds of insects per week, so for 10 ducks:\n    Total weekly insects = 3.5 pounds/duck/week * 10 ducks = 35 pounds per week.\n\n2.  Next, convert this weekly amount to a daily amount. There are 7 days in a week, so divide the total weekly insects by 7 to get the daily requirement:\n    Total daily insects = 35 pounds/week / 7 days/week = 5 pounds per day.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.00066075,
+  "expected": "5",
+  "tokens": {
+    "input": 123,
+    "output": 630
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 12,
+  "response": "```sql\nSELECT\n    p.id AS professional_id,\n    p.role,\n    p.first_name\nFROM\n    professionals p\nJOIN\n    treatments t ON p.id = t.professional_id\nGROUP BY\n    p.id, p.role, p.first_name\nHAVING\n    COUNT(t.id) >= 2\nORDER BY\n    p.id;\n```",
+  "score": 5,
+  "cost": 6.28e-06,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 79
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "sql_spider",
+  "case": 40,
+  "response": "```sql\nSELECT makeid, make_name\nFROM cars\nWHERE horsepower > (SELECT MIN(horsepower) FROM cars)\nAND cylinders <= 3;\n```",
+  "score": 5,
+  "cost": 0.0005525,
+  "expected": "",
+  "tokens": {
+    "input": 89,
+    "output": 33
+  }
+}

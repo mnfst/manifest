@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 45,
+  "response": "La fraude fiscale s'est d\u00e9velopp\u00e9e en Tunisie, provoquant un manque \u00e0 gagner consid\u00e9rable en mati\u00e8re de ressources publiques, a d\u00e9clar\u00e9 l'ancien chef du gouvernement int\u00e9rimaire Ali Larayedh en juin 2013, cit\u00e9 par le journal Business Flood.",
+  "score": 5,
+  "cost": 0.00107,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 1042
+  }
+}

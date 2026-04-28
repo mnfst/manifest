@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 42,
+  "response": "Step 1: Determine the number of children in one school.  \nEach school has 7 rows, and each row has 8 children.  \n\\( 8 \\times 7 = 56 \\) children per school.\n\nStep 2: Determine the total number of children across all schools.  \nThere are 5 schools, each with 56 children.  \n\\( 56 \\times 5 = 280 \\).\n\nTherefore, the total number of children in the drill is 280.\n\nANSWER: 280",
+  "score": 5,
+  "cost": 0.0010932000000000001,
+  "expected": "280",
+  "tokens": {
+    "input": 94,
+    "output": 432
+  }
+}

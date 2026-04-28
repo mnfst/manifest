@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "First, start with Jamaal's initial weight: 8 pounds.\nNext, calculate a 50% increase to this weight. 50% of 8 pounds is \\(8 \\times 0.5 = 4\\) pounds. Adding this increase to the original weight gives \\(8 + 4 = 12\\) pounds, which is the weight after the first increase.\nThen, he uses a weight that is 2 pounds lighter than this 12-pound weight. Subtract 2 pounds: \\(12 - 2 = 10\\) pounds.\n\nANSWER: 10",
+  "score": 5,
+  "cost": 0.00045775,
+  "expected": "10",
+  "tokens": {
+    "input": 147,
+    "output": 421
+  }
+}

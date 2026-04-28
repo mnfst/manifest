@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "To determine the total number of Pokemon cards Elaine has now, we break down her collection month by month:\n\n\n### **Initial Amount**  \nElaine starts with 20 cards.  \n\n\n### **First Month**  \nShe collects three times the initial number of cards.  \nCollection in first month: \\( 3 \\times 20 = 60 \\)  \nTotal after first month: \\( 20 + 60 = 80 \\)  \n\n\n### **Second Month**  \nShe collects 20 fewer cards than the first month.  \nCollection in second month: \\( 60 - 20 = 40 \\)  \nTotal after second month: \\( 80 + 40 = 120 \\)  \n\n\n### **Third Month**  \nShe collects twice the combined number of cards from the first and second months.  \nCombined collection of first and second months: \\( 60 + 40 = 100 \\)  \nCollection in third month: \\( 2 \\times 100 = 200 \\)  \nTotal after third month: \\( 120 + 200 = 320 \\)  \n\n\nANSWER: 320",
+  "score": 5,
+  "cost": 0.00033172499999999995,
+  "expected": "320",
+  "tokens": {
+    "input": 195,
+    "output": 1057
+  }
+}

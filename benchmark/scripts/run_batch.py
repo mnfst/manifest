@@ -173,6 +173,14 @@ TASK_DEFS = {
         "judge_prompt": "Rate the answer on a 1-5 scale. 5=completely correct final answer with sound reasoning. 4=correct answer with minor reasoning gaps. 3=partially correct. 2=wrong answer but some correct steps. 1=completely wrong. Respond with ONLY a number 1-5.",
         "native_metric": "exact_answer",  # extract number after ANSWER: and compare to expected
     },
+    "sql_spider": {
+        "dataset": "datasets/spider_sql.jsonl",
+        "prompt_template": "Given the following database context, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\n{schema}\n\nQuestion: {input}\n\nSQL:",
+        "eval_type": "llm_judge",
+        "max_output_tokens": 300,
+        "judge_prompt": "Rate this SQL query on a 1-5 scale for correctness. 5=perfectly correct and would return the right results. 4=correct logic with minor issues. 3=right approach but errors. 2=wrong logic. 1=not valid SQL. Respond with ONLY a number 1-5.",
+        "native_metric": None,
+    },
     "translation_enfr": {
         "dataset": "datasets/opus100_translation.jsonl",
         "prompt_template": "Translate the following English text to French. Maintain the tone and meaning.\n\nEnglish: {input}\n\nFrench:",

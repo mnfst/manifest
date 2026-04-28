@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "translation_enfr",
+  "case": 14,
+  "response": "Le Comit\u00e9 se f\u00e9licite de la pr\u00e9sentation du rapport initial de l'\u00c9tat partie et accueille avec satisfaction le dialogue constructif et fructueux engag\u00e9 avec une d\u00e9l\u00e9gation de haut niveau comp\u00e9tente.",
+  "score": 5,
+  "cost": 0.00247525,
+  "expected": "",
+  "tokens": {
+    "input": 61,
+    "output": 2460
+  }
+}

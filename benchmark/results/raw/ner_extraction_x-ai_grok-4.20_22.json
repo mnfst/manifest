@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "ner_extraction",
+  "case": 22,
+  "response": "{\n  \"persons\": [\"Jamie Dimon\"],\n  \"organizations\": [\"JPMorgan Chase\", \"World Economic Forum\"],\n  \"locations\": [\"Davos\", \"Switzerland\"]\n}",
+  "score": 5,
+  "cost": 0.000678,
+  "expected": "",
+  "tokens": {
+    "input": 191,
+    "output": 37
+  }
+}

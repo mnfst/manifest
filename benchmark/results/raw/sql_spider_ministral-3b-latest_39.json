@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 39,
+  "response": "```sql\nSELECT\n    c.conductor_name,\n    o.orchestra_name\nFROM\n    conductors c\nJOIN\n    performances p ON c.conductor_id = p.conductor_id\nJOIN\n    orchestras o ON p.orchestra_id = o.orchestra_id\nORDER BY\n    c.conductor_name;\n```",
+  "score": 5,
+  "cost": 5.84e-06,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 72
+  }
+}

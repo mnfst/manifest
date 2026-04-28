@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "translation_enfr",
+  "case": 36,
+  "response": "Plus tu r\u00e9sistes, plus \u00e7a va \u00eatre g\u00eanant pour tout le monde. \n\n*(Note : Si le contexte exige le vouvoiement, utilisez : `Plus vous r\u00e9sistez, plus \u00e7a va \u00eatre g\u00eanant pour tout le monde.`)*",
+  "score": 4,
+  "cost": 0.00274425,
+  "expected": "",
+  "tokens": {
+    "input": 45,
+    "output": 2733
+  }
+}

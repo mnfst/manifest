@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "sql_spider",
+  "case": 26,
+  "response": "SELECT count(T1.FlightNo) FROM flight AS T1 JOIN city AS T2 ON T1.FromCity  =  T2.CityCode JOIN city AS T3 ON T1.ToCity  =  T3.CityCode WHERE T2.CityName = 'Aberdeen' AND T3.CityName = 'Ashley'",
+  "score": 5,
+  "cost": 0.0021275,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 2106
+  }
+}

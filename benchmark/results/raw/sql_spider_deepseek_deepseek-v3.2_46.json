@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "sql_spider",
+  "case": 46,
+  "response": "```sql\nSELECT governmentform, SUM(population) AS total_population\nFROM country\nWHERE lifeexpectancy > 72\nGROUP BY governmentform;\n```",
+  "score": 3,
+  "cost": 5.865e-05,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 34
+  }
+}

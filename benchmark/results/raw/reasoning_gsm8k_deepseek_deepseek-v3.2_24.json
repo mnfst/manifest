@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "Let\u2019s break this down step by step.  \n\n**Step 1: Find total lollipops sold**  \nNumber of students = 30  \nAverage sold per student = 10  \nTotal sold = \\( 30 \\times 10 = 300 \\) lollipops  \n\n**Step 2: Find selling price and cost price per lollipop**  \nSelling price = $0.80 each  \nCost price = $0.50 each  \n\n**Step 3: Profit per lollipop**  \nProfit per lollipop = Selling price \u2212 Cost price  \n\\( 0.80 - 0.50 = 0.30 \\) dollars  \n\n**Step 4: Total profit**  \nTotal profit = Profit per lollipop \u00d7 Total lollipops sold  \n\\( 0.30 \\times 300 = 90 \\) dollars  \n\n**Step 5: Conclusion**  \nThe class raised $90 from the profit.  \n\nANSWER: 90",
+  "score": 5,
+  "cost": 0.00025540000000000003,
+  "expected": "90",
+  "tokens": {
+    "input": 124,
+    "output": 204
+  }
+}

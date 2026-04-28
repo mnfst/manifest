@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "```sql\nSELECT DISTINCT n.name\nFROM country c\nJOIN nation n ON c.nation = n.code\nWHERE c.language IN ('English', 'French');\n```",
+  "score": 2,
+  "cost": 4.2000000000000004e-06,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 37
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "sql_spider",
+  "case": 15,
+  "response": "```sql\nSELECT MIN(share), MAX(share) FROM series;\n```",
+  "score": 5,
+  "cost": 2.025e-05,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 17
+  }
+}

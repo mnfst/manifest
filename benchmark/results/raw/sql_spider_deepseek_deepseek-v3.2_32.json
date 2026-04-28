@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "sql_spider",
+  "case": 32,
+  "response": "```sql\nSELECT first_name, AVG(ranking) AS average_ranking\nFROM players\nGROUP BY first_name;\n```",
+  "score": 5,
+  "cost": 4.66e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 26
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "Jamaal starts with an 8-pound weight.\n\nFirst, he increases the weight by 50%:\n- 50% of 8 pounds is \\(0.50 \\times 8 = 4\\) pounds.\n- The new weight is \\(8 + 4 = 12\\) pounds.\n\nThen, he uses a weight two pounds lighter than that:\n- \\(12 - 2 = 10\\) pounds.\n\nANSWER: 10",
+  "score": 5,
+  "cost": 0.0006852000000000001,
+  "expected": "10",
+  "tokens": {
+    "input": 102,
+    "output": 260
+  }
+}

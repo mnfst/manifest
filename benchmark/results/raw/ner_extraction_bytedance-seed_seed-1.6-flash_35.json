@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "ner_extraction",
+  "case": 35,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\n    \"European Space Agency\",\n    \"NASA\"\n  ],\n  \"locations\": [\n    \"lunar south pole\"\n  ]\n}",
+  "score": 4,
+  "cost": 0.00015315,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 473
+  }
+}

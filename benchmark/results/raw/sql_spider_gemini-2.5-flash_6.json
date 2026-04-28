@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "sql_spider",
+  "case": 6,
+  "response": "```sql\nSELECT DISTINCT T1.airline_name FROM airlines AS T1 JOIN flights AS T2 ON T1.airline_id = T2.airline_id WHERE T2.dest_airport = 'AHD';\n```",
+  "score": 5,
+  "cost": 3.975e-05,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 49
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "sql_spider",
+  "case": 8,
+  "response": "```sql\nSELECT COUNT(DISTINCT cl.language) AS total_unique_languages\nFROM country c\nJOIN country_language cl ON c.code = cl.country_code\nWHERE c.founding_year < 1930\nAND cl.is_official = TRUE;\n```",
+  "score": 5,
+  "cost": 0.0001416,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 55
+  }
+}

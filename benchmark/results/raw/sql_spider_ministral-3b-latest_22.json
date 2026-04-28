@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 22,
+  "response": "```sql\nSELECT section_name\nFROM sections\nORDER BY section_name DESC;\n```",
+  "score": 5,
+  "cost": 3.56e-06,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 18
+  }
+}

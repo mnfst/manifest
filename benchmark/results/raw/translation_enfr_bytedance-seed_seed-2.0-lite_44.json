@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 44,
+  "response": "Les analyses de sensibilit\u00e9 indiquent que l'ampleur de la longueur non appuy\u00e9e d\u00e9velopp\u00e9e \u00e0 la suite de l'affouillement exerce une influence significative sur la r\u00e9ponse en flexion du syst\u00e8me sol-tuyau.\n\nNote : Tous les termes techniques sont align\u00e9s sur le langage scientifique et de g\u00e9nie civil fran\u00e7ais standard : *affouillement* est le terme technique consacr\u00e9 pour d\u00e9signer le \"scour\" (\u00e9rosion localis\u00e9e qui d\u00e9stabilise les ouvrages enfouis), et la formulation du syst\u00e8me d'interaction sol-tuyau correspond \u00e0 l'usage acad\u00e9mique fran\u00e7ais pour ce type d'\u00e9tude, pr\u00e9servant le ton formel et la pr\u00e9cision du texte original.",
+  "score": 5,
+  "cost": 0.0013345,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 1310
+  }
+}

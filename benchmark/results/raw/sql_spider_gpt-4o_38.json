@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "sql_spider",
+  "case": 38,
+  "response": "```sql\nSELECT country_name, COUNT(language) AS language_count\nFROM country_languages\nGROUP BY country_name\nHAVING COUNT(language) > 2;\n```",
+  "score": 4,
+  "cost": 0.0005375,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 33
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "sql_spider",
+  "case": 9,
+  "response": "SELECT Country FROM car_makers GROUP BY Country ORDER BY count(Maker) DESC LIMIT 1",
+  "score": 4,
+  "cost": 0.001599,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 1579
+  }
+}

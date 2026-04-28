@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "sql_spider",
+  "case": 44,
+  "response": "```sql\nSELECT airport_code\nFROM airports\nGROUP BY airport_code\nORDER BY COUNT(*) ASC\nLIMIT 1;\n```\n\nWait, let me reconsider. The question asks for the airport with the least flights, which likely means we need to count flights from the flights table, not airports.\n\n```sql\nSELECT a.airport_code\nFROM airports a\nLEFT JOIN flights f ON a.airport_code = f.origin_airport OR a.airport_code = f.destination_airport\nGROUP BY a.airport_code\nORDER BY COUNT(f.flight_id) ASC\nLIMIT 1;\n```\n\nActually, a cleaner approach:\n\n```sql\nSELECT airport_code\nFROM (\n  SELECT origin_airport as airport_code FROM flights\n  UNION ALL\n  SELECT destination_airport FROM flights\n) AS all_flights\nGROUP BY airport_code\nORDER BY COUNT(*) ASC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 0.0009216000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 215
+  }
+}

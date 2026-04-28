@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "intent_clinc150",
+  "case": 35,
+  "response": "change_language",
+  "score": 5,
+  "cost": 0.000642,
+  "expected": "change_language",
+  "tokens": {
+    "input": 522,
+    "output": 137
+  }
+}

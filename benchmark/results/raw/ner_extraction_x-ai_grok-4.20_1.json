@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "ner_extraction",
+  "case": 1,
+  "response": "{\n  \"persons\": [\"Biden\", \"Macron\"],\n  \"organizations\": [\"NATO\"],\n  \"locations\": [\"White House\"]\n}",
+  "score": 5,
+  "cost": 0.000612,
+  "expected": "",
+  "tokens": {
+    "input": 186,
+    "output": 30
+  }
+}

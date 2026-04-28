@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "intent_clinc150",
+  "case": 9,
+  "response": "weather",
+  "score": 5,
+  "cost": 0.0005705999999999999,
+  "expected": "weather",
+  "tokens": {
+    "input": 519,
+    "output": 108
+  }
+}

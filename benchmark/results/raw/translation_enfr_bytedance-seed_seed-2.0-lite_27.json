@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 27,
+  "response": "Les crit\u00e8res du DSM-IV pour l'intoxication alcoolique sont similaires, compl\u00e9t\u00e9s par la pr\u00e9sence d'au moins l'un des signes suivants : \u00e9locution p\u00e2teuse, incoordination motrice, d\u00e9marche instable, nystagmus, alt\u00e9ration de l'attention ou de la m\u00e9moire, stupeur ou coma.\n\nThis translation uses standard French medical terminology aligned with official French translations of DSM diagnostic criteria, preserves the formal, clinical tone of the original text, and retains the exact meaning of the source's clinical specifications.",
+  "score": 5,
+  "cost": 0.00127975,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 1250
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "ner_extraction",
+  "case": 49,
+  "response": "{\n  \"persons\": [\"Pope Francis\"],\n  \"organizations\": [],\n  \"locations\": [\"St. Peter Square\", \"Vatican\"]\n}",
+  "score": 4,
+  "cost": 0.0001254,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 380
+  }
+}

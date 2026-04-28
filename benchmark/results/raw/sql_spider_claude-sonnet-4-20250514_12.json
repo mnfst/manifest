@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "sql_spider",
+  "case": 12,
+  "response": "```sql\nSELECT p.professional_id, p.role, p.first_name\nFROM professionals p\nJOIN treatments t ON p.professional_id = t.professional_id\nGROUP BY p.professional_id, p.role, p.first_name\nHAVING COUNT(t.treatment_id) >= 2;\n```",
+  "score": 5,
+  "cost": 0.001419,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 77
+  }
+}

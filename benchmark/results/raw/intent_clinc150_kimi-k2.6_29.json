@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "intent_clinc150",
+  "case": 29,
+  "response": "recipe",
+  "score": 5,
+  "cost": 0.0007415999999999999,
+  "expected": "recipe",
+  "tokens": {
+    "input": 516,
+    "output": 180
+  }
+}

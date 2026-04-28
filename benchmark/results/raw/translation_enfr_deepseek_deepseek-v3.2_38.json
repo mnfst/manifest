@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "translation_enfr",
+  "case": 38,
+  "response": "Cela ne peut que mener au chaos et \u00e0 la terreur.",
+  "score": 5,
+  "cost": 2.575e-05,
+  "expected": "",
+  "tokens": {
+    "input": 37,
+    "output": 15
+  }
+}

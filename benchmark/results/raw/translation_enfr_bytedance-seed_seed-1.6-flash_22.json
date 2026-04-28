@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "translation_enfr",
+  "case": 22,
+  "response": "Si le revenu d'une personne et/ou son statut d'emploi change, il peut y avoir un transfert de responsabilit\u00e9 institutionnelle ; dans ce cas, il y aura une nouvelle \u00e9valuation.  \n\n\nThis translation maintains the formal tone and precise meaning of the original text. \"Income and/or employment status\" is rendered as \"revenu d'une personne et/ou son statut d'emploi,\" \"transfer of institutional responsibility\" as \"transfert de responsabilit\u00e9 institutionnelle,\" and \"new assessment\" as \"nouvelle \u00e9valuation.\" The structure \"in which case\" is smoothly conveyed by \"dans ce cas,\" ensuring clarity and flow.",
+  "score": 5,
+  "cost": 0.0002502,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 801
+  }
+}

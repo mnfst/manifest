@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "SELECT Code, Name, City, State, Country FROM Airport WHERE Code NOT IN (SELECT Origin FROM Flight) AND Code NOT IN (SELECT Destination FROM Flight)",
+  "score": 5,
+  "cost": 0.00163925,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 1620
+  }
+}

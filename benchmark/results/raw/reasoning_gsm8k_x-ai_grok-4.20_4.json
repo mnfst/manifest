@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "The problem states: Mariah used 1/4 of a skein of yarn. Her grandma used 1/2 of a skein of yarn. There are 364 yards in a skein of yarn. How many yards of yarn did they use altogether?\n\nFirst, I need to find out how much of a skein they used together. Mariah used 1/4 and grandma used 1/2. 1/2 is the same as 2/4, so together that's 1/4 + 2/4 = 3/4 of a skein.\n\nNow, 3/4 of 364 yards.\n\nTo find 3/4 of 364, I can multiply 364 by 3 and then divide by 4.\n\n364 \u00d7 3 = 1092\n\n1092 \u00f7 4 = 273\n\nSo, they used 273 yards altogether.\n\nI could also calculate each separately and add.\n\nMariah: 1/4 of 364 = 364 \u00f7 4 = 91 yards.\n\nGrandma: 1/2 of 364 = 364 \u00f7 2 = 182 yards.\n\nTotal: 91 + 182 = 273 yards.\n\nYes, same answer.\n\nANSWER: 273",
+  "score": 5,
+  "cost": 0.00246,
+  "expected": "273",
+  "tokens": {
+    "input": 214,
+    "output": 254
+  }
+}

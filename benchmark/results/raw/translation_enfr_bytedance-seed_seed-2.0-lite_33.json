@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 33,
+  "response": "CV33 (1) (1.3) Remplacer l'expression \u00ab le conducteur et les autres membres de l\u2019\u00e9quipage \u00bb par \u00ab les membres de l\u2019\u00e9quipage du v\u00e9hicule \u00bb.\n\nThis translation preserves the formal, regulatory tone of the original technical instruction, retains the standard clause reference identifiers unchanged, and uses the correct French terminology for transport/vehicle regulatory contexts that matches the original meaning perfectly.",
+  "score": 5,
+  "cost": 0.00056775,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 543
+  }
+}

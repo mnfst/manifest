@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "sql_spider",
+  "case": 24,
+  "response": "```sql\nSELECT YEAR FROM concert GROUP BY YEAR ORDER BY COUNT(*) DESC LIMIT 1\n```",
+  "score": 3,
+  "cost": 0.00053,
+  "expected": "",
+  "tokens": {
+    "input": 185,
+    "output": 20
+  }
+}

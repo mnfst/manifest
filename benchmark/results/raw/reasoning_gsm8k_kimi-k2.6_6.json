@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 6,
+  "response": "Step 1: Determine Ann's current age.  \nAnn is 9 years old.\n\nStep 2: Determine her brother's current age.  \nHer brother is twice her age, so:  \n2 \u00d7 9 = 18 years old.\n\nStep 3: Calculate how old her brother will be in 3 years.  \n18 + 3 = 21 years old.\n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.0006215999999999999,
+  "expected": "21",
+  "tokens": {
+    "input": 68,
+    "output": 242
+  }
+}

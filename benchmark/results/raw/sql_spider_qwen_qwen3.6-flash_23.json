@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "sql_spider",
+  "case": 23,
+  "response": "SELECT production_code , channel FROM shows WHERE genre = 'Cartoon' ORDER BY air_date DESC LIMIT 1",
+  "score": 5,
+  "cost": 0.00217175,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 2152
+  }
+}

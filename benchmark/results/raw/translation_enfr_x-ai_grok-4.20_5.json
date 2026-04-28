@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "translation_enfr",
+  "case": 5,
+  "response": "**French:** Les flocs issus de SRT plus \u00e9lev\u00e9s \u00e9taient moins hydrat\u00e9s et poss\u00e9daient une couche dense d\u2019EPS recouvrant une grande partie de leur surface.",
+  "score": 5,
+  "cost": 0.000626,
+  "expected": "",
+  "tokens": {
+    "input": 165,
+    "output": 37
+  }
+}

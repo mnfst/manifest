@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "translation_enfr",
+  "case": 46,
+  "response": "J'ai re\u00e7u sept motions de r\u00e9solution en vertu de l'article 37 des R\u00e8gles de proc\u00e9dure.  \n\n\nThis translation preserves the formal, legal tone of the original text and accurately conveys the meaning: the speaker has received seven formal proposals for resolutions, issued under the authority of Rule 37 of the procedural rules. \"Motions de r\u00e9solution\" is the standard legal term for \"motions for resolutions,\" and \"en vertu de\" appropriately translates \"pursuant to.\"",
+  "score": 5,
+  "cost": 0.000283575,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 915
+  }
+}

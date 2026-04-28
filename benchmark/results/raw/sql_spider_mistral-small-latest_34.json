@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "sql_spider",
+  "case": 34,
+  "response": "```sql\nSELECT * FROM employee_hire_evaluation.hiring;\n```",
+  "score": 5,
+  "cost": 1.2600000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 16
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 46,
+  "response": "J'ai re\u00e7u sept propositions de r\u00e9solution conform\u00e9ment \u00e0 l'article 37 du R\u00e8glement int\u00e9rieur.\n\nThis translation preserves the formal, procedural tone of the original parliamentary text, using standard terminology used in French-language parliamentary and EU institutional contexts: \"propositions de r\u00e9solution\" is the official equivalent of \"motions for resolutions\" in this procedural setting, \"conform\u00e9ment \u00e0\" correctly renders \"pursuant to\", and \"R\u00e8glement int\u00e9rieur\" is the standard formal translation for \"Rules of Procedure\", with procedural rules numbered as \"articles\" in French parliamentary usage.",
+  "score": 5,
+  "cost": 0.00063375,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 612
+  }
+}

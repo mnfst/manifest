@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "sql_spider",
+  "case": 9,
+  "response": "```sql\nSELECT country FROM car_makers GROUP BY country ORDER BY COUNT(*) DESC LIMIT 1;\n```",
+  "score": 4,
+  "cost": 4.5400000000000006e-05,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 24
+  }
+}

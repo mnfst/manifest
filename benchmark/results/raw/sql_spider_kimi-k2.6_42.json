@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "sql_spider",
+  "case": 42,
+  "response": "SELECT template_id FROM Templates WHERE description = 'Presentation';",
+  "score": 5,
+  "cost": 0.0024768,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 1013
+  }
+}

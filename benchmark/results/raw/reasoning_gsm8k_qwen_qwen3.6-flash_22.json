@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 22,
+  "response": "First, calculate the total amount of tips Rafaela received. Since 40 customers each gave her a $20 tip:\n40 customers \u00d7 $20/customer = $800\n\nNext, calculate Julieta's total tips. She received 10% less than Rafaela:\n10% of $800 = 0.10 \u00d7 $800 = $80\nJulieta's total = $800 - $80 = $720\n\nFinally, add both amounts together to find the total tips they received altogether:\n$800 (Rafaela) + $720 (Julieta) = $1520\n\nANSWER: 1520",
+  "score": 2,
+  "cost": 0.0016095,
+  "expected": "1520",
+  "tokens": {
+    "input": 102,
+    "output": 1584
+  }
+}

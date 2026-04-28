@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 32,
+  "response": "```sql\nSELECT\n    p.first_name,\n    AVG(r.rank) AS average_ranking\nFROM\n    players p\nLEFT JOIN\n    rankings r ON p.player_id = r.player_id\nGROUP BY\n    p.first_name\nORDER BY\n    p.first_name;\n```",
+  "score": 5,
+  "cost": 5.279999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 61
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "reasoning_gsm8k",
+  "case": 1,
+  "response": "Step 1: Determine Kalinda's mom's rate. Since she places half as many pieces per minute as Kalinda, her rate is 4 / 2 = 2 pieces per minute.\n\nStep 2: Find their combined working rate. Add Kalinda's rate and her mom's rate together: 4 + 2 = 6 pieces per minute.\n\nStep 3: Calculate the total time in minutes to complete the puzzle. Divide the total number of pieces by their combined rate: 360 pieces / 6 pieces per minute = 60 minutes.\n\nStep 4: Convert the time from minutes to hours. Since there are 60 minutes in 1 hour, 60 minutes equals 1 hour.\n\nANSWER: 1",
+  "score": 5,
+  "cost": 0.0054119,
+  "expected": "1",
+  "tokens": {
+    "input": 103,
+    "output": 1015
+  }
+}

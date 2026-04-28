@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "intent_clinc150",
+  "case": 43,
+  "response": "book_flight",
+  "score": 5,
+  "cost": 0.00016597499999999998,
+  "expected": "book_flight",
+  "tokens": {
+    "input": 649,
+    "output": 391
+  }
+}

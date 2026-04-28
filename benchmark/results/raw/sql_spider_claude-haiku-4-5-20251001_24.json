@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "sql_spider",
+  "case": 24,
+  "response": "```sql\nSELECT EXTRACT(YEAR FROM concert_date) AS year, COUNT(*) AS concert_count\nFROM concerts\nGROUP BY EXTRACT(YEAR FROM concert_date)\nORDER BY concert_count DESC\nLIMIT 1;\n```",
+  "score": 5,
+  "cost": 0.0002928,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 58
+  }
+}

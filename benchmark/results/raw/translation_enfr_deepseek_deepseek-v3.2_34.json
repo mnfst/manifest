@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "translation_enfr",
+  "case": 34,
+  "response": "Sydney, Esther sera dans mon bureau.",
+  "score": 5,
+  "cost": 1.655e-05,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 8
+  }
+}

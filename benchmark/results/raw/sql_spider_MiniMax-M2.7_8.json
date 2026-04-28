@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_spider",
+  "case": 8,
+  "response": "```sql\nSELECT COUNT(DISTINCT cl.Language) AS total_unique_official_languages\nFROM country c\nJOIN countrylanguage cl ON c.Code = cl.CountryCode\nWHERE c.IndepYear < 1930\n  AND cl.IsOfficial = 'T';\n```",
+  "score": 5,
+  "cost": 0.0030085000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 660
+  }
+}

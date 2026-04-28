@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_spider",
+  "case": 49,
+  "response": "SELECT hometown FROM teachers GROUP BY hometown HAVING COUNT(*) >= 2;",
+  "score": 5,
+  "cost": 0.0033033000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 729
+  }
+}

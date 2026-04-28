@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "sql_spider",
+  "case": 17,
+  "response": "SELECT StadiumName FROM stadium WHERE StadiumId NOT IN (SELECT StadiumId FROM concert WHERE Year = 2014)",
+  "score": 5,
+  "cost": 0.00212575,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 2104
+  }
+}

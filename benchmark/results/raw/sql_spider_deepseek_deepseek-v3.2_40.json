@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "sql_spider",
+  "case": 40,
+  "response": "```sql\nSELECT c.makeid, m.makename\nFROM cars c\nJOIN makes m ON c.makeid = m.makeid\nWHERE c.horsepower > (SELECT MIN(horsepower) FROM cars)\n  AND c.cylinders <= 3;\n```",
+  "score": 5,
+  "cost": 8.680000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 58
+  }
+}

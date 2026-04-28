@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "sql_spider",
+  "case": 44,
+  "response": "```sql\nSELECT A.airport_code\nFROM airports AS A\nLEFT JOIN (\n    SELECT departure_airport_code AS airport_code FROM flights\n    UNION ALL\n    SELECT arrival_airport_code AS airport_code FROM flights\n) AS FlightCounts ON A.airport_code = FlightCounts.airport_code\nGROUP BY A.airport_code\nORDER BY COUNT(FlightCounts.airport_code) ASC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 6.794999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 96
+  }
+}

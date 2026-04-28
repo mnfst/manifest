@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "Step 1: Find the number of cards collected in the first month.  \nElaine started with 20 cards, and she collected three times that amount:  \n3 \u00d7 20 = 60 cards.\n\nStep 2: Find the number of cards collected in the second month.  \nShe collected 20 fewer than in the first month:  \n60 \u2212 20 = 40 cards.\n\nStep 3: Find the combined number collected in the first two months.  \n60 + 40 = 100 cards.\n\nStep 4: Find the number of cards collected in the third month.  \nShe collected twice the combined amount from the first two months:  \n2 \u00d7 100 = 200 cards.\n\nStep 5: Find the total number of cards she has now.  \nAdd the initial cards to the cards collected in all three months:  \n20 + 60 + 40 + 200 = 320.\n\nANSWER: 320",
+  "score": 5,
+  "cost": 0.0013097999999999999,
+  "expected": "320",
+  "tokens": {
+    "input": 115,
+    "output": 517
+  }
+}

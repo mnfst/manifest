@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 22,
+  "response": "Let\u2019s break it down step by step.  \n\n---\n\n**Step 1: Rafaela\u2019s total tips**  \nEach of the 40 customers gave Rafaela a $20 tip.  \n\\[\n40 \\times 20 = 800\n\\]  \nSo Rafaela received **$800** in tips.\n\n---\n\n**Step 2: Julieta\u2019s tips**  \nJulieta received 10% less money in tips than Rafaela.  \n10% of Rafaela\u2019s tips:  \n\\[\n0.10 \\times 800 = 80\n\\]  \nLess means subtract:  \n\\[\n800 - 80 = 720\n\\]  \nSo Julieta received **$720** in tips.\n\n---\n\n**Step 3: Total tips for both**  \n\\[\n800 + 720 = 1520\n\\]  \n\n---\n\nANSWER: 1520",
+  "score": 5,
+  "cost": 0.00021610000000000002,
+  "expected": "1520",
+  "tokens": {
+    "input": 90,
+    "output": 176
+  }
+}

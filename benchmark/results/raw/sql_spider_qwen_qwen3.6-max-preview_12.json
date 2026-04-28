@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "sql_spider",
+  "case": 12,
+  "response": "SELECT T1.professional_id , T1.role_code , T1.first_name\nFROM Professionals AS T1\nJOIN Treatments AS T2\n  ON T1.professional_id  =  T2.professional_id\nGROUP BY T1.professional_id\nHAVING count(T2.professional_id) >= 2",
+  "score": 4,
+  "cost": 0.012876500000000003,
+  "expected": "",
+  "tokens": {
+    "input": 89,
+    "output": 2454
+  }
+}

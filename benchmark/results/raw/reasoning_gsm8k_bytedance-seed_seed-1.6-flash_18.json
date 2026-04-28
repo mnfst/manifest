@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "To determine how many pomelos Eve gave away, we start by finding out how many she has left. \n\nEve originally had 20 pomelos, and she is left with \\( \\frac{1}{4} \\) of the original amount. Calculating \\( \\frac{1}{4} \\) of 20:  \n\\( \\frac{1}{4} \\times 20 = 5 \\).  \n\nSo, Eve has 5 pomelos left. To find out how many she gave away, we subtract the number she has left from the original amount:  \n\\( 20 - 5 = 15 \\).  \n\nANSWER: 15",
+  "score": 5,
+  "cost": 0.00012232499999999998,
+  "expected": "15",
+  "tokens": {
+    "input": 163,
+    "output": 367
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "To find the number of students enrolled this year, follow these steps:\n\n1. **Identify last year's enrollment:** There were 50 students.\n2. **Calculate the increase:** A 20% increase means we need to find 20% of 50. \n   Convert 20% to a decimal: 20% = 0.20\n   Multiply: 0.20 \u00d7 50 = 10 students\n3. **Add the increase to last year's total:** 50 + 10 = 60 students\n\nAlternatively, you can multiply the original amount by 1.20 (which represents 100% + 20%): 50 \u00d7 1.20 = 60.\n\nANSWER: 60",
+  "score": 5,
+  "cost": 0.0042614,
+  "expected": "60",
+  "tokens": {
+    "input": 90,
+    "output": 797
+  }
+}

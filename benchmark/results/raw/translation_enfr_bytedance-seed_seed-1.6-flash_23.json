@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "Les d\u00e9versoirs capables de g\u00e9rer les \u00e9v\u00e9nements de crues postul\u00e9s sont incorpor\u00e9s soit dans les structures de la digue, soit construits en tant que structures s\u00e9par\u00e9es.  \n\n\n**Explanation of key choices:**  \n- \"Spillways\" \u2192 \"d\u00e9versoirs\" (standard term for spillways in civil engineering).  \n- \"Capable of handling\" \u2192 \"capables de g\u00e9rer\" (emphasizes managing flow, fitting technical context).  \n- \"Postulated flood events\" \u2192 \"\u00e9v\u00e9nements de crues postul\u00e9s\" (preserves the meaning of \"assumed\" or \"theoretically defined\" floods).  \n- \"Incorporated either into... or are constructed as\" \u2192 \"sont incorpor\u00e9s soit dans... soit construits en tant que\" (maintains the parallel structure and technical precision).  \n- \"Dam structures\" \u2192 \"structures de la digue\" (clear and accurate for \"structures de la digue\").  \n- \"Separate structures\" \u2192 \"structures s\u00e9par\u00e9es\" (concise and natural).  \n\nThe translation retains the original tone (technical/formal) and meaning, ensuring clarity and precision.",
+  "score": 5,
+  "cost": 0.00025889999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 831
+  }
+}

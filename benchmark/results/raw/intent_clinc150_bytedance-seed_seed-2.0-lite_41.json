@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "intent_clinc150",
+  "case": 41,
+  "response": "bill_due",
+  "score": 5,
+  "cost": 0.0001965,
+  "expected": "bill_due",
+  "tokens": {
+    "input": 602,
+    "output": 46
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 32,
+  "response": "SELECT p.first_name, AVG(r.ranking) AS average_ranking\nFROM wta_1.players p\nJOIN wta_1.rankings r ON p.player_id = r.player_id\nGROUP BY p.player_id, p.first_name;",
+  "score": 4,
+  "cost": 0.00024315,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 772
+  }
+}

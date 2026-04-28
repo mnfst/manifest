@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "ner_extraction",
+  "case": 30,
+  "response": "{\n  \"persons\": [\"Justin Trudeau\"],\n  \"organizations\": [\"General Assembly\", \"United Nations\"],\n  \"locations\": [\"Canadian\", \"New York\"]\n}",
+  "score": 2,
+  "cost": 5.625e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 35
+  }
+}

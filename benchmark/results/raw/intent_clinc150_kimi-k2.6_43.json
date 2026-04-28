@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "intent_clinc150",
+  "case": 43,
+  "response": "book_flight",
+  "score": 5,
+  "cost": 0.0024233999999999996,
+  "expected": "book_flight",
+  "tokens": {
+    "input": 527,
+    "output": 878
+  }
+}

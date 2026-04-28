@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "translation_enfr",
+  "case": 6,
+  "response": "En ce moment m\u00eame, ce d\u00e9mon roule sur la Wangan.",
+  "score": 4,
+  "cost": 0.015308800000000001,
+  "expected": "",
+  "tokens": {
+    "input": 40,
+    "output": 2934
+  }
+}

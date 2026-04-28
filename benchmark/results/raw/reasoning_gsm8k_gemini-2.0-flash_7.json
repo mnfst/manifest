@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "Here's how to solve the problem step-by-step:\n\n1. **Calculate the total cost of the plates:**\n   - Half a dozen plates is 6 plates.\n   - Each plate costs $6000.\n   - Total cost of plates: 6 * $6000 = $36000\n\n2. **Calculate the cost of the cups:**\n   - The cups cost $1200 less than the plates.\n   - Cost of cups: $36000 - $1200 = $34800\n\n3. **Calculate the number of cups:**\n   - Twenty dozen cups is 20 * 12 = 240 cups\n\n4. **Calculate the cost of each cup:**\n   - Cost per cup: $34800 / 240 = $145\n\nANSWER: 145",
+  "score": 5,
+  "cost": 8.65e-05,
+  "expected": "145",
+  "tokens": {
+    "input": 73,
+    "output": 198
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 29,
+  "response": "```sql\nSELECT COUNT(DISTINCT language) AS unique_languages\nFROM country;\n```",
+  "score": 4,
+  "cost": 3.4000000000000005e-06,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 19
+  }
+}

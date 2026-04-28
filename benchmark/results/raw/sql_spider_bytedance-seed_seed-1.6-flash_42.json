@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 42,
+  "response": "SELECT id FROM doc_templates WHERE description = 'Presentation';",
+  "score": 5,
+  "cost": 0.000125025,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 378
+  }
+}

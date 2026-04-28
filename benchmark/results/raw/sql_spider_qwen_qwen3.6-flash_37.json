@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "sql_spider",
+  "case": 37,
+  "response": "SELECT T2.Name , T2.Release_Year FROM singer AS T1 JOIN song AS T2 ON T1.Singer_id  =  T2.Singer_id ORDER BY T1.Birth_Year DESC LIMIT 1",
+  "score": 4,
+  "cost": 0.0023525,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 2332
+  }
+}

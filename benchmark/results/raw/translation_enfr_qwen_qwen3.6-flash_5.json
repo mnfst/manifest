@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "translation_enfr",
+  "case": 5,
+  "response": "Les flocons issus de SRT plus \u00e9lev\u00e9s \u00e9taient moins hydrat\u00e9s et pr\u00e9sentaient une couche dense de substances polym\u00e9riques extracellulaires recouvrant une grande partie de leur surface.",
+  "score": 5,
+  "cost": 0.003091,
+  "expected": "",
+  "tokens": {
+    "input": 56,
+    "output": 3077
+  }
+}

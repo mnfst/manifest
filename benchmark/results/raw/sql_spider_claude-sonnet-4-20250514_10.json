@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "sql_spider",
+  "case": 10,
+  "response": "```sql\nSELECT SUM(SurfaceArea) \nFROM country \nWHERE Region = 'Caribbean';\n```",
+  "score": 5,
+  "cost": 0.00069,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 30
+  }
+}

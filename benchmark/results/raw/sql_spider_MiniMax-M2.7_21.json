@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_spider",
+  "case": 21,
+  "response": "```sql\nSELECT f.flight_number\nFROM flights f\nJOIN airlines a ON f.airline_code = a.airline_code\nWHERE a.airline_name = 'United Airlines';\n```",
+  "score": 5,
+  "cost": 0.0014949000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 319
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 20,
+  "response": "SELECT a.abbreviation, a.country\nFROM airlines a\nJOIN flights f ON a.airline_id = f.airline_id\nGROUP BY a.abbreviation, a.country\nHAVING COUNT(f.flight_id) = (SELECT MIN(flight_count) FROM (SELECT COUNT(*) AS flight_count FROM flights GROUP BY airline_id) AS subquery);",
+  "score": 4,
+  "cost": 0.000201525,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 633
+  }
+}

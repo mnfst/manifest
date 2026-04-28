@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 9,
+  "response": "Let's go step-by-step.  \n\n**Step 1: Bo\u2019s crabs**  \nBo has \\( 40 \\) crabs.  \n\n**Step 2: Monic\u2019s crabs**  \nMonic has 4 fewer crabs than Bo:  \n\\[\n\\text{Monic} = 40 - 4 = 36\n\\]\n\n**Step 3: Rani\u2019s crabs**  \nRani has ten more crabs than Monic:  \n\\[\n\\text{Rani} = 36 + 10 = 46\n\\]\n\n**Step 4: Total crabs**  \n\\[\n\\text{Total} = 40 + 36 + 46 = 122\n\\]\n\nANSWER: 122",
+  "score": 5,
+  "cost": 0.00017385000000000002,
+  "expected": "122",
+  "tokens": {
+    "input": 75,
+    "output": 141
+  }
+}

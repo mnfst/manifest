@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "sql_spider",
+  "case": 31,
+  "response": "SELECT DISTINCT T1.Airline FROM airlines AS T1 JOIN flights AS T2 ON T1.uid = T2.Airline WHERE T2.SourceAirport = 'AHD'",
+  "score": 4,
+  "cost": 0.00741,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 76
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "translation_enfr",
+  "case": 9,
+  "response": "De son c\u00f4t\u00e9, le deuxi\u00e8me atelier a port\u00e9 sur la mise en \u0153uvre des recommandations faites par les organes de surveillance des organes conventionnels \u00e0 l\u2019\u00c9tat du Cameroun, conform\u00e9ment aux trait\u00e9s internationaux et r\u00e9gionaux, concernant ses obligations envers les populations autochtones.",
+  "score": 4,
+  "cost": 8.725e-05,
+  "expected": "",
+  "tokens": {
+    "input": 63,
+    "output": 65
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "reasoning_gsm8k",
+  "case": 43,
+  "response": "The problem states: Jeff is 10 years older than his younger sister, Martha. Martha is 4 years younger than her boyfriend, Mike. Mike is 24 years old. How old is Jeff?\n\nFirst, find Martha's age. Since Martha is 4 years younger than Mike, and Mike is 24:\n\nMartha's age = 24 - 4 = 20 years old.\n\nJeff is 10 years older than Martha, so:\n\nJeff's age = 20 + 10 = 30 years old.\n\nThat seems straightforward. Let me double-check.\n\nMike: 24\n\nMartha: 24 - 4 = 20\n\nJeff: 20 + 10 = 30\n\nYes, that makes sense.\n\nANSWER: 30",
+  "score": 5,
+  "cost": 0.001608,
+  "expected": "30",
+  "tokens": {
+    "input": 200,
+    "output": 151
+  }
+}

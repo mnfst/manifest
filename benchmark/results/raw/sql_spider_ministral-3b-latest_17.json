@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 17,
+  "response": "```sql\nSELECT DISTINCT s.stadium_name\nFROM stadiums s\nLEFT JOIN concerts c ON s.stadium_id = c.stadium_id\nWHERE c.concert_date BETWEEN '2014-01-01' AND '2014-12-31'\nAND c.concert_id IS NULL;\n```",
+  "score": 2,
+  "cost": 6e-06,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 73
+  }
+}

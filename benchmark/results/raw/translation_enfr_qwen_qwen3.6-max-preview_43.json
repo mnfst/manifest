@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "translation_enfr",
+  "case": 43,
+  "response": "L'appareil se fixe simplement \u00e0 l'appuie-t\u00eate du si\u00e8ge conducteur \u00e0 l'aide d'une sangle \u00e9lastique robuste. Dans ce",
+  "score": 4,
+  "cost": 0.0083148,
+  "expected": "",
+  "tokens": {
+    "input": 52,
+    "output": 1586
+  }
+}

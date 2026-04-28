@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 40,
+  "response": "Step 1: Determine the number of days in each half of April. April has 30 days, so the first half consists of 15 days and the second half consists of 15 days.\n\nStep 2: Let \\( x \\) represent the amount Elvis saves per day during the first half of the month. The problem states he saves twice as much daily in the second half, so his daily savings for the second half will be \\( 2x \\).\n\nStep 3: Set up an equation for the total monthly savings. The total savings is the sum of the savings from the first half and the second half:\n\\[ (15 \\text{ days} \\times x) + (15 \\text{ days} \\times 2x) = 1125 \\]\n\nStep 4: Simplify and solve for \\( x \\):\n\\[ 15x + 30x = 1125 \\]\n\\[ 45x = 1125 \\]\n\\[ x = \\frac{1125}{45} = 25 \\]\nSo, Elvis saves $25 per day in the first half.\n\nStep 5: Calculate the daily savings for the second half. Since the second half daily savings is \\( 2x \\):\n\\[ 2 \\times 25 = 50 \\]\n\nVerification: 15 days \u00d7 $25 = $375; 15 days \u00d7 $50 = $750; $375 + $750 = $1125. The target is exactly met.\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.002234,
+  "expected": "50",
+  "tokens": {
+    "input": 108,
+    "output": 2207
+  }
+}

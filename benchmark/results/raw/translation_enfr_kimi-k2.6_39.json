@@ -2,12 +2,12 @@
   "model": "kimi-k2.6",
   "task": "translation_enfr",
   "case": 39,
-  "response": "Tu sais d'o\u00f9 vient l'argent ?\n\n*(Alternatively, for a formal context: Vous savez d'o\u00f9 vient l'argent ?)*",
+  "response": "Tu sais d'o\u00f9 vient l'argent ?",
   "score": 5,
-  "cost": 0.0018516000000000001,
+  "cost": 0.0012252,
   "expected": "",
   "tokens": {
     "input": 34,
-    "output": 763
+    "output": 502
   }
 }

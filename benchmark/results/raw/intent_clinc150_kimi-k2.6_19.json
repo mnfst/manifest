@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "intent_clinc150",
+  "case": 19,
+  "response": "calendar",
+  "score": 5,
+  "cost": 0.0007968,
+  "expected": "calendar",
+  "tokens": {
+    "input": 516,
+    "output": 203
+  }
+}

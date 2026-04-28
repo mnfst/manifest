@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "translation_enfr",
+  "case": 15,
+  "response": "Sector Source est un site web de ressources con\u00e7u pour aider les responsables d'organismes de bienfaisance et \u00e0 but non lucratif \u00e0 se tenir inform\u00e9s de...",
+  "score": 4,
+  "cost": 0.00254125,
+  "expected": "",
+  "tokens": {
+    "input": 49,
+    "output": 2529
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 14,
+  "response": "SELECT cm.id, cm.full_name, COUNT(m.id) AS number\nFROM car_makers cm\nLEFT JOIN models m ON cm.id = m.car_maker_id\nGROUP BY cm.id, cm.full_name;",
+  "score": 5,
+  "cost": 0.00020355,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 639
+  }
+}

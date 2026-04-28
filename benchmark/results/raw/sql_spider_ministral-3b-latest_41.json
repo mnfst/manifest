@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 41,
+  "response": "```sql\nSELECT COUNT(*) AS number_of_people\nFROM country\nJOIN region ON country.code = region.country_code\nJOIN district ON region.code = district.region_code\nJOIN country_cd ON district.code = country_cd.district_code\nWHERE country_cd.name = 'Gelderland';\n```",
+  "score": 2,
+  "cost": 5.36e-06,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 68
+  }
+}

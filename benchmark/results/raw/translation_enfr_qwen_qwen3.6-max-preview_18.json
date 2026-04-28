@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "translation_enfr",
+  "case": 18,
+  "response": "La plage la plus proche est facilement accessible en voiture, situ\u00e9e \u00e0 environ 6...",
+  "score": 5,
+  "cost": 0.009505600000000001,
+  "expected": "",
+  "tokens": {
+    "input": 44,
+    "output": 1817
+  }
+}

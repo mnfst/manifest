@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 48,
+  "response": "```sql\nSELECT model\nFROM car_1\nWHERE weight < (SELECT AVG(weight) FROM car_1);\n```",
+  "score": 5,
+  "cost": 3.96e-06,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 28
+  }
+}

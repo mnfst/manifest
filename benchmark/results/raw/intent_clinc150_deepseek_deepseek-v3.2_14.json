@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "intent_clinc150",
+  "case": 14,
+  "response": "date",
+  "score": 5,
+  "cost": 0.00014544999999999998,
+  "expected": "date",
+  "tokens": {
+    "input": 573,
+    "output": 2
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "Here is the step-by-step solution:\n\n**Step 1: Calculate the total number of lollipops sold.**\nThere are 30 students, and each student sold an average of 10 lollipops.\nTotal lollipops = 30 students \u00d7 10 lollipops/student = 300 lollipops\n\n**Step 2: Calculate the profit made per lollipop.**\nEach lollipop was sold for $0.8 and originally cost $0.5 to buy.\nProfit per lollipop = Selling price - Cost price = $0.8 - $0.5 = $0.3\n\n**Step 3: Calculate the total profit raised by the class.**\nMultiply the total number of lollipops sold by the profit per lollipop.\nTotal profit = 300 lollipops \u00d7 $0.3/lollipop = $90\n\nANSWER: 90",
+  "score": 5,
+  "cost": 0.008359,
+  "expected": "90",
+  "tokens": {
+    "input": 130,
+    "output": 1575
+  }
+}

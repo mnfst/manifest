@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_spider",
+  "case": 38,
+  "response": "```sql\nSELECT c.name, COUNT(cl.language_id) AS language_count\nFROM country c\nJOIN country_language cl ON c.country_id = cl.country_id\nGROUP BY c.country_id, c.name\nHAVING COUNT(cl.language_id) > 2\nORDER BY language_count DESC;\n```",
+  "score": 5,
+  "cost": 0.0024475,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 532
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "translation_enfr",
+  "case": 40,
+  "response": "Nous avons simplement besoin d'obtenir plus d'informations.",
+  "score": 5,
+  "cost": 2.33e-05,
+  "expected": "",
+  "tokens": {
+    "input": 36,
+    "output": 13
+  }
+}

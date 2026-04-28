@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "ner_extraction",
+  "case": 41,
+  "response": "{\"persons\":[\"LeBron James\"],\"organizations\":[\"Los Angeles Lakers\"],\"locations\":[]}",
+  "score": 4,
+  "cost": 0.0009996,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 398
+  }
+}

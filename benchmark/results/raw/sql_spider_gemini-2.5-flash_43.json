@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "sql_spider",
+  "case": 43,
+  "response": "```sql\nSELECT COUNT(*) FROM cars WHERE cylinders > 6;\n```",
+  "score": 5,
+  "cost": 1.965e-05,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 16
+  }
+}

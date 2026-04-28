@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 8,
+  "response": "SELECT COUNT(DISTINCT l.language) AS unique_official_languages\nFROM world_1.countries c\nJOIN world_1.languages l ON c.code = l.country_code\nWHERE c.founded_year < 1930 AND l.is_official = TRUE;",
+  "score": 4,
+  "cost": 0.00017175,
+  "expected": "",
+  "tokens": {
+    "input": 162,
+    "output": 532
+  }
+}

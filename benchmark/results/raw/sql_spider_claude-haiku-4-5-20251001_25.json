@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "sql_spider",
+  "case": 25,
+  "response": "```sql\nSELECT *\nFROM tvshow\nWHERE director = 'Ben Jones'\nAND genre = 'cartoon';\n```",
+  "score": 4,
+  "cost": 0.00018319999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 31
+  }
+}

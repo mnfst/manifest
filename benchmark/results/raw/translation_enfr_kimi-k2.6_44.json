@@ -2,12 +2,12 @@
   "model": "kimi-k2.6",
   "task": "translation_enfr",
   "case": 44,
-  "response": "",
-  "score": 3,
-  "cost": 0.004833,
+  "response": "Les analyses de sensibilit\u00e9 indiquent que l'ampleur de la longueur non soutenue d\u00e9velopp\u00e9e \u00e0 la suite de l'affouillement a une influence significative sur la r\u00e9ponse pipe-sol en flexion.",
+  "score": 5,
+  "cost": 0.0026994000000000002,
   "expected": "",
   "tokens": {
     "input": 55,
-    "output": 2000
+    "output": 1111
   }
 }

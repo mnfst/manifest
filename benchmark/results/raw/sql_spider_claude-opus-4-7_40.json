@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "sql_spider",
+  "case": 40,
+  "response": "```sql\nSELECT T1.Id, T2.Make\nFROM cars_data AS T1\nJOIN car_names AS T2 ON T1.Id = T2.MakeId\nWHERE T1.Horsepower > (SELECT MIN(Horsepower) FROM cars_data)\nAND T1.Cylinders <= 3;\n```",
+  "score": 4,
+  "cost": 0.01092,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 119
+  }
+}

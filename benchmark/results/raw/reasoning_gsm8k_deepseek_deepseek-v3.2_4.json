@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "Let\u2019s break it down step by step.  \n\n**Step 1: Determine how much of a skein they used together.**  \nMariah used \\( \\frac{1}{4} \\) of a skein.  \nGrandma used \\( \\frac{1}{2} \\) of a skein.  \nTotal fraction of a skein used:  \n\\[\n\\frac{1}{4} + \\frac{1}{2} = \\frac{1}{4} + \\frac{2}{4} = \\frac{3}{4}\n\\]\n\n**Step 2: Find total yards used.**  \nOne skein = 364 yards.  \nThey used \\( \\frac{3}{4} \\) of a skein:  \n\\[\n\\frac{3}{4} \\times 364 = 3 \\times \\frac{364}{4}\n\\]  \nFirst, \\( \\frac{364}{4} = 91 \\).  \nThen \\( 3 \\times 91 = 273 \\).\n\n**Step 3: Conclusion.**  \nThey used 273 yards of yarn altogether.\n\nANSWER: 273",
+  "score": 5,
+  "cost": 0.00027555,
+  "expected": "273",
+  "tokens": {
+    "input": 99,
+    "output": 228
+  }
+}

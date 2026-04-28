@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 44,
+  "response": "",
+  "score": 1,
+  "cost": 0.0048534,
+  "expected": "192",
+  "tokens": {
+    "input": 89,
+    "output": 2000
+  }
+}

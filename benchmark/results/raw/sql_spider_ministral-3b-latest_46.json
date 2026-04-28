@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 46,
+  "response": "```sql\nSELECT\n    g.government_form,\n    SUM(c.population) AS total_population\nFROM\n    world_1.country c\nJOIN\n    world_1.government g ON c.country_code = g.country_code\nWHERE\n    g.government_form IN (\n        SELECT government_form\n        FROM world_1.government\n        WHERE\n            AVG(EXTRACT(YEAR FROM life_expectancy)) > 72\n            GROUP BY government_form\n    )\nGROUP BY\n    g.government_form;\n```",
+  "score": 2,
+  "cost": 7.96e-06,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 114
+  }
+}

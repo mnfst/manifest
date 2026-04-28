@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "ner_extraction",
+  "case": 30,
+  "response": "```json\n{\n  \"persons\": [\"Justin Trudeau\"],\n  \"organizations\": [\"General Assembly\", \"United Nations\"],\n  \"locations\": [\"New York\"]\n}\n```",
+  "score": 4,
+  "cost": 0.0011964,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 480
+  }
+}

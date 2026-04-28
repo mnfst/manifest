@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "Let\u2019s go step by step.  \n\n---\n\n**Step 1: Adam\u2019s points**  \nAdam = \\( 50 \\) points.\n\n---\n\n**Step 2: Betty\u2019s points**  \nBetty has \\( 30\\% \\) more than Adam.  \n\\[\n\\text{Betty} = 50 + 0.3 \\times 50 = 50 + 15 = 65\n\\]\n\n---\n\n**Step 3: Tom\u2019s points**  \nTom has \\( 30 \\) points less than Betty.  \n\\[\n\\text{Tom} = 65 - 30 = 35\n\\]\n\n---\n\n**Step 4: Marta\u2019s points**  \nMarta has 3 times more points than Tom.  \n\\[\n\\text{Marta} = 3 \\times 35 = 105\n\\]\n\n---\n\n**Step 5: Total points collected**  \n\\[\n\\text{Total} = 50 + 65 + 35 + 105 = 255\n\\]\n\n---\n\n**Step 6: Points missing for 400 threshold**  \n\\[\n400 - 255 = 145\n\\]\n\n---\n\nANSWER: 145",
+  "score": 2,
+  "cost": 0.00029220000000000006,
+  "expected": "145",
+  "tokens": {
+    "input": 148,
+    "output": 232
+  }
+}

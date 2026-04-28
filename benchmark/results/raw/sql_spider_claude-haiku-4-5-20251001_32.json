@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "sql_spider",
+  "case": 32,
+  "response": "```sql\nSELECT \n    first_name,\n    AVG(ranking) as average_ranking\nFROM players\nGROUP BY first_name\nORDER BY first_name;\n```",
+  "score": 5,
+  "cost": 0.0002368,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 43
+  }
+}

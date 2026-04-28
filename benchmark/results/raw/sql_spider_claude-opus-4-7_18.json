@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "sql_spider",
+  "case": 18,
+  "response": "SELECT Country FROM singer WHERE Age > 40 INTERSECT SELECT Country FROM singer WHERE Age < 30",
+  "score": 3,
+  "cost": 0.00558,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 51
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "```sql\nSELECT DISTINCT n.name\nFROM nations n\nJOIN languages l1 ON n.id = l1.nation_id\nJOIN languages l2 ON n.id = l2.nation_id\nWHERE l1.language = 'English' AND l2.language = 'French';\n```",
+  "score": 5,
+  "cost": 0.00075,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 57
+  }
+}

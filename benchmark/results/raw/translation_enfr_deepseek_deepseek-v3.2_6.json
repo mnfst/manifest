@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "translation_enfr",
+  "case": 6,
+  "response": "En ce moment, c\u2019est ce diable qui roule sur la Wangan.",
+  "score": 4,
+  "cost": 3.0400000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 38,
+    "output": 19
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "ner_extraction",
+  "case": 43,
+  "response": "{\"persons\": [\"Satya Nadella\"], \"organizations\": [\"Microsoft\", \"OpenAI\"], \"locations\": []}",
+  "score": 5,
+  "cost": 0.00116675,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 1147
+  }
+}

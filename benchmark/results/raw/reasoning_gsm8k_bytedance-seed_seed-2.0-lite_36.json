@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "Let's break down the problem step by step to calculate Elaine's total number of Pokemon cards:\n\n### Step 1: Initial number of cards\nElaine starts with 20 cards. This is her base amount before any monthly collections.\n\n### Step 2: Cards collected in the first month (M1)\nThe problem states she collected three times her initial number in the first month.\nM1 = 3 * initial amount = 3 * 20 = 60 cards.\n\n### Step 3: Cards collected in the second month (M2)\nShe collected 20 fewer cards in the second month than she collected in the first month.\nM2 = M1 - 20 = 60 - 20 = 40 cards.\n\n### Step 4: Cards collected in the third month (M3)\nShe collected twice the combined number of cards from the first and second months. First, calculate the combined M1 + M2: 60 + 40 = 100. Then:\nM3 = 2 * (M1 + M2) = 2 * 100 = 200 cards.\n\n### Step 5: Calculate total cards\nAdd her initial cards to all the cards she collected over the three months:\nTotal = Initial + M1 + M2 + M3 = 20 + 60 + 40 + 200 = 320.\n\nANSWER: 320",
+  "score": 5,
+  "cost": 0.00142125,
+  "expected": "320",
+  "tokens": {
+    "input": 161,
+    "output": 1381
+  }
+}

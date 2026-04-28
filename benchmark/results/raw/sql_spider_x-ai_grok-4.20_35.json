@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "sql_spider",
+  "case": 35,
+  "response": "```sql\nSELECT c.name\nFROM conductor c\nJOIN orchestra o ON c.conductor_id = o.conductor_id\nGROUP BY c.conductor_id, c.name\nORDER BY COUNT(DISTINCT o.orchestra_id) DESC\nLIMIT 1;\n```",
+  "score": 5,
+  "cost": 0.000802,
+  "expected": "",
+  "tokens": {
+    "input": 189,
+    "output": 53
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "Here is the step-by-step solution:\n\n1. **Initial amount:** Elaine starts with 20 cards.\n2. **First month collection:** She collects three times the initial number:  \n   $3 \\times 20 = 60$ cards.\n3. **Second month collection:** She collects 20 fewer cards than in the first month:  \n   $60 - 20 = 40$ cards.\n4. **Third month collection:** She collects twice the combined number collected in the first and second months:  \n   Combined first and second months = $60 + 40 = 100$ cards.  \n   Third month collection = $2 \\times 100 = 200$ cards.\n5. **Total cards:** Add the initial amount and the cards collected each month:  \n   $20 \\text{ (initial)} + 60 \\text{ (month 1)} + 40 \\text{ (month 2)} + 200 \\text{ (month 3)} = 320$ cards.\n\nANSWER: 320",
+  "score": 5,
+  "cost": 0.00185375,
+  "expected": "320",
+  "tokens": {
+    "input": 123,
+    "output": 1823
+  }
+}

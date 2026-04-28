@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "sql_spider",
+  "case": 36,
+  "response": "SELECT T1.FirstName , T1.LastName FROM student AS T1 JOIN likes AS T2 ON T1.StudentId  =  T2.LikedStudentId GROUP BY T1.StudentId ORDER BY count(T2.LikedStudentId) DESC LIMIT 1",
+  "score": 4,
+  "cost": 0.0025445,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 2525
+  }
+}

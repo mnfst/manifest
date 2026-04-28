@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "translation_enfr",
+  "case": 45,
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens de l'original :\n\n**\"L'\u00e9vasion fiscale a pris de l'ampleur en Tunisie, provoquant un manque \u00e0 gagner consid\u00e9rable en mati\u00e8re de ressources publiques**, a d\u00e9clar\u00e9 en juin 2013 l\u2019ancien chef du gouvernement int\u00e9rimaire Ali Larayedh, cit\u00e9 par le journal *Business Flood*.\"\n\n---\n*Remarques :*\n- *\"Grown\"* est rendu par *\"pris de l'ampleur\"* pour insister sur l'augmentation progressive du ph\u00e9nom\u00e8ne.\n- *\"Significant shortfall\"* devient *\"manque \u00e0 gagner consid\u00e9rable\"* (terme technique en fiscalit\u00e9) pour rester pr\u00e9cis tout en gardant un registre soutenu.\n- *\"Quoted by\"* est traduit par *\"cit\u00e9 par\"* (plus naturel en fran\u00e7ais que *\"mentionn\u00e9 par\"* dans ce contexte).\n- Le nom du journal est conserv\u00e9 en italique, comme dans l'original.\n\nSi vous souhaitez une nuance diff\u00e9rente (ex. plus technique ou plus journalistique), n'h\u00e9sitez pas \u00e0 pr\u00e9ciser !",
+  "score": 5,
+  "cost": 0.0004748,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 224
+  }
+}

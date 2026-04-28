@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "sql_spider",
+  "case": 20,
+  "response": "```sql\nSELECT a.abbreviation, a.country\nFROM airlines a\nWHERE a.airline_id = (\n  SELECT airline_id\n  FROM flights\n  GROUP BY airline_id\n  ORDER BY COUNT(*) ASC\n  LIMIT 1\n)\n```",
+  "score": 4,
+  "cost": 0.0003224,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 64
+  }
+}

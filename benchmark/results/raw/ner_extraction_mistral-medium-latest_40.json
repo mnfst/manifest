@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "ner_extraction",
+  "case": 40,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"Reserve Bank of Australia\",\n    \"Goldman Sachs\"\n  ],\n  \"locations\": [\n    \"Australia\"\n  ]\n}\n```",
+  "score": 4,
+  "cost": 0.0001196,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 46
+  }
+}

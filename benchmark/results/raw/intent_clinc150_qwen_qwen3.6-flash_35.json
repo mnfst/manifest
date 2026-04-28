@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "intent_clinc150",
+  "case": 35,
+  "response": "change_language",
+  "score": 5,
+  "cost": 0.00037925,
+  "expected": "change_language",
+  "tokens": {
+    "input": 513,
+    "output": 251
+  }
+}

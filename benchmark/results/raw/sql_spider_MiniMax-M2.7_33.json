@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_spider",
+  "case": 33,
+  "response": "```sql\nSELECT episode_id, episode_title, rating\nFROM episodes\nORDER BY rating DESC\nLIMIT 3;\n```",
+  "score": 5,
+  "cost": 0.0012320000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 257
+  }
+}

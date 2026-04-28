@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "sql_spider",
+  "case": 14,
+  "response": "```sql\nSELECT maker_full_name, maker_id, COUNT(DISTINCT model_id) AS number_of_models\nFROM car_makers\nJOIN car_models ON car_makers.maker_id = car_models.maker_id\nGROUP BY maker_full_name, maker_id;\n```",
+  "score": 5,
+  "cost": 0.0007475,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 55
+  }
+}

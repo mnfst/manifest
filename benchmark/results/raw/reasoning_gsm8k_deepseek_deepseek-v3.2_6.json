@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 6,
+  "response": "Let\u2019s go step by step.  \n\n1. Ann\u2019s current age: \\( 9 \\) years old.  \n2. Her brother\u2019s current age: twice Ann\u2019s age \u2192 \\( 2 \\times 9 = 18 \\) years old.  \n3. In 3 years, brother\u2019s age: \\( 18 + 3 = 21 \\) years old.  \n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.0001106,
+  "expected": "21",
+  "tokens": {
+    "input": 64,
+    "output": 86
+  }
+}

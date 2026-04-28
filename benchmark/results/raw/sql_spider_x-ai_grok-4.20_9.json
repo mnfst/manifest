@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "sql_spider",
+  "case": 9,
+  "response": "```sql\nSELECT c.CountryName\nFROM Countries c\nJOIN Car_Makers m ON c.CountryId = m.Country\nGROUP BY c.CountryName\nORDER BY COUNT(*) DESC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 0.000712,
+  "expected": "",
+  "tokens": {
+    "input": 188,
+    "output": 42
+  }
+}

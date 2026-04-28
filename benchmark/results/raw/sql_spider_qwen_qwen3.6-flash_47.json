@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "sql_spider",
+  "case": 47,
+  "response": "SELECT type_code FROM cre_template_type WHERE description = 'Book'",
+  "score": 5,
+  "cost": 0.001066,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 1045
+  }
+}

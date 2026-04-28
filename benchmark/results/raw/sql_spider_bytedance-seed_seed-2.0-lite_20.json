@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "sql_spider",
+  "case": 20,
+  "response": "SELECT a.abbreviation, a.country\nFROM flight_2.airlines a\nJOIN flight_2.flights f ON a.airline_id = f.airline_id\nGROUP BY a.airline_id, a.abbreviation, a.country\nORDER BY COUNT(f.flight_id) ASC\nLIMIT 1;",
+  "score": 4,
+  "cost": 0.00079425,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 764
+  }
+}

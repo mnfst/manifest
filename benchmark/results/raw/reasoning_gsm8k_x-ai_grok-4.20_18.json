@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "Eve started with 20 pomelos. After giving some away, she has 1/4 of the original amount left.  \n1/4 of 20 is calculated as 20 \u00f7 4 = 5.  \nSo Eve has 5 pomelos remaining.  \nThe number given away is the difference: 20 - 5 = 15.  \n\nANSWER: 15",
+  "score": 5,
+  "cost": 0.001012,
+  "expected": "15",
+  "tokens": {
+    "input": 198,
+    "output": 77
+  }
+}

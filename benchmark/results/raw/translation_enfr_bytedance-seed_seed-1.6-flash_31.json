@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "translation_enfr",
+  "case": 31,
+  "response": "Nous pourrions vous charger de sollicitation.  \n\nOu, plus pr\u00e9cis\u00e9ment au sens juridique :  \nNous pourrions vous inscrire en justice pour sollicitation.  \n\n\nLa traduction maintient la signification de \"accuser de\" ou \"engager en proc\u00e8s\" (au sens de \"book\" dans un contexte l\u00e9gal) et conserve le ton direct. La premi\u00e8re version est plus concise, la seconde plus pr\u00e9cise sur le cadre juridique.",
+  "score": 4,
+  "cost": 0.00039705000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 1296
+  }
+}

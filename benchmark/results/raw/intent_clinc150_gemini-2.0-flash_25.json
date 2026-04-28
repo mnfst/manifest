@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "intent_clinc150",
+  "case": 25,
+  "response": "shopping_list_update",
+  "score": 5,
+  "cost": 6.4e-05,
+  "expected": "shopping_list_update",
+  "tokens": {
+    "input": 616,
+    "output": 6
+  }
+}

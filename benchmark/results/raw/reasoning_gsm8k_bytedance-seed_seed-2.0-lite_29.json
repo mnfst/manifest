@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "To solve the problem, we calculate the number of each type of car one by one, then find the number of yellow cars by subtracting the sum of the other car counts from the total.\n\n### Step 1: Number of red cars\nThe problem states there are 12 red cars:\nRed = 12\n\n### Step 2: Number of green cars\nThere are 2 fewer green cars than red cars. Subtract 2 from the number of red cars:\nGreen = Red - 2 = 12 - 2 = 10\n\n### Step 3: Number of blue cars\nThere are 3 times as many blue cars as green cars. Multiply the number of green cars by 3:\nBlue = 3 * Green = 3 * 10 = 30\n\n### Step 4: Sum of non-yellow cars\nAdd the counts of red, green, and blue cars:\nSum of non-yellow cars = 12 + 10 + 30 = 52\n\n### Step 5: Number of yellow cars\nThe total number of cars is 75. Subtract the sum of non-yellow cars from the total to get the number of yellow cars:\nYellow = Total cars - Sum of non-yellow cars = 75 - 52 = 23\n\nANSWER: 23",
+  "score": 5,
+  "cost": 0.000747,
+  "expected": "23",
+  "tokens": {
+    "input": 152,
+    "output": 709
+  }
+}

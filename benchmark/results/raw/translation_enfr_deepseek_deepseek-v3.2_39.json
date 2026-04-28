@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "translation_enfr",
+  "case": 39,
+  "response": "Savez-vous d'o\u00f9 vient l'argent ?",
+  "score": 5,
+  "cost": 2.2450000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 37,
+    "output": 12
+  }
+}

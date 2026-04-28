@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "translation_enfr",
+  "case": 7,
+  "response": "Services de placement. C'est g\u00e9n\u00e9reux.",
+  "score": 5,
+  "cost": 0.00069125,
+  "expected": "",
+  "tokens": {
+    "input": 37,
+    "output": 682
+  }
+}

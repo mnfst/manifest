@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "intent_clinc150",
+  "case": 20,
+  "response": "vaccines",
+  "score": 5,
+  "cost": 0.001276,
+  "expected": "vaccines",
+  "tokens": {
+    "input": 630,
+    "output": 2
+  }
+}

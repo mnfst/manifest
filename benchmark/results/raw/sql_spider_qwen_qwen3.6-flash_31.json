@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "sql_spider",
+  "case": 31,
+  "response": "SELECT T1.Airline FROM airlines AS T1 JOIN flights AS T2 ON T1.Airline_ID = T2.Airline_ID JOIN airports AS T3 ON T2.Origin_Airport_ID = T3.Airport_ID WHERE T3.IATA_FAA = 'AHD'",
+  "score": 5,
+  "cost": 0.00312525,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 3105
+  }
+}

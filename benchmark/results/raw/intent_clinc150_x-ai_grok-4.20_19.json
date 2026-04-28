@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "intent_clinc150",
+  "case": 19,
+  "response": "calendar",
+  "score": 5,
+  "cost": 0.001256,
+  "expected": "calendar",
+  "tokens": {
+    "input": 624,
+    "output": 1
+  }
+}

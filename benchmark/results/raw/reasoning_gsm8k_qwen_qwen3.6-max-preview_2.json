@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "First, determine the duration of the outbound trip. Tom sails from 1 PM to 4 PM, which is a total of 3 hours.\n\nNext, calculate the distance he traveled during the outbound trip. Using the formula Distance = Speed \u00d7 Time:\n10 mph \u00d7 3 hours = 30 miles.\n\nFor the return trip, he must cover the same 30-mile distance, but his speed is now 6 mph.\n\nTo find the time it takes to get back, use the formula Time = Distance \u00f7 Speed:\n30 miles \u00f7 6 mph = 5 hours.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.005190900000000001,
+  "expected": "5",
+  "tokens": {
+    "input": 97,
+    "output": 974
+  }
+}

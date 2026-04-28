@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 22,
+  "response": "First, calculate Rafaela's total tip money. There are 40 customers each giving Rafaela a $20 tip:\nRafaela's tips = 40 * $20 = $800.\n\nNext, find Julieta's tip amount. Julieta received 10% less than Rafaela, which means she has 90% of Rafaela's total:\nJulieta's tips = 90% of $800 = 0.9 * $800 = $720.\n\nFinally, add their two tip amounts to get the total:\nTotal tips = $800 + $720 = $1520.\n\nANSWER: 1520",
+  "score": 5,
+  "cost": 0.00060775,
+  "expected": "1520",
+  "tokens": {
+    "input": 143,
+    "output": 572
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_spider",
+  "case": 40,
+  "response": "SELECT c.makeid, m.name\nFROM cars c\nJOIN makes m ON c.makeid = m.makeid\nWHERE c.horsepower > (SELECT MIN(horsepower) FROM cars)\n  AND c.cylinders <= 3;",
+  "score": 5,
+  "cost": 0.0045177,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 996
+  }
+}

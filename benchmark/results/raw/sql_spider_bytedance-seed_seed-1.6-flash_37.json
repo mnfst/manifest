@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 37,
+  "response": "SELECT song_name, release_year\nFROM songs\nWHERE singer_id IN (\n    SELECT singer_id\n    FROM singers\n    WHERE date_of_birth = (SELECT MAX(date_of_birth) FROM singers)\n);",
+  "score": 4,
+  "cost": 0.00023415,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 742
+  }
+}

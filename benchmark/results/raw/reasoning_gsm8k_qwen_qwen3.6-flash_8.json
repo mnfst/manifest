@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "To find the number of students enrolled this year, we need to calculate the increase in enrollment and add it to the number of students from last year.\n\n**Step 1: Calculate the number of additional students.**\nThe enrollment increased by 20%. We need to find 20% of the original 50 students.\n$$20\\% \\text{ of } 50 = 0.20 \\times 50$$\n$$0.20 \\times 50 = 10$$\nSo, there were 10 additional students.\n\n**Step 2: Add the increase to the original number of students.**\nAdd the 10 new students to the 50 students from last year.\n$$50 + 10 = 60$$\n\nThere are 60 students enrolled in the calligraphy class this year.\n\nANSWER: 60",
+  "score": 5,
+  "cost": 0.0011685,
+  "expected": "60",
+  "tokens": {
+    "input": 90,
+    "output": 1146
+  }
+}

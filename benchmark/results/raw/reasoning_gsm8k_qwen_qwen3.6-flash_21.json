@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 21,
+  "response": "Step 1: Identify Elliott's total daily step goal: 10,000 steps.\nStep 2: Calculate the steps taken to and from school. Since this is half of his goal, he took 10,000 / 2 = 5,000 steps.\nStep 3: Note the steps taken on the short walk with his friend: 1,000 steps.\nStep 4: Note the steps remaining after the jog: 2,000 steps.\nStep 5: Set up an equation to find the steps taken during the jog. The sum of all completed activities plus the remaining steps must equal the total goal:\n   5,000 (school) + 1,000 (friend) + Jog steps + 2,000 (remaining) = 10,000\nStep 6: Add the known steps together: 5,000 + 1,000 + 2,000 = 8,000 steps.\nStep 7: Subtract the known steps from the total goal to find the jog steps: 10,000 - 8,000 = 2,000 steps.\n\nElliott took 2,000 steps during his jog.\nANSWER: 2000",
+  "score": 5,
+  "cost": 0.002445,
+  "expected": "2000",
+  "tokens": {
+    "input": 140,
+    "output": 2410
+  }
+}

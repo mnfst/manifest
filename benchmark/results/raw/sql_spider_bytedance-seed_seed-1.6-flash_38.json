@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 38,
+  "response": "SELECT c.name, COUNT(cl.language) AS number_of_languages\nFROM world_1.country c\nJOIN world_1.countrylanguage cl ON c.code = cl.countrycode\nGROUP BY c.code, c.name\nHAVING COUNT(cl.language) > 2;",
+  "score": 4,
+  "cost": 0.00013455,
+  "expected": "",
+  "tokens": {
+    "input": 162,
+    "output": 408
+  }
+}

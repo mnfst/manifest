@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 37,
+  "response": "```sql\nSELECT s.singer_name, s.release_year\nFROM concert_singer.songs s\nJOIN concert_singer.singers sng ON s.singer_id = sng.singer_id\nWHERE sng.birth_year = (\n    SELECT MIN(birth_year)\n    FROM concert_singer.singers\n)\nORDER BY sng.birth_year ASC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 6.199999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 84
+  }
+}

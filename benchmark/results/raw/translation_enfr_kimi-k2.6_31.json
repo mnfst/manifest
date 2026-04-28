@@ -2,12 +2,12 @@
   "model": "kimi-k2.6",
   "task": "translation_enfr",
   "case": 31,
-  "response": "**On pourrait vous arr\u00eater pour racolage.**",
+  "response": "",
   "score": 2,
-  "cost": 0.0038207999999999996,
+  "cost": 0.0048192,
   "expected": "",
   "tokens": {
     "input": 32,
-    "output": 1584
+    "output": 2000
   }
 }

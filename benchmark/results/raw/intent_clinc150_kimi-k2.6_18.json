@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "intent_clinc150",
+  "case": 18,
+  "response": "current_location",
+  "score": 5,
+  "cost": 0.000636,
+  "expected": "current_location",
+  "tokens": {
+    "input": 516,
+    "output": 136
+  }
+}

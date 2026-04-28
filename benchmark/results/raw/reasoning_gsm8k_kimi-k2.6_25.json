@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "First, find the total amount of the loan John receives:\n\n\\[\n\\text{Loan} = 40\\% \\times \\$250{,}000 = 0.40 \\times 250{,}000 = \\$100{,}000\n\\]\n\nNext, calculate how much he uses to pay off his debts:\n\n\\[\n\\text{Debt payment} = 60\\% \\times \\$100{,}000 = 0.60 \\times 100{,}000 = \\$60{,}000\n\\]\n\nFinally, subtract the debt payment from the loan to find the leftover money:\n\n\\[\n\\text{Leftover} = \\$100{,}000 - \\$60{,}000 = \\$40{,}000\n\\]\n\nANSWER: 40000",
+  "score": 5,
+  "cost": 0.0016001999999999998,
+  "expected": "40,000",
+  "tokens": {
+    "input": 103,
+    "output": 641
+  }
+}

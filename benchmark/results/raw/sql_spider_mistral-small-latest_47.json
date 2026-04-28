@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "sql_spider",
+  "case": 47,
+  "response": "```sql\nSELECT type_code\nFROM cre_Doc_Template_Mgt.template_types\nWHERE description = 'Book';\n```",
+  "score": 5,
+  "cost": 1.64e-05,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 26
+  }
+}

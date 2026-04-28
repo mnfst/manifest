@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "Let's go step by step.  \n\n1. Eve originally had \\( 20 \\) pieces of pomelos.  \n2. After giving some away, she is left with \\( \\frac14 \\) of what she originally had.  \n   \\[\n   \\frac14 \\times 20 = 5\n   \\]\n   So she has \\( 5 \\) pomelos left.  \n3. The number she gave away is the original amount minus what she has left:  \n   \\[\n   20 - 5 = 15\n   \\]  \n\nANSWER: 15",
+  "score": 5,
+  "cost": 0.0001465,
+  "expected": "15",
+  "tokens": {
+    "input": 80,
+    "output": 115
+  }
+}

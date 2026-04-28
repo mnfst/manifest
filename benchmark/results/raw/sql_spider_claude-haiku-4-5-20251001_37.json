@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "sql_spider",
+  "case": 37,
+  "response": "```sql\nSELECT s.name, s.release_year\nFROM song s\nJOIN singer sg ON s.singer_id = sg.id\nWHERE sg.age = (SELECT MIN(age) FROM singer)\nLIMIT 1;\n```",
+  "score": 3,
+  "cost": 0.0002928,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 57
+  }
+}

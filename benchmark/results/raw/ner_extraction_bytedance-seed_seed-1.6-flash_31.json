@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "ner_extraction",
+  "case": 31,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"Samsung Electronics\"],\n  \"locations\": [\"South Korea\"]\n}",
+  "score": 5,
+  "cost": 7.1925e-05,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 203
+  }
+}

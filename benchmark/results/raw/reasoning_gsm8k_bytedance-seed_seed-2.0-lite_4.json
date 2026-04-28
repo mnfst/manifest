@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "To solve the problem, we break it down into simple steps:\n\n### Step 1: Add the fractions of the skein they used together\nFirst, find the total fraction of a single skein that Mariah and her grandma used. Mariah used \\( \\frac{1}{4} \\) of a skein, and her grandma used \\( \\frac{1}{2} \\) of a skein. To add these, convert \\( \\frac{1}{2} \\) to a fraction with a denominator of 4: \\( \\frac{1}{2} = \\frac{2}{4} \\).\n\nAdding the fractions:\n\\( \\frac{1}{4} + \\frac{2}{4} = \\frac{3}{4} \\)\nTogether, they used \\( \\frac{3}{4} \\) of one full skein.\n\n### Step 2: Calculate total yards used\nA full skein has 364 yards. To find \\( \\frac{3}{4} \\) of 364 yards, first find \\( \\frac{1}{4} \\) of 364:\n\\( 364 \\div 4 = 91 \\) yards (this is the amount Mariah used, as she used \\( \\frac{1}{4} \\) of the skein).\n\nGrandma used twice that amount (\\( \\frac{1}{2} = 2 \\times \\frac{1}{4} \\)):\n\\( 91 \\times 2 = 182 \\) yards.\n\nAdd their individual usage to get the total:\n\\( 91 + 182 = 273 \\) yards.\n\nANSWER: 273",
+  "score": 4,
+  "cost": 0.001049,
+  "expected": "273",
+  "tokens": {
+    "input": 148,
+    "output": 1012
+  }
+}

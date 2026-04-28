@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "translation_enfr",
+  "case": 28,
+  "response": "Nous sommes capables... de lancer plus de feu de combat... que ce qui a jamais \u00e9t\u00e9 lib\u00e9r\u00e9 dans l'histoire de la guerre.  \n\n\nThis translation preserves the original tone\u2014assertive and impactful\u2014while maintaining the meaning. \"Feu de combat\" captures \"firepower\" effectively, \"lancer\" conveys \"launching,\" and \"lib\u00e9r\u00e9\" aligns with \"released\" in the context of military action. The ellipses are retained to mirror the original's rhythmic emphasis.",
+  "score": 4,
+  "cost": 0.000611625,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 2008
+  }
+}

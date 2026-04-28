@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "Here is the step-by-step solution:\n\n1. **Initial count:** Katelyn first saw 50 fairies.\n2. **Fairies joining:** Her friend saw half as many fairies as Katelyn originally saw. Half of 50 is 25. These 25 fairies joined the original group.\n3. **New total:** Add the joining fairies to the initial group: 50 + 25 = 75 fairies.\n4. **Fairies leaving:** Ten minutes later, 30 fairies flew away. Subtract these from the current total: 75 - 30 = 45 fairies.\n\nANSWER: 45",
+  "score": 5,
+  "cost": 0.0058253,
+  "expected": "45",
+  "tokens": {
+    "input": 125,
+    "output": 1089
+  }
+}

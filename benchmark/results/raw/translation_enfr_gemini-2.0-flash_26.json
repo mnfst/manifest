@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "translation_enfr",
+  "case": 26,
+  "response": "Il a plut\u00f4t \u00e9t\u00e9 sugg\u00e9r\u00e9 que l'arm\u00e9e joue un r\u00f4le secondaire dans les op\u00e9rations antiterroristes.",
+  "score": 4,
+  "cost": 1.2800000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 40,
+    "output": 22
+  }
+}

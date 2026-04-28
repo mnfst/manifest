@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "```sql\nSELECT airport_name\nFROM airports\nWHERE airport_id NOT IN (\n    SELECT DISTINCT departure_airport_id FROM flights\n    UNION\n    SELECT DISTINCT arrival_airport_id FROM flights\n);\n```",
+  "score": 4,
+  "cost": 3.509999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 41
+  }
+}

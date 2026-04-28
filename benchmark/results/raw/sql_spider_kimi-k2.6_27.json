@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "SELECT c.Name FROM country c JOIN countrylanguage cl ON c.Code = cl.CountryCode WHERE cl.Language IN ('English', 'French') GROUP BY c.Code, c.Name HAVING COUNT(DISTINCT cl.Language) = 2;",
+  "score": 5,
+  "cost": 0.0032063999999999994,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 1318
+  }
+}

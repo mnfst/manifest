@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "sql_spider",
+  "case": 32,
+  "response": "```sql\nSELECT players.first_name, AVG(rankings.rank) AS average_ranking\nFROM players\nJOIN rankings ON players.player_id = rankings.player_id\nGROUP BY players.first_name;\n```",
+  "score": 5,
+  "cost": 0.0005775,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 39
+  }
+}

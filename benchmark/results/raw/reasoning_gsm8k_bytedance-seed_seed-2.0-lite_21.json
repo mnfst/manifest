@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 21,
+  "response": "To solve the problem, we start by tracking Elliott's total step goal and all the steps he has completed at each stage, then solve for his jog steps.\n\n1.  First, Elliott's daily goal is 10,000 total steps.\n2.  He completed half his steps to and from school: half of 10,000 = \\(10,000 / 2 = 5,000\\) steps.\n3.  He added 1,000 steps walking with his friend. Before his jog, his total steps are: \\(5,000 + 1,000 = 6,000\\) steps.\n4.  After finishing his jog, he had 2,000 steps left. That means after the jog, he had completed \\(10,000 - 2,000 = 8,000\\) total steps.\n5.  The number of steps from his jog is the difference between his total after the jog and his total before the jog: \\(8,000 - 6,000 = 2,000\\) steps.\n\nANSWER: 2000",
+  "score": 5,
+  "cost": 0.0009535,
+  "expected": "2000",
+  "tokens": {
+    "input": 178,
+    "output": 909
+  }
+}

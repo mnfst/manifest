@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 5,
+  "response": "Les flocs issus de SRT (temps de r\u00e9tention des solides) plus \u00e9lev\u00e9s \u00e9taient moins hydrat\u00e9s et se sont av\u00e9r\u00e9s poss\u00e9der une couche dense d\u2019EPS (substances polym\u00e9riques extracellulaires) qui recouvre la majeure partie de leur surface.\n\nCette traduction pr\u00e9serve le ton acad\u00e9mique et technique du texte original : les acronymes couramment utilis\u00e9s dans le domaine scientifique fran\u00e7ais SRT et EPS sont conserv\u00e9s (comme c\u2019est l\u2019usage dans les publications sp\u00e9cialis\u00e9es), et leur signification est ajout\u00e9e entre parenth\u00e8ses pour la clart\u00e9, tandis que la tournure se sont av\u00e9r\u00e9s poss\u00e9der restitue fid\u00e8lement le sens de were found to possess, typique de l\u2019\u00e9criture scientifique.",
+  "score": 5,
+  "cost": 0.0014265,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 1403
+  }
+}

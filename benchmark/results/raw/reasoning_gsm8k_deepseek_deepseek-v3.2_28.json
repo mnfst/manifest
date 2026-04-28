@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "Let\u2019s go step-by-step.  \n\n---\n\n**Step 1: Define the variable**  \nLet \\( x \\) = number of people who got on at the terminal.\n\n---\n\n**Step 2: First bus stop**  \nAt the first stop: \\( 5 \\) more people got in.  \nTotal after first stop:  \n\\[\nx + 5\n\\]\n\n---\n\n**Step 3: Second bus stop**  \nAt the second stop:  \n- \\( 7 \\) people got down (so subtract 7)  \n- \\( 8 \\) more got in (so add 8)  \n\nChange at second stop: \\(-7 + 8 = +1\\) person net change.  \n\nSo after second stop:  \n\\[\n(x + 5) + 1 = x + 6\n\\]\n\n---\n\n**Step 4: Total heading to third stop**  \nWe are told there were \\( 20 \\) people heading to the third stop.  \nSo:  \n\\[\nx + 6 = 20\n\\]\n\n---\n\n**Step 5: Solve for \\( x \\)**  \n\\[\nx = 20 - 6 = 14\n\\]\n\n---\n\n**Step 6: Conclusion**  \n\\( 14 \\) people got on at the terminal.\n\n---\n\nANSWER: 14",
+  "score": 5,
+  "cost": 0.0003125,
+  "expected": "14",
+  "tokens": {
+    "input": 106,
+    "output": 260
+  }
+}

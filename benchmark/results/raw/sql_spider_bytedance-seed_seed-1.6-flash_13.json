@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 13,
+  "response": "SELECT MAX(release_date) AS last_transcript_release_date FROM transcript_releases;",
+  "score": 5,
+  "cost": 0.000103875,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 309
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "sql_spider",
+  "case": 11,
+  "response": "```sql\nSELECT name\nFROM country\nWHERE continent = 'Africa'\n  AND population < (SELECT MIN(population) FROM country WHERE continent = 'Asia');\n```",
+  "score": 5,
+  "cost": 2.18e-05,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 36
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "translation_enfr",
+  "case": 36,
+  "response": "Plus tu te battes, plus c'est g\u00eanant pour tout le monde.  \n\n\nThis translation maintains the original tone (direct and conversational) and meaning. \"Plus... plus...\" captures the \"the more... the more...\" structure, \"te battes\" conveys \"struggle\" (active and natural), \"c'est g\u00eanant\" translates to \"it's awkward\" (with \"g\u00eanant\" effectively conveying discomfort or unease), and \"pour tout le monde\" matches \"for everybody.\" The informal \"gonna be\" is softened to \"c'est\" for naturalness in French.",
+  "score": 4,
+  "cost": 0.000226875,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 727
+  }
+}

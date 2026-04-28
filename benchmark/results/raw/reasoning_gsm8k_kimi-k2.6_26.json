@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "Step 1: Calculate how much money Mitchell made.\nMitchell sold 21 lemonades at $4 apiece.\n21 \u00d7 $4 = $84\n\nStep 2: Find the difference between Mitchell's earnings and Liam's earnings.\nMitchell made $84 and Liam made $63.\n$84 - $63 = $21\n\nSo Mitchell made $21 more than Liam.\n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.0007104,
+  "expected": "21",
+  "tokens": {
+    "input": 104,
+    "output": 270
+  }
+}

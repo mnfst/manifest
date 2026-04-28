@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_spider",
+  "case": 14,
+  "response": "SELECT \n    m.id,\n    m.full_name,\n    COUNT(mo.id) AS number_of_models\nFROM maker m\nLEFT JOIN model mo ON m.id = mo.maker_id\nGROUP BY m.id, m.full_name\nORDER BY m.id;",
+  "score": 5,
+  "cost": 0.0034474,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 756
+  }
+}

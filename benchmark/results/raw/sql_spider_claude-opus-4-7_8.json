@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "sql_spider",
+  "case": 8,
+  "response": "SELECT COUNT(DISTINCT Language) FROM countrylanguage cl JOIN country c ON cl.CountryCode = c.Code WHERE cl.IsOfficial = 'T' AND c.IndepYear < 1930;",
+  "score": 5,
+  "cost": 0.00822,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 86
+  }
+}

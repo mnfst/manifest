@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "ner_extraction",
+  "case": 5,
+  "response": "{\n  \"persons\": [\"Dr. James Wilson\"],\n  \"organizations\": [\"Stanford University\", \"IEEE\"],\n  \"locations\": [\"Tokyo\"]\n}",
+  "score": 5,
+  "cost": 0.000612,
+  "expected": "",
+  "tokens": {
+    "input": 186,
+    "output": 30
+  }
+}

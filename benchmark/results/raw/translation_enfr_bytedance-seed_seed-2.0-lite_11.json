@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 11,
+  "response": "Un grand nombre d\u2019attractions et de produits touristiques (th\u00e9, itin\u00e9raires culturels, resorts et spas d\u00e9di\u00e9s \u00e0 la sant\u00e9 et au bien-\u00eatre, gastronomie, activit\u00e9s nautiques, etc.) ont \u00e9t\u00e9 identifi\u00e9s sur cette destination. L\u2019ensemble de ces actifs n\u00e9cessite un d\u00e9veloppement interd\u00e9pendant, en raison de leur isolement, de leurs compl\u00e9mentarit\u00e9s et de leur profil relativement homog\u00e8ne.\n\nCette traduction pr\u00e9serve le ton formel et professionnel du texte initial, corrige la l\u00e9g\u00e8re ambigu\u00eft\u00e9 de la phrase anglaise originale (o\u00f9 la proposition relative renvoyait mal aux atouts touristiques et non \u00e0 la destination elle-m\u00eame) tout en conservant l\u2019int\u00e9gralit\u00e9 du sens, et utilise des termes standard dans le secteur du tourisme francophone.",
+  "score": 5,
+  "cost": 0.002031,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 2000
+  }
+}

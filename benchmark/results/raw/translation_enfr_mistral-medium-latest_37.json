@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "translation_enfr",
   "case": 37,
-  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens du texte original :\n\n**Fran\u00e7ais :**\nLe paragraphe 104(1.1) est modifi\u00e9 afin de pr\u00e9ciser qu\u2019il s\u2019applique nonobstant le paragraphe 248(25) de la Loi. Le paragraphe 248(25) de la Loi d\u00e9finit, pour les autres fins de la Loi, les circonstances dans lesquelles une personne ou une soci\u00e9t\u00e9 de personnes est r\u00e9put\u00e9e avoir un **\u00ab int\u00e9r\u00eat b\u00e9n\u00e9fique \u00bb** dans une fiducie.\n\n---\n*Remarques :*\n- **\"Nonobstant\"** est le terme juridique fran\u00e7ais \u00e9quivalent \u00e0 *\"notwithstanding\"* en droit canadien.\n- **\"Loi\"** (avec une majuscule) est utilis\u00e9 pour d\u00e9signer une loi sp\u00e9cifique (comme *the Act* en anglais).\n- **\"Soci\u00e9t\u00e9 de personnes\"** est la traduction standard de *\"partnership\"* en contexte fiscal/juridique.\n- **\"R\u00e9put\u00e9e avoir\"** rend bien l\u2019id\u00e9e de *\"is considered to be\"* dans un cadre l\u00e9gal.\n\nSi le contexte exige une formulation plus technique ou une adaptation \u00e0 un style particulier (ex. : l\u00e9gislatif qu\u00e9b\u00e9cois vs f\u00e9d\u00e9ral), n'h\u00e9sitez pas \u00e0 pr\u00e9ciser !",
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens du texte original :\n\n**\u00ab Le paragraphe 104(1.1) est modifi\u00e9 afin de pr\u00e9ciser qu\u2019il s\u2019applique nonobstant le paragraphe 248(25) de la Loi. Le paragraphe 248(25) de la Loi d\u00e9finit, pour d\u2019autres fins pr\u00e9vues par celle-ci, les circonstances dans lesquelles une personne ou une soci\u00e9t\u00e9 de personnes est r\u00e9put\u00e9e avoir un \u00ab int\u00e9r\u00eat b\u00e9n\u00e9ficiaire \u00bb dans une fiducie. \u00bb**\n\n---\n*Remarques :*\n- **\"Subsection\" \u2192 \"paragraphe\"** (terme juridique standard en fran\u00e7ais canadien pour d\u00e9signer une subdivision d\u2019article).\n- **\"Amended to clarify\" \u2192 \"est modifi\u00e9 afin de pr\u00e9ciser\"** (formulation naturelle en contexte l\u00e9gislatif).\n- **\"Notwithstanding\" \u2192 \"nonobstant\"** (terme juridique exact, utilis\u00e9 dans les textes de loi).\n- **\"Beneficially interested\" \u2192 \"int\u00e9r\u00eat b\u00e9n\u00e9ficiaire\"** (traduction consacr\u00e9e en droit fiscal/fiduciaire).\n- **\"Trust\" \u2192 \"fiducie\"** (\u00e9quivalent en droit civil qu\u00e9b\u00e9cois ; en France, on dirait plut\u00f4t *\"trust\"* si le contexte est international, mais *\"fiducie\"* est plus int\u00e9gr\u00e9 au syst\u00e8me juridique canadien).\n\nSi le texte s\u2019adresse sp\u00e9cifiquement \u00e0 un public fran\u00e7ais (et non canadien), on pourrait ajuster *\"fiducie\"* en *\"trust\"* et *\"paragraphe\"* en *\"alin\u00e9a\"* (selon la structure du code vis\u00e9). Dites-moi si vous souhaitez une adaptation pour un autre contexte !",
   "score": 5,
-  "cost": 0.0005688,
+  "cost": 0.0007528,
   "expected": "",
   "tokens": {
     "input": 97,
-    "output": 265
+    "output": 357
   }
 }

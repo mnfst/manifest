@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 46,
+  "response": "SELECT government_form, SUM(population) AS total_population\nFROM country\nGROUP BY government_form\nHAVING AVG(life_expectancy) > 72;",
+  "score": 3,
+  "cost": 0.00011399999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 168,
+    "output": 338
+  }
+}

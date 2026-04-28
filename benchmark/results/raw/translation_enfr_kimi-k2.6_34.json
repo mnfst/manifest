@@ -4,10 +4,10 @@
   "case": 34,
   "response": "Sydney, Esther sera dans mon bureau.",
   "score": 5,
-  "cost": 0.0006204,
+  "cost": 0.0007691999999999999,
   "expected": "",
   "tokens": {
     "input": 34,
-    "output": 250
+    "output": 312
   }
 }

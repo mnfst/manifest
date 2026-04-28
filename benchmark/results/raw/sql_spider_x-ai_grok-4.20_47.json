@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "sql_spider",
+  "case": 47,
+  "response": "```sql\nSELECT Type_Code \nFROM Ref_Template_Types \nWHERE Description = 'Book';\n```",
+  "score": 5,
+  "cost": 0.000544,
+  "expected": "",
+  "tokens": {
+    "input": 192,
+    "output": 20
+  }
+}

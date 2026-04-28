@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "intent_clinc150",
+  "case": 6,
+  "response": "confirm_reservation",
+  "score": 5,
+  "cost": 0.0005525,
+  "expected": "confirm_reservation",
+  "tokens": {
+    "input": 514,
+    "output": 424
+  }
+}

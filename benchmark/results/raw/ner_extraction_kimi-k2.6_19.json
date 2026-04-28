@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "ner_extraction",
+  "case": 19,
+  "response": "{\"persons\": [\"Thierry Breton\"], \"organizations\": [\"European Parliament\"], \"locations\": [\"Brussels\"]}",
+  "score": 5,
+  "cost": 0.0017021999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 691
+  }
+}

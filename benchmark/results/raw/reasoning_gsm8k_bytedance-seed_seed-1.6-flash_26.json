@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "To determine how much more money Mitchell made than Liam, we first calculate Mitchell's earnings. \n\nMitchell sold 21 lemonades at $4 each. His total earnings are:  \n\\(21 \\times 4 = 84\\) dollars.  \n\nLiam made $63 that weekend. To find the difference, we subtract Liam's earnings from Mitchell's:  \n\\(84 - 63 = 21\\) dollars.  \n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.00011384999999999999,
+  "expected": "21",
+  "tokens": {
+    "input": 186,
+    "output": 333
+  }
+}

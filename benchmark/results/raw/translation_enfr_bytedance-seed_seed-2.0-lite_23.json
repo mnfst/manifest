@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "Les d\u00e9versoirs capables d\u2019\u00e9vacuer les \u00e9v\u00e9nements de crue postul\u00e9s sont soit int\u00e9gr\u00e9s aux structures des barrages, soit construits en tant qu\u2019ouvrages s\u00e9par\u00e9s.\n\nThis translation preserves the formal, technical tone of the original civil engineering text: it uses standard French dam industry terminology (d\u00e9versoirs for spillways, \u00e9vacuer to describe the core function of spillways managing flood flows) and retains the exact meaning of \"postulated\" (postul\u00e9s) to reference the hypothetical, design-assessed flood events referenced in the source.",
+  "score": 5,
+  "cost": 0.0012305,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 1207
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 39,
+  "response": "SELECT c.name AS conductor_name, o.name AS orchestra_name\nFROM conductors c\nJOIN conductor_orchestras co ON c.conductor_id = co.conductor_id\nJOIN orchestras o ON co.orchestra_id = o.orchestra_id;",
+  "score": 5,
+  "cost": 0.00018217500000000002,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 568
+  }
+}

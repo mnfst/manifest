@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "sql_spider",
+  "case": 17,
+  "response": "SELECT name FROM stadium WHERE stadium_id NOT IN (SELECT stadium_id FROM concert WHERE year = 2014);",
+  "score": 5,
+  "cost": 0.005775,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 54
+  }
+}

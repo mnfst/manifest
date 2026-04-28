@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "intent_clinc150",
+  "case": 3,
+  "response": "schedule_maintenance",
+  "score": 5,
+  "cost": 0.0013158,
+  "expected": "schedule_maintenance",
+  "tokens": {
+    "input": 517,
+    "output": 419
+  }
+}

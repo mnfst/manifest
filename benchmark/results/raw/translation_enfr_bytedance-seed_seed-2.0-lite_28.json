@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 28,
+  "response": "Nous sommes capables... de d\u00e9ployer une puissance de feu... sup\u00e9rieure \u00e0 tout ce qui a jamais \u00e9t\u00e9 d\u00e9cha\u00een\u00e9 dans l\u2019histoire de la guerre.\n\nThis translation preserves the original's dramatic, halting cadence via the placed ellipses, uses natural French military-adjacent vocabulary to match the ominous, weighty tone of the original line, and retains its full core meaning. \"D\u00e9ployer\" (to deploy/bRing to bear) fits the context of massing firepower better than a literal translation of \"launch\", while \"d\u00e9cha\u00een\u00e9\" (unleashed) captures the gravity of \"released\" in a wartime context far more naturally than a literal translation.",
+  "score": 5,
+  "cost": 0.00103125,
+  "expected": "",
+  "tokens": {
+    "input": 89,
+    "output": 1009
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 3,
+  "response": "1. Find the age of the younger son:  \n   \\(12 - 4 = 8\\) years old.\n\n2. Determine the total number of candles needed (one candle per year for each son):  \n   \\(12 + 8 = 20\\) candles.\n\n3. Calculate how many packs of 5 candles are needed:  \n   \\(20 \\div 5 = 4\\) packs.\n\n4. Compute the total cost:  \n   \\(4 \\times 3 = 12\\) dollars.\n\nANSWER: 12",
+  "score": 2,
+  "cost": 0.0011052,
+  "expected": "12",
+  "tokens": {
+    "input": 90,
+    "output": 438
+  }
+}

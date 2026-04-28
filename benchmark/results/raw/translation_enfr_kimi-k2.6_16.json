@@ -2,12 +2,12 @@
   "model": "kimi-k2.6",
   "task": "translation_enfr",
   "case": 16,
-  "response": "J'ai l'impression que ma bite n'est pas assez grosse pour toi.",
-  "score": 5,
-  "cost": 0.0015576,
+  "response": "**J'ai l'impression que ma queue n'est pas assez grosse pour toi.**\n\n*(Alternative using stronger slang: \"J'ai l'impression que ma bite n'est pas assez grosse pour toi.\")*",
+  "score": 4,
+  "cost": 0.00228,
   "expected": "",
   "tokens": {
     "input": 36,
-    "output": 640
+    "output": 941
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "sql_spider",
+  "case": 4,
+  "response": "```sql\nSELECT SUM(bonus) AS total_bonus\nFROM evaluations;\n```",
+  "score": 5,
+  "cost": 1.39e-05,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 20
+  }
+}

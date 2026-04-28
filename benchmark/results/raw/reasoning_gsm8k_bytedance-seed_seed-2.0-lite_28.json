@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "To solve the problem, let's define the number of people who got on the bus at the terminal as \\( x \\), which is the value we need to find. We track the number of people on the bus through each stop step by step:\n\n1. **After the terminal**: The number of people on the bus is just the initial group, so \\( x \\).\n2. **After the first stop**: 5 more people get on. The number of people becomes \\( x + 5 \\).\n3. **After the second stop**: 7 people get off, and 8 people get on. We calculate the new number of people:\n   \\( (x + 5) - 7 + 8 = x + (5 - 7 + 8) = x + 6 \\).\n\nThe problem states that 20 people are heading to the third stop, which is the number of people on the bus after the second stop. Set this equal to the expression we derived:\n\\( x + 6 = 20 \\)\n\nSolving for \\( x \\):\n\\( x = 20 - 6 = 14 \\)\n\nANSWER: 14",
+  "score": 5,
+  "cost": 0.00081775,
+  "expected": "14",
+  "tokens": {
+    "input": 155,
+    "output": 779
+  }
+}

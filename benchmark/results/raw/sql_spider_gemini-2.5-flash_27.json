@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "```sql\nSELECT T1.Name\nFROM country AS T1\nJOIN countrylanguage AS T2\n  ON T1.Code = T2.CountryCode\nWHERE T2.Language IN ('English', 'French')\nGROUP BY T1.Code, T1.Name\nHAVING COUNT(DISTINCT T2.Language) = 2;\n```",
+  "score": 5,
+  "cost": 5.6699999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 77
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "sql_spider",
+  "case": 41,
+  "response": "SELECT SUM(Population) FROM city WHERE District = 'Gelderland';",
+  "score": 3,
+  "cost": 0.0029652,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 1218
+  }
+}

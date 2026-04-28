@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "intent_clinc150",
+  "case": 41,
+  "response": "bill_due",
+  "score": 5,
+  "cost": 7.439999999999999e-05,
+  "expected": "bill_due",
+  "tokens": {
+    "input": 636,
+    "output": 89
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "```sql\nSELECT countrylanguage.CountryCode\nFROM countrylanguage\nWHERE Language = 'English'\nINTERSECT\nSELECT countrylanguage.CountryCode\nFROM countrylanguage\nWHERE Language = 'French';\n```",
+  "score": 4,
+  "cost": 2.45e-05,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 44
+  }
+}

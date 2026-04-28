@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 44,
+  "response": "SELECT a.airport_code\nFROM airports a\nLEFT JOIN flights f ON a.airport_code = f.airport_code\nGROUP BY a.airport_code\nORDER BY COUNT(f.flight_id) ASC\nLIMIT 1;",
+  "score": 4,
+  "cost": 0.00022725,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 720
+  }
+}

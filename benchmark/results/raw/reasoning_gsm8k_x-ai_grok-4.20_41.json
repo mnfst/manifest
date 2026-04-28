@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "The problem states: Marilyn's first record sold 10 times as many copies as Harald's. If they sold 88,000 copies combined, how many copies did Harald sell?\n\nLet H represent the number of copies Harald sold.\n\nThen, Marilyn sold 10 times as many, so 10H.\n\nTogether, they sold H + 10H = 11H copies.\n\nThis total is 88,000.\n\nSo, 11H = 88,000.\n\nH = 88,000 divided by 11.\n\n88,000 \u00f7 11.\n\n11 times 8,000 is 88,000.\n\nYes, exactly.\n\nSo, H = 8,000.\n\nHarald sold 8,000 copies.\n\nMarilyn sold 80,000.\n\nTotal 88,000. Yes.\n\nANSWER: 8000",
+  "score": 5,
+  "cost": 0.00172,
+  "expected": "8000",
+  "tokens": {
+    "input": 188,
+    "output": 168
+  }
+}

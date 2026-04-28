@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "sql_spider",
+  "case": 17,
+  "response": "```sql\nSELECT s.name\nFROM stadium s\nWHERE s.stadium_id NOT IN (\n    SELECT DISTINCT c.stadium_id\n    FROM concert c\n    WHERE YEAR(c.year) = 2014\n);\n```",
+  "score": 4,
+  "cost": 0.00111,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 57
+  }
+}

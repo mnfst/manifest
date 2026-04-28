@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "sql_spider",
+  "case": 32,
+  "response": "```sql\nSELECT player_first_name, AVG(ranking) AS average_ranking\nFROM players\nGROUP BY player_first_name;\n```",
+  "score": 5,
+  "cost": 2.745e-05,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 27
+  }
+}

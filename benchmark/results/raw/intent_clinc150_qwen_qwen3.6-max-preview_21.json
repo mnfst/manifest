@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "intent_clinc150",
+  "case": 21,
+  "response": "ingredients_list",
+  "score": 0,
+  "cost": 0.0049191999999999994,
+  "expected": "ingredient_substitution",
+  "tokens": {
+    "input": 508,
+    "output": 819
+  }
+}

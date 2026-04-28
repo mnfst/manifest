@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 40,
+  "response": "Alright, let's break this down step by step.  \n\n---\n\n**Step 1: Understand the problem**  \nElvis\u2019s monthly saving target for April = $1125.  \nApril has 30 days.  \nFirst half of April = days 1\u201315 \u2192 15 days.  \nSecond half of April = days 16\u201330 \u2192 15 days.  \n\nLet \\( x \\) = amount saved **per day** in the first half.  \nThen in the second half, he saves \\( 2x \\) per day.  \n\n---\n\n**Step 2: Set up the equation**  \nTotal saved in first half = \\( 15 \\times x \\)  \nTotal saved in second half = \\( 15 \\times 2x = 30x \\)  \n\nTotal saved in April:  \n\\[\n15x + 30x = 1125\n\\]  \n\n---\n\n**Step 3: Solve for \\( x \\)**  \n\\[\n45x = 1125\n\\]  \n\\[\nx = \\frac{1125}{45} = 25\n\\]  \n\n---\n\n**Step 4: Find daily saving in second half**  \nSecond half daily saving = \\( 2x = 2 \\times 25 = 50 \\) dollars per day.  \n\n---\n\n**Step 5: Final answer**  \nANSWER: 50",
+  "score": 5,
+  "cost": 0.0003243,
+  "expected": "50",
+  "tokens": {
+    "input": 96,
+    "output": 273
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "sql_spider",
+  "case": 17,
+  "response": "```sql\nSELECT Name FROM stadium EXCEPT SELECT T1.Name FROM stadium AS T1 JOIN concert AS T2 ON T1.Stadium_ID = T2.Stadium_ID WHERE T2.Year = 2014;\n```",
+  "score": 4,
+  "cost": 4.23e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 51
+  }
+}

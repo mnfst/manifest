@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "sql_spider",
+  "case": 18,
+  "response": "```sql\nSELECT DISTINCT s1.country\nFROM singers s1\nWHERE s1.age > 40\n  AND EXISTS (\n      SELECT 1\n      FROM singers s2\n      WHERE s2.country = s1.country\n        AND s2.age < 30\n  );\n```",
+  "score": 5,
+  "cost": 0.0001564,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 63
+  }
+}

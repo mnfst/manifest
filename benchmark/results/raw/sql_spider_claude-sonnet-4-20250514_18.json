@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "sql_spider",
+  "case": 18,
+  "response": "```sql\nSELECT DISTINCT country\nFROM singer\nWHERE country IN (\n    SELECT country FROM singer WHERE age > 40\n)\nAND country IN (\n    SELECT country FROM singer WHERE age < 30\n);\n```",
+  "score": 4,
+  "cost": 0.001023,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 51
+  }
+}

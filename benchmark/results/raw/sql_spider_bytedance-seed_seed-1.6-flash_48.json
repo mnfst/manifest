@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 48,
+  "response": "SELECT model FROM cars WHERE weight < (SELECT AVG(weight) FROM cars);",
+  "score": 5,
+  "cost": 8.594999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 248
+  }
+}

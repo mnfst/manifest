@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "translation_enfr",
+  "case": 48,
+  "response": "- Choisissez l'un de ces Renaults pour louer \u00e0 Galati ou dans d'autres villes comme Arad, Timi\u0219oara, Sibiu, Oradea, Bra\u0219ov, Bucarest, Ia\u0219i ou Suceava, et vous arriverez \u00e0 votre destination en peu de temps. De plus, vous \u00e9conomiserez beaucoup d'argent que vous pourriez d\u00e9penser sur autre chose.  \n\n\n**Notes sur la traduction** :  \n- \"Renault's\" est traduit par \"Renaults\" (pluriel naturel en fran\u00e7ais pour d\u00e9signer une gamme de v\u00e9hicules).  \n- Les noms de villes sont orthographi\u00e9s avec les diacritiques traditionnels (Timi\u0219oara, Bra\u0219ov, Ia\u0219i) pour plus de pr\u00e9cision.  \n- \"En no time\" est rendu par \"en peu de temps\" (expression courante en fran\u00e7ais pour exprimer rapidit\u00e9).  \n- \"Save lots of money\" devient \"\u00e9conomiserez beaucoup d'argent\" (plus naturel que \"gagnerez\").  \n- La structure \"that you could spend on something else\" est traduite par \"que vous pourriez d\u00e9penser sur autre chose\" pour conserver la clart\u00e9 et le ton informatif.",
+  "score": 5,
+  "cost": 0.00032355000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 174,
+    "output": 1035
+  }
+}

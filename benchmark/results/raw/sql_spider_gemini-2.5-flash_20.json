@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "sql_spider",
+  "case": 20,
+  "response": "```sql\nSELECT T1.abbreviation, T1.country FROM airlines AS T1 INNER JOIN (SELECT airline, COUNT(*) AS num_flights FROM flights GROUP BY airline ORDER BY num_flights ASC LIMIT 1) AS T2 ON T1.aid = T2.airline;\n```",
+  "score": 4,
+  "cost": 4.814999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 62
+  }
+}

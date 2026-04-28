@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "sql_spider",
+  "case": 35,
+  "response": "```sql\nSELECT c.conductor_name\nFROM conductor c\nJOIN orchestra o ON c.conductor_id = o.conductor_id\nGROUP BY c.conductor_name\nORDER BY COUNT(o.orchestra_id) DESC\nLIMIT 1;\n```",
+  "score": 5,
+  "cost": 2.98e-05,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 57
+  }
+}

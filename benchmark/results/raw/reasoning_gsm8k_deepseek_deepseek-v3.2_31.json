@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "Let\u2019s break it down step by step.  \n\n---\n\n**Step 1: Identify given quantities**  \n- Boys = \\( 30 \\)  \n- Girls = \\( 3 \\) times as many girls as boys \u2192 \\( 3 \\times 30 = 90 \\)  \n- Nongendered children = \\( \\frac{1}{10} \\) as many nongendered children as boys \u2192 \\( \\frac{1}{10} \\times 30 = 3 \\)  \n\n---\n\n**Step 2: Total children**  \n\\[\n\\text{Total} = \\text{Boys} + \\text{Girls} + \\text{Nongendered}\n\\]  \n\\[\n\\text{Total} = 30 + 90 + 3\n\\]  \n\\[\n\\text{Total} = 123\n\\]  \n\n---\n\nANSWER: 123",
+  "score": 2,
+  "cost": 0.0002122,
+  "expected": "123",
+  "tokens": {
+    "input": 92,
+    "output": 172
+  }
+}

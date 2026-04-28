@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sentiment_sst2",
+  "case": 39,
+  "response": "neutral\nWait, but the instructions say to classify as exactly one of positive or negative. Maybe I",
+  "score": 5,
+  "cost": 0.007671224999999999,
+  "expected": "negative",
+  "tokens": {
+    "input": 127,
+    "output": 25539
+  }
+}

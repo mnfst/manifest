@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "sql_spider",
+  "case": 32,
+  "response": "SELECT first_name, AVG(ranking) FROM players GROUP BY first_name",
+  "score": 4,
+  "cost": 0.0015515,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 1531
+  }
+}

@@ -2,12 +2,12 @@
   "model": "kimi-k2.6",
   "task": "translation_enfr",
   "case": 46,
-  "response": "J'ai re\u00e7u sept propositions de r\u00e9solution conform\u00e9ment \u00e0 l'article 37 du r\u00e8glement int\u00e9rieur.",
+  "response": "J'ai re\u00e7u sept propositions de r\u00e9solution sur le fondement de l'article 37 du R\u00e8glement int\u00e9rieur.",
   "score": 5,
-  "cost": 0.0030258000000000004,
+  "cost": 0.0040746,
   "expected": "",
   "tokens": {
     "input": 43,
-    "output": 1250
+    "output": 1687
   }
 }

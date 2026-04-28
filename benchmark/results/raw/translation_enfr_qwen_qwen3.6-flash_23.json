@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "Les \u00e9vacuateurs de crues, capables de g\u00e9rer les crues postulat\u00e9es, sont soit int\u00e9gr\u00e9s \u00e0 la structure du barrage, soit constitu\u00e9s en ouvrages distincts.",
+  "score": 4,
+  "cost": 0.00259,
+  "expected": "",
+  "tokens": {
+    "input": 56,
+    "output": 2576
+  }
+}

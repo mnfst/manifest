@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "reasoning_gsm8k",
+  "case": 15,
+  "response": "The problem states: Joey has 214 points before his turn in Scrabble. He scores 26 points. Then Marcy, who has 225 points, scores 10 points. By how many points is Joey now winning?\n\nFirst, calculate Joey's new score. He had 214 and scores 26 more, so 214 + 26 = 240.\n\nNext, Marcy had 225 and scores 10 more, so 225 + 10 = 235.\n\nNow, find out by how many points Joey is winning. Subtract Marcy's score from Joey's: 240 - 235 = 5.\n\nSo Joey is winning by 5 points.\n\nThe question is \"By how many points is Joey now winning?\" which means the difference in their scores after both have played.\n\nYes, 240 - 235 = 5.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.001794,
+  "expected": "5",
+  "tokens": {
+    "input": 197,
+    "output": 175
+  }
+}

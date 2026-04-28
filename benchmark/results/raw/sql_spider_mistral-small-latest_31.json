@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "sql_spider",
+  "case": 31,
+  "response": "```sql\nSELECT DISTINCT a.airline_name\nFROM airlines a\nJOIN flights f ON a.airline_id = f.airline_id\nWHERE f.departure_airport = 'AHD';\n```",
+  "score": 5,
+  "cost": 2.27e-05,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 48
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "ner_extraction",
+  "case": 11,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"The United Nations Security Council\"],\n  \"locations\": [\"North Korea\", \"New York\"]\n}",
+  "score": 4,
+  "cost": 8.7675e-05,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 255
+  }
+}

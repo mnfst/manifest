@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "Here is the step-by-step solution:\n\n**Step 1: Find the number of green cars.**\nThe problem states there are 2 fewer green cars than red cars. Since there are 12 red cars:\nGreen cars = 12 - 2 = 10\n\n**Step 2: Find the number of blue cars.**\nThere are 3 times as many blue cars as green cars:\nBlue cars = 3 \u00d7 10 = 30\n\n**Step 3: Calculate the total number of red, green, and blue cars.**\nRed + Green + Blue = 12 + 10 + 30 = 52 cars\n\n**Step 4: Find the number of yellow cars.**\nThe rink has 75 cars in total. Subtract the known cars from the total to find the number of yellow cars:\nYellow cars = Total cars - (Red + Green + Blue)\nYellow cars = 75 - 52 = 23\n\nANSWER: 23",
+  "score": 5,
+  "cost": 0.007215,
+  "expected": "23",
+  "tokens": {
+    "input": 114,
+    "output": 1359
+  }
+}

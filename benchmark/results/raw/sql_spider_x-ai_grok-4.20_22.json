@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "sql_spider",
+  "case": 22,
+  "response": "```sql\nSELECT section_name\nFROM Sections\nORDER BY section_name DESC;\n```",
+  "score": 5,
+  "cost": 0.000512,
+  "expected": "",
+  "tokens": {
+    "input": 188,
+    "output": 17
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "translation_enfr",
+  "case": 30,
+  "response": "**French:** Premi\u00e8re ligne de cr\u00e9dit en Italie pour les contrats d\u2019apprentissage des jeunes dans les PME, les entreprises de taille interm\u00e9diaire et les collectivit\u00e9s locales",
+  "score": 5,
+  "cost": 0.000566,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 31
+  }
+}

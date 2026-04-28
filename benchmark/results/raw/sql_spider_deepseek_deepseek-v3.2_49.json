@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "sql_spider",
+  "case": 49,
+  "response": "```sql\nSELECT hometown FROM teachers GROUP BY hometown HAVING COUNT(*) >= 2;\n```",
+  "score": 5,
+  "cost": 3.925e-05,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 20
+  }
+}

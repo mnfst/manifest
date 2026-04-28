@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "ner_extraction",
+  "case": 39,
+  "response": "{\n  \"persons\": [\"Dario Amodei\"],\n  \"organizations\": [\"Anthropic\", \"Aspen Ideas Festival\"],\n  \"locations\": [\"Colorado\"]\n}",
+  "score": 5,
+  "cost": 0.00012082500000000001,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 364
+  }
+}

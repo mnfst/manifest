@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 38,
+  "response": "To solve the problem, we start by determining the total number of parts in the ratio. The ratio 3:2 means there are \\(3 + 2 = 5\\) parts in total. \n\nThe total amount to divide is $100, so each part is worth \\(\\frac{100}{5} = 20\\) dollars. \n\nGerald's share is 3 parts, so he receives \\(3 \\times 20 = 60\\) dollars. \n\nAfter spending $10 on a book, the amount Gerald has left is \\(60 - 10 = 50\\) dollars. \n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.00015195,
+  "expected": "50",
+  "tokens": {
+    "input": 154,
+    "output": 468
+  }
+}

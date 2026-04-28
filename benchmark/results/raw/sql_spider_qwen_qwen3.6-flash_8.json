@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "sql_spider",
+  "case": 8,
+  "response": "SELECT COUNT(DISTINCT cl.Language)\nFROM Country c\nJOIN CountryLanguage cl ON c.Code = cl.CountryCode\nWHERE c.IndepYear < 1930 AND cl.IsOfficial = 'T'",
+  "score": 5,
+  "cost": 0.0022665,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 2244
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "ner_extraction",
+  "case": 43,
+  "response": "{\n  \"persons\": [\"Satya Nadella\"],\n  \"organizations\": [\"Microsoft\", \"OpenAI\", \"Office 365\"],\n  \"locations\": []\n}",
+  "score": 5,
+  "cost": 0.00064,
+  "expected": "",
+  "tokens": {
+    "input": 188,
+    "output": 33
+  }
+}

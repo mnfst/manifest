@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "translation_enfr",
+  "case": 36,
+  "response": "Plus tu te d\u00e9battras, plus \u00e7a va \u00eatre g\u00eanant pour tout le monde.",
+  "score": 5,
+  "cost": 0.014160899999999999,
+  "expected": "",
+  "tokens": {
+    "input": 45,
+    "output": 2712
+  }
+}

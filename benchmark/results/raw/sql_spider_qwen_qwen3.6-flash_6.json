@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "sql_spider",
+  "case": 6,
+  "response": "SELECT T1.Name FROM airlines AS T1 JOIN flights AS T2 ON T1.Airline_ID  =  T2.Airline_ID WHERE T2.Destination = 'AHD'",
+  "score": 5,
+  "cost": 0.0017785,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 1759
+  }
+}

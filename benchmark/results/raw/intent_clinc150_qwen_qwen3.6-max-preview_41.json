@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "intent_clinc150",
+  "case": 41,
+  "response": "bill_due",
+  "score": 5,
+  "cost": 0.0013870999999999998,
+  "expected": "bill_due",
+  "tokens": {
+    "input": 507,
+    "output": 140
+  }
+}

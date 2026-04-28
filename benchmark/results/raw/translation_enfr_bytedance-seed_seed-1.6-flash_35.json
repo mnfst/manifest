@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "translation_enfr",
+  "case": 35,
+  "response": "[r\u00e9porter masculin #1 sur la t\u00e9l\u00e9vision] Un accident s'est produit juste apr\u00e8s 10 h du matin.  \n\n\nThis translation maintains the formal, factual tone of a TV news report. \"Accident\" remains \"accident,\" \"occurred\" is rendered as \"s'est produit\" (formal past tense), and \"just after 10:00 a.m.\" becomes \"juste apr\u00e8s 10 h du matin\" (clear and natural in French). The structure aligns with how such information is typically presented in news contexts.",
+  "score": 5,
+  "cost": 0.000178425,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 564
+  }
+}

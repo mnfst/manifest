@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "ner_extraction",
+  "case": 8,
+  "response": "```json\n{\n  \"persons\": [\n    \"Elon Musk\"\n  ],\n  \"organizations\": [\n    \"Tesla\"\n  ],\n  \"locations\": [\n    \"Fremont\",\n    \"California\"\n  ]\n}\n```",
+  "score": 5,
+  "cost": 0.001701,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 690
+  }
+}

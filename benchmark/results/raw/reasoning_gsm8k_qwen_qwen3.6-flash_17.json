@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 17,
+  "response": "Step 1: Calculate the total cost of the books. Ted buys 3 books at $16 each, so the cost is 3 \u00d7 $16 = $48.\nStep 2: Calculate the total cost of the pencils. Ted buys 3 pencils at $6 each, so the cost is 3 \u00d7 $6 = $18.\nStep 3: Add the two amounts together to find the total money spent. $48 + $18 = $66.\n(Note: The initial $200 is extra information and is not needed to determine how much he spent.)\n\nANSWER: 66",
+  "score": 5,
+  "cost": 0.00106925,
+  "expected": "66",
+  "tokens": {
+    "input": 85,
+    "output": 1048
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "sql_spider",
+  "case": 25,
+  "response": "```sql\nSELECT\n  T1.title\nFROM shows AS T1\nINNER JOIN show_directors AS T2\n  ON T1.show_id = T2.show_id\nINNER JOIN directors AS T3\n  ON T2.director_id = T3.director_id\nINNER JOIN show_genres AS T4\n  ON T1.show_id = T4.show_id\nINNER JOIN genres AS T5\n  ON T4.genre_id = T5.genre_id\nWHERE\n  T3.name = 'Ben Jones' AND T5.genre_name = 'Cartoon';\n```",
+  "score": 5,
+  "cost": 9.329999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 139
+  }
+}

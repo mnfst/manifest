@@ -4,10 +4,10 @@
   "case": 32,
   "response": "Les \u00c9tats membres, les institutions de l'Union et le SEAE peuvent proposer le d\u00e9tachement de personnel aupr\u00e8s du RSUE.",
   "score": 5,
-  "cost": 0.0017142000000000001,
+  "cost": 0.0029214,
   "expected": "",
   "tokens": {
     "input": 49,
-    "output": 702
+    "output": 1205
   }
 }

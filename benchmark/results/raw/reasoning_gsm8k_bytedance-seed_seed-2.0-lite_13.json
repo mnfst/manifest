@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "To solve the problem, we calculate Janet's total spending step by step:\n\n1. First, add the cost of the material and the jeweler's construction fee:\n   Material cost = $500, Jeweler fee = $800\n   Sum of these two costs = $500 + $800 = $1300\n\n2. Next, calculate the insurance cost, which is 10% of the above sum:\n   10% of $1300 = 0.1 * 1300 = $130\n\n3. Finally, add all costs together to get the total amount Janet paid:\n   Total = $1300 (material + jeweler) + $130 (insurance) = $1430\n\nANSWER: 1430",
+  "score": 5,
+  "cost": 0.00074275,
+  "expected": "1430",
+  "tokens": {
+    "input": 147,
+    "output": 706
+  }
+}

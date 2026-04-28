@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 29,
+  "response": "Et je t'aime bien... m\u00eame si je ne sais pas pourquoi.\n\nThis translation preserves the soft, tentative, vulnerable tone of the original line: the casual, affectionate \"je t'aime bien\" matches the gentle, romantic/platonic warm \"like\" in the source text, the ellipses retain the hesitant pause, and the phrasing of the second clause stays true to the original's casual confusion, avoiding overly formal structure that would mismatch the intimate tone.",
+  "score": 4,
+  "cost": 0.00034,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 320
+  }
+}

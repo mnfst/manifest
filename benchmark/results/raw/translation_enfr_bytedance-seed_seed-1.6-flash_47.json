@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "translation_enfr",
+  "case": 47,
+  "response": "Cette sorte de r\u00e9pression, accompagn\u00e9e d'arrestations, ces derni\u00e8res semaines, de repr\u00e9sentants d'institutions humanitaires, de syndicats et de journalistes accus\u00e9s d'avoir propag\u00e9 des informations soi-disant fausses, a justement \u00e9veill\u00e9 la pr\u00e9occupation de la communaut\u00e9 internationale.  \n\n\n**Notes sur la traduction** :  \n- \"Repression of this kind\" est traduit par \"Cette sorte de r\u00e9pression\" pour maintenir la clart\u00e9 et la concision.  \n- \"Together with the arrest... of representatives\" est rendu par \"accompagn\u00e9e d'arrestations... de repr\u00e9sentants\" pour refl\u00e9ter la relation de d\u00e9pendance entre les deux faits.  \n- \"Accused of spreading so-called false information\" est traduit par \"accus\u00e9s d'avoir propag\u00e9 des informations soi-disant fausses\" (le pass\u00e9 \"a propag\u00e9\" est utilis\u00e9 pour indiquer une action accomplie, align\u00e9e sur le contexte de \"arrests in recent weeks\").  \n- \"Have rightly awakened the concern\" est traduit par \"a justement \u00e9veill\u00e9 la pr\u00e9occupation\" (le singulier \"a\" convient car la structure est subordonn\u00e9e \u00e0 \"cette sorte de r\u00e9pression\", maintenant consid\u00e9r\u00e9e comme un seul fait global).  \n\nLa tone formelle et pr\u00e9occup\u00e9e est maintenue, et le sens global est fid\u00e8le \u00e0 l'anglais.",
+  "score": 5,
+  "cost": 0.00023595,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 751
+  }
+}

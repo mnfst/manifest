@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "translation_enfr",
   "case": 23,
-  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton technique et le sens pr\u00e9cis du texte original :\n\n**\"Des \u00e9vacuateurs de crues capables de g\u00e9rer les \u00e9v\u00e9nements d'inondation postul\u00e9s sont int\u00e9gr\u00e9s soit dans les structures des barrages, soit construits comme des ouvrages distincts.\"**\n\n*Explications des choix :*\n- **\"Spillways\"** \u2192 **\"\u00c9vacuateurs de crues\"** (terme technique standard en g\u00e9nie hydraulique).\n- **\"Postulated flood events\"** \u2192 **\"\u00c9v\u00e9nements d'inondation postul\u00e9s\"** (traduction litt\u00e9rale pour conserver la nuance de *sc\u00e9nario hypoth\u00e9tique* en ing\u00e9nierie).\n- **\"Incorporated into\"** \u2192 **\"Int\u00e9gr\u00e9s dans\"** (plus naturel en fran\u00e7ais technique que *\"incorpor\u00e9s \u00e0\"*).\n- **\"Separate structures\"** \u2192 **\"Ouvrages distincts\"** (*\"ouvrages\"* est le terme g\u00e9n\u00e9rique pour les structures hydrauliques, et *\"distincts\"* \u00e9vite l'ambigu\u00eft\u00e9 de *\"s\u00e9par\u00e9s\"*).\n\nSi le contexte est tr\u00e8s formel (rapport officiel, norme), on pourrait aussi dire :\n*\"Les \u00e9vacuateurs de crues, con\u00e7us pour \u00e9couler les d\u00e9bits de crue de projet, sont soit int\u00e9gr\u00e9s aux structures des barrages, soit r\u00e9alis\u00e9s sous forme d\u2019ouvrages ind\u00e9pendants.\"*\n*(Plus technique, avec *\"d\u00e9bits de crue de projet\"* pour *\"postulated flood events\"*).*\n\nDites-moi si vous souhaitez ajuster le registre !",
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton technique et le sens pr\u00e9cis du texte original :\n\n**\"Des \u00e9vacuateurs de crues capables de g\u00e9rer les \u00e9v\u00e9nements d\u2019inondation postul\u00e9s sont int\u00e9gr\u00e9s soit dans les structures des barrages, soit construits sous forme d\u2019ouvrages distincts.\"**\n\n*Explications des choix :*\n- **\"Spillways\"** \u2192 **\"\u00c9vacuateurs de crues\"** (terme technique standard en g\u00e9nie hydraulique).\n- **\"Postulated flood events\"** \u2192 **\"\u00c9v\u00e9nements d\u2019inondation postul\u00e9s\"** (traduction litt\u00e9rale pour conserver la nuance de *sc\u00e9nario hypoth\u00e9tique* en ing\u00e9nierie).\n- **\"Incorporated into\"** \u2192 **\"Int\u00e9gr\u00e9s dans\"** (plus naturel en fran\u00e7ais technique que *\"incorpor\u00e9s \u00e0\"*).\n- **\"Separate structures\"** \u2192 **\"Ouvrages distincts\"** (*\"structures\"* seul serait correct, mais *\"ouvrages\"* est plus pr\u00e9cis pour des infrastructures hydrauliques).\n\nSi le contexte est tr\u00e8s formel (rapport technique, norme), cette version est adapt\u00e9e. Pour un public moins sp\u00e9cialis\u00e9, on pourrait simplifier l\u00e9g\u00e8rement (ex. *\"crue estim\u00e9e\"* au lieu de *\"postul\u00e9e\"*), mais cela d\u00e9pend de l'usage.",
   "score": 5,
-  "cost": 0.0006527999999999999,
+  "cost": 0.0005407999999999999,
   "expected": "",
   "tokens": {
     "input": 47,
-    "output": 317
+    "output": 261
   }
 }

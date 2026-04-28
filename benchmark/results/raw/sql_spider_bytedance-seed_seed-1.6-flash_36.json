@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 36,
+  "response": "SELECT s.name\nFROM students s\nJOIN (\n    SELECT student_id, COUNT(*) AS like_count\n    FROM likes\n    GROUP BY student_id\n) l ON s.student_id = l.student_id\nORDER BY l.like_count DESC\nLIMIT 1;",
+  "score": 5,
+  "cost": 0.00027705,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 886
+  }
+}

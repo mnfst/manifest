@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "Alright, let\u2019s go step-by-step.  \n\n---\n\n**Step 1: Determine the distance traveled from 1 PM to 4 PM.**  \n- Speed = 10 mph  \n- Time = from 1 PM to 4 PM = 3 hours  \n- Distance = speed \u00d7 time = \\( 10 \\times 3 = 30 \\) miles  \n\n---\n\n**Step 2: Determine the time for the return trip.**  \n- Return speed = 6 mph  \n- Distance back = 30 miles  \n- Time = distance \u00f7 speed = \\( 30 \\div 6 = 5 \\) hours  \n\n---\n\n**Step 3: Conclusion.**  \nThe return trip takes **5 hours**.\n\n---\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.0001843,
+  "expected": "5",
+  "tokens": {
+    "input": 86,
+    "output": 148
+  }
+}

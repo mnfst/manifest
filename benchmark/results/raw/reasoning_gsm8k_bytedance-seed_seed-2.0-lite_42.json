@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 42,
+  "response": "To solve the problem, we calculate the total number of children step by step:\n\n1. First, find the number of children per school: Each school has 7 rows, with 8 children in each row. For one school, the number of children is \\(8 \\times 7 = 56\\).\n2. Next, account for all 5 schools: Multiply the number of children per school by the number of schools. The total number of children is \\(56 \\times 5 = 280\\).\n\nWe can also calculate this directly by multiplying all values together: \\(8 \\times 7 \\times 5 = 280\\).\n\nANSWER: 280",
+  "score": 5,
+  "cost": 0.00055275,
+  "expected": "280",
+  "tokens": {
+    "input": 139,
+    "output": 518
+  }
+}

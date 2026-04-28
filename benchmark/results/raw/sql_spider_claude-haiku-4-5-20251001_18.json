@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "sql_spider",
+  "case": 18,
+  "response": "```sql\nSELECT DISTINCT c.country\nFROM singer s\nJOIN concert_singer cs ON s.singer_id = cs.singer_id\nJOIN concert c ON cs.concert_id = c.concert_id\nWHERE s.age > 40\nINTERSECT\nSELECT DISTINCT c.country\nFROM singer s\nJOIN concert_singer cs ON s.singer_id = cs.singer_id\nJOIN concert c ON cs.concert_id = c.concert_id\nWHERE s.age < 30;\n```",
+  "score": 4,
+  "cost": 0.0005407999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 118
+  }
+}

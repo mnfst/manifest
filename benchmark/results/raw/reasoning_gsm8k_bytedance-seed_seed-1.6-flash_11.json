@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "To determine the number of leftover burritos, we start by calculating the total number of burritos eaten and then subtract that from the initial order.\n\n1. **Burritos eaten by students**: There are 50 students, and each eats 10 burritos. So, \\(50 \\times 10 = 500\\) burritos.  \n2. **Burritos eaten by Mr. George**: He eats 20 burritos.  \n3. **Total burritos eaten**: Adding the burritos eaten by students and Mr. George, we get \\(500 + 20 = 520\\) burritos.  \n4. **Leftover burritos**: Subtract the total eaten from the initial order of 600 burritos. So, \\(600 - 520 = 80\\).  \n\nANSWER: 80",
+  "score": 5,
+  "cost": 0.0001674,
+  "expected": "80",
+  "tokens": {
+    "input": 184,
+    "output": 512
+  }
+}

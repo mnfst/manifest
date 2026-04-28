@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "sql_spider",
+  "case": 2,
+  "response": "SELECT T2.name, T2.capacity FROM concert AS T1 JOIN stadium AS T2 ON T1.stadium_id = T2.stadium_id WHERE T1.year > 2013 GROUP BY T2.stadium_id ORDER BY COUNT(*) DESC LIMIT 1",
+  "score": 4,
+  "cost": 0.010035,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 110
+  }
+}

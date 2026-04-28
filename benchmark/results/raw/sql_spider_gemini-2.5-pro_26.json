@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "sql_spider",
+  "case": 26,
+  "response": "```sql\nSELECT count(*) FROM flights AS T1 JOIN airports AS T2 ON T1.source_airport_id  =  T2.airport_id JOIN airports AS T3 ON T1.dest_airport_id  =  T3.airport_id WHERE T2.city  =  'Aberdeen' AND T3.city  =  'Ashley'\n```",
+  "score": 5,
+  "cost": 0.00091375,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 82
+  }
+}

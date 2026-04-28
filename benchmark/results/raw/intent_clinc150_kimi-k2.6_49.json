@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "intent_clinc150",
+  "case": 49,
+  "response": "international_visa",
+  "score": 5,
+  "cost": 0.0007992,
+  "expected": "international_visa",
+  "tokens": {
+    "input": 520,
+    "output": 203
+  }
+}

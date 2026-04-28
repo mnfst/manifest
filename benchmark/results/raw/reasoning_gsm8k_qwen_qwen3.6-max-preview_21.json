@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "reasoning_gsm8k",
+  "case": 21,
+  "response": "To solve this problem, we can track Elliott's step count step by step:\n\n1. **Total daily goal:** Elliott wants to reach 10,000 steps.\n2. **Steps to and from school:** He completed half of his goal on these walks. \n   10,000 \u00f7 2 = 5,000 steps.\n3. **Steps with his friend:** He walked an additional 1,000 steps. \n   Total steps so far = 5,000 + 1,000 = 6,000 steps.\n4. **Total steps taken after the jog:** The problem states that after his jog, he had 2,000 steps left to reach his goal. This means the total number of steps he had already completed (school + friend + jog) is:\n   10,000 - 2,000 = 8,000 steps.\n5. **Steps during the jog:** To find the number of steps he took while jogging, subtract the steps he took before the jog from the total steps completed:\n   8,000 (total completed) - 6,000 (before jog) = 2,000 steps.\n\nElliott took 2,000 steps during his jog.\n\nANSWER: 2000",
+  "score": 5,
+  "cost": 0.0132756,
+  "expected": "2000",
+  "tokens": {
+    "input": 140,
+    "output": 2518
+  }
+}

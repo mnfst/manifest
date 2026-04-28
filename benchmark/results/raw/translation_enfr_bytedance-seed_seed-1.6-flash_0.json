@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "translation_enfr",
+  "case": 0,
+  "response": "Je sais comment aider, et je veux.  \n\nThis translation preserves the original tone\u2014direct and sincere\u2014while accurately conveying the meaning: \"I know how to help, and I want to.\" The structure \"Je sais comment aider\" (I know how to help) and \"et je veux\" (and I want to) closely mirror the English phrasing, ensuring clarity and faithfulness.",
+  "score": 3,
+  "cost": 0.000149475,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 470
+  }
+}

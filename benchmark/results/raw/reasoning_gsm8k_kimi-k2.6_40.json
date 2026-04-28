@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 40,
+  "response": "1. April has 30 days, so the first half of the month is 15 days and the second half is also 15 days.\n2. Let the amount Elvis saves each day in the first half be \\(x\\) dollars.\n3. According to the problem, he saves twice as much daily in the second half, so his daily saving there is \\(2x\\) dollars.\n4. Total savings for the month:  \n   \\[\n   15x + 15(2x) = 15x + 30x = 45x\n   \\]\n5. This total must equal his monthly target of \\$1125:  \n   \\[\n   45x = 1125\n   \\]\n6. Solve for \\(x\\):  \n   \\[\n   x = \\frac{1125}{45} = 25\n   \\]\n7. The required daily saving in the second half is \\(2x = 2(25) = 50\\) dollars.\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.001824,
+  "expected": "50",
+  "tokens": {
+    "input": 100,
+    "output": 735
+  }
+}

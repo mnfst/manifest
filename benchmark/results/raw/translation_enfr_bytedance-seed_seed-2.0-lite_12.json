@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 12,
+  "response": "Ce premier r\u00e9sultat, jug\u00e9 exceptionnel, a permis d'identifier 80 signaux acoustiques distincts \u00e0 proximit\u00e9 des Rocas Consag. Ces r\u00e9sultats confirment les \u00e9tudes ant\u00e9rieures portant sur la r\u00e9partition du vaquita dans la r\u00e9gion.\n\nThis translation preserves the formal, academic tone of the original marine research text, uses standard French scientific phrasing, and keeps all proper nouns (Rocas Consag, vaquita, the widely adopted name for this species in French scientific discourse) intact to match the original meaning perfectly.",
+  "score": 5,
+  "cost": 0.00092275,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 895
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "intent_clinc150",
+  "case": 39,
+  "response": "how_old_are_you",
+  "score": 5,
+  "cost": 0.00015255000000000002,
+  "expected": "how_old_are_you",
+  "tokens": {
+    "input": 575,
+    "output": 8
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 11,
+  "response": "```sql\nSELECT DISTINCT c.name AS country_name\nFROM world_1.country c\nJOIN world_1.continent co ON c.continent_id = co.id\nWHERE co.name = 'Africa'\nAND NOT EXISTS (\n    SELECT 1\n    FROM world_1.country a\n    JOIN world_1.continent asia ON a.continent_id = asia.id\n    WHERE asia.name = 'Asia'\n    AND a.population < c.population\n);\n```",
+  "score": 4,
+  "cost": 7e-06,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 102
+  }
+}

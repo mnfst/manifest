@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "sql_spider",
+  "case": 7,
+  "response": "SELECT COUNT(*) FROM cars_data WHERE year = 1980;",
+  "score": 5,
+  "cost": 0.003945,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 32
+  }
+}

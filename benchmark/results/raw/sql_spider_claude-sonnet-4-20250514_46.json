@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "sql_spider",
+  "case": 46,
+  "response": "```sql\nSELECT GovernmentForm, SUM(Population) as TotalPopulation\nFROM country\nWHERE GovernmentForm IN (\n    SELECT GovernmentForm\n    FROM country\n    WHERE LifeExpectancy IS NOT NULL\n    GROUP BY GovernmentForm\n    HAVING AVG(LifeExpectancy) > 72\n)\nGROUP BY GovernmentForm;\n```",
+  "score": 4,
+  "cost": 0.00168,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 93
+  }
+}

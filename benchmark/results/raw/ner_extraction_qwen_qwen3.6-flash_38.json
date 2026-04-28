@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "ner_extraction",
+  "case": 38,
+  "response": "{\"persons\": [\"Kamala Harris\"], \"organizations\": [\"General Motors\"], \"locations\": [\"Detroit\"]}",
+  "score": 5,
+  "cost": 0.00109775,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 1079
+  }
+}

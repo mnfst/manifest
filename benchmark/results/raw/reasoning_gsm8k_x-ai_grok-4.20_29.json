@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "The problem states: A bumper car rink has 12 red cars. They have 2 fewer green cars than they have red cars. They have 3 times the number of blue cars as they have green cars. The rink also has yellow cars. If the rink has 75 cars in total how many yellow cars do they have?\n\nFirst, red cars: 12.\n\nGreen cars: 2 fewer than red, so 12 - 2 = 10.\n\nBlue cars: 3 times the green cars, so 3 * 10 = 30.\n\nTotal cars: 75.\n\nSo, red + green + blue + yellow = 75.\n\n12 + 10 + 30 + yellow = 75.\n\nThat's 52 + yellow = 75.\n\nYellow = 75 - 52 = 23.\n\nANSWER: 23",
+  "score": 5,
+  "cost": 0.0018,
+  "expected": "23",
+  "tokens": {
+    "input": 220,
+    "output": 170
+  }
+}

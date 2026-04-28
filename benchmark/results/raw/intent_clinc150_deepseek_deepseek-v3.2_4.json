@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "intent_clinc150",
+  "case": 4,
+  "response": "uber",
+  "score": 5,
+  "cost": 0.00014485,
+  "expected": "uber",
+  "tokens": {
+    "input": 575,
+    "output": 1
+  }
+}

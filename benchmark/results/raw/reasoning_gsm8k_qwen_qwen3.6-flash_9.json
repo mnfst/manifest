@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 9,
+  "response": "Here is the step-by-step solution:\n\n1. **Find Bo's number of crabs:** We are directly given that Bo has 40 crabs.\n2. **Find Monic's number of crabs:** Monic has 4 fewer crabs than Bo. \n   $40 - 4 = 36$ crabs.\n3. **Find Rani's number of crabs:** Rani has 10 more crabs than Monic.\n   $36 + 10 = 46$ crabs.\n4. **Calculate the total:** Add the number of crabs each person has together.\n   $40 \\text{ (Bo)} + 36 \\text{ (Monic)} + 46 \\text{ (Rani)} = 122$ crabs.\n\nANSWER: 122",
+  "score": 5,
+  "cost": 0.0013315,
+  "expected": "122",
+  "tokens": {
+    "input": 90,
+    "output": 1309
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "translation_enfr",
+  "case": 32,
+  "response": "Les \u00c9tats membres, les institutions de l'Union et l'EEAS peuvent proposer le secondement du personnel \u00e0 l'EUSR.  \n\n\n**Explanation**:  \n- \"Member States\" translates to \"\u00c9tats membres\" (standard term for EU member states).  \n- \"the institutions of the Union\" is \"les institutions de l'Union\" (formal and accurate).  \n- \"EEAS\" is retained as an acronym (European External Action Service, commonly used in French).  \n- \"may propose\" is \"peuvent proposer\" (third-person plural of \"pouvoir\" for possibility, matching the original tone).  \n- \"the secondment of staff\" is \"le secondement du personnel\" (standard HR terminology in French).  \n- \"to the EUSR\" is \"\u00e0 l'EUSR\" (EUSR, or European Union Special Representative, is widely recognized in French as an acronym).  \n\nThe translation maintains formality and preserves the original meaning.",
+  "score": 5,
+  "cost": 0.000254625,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 817
+  }
+}

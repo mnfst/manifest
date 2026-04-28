@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "Step 1: Identify the initial number of fairies Katelyn saw. She saw 50 fairies.\nStep 2: Calculate how many new fairies joined the group. The problem states that \"half as many fairies as Katelyn saw\" came from the east. Half of 50 is 50 \u00f7 2 = 25.\nStep 3: Add the joining fairies to the original group. 50 + 25 = 75 fairies.\nStep 4: Subtract the fairies that flew away. The problem states that 30 fairies flew away. 75 - 30 = 45.\n(Note: The time references of \"twenty minutes\" and \"ten minutes later\" are distractors and do not affect the calculation.)\n\nANSWER: 45",
+  "score": 4,
+  "cost": 0.00153325,
+  "expected": "45",
+  "tokens": {
+    "input": 125,
+    "output": 1502
+  }
+}

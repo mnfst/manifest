@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "sql_spider",
+  "case": 18,
+  "response": "```sql\nSELECT DISTINCT s1.country\nFROM singer s1\nJOIN singer s2 ON s1.country = s2.country\nWHERE s1.age > 40 AND s2.age < 30;\n```",
+  "score": 5,
+  "cost": 7.265e-05,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 49
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 27,
+  "response": "Let \\(x\\) be the number of vacuum cleaners Melanie started with.\n\n1. **Green house:** She sold \\(\\frac{1}{3}\\) of them.  \n   Remaining: \\(x - \\frac{1}{3}x = \\frac{2}{3}x\\).\n\n2. **Red house:** She sold 2 more.  \n   Remaining: \\(\\frac{2}{3}x - 2\\).\n\n3. **Orange house:** She sold half of what was left.  \n   Remaining: \\(\\frac{1}{2}\\left(\\frac{2}{3}x - 2\\right)\\).\n\nWe know she has 5 left, so:\n\n\\[\n\\frac{1}{2}\\left(\\frac{2}{3}x - 2\\right) = 5\n\\]\n\nMultiply both sides by 2:\n\n\\[\n\\frac{2}{3}x - 2 = 10\n\\]\n\nAdd 2 to both sides:\n\n\\[\n\\frac{2}{3}x = 12\n\\]\n\nMultiply both sides by 3:\n\n\\[\n2x = 36\n\\]\n\nDivide by 2:\n\n\\[\nx = 18\n\\]\n\n**Check:**  \nStart with 18.  \n- Green house: sell 6, 12 remain.  \n- Red house: sell 2, 10 remain.  \n- Orange house: sell half (5), 5 remain. \u2713\n\nANSWER: 18",
+  "score": 5,
+  "cost": 0.002265,
+  "expected": "18",
+  "tokens": {
+    "input": 99,
+    "output": 919
+  }
+}

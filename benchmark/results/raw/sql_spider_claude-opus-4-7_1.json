@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "sql_spider",
+  "case": 1,
+  "response": "SELECT AVG(mpg) FROM cars_data WHERE cylinders = 4;",
+  "score": 5,
+  "cost": 0.00435,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 35
+  }
+}

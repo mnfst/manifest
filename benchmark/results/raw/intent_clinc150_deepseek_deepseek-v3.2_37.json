@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "intent_clinc150",
+  "case": 37,
+  "response": "payday",
+  "score": 5,
+  "cost": 0.00014519999999999998,
+  "expected": "payday",
+  "tokens": {
+    "input": 572,
+    "output": 2
+  }
+}

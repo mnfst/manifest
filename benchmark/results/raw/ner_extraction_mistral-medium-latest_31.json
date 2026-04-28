@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "ner_extraction",
+  "case": 31,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"Samsung Electronics\"],\n  \"locations\": [\"South Korea\"]\n}\n```",
+  "score": 5,
+  "cost": 9.2e-05,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 32
+  }
+}

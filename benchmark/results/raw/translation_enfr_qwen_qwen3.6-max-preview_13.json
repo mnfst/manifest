@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "translation_enfr",
+  "case": 13,
+  "response": "Dis juste \u00e0 Kumagaya que le d\u00e9tective est ici.",
+  "score": 5,
+  "cost": 0.0103142,
+  "expected": "",
+  "tokens": {
+    "input": 42,
+    "output": 1973
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 2,
+  "response": "SELECT s.name, s.capacity\nFROM stadium s\nJOIN concert c ON s.stadium_id = c.stadium_id\nWHERE c.date > '2013-12-31'\nGROUP BY s.stadium_id, s.name, s.capacity\nORDER BY COUNT(c.concert_id) DESC\nLIMIT 1;",
+  "score": 4,
+  "cost": 0.000194925,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 610
+  }
+}

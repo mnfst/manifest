@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_spider",
+  "case": 34,
+  "response": "```sql\nSELECT * FROM hire;\n```",
+  "score": 5,
+  "cost": 0.0009768,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 201
+  }
+}

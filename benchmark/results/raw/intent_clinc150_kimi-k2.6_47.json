@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "intent_clinc150",
+  "case": 47,
+  "response": "cook_time",
+  "score": 5,
+  "cost": 0.0009882,
+  "expected": "cook_time",
+  "tokens": {
+    "input": 523,
+    "output": 281
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_spider",
+  "case": 45,
+  "response": "```sql\nSELECT p.first_name, t.description\nFROM professional p\nJOIN treatment t ON p.professional_id = t.professional_id;\n```",
+  "score": 5,
+  "cost": 0.0019789,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 427
+  }
+}

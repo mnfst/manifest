@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "sql_spider",
+  "case": 8,
+  "response": "SELECT COUNT(DISTINCT cl.language) AS total_unique_official_languages\nFROM country c\nINNER JOIN countrylanguage cl ON c.code = cl.countrycode\nWHERE c.indepyear < 1930 AND cl.isofficial = 'T';",
+  "score": 5,
+  "cost": 0.000886,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 854
+  }
+}

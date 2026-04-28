@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "translation_enfr",
+  "case": 27,
+  "response": "Les crit\u00e8res du DSM-IV pour l'intoxication alcoolique sont similaires, avec l'ajout de n'importe un ou plusieurs des signes suivants : parole brouill\u00e9e, d\u00e9sordination, mouvement instable de la marche, nystagmus, alt\u00e9ration de l'attention ou de la m\u00e9moire, stup\u00e9faction ou coma.  \n\n\n### Notes sur la traduction :  \n- \"DSMIV\" est \u00e9crit avec un trait d'union (DSM-IV) conform\u00e9ment \u00e0 la norme.  \n- \"Alcohol intoxication\" se traduit par \"intoxication alcoolique\" (le genre f\u00e9minin est utilis\u00e9 ici, conforme \u00e0 la terminologie m\u00e9dicale fran\u00e7aise).  \n- \"Slurred speech\" devient \"parole brouill\u00e9e\" (expression courante en m\u00e9decine).  \n- \"Uncoordination\" est traduit par \"d\u00e9sordination\" (synonyme de \"manque de coordination\").  \n- \"Unsteady gait\" est rendu par \"mouvement instable de la marche\" (plus pr\u00e9cis que \"passage instable\").  \n- \"Nystagmus\" reste inchang\u00e9, terme technique international.  \n- \"Impairment in attention or memory\" est traduit par \"alt\u00e9ration de l'attention ou de la m\u00e9moire\" (plus adapt\u00e9 que \"d\u00e9saffection\", qui signifie \"d\u00e9sint\u00e9r\u00eat\").  \n- \"Stupor\" et \"coma\" conservent leurs formes techniques (\"stup\u00e9faction\" et \"coma\").  \n\nLa structure et le ton sont maintenus, avec une traduction pr\u00e9cise et adapt\u00e9e au contexte m\u00e9dical.",
+  "score": 4,
+  "cost": 0.000422775,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 1371
+  }
+}

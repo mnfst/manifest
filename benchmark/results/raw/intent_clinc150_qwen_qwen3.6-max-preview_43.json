@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "intent_clinc150",
+  "case": 43,
+  "response": "book_flight",
+  "score": 5,
+  "cost": 0.0023452,
+  "expected": "book_flight",
+  "tokens": {
+    "input": 520,
+    "output": 321
+  }
+}

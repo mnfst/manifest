@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "sql_spider",
+  "case": 3,
+  "response": "```sql\nSELECT c1.name\nFROM country c1\nWHERE c1.continent = 'Africa'\n  AND c1.population < ALL (\n      SELECT c2.population\n      FROM country c2\n      WHERE c2.continent = 'Asia'\n  );\n```",
+  "score": 5,
+  "cost": 8.180000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 58
+  }
+}

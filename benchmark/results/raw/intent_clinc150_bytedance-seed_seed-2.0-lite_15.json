@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "intent_clinc150",
+  "case": 15,
+  "response": "share_location",
+  "score": 5,
+  "cost": 0.00020475,
+  "expected": "share_location",
+  "tokens": {
+    "input": 607,
+    "output": 53
+  }
+}

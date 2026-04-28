@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "sql_spider",
+  "case": 38,
+  "response": "```sql\nSELECT country.name, COUNT(countrylanguage.language) AS language_count\nFROM country\nJOIN countrylanguage ON country.code = countrylanguage.countrycode\nGROUP BY country.code\nHAVING COUNT(countrylanguage.language) > 2\nORDER BY language_count DESC;\n```",
+  "score": 4,
+  "cost": 8.71e-05,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 61
+  }
+}

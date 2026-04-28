@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "sql_spider",
+  "case": 8,
+  "response": "```sql\nSELECT COUNT(DISTINCT language) AS total_unique_languages\nFROM countries\nJOIN country_languages ON countries.country_id = country_languages.country_id\nWHERE countries.founded_year < 1930;\n```",
+  "score": 4,
+  "cost": 0.0006225,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 42
+  }
+}

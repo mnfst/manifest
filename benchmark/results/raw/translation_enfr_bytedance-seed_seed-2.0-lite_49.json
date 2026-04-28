@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 49,
+  "response": "J'ai des g\u00e2teaux \u00e0 la cr\u00e8me, des friandises, des harengs marin\u00e9s et des dattes confites.\n\nNote: This translation uses natural, common French culinary terms that match the casual, straightforward tone of the original list. \"Friandises\" accurately captures the meaning of \"sweet meats\" (traditional sweet confections), while \"harengs marin\u00e9s\" is the standard term for pickled herring in French, and \"dattes confites\" is the correct phrasing for crystallized (candied) dates.",
+  "score": 5,
+  "cost": 0.00060175,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 580
+  }
+}

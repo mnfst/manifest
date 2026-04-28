@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "ner_extraction",
+  "case": 22,
+  "response": "{\n  \"persons\": [\"Jamie Dimon\"],\n  \"organizations\": [\"JPMorgan Chase\", \"Davos World Economic Forum\"],\n  \"locations\": [\"Switzerland\"]\n}",
+  "score": 5,
+  "cost": 0.00011025,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 329
+  }
+}

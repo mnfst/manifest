@@ -2,12 +2,12 @@
   "model": "kimi-k2.6",
   "task": "translation_enfr",
   "case": 15,
-  "response": "Sector Source est un site Web de ressources d\u00e9di\u00e9 \u00e0 aider les personnes qui dirigent des organismes de bienfaisance et des organisations \u00e0 but non lucratif \u00e0 rester inform\u00e9es sur...",
-  "score": 4,
-  "cost": 0.0032136,
+  "response": "Sector Source est un site de ressources d\u00e9di",
+  "score": 2,
+  "cost": 0.0048264,
   "expected": "",
   "tokens": {
     "input": 44,
-    "output": 1328
+    "output": 2000
   }
 }

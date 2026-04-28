@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "sql_spider",
+  "case": 36,
+  "response": "```sql\nSELECT s.name\nFROM students s\nJOIN likes l ON s.id = l.liked_id\nGROUP BY s.id, s.name\nORDER BY COUNT(*) DESC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 0.000708,
+  "expected": "",
+  "tokens": {
+    "input": 186,
+    "output": 42
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "sql_spider",
+  "case": 13,
+  "response": "```sql\nSELECT MAX(transcript_release_date) \nFROM transcripts;\n```",
+  "score": 5,
+  "cost": 0.000488,
+  "expected": "",
+  "tokens": {
+    "input": 184,
+    "output": 15
+  }
+}

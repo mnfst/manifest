@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "sql_spider",
+  "case": 3,
+  "response": "```sql\nSELECT c1.name\nFROM country c1\nWHERE c1.continent = 'Africa'\nAND c1.population < (\n  SELECT MIN(c2.population)\n  FROM country c2\n  WHERE c2.continent = 'Asia'\n  AND c2.population IS NOT NULL\n)\nAND c1.population IS NOT NULL\nORDER BY c1.name;\n```",
+  "score": 5,
+  "cost": 0.00044080000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 94
+  }
+}

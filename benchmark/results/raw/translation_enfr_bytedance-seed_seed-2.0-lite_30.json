@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 30,
+  "response": "Premi\u00e8re ligne de cr\u00e9dit en Italie d\u00e9di\u00e9e aux formations d'apprentissage des jeunes au sein des PME, des ETI et des collectivit\u00e9s territoriales\n\nNotes on the translation to preserve accuracy and tone (aligned with the original's formal, institutional headline style):\n- SMEs is translated to the standard French business acronym PME (Petites et moyennes entreprises)\n- Midcaps uses the official EU French term ETI (Entreprises de taille interm\u00e9diaire), the standard equivalent for mid-sized companies across Francophone European policy contexts\n- Local authorities is rendered as collectivit\u00e9s territoriales, the correct official French term for local public administrative bodies, rather than a literal translation that would miss the context of public sector entities hosting apprenticeships",
+  "score": 5,
+  "cost": 0.0007845,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 763
+  }
+}

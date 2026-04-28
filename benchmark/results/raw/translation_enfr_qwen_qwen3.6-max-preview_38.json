@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "translation_enfr",
+  "case": 38,
+  "response": "Cela ne peut que conduire au chaos et \u00e0 la terreur.",
+  "score": 5,
+  "cost": 0.009353500000000002,
+  "expected": "",
+  "tokens": {
+    "input": 39,
+    "output": 1789
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "sql_spider",
+  "case": 30,
+  "response": "```sql\nSELECT AVG(rank) AS average_rank\nFROM wta_1.matches\nWHERE winner_rank IS NOT NULL;\n```",
+  "score": 3,
+  "cost": 1.67e-05,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 29
+  }
+}

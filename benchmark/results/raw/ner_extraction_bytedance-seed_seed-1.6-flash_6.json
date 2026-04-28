@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "ner_extraction",
+  "case": 6,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"Amazon\"],\n  \"locations\": [\"Nashville\", \"Davidson County\"]\n}",
+  "score": 5,
+  "cost": 8.782500000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 151,
+    "output": 255
+  }
+}

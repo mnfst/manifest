@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "translation_enfr",
+  "case": 49,
+  "response": "J\u2019ai des g\u00e2teaux \u00e0 la cr\u00e8me, des confiseries, des harengs marin\u00e9s et des dattes cristallis\u00e9es.",
+  "score": 5,
+  "cost": 0.0074581000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 49,
+    "output": 1422
+  }
+}

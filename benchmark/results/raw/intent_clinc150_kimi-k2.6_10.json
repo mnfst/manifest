@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "intent_clinc150",
+  "case": 10,
+  "response": "pto_request",
+  "score": 5,
+  "cost": 0.0008262,
+  "expected": "pto_request",
+  "tokens": {
+    "input": 517,
+    "output": 215
+  }
+}

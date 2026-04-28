@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "sql_spider",
+  "case": 32,
+  "response": "SELECT T1.first_name , AVG(T2.ranking) FROM players AS T1 JOIN rankings AS T2 ON T1.player_id  =  T2.player_id GROUP BY T1.first_name",
+  "score": 4,
+  "cost": 0.008671,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 1647
+  }
+}

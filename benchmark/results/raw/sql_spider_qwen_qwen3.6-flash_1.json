@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "sql_spider",
+  "case": 1,
+  "response": "SELECT AVG(Miles_per_Gallon) FROM cars WHERE Cylinders = 4",
+  "score": 5,
+  "cost": 0.00175375,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 1733
+  }
+}

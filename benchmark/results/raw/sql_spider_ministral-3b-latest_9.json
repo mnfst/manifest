@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 9,
+  "response": "```sql\nSELECT c.country_name\nFROM car_1.countries c\nJOIN (\n    SELECT country_id, COUNT(*) as maker_count\n    FROM car_1.car_makers\n    GROUP BY country_id\n    ORDER BY maker_count DESC\n    LIMIT 1\n) cm ON c.country_id = cm.country_id;\n```",
+  "score": 4,
+  "cost": 5.56e-06,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 70
+  }
+}

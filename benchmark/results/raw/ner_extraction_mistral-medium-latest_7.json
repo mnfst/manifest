@@ -2,7 +2,7 @@
   "model": "mistral-medium-latest",
   "task": "ner_extraction",
   "case": 7,
-  "response": "```json\n{\n    \"persons\": [\"Lionel Messi\"],\n    \"organizations\": [\"Inter Miami\", \"New York Red Bulls\"],\n    \"locations\": [\"Chase Stadium\", \"Fort Lauderdale\"]\n}\n```",
+  "response": "```json\n{\n  \"persons\": [\"Lionel Messi\"],\n  \"organizations\": [\"Inter Miami\", \"New York Red Bulls\"],\n  \"locations\": [\"Chase Stadium\", \"Fort Lauderdale\"]\n}\n```",
   "score": 5,
   "cost": 0.000126,
   "expected": "",

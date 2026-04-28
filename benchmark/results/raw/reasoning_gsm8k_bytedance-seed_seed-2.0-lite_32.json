@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 32,
+  "response": "To solve the problem, we first align all units to feet (since the final perimeter needs to be in feet), then calculate the missing dimension of the rectangle, and finally compute the perimeter.\n\n### Step 1: Convert length from yards to feet\nThe problem states the length of the room is 3 yards. Since 1 yard = 3 feet, we convert:\nLength = 3 yards \u00d7 3 feet/yard = 9 feet.\n\n### Step 2: Calculate the width of the room\nThe area of a rectangle is given by \\( A = l \\times w \\), where \\( A = 360 \\) sq ft (given area) and \\( l = 9 \\) ft (the converted length). Rearrange to solve for width \\( w \\):\n\\( w = \\frac{A}{l} = \\frac{360}{9} = 40 \\) feet.\n\n### Step 3: Calculate the perimeter of the room\nThe perimeter of a rectangle is \\( P = 2(l + w) \\). Substitute \\( l = 9 \\) ft and \\( w = 40 \\) ft:\n\\( P = 2(9 + 40) = 2(49) = 98 \\) feet.\n\nANSWER: 98",
+  "score": 5,
+  "cost": 0.00127675,
+  "expected": "98",
+  "tokens": {
+    "input": 123,
+    "output": 1246
+  }
+}

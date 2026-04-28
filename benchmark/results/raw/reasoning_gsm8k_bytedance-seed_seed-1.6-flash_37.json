@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 37,
+  "response": "To determine how many votes candidate C received, we start by calculating the votes for candidates A and B, then find the remaining votes for C.\n\n\n### Step 1: Votes for candidate A  \nCandidate A got 20% of the total votes. With 100 voters, this is:  \n\\( 20\\% \\text{ of } 100 = 0.20 \\times 100 = 20 \\text{ votes} \\).  \n\n\n### Step 2: Votes for candidate B  \nCandidate B got 50% more than candidate A. 50% of A's votes is \\( 0.50 \\times 20 = 10 \\) votes. Thus, B's votes are:  \n\\( 20 + 10 = 30 \\text{ votes} \\).  \n\n\n### Step 3: Votes for candidate C  \nThe total number of votes is 100. The sum of votes for A and B is \\( 20 + 30 = 50 \\) votes. The remaining votes go to C:  \n\\( 100 - 50 = 50 \\text{ votes} \\).  \n\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.000241125,
+  "expected": "50",
+  "tokens": {
+    "input": 179,
+    "output": 759
+  }
+}

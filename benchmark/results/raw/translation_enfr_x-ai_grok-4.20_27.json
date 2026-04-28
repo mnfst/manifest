@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "translation_enfr",
+  "case": 27,
+  "response": "**French:** Les crit\u00e8res du DSM-IV pour l\u2019intoxication alcoolique sont similaires, avec l\u2019ajout d\u2019un ou plusieurs des signes suivants : discours bredouillant, incoordination, d\u00e9marche instable, nystagmus, alt\u00e9ration de l\u2019attention ou de la m\u00e9moire, stupeur ou coma.",
+  "score": 5,
+  "cost": 0.000882,
+  "expected": "",
+  "tokens": {
+    "input": 189,
+    "output": 63
+  }
+}

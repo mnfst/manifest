@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "Here is the step-by-step solution:\n\n1. **Calculate the burritos given to the students:** \n   There are 50 students, and each student received 10 burritos.\n   50 students \u00d7 10 burritos/student = 500 burritos\n\n2. **Calculate the total number of burritos consumed:**\n   Add the burritos eaten by the students to the burritos eaten by Mr. George.\n   500 burritos (students) + 20 burritos (Mr. George) = 520 burritos\n\n3. **Calculate the leftover burritos:**\n   Subtract the total consumed burritos from the original amount ordered.\n   600 burritos (ordered) - 520 burritos (consumed) = 80 burritos\n\nANSWER: 80",
+  "score": 5,
+  "cost": 0.0067964,
+  "expected": "80",
+  "tokens": {
+    "input": 112,
+    "output": 1279
+  }
+}

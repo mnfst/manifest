@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "translation_enfr",
+  "case": 20,
+  "response": "Je dirais que c'est de faible valeur, au mieux.",
+  "score": 5,
+  "cost": 2.3650000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 33,
+    "output": 14
+  }
+}

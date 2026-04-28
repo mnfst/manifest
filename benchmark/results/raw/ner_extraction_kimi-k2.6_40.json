@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "ner_extraction",
+  "case": 40,
+  "response": "{\"persons\": [], \"organizations\": [\"Reserve Bank of Australia\", \"Goldman Sachs\"], \"locations\": []}",
+  "score": 4,
+  "cost": 0.0018767999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 764
+  }
+}

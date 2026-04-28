@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 14,
+  "response": "```sql\nSELECT\n    c.maker_id,\n    c.maker_full_name,\n    COUNT(DISTINCT m.model_id) AS model_count\nFROM\n    car_1.makers c\nLEFT JOIN\n    car_1.models m ON c.maker_id = m.maker_id\nGROUP BY\n    c.maker_id, c.maker_full_name\nORDER BY\n    c.maker_full_name;\n```",
+  "score": 5,
+  "cost": 6.480000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 87
+  }
+}

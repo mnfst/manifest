@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "sql_spider",
+  "case": 20,
+  "response": "SELECT T1.Abbreviation , T1.Country FROM airline AS T1 JOIN flight AS T2 ON T1.AirlineID  =  T2.AirlineID GROUP BY T1.AirlineID ORDER BY count(T2.AirlineID) LIMIT 1",
+  "score": 3,
+  "cost": 0.00283475,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 2814
+  }
+}

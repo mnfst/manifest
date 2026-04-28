@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "sentiment_sst2",
+  "case": 35,
+  "response": "positive",
+  "score": 5,
+  "cost": 0.0005736000000000001,
+  "expected": "positive",
+  "tokens": {
+    "input": 60,
+    "output": 224
+  }
+}

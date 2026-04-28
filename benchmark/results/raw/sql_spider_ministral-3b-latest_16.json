@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 16,
+  "response": "```sql\nSELECT COUNT(DISTINCT country_code) AS distinct_country_count\nFROM players;\n```",
+  "score": 5,
+  "cost": 3.5200000000000006e-06,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 20
+  }
+}

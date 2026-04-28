@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "sql_spider",
+  "case": 1,
+  "response": "SELECT AVG(mpg) AS average_miles_per_gallon FROM car_1.cars WHERE cylinders = 4;",
+  "score": 5,
+  "cost": 0.00060625,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 576
+  }
+}

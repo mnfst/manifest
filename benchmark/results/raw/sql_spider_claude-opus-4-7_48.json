@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "sql_spider",
+  "case": 48,
+  "response": "SELECT model FROM cars_data WHERE weight < (SELECT AVG(weight) FROM cars_data);",
+  "score": 5,
+  "cost": 0.00486,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 43
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "sql_spider",
+  "case": 6,
+  "response": "```sql\nSELECT DISTINCT airline_name FROM flights WHERE destination = 'AHD';\n```",
+  "score": 5,
+  "cost": 3.68e-05,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 18
+  }
+}

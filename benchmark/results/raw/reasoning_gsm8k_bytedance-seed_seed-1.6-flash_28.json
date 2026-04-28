@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "To solve the problem, we start by defining the number of people who got on the bus at the terminal as \\( x \\).\n\n### Step 1: After the first bus stop  \nAt the first bus stop, 5 more people got in. So the number of people on the bus becomes:  \n\\( x + 5 \\)  \n\n\n### Step 2: After the second bus stop  \nAt the second bus stop, 7 people got down (subtracting 7) and 8 more got in (adding 8). This changes the number of people as follows:  \n\\( (x + 5) - 7 + 8 \\)  \n\nSimplifying this expression:  \n\\( (x + 5) - 7 + 8 = x + (5 - 7 + 8) = x + 6 \\)  \n\n\n### Step 3: Relate to the number of people heading to the third stop  \nThe problem states that 20 people were heading to the third stop, which means the number of people after the second stop is 20. Thus:  \n\\( x + 6 = 20 \\)  \n\nSolving for \\( x \\):  \n\\( x = 20 - 6 = 14 \\)  \n\n\nANSWER: 14",
+  "score": 5,
+  "cost": 0.00021217500000000002,
+  "expected": "14",
+  "tokens": {
+    "input": 189,
+    "output": 660
+  }
+}

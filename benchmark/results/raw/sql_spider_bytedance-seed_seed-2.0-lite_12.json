@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "sql_spider",
+  "case": 12,
+  "response": "SELECT p.id AS professional_id, p.role, p.first_name\nFROM professionals p\nWHERE p.id IN (\n    SELECT professional_id\n    FROM treatments\n    GROUP BY professional_id\n    HAVING COUNT(*) >= 2\n);",
+  "score": 5,
+  "cost": 0.00078975,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 758
+  }
+}

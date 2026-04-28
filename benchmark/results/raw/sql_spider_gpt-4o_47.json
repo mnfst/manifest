@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "sql_spider",
+  "case": 47,
+  "response": "```sql\nSELECT type_code \nFROM template_types \nWHERE description = 'Book';\n```",
+  "score": 5,
+  "cost": 0.0003725,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 18
+  }
+}

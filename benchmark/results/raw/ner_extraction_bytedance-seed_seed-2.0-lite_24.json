@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "ner_extraction",
+  "case": 24,
+  "response": "{\"persons\": [], \"organizations\": [\"Indian Space Research Organisation\"], \"locations\": [\"Sriharikota\"]}",
+  "score": 4,
+  "cost": 0.00046425,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 435
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "ner_extraction",
+  "case": 6,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"Amazon\"],\n  \"locations\": [\"Nashville\", \"Davidson County\"]\n}",
+  "score": 5,
+  "cost": 0.00059,
+  "expected": "",
+  "tokens": {
+    "input": 187,
+    "output": 27
+  }
+}

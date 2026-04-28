@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_spider",
+  "case": 36,
+  "response": "SELECT s.name\nFROM students s\nJOIN likes l ON s.student_id = l.student_id\nGROUP BY s.student_id, s.name\nORDER BY COUNT(*) DESC\nLIMIT 1;",
+  "score": 5,
+  "cost": 0.0066858,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 1494
+  }
+}

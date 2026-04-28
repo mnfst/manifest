@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "Step 1: Find the number of green cars.  \nThe rink has 2 fewer green cars than red cars.  \n\\(12 - 2 = 10\\) green cars.\n\nStep 2: Find the number of blue cars.  \nThe rink has 3 times as many blue cars as green cars.  \n\\(3 \\times 10 = 30\\) blue cars.\n\nStep 3: Add the known cars.  \nRed + Green + Blue = \\(12 + 10 + 30 = 52\\) cars.\n\nStep 4: Find the number of yellow cars.  \nSubtract the known cars from the total of 75.  \n\\(75 - 52 = 23\\) yellow cars.\n\nANSWER: 23",
+  "score": 5,
+  "cost": 0.0012564,
+  "expected": "23",
+  "tokens": {
+    "input": 106,
+    "output": 497
+  }
+}

@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "translation_enfr",
   "case": 31,
-  "response": "Voici une traduction qui conserve le ton et le sens de la phrase originale, tout en restant naturelle en fran\u00e7ais :\n\n**\"On pourrait vous inculper pour racolage.\"**\n\n*Explications :*\n- **\"On pourrait\"** : \u00e9quivalent informel et direct de *\"We could\"* (plus naturel que *\"Nous pourrions\"* dans ce contexte).\n- **\"vous inculper\"** : traduit l'id\u00e9e d'une accusation formelle (*\"book\"* en argot policier anglais = arr\u00eater/inculper).\n- **\"racolage\"** : terme juridique fran\u00e7ais pour *\"solicitation\"* (surtout dans le contexte prostitution/approche ill\u00e9gale).\n\n---\n*Variantes selon le contexte :*\n- **Plus formel (police/juridique)** :\n  *\"Vous pourriez \u00eatre poursuivi(e) pour racolage.\"*\n- **Menace implicite (ton plus dur)** :\n  *\"On peut vous coffrer pour racolage.\"* (*\"coffrer\"* = argot pour *\"arr\u00eater\"*).\n\nSi le contexte est diff\u00e9rent (ex. : sollicitation commerciale ill\u00e9gale), pr\u00e9cisez-le pour ajuster la traduction.",
-  "score": 3,
-  "cost": 0.000492,
+  "response": "Voici une traduction qui conserve le ton et le sens de la phrase originale, tout en restant naturelle en fran\u00e7ais :\n\n**\"On pourrait vous inculper pour racolage.\"**\n\n*Explications :*\n- **\"On pourrait\"** : Forme plus naturelle en fran\u00e7ais que *\"Nous pourrions\"* dans un contexte informel ou mena\u00e7ante (comme une mise en garde polici\u00e8re).\n- **\"vous inculper\"** : Traduction pr\u00e9cise de *\"book you\"* dans un contexte judiciaire (l'inculpation est l'acte formel d'accusation en France).\n- **\"racolage\"** : Terme juridique fran\u00e7ais pour *\"solicitation\"* (surtout en lien avec la prostitution ou des activit\u00e9s ill\u00e9gales similaires). Si le contexte est diff\u00e9rent (ex. d\u00e9marchage abusif), on pourrait dire *\"d\u00e9marchage ill\u00e9gal\"*, mais *\"racolage\"* est le plus probable ici.\n\n---\n*Variantes selon le contexte :*\n- **Plus formel (police/justice)** : *\"Vous pourriez \u00eatre inculp\u00e9(e) pour racolage.\"*\n- **Menace informelle** : *\"On peut te coffrer pour racolage.\"* (familier, oral)\n- **Si \"solicitation\" = harc\u00e8lement commercial** : *\"On pourrait vous poursuivre pour d\u00e9marchage abusif.\"*\n\nDites-moi si vous souhaitez ajuster le ton (plus poli, plus agressif, etc.) ou pr\u00e9ciser le contexte !",
+  "score": 4,
+  "cost": 0.000624,
   "expected": "",
   "tokens": {
     "input": 30,
-    "output": 240
+    "output": 306
   }
 }

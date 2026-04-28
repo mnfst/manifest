@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "```sql\nSELECT *\nFROM airports a\nWHERE NOT EXISTS (\n    SELECT 1 FROM flights f\n    WHERE f.departure_airport_id = a.airport_id OR f.arrival_airport_id = a.airport_id\n);\n```",
+  "score": 5,
+  "cost": 0.005615500000000001,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 1251
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "sql_spider",
+  "case": 28,
+  "response": "```sql\nSELECT nationality\nFROM poker_player\nGROUP BY nationality\nHAVING COUNT(*) >= 2;\n```",
+  "score": 5,
+  "cost": 0.000672,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 29
+  }
+}

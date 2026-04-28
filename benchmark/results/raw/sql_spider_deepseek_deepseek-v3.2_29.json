@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "sql_spider",
+  "case": 29,
+  "response": "```sql\nSELECT COUNT(DISTINCT language) FROM country_language;\n```",
+  "score": 5,
+  "cost": 3.545e-05,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 17
+  }
+}

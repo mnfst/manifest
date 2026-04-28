@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "sql_spider",
+  "case": 25,
+  "response": "SELECT Title FROM Cartoon WHERE Directed_by = 'Ben Jones';",
+  "score": 5,
+  "cost": 0.00441,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 37
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "sql_spider",
+  "case": 6,
+  "response": "```sql\nSELECT DISTINCT airline\nFROM flights\nWHERE destination_airport = 'AHD';\n```",
+  "score": 5,
+  "cost": 2.2649999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 20
+  }
+}

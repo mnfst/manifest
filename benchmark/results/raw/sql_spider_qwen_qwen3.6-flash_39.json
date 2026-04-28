@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "sql_spider",
+  "case": 39,
+  "response": "SELECT c.Name, o.Name FROM conductor c JOIN conductor_orchestra co ON c.ConductorID = co.ConductorID JOIN orchestra o ON co.OrchestraID = o.OrchestraID;",
+  "score": 5,
+  "cost": 0.0030525,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 3031
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "translation_enfr",
+  "case": 30,
+  "response": "Premi\u00e8re ligne de cr\u00e9dit en Italie pour les apprentissages des jeunes dans les PME, les entreprises de taille interm\u00e9diaire et les collectivit\u00e9s locales.",
+  "score": 5,
+  "cost": 5.135e-05,
+  "expected": "",
+  "tokens": {
+    "input": 47,
+    "output": 36
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "The problem states: Sarah went to buy books from the store and spent $300 on the books. If each book was $15 and she gave an equal number of books to her 4 kids, how many books did each child get?\n\nFirst, I need to find out how many books Sarah bought in total. She spent $300, and each book costs $15. So, total books = total money spent divided by cost per book.\n\nTotal books = 300 / 15 = 20 books.\n\nShe gave an equal number of books to her 4 kids. So, each child gets 20 books divided by 4.\n\n20 / 4 = 5 books per child.\n\nThe problem says \"she gave an equal number of books to her 4 kids,\" which implies she distributed all the books equally among the 4 children.\n\nYes, that makes sense. So each child gets 5 books.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.001904,
+  "expected": "5",
+  "tokens": {
+    "input": 200,
+    "output": 188
+  }
+}

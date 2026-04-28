@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 43,
+  "response": "```sql\nSELECT COUNT(*) AS car_count\nFROM cars\nWHERE num_cylinders > 6;\n```",
+  "score": 5,
+  "cost": 3.5600000000000002e-06,
+  "expected": "",
+  "tokens": {
+    "input": 65,
+    "output": 24
+  }
+}

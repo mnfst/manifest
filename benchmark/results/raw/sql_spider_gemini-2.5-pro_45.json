@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "sql_spider",
+  "case": 45,
+  "response": "```sql\nSELECT T1.first_name, T3.description\nFROM professionals AS T1\nJOIN professional_treatments AS T2\n  ON T1.professional_id = T2.professional_id\nJOIN treatments AS T3\n  ON T2.treatment_id = T3.treatment_id;\n```",
+  "score": 5,
+  "cost": 0.000805,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 71
+  }
+}

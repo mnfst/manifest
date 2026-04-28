@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "sql_spider",
+  "case": 49,
+  "response": "```sql\nSELECT T1.hometown FROM teachers AS T1 GROUP BY T1.hometown HAVING COUNT(T1.tid) >= 2;\n```",
+  "score": 5,
+  "cost": 3.135e-05,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 35
+  }
+}

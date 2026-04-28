@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "sql_spider",
+  "case": 4,
+  "response": "```sql\nSELECT SUM(bonus) AS total_bonus FROM evaluations;\n```",
+  "score": 5,
+  "cost": 3.7900000000000006e-05,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 19
+  }
+}

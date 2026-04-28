@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "intent_clinc150",
+  "case": 17,
+  "response": "remind",
+  "score": 0,
+  "cost": 0.00014705000000000002,
+  "expected": "reminder",
+  "tokens": {
+    "input": 575,
+    "output": 3
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 20,
+  "response": "There are 3 fish, and each fish needs $1 of food per day.\n\n1. Calculate the daily cost for all fish:  \n   $3 \\text{ fish} \\times \\$1/\\text{fish} = \\$3 \\text{ per day}$\n\n2. May has 31 days.  \n   $\\$3 \\times 31 = \\$93$\n\nANSWER: 93",
+  "score": 5,
+  "cost": 0.000738,
+  "expected": "93",
+  "tokens": {
+    "input": 74,
+    "output": 289
+  }
+}

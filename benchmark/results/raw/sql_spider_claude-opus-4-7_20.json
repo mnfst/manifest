@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "sql_spider",
+  "case": 20,
+  "response": "SELECT T1.Abbreviation, T1.Country FROM AIRLINES AS T1 JOIN FLIGHTS AS T2 ON T1.uid = T2.Airline GROUP BY T2.Airline ORDER BY COUNT(*) ASC LIMIT 1",
+  "score": 3,
+  "cost": 0.00939,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 102
+  }
+}

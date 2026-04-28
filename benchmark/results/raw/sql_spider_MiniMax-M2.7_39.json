@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sql_spider",
+  "case": 39,
+  "response": "```sql\nSELECT c.conductor_name, o.orchestra_name\nFROM conductor c\nJOIN orchestra o ON c.conductor_id = o.conductor_id;\n```",
+  "score": 4,
+  "cost": 0.0019448000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 419
+  }
+}

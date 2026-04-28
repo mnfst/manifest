@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "ner_extraction",
+  "case": 34,
+  "response": "{\"persons\": [\"Gordon Ramsay\"], \"organizations\": [\"Bellagio hotel\"], \"locations\": [\"Las Vegas\"]}",
+  "score": 5,
+  "cost": 0.00033875,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 310
+  }
+}

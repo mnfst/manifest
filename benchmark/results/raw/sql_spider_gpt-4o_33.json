@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "sql_spider",
+  "case": 33,
+  "response": "```sql\nSELECT episode_title, rating\nFROM tv_series\nORDER BY rating DESC\nLIMIT 3;\n```",
+  "score": 3,
+  "cost": 0.000425,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 23
+  }
+}

@@ -2,12 +2,12 @@
   "model": "mistral-large-latest",
   "task": "translation_enfr",
   "case": 2,
-  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens de l'original :\n\n**J\u00e9sus s\u2019approcha et leur dit d\u2019une voix claire et bienveillante : *\u00ab C\u2019est moi. \u00bb* Cette parole devint le fondement de la foi des ap\u00f4tres.**\n\n*Variante possible (plus litt\u00e9raire) :*\n**J\u00e9sus vint \u00e0 eux et leur parla avec clart\u00e9 et douceur : *\u00ab C\u2019est moi. \u00bb* Ces mots devinrent le socle de la foi des ap\u00f4tres.**\n\nSelon le contexte (religieux, litt\u00e9raire ou moderne), on peut ajuster l\u00e9g\u00e8rement le vocabulaire. \ud83d\ude0a",
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens de l'original :\n\n**J\u00e9sus s\u2019approcha et leur parla avec clart\u00e9 et bienveillance : *\u00ab C\u2019est moi. \u00bb* Cette parole devint le fondement de la foi des ap\u00f4tres.**\n\n*Variante possible (plus litt\u00e9raire) :*\n**J\u00e9sus vint \u00e0 eux et leur dit d\u2019une voix claire et pleine de douceur : *\u00ab C\u2019est moi. \u00bb* Ces mots devinrent le socle de la foi des ap\u00f4tres.**\n\nSelon le contexte (religieux, th\u00e9ologique ou narratif), on peut ajuster l\u00e9g\u00e8rement le vocabulaire. \ud83d\ude0a",
   "score": 5,
-  "cost": 0.00091,
+  "cost": 0.000928,
   "expected": "",
   "tokens": {
     "input": 47,
-    "output": 136
+    "output": 139
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "ner_extraction",
+  "case": 46,
+  "response": "{\"persons\": [\"Liang Rubo\"], \"organizations\": [\"ByteDance\", \"Senate Commerce Committee\", \"TikTok\"], \"locations\": [\"Washington\"]}",
+  "score": 5,
+  "cost": 0.000246,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 217
+  }
+}

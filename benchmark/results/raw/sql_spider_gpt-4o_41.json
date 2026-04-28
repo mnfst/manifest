@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "sql_spider",
+  "case": 41,
+  "response": "```sql\nSELECT population\nFROM districts\nWHERE district_name = 'Gelderland';\n```",
+  "score": 3,
+  "cost": 0.0003625,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 19
+  }
+}

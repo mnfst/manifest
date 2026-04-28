@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "sql_spider",
+  "case": 2,
+  "response": "```sql\nSELECT stadium_name, capacity\nFROM stadiums\nWHERE stadium_id IN (\n    SELECT stadium_id\n    FROM concerts\n    WHERE concert_date > '2013-01-01'\n    GROUP BY stadium_id\n    ORDER BY COUNT(*) DESC\n    LIMIT 1\n);\n```",
+  "score": 4,
+  "cost": 4.77e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 60
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "reasoning_gsm8k",
+  "case": 49,
+  "response": "Here is the step-by-step solution:\n\n1. **Calculate the total age of the sisters:** There are 3 sisters, and each is 16 years old. \n   3 sisters \u00d7 16 years = 48 years\n\n2. **Find the age of the older brother:** The problem states that one brother is 12 years old, and this is half the age of the older brother. \n   Older brother's age = 12 \u00d7 2 = 24 years\n\n3. **Calculate the total age of the brothers:** Add the ages of the two brothers together.\n   12 years + 24 years = 36 years\n\n4. **Calculate the total age of all siblings:** Add the combined age of the sisters and the combined age of the brothers.\n   48 years (sisters) + 36 years (brothers) = 84 years\n\nANSWER: 84",
+  "score": 5,
+  "cost": 0.0063258,
+  "expected": "84",
+  "tokens": {
+    "input": 106,
+    "output": 1190
+  }
+}

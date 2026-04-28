@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 37,
+  "response": "Step 1: Calculate the number of votes candidate A received.\nSince there were 100 voters and candidate A got 20% of the votes:\nA's votes = 20% of 100 = 0.20 \u00d7 100 = 20 votes.\n\nStep 2: Calculate the number of votes candidate B received.\nCandidate B got 50% more votes than candidate A. This means B received A's votes plus an additional 50% of A's votes:\nB's votes = 20 + (50% of 20) = 20 + 10 = 30 votes.\n(Alternatively, B's votes = 1.5 \u00d7 20 = 30 votes.)\n\nStep 3: Calculate the number of votes candidate C received.\nThe remaining votes went to candidate C. Subtract A's and B's votes from the total:\nC's votes = Total votes - (A's votes + B's votes)\nC's votes = 100 - (20 + 30) = 100 - 50 = 50 votes.\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.00138075,
+  "expected": "50",
+  "tokens": {
+    "input": 107,
+    "output": 1354
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "sql_spider",
+  "case": 19,
+  "response": "```sql\nSELECT DISTINCT maker_name\nFROM car_makers cm\nJOIN cars c ON cm.maker_id = c.maker_id\nWHERE c.production_year = 1970;\n```",
+  "score": 5,
+  "cost": 0.000575,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 38
+  }
+}

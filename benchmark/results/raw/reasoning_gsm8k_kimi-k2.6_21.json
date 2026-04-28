@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 21,
+  "response": "Here is the step-by-step solution:\n\n1. Elliott\u2019s daily goal is **10,000 steps**.\n2. He completed half of that goal on his walks to and from school:  \n   \\(10{,}000 \\div 2 = 5{,}000\\) steps.\n3. He did another **1,000 steps** with his friend, bringing his total so far to:  \n   \\(5{,}000 + 1{,}000 = 6{,}000\\) steps.\n4. After his jog, he still had **2,000 steps** left to reach his goal.  \n   That means the amount he had completed after the jog was:  \n   \\(10{,}000 - 2{,}000 = 8{,}000\\) steps.\n5. The steps taken during the jog are the difference between what he had after the jog and what he had before it:  \n   \\(8{,}000 - 6{,}000 = 2{,}000\\) steps.\n\nANSWER: 2000",
+  "score": 5,
+  "cost": 0.0024233999999999996,
+  "expected": "2000",
+  "tokens": {
+    "input": 127,
+    "output": 978
+  }
+}

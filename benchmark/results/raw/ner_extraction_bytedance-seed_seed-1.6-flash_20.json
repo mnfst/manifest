@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "ner_extraction",
+  "case": 20,
+  "response": "{\n  \"persons\": [\"Sundar Pichai\"],\n  \"organizations\": [\"Google\"],\n  \"locations\": [\"Malaysia\"]\n}",
+  "score": 5,
+  "cost": 0.00010537499999999999,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 313
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sentiment_sst2",
+  "case": 18,
+  "response": "positive\nThe text acknowledges both a tragic loss (negative) and the power of a movie (positive",
+  "score": 5,
+  "cost": 0.00046005,
+  "expected": "positive",
+  "tokens": {
+    "input": 150,
+    "output": 1496
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 35,
+  "response": "Step 1: Calculate the cost of the peaches.  \nWinston picked 6 pounds at $2.00 per pound:  \n6 \u00d7 $2.00 = $12.00\n\nStep 2: Calculate the cost of the plums.  \nWinston picked 8 pounds at $1.00 per pound:  \n8 \u00d7 $1.00 = $8.00\n\nStep 3: Calculate the cost of the apricots.  \nWinston picked 6 pounds at $3.00 per pound:  \n6 \u00d7 $3.00 = $18.00\n\nStep 4: Add the three amounts together.  \n$12.00 + $8.00 + $18.00 = $38.00\n\nANSWER: 38",
+  "score": 5,
+  "cost": 0.0011765999999999999,
+  "expected": "38",
+  "tokens": {
+    "input": 117,
+    "output": 461
+  }
+}

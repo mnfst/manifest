@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "intent_clinc150",
+  "case": 39,
+  "response": "how_old_are_you",
+  "score": 5,
+  "cost": 0.0014365,
+  "expected": "how_old_are_you",
+  "tokens": {
+    "input": 509,
+    "output": 149
+  }
+}

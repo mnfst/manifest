@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 45,
+  "response": "Alright, let\u2019s go step by step.  \n\n---\n\n**Step 1: Determine total wheels needed for all toys**  \n- Cars: \\( 57 \\) cars \u00d7 \\( 4 \\) wheels each = \\( 57 \\times 4 = 228 \\) wheels.  \n- Motorcycles: \\( 73 \\) motorcycles \u00d7 \\( 2 \\) wheels each = \\( 73 \\times 2 = 146 \\) wheels.  \n\nTotal wheels needed:  \n\\[\n228 + 146 = 374\n\\]\n\n---\n\n**Step 2: Determine leftover wheels**  \nHenry has \\( 650 \\) wheels in the box.  \n\nLeftover wheels =  \n\\[\n650 - 374 = 276\n\\]\n\n---\n\n**Step 3: Final answer**  \nANSWER: 276",
+  "score": 5,
+  "cost": 0.00019695000000000002,
+  "expected": "276",
+  "tokens": {
+    "input": 97,
+    "output": 157
+  }
+}

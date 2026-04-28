@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "intent_clinc150",
+  "case": 40,
+  "response": "mpg",
+  "score": 5,
+  "cost": 0.00126,
+  "expected": "mpg",
+  "tokens": {
+    "input": 626,
+    "output": 1
+  }
+}

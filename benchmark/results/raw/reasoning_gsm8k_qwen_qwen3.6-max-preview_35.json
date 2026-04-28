@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "reasoning_gsm8k",
+  "case": 35,
+  "response": "To find the total amount Winston spent, we calculate the cost for each type of fruit separately and then sum them up:\n\n1. **Peaches:** 6 pounds \u00d7 $2.00/pound = $12.00\n2. **Plums:** 8 pounds \u00d7 $1.00/pound = $8.00\n3. **Apricots:** 6 pounds \u00d7 $3.00/pound = $18.00\n\nNow, add the individual costs together:\n$12.00 + $8.00 + $18.00 = $38.00\n\nANSWER: 38",
+  "score": 5,
+  "cost": 0.0059215,
+  "expected": "38",
+  "tokens": {
+    "input": 131,
+    "output": 1106
+  }
+}

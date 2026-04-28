@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "To solve the problem, we calculate each student's points one by one, sum their total points, then find how many more points they need to reach the 400-point threshold.\n\n### Step 1: Calculate Adam's points\nAdam's points are given directly: **50 points**.\n\n### Step 2: Calculate Betty's points\nBetty has 30% more points than Adam. First, find 30% of Adam's 50 points:\n0.3 * 50 = 15\nAdd this to Adam's points to get Betty's total:\n50 + 15 = **65 points**\n\n### Step 3: Calculate Tom's points\nTom has 30 points less than Betty. Subtract 30 from Betty's 65 points:\n65 - 30 = **35 points**\n\n### Step 4: Calculate Marta's points\nMarta has 3 times as many points as Tom. Multiply Tom's 35 points by 3:\n3 * 35 = **105 points**\n\n### Step 5: Sum the class's total points\nAdd all students' points together:\n50 (Adam) + 65 (Betty) + 35 (Tom) + 105 (Marta) = 255 total points.\n\n### Step 6: Find the number of missing points\nSubtract the class's total points from the 400-point threshold:\n400 - 255 = 145\n\nANSWER: 145",
+  "score": 1,
+  "cost": 0.00163375,
+  "expected": "145",
+  "tokens": {
+    "input": 195,
+    "output": 1585
+  }
+}

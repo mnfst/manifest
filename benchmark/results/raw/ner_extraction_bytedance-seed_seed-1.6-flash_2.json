@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "ner_extraction",
+  "case": 2,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"Google DeepMind\", \"Nature\"],\n  \"locations\": []\n}",
+  "score": 4,
+  "cost": 0.000119175,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 361
+  }
+}

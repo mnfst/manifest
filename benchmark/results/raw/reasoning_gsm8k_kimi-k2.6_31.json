@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "Step 1: Identify the number of boys.  \nThe classroom has 30 boys.\n\nStep 2: Calculate the number of girls.  \nThere are 3 times as many girls as boys:  \n\\(3 \\times 30 = 90\\) girls.\n\nStep 3: Calculate the number of nongendered children.  \nThere are \\(\\frac{1}{10}\\) as many nongendered children as boys:  \n\\(\\frac{1}{10} \\times 30 = 3\\) nongendered children.\n\nStep 4: Find the total number of children.  \n\\(30 + 90 + 3 = 123\\).\n\nANSWER: 123",
+  "score": 1,
+  "cost": 0.0012618,
+  "expected": "123",
+  "tokens": {
+    "input": 91,
+    "output": 503
+  }
+}

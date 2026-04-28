@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "```sql\nSELECT DISTINCT l1.CountryCode\nFROM world_1.country c\nJOIN world_1.countrylanguage l1 ON c.Code = l1.CountryCode\nJOIN world_1.countrylanguage l2 ON c.Code = l2.CountryCode\nWHERE l1.Language = 'English'\n  AND l2.Language = 'French';\n```",
+  "score": 4,
+  "cost": 0.000974,
+  "expected": "",
+  "tokens": {
+    "input": 187,
+    "output": 75
+  }
+}

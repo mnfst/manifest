@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "sql_spider",
+  "case": 17,
+  "response": "```sql\nSELECT stadium_name FROM stadium WHERE stadium_id NOT IN (\n    SELECT stadium_id FROM concert WHERE YEAR(year) = 2014\n);\n```",
+  "score": 4,
+  "cost": 5.31e-05,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 31
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "Let\u2019s go step by step.  \n\n1. **Starting weight:**  \nJamaal starts with an 8-pound weight.  \n\n2. **Increase by 50%:**  \n50% of 8 pounds = \\( 0.5 \\times 8 = 4 \\) pounds.  \nNew weight after increase = \\( 8 + 4 = 12 \\) pounds.  \n\n3. **Too heavy, so reduce by 2 pounds:**  \n\\( 12 - 2 = 10 \\) pounds.  \n\n4. **Final weight:**  \nHe now uses **10 pounds**.  \n\nANSWER: 10",
+  "score": 5,
+  "cost": 0.000162,
+  "expected": "10",
+  "tokens": {
+    "input": 98,
+    "output": 125
+  }
+}

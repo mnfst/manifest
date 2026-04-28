@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "sql_spider",
+  "case": 10,
+  "response": "SELECT SUM(SurfaceArea) FROM country WHERE Region = 'Caribbean';",
+  "score": 5,
+  "cost": 0.0008964,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 355
+  }
+}

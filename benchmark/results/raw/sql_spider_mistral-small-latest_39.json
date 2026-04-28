@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "sql_spider",
+  "case": 39,
+  "response": "```sql\nSELECT c.conductor_name, o.orchestra_name\nFROM conductors c\nJOIN concerts con ON c.conductor_id = con.conductor_id\nJOIN orchestras o ON con.orchestra_id = o.orchestra_id;\n```",
+  "score": 5,
+  "cost": 2.4799999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 54
+  }
+}

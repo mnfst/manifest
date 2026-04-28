@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "sql_spider",
+  "case": 38,
+  "response": "```sql\nSELECT country_name, COUNT(language_name) AS num_languages\nFROM country_languages\nGROUP BY country_name\nHAVING COUNT(language_name) > 2;\n```",
+  "score": 5,
+  "cost": 2.5600000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 44
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "SELECT Name FROM country WHERE Code IN (SELECT CountryCode FROM countrylanguage WHERE Language = 'English') AND Code IN (SELECT CountryCode FROM countrylanguage WHERE Language = 'French');",
+  "score": 5,
+  "cost": 0.00184675,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 1827
+  }
+}

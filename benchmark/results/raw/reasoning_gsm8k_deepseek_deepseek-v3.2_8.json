@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "Let\u2019s go step by step.  \n\n1. **Last year\u2019s enrollment**: 50 students.  \n2. **Percent increase**: 20%.  \n3. **Increase in number of students**:  \n\\[\n20\\% \\text{ of } 50 = 0.20 \\times 50 = 10\n\\]  \n4. **This year\u2019s enrollment**:  \n\\[\n50 + 10 = 60\n\\]  \n\nANSWER: 60",
+  "score": 5,
+  "cost": 0.0001251,
+  "expected": "60",
+  "tokens": {
+    "input": 78,
+    "output": 96
+  }
+}

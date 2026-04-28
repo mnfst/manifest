@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "translation_enfr",
+  "case": 19,
+  "response": "FTI \u2014 Privil\u00e8ges et conditions\n\n\nThis translation maintains the original structure, tone, and meaning. \"FTI\" is retained as an acronym, \"privil\u00e8ges\" accurately translates \"privileges,\" \"et\" for \"and,\" and \"conditions\" remains unchanged. The dash is preserved to separate the acronym from the descriptive phrase, consistent with the original format.",
+  "score": 5,
+  "cost": 0.00011714999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 363
+  }
+}

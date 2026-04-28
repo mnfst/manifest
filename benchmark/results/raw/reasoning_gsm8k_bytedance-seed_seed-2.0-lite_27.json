@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 27,
+  "response": "To solve the problem, we can work backwards from the number of vacuums Melanie has left, which simplifies tracking each sale step by step:\n\n1.  **After the orange house:** Melanie has 5 vacuums left. She sold half of her pre-orange-house stock at the orange house, meaning the 5 remaining vacuums equal half of what she had before visiting the orange house. So before the orange house, she had \\(5 \\times 2 = 10\\) vacuums.\n\n2.  **After the red house:** The 10 vacuums she had before the orange house are what remained after selling 2 vacuums to the red house. To find her stock before the red house, add back the 2 she sold: \\(10 + 2 = 12\\) vacuums.\n\n3.  **After the green house:** The 12 vacuums she had before the red house are what remained after selling 1/3 of her original stock at the green house. This means the 12 vacuums equal \\(1 - \\frac{1}{3} = \\frac{2}{3}\\) of her original starting number. To find the original number, solve for the full starting stock: if \\(\\frac{2}{3}\\) of the original = 12, then the original number is \\(12 \\times \\frac{3}{2} = 18\\).\n\nWe can confirm this works forward: Start with 18. Sell 1/3 (6) at the green house, leaving 12. Sell 2 to the red house, leaving 10. Sell half (5) at the orange house, leaving 5, which matches the problem statement.\n\nANSWER: 18",
+  "score": 5,
+  "cost": 0.00159975,
+  "expected": "18",
+  "tokens": {
+    "input": 143,
+    "output": 1564
+  }
+}

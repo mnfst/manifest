@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "Here is the step-by-step solution:\n\n1. **Adam's points:** The problem states Adam has collected 50 points.\n2. **Betty's points:** Betty collected 30% more than Adam. \n   30% of 50 = 0.30 \u00d7 50 = 15\n   Betty's total = 50 + 15 = 65 points.\n3. **Tom's points:** Tom has 30 points less than Betty.\n   Tom's total = 65 - 30 = 35 points.\n4. **Marta's points:** Marta collected 3 times more points than Tom. (In standard math problem context, this means 3 times as many as Tom.)\n   Marta's total = 3 \u00d7 35 = 105 points.\n5. **Total class points:** Add up the points from all four students.\n   Total = Adam + Betty + Tom + Marta\n   Total = 50 + 65 + 35 + 105 = 255 points.\n6. **Points missing:** The minimum threshold for the trip is 400 points. Subtract the class total from the threshold.\n   Missing points = 400 - 255 = 145 points.\n\nANSWER: 145",
+  "score": 2,
+  "cost": 0.012907700000000001,
+  "expected": "145",
+  "tokens": {
+    "input": 157,
+    "output": 2443
+  }
+}

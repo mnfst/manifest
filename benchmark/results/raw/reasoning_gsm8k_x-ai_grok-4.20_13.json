@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "The problem states: Janet buys a brooch for her daughter. She pays $500 for the material to make it and then another $800 for the jeweler to construct it. After that, she pays 10% of that to get it insured. How much did she pay?\n\nFirst, add the cost of the materials and the construction: $500 + $800 = $1,300.\n\nNext, she pays 10% of that amount for insurance. 10% of $1,300 is 0.1 \u00d7 1,300 = $130.\n\nAdd the insurance cost to the previous total: $1,300 + $130 = $1,430.\n\nThe total amount Janet paid is $1,430.\n\nANSWER: 1430",
+  "score": 5,
+  "cost": 0.001648,
+  "expected": "1430",
+  "tokens": {
+    "input": 212,
+    "output": 153
+  }
+}

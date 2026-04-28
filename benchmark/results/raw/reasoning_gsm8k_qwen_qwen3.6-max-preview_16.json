@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "Step 1: Find the total number of books Sarah bought.\nTo do this, divide the total amount spent by the cost of each book:\n$300 \u00f7 $15 = 20 books\n\nStep 2: Divide the total number of books equally among her 4 kids.\n20 books \u00f7 4 kids = 5 books per child\n\nEach child received 5 books.\nANSWER: 5",
+  "score": 5,
+  "cost": 0.0055263000000000005,
+  "expected": "5",
+  "tokens": {
+    "input": 95,
+    "output": 1039
+  }
+}

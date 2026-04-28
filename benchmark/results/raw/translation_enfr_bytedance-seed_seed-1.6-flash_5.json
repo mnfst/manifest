@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "translation_enfr",
+  "case": 5,
+  "response": "Les flocs provenant de SRT plus \u00e9lev\u00e9s \u00e9taient moins hydrat\u00e9s et avaient \u00e9t\u00e9 trouv\u00e9s poss\u00e9der une couche dense d'EPS qui recouvre une grande partie de la surface.  \n\n\n**Notes sur la traduction** :  \n- \"Floc\" est ici au pluriel (\"flocs\") car il renvoie \u00e0 des entit\u00e9s multiples issues de SRTs.  \n- \"SRTs\" est conserv\u00e9 tel quel (acronyme technique).  \n- \"Less hydrated\" devient \"moins hydrat\u00e9s\" (accord du pluriel avec \"flocs\").  \n- \"Were found to possess\" est traduit par \"avaient \u00e9t\u00e9 trouv\u00e9s poss\u00e9der\" pour maintenir la concision technique.  \n- \"Dense EPS layer\" est rendu par \"couche dense d'EPS\" (EPS reste inchang\u00e9 dans un contexte technique).  \n- \"Covers much of the surface\" est traduit par \"recouvre une grande partie de la surface\" (plus pr\u00e9cis que \"couvre\" seul, car \"recouvre\" insinue une couverture compl\u00e8te ou dense).  \n\nLa traduction maintient le ton formel et technique de l'original, ainsi que son sens.",
+  "score": 4,
+  "cost": 0.000315,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 1018
+  }
+}

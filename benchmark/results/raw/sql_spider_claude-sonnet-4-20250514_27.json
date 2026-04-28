@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "```sql\nSELECT c.Name\nFROM country c\nWHERE c.Code IN (\n    SELECT cl1.CountryCode\n    FROM countrylanguage cl1\n    WHERE cl1.Language = 'English'\n    INTERSECT\n    SELECT cl2.CountryCode\n    FROM countrylanguage cl2\n    WHERE cl2.Language = 'French'\n);\n```",
+  "score": 5,
+  "cost": 0.001584,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 90
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "reasoning_gsm8k",
+  "case": 14,
+  "response": "The problem states: Ducks need to eat 3.5 pounds of insects each week to survive. If there is a flock of ten ducks, how many pounds of insects do they need per day?\n\nFirst, calculate the total weekly requirement for ten ducks. Each duck needs 3.5 pounds per week, so for ten ducks:\n\n10 \u00d7 3.5 = 35 pounds per week for the flock.\n\nThere are 7 days in a week, so divide the weekly total by 7 to get the daily amount:\n\n35 \u00f7 7 = 5\n\nThe flock needs 5 pounds of insects per day.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.001416,
+  "expected": "5",
+  "tokens": {
+    "input": 192,
+    "output": 129
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "reasoning_gsm8k",
+  "case": 17,
+  "response": "Step 1: Calculate the total cost of the books.\n3 books \u00d7 $16 per book = $48\n\nStep 2: Calculate the total cost of the pencils.\n3 pencils \u00d7 $6 per pencil = $18\n\nStep 3: Add the two amounts together to find the total spent.\n$48 + $18 = $66\n\n(Note: The initial $200 is extra information and is not needed to answer the question of how much was spent.)\n\nANSWER: 66",
+  "score": 5,
+  "cost": 0.0058409,
+  "expected": "66",
+  "tokens": {
+    "input": 85,
+    "output": 1102
+  }
+}

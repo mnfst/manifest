@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 19,
+  "response": "```sql\nSELECT DISTINCT c.maker_name\nFROM car_1.cars c\nJOIN car_1.year_makers ym ON c.year = ym.year\nWHERE ym.year = 1970;\n```",
+  "score": 3,
+  "cost": 4.92e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 47
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "ner_extraction",
+  "case": 21,
+  "response": "{\"persons\":[\"Picasso\",\"Monet\"],\"organizations\":[\"Metropolitan Museum of Art\"],\"locations\":[\"New York\"]}",
+  "score": 5,
+  "cost": 0.0025884000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 1060
+  }
+}

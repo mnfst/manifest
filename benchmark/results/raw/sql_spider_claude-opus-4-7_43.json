@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "sql_spider",
+  "case": 43,
+  "response": "SELECT COUNT(*) FROM cars_data WHERE cylinders > 6;",
+  "score": 5,
+  "cost": 0.004125,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 34
+  }
+}

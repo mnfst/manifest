@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "translation_enfr",
+  "case": 6,
+  "response": "En ce moment, c\u2019est le diable qui descend Wangan en voiture.",
+  "score": 4,
+  "cost": 0.00042,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 15
+  }
+}

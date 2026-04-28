@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "sql_spider",
+  "case": 0,
+  "response": "```sql\nWITH PlayerRanks AS (\n  SELECT\n    player_id,\n    height,\n    money,\n    DENSE_RANK() OVER (ORDER BY money DESC) AS money_rank\n  FROM\n    players\n)\nSELECT\n  money_rank\nFROM\n  PlayerRanks\nORDER BY\n  height DESC\nLIMIT 1;\n```",
+  "score": 3,
+  "cost": 5.835e-05,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 80
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "ner_extraction",
+  "case": 27,
+  "response": "{\"persons\": [\"Cristiano Ronaldo\"], \"organizations\": [\"Al Nassr\", \"Manchester United\"], \"locations\": [\"Riyadh\"]}",
+  "score": 5,
+  "cost": 0.000238,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 208
+  }
+}

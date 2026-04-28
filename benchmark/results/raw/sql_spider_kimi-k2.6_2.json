@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "sql_spider",
+  "case": 2,
+  "response": "SELECT T1.name, T1.capacity FROM stadium AS T1 JOIN concert AS T2 ON T1.stadium_id = T2.stadium_id WHERE T2.year > 2013 GROUP BY T1.stadium_id, T1.name, T1.capacity ORDER BY COUNT(*) DESC LIMIT 1",
+  "score": 4,
+  "cost": 0.001773,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 719
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "To solve the problem, we calculate each amount step by step:\n\n1. First, find the total value of John's loan. His house is worth $250,000, and the loan is 40% of that value.  \n   40% as a decimal is 0.4.  \n   Loan amount = $250,000 * 0.4 = $100,000.\n\n2. Next, calculate how much John uses to pay off his debts. He spends 60% of his loan on debts.  \n   60% as a decimal is 0.6.  \n   Amount spent on debts = $100,000 * 0.6 = $60,000.\n\n3. Finally, find the leftover money by subtracting the debt payment from the total loan amount.  \n   Leftover money = $100,000 - $60,000 = $40,000.\n\nANSWER: 40000",
+  "score": 5,
+  "cost": 0.000826,
+  "expected": "40,000",
+  "tokens": {
+    "input": 152,
+    "output": 788
+  }
+}

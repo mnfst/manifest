@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "sql_spider",
+  "case": 2,
+  "response": "SELECT s.name, s.capacity\nFROM stadiums s\nINNER JOIN concerts c ON s.stadium_id = c.stadium_id\nWHERE EXTRACT(YEAR FROM c.concert_date) > 2013\nGROUP BY s.stadium_id, s.name, s.capacity\nORDER BY COUNT(c.concert_id) DESC\nFETCH FIRST 1 ROW ONLY;",
+  "score": 4,
+  "cost": 0.00083125,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 800
+  }
+}

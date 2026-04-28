@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "Here is the step-by-step solution:\n\n1. **Calculate the base cost of the brooch:** Add the cost of the materials and the jeweler's construction fee.\n   $500 (materials) + $800 (construction) = $1,300\n\n2. **Calculate the insurance cost:** The insurance is 10% of the base cost.\n   10% of $1,300 = 0.10 \u00d7 $1,300 = $130\n\n3. **Calculate the total amount paid:** Add the insurance cost to the base cost.\n   $1,300 + $130 = $1,430\n\nANSWER: 1430",
+  "score": 5,
+  "cost": 0.0068809,
+  "expected": "1430",
+  "tokens": {
+    "input": 109,
+    "output": 1296
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "translation_enfr",
+  "case": 49,
+  "response": "J'ai des g\u00e2teaux \u00e0 la cr\u00e8me, des viandes sucr\u00e9es, des harengs marin\u00e9s, et des dattes crystallis\u00e9es.  \n\n\n**Explanation**:  \n- \"I've got\" is translated as \"J'ai des\" (informal and direct, matching the tone).  \n- \"Cream cakes\" becomes \"g\u00e2teaux \u00e0 la cr\u00e8me\" (a common term for cakes with a creamy texture).  \n- \"Sweet meats\" is rendered as \"viandes sucr\u00e9es\" (referring to sweetened or candied meats, a fitting translation for the original phrase).  \n- \"Pickled herring\" is \"hareng marin\u00e9\" (the standard French term for pickled herring).  \n- \"Crystallized dates\" translates to \"dattes crystallis\u00e9es\" (emphasizing the sugar-coating, as \"crystallized\" implies).  \n\nThe structure and meaning are preserved, with a natural, conversational tone.",
+  "score": 5,
+  "cost": 0.000286875,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 926
+  }
+}

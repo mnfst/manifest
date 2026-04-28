@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "sql_spider",
+  "case": 35,
+  "response": "```sql\nSELECT c.name\nFROM conductors c\nJOIN conducts ON c.conductor_id = conducts.conductor_id\nGROUP BY c.conductor_id, c.name\nORDER BY COUNT(DISTINCT conducts.orchestra_id) DESC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 0.000332,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 67
+  }
+}

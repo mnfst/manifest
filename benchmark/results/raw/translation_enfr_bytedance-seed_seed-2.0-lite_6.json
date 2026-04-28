@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 6,
+  "response": "En ce moment m\u00eame, ce diable est en train de descendre la Wangan.\n\nThis translation preserves the original's casual, dramatic tone tied to the iconic street-racing context of the Wangan (a famous Japanese coastal highway, whose name is kept as the widely recognized proper noun it is in car culture communities). The phrasing keeps the punchy, pointed energy of the original English line, while sounding natural in colloquial French.",
+  "score": 4,
+  "cost": 0.0008545,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 835
+  }
+}

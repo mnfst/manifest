@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "sql_spider",
+  "case": 11,
+  "response": "```sql\nSELECT T1.Name FROM country AS T1 WHERE T1.Continent = 'Africa' AND T1.Population < (SELECT min(T2.Population) FROM country AS T2 WHERE T2.Continent = 'Asia')\n```",
+  "score": 5,
+  "cost": 0.00062375,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 53
+  }
+}

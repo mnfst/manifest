@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "The problem states: The girls are trying to raise money for a carnival. Kim raises $320 more than Alexandra, who raises $430, and Maryam raises $400 more than Sarah, who raises $300. How much money, in dollars, did they all raise in total?\n\nFirst, identify the amounts each girl raised.\n\nAlexandra raises $430. Kim raises $320 more than Alexandra, so Kim raised 430 + 320 = 750.\n\nSarah raises $300. Maryam raises $400 more than Sarah, so Maryam raised 300 + 400 = 700.\n\nThe four girls are: Kim, Alexandra, Maryam, and Sarah.\n\nTotal = Kim + Alexandra + Maryam + Sarah = 750 + 430 + 700 + 300.\n\nAdding them up: 750 + 430 = 1180. 1180 + 700 = 1880. 1880 + 300 = 2180.\n\nSo the total is 2180 dollars.\n\nThe problem says \"the girls\" and mentions four names, so I think that's all.\n\nIt seems like two separate pairs: Kim and Alexandra, and Maryam and Sarah.\n\nYes, total for all four.\n\nANSWER: 2180",
+  "score": 5,
+  "cost": 0.00241,
+  "expected": "2280",
+  "tokens": {
+    "input": 209,
+    "output": 249
+  }
+}

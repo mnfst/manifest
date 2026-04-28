@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "**Step 1:** Identify the total number of burritos ordered.  \nTotal burritos = 600  \n\n**Step 2:** Calculate how many burritos were given to the students.  \nThere were 50 students, and each received 10 burritos.  \nBurritos for students = 50 \u00d7 10 = 500  \n\n**Step 3:** Add the burritos eaten by Mr. George.  \nBurritos eaten by Mr. George = 20  \n\n**Step 4:** Find the total number of burritos consumed or given away.  \nTotal used = 500 + 20 = 520  \n\n**Step 5:** Subtract the total used from the original amount to find the leftovers.  \nLeftover burritos = 600 \u2212 520 = 80  \n\nANSWER: 80",
+  "score": 5,
+  "cost": 0.0009156,
+  "expected": "80",
+  "tokens": {
+    "input": 102,
+    "output": 356
+  }
+}

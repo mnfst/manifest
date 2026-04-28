@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "sql_spider",
+  "case": 42,
+  "response": "```sql\nSELECT id FROM templates WHERE description = 'Presentation';\n```",
+  "score": 5,
+  "cost": 0.00014960000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 20
+  }
+}

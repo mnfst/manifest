@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 31,
+  "response": "Nous pourrions vous arr\u00eater et vous inculper de racolage.\n\nNote: This translation preserves the formal, threatening law-enforcement tone of the original line. The legal term \"racolage\" aligns with the context of the most common usage of \"solicitation\" in this exact phrase (solicitation of prostitution, the standard scenario for this line in policing contexts), and \"arr\u00eater et vous inculper\" accurately captures the meaning of \"book you\" in US police jargon (to process a suspect for formal arrest and criminal charges). If the line referred to the broader inchoate offense of soliciting any crime, the term would be adjusted to \"provocation \u00e0 l'infraction\", but the common colloquial and media usage of the original English phrase overwhelmingly refers to street solicitation of prostitution, making racolage the correct, contextually accurate term.",
+  "score": 4,
+  "cost": 0.001235,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 1216
+  }
+}

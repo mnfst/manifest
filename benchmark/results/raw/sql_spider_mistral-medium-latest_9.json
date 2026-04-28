@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "sql_spider",
+  "case": 9,
+  "response": "```sql\nSELECT c.country_name\nFROM countries c\nJOIN car_makers cm ON c.country_id = cm.country_id\nGROUP BY c.country_id, c.country_name\nORDER BY COUNT(cm.maker_id) DESC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 0.00013759999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 55
+  }
+}

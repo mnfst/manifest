@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "sql_spider",
+  "case": 7,
+  "response": "```sql\nSELECT COUNT(*) as number_of_cars\nFROM cars\nWHERE YEAR(year) = 1980 OR year = 1980;\n```",
+  "score": 3,
+  "cost": 0.0002216,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 40
+  }
+}

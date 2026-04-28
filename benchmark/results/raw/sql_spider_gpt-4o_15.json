@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "sql_spider",
+  "case": 15,
+  "response": "```sql\nSELECT MIN(share) AS min_share, MAX(share) AS max_share\nFROM tv_series;\n```",
+  "score": 5,
+  "cost": 0.0004225,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 25
+  }
+}

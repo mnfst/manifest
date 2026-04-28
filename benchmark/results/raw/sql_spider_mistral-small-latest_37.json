@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "sql_spider",
+  "case": 37,
+  "response": "```sql\nSELECT s.name, s.release_year\nFROM song s\nJOIN singer sing ON s.singer_id = sing.id\nORDER BY sing.birth_date DESC\nLIMIT 1;\n```",
+  "score": 4,
+  "cost": 2.1200000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 43
+  }
+}

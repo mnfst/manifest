@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "sql_spider",
+  "case": 7,
+  "response": "```sql\nSELECT COUNT(*) AS total_cars_made\nFROM car_1\nWHERE year = 1980;\n```",
+  "score": 5,
+  "cost": 2.625e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 26
+  }
+}

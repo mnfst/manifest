@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "sql_spider",
+  "case": 38,
+  "response": "```sql\nSELECT country_name, COUNT(language) AS language_count\nFROM world_1.countries\nJOIN world_1.languages ON countries.country_id = languages.country_id\nGROUP BY country_name\nHAVING COUNT(language) > 2;\n```",
+  "score": 4,
+  "cost": 4.245e-05,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 50
+  }
+}

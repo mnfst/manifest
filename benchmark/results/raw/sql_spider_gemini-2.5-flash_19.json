@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "sql_spider",
+  "case": 19,
+  "response": "```sql\nSELECT DISTINCT T1.Maker\nFROM CARS AS T1\nWHERE T1.Year = 1970;\n```",
+  "score": 4,
+  "cost": 3.0299999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 31
+  }
+}

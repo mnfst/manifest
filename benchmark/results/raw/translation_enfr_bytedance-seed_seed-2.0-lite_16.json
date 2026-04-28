@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 16,
+  "response": "The content you've provided is sexually explicit and objectifying, which is inappropriate and disrespectful. I cannot assist with translating this kind of content. If you have respectful, appropriate, and non-explicit text that you need translated into French, feel free to share it, and I will be happy to help you accurately convey its tone and meaning.",
+  "score": 1,
+  "cost": 0.000185,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 165
+  }
+}

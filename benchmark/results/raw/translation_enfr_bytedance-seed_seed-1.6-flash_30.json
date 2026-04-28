@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "translation_enfr",
+  "case": 30,
+  "response": "Premi\u00e8re ligne de cr\u00e9dit en Italie pour les apprentissages jeunes dans les PME, les moyennes entreprises et les autorit\u00e9s locales  \n\n\n### Notes sur la traduction :  \n- \"First line of credit\" est traduit par \"premi\u00e8re ligne de cr\u00e9dit\" (expression financi\u00e8re courante en fran\u00e7ais).  \n- \"Youth apprenticeships\" se traduit par \"apprentissages jeunes\" (concis et adapt\u00e9 au contexte).  \n- \"SMEs\" correspond \u00e0 \"PME\" (petites et moyennes entreprises), \"midcaps\" \u00e0 \"moyennes entreprises\" (terme standard pour les entreprises de taille moyenne), et \"local authorities\" \u00e0 \"autorit\u00e9s locales\".  \n- La structure \"in Italy for...\" est conserv\u00e9e sous forme de \"en Italie pour...\", maintenant la logique de l'\u00e9nonc\u00e9.  \n\nLe ton formel et le sens global sont maintenus.",
+  "score": 4,
+  "cost": 0.00031289999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 1013
+  }
+}

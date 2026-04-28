@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "reasoning_gsm8k",
+  "case": 43,
+  "response": "Let me solve this step by step.\n\n**Step 1: Find Martha's age.**\nWe are told that Martha is 4 years younger than Mike, and Mike is 24 years old.\nMartha's age = Mike's age \u2212 4  \nMartha's age = 24 \u2212 4 = 20\n\n**Step 2: Find Jeff's age.**\nWe are told that Jeff is 10 years older than Martha.\nJeff's age = Martha's age + 10  \nJeff's age = 20 + 10 = 30\n\nANSWER: 30",
+  "score": 5,
+  "cost": 0.0007404,
+  "expected": "30",
+  "tokens": {
+    "input": 86,
+    "output": 287
+  }
+}

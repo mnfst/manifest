@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 20,
+  "response": "```sql\nSELECT a.abbreviation, a.country\nFROM airlines a\nJOIN flights f ON a.id = f.airline_id\nGROUP BY a.abbreviation, a.country\nHAVING COUNT(f.id) = (SELECT MIN(COUNT(*))\n                      FROM airlines a2\n                      JOIN flights f2 ON a2.id = f2.airline_id);\n```",
+  "score": 3,
+  "cost": 6.08e-06,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 80
+  }
+}

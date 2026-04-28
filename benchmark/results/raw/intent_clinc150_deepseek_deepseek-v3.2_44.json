@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "intent_clinc150",
+  "case": 44,
+  "response": "insurance_change",
+  "score": 5,
+  "cost": 0.00014805000000000002,
+  "expected": "insurance_change",
+  "tokens": {
+    "input": 579,
+    "output": 3
+  }
+}

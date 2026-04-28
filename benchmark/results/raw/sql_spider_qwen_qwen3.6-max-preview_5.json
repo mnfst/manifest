@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "SELECT Airport_Name FROM airport WHERE Airport_ID NOT IN (SELECT Departure_Airport FROM flight) AND Airport_ID NOT IN (SELECT Arrival_Airport FROM flight)",
+  "score": 5,
+  "cost": 0.0264537,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 5068
+  }
+}

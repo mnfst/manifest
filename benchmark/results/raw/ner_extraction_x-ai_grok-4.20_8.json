@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "ner_extraction",
+  "case": 8,
+  "response": "{\n  \"persons\": [\"Elon Musk\"],\n  \"organizations\": [\"Tesla\"],\n  \"locations\": [\"Fremont\", \"California\"]\n}",
+  "score": 5,
+  "cost": 0.000602,
+  "expected": "",
+  "tokens": {
+    "input": 185,
+    "output": 29
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 3,
+  "response": "Aucune autre explication ne peut \u00eatre avanc\u00e9e pour la subvention parcimonieuse de 10 ou 12 millions d'ECU, laquelle, comme nous le savons tous, ne suffit m\u00eame pas \u00e0 construire un seul navire dot\u00e9 des moyens modernes requis pour exercer une mission de surveillance dans le secteur de la p\u00eache.\n\nCette traduction pr\u00e9serve le ton critique et informellement solennel du texte original, adapt\u00e9 au contexte institutionnel europ\u00e9en dont rel\u00e8ve ce propos, tout en conservant l'int\u00e9gralit\u00e9 du sens initial : la d\u00e9nonciation du caract\u00e8re insuffisant et d\u00e9risoire de la somme allou\u00e9e.",
+  "score": 5,
+  "cost": 0.00060325,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 573
+  }
+}

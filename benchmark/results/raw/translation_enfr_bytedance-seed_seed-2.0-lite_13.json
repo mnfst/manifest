@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "translation_enfr",
+  "case": 13,
+  "response": "Dis juste \u00e0 Kumagaya que le d\u00e9tective est l\u00e0.\n\nThis translation preserves the original's casual, straightforward directive tone: the informal imperative \"dis\" matches the relaxed, direct \"just tell\" of the source text, all proper nouns and core meaning are retained, and the phrasing sounds natural in everyday French.",
+  "score": 5,
+  "cost": 0.000377,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 357
+  }
+}

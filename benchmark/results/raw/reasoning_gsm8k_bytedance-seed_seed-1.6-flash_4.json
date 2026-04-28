@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "To determine how many yards of yarn Mariah and her grandma used altogether, we start by calculating the yards each used individually and then sum the results.\n\n### Step 1: Calculate Mariah's yarn usage  \nMariah used \\( \\frac{1}{4} \\) of a skein. Since one skein has 364 yards, her usage is:  \n\\( \\frac{1}{4} \\times 364 = 91 \\) yards.  \n\n\n### Step 2: Calculate grandma's yarn usage  \nGrandma used \\( \\frac{1}{2} \\) of a skein. Her usage is:  \n\\( \\frac{1}{2} \\times 364 = 182 \\) yards.  \n\n\n### Step 3: Total yarn used  \nAdding their individual usages gives the total:  \n\\( 91 + 182 = 273 \\) yards.  \n\n\nANSWER: 273",
+  "score": 5,
+  "cost": 0.00026234999999999995,
+  "expected": "273",
+  "tokens": {
+    "input": 182,
+    "output": 829
+  }
+}

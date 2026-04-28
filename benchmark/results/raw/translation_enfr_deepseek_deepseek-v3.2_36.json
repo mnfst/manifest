@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "translation_enfr",
+  "case": 36,
+  "response": "Plus tu r\u00e9sistes, plus cela va \u00eatre g\u00eanant pour tout le monde.",
+  "score": 4,
+  "cost": 2.905e-05,
+  "expected": "",
+  "tokens": {
+    "input": 37,
+    "output": 18
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sql_spider",
+  "case": 47,
+  "response": "```sql\nSELECT template_type_code\nFROM doc_template_types\nWHERE description = 'Book';\n```",
+  "score": 5,
+  "cost": 3.7999999999999996e-06,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 21
+  }
+}

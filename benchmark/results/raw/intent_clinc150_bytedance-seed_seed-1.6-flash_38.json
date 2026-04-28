@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "intent_clinc150",
+  "case": 38,
+  "response": "oil_change_how",
+  "score": 0,
+  "cost": 0.00011902499999999999,
+  "expected": "oil_change_when",
+  "tokens": {
+    "input": 639,
+    "output": 237
+  }
+}

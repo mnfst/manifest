@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "sql_spider",
+  "case": 33,
+  "response": "SELECT episode_title, rating FROM tvshow.episodes ORDER BY rating DESC LIMIT 3;",
+  "score": 5,
+  "cost": 0.00104875,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 1018
+  }
+}

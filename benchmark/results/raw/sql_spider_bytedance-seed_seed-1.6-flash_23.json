@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 23,
+  "response": "SELECT production_code, channel FROM cartoons ORDER BY air_date DESC LIMIT 1;",
+  "score": 4,
+  "cost": 0.000123225,
+  "expected": "",
+  "tokens": {
+    "input": 151,
+    "output": 373
+  }
+}

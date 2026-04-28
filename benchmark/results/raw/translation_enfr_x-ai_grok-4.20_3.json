@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "translation_enfr",
+  "case": 3,
+  "response": "Il n\u2019y a pas d\u2019autre explication \u00e0 l\u2019octroi parcimonieux de 10 ou 12 millions d\u2019\u00e9cus, qui, comme nous le savons tous, ne suffisent m\u00eame pas \u00e0 construire un seul navire \u00e9quip\u00e9 des moyens modernes n\u00e9cessaires pour exercer une fonction de surveillance dans le secteur des p\u00eaches.",
+  "score": 5,
+  "cost": 0.000882,
+  "expected": "",
+  "tokens": {
+    "input": 189,
+    "output": 63
+  }
+}

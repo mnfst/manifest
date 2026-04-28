@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "sql_spider",
+  "case": 41,
+  "response": "```sql\nSELECT SUM(population) FROM city WHERE district = 'Gelderland';\n```",
+  "score": 4,
+  "cost": 0.000522,
+  "expected": "",
+  "tokens": {
+    "input": 185,
+    "output": 19
+  }
+}

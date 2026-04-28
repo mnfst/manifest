@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "SELECT c.name\nFROM country c\nJOIN countrylanguage cl ON c.code = cl.countrycode\nWHERE cl.language IN ('English', 'French')\nGROUP BY c.code, c.name\nHAVING COUNT(DISTINCT cl.language) = 2;",
+  "score": 5,
+  "cost": 0.00050025,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 471
+  }
+}

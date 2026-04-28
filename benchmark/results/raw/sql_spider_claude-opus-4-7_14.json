@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "sql_spider",
+  "case": 14,
+  "response": "SELECT cm.FullName, cm.Id, COUNT(*) FROM car_makers cm JOIN model_list ml ON cm.Id = ml.Maker GROUP BY cm.Id, cm.FullName",
+  "score": 4,
+  "cost": 0.007545,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 78
+  }
+}

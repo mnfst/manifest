@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "sql_spider",
+  "case": 11,
+  "response": "```sql\nSELECT DISTINCT c1.Name\nFROM country c1\nWHERE c1.Continent = 'Africa'\nAND c1.Population < (\n    SELECT MAX(c2.Population)\n    FROM country c2\n    WHERE c2.Continent = 'Asia'\n);\n```",
+  "score": 5,
+  "cost": 0.001314,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 71
+  }
+}

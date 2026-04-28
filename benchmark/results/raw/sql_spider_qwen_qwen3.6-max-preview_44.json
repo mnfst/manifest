@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "sql_spider",
+  "case": 44,
+  "response": "SELECT T1.IATA FROM airport AS T1 JOIN flight AS T2 ON T1.Airport_ID  =  T2.Airport_ID GROUP BY T2.Airport_ID ORDER BY count(T2.Airport_ID) LIMIT 1",
+  "score": 3,
+  "cost": 0.0213746,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 4091
+  }
+}

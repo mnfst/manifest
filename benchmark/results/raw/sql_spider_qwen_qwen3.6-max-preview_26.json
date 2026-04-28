@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "sql_spider",
+  "case": 26,
+  "response": "SELECT count(T1.FlightNo) FROM flight AS T1 JOIN airport AS T2 ON T1.Origin  =  T2.AirportCode JOIN airport AS T3 ON T1.Destination  =  T3.AirportCode WHERE T2.City = 'Aberdeen' AND T3.City = 'Ashley'",
+  "score": 5,
+  "cost": 0.010751,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 2046
+  }
+}

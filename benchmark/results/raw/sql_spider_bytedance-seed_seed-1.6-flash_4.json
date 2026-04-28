@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "sql_spider",
+  "case": 4,
+  "response": "SELECT SUM(bonus) AS total_bonus FROM evaluations;",
+  "score": 5,
+  "cost": 7.275e-05,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 205
+  }
+}

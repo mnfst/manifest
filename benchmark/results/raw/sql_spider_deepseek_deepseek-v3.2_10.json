@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "sql_spider",
+  "case": 10,
+  "response": "```sql\nSELECT SUM(SurfaceArea) FROM Country WHERE Region = 'Caribbean';\n```",
+  "score": 5,
+  "cost": 4.0850000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 21
+  }
+}

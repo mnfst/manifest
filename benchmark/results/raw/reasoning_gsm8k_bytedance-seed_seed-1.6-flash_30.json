@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "To determine how many points the class is missing to reach the trip threshold, we first calculate the points each student has collected:\n\n\n### Step 1: Adam's points  \nAdam has 50 points.  \n\n\n### Step 2: Betty's points  \nBetty has 30% more points than Adam.  \n30% of Adam's points = \\(0.3 \\times 50 = 15\\)  \nBetty's points = \\(50 + 15 = 65\\)  \n\n\n### Step 3: Tom's points  \nTom has 30 points less than Betty.  \nTom's points = \\(65 - 30 = 35\\)  \n\n\n### Step 4: Martha's points  \nMartha has 3 times more points than Tom.  \nMartha's points = \\(3 \\times 35 = 105\\)  \n\n\n### Step 5: Total class points  \nAdding all students' points:  \n\\(50 + 65 + 35 + 105 = 255\\)  \n\n\n### Step 6: Points missing  \nThe minimum threshold is 400 points.  \nPoints missing = \\(400 - 255 = 145\\)  \n\n\nANSWER: 145",
+  "score": 2,
+  "cost": 0.00034597500000000005,
+  "expected": "145",
+  "tokens": {
+    "input": 229,
+    "output": 1096
+  }
+}

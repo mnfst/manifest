@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "translation_enfr",
+  "case": 31,
+  "response": "Nous pourrions vous inculper pour racolage.",
+  "score": 2,
+  "cost": 0.0070694,
+  "expected": "",
+  "tokens": {
+    "input": 38,
+    "output": 1350
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "sql_spider",
+  "case": 14,
+  "response": "SELECT T1.FullName , T1.Id , count(T2.ModelId) FROM car_makers AS T1 JOIN model_list AS T2 ON T1.Id  =  T2.Maker GROUP BY T1.Id",
+  "score": 4,
+  "cost": 0.0117026,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 2229
+  }
+}

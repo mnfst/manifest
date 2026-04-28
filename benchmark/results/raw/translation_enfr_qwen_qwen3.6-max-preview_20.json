@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "translation_enfr",
+  "case": 20,
+  "response": "Je dirais que c'est de faible valeur, au mieux.",
+  "score": 5,
+  "cost": 0.0069121,
+  "expected": "",
+  "tokens": {
+    "input": 41,
+    "output": 1319
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "sql_spider",
+  "case": 6,
+  "response": "```sql\nSELECT T1.Airline FROM airlines AS T1 JOIN flights AS T2 ON T1.uid  =  T2.Airline JOIN airports AS T3 ON T2.DestAirport  =  T3.APID WHERE T3.iata  =  'AHD'\n```",
+  "score": 5,
+  "cost": 0.00071625,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 63
+  }
+}

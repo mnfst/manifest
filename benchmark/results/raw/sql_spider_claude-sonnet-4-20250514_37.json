@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "sql_spider",
+  "case": 37,
+  "response": "```sql\nSELECT s.name, s.release_year\nFROM song s\nJOIN singer si ON s.singer_id = si.singer_id\nWHERE si.age = (SELECT MIN(age) FROM singer);\n```",
+  "score": 4,
+  "cost": 0.001038,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 53
+  }
+}

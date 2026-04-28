@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "**French:** Des \u00e9vacuateurs de crues capables de g\u00e9rer les \u00e9v\u00e9nements de crue postul\u00e9s sont int\u00e9gr\u00e9s soit dans les structures du barrage, soit construits en tant qu\u2019ouvrages s\u00e9par\u00e9s.",
+  "score": 5,
+  "cost": 0.000672,
+  "expected": "",
+  "tokens": {
+    "input": 164,
+    "output": 43
+  }
+}
