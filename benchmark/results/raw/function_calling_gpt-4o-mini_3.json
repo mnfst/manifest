@@ -2,11 +2,12 @@
   "model": "gpt-4o-mini",
   "task": "function_calling",
   "case": 3,
-  "response": "{\"name\": \"create_task\", \"arguments\": {\"title\": \"Review PR #42\", \"priority\": \"high\", \"assignee\": \"alice\", \"due_date\": \"2023-10-27\"}}",
+  "response": "{\"name\": \"create_task\", \"arguments\": {\"title\": \"Review PR 42\", \"priority\": \"high\", \"assignee\": \"alice\", \"due_date\": \"next Friday\"}}",
   "score": 4,
-  "cost": 4.515e-05,
+  "cost": 4.1099999999999996e-05,
+  "expected": "",
   "tokens": {
-    "input": 125,
-    "output": 44
+    "input": 114,
+    "output": 40
   }
 }

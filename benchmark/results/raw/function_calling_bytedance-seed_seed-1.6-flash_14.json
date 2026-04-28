@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 14,
+  "response": "{\n  \"name\": \"create_reminder\",\n  \"arguments\": {\n    \"message\": \"call the dentist\",\n    \"time\": \"3pm\",\n    \"date\": \"Wednesday\"\n  }\n}",
+  "score": 4,
+  "cost": 9.18e-05,
+  "expected": "",
+  "tokens": {
+    "input": 176,
+    "output": 262
+  }
+}

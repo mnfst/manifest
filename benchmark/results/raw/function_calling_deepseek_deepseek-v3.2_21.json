@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "function_calling",
+  "case": 21,
+  "response": "{\n    \"name\": \"deploy\",\n    \"arguments\": {\n        \"version\": \"2.3.1\",\n        \"environment\": \"staging\"\n    }\n}",
+  "score": 5,
+  "cost": 6.110000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 36
+  }
+}

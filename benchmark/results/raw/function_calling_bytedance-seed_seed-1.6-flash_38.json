@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 38,
+  "response": "{\n  \"name\": \"get_page_views\",\n  \"arguments\": {\n    \"period\": \"7d\",\n    \"limit\": 10\n  }\n}",
+  "score": 5,
+  "cost": 0.00015104999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 186,
+    "output": 457
+  }
+}

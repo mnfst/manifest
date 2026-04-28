@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "function_calling",
+  "case": 45,
+  "response": "```json\n{\"name\": \"grant_access\", \"arguments\": {\"user\": \"bob\", \"resource\": \"analytics database\", \"permission\": \"read\"}}\n```",
+  "score": 5,
+  "cost": 0.000565,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 34
+  }
+}

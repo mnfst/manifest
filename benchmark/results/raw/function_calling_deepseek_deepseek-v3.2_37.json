@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "function_calling",
+  "case": 37,
+  "response": "{\n  \"name\": \"invalidate_cache\",\n  \"arguments\": {\n    \"pattern\": \"*.css,*.js\"\n  }\n}",
+  "score": 4,
+  "cost": 5.275e-05,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 30
+  }
+}

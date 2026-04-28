@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "function_calling",
+  "case": 44,
+  "response": "```json\n{\"name\": \"set_log_level\", \"arguments\": {\"service\": \"payment\", \"level\": \"debug\"}}\n```",
+  "score": 5,
+  "cost": 0.00022480000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 34
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "function_calling",
+  "case": 16,
+  "response": "```json\n{\n  \"name\": \"search_nearby\",\n  \"arguments\": {\n    \"category\": \"gas station\",\n    \"radius_km\": 5,\n    \"open_now\": true\n  }\n}\n```",
+  "score": 5,
+  "cost": 0.0003144,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 57
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 3,
+  "response": "{\n  \"name\": \"create_task\",\n  \"arguments\": {\n    \"title\": \"Review PR 42\",\n    \"priority\": \"high\",\n    \"assignee\": \"alice\",\n    \"due_date\": \"next Friday\"\n  }\n}",
+  "score": 4,
+  "cost": 0.000109875,
+  "expected": "",
+  "tokens": {
+    "input": 197,
+    "output": 317
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "function_calling",
+  "case": 6,
+  "response": "{\"name\": \"translate\", \"arguments\": {\"text\": \"The meeting has been rescheduled to Monday\", \"target_language\": \"Spanish\"}}",
+  "score": 4,
+  "cost": 0.006105,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 51
+  }
+}

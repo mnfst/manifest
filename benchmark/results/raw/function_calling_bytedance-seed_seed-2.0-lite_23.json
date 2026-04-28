@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "function_calling",
+  "case": 23,
+  "response": "{\"name\": \"send_message\", \"arguments\": {\"channel\": \"engineering\", \"text\": \"Deploy complete\"}}",
+  "score": 5,
+  "cost": 0.0001815,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 146
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "function_calling",
+  "case": 46,
+  "response": "```json\n{\"name\": \"restart_service\", \"arguments\": {\"name\": \"redis\"}}\n```",
+  "score": 5,
+  "cost": 0.0003375,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 22
+  }
+}

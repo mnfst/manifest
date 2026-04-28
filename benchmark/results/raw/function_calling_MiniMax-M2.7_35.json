@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "function_calling",
+  "case": 35,
+  "response": "{\"name\": \"get_order\", \"arguments\": {\"order_id\": \"12345\"}}",
+  "score": 3,
+  "cost": 0.00044990000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 76
+  }
+}

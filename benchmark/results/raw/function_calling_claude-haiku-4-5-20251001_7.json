@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "function_calling",
+  "case": 7,
+  "response": "```json\n{\"name\": \"set_alarm\", \"arguments\": {\"time\": \"6:30 AM\", \"label\": \"Morning Workout\"}}\n```",
+  "score": 5,
+  "cost": 0.0002424,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 38
+  }
+}

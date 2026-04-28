@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "function_calling",
+  "case": 29,
+  "response": "```json\n{\n  \"name\": \"ocr_document\",\n  \"arguments\": {\n    \"path\": \"uploads/contract.pdf\",\n    \"language\": \"en\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 4.880000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 39
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "function_calling",
+  "case": 32,
+  "response": "{\"name\": \"run_security_scan\", \"arguments\": {\"target\": \"10.0.0.1\"}}",
+  "score": 5,
+  "cost": 0.0035529,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 656
+  }
+}

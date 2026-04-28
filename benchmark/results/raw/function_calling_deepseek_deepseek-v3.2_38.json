@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "function_calling",
+  "case": 38,
+  "response": "{\n    \"name\": \"get_page_views\",\n    \"arguments\": {\n        \"period\": \"7d\",\n        \"limit\": 10\n    }\n}",
+  "score": 5,
+  "cost": 6.525e-05,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 35
+  }
+}

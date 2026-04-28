@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "function_calling",
+  "case": 8,
+  "response": "{\n  \"name\": \"calculate_mortgage\",\n  \"arguments\": {\n    \"principal\": 300000,\n    \"annual_rate\": 6.5,\n    \"years\": 30\n  }\n}",
+  "score": 4,
+  "cost": 8.175e-05,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 45
+  }
+}

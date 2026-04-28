@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "function_calling",
+  "case": 35,
+  "response": "{\"name\":\"get_order\",\"arguments\":{\"order_id\":\"12345\"}}",
+  "score": 2,
+  "cost": 0.00417,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 29
+  }
+}

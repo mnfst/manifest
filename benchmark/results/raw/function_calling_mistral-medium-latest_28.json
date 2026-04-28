@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "function_calling",
+  "case": 28,
+  "response": "```json\n{\"name\": \"block_ip\", \"arguments\": {\"ip\": \"192.168.1.100\"}}\n```",
+  "score": 4,
+  "cost": 0.0001044,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 34
+  }
+}

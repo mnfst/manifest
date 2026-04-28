@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "function_calling",
+  "case": 42,
+  "response": "{\"name\": \"create_bucket\", \"arguments\": {\"name\": \"data-lake-prod\", \"region\": \"us-east-1\"}}",
+  "score": 5,
+  "cost": 3.075e-05,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 28
+  }
+}

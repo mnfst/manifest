@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "function_calling",
+  "case": 25,
+  "response": "```json\n{\n  \"name\": \"schedule_meeting\",\n  \"arguments\": {\n    \"title\": \"standup meeting\",\n    \"duration_minutes\": 30,\n    \"time\": \"9am\",\n    \"recurrence\": \"weekday\",\n    \"attendees\": [\"dev team\"]\n  }\n}\n```",
+  "score": 5,
+  "cost": 0.0004216,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 79
+  }
+}

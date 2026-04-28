@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "function_calling",
+  "case": 10,
+  "response": "{\"name\": \"play_song\", \"arguments\": {\"title\": \"Bohemian Rhapsody\", \"artist\": \"Queen\"}}",
+  "score": 5,
+  "cost": 0.005475,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 46
+  }
+}

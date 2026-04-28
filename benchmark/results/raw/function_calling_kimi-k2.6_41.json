@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "function_calling",
+  "case": 41,
+  "response": "{\"name\": \"add_comment\", \"arguments\": {\"pr_id\": 789, \"body\": \"LGTM approved\"}}",
+  "score": 5,
+  "cost": 0.0007056,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 270
+  }
+}

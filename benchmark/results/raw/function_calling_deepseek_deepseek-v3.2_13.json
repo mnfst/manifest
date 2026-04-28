@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "function_calling",
+  "case": 13,
+  "response": "{\n  \"name\": \"control_light\",\n  \"arguments\": {\n    \"room\": \"living room\",\n    \"action\": \"off\"\n  }\n}",
+  "score": 4,
+  "cost": 6.390000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 34
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "function_calling",
+  "case": 1,
+  "response": "```json\n{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Paris\", \"units\": \"celsius\"}}\n```",
+  "score": 5,
+  "cost": 4.96e-06,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 30
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 21,
+  "response": "{\n  \"name\": \"deploy\",\n  \"arguments\": {\n    \"version\": \"2.3.1\",\n    \"environment\": \"staging\"\n  }\n}",
+  "score": 5,
+  "cost": 6.4125e-05,
+  "expected": "",
+  "tokens": {
+    "input": 167,
+    "output": 172
+  }
+}

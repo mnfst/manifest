@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "function_calling",
+  "case": 24,
+  "response": "```json\n[\n  {\n    \"name\": \"rotate_api_key\",\n    \"arguments\": {\n      \"service\": \"production service\",\n      \"environment\": \"production\"\n    }\n  },\n  {\n    \"name\": \"notify_team\",\n    \"arguments\": {\n      \"message\": \"The API keys for the production service have been rotated.\"\n    }\n  }\n]\n```",
+  "score": 2,
+  "cost": 0.001065,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 94
+  }
+}

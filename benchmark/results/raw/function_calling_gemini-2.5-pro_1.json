@@ -4,9 +4,10 @@
   "case": 1,
   "response": "```json\n{\n  \"name\": \"get_weather\",\n  \"arguments\": {\n    \"city\": \"Paris\"\n  }\n}\n```",
   "score": 4,
-  "cost": 0.000485,
+  "cost": 0.0004725,
+  "expected": "",
   "tokens": {
-    "input": 108,
+    "input": 98,
     "output": 35
   }
 }

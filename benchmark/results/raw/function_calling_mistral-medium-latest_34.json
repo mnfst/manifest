@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "function_calling",
+  "case": 34,
+  "response": "```json\n{\n  \"name\": \"scale_deployment\",\n  \"arguments\": {\n    \"service\": \"web\",\n    \"replicas\": 5\n  }\n}\n```",
+  "score": 5,
+  "cost": 0.000112,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 39
+  }
+}

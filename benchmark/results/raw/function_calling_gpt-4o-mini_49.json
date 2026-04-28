@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "function_calling",
+  "case": 49,
+  "response": "{\"name\": \"resize_instance\", \"arguments\": {\"instance_id\": \"app-server-1\", \"new_type\": \"t3.large\"}}",
+  "score": 5,
+  "cost": 3.1349999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 29
+  }
+}

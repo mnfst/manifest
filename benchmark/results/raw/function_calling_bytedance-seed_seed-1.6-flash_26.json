@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 26,
+  "response": "{\n  \"name\": \"upload_file\",\n  \"arguments\": {\n    \"path\": \"report.pdf\",\n    \"destination\": \"shared documents folder\"\n  }\n}",
+  "score": 5,
+  "cost": 9.952500000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 167,
+    "output": 290
+  }
+}

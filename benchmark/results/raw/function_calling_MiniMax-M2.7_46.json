@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "function_calling",
+  "case": 46,
+  "response": "```json\n[\n  {\"name\": \"restart_service\", \"arguments\": {\"name\": \"redis\"}},\n  {\"name\": \"get_service_logs\", \"arguments\": {\"name\": \"redis\", \"since\": \"5m\"}}\n]\n```",
+  "score": 4,
+  "cost": 0.002552,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 550
+  }
+}

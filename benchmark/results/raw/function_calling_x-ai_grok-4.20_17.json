@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "function_calling",
+  "case": 17,
+  "response": "{\"name\": \"generate_qr\", \"arguments\": {\"data\": \"https://example.com/signup\"}}",
+  "score": 5,
+  "cost": 0.00059,
+  "expected": "",
+  "tokens": {
+    "input": 211,
+    "output": 21
+  }
+}

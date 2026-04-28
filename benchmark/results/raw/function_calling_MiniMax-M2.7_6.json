@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "function_calling",
+  "case": 6,
+  "response": "{\"name\": \"translate\", \"arguments\": {\"text\": \"The meeting has been rescheduled to Monday\", \"target_language\": \"es\"}}",
+  "score": 4,
+  "cost": 0.0011165,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 220
+  }
+}

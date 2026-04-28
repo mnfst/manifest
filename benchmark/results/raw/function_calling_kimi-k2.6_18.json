@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "function_calling",
+  "case": 18,
+  "response": "{\"name\": \"check_domain\", \"arguments\": {\"domain\": \"coolstartup.com\"}}",
+  "score": 5,
+  "cost": 0.00047880000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 178
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "function_calling",
+  "case": 46,
+  "response": "{\"name\": \"restart_service\", \"arguments\": {\"name\": \"redis\"}}",
+  "score": 5,
+  "cost": 0.0049114,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 921
+  }
+}

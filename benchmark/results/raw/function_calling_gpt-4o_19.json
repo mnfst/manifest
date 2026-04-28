@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "function_calling",
+  "case": 19,
+  "response": "```json\n{\"name\": \"run_tests\", \"arguments\": {\"module\": \"backend\", \"verbose\": true}}\n```",
+  "score": 5,
+  "cost": 0.000485,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 25
+  }
+}

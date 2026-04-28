@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "function_calling",
+  "case": 18,
+  "response": "```json\n{\"name\": \"check_domain\", \"arguments\": {\"domain\": \"coolstartup.com\"}}\n```",
+  "score": 5,
+  "cost": 8.480000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 25
+  }
+}

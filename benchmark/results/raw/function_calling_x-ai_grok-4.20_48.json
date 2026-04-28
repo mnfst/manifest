@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "function_calling",
+  "case": 48,
+  "response": "{\"name\": \"git_tag\", \"arguments\": {\"name\": \"v3.0.0\"}}\n{\"name\": \"git_push\", \"arguments\": {\"remote\": \"origin\", \"tags\": true}}",
+  "score": 4,
+  "cost": 0.000772,
+  "expected": "",
+  "tokens": {
+    "input": 218,
+    "output": 42
+  }
+}

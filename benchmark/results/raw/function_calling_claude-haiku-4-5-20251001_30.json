@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "function_calling",
+  "case": 30,
+  "response": "```json\n{\n  \"name\": \"batch_process\",\n  \"arguments\": {\n    \"directory\": \"gallery\",\n    \"operation\": \"generate_thumbnail\",\n    \"params\": {\n      \"width\": 150,\n      \"height\": 150\n    }\n  }\n}\n```",
+  "score": 2,
+  "cost": 0.0003832,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 72
+  }
+}

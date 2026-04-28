@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "function_calling",
+  "case": 9,
+  "response": "{\"name\": \"search_flights\", \"arguments\": {\"origin\": \"New York\", \"destination\": \"London\", \"date\": \"2023-12-15\", \"passengers\": 2}}",
+  "score": 5,
+  "cost": 4.2e-05,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 42
+  }
+}

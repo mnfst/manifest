@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "function_calling",
+  "case": 20,
+  "response": "{\"name\": \"git_merge\", \"arguments\": {\"source\": \"feature-auth\", \"target\": \"main\"}}",
+  "score": 5,
+  "cost": 0.00462,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 38
+  }
+}

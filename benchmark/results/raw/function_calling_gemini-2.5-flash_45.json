@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "function_calling",
+  "case": 45,
+  "response": "```json\n{\n  \"name\": \"grant_access\",\n  \"arguments\": {\n    \"user\": \"bob\",\n    \"resource\": \"analytics database\",\n    \"permission\": \"read\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 4.545e-05,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 52
+  }
+}

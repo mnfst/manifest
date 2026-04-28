@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "function_calling",
+  "case": 40,
+  "response": "{\"name\": \"pin_message\", \"arguments\": {\"channel\": \"announcements\", \"message_id\": \"release\"}}",
+  "score": 4,
+  "cost": 0.005055,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 39
+  }
+}

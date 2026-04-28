@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "function_calling",
+  "case": 7,
+  "response": "{\"name\": \"set_alarm\", \"arguments\": {\"time\": \"6:30 AM\", \"label\": \"Morning Workout\"}}",
+  "score": 5,
+  "cost": 0.000636,
+  "expected": "",
+  "tokens": {
+    "input": 214,
+    "output": 26
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "function_calling",
+  "case": 13,
+  "response": "{\n  \"name\": \"control_light\",\n  \"arguments\": {\n    \"room\": \"living room\",\n    \"action\": \"off\"\n  }\n},\n{\n  \"name\": \"set_thermostat\",\n  \"arguments\": {\n    \"temperature\": 72,\n    \"mode\": \"auto\"\n  }\n}",
+  "score": 1,
+  "cost": 5.46e-05,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 66
+  }
+}

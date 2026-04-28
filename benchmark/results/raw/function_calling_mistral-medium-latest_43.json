@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "function_calling",
+  "case": 43,
+  "response": "```json\n{\n  \"name\": \"git_revert\",\n  \"arguments\": {\n    \"commit\": \"HEAD\"\n  }\n}\n```",
+  "score": 4,
+  "cost": 9.8e-05,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 30
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 49,
+  "response": "{\n  \"name\": \"resize_instance\",\n  \"arguments\": {\n    \"instance_id\": \"app-server-1\",\n    \"new_type\": \"t3.large\"\n  }\n}",
+  "score": 5,
+  "cost": 0.000103575,
+  "expected": "",
+  "tokens": {
+    "input": 177,
+    "output": 301
+  }
+}

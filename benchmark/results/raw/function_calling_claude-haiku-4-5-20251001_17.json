@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "function_calling",
+  "case": 17,
+  "response": "```json\n{\"name\": \"generate_qr\", \"arguments\": {\"data\": \"https://example.com/signup\"}}\n```",
+  "score": 5,
+  "cost": 0.00022160000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 33
+  }
+}

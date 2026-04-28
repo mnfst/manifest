@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "function_calling",
+  "case": 14,
+  "response": "```json\n{\"name\": \"create_reminder\", \"arguments\": {\"message\": \"call the dentist\", \"time\": \"3pm\", \"date\": \"Wednesday\"}}\n```",
+  "score": 5,
+  "cost": 5.24e-06,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 39
+  }
+}

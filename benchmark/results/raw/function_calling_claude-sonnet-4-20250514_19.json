@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "function_calling",
+  "case": 19,
+  "response": "{\"name\": \"run_tests\", \"arguments\": {\"module\": \"backend\", \"verbose\": true}}",
+  "score": 5,
+  "cost": 0.000702,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 25
+  }
+}

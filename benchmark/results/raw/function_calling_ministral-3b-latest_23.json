@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "function_calling",
+  "case": 23,
+  "response": "```json\n{\n  \"name\": \"send_message\",\n  \"arguments\": {\n    \"channel\": \"engineering\",\n    \"text\": \"Deploy complete\",\n    \"thread_id\": null\n  }\n}\n```",
+  "score": 5,
+  "cost": 5.4400000000000004e-06,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 45
+  }
+}

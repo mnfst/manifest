@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "function_calling",
+  "case": 40,
+  "response": "{\"name\": \"search_messages\", \"arguments\": {\"channel\": \"announcements\", \"query\": \"release\"}}",
+  "score": 2,
+  "cost": 0.000753,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 28
+  }
+}

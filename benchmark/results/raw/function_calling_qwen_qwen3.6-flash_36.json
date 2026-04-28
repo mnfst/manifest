@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "function_calling",
+  "case": 36,
+  "response": "{\"name\": \"subscribe\", \"arguments\": {\"email\": \"jane@example.com\", \"list_name\": \"monthly newsletter\"}}",
+  "score": 5,
+  "cost": 0.00056975,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 546
+  }
+}

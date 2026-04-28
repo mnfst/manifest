@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "function_calling",
+  "case": 5,
+  "response": "{\n    \"name\": \"book_restaurant\",\n    \"arguments\": {\n        \"name\": \"Italian place on Main Street\",\n        \"party_size\": 4,\n        \"date\": \"this Saturday\",\n        \"time\": \"7pm\"\n    }\n}",
+  "score": 4,
+  "cost": 8.95e-05,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 55
+  }
+}

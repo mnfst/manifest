@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "function_calling",
+  "case": 21,
+  "response": "{\"name\": \"deploy\", \"arguments\": {\"version\": \"2.3.1\", \"environment\": \"staging\"}}",
+  "score": 5,
+  "cost": 0.0007040000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 131
+  }
+}

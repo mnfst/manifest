@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "function_calling",
+  "case": 5,
+  "response": "I need to first search for the Italian restaurant on Main Street to find its exact name, then book a table.\n\n```json\n{\"name\": \"search_restaurants\", \"arguments\": {\"cuisine\": \"Italian\", \"location\": \"Main Street\"}}\n```",
+  "score": 4,
+  "cost": 0.0030855,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 666
+  }
+}

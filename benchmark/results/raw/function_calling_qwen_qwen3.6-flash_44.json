@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "function_calling",
+  "case": 44,
+  "response": "{\"name\": \"set_log_level\", \"arguments\": {\"service\": \"payment\", \"level\": \"debug\"}}",
+  "score": 5,
+  "cost": 0.0002065,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 180
+  }
+}

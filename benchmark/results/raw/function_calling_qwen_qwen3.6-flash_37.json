@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "function_calling",
+  "case": 37,
+  "response": "{\"name\": \"invalidate_cache\", \"arguments\": {\"pattern\": \"*.css,*.js\"}}",
+  "score": 4,
+  "cost": 0.00059925,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 579
+  }
+}

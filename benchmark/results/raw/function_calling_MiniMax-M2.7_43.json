@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "function_calling",
+  "case": 43,
+  "response": "{\"name\": \"git_revert\", \"arguments\": {\"commit\": \"develop\"}}",
+  "score": 1,
+  "cost": 0.002783,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 600
+  }
+}

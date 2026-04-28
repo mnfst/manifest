@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "function_calling",
+  "case": 49,
+  "response": "{\"name\": \"resize_instance\", \"arguments\": {\"instance_id\": \"app-server-1\", \"new_type\": \"t3.large\"}}",
+  "score": 5,
+  "cost": 0.00022975,
+  "expected": "",
+  "tokens": {
+    "input": 143,
+    "output": 194
+  }
+}

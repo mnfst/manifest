@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "function_calling",
+  "case": 30,
+  "response": "```json\n{\"name\": \"batch_process\", \"arguments\": {\"directory\": \"gallery\", \"operation\": \"generate_thumbnail\", \"params\": {\"height\": 150, \"width\": 150}}}\n```",
+  "score": 2,
+  "cost": 0.0015620000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 325
+  }
+}

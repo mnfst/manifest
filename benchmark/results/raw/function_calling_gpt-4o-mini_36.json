@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "function_calling",
+  "case": 36,
+  "response": "{\"name\": \"subscribe\", \"arguments\": {\"email\": \"jane@example.com\", \"list_name\": \"monthly newsletter\"}}",
+  "score": 5,
+  "cost": 2.865e-05,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 26
+  }
+}

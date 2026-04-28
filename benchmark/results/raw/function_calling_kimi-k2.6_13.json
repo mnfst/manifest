@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "function_calling",
+  "case": 13,
+  "response": "",
+  "score": 0,
+  "cost": 0.00486,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 2000
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "function_calling",
+  "case": 33,
+  "response": "{\"name\": \"git_create_branch\", \"arguments\": {\"name\": \"feature-payments\"}}",
+  "score": 4,
+  "cost": 0.0007326000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 141
+  }
+}

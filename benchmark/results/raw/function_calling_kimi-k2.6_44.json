@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "function_calling",
+  "case": 44,
+  "response": "{\"name\": \"set_log_level\", \"arguments\": {\"service\": \"payment\", \"level\": \"debug\"}}",
+  "score": 5,
+  "cost": 0.0028488,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 1163
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "function_calling",
+  "case": 49,
+  "response": "{\"name\": \"resize_instance\", \"arguments\": {\"instance_id\": \"app-server-1\", \"new_type\": \"t3.large\"}}",
+  "score": 5,
+  "cost": 0.0011921,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 204
+  }
+}

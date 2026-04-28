@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "function_calling",
+  "case": 25,
+  "response": "```json\n{\n    \"name\": \"schedule_meeting\",\n    \"arguments\": {\n        \"title\": \"Standup Meeting\",\n        \"duration_minutes\": 30,\n        \"time\": \"09:00\",\n        \"recurrence\": \"every weekday\",\n        \"attendees\": [\"dev team\"]\n    }\n}\n```",
+  "score": 5,
+  "cost": 0.0009525,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 66
+  }
+}

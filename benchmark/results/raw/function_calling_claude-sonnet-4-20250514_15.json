@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "function_calling",
+  "case": 15,
+  "response": "{\"name\": \"compress_video\", \"arguments\": {\"path\": \"downloads/presentation.mp4\", \"target_reduction\": 0.5}}",
+  "score": 5,
+  "cost": 0.000885,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 35
+  }
+}

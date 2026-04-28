@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "function_calling",
+  "case": 30,
+  "response": "{\n    \"name\": \"batch_process\",\n    \"arguments\": {\n        \"directory\": \"gallery\",\n        \"operation\": \"generate_thumbnail\",\n        \"params\": {\n            \"width\": 150,\n            \"height\": 150\n        }\n    }\n}",
+  "score": 2,
+  "cost": 8.785000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 56
+  }
+}

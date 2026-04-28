@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "function_calling",
+  "case": 36,
+  "response": "{\n    \"name\": \"subscribe\",\n    \"arguments\": {\n        \"email\": \"jane@example.com\",\n        \"list_name\": \"monthly newsletter\"\n    }\n}",
+  "score": 5,
+  "cost": 6.245e-05,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 37
+  }
+}

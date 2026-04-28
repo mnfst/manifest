@@ -1,12 +1,13 @@
 {
-  "model": "Kimi-K2.6",
+  "model": "kimi-k2.6",
   "task": "function_calling",
   "case": 4,
-  "response": "{\"name\": \"resize_image\", \"arguments\": {\"path\": \"/uploads/photo.jpg\", \"width\": 800, \"height\": 600}}",
+  "response": "{\"name\": \"resize_image\", \"arguments\": {\"path\": \"uploads photo.jpg\", \"width\": 800, \"height\": 600}}",
   "score": 4,
-  "cost": 0.0046542,
+  "cost": 0.0026471999999999997,
+  "expected": "",
   "tokens": {
-    "input": 105,
-    "output": 1913
+    "input": 100,
+    "output": 1078
   }
 }

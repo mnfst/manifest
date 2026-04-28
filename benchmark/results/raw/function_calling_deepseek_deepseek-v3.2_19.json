@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "function_calling",
+  "case": 19,
+  "response": "{\n    \"name\": \"run_tests\",\n    \"arguments\": {\n        \"module\": \"backend\",\n        \"verbose\": true\n    }\n}",
+  "score": 5,
+  "cost": 6.0450000000000006e-05,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 32
+  }
+}

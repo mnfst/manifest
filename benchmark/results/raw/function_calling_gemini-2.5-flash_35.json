@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "function_calling",
+  "case": 35,
+  "response": "```json\n{\n  \"name\": \"get_order\",\n  \"arguments\": {\n    \"order_id\": \"12345\"\n  }\n}\n```",
+  "score": 3,
+  "cost": 3.975e-05,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 41
+  }
+}

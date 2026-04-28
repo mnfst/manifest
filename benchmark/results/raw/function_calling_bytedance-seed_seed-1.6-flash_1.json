@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 1,
+  "response": "{\n  \"name\": \"get_weather\",\n  \"arguments\": {\n    \"city\": \"Paris\"\n  }\n}",
+  "score": 4,
+  "cost": 8.8575e-05,
+  "expected": "",
+  "tokens": {
+    "input": 177,
+    "output": 251
+  }
+}

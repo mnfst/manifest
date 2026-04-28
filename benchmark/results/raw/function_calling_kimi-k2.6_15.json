@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "function_calling",
+  "case": 15,
+  "response": "{\"name\": \"compress_video\", \"arguments\": {\"path\": \"downloads presentation.mp4\", \"target_reduction\": 0.5}}",
+  "score": 5,
+  "cost": 0.0029093999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 1187
+  }
+}

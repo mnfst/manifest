@@ -2,11 +2,12 @@
   "model": "gemini-2.5-pro",
   "task": "function_calling",
   "case": 0,
-  "response": "```json\n{\n  \"name\": \"send_email\",\n  \"arguments\": {\n    \"to\": \"john@example.com\",\n    \"subject\": \"Meeting Tomorrow\",\n    \"body\": \"Hi John, can we meet at 2pm?\"\n  }\n}\n```",
+  "response": "```json\n{\n  \"name\": \"send_email\",\n  \"arguments\": {\n    \"to\": \"john@example.com\",\n    \"subject\": \"Meeting Tomorrow\",\n    \"body\": \"Hi John can we meet at 2pm\"\n  }\n}\n```",
   "score": 5,
-  "cost": 0.00080125,
+  "cost": 0.00078375,
+  "expected": "",
   "tokens": {
-    "input": 121,
-    "output": 65
+    "input": 115,
+    "output": 64
   }
 }

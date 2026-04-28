@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "function_calling",
+  "case": 24,
+  "response": "```json\n{\n  \"name\": \"rotate_api_key\",\n  \"arguments\": {\n    \"service\": \"production\",\n    \"environment\": \"production\"\n  }\n}\n```",
+  "score": 4,
+  "cost": 5.04e-06,
+  "expected": "",
+  "tokens": {
+    "input": 89,
+    "output": 37
+  }
+}

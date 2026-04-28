@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "function_calling",
+  "case": 39,
+  "response": "{\"name\": \"export_table\", \"arguments\": {\"table\": \"users\", \"format\": \"csv\"}}",
+  "score": 5,
+  "cost": 0.000292,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 266
+  }
+}

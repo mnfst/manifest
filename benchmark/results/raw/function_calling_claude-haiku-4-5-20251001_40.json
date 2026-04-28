@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "function_calling",
+  "case": 40,
+  "response": "```json\n{\n  \"name\": \"search_messages\",\n  \"arguments\": {\n    \"channel\": \"announcements\",\n    \"query\": \"release\"\n  }\n}\n```\n\nNote: This first searches for the message about the release. Once you have the message_id from the search results, you would then call:\n\n```json\n{\n  \"name\": \"pin_message\",\n  \"arguments\": {\n    \"channel\": \"announcements\",\n    \"message_id\": \"<message_id_from_search_results>\"\n  }\n}\n```",
+  "score": 2,
+  "cost": 0.0006167999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 132
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 27,
+  "response": "{\n  \"name\": \"convert_currency\",\n  \"arguments\": {\n    \"amount\": 500.0,\n    \"from_currency\": \"EUR\",\n    \"to_currency\": \"JPY\"\n  }\n}",
+  "score": 5,
+  "cost": 0.00015135,
+  "expected": "",
+  "tokens": {
+    "input": 190,
+    "output": 457
+  }
+}

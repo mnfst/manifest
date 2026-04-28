@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "function_calling",
+  "case": 27,
+  "response": "{\"name\": \"convert_currency\", \"arguments\": {\"amount\": 500, \"from_currency\": \"EUR\", \"to_currency\": \"JPY\"}}",
+  "score": 5,
+  "cost": 0.001084,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 1056
+  }
+}

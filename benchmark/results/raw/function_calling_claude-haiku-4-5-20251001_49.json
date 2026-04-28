@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "function_calling",
+  "case": 49,
+  "response": "```json\n{\"name\": \"resize_instance\", \"arguments\": {\"instance_id\": \"app-server-1\", \"new_type\": \"t3.large\"}}\n```",
+  "score": 5,
+  "cost": 0.0002656,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 43
+  }
+}

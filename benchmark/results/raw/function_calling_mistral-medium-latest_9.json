@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "function_calling",
+  "case": 9,
+  "response": "```json\n{\n  \"name\": \"search_flights\",\n  \"arguments\": {\n    \"origin\": \"New York\",\n    \"destination\": \"London\",\n    \"date\": \"2023-12-15\",\n    \"passengers\": 2\n  }\n}\n```",
+  "score": 5,
+  "cost": 0.0001704,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 63
+  }
+}

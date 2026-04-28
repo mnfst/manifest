@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "function_calling",
+  "case": 4,
+  "response": "```json\n{\n  \"name\": \"resize_image\",\n  \"arguments\": {\n    \"path\": \"uploads photo.jpg\",\n    \"width\": 800,\n    \"height\": 600\n  }\n}\n```\n\nNote: This handles the resize request. To also convert to PNG, you would need to make a second function call:\n\n```json\n{\n  \"name\": \"convert_format\",\n  \"arguments\": {\n    \"path\": \"uploads photo.jpg\",\n    \"target_format\": \"PNG\"\n  }\n}\n```",
+  "score": 3,
+  "cost": 0.0006136000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 130
+  }
+}

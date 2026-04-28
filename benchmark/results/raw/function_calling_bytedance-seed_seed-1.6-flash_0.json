@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 0,
+  "response": "{\n  \"name\": \"send_email\",\n  \"arguments\": {\n    \"to\": \"john@example.com\",\n    \"subject\": \"Meeting Tomorrow\",\n    \"body\": \"Hi John can we meet at 2pm\"\n  }\n}",
+  "score": 5,
+  "cost": 9.8175e-05,
+  "expected": "",
+  "tokens": {
+    "input": 189,
+    "output": 280
+  }
+}

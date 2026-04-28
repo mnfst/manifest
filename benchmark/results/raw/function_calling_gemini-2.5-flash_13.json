@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "function_calling",
+  "case": 13,
+  "response": "```json\n{\n  \"name\": \"control_light\",\n  \"arguments\": {\n    \"room\": \"living room\",\n    \"action\": \"off\"\n  }\n}\n```",
+  "score": 4,
+  "cost": 4.2e-05,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 44
+  }
+}

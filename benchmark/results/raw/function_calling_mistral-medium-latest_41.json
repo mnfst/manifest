@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "function_calling",
+  "case": 41,
+  "response": "```json\n{\n  \"name\": \"add_comment\",\n  \"arguments\": {\n    \"pr_id\": 789,\n    \"body\": \"LGTM approved\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 0.00012440000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 42
+  }
+}

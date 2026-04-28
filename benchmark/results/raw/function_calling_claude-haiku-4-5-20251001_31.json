@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "function_calling",
+  "case": 31,
+  "response": "```json\n{\n  \"name\": \"archive_emails\",\n  \"arguments\": {\n    \"folder\": \"inbox\",\n    \"older_than_days\": 180\n  }\n}\n```",
+  "score": 5,
+  "cost": 0.0002832,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 49
+  }
+}

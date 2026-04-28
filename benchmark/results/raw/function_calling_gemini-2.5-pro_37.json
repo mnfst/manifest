@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "function_calling",
+  "case": 37,
+  "response": "```json\n{\"name\": \"invalidate_cache\", \"arguments\": {\"pattern\": \"**/*.{css,js}\"}}\n```",
+  "score": 5,
+  "cost": 0.0003675,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 27
+  }
+}

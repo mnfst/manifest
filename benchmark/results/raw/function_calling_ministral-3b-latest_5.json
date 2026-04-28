@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "function_calling",
+  "case": 5,
+  "response": "```json\n{\n  \"name\": \"book_restaurant\",\n  \"arguments\": {\n    \"name\": \"Italian place\",\n    \"party_size\": 4,\n    \"date\": \"2023-11-18\",  // Assuming Saturday, November 18 (adjust if needed)\n    \"time\": \"19:00\"\n  }\n}\n```",
+  "score": 4,
+  "cost": 7.5600000000000005e-06,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 81
+  }
+}

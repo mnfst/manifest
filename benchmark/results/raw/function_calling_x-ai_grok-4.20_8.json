@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "function_calling",
+  "case": 8,
+  "response": "{\"name\": \"calculate_mortgage\", \"arguments\": {\"principal\": 300000, \"annual_rate\": 0.065, \"years\": 30}}",
+  "score": 5,
+  "cost": 0.000744,
+  "expected": "",
+  "tokens": {
+    "input": 236,
+    "output": 34
+  }
+}

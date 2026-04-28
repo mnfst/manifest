@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 6,
+  "response": "{\n  \"name\": \"translate\",\n  \"arguments\": {\n    \"text\": \"The meeting has been rescheduled to Monday\",\n    \"target_language\": \"es\"\n  }\n}",
+  "score": 4,
+  "cost": 7.597499999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 189,
+    "output": 206
+  }
+}

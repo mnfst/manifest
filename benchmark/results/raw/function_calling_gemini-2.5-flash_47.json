@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "function_calling",
+  "case": 47,
+  "response": "```json\n{\n  \"name\": \"create_cron\",\n  \"arguments\": {\n    \"schedule\": \"0 0 * * *\",\n    \"command\": \"cleanup_script.sh\"\n  }\n}\n```",
+  "score": 4,
+  "cost": 4.515e-05,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 52
+  }
+}

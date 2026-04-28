@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "function_calling",
+  "case": 4,
+  "response": "{\"name\": \"resize_image\", \"arguments\": {\"path\": \"uploads photo.jpg\", \"width\": 800, \"height\": 600}}",
+  "score": 4,
+  "cost": 0.00579,
+  "expected": "",
+  "tokens": {
+    "input": 151,
+    "output": 47
+  }
+}

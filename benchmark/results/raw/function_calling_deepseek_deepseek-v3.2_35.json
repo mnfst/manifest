@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "function_calling",
+  "case": 35,
+  "response": "{\n    \"name\": \"get_order\",\n    \"arguments\": {\n        \"order_id\": \"12345\"\n    }\n}",
+  "score": 2,
+  "cost": 5.3450000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 27
+  }
+}

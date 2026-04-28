@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "function_calling",
+  "case": 23,
+  "response": "{\"name\": \"send_message\", \"arguments\": {\"channel\": \"engineering\", \"text\": \"Deploy complete\"}}",
+  "score": 5,
+  "cost": 0.0006525,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 627
+  }
+}

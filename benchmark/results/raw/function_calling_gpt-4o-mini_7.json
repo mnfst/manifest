@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "function_calling",
+  "case": 7,
+  "response": "{\"name\": \"set_alarm\", \"arguments\": {\"time\": \"6:30 AM\", \"label\": \"Morning Workout\"}}",
+  "score": 5,
+  "cost": 3.0449999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 26
+  }
+}

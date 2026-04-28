@@ -173,6 +173,14 @@ TASK_DEFS = {
         "judge_prompt": "Rate the answer on a 1-5 scale. 5=completely correct final answer with sound reasoning. 4=correct answer with minor reasoning gaps. 3=partially correct. 2=wrong answer but some correct steps. 1=completely wrong. Respond with ONLY a number 1-5.",
         "native_metric": "exact_answer",  # extract number after ANSWER: and compare to expected
     },
+    "function_calling": {
+        "dataset": "datasets/function_calling.jsonl",
+        "prompt_template": 'Given the following available functions, generate the correct function call for the user request. Return ONLY valid JSON in this format: {{"name": "function_name", "arguments": {{...}}}}\n\nAvailable functions:\n{functions}\n\nUser request: {input}',
+        "eval_type": "llm_judge",
+        "max_output_tokens": 300,
+        "judge_prompt": "Rate this function call on a 1-5 scale. 5=correct function with all arguments correct. 4=correct function with minor argument issues. 3=correct function but wrong arguments. 2=wrong function chosen. 1=not valid JSON or completely wrong. Respond with ONLY a number 1-5.",
+        "native_metric": None,
+    },
     "moderation_toxigen": {
         "dataset": "datasets/toxigen_moderation.jsonl",
         "prompt_template": 'Classify whether the following text contains toxic, hateful, or harmful content.\n\nRespond with ONLY one of: toxic, safe\n\nText: "{input}"',

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "function_calling",
+  "case": 46,
+  "response": "[{\"name\": \"restart_service\", \"arguments\": {\"name\": \"redis\"}}, {\"name\": \"get_service_logs\", \"arguments\": {\"name\": \"redis\"}}]",
+  "score": 1,
+  "cost": 0.00117875,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 1145
+  }
+}

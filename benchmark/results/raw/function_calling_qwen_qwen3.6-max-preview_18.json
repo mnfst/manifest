@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "function_calling",
+  "case": 18,
+  "response": "{\"name\": \"check_domain\", \"arguments\": {\"domain\": \"coolstartup.com\"}}",
+  "score": 5,
+  "cost": 0.001157,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 199
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 16,
+  "response": "{\n  \"name\": \"search_nearby\",\n  \"arguments\": {\n    \"category\": \"gas station\",\n    \"open_now\": true\n  }\n}",
+  "score": 5,
+  "cost": 0.00011324999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 178,
+    "output": 333
+  }
+}

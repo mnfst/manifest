@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "function_calling",
+  "case": 4,
+  "response": "```json\n{\"name\": \"resize_image\", \"arguments\": {\"path\": \"uploads/photo.jpg\", \"width\": 800, \"height\": 600}}\n{\"name\": \"convert_format\", \"arguments\": {\"path\": \"uploads/photo.jpg\", \"target_format\": \"PNG\"}}\n```",
+  "score": 1,
+  "cost": 3.1899999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 68
+  }
+}

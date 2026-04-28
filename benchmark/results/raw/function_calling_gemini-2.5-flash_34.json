@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "function_calling",
+  "case": 34,
+  "response": "```json\n{\n  \"name\": \"scale_deployment\",\n  \"arguments\": {\n    \"service\": \"web\",\n    \"replicas\": 5\n  }\n}\n```",
+  "score": 5,
+  "cost": 3.96e-05,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 43
+  }
+}

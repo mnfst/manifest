@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 28,
+  "response": "{\n  \"name\": \"block_ip\",\n  \"arguments\": {\n    \"ip\": \"192.168.1.100\"\n  }\n}",
+  "score": 4,
+  "cost": 9.7425e-05,
+  "expected": "",
+  "tokens": {
+    "input": 175,
+    "output": 281
+  }
+}

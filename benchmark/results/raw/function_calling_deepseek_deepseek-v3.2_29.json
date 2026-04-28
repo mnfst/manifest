@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "function_calling",
+  "case": 29,
+  "response": "{\n    \"name\": \"ocr_document\",\n    \"arguments\": {\n        \"path\": \"uploads contract.pdf\",\n        \"language\": \"en\"\n    }\n}",
+  "score": 5,
+  "cost": 6.05e-05,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 35
+  }
+}

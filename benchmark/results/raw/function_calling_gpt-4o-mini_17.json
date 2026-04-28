@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "function_calling",
+  "case": 17,
+  "response": "{\"name\": \"generate_qr\", \"arguments\": {\"data\": \"https://example.com/signup\", \"size\": 256}}",
+  "score": 5,
+  "cost": 3.06e-05,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 27
+  }
+}

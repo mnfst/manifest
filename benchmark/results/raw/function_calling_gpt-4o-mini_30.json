@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "function_calling",
+  "case": 30,
+  "response": "{\"name\": \"batch_process\", \"arguments\": {\"directory\": \"gallery\", \"operation\": \"generate_thumbnail\", \"params\": {\"width\": 150, \"height\": 150}}}",
+  "score": 2,
+  "cost": 3.9149999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 39
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "function_calling",
+  "case": 38,
+  "response": "{\"name\": \"get_page_views\", \"arguments\": {\"period\": \"7d\", \"limit\": 10}}",
+  "score": 5,
+  "cost": 0.000622,
+  "expected": "",
+  "tokens": {
+    "input": 215,
+    "output": 24
+  }
+}

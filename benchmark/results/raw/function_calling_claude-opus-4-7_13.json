@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "function_calling",
+  "case": 13,
+  "response": "I'll help with that, but please note that the user request contains two separate actions. Since I can only return one function call in the specified JSON format, I'll provide the first action:\n\n{\"name\": \"control_light\", \"arguments\": {\"room\": \"living room\", \"action\": \"off\"}}",
+  "score": 4,
+  "cost": 0.00852,
+  "expected": "",
+  "tokens": {
+    "input": 148,
+    "output": 84
+  }
+}

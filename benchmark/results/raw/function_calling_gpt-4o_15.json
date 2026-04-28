@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "function_calling",
+  "case": 15,
+  "response": "```json\n{\"name\": \"compress_video\", \"arguments\": {\"path\": \"downloads/presentation.mp4\", \"target_reduction\": 0.5}}\n```",
+  "score": 5,
+  "cost": 0.000595,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 34
+  }
+}

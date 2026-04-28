@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "function_calling",
+  "case": 19,
+  "response": "```json\n{\"name\": \"run_tests\", \"arguments\": {\"module\": \"backend\", \"verbose\": true}}\n```",
+  "score": 5,
+  "cost": 1.8100000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 26
+  }
+}

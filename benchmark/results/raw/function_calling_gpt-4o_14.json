@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "function_calling",
+  "case": 14,
+  "response": "{\"name\": \"create_reminder\", \"arguments\": {\"message\": \"call the dentist\", \"time\": \"3pm\", \"date\": \"Wednesday\"}}",
+  "score": 4,
+  "cost": 0.00055,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 32
+  }
+}

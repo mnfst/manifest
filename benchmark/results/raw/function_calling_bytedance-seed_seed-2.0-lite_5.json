@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "function_calling",
+  "case": 5,
+  "response": "{\"name\": \"book_restaurant\", \"arguments\": {\"name\": \"Italian place on Main Street\", \"party_size\": 4, \"date\": \"this Saturday\", \"time\": \"7pm\"}}",
+  "score": 4,
+  "cost": 0.000292,
+  "expected": "",
+  "tokens": {
+    "input": 156,
+    "output": 253
+  }
+}

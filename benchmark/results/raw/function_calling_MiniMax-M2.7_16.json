@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "function_calling",
+  "case": 16,
+  "response": "{\"name\": \"search_nearby\", \"arguments\": {\"category\": \"gas_station\", \"open_now\": true}}",
+  "score": 5,
+  "cost": 0.0022825,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 491
+  }
+}

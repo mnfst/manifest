@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 41,
+  "response": "{\n  \"name\": \"add_comment\",\n  \"arguments\": {\n    \"pr_id\": 789,\n    \"body\": \"LGTM approved\"\n  }\n}",
+  "score": 5,
+  "cost": 7.7775e-05,
+  "expected": "",
+  "tokens": {
+    "input": 185,
+    "output": 213
+  }
+}

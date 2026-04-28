@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "function_calling",
+  "case": 31,
+  "response": "```json\n{\"name\": \"archive_emails\", \"arguments\": {\"folder\": \"inbox\", \"older_than_days\": 180}}\n```",
+  "score": 5,
+  "cost": 2.09e-05,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 34
+  }
+}

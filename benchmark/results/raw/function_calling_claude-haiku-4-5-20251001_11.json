@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "function_calling",
+  "case": 11,
+  "response": "```json\n{\"name\": \"add_to_list\", \"arguments\": {\"list_name\": \"shopping list\", \"items\": [\"milk\", \"eggs\", \"bread\"]}}\n```",
+  "score": 5,
+  "cost": 0.0002592,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 43
+  }
+}

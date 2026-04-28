@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "function_calling",
+  "case": 14,
+  "response": "```json\n{\n  \"name\": \"create_reminder\",\n  \"arguments\": {\n    \"message\": \"call the dentist\",\n    \"time\": \"3pm\",\n    \"date\": \"Wednesday\"\n  }\n}\n```",
+  "score": 4,
+  "cost": 0.0003144,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 58
+  }
+}

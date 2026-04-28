@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "function_calling",
+  "case": 20,
+  "response": "```json\n{\n  \"name\": \"git_merge\",\n  \"arguments\": {\n    \"source\": \"feature-auth\",\n    \"target\": \"main\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 0.0005475,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 36
+  }
+}

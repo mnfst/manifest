@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "function_calling",
+  "case": 26,
+  "response": "{\n    \"name\": \"upload_file\",\n    \"arguments\": {\n        \"path\": \"report.pdf\",\n        \"destination\": \"shared documents\"\n    }\n}",
+  "score": 5,
+  "cost": 5.7300000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 33
+  }
+}

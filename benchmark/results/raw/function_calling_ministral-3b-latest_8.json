@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "function_calling",
+  "case": 8,
+  "response": "```json\n{\"name\": \"calculate_mortgage\", \"arguments\": {\"principal\": 300000.0, \"annual_rate\": 0.065, \"years\": 30}}\n```",
+  "score": 5,
+  "cost": 6.88e-06,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 49
+  }
+}

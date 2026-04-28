@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 15,
+  "response": "{\n  \"name\": \"compress_video\",\n  \"arguments\": {\n    \"path\": \"downloads presentation.mp4\",\n    \"target_reduction\": 0.5\n  }\n}",
+  "score": 5,
+  "cost": 8.669999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 184,
+    "output": 243
+  }
+}

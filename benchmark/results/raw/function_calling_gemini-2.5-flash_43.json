@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "function_calling",
+  "case": 43,
+  "response": "```json\n{\n  \"name\": \"git_revert\",\n  \"arguments\": {\n    \"commit\": \"develop\"\n  }\n}\n```",
+  "score": 1,
+  "cost": 3.6899999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 36
+  }
+}

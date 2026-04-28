@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "function_calling",
+  "case": 0,
+  "response": "```json\n{\n  \"name\": \"send_email\",\n  \"arguments\": {\n    \"to\": \"john@example.com\",\n    \"subject\": \"Meeting Tomorrow\",\n    \"body\": \"Hi John, can we meet at 2pm?\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 6.44e-06,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 56
+  }
+}

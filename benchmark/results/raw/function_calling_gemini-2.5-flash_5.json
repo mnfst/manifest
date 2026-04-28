@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "function_calling",
+  "case": 5,
+  "response": "```json\n{\n  \"name\": \"search_restaurants\",\n  \"arguments\": {\n    \"cuisine\": \"Italian\",\n    \"location\": \"Main Street\"\n  }\n}\n```",
+  "score": 2,
+  "cost": 4.3349999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 44
+  }
+}

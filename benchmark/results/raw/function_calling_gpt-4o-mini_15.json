@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "function_calling",
+  "case": 15,
+  "response": "{\"name\": \"compress_video\", \"arguments\": {\"path\": \"downloads/presentation.mp4\", \"target_reduction\": 0.5}}",
+  "score": 5,
+  "cost": 3.3299999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 30
+  }
+}

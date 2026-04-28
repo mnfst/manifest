@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "function_calling",
+  "case": 17,
+  "response": "{\n    \"name\": \"generate_qr\",\n    \"arguments\": {\n        \"data\": \"https://example.com/signup\",\n        \"size\": 256\n    }\n}",
+  "score": 5,
+  "cost": 6.665000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 39
+  }
+}

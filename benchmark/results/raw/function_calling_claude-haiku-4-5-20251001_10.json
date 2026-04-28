@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "function_calling",
+  "case": 10,
+  "response": "```json\n{\"name\": \"play_song\", \"arguments\": {\"title\": \"Bohemian Rhapsody\", \"artist\": \"Queen\"}}\n```",
+  "score": 5,
+  "cost": 0.0002384,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 39
+  }
+}

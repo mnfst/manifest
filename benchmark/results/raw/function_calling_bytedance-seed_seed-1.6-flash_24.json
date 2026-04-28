@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 24,
+  "response": "[\n  {\n    \"name\": \"rotate_api_key\",\n    \"arguments\": {\n      \"service\": \"production\",\n      \"environment\": \"production\"\n    }\n  },\n  {\n    \"name\": \"notify_team\",\n    \"arguments\": {\n      \"message\": \"API keys for production service have been rotated.\"\n    }\n  }\n]",
+  "score": 1,
+  "cost": 0.000271875,
+  "expected": "",
+  "tokens": {
+    "input": 173,
+    "output": 863
+  }
+}

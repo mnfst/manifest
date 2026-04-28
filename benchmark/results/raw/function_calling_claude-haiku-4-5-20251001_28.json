@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "function_calling",
+  "case": 28,
+  "response": "```json\n{\n  \"name\": \"block_ip\",\n  \"arguments\": {\n    \"ip\": \"192.168.1.100\"\n  }\n}\n```",
+  "score": 4,
+  "cost": 0.0002584,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 44
+  }
+}

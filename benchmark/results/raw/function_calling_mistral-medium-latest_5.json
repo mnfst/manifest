@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "function_calling",
+  "case": 5,
+  "response": "```json\n{\n  \"name\": \"book_restaurant\",\n  \"arguments\": {\n    \"name\": \"the Italian place on Main Street\",\n    \"party_size\": 4,\n    \"date\": \"this Saturday\",\n    \"time\": \"19:00\"\n  }\n}\n```",
+  "score": 4,
+  "cost": 0.0001672,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 62
+  }
+}

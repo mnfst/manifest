@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "function_calling",
+  "case": 8,
+  "response": "```json\n{\"name\": \"calculate_mortgage\", \"arguments\": {\"principal\": 300000, \"annual_rate\": 6.5, \"years\": 30}}\n```",
+  "score": 5,
+  "cost": 0.0006825,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 38
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 20,
+  "response": "{\n  \"name\": \"git_merge\",\n  \"arguments\": {\n    \"source\": \"feature-auth\",\n    \"target\": \"main\"\n  }\n}",
+  "score": 5,
+  "cost": 7.9275e-05,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 225
+  }
+}

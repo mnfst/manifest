@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "function_calling",
+  "case": 6,
+  "response": "```json\n{\n  \"name\": \"translate\",\n  \"arguments\": {\n    \"text\": \"The meeting has been rescheduled to Monday\",\n    \"target_language\": \"Spanish\"\n  }\n}\n```",
+  "score": 4,
+  "cost": 0.0003144,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 55
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "function_calling",
+  "case": 24,
+  "response": "```json\n{\n  \"name\": \"rotate_api_key\",\n  \"arguments\": {\n    \"service\": \"production\",\n    \"environment\": \"production\"\n  }\n}\n```",
+  "score": 4,
+  "cost": 4.2e-05,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 45
+  }
+}

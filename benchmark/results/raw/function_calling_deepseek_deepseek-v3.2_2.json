@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "function_calling",
+  "case": 2,
+  "response": "{\n    \"name\": \"search_files\",\n    \"arguments\": {\n        \"directory\": \"src\",\n        \"pattern\": \"*.py\",\n        \"modified_within_days\": 7\n    }\n}",
+  "score": 5,
+  "cost": 7.290000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 44
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 22,
+  "response": "{\n  \"name\": \"create_database\",\n  \"arguments\": {\n    \"name\": \"analytics_prod\",\n    \"engine\": \"postgresql\"\n  }\n}",
+  "score": 5,
+  "cost": 0.00010065,
+  "expected": "",
+  "tokens": {
+    "input": 170,
+    "output": 293
+  }
+}

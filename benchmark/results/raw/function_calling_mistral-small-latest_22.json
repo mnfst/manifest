@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "function_calling",
+  "case": 22,
+  "response": "```json\n{\"name\": \"create_database\", \"arguments\": {\"name\": \"analytics_prod\", \"engine\": \"postgresql\"}}\n```",
+  "score": 5,
+  "cost": 1.91e-05,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 31
+  }
+}

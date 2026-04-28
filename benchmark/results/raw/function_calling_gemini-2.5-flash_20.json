@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "function_calling",
+  "case": 20,
+  "response": "```json\n{\n  \"name\": \"git_merge\",\n  \"arguments\": {\n    \"source\": \"feature-auth\",\n    \"target\": \"main\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 3.9149999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 45
+  }
+}

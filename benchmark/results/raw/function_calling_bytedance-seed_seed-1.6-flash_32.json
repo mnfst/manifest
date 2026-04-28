@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 32,
+  "response": "{\n  \"name\": \"run_security_scan\",\n  \"arguments\": {\n    \"target\": \"10.0.0.1\"\n  }\n}",
+  "score": 4,
+  "cost": 0.00016485,
+  "expected": "",
+  "tokens": {
+    "input": 186,
+    "output": 503
+  }
+}

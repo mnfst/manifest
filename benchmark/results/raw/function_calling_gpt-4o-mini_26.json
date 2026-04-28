@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "function_calling",
+  "case": 26,
+  "response": "{\"name\": \"upload_file\", \"arguments\": {\"path\": \"report.pdf\", \"destination\": \"shared documents\"}}",
+  "score": 4,
+  "cost": 2.7299999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 24
+  }
+}

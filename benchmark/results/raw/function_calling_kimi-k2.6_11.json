@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "function_calling",
+  "case": 11,
+  "response": "{\"name\": \"add_to_list\", \"arguments\": {\"list_name\": \"shopping\", \"items\": [\"milk\", \"eggs\", \"bread\"]}}",
+  "score": 4,
+  "cost": 0.0018348,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 742
+  }
+}

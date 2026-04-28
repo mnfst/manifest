@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "function_calling",
+  "case": 11,
+  "response": "```json\n{\n  \"name\": \"add_to_list\",\n  \"arguments\": {\n    \"list_name\": \"shopping list\",\n    \"items\": [\n      \"milk\",\n      \"eggs\",\n      \"bread\"\n    ]\n  }\n}\n```",
+  "score": 5,
+  "cost": 5.37e-05,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 64
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "function_calling",
+  "case": 46,
+  "response": "```json\n{\n  \"name\": \"restart_service\",\n  \"arguments\": {\n    \"name\": \"redis\"\n  }\n}\n```\n\nNote: To monitor for errors after restarting, you would need to make a follow-up call to `get_service_logs` with the service name \"redis\" to check the logs for any errors.",
+  "score": 4,
+  "cost": 0.0004136,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 83
+  }
+}

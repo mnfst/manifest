@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "function_calling",
+  "case": 48,
+  "response": "{\"name\": \"git_tag\", \"arguments\": {\"name\": \"v3.0.0\"}}",
+  "score": 4,
+  "cost": 0.000741,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 26
+  }
+}

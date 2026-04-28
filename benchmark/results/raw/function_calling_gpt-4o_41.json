@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "function_calling",
+  "case": 41,
+  "response": "```json\n{\"name\": \"add_comment\", \"arguments\": {\"pr_id\": 789, \"body\": \"LGTM approved\"}}\n```",
+  "score": 5,
+  "cost": 0.0005425,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 30
+  }
+}

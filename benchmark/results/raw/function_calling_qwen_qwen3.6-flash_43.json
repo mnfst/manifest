@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "function_calling",
+  "case": 43,
+  "response": "{\"name\": \"git_revert\", \"arguments\": {\"commit\": \"HEAD\"}}",
+  "score": 4,
+  "cost": 0.000578,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 552
+  }
+}

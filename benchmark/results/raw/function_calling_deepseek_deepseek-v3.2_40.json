@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "function_calling",
+  "case": 40,
+  "response": "{\n  \"name\": \"pin_message\",\n  \"arguments\": {\n    \"channel\": \"announcements\",\n    \"message_id\": \"the message about the release\"\n  }\n}",
+  "score": 3,
+  "cost": 6.840000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 39
+  }
+}

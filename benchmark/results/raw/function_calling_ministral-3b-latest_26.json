@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "function_calling",
+  "case": 26,
+  "response": "```json\n{\n  \"name\": \"upload_file\",\n  \"arguments\": {\n    \"path\": \"report.pdf\",\n    \"destination\": \"shared_documents\"\n  }\n}\n```",
+  "score": 4,
+  "cost": 4.880000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 39
+  }
+}

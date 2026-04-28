@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "function_calling",
+  "case": 33,
+  "response": "```json\n{\n  \"name\": \"git_create_branch\",\n  \"arguments\": {\n    \"name\": \"feature-payments\",\n    \"from_branch\": \"main\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 0.00011640000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 41
+  }
+}

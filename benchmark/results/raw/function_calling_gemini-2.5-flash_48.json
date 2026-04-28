@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "function_calling",
+  "case": 48,
+  "response": "```json\n{\n  \"name\": \"git_tag\",\n  \"arguments\": {\n    \"name\": \"v3.0.0\"\n  }\n}\n```",
+  "score": 4,
+  "cost": 4.034999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 40
+  }
+}

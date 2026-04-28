@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "function_calling",
+  "case": 48,
+  "response": "```json\n{\n  \"name\": \"git_tag\",\n  \"arguments\": {\n    \"name\": \"v3.0.0\",\n    \"message\": \"Release v3.0.0\"\n  }\n}\n```\n\nfollowed by:\n\n```json\n{\n  \"name\": \"git_push\",\n  \"arguments\": {\n    \"remote\": \"origin\",\n    \"tags\": true\n  }\n}\n```",
+  "score": 4,
+  "cost": 0.0005056,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 103
+  }
+}

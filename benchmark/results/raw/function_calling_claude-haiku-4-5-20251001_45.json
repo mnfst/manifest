@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "function_calling",
+  "case": 45,
+  "response": "```json\n{\"name\": \"grant_access\", \"arguments\": {\"user\": \"bob\", \"resource\": \"analytics database\", \"permission\": \"read\"}}\n```",
+  "score": 5,
+  "cost": 0.0002384,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 39
+  }
+}

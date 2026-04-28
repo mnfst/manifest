@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "function_calling",
+  "case": 6,
+  "response": "```json\n{\n  \"name\": \"translate\",\n  \"arguments\": {\n    \"text\": \"The meeting has been rescheduled to Monday\",\n    \"target_language\": \"Spanish\"\n  }\n}\n```",
+  "score": 4,
+  "cost": 4.575e-05,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 49
+  }
+}

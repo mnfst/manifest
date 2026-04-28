@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "function_calling",
+  "case": 11,
+  "response": "{\"name\": \"add_to_list\", \"arguments\": {\"list_name\": \"shopping list\", \"items\": [\"milk\", \"eggs\", \"bread\"]}}",
+  "score": 5,
+  "cost": 0.000203,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 169
+  }
+}

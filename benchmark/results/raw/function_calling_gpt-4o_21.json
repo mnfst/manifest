@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "function_calling",
+  "case": 21,
+  "response": "{\"name\": \"deploy\", \"arguments\": {\"version\": \"2.3.1\", \"environment\": \"staging\"}}",
+  "score": 5,
+  "cost": 0.0004675,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 26
+  }
+}

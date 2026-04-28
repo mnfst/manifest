@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "function_calling",
+  "case": 12,
+  "response": "```json\n{\n  \"name\": \"get_stock_price\",\n  \"arguments\": {\n    \"symbol\": \"AAPL\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 3.6e-05,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 37
+  }
+}

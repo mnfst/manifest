@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "function_calling",
+  "case": 25,
+  "response": "{\"name\": \"schedule_meeting\", \"arguments\": {\"title\": \"Standup\", \"duration_minutes\": 30, \"time\": \"09:00\", \"recurrence\": \"weekdays\", \"attendees\": [\"Dev Team\"]}}",
+  "score": 5,
+  "cost": 0.0028292,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 605
+  }
+}

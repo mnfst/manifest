@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "function_calling",
+  "case": 18,
+  "response": "```json\n{\n  \"name\": \"check_domain\",\n  \"arguments\": {\n    \"domain\": \"coolstartup.com\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 3.6899999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 38
+  }
+}

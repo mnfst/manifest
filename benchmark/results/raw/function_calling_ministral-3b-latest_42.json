@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "function_calling",
+  "case": 42,
+  "response": "```json\n{\n  \"name\": \"create_bucket\",\n  \"arguments\": {\n    \"name\": \"data-lake-prod\",\n    \"region\": \"us-east-1\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 5.36e-06,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 43
+  }
+}

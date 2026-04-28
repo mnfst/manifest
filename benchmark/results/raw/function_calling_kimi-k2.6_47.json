@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "function_calling",
+  "case": 47,
+  "response": "{\"name\": \"create_cron\", \"arguments\": {\"schedule\": \"0 0 * * *\", \"command\": \"cleanup.sh\"}}",
+  "score": 4,
+  "cost": 0.0035705999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 1465
+  }
+}

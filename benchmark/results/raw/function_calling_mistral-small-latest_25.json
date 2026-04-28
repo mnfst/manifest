@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "function_calling",
+  "case": 25,
+  "response": "```json\n{\"name\": \"schedule_meeting\", \"arguments\": {\"title\": \"Standup Meeting\", \"duration_minutes\": 30, \"time\": \"09:00\", \"recurrence\": \"weekdays\", \"attendees\": [\"dev team\"]}}\n```",
+  "score": 5,
+  "cost": 3.1100000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 61
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "function_calling",
+  "case": 18,
+  "response": "```json\n{\"name\": \"check_domain\", \"arguments\": {\"domain\": \"coolstartup.com\"}}\n```",
+  "score": 5,
+  "cost": 0.000445,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 23
+  }
+}

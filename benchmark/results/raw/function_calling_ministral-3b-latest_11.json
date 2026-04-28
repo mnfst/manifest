@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "function_calling",
+  "case": 11,
+  "response": "```json\n{\"name\": \"add_to_list\", \"arguments\": {\"list_name\": \"shopping list\", \"items\": [\"milk\", \"eggs\", \"bread\"]}}\n```",
+  "score": 5,
+  "cost": 5.04e-06,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 40
+  }
+}

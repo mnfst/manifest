@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "function_calling",
+  "case": 44,
+  "response": "{\"name\": \"set_log_level\", \"arguments\": {\"service\": \"payment service\", \"level\": \"debug\"}}",
+  "score": 5,
+  "cost": 0.00016725,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 131
+  }
+}

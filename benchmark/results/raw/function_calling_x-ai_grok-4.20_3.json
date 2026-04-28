@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "function_calling",
+  "case": 3,
+  "response": "{\"name\": \"create_task\", \"arguments\": {\"title\": \"Review PR 42\", \"priority\": \"high\", \"assignee\": \"alice\", \"due_date\": \"next Friday\"}}",
+  "score": 4,
+  "cost": 0.000776,
+  "expected": "",
+  "tokens": {
+    "input": 228,
+    "output": 40
+  }
+}

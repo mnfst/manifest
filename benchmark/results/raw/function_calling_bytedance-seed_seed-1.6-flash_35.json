@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 35,
+  "response": "{\n  \"name\": \"get_order\",\n  \"arguments\": {\n    \"order_id\": \"12345\"\n  }\n}",
+  "score": 2,
+  "cost": 0.0001188,
+  "expected": "",
+  "tokens": {
+    "input": 176,
+    "output": 352
+  }
+}

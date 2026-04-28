@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 19,
+  "response": "{\n  \"name\": \"run_tests\",\n  \"arguments\": {\n    \"module\": \"backend\",\n    \"verbose\": true\n  }\n}",
+  "score": 5,
+  "cost": 7.98e-05,
+  "expected": "",
+  "tokens": {
+    "input": 176,
+    "output": 222
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "function_calling",
+  "case": 29,
+  "response": "{\"name\": \"ocr_document\", \"arguments\": {\"path\": \"uploads contract.pdf\"}}",
+  "score": 5,
+  "cost": 0.0014333999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 576
+  }
+}

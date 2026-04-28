@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 25,
+  "response": "{\n  \"name\": \"schedule_meeting\",\n  \"arguments\": {\n    \"title\": \"Standup Meeting\",\n    \"duration_minutes\": 30,\n    \"time\": \"9am\",\n    \"recurrence\": \"weekly\",\n    \"attendees\": [\"dev team\"]\n  }\n}",
+  "score": 4,
+  "cost": 0.00023752500000000001,
+  "expected": "",
+  "tokens": {
+    "input": 199,
+    "output": 742
+  }
+}

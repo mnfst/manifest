@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "function_calling",
+  "case": 12,
+  "response": "```json\n{\"name\": \"get_stock_price\", \"arguments\": {\"symbol\": \"AAPL\"}}\n```",
+  "score": 5,
+  "cost": 0.00020319999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 31
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 2,
+  "response": "{\n  \"name\": \"search_files\",\n  \"arguments\": {\n    \"directory\": \"src\",\n    \"pattern\": \"*.py\",\n    \"modified_within_days\": 7\n  }\n}",
+  "score": 5,
+  "cost": 9.127500000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 181,
+    "output": 259
+  }
+}

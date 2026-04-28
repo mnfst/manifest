@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 10,
+  "response": "{\n  \"name\": \"play_song\",\n  \"arguments\": {\n    \"title\": \"Bohemian Rhapsody\",\n    \"artist\": \"Queen\"\n  }\n}",
+  "score": 5,
+  "cost": 7.507500000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 208
+  }
+}

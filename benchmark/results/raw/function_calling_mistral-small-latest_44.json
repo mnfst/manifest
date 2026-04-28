@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "function_calling",
+  "case": 44,
+  "response": "```json\n{\"name\": \"set_log_level\", \"arguments\": {\"service\": \"payment\", \"level\": \"debug\"}}\n```",
+  "score": 5,
+  "cost": 1.9399999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 29
+  }
+}

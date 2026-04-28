@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "function_calling",
+  "case": 9,
+  "response": "{\"name\": \"search_flights\", \"arguments\": {\"origin\": \"New York\", \"destination\": \"London\", \"date\": \"December 15th\", \"passengers\": 2}}",
+  "score": 5,
+  "cost": 0.0024863999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 1008
+  }
+}

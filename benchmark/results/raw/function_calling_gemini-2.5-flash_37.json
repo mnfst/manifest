@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "function_calling",
+  "case": 37,
+  "response": "```json\n{\n  \"name\": \"invalidate_cache\",\n  \"arguments\": {\n    \"pattern\": \"*.{css,js}\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 3.45e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 38
+  }
+}

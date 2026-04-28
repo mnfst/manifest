@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "function_calling",
+  "case": 35,
+  "response": "{\"name\": \"get_order\", \"arguments\": {\"order_id\": \"12345\"}}",
+  "score": 2,
+  "cost": 0.0002505,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 225
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 39,
+  "response": "{\n  \"name\": \"export_table\",\n  \"arguments\": {\n    \"table\": \"users\",\n    \"format\": \"csv\"\n  }\n}",
+  "score": 5,
+  "cost": 7.92e-05,
+  "expected": "",
+  "tokens": {
+    "input": 176,
+    "output": 220
+  }
+}

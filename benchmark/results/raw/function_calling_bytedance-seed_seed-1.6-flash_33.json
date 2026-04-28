@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 33,
+  "response": "{\n  \"name\": \"git_create_branch\",\n  \"arguments\": {\n    \"name\": \"feature-payments\",\n    \"from_branch\": \"main\"\n  }\n}",
+  "score": 5,
+  "cost": 9.66e-05,
+  "expected": "",
+  "tokens": {
+    "input": 172,
+    "output": 279
+  }
+}

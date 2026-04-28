@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "function_calling",
+  "case": 25,
+  "response": "```json\n{\n  \"name\": \"schedule_meeting\",\n  \"arguments\": {\n    \"title\": \"Standup Meeting\",\n    \"duration_minutes\": 30,\n    \"time\": \"09:00\",\n    \"recurrence\": \"WEEKLY\",\n    \"attendees\": [\"dev-team\"]\n  }\n}\n```",
+  "score": 4,
+  "cost": 7.56e-06,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 73
+  }
+}

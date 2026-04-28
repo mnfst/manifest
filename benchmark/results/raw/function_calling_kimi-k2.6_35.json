@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "function_calling",
+  "case": 35,
+  "response": "{\"name\": \"get_order\", \"arguments\": {\"order_id\": \"12345\"}}",
+  "score": 2,
+  "cost": 0.0008267999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 322
+  }
+}

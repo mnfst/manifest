@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "function_calling",
+  "case": 1,
+  "response": "{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Paris\"}}",
+  "score": 4,
+  "cost": 0.000546,
+  "expected": "",
+  "tokens": {
+    "input": 209,
+    "output": 16
+  }
+}

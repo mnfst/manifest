@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "function_calling",
+  "case": 46,
+  "response": "{\"name\": \"restart_service\", \"arguments\": {\"name\": \"Redis\"}}",
+  "score": 5,
+  "cost": 2.25e-05,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 16
+  }
+}

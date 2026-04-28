@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 17,
+  "response": "{\n  \"name\": \"generate_qr\",\n  \"arguments\": {\n    \"data\": \"https://example.com/signup\"\n  }\n}",
+  "score": 5,
+  "cost": 9.0375e-05,
+  "expected": "",
+  "tokens": {
+    "input": 181,
+    "output": 256
+  }
+}

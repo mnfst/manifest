@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "function_calling",
+  "case": 27,
+  "response": "{\"name\": \"convert_currency\", \"arguments\": {\"amount\": 500, \"from_currency\": \"EUR\", \"to_currency\": \"JPY\"}}",
+  "score": 5,
+  "cost": 3.315e-05,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 30
+  }
+}

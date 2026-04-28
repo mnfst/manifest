@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 9,
+  "response": "{\n  \"name\": \"search_flights\",\n  \"arguments\": {\n    \"origin\": \"New York\",\n    \"destination\": \"London\",\n    \"date\": \"December 15th\",\n    \"passengers\": 2\n  }\n}",
+  "score": 5,
+  "cost": 9.585e-05,
+  "expected": "",
+  "tokens": {
+    "input": 194,
+    "output": 271
+  }
+}

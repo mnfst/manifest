@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "function_calling",
+  "case": 19,
+  "response": "```json\n{\n  \"name\": \"run_tests\",\n  \"arguments\": {\n    \"module\": \"backend\",\n    \"verbose\": true\n  }\n}\n```",
+  "score": 5,
+  "cost": 5.04e-06,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 35
+  }
+}

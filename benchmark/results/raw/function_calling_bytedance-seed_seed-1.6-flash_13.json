@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 13,
+  "response": "[\n  {\n    \"name\": \"control_light\",\n    \"arguments\": {\n      \"room\": \"living room\",\n      \"action\": \"off\"\n    }\n  },\n  {\n    \"name\": \"set_thermostat\",\n    \"arguments\": {\n      \"temperature\": 72\n    }\n  }\n]",
+  "score": 2,
+  "cost": 0.00027134999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 182,
+    "output": 859
+  }
+}

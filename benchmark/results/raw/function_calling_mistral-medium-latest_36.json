@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "function_calling",
+  "case": 36,
+  "response": "```json\n{\n  \"name\": \"subscribe\",\n  \"arguments\": {\n    \"email\": \"jane@example.com\",\n    \"list_name\": \"monthly newsletter\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 0.0001168,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 41
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "function_calling",
+  "case": 24,
+  "response": "[{\"name\": \"rotate_api_key\", \"arguments\": {\"service\": \"production\", \"environment\": \"production\"}}, {\"name\": \"notify_team\", \"arguments\": {\"message\": \"API keys have been rotated for the production service.\"}}]",
+  "score": 1,
+  "cost": 0.00211,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 2085
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "function_calling",
+  "case": 44,
+  "response": "```json\n{\"name\": \"set_log_level\", \"arguments\": {\"service\": \"payment\", \"level\": \"debug\"}}\n```",
+  "score": 5,
+  "cost": 0.00052,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 28
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "function_calling",
+  "case": 26,
+  "response": "```json\n{\n  \"name\": \"upload_file\",\n  \"arguments\": {\n    \"path\": \"report.pdf\",\n    \"destination\": \"shared documents folder\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 0.0002808,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 50
+  }
+}

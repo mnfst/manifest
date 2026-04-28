@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "function_calling",
+  "case": 43,
+  "response": "{\n  \"name\": \"git_revert\",\n  \"arguments\": {\n    \"commit\": \"HEAD\"\n  }\n}",
+  "score": 4,
+  "cost": 0.000653925,
+  "expected": "",
+  "tokens": {
+    "input": 179,
+    "output": 2135
+  }
+}

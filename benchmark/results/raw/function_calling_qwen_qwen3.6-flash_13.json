@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "function_calling",
+  "case": 13,
+  "response": "{\"name\": \"control_light\", \"arguments\": {\"room\": \"living room\", \"action\": \"off\"}}",
+  "score": 4,
+  "cost": 0.001836,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 1809
+  }
+}
