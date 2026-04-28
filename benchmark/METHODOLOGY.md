@@ -12,6 +12,136 @@ Produce a cost-quality Pareto frontier for LLM production tasks. For each (model
 pair, measure quality and cost per query. The paper answers: "For task X, which model
 gives the best cost-to-quality ratio?"
 
+## 1b. Design Rationale (the "why" behind every choice)
+
+This section answers the questions a reviewer or collaborator would ask. It captures
+the reasoning that led to each decision, not just the decision itself.
+
+### Why this benchmark exists
+
+No published benchmark systematically answers "which model is cheapest for which
+production task." Existing benchmarks measure general capability (MMLU, LMSYS Arena),
+router quality (RouterArena), or infrastructure efficiency (CEBench). They don't produce
+a practitioner-facing matrix of "cheapest model per task at acceptable quality." Every
+developer using LLM APIs faces this decision daily. We wanted to give them data instead
+of opinions.
+
+### Why score on 1-5 and not 1-100 or 1-10
+
+Three reasons:
+1. **LLM-judge reliability**: When asked to score on a 100-point scale, LLMs cluster
+   around round numbers (70, 80, 90) making the extra precision illusory. A 1-5 scale
+   with clear qualitative anchors (1=fail, 2=poor, 3=acceptable, 4=good, 5=perfect)
+   produces more consistent inter-rater agreement.
+2. **Alignment with the question we're answering**: We don't need to rank model A at
+   87.3 vs model B at 87.1. We need to know if a $0.15/M model is "good enough" (>=4/5)
+   compared to a $15/M model. A coarse scale serves this better.
+3. **Precedent**: RouterArena, LMSYS, and the Cost-Aware Model Selection paper all
+   use small ordinal scales for LLM-judged evaluations.
+
+We validate the 1-5 scale against native metrics (accuracy, F1, exact match) on
+tasks where both are available. The correlation confirms the scale works.
+
+### Why these specific models
+
+Model selection was driven by three constraints:
+1. **API availability**: We included every model we could actually call. This meant
+   models accessible via Anthropic, OpenAI, Google, Mistral, MiniMax, Moonshot, and
+   OpenRouter APIs. We didn't cherry-pick models to tell a particular story.
+2. **Price tier coverage**: We deliberately ensured at least 2 models per price tier
+   (Premium >$5, Standard $1-5, Economy $0.10-1, Micro <$0.10) to test whether
+   price predicts quality.
+3. **Provider diversity**: The benchmark covers 7+ providers and 4+ model families
+   (GPT, Claude, Gemini, Mistral, DeepSeek, Llama, Qwen, Kimi, MiniMax, ByteDance
+   Seed, Grok). This avoids the bias of benchmarking only OpenAI vs Anthropic.
+
+Models that are missing (e.g., Cohere Command-R, AI21 Jamba) are missing because we
+didn't have API access or ran out of time, not because of a selection bias.
+
+### Why these specific tasks
+
+The 8 production tasks (with 50 cases each) were chosen to cover the most common LLM
+use cases in production:
+
+| Task | Why included |
+|------|-------------|
+| Sentiment (SST-2) | Simplest classification. Baseline task. If a model fails here, something is wrong. |
+| Intent (CLINC-150) | 150-class classification. Tests instruction following at scale. |
+| Reasoning (GSM8K) | Math word problems. Tests whether expensive reasoning models justify their cost. |
+| NER extraction | Structured output from unstructured text. Common in data pipelines. |
+| Translation (OPUS-100) | Language generation quality. Tests multilingual capability. |
+| SQL generation (Spider) | Code generation for non-code tasks. Common in analytics tools. |
+| Content moderation (ToxiGen) | Safety classification with adversarial inputs. Tests robustness. |
+| Function calling | Tool use / structured API calls. Core capability for AI agents. |
+
+Tasks we didn't include at 50 cases yet (code review, test generation, email summary,
+JSON transform, extraction hard) are available at 5 cases from the v1 exploratory run.
+They can be scaled up in a future iteration.
+
+### Why exact match for classification instead of LLM-judge
+
+For sentiment, intent, and moderation: the "correct" answer is a single label from a
+fixed set. Using an LLM judge to evaluate "is positive the right answer for this
+positive text" adds cost and noise without improving accuracy. Exact match is faster,
+cheaper, and deterministic.
+
+The challenge with exact match is reasoning models that wrap answers in explanations.
+We solved this with `strip_thinking()` and `effective_max_tokens()` rather than
+switching to LLM-judge.
+
+### Why gpt-4o-mini as the judge and not a stronger model
+
+Cost. At $0.15/M input tokens, gpt-4o-mini costs ~$0.0001 per judge call. With ~4000+
+judge calls across all tasks, a stronger judge (GPT-4o at $2.50/M) would cost 16x more
+for marginal quality improvement. The dual-metric validation on 4 tasks shows gpt-4o-mini
+judgments correlate well with native metrics.
+
+Limitation: gpt-4o-mini may have a slight bias toward GPT-family output style. We
+document this in the paper.
+
+### Why 50 cases per task and not 100 or 500
+
+Statistical power vs. cost tradeoff. With 50 cases:
+- 95% confidence interval is approximately +/-0.2 on the 1-5 scale
+- This is sufficient to distinguish clusters (economy models at 4.5 vs premium at 4.7)
+  but not individual model differences within 0.1 points
+- Cost per task is ~$1-2 across 20 models (affordable)
+
+With 100 cases, CI drops to +/-0.14 (diminishing returns). With 500 cases, the cost
+would multiply 10x without changing the structural findings.
+
+### Why temperature=0
+
+Reproducibility. With temperature=0, the same prompt produces the same output. This
+means our results are deterministic and reproducible without multiple runs.
+
+Exception: reasoning models that don't support temperature=0 (DeepSeek-R1, Kimi-K2.6,
+Claude Opus 4.7). These models have inherent run-to-run variance. We document this as
+a limitation rather than running 3x repetitions (which would triple cost for a subset
+of models).
+
+### Why batch execution and not all models in parallel
+
+Safety and debuggability:
+1. **Budget control**: Sequential execution lets us check spend after each model and
+   stop before hitting the cap.
+2. **Error isolation**: When a model fails (wrong endpoint, rate limit, auth error),
+   we can diagnose and fix before running the remaining 19 models.
+3. **Resume**: The resume logic checks CSV state at startup. Parallel writes to the
+   same CSV would cause corruption.
+
+### Why we switched from Azure to direct APIs
+
+Azure AI was our initial provider for 10+ models (DeepSeek, Grok, Kimi, Llama, Mistral,
+GPT-5.x, o4-mini). It went down mid-benchmark (HTTP 500 on all models) and didn't come
+back. Rather than wait, we added direct API integrations for each provider:
+- Mistral: api.mistral.ai (free tier, rate-limited on large models)
+- Moonshot/Kimi: api.moonshot.ai (required endpoint discovery, temperature quirks)
+- OpenRouter: openrouter.ai (fallback for ByteDance Seed, Qwen, DeepSeek, Grok)
+
+This made the benchmark more resilient but also more complex (7 provider-specific callers
+instead of 1 Azure caller). The tradeoff was worth it for coverage.
+
 ## 2. Tooling Decisions
 
 ### Why not promptfoo
