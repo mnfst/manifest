@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 17,
+  "response": "Voici la traduction en fran\u00e7ais tout en conservant le ton et le sens :\n\n**Source :** [examplereferenceletter.com](https://www.examplereferenceletter.com)\n\n*(Note : J\u2019ai ajout\u00e9 le lien entre crochets pour respecter la structure originale, mais en fran\u00e7ais, on pourrait aussi simplement \u00e9crire : \"Source : examplereferenceletter.com\" sans le lien.)*\n\nSi vous souhaitez une version plus formelle ou adapt\u00e9e \u00e0 un contexte sp\u00e9cifique (ex. : lettre officielle, pr\u00e9sentation), pr\u00e9cisez-le !",
+  "score": 5,
+  "cost": 5.72e-06,
+  "expected": "",
+  "tokens": {
+    "input": 32,
+    "output": 111
+  }
+}

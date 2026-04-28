@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 8,
+  "response": "Voici une traduction fid\u00e8le du texte tout en conservant le ton et la nuance :\n\n**\"Et il dit : \u00ab Bien s\u00fbr. \u00bb Et moi, j\u2019ai dit : \u00ab Eh bien, je me demande o\u00f9 \u00e7a va se trouver. \u00bb\"**",
+  "score": 4,
+  "cost": 3.7999999999999996e-06,
+  "expected": "",
+  "tokens": {
+    "input": 44,
+    "output": 51
+  }
+}

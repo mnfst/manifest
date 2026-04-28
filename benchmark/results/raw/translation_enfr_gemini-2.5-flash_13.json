@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "translation_enfr",
+  "case": 13,
+  "response": "Dites juste \u00e0 Kumagaya que le d\u00e9tective est ici.",
+  "score": 5,
+  "cost": 1.3949999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 33,
+    "output": 15
+  }
+}

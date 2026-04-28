@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "translation_enfr",
+  "case": 5,
+  "response": "French: Les flocs provenant de TRS plus \u00e9lev\u00e9s \u00e9taient moins hydrat\u00e9s et pr\u00e9sentaient une couche dense de SPE qui recouvre une grande partie de la surface.\n\nNote: TRS = Temps de R\u00e9tention des Solides (SRT = Solids Retention Time), SPE = Substances Polym\u00e8res Extracellulaires (EPS = Extracellular Polymeric Substances)",
+  "score": 4,
+  "cost": 0.001704,
+  "expected": "",
+  "tokens": {
+    "input": 58,
+    "output": 102
+  }
+}

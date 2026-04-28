@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "translation_enfr",
+  "case": 41,
+  "response": "This phrase is very colloquial, aggressive, and contains profanity. The translation needs to capture that same raw and dismissive tone. Here are a few options, from the most literal to the most idiomatic.\n\n**Option 1 (Most direct and faithful):**\n\n> T'es pas de la DGA. Contente-toi de zoomer et ferme ta putain de gueule.\n\n*   **T'es pas de la DGA:** Perfectly captures the informal \"You ain't\" and the specific reference.\n*   **Contente-toi de zoomer:** This means \"Just stick to zooming\" or \"Be content with just zooming,\" which conveys the dismissive tone of \"Just zoom in.\"\n*   **ferme ta putain de gueule:** This is the direct and most common equivalent of \"shut the fuck up.\"\n\n**Option 2 (Slightly more concise and common slang):**\n\n> T'es pas le r\u00e9al. Alors zoome et ta gueule.\n\n*   **T'es pas le r\u00e9al:** This translates the *meaning* behind \"not being in the DGA\" by saying \"You're not the director\" (`r\u00e9al` is slang for `r\u00e9alisateur`). This is excellent if the audience might not know the DGA acronym.\n*   **Alors zoome et ta gueule:** \"So zoom and shut your mouth.\" `Ta gueule` is a very common, abrupt, and aggressive way to say \"shut up,\" equivalent in force to the English original.\n\nBoth options are excellent and maintain the original's tone and meaning perfectly. The first is a more literal translation, while the second is slightly more adapted to common French slang.",
+  "score": 4,
+  "cost": 0.00360875,
+  "expected": "",
+  "tokens": {
+    "input": 39,
+    "output": 356
+  }
+}

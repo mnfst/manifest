@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 28,
+  "response": "# French Translation\n\nNous sommes capables... de d\u00e9ployer une puissance de feu... plus importante que tout ce qui a jamais \u00e9t\u00e9 lib\u00e9r\u00e9 dans l'histoire de la guerre.\n\n---\n\n**Alternative version** (slightly more concise):\n\nNous sommes capables... de lancer une puissance de feu... plus massive que tout ce qui a jamais \u00e9t\u00e9 d\u00e9ploy\u00e9 dans l'histoire de la guerre.\n\nBoth maintain the formal, serious tone and the ellipses of the original English text.",
+  "score": 4,
+  "cost": 0.000508,
+  "expected": "",
+  "tokens": {
+    "input": 50,
+    "output": 117
+  }
+}

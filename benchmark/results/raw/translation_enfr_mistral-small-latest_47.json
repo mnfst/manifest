@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "translation_enfr",
+  "case": 47,
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens du texte original :\n\n**\"Ce type de r\u00e9pression, ainsi que les arrestations ces derni\u00e8res semaines de repr\u00e9sentants d\u2019institutions humanitaires, de syndicats et de journalistes accus\u00e9s de diffuser de\u6240\u8c13\u7684 fausses informations, ont justement suscit\u00e9 l\u2019inqui\u00e9tude de la communaut\u00e9 internationale.\"**\n\n### Explications des choix :\n1. **\"Repression of this kind\"** \u2192 **\"Ce type de r\u00e9pression\"** : Formulation naturelle en fran\u00e7ais, \u00e9quivalente \u00e0 \"ce genre de r\u00e9pression\".\n2. **\"together with\"** \u2192 **\"ainsi que\"** : Plus fluide que \"en m\u00eame temps que\" ou \"avec\", tout en gardant le lien logique.\n3. **\"accused of spreading so-called false information\"** \u2192 **\"accus\u00e9s de diffuser de\u6240\u8c13\u7684 fausses informations\"** :\n   - **\"so-called\"** est rendu par **\"de\u6240\u8c13\u7684\"** (litt\u00e9ralement \"de soi-disant\"), une tournure courante en fran\u00e7ais pour marquer l'ironie ou le scepticisme.\n   - **\"false information\"** \u2192 **\"fausses informations\"** (terme standard en fran\u00e7ais pour d\u00e9signer les *fake news*).\n4. **\"have rightly awakened the concern\"** \u2192 **\"ont justement suscit\u00e9 l\u2019inqui\u00e9tude\"** :\n   - **\"rightly\"** est traduit par **\"justement\"** (pour souligner la justesse de la r\u00e9action).\n   - **\"awakened the concern\"** \u2192 **\"suscit\u00e9 l\u2019inqui\u00e9tude\"** (plus naturel que \"\u00e9veill\u00e9 l'inqui\u00e9tude\").\n\n### Variante alternative (si vous pr\u00e9f\u00e9rez \u00e9viter \"de\u6240\u8c13\u7684\") :\n**\"Ce type de r\u00e9pression, ainsi que les arrestations r\u00e9centes de repr\u00e9sentants d\u2019institutions humanitaires, de syndicats et de journalistes accus\u00e9s de propager des informations qualifi\u00e9es de fausses, ont justement alarm\u00e9 la communaut\u00e9 internationale.\"**\n\nCette version utilise **\"qualifi\u00e9es de fausses\"** pour remplacer \"so-called\", ce qui est aussi correct mais moins direct. Le choix d\u00e9pend du registre souhait\u00e9 (plus formel ou plus neutre).",
+  "score": 3,
+  "cost": 0.000138,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 435
+  }
+}

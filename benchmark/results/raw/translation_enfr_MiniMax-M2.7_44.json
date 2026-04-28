@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "translation_enfr",
+  "case": 44,
+  "response": "Les analyses de sensibilit\u00e9 indiquent que l'\u00e9tendue de la longueur non support\u00e9e engendr\u00e9e par l'affouillement a une influence significative sur la r\u00e9ponse flexionnelle du syst\u00e8me tuyau\u2011sol.",
+  "score": 4,
+  "cost": 0.0016907,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 363
+  }
+}

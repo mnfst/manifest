@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "translation_enfr",
+  "case": 6,
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens :\n\n**\"L\u00e0, en ce moment, en descendant Wangan, c'est le diable qui conduit.\"**\n\nSi vous souhaitez une version plus famili\u00e8re ou plus formelle, voici quelques alternatives :\n\n- **Familier** : *\"L\u00e0, en roulant sur Wangan, c'est le diable qui conduit !\"*\n- **Plus neutre** : *\"En ce moment, en descendant Wangan, c'est comme si le diable conduisait.\"*\n\nDites-moi si vous souhaitez ajuster le style !",
+  "score": 3,
+  "cost": 4.04e-05,
+  "expected": "",
+  "tokens": {
+    "input": 44,
+    "output": 120
+  }
+}

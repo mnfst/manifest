@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "translation_enfr",
+  "case": 13,
+  "response": "Dites \u00e0 Kumagaya que le d\u00e9tective est l\u00e0.",
+  "score": 5,
+  "cost": 0.00018125,
+  "expected": "",
+  "tokens": {
+    "input": 33,
+    "output": 14
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "translation_enfr",
+  "case": 5,
+  "response": "Les flocs issus de SRT plus \u00e9lev\u00e9s \u00e9taient moins hydrat\u00e9s et pr\u00e9sentaient une couche dense d'EPS recouvrant la majeure partie de leur surface.",
+  "score": 5,
+  "cost": 0.005745,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 61
+  }
+}

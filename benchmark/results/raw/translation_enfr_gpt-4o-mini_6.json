@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "translation_enfr",
+  "case": 6,
+  "response": "En ce moment, en descendant Wangan, c'est ce diable.",
+  "score": 4,
+  "cost": 1.425e-05,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 15
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "translation_enfr",
+  "case": 5,
+  "response": "Les flocs des SRT plus \u00e9lev\u00e9s pr\u00e9sentaient une hydratation moindre et poss\u00e9daient une couche d\u2019EPS dense couvrant une grande partie de la surface.",
+  "score": 5,
+  "cost": 0.0020911000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 454
+  }
+}

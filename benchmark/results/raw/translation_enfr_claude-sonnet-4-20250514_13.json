@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "translation_enfr",
+  "case": 13,
+  "response": "Dites simplement \u00e0 Kumagaya que le d\u00e9tective est l\u00e0.",
+  "score": 5,
+  "cost": 0.000426,
+  "expected": "",
+  "tokens": {
+    "input": 42,
+    "output": 20
+  }
+}

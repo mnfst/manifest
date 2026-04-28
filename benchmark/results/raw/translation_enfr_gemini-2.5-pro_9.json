@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "translation_enfr",
+  "case": 9,
+  "response": "De son c\u00f4t\u00e9, le deuxi\u00e8me atelier a port\u00e9 sur la mise en \u0153uvre des recommandations formul\u00e9es par les organes de suivi des trait\u00e9s \u00e0 l'\u00c9tat du Cameroun, conform\u00e9ment aux trait\u00e9s internationaux et r\u00e9gionaux, concernant ses obligations envers les populations autochtones.",
+  "score": 5,
+  "cost": 0.0005675,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 49
+  }
+}

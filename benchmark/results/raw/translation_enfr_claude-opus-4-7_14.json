@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "translation_enfr",
+  "case": 14,
+  "response": "Le Comit\u00e9 accueille avec satisfaction la pr\u00e9sentation du rapport initial de l'\u00c9tat partie et se f\u00e9licite du dialogue constructif et fructueux engag\u00e9 avec une d\u00e9l\u00e9gation comp\u00e9tente et de haut niveau.",
+  "score": 5,
+  "cost": 0.006855,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 73
+  }
+}

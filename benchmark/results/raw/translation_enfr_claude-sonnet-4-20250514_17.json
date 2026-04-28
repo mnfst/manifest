@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "translation_enfr",
+  "case": 17,
+  "response": "Source : examplereferenceletter.com\n\n(Note: The URL remains unchanged as it's a web address, but I added a space after \"Source:\" as is standard in French typography)",
+  "score": 5,
+  "cost": 0.000777,
+  "expected": "",
+  "tokens": {
+    "input": 39,
+    "output": 44
+  }
+}

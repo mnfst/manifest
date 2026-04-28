@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 27,
+  "response": "# French Translation\n\nLes crit\u00e8res du DSM-IV pour l'intoxication \u00e0 l'alcool sont similaires avec l'ajout d'un ou plusieurs des signes suivants : parole indistincte, manque de coordination, d\u00e9marche instable, nystagmus, troubles de l'attention ou de la m\u00e9moire, stupeur ou coma.\n\n---\n\n**Note:** This is a medical/psychiatric text, so the terminology remains specialized and precise in French, maintaining the clinical tone of the original English.",
+  "score": 5,
+  "cost": 0.000548,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 119
+  }
+}

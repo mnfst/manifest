@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 47,
+  "response": "Voici une traduction fid\u00e8le et respectueuse du ton original :\n\n**La r\u00e9pression de ce type, combin\u00e9e aux arrestations r\u00e9centes de repr\u00e9sentants d\u2019institutions humanitaires, de syndicats et de journalistes accus\u00e9s de diffuser des informations qualifi\u00e9es de fausses, a tout \u00e0 fait \u00e9veill\u00e9 la pr\u00e9occupation de la communaut\u00e9 internationale.**\n\n*(Variante l\u00e9g\u00e8rement plus concise si besoin :)*\n**Cette forme de r\u00e9pression, coupl\u00e9e aux arrestations r\u00e9centes de repr\u00e9sentants d\u2019institutions humanitaires, de syndicats et de journalistes accus\u00e9s de propager des informations qualifi\u00e9es de fausses, a tout naturellement suscit\u00e9 l\u2019inqui\u00e9tude de la communaut\u00e9 internationale.**\n\nLes deux versions gardent la m\u00eame nuance d\u2019urgence et d\u2019urgence internationale.",
+  "score": 5,
+  "cost": 8.68e-06,
+  "expected": "",
+  "tokens": {
+    "input": 63,
+    "output": 154
+  }
+}

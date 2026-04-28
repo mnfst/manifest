@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 47,
+  "response": "# French Translation\n\nLa r\u00e9pression de ce type, associ\u00e9e \u00e0 l'arrestation au cours des derni\u00e8res semaines de repr\u00e9sentants d'institutions humanitaires, de syndicats et de journalistes accus\u00e9s de diffuser des informations pr\u00e9tendument fausses, a justement suscit\u00e9 l'inqui\u00e9tude de la communaut\u00e9 internationale.\n\n---\n\n**Key translation choices:**\n- \"Repression of this kind\" \u2192 \"La r\u00e9pression de ce type\"\n- \"together with\" \u2192 \"associ\u00e9e \u00e0\"\n- \"have rightly awakened\" \u2192 \"a justement suscit\u00e9\"\n- \"so-called false information\" \u2192 \"des informations pr\u00e9tendument fausses\" (or \"soi-disant fausses\")",
+  "score": 5,
+  "cost": 0.0007544,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 174
+  }
+}

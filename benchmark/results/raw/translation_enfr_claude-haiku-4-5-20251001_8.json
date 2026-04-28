@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 8,
+  "response": "Et il a dit : \u00ab D'accord. \u00bb Et j'ai dit : \u00ab Eh bien, je me demande o\u00f9 \u00e7a va se passer. \u00bb",
+  "score": 4,
+  "cost": 0.00019280000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 51,
+    "output": 38
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "translation_enfr",
+  "case": 6,
+  "response": "En ce moment, c'est ce diable qui roule sur le Wangan.",
+  "score": 4,
+  "cost": 0.0040362,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 1673
+  }
+}

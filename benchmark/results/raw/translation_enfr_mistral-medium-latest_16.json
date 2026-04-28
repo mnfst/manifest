@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "translation_enfr",
+  "case": 16,
+  "response": "Voici une traduction qui conserve le ton et le sens de la phrase originale, tout en restant naturelle en fran\u00e7ais :\n\n**\"J\u2019ai l\u2019impression que ma queue n\u2019est pas assez grosse pour toi.\"**\n\nSi tu cherches une version un peu plus douce ou plus po\u00e9tique, tu pourrais aussi dire :\n*\"J\u2019ai peur que ma taille ne te convienne pas.\"* (moins explicite, mais plus \u00e9l\u00e9gant).\n\nTu veux une nuance particuli\u00e8re (plus vulgaire, plus romantique, etc.) ?",
+  "score": 4,
+  "cost": 0.0002216,
+  "expected": "",
+  "tokens": {
+    "input": 34,
+    "output": 104
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "translation_enfr",
+  "case": 11,
+  "response": "Un large \u00e9ventail d'attraits touristiques et de produits (th\u00e9, circuits culturels, stations thermales et spas, gastronomie, activit\u00e9s nautiques, etc.) a \u00e9t\u00e9 identifi\u00e9 dans la destination, n\u00e9cessitant un d\u00e9veloppement interd\u00e9pendant en raison de leur isolement, de leurs compl\u00e9mentarit\u00e9s et de leur profil relativement homog\u00e8ne.",
+  "score": 5,
+  "cost": 3.03e-05,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 71
+  }
+}

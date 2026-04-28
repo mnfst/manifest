@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 25,
+  "response": "# French Translation\n\n2. Le 21 f\u00e9vrier, le Sous-secr\u00e9taire \u00e0 la Guerre, Jos\u00e9 Asenio, a \u00e9t\u00e9 r\u00e9voqu\u00e9, et peu apr\u00e8s arr\u00eat\u00e9 avec le Colonel Villalba, pour la trahison de Malaga.\n\n---\n\n**Alternative version (slightly more formal):**\n\n2. Le 21 f\u00e9vrier, le Sous-secr\u00e9taire d'\u00c9tat \u00e0 la Guerre, Jos\u00e9 Asenio, fut r\u00e9voqu\u00e9 et bient\u00f4t arr\u00eat\u00e9, ainsi que le Colonel Villalba, pour la trahison de Malaga.",
+  "score": 4,
+  "cost": 0.0006136000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 139
+  }
+}

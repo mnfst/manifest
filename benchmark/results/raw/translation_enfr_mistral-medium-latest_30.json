@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "translation_enfr",
+  "case": 30,
+  "response": "Voici une traduction fid\u00e8le qui conserve le ton et le sens de l'original :\n\n**\"Premi\u00e8re ligne de cr\u00e9dit en Italie d\u00e9di\u00e9e aux apprentissages des jeunes dans les PME, les ETI et les collectivit\u00e9s locales\"**\n\n*Explications des choix :*\n- **\"Premi\u00e8re ligne de cr\u00e9dit\"** : Traduction directe pour garder le c\u00f4t\u00e9 technique et institutionnel.\n- **\"d\u00e9di\u00e9e aux apprentissages des jeunes\"** : \"Youth apprenticeships\" est rendu par *\"apprentissages des jeunes\"* (plus naturel en fran\u00e7ais que *\"apprentissages jeunesse\"*).\n- **\"PME\"** (Petites et Moyennes Entreprises) et **\"ETI\"** (Entreprises de Taille Interm\u00e9diaire) sont les termes standard en fran\u00e7ais pour *\"SMEs\"* et *\"midcaps\"*.\n- **\"collectivit\u00e9s locales\"** : \u00c9quivalent courant de *\"local authorities\"* en contexte administratif fran\u00e7ais/italien.\n\n*Variante possible (si on veut insister sur l'aspect innovant) :*\n**\"L\u2019Italie lance sa premi\u00e8re ligne de cr\u00e9dit pour financer l\u2019apprentissage des jeunes dans les PME, les ETI et les collectivit\u00e9s territoriales.\"**\n\nDites-moi si vous souhaitez ajuster le style (plus formel, plus concis, etc.) !",
+  "score": 5,
+  "cost": 0.0005532,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 268
+  }
+}

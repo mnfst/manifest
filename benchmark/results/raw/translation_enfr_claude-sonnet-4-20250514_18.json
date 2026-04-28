@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "translation_enfr",
+  "case": 18,
+  "response": "French: La plage la plus proche se trouve \u00e0 une distance facilement accessible en voiture, situ\u00e9e \u00e0 environ 6...",
+  "score": 4,
+  "cost": 0.000564,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 29
+  }
+}

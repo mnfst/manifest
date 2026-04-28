@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "translation_enfr",
+  "case": 16,
+  "response": "Je sens que mon sexe n'est pas assez grand pour toi.",
+  "score": 4,
+  "cost": 0.00022,
+  "expected": "",
+  "tokens": {
+    "input": 36,
+    "output": 13
+  }
+}

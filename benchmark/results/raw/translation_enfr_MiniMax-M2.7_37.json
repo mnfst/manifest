@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "translation_enfr",
+  "case": 37,
+  "response": "Le paragraphe\u202f104(1.1) est modifi\u00e9 afin de pr\u00e9ciser qu\u2019il s'applique nonobstant le paragraphe\u202f248(25) de la Loi. Le paragraphe\u202f248(25) de la Loi d\u00e9crit, pour d'autres fins de la Loi, les circonstances dans lesquelles une personne ou un partenariat est consid\u00e9r\u00e9 comme ayant un \u00ab\u202fint\u00e9r\u00eat b\u00e9n\u00e9ficiaire\u202f\u00bb dans une fiducie.",
+  "score": 5,
+  "cost": 0.0058641000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 1303
+  }
+}

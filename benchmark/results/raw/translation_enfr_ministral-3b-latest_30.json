@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 30,
+  "response": "Voici une traduction fid\u00e8le et adapt\u00e9e du texte en fran\u00e7ais :\n\n**\"Premi\u00e8re ligne de cr\u00e9dit en Italie pour les apprentissages professionnels des jeunes dans les PME, midcaps et les collectivit\u00e9s locales.\"**\n\nSi vous souhaitez une formulation plus concise ou plus technique (selon le contexte), je peux ajuster :\n- *\"Cr\u00e9dit d'appoint italien pour les formations professionnelles des jeunes dans les TPE/PME, midcaps et les collectivit\u00e9s\"* (plus court).\n- *\"Premier pr\u00eat d\u00e9di\u00e9 aux apprentis jeunes dans les PME, midcaps et les collectivit\u00e9s territoriales\"* (plus pr\u00e9cis institutionnel).\n\nDites-moi si vous avez besoin d'une nuance particuli\u00e8re !",
+  "score": 4,
+  "cost": 7.36e-06,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 141
+  }
+}

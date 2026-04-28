@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "translation_enfr",
+  "case": 34,
+  "response": "Sydney et Esther seront dans mon bureau.",
+  "score": 3,
+  "cost": 9.3e-06,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 8
+  }
+}

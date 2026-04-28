@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "translation_enfr",
+  "case": 28,
+  "response": "Nous sommes capables... de lancer plus de puissance de feu... que ce qui n'a jamais \u00e9t\u00e9 lib\u00e9r\u00e9 dans l'histoire de la guerre.",
+  "score": 4,
+  "cost": 0.0030726,
+  "expected": "",
+  "tokens": {
+    "input": 45,
+    "output": 1269
+  }
+}

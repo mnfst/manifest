@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "translation_enfr",
+  "case": 49,
+  "response": "Voici une traduction qui conserve le ton et le sens de la phrase originale :\n\n**\"J\u2019ai des g\u00e2teaux \u00e0 la cr\u00e8me, des fruits confits, des harengs marin\u00e9s et des dattes cristallis\u00e9es.\"**\n\n*Explications des choix :*\n- **\"Cream cakes\"** \u2192 *\"G\u00e2teaux \u00e0 la cr\u00e8me\"* (plus naturel en fran\u00e7ais que *\"tartes \u00e0 la cr\u00e8me\"*, qui \u00e9voque plut\u00f4t des tartes).\n- **\"Sweet meats\"** \u2192 *\"Fruits confits\"* (le terme anglais d\u00e9signe souvent des fruits confits ou des bonbons sucr\u00e9s ; *\"viandes sucr\u00e9es\"* serait incorrect en fran\u00e7ais).\n- **\"Pickled herring\"** \u2192 *\"Harengs marin\u00e9s\"* (le terme *\"marin\u00e9s\"* est plus courant que *\"saumur\u00e9s\"* pour ce contexte).\n- **\"Crystallized dates\"** \u2192 *\"Dattes cristallis\u00e9es\"* (traduction directe et naturelle).\n\nSi le contexte est plus litt\u00e9raire ou ancien (ex. : un texte de Dickens), on pourrait aussi dire :\n*\"J\u2019ai des p\u00e2tisseries \u00e0 la cr\u00e8me, des douceurs, des harengs saurs et des dattes confites.\"* (mais la premi\u00e8re version reste plus universelle).",
+  "score": 5,
+  "cost": 0.0005248,
+  "expected": "",
+  "tokens": {
+    "input": 42,
+    "output": 254
+  }
+}

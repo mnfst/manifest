@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 26,
+  "response": "Voici une traduction naturelle et fid\u00e8le du texte, tout en conservant le ton et la nuance :\n\n**Il \u00e9tait sugg\u00e9r\u00e9, au contraire, que l\u2019arm\u00e9e devrait jouer un r\u00f4le secondaire dans les op\u00e9rations anti-terroristes.**\n\n*(Variante l\u00e9g\u00e8rement plus formelle si n\u00e9cessaire :*\n**Il \u00e9tait propos\u00e9, plut\u00f4t, que l\u2019arm\u00e9e doive adopter un r\u00f4le secondaire dans la lutte antiterroriste.**)\n\n---\n**Explications des choix** :\n- *\"Instead\"* \u2192 *\"Au contraire\"* (plus naturel en fran\u00e7ais pour une opposition explicite).\n- *\"Should play\"* \u2192 *\"doit jouer\"* (imp\u00e9ratif pour l\u2019\u00e9nonc\u00e9 sugg\u00e9r\u00e9, comme dans un rapport ou un d\u00e9bat).\n- *\"Anti-terrorist operations\"* \u2192 *\"op\u00e9rations anti-terroristes\"* (terme technique, mais *\"lutte antiterroriste\"* est aussi courant selon le contexte).\n- *\"Secondary role\"* \u2192 *\"r\u00f4le secondaire\"* (\u00e9vite la r\u00e9p\u00e9tition de *\"secondaire\"* en fran\u00e7ais).\n\nSi le texte est issu d\u2019un contexte institutionnel (ex : rapport militaire), *\"r\u00f4le secondaire\"* est plus pr\u00e9cis. Pour un ton plus fluide, *\"un r\u00f4le moins central\"* pourrait aussi convenir.",
+  "score": 4,
+  "cost": 1.168e-05,
+  "expected": "",
+  "tokens": {
+    "input": 42,
+    "output": 250
+  }
+}

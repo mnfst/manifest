@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 17,
+  "response": "# French Translation\n\nSource : examplereferenceletter.com\n\n---\n\n**Note:** This is a direct translation of the source attribution. The URL/domain name typically remains the same in French translations, as it's a proper web address.",
+  "score": 5,
+  "cost": 0.0002472,
+  "expected": "",
+  "tokens": {
+    "input": 39,
+    "output": 54
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 28,
+  "response": "Voici une traduction fid\u00e8le et adapt\u00e9e du ton original :\n\n**\"Nous sommes capables... de d\u00e9ployer une puissance de feu... sans pr\u00e9c\u00e9dent dans l\u2019histoire des conflits.\"**\n\n*(Variante l\u00e9g\u00e8rement plus concise si besoin :)*\n**\"Nous pouvons mobiliser une puissance de feu... jamais d\u00e9ploy\u00e9e \u00e0 ce niveau dans l\u2019histoire des guerres.\"**\n\nLes deux versions gardent la force et l'ampleur de l'assertion originale.",
+  "score": 4,
+  "cost": 5.2e-06,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 87
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "translation_enfr",
+  "case": 15,
+  "response": "Voici une traduction fid\u00e8le qui conserve le ton et le sens de l'original :\n\n**\"Sector Source est un site ressource con\u00e7u pour aider les responsables d\u2019organismes de bienfaisance et d\u2019organisations \u00e0 but non lucratif \u00e0 rester inform\u00e9s sur...\"**\n\n*Variantes possibles selon le contexte :*\n- *\"Sector Source est une plateforme d\u00e9di\u00e9e aux gestionnaires d\u2019\u0152uvres caritatives et d\u2019associations sans but lucratif, pour les aider \u00e0...\"*\n- *\"Sector Source est un site de r\u00e9f\u00e9rence qui accompagne les dirigeants d\u2019organismes \u00e0 vocation sociale et non lucrative dans leur veille...\"*\n\nSi vous souhaitez adapter le ton (plus formel, plus dynamique, etc.) ou pr\u00e9ciser le domaine d'information (financement, r\u00e9glementation, bonnes pratiques, etc.), je peux affiner la traduction !",
+  "score": 5,
+  "cost": 0.00036760000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 44,
+    "output": 175
+  }
+}

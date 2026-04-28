@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "translation_enfr",
+  "case": 42,
+  "response": "Ce premier d\u00e9nombrement fut fait pendant que Quirinius \u00e9tait gouverneur de la Syria. Chacun devait s'inscrire dans sa propre ville. Ainsi, tout le monde partit pour sa propre ville ; Joseph aussi partit de Nazareth en Galil\u00e9e. Comme il appartenait \u00e0 la maison et \u00e0 la descendance de David, il alla en Jud\u00e9e, dans la ville de Bethl\u00e9em, qui est celle de David, pour se faire enregistrer avec Marie, son \u00e9pouse, qui \u00e9tait enceinte.",
+  "score": 4,
+  "cost": 0.0033330000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 728
+  }
+}

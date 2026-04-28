@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "translation_enfr",
+  "case": 20,
+  "response": "Je dirais que c'est de **pi\u00e8tre valeur**, au mieux.\n\n*(Alternative options depending on context: \"peu int\u00e9ressant\", \"sans grand int\u00e9r\u00eat\", ou \"m\u00e9diocre\" si le ton est plus critique.)*",
+  "score": 4,
+  "cost": 0.0001112,
+  "expected": "",
+  "tokens": {
+    "input": 33,
+    "output": 49
+  }
+}

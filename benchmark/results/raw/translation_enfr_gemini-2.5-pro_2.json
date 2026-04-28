@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "translation_enfr",
+  "case": 2,
+  "response": "J\u00e9sus vint et parla distinctement et avec bienveillance : \u00ab C'est moi. \u00bb Cette parole devint le fondement de la foi des ap\u00f4tres.",
+  "score": 5,
+  "cost": 0.00039625,
+  "expected": "",
+  "tokens": {
+    "input": 45,
+    "output": 34
+  }
+}

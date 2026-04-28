@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "translation_enfr",
+  "case": 30,
+  "response": "Premiere ligne de credit en Italie pour les apprenticeships de jeunes dans les PME, les midcaps et les collectivites locales",
+  "score": 4,
+  "cost": 0.0029755,
+  "expected": "",
+  "tokens": {
+    "input": 57,
+    "output": 662
+  }
+}

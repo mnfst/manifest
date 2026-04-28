@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "# French Translation\n\nDes \u00e9vacuateurs de crues capables de g\u00e9rer les \u00e9v\u00e9nements de crue postul\u00e9s sont int\u00e9gr\u00e9s soit dans les structures du barrage, soit construits comme des structures s\u00e9par\u00e9es.\n\n---\n\n**Alternative version (slightly more formal):**\n\nDes \u00e9vacuateurs de crues dimensionn\u00e9s pour les \u00e9v\u00e9nements de crue envisag\u00e9s sont soit incorpor\u00e9s aux structures du barrage, soit construits en tant que structures ind\u00e9pendantes.",
+  "score": 5,
+  "cost": 0.00048,
+  "expected": "",
+  "tokens": {
+    "input": 55,
+    "output": 109
+  }
+}

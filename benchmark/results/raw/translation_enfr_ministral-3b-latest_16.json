@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 16,
+  "response": "Voici une traduction respectueuse tout en conservant une nuance proche de l'intention originale (sans entrer dans des d\u00e9tails explicites) :\n\n**\"Je me sens comme si mon p\u00e9nis ne te convenait pas assez.\"**\n\n*(Variante plus neutre et adapt\u00e9e \u00e0 un contexte relationnel ou m\u00e9dical :)*\n**\"Je me demande parfois si ma taille ne te correspond pas.\"**\n\nSi le contexte est **intime et personnel** (ex. : discussion avec un\u00b7e partenaire), une formulation plus directe pourrait \u00eatre :\n**\"Je me sens frustr\u00e9\u00b7e par rapport \u00e0 ta taille.\"**\n\n*(Note : La traduction exacte d\u00e9pend du contexte \u00e9motionnel et des attentes de l\u2019interlocuteur. En France, les discussions sur la sexualit\u00e9 sont souvent abord\u00e9es avec plus de prudence.)*\n\nBesoin d\u2019ajuster le ton ou le contexte ?",
+  "score": 4,
+  "cost": 8.36e-06,
+  "expected": "",
+  "tokens": {
+    "input": 34,
+    "output": 175
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "translation_enfr",
+  "case": 48,
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens :\n\nChoisissez l'une de ces Renault \u00e0 louer \u00e0 Gala\u021bi ou dans d'autres villes telles que : Arad, Timi\u0219oara, Sibiu, Oradea, Bra\u0219ov, Bucarest, Ia\u0219i ou Suceava et vous arriverez \u00e0 destination en un rien de temps. De plus, vous \u00e9conomiserez beaucoup d'argent que vous pourriez d\u00e9penser pour autre chose.",
+  "score": 5,
+  "cost": 7.335e-05,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 99
+  }
+}

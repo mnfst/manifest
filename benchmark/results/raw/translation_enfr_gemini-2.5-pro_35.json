@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "translation_enfr",
+  "case": 35,
+  "response": "L'accident a eu lieu juste apr\u00e8s 10 heures du matin.",
+  "score": 5,
+  "cost": 0.00020375,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 15
+  }
+}

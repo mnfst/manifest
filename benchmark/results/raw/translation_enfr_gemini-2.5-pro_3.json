@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "translation_enfr",
+  "case": 3,
+  "response": "Il n'y a pas d'autre explication \u00e0 l'octroi parcimonieux de 10 ou 12 millions d'ECU, qui, comme nous le savons tous, ne suffisent m\u00eame pas \u00e0 construire un seul navire dot\u00e9 des moyens modernes permettant d'assurer une fonction de surveillance dans le secteur de la p\u00eache.",
+  "score": 5,
+  "cost": 0.0008125,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 72
+  }
+}

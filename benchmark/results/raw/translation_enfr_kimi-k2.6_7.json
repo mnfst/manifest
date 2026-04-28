@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "translation_enfr",
+  "case": 7,
+  "response": "Des services de placement. C'est g\u00e9n\u00e9reux.",
+  "score": 5,
+  "cost": 0.0021306,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 880
+  }
+}

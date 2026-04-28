@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 14,
+  "response": "Voici une traduction fid\u00e8le et adapt\u00e9e du texte original en fran\u00e7ais, tout en conservant le ton et la nuance :\n\n**La Commission salue la soumission du premier rapport du \u00c9tat partie et est satisfait(e) par le dialogue constructif et fructueux initi\u00e9 avec une d\u00e9l\u00e9gation comp\u00e9tente et de haut niveau.**",
+  "score": 4,
+  "cost": 4.84e-06,
+  "expected": "",
+  "tokens": {
+    "input": 54,
+    "output": 67
+  }
+}

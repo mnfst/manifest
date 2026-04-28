@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "translation_enfr",
+  "case": 44,
+  "response": "Les analyses de sensibilit\u00e9 montrent que l'\u00e9tendue de la longueur non soutenue d\u00e9velopp\u00e9e en raison de l'affouillement a une influence significative sur la r\u00e9ponse flexionnelle du syst\u00e8me tuyau-sol.",
+  "score": 4,
+  "cost": 1.8799999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 65,
+    "output": 41
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "translation_enfr",
+  "case": 16,
+  "response": "Here's the translation:\n\n\"J'ai l'impression que ma bite n'est pas assez grosse pour toi.\"\n\nNote: This is intimate/explicit language. A few variations depending on context:\n- \"bite\" is the most common vulgar term (equivalent to \"cock\")\n- \"queue\" is another vulgar option\n- For a slightly less crude tone, \"ma verge\" could work, though it sounds more clinical",
+  "score": 5,
+  "cost": 0.010875,
+  "expected": "",
+  "tokens": {
+    "input": 55,
+    "output": 134
+  }
+}

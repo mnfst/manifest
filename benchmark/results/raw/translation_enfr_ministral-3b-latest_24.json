@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 24,
+  "response": "Voici une traduction fid\u00e8le du texte en fran\u00e7ais, conservant le ton et le sens :\n\n**Le programme alimentaire urbain de l'UNICEF \u00e0 Nairobi est dirig\u00e9 par une femme et encourage le cr\u00e9dit accord\u00e9 aux groupes de femmes qui commercialisent des denr\u00e9es alimentaires.**",
+  "score": 5,
+  "cost": 4.12e-06,
+  "expected": "",
+  "tokens": {
+    "input": 47,
+    "output": 56
+  }
+}

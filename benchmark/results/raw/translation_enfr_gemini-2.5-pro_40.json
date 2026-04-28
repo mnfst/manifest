@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "translation_enfr",
+  "case": 40,
+  "response": "Here are a few excellent options, as the best choice can depend on the level of formality.\n\n**Most common and natural:**\nIl nous faut juste plus d'informations.\n\n**Also very common (especially in conversation):**\nOn a juste besoin de plus d'informations.\n\n**Slightly more formal:**\nNous avons simplement besoin de plus d'informations.",
+  "score": 5,
+  "cost": 0.00080625,
+  "expected": "",
+  "tokens": {
+    "input": 29,
+    "output": 77
+  }
+}

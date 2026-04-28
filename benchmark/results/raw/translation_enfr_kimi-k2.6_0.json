@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "translation_enfr",
+  "case": 0,
+  "response": "Je sais comment aider, et je veux le faire.",
+  "score": 5,
+  "cost": 0.0020399999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 36,
+    "output": 841
+  }
+}

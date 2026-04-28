@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 1,
+  "response": "Voici une traduction fid\u00e8le et naturelle du texte tout en conservant le ton et la pr\u00e9cision :\n\n**Jeune homme, 49 ans, Pays de la Loire (Angers)**\n\n*(Variante plus concise si besoin :)*\n**Homme de 49 ans, Pays de la Loire (Angers)**",
+  "score": 5,
+  "cost": 4.2800000000000005e-06,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 64
+  }
+}

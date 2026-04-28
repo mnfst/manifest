@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 14,
+  "response": "# French Translation\n\nLe Comit\u00e9 accueille favorablement la soumission du rapport initial de l'\u00c9tat partie et se f\u00e9licite du dialogue constructif et fructueux engag\u00e9 avec une d\u00e9l\u00e9gation de haut niveau comp\u00e9tente.\n\n---\n\n**Alternative version (slightly more formal):**\n\nLe Comit\u00e9 se r\u00e9jouit de la soumission du rapport initial de l'\u00c9tat partie et est satisfait du dialogue constructif et fructueux amorc\u00e9 avec une d\u00e9l\u00e9gation de haut niveau comp\u00e9tente.",
+  "score": 5,
+  "cost": 0.0005407999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 122
+  }
+}

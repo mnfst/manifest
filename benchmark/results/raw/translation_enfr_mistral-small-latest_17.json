@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "translation_enfr",
+  "case": 17,
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens du texte original :\n\n**Source : examplereferenceletter.com**\n\nSi vous souhaitez une traduction plus sp\u00e9cifique ou adapt\u00e9e \u00e0 un contexte particulier, n'h\u00e9sitez pas \u00e0 me le pr\u00e9ciser !",
+  "score": 5,
+  "cost": 2.1799999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 44,
+    "output": 58
+  }
+}

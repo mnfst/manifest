@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "translation_enfr",
+  "case": 37,
+  "response": "Le paragraphe 104(1.1) est modifi\u00e9 pour pr\u00e9ciser qu'il s'applique nonobstant le paragraphe 248(25) de la Loi. Le paragraphe 248(25) de la Loi d\u00e9crit, pour d'autres fins de la Loi, les circonstances dans lesquelles une personne ou un partenariat est consid\u00e9r\u00e9 comme ayant un \"int\u00e9r\u00eat b\u00e9n\u00e9ficiaire\" dans une fiducie.",
+  "score": 5,
+  "cost": 6.465e-05,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 85
+  }
+}

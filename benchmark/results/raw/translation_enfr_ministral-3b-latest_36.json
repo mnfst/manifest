@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 36,
+  "response": "Voici une traduction fid\u00e8le du ton et du sens de votre phrase :\n\n**\"Plus tu te battes, plus \u00e7a va devenir g\u00eanant pour tout le monde.\"**\n\n*(Variante l\u00e9g\u00e8rement plus naturelle en fran\u00e7ais courant :)*\n**\"Plus tu te d\u00e9battes, plus \u00e7a va devenir embarrassant pour tout le monde.\"**\n\nLes deux versions gardent la m\u00eame intensit\u00e9 et l'id\u00e9e que l'effort suppl\u00e9mentaire rend la situation plus inconfortable pour tous.",
+  "score": 4,
+  "cost": 5.16e-06,
+  "expected": "",
+  "tokens": {
+    "input": 37,
+    "output": 92
+  }
+}

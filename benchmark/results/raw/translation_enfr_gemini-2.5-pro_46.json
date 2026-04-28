@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "translation_enfr",
+  "case": 46,
+  "response": "J'ai re\u00e7u sept propositions de r\u00e9solution conform\u00e9ment \u00e0 l'article 37 du R\u00e8glement.",
+  "score": 5,
+  "cost": 0.00024,
+  "expected": "",
+  "tokens": {
+    "input": 40,
+    "output": 19
+  }
+}

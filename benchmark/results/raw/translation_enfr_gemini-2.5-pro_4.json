@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "translation_enfr",
+  "case": 4,
+  "response": "Est-ce que votre mari avait invit\u00e9 le lieutenant Gilbert chez vous ?\n\n***\n\n*Other correct and common variations include:*\n\n*   **Slightly more formal (with inversion):** Votre mari avait-il invit\u00e9 le lieutenant Gilbert chez vous ?\n*   **Using a more common tense (if the meaning is simply \"Did he invite...\"):** Est-ce que votre mari a invit\u00e9 le lieutenant Gilbert chez vous ?",
+  "score": 4,
+  "cost": 0.00093875,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 90
+  }
+}

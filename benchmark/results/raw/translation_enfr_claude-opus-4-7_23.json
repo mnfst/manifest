@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "Des \u00e9vacuateurs de crues capables de faire face aux \u00e9v\u00e9nements de crue postul\u00e9s sont soit int\u00e9gr\u00e9s aux structures des barrages, soit construits comme ouvrages distincts.",
+  "score": 5,
+  "cost": 0.00591,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 63
+  }
+}

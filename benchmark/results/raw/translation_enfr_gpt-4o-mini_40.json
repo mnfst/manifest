@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "translation_enfr",
+  "case": 40,
+  "response": "Nous devons juste obtenir plus d'informations.",
+  "score": 4,
+  "cost": 9.75e-06,
+  "expected": "",
+  "tokens": {
+    "input": 33,
+    "output": 8
+  }
+}

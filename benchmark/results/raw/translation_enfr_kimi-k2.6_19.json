@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "translation_enfr",
+  "case": 19,
+  "response": "FTI \u2014 Privil\u00e8ges et conditions",
+  "score": 5,
+  "cost": 0.0005094,
+  "expected": "",
+  "tokens": {
+    "input": 33,
+    "output": 204
+  }
+}

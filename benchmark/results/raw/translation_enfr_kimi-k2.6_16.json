@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "translation_enfr",
+  "case": 16,
+  "response": "J'ai l'impression que ma bite n'est pas assez grosse pour toi.",
+  "score": 5,
+  "cost": 0.0015576,
+  "expected": "",
+  "tokens": {
+    "input": 36,
+    "output": 640
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "translation_enfr",
+  "case": 37,
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens du texte original :\n\n**Article 104(1.1)** est modifi\u00e9 pour pr\u00e9ciser qu'il s'applique nonobstant le paragraphe 248(25) de la Loi. Le paragraphe 248(25) de la Loi d\u00e9crit, \u00e0 d'autres fins de la Loi, les circonstances dans lesquelles une personne ou une soci\u00e9t\u00e9 de personnes est r\u00e9put\u00e9e avoir un **\"int\u00e9r\u00eat b\u00e9n\u00e9ficiaire\"** dans une fiducie.",
+  "score": 5,
+  "cost": 4.569999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 116
+  }
+}

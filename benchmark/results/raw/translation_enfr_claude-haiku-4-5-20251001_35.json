@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 35,
+  "response": "# French Translation\n\n[journaliste homme #1 \u00e0 la t\u00e9l\u00e9vision] L'accident s'est produit juste apr\u00e8s 10h00.\n\n---\n\n**Alternative version (slightly more formal):**\nL'accident a eu lieu peu apr\u00e8s 10h00 du matin.",
+  "score": 5,
+  "cost": 0.0003088,
+  "expected": "",
+  "tokens": {
+    "input": 51,
+    "output": 67
+  }
+}

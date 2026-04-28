@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "translation_enfr",
+  "case": 46,
+  "response": "J'ai \u00e9t\u00e9 saisi de sept motions de r\u00e9solutions conform\u00e9ment \u00e0 l'article 37 du R\u00e8glement int\u00e9rieur.",
+  "score": 5,
+  "cost": 1.9799999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 40,
+    "output": 23
+  }
+}

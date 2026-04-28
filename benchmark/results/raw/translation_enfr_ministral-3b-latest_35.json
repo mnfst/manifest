@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 35,
+  "response": "Voici la traduction en fran\u00e7ais tout en conservant le ton et le sens :\n\n**[Journaliste masculin #1 sur la t\u00e9l\u00e9vision]**\n*Un accident est survenu juste apr\u00e8s 10h00.*\n\n*(Variante plus naturelle selon le contexte :)*\n*Un accident s'est produit peu apr\u00e8s 10h00.*",
+  "score": 5,
+  "cost": 4.440000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 68
+  }
+}

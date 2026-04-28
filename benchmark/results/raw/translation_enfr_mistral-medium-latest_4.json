@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "translation_enfr",
+  "case": 4,
+  "response": "Voici une traduction fid\u00e8le qui conserve le ton et le sens de la phrase originale :\n\n**\"Votre mari avait-il invit\u00e9 le lieutenant Gilbert chez vous ?\"**\n\n*(Variante l\u00e9g\u00e8rement plus naturelle en fran\u00e7ais courant, selon le contexte :)*\n**\"Est-ce que votre mari avait invit\u00e9 le lieutenant Gilbert \u00e0 la maison ?\"**\n\n---\n**Remarques :**\n1. **\"Had... invited\"** \u2192 **\"avait-il invit\u00e9\"** (pass\u00e9 ant\u00e9rieur ou plus-que-parfait, selon le contexte temporel).\n2. **\"to your house\"** \u2192 **\"chez vous\"** (plus idiomatique en fran\u00e7ais) ou **\"\u00e0 la maison\"** (familier).\n3. La structure interrogative invers\u00e9e (**\"avait-il\"**) est plus formelle, tandis que **\"Est-ce que...\"** est neutre/oral.\n\nSi le contexte est un interrogatoire ou un \u00e9change formel (ex. : enqu\u00eate), la premi\u00e8re version est pr\u00e9f\u00e9rable. Pour une conversation informelle, la seconde convient mieux.",
+  "score": 5,
+  "cost": 0.0004188,
+  "expected": "",
+  "tokens": {
+    "input": 32,
+    "output": 203
+  }
+}

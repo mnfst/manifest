@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "translation_enfr",
+  "case": 28,
+  "response": "Nous sommes capables... de d\u00e9ployer une puissance de feu... sup\u00e9rieure \u00e0 tout ce qui a jamais \u00e9t\u00e9 utilis\u00e9 dans l'histoire de la guerre.",
+  "score": 4,
+  "cost": 1.42e-05,
+  "expected": "",
+  "tokens": {
+    "input": 55,
+    "output": 29
+  }
+}

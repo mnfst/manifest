@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "translation_enfr",
+  "case": 29,
+  "response": "Et je t'aime bien... bien que je ne sache pas pourquoi.",
+  "score": 4,
+  "cost": 0.0001925,
+  "expected": "",
+  "tokens": {
+    "input": 34,
+    "output": 15
+  }
+}

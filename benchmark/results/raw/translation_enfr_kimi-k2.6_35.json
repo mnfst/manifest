@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "translation_enfr",
+  "case": 35,
+  "response": "[journaliste masculin n\u00b0 1 \u00e0 la t\u00e9l\u00e9] l'accident s'est produit juste apr\u00e8s 10 h du matin.",
+  "score": 5,
+  "cost": 0.0024408000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 44,
+    "output": 1006
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 46,
+  "response": "Voici la traduction fid\u00e8le et adapt\u00e9e du texte en fran\u00e7ais :\n\n**\"J'ai re\u00e7u sept propositions de r\u00e9solution conform\u00e9ment \u00e0 l'article 37 des R\u00e8gles de proc\u00e9dure.\"**\n\n*(Variante plus concise si le contexte est strictement parlementaire :)*\n**\"J'ai re\u00e7u sept motions conformes au r\u00e8glement 37.\"**\n\n---\n**Remarques** :\n- *\"Motion\"* \u2192 *\"Proposition de r\u00e9solution\"* (terme juridique fran\u00e7ais pour les actes de proc\u00e9dure).\n- *\"Pursuant to Rule 37\"* \u2192 *\"Conform\u00e9ment \u00e0 l'article 37\"* (ou *\"au r\u00e8glement 37\"* selon le contexte).\n- *\"Resolutions\"* \u2192 *\"R\u00e9solutions\"* (pluriel coh\u00e9rent avec le sens).\n\nSi le contexte est sp\u00e9cifique (ex. : assembl\u00e9e parlementaire), pr\u00e9cisez-le pour une formulation encore plus adapt\u00e9e.",
+  "score": 5,
+  "cost": 8.84e-06,
+  "expected": "",
+  "tokens": {
+    "input": 42,
+    "output": 179
+  }
+}

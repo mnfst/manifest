@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "translation_enfr",
+  "case": 43,
+  "response": "L'appareil est simplement fix\u00e9 \u00e0 l'appuie\u2011t\u00eate du si\u00e8ge du conducteur \u00e0 l'aide d'un puissant ruban \u00e9lastique. Dans ce\u2026",
+  "score": 4,
+  "cost": 0.0019833000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 431
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 22,
+  "response": "Voici une traduction fid\u00e8le et adapt\u00e9e du texte original en fran\u00e7ais, tout en conservant le ton et la pr\u00e9cision :\n\n**\"Si le revenu et/ou le statut professionnel d'une personne \u00e9volue, cela peut entra\u00eener un transfert de responsabilit\u00e9 institutionnelle, auquel cas une nouvelle \u00e9valuation sera effectu\u00e9e.\"**\n\n---\n*Variante l\u00e9g\u00e8rement plus concise (si le contexte le permet) :\n*\"En cas de modification du revenu et/ou du statut professionnel, la responsabilit\u00e9 institutionnelle peut \u00eatre transf\u00e9r\u00e9e, n\u00e9cessitant alors une nouvelle \u00e9valuation.\"*\n\n---\n**Remarques** :\n- *\"Institutional responsibility\"* \u2192 *\"responsabilit\u00e9 institutionnelle\"* (terme juridique/technique).\n- *\"Transfer of responsibility\"* \u2192 *\"transfert de responsabilit\u00e9\"* (plus naturel en fran\u00e7ais administratif).\n- *\"New assessment\"* \u2192 *\"une nouvelle \u00e9valuation\"* (pr\u00e9cis et professionnel).\n\nSi le contexte est sp\u00e9cifique (ex. social, fiscal), pr\u00e9cisez-le pour une adaptation encore plus cibl\u00e9e.",
+  "score": 5,
+  "cost": 1.0039999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 52,
+    "output": 199
+  }
+}

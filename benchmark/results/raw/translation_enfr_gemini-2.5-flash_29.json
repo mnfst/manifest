@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "translation_enfr",
+  "case": 29,
+  "response": "Et je t'aime bien... m\u00eame si je ne sais pas pourquoi.",
+  "score": 4,
+  "cost": 1.4099999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 34,
+    "output": 15
+  }
+}

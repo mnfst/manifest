@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 11,
+  "response": "Voici une traduction fid\u00e8le du texte en fran\u00e7ais, conservant le ton et la signification :\n\n**Un large \u00e9ventail d\u2019attractions touristiques et de produits (th\u00e9, itin\u00e9raires culturels, stations de bien-\u00eatre et spas, gastronomie, activit\u00e9s nautiques, etc.) a \u00e9t\u00e9 identifi\u00e9 dans la destination n\u00e9cessitant un d\u00e9veloppement **interd\u00e9pendant** en raison de leur isolement, de leurs compl\u00e9mentarit\u00e9s et de leur profil relativement homog\u00e8ne.**\n\n*(Variante alternative si le contexte exige une formulation plus technique :)*\n**Un nombre important d\u2019attractions touristiques et de produits (th\u00e9, itin\u00e9raires culturels, stations de sant\u00e9 et de bien-\u00eatre, gastronomie, activit\u00e9s nautiques, etc.) a \u00e9t\u00e9 identifi\u00e9 dans la destination, n\u00e9cessitant un d\u00e9veloppement **interd\u00e9pendant** en raison de leur isolement, de leurs synergies et de leur profil homog\u00e8ne.**\n\n---\n**Notes :**\n- *\"Wide number\"* \u2192 *\"Un large \u00e9ventail\"* (plus naturel en fran\u00e7ais).\n- *\"Inter-dependent\"* \u2192 *\"Interd\u00e9pendant\"* (terme technique, souvent utilis\u00e9 en d\u00e9veloppement touristique).\n- *\"Relatively homogenous\"* \u2192 *\"Relativement homog\u00e8ne\"* (ou *\"homog\u00e8ne\"* selon le niveau de formalit\u00e9).\n- *\"Complementarities\"* \u2192 *\"Compl\u00e9mentarit\u00e9s\"* (adjectif f\u00e9minin pluriel, mais *\"synergies\"* peut aussi convenir dans certains contextes).\n\nSi vous souhaitez une formulation plus concise ou adapt\u00e9e \u00e0 un registre particulier (ex. : rapport institutionnel, article acad\u00e9mique), pr\u00e9cisez-le !",
+  "score": 4,
+  "cost": 1.628e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 329
+  }
+}

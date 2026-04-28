@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 45,
+  "response": "# French Translation\n\nL'\u00e9vasion fiscale s'est accrue en Tunisie, causant un manque important en termes de ressources publiques, a d\u00e9clar\u00e9 l'ancien chef du gouvernement int\u00e9rimaire Ali Larayedh en juin 2013, cit\u00e9 par le journal Business Flood.\n\n---\n\n**Key translation choices:**\n- \"Tax evasion\" \u2192 \"L'\u00e9vasion fiscale\"\n- \"has grown\" \u2192 \"s'est accrue\"\n- \"shortfall in terms of public resources\" \u2192 \"un manque important en termes de ressources publiques\"\n- \"former head of the interim government\" \u2192 \"l'ancien chef du gouvernement int\u00e9rimaire\"\n- \"quoted by\" \u2192 \"cit\u00e9 par\"",
+  "score": 5,
+  "cost": 0.000772,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 178
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "translation_enfr",
+  "case": 26,
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens de l'original :\n\n**\"Cela sugg\u00e9rait plut\u00f4t que l'arm\u00e9e devrait jouer un r\u00f4le secondaire dans les op\u00e9rations antiterroristes.\"**",
+  "score": 5,
+  "cost": 1.86e-05,
+  "expected": "",
+  "tokens": {
+    "input": 54,
+    "output": 44
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 21,
+  "response": "Voici une traduction naturelle et fluide tout en conservant le ton et le sens :\n\n**\"Pourriez-vous avoir un coup d\u2019\u0153il \u00e0 cela, s\u2019il vous pla\u00eet ?\"**\n\n*(Variante plus formelle si n\u00e9cessaire :*\n**\"Pourriez-vous lire ce texte, s\u2019il vous pla\u00eet ?\"*\n*ou*\n**\"Pouvez-vous jeter un \u0153il \u00e0 cela, s\u2019il vous pla\u00eet ?\"**)\n\nSelon le contexte, la premi\u00e8re option est la plus naturelle pour un ton poli et direct. \ud83d\ude0a",
+  "score": 4,
+  "cost": 5.56e-06,
+  "expected": "",
+  "tokens": {
+    "input": 34,
+    "output": 105
+  }
+}

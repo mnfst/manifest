@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "translation_enfr",
+  "case": 12,
+  "response": "Ce premier r\u00e9sultat, jug\u00e9 exceptionnel, a permis lidentification de 80 signaux acoustiques distincts \u00e0 proximit\u00e9 des Rocas Consag. Ces r\u00e9sultats confirment les \u00e9tudes ant\u00e9rieures sur la r\u00e9partition du vaquita dans la r\u00e9gion.",
+  "score": 4,
+  "cost": 0.0022088000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 477
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 27,
+  "response": "Voici la traduction en fran\u00e7ais tout en conservant le ton et le sens originaux :\n\n**Les crit\u00e8res du DSM-IV pour l'intoxication alcoolique** sont similaires, avec l'ajout d'**au moins un ou plusieurs des signes suivants** : discours flou, d\u00e9s\u00e9quilibre, d\u00e9marche instable, nystagmus, alt\u00e9ration de l'attention ou de la m\u00e9moire, stupeur ou coma.\n\n*(Variante l\u00e9g\u00e8rement ajust\u00e9e pour fluidit\u00e9 tout en restant fid\u00e8le au texte original.)*",
+  "score": 4,
+  "cost": 7.2000000000000005e-06,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 106
+  }
+}

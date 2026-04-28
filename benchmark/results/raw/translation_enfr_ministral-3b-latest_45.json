@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 45,
+  "response": "Voici une traduction fid\u00e8le du texte en fran\u00e7ais, conservant le ton et la signification :\n\n*\u00ab L'\u00e9vasion fiscale s'est g\u00e9n\u00e9ralis\u00e9e en Tunisie, provoquant un d\u00e9ficit important en mati\u00e8re de ressources publiques, a d\u00e9clar\u00e9 Ali Larayedh, ancien chef du gouvernement int\u00e9rimaire, cit\u00e9 par le journal *Business Flood* en juin 2013. \u00bb*\n\nSi vous souhaitez une formulation l\u00e9g\u00e8rement plus fluide ou adapt\u00e9e \u00e0 un contexte sp\u00e9cifique, je peux ajuster le style.",
+  "score": 5,
+  "cost": 6.800000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 103
+  }
+}

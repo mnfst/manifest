@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "translation_enfr",
+  "case": 38,
+  "response": "Cela ne peut mener qu'au chaos et \u00e0 la terreur.",
+  "score": 5,
+  "cost": 0.000414,
+  "expected": "",
+  "tokens": {
+    "input": 38,
+    "output": 20
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "translation_enfr",
+  "case": 28,
+  "response": "Nous sommes capables... de d\u00e9ployer plus de puissance de feu... qu'il n'en a jamais \u00e9t\u00e9 lib\u00e9r\u00e9 dans l'histoire de la guerre.",
+  "score": 4,
+  "cost": 0.000795,
+  "expected": "",
+  "tokens": {
+    "input": 50,
+    "output": 43
+  }
+}

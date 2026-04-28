@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "translation_enfr",
+  "case": 32,
+  "response": "Les \u00c9tats membres, les institutions de l'Union et le SEAE peuvent proposer le d\u00e9tachement de personnel aupr\u00e8s du RSE.",
+  "score": 4,
+  "cost": 0.0013068,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 281
+  }
+}

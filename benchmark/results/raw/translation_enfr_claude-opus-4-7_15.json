@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "translation_enfr",
+  "case": 15,
+  "response": "Sector Source est un site Web de ressources d\u00e9di\u00e9 \u00e0 aider ceux qui dirigent des organismes de bienfaisance et des organismes \u00e0 but non lucratif \u00e0 rester inform\u00e9s sur...",
+  "score": 5,
+  "cost": 0.00588,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 64
+  }
+}

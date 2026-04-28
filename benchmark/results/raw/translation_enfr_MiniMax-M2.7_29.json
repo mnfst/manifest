@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "translation_enfr",
+  "case": 29,
+  "response": "Et je t'aime bien... bien que je ne sache pas pourquoi.",
+  "score": 4,
+  "cost": 0.0017226000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 50,
+    "output": 379
+  }
+}

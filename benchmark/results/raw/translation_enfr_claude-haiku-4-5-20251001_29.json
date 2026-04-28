@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 29,
+  "response": "Et je t'aime bien... bien que je ne sache pas pourquoi.\n\n(Alternative: Et tu me plais... bien que je ne sache pas pourquoi.)",
+  "score": 4,
+  "cost": 0.00020480000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 41,
+    "output": 43
+  }
+}

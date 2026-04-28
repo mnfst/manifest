@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "translation_enfr",
+  "case": 21,
+  "response": "Maintenant, pourriez-vous lire ceci, s'il vous pla\u00eet ?",
+  "score": 5,
+  "cost": 0.0002225,
+  "expected": "",
+  "tokens": {
+    "input": 37,
+    "output": 13
+  }
+}

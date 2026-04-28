@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "translation_enfr",
+  "case": 48,
+  "response": "- Choisissez l'une de ces Renault \u00e0 louer \u00e0 Galati ou dans d'autres villes telles que\u202f: Arad, Timi\u0219oara, Sibiu, Oradea, Bra\u0219ov, Bucarest, Ia\u0219i ou Suceava, et vous atteindrez votre destination en un rien de temps. De plus, vous \u00e9conomiserez beaucoup d'argent que vous pourriez consacrer \u00e0 autre chose.",
+  "score": 5,
+  "cost": 0.0044253,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 974
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "translation_enfr",
+  "case": 17,
+  "response": "Source : examplereferenceletter.com",
+  "score": 5,
+  "cost": 0.0006389999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 33,
+    "output": 258
+  }
+}

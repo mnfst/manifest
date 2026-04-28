@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "translation_enfr",
+  "case": 15,
+  "response": "Voici une traduction en fran\u00e7ais qui conserve le ton et le sens du texte original :\n\n**\"Sector Source est un site web de ressources d\u00e9di\u00e9 \u00e0 aider ceux qui dirigent des associations et des organismes \u00e0 but non lucratif \u00e0 rester inform\u00e9s sur...\"**\n\nSi vous souhaitez une version plus formelle ou adapt\u00e9e \u00e0 un contexte sp\u00e9cifique, n'h\u00e9sitez pas \u00e0 pr\u00e9ciser votre besoin !",
+  "score": 5,
+  "cost": 2.9900000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 56,
+    "output": 81
+  }
+}

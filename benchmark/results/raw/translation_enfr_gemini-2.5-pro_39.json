@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "translation_enfr",
+  "case": 39,
+  "response": "Depending on the level of formality and your relationship with the person you are addressing, there are a few correct options.\n\n**Formal or addressing a group:**\nSavez-vous d'o\u00f9 vient l'argent ?\n\n**Informal (addressing a friend or family member):**\nSais-tu d'o\u00f9 vient l'argent ?\n\nBoth are very common. A slightly more conversational (and also very common) way to ask would be:\n*   **Formal:** Est-ce que vous savez d'o\u00f9 vient l'argent ?\n*   **Informal:** Est-ce que tu sais d'o\u00f9 vient l'argent ?",
+  "score": 5,
+  "cost": 0.00137875,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 134
+  }
+}

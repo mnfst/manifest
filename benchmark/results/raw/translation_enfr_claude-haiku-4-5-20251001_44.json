@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 44,
+  "response": "# French Translation\n\nLes analyses de sensibilit\u00e9 indiquent que l'\u00e9tendue de la longueur non support\u00e9e r\u00e9sultant de l'affouillement exerce une influence significative sur la r\u00e9ponse en flexion du syst\u00e8me tuyau-sol.\n\n---\n\n**Alternative version (slightly more technical):**\n\nLes analyses de sensibilit\u00e9 montrent que l'ampleur de la longueur non appuy\u00e9e d\u00e9velopp\u00e9e suite \u00e0 l'affouillement a une influence significative sur la r\u00e9ponse en flexion du syst\u00e8me tuyau-sol.",
+  "score": 5,
+  "cost": 0.0005616,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 128
+  }
+}

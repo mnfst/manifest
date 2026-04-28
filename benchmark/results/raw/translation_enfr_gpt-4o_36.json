@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "translation_enfr",
+  "case": 36,
+  "response": "Plus tu te d\u00e9bats, plus \u00e7a va \u00eatre g\u00eanant pour tout le monde.",
+  "score": 5,
+  "cost": 0.00026,
+  "expected": "",
+  "tokens": {
+    "input": 40,
+    "output": 16
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "translation_enfr",
+  "case": 31,
+  "response": "Voici une traduction qui conserve le ton et le sens de la phrase originale, tout en restant naturelle en fran\u00e7ais :\n\n**\"On pourrait vous inculper pour racolage.\"**\n\n*Explications :*\n- **\"On pourrait\"** : \u00e9quivalent informel et direct de *\"We could\"* (plus naturel que *\"Nous pourrions\"* dans ce contexte).\n- **\"vous inculper\"** : traduit l'id\u00e9e d'une accusation formelle (*\"book\"* en argot policier anglais = arr\u00eater/inculper).\n- **\"racolage\"** : terme juridique fran\u00e7ais pour *\"solicitation\"* (surtout dans le contexte prostitution/approche ill\u00e9gale).\n\n---\n*Variantes selon le contexte :*\n- **Plus formel (police/juridique)** :\n  *\"Vous pourriez \u00eatre poursuivi(e) pour racolage.\"*\n- **Menace implicite (ton plus dur)** :\n  *\"On peut vous coffrer pour racolage.\"* (*\"coffrer\"* = argot pour *\"arr\u00eater\"*).\n\nSi le contexte est diff\u00e9rent (ex. : sollicitation commerciale ill\u00e9gale), pr\u00e9cisez-le pour ajuster la traduction.",
+  "score": 3,
+  "cost": 0.000492,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 240
+  }
+}

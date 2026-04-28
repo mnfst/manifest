@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "translation_enfr",
+  "case": 25,
+  "response": "2. Le 21 f\u00e9vrier, le Sous-secr\u00e9taire d'\u00c9tat \u00e0 la Guerre, Jos\u00e9 Asenio, fut d\u00e9mis de ses fonctions, et bient\u00f4t arr\u00eat\u00e9 avec le Colonel Villalba, pour la trahison de M\u00e1laga.",
+  "score": 5,
+  "cost": 0.0020636000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 450
+  }
+}

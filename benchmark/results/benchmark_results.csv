@@ -3573,3 +3573,602 @@ timestamp,task,case_idx,model,provider,input_price_per_m,output_price_per_m,inpu
 20260427_172401,ner_extraction,47,ministral-3b-latest,mistral,0.04,0.04,73,38,0.000004,5,llm_judge,"```json {   ""persons"": [""Alain Aspect""],   ""organizations"": [""Universite Paris-Saclay""],   ""location"
 20260427_172401,ner_extraction,48,ministral-3b-latest,mistral,0.04,0.04,73,39,0.000004,5,llm_judge,"```json {   ""persons"": [],   ""organizations"": [""TSMC"", ""Department of Commerce""],   ""locations"": [""P"
 20260427_172401,ner_extraction,49,ministral-3b-latest,mistral,0.04,0.04,73,37,0.000004,4,llm_judge,"```json {   ""persons"": [""Pope Francis""],   ""organizations"": [""Vatican""],   ""locations"": [""St. Peter "
+20260427_180024,translation_enfr,0,claude-opus-4-7,anthropic,15.0,75.0,50,19,0.002175,5,llm_judge,"Je sais comment aider, et je le veux."
+20260427_180024,translation_enfr,1,claude-opus-4-7,anthropic,15.0,75.0,70,35,0.003675,5,llm_judge,"Hommejeunechh, 49 ans, Pays-de-la-Loire (Angers)"
+20260427_180024,translation_enfr,2,claude-opus-4-7,anthropic,15.0,75.0,79,58,0.005535,5,llm_judge,Jésus s'approcha et dit distinctement et avec bienveillance : « C'est moi. » Cette parole devint le 
+20260427_180024,translation_enfr,3,claude-opus-4-7,anthropic,15.0,75.0,114,115,0.010335,5,llm_judge,"Il n'y a pas d'autre explication à l'octroi parcimonieux de 10 ou 12 millions d'écus, qui, comme nou"
+20260427_180024,translation_enfr,4,claude-opus-4-7,anthropic,15.0,75.0,61,32,0.003315,5,llm_judge,Votre mari avait-il invité le lieutenant Gilbert chez vous ?
+20260427_180024,translation_enfr,5,claude-opus-4-7,anthropic,15.0,75.0,78,61,0.005745,5,llm_judge,Les flocs issus de SRT plus élevés étaient moins hydratés et présentaient une couche dense d'EPS rec
+20260427_180024,translation_enfr,6,claude-opus-4-7,anthropic,15.0,75.0,54,244,0.019110,4,llm_judge,"Here's the French translation:  ""En ce moment, foncer sur le Wangan, c'est ça le diable.""  A few not"
+20260427_180024,translation_enfr,7,claude-opus-4-7,anthropic,15.0,75.0,49,17,0.002010,5,llm_judge,Services de placement. C'est généreux.
+20260427_180024,translation_enfr,8,claude-opus-4-7,anthropic,15.0,75.0,68,49,0.004695,4,llm_judge,"Et il a dit : « Bien sûr. » Et j'ai dit : « Eh bien, je me demande où ça va se passer. »"
+20260427_180024,translation_enfr,9,claude-opus-4-7,anthropic,15.0,75.0,112,99,0.009105,4,llm_judge,"Pour sa part, le second atelier a porté sur la mise en œuvre des recommandations formulées par les o"
+20260427_180024,translation_enfr,10,claude-opus-4-7,anthropic,15.0,75.0,61,36,0.003615,4,llm_judge,"Peut-être trouver des indices, nous rapprocher de l'animal qui a fait ça."
+20260427_180024,translation_enfr,11,claude-opus-4-7,anthropic,15.0,75.0,131,124,0.011265,5,llm_judge,"Un large éventail d'attractions et de produits touristiques (thé, itinéraires culturels, centres de "
+20260427_180024,translation_enfr,12,claude-opus-4-7,anthropic,15.0,75.0,103,88,0.008145,5,llm_judge,"Ce premier résultat, jugé exceptionnel, a permis d'identifier 80 signaux acoustiques différents à pr"
+20260427_180024,translation_enfr,13,claude-opus-4-7,anthropic,15.0,75.0,57,24,0.002655,5,llm_judge,Dites simplement à Kumagaya que le détective est là.
+20260427_180024,translation_enfr,14,claude-opus-4-7,anthropic,15.0,75.0,92,73,0.006855,5,llm_judge,Le Comité accueille avec satisfaction la présentation du rapport initial de l'État partie et se féli
+20260427_180024,translation_enfr,15,claude-opus-4-7,anthropic,15.0,75.0,72,64,0.005880,5,llm_judge,Sector Source est un site Web de ressources dédié à aider ceux qui dirigent des organismes de bienfa
+20260427_180024,translation_enfr,16,claude-opus-4-7,anthropic,15.0,75.0,55,134,0.010875,5,llm_judge,"Here's the translation:  ""J'ai l'impression que ma bite n'est pas assez grosse pour toi.""  Note: Thi"
+20260427_180024,translation_enfr,17,claude-opus-4-7,anthropic,15.0,75.0,52,17,0.002055,5,llm_judge,Source : examplereferenceletter.com
+20260427_180024,translation_enfr,18,claude-opus-4-7,anthropic,15.0,75.0,60,110,0.009150,4,llm_judge,Here is the French translation:  **French:** La plage la plus proche est facilement accessible en vo
+20260427_180024,translation_enfr,19,claude-opus-4-7,anthropic,15.0,75.0,51,128,0.010365,5,llm_judge,"Here's the French translation:  **FTI — Privilèges et conditions**  (Note: ""FTI"" is kept as-is since"
+20260427_180024,translation_enfr,20,claude-opus-4-7,anthropic,15.0,75.0,52,25,0.002655,4,llm_judge,"Je dirais que c'est de faible valeur, au mieux."
+20260427_180024,translation_enfr,21,claude-opus-4-7,anthropic,15.0,75.0,52,33,0.003255,5,llm_judge,"Maintenant, pourriez-vous lire ceci, s'il vous plaît ?"
+20260427_180024,translation_enfr,22,claude-opus-4-7,anthropic,15.0,75.0,81,76,0.006915,5,llm_judge,"Si le revenu et/ou la situation d'emploi d'une personne changent, il peut y avoir un transfert de re"
+20260427_180024,translation_enfr,23,claude-opus-4-7,anthropic,15.0,75.0,79,63,0.005910,5,llm_judge,Des évacuateurs de crues capables de faire face aux événements de crue postulés sont soit intégrés a
+20260427_180024,translation_enfr,24,claude-opus-4-7,anthropic,15.0,75.0,81,78,0.007065,5,llm_judge,Le programme de nutrition urbaine de l'UNICEF à Nairobi est dirigé par une femme et favorise l'octro
+20260427_180024,translation_enfr,25,claude-opus-4-7,anthropic,15.0,75.0,98,81,0.007545,5,llm_judge,"2. Le 21 février, le sous-secrétaire à la Guerre, José Asenio, fut démis de ses fonctions, puis rapi"
+20260427_180024,translation_enfr,26,claude-opus-4-7,anthropic,15.0,75.0,68,48,0.004620,5,llm_judge,"Il suggérait, au contraire, que l'armée devrait jouer un rôle secondaire dans les opérations antiter"
+20260427_180024,translation_enfr,27,claude-opus-4-7,anthropic,15.0,75.0,118,109,0.009945,5,llm_judge,"Les critères du DSM-IV pour l'intoxication alcoolique sont similaires, avec l'ajout d'un ou plusieur"
+20260427_180024,translation_enfr,28,claude-opus-4-7,anthropic,15.0,75.0,64,279,0.021885,4,llm_judge,Here's the French translation:  **French:** Nous sommes capables... de déchaîner plus de puissance d
+20260427_180024,translation_enfr,29,claude-opus-4-7,anthropic,15.0,75.0,51,29,0.002940,4,llm_judge,Et je t'aime bien... même si je ne sais pas pourquoi.
+20260427_180024,translation_enfr,30,claude-opus-4-7,anthropic,15.0,75.0,72,200,0.016080,5,llm_judge,Voici une traduction en français :  **Première ligne de crédit en Italie pour l'apprentissage des je
+20260427_180024,translation_enfr,31,claude-opus-4-7,anthropic,15.0,75.0,49,21,0.002310,2,llm_judge,On pourrait t'arrêter pour racolage.
+20260427_180024,translation_enfr,32,claude-opus-4-7,anthropic,15.0,75.0,74,49,0.004785,5,llm_judge,"Les États membres, les institutions de l'Union et le SEAE peuvent proposer le détachement de personn"
+20260427_180024,translation_enfr,33,claude-opus-4-7,anthropic,15.0,75.0,79,58,0.005535,5,llm_judge,CV33 (1) (1.3) Remplacer « le conducteur et les autres membres de l'équipage » par « les membres de 
+20260427_180024,translation_enfr,34,claude-opus-4-7,anthropic,15.0,75.0,53,22,0.002445,5,llm_judge,"Sydney, Esther sera dans mon bureau."
+20260427_180024,translation_enfr,35,claude-opus-4-7,anthropic,15.0,75.0,67,36,0.003705,5,llm_judge,[reporter masculin #1 à la télé] l'accident s'est produit juste après 10h00.
+20260427_180024,translation_enfr,36,claude-opus-4-7,anthropic,15.0,75.0,62,212,0.016830,5,llm_judge,"Here are a few options, depending on the tone you want:  **Standard/neutral:** « Plus tu te débats, "
+20260427_180024,translation_enfr,37,claude-opus-4-7,anthropic,15.0,75.0,135,143,0.012750,4,llm_judge,Le paragraphe 104(1.1) est modifié afin de préciser qu'il s'applique malgré le paragraphe 248(25) de
+20260427_180024,translation_enfr,38,claude-opus-4-7,anthropic,15.0,75.0,52,27,0.002805,5,llm_judge,Cela ne peut mener qu'au chaos et à la terreur.
+20260427_180024,translation_enfr,39,claude-opus-4-7,anthropic,15.0,75.0,49,75,0.006360,5,llm_judge,Here's the translation:  **French:** Sais-tu d'où vient l'argent ?  If you'd like a more formal vers
+20260427_180024,translation_enfr,40,claude-opus-4-7,anthropic,15.0,75.0,47,27,0.002730,4,llm_judge,Nous avons juste besoin d'obtenir plus d'informations.
+20260427_180024,translation_enfr,41,claude-opus-4-7,anthropic,15.0,75.0,64,242,0.019110,4,llm_judge,"Here's a translation that maintains the casual, aggressive tone:  ""T'es pas à la DGA. Tu zoomes et t"
+20260427_180024,translation_enfr,42,claude-opus-4-7,anthropic,15.0,75.0,157,186,0.016305,5,llm_judge,Ce premier recensement eut lieu pendant que Quirinius était gouverneur de Syrie. Chacun devait se fa
+20260427_180024,translation_enfr,43,claude-opus-4-7,anthropic,15.0,75.0,72,53,0.005055,4,llm_judge,L'appareil se fixe simplement à l'appui-tête du siège conducteur à l'aide d'une sangle élastique sol
+20260427_180024,translation_enfr,44,claude-opus-4-7,anthropic,15.0,75.0,89,70,0.006585,4,llm_judge,Les analyses de sensibilité indiquent que l'étendue de la longueur non soutenue résultant de l'affou
+20260427_180024,translation_enfr,45,claude-opus-4-7,anthropic,15.0,75.0,108,99,0.009045,5,llm_judge,"L'évasion fiscale s'est développée en Tunisie, provoquant un manque à gagner considérable en matière"
+20260427_180024,translation_enfr,46,claude-opus-4-7,anthropic,15.0,75.0,73,35,0.003720,5,llm_judge,J'ai reçu sept propositions de résolution conformément à l'article 37 du règlement.
+20260427_180024,translation_enfr,47,claude-opus-4-7,anthropic,15.0,75.0,107,103,0.009330,5,llm_judge,"Une répression de ce type, conjuguée à l'arrestation ces dernières semaines de représentants d'insti"
+20260427_180024,translation_enfr,48,claude-opus-4-7,anthropic,15.0,75.0,138,137,0.012345,5,llm_judge,"- Choisissez l'une de ces Renault à louer à Galati ou dans d'autres villes telles que : Arad, Timiso"
+20260427_180024,translation_enfr,49,claude-opus-4-7,anthropic,15.0,75.0,68,39,0.003945,5,llm_judge,"J'ai des gâteaux à la crème, des friandises, des harengs marinés et des dattes confites."
+20260427_180024,translation_enfr,0,claude-sonnet-4-20250514,anthropic,3.0,15.0,40,16,0.000360,5,llm_judge,"Je sais comment aider, et je le veux."
+20260427_180024,translation_enfr,1,claude-sonnet-4-20250514,anthropic,3.0,15.0,56,159,0.002553,5,llm_judge,"Looking at this text, it appears to be a user profile or personal ad format. The word ""Hommejeunechh"
+20260427_180024,translation_enfr,2,claude-sonnet-4-20250514,anthropic,3.0,15.0,56,46,0.000858,5,llm_judge,Jésus vint et parla distinctement et avec bienveillance : « C'est moi. » Cette expression devint le 
+20260427_180024,translation_enfr,3,claude-sonnet-4-20250514,anthropic,3.0,15.0,85,85,0.001530,5,llm_judge,"Il n'y a pas d'autre explication à l'octroi parcimonieux de 10 ou 12 millions d'ECU, qui comme nous "
+20260427_180024,translation_enfr,4,claude-sonnet-4-20250514,anthropic,3.0,15.0,39,20,0.000417,5,llm_judge,Votre mari avait-il invité le lieutenant Gilbert chez vous ?
+20260427_180024,translation_enfr,5,claude-sonnet-4-20250514,anthropic,3.0,15.0,58,102,0.001704,4,llm_judge,French: Les flocs provenant de TRS plus élevés étaient moins hydratés et présentaient une couche den
+20260427_180024,translation_enfr,6,claude-sonnet-4-20250514,anthropic,3.0,15.0,40,23,0.000465,4,llm_judge,"French: En ce moment même, ce démon descend la Wangan en voiture."
+20260427_180024,translation_enfr,7,claude-sonnet-4-20250514,anthropic,3.0,15.0,37,13,0.000306,5,llm_judge,Services de placement. C'est généreux.
+20260427_180024,translation_enfr,8,claude-sonnet-4-20250514,anthropic,3.0,15.0,51,40,0.000753,4,llm_judge,"Et il a dit : « Bien sûr. » Et j'ai dit : « Eh bien, je me demande où ça va se passer. »"
+20260427_180024,translation_enfr,9,claude-sonnet-4-20250514,anthropic,3.0,15.0,73,75,0.001344,4,llm_judge,"Pour sa part, le deuxième atelier s'est concentré sur la mise en œuvre des recommandations formulées"
+20260427_180024,translation_enfr,10,claude-sonnet-4-20250514,anthropic,3.0,15.0,45,27,0.000540,4,llm_judge,"Peut-être générer quelques indices, nous rapprocher de l'animal qui a fait ça."
+20260427_180024,translation_enfr,11,claude-sonnet-4-20250514,anthropic,3.0,15.0,89,95,0.001692,4,llm_judge,"Un large éventail d'attractions touristiques et de produits (thé, routes culturelles, centres de san"
+20260427_180024,translation_enfr,12,claude-sonnet-4-20250514,anthropic,3.0,15.0,75,68,0.001245,5,llm_judge,"Ce premier résultat, jugé exceptionnel, a permis l'identification de 80 signaux acoustiques différen"
+20260427_180024,translation_enfr,13,claude-sonnet-4-20250514,anthropic,3.0,15.0,42,20,0.000426,5,llm_judge,Dites simplement à Kumagaya que le détective est là.
+20260427_180024,translation_enfr,14,claude-sonnet-4-20250514,anthropic,3.0,15.0,66,54,0.001008,5,llm_judge,Le Comité se félicite de la soumission du rapport initial de l'État partie et se réjouit du dialogue
+20260427_180024,translation_enfr,15,claude-sonnet-4-20250514,anthropic,3.0,15.0,52,48,0.000876,5,llm_judge,Sector Source est un site web de ressources dédié à aider ceux qui dirigent des organismes de bienfa
+20260427_180024,translation_enfr,16,claude-sonnet-4-20250514,anthropic,3.0,15.0,41,24,0.000483,5,llm_judge,J'ai l'impression que ma bite n'est pas assez grosse pour toi.
+20260427_180024,translation_enfr,17,claude-sonnet-4-20250514,anthropic,3.0,15.0,39,44,0.000777,5,llm_judge,"Source : examplereferenceletter.com  (Note: The URL remains unchanged as it's a web address, but I a"
+20260427_180024,translation_enfr,18,claude-sonnet-4-20250514,anthropic,3.0,15.0,43,29,0.000564,4,llm_judge,"French: La plage la plus proche se trouve à une distance facilement accessible en voiture, située à "
+20260427_180024,translation_enfr,19,claude-sonnet-4-20250514,anthropic,3.0,15.0,37,13,0.000306,5,llm_judge,FTI — Privilèges et conditions
+20260427_180024,translation_enfr,20,claude-sonnet-4-20250514,anthropic,3.0,15.0,41,20,0.000423,4,llm_judge,"Je dirais que c'est de faible valeur, au mieux."
+20260427_180024,translation_enfr,21,claude-sonnet-4-20250514,anthropic,3.0,15.0,41,24,0.000483,5,llm_judge,"Maintenant, pourriez-vous lire ceci, s'il vous plaît ?"
+20260427_180024,translation_enfr,22,claude-sonnet-4-20250514,anthropic,3.0,15.0,60,52,0.000960,5,llm_judge,"Si le revenu et/ou le statut d'emploi d'une personne change, il peut y avoir un transfert de respons"
+20260427_180024,translation_enfr,23,claude-sonnet-4-20250514,anthropic,3.0,15.0,55,50,0.000915,5,llm_judge,Des évacuateurs de crues capables de gérer les événements d'inondation postulés sont intégrés soit d
+20260427_180024,translation_enfr,24,claude-sonnet-4-20250514,anthropic,3.0,15.0,58,55,0.000999,5,llm_judge,Le programme de nutrition urbaine de l'UNICEF à Nairobi est dirigé par une femme et favorise l'octro
+20260427_180024,translation_enfr,25,claude-sonnet-4-20250514,anthropic,3.0,15.0,72,62,0.001146,5,llm_judge,"2. Le 21 février, le sous-secrétaire à la Guerre, José Asenio, fut démis de ses fonctions, puis rapi"
+20260427_180024,translation_enfr,26,claude-sonnet-4-20250514,anthropic,3.0,15.0,48,38,0.000714,4,llm_judge,"Il a suggéré, au contraire, que l'armée devrait jouer un rôle secondaire dans les opérations antiter"
+20260427_180024,translation_enfr,27,claude-sonnet-4-20250514,anthropic,3.0,15.0,90,80,0.001470,5,llm_judge,Les critères du DSM-IV pour l'intoxication alcoolique sont similaires avec l'ajout d'un ou plusieurs
+20260427_180024,translation_enfr,28,claude-sonnet-4-20250514,anthropic,3.0,15.0,50,43,0.000795,4,llm_judge,Nous sommes capables... de déployer plus de puissance de feu... qu'il n'en a jamais été libéré dans 
+20260427_180024,translation_enfr,29,claude-sonnet-4-20250514,anthropic,3.0,15.0,41,22,0.000453,4,llm_judge,Et je t'aime bien... même si je ne sais pas pourquoi.
+20260427_180024,translation_enfr,30,claude-sonnet-4-20250514,anthropic,3.0,15.0,50,44,0.000810,5,llm_judge,"Première ligne de crédit en Italie pour l'apprentissage des jeunes dans les PME, les entreprises de "
+20260427_180024,translation_enfr,31,claude-sonnet-4-20250514,anthropic,3.0,15.0,37,17,0.000366,2,llm_judge,Nous pourrions vous inculper pour racolage.
+20260427_180024,translation_enfr,32,claude-sonnet-4-20250514,anthropic,3.0,15.0,55,35,0.000690,4,llm_judge,"Les États membres, les institutions de l'Union et le SEAE peuvent proposer le détachement de personn"
+20260427_180024,translation_enfr,33,claude-sonnet-4-20250514,anthropic,3.0,15.0,60,50,0.000930,5,llm_judge,CV33 (1) (1.3) Remplacer « le conducteur et les autres membres de l'équipage » par « les membres de 
+20260427_180024,translation_enfr,34,claude-sonnet-4-20250514,anthropic,3.0,15.0,40,13,0.000315,5,llm_judge,"Sydney, Esther sera dans mon bureau."
+20260427_180024,translation_enfr,35,claude-sonnet-4-20250514,anthropic,3.0,15.0,51,33,0.000648,5,llm_judge,[journaliste masculin #1 à la télé] l'accident s'est produit juste après 10h00.
+20260427_180024,translation_enfr,36,claude-sonnet-4-20250514,anthropic,3.0,15.0,45,20,0.000435,5,llm_judge,"Plus tu te débats, plus ce sera gênant pour tout le monde."
+20260427_180024,translation_enfr,37,claude-sonnet-4-20250514,anthropic,3.0,15.0,102,120,0.002106,5,llm_judge,Le paragraphe 104(1.1) est modifié afin de préciser qu'il s'applique nonobstant le paragraphe 248(25
+20260427_180024,translation_enfr,38,claude-sonnet-4-20250514,anthropic,3.0,15.0,38,20,0.000414,5,llm_judge,Cela ne peut mener qu'au chaos et à la terreur.
+20260427_180024,translation_enfr,39,claude-sonnet-4-20250514,anthropic,3.0,15.0,38,41,0.000729,5,llm_judge,French: Savez-vous d'où vient l'argent ?  (Or more informally: Tu sais d'où vient l'argent ?)
+20260427_180024,translation_enfr,40,claude-sonnet-4-20250514,anthropic,3.0,15.0,37,17,0.000366,4,llm_judge,Nous devons simplement obtenir plus d'informations.
+20260427_180024,translation_enfr,41,claude-sonnet-4-20250514,anthropic,3.0,15.0,46,30,0.000588,4,llm_judge,Tu n'es pas à la DGA. Contente-toi de zoomer et ferme ta gueule.
+20260427_180024,translation_enfr,42,claude-sonnet-4-20250514,anthropic,3.0,15.0,121,124,0.002223,5,llm_judge,Ce premier recensement eut lieu pendant que Quirinius était gouverneur de Syrie. Chacun devait se fa
+20260427_180024,translation_enfr,43,claude-sonnet-4-20250514,anthropic,3.0,15.0,52,43,0.000801,4,llm_judge,L'unité est simplement fixée à l'appui-tête du siège conducteur à l'aide d'une sangle élastique rési
+20260427_180024,translation_enfr,44,claude-sonnet-4-20250514,anthropic,3.0,15.0,62,59,0.001071,4,llm_judge,Les analyses de sensibilité indiquent que l'étendue de la longueur non supportée développée en raiso
+20260427_180024,translation_enfr,45,claude-sonnet-4-20250514,anthropic,3.0,15.0,75,72,0.001305,5,llm_judge,"L'évasion fiscale s'est développée en Tunisie, causant un manque important en termes de ressources p"
+20260427_180024,translation_enfr,46,claude-sonnet-4-20250514,anthropic,3.0,15.0,51,31,0.000618,5,llm_judge,J'ai reçu sept propositions de résolution conformément à l'article 37 du règlement intérieur.
+20260427_180024,translation_enfr,47,claude-sonnet-4-20250514,anthropic,3.0,15.0,73,83,0.001464,5,llm_judge,"French: La répression de ce type, ainsi que l'arrestation au cours des dernières semaines de représe"
+20260427_180024,translation_enfr,48,claude-sonnet-4-20250514,anthropic,3.0,15.0,112,108,0.001956,5,llm_judge,"- Choisissez l'une de ces Renault à louer à Galati ou dans d'autres villes telles que : Arad, Timiso"
+20260427_180024,translation_enfr,49,claude-sonnet-4-20250514,anthropic,3.0,15.0,50,33,0.000645,5,llm_judge,"J'ai des gâteaux à la crème, des confiseries, du hareng mariné et des dattes confites."
+20260427_180024,translation_enfr,0,claude-haiku-4-5-20251001,anthropic,0.8,4.0,40,17,0.000100,5,llm_judge,"Je sais comment aider, et je veux le faire."
+20260427_180024,translation_enfr,1,claude-haiku-4-5-20251001,anthropic,0.8,4.0,56,95,0.000425,5,llm_judge,"# French Translation  Hommejeunechh, 49 ans, Pays-de-la-Loire (Angers)  ---  **Note:** This appears "
+20260427_180024,translation_enfr,2,claude-haiku-4-5-20251001,anthropic,0.8,4.0,56,107,0.000473,5,llm_judge,# French Translation  Jésus vint et parla distinctement et avec bienveillance : « C'est moi. » Cette
+20260427_180024,translation_enfr,3,claude-haiku-4-5-20251001,anthropic,0.8,4.0,85,189,0.000824,5,llm_judge,# French Translation  Il n'existe aucune autre explication à l'octroi parcimonieux de 10 ou 12 milli
+20260427_180024,translation_enfr,4,claude-haiku-4-5-20251001,anthropic,0.8,4.0,39,20,0.000111,5,llm_judge,Votre mari avait-il invité le Lieutenant Gilbert chez vous ?
+20260427_180024,translation_enfr,5,claude-haiku-4-5-20251001,anthropic,0.8,4.0,58,119,0.000522,5,llm_judge,# French Translation  Les flocs provenant de temps de rétention des boues (SRT) plus élevés étaient 
+20260427_180024,translation_enfr,6,claude-haiku-4-5-20251001,anthropic,0.8,4.0,40,97,0.000420,4,llm_judge,"# French Translation  En ce moment, ce diable descend Wangan en voiture.  ---  **Alternative version"
+20260427_180024,translation_enfr,7,claude-haiku-4-5-20251001,anthropic,0.8,4.0,37,16,0.000094,5,llm_judge,French: Des services de placement. C'est généreux.
+20260427_180024,translation_enfr,8,claude-haiku-4-5-20251001,anthropic,0.8,4.0,51,38,0.000193,4,llm_judge,"Et il a dit : « D'accord. » Et j'ai dit : « Eh bien, je me demande où ça va se passer. »"
+20260427_180024,translation_enfr,9,claude-haiku-4-5-20251001,anthropic,0.8,4.0,73,176,0.000762,4,llm_judge,"# French Translation  De son côté, le deuxième atelier s'est concentré sur la mise en œuvre des reco"
+20260427_180024,translation_enfr,10,claude-haiku-4-5-20251001,anthropic,0.8,4.0,45,63,0.000288,4,llm_judge,"# French Translation  Peut-être générer quelques indices, nous rapprocher de l'animal qui a fait ça."
+20260427_180024,translation_enfr,11,claude-haiku-4-5-20251001,anthropic,0.8,4.0,89,193,0.000843,5,llm_judge,"# French Translation  Un large éventail d'attractions et de produits touristiques (thé, routes cultu"
+20260427_180024,translation_enfr,12,claude-haiku-4-5-20251001,anthropic,0.8,4.0,75,186,0.000804,5,llm_judge,"# French Translation  Ce premier résultat, jugé exceptionnel, a permis l'identification de 80 signau"
+20260427_180024,translation_enfr,13,claude-haiku-4-5-20251001,anthropic,0.8,4.0,42,19,0.000110,5,llm_judge,Dis simplement à Kumagaya que le détective est là.
+20260427_180024,translation_enfr,14,claude-haiku-4-5-20251001,anthropic,0.8,4.0,66,122,0.000541,5,llm_judge,# French Translation  Le Comité accueille favorablement la soumission du rapport initial de l'État p
+20260427_180024,translation_enfr,15,claude-haiku-4-5-20251001,anthropic,0.8,4.0,52,112,0.000490,5,llm_judge,# French Translation  Sector Source est un site de ressources dédié à aider ceux qui gèrent des orga
+20260427_180024,translation_enfr,16,claude-haiku-4-5-20251001,anthropic,0.8,4.0,41,73,0.000325,2,llm_judge,J'ai l'impression que mon coq n'est pas assez grand pour toi.  (Note: This is a literal translation.
+20260427_180024,translation_enfr,17,claude-haiku-4-5-20251001,anthropic,0.8,4.0,39,54,0.000247,5,llm_judge,# French Translation  Source : examplereferenceletter.com  ---  **Note:** This is a direct translati
+20260427_180024,translation_enfr,18,claude-haiku-4-5-20251001,anthropic,0.8,4.0,43,81,0.000358,4,llm_judge,"# French Translation  La plage la plus proche se trouve à une distance de conduite facile, à environ"
+20260427_180024,translation_enfr,19,claude-haiku-4-5-20251001,anthropic,0.8,4.0,37,14,0.000086,5,llm_judge,# FTI — Privilèges et conditions
+20260427_180024,translation_enfr,20,claude-haiku-4-5-20251001,anthropic,0.8,4.0,41,20,0.000113,5,llm_judge,"Je dirais que c'est de faible valeur, au mieux."
+20260427_180024,translation_enfr,21,claude-haiku-4-5-20251001,anthropic,0.8,4.0,41,108,0.000465,5,llm_judge,"# French Translation  **Maintenant, pourriez-vous lire ceci, s'il vous plaît ?**  Or in a more casua"
+20260427_180024,translation_enfr,22,claude-haiku-4-5-20251001,anthropic,0.8,4.0,60,51,0.000252,5,llm_judge,"Si le revenu et/ou le statut professionnel d'une personne change, il peut y avoir un transfert de re"
+20260427_180024,translation_enfr,23,claude-haiku-4-5-20251001,anthropic,0.8,4.0,55,109,0.000480,5,llm_judge,# French Translation  Des évacuateurs de crues capables de gérer les événements de crue postulés son
+20260427_180024,translation_enfr,24,claude-haiku-4-5-20251001,anthropic,0.8,4.0,58,119,0.000522,5,llm_judge,# French Translation  Le programme de nutrition urbaine de l'UNICEF à Nairobi est dirigé par une fem
+20260427_180024,translation_enfr,25,claude-haiku-4-5-20251001,anthropic,0.8,4.0,72,139,0.000614,4,llm_judge,"# French Translation  2. Le 21 février, le Sous-secrétaire à la Guerre, José Asenio, a été révoqué, "
+20260427_180024,translation_enfr,26,claude-haiku-4-5-20251001,anthropic,0.8,4.0,48,91,0.000402,4,llm_judge,"# French Translation  Il a suggéré, en revanche, que l'armée devrait jouer un rôle secondaire dans l"
+20260427_180024,translation_enfr,27,claude-haiku-4-5-20251001,anthropic,0.8,4.0,90,119,0.000548,5,llm_judge,# French Translation  Les critères du DSM-IV pour l'intoxication à l'alcool sont similaires avec l'a
+20260427_180024,translation_enfr,28,claude-haiku-4-5-20251001,anthropic,0.8,4.0,50,117,0.000508,4,llm_judge,# French Translation  Nous sommes capables... de déployer une puissance de feu... plus importante qu
+20260427_180024,translation_enfr,29,claude-haiku-4-5-20251001,anthropic,0.8,4.0,41,43,0.000205,4,llm_judge,Et je t'aime bien... bien que je ne sache pas pourquoi.  (Alternative: Et tu me plais... bien que je
+20260427_180024,translation_enfr,30,claude-haiku-4-5-20251001,anthropic,0.8,4.0,50,96,0.000424,5,llm_judge,# French Translation  **Première ligne de crédit en Italie pour les apprentissages des jeunes dans l
+20260427_180024,translation_enfr,31,claude-haiku-4-5-20251001,anthropic,0.8,4.0,37,119,0.000506,3,llm_judge,"# French Translation  ""Nous pourrions vous inculper de racolage.""  Or alternatively:  ""On pourrait v"
+20260427_180024,translation_enfr,32,claude-haiku-4-5-20251001,anthropic,0.8,4.0,55,114,0.000500,4,llm_judge,"# French Translation  Les États membres, les institutions de l'Union et le SEAE peuvent proposer le "
+20260427_180024,translation_enfr,33,claude-haiku-4-5-20251001,anthropic,0.8,4.0,60,50,0.000248,5,llm_judge,CV33 (1) (1.3) Remplacer « le conducteur et les autres membres de l'équipage » par « les membres de 
+20260427_180024,translation_enfr,34,claude-haiku-4-5-20251001,anthropic,0.8,4.0,40,13,0.000084,5,llm_judge,"Sydney, Esther sera dans mon bureau."
+20260427_180024,translation_enfr,35,claude-haiku-4-5-20251001,anthropic,0.8,4.0,51,67,0.000309,5,llm_judge,# French Translation  [journaliste homme #1 à la télévision] L'accident s'est produit juste après 10
+20260427_180024,translation_enfr,36,claude-haiku-4-5-20251001,anthropic,0.8,4.0,45,20,0.000116,4,llm_judge,"Plus tu te débats, plus ce sera gênant pour tout le monde."
+20260427_180024,translation_enfr,37,claude-haiku-4-5-20251001,anthropic,0.8,4.0,102,119,0.000558,5,llm_judge,# French Translation  Le paragraphe 104(1.1) est modifié pour préciser qu'il s'applique malgré le pa
+20260427_180024,translation_enfr,38,claude-haiku-4-5-20251001,anthropic,0.8,4.0,38,19,0.000106,5,llm_judge,Cela ne peut que mener au chaos et à la terreur.
+20260427_180024,translation_enfr,39,claude-haiku-4-5-20251001,anthropic,0.8,4.0,38,40,0.000190,5,llm_judge,Sais-tu d'où vient l'argent ?  (Or more formally: Savez-vous d'où vient l'argent ?)
+20260427_180024,translation_enfr,40,claude-haiku-4-5-20251001,anthropic,0.8,4.0,37,21,0.000114,5,llm_judge,Nous avons juste besoin d'obtenir plus d'informations.
+20260427_180024,translation_enfr,41,claude-haiku-4-5-20251001,anthropic,0.8,4.0,46,95,0.000417,5,llm_judge,T'es pas dans la DGA. Zoome juste et ferme ta gueule.  ---  **Note:** This translation maintains the
+20260427_180024,translation_enfr,42,claude-haiku-4-5-20251001,anthropic,0.8,4.0,121,129,0.000613,5,llm_judge,# French Translation  Ce premier recensement eut lieu quand Quirinus était gouverneur de Syrie. Chac
+20260427_180024,translation_enfr,43,claude-haiku-4-5-20251001,anthropic,0.8,4.0,52,90,0.000402,4,llm_judge,# French Translation  L'unité est simplement fixée à l'appui-tête du siège du conducteur à l'aide d'
+20260427_180024,translation_enfr,44,claude-haiku-4-5-20251001,anthropic,0.8,4.0,62,128,0.000562,5,llm_judge,# French Translation  Les analyses de sensibilité indiquent que l'étendue de la longueur non support
+20260427_180024,translation_enfr,45,claude-haiku-4-5-20251001,anthropic,0.8,4.0,75,178,0.000772,5,llm_judge,"# French Translation  L'évasion fiscale s'est accrue en Tunisie, causant un manque important en term"
+20260427_180024,translation_enfr,46,claude-haiku-4-5-20251001,anthropic,0.8,4.0,51,32,0.000169,5,llm_judge,J'ai reçu sept propositions de résolutions conformément à l'article 37 du Règlement intérieur.
+20260427_180024,translation_enfr,47,claude-haiku-4-5-20251001,anthropic,0.8,4.0,73,174,0.000754,5,llm_judge,"# French Translation  La répression de ce type, associée à l'arrestation au cours des dernières sema"
+20260427_180024,translation_enfr,48,claude-haiku-4-5-20251001,anthropic,0.8,4.0,112,112,0.000538,5,llm_judge,# French Translation  - Choisissez l'une de ces Renault à louer à Galati ou dans d'autres villes tel
+20260427_180024,translation_enfr,49,claude-haiku-4-5-20251001,anthropic,0.8,4.0,50,34,0.000176,5,llm_judge,"J'ai des gâteaux à la crème, des friandises, des harengs marinés et des dattes confites."
+20260427_180024,translation_enfr,0,gpt-4o,openai,2.5,10.0,36,10,0.000190,5,llm_judge,"Je sais comment aider, et je le veux."
+20260427_180024,translation_enfr,1,gpt-4o,openai,2.5,10.0,45,20,0.000313,5,llm_judge,"Hommejeunechh, 49 ans, Pays-de-la-Loire (Angers)"
+20260427_180024,translation_enfr,2,gpt-4o,openai,2.5,10.0,49,33,0.000452,5,llm_judge,Jésus vint et parla distinctement et avec bonté : « C'est moi. » Cette expression devint le fondemen
+20260427_180024,translation_enfr,3,gpt-4o,openai,2.5,10.0,75,65,0.000838,4,llm_judge,"Il n'y a pas d'autre explication pour l'octroi parcimonieux de 10 ou 12 millions d'ECU, ce qui, comm"
+20260427_180024,translation_enfr,4,gpt-4o,openai,2.5,10.0,35,11,0.000198,5,llm_judge,Votre mari avait-il invité le lieutenant Gilbert chez vous ?
+20260427_180024,translation_enfr,5,gpt-4o,openai,2.5,10.0,51,34,0.000467,4,llm_judge,Les flocs provenant de SRT plus élevés étaient moins hydratés et possédaient une couche dense de EPS
+20260427_180024,translation_enfr,6,gpt-4o,openai,2.5,10.0,35,17,0.000258,4,llm_judge,"En ce moment, c'est ce diable qui descend le Wangan en voiture."
+20260427_180024,translation_enfr,7,gpt-4o,openai,2.5,10.0,31,9,0.000168,5,llm_judge,Services de placement. C'est généreux.
+20260427_180024,translation_enfr,8,gpt-4o,openai,2.5,10.0,46,26,0.000375,5,llm_judge,"Et il a dit : ""Bien sûr."" Et j'ai dit : ""Eh bien, je me demande où ça va être."""
+20260427_180024,translation_enfr,9,gpt-4o,openai,2.5,10.0,66,58,0.000745,4,llm_judge,"De son côté, le deuxième atelier s'est concentré sur la mise en œuvre des recommandations formulées "
+20260427_180024,translation_enfr,10,gpt-4o,openai,2.5,10.0,40,20,0.000300,4,llm_judge,"Peut-être générer quelques indices, nous rapprocher de l'animal qui a fait ça."
+20260427_180024,translation_enfr,11,gpt-4o,openai,2.5,10.0,79,75,0.000947,5,llm_judge,"Un grand nombre d'attractions et de produits touristiques (thé, itinéraires culturels, stations de s"
+20260427_180024,translation_enfr,12,gpt-4o,openai,2.5,10.0,66,49,0.000655,5,llm_judge,"Ce premier résultat, jugé exceptionnel, a permis l'identification de 80 signaux acoustiques différen"
+20260427_180024,translation_enfr,13,gpt-4o,openai,2.5,10.0,37,14,0.000233,5,llm_judge,Dites simplement à Kumagaya que le détective est ici.
+20260427_180024,translation_enfr,14,gpt-4o,openai,2.5,10.0,56,38,0.000520,5,llm_judge,Le Comité se félicite de la soumission du rapport initial de l'État partie et est satisfait du dialo
+20260427_180024,translation_enfr,15,gpt-4o,openai,2.5,10.0,44,35,0.000460,5,llm_judge,Sector Source est un site de ressources dédié à aider ceux qui dirigent des organismes de bienfaisan
+20260427_180024,translation_enfr,16,gpt-4o,openai,2.5,10.0,36,13,0.000220,4,llm_judge,Je sens que mon sexe n'est pas assez grand pour toi.
+20260427_180024,translation_enfr,17,gpt-4o,openai,2.5,10.0,34,8,0.000165,5,llm_judge,Source : examplereferenceletter.com
+20260427_180024,translation_enfr,18,gpt-4o,openai,2.5,10.0,39,19,0.000287,4,llm_judge,"La plage la plus proche est facilement accessible en voiture, se trouvant à environ 6..."
+20260427_180024,translation_enfr,19,gpt-4o,openai,2.5,10.0,33,9,0.000172,5,llm_judge,FTI — Privilèges et conditions
+20260427_180024,translation_enfr,20,gpt-4o,openai,2.5,10.0,34,13,0.000215,5,llm_judge,"Je dirais que c'est de faible valeur, au mieux."
+20260427_180024,translation_enfr,21,gpt-4o,openai,2.5,10.0,37,13,0.000222,5,llm_judge,"Maintenant, pourriez-vous lire ceci, s'il vous plaît ?"
+20260427_180024,translation_enfr,22,gpt-4o,openai,2.5,10.0,54,36,0.000495,5,llm_judge,"Si le revenu et/ou le statut d'emploi d'une personne changent, il peut y avoir un transfert de respo"
+20260427_180024,translation_enfr,23,gpt-4o,openai,2.5,10.0,50,32,0.000445,5,llm_judge,Les déversoirs capables de gérer les crues postulées sont intégrés soit dans les structures du barra
+20260427_180024,translation_enfr,24,gpt-4o,openai,2.5,10.0,48,38,0.000500,5,llm_judge,Le programme de nutrition urbaine de l'UNICEF à Nairobi est dirigé par une femme et encourage l'octr
+20260427_180024,translation_enfr,25,gpt-4o,openai,2.5,10.0,62,44,0.000595,5,llm_judge,"Le 21 février, le sous-secrétaire à la Guerre, José Asenio, a été démis de ses fonctions et bientôt "
+20260427_180024,translation_enfr,26,gpt-4o,openai,2.5,10.0,45,25,0.000362,4,llm_judge,"Il a suggéré, au contraire, que l'armée devrait jouer un rôle secondaire dans les opérations antiter"
+20260427_180024,translation_enfr,27,gpt-4o,openai,2.5,10.0,77,62,0.000812,4,llm_judge,"Les critères du DSM-IV pour l'intoxication alcoolique sont similaires, avec l'ajout d'un ou plusieur"
+20260427_180024,translation_enfr,28,gpt-4o,openai,2.5,10.0,45,29,0.000403,4,llm_judge,Nous sommes capables... de lancer plus de puissance de feu... qu'il n'en a jamais été déployé dans l
+20260427_180024,translation_enfr,29,gpt-4o,openai,2.5,10.0,36,14,0.000230,4,llm_judge,Et je t'aime bien... même si je ne sais pas pourquoi.
+20260427_180024,translation_enfr,30,gpt-4o,openai,2.5,10.0,44,29,0.000400,5,llm_judge,"Première ligne de crédit en Italie pour les apprentissages des jeunes dans les PME, les entreprises "
+20260427_180024,translation_enfr,31,gpt-4o,openai,2.5,10.0,32,11,0.000190,2,llm_judge,Nous pourrions vous arrêter pour racolage.
+20260427_180024,translation_enfr,32,gpt-4o,openai,2.5,10.0,49,25,0.000373,5,llm_judge,"Les États membres, les institutions de l'Union et le SEAE peuvent proposer le détachement de personn"
+20260427_180024,translation_enfr,33,gpt-4o,openai,2.5,10.0,55,38,0.000517,5,llm_judge,"CV33 (1) (1.3) Remplacez ""le conducteur et les autres membres de l'équipage"" par ""les membres de l'é"
+20260427_180024,translation_enfr,34,gpt-4o,openai,2.5,10.0,34,8,0.000165,5,llm_judge,"Sydney, Esther sera dans mon bureau."
+20260427_180024,translation_enfr,35,gpt-4o,openai,2.5,10.0,44,23,0.000340,5,llm_judge,[reporter masculin #1 à la télévision] l'accident s'est produit juste après 10h00.
+20260427_180024,translation_enfr,36,gpt-4o,openai,2.5,10.0,40,16,0.000260,5,llm_judge,"Plus tu te débats, plus ça va être gênant pour tout le monde."
+20260427_180024,translation_enfr,37,gpt-4o,openai,2.5,10.0,91,87,0.001097,5,llm_judge,Le paragraphe 104(1.1) est modifié pour préciser qu'il s'applique nonobstant le paragraphe 248(25) d
+20260427_180024,translation_enfr,38,gpt-4o,openai,2.5,10.0,34,13,0.000215,5,llm_judge,Cela ne peut mener qu'au chaos et à la terreur.
+20260427_180024,translation_enfr,39,gpt-4o,openai,2.5,10.0,34,9,0.000175,5,llm_judge,Savez-vous d'où vient l'argent ?
+20260427_180024,translation_enfr,40,gpt-4o,openai,2.5,10.0,33,10,0.000182,5,llm_judge,Nous avons juste besoin d'obtenir plus d'informations.
+20260427_180024,translation_enfr,41,gpt-4o,openai,2.5,10.0,41,22,0.000322,4,llm_judge,Tu n'es pas dans la DGA. Contente-toi de zoomer et ferme ta gueule.
+20260427_180024,translation_enfr,42,gpt-4o,openai,2.5,10.0,109,104,0.001313,5,llm_judge,Ce premier recensement eut lieu pendant que Quirinius était gouverneur de Syrie. Chacun devait se fa
+20260427_180024,translation_enfr,43,gpt-4o,openai,2.5,10.0,48,31,0.000430,4,llm_judge,L'unité est simplement fixée à l'appuie-tête du siège du conducteur à l'aide d'une sangle élastique 
+20260427_180024,translation_enfr,44,gpt-4o,openai,2.5,10.0,55,42,0.000558,4,llm_judge,Les analyses de sensibilité indiquent que l'étendue de la longueur non supportée développée à la sui
+20260427_180024,translation_enfr,45,gpt-4o,openai,2.5,10.0,67,51,0.000678,5,llm_judge,"L'évasion fiscale a augmenté en Tunisie, entraînant un manque à gagner significatif en termes de res"
+20260427_180024,translation_enfr,46,gpt-4o,openai,2.5,10.0,43,17,0.000278,5,llm_judge,J'ai reçu sept propositions de résolution conformément à l'article 37 du règlement intérieur.
+20260427_180024,translation_enfr,47,gpt-4o,openai,2.5,10.0,65,59,0.000753,5,llm_judge,"La répression de ce genre, ainsi que l'arrestation ces dernières semaines de représentants d'institu"
+20260427_180024,translation_enfr,48,gpt-4o,openai,2.5,10.0,97,78,0.001022,5,llm_judge,"Choisissez l'une de ces Renault à louer à Galati ou dans d'autres villes telles que : Arad, Timisoar"
+20260427_180024,translation_enfr,49,gpt-4o,openai,2.5,10.0,43,26,0.000367,5,llm_judge,"J'ai des gâteaux à la crème, des douceurs, du hareng mariné et des dattes cristallisées."
+20260427_180024,translation_enfr,0,gpt-4o-mini,openai,0.15,0.6,36,11,0.000012,5,llm_judge,"Je sais comment aider, et je veux le faire."
+20260427_180024,translation_enfr,1,gpt-4o-mini,openai,0.15,0.6,45,17,0.000017,5,llm_judge,"Homme jeune, 49 ans, Pays-de-la-Loire (Angers)"
+20260427_180024,translation_enfr,2,gpt-4o-mini,openai,0.15,0.6,49,34,0.000028,5,llm_judge,"Jésus est venu et a parlé distinctement et avec bienveillance : ""C'est moi."" Cette expression est de"
+20260427_180024,translation_enfr,3,gpt-4o-mini,openai,0.15,0.6,75,65,0.000050,5,llm_judge,"Il n'y a pas d'autre explication à l'octroi parcimonieux de 10 ou 12 millions d'ECU, qui, comme nous"
+20260427_180024,translation_enfr,4,gpt-4o-mini,openai,0.15,0.6,35,13,0.000013,5,llm_judge,French: Votre mari avait-il invité le lieutenant Gilbert chez vous ?
+20260427_180024,translation_enfr,5,gpt-4o-mini,openai,0.15,0.6,51,33,0.000027,5,llm_judge,Le floc provenant de SRT plus élevés était moins hydraté et présentait une couche d'EPS dense qui re
+20260427_180024,translation_enfr,6,gpt-4o-mini,openai,0.15,0.6,35,15,0.000014,4,llm_judge,"En ce moment, en descendant Wangan, c'est ce diable."
+20260427_180024,translation_enfr,7,gpt-4o-mini,openai,0.15,0.6,31,9,0.000010,5,llm_judge,Services de placement. C'est généreux.
+20260427_180024,translation_enfr,8,gpt-4o-mini,openai,0.15,0.6,46,28,0.000024,5,llm_judge,"Et il a dit : « Bien sûr. » Et j'ai dit : « Eh bien, je me demande où ça va être. »"
+20260427_180024,translation_enfr,9,gpt-4o-mini,openai,0.15,0.6,66,57,0.000044,4,llm_judge,"Pour sa part, le deuxième atelier s'est concentré sur la mise en œuvre des recommandations formulées"
+20260427_180024,translation_enfr,10,gpt-4o-mini,openai,0.15,0.6,40,20,0.000018,4,llm_judge,"Peut-être générer quelques indices, nous rapprocher de l'animal qui a fait ça."
+20260427_180024,translation_enfr,11,gpt-4o-mini,openai,0.15,0.6,79,71,0.000054,5,llm_judge,"Un large éventail d'attractions et de produits touristiques (thé, routes culturelles, stations de sa"
+20260427_180024,translation_enfr,12,gpt-4o-mini,openai,0.15,0.6,66,48,0.000039,5,llm_judge,"Ce premier résultat, jugé exceptionnel, a permis l'identification de 80 signaux acoustiques différen"
+20260427_180024,translation_enfr,13,gpt-4o-mini,openai,0.15,0.6,37,14,0.000014,5,llm_judge,Dites simplement à Kumagaya que le détective est ici.
+20260427_180024,translation_enfr,14,gpt-4o-mini,openai,0.15,0.6,56,37,0.000031,5,llm_judge,Le Comité accueille avec satisfaction la soumission du rapport initial de l'État partie et se réjoui
+20260427_180024,translation_enfr,15,gpt-4o-mini,openai,0.15,0.6,44,35,0.000028,5,llm_judge,French: Sector Source est un site de ressources dédié à aider ceux qui dirigent des œuvres de charit
+20260427_180024,translation_enfr,16,gpt-4o-mini,openai,0.15,0.6,36,13,0.000013,4,llm_judge,Je sens que mon sexe n'est pas assez grand pour toi.
+20260427_180024,translation_enfr,17,gpt-4o-mini,openai,0.15,0.6,34,8,0.000010,5,llm_judge,Source : examplereferenceletter.com
+20260427_180024,translation_enfr,18,gpt-4o-mini,openai,0.15,0.6,39,19,0.000017,4,llm_judge,"La plage la plus proche est facilement accessible en voiture, se trouvant à environ 6..."
+20260427_180024,translation_enfr,19,gpt-4o-mini,openai,0.15,0.6,33,9,0.000010,5,llm_judge,FTI — Privilèges et conditions
+20260427_180024,translation_enfr,20,gpt-4o-mini,openai,0.15,0.6,34,13,0.000013,5,llm_judge,"Je dirais que c'est de faible valeur, au mieux."
+20260427_180024,translation_enfr,21,gpt-4o-mini,openai,0.15,0.6,37,14,0.000014,5,llm_judge,"French: Maintenant, pourriez-vous lire ceci, s'il vous plaît ?"
+20260427_180024,translation_enfr,22,gpt-4o-mini,openai,0.15,0.6,54,35,0.000029,5,llm_judge,"Si le revenu et/ou le statut d'emploi d'une personne change, il peut y avoir un transfert de respons"
+20260427_180024,translation_enfr,23,gpt-4o-mini,openai,0.15,0.6,50,37,0.000030,5,llm_judge,Les déversoirs capables de gérer les événements d'inondation postulés sont intégrés soit dans les st
+20260427_180024,translation_enfr,24,gpt-4o-mini,openai,0.15,0.6,48,36,0.000029,5,llm_judge,Le programme de nutrition urbaine de l'UNICEF à Nairobi est dirigé par une femme et promeut le crédi
+20260427_180024,translation_enfr,25,gpt-4o-mini,openai,0.15,0.6,62,45,0.000036,5,llm_judge,"2. Le 21 février, le sous-secrétaire à la Guerre, José Asenio, a été destitué et bientôt arrêté avec"
+20260427_180024,translation_enfr,26,gpt-4o-mini,openai,0.15,0.6,45,22,0.000020,5,llm_judge,Cela a plutôt suggéré que l'armée devrait jouer un rôle secondaire dans les opérations anti-terroris
+20260427_180024,translation_enfr,27,gpt-4o-mini,openai,0.15,0.6,77,63,0.000049,4,llm_judge,"Les critères du DSM-IV pour l'intoxication alcoolique sont similaires, avec l'ajout de l'un ou plusi"
+20260427_180024,translation_enfr,28,gpt-4o-mini,openai,0.15,0.6,45,22,0.000020,4,llm_judge,Nous sommes capables... de déployer plus de puissance de feu... que jamais dans l'histoire de la gue
+20260427_180024,translation_enfr,29,gpt-4o-mini,openai,0.15,0.6,36,14,0.000014,4,llm_judge,Et je t'aime bien... même si je ne sais pas pourquoi.
+20260427_180024,translation_enfr,30,gpt-4o-mini,openai,0.15,0.6,44,29,0.000024,5,llm_judge,"Première ligne de crédit en Italie pour les apprentissages des jeunes dans les PME, les entreprises "
+20260427_180024,translation_enfr,31,gpt-4o-mini,openai,0.15,0.6,32,10,0.000011,3,llm_judge,Nous pourrions vous réserver pour sollicitation.
+20260427_180024,translation_enfr,32,gpt-4o-mini,openai,0.15,0.6,49,26,0.000023,5,llm_judge,"Les États membres, les institutions de l'Union et le SEAE peuvent proposer le détachement de personn"
+20260427_180024,translation_enfr,33,gpt-4o-mini,openai,0.15,0.6,55,37,0.000030,5,llm_judge,"CV33 (1) (1.3) Remplacer ""le conducteur et les autres membres de l'équipage"" par ""les membres de l'é"
+20260427_180024,translation_enfr,34,gpt-4o-mini,openai,0.15,0.6,34,8,0.000010,5,llm_judge,"Sydney, Esther sera dans mon bureau."
+20260427_180024,translation_enfr,35,gpt-4o-mini,openai,0.15,0.6,44,22,0.000020,5,llm_judge,[reporter masculin #1 à la télévision] un accident s'est produit juste après 10h00.
+20260427_180024,translation_enfr,36,gpt-4o-mini,openai,0.15,0.6,40,16,0.000016,4,llm_judge,"Plus tu luttes, plus cela va être gênant pour tout le monde."
+20260427_180024,translation_enfr,37,gpt-4o-mini,openai,0.15,0.6,91,85,0.000065,5,llm_judge,Le paragraphe 104(1.1) est modifié pour préciser qu'il s'applique nonobstant le paragraphe 248(25) d
+20260427_180024,translation_enfr,38,gpt-4o-mini,openai,0.15,0.6,34,13,0.000013,5,llm_judge,Cela ne peut mener qu'au chaos et à la terreur.
+20260427_180024,translation_enfr,39,gpt-4o-mini,openai,0.15,0.6,34,11,0.000012,5,llm_judge,French: Sais-tu d'où vient l'argent ?
+20260427_180024,translation_enfr,40,gpt-4o-mini,openai,0.15,0.6,33,8,0.000010,4,llm_judge,Nous devons juste obtenir plus d'informations.
+20260427_180024,translation_enfr,41,gpt-4o-mini,openai,0.15,0.6,41,20,0.000018,4,llm_judge,French: Tu n'es pas dans la DGA. Zoome juste et ferme ta gueule.
+20260427_180024,translation_enfr,42,gpt-4o-mini,openai,0.15,0.6,109,102,0.000078,5,llm_judge,Ce premier recensement a été effectué alors que Quirinus était gouverneur de la Syrie. Chacun devait
+20260427_180024,translation_enfr,43,gpt-4o-mini,openai,0.15,0.6,48,28,0.000024,5,llm_judge,L'unité se fixe simplement à l'appui-tête du siège du conducteur à l'aide d'une solide sangle élasti
+20260427_180024,translation_enfr,44,gpt-4o-mini,openai,0.15,0.6,55,42,0.000033,4,llm_judge,Les analyses de sensibilité indiquent que l'étendue de la longueur non supportée développée en raiso
+20260427_180024,translation_enfr,45,gpt-4o-mini,openai,0.15,0.6,67,51,0.000041,5,llm_judge,"L'évasion fiscale a augmenté en Tunisie, entraînant un manque à gagner significatif en termes de res"
+20260427_180024,translation_enfr,46,gpt-4o-mini,openai,0.15,0.6,43,19,0.000018,5,llm_judge,J'ai reçu sept motions de résolution conformément à l'article 37 du Règlement intérieur.
+20260427_180024,translation_enfr,47,gpt-4o-mini,openai,0.15,0.6,65,60,0.000046,5,llm_judge,"La répression de ce type, ainsi que l'arrestation ces dernières semaines de représentants d'institut"
+20260427_180024,translation_enfr,48,gpt-4o-mini,openai,0.15,0.6,97,79,0.000062,5,llm_judge,"- Choisissez l'une de ces Renault à louer à Galati ou dans d'autres villes telles que : Arad, Timiso"
+20260427_180024,translation_enfr,49,gpt-4o-mini,openai,0.15,0.6,43,29,0.000024,5,llm_judge,"J'ai des gâteaux à la crème, des viandes sucrées, du hareng mariné et des dattes cristallisées."
+20260427_180024,translation_enfr,0,gemini-2.5-pro,gemini,1.25,10.0,32,11,0.000150,5,llm_judge,"Je sais comment aider, et je veux le faire."
+20260427_180024,translation_enfr,1,gemini-2.5-pro,gemini,1.25,10.0,44,21,0.000265,5,llm_judge,"Hommejeunechh, 49 ans, Pays-de-la-Loire (Angers)"
+20260427_180024,translation_enfr,2,gemini-2.5-pro,gemini,1.25,10.0,45,38,0.000436,5,llm_judge,Jésus vint et dit d'une voix distincte et bienveillante : « C'est moi. » Cette parole devint le fond
+20260427_180024,translation_enfr,3,gemini-2.5-pro,gemini,1.25,10.0,74,72,0.000812,5,llm_judge,"Il n'y a pas d'autre explication à l'octroi parcimonieux de 10 ou 12 millions d'ECU, qui, comme nous"
+20260427_180024,translation_enfr,4,gemini-2.5-pro,gemini,1.25,10.0,31,13,0.000169,5,llm_judge,Votre mari avait-il invité le lieutenant Gilbert chez vous ?
+20260427_180024,translation_enfr,5,gemini-2.5-pro,gemini,1.25,10.0,46,32,0.000378,5,llm_judge,Les flocs provenant de SRT plus élevés étaient moins hydratés et présentaient une couche d'EPS dense
+20260427_180024,translation_enfr,6,gemini-2.5-pro,gemini,1.25,10.0,31,17,0.000209,4,llm_judge,"En ce moment sur la Wangan, c'est ce diable qui pilote."
+20260427_180024,translation_enfr,7,gemini-2.5-pro,gemini,1.25,10.0,29,11,0.000146,5,llm_judge,Services de placement. C'est généreux.
+20260427_180024,translation_enfr,8,gemini-2.5-pro,gemini,1.25,10.0,44,29,0.000345,5,llm_judge,"Et il a dit : « Bien sûr. » Et j'ai dit : « Eh bien, je me demande où ça va être. »"
+20260427_180024,translation_enfr,9,gemini-2.5-pro,gemini,1.25,10.0,62,53,0.000607,5,llm_judge,"Pour sa part, le deuxième atelier a porté sur la mise en œuvre des recommandations formulées par les"
+20260427_180024,translation_enfr,10,gemini-2.5-pro,gemini,1.25,10.0,36,22,0.000265,4,llm_judge,"Peut-être générer quelques indices, pour nous rapprocher de l'animal qui a fait ça."
+20260427_180024,translation_enfr,11,gemini-2.5-pro,gemini,1.25,10.0,74,617,0.006262,4,llm_judge,"Here are a few options for the translation, from the most direct to a slightly more elegant phrasing"
+20260427_180024,translation_enfr,12,gemini-2.5-pro,gemini,1.25,10.0,63,47,0.000549,5,llm_judge,"Ce premier résultat, jugé exceptionnel, a permis d'identifier 80 signaux acoustiques différents à pr"
+20260427_180024,translation_enfr,13,gemini-2.5-pro,gemini,1.25,10.0,33,14,0.000181,5,llm_judge,Dites à Kumagaya que le détective est là.
+20260427_180024,translation_enfr,14,gemini-2.5-pro,gemini,1.25,10.0,53,38,0.000446,5,llm_judge,Le Comité salue la soumission du rapport initial de l'État partie et se félicite du dialogue constru
+20260427_180024,translation_enfr,15,gemini-2.5-pro,gemini,1.25,10.0,40,37,0.000420,4,llm_judge,Sector Source est un site de ressources qui a pour but d'aider les responsables d'organismes de bien
+20260427_180024,translation_enfr,16,gemini-2.5-pro,gemini,1.25,10.0,34,18,0.000222,5,llm_judge,J'ai l'impression que ma bite n'est pas assez grande pour toi.
+20260427_180024,translation_enfr,17,gemini-2.5-pro,gemini,1.25,10.0,30,9,0.000128,1,llm_judge,Source : examplereferenceletter.com
+20260427_180024,translation_enfr,18,gemini-2.5-pro,gemini,1.25,10.0,35,17,0.000214,5,llm_judge,"La plage la plus proche est facilement accessible en voiture, située à environ 6..."
+20260427_180024,translation_enfr,19,gemini-2.5-pro,gemini,1.25,10.0,28,8,0.000115,5,llm_judge,FTI — Privilèges et conditions
+20260427_180024,translation_enfr,20,gemini-2.5-pro,gemini,1.25,10.0,35,14,0.000184,4,llm_judge,"Je dirais que c'est sans grand intérêt, au mieux."
+20260427_180024,translation_enfr,21,gemini-2.5-pro,gemini,1.25,10.0,33,14,0.000181,4,llm_judge,"Voudriez-vous lire ceci, s'il vous plaît ?"
+20260427_180024,translation_enfr,22,gemini-2.5-pro,gemini,1.25,10.0,53,36,0.000426,5,llm_judge,"Si les revenus et/ou la situation professionnelle d'une personne changent, un transfert de responsab"
+20260427_180024,translation_enfr,23,gemini-2.5-pro,gemini,1.25,10.0,45,41,0.000466,5,llm_judge,"Les évacuateurs de crues, capables de gérer les crues de projet, sont soit intégrés à la structure d"
+20260427_180024,translation_enfr,24,gemini-2.5-pro,gemini,1.25,10.0,46,41,0.000467,5,llm_judge,Le programme de nutrition urbain de l'UNICEF à Nairobi est dirigé par une femme et promeut l'accès a
+20260427_180024,translation_enfr,25,gemini-2.5-pro,gemini,1.25,10.0,57,44,0.000511,5,llm_judge,"2. Le 21 février, le sous-secrétaire à la Guerre, José Asenio, fut limogé, puis arrêté peu après ave"
+20260427_180024,translation_enfr,26,gemini-2.5-pro,gemini,1.25,10.0,41,24,0.000291,5,llm_judge,"Il suggérait, au contraire, que l'armée devrait jouer un rôle secondaire dans les opérations antiter"
+20260427_180024,translation_enfr,27,gemini-2.5-pro,gemini,1.25,10.0,71,75,0.000839,5,llm_judge,"Les critères du DSM-IV pour l'intoxication alcoolique sont similaires, auxquels s'ajoute un ou plusi"
+20260427_180024,translation_enfr,28,gemini-2.5-pro,gemini,1.25,10.0,42,35,0.000403,4,llm_judge,Nous sommes capables... de déchaîner plus de puissance de feu... qu'il n'en a jamais été libéré dans
+20260427_180024,translation_enfr,29,gemini-2.5-pro,gemini,1.25,10.0,34,15,0.000192,4,llm_judge,Et je t'aime bien... bien que je ne sache pas pourquoi.
+20260427_180024,translation_enfr,30,gemini-2.5-pro,gemini,1.25,10.0,39,28,0.000329,5,llm_judge,"Première ligne de crédit en Italie destinée à l'apprentissage des jeunes au sein des PME, des ETI et"
+20260427_180024,translation_enfr,31,gemini-2.5-pro,gemini,1.25,10.0,28,9,0.000125,2,llm_judge,On pourrait vous arrêter pour racolage.
+20260427_180024,translation_enfr,32,gemini-2.5-pro,gemini,1.25,10.0,45,27,0.000326,4,llm_judge,"Les États membres, les institutions de l'Union et le SEAE peuvent proposer le détachement de personn"
+20260427_180024,translation_enfr,33,gemini-2.5-pro,gemini,1.25,10.0,52,39,0.000455,5,llm_judge,CV33 (1) (1.3) Remplacer « le conducteur et les autres membres de l'équipage » par « les membres de 
+20260427_180024,translation_enfr,34,gemini-2.5-pro,gemini,1.25,10.0,30,8,0.000117,5,llm_judge,"Sydney, Esther sera dans mon bureau."
+20260427_180024,translation_enfr,35,gemini-2.5-pro,gemini,1.25,10.0,43,15,0.000204,5,llm_judge,L'accident a eu lieu juste après 10 heures du matin.
+20260427_180024,translation_enfr,36,gemini-2.5-pro,gemini,1.25,10.0,36,17,0.000215,5,llm_judge,"Plus tu te débats, plus ça va être gênant pour tout le monde."
+20260427_180024,translation_enfr,37,gemini-2.5-pro,gemini,1.25,10.0,91,92,0.001034,4,llm_judge,Le paragraphe 104(1.1) est modifié afin de préciser qu'il s'applique nonobstant le paragraphe 248(25
+20260427_180024,translation_enfr,38,gemini-2.5-pro,gemini,1.25,10.0,30,13,0.000168,5,llm_judge,Cela ne peut que mener au chaos et à la terreur.
+20260427_180024,translation_enfr,39,gemini-2.5-pro,gemini,1.25,10.0,31,58,0.000619,5,llm_judge,Savez-vous d'où vient l'argent ?  ***  *Note: If you are speaking to someone you know well (a friend
+20260427_180024,translation_enfr,40,gemini-2.5-pro,gemini,1.25,10.0,29,10,0.000136,5,llm_judge,Nous avons juste besoin de plus d'informations.
+20260427_180024,translation_enfr,41,gemini-2.5-pro,gemini,1.25,10.0,39,356,0.003609,4,llm_judge,"This phrase is very colloquial, aggressive, and contains profanity. The translation needs to capture"
+20260427_180024,translation_enfr,42,gemini-2.5-pro,gemini,1.25,10.0,103,100,0.001129,5,llm_judge,Ce premier recensement eut lieu pendant que Quirinus était gouverneur de Syrie. Chacun devait se fai
+20260427_180024,translation_enfr,43,gemini-2.5-pro,gemini,1.25,10.0,44,32,0.000375,4,llm_judge,L'unité se fixe simplement à l'appui-tête du siège du conducteur à l'aide d'une sangle élastique sol
+20260427_180024,translation_enfr,44,gemini-2.5-pro,gemini,1.25,10.0,50,40,0.000463,4,llm_judge,Les analyses de sensibilité indiquent que l'étendue de la portée libre générée par l'affouillement a
+20260427_180024,translation_enfr,45,gemini-2.5-pro,gemini,1.25,10.0,63,55,0.000629,5,llm_judge,"L'évasion fiscale s'est accrue en Tunisie, provoquant un manque à gagner significatif en termes de r"
+20260427_180024,translation_enfr,46,gemini-2.5-pro,gemini,1.25,10.0,40,22,0.000270,5,llm_judge,"J'ai reçu sept propositions de résolution, déposées conformément à l'article 37 du règlement."
+20260427_180024,translation_enfr,47,gemini-2.5-pro,gemini,1.25,10.0,62,61,0.000687,5,llm_judge,"Une répression de ce genre, ainsi que les arrestations de ces dernières semaines de représentants d'"
+20260427_180024,translation_enfr,48,gemini-2.5-pro,gemini,1.25,10.0,93,81,0.000926,5,llm_judge,"- Choisissez l'une de ces Renault à louer à Galati ou dans d'autres villes telles que : Arad, Timiso"
+20260427_180024,translation_enfr,49,gemini-2.5-pro,gemini,1.25,10.0,38,27,0.000318,5,llm_judge,"J'ai des gâteaux à la crème, des friandises, du hareng mariné et des dattes cristallisées."
+20260427_180024,translation_enfr,0,gemini-2.5-flash,gemini,0.15,0.6,32,11,0.000011,5,llm_judge,"Je sais comment aider, et je veux le faire."
+20260427_180024,translation_enfr,1,gemini-2.5-flash,gemini,0.15,0.6,44,21,0.000019,5,llm_judge,"Hommejeunechh, 49 ans, Pays-de-la-Loire (Angers)"
+20260427_180024,translation_enfr,2,gemini-2.5-flash,gemini,0.15,0.6,45,34,0.000027,5,llm_judge,Jésus vint et parla distinctement et avec bonté : « C'est moi. » Cette parole devint le fondement de
+20260427_180024,translation_enfr,3,gemini-2.5-flash,gemini,0.15,0.6,74,67,0.000051,5,llm_judge,"Il n'y a pas d'autre explication à la subvention dérisoire de 10 ou 12 millions d'ECU qui, comme nou"
+20260427_180024,translation_enfr,4,gemini-2.5-flash,gemini,0.15,0.6,31,13,0.000012,5,llm_judge,Votre mari avait-il invité le Lieutenant Gilbert chez vous ?
+20260427_180024,translation_enfr,5,gemini-2.5-flash,gemini,0.15,0.6,46,32,0.000026,5,llm_judge,Les flocs issus de SRT plus élevés étaient moins hydratés et présentaient une couche dense d'EPS qui
+20260427_180024,translation_enfr,6,gemini-2.5-flash,gemini,0.15,0.6,31,125,0.000080,4,llm_judge,"**Là, tout de suite, c'est le diable du volant qui dévale la Wangan.**  *   **Là, tout de suite** ca"
+20260427_180024,translation_enfr,7,gemini-2.5-flash,gemini,0.15,0.6,29,11,0.000011,5,llm_judge,Services de placement. C'est généreux.
+20260427_180024,translation_enfr,8,gemini-2.5-flash,gemini,0.15,0.6,44,29,0.000024,5,llm_judge,"Et il a dit : « Bien sûr. » Et j'ai dit : « Eh bien, je me demande où ça va être. »"
+20260427_180024,translation_enfr,9,gemini-2.5-flash,gemini,0.15,0.6,62,54,0.000042,4,llm_judge,"Pour sa part, le deuxième atelier a porté sur la mise en œuvre des recommandations formulées par les"
+20260427_180024,translation_enfr,10,gemini-2.5-flash,gemini,0.15,0.6,36,23,0.000019,5,llm_judge,"On pourrait peut-être élaborer des pistes, pour nous rapprocher de l'animal qui a fait ça."
+20260427_180024,translation_enfr,11,gemini-2.5-flash,gemini,0.15,0.6,74,91,0.000066,5,llm_judge,"Voici la traduction en français, en maintenant le ton et le sens :  Un grand nombre d'attractions et"
+20260427_180024,translation_enfr,12,gemini-2.5-flash,gemini,0.15,0.6,63,49,0.000039,5,llm_judge,"Ce premier résultat, jugé exceptionnel, a permis l'identification de 80 signaux acoustiques différen"
+20260427_180024,translation_enfr,13,gemini-2.5-flash,gemini,0.15,0.6,33,15,0.000014,5,llm_judge,Dites juste à Kumagaya que le détective est ici.
+20260427_180024,translation_enfr,14,gemini-2.5-flash,gemini,0.15,0.6,53,285,0.000179,5,llm_judge,"Voici plusieurs options, toutes fidèles au ton et au sens, avec de légères nuances :  **Option 1 (La"
+20260427_180024,translation_enfr,15,gemini-2.5-flash,gemini,0.15,0.6,40,33,0.000026,4,llm_judge,Sector Source est un site web de ressources dédié à aider ceux qui dirigent des organisations carita
+20260427_180024,translation_enfr,16,gemini-2.5-flash,gemini,0.15,0.6,34,18,0.000016,5,llm_judge,J'ai l'impression que ma bite n'est pas assez grande pour toi.
+20260427_180024,translation_enfr,17,gemini-2.5-flash,gemini,0.15,0.6,30,9,0.000010,1,llm_judge,Source : examplereferenceletter.com
+20260427_180024,translation_enfr,18,gemini-2.5-flash,gemini,0.15,0.6,35,17,0.000015,5,llm_judge,"La plage la plus proche est facilement accessible en voiture, située à environ 6..."
+20260427_180024,translation_enfr,19,gemini-2.5-flash,gemini,0.15,0.6,28,8,0.000009,5,llm_judge,FTI : Privilèges et conditions
+20260427_180024,translation_enfr,20,gemini-2.5-flash,gemini,0.15,0.6,35,14,0.000014,5,llm_judge,"Je dirais que c'est de faible valeur, au mieux."
+20260427_180024,translation_enfr,21,gemini-2.5-flash,gemini,0.15,0.6,33,158,0.000100,5,llm_judge,"Voici quelques options, toutes conservant le ton poli et le sens :  1.  **Alors, pourriez-vous lire "
+20260427_180024,translation_enfr,22,gemini-2.5-flash,gemini,0.15,0.6,53,38,0.000031,4,llm_judge,"Si le revenu et/ou la situation d'emploi d'une personne évolue, il peut y avoir un transfert de resp"
+20260427_180024,translation_enfr,23,gemini-2.5-flash,gemini,0.15,0.6,45,30,0.000025,5,llm_judge,Les déversoirs capables de gérer les événements de crue postulés sont intégrés soit dans les structu
+20260427_180024,translation_enfr,24,gemini-2.5-flash,gemini,0.15,0.6,46,37,0.000029,5,llm_judge,Le programme nutritionnel urbain de l'UNICEF à Nairobi est dirigé par une femme et promeut le crédit
+20260427_180024,translation_enfr,25,gemini-2.5-flash,gemini,0.15,0.6,57,47,0.000037,5,llm_judge,"2. Le 21 février, le Sous-secrétaire à la Guerre, José Asenio, fut démis de ses fonctions, et bientô"
+20260427_180024,translation_enfr,26,gemini-2.5-flash,gemini,0.15,0.6,41,22,0.000019,4,llm_judge,"Il a suggéré, plutôt, que l'armée joue un rôle secondaire dans les opérations antiterroristes."
+20260427_180024,translation_enfr,27,gemini-2.5-flash,gemini,0.15,0.6,71,63,0.000048,5,llm_judge,"Les critères du DSM-IV pour l'intoxication alcoolique sont similaires, auxquels s'ajoute un ou plusi"
+20260427_180024,translation_enfr,28,gemini-2.5-flash,gemini,0.15,0.6,42,32,0.000025,4,llm_judge,Nous sommes capables... de déchaîner plus de puissance de feu... que tout ce qui a jamais été libéré
+20260427_180024,translation_enfr,29,gemini-2.5-flash,gemini,0.15,0.6,34,15,0.000014,4,llm_judge,Et je t'aime bien... même si je ne sais pas pourquoi.
+20260427_180024,translation_enfr,30,gemini-2.5-flash,gemini,0.15,0.6,39,27,0.000022,5,llm_judge,"Première ligne de crédit en Italie pour l'apprentissage des jeunes au sein des PME, des ETI et des c"
+20260427_180024,translation_enfr,31,gemini-2.5-flash,gemini,0.15,0.6,28,197,0.000122,4,llm_judge,"Here are a few options, depending on the exact nuance of ""solicitation"" in context, but the most com"
+20260427_180024,translation_enfr,32,gemini-2.5-flash,gemini,0.15,0.6,45,27,0.000023,4,llm_judge,"Les États membres, les institutions de l'Union et le SEAE peuvent proposer le détachement de personn"
+20260427_180024,translation_enfr,33,gemini-2.5-flash,gemini,0.15,0.6,52,39,0.000031,5,llm_judge,CV33 (1) (1.3) Remplacer « le conducteur et les autres membres de l'équipage » par « les membres de 
+20260427_180024,translation_enfr,34,gemini-2.5-flash,gemini,0.15,0.6,30,8,0.000009,3,llm_judge,Sydney et Esther seront dans mon bureau.
+20260427_180024,translation_enfr,35,gemini-2.5-flash,gemini,0.15,0.6,43,43,0.000032,4,llm_judge,"L'accident est survenu juste après 10h00 du matin.  *(Alternative using ""se produire""): L'accident s"
+20260427_180024,translation_enfr,36,gemini-2.5-flash,gemini,0.15,0.6,36,175,0.000110,5,llm_judge,"Voici quelques options, maintaining the tone and meaning:  **Option 1 (Most common and direct):** Pl"
+20260427_180024,translation_enfr,37,gemini-2.5-flash,gemini,0.15,0.6,91,105,0.000077,5,llm_judge,"Voici la traduction en français, en maintenant le ton et le sens :  Le paragraphe 104(1.1) est modif"
+20260427_180024,translation_enfr,38,gemini-2.5-flash,gemini,0.15,0.6,30,13,0.000012,5,llm_judge,Cela ne peut que mener au chaos et à la terreur.
+20260427_180024,translation_enfr,39,gemini-2.5-flash,gemini,0.15,0.6,31,12,0.000012,5,llm_judge,Savez-vous d'où vient l'argent ?
+20260427_180024,translation_enfr,40,gemini-2.5-flash,gemini,0.15,0.6,29,9,0.000010,5,llm_judge,Il nous faut juste plus d'informations.
+20260427_180024,translation_enfr,41,gemini-2.5-flash,gemini,0.15,0.6,39,146,0.000093,5,llm_judge,"Voici quelques options, toutes très informelles et vulgaires, pour maintenir le ton :  **Option 1 (T"
+20260427_180024,translation_enfr,42,gemini-2.5-flash,gemini,0.15,0.6,103,100,0.000075,5,llm_judge,Ce premier recensement eut lieu lorsque Quirinius était gouverneur de Syrie. Chacun devait s'inscrir
+20260427_180024,translation_enfr,43,gemini-2.5-flash,gemini,0.15,0.6,44,31,0.000025,5,llm_judge,L'unité se fixe simplement à l'appuie-tête du siège du conducteur à l'aide d'une sangle élastique so
+20260427_180024,translation_enfr,44,gemini-2.5-flash,gemini,0.15,0.6,50,387,0.000240,4,llm_judge,"Voici plusieurs options, toutes valides et conservant le ton technique :  **Option 1 (Plus directe e"
+20260427_180024,translation_enfr,45,gemini-2.5-flash,gemini,0.15,0.6,63,54,0.000042,5,llm_judge,"L'évasion fiscale s'est accrue en Tunisie, entraînant un manque à gagner important en termes de ress"
+20260427_180024,translation_enfr,46,gemini-2.5-flash,gemini,0.15,0.6,40,231,0.000145,5,llm_judge,"Voici quelques options, toutes très proches en ton et en sens :  1.  **J'ai été saisi de sept propos"
+20260427_180024,translation_enfr,47,gemini-2.5-flash,gemini,0.15,0.6,62,62,0.000046,5,llm_judge,"Ce type de répression, ainsi que l'arrestation, ces dernières semaines, de représentants d'instituti"
+20260427_180024,translation_enfr,48,gemini-2.5-flash,gemini,0.15,0.6,93,96,0.000072,5,llm_judge,"Voici la traduction en français, en conservant le ton et le sens :  Choisissez l'une de ces Renault "
+20260427_180024,translation_enfr,49,gemini-2.5-flash,gemini,0.15,0.6,38,26,0.000021,5,llm_judge,"J'ai des gâteaux à la crème, des confiseries, du hareng mariné et des dattes cristallisées."
+20260427_180024,translation_enfr,19,gemini-2.0-flash,gemini,0.1,0.4,27,8,0.000006,4,llm_judge,FTI — Avantages et conditions
+20260427_180024,translation_enfr,27,gemini-2.0-flash,gemini,0.1,0.4,70,66,0.000033,5,llm_judge,"Les critères du DSM-IV pour l'intoxication alcoolique sont similaires, avec l'ajout d'un ou plusieur"
+20260427_180024,translation_enfr,39,gemini-2.0-flash,gemini,0.1,0.4,30,355,0.000145,5,llm_judge,"Here are a few options, depending on the nuance you want to convey:  *   **Simple and direct:** ""Tu "
+20260427_180024,translation_enfr,44,gemini-2.0-flash,gemini,0.1,0.4,49,44,0.000023,4,llm_judge,Les analyses de sensibilité indiquent que l'étendue de la longueur non supportée développée suite à 
+20260427_180024,translation_enfr,0,MiniMax-M2.7,minimax,1.1,4.4,67,208,0.000989,5,llm_judge,"French: Je sais comment aider, et je le veux."
+20260427_180024,translation_enfr,1,MiniMax-M2.7,minimax,1.1,4.4,75,746,0.003365,5,llm_judge,"Homme, 49 ans, Pays-de-la-Loire (Angers)"
+20260427_180024,translation_enfr,2,MiniMax-M2.7,minimax,1.1,4.4,83,200,0.000971,5,llm_judge,Jésus vint et parla distinctement et avec bonté : « C'est moi. » Cette expression devint le fondemen
+20260427_180024,translation_enfr,3,MiniMax-M2.7,minimax,1.1,4.4,110,1434,0.006431,5,llm_judge,"Il n'y a aucune autre explication à l'octroi parcimonieux de 10 ou 12 millions d'écus, qui, comme no"
+20260427_180024,translation_enfr,4,MiniMax-M2.7,minimax,1.1,4.4,49,172,0.000811,5,llm_judge,Votre mari avait-il invité le lieutenant Gilbert chez vous?
+20260427_180024,translation_enfr,5,MiniMax-M2.7,minimax,1.1,4.4,82,530,0.002422,5,llm_judge,Les flocs issus de temps de rétention des solides (SRT) plus élevés étaient moins hydratés et présen
+20260427_180024,translation_enfr,6,MiniMax-M2.7,minimax,1.1,4.4,69,1126,0.005030,4,llm_judge,"En ce moment, c’est ce diable qui roule sur Wangan."
+20260427_180024,translation_enfr,7,MiniMax-M2.7,minimax,1.1,4.4,62,185,0.000882,5,llm_judge,Services de placement. C'est généreux.
+20260427_180024,translation_enfr,8,MiniMax-M2.7,minimax,1.1,4.4,80,360,0.001672,5,llm_judge,"Et il a dit : « Bien sûr. » Et j’ai dit : « Eh bien, je me demande où ça va être. »"
+20260427_180024,translation_enfr,9,MiniMax-M2.7,minimax,1.1,4.4,100,527,0.002429,4,llm_judge,"""Pour sa part, le deuxième atelier a porté sur la mise en œuvre des recommandations formulées par le"
+20260427_180024,translation_enfr,10,MiniMax-M2.7,minimax,1.1,4.4,54,268,0.001239,4,llm_judge,Peut-être produire des indices pour nous rapprocher de l'animal qui a fait ça.
+20260427_181431,translation_enfr,21,gemini-2.0-flash,gemini,0.1,0.4,32,268,0.000110,5,llm_judge,"Here are a few options, depending on the nuance you want to convey:  *   **Formal/Polite:** Pourriez"
+20260427_180024,translation_enfr,11,MiniMax-M2.7,minimax,1.1,4.4,109,938,0.004247,4,llm_judge,"Un grand nombre d'attractions et de produits touristiques (thé, itinéraires culturels, stations de s"
+20260427_180024,translation_enfr,12,MiniMax-M2.7,minimax,1.1,4.4,80,396,0.001830,5,llm_judge,"Ce premier résultat, jugé exceptionnel, a permis l'identification de 80 signaux acoustiques différen"
+20260427_180024,translation_enfr,13,MiniMax-M2.7,minimax,1.1,4.4,68,388,0.001782,5,llm_judge,Dis simplement à Kumagaya que le détective est ici.
+20260427_180024,translation_enfr,14,MiniMax-M2.7,minimax,1.1,4.4,70,147,0.000724,5,llm_judge,Le Comité se félicite de la soumission du rapport initial de l'État partie et se réjouit du dialogue
+20260427_180024,translation_enfr,15,MiniMax-M2.7,minimax,1.1,4.4,58,236,0.001102,5,llm_judge,Sector Source est un site web de ressources dédié à aider ceux qui dirigent des associations caritat
+20260427_180024,translation_enfr,16,MiniMax-M2.7,minimax,1.1,4.4,50,245,0.001133,5,llm_judge,J'ai l'impression que ma bite n'est pas assez grande pour toi.
+20260427_180024,translation_enfr,17,MiniMax-M2.7,minimax,1.1,4.4,50,209,0.000975,5,llm_judge,"Source:examplereferenceletter.com  (Note: URLs are typically not translated, so they remain the same"
+20260427_180024,translation_enfr,18,MiniMax-M2.7,minimax,1.1,4.4,53,181,0.000855,4,llm_judge,"La plage la plus proche se trouve à une courte distance en voiture, se situant à environ 6..."
+20260427_180024,translation_enfr,19,MiniMax-M2.7,minimax,1.1,4.4,67,324,0.001499,5,llm_judge,FTI — Privilèges et conditions
+20260427_180024,translation_enfr,20,MiniMax-M2.7,minimax,1.1,4.4,68,318,0.001474,4,llm_judge,"Je dirais que c'est de faible valeur, au mieux."
+20260427_180024,translation_enfr,21,MiniMax-M2.7,minimax,1.1,4.4,71,390,0.001794,5,llm_judge,"Maintenant, pourriez‑vous lire ceci, s'il vous plaît ?"
+20260427_180024,translation_enfr,22,MiniMax-M2.7,minimax,1.1,4.4,68,311,0.001443,5,llm_judge,"Si le revenu et/ou la situation professionnelle d'une personne change, il peut y avoir un transfert "
+20260427_180024,translation_enfr,23,MiniMax-M2.7,minimax,1.1,4.4,64,223,0.001052,5,llm_judge,Les déversoirs capables de gérer les événements de crue postulés sont intégrés soit dans les structu
+20260427_180024,translation_enfr,24,MiniMax-M2.7,minimax,1.1,4.4,79,555,0.002529,5,llm_judge,Le programme de nutrition urbaine de l’UNICEF à Nairobi est dirigé par une femme et encourage le cré
+20260427_180024,translation_enfr,25,MiniMax-M2.7,minimax,1.1,4.4,76,453,0.002077,5,llm_judge,"Le 21 février, le Sous-secrétaire à la Guerre, José Asenio, fut destitué, puis arrêté peu après avec"
+20260427_180024,translation_enfr,26,MiniMax-M2.7,minimax,1.1,4.4,78,316,0.001476,5,llm_judge,"Il suggérait, au contraire, que l'armée devrait jouer un rôle secondaire dans les opérations anti‑te"
+20260427_180024,translation_enfr,27,MiniMax-M2.7,minimax,1.1,4.4,89,499,0.002294,5,llm_judge,"Les critères du DSM-IV pour l'intoxication alcoolique sont similaires, avec l'ajout d'un ou plusieur"
+20260427_180024,translation_enfr,28,MiniMax-M2.7,minimax,1.1,4.4,76,1202,0.005372,5,llm_judge,Nous sommes capables… de lancer plus de puissance de feu… que tout ce qui a jamais été déployé dans 
+20260427_180024,translation_enfr,29,MiniMax-M2.7,minimax,1.1,4.4,70,674,0.003043,4,llm_judge,Et je t'aime bien… même si je ne sais pas pourquoi.
+20260427_180024,translation_enfr,30,MiniMax-M2.7,minimax,1.1,4.4,57,400,0.001823,4,llm_judge,"Première ligne de financement en Italie pour l'apprentissage des jeunes dans les PME, les moyennes c"
+20260427_180024,translation_enfr,31,MiniMax-M2.7,minimax,1.1,4.4,63,523,0.002371,3,llm_judge,French: Nous pourrions vous enregistrer pour sollicitation.
+20260427_180024,translation_enfr,32,MiniMax-M2.7,minimax,1.1,4.4,64,285,0.001324,4,llm_judge,"Les États membres, les institutions de l'Union et l'EEAS peuvent proposer le détachement de personne"
+20260427_180024,translation_enfr,33,MiniMax-M2.7,minimax,1.1,4.4,69,246,0.001158,5,llm_judge,CV33 (1) (1.3) Remplacer « le conducteur et les autres membres de l'équipage » par « les membres de 
+20260427_180024,translation_enfr,34,MiniMax-M2.7,minimax,1.1,4.4,48,170,0.000801,5,llm_judge,"Sydney, Esther sera dans mon bureau."
+20260427_180024,translation_enfr,35,MiniMax-M2.7,minimax,1.1,4.4,78,842,0.003791,5,llm_judge,[male reporter #1 on tv] : L'accident s'est produit juste après 10 h du matin.
+20260427_180024,translation_enfr,36,MiniMax-M2.7,minimax,1.1,4.4,54,380,0.001731,5,llm_judge,"Plus tu te débattes, plus ce sera gênant pour tout le monde."
+20260427_180024,translation_enfr,37,MiniMax-M2.7,minimax,1.1,4.4,119,1124,0.005077,5,llm_judge,Le paragraphe 104(1.1) est modifié de manière à préciser qu’il s'applique nonobstant le paragraphe 2
+20260427_180024,translation_enfr,38,MiniMax-M2.7,minimax,1.1,4.4,68,274,0.001280,5,llm_judge,Cela ne peut que mener au chaos et à la terreur.
+20260427_180024,translation_enfr,39,MiniMax-M2.7,minimax,1.1,4.4,48,169,0.000796,5,llm_judge,Tu sais d'où vient l'argent ?
+20260427_180024,translation_enfr,40,MiniMax-M2.7,minimax,1.1,4.4,47,279,0.001279,4,llm_judge,French: Nous avons juste besoin d'obtenir plus d'informations.
+20260427_180024,translation_enfr,41,MiniMax-M2.7,minimax,1.1,4.4,75,551,0.002507,4,llm_judge,Tu n'es pas dans le DGA. Zoome et tais‑toi bordel.
+20260427_180024,translation_enfr,42,MiniMax-M2.7,minimax,1.1,4.4,118,691,0.003170,4,llm_judge,Ce premier recensements fut fait pendant que Quirinius était gouverneur de la Syrie. Chacun devait ê
+20260427_180024,translation_enfr,43,MiniMax-M2.7,minimax,1.1,4.4,82,582,0.002651,4,llm_judge,L'unité est simplement attachée à l'appui‑tête du siège du conducteur à l'aide d'une sangle élastiqu
+20260427_180024,translation_enfr,44,MiniMax-M2.7,minimax,1.1,4.4,85,708,0.003209,5,llm_judge,Les analyses de sensibilité indiquent que l'étendue de la longueur non supportée développée à la sui
+20260427_180024,translation_enfr,45,MiniMax-M2.7,minimax,1.1,4.4,79,367,0.001702,4,llm_judge,"L'évasion fiscale a augmenté en Tunisie, causant un manque significatif en termes de ressources publ"
+20260427_180024,translation_enfr,46,MiniMax-M2.7,minimax,1.1,4.4,77,476,0.002179,5,llm_judge,J’ai reçu sept motions de résolution en application de l'article 37 du règlement de procédure.
+20260427_180024,translation_enfr,47,MiniMax-M2.7,minimax,1.1,4.4,99,1602,0.007158,5,llm_judge,"La répression de ce type, accompagnée des arrestations de représentants d’institutions humanitaires,"
+20260427_180024,translation_enfr,48,MiniMax-M2.7,minimax,1.1,4.4,127,581,0.002696,5,llm_judge,"Choisissez l'une de ces Renault à louer à Galati ou dans d'autres villes telles que : Arad, Timisoar"
+20260427_180024,translation_enfr,49,MiniMax-M2.7,minimax,1.1,4.4,55,295,0.001358,5,llm_judge,"J'ai des gâteaux à la crème, des friandises, du hareng mariné et des dattes confites."
+20260427_180024,translation_enfr,0,mistral-large-latest,mistral,2.0,6.0,33,91,0.000612,5,llm_judge,"Here’s the French translation while maintaining the tone and meaning:  **""Je sais comment aider, et "
+20260427_180024,translation_enfr,1,mistral-large-latest,mistral,2.0,6.0,43,202,0.001298,5,llm_judge,"Voici la traduction en français, en conservant le ton et le sens du texte original :  **""Hommejeunec"
+20260427_180024,translation_enfr,2,mistral-large-latest,mistral,2.0,6.0,47,136,0.000910,5,llm_judge,"Voici la traduction en français, en conservant le ton et le sens de l'original :  **Jésus s’approcha"
+20260427_180024,translation_enfr,3,mistral-large-latest,mistral,2.0,6.0,76,260,0.001712,5,llm_judge,"Voici la traduction en français, en conservant le ton et le sens de l'original :  *« Il n’existe auc"
+20260427_180024,translation_enfr,0,mistral-medium-latest,mistral,0.4,2.0,33,53,0.000119,4,llm_judge,"Je sais comment aider, et j’en ai envie.  *(Alternative, slightly more natural phrasing: ""Je sais co"
+20260427_180024,translation_enfr,1,mistral-medium-latest,mistral,0.4,2.0,43,21,0.000059,5,llm_judge,"Hommejeunechh, 49 ans, Pays de la Loire (Angers)"
+20260427_180024,translation_enfr,2,mistral-medium-latest,mistral,0.4,2.0,47,341,0.000701,5,llm_judge,Voici une traduction fidèle qui conserve le ton et le sens du texte original :  **French :** *Jésus 
+20260427_180024,translation_enfr,3,mistral-medium-latest,mistral,0.4,2.0,76,188,0.000406,5,llm_judge,Voici une traduction fidèle qui conserve le ton et le sens du texte original :  *« Il n’existe aucun
+20260427_180024,translation_enfr,4,mistral-medium-latest,mistral,0.4,2.0,32,316,0.000645,5,llm_judge,"Voici une traduction fidèle qui conserve le ton et le sens de la phrase originale :  **""Votre mari a"
+20260427_180024,translation_enfr,5,mistral-medium-latest,mistral,0.4,2.0,49,50,0.000120,5,llm_judge,Les flocs issus de temps de rétention des boues (SRT) plus élevés étaient moins hydratés et présenta
+20260427_180024,translation_enfr,6,mistral-medium-latest,mistral,0.4,2.0,32,121,0.000255,4,llm_judge,"En ce moment même, c'est ce démon qui descend la Wangan. *(familier, dynamique)*  Ou, si tu veux une"
+20260427_180024,translation_enfr,7,mistral-medium-latest,mistral,0.4,2.0,30,45,0.000102,5,llm_judge,"Services de placement. C’est généreux.  *(Alternative, slightly more natural in some contexts: ""Des "
+20260427_180024,translation_enfr,8,mistral-medium-latest,mistral,0.4,2.0,44,32,0.000082,4,llm_judge,"Et il a dit : *« Bien sûr. »* Et moi, j’ai répondu : *« Bon, je me demande où ça va être. »*"
+20260427_180024,translation_enfr,9,mistral-medium-latest,mistral,0.4,2.0,64,156,0.000338,5,llm_judge,"Voici la traduction en français, en conservant le ton et le sens du texte original :  **«** De son c"
+20260427_180024,translation_enfr,10,mistral-medium-latest,mistral,0.4,2.0,37,131,0.000277,5,llm_judge,"Voici une traduction qui conserve le ton et le sens de la phrase originale :  **""Peut-être qu’on pou"
+20260427_180024,translation_enfr,11,mistral-medium-latest,mistral,0.4,2.0,78,265,0.000561,5,llm_judge,Voici une traduction fidèle qui conserve le ton et le sens du texte original :  **French :** *Un gra
+20260427_180024,translation_enfr,12,mistral-medium-latest,mistral,0.4,2.0,64,139,0.000304,5,llm_judge,"Ce premier résultat, jugé exceptionnel, a permis d'identifier **80 signaux acoustiques distincts** à"
+20260427_180024,translation_enfr,13,mistral-medium-latest,mistral,0.4,2.0,34,14,0.000042,5,llm_judge,Dis simplement à Kumagaya que le détective est là.
+20260427_180024,translation_enfr,14,mistral-medium-latest,mistral,0.4,2.0,54,40,0.000102,5,llm_judge,Le Comité se félicite de la présentation du rapport initial de l'État partie et se réjouit du dialog
+20260427_180024,translation_enfr,15,mistral-medium-latest,mistral,0.4,2.0,44,254,0.000526,4,llm_judge,**Sector Source** est un site ressource conçu pour aider les responsables d’organismes de bienfaisan
+20260427_180024,translation_enfr,16,mistral-medium-latest,mistral,0.4,2.0,34,104,0.000222,4,llm_judge,"Voici une traduction qui conserve le ton et le sens de la phrase originale, tout en restant naturell"
+20260427_180024,translation_enfr,17,mistral-medium-latest,mistral,0.4,2.0,32,69,0.000151,5,llm_judge,"Voici la traduction en français, en conservant le ton et le sens de l'original :  **Source : example"
+20260427_180024,translation_enfr,18,mistral-medium-latest,mistral,0.4,2.0,36,62,0.000138,4,llm_judge,"La plage la plus proche se trouve à une distance de conduite facile, située à environ 6...  *(Note: "
+20260427_180024,translation_enfr,19,mistral-medium-latest,mistral,0.4,2.0,31,56,0.000124,5,llm_judge,"Voici la traduction en français, en conservant le ton et le sens de l'original :  **FTI — Privilèges"
+20260427_180024,translation_enfr,20,mistral-medium-latest,mistral,0.4,2.0,33,49,0.000111,4,llm_judge,"Je dirais que c'est de **piètre valeur**, au mieux.  *(Alternative options depending on context: ""pe"
+20260427_180024,translation_enfr,21,mistral-medium-latest,mistral,0.4,2.0,34,179,0.000372,5,llm_judge,"Voici une traduction qui conserve le ton naturel et poli de la phrase originale :  **""Pourriez-vous "
+20260427_180024,translation_enfr,22,mistral-medium-latest,mistral,0.4,2.0,52,35,0.000091,5,llm_judge,"Si le revenu et/ou la situation professionnelle d'une personne change, il peut y avoir un transfert "
+20260427_180024,translation_enfr,23,mistral-medium-latest,mistral,0.4,2.0,47,303,0.000625,5,llm_judge,"Voici la traduction en français, en conservant le ton technique et le sens précis du texte original "
+20260427_180024,translation_enfr,24,mistral-medium-latest,mistral,0.4,2.0,47,38,0.000095,5,llm_judge,Le programme de nutrition urbaine de l'UNICEF à Nairobi est dirigé par une femme et encourage l'octr
+20260427_180024,translation_enfr,25,mistral-medium-latest,mistral,0.4,2.0,63,47,0.000119,5,llm_judge,"2. Le 21 février, le sous-secrétaire à la Guerre, José Asenio, fut démis de ses fonctions, puis arrê"
+20260427_180024,translation_enfr,26,mistral-medium-latest,mistral,0.4,2.0,42,254,0.000525,4,llm_judge,"Voici une traduction qui conserve le ton et le sens de la phrase originale :  *« Il suggérait, en re"
+20260427_180024,translation_enfr,27,mistral-medium-latest,mistral,0.4,2.0,74,270,0.000570,5,llm_judge,"Voici la traduction en français, en conservant le ton et le sens du texte original :  **« Les critèr"
+20260427_180024,translation_enfr,28,mistral-medium-latest,mistral,0.4,2.0,43,223,0.000463,5,llm_judge,"Voici une traduction qui conserve le ton solennel et la force du message original :  **""Nous sommes "
+20260427_180024,translation_enfr,29,mistral-medium-latest,mistral,0.4,2.0,34,15,0.000044,4,llm_judge,Et je t'aime bien... même si je ne sais pas pourquoi.
+20260427_180024,translation_enfr,30,mistral-medium-latest,mistral,0.4,2.0,43,268,0.000553,5,llm_judge,"Voici une traduction fidèle qui conserve le ton et le sens de l'original :  **""Première ligne de cré"
+20260427_180024,translation_enfr,31,mistral-medium-latest,mistral,0.4,2.0,30,248,0.000508,3,llm_judge,"Voici une traduction qui conserve le ton et le sens de la phrase originale, tout en restant naturell"
+20260427_180024,translation_enfr,32,mistral-medium-latest,mistral,0.4,2.0,47,27,0.000073,4,llm_judge,"Les États membres, les institutions de l'Union et le SEAE peuvent proposer la mise à disposition de "
+20260427_180024,translation_enfr,33,mistral-medium-latest,mistral,0.4,2.0,53,38,0.000097,4,llm_judge,CV33 (1) (1.3) Remplacer **« le conducteur et les autres membres de l'équipage »** par **« les membr
+20260427_180024,translation_enfr,34,mistral-medium-latest,mistral,0.4,2.0,31,9,0.000030,5,llm_judge,"Sydney, Esther sera dans mon bureau."
+20260427_180024,translation_enfr,35,mistral-medium-latest,mistral,0.4,2.0,43,148,0.000313,5,llm_judge,**[Journaliste masculin #1 à la télévision]** *Un accident s'est produit peu après 10 heures ce mati
+20260427_180024,translation_enfr,37,mistral-medium-latest,mistral,0.4,2.0,97,259,0.000557,5,llm_judge,"Voici la traduction en français, en conservant le ton et le sens du texte original :  **Français :**"
+20260427_180024,translation_enfr,38,mistral-medium-latest,mistral,0.4,2.0,31,99,0.000210,5,llm_judge,"Voici la traduction en français qui conserve le ton et le sens de la phrase originale :  **""Cela ne "
+20260427_180024,translation_enfr,40,mistral-medium-latest,mistral,0.4,2.0,30,97,0.000206,5,llm_judge,"Voici une traduction fidèle qui conserve le ton et le sens :  **""Il nous faut simplement obtenir plu"
+20260427_180024,translation_enfr,43,mistral-medium-latest,mistral,0.4,2.0,45,29,0.000076,4,llm_judge,L'unité se fixe simplement à l'appui-tête du siège conducteur à l'aide d'une sangle élastique résist
+20260427_180024,translation_enfr,49,mistral-medium-latest,mistral,0.4,2.0,42,254,0.000525,5,llm_judge,"Voici une traduction qui conserve le ton et le sens de la phrase originale :  **""J’ai des gâteaux à "
+20260427_180024,translation_enfr,0,mistral-small-latest,mistral,0.1,0.3,45,11,0.000008,5,llm_judge,"Je sais comment aider, et je le veux."
+20260427_180024,translation_enfr,1,mistral-small-latest,mistral,0.1,0.3,55,21,0.000012,5,llm_judge,"Hommejeunechh, 49 ans, Pays de la Loire (Angers)"
+20260427_180024,translation_enfr,2,mistral-small-latest,mistral,0.1,0.3,59,38,0.000017,5,llm_judge,Jésus s’avança et parla avec clarté et bienveillance : « C’est moi. » Cette parole devint le fondeme
+20260427_180024,translation_enfr,3,mistral-small-latest,mistral,0.1,0.3,88,68,0.000029,5,llm_judge,"Il n’existe aucune autre explication à l’octroi parcimonieux de 10 ou 12 millions d’ECU, qui, comme "
+20260427_180024,translation_enfr,4,mistral-small-latest,mistral,0.1,0.3,44,13,0.000008,5,llm_judge,Your husband a-t-il invité le lieutenant Gilbert chez vous ?
+20260427_180024,translation_enfr,5,mistral-small-latest,mistral,0.1,0.3,61,40,0.000018,5,llm_judge,Les flocs issus de SRT plus élevés étaient moins hydratés et présentaient une couche dense de substa
+20260427_180024,translation_enfr,6,mistral-small-latest,mistral,0.1,0.3,44,62,0.000023,4,llm_judge,"Voici la traduction en français, en conservant le ton et le sens :  **""Là, en ce moment, c'est le di"
+20260427_180024,translation_enfr,7,mistral-small-latest,mistral,0.1,0.3,42,12,0.000008,5,llm_judge,"""Services de placement. C'est généreux."""
+20260427_180024,translation_enfr,8,mistral-small-latest,mistral,0.1,0.3,56,30,0.000015,4,llm_judge,"Et il a dit : « Bien sûr. » Et j'ai dit : « Eh bien, je me demande où ça va se passer. »"
+20260427_180024,translation_enfr,9,mistral-small-latest,mistral,0.1,0.3,76,63,0.000027,5,llm_judge,"De son côté, le deuxième atelier s'est concentré sur la mise en œuvre des recommandations formulées "
+20260427_180024,translation_enfr,10,mistral-small-latest,mistral,0.1,0.3,49,21,0.000011,5,llm_judge,Peut-être générer quelques indices pour nous rapprocher de l'animal qui a fait ça.
+20260427_180024,translation_enfr,11,mistral-small-latest,mistral,0.1,0.3,90,303,0.000100,4,llm_judge,"Voici une traduction en français qui conserve le ton et le sens du texte original :  **""Un large éve"
+20260427_180024,translation_enfr,12,mistral-small-latest,mistral,0.1,0.3,76,69,0.000028,5,llm_judge,"Voici la traduction en français, en conservant le ton et le sens du texte original :  **Ce premier r"
+20260427_180024,translation_enfr,13,mistral-small-latest,mistral,0.1,0.3,46,78,0.000028,4,llm_judge,"Voici la traduction en français, en conservant le ton et le sens :  **""Dis simplement à Kumagaya que"
+20260427_180024,translation_enfr,14,mistral-small-latest,mistral,0.1,0.3,66,38,0.000018,5,llm_judge,Le Comité accueille avec satisfaction la présentation du rapport initial de l'État partie et se réjo
+20260427_180024,translation_enfr,15,mistral-small-latest,mistral,0.1,0.3,56,81,0.000030,5,llm_judge,"Voici une traduction en français qui conserve le ton et le sens du texte original :  **""Sector Sourc"
+20260427_180024,translation_enfr,16,mistral-small-latest,mistral,0.1,0.3,46,99,0.000034,4,llm_judge,"Here’s a natural and respectful translation while maintaining the tone and meaning:  **French:** *""J"
+20260427_180024,translation_enfr,17,mistral-small-latest,mistral,0.1,0.3,44,58,0.000022,5,llm_judge,"Voici la traduction en français, en conservant le ton et le sens du texte original :  **Source : exa"
+20260427_180024,translation_enfr,18,mistral-small-latest,mistral,0.1,0.3,48,20,0.000011,4,llm_judge,"La plage la plus proche se trouve à une courte distance en voiture, à environ 6..."
+20260427_180024,translation_enfr,19,mistral-small-latest,mistral,0.1,0.3,43,9,0.000007,5,llm_judge,FTI — Privilèges et conditions
+20260427_180024,translation_enfr,20,mistral-small-latest,mistral,0.1,0.3,45,14,0.000009,4,llm_judge,"Je dirais que c'est de faible valeur, au mieux."
+20260427_180024,translation_enfr,21,mistral-small-latest,mistral,0.1,0.3,46,128,0.000043,4,llm_judge,"Voici la traduction en français, en conservant le ton poli et naturel :  **Maintenant, pourriez-vous"
+20260427_180024,translation_enfr,22,mistral-small-latest,mistral,0.1,0.3,64,36,0.000017,5,llm_judge,"Si les revenus et/ou le statut professionnel d'une personne changent, il peut y avoir un transfert d"
+20260427_180024,translation_enfr,23,mistral-small-latest,mistral,0.1,0.3,59,31,0.000015,4,llm_judge,Les déversoirs capables de gérer les crues postulée sont intégrés soit dans les structures du barrag
+20260427_180024,translation_enfr,24,mistral-small-latest,mistral,0.1,0.3,59,39,0.000018,5,llm_judge,Le programme de nutrition urbaine de l'UNICEF à Nairobi est dirigé par une femme et promeut l'octroi
+20260427_180024,translation_enfr,25,mistral-small-latest,mistral,0.1,0.3,75,48,0.000022,4,llm_judge,"Le 21 février, le sous-secrétaire d'État à la Guerre, José Asenio, a été révoqué, puis rapidement ar"
+20260427_180024,translation_enfr,26,mistral-small-latest,mistral,0.1,0.3,54,44,0.000019,5,llm_judge,"Voici la traduction en français, en conservant le ton et le sens de l'original :  **""Cela suggérait "
+20260427_180024,translation_enfr,27,mistral-small-latest,mistral,0.1,0.3,86,338,0.000110,4,llm_judge,"Voici la traduction en français, en conservant le ton et le sens du texte original :  **Version 1 (f"
+20260427_180024,translation_enfr,28,mistral-small-latest,mistral,0.1,0.3,55,29,0.000014,4,llm_judge,Nous sommes capables... de déployer une puissance de feu... supérieure à tout ce qui a jamais été ut
+20260427_180024,translation_enfr,29,mistral-small-latest,mistral,0.1,0.3,46,15,0.000009,4,llm_judge,Et je t'aime bien... bien que je ne sache pas pourquoi.
+20260427_180024,translation_enfr,30,mistral-small-latest,mistral,0.1,0.3,55,27,0.000014,5,llm_judge,"Première ligne de crédit en Italie pour les apprentissages des jeunes dans les PME, les ETI et les c"
+20260427_180024,translation_enfr,31,mistral-small-latest,mistral,0.1,0.3,42,33,0.000014,2,llm_judge,"Voici la traduction en français, en conservant le ton et le sens :  **Français :** *Nous pourrions v"
+20260427_180024,translation_enfr,32,mistral-small-latest,mistral,0.1,0.3,59,26,0.000014,4,llm_judge,"Les États membres, les institutions de l'Union et le SEAE peuvent proposer la mise à disposition de "
+20260427_180024,translation_enfr,33,mistral-small-latest,mistral,0.1,0.3,65,35,0.000017,4,llm_judge,CV33 (1) (1.3) Remplacer « le conducteur et les autres membres de l'équipage » par « membres de l'éq
+20260427_180024,translation_enfr,34,mistral-small-latest,mistral,0.1,0.3,43,9,0.000007,5,llm_judge,"Sydney, Esther sera dans mon bureau."
+20260427_180024,translation_enfr,35,mistral-small-latest,mistral,0.1,0.3,55,42,0.000018,5,llm_judge,"Voici la traduction en français, en conservant le ton et le sens :  **[Journaliste masculin #1 à la "
+20260427_180024,translation_enfr,36,mistral-small-latest,mistral,0.1,0.3,49,16,0.000010,4,llm_judge,"Plus tu luttes, plus ce sera gênant pour tout le monde."
+20260427_180024,translation_enfr,37,mistral-small-latest,mistral,0.1,0.3,109,122,0.000048,5,llm_judge,"Voici la traduction en français, en conservant le ton et le sens du texte original :  **Français :**"
+20260427_180024,translation_enfr,38,mistral-small-latest,mistral,0.1,0.3,43,15,0.000009,5,llm_judge,Cela ne peut mener qu'au chaos et à la terreur.
+20260427_180024,translation_enfr,39,mistral-small-latest,mistral,0.1,0.3,43,10,0.000007,5,llm_judge,Sais-tu d'où vient l'argent ?
+20260427_180024,translation_enfr,40,mistral-small-latest,mistral,0.1,0.3,42,12,0.000008,4,llm_judge,Nous avons juste besoin d'obtenir plus d'informations.
+20260427_180024,translation_enfr,41,mistral-small-latest,mistral,0.1,0.3,51,136,0.000046,4,llm_judge,"Voici une traduction qui conserve le ton familier et l'intensité de l'original :  **""T’es pas dans l"
+20260427_180024,translation_enfr,42,mistral-small-latest,mistral,0.1,0.3,119,117,0.000047,5,llm_judge,"Voici la traduction en français, en conservant le ton et le sens du texte original :  **Version fran"
+20260427_180024,translation_enfr,43,mistral-small-latest,mistral,0.1,0.3,57,28,0.000014,5,llm_judge,L'unité est simplement fixée à l'appui-tête du siège conducteur à l'aide d'une sangle élastique rési
+20260427_180024,translation_enfr,44,mistral-small-latest,mistral,0.1,0.3,65,42,0.000019,4,llm_judge,Les analyses de sensibilité montrent que l'ampleur de la longueur non soutenue développée en raison 
+20260427_180024,translation_enfr,45,mistral-small-latest,mistral,0.1,0.3,79,142,0.000051,5,llm_judge,"Voici la traduction en français, en conservant le ton et le sens du texte original :  **""L'évasion f"
+20260427_180024,translation_enfr,46,mistral-small-latest,mistral,0.1,0.3,54,21,0.000012,5,llm_judge,J'ai reçu sept motions de résolution conformément à l'article 37 du règlement de procédure.
+20260427_180024,translation_enfr,47,mistral-small-latest,mistral,0.1,0.3,75,433,0.000137,3,llm_judge,"Voici la traduction en français, en conservant le ton et le sens du texte original :  **""Ce type de "
+20260427_180024,translation_enfr,48,mistral-small-latest,mistral,0.1,0.3,105,187,0.000067,5,llm_judge,"Voici la traduction en français, en conservant le ton et le sens du texte original :  **""Choisissez "
+20260427_180024,translation_enfr,49,mistral-small-latest,mistral,0.1,0.3,54,28,0.000014,5,llm_judge,"J'ai des gâteaux à la crème, des friandises, du hareng mariné et des dattes confites."
+20260427_180024,translation_enfr,0,ministral-3b-latest,mistral,0.04,0.04,33,109,0.000006,5,llm_judge,"Voici une traduction naturelle et fidèle du texte tout en conservant le ton et le sens :  **""Je sais"
+20260427_180024,translation_enfr,1,ministral-3b-latest,mistral,0.04,0.04,43,64,0.000004,5,llm_judge,Voici une traduction fidèle et naturelle du texte tout en conservant le ton et la précision :  **Jeu
+20260427_180024,translation_enfr,2,ministral-3b-latest,mistral,0.04,0.04,47,223,0.000011,4,llm_judge,"Voici une traduction fidèle et respectueuse du texte en français, conservant le ton et la significat"
+20260427_180024,translation_enfr,3,ministral-3b-latest,mistral,0.04,0.04,76,281,0.000014,4,llm_judge,Voici une traduction fidèle et respectueuse du ton et du sens de votre texte :  **Il n'existe aucune
+20260427_180024,translation_enfr,4,ministral-3b-latest,mistral,0.04,0.04,32,91,0.000005,2,llm_judge,Voici la traduction en français avec le même ton et la même nuance :  **Avez-vous invité le lieutena
+20260427_180024,translation_enfr,5,ministral-3b-latest,mistral,0.04,0.04,49,51,0.000004,5,llm_judge,Voici la traduction en français tout en conservant le ton et le sens originaux :  **Les flocs issus 
+20260427_180024,translation_enfr,6,ministral-3b-latest,mistral,0.04,0.04,32,110,0.000006,4,llm_judge,"Voici une traduction fidèle et adaptée du ton original :  **""En ce moment, conduire sur Wangan, c’es"
+20260427_180024,translation_enfr,7,ministral-3b-latest,mistral,0.04,0.04,30,206,0.000009,4,llm_judge,Voici une traduction naturelle et respectueuse du ton tout en conservant la nuance positive et génér
+20260427_180024,translation_enfr,8,ministral-3b-latest,mistral,0.04,0.04,44,51,0.000004,4,llm_judge,"Voici une traduction fidèle du texte tout en conservant le ton et la nuance :  **""Et il dit : « Bien"
+20260427_180024,translation_enfr,9,ministral-3b-latest,mistral,0.04,0.04,64,130,0.000008,4,llm_judge,"Voici une traduction fidèle et respectueuse du ton original :  **Sur son côté, le deuxième atelier a"
+20260427_180024,translation_enfr,10,ministral-3b-latest,mistral,0.04,0.04,37,231,0.000011,5,llm_judge,"Voici une traduction naturelle et fidèle du texte, tout en conservant le ton et la nuance :  **""Peut"
+20260427_180024,translation_enfr,11,ministral-3b-latest,mistral,0.04,0.04,78,191,0.000011,4,llm_judge,"Voici une traduction fidèle du texte en français, conservant le ton et la signification :  **Un larg"
+20260427_180024,translation_enfr,12,ministral-3b-latest,mistral,0.04,0.04,64,123,0.000007,5,llm_judge,"Voici une traduction fidèle et adaptée du ton original :  **Cette première découverte, jugée excepti"
+20260427_180024,translation_enfr,13,ministral-3b-latest,mistral,0.04,0.04,34,54,0.000004,5,llm_judge,"Voici la traduction en français avec le même ton et la même signification :  **""Dites à Kumagaya que"
+20260427_180024,translation_enfr,14,ministral-3b-latest,mistral,0.04,0.04,54,66,0.000005,3,llm_judge,"Voici une traduction fidèle et adaptée du texte original en français, tout en conservant le ton et l"
+20260427_180024,translation_enfr,15,ministral-3b-latest,mistral,0.04,0.04,44,74,0.000005,4,llm_judge,Voici une traduction fidèle du texte tout en conservant le ton et le sens :  **Site Source** est un 
+20260427_180024,translation_enfr,16,ministral-3b-latest,mistral,0.04,0.04,34,154,0.000008,3,llm_judge,Voici une traduction respectueuse tout en conservant une nuance proche de l'intention originale (san
+20260427_180024,translation_enfr,17,ministral-3b-latest,mistral,0.04,0.04,32,112,0.000006,5,llm_judge,Voici la traduction en français tout en conservant le ton et le sens :  **Source :** [examplereferen
+20260427_180024,translation_enfr,18,ministral-3b-latest,mistral,0.04,0.04,36,137,0.000007,4,llm_judge,"Voici une traduction fidèle du texte tout en conservant le ton et la structure :  **""La plage la plu"
+20260427_180024,translation_enfr,19,ministral-3b-latest,mistral,0.04,0.04,31,180,0.000008,3,llm_judge,"Voici une traduction fidèle et adaptée du texte anglais en français, tout en conservant le ton et la"
+20260427_180024,translation_enfr,20,ministral-3b-latest,mistral,0.04,0.04,33,80,0.000005,5,llm_judge,"Voici une traduction naturelle et fidèle du ton tout en conservant le sens :  **""Je dirais qu’il s’a"
+20260427_180024,translation_enfr,21,ministral-3b-latest,mistral,0.04,0.04,34,105,0.000006,4,llm_judge,"Voici une traduction naturelle et fluide tout en conservant le ton et le sens :  **""Pourriez-vous av"
+20260427_180024,translation_enfr,22,ministral-3b-latest,mistral,0.04,0.04,52,227,0.000011,5,llm_judge,"Voici une traduction fidèle et adaptée du texte original en français, tout en conservant le ton et l"
+20260427_180024,translation_enfr,23,ministral-3b-latest,mistral,0.04,0.04,47,98,0.000006,5,llm_judge,"Voici une traduction fidèle du texte anglais en français, conservant le ton et le sens techniques : "
+20260427_180024,translation_enfr,24,ministral-3b-latest,mistral,0.04,0.04,47,56,0.000004,5,llm_judge,"Voici une traduction fidèle du texte en français, conservant le ton et le sens :  **Le programme ali"
+20260427_180024,translation_enfr,25,ministral-3b-latest,mistral,0.04,0.04,63,59,0.000005,5,llm_judge,"Voici la traduction en français, conservant le ton et le sens originaux :  **2. Le 21 février, le so"
+20260427_180024,translation_enfr,26,ministral-3b-latest,mistral,0.04,0.04,42,83,0.000005,4,llm_judge,"Voici une traduction naturelle et fidèle du texte, tout en conservant le ton et la nuance :  **Il ét"
+20260427_180024,translation_enfr,27,ministral-3b-latest,mistral,0.04,0.04,74,106,0.000007,5,llm_judge,Voici la traduction en français tout en conservant le ton et le sens originaux :  **Les critères du 
+20260427_180024,translation_enfr,28,ministral-3b-latest,mistral,0.04,0.04,43,87,0.000005,4,llm_judge,"Voici une traduction fidèle et adaptée du ton original :  **""Nous sommes capables... de déployer une"
+20260427_180024,translation_enfr,29,ministral-3b-latest,mistral,0.04,0.04,34,88,0.000005,3,llm_judge,"Voici une traduction naturelle et fidèle du ton et de la signification de votre phrase :  **""Et j’ai"
+20260427_180024,translation_enfr,30,ministral-3b-latest,mistral,0.04,0.04,43,141,0.000007,4,llm_judge,"Voici une traduction fidèle et adaptée du texte en français :  **""Première ligne de crédit en Italie"
+20260427_180024,translation_enfr,31,ministral-3b-latest,mistral,0.04,0.04,30,164,0.000008,5,llm_judge,"Voici une traduction naturelle et respectueuse du ton tout en conservant le sens :  **""Nous pourrion"
+20260427_180024,translation_enfr,32,ministral-3b-latest,mistral,0.04,0.04,47,224,0.000011,4,llm_judge,Voici la traduction en français tout en conservant le ton et le sens originaux :  **Les États membre
+20260427_180024,translation_enfr,33,ministral-3b-latest,mistral,0.04,0.04,53,50,0.000004,5,llm_judge,Voici la traduction tout en maintenant le ton et le sens :  **CV33 (1) (1.3) Remplacer « le conducte
+20260427_180024,translation_enfr,34,ministral-3b-latest,mistral,0.04,0.04,31,26,0.000002,5,llm_judge,"Voici la traduction en français avec le même ton et la même nuance :  **Sydney, Esther sera dans mon"
+20260427_180024,translation_enfr,35,ministral-3b-latest,mistral,0.04,0.04,43,68,0.000004,5,llm_judge,Voici la traduction en français tout en conservant le ton et le sens :  **[Journaliste masculin #1 s
+20260427_180024,translation_enfr,36,ministral-3b-latest,mistral,0.04,0.04,37,92,0.000005,4,llm_judge,"Voici une traduction fidèle du ton et du sens de votre phrase :  **""Plus tu te battes, plus ça va de"
+20260427_180024,translation_enfr,37,ministral-3b-latest,mistral,0.04,0.04,97,104,0.000008,4,llm_judge,"Voici la traduction en français, conservant le ton et la signification :  **Sous-section 104(1.1) es"
+20260427_180024,translation_enfr,38,ministral-3b-latest,mistral,0.04,0.04,31,67,0.000004,4,llm_judge,Voici une traduction fidèle et adaptée du ton original :  **Cela ne peut mener qu'à chaos et terreur
+20260427_180024,translation_enfr,39,ministral-3b-latest,mistral,0.04,0.04,31,74,0.000004,5,llm_judge,"Voici une traduction naturelle et fluide tout en conservant le ton et le sens :  **""Tu sais d'où vie"
+20260427_180024,translation_enfr,40,ministral-3b-latest,mistral,0.04,0.04,30,12,0.000002,5,llm_judge,Nous avons simplement besoin d'obtenir plus d'informations.
+20260427_180024,translation_enfr,41,ministral-3b-latest,mistral,0.04,0.04,39,66,0.000004,4,llm_judge,"Voici une traduction fidèle du ton et du sens, tout en gardant une certaine rudesse :  **""Tu n’es pa"
+20260427_180024,translation_enfr,42,ministral-3b-latest,mistral,0.04,0.04,107,250,0.000014,3,llm_judge,"Voici la traduction fidèle du texte en français, conservant le ton et le sens originaux :  ---  **Ce"
+20260427_180024,translation_enfr,43,ministral-3b-latest,mistral,0.04,0.04,45,74,0.000005,4,llm_judge,"Voici la traduction fidèle et adaptée du texte en français, conservant le ton et le sens :  **La uni"
+20260427_180024,translation_enfr,44,ministral-3b-latest,mistral,0.04,0.04,53,41,0.000004,4,llm_judge,Les analyses de sensibilité montrent que l'étendue de la longueur non soutenue développée en raison 
+20260427_180024,translation_enfr,45,ministral-3b-latest,mistral,0.04,0.04,67,103,0.000007,5,llm_judge,"Voici une traduction fidèle du texte en français, conservant le ton et la signification :  *« L'évas"
+20260427_180024,translation_enfr,46,ministral-3b-latest,mistral,0.04,0.04,42,182,0.000009,5,llm_judge,"Voici la traduction fidèle et adaptée du texte en français :  **""J'ai reçu sept propositions de réso"
+20260427_180024,translation_enfr,47,ministral-3b-latest,mistral,0.04,0.04,63,189,0.000010,5,llm_judge,"Voici une traduction fidèle et respectueuse du ton original :  **La répression de ce type, combinée "
+20260427_180024,translation_enfr,48,ministral-3b-latest,mistral,0.04,0.04,93,200,0.000012,5,llm_judge,"Voici une traduction fidèle et adaptée du ton original :  **""Choisissez l'une de ces voitures Renaul"
+20260427_180024,translation_enfr,49,ministral-3b-latest,mistral,0.04,0.04,42,46,0.000004,4,llm_judge,Voici la traduction en français tout en conservant le ton et la signification :  **J’ai des gâteaux 
+20260427_180024,translation_enfr,0,kimi-k2.6,moonshot,0.6,2.4,36,804,0.001951,5,llm_judge,"Je sais comment aider, et je veux le faire."
+20260427_180024,translation_enfr,1,kimi-k2.6,moonshot,0.6,2.4,47,832,0.002025,5,llm_judge,"Hommejeunechh, 49 ans, Pays-de-la-Loire (Angers)"
+20260427_181431,translation_enfr,47,mistral-medium-latest,mistral,0.4,2.0,63,57,0.000139,5,llm_judge,"La répression de ce type, ainsi que les arrestations récentes de représentants d’institutions humani"
+20260427_180024,translation_enfr,2,kimi-k2.6,moonshot,0.6,2.4,49,1711,0.004136,5,llm_judge,Jésus vint et parla distinctement et avec bonté : « C'est moi. » Cette parole devint le fondement de
+20260427_180024,translation_enfr,3,kimi-k2.6,moonshot,0.6,2.4,76,2000,0.004846,2,llm_judge,Il n'y a pas d'autre explication à
+20260427_180024,translation_enfr,4,kimi-k2.6,moonshot,0.6,2.4,35,1187,0.002870,5,llm_judge,Votre mari avait-il invité le lieutenant Gilbert chez vous ?
+20260427_180024,translation_enfr,5,kimi-k2.6,moonshot,0.6,2.4,51,2000,0.004831,3,llm_judge,
+20260427_180024,translation_enfr,6,kimi-k2.6,moonshot,0.6,2.4,35,1924,0.004639,4,llm_judge,"En ce moment, sur le Wangan, c'est ce diable."
+20260427_180024,translation_enfr,7,kimi-k2.6,moonshot,0.6,2.4,31,620,0.001507,5,llm_judge,Services de placement. C'est généreux.
+20260427_180024,translation_enfr,8,kimi-k2.6,moonshot,0.6,2.4,46,2000,0.004828,4,llm_judge,"Et il a dit : « Bien sûr. » Et j'ai dit : « Eh bien, je me demande où ça"
+20260427_180024,translation_enfr,9,kimi-k2.6,moonshot,0.6,2.4,66,2000,0.004840,3,llm_judge,
+20260427_180024,translation_enfr,10,kimi-k2.6,moonshot,0.6,2.4,40,2000,0.004824,3,llm_judge,
+20260427_180024,translation_enfr,11,kimi-k2.6,moonshot,0.6,2.4,80,2000,0.004848,3,llm_judge,
+20260427_180024,translation_enfr,12,kimi-k2.6,moonshot,0.6,2.4,67,1587,0.003849,5,llm_judge,"Ce premier résultat, jugé exceptionnel, a permis l'identification de 80 signaux acoustiques différen"
+20260427_180024,translation_enfr,13,kimi-k2.6,moonshot,0.6,2.4,37,1155,0.002794,5,llm_judge,Dites simplement à Kumagaya que le détective est là.
+20260427_180024,translation_enfr,14,kimi-k2.6,moonshot,0.6,2.4,56,1503,0.003641,5,llm_judge,Le Comité se félicite de la présentation du rapport initial de l'État partie et se réjouit du dialog
+20260427_180024,translation_enfr,15,kimi-k2.6,moonshot,0.6,2.4,44,1019,0.002472,5,llm_judge,Sector Source est un site Web de ressources dédié à aider les personnes qui dirigent des organismes 
+20260427_180024,translation_enfr,16,kimi-k2.6,moonshot,0.6,2.4,36,1977,0.004766,4,llm_judge,"J'ai l'impression que ma queue n'est pas assez grosse pour toi.  *(Alternatively, using slightly dif"
+20260427_180024,translation_enfr,17,kimi-k2.6,moonshot,0.6,2.4,33,421,0.001030,5,llm_judge,Source : examplereferenceletter.com
+20260427_180024,translation_enfr,18,kimi-k2.6,moonshot,0.6,2.4,39,1071,0.002594,5,llm_judge,"La plage la plus proche est facilement accessible en voiture, située à environ 6..."
+20260427_180024,translation_enfr,19,kimi-k2.6,moonshot,0.6,2.4,33,325,0.000800,5,llm_judge,FTI — Privilèges et conditions
+20260427_180024,translation_enfr,20,kimi-k2.6,moonshot,0.6,2.4,34,991,0.002399,5,llm_judge,"Je dirais que c'est de faible valeur, au mieux."
+20260427_180024,translation_enfr,21,kimi-k2.6,moonshot,0.6,2.4,37,1434,0.003464,5,llm_judge,"Maintenant, voudriez-vous lire ceci, s'il vous plaît ?"
+20260427_180024,translation_enfr,22,kimi-k2.6,moonshot,0.6,2.4,54,997,0.002425,5,llm_judge,"Si les revenus et/ou la situation d'emploi d'une personne changent, il peut y avoir un transfert de "
+20260427_180024,translation_enfr,23,kimi-k2.6,moonshot,0.6,2.4,51,1260,0.003055,4,llm_judge,Les évacuateurs de crues capables d'évacuer les crues postulées sont intégrés soit à la structure du
+20260427_180024,translation_enfr,24,kimi-k2.6,moonshot,0.6,2.4,49,1708,0.004129,5,llm_judge,Le programme de nutrition urbain de l'UNICEF à Nairobi est dirigé par une femme et encourage l'octro
+20260427_180024,translation_enfr,25,kimi-k2.6,moonshot,0.6,2.4,65,2000,0.004839,2,llm_judge,
+20260427_180024,translation_enfr,26,kimi-k2.6,moonshot,0.6,2.4,45,2000,0.004827,4,llm_judge,
+20260427_180024,translation_enfr,27,kimi-k2.6,moonshot,0.6,2.4,77,2000,0.004846,2,llm_judge,
+20260427_180024,translation_enfr,28,kimi-k2.6,moonshot,0.6,2.4,45,1419,0.003433,4,llm_judge,Nous sommes capables... de lancer plus de puissance de feu... que ce qui n'a jamais été libéré dans 
+20260427_180024,translation_enfr,30,kimi-k2.6,moonshot,0.6,2.4,44,2000,0.004826,3,llm_judge,
+20260427_180024,translation_enfr,31,kimi-k2.6,moonshot,0.6,2.4,32,1818,0.004382,2,llm_judge,On pourrait vous arrêter pour racolage.
+20260427_180024,translation_enfr,32,kimi-k2.6,moonshot,0.6,2.4,49,1386,0.003356,4,llm_judge,"Les États membres, les institutions de l'Union et le SEAE peuvent proposer le détachement de personn"
+20260427_181431,translation_enfr,29,kimi-k2.6,moonshot,0.6,2.4,36,1320,0.003190,4,llm_judge,Et je t'aime bien... même si je ne sais pas pourquoi.
+20260427_180024,translation_enfr,33,kimi-k2.6,moonshot,0.6,2.4,55,1014,0.002467,5,llm_judge,CV33 (1) (1.3) Remplacer « le conducteur et les autres membres de l'équipage » par « les membres de 
+20260427_180024,translation_enfr,34,kimi-k2.6,moonshot,0.6,2.4,34,283,0.000700,5,llm_judge,"Sydney, Esther sera dans mon bureau."
+20260427_180024,translation_enfr,35,kimi-k2.6,moonshot,0.6,2.4,44,1367,0.003307,5,llm_judge,[male reporter #1 on tv] L'accident s'est produit peu après 10h00.
+20260427_180024,translation_enfr,36,kimi-k2.6,moonshot,0.6,2.4,40,1234,0.002986,5,llm_judge,"Plus tu te débats, plus ça va être gênant pour tout le monde."
+20260427_180024,translation_enfr,37,kimi-k2.6,moonshot,0.6,2.4,92,2000,0.004855,2,llm_judge,
+20260427_180024,translation_enfr,38,kimi-k2.6,moonshot,0.6,2.4,34,1045,0.002528,5,llm_judge,Cela ne peut que mener au chaos et à la terreur.
+20260427_180024,translation_enfr,39,kimi-k2.6,moonshot,0.6,2.4,34,681,0.001655,5,llm_judge,Tu sais d'où vient l'argent ?
+20260427_180024,translation_enfr,40,kimi-k2.6,moonshot,0.6,2.4,33,1067,0.002581,4,llm_judge,Nous avons juste besoin d'obtenir plus d'informations.
+20260427_180024,translation_enfr,41,kimi-k2.6,moonshot,0.6,2.4,42,2000,0.004825,1,llm_judge,
+20260427_180024,translation_enfr,42,kimi-k2.6,moonshot,0.6,2.4,109,2000,0.004865,4,llm_judge,Ce premier recensement eut lieu lorsque Quirinius était gouverneur de Syrie. Tout le monde devait se
+20260427_180024,translation_enfr,43,kimi-k2.6,moonshot,0.6,2.4,48,815,0.001985,4,llm_judge,L'appareil se fixe simplement à l'appuie-tête du siège du conducteur à l'aide d'une sangle élastique
+20260427_180024,translation_enfr,44,kimi-k2.6,moonshot,0.6,2.4,55,2000,0.004833,3,llm_judge,
+20260427_180024,translation_enfr,45,kimi-k2.6,moonshot,0.6,2.4,67,1268,0.003083,5,llm_judge,"L'évasion fiscale s'est accrue en Tunisie, provoquant un manque à gagner significatif en termes de r"
+20260427_180024,translation_enfr,46,kimi-k2.6,moonshot,0.6,2.4,43,1250,0.003026,5,llm_judge,J'ai reçu sept propositions de résolution conformément à l'article 37 du règlement intérieur.
+20260427_180024,translation_enfr,47,kimi-k2.6,moonshot,0.6,2.4,66,2000,0.004840,3,llm_judge,

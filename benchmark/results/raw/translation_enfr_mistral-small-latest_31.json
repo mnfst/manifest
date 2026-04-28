@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "translation_enfr",
+  "case": 31,
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens :\n\n**Fran\u00e7ais :** *Nous pourrions vous poursuivre pour racolage.*",
+  "score": 2,
+  "cost": 1.4100000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 42,
+    "output": 33
+  }
+}

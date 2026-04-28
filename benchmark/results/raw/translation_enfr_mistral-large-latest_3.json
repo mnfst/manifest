@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "translation_enfr",
+  "case": 3,
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens de l'original :\n\n*\u00ab Il n\u2019existe aucune autre explication \u00e0 l\u2019octroi parcimonieux de 10 ou 12 millions d\u2019ECU, qui, comme nous le savons tous, ne suffisent m\u00eame pas \u00e0 construire un seul navire \u00e9quip\u00e9 des moyens modernes n\u00e9cessaires pour assurer une fonction de surveillance dans le secteur de la p\u00eache. \u00bb*\n\n**Variante l\u00e9g\u00e8rement plus fluide (selon le contexte) :**\n*\u00ab Aucune autre explication ne justifie cette allocation parcimonieuse de 10 ou 12 millions d\u2019ECU, somme qui, comme chacun le sait, ne permet m\u00eame pas de construire un seul navire dot\u00e9 des \u00e9quipements modernes requis pour exercer une mission de contr\u00f4le dans le domaine de la p\u00eache. \u00bb*\n\n**Notes :**\n- *\"Parsimonious grant\"* \u2192 *\"octroi parcimonieux\"* ou *\"allocation parcimonieuse\"* (selon le registre souhait\u00e9).\n- *\"ECU\"* (European Currency Unit) est conserv\u00e9 tel quel, car c'est un terme historique.\n- *\"Monitoring function\"* \u2192 *\"fonction de surveillance\"* ou *\"mission de contr\u00f4le\"* (plus naturel en fran\u00e7ais technique).\n- Le ton critique et ironique de l'original est pr\u00e9serv\u00e9.",
+  "score": 4,
+  "cost": 0.001772,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 270
+  }
+}

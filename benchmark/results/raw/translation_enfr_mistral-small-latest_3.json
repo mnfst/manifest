@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "translation_enfr",
+  "case": 3,
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens du texte original :\n\n**\"Il n\u2019y a aucune autre explication \u00e0 l\u2019octroi parcimonieux de 10 ou 12 millions d\u2019ECU, qui, comme nous le savons tous, ne suffisent m\u00eame pas \u00e0 financer la construction d\u2019un seul navire \u00e9quip\u00e9 des moyens modernes n\u00e9cessaires pour assurer une fonction de surveillance dans le secteur de la p\u00eache.\"**\n\nCette traduction respecte la structure et l'intention du texte, tout en adaptant naturellement les termes techniques (*ECU*, *parcimonieux*, *fonction de surveillance*). Si vous souhaitez une version plus concise ou plus formelle, n'h\u00e9sitez pas \u00e0 me le pr\u00e9ciser !",
+  "score": 5,
+  "cost": 5.5e-05,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 154
+  }
+}

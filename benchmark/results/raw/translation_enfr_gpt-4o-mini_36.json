@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "translation_enfr",
+  "case": 36,
+  "response": "Plus tu luttes, plus cela va \u00eatre g\u00eanant pour tout le monde.",
+  "score": 4,
+  "cost": 1.56e-05,
+  "expected": "",
+  "tokens": {
+    "input": 40,
+    "output": 16
+  }
+}

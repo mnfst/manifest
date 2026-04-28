@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "translation_enfr",
+  "case": 3,
+  "response": "Il n'y a pas d'autre explication pour l'octroi parcimonieux de 10 ou 12 millions d'ECU, ce qui, comme nous le savons tous, ne suffit m\u00eame pas \u00e0 construire un seul navire \u00e9quip\u00e9 de moyens modernes pour exercer une fonction de surveillance dans le secteur de la p\u00eache.",
+  "score": 4,
+  "cost": 0.0008375,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 65
+  }
+}

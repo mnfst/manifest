@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 21,
+  "response": "# French Translation\n\n**Maintenant, pourriez-vous lire ceci, s'il vous pla\u00eet ?**\n\nOr in a more casual tone:\n\n**Maintenant, tu pourrais lire \u00e7a, s'il te pla\u00eet ?**\n\n---\n\n**Note:** The first version uses formal \"vous\" (appropriate for professional or polite contexts), while the second uses informal \"tu\" (for friends, family, or casual situations). Choose based on your context.",
+  "score": 5,
+  "cost": 0.0004648,
+  "expected": "",
+  "tokens": {
+    "input": 41,
+    "output": 108
+  }
+}

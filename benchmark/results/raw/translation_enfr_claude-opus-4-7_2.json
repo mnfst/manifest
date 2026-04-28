@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "translation_enfr",
+  "case": 2,
+  "response": "J\u00e9sus s'approcha et dit distinctement et avec bienveillance : \u00ab C'est moi. \u00bb Cette parole devint le fondement de la foi des ap\u00f4tres.",
+  "score": 5,
+  "cost": 0.005535,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 58
+  }
+}

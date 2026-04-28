@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "translation_enfr",
+  "case": 25,
+  "response": "Le 21 f\u00e9vrier, le sous-secr\u00e9taire d'\u00c9tat \u00e0 la Guerre, Jos\u00e9 Asenio, a \u00e9t\u00e9 r\u00e9voqu\u00e9, puis rapidement arr\u00eat\u00e9 en m\u00eame temps que le colonel Villalba, pour trahison concernant Malaga.",
+  "score": 4,
+  "cost": 2.1899999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 48
+  }
+}

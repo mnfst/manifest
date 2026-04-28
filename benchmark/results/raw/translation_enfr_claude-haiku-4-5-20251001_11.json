@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 11,
+  "response": "# French Translation\n\nUn large \u00e9ventail d'attractions et de produits touristiques (th\u00e9, routes culturelles, stations de sant\u00e9 et bien-\u00eatre et spa, gastronomie, activit\u00e9s nautiques, etc.) a \u00e9t\u00e9 identifi\u00e9 dans la destination, qui n\u00e9cessite un d\u00e9veloppement interd\u00e9pendant en raison de leur isolement, de leurs compl\u00e9mentarit\u00e9s et de leur profil relativement homog\u00e8ne.\n\n---\n\n**Key translation notes:**\n- \"A wide number of\" \u2192 \"Un large \u00e9ventail de\"\n- \"requires an inter-dependent development\" \u2192 \"n\u00e9cessite un d\u00e9veloppement interd\u00e9pendant\"\n- \"because of their isolation, complementarities and relatively homogenous profile\" \u2192 \"en raison de leur isolement, de leurs compl\u00e9mentarit\u00e9s et de leur profil relativement homog\u00e8ne\"",
+  "score": 5,
+  "cost": 0.0008432,
+  "expected": "",
+  "tokens": {
+    "input": 89,
+    "output": 193
+  }
+}

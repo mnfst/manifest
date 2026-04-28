@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "Les \u00e9vacuateurs de crues capables d'\u00e9vacuer les crues postul\u00e9es sont soit int\u00e9gr\u00e9s aux structures du barrage, soit construits comme ouvrages s\u00e9par\u00e9s.",
+  "score": 4,
+  "cost": 0.0036473999999999994,
+  "expected": "",
+  "tokens": {
+    "input": 51,
+    "output": 1507
+  }
+}

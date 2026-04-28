@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 48,
+  "response": "Voici une traduction fid\u00e8le et adapt\u00e9e du ton original :\n\n**\"Choisissez l'une de ces voitures Renault \u00e0 louer \u00e0 Galati ou dans d'autres villes comme Arad, Timi\u0219oara, Sibiu, Oradea, Bra\u0219ov, Bucarest, Ia\u0219i ou Suceava, et vous arriverez \u00e0 destination en un clin d'\u0153il. De plus, vous \u00e9conomiserez une fortune que vous pourriez d\u00e9penser ailleurs.\"**\n\n*(Variante l\u00e9g\u00e8rement plus concise si besoin :)*\n**\"Optez pour l'une de ces Renault \u00e0 louer \u00e0 Galati ou dans d'autres villes comme Arad, Timi\u0219oara, Sibiu, Oradea, Bra\u0219ov, Bucarest, Ia\u0219i ou Suceava \u2013 vous y serez en quelques minutes ! Et vous \u00e9conomiserez des sommes consid\u00e9rables pour autre chose.\")**",
+  "score": 5,
+  "cost": 1.0880000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 179
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "translation_enfr",
+  "case": 30,
+  "response": "Voici une traduction en fran\u00e7ais :\n\n**Premi\u00e8re ligne de cr\u00e9dit en Italie pour l'apprentissage des jeunes dans les PME, les ETI et les collectivit\u00e9s locales**\n\nQuelques notes sur les choix de traduction :\n- \u00ab SMEs \u00bb \u2192 \u00ab PME \u00bb (Petites et Moyennes Entreprises)\n- \u00ab midcaps \u00bb \u2192 \u00ab ETI \u00bb (Entreprises de Taille Interm\u00e9diaire), terme fran\u00e7ais \u00e9quivalent\n- \u00ab local authorities \u00bb \u2192 \u00ab collectivit\u00e9s locales \u00bb (terme administratif standard en fran\u00e7ais)\n- \u00ab youth apprenticeships \u00bb \u2192 \u00ab apprentissage des jeunes \u00bb",
+  "score": 5,
+  "cost": 0.01608,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 200
+  }
+}

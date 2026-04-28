@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "translation_enfr",
+  "case": 2,
+  "response": "J\u00e9sus s\u2019avan\u00e7a et parla avec clart\u00e9 et bienveillance : \u00ab C\u2019est moi. \u00bb Cette parole devint le fondement de la foi des ap\u00f4tres.",
+  "score": 5,
+  "cost": 1.73e-05,
+  "expected": "",
+  "tokens": {
+    "input": 59,
+    "output": 38
+  }
+}

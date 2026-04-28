@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "translation_enfr",
+  "case": 0,
+  "response": "Je sais comment aider, et je veux le faire.",
+  "score": 5,
+  "cost": 1.2e-05,
+  "expected": "",
+  "tokens": {
+    "input": 36,
+    "output": 11
+  }
+}

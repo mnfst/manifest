@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "Des \u00e9vacuateurs de crues capables de g\u00e9rer les \u00e9v\u00e9nements d'inondation postul\u00e9s sont int\u00e9gr\u00e9s soit dans les structures du barrage, soit construits comme des structures s\u00e9par\u00e9es.",
+  "score": 5,
+  "cost": 0.000915,
+  "expected": "",
+  "tokens": {
+    "input": 55,
+    "output": 50
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "translation_enfr",
+  "case": 22,
+  "response": "En cas de modification du revenu et/ou de la situation professionnelle d'une personne, il peut y avoir un transfert de responsabilit\u00e9 institutionnelle, auquel cas une nouvelle \u00e9valuation sera effectu\u00e9e.",
+  "score": 5,
+  "cost": 3.075e-05,
+  "expected": "",
+  "tokens": {
+    "input": 53,
+    "output": 38
+  }
+}

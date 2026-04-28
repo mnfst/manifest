@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "translation_enfr",
+  "case": 6,
+  "response": "French: En ce moment m\u00eame, ce d\u00e9mon descend la Wangan en voiture.",
+  "score": 4,
+  "cost": 0.000465,
+  "expected": "",
+  "tokens": {
+    "input": 40,
+    "output": 23
+  }
+}

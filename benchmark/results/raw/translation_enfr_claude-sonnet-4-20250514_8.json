@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "translation_enfr",
+  "case": 8,
+  "response": "Et il a dit : \u00ab Bien s\u00fbr. \u00bb Et j'ai dit : \u00ab Eh bien, je me demande o\u00f9 \u00e7a va se passer. \u00bb",
+  "score": 4,
+  "cost": 0.000753,
+  "expected": "",
+  "tokens": {
+    "input": 51,
+    "output": 40
+  }
+}

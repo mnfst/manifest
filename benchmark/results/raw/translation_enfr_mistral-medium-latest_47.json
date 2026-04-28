@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "translation_enfr",
+  "case": 47,
+  "response": "La r\u00e9pression de ce type, ainsi que les arrestations r\u00e9centes de repr\u00e9sentants d\u2019institutions humanitaires, de syndicats et de journalistes accus\u00e9s de diffuser des pr\u00e9tendues fausses informations, ont l\u00e9gitimement \u00e9veill\u00e9 l\u2019inqui\u00e9tude de la communaut\u00e9 internationale.",
+  "score": 5,
+  "cost": 0.0001392,
+  "expected": "",
+  "tokens": {
+    "input": 63,
+    "output": 57
+  }
+}

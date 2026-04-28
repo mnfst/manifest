@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 29,
+  "response": "Voici une traduction naturelle et fid\u00e8le du ton et de la signification de votre phrase :\n\n**\"Et j\u2019aime toi\u2026 bien que je ne sache pas pourquoi.\"**\n\n*(Variante l\u00e9g\u00e8rement plus fluide, mais tout aussi naturelle :)*\n**\"Je t\u2019aime\u2026 m\u00eame si je ne sais pas pourquoi.\"**\n\nLes deux versions gardent la nuance d\u2019une d\u00e9claration affectueuse avec une touche d\u2019ironie ou de myst\u00e8re. \ud83d\ude0a",
+  "score": 3,
+  "cost": 4.88e-06,
+  "expected": "",
+  "tokens": {
+    "input": 34,
+    "output": 88
+  }
+}

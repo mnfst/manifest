@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 41,
+  "response": "Voici une traduction fid\u00e8le du ton et du sens, tout en gardant une certaine rudesse :\n\n**\"Tu n\u2019es pas dans la DGA. Fais un gros plan et ferme-la.\"**\n\n*(Note : J\u2019ai gard\u00e9 le langage familier et les expressions fortes pour conserver l\u2019intensit\u00e9 de l\u2019original.)*",
+  "score": 4,
+  "cost": 4.2000000000000004e-06,
+  "expected": "",
+  "tokens": {
+    "input": 39,
+    "output": 66
+  }
+}

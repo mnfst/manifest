@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 32,
+  "response": "# French Translation\n\nLes \u00c9tats membres, les institutions de l'Union et le SEAE peuvent proposer le d\u00e9tachement de personnel aupr\u00e8s du REPR.\n\n---\n\n**Note:** \n- EEAS = SEAE (Service europ\u00e9en pour l'action ext\u00e9rieure)\n- EUSR = REPR (Repr\u00e9sentant sp\u00e9cial de l'Union europ\u00e9enne)\n- \"Secondment\" is translated as \"d\u00e9tachement\" (the temporary assignment of staff to another organization)",
+  "score": 4,
+  "cost": 0.0005,
+  "expected": "",
+  "tokens": {
+    "input": 55,
+    "output": 114
+  }
+}

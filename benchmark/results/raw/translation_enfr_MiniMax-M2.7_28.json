@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "translation_enfr",
+  "case": 28,
+  "response": "Nous sommes capables... de lancer plus de puissance de feu... que ce qui n'a jamais \u00e9t\u00e9 d\u00e9ploy\u00e9 dans l'histoire de la guerre.",
+  "score": 4,
+  "cost": 0.005847600000000001,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 1310
+  }
+}

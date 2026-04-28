@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "translation_enfr",
+  "case": 44,
+  "response": "Les analyses de sensibilit\u00e9 indiquent que l'\u00e9tendue de la longueur non support\u00e9e d\u00e9velopp\u00e9e suite \u00e0 l'affouillement a une influence significative sur la r\u00e9ponse en flexion de l'interaction conduite-sol.",
+  "score": 4,
+  "cost": 2.25e-05,
+  "expected": "",
+  "tokens": {
+    "input": 49,
+    "output": 44
+  }
+}

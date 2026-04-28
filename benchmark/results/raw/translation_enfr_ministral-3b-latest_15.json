@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 15,
+  "response": "Voici une traduction fid\u00e8le du texte tout en conservant le ton et le sens :\n\n**Site Source** est un site de ressources d\u00e9di\u00e9 \u00e0 aider ceux qui g\u00e8rent des associations et des organisations \u00e0 but non lucratif \u00e0 rester inform\u00e9s sur...\n\n*(Si vous souhaitez une version plus concise ou adapt\u00e9e \u00e0 un contexte sp\u00e9cifique, je peux ajuster !)*",
+  "score": 4,
+  "cost": 4.72e-06,
+  "expected": "",
+  "tokens": {
+    "input": 44,
+    "output": 74
+  }
+}

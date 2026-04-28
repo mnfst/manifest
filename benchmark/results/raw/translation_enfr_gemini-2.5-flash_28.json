@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "translation_enfr",
+  "case": 28,
+  "response": "Nous sommes capables... de d\u00e9cha\u00eener plus de puissance de feu... que tout ce qui a jamais \u00e9t\u00e9 d\u00e9ploy\u00e9 dans l'histoire de la guerre.",
+  "score": 4,
+  "cost": 2.55e-05,
+  "expected": "",
+  "tokens": {
+    "input": 42,
+    "output": 32
+  }
+}

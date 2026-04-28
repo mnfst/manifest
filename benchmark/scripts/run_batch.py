@@ -173,6 +173,14 @@ TASK_DEFS = {
         "judge_prompt": "Rate the answer on a 1-5 scale. 5=completely correct final answer with sound reasoning. 4=correct answer with minor reasoning gaps. 3=partially correct. 2=wrong answer but some correct steps. 1=completely wrong. Respond with ONLY a number 1-5.",
         "native_metric": "exact_answer",  # extract number after ANSWER: and compare to expected
     },
+    "translation_enfr": {
+        "dataset": "datasets/opus100_translation.jsonl",
+        "prompt_template": "Translate the following English text to French. Maintain the tone and meaning.\n\nEnglish: {input}\n\nFrench:",
+        "eval_type": "llm_judge",
+        "max_output_tokens": 500,
+        "judge_prompt": "Rate this English-to-French translation on a 1-5 scale. 5=perfect translation with natural French. 4=good with minor phrasing issues. 3=understandable but awkward. 2=significant errors. 1=wrong language or incomprehensible. Respond with ONLY a number 1-5.",
+        "native_metric": None,
+    },
     "ner_extraction": {
         "dataset": "datasets/entity_extraction.jsonl",
         "prompt_template": 'Extract all named entities from the following text. Return them as a JSON object with keys: "persons", "organizations", "locations". Each value should be a list of strings. Return ONLY the JSON, no explanation.\n\nText: "{input}"',
@@ -562,8 +570,9 @@ def main():
                     score, task_def["eval_type"], response_text[:100].replace("\n", " ")
                 ])
 
-            # Save raw
-            raw_file = f"results/raw/{task_name}_{model_name}_{case_idx}.json"
+            # Save raw (sanitize model name for filesystem)
+            safe_model = model_name.replace("/", "_")
+            raw_file = f"results/raw/{task_name}_{safe_model}_{case_idx}.json"
             with open(raw_file, "w") as f:
                 json.dump({"model": model_name, "task": task_name, "case": case_idx,
                            "response": response_text, "score": score, "cost": cost,

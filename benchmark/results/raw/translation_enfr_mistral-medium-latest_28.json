@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "translation_enfr",
+  "case": 28,
+  "response": "Voici une traduction qui conserve le ton solennel et la force du message original :\n\n**\"Nous sommes capables\u2026 de d\u00e9ployer une puissance de feu\u2026 plus grande que tout ce qui a jamais \u00e9t\u00e9 lib\u00e9r\u00e9 dans l\u2019histoire de la guerre.\"**\n\n*Variante l\u00e9g\u00e8rement plus concise (si le rythme est important) :*\n**\"Nous avons la capacit\u00e9\u2026 de lancer une puissance de feu\u2026 sans pr\u00e9c\u00e9dent dans l\u2019histoire des conflits.\"**\n\n---\n*Remarques :*\n- **\"Firepower\"** est traduit par **\"puissance de feu\"** (terme militaire standard en fran\u00e7ais).\n- **\"Than has ever been released\"** devient **\"plus grande que tout ce qui a jamais \u00e9t\u00e9 lib\u00e9r\u00e9\"** pour garder l\u2019emphase, ou **\"sans pr\u00e9c\u00e9dent\"** pour une formulation plus fluide.\n- Les points de suspension (**\u2026**) sont conserv\u00e9s pour reproduire l\u2019effet dramatique de l\u2019original.\n\nSi le contexte est un discours ou un film, la premi\u00e8re version (plus litt\u00e9rale) sera probablement pr\u00e9f\u00e9rable. Pour un texte technique, la seconde peut convenir. Dites-moi si vous souhaitez ajuster le registre !",
+  "score": 5,
+  "cost": 0.0004632,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 223
+  }
+}

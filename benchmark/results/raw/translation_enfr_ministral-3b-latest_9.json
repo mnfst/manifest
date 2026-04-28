@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 9,
+  "response": "Voici une traduction fid\u00e8le et respectueuse du ton original :\n\n**Sur son c\u00f4t\u00e9, le deuxi\u00e8me atelier a port\u00e9 sur la mise en \u0153uvre des recommandations formul\u00e9es par les organes de surveillance des trait\u00e9s aux \u00c9tats parties au Cameroun, conform\u00e9ment aux trait\u00e9s internationaux et r\u00e9gionaux, concernant ses obligations envers les populations autochtones.**\n\n*(Variante l\u00e9g\u00e8rement plus concise si souhait\u00e9 :)*\n**En ce qui concerne ce deuxi\u00e8me atelier, il a trait\u00e9 de la mise en \u0153uvre des recommandations adress\u00e9es par les organes de surveillance des trait\u00e9s au Cameroun, dans le cadre des engagements internationaux et r\u00e9gionaux envers les populations autochtones.**",
+  "score": 4,
+  "cost": 7.68e-06,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 128
+  }
+}

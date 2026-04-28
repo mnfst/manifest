@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 3,
+  "response": "# French Translation\n\nIl n'existe aucune autre explication \u00e0 l'octroi parcimonieux de 10 ou 12 millions d'ECU, qui, comme nous le savons tous, ne suffisent m\u00eame pas \u00e0 construire un seul navire \u00e9quip\u00e9 des moyens modernes n\u00e9cessaires pour exercer une fonction de surveillance dans le secteur de la p\u00eache.\n\n---\n\n**Key translation choices:**\n- \"parsimonious grant\" \u2192 \"octroi parcimonieux\" (maintaining the formal tone)\n- \"do not even suffice\" \u2192 \"ne suffisent m\u00eame pas\" (preserving the emphasis)\n- \"equipped with modern means of carrying out\" \u2192 \"\u00e9quip\u00e9 des moyens modernes n\u00e9cessaires pour exercer\" (more natural French phrasing while keeping the meaning)",
+  "score": 5,
+  "cost": 0.000824,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 189
+  }
+}

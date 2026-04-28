@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "translation_enfr",
+  "case": 14,
+  "response": "Le Comit\u00e9 se f\u00e9licite de la soumission du rapport initial de l'\u00c9tat partie et se d\u00e9clare satisfait du dialogue constructif et f\u00e9cond engag\u00e9 avec une d\u00e9l\u00e9gation comp\u00e9tente de haut niveau.",
+  "score": 5,
+  "cost": 0.0021186000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 464
+  }
+}

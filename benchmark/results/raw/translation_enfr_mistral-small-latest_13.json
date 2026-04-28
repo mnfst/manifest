@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "translation_enfr",
+  "case": 13,
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens :\n\n**\"Dis simplement \u00e0 Kumagaya que le d\u00e9tective est arriv\u00e9.\"**\n\n*Variante plus naturelle (selon le contexte) :*\n**\"Dis juste \u00e0 Kumagaya que le d\u00e9tective est l\u00e0.\"**\n\nSi vous souhaitez une nuance plus formelle ou informelle, pr\u00e9cisez-le !",
+  "score": 4,
+  "cost": 2.8e-05,
+  "expected": "",
+  "tokens": {
+    "input": 46,
+    "output": 78
+  }
+}

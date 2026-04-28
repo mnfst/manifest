@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 19,
+  "response": "Voici une traduction fid\u00e8le et adapt\u00e9e du texte anglais en fran\u00e7ais, tout en conservant le ton et la pr\u00e9cision :\n\n**FTI \u2014 Privil\u00e8ges et conditions**\n\n*(Si vous souhaitez une formulation plus formelle ou technique selon le contexte, je peux ajuster :)*\n**FTI \u2013 Fonds de transition internationale / Conditions et avantages** *(selon le domaine : droit, finance, gestion, etc.)*\n\n---\n**Variantes possibles selon le contexte :**\n- **Droit/Finance** : *\"FTI \u2013 Avantages et modalit\u00e9s\"* ou *\"FTI \u2013 Conditions d\u2019acc\u00e8s et privil\u00e8ges\"*\n- **Gestion/Entreprise** : *\"FTI \u2013 Avantages et clauses\"* ou *\"FTI \u2013 Conditions d\u2019utilisation\"*\n\nBesoin d\u2019une pr\u00e9cision suppl\u00e9mentaire ? Je peux affiner en fonction du secteur (ex. : droit fiscal, r\u00e9glementation, etc.).",
+  "score": 3,
+  "cost": 8.64e-06,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 185
+  }
+}

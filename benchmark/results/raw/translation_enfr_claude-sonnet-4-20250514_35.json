@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "translation_enfr",
+  "case": 35,
+  "response": "[journaliste masculin #1 \u00e0 la t\u00e9l\u00e9] l'accident s'est produit juste apr\u00e8s 10h00.",
+  "score": 5,
+  "cost": 0.000648,
+  "expected": "",
+  "tokens": {
+    "input": 51,
+    "output": 33
+  }
+}

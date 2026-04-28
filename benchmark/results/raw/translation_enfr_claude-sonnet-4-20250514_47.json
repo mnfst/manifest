@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "translation_enfr",
+  "case": 47,
+  "response": "French: La r\u00e9pression de ce type, ainsi que l'arrestation au cours des derni\u00e8res semaines de repr\u00e9sentants d'institutions humanitaires, de syndicats et de journalistes accus\u00e9s de diffuser de pr\u00e9tendues fausses informations, ont \u00e0 juste titre \u00e9veill\u00e9 l'inqui\u00e9tude de la communaut\u00e9 internationale.",
+  "score": 5,
+  "cost": 0.001464,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 83
+  }
+}

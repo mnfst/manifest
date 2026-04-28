@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 7,
+  "response": "Voici une traduction naturelle et respectueuse du ton tout en conservant la nuance positive et g\u00e9n\u00e9reuse de l'original :\n\n**\"Services d\u2019int\u00e9gration professionnelle. C\u2019est g\u00e9n\u00e9reux.\"**\n\n*(Variante plus concise si besoin :)*\n**\"Services d\u2019insertion. Tr\u00e8s g\u00e9n\u00e9reux !\"** *(si le contexte est tr\u00e8s chaleureux)*\n\n---\n**Explications** :\n- *\"Placement services\"* \u2192 *\"Services d\u2019int\u00e9gration professionnelle\"* (plus pr\u00e9cis en France) ou *\"Services d\u2019insertion\"* (si le terme est sp\u00e9cifique \u00e0 votre secteur).\n- *\"That's generous\"* \u2192 *\"C\u2019est g\u00e9n\u00e9reux\"* (familier et chaleureux) ou *\"Tr\u00e8s g\u00e9n\u00e9reux !\"* (pour insister sur l\u2019aspect positif).\n- J\u2019ai \u00e9vit\u00e9 les tournures trop formelles pour garder un ton naturel et chaleureux, comme dans l\u2019anglais original.\n\nBesoin d\u2019ajuster le registre (plus technique, plus professionnel, etc.) ?",
+  "score": 4,
+  "cost": 9.44e-06,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 206
+  }
+}

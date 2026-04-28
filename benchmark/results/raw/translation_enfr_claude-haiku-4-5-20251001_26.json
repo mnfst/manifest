@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 26,
+  "response": "# French Translation\n\nIl a sugg\u00e9r\u00e9, en revanche, que l'arm\u00e9e devrait jouer un r\u00f4le secondaire dans les op\u00e9rations antiterroristes.\n\n---\n\n**Alternative version (slightly more formal):**\n\nIl a propos\u00e9, au lieu de cela, que l'arm\u00e9e assume un r\u00f4le secondaire dans les op\u00e9rations de lutte contre le terrorisme.",
+  "score": 4,
+  "cost": 0.00040239999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 48,
+    "output": 91
+  }
+}

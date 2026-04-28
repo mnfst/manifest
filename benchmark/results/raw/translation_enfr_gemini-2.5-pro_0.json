@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "translation_enfr",
+  "case": 0,
+  "response": "Je sais comment aider, et je veux le faire.",
+  "score": 5,
+  "cost": 0.00015,
+  "expected": "",
+  "tokens": {
+    "input": 32,
+    "output": 11
+  }
+}

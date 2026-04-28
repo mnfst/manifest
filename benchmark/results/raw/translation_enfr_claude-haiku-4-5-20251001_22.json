@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 22,
+  "response": "Si le revenu et/ou le statut professionnel d'une personne change, il peut y avoir un transfert de responsabilit\u00e9 institutionnelle, auquel cas une nouvelle \u00e9valuation sera effectu\u00e9e.",
+  "score": 5,
+  "cost": 0.000252,
+  "expected": "",
+  "tokens": {
+    "input": 60,
+    "output": 51
+  }
+}

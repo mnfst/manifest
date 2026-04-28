@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "translation_enfr",
+  "case": 13,
+  "response": "Dis simplement \u00e0 Kumagaya que le d\u00e9tective est ici.",
+  "score": 5,
+  "cost": 0.0017017,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 369
+  }
+}

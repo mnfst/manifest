@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 12,
+  "response": "# French Translation\n\nCe premier r\u00e9sultat, jug\u00e9 exceptionnel, a permis l'identification de 80 signaux acoustiques diff\u00e9rents pr\u00e8s des Rocas Consag. Ces r\u00e9sultats confirment les \u00e9tudes ant\u00e9rieures sur la distribution de la vaquita dans la r\u00e9gion.\n\n---\n\n**Key translation notes:**\n- \"judged exceptional\" \u2192 \"jug\u00e9 exceptionnel\" (maintains formal tone)\n- \"permitted the identification\" \u2192 \"a permis l'identification\" (preserves meaning)\n- \"acoustic signals\" \u2192 \"signaux acoustiques\" (technical term)\n- \"Rocas Consag\" remains unchanged (proper noun)\n- \"vaquita\" remains unchanged (species name)\n- \"confirm previous studies\" \u2192 \"confirment les \u00e9tudes ant\u00e9rieures\" (maintains scientific tone)",
+  "score": 5,
+  "cost": 0.000804,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 186
+  }
+}

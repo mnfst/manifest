@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "translation_enfr",
+  "case": 28,
+  "response": "Nous sommes capables... de lancer plus de puissance de feu... qu'il n'en a jamais \u00e9t\u00e9 d\u00e9ploy\u00e9 dans l'histoire de la guerre.",
+  "score": 4,
+  "cost": 0.0004025,
+  "expected": "",
+  "tokens": {
+    "input": 45,
+    "output": 29
+  }
+}

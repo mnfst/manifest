@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "translation_enfr",
+  "case": 36,
+  "response": "Here are a few options, depending on the tone you want:\n\n**Standard/neutral:**\n\u00ab Plus tu te d\u00e9bats, plus ce sera g\u00eanant pour tout le monde. \u00bb\n\n**Slightly more menacing/cold:**\n\u00ab Plus tu r\u00e9sistes, plus ce sera embarrassant pour tout le monde. \u00bb\n\n**More casual:**\n\u00ab Plus tu te d\u00e9bats, plus \u00e7a va \u00eatre malaisant pour tout le monde. \u00bb\n\nThe first option is probably the most versatile and natural-sounding translation. The choice between *te d\u00e9battre* (to struggle physically) and *r\u00e9sister* (to resist) depends on context \u2014 physical struggle vs. resistance in general.",
+  "score": 5,
+  "cost": 0.01683,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 212
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "translation_enfr",
+  "case": 47,
+  "response": "La r\u00e9pression de ce genre, ainsi que l'arrestation ces derni\u00e8res semaines de repr\u00e9sentants d'institutions humanitaires, de syndicats et de journalistes accus\u00e9s de diffuser des soi-disant fausses informations, ont \u00e0 juste titre \u00e9veill\u00e9 l'inqui\u00e9tude de la communaut\u00e9 internationale.",
+  "score": 5,
+  "cost": 0.0007525,
+  "expected": "",
+  "tokens": {
+    "input": 65,
+    "output": 59
+  }
+}

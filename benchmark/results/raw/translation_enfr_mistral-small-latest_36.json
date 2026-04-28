@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "translation_enfr",
+  "case": 36,
+  "response": "Plus tu luttes, plus ce sera g\u00eanant pour tout le monde.",
+  "score": 4,
+  "cost": 9.699999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 49,
+    "output": 16
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "translation_enfr",
+  "case": 3,
+  "response": "Il n'y a pas d'autre explication \u00e0 l'allocation parcimonieuse de 10 ou 12\u202fmillions d'\u00e9cus, qui, comme nous le savons tous, ne suffisent m\u00eame pas \u00e0 construire un seul navire \u00e9quip\u00e9 de moyens modernes pour assurer une fonction de surveillance dans le secteur de la p\u00eache.",
+  "score": 5,
+  "cost": 0.0050853,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 1129
+  }
+}

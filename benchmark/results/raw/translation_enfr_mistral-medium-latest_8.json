@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "translation_enfr",
+  "case": 8,
+  "response": "Et il a dit : *\u00ab Bien s\u00fbr. \u00bb*\nEt moi, j\u2019ai r\u00e9pondu : *\u00ab Bon, je me demande o\u00f9 \u00e7a va \u00eatre. \u00bb*",
+  "score": 4,
+  "cost": 8.159999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 44,
+    "output": 32
+  }
+}

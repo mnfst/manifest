@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 12,
+  "response": "Voici une traduction fid\u00e8le et adapt\u00e9e du ton original :\n\n**Cette premi\u00e8re d\u00e9couverte, jug\u00e9e exceptionnelle, a permis l'identification de 80 signaux acoustiques distincts proches du r\u00e9cif des Rocas Consag. Ces r\u00e9sultats confirment les \u00e9tudes pr\u00e9c\u00e9dentes sur la r\u00e9partition de la vaquita dans la r\u00e9gion.**\n\n*(Variante l\u00e9g\u00e8rement plus concise si besoin :)*\n**Ce premier r\u00e9sultat, consid\u00e9r\u00e9 comme exceptionnel, a permis d'identifier 80 signaux acoustiques distincts autour des Rocas Consag. Ces r\u00e9sultats corroborent les travaux ant\u00e9rieurs sur la distribution de la vaquita dans cette zone.**",
+  "score": 5,
+  "cost": 7.599999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 126
+  }
+}

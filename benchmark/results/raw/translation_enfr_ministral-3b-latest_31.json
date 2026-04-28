@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 31,
+  "response": "Voici une traduction naturelle et respectueuse du ton tout en conservant le sens :\n\n**\"Nous pourrions vous r\u00e9server pour une mission de prospection.\"**\n\n*(Variante plus formelle si n\u00e9cessaire :*\n**\"Nous pourrions vous proposer une mission de prospection.\"**)\n\n---\n**Remarques :**\n- *\"Solicitation\"* (prospection commerciale) est souvent traduit par *\"prospection\"* en fran\u00e7ais, mais *\"mission de prospection\"* est plus pr\u00e9cis dans un contexte professionnel.\n- *\"Book\"* peut \u00eatre remplac\u00e9 par *\"r\u00e9server\"* ou *\"proposer\"* selon le contexte (ex. : *\"Nous pourrions vous r\u00e9server une journ\u00e9e de prospection\"*).\n- Si le contexte est technique (ex. : une \u00e9tude de march\u00e9), *\"prospection\"* reste la meilleure option.\n\nBesoin d\u2019ajuster le ton (plus direct, plus diplomate, etc.) ?",
+  "score": 5,
+  "cost": 8.52e-06,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 183
+  }
+}

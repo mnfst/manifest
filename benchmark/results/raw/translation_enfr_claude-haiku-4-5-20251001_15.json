@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 15,
+  "response": "# French Translation\n\nSector Source est un site de ressources d\u00e9di\u00e9 \u00e0 aider ceux qui g\u00e8rent des organismes de bienfaisance et des organisations \u00e0 but non lucratif \u00e0 rester inform\u00e9s sur...\n\n---\n\n**Note:** The translation maintains the formal, informative tone of the original English text. \"Sector Source\" is typically kept as is since it's a proper name/brand, but could also be translated as \"Source du Secteur\" if needed for full localization.",
+  "score": 5,
+  "cost": 0.0004896,
+  "expected": "",
+  "tokens": {
+    "input": 52,
+    "output": 112
+  }
+}

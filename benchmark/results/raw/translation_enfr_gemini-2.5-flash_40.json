@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "translation_enfr",
+  "case": 40,
+  "response": "Il nous faut juste plus d'informations.",
+  "score": 5,
+  "cost": 9.75e-06,
+  "expected": "",
+  "tokens": {
+    "input": 29,
+    "output": 9
+  }
+}

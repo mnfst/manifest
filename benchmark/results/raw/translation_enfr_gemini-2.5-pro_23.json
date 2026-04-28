@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "Les \u00e9vacuateurs de crues, capables de g\u00e9rer les crues postul\u00e9es, sont soit int\u00e9gr\u00e9s aux structures du barrage, soit construits en tant qu'ouvrages distincts.",
+  "score": 5,
+  "cost": 0.00045625,
+  "expected": "",
+  "tokens": {
+    "input": 45,
+    "output": 40
+  }
+}

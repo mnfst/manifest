@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 20,
+  "response": "Voici une traduction naturelle et fid\u00e8le du ton tout en conservant le sens :\n\n**\"Je dirais qu\u2019il s\u2019agit d\u2019un produit de faible valeur, au mieux.\"**\n\n*(Variante plus concise si besoin :*\n**\"Je dirais qu\u2019il est de faible valeur, au mieux.\"**)\n\nSi vous souhaitez une formulation plus formelle ou plus neutre, pr\u00e9cisez le contexte !",
+  "score": 4,
+  "cost": 4.520000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 33,
+    "output": 80
+  }
+}

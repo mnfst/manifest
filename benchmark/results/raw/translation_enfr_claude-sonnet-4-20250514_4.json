@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "translation_enfr",
+  "case": 4,
+  "response": "Votre mari avait-il invit\u00e9 le lieutenant Gilbert chez vous ?",
+  "score": 5,
+  "cost": 0.000417,
+  "expected": "",
+  "tokens": {
+    "input": 39,
+    "output": 20
+  }
+}

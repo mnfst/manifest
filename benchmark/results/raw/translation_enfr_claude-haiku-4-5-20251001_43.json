@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 43,
+  "response": "# French Translation\n\nL'unit\u00e9 est simplement fix\u00e9e \u00e0 l'appui-t\u00eate du si\u00e8ge du conducteur \u00e0 l'aide d'une sangle \u00e9lastique robuste. Dans ce\n\n---\n\n**Note:** The translation maintains the technical tone and meaning of the original English text. The sentence appears to be incomplete in both versions, so the translation ends at the same point as the source text.",
+  "score": 4,
+  "cost": 0.0004016,
+  "expected": "",
+  "tokens": {
+    "input": 52,
+    "output": 90
+  }
+}

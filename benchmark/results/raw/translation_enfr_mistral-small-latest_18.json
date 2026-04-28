@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "translation_enfr",
+  "case": 18,
+  "response": "La plage la plus proche se trouve \u00e0 une courte distance en voiture, \u00e0 environ 6...",
+  "score": 4,
+  "cost": 1.08e-05,
+  "expected": "",
+  "tokens": {
+    "input": 48,
+    "output": 20
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "translation_enfr",
+  "case": 35,
+  "response": "[reporter masculin #1 \u00e0 la t\u00e9l\u00e9vision] un accident s'est produit juste apr\u00e8s 10h00.",
+  "score": 5,
+  "cost": 1.9799999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 44,
+    "output": 22
+  }
+}

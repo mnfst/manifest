@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 16,
+  "response": "J'ai l'impression que mon coq n'est pas assez grand pour toi.\n\n(Note: This is a literal translation. If this refers to a rooster/chicken in a farming or animal context, this translation is appropriate. If you meant something else, please clarify and I can provide a more suitable translation.)",
+  "score": 2,
+  "cost": 0.00032480000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 41,
+    "output": 73
+  }
+}

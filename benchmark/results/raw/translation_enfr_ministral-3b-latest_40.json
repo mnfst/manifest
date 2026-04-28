@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 40,
+  "response": "Nous avons simplement besoin d'obtenir plus d'informations.",
+  "score": 5,
+  "cost": 1.68e-06,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 12
+  }
+}

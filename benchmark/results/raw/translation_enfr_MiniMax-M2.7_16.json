@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "translation_enfr",
+  "case": 16,
+  "response": "J'ai l'impression que ma bite n'est pas assez grande pour toi.",
+  "score": 5,
+  "cost": 0.0022066000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 50,
+    "output": 489
+  }
+}

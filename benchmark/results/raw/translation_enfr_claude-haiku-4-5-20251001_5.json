@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 5,
+  "response": "# French Translation\n\nLes flocs provenant de temps de r\u00e9tention des boues (SRT) plus \u00e9lev\u00e9s \u00e9taient moins hydrat\u00e9s et poss\u00e9daient une couche de substances polym\u00e8res extracellulaires (EPS) dense qui couvrait une grande partie de la surface.\n\n---\n\n**Alternative (more concise):**\n\nLes flocs issus de SRT plus \u00e9lev\u00e9s \u00e9taient moins hydrat\u00e9s et pr\u00e9sentaient une couche d'EPS dense couvrant une grande partie de leur surface.",
+  "score": 5,
+  "cost": 0.0005224,
+  "expected": "",
+  "tokens": {
+    "input": 58,
+    "output": 119
+  }
+}

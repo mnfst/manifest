@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 39,
+  "response": "Voici une traduction naturelle et fluide tout en conservant le ton et le sens :\n\n**\"Tu sais d'o\u00f9 vient l'argent ?\"**\n\n*(Variante plus courante en conversation informelle :*\n**\"Tu connais d'o\u00f9 vient l'argent ?\"**)\n\nSi vous souhaitez une formulation plus formelle ou adapt\u00e9e \u00e0 un contexte sp\u00e9cifique, pr\u00e9cisez-le !",
+  "score": 5,
+  "cost": 4.2000000000000004e-06,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 74
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "Les d\u00e9versoirs capables de g\u00e9rer les \u00e9v\u00e9nements de crue postul\u00e9s sont incorpor\u00e9s soit dans les structures du barrage, soit construits en tant que structures distinctes.",
+  "score": 5,
+  "cost": 0.0020020000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 434
+  }
+}

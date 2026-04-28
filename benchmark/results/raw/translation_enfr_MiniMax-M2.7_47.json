@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "translation_enfr",
+  "case": 47,
+  "response": "",
+  "score": 3,
+  "cost": 0.0089056,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 2000
+  }
+}

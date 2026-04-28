@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "translation_enfr",
+  "case": 15,
+  "response": "Sector Source est un site de ressources qui a pour but d'aider les responsables d'organismes de bienfaisance et d'organisations \u00e0 but non lucratif \u00e0 rester inform\u00e9s sur...",
+  "score": 5,
+  "cost": 0.00046,
+  "expected": "",
+  "tokens": {
+    "input": 40,
+    "output": 41
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 32,
+  "response": "Voici la traduction en fran\u00e7ais tout en conservant le ton et le sens originaux :\n\n**Les \u00c9tats membres, les institutions de l\u2019Union et l\u2019EEAS peuvent proposer la mise \u00e0 disposition de personnel au poste d\u2019Ambassadeur de l\u2019Union pour les \u00c9tats (EUSR).**\n\n*(Variante plus concise si n\u00e9cessaire :)*\n**Les \u00c9tats membres, les institutions de l\u2019Union et l\u2019EEAS peuvent proposer la mise \u00e0 disposition de personnel au poste d\u2019Ambassadeur de l\u2019Union pour les \u00c9tats (EUSR).**",
+  "score": 4,
+  "cost": 6.44e-06,
+  "expected": "",
+  "tokens": {
+    "input": 47,
+    "output": 114
+  }
+}

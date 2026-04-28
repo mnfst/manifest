@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 18,
+  "response": "# French Translation\n\nLa plage la plus proche se trouve \u00e0 une distance de conduite facile, \u00e0 environ 6...\n\n---\n\n**Note:** The translation appears to be incomplete in your original English text (it cuts off at \"6...\"). If you'd like me to complete the translation, please provide the full sentence, and I'll be happy to translate it accurately.",
+  "score": 4,
+  "cost": 0.0003584,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 81
+  }
+}

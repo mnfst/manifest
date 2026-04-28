@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 34,
+  "response": "Voici la traduction en fran\u00e7ais avec le m\u00eame ton et la m\u00eame nuance :\n\n**Sydney, Esther sera dans mon bureau.**",
+  "score": 5,
+  "cost": 2.28e-06,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 26
+  }
+}

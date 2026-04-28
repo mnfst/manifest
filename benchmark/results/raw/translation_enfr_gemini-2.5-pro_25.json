@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "translation_enfr",
+  "case": 25,
+  "response": "2. Le 21 f\u00e9vrier, le sous-secr\u00e9taire \u00e0 la Guerre, Jos\u00e9 Asenio, fut limog\u00e9, puis arr\u00eat\u00e9 peu apr\u00e8s avec le colonel Villalba, pour la trahison de Malaga.",
+  "score": 5,
+  "cost": 0.00051125,
+  "expected": "",
+  "tokens": {
+    "input": 57,
+    "output": 44
+  }
+}

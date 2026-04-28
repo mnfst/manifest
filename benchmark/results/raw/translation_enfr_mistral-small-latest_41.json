@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "translation_enfr",
+  "case": 41,
+  "response": "Voici une traduction qui conserve le ton familier et l'intensit\u00e9 de l'original :\n\n**\"T\u2019es pas dans la DGA. Juste zoome et ferme-la.\"**\n\n*(Note : \"DGA\" fait probablement r\u00e9f\u00e9rence \u00e0 la Directors Guild of America, un syndicat professionnel. Si c'est le cas, la traduction est correcte. Sinon, pr\u00e9cisez le contexte pour une adaptation plus pr\u00e9cise.)*\n\nSi vous souhaitez une version encore plus crue (mais moins naturelle en fran\u00e7ais), on pourrait dire :\n**\"T\u2019es pas dans la DGA. Fais un zoom et ferme ta gueule.\"**\n\nDites-moi si vous souhaitez ajuster le registre !",
+  "score": 4,
+  "cost": 4.59e-05,
+  "expected": "",
+  "tokens": {
+    "input": 51,
+    "output": 136
+  }
+}

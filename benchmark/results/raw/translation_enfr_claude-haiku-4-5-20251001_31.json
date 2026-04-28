@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 31,
+  "response": "# French Translation\n\n\"Nous pourrions vous inculper de racolage.\"\n\nOr alternatively:\n\n\"On pourrait vous poursuivre pour sollicitation.\"\n\n---\n\n**Note:** The translation depends on context:\n- **\"racolage\"** = solicitation (typically in a legal/criminal context, often related to prostitution)\n- **\"sollicitation\"** = solicitation (more general, can mean requesting or canvassing)\n\nThe first option is more commonly used in formal legal contexts in French.",
+  "score": 3,
+  "cost": 0.0005056,
+  "expected": "",
+  "tokens": {
+    "input": 37,
+    "output": 119
+  }
+}

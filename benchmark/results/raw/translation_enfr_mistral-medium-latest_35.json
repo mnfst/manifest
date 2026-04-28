@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "translation_enfr",
+  "case": 35,
+  "response": "**[Journaliste masculin #1 \u00e0 la t\u00e9l\u00e9vision]**\n*Un accident s'est produit peu apr\u00e8s 10 heures ce matin.*\n\n*(Alternative plus naturelle pour un contexte t\u00e9l\u00e9vis\u00e9 :)*\n**[Journaliste #1 \u00e0 l'\u00e9cran]**\n*L'accident a eu lieu vers 10 heures ce matin.*\n\n---\n**Notes :**\n- *\"Just after\"* \u2192 *\"peu apr\u00e8s\"* ou *\"vers\"* (plus fluide \u00e0 l'oral).\n- *\"10:00 a.m.\"* \u2192 *\"10 heures\"* (en fran\u00e7ais, on omet \"du matin\" sauf si n\u00e9cessaire pour \u00e9viter une ambigu\u00eft\u00e9 avec 22h).\n- Ton neutre et professionnel, adapt\u00e9 \u00e0 un journal t\u00e9l\u00e9vis\u00e9.",
+  "score": 5,
+  "cost": 0.00031319999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 148
+  }
+}

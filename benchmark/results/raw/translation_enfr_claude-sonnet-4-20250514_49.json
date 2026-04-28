@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "translation_enfr",
+  "case": 49,
+  "response": "J'ai des g\u00e2teaux \u00e0 la cr\u00e8me, des confiseries, du hareng marin\u00e9 et des dattes confites.",
+  "score": 5,
+  "cost": 0.000645,
+  "expected": "",
+  "tokens": {
+    "input": 50,
+    "output": 33
+  }
+}

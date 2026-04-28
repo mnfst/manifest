@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "translation_enfr",
+  "case": 38,
+  "response": "Cela ne peut mener qu'au chaos et \u00e0 la terreur.",
+  "score": 5,
+  "cost": 8.8e-06,
+  "expected": "",
+  "tokens": {
+    "input": 43,
+    "output": 15
+  }
+}

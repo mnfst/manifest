@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "translation_enfr",
+  "case": 18,
+  "response": "La plage la plus proche est facilement accessible en voiture, situ\u00e9e \u00e0 environ 6...",
+  "score": 4,
+  "cost": 0.0044058,
+  "expected": "",
+  "tokens": {
+    "input": 39,
+    "output": 1826
+  }
+}

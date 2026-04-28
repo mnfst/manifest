@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 23,
+  "response": "Voici une traduction fid\u00e8le du texte anglais en fran\u00e7ais, conservant le ton et le sens techniques :\n\n**Les d\u00e9versoirs capables de g\u00e9rer les crues postul\u00e9es sont int\u00e9gr\u00e9s soit dans les structures des barrages, soit construits comme des ouvrages distincts.**\n\n*(Variante l\u00e9g\u00e8rement plus concise si n\u00e9cessaire :)*\n**Les d\u00e9versoirs con\u00e7us pour faire face aux crues hypoth\u00e9tiques sont soit int\u00e9gr\u00e9s aux barrages, soit construits en tant qu\u2019ouvrages autonomes.**",
+  "score": 5,
+  "cost": 5.76e-06,
+  "expected": "",
+  "tokens": {
+    "input": 47,
+    "output": 97
+  }
+}

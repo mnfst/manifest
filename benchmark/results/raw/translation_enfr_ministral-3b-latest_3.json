@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 3,
+  "response": "Voici une traduction fid\u00e8le et respectueuse du ton et du sens de votre texte :\n\n**Il n'existe aucune autre explication pour l'\u00e9conomique attribution de 10 ou 12 millions d'ECU, que nous savons tous ne pas suffire \u00e0 construire m\u00eame un seul navire \u00e9quip\u00e9 des moyens modernes de surveillance dans le secteur des p\u00eaches.**\n\n*(Variante l\u00e9g\u00e8rement plus concise si besoin :)*\n**Aucune autre justification ne s'impose pour ce grant si parcimonieux de 10 ou 12 millions d'ECU, que nous savons tous insuffisants pour financer un seul navire dot\u00e9 des outils modernes de surveillance en mati\u00e8re de p\u00eache.**",
+  "score": 4,
+  "cost": 8.560000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 138
+  }
+}

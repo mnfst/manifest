@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "translation_enfr",
+  "case": 43,
+  "response": "L'appareil se fixe simplement \u00e0 l'appui-t\u00eate du si\u00e8ge conducteur \u00e0 l'aide d'une sangle \u00e9lastique solide. Dans ce",
+  "score": 4,
+  "cost": 0.005055,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 53
+  }
+}

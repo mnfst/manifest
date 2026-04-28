@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "translation_enfr",
+  "case": 40,
+  "response": "Nous avons juste besoin d'obtenir plus d'informations.",
+  "score": 5,
+  "cost": 0.0013613999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 33,
+    "output": 559
+  }
+}

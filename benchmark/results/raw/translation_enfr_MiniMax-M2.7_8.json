@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "translation_enfr",
+  "case": 8,
+  "response": "Et il a dit, \u00ab\u202fBien s\u00fbr.\u202f\u00bb Et j\u2019ai dit, \u00ab\u202fEh bien, je me demande o\u00f9 \u00e7a va \u00eatre.\u202f\u00bb",
+  "score": 5,
+  "cost": 0.0027775,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 612
+  }
+}

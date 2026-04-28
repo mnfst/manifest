@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "translation_enfr",
+  "case": 47,
+  "response": "Une r\u00e9pression de ce type, conjugu\u00e9e \u00e0 l'arrestation ces derni\u00e8res semaines de repr\u00e9sentants d'institutions humanitaires, de syndicats et de journalistes accus\u00e9s de diffuser de pr\u00e9tendues fausses informations, a l\u00e9gitimement \u00e9veill\u00e9 l'inqui\u00e9tude de la communaut\u00e9 internationale.",
+  "score": 5,
+  "cost": 0.00933,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 103
+  }
+}

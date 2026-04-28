@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "translation_enfr",
+  "case": 6,
+  "response": "En ce moment m\u00eame, ce d\u00e9mon roule sur Wangan.",
+  "score": 4,
+  "cost": 0.0021703,
+  "expected": "",
+  "tokens": {
+    "input": 49,
+    "output": 481
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "translation_enfr",
+  "case": 34,
+  "response": "Sydney, Esther sera dans mon bureau.",
+  "score": 5,
+  "cost": 3.0399999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 9
+  }
+}

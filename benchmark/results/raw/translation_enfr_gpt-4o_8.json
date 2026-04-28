@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "translation_enfr",
+  "case": 8,
+  "response": "Et il a dit : \"Bien s\u00fbr.\" Et j'ai dit : \"Eh bien, je me demande o\u00f9 \u00e7a va \u00eatre.\"",
+  "score": 5,
+  "cost": 0.000375,
+  "expected": "",
+  "tokens": {
+    "input": 46,
+    "output": 26
+  }
+}

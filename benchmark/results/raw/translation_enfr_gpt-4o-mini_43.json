@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "translation_enfr",
+  "case": 43,
+  "response": "L'unit\u00e9 se fixe simplement \u00e0 l'appui-t\u00eate du si\u00e8ge du conducteur \u00e0 l'aide d'une solide sangle \u00e9lastique.",
+  "score": 5,
+  "cost": 2.4e-05,
+  "expected": "",
+  "tokens": {
+    "input": 48,
+    "output": 28
+  }
+}

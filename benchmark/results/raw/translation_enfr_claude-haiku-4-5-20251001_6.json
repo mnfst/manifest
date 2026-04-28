@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 6,
+  "response": "# French Translation\n\nEn ce moment, ce diable descend Wangan en voiture.\n\n---\n\n**Alternative versions:**\n- En ce moment, ce d\u00e9mon descend Wangan en conduisant.\n- C'est ce diable qui descend Wangan en voiture en ce moment.\n\n*Note: \"Wangan\" appears to be a proper noun (likely a place name), so it remains unchanged in French.*",
+  "score": 4,
+  "cost": 0.00042,
+  "expected": "",
+  "tokens": {
+    "input": 40,
+    "output": 97
+  }
+}

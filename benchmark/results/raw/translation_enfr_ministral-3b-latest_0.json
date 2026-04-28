@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 0,
+  "response": "Voici une traduction naturelle et fid\u00e8le du ton et du sens de votre phrase :\n\n**\"Je sais comment t'aider, et je le veux.\"**\n\n*(Variante plus fluide selon le contexte :*\n**\"Je peux t'aider, et je le souhaite.\"** *(si vous insistez sur l'action possible)*\n**Ou** *\"Je suis pr\u00eat(e) \u00e0 t'aider, et c\u2019est ce que je veux.\"* *(plus formel/engag\u00e9).)*\n\n---\n**Remarques** :\n- *\"Je veux\"* est souvent utilis\u00e9 pour exprimer un d\u00e9sir fort (comme dans *\"Je veux t\u2019aider\"*).\n- *\"Je le veux\"* (avec le pronom r\u00e9fl\u00e9chi) souligne l\u2019intention active.\n- Si la phrase est plus courte ou plus directe, *\"Je peux t\u2019aider\"* fonctionne aussi bien.\n\nDites-moi si vous souhaitez ajuster le registre (familier, soutenu, etc.).",
+  "score": 5,
+  "cost": 8.84e-06,
+  "expected": "",
+  "tokens": {
+    "input": 33,
+    "output": 188
+  }
+}

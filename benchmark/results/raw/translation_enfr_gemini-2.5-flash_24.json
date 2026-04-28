@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "translation_enfr",
+  "case": 24,
+  "response": "Le programme nutritionnel urbain de l'UNICEF \u00e0 Nairobi est dirig\u00e9 par une femme et promeut le cr\u00e9dit aupr\u00e8s des groupes de femmes qui commercialisent des produits alimentaires.",
+  "score": 5,
+  "cost": 2.91e-05,
+  "expected": "",
+  "tokens": {
+    "input": 46,
+    "output": 37
+  }
+}

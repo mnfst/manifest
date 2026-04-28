@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "translation_enfr",
+  "case": 8,
+  "response": "Et il a dit : \u00ab Bien s\u00fbr. \u00bb Et j'ai dit : \u00ab Eh bien, je me demande o\u00f9 \u00e7a va se passer. \u00bb",
+  "score": 4,
+  "cost": 1.46e-05,
+  "expected": "",
+  "tokens": {
+    "input": 56,
+    "output": 30
+  }
+}

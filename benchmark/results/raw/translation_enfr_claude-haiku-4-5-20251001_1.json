@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 1,
+  "response": "# French Translation\n\nHommejeunechh, 49 ans, Pays-de-la-Loire (Angers)\n\n---\n\n**Note:** This appears to be a username or profile identifier rather than standard English text. The translation maintains the same format, converting only the age descriptor \"years old\" to \"ans\" (the French equivalent). The name, region, and city remain unchanged as they are proper nouns.",
+  "score": 5,
+  "cost": 0.0004248,
+  "expected": "",
+  "tokens": {
+    "input": 56,
+    "output": 95
+  }
+}

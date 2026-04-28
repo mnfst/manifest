@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "translation_enfr",
+  "case": 18,
+  "response": "La plage la plus proche est facilement accessible en voiture, se trouvant \u00e0 quelque 6...",
+  "score": 4,
+  "cost": 0.00023375,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 19
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "translation_enfr",
+  "case": 5,
+  "response": "Voici la traduction en fran\u00e7ais tout en conservant le ton et le sens originaux :\n\n**Les flocs issus de SRT \u00e9lev\u00e9s \u00e9taient moins hydrat\u00e9s et pr\u00e9sentaient une couche d'EPS dense couvrant une grande partie de leur surface.**",
+  "score": 5,
+  "cost": 4e-06,
+  "expected": "",
+  "tokens": {
+    "input": 49,
+    "output": 51
+  }
+}

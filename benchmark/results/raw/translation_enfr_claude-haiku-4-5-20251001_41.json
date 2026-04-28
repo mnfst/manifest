@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 41,
+  "response": "T'es pas dans la DGA. Zoome juste et ferme ta gueule.\n\n---\n\n**Note:** This translation maintains the casual, direct tone of the original. \"DGA\" (Directors Guild of America) remains the same acronym in French. The phrase \"shut the fuck up\" is rendered as \"ferme ta gueule,\" which is the French equivalent in terms of vulgarity and informality.",
+  "score": 5,
+  "cost": 0.0004168,
+  "expected": "",
+  "tokens": {
+    "input": 46,
+    "output": 95
+  }
+}

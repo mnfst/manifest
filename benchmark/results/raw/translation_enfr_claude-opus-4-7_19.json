@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "translation_enfr",
+  "case": 19,
+  "response": "Here's the French translation:\n\n**FTI \u2014 Privil\u00e8ges et conditions**\n\n(Note: \"FTI\" is kept as-is since it appears to be an acronym. Depending on context, it could stand for various things such as \"Foreign Tax Information,\" \"Fast Track Initiative,\" or another organization-specific term. If you can provide context, I can offer a more precise translation of the acronym if needed.)",
+  "score": 5,
+  "cost": 0.010365,
+  "expected": "",
+  "tokens": {
+    "input": 51,
+    "output": 128
+  }
+}

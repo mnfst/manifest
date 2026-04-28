@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "translation_enfr",
+  "case": 26,
+  "response": "Il a sugg\u00e9r\u00e9, au contraire, que l'arm\u00e9e devrait jouer un r\u00f4le secondaire dans les op\u00e9rations antiterroristes.",
+  "score": 4,
+  "cost": 0.0003625,
+  "expected": "",
+  "tokens": {
+    "input": 45,
+    "output": 25
+  }
+}

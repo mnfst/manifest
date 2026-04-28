@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "translation_enfr",
+  "case": 44,
+  "response": "Les analyses de sensibilit\u00e9 indiquent que l'\u00e9tendue de la port\u00e9e libre g\u00e9n\u00e9r\u00e9e par l'affouillement a une influence significative sur la r\u00e9ponse en flexion de l'ensemble conduite-sol.",
+  "score": 4,
+  "cost": 0.0004625,
+  "expected": "",
+  "tokens": {
+    "input": 50,
+    "output": 40
+  }
+}

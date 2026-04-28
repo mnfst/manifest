@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "translation_enfr",
+  "case": 0,
+  "response": "Je sais comment aider, et je le veux.",
+  "score": 5,
+  "cost": 0.00036,
+  "expected": "",
+  "tokens": {
+    "input": 40,
+    "output": 16
+  }
+}

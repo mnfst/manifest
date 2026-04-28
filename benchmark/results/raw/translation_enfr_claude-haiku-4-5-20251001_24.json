@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "translation_enfr",
+  "case": 24,
+  "response": "# French Translation\n\nLe programme de nutrition urbaine de l'UNICEF \u00e0 Nairobi est dirig\u00e9 par une femme et promeut le cr\u00e9dit aux groupes de femmes qui commercialisent des aliments.\n\n---\n\n**Alternative version (slightly more natural):**\n\nLe programme de nutrition urbaine de l'UNICEF \u00e0 Nairobi, dirig\u00e9 par une femme, promeut l'acc\u00e8s au cr\u00e9dit pour les groupes de femmes impliqu\u00e9s dans la commercialisation alimentaire.",
+  "score": 5,
+  "cost": 0.0005224,
+  "expected": "",
+  "tokens": {
+    "input": 58,
+    "output": 119
+  }
+}

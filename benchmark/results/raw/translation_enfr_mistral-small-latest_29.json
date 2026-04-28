@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "translation_enfr",
+  "case": 29,
+  "response": "Et je t'aime bien... bien que je ne sache pas pourquoi.",
+  "score": 4,
+  "cost": 9.100000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 46,
+    "output": 15
+  }
+}

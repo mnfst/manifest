@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "translation_enfr",
+  "case": 29,
+  "response": "Et je t'aime bien... m\u00eame si je ne sais pas pourquoi.",
+  "score": 4,
+  "cost": 0.0031896,
+  "expected": "",
+  "tokens": {
+    "input": 36,
+    "output": 1320
+  }
+}

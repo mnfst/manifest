@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "translation_enfr",
+  "case": 27,
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens du texte original :\n\n**Version fran\u00e7aise :**\n*Les crit\u00e8res du DSM-IV pour l'intoxication alcoolique sont similaires, avec l'ajout d'un ou plusieurs des signes suivants : \u00e9locution tra\u00eenante, incoordination motrice, d\u00e9marche instable, nystagmus, alt\u00e9ration de l'attention ou de la m\u00e9moire, stupeur ou coma.*\n\n**Variante alternative (plus formelle) :**\n*Les crit\u00e8res d'intoxication alcoolique selon le DSM-IV sont comparables, avec l'ajout d'un ou plusieurs des sympt\u00f4mes suivants : trouble de l'\u00e9locution, incoordination, d\u00e9marche chancelante, nystagmus, alt\u00e9ration de l'attention ou de la m\u00e9moire, stupeur ou coma.*\n\n**Remarques :**\n- *\"DSMIV\"* est g\u00e9n\u00e9ralement \u00e9crit *\"DSM-IV\"* (avec un trait d'union) en fran\u00e7ais.\n- *\"Signs\"* est traduit par *\"signes\"* ou *\"sympt\u00f4mes\"* selon le contexte m\u00e9dical (les deux sont acceptables, mais *\"sympt\u00f4mes\"* est plus courant en clinique).\n- *\"Slurred speech\"* peut aussi se dire *\"parole tra\u00eenante\"* ou *\"trouble de l'\u00e9locution\"* selon le niveau de formalit\u00e9.\n\nSi vous souhaitez une adaptation plus sp\u00e9cifique (ex. pour un public m\u00e9dical ou grand public), n'h\u00e9sitez pas \u00e0 pr\u00e9ciser !",
+  "score": 5,
+  "cost": 9.98e-05,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 304
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "translation_enfr",
+  "case": 39,
+  "response": "Tu sais d'o\u00f9 vient l'argent ?",
+  "score": 5,
+  "cost": 0.0013728,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 295
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "translation_enfr",
+  "case": 21,
+  "response": "Voici une traduction qui conserve le ton naturel et poli de la phrase originale :\n\n**\"Pourriez-vous lire ceci, s\u2019il vous pla\u00eet ?\"**\n\n*Variantes possibles selon le contexte* :\n- Plus informel (mais toujours poli) : **\"Est-ce que vous pourriez lire \u00e7a, s\u2019il vous pla\u00eet ?\"**\n- Tr\u00e8s formel (\u00e9crit/professionnel) : **\"Veuillez lire ce document, je vous prie.\"**\n\nLa premi\u00e8re option est la plus proche de l'anglais en termes de ton (courtois et un peu conversationnel). \ud83d\ude0a",
+  "score": 4,
+  "cost": 0.00025760000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 34,
+    "output": 122
+  }
+}

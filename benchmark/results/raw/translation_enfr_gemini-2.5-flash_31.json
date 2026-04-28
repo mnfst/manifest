@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "translation_enfr",
+  "case": 31,
+  "response": "Here are a few options, depending on the exact nuance of \"solicitation\" in context, but the most common and direct translation for a legal/police context is:\n\n**On pourrait vous inculper pour racolage.**\n\n*   **On pourrait:** We could\n*   **vous inculper:** charge you / indict you (this is the legal term for \"book you\" in the sense of formally charging someone)\n*   **pour racolage:** for solicitation (specifically often used for soliciting prostitution, but can also refer to aggressive, often illegal, street solicitation for other services).\n\nOther options depending on the specific type of solicitation:\n\n*   **On pourrait vous poursuivre pour d\u00e9marchage ill\u00e9gal.** (If it's more about illegal business solicitation/canvassing)\n*   **On pourrait vous arr\u00eater pour racolage.** (More direct \"arrest you\" rather than \"book you\" which implies the process after arrest)",
+  "score": 4,
+  "cost": 0.0001224,
+  "expected": "",
+  "tokens": {
+    "input": 28,
+    "output": 197
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "translation_enfr",
+  "case": 3,
+  "response": "Il n'y a pas d'autre explication \u00e0 l'octroi parcimonieux de 10 ou 12 millions d'\u00e9cus, qui, comme nous le savons tous, ne suffisent m\u00eame pas \u00e0 construire un seul navire \u00e9quip\u00e9 de moyens modernes permettant d'exercer une fonction de contr\u00f4le dans le secteur de la p\u00eache.",
+  "score": 5,
+  "cost": 0.010335,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 115
+  }
+}
