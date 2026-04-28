@@ -230,13 +230,21 @@ export class ProxyService {
         primaryModel,
         forward: syntheticForward,
         body,
+        chatBody,
         stream,
         sessionKey,
         signal,
         signatureLookup,
         thinkingLookup,
+        apiMode,
       });
       if (fallbackResult) return fallbackResult;
+
+      // Warmup failed and no fallbacks available: return the synthetic 502
+      // instead of the original forward (whose body was consumed by peekStream).
+      this.recordTierIfScoring(sessionKey, resolved.tier);
+      this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
+      return { forward: syntheticForward, meta: this.buildBaseMeta(resolved, primaryModel) };
     }
 
     this.recordTierIfScoring(sessionKey, resolved.tier);
