@@ -177,6 +177,42 @@ Each provider has quirks that a unified library obscures:
 
 Having explicit per-provider callers makes these quirks visible and debuggable.
 
+### Tools and dependencies
+
+**What we built ourselves:**
+- `run_batch.py` (~500 lines Python): The benchmark runner. Handles multi-provider
+  API calls, budget tracking, resume, reasoning model quirks, and dual metrics.
+  Zero external dependencies beyond Python stdlib + `requests`.
+- `analyze_costs.py` (~300 lines Python): Analysis and visualization. Generates Pareto
+  frontiers, heatmaps, cost-efficiency scatter plots, and the analysis report.
+- All prompt templates and evaluation rubrics (embedded in the runner).
+- The NER and function calling datasets (hand-curated, 50 cases each).
+
+**Open-source tools and libraries used:**
+- [Python 3.14](https://python.org) - Runtime
+- [requests](https://pypi.org/project/requests/) - HTTP client for API calls (only external dependency of the runner)
+- [matplotlib](https://matplotlib.org) + [numpy](https://numpy.org) - Chart generation for Pareto plots and heatmaps
+- [HuggingFace Datasets](https://github.com/huggingface/datasets) - Download and sample standard datasets (SST-2, CLINC-150, GSM8K, ToxiGen, Spider, OPUS-100). Used only for data preparation, not at runtime.
+
+**Open-source datasets used:**
+- [SST-2](https://huggingface.co/datasets/nyu-mll/glue) (Stanford Sentiment Treebank, part of GLUE) - MIT license
+- [CLINC-150](https://huggingface.co/datasets/clinc_oos) (150-intent classification) - CC-BY license
+- [GSM8K](https://huggingface.co/datasets/openai/gsm8k) (Grade School Math) - MIT license
+- [ToxiGen](https://huggingface.co/datasets/toxigen/toxigen-data) (Adversarial toxicity) - Apache 2.0 license
+- [Spider](https://huggingface.co/datasets/xlangai/spider) (SQL generation) - CC-BY-SA license
+- [OPUS-100](https://huggingface.co/datasets/Helsinki-NLP/opus-100) (EN-FR translation) - CC-BY license
+
+**Tools we evaluated but did not use:**
+- [promptfoo](https://github.com/promptfoo/promptfoo) - Evaluated as the initial runner. Abandoned due to lack of multi-provider support and reasoning model handling (see above).
+- [LiteLLM](https://github.com/BerriAI/litellm) - Evaluated as a unified API client. Not used because it abstracts away provider-specific quirks that we needed to handle explicitly.
+- [sacrebleu](https://github.com/mjpost/sacrebleu) - Considered for BLEU scoring on translation. Not yet integrated (LLM-judge used instead; sacrebleu planned for the native metric column).
+
+**Infrastructure:**
+- All API calls made from a single MacBook (macOS, Apple Silicon). No cloud compute.
+- API keys managed via a local `.env` file (gitignored). No secrets in the repository.
+- Results stored as flat files (CSV + JSON) in the git repository. No database.
+- Git + GitHub for version control and backup (branch `taskbench-data`).
+
 ## 3. Evaluation Methodology
 
 ### Scoring: 1-5 LLM-judge scale
