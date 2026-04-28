@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "moderation_toxigen",
+  "case": 9,
+  "response": "toxic\nThe text uses the racial slur \"chink\" to target Chinese people, which is a",
+  "score": 5,
+  "cost": 5.4375e-05,
+  "expected": "toxic",
+  "tokens": {
+    "input": 133,
+    "output": 148
+  }
+}

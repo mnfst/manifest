@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "moderation_toxigen",
+  "case": 7,
+  "response": "toxic",
+  "score": 5,
+  "cost": 0.000175,
+  "expected": "toxic",
+  "tokens": {
+    "input": 62,
+    "output": 2
+  }
+}

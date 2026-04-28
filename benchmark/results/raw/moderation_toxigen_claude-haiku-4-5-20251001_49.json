@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "moderation_toxigen",
+  "case": 49,
+  "response": "toxic",
+  "score": 5,
+  "cost": 6.56e-05,
+  "expected": "toxic",
+  "tokens": {
+    "input": 62,
+    "output": 4
+  }
+}

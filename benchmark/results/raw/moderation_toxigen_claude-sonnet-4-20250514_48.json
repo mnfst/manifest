@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "moderation_toxigen",
+  "case": 48,
+  "response": "toxic",
+  "score": 5,
+  "cost": 0.000237,
+  "expected": "toxic",
+  "tokens": {
+    "input": 59,
+    "output": 4
+  }
+}

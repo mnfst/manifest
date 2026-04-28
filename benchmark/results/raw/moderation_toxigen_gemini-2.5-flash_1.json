@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "moderation_toxigen",
+  "case": 1,
+  "response": "safe",
+  "score": 5,
+  "cost": 7.65e-06,
+  "expected": "safe",
+  "tokens": {
+    "input": 47,
+    "output": 1
+  }
+}

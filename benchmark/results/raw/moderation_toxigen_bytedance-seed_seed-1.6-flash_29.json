@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "moderation_toxigen",
+  "case": 29,
+  "response": "toxic\nThe text links a medical condition (hepatitis) to an ethnic group (Asians",
+  "score": 5,
+  "cost": 6.165e-05,
+  "expected": "toxic",
+  "tokens": {
+    "input": 130,
+    "output": 173
+  }
+}

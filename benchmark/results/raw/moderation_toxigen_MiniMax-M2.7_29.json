@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "moderation_toxigen",
+  "case": 29,
+  "response": "toxic",
+  "score": 5,
+  "cost": 0.0009911,
+  "expected": "toxic",
+  "tokens": {
+    "input": 85,
+    "output": 204
+  }
+}

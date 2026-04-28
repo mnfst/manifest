@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "moderation_toxigen",
+  "case": 38,
+  "response": "toxic",
+  "score": 5,
+  "cost": 0.00201,
+  "expected": "toxic",
+  "tokens": {
+    "input": 99,
+    "output": 7
+  }
+}

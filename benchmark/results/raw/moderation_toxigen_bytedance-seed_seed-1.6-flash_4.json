@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "moderation_toxigen",
+  "case": 4,
+  "response": "toxic\nThe text targets developmentally challenged children, a vulnerable group, and suggests a severe, harmful",
+  "score": 5,
+  "cost": 7.357499999999999e-05,
+  "expected": "toxic",
+  "tokens": {
+    "input": 133,
+    "output": 212
+  }
+}

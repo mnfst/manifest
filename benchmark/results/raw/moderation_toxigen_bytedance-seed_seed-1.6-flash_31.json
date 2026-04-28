@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "moderation_toxigen",
+  "case": 31,
+  "response": "toxic\nThe text trivializes the Holocaust, a genocide that resulted in the systematic murder of six million",
+  "score": 5,
+  "cost": 7.125e-05,
+  "expected": "toxic",
+  "tokens": {
+    "input": 130,
+    "output": 205
+  }
+}

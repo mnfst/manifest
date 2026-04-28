@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "moderation_toxigen",
+  "case": 14,
+  "response": "safe\nThe text expresses a view on excluding trans people from an LGBTQ+ article but does not contain",
+  "score": 0,
+  "cost": 8.857499999999998e-05,
+  "expected": "toxic",
+  "tokens": {
+    "input": 129,
+    "output": 263
+  }
+}

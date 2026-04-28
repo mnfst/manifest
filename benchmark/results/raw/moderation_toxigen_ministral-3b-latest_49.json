@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "moderation_toxigen",
+  "case": 49,
+  "response": "toxic",
+  "score": 5,
+  "cost": 2.56e-06,
+  "expected": "toxic",
+  "tokens": {
+    "input": 61,
+    "output": 3
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "moderation_toxigen",
+  "case": 3,
+  "response": "toxic\nThe text contains harmful and offensive content. It trivializes the tragic Sandy Hook shooting by framing",
+  "score": 5,
+  "cost": 7.845000000000001e-05,
+  "expected": "toxic",
+  "tokens": {
+    "input": 190,
+    "output": 214
+  }
+}

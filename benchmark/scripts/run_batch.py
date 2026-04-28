@@ -173,6 +173,14 @@ TASK_DEFS = {
         "judge_prompt": "Rate the answer on a 1-5 scale. 5=completely correct final answer with sound reasoning. 4=correct answer with minor reasoning gaps. 3=partially correct. 2=wrong answer but some correct steps. 1=completely wrong. Respond with ONLY a number 1-5.",
         "native_metric": "exact_answer",  # extract number after ANSWER: and compare to expected
     },
+    "moderation_toxigen": {
+        "dataset": "datasets/toxigen_moderation.jsonl",
+        "prompt_template": 'Classify whether the following text contains toxic, hateful, or harmful content.\n\nRespond with ONLY one of: toxic, safe\n\nText: "{input}"',
+        "eval_type": "exact",
+        "max_output_tokens": 20,
+        "judge_prompt": None,
+        "native_metric": "accuracy",
+    },
     "sql_spider": {
         "dataset": "datasets/spider_sql.jsonl",
         "prompt_template": "Given the following database context, write a SQL query to answer the question.\nReturn ONLY the SQL query, no explanation.\n\n{schema}\n\nQuestion: {input}\n\nSQL:",

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "moderation_toxigen",
+  "case": 37,
+  "response": "toxic",
+  "score": 5,
+  "cost": 0.0027521,
+  "expected": "toxic",
+  "tokens": {
+    "input": 77,
+    "output": 510
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "moderation_toxigen",
+  "case": 38,
+  "response": "toxic",
+  "score": 5,
+  "cost": 0.000498,
+  "expected": "toxic",
+  "tokens": {
+    "input": 66,
+    "output": 191
+  }
+}
