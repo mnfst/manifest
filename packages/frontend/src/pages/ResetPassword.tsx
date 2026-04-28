@@ -1,6 +1,6 @@
 import { A, useSearchParams } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
-import { type Component, createSignal, Show } from 'solid-js';
+import { type Component, createSignal, createUniqueId, Show } from 'solid-js';
 import { authClient } from '../services/auth-client.js';
 
 const RequestResetForm: Component = () => {
@@ -8,6 +8,8 @@ const RequestResetForm: Component = () => {
   const [sent, setSent] = createSignal(false);
   const [error, setError] = createSignal('');
   const [loading, setLoading] = createSignal(false);
+  const emailId = createUniqueId();
+  const errorId = createUniqueId();
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
@@ -42,16 +44,23 @@ const RequestResetForm: Component = () => {
 
       <Show when={!sent()}>
         <form class="auth-form" onSubmit={handleSubmit}>
-          {error() && <div class="auth-form__error" role="alert">{error()}</div>}
-          <label class="auth-form__label">
+          {error() && (
+            <div id={errorId} class="auth-form__error" role="alert">
+              {error()}
+            </div>
+          )}
+          <label class="auth-form__label" for={emailId}>
             Email
             <input
+              id={emailId}
               class="auth-form__input"
               type="email"
+              autocomplete="email"
               placeholder="you@example.com"
               value={email()}
               onInput={(e) => setEmail(e.currentTarget.value)}
               required
+              aria-describedby={error() ? errorId : undefined}
             />
           </label>
           <button class="auth-form__submit" type="submit" disabled={loading()}>
@@ -75,6 +84,9 @@ const SetNewPasswordForm: Component<{ token: string }> = (props) => {
   const [error, setError] = createSignal('');
   const [loading, setLoading] = createSignal(false);
   const [success, setSuccess] = createSignal(false);
+  const passwordId = createUniqueId();
+  const confirmId = createUniqueId();
+  const errorId = createUniqueId();
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
@@ -129,29 +141,39 @@ const SetNewPasswordForm: Component<{ token: string }> = (props) => {
         }
       >
         <form class="auth-form" onSubmit={handleSubmit}>
-          {error() && <div class="auth-form__error" role="alert">{error()}</div>}
-          <label class="auth-form__label">
+          {error() && (
+            <div id={errorId} class="auth-form__error" role="alert">
+              {error()}
+            </div>
+          )}
+          <label class="auth-form__label" for={passwordId}>
             New password
             <input
+              id={passwordId}
               class="auth-form__input"
               type="password"
+              autocomplete="new-password"
               placeholder="Enter new password"
               value={password()}
               onInput={(e) => setPassword(e.currentTarget.value)}
               required
               minLength={8}
+              aria-describedby={error() ? errorId : undefined}
             />
           </label>
-          <label class="auth-form__label">
+          <label class="auth-form__label" for={confirmId}>
             Confirm password
             <input
+              id={confirmId}
               class="auth-form__input"
               type="password"
+              autocomplete="new-password"
               placeholder="Confirm new password"
               value={confirmPassword()}
               onInput={(e) => setConfirmPassword(e.currentTarget.value)}
               required
               minLength={8}
+              aria-describedby={error() ? errorId : undefined}
             />
           </label>
           <button class="auth-form__submit" type="submit" disabled={loading()}>

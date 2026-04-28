@@ -214,12 +214,19 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       headerTierName,
       headerTierColor,
     } = opts ?? {};
+    if (failures.length === 0) return;
     // primaryModel is loop-invariant — canonicalize once.
     const canonicalPrimary = await this.customProviders.canonicalizeAgentMessageKeys(
       ctx.agentId,
       null,
       primaryModel,
     );
+    const canonicalFailures = await Promise.all(
+      failures.map((f) =>
+        this.customProviders.canonicalizeAgentMessageKeys(ctx.agentId, f.provider, f.model),
+      ),
+    );
+    const rows: Partial<AgentMessage>[] = [];
     for (let i = 0; i < failures.length; i++) {
       const f = failures[i];
       const ts = baseTimeMs
@@ -232,12 +239,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         : f.status === 429
           ? 'rate_limited'
           : 'error';
-      const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
-        ctx.agentId,
-        f.provider,
-        f.model,
-      );
-      await this.messageRepo.insert(
+      const canonical = canonicalFailures[i];
+      rows.push(
         buildMessageRow(ctx, {
           trace_id: traceId ?? null,
           timestamp: ts,
@@ -259,6 +262,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         }),
       );
     }
+    await this.messageRepo.insert(rows);
     this.eventBus.emit(ctx.userId);
   }
 

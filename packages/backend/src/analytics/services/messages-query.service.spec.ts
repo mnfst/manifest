@@ -411,7 +411,7 @@ describe('MessagesQueryService', () => {
     // Overwrite test-user::24h (already exists in our range)
     cache.set('test-user::24h', ['old']);
 
-    jest.advanceTimersByTime(60_001);
+    jest.advanceTimersByTime(5 * 60_000 + 1);
 
     mockGetRawOne.mockResolvedValueOnce({ total: 1 });
     mockGetRawMany
@@ -424,7 +424,7 @@ describe('MessagesQueryService', () => {
     expect(cache.has('test-user::24h')).toBe(true);
   });
 
-  it('models cache expires after 60s', async () => {
+  it('models cache expires after the configured TTL', async () => {
     jest.useFakeTimers();
 
     // First call
@@ -441,8 +441,8 @@ describe('MessagesQueryService', () => {
 
     expect(mockGetRawMany).toHaveBeenCalledTimes(2);
 
-    // Advance past models cache TTL (60s)
-    jest.advanceTimersByTime(60_001);
+    // Advance past the models cache TTL (5 min)
+    jest.advanceTimersByTime(5 * 60_000 + 1);
 
     // Second call — models query should run again
     mockGetRawOne.mockResolvedValueOnce({ total: 1 });

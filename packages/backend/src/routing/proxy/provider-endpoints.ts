@@ -8,6 +8,15 @@ export interface ProviderEndpoint {
   buildHeaders: (apiKey: string, authType?: string) => Record<string, string>;
   buildPath: (model: string) => string;
   format: 'openai' | 'google' | 'anthropic' | 'chatgpt';
+  /**
+   * Set to `true` for endpoints whose `baseUrl` is user-supplied (custom
+   * providers, subscription resource URLs). The proxy re-runs SSRF
+   * validation against this URL immediately before each forward to defend
+   * against DNS rebinding — the hostname might have resolved to a public
+   * IP at registration time but rebinds to a private/metadata address at
+   * forward time.
+   */
+  requiresSsrfRevalidation?: boolean;
 }
 
 const openaiHeaders = (apiKey: string) => ({
@@ -212,6 +221,7 @@ export function buildCustomEndpoint(
       buildHeaders: anthropicHeaders,
       buildPath: () => '/v1/messages',
       format: 'anthropic',
+      requiresSsrfRevalidation: true,
     };
   }
   return {
@@ -219,6 +229,7 @@ export function buildCustomEndpoint(
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
+    requiresSsrfRevalidation: true,
   };
 }
 
@@ -230,6 +241,10 @@ export function buildEndpointOverride(baseUrl: string, templateKey: string): Pro
   return {
     ...template,
     baseUrl: normalizeProviderBaseUrl(baseUrl),
+    // The base URL came from a user-supplied source (Qwen region selector,
+    // MiniMax OAuth resource URL). Treat it as an SSRF candidate and
+    // re-validate before each forward.
+    requiresSsrfRevalidation: true,
   };
 }
 

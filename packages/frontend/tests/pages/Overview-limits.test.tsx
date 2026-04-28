@@ -22,6 +22,9 @@ vi.mock("../../src/services/api.js", () => ({
 
 vi.mock("../../src/services/sse.js", () => ({
   pingCount: () => 0,
+  messagePing: () => 0,
+  agentPing: () => 0,
+  routingPing: () => 0,
 }));
 
 vi.mock("../../src/services/formatters.js", () => ({

@@ -604,4 +604,40 @@ describe('extractUsageFromSse', () => {
       cache_creation_tokens: undefined,
     });
   });
+
+  it('should extract usage from Responses API usage objects', () => {
+    const sseText = `data: ${JSON.stringify({
+      usage: {
+        input_tokens: 150,
+        output_tokens: 60,
+        input_tokens_details: { cached_tokens: 25 },
+      },
+    })}\n\n`;
+
+    expect(extractUsageFromSse(sseText)).toEqual({
+      prompt_tokens: 150,
+      completion_tokens: 60,
+      cache_read_tokens: 25,
+      cache_creation_tokens: 0,
+    });
+  });
+
+  it('should extract usage from response.completed events', () => {
+    const sseText = `data: ${JSON.stringify({
+      response: {
+        usage: {
+          input_tokens: 12,
+          output_tokens: 8,
+          input_tokens_details: { cached_tokens: 3 },
+        },
+      },
+    })}\n\n`;
+
+    expect(extractUsageFromSse(sseText)).toEqual({
+      prompt_tokens: 12,
+      completion_tokens: 8,
+      cache_read_tokens: 3,
+      cache_creation_tokens: 0,
+    });
+  });
 });

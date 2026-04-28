@@ -354,7 +354,8 @@ describe('ProxyMessageRecorder', () => {
         },
       ];
       await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures);
-      expect(insertMock).toHaveBeenCalledTimes(2);
+      expect(insertMock).toHaveBeenCalledTimes(1);
+      expect((insertMock.mock.calls[0][0] as unknown[]).length).toBe(2);
       expect(emitMock).toHaveBeenCalledTimes(1);
       expect(emitMock).toHaveBeenCalledWith('user-1');
     });
@@ -377,8 +378,9 @@ describe('ProxyMessageRecorder', () => {
         },
       ];
       await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures);
-      expect(insertMock.mock.calls[0][0].error_http_status).toBe(400);
-      expect(insertMock.mock.calls[1][0].error_http_status).toBe(503);
+      const rows = insertMock.mock.calls[0][0] as Array<{ error_http_status: number }>;
+      expect(rows[0].error_http_status).toBe(400);
+      expect(rows[1].error_http_status).toBe(503);
     });
 
     it('persists the provider column for each fallback failure', async () => {
@@ -399,8 +401,9 @@ describe('ProxyMessageRecorder', () => {
         },
       ];
       await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures);
-      expect(insertMock.mock.calls[0][0].provider).toBe('openai');
-      expect(insertMock.mock.calls[1][0].provider).toBe('ollama-cloud');
+      const rows = insertMock.mock.calls[0][0] as Array<{ provider: string | null }>;
+      expect(rows[0].provider).toBe('openai');
+      expect(rows[1].provider).toBe('ollama-cloud');
     });
 
     it('persists provider=null when the failure has no provider (line 164 falsy branch)', async () => {
@@ -414,7 +417,8 @@ describe('ProxyMessageRecorder', () => {
         },
       ];
       await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures);
-      expect(insertMock.mock.calls[0][0].provider).toBeNull();
+      const rows = insertMock.mock.calls[0][0] as Array<{ provider: string | null }>;
+      expect(rows[0].provider).toBeNull();
     });
 
     it('marks rate_limited status when the failure status is 429 (line 150 branch)', async () => {
@@ -430,7 +434,8 @@ describe('ProxyMessageRecorder', () => {
       // markHandled=false is the default → the !useHandledStatus branch runs,
       // so `f.status === 429 ? 'rate_limited' : 'error'` is exercised.
       await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures);
-      expect(insertMock.mock.calls[0][0].status).toBe('rate_limited');
+      const rows = insertMock.mock.calls[0][0] as Array<{ status: string }>;
+      expect(rows[0].status).toBe('rate_limited');
     });
 
     it('marks fallback_error status when markHandled=true and lastAsError=false', async () => {
@@ -446,7 +451,8 @@ describe('ProxyMessageRecorder', () => {
       await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures, {
         markHandled: true,
       });
-      expect(insertMock.mock.calls[0][0].status).toBe('fallback_error');
+      const rows = insertMock.mock.calls[0][0] as Array<{ status: string }>;
+      expect(rows[0].status).toBe('fallback_error');
     });
 
     it('marks the LAST failure as error when lastAsError=true and markHandled=true', async () => {
@@ -470,10 +476,11 @@ describe('ProxyMessageRecorder', () => {
         markHandled: true,
         lastAsError: true,
       });
+      const rows = insertMock.mock.calls[0][0] as Array<{ status: string }>;
       // First failure uses fallback_error (handled), last is the real error.
-      expect(insertMock.mock.calls[0][0].status).toBe('fallback_error');
+      expect(rows[0].status).toBe('fallback_error');
       // Last failure with status 429 → rate_limited.
-      expect(insertMock.mock.calls[1][0].status).toBe('rate_limited');
+      expect(rows[1].status).toBe('rate_limited');
     });
 
     it('uses baseTimeMs to stagger timestamps when provided', async () => {
@@ -489,8 +496,9 @@ describe('ProxyMessageRecorder', () => {
       await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures, {
         baseTimeMs: Date.parse('2025-01-01T00:00:00.000Z'),
       });
+      const rows = insertMock.mock.calls[0][0] as Array<{ timestamp: string }>;
       // baseTimeMs + (1 - 0) * 100 = 100ms past the base.
-      expect(insertMock.mock.calls[0][0].timestamp).toBe('2025-01-01T00:00:00.100Z');
+      expect(rows[0].timestamp).toBe('2025-01-01T00:00:00.100Z');
     });
 
     it('scrubs provider secrets from each persisted fallback error_message', async () => {
@@ -511,8 +519,9 @@ describe('ProxyMessageRecorder', () => {
         },
       ];
       await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures);
-      const first: string = insertMock.mock.calls[0][0].error_message;
-      const second: string = insertMock.mock.calls[1][0].error_message;
+      const rows = insertMock.mock.calls[0][0] as Array<{ error_message: string }>;
+      const first: string = rows[0].error_message;
+      const second: string = rows[1].error_message;
       expect(first).not.toContain('LEAKEDKEY1234567890');
       expect(first).toContain('[REDACTED]');
       expect(second).not.toContain('LEAKEDKEY0987654321');
@@ -527,8 +536,9 @@ describe('ProxyMessageRecorder', () => {
       await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures, {
         reason: 'header-match',
       });
-      expect(insertMock.mock.calls[0][0].routing_reason).toBe('header-match');
-      expect(insertMock.mock.calls[1][0].routing_reason).toBe('header-match');
+      const rows = insertMock.mock.calls[0][0] as Array<{ routing_reason: string }>;
+      expect(rows[0].routing_reason).toBe('header-match');
+      expect(rows[1].routing_reason).toBe('header-match');
     });
   });
 
@@ -909,8 +919,9 @@ describe('ProxyMessageRecorder', () => {
       await recorder.recordFailedFallbacks(ctx, 'standard', 'primary', failures, {
         requestHeaders: { 'x-a': '1' },
       });
-      expect(insertMock.mock.calls[0][0].request_headers).toEqual({ 'x-a': '1' });
-      expect(insertMock.mock.calls[1][0].request_headers).toEqual({ 'x-a': '1' });
+      const rows = insertMock.mock.calls[0][0] as Array<{ request_headers: unknown }>;
+      expect(rows[0].request_headers).toEqual({ 'x-a': '1' });
+      expect(rows[1].request_headers).toEqual({ 'x-a': '1' });
     });
 
     it('recordPrimaryFailure persists request_headers', async () => {

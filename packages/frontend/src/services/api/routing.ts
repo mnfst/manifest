@@ -235,8 +235,31 @@ export interface CustomProviderData {
   created_at: string;
 }
 
-export function getCustomProviders(agentName: string) {
-  return fetchJson<CustomProviderData[]>(routingPath(agentName, 'custom-providers'));
+// Module-scoped cache so Overview / MessageLog / Routing don't each refetch
+// the same custom-providers list when mounting in sequence. Mutations below
+// (create/update/delete) invalidate the agent's entry; the routing 'routing'
+// SSE event invalidates them all.
+const customProvidersCache = new Map<string, Promise<CustomProviderData[]>>();
+
+export function invalidateCustomProvidersCache(agentName?: string): void {
+  if (agentName === undefined) {
+    customProvidersCache.clear();
+    return;
+  }
+  customProvidersCache.delete(agentName);
+}
+
+export function getCustomProviders(agentName: string): Promise<CustomProviderData[]> {
+  const cached = customProvidersCache.get(agentName);
+  if (cached) return cached;
+  const promise = fetchJson<CustomProviderData[]>(routingPath(agentName, 'custom-providers')).catch(
+    (err) => {
+      customProvidersCache.delete(agentName);
+      throw err;
+    },
+  );
+  customProvidersCache.set(agentName, promise);
+  return promise;
 }
 
 export function createCustomProvider(
@@ -249,6 +272,7 @@ export function createCustomProvider(
     models: CustomProviderModel[];
   },
 ) {
+  invalidateCustomProvidersCache(agentName);
   return fetchMutate<CustomProviderData>(routingPath(agentName, 'custom-providers'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -267,6 +291,7 @@ export function updateCustomProvider(
     models?: CustomProviderModel[];
   },
 ) {
+  invalidateCustomProvidersCache(agentName);
   return fetchMutate<CustomProviderData>(
     routingPath(agentName, `custom-providers/${encodeURIComponent(id)}`),
     {
@@ -299,6 +324,7 @@ export async function probeCustomProvider(
 }
 
 export function deleteCustomProvider(agentName: string, id: string) {
+  invalidateCustomProvidersCache(agentName);
   return fetchMutate<{ ok: boolean }>(
     routingPath(agentName, `custom-providers/${encodeURIComponent(id)}`),
     { method: 'DELETE' },

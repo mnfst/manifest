@@ -18,7 +18,7 @@ The full NestJS + SolidJS stack runs locally against PostgreSQL, and the same da
 
 ## Prerequisites
 
-- Node.js 22.x (LTS)
+- Node.js 24.x (LTS)
 - npm 10.x
 
 ## Repository Structure

@@ -113,9 +113,9 @@ describe("Routing — enabled state (providers active)", () => {
       { id: "5", user_id: "u1", tier: "default", override_model: null, override_provider: null, auto_assigned_model: null, fallback_models: null, updated_at: "2025-01-01" },
     ]);
     render(() => <Routing />);
-    // Default tab is active by default — wait for the single "Default model" card to render
+    // Default tab is active by default — wait for the single "Regular" card to render
     await waitFor(() => {
-      expect(screen.getAllByText("Default model").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Regular").length).toBeGreaterThan(0);
     });
     // The "+ Add model" button on the default card triggers onDropdownOpen lambda
     const addBtns = screen.getAllByText("+ Add model");

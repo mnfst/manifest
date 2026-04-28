@@ -52,6 +52,47 @@ describe('AgentLifecycleService', () => {
     service = module.get<AgentLifecycleService>(AgentLifecycleService);
   });
 
+  describe('findAgentInfo', () => {
+    it('returns agent metadata when found', async () => {
+      mockAgentGetOne.mockResolvedValueOnce({
+        id: 'agent-id-1',
+        name: 'bot-1',
+        display_name: 'Bot One',
+        agent_category: 'app',
+        agent_platform: 'openai-sdk',
+      });
+
+      const result = await service.findAgentInfo('user-1', 'bot-1');
+      expect(result).toEqual({
+        agent_name: 'bot-1',
+        display_name: 'Bot One',
+        agent_category: 'app',
+        agent_platform: 'openai-sdk',
+      });
+    });
+
+    it('falls back display_name to agent name when null', async () => {
+      mockAgentGetOne.mockResolvedValueOnce({
+        id: 'agent-id-1',
+        name: 'bot-1',
+        display_name: null,
+        agent_category: null,
+        agent_platform: null,
+      });
+
+      const result = await service.findAgentInfo('user-1', 'bot-1');
+      expect(result?.display_name).toBe('bot-1');
+      expect(result?.agent_category).toBeNull();
+      expect(result?.agent_platform).toBeNull();
+    });
+
+    it('returns null when agent not found', async () => {
+      mockAgentGetOne.mockResolvedValueOnce(null);
+      const result = await service.findAgentInfo('user-1', 'nonexistent');
+      expect(result).toBeNull();
+    });
+  });
+
   describe('deleteAgent', () => {
     it('should delete agent when found', async () => {
       mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-1', name: 'my-agent' });

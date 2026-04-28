@@ -6,7 +6,7 @@ import { randomUUID } from 'crypto';
 
 import { OpenAIMessage } from './proxy-types';
 
-const DEFAULT_INSTRUCTIONS = 'You are a helpful assistant.';
+export const DEFAULT_INSTRUCTIONS = 'You are a helpful assistant.';
 
 export function convertAssistantToolCalls(toolCalls: unknown[]): Record<string, unknown>[] {
   return toolCalls.flatMap((toolCall) => {

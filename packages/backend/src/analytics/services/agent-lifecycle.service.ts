@@ -11,6 +11,25 @@ export class AgentLifecycleService {
     private readonly dataSource: DataSource,
   ) {}
 
+  async findAgentInfo(
+    userId: string,
+    agentName: string,
+  ): Promise<{
+    agent_name: string;
+    display_name: string;
+    agent_category: string | null;
+    agent_platform: string | null;
+  } | null> {
+    const agent = await this.findAgentByUser(userId, agentName);
+    if (!agent) return null;
+    return {
+      agent_name: agent.name,
+      display_name: agent.display_name ?? agent.name,
+      agent_category: agent.agent_category ?? null,
+      agent_platform: agent.agent_platform ?? null,
+    };
+  }
+
   async deleteAgent(userId: string, agentName: string): Promise<void> {
     const agent = await this.agentRepo
       .createQueryBuilder('a')

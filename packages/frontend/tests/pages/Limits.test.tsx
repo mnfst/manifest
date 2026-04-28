@@ -74,7 +74,7 @@ describe("Limits page", () => {
 
   it("renders Create rule button", () => {
     render(() => <Limits />);
-    expect(screen.getByText("+ Create rule")).toBeDefined();
+    expect(screen.getByText("Create rule")).toBeDefined();
   });
 
   it("renders empty state when no rules", async () => {
@@ -517,7 +517,7 @@ describe("Limits page", () => {
     render(() => <Limits />);
 
     // Open the create rule modal
-    fireEvent.click(screen.getByText("+ Create rule"));
+    fireEvent.click(screen.getByText("Create rule"));
     await vi.waitFor(() => {
       const modal = screen.getByTestId("limit-modal");
       expect(modal.getAttribute("data-open")).toBe("true");

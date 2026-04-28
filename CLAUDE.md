@@ -53,7 +53,7 @@ The `AgentKeyAuthGuard` accepts any non-`mnfst_*` token from loopback IPs in the
 
 - **Backend**: NestJS 11, TypeORM 0.3, PostgreSQL 16, Better Auth, class-validator, class-transformer, Helmet
 - **Frontend**: SolidJS, Vite, uPlot (charts), Better Auth client, custom CSS theme
-- **Runtime**: TypeScript 5.x (strict mode), Node.js 22.x
+- **Runtime**: TypeScript 5.x (strict mode), Node.js 24.x
 - **Monorepo**: npm workspaces + Turborepo
 - **Release**: Changesets for version management + GitHub Actions for npm publishing
 

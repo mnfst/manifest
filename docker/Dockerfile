@@ -1,13 +1,13 @@
-# Runtime is gcr.io/distroless/nodejs22-debian13 (no shell, no package
-# manager, just node). Prod deps are staged on node:22-slim; the prod
+# Runtime is gcr.io/distroless/nodejs24-debian13 (no shell, no package
+# manager, just node). Prod deps are staged on node:24-slim; the prod
 # install uses --ignore-scripts so no native modules are compiled,
 # which means the runtime's glibc version is invisible to node_modules.
-# Build/dev stages stay on node:22-alpine — smallest base that still has
+# Build/dev stages stay on node:24-alpine — smallest base that still has
 # a shell, which the build (turbo, nest) needs. All base images are
 # pinned by digest.
 
 # Stage 1: Install all dependencies (including dev deps) for the build.
-FROM node:22-alpine@sha256:8ea2348b068a9544dae7317b4f3aafcdc032df1647bb7d768a05a5cad1a7683f AS deps
+FROM node:24-alpine@sha256:d1b3b4da11eefd5941e7f0b9cf17783fc99d9c6fc34884a665f40a06dbdfc94f AS deps
 WORKDIR /app
 COPY package.json package-lock.json turbo.json ./
 COPY packages/shared/package.json packages/shared/
@@ -25,22 +25,24 @@ RUN npx turbo build --filter=manifest-backend --filter=manifest-frontend --filte
 
 # Stage 3: Production dependencies only. npm ci runs with --ignore-scripts
 # so nothing is compiled — all runtime deps are pure JS, making the glibc
-# of this stage irrelevant to the final image.
-FROM node:22-slim@sha256:d415caac2f1f77b98caaf9415c5f807e14bc8d7bdea62561ea2fef4fbd08a73c AS prod-deps
+# of this stage irrelevant to the final image. --omit=optional drops the
+# platform-specific binaries that vite/rollup/esbuild ship as
+# optionalDependencies; without it, npm hoists @esbuild/linux-x64 (a Go
+# binary) into node_modules even though `--omit=dev` strips its parent,
+# and CVE scanners then flag the embedded Go stdlib.
+FROM node:24-slim@sha256:03eae3ef7e88a9de535496fb488d67e02b9d96a063a8967bae657744ecd513f2 AS prod-deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY packages/shared/package.json packages/shared/
 COPY packages/frontend/package.json packages/frontend/
 COPY packages/backend/package.json packages/backend/
 RUN --mount=type=cache,target=/root/.npm \
-    npm ci --omit=dev --ignore-scripts \
+    npm ci --omit=dev --omit=optional --ignore-scripts \
            --prefer-offline --no-audit --no-fund --loglevel=error && \
     rm -rf node_modules/typescript node_modules/@types \
            node_modules/ts-node node_modules/acorn \
            node_modules/create-require node_modules/v8-compile-cache-lib && \
-    find . -path "*/node_modules/vitest" -type d -exec rm -rf {} + 2>/dev/null; \
-    find . -path "*/node_modules/vite-node" -type d -exec rm -rf {} + 2>/dev/null; \
-    find . -path "*/node_modules/rollup" -type d -exec rm -rf {} + 2>/dev/null; \
+    find . -path "*/node_modules/@esbuild" -type d -exec rm -rf {} + 2>/dev/null; \
     find . -path "*/node_modules/@vitest" -type d -exec rm -rf {} + 2>/dev/null; \
     find . -path "*/node_modules/*" \( -name "*.map" -o -name "README*" \
       -o -name "LICENSE*" -o -name "CHANGELOG*" -o -name "*.txt" \
@@ -53,7 +55,7 @@ RUN --mount=type=cache,target=/root/.npm \
 
 # Stage 4: Distroless runtime. Runs as the built-in `nonroot` user (UID
 # 65532) by default. No shell, no apk/apt, minimal CVE surface.
-FROM gcr.io/distroless/nodejs22-debian13:nonroot@sha256:559b13edb698d652d7852597747ebd691569d110f0a76132b870067b290e30bd AS runtime
+FROM gcr.io/distroless/nodejs24-debian13:nonroot@sha256:f16acace4aa70086d4a2caad6c716f01e3e2fe0dd8274c4530c7c17d987bdb1a AS runtime
 WORKDIR /app
 
 LABEL org.opencontainers.image.title="Manifest" \
@@ -63,8 +65,8 @@ LABEL org.opencontainers.image.title="Manifest" \
       org.opencontainers.image.source="https://github.com/mnfst/manifest" \
       org.opencontainers.image.vendor="MNFST Inc." \
       org.opencontainers.image.licenses="MIT" \
-      org.opencontainers.image.base.name="gcr.io/distroless/nodejs22-debian13:nonroot" \
-      org.opencontainers.image.base.digest="sha256:559b13edb698d652d7852597747ebd691569d110f0a76132b870067b290e30bd"
+      org.opencontainers.image.base.name="gcr.io/distroless/nodejs24-debian13:nonroot" \
+      org.opencontainers.image.base.digest="sha256:f16acace4aa70086d4a2caad6c716f01e3e2fe0dd8274c4530c7c17d987bdb1a"
 
 ENV NODE_ENV=production
 ENV BIND_ADDRESS=0.0.0.0

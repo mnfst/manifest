@@ -59,7 +59,7 @@ describe('getSpecificityAssignments', () => {
     expect(result).toEqual([assignment]);
     expect(mockFetch).toHaveBeenCalledWith(
       'http://localhost:3000/api/v1/routing/my-agent/specificity',
-      { credentials: 'include', cache: 'no-store' },
+      { credentials: 'include', cache: 'default' },
     );
   });
 
@@ -70,7 +70,7 @@ describe('getSpecificityAssignments', () => {
 
     expect(mockFetch).toHaveBeenCalledWith(
       'http://localhost:3000/api/v1/routing/agent%2Fwith%20spaces/specificity',
-      { credentials: 'include', cache: 'no-store' },
+      { credentials: 'include', cache: 'default' },
     );
   });
 });

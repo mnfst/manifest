@@ -66,7 +66,7 @@ const Account: Component = () => {
         </div>
 
         {/* Profile Information */}
-        <h3 class="settings-section__title">Profile information</h3>
+        <h2 class="settings-section__title">Profile information</h2>
 
         <div class="settings-card">
           <div class="settings-card__row">
@@ -109,7 +109,7 @@ const Account: Component = () => {
         </div>
 
         {/* Workspace ID */}
-        <h3 class="settings-section__title">Workspace</h3>
+        <h2 class="settings-section__title">Workspace</h2>
 
         <div class="settings-card">
           <div class="settings-card__body">
@@ -161,7 +161,7 @@ const Account: Component = () => {
         </div>
 
         {/* Appearance */}
-        <h3 class="settings-section__title">Appearance</h3>
+        <h2 class="settings-section__title">Appearance</h2>
 
         <div class="settings-card">
           <div class="settings-card__body">

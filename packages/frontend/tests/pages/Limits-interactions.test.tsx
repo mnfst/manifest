@@ -63,7 +63,7 @@ describe("Limits page interactions", () => {
     const { toast } = await import("../../src/services/toast-store.js");
 
     render(() => <Limits />);
-    fireEvent.click(screen.getByText("+ Create rule"));
+    fireEvent.click(screen.getByText("Create rule"));
     fireEvent.click(screen.getByTestId("mock-save"));
 
     await vi.waitFor(() => {
@@ -181,7 +181,7 @@ describe("Limits page interactions", () => {
     (createNotificationRule as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error("fail"));
 
     render(() => <Limits />);
-    fireEvent.click(screen.getByText("+ Create rule"));
+    fireEvent.click(screen.getByText("Create rule"));
     fireEvent.click(screen.getByTestId("mock-save"));
 
     // Should not throw — error is caught

@@ -153,6 +153,101 @@ describe('Agent Duplication (e2e)', () => {
     expect(newSpec[0].category).toBe('coding');
   });
 
+  it('POST /agents/:name/duplicate remaps custom:<uuid> provider references', async () => {
+    const now = new Date().toISOString();
+    const srcAgentId = 'src-remap-agent';
+    await ds.getRepository(Agent).insert({
+      id: srcAgentId,
+      name: 'remap-source',
+      display_name: 'Remap Source',
+      is_active: true,
+      tenant_id: TEST_TENANT_ID,
+    });
+    await ds.getRepository(AgentApiKey).insert({
+      id: 'ak-remap',
+      key: 'enc-placeholder',
+      key_hash: 'hash-remap',
+      key_prefix: 'mnfst_remap',
+      label: 'remap key',
+      tenant_id: TEST_TENANT_ID,
+      agent_id: srcAgentId,
+      is_active: true,
+    });
+
+    await ds.getRepository(CustomProvider).insert({
+      id: 'cp-lmstudio-e2e',
+      agent_id: srcAgentId,
+      user_id: 'test-user-001',
+      name: 'LM Studio',
+      base_url: 'http://localhost:1234/v1',
+      api_kind: 'openai',
+      models: [{ model_name: 'nvidia/nemotron' }],
+      created_at: now,
+    });
+    await ds.getRepository(UserProvider).insert({
+      id: 'up-lmstudio-e2e',
+      user_id: 'test-user-001',
+      agent_id: srcAgentId,
+      provider: 'custom:cp-lmstudio-e2e',
+      api_key_encrypted: null,
+      key_prefix: null,
+      auth_type: 'local',
+      region: null,
+      is_active: true,
+      connected_at: now,
+      updated_at: now,
+      cached_models: null,
+      models_fetched_at: null,
+    });
+
+    await ds.getRepository(UserProvider).insert({
+      id: 'up-ollama-e2e',
+      user_id: 'test-user-001',
+      agent_id: srcAgentId,
+      provider: 'ollama',
+      api_key_encrypted: null,
+      key_prefix: null,
+      auth_type: 'local',
+      region: null,
+      is_active: true,
+      connected_at: now,
+      updated_at: now,
+      cached_models: null,
+      models_fetched_at: null,
+    });
+
+    const res = await request(app.getHttpServer())
+      .post('/api/v1/agents/remap-source/duplicate')
+      .set(headers)
+      .send({ name: 'remap-copy' })
+      .expect(201);
+
+    const newAgentId = res.body.agent.id;
+
+    const newCustom = await ds
+      .getRepository(CustomProvider)
+      .find({ where: { agent_id: newAgentId } });
+    expect(newCustom).toHaveLength(1);
+    expect(newCustom[0].name).toBe('LM Studio');
+    expect(newCustom[0].api_kind).toBe('openai');
+    expect(newCustom[0].id).not.toBe('cp-lmstudio-e2e');
+
+    const newProviders = await ds
+      .getRepository(UserProvider)
+      .find({ where: { agent_id: newAgentId } });
+    expect(newProviders).toHaveLength(2);
+
+    const customUp = newProviders.find((p) => p.provider.startsWith('custom:'));
+    expect(customUp).toBeDefined();
+    expect(customUp!.provider).toBe(`custom:${newCustom[0].id}`);
+    expect(customUp!.provider).not.toContain('cp-lmstudio-e2e');
+    expect(customUp!.auth_type).toBe('local');
+
+    const ollamaUp = newProviders.find((p) => p.provider === 'ollama');
+    expect(ollamaUp).toBeDefined();
+    expect(ollamaUp!.auth_type).toBe('local');
+  });
+
   it('POST /agents/:name/duplicate returns 409 when target name already exists', async () => {
     await request(app.getHttpServer())
       .post(`/api/v1/agents/${sourceAgent}/duplicate`)

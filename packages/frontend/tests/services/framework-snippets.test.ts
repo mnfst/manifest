@@ -12,6 +12,7 @@ import {
   TOOLKIT_TABS,
   OPENAI_SDK_LANGS,
   SDK_LANG_TOGGLE,
+  OPENAI_API_TOGGLE,
   getVercelPythonSnippet,
   getStoredToolkit,
   storeToolkit,
@@ -87,6 +88,15 @@ describe("SDK_LANG_TOGGLE", () => {
 
   it("has two language options", () => {
     expect(SDK_LANG_TOGGLE).toHaveLength(2);
+  });
+});
+
+describe("OPENAI_API_TOGGLE", () => {
+  it("defaults to Responses API before Chat Completions", () => {
+    expect(OPENAI_API_TOGGLE).toEqual([
+      { id: "responses", label: "Responses API" },
+      { id: "chat-completions", label: "Chat Completions" },
+    ]);
   });
 });
 
@@ -226,6 +236,9 @@ describe("getPythonSnippets", () => {
     expect(snippets[1].title).toBe("OpenAI Python SDK");
     expect(snippets[1].code).toContain("from openai import OpenAI");
     expect(snippets[1].code).toContain("http://example.com/v1");
+    expect(snippets[1].code).toContain("client.responses.create");
+    expect(snippets[1].code).toContain('input="Hello"');
+    expect(snippets[1].code).not.toContain("chat.completions.create");
   });
 });
 
@@ -247,6 +260,9 @@ describe("getTypeScriptSnippets", () => {
     const snippets = getTypeScriptSnippets("http://example.com/v1", "mnfst_xyz");
     expect(snippets[1].title).toBe("OpenAI TypeScript SDK");
     expect(snippets[1].code).toContain('import OpenAI from "openai"');
+    expect(snippets[1].code).toContain("client.responses.create");
+    expect(snippets[1].code).toContain('input: "Hello"');
+    expect(snippets[1].code).not.toContain("chat.completions.create");
   });
 });
 
@@ -263,6 +279,7 @@ describe("getOpenClawSnippet", () => {
     expect(snippet).toContain("app.manifest.build/v1");
     expect(snippet).toContain("mnfst_test");
     expect(snippet).toContain("openai-completions");
+    expect(snippet).not.toContain("openai-responses");
   });
 });
 
@@ -291,7 +308,9 @@ describe("getCurlSnippet", () => {
     expect(snippets[0].title).toBe("cURL");
     expect(snippets[0].code).toContain("curl -X POST");
     expect(snippets[0].code).toContain("Bearer mnfst_abc");
-    expect(snippets[0].code).toContain("http://example.com/v1/chat/completions");
+    expect(snippets[0].code).toContain("http://example.com/v1/responses");
+    expect(snippets[0].code).toContain('"input": "Hello"');
+    expect(snippets[0].code).not.toContain("chat/completions");
   });
 });
 
@@ -327,12 +346,44 @@ describe("getSnippetForToolkit", () => {
     const result = getSnippetForToolkit("openai-sdk", "http://x/v1", "key", "python");
     expect(result.title).toBe("OpenAI Python SDK");
     expect(result.code).toContain("from openai import OpenAI");
+    expect(result.code).toContain("client.responses.create");
   });
 
   it("returns OpenAI TypeScript SDK for openai-sdk with typescript lang", () => {
     const result = getSnippetForToolkit("openai-sdk", "http://x/v1", "key", "typescript");
     expect(result.title).toBe("OpenAI TypeScript SDK");
     expect(result.code).toContain('import OpenAI from "openai"');
+    expect(result.code).toContain("client.responses.create");
+  });
+
+  it("returns OpenAI Python Chat Completions when selected", () => {
+    const result = getSnippetForToolkit(
+      "openai-sdk",
+      "http://x/v1",
+      "key",
+      "python",
+      undefined,
+      "chat-completions",
+    );
+    expect(result.title).toBe("Chat Completions");
+    expect(result.code).toContain("client.chat.completions.create");
+    expect(result.code).toContain('messages=[{"role": "user", "content": "Hello"}]');
+    expect(result.code).not.toContain("client.responses.create");
+  });
+
+  it("returns OpenAI TypeScript Chat Completions when selected", () => {
+    const result = getSnippetForToolkit(
+      "openai-sdk",
+      "http://x/v1",
+      "key",
+      "typescript",
+      undefined,
+      "chat-completions",
+    );
+    expect(result.title).toBe("Chat Completions");
+    expect(result.code).toContain("client.chat.completions.create");
+    expect(result.code).toContain('messages: [{ role: "user", content: "Hello" }]');
+    expect(result.code).not.toContain("client.responses.create");
   });
 
   it("defaults to python for openai-sdk", () => {

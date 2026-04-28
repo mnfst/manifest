@@ -50,6 +50,10 @@ export class ProxyRateLimiter implements OnModuleDestroy {
     }
 
     entry.count++;
+    // LRU touch: delete-then-set re-inserts at tail of insertion order so
+    // evictLruIfNeeded() drops genuinely-stale entries instead of arbitrary
+    // long-lived ones during overflow.
+    this.rates.delete(userId);
     this.rates.set(userId, entry);
     this.evictLruIfNeeded();
   }
@@ -74,6 +78,8 @@ export class ProxyRateLimiter implements OnModuleDestroy {
     }
 
     entry.count++;
+    // LRU touch — see checkLimit().
+    this.ipRates.delete(ip);
     this.ipRates.set(ip, entry);
     this.evictIpLruIfNeeded();
   }

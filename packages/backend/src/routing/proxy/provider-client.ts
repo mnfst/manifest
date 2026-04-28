@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OPENAI_RESPONSES_ONLY_RE, stripVendorPrefix } from '../../common/constants/openai-models';
 import { PROVIDER_ENDPOINTS, ProviderEndpoint, resolveEndpointKey } from './provider-endpoints';
+import { validatePublicUrl } from '../../common/utils/url-validation';
+import { isSelfHosted } from '../../common/utils/detect-self-hosted';
 import { resolveSubscriptionEndpointKey } from './provider-hooks';
 import { injectOpenRouterCacheControl } from './cache-injection';
 import {
@@ -16,10 +18,9 @@ import {
   convertAnthropicResponse as anthropicResponseConverter,
   convertAnthropicStreamChunk as anthropicStreamChunkConverter,
   createAnthropicTransformer,
-  type GoogleStreamChunkResult,
-  type ThinkingBlocksCallback,
 } from './provider-client-converters';
 import { ForwardOptions } from './proxy-types';
+import { toNativeResponsesRequest } from './responses-adapter';
 
 export interface ForwardResult {
   response: Response;
@@ -29,6 +30,8 @@ export interface ForwardResult {
   isAnthropic: boolean;
   /** True when we converted from ChatGPT Responses API format (needs SSE transform). */
   isChatGpt: boolean;
+  /** True when the upstream already speaks the public Responses API format. */
+  isResponses?: boolean;
 }
 
 const PROVIDER_TIMEOUT_MS = 180_000;
@@ -77,10 +80,12 @@ export class ProviderClient {
       provider,
       authType,
       model,
+      opts.apiMode,
     );
     const isGoogle = endpoint.format === 'google';
     const isAnthropic = endpoint.format === 'anthropic';
-    const isChatGpt = endpoint.format === 'chatgpt';
+    const isResponses = opts.apiMode === 'responses' && endpoint.format === 'chatgpt';
+    const isChatGpt = endpoint.format === 'chatgpt' && !isResponses;
 
     const bareModel = stripModelPrefix(model, endpointKey);
     const { url, headers, requestBody } = this.buildRequest({
@@ -91,6 +96,8 @@ export class ProviderClient {
       apiKey,
       authType,
       body,
+      chatBody: opts.chatBody,
+      apiMode: opts.apiMode,
       stream,
       signatureLookup: opts.signatureLookup,
       thinkingLookup: opts.thinkingLookup,
@@ -100,10 +107,24 @@ export class ProviderClient {
 
     this.logger.debug(`Forwarding to ${endpointKey}: ${url.replace(/key=[^&]+/, 'key=***')}`);
 
+    // SSRF defense in depth for user-supplied endpoint URLs (custom providers,
+    // subscription resource URLs). validatePublicUrl was called when the URL
+    // was stored, but DNS for the hostname may have rebound to a private or
+    // cloud-metadata address since then. Re-resolve and re-check now.
+    if (endpoint.requiresSsrfRevalidation) {
+      try {
+        await validatePublicUrl(url, { allowPrivate: isSelfHosted() });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        throw new Error(`Refusing to forward to disallowed URL: ${message}`);
+      }
+    }
+
     return this.executeFetch(url, finalHeaders, requestBody, signal, {
       isGoogle,
       isAnthropic,
       isChatGpt,
+      isResponses,
     });
   }
 
@@ -112,6 +133,7 @@ export class ProviderClient {
     provider: string,
     authType: string | undefined,
     model: string,
+    apiMode: ForwardOptions['apiMode'],
   ): { endpoint: ProviderEndpoint; endpointKey: string } {
     if (customEndpoint) {
       return { endpoint: customEndpoint, endpointKey: 'custom' };
@@ -123,6 +145,9 @@ export class ProviderClient {
     if (authType === 'subscription') {
       const override = resolveSubscriptionEndpointKey(resolved);
       if (override) resolved = override;
+    }
+    if (apiMode === 'responses' && resolved === 'openai') {
+      resolved = 'openai-responses';
     }
     // OpenAI rejects these models on /v1/chat/completions; forward to /v1/responses.
     if (resolved === 'openai' && OPENAI_RESPONSES_ONLY_RE.test(stripVendorPrefix(model))) {
@@ -146,11 +171,14 @@ export class ProviderClient {
     apiKey: string;
     authType: string | undefined;
     body: Record<string, unknown>;
+    chatBody?: Record<string, unknown>;
+    apiMode?: ForwardOptions['apiMode'];
     stream: boolean;
     signatureLookup?: ForwardOptions['signatureLookup'];
     thinkingLookup?: ForwardOptions['thinkingLookup'];
   }): { url: string; headers: Record<string, string>; requestBody: Record<string, unknown> } {
-    const { endpoint, endpointKey, bareModel, apiKey, authType, body, stream } = ctx;
+    const { endpoint, endpointKey, bareModel, apiKey, authType, body, chatBody, stream } = ctx;
+    const requestSource = ctx.apiMode === 'responses' ? (chatBody ?? body) : body;
 
     if (endpoint.format === 'google') {
       // Google Gemini API requires the key as a URL parameter (not a header).
@@ -160,13 +188,13 @@ export class ProviderClient {
       return {
         url,
         headers: endpoint.buildHeaders(apiKey, authType),
-        requestBody: toGoogleRequest(body, bareModel, ctx.signatureLookup),
+        requestBody: toGoogleRequest(requestSource, bareModel, ctx.signatureLookup),
       };
     }
 
     if (endpoint.format === 'anthropic') {
       const isSubscription = authType === 'subscription';
-      const requestBody = toAnthropicRequest(body, bareModel, {
+      const requestBody = toAnthropicRequest(requestSource, bareModel, {
         injectCacheControl: !isSubscription,
         injectSubscriptionIdentity: isSubscription,
         thinkingLookup: ctx.thinkingLookup,
@@ -184,12 +212,22 @@ export class ProviderClient {
       return {
         url: `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`,
         headers: endpoint.buildHeaders(apiKey, authType),
-        requestBody: toResponsesRequest(body, bareModel),
+        requestBody:
+          ctx.apiMode === 'responses'
+            ? // ChatGPT subscription tokens hit the Codex Responses backend, which
+              // requires instruction text, list-shaped input, and upstream SSE even
+              // when Manifest returns a non-streaming JSON response to the caller.
+              toNativeResponsesRequest(body, bareModel, {
+                defaultInstructions: endpointKey === 'openai-subscription',
+                inputList: endpointKey === 'openai-subscription',
+                forceStream: endpointKey === 'openai-subscription',
+              })
+            : toResponsesRequest(body, bareModel),
       };
     }
 
     // OpenAI-compatible path (default)
-    const sanitized = sanitizeOpenAiBody(body, endpointKey, ctx.model);
+    const sanitized = sanitizeOpenAiBody(requestSource, endpointKey, ctx.model);
     if (stream && SUPPORTS_USAGE_STREAM_OPTIONS.has(endpointKey)) {
       const existing =
         typeof sanitized.stream_options === 'object' && sanitized.stream_options !== null
@@ -213,7 +251,12 @@ export class ProviderClient {
     headers: Record<string, string>,
     requestBody: Record<string, unknown>,
     signal: AbortSignal | undefined,
-    formatFlags: { isGoogle: boolean; isAnthropic: boolean; isChatGpt: boolean },
+    formatFlags: {
+      isGoogle: boolean;
+      isAnthropic: boolean;
+      isChatGpt: boolean;
+      isResponses?: boolean;
+    },
   ): Promise<ForwardResult> {
     const timeoutSignal = AbortSignal.timeout(PROVIDER_TIMEOUT_MS);
     const fetchSignal = signal ? AbortSignal.any([timeoutSignal, signal]) : timeoutSignal;
@@ -225,6 +268,9 @@ export class ProviderClient {
         headers,
         body: JSON.stringify(requestBody),
         signal: fetchSignal,
+        // Block redirect-based SSRF escalation: a hostile upstream could 302
+        // to a private/metadata endpoint after our pre-fetch validation.
+        redirect: 'error',
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);

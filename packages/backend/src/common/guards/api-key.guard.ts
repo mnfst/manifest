@@ -51,6 +51,13 @@ export class ApiKeyGuard implements CanActivate {
     const found = candidates.find((c) => verifyKey(apiKey, c.key_hash));
 
     if (found) {
+      // Populate request.user so @CurrentUser-scoped controllers work the
+      // same way they do for cookie sessions. We only know the user_id from
+      // the api_keys row — name/email aren't joined here, but every analytics
+      // path keys off `user.id` via addTenantFilter, so the minimal shape is
+      // sufficient.
+      (request as Request & { user: { id: string } }).user = { id: String(found.user_id) };
+      (request as Request & { authMethod: string }).authMethod = 'api_key';
       (request as Request & { apiKeyUserId: string }).apiKeyUserId = String(found.user_id);
       this.apiKeyRepo
         .createQueryBuilder()
@@ -62,9 +69,13 @@ export class ApiKeyGuard implements CanActivate {
       return true;
     }
 
-    // Fall back to env-based API key (for simple setups)
+    // Fall back to env-based API key (for simple setups). The env key is a
+    // shared operator credential not tied to any user; controllers that
+    // depend on @CurrentUser will reject the request when `request.user`
+    // is unset (see CurrentUser decorator).
     const validKey = this.configService.get<string>('app.apiKey', '');
     if (validKey && this.safeCompare(apiKey, validKey)) {
+      (request as Request & { authMethod: string }).authMethod = 'env_api_key';
       return true;
     }
 

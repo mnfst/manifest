@@ -1,4 +1,4 @@
-import type { ParentComponent } from "solid-js";
+import type { ParentComponent } from 'solid-js';
 
 const AuthLayout: ParentComponent = (props) => {
   return (
@@ -7,7 +7,7 @@ const AuthLayout: ParentComponent = (props) => {
         <div class="auth-logo">
           <a href="https://manifest.build" class="auth-logo__link">
             <img src="/logo.svg" alt="Manifest" class="auth-logo__img auth-logo__img--light" />
-            <img src="/logo-white.svg" alt="Manifest" class="auth-logo__img auth-logo__img--dark" />
+            <img src="/logo-white.svg" alt="" class="auth-logo__img auth-logo__img--dark" />
           </a>
         </div>
         {props.children}

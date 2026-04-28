@@ -8,6 +8,12 @@ import { ProxyMessageRecorder } from './proxy-message-recorder';
 import { ProviderClient } from './provider-client';
 import { initSseHeaders, pipeStream, StreamUsage } from './stream-writer';
 import { sanitizeProviderError } from './proxy-error-sanitizer';
+import {
+  chatCompletionStreamChunkToResponses,
+  collectResponsesSseResponse,
+  fromChatCompletionResponse,
+} from './responses-adapter';
+import type { ProxyApiMode } from './proxy-types';
 import type { ThoughtSignatureCache } from './thought-signature-cache';
 import type { ThinkingBlockCache, ThinkingBlock } from './thinking-block-cache';
 import type { ExtractedSignature } from './google-adapter';
@@ -253,8 +259,16 @@ export async function handleStreamResponse(
   signatureCache?: ThoughtSignatureCache,
   sessionKey?: string,
   thinkingCache?: ThinkingBlockCache,
+  apiMode: ProxyApiMode = 'chat_completions',
 ): Promise<StreamUsage | null> {
   initSseHeaders(res, metaHeaders);
+
+  const toClientChunk =
+    apiMode === 'responses' ? chatCompletionStreamChunkToResponses : (chunk: string) => chunk;
+
+  if (apiMode === 'responses' && forward.isResponses) {
+    return pipeStream(forward.response.body!, res);
+  }
 
   if (forward.isGoogle) {
     return pipeStream(forward.response.body!, res, (chunk) => {
@@ -264,7 +278,7 @@ export async function handleStreamResponse(
           signatureCache.store(sessionKey, s.toolCallId, s.signature);
         }
       }
-      return out;
+      return out ? toClientChunk(out) : null;
     });
   }
   if (forward.isAnthropic) {
@@ -274,16 +288,22 @@ export async function handleStreamResponse(
             thinkingCache.store(sessionKey, firstToolUseId, blocks);
           }
         : undefined;
-    return pipeStream(
-      forward.response.body!,
-      res,
-      providerClient.createAnthropicStreamTransformer(meta.model, onThinkingBlocks),
+    const anthropicTransformer = providerClient.createAnthropicStreamTransformer(
+      meta.model,
+      onThinkingBlocks,
     );
+    return pipeStream(forward.response.body!, res, (chunk) => {
+      const out = anthropicTransformer(chunk);
+      return out ? toClientChunk(out) : null;
+    });
   }
   if (forward.isChatGpt) {
     return pipeStream(forward.response.body!, res, (chunk) =>
       providerClient.convertChatGptStreamChunk(chunk, meta.model),
     );
+  }
+  if (apiMode === 'responses') {
+    return pipeStream(forward.response.body!, res, toClientChunk);
   }
   return pipeStream(forward.response.body!, res);
 }
@@ -298,10 +318,13 @@ export async function handleNonStreamResponse(
   signatureCache?: ThoughtSignatureCache,
   sessionKey?: string,
   thinkingCache?: ThinkingBlockCache,
+  apiMode: ProxyApiMode = 'chat_completions',
 ): Promise<StreamUsage | null> {
   let responseBody: unknown;
 
-  if (forward.isGoogle) {
+  if (apiMode === 'responses' && forward.isResponses) {
+    responseBody = await readNativeResponsesBody(forward.response);
+  } else if (forward.isGoogle) {
     const googleData = (await forward.response.json()) as Record<string, unknown>;
     responseBody = providerClient.convertGoogleResponse(googleData, meta.model);
     const sigs = (responseBody as Record<string, unknown>)?._extractedSignatures as
@@ -332,15 +355,32 @@ export async function handleNonStreamResponse(
     responseBody = await forward.response.json();
   }
 
+  if (apiMode === 'responses' && !forward.isResponses) {
+    responseBody = fromChatCompletionResponse(responseBody as Record<string, unknown>, meta.model);
+  }
+
   const body = responseBody as Record<string, unknown> | undefined;
-  const usage = body?.usage as Record<string, number> | undefined;
+  const usage = body?.usage as Record<string, number | Record<string, number>> | undefined;
   let streamUsage: StreamUsage | null = null;
   if (usage && typeof usage.prompt_tokens === 'number') {
     streamUsage = {
       prompt_tokens: usage.prompt_tokens,
-      completion_tokens: usage.completion_tokens ?? 0,
-      cache_read_tokens: usage.cache_read_tokens,
-      cache_creation_tokens: usage.cache_creation_tokens,
+      completion_tokens: typeof usage.completion_tokens === 'number' ? usage.completion_tokens : 0,
+      cache_read_tokens:
+        typeof usage.cache_read_tokens === 'number' ? usage.cache_read_tokens : undefined,
+      cache_creation_tokens:
+        typeof usage.cache_creation_tokens === 'number' ? usage.cache_creation_tokens : undefined,
+    };
+  } else if (usage && typeof usage.input_tokens === 'number') {
+    const inputDetails =
+      typeof usage.input_tokens_details === 'object' && usage.input_tokens_details !== null
+        ? (usage.input_tokens_details as Record<string, number>)
+        : undefined;
+    streamUsage = {
+      prompt_tokens: usage.input_tokens,
+      completion_tokens: typeof usage.output_tokens === 'number' ? usage.output_tokens : 0,
+      cache_read_tokens: inputDetails?.cached_tokens,
+      cache_creation_tokens: 0,
     };
   }
 
@@ -348,6 +388,25 @@ export async function handleNonStreamResponse(
   setHeaders(res, metaHeaders);
   res.json(responseBody);
   return streamUsage;
+}
+
+async function readNativeResponsesBody(response: Response): Promise<unknown> {
+  const contentType = response.headers.get('content-type') ?? '';
+  const text = await response.text();
+  const trimmed = text.trimStart();
+
+  // ChatGPT subscription Responses can return SSE text without an SSE content
+  // type. Inspecting the body keeps non-streaming SDK calls from trying to parse
+  // `event: ...` as JSON.
+  if (
+    contentType.includes('text/event-stream') ||
+    trimmed.startsWith('event:') ||
+    trimmed.startsWith('data:')
+  ) {
+    return collectResponsesSseResponse(text);
+  }
+
+  return JSON.parse(text);
 }
 
 /** Records the success message or fallback success after response is sent. */

@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { AUTH_TYPES, TIER_SLOTS } from 'manifest-shared';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../common/constants/providers';
 import { Agent } from '../entities/agent.entity';
 import { AgentMessage } from '../entities/agent-message.entity';
 import type { TelemetryPayloadV1 } from './dto/telemetry-payload';
 import { TELEMETRY_SCHEMA_VERSION } from './telemetry.config';
+
+const TIER_WHITELIST: ReadonlySet<string> = new Set<string>(TIER_SLOTS);
+const AUTH_TYPE_WHITELIST: ReadonlySet<string> = new Set<string>(AUTH_TYPES);
 
 interface ProviderAggregateRow {
   provider: string | null;
@@ -54,8 +58,12 @@ export class PayloadBuilderService {
       manifest_version: manifestVersion,
       messages_total: Number(totals.total),
       messages_by_provider: this.collapseProviders(providerRows),
-      messages_by_tier: this.bucketsToRecord(tierRows, 'unknown'),
-      messages_by_auth_type: this.bucketsToRecord(authRows, 'unknown'),
+      // Defense in depth: whitelist tier and auth_type values against the
+      // shared enums. If a future write path inserts an unexpected string,
+      // it collapses to `"other"` instead of leaking verbatim to the
+      // telemetry endpoint.
+      messages_by_tier: this.bucketsToRecord(tierRows, 'unknown', TIER_WHITELIST),
+      messages_by_auth_type: this.bucketsToRecord(authRows, 'unknown', AUTH_TYPE_WHITELIST),
       tokens_input_total: Number(totals.input_tokens ?? 0),
       tokens_output_total: Number(totals.output_tokens ?? 0),
       agents_total: agentsTotal,
@@ -131,10 +139,17 @@ export class PayloadBuilderService {
     return entry ? entry.id : 'custom';
   }
 
-  private bucketsToRecord(rows: BucketRow[], nullLabel: string): Record<string, number> {
+  private bucketsToRecord(
+    rows: BucketRow[],
+    nullLabel: string,
+    whitelist?: ReadonlySet<string>,
+  ): Record<string, number> {
     const out: Record<string, number> = {};
     for (const row of rows) {
-      const key = row.bucket ?? nullLabel;
+      let key = row.bucket ?? nullLabel;
+      if (whitelist && row.bucket !== null && !whitelist.has(row.bucket)) {
+        key = 'other';
+      }
       out[key] = (out[key] ?? 0) + Number(row.count);
     }
     return out;

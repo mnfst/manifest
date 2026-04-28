@@ -10,6 +10,7 @@ import { AgentLifecycleService } from '../services/agent-lifecycle.service';
 import { AgentDuplicationService } from '../services/agent-duplication.service';
 import { ApiKeyGeneratorService } from '../../otlp/services/api-key.service';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
+import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
 
 describe('AgentsController', () => {
   let controller: AgentsController;
@@ -65,6 +66,16 @@ describe('AgentsController', () => {
             deleteAgent: mockDeleteAgent,
             renameAgent: mockRenameAgent,
             updateAgentType: jest.fn(),
+            findAgentInfo: jest.fn(async (_userId: string, agentName: string) =>
+              agentName === 'bot-1'
+                ? {
+                    agent_name: 'bot-1',
+                    display_name: 'Bot One',
+                    agent_category: 'app',
+                    agent_platform: 'openai-sdk',
+                  }
+                : null,
+            ),
           },
         },
         {
@@ -91,6 +102,10 @@ describe('AgentsController', () => {
           provide: TenantCacheService,
           useValue: { resolve: mockTenantResolve },
         },
+        {
+          provide: IngestEventBusService,
+          useValue: { emit: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -114,6 +129,25 @@ describe('AgentsController', () => {
     await controller.getAgents(user as never);
 
     expect(mockGetAgentList).toHaveBeenCalledWith('u1', undefined);
+  });
+
+  it('GET /agents/:agentName returns metadata for an existing agent', async () => {
+    const user = { id: 'u1' };
+    const result = await controller.getAgentInfo(user as never, 'bot-1');
+    expect(result).toEqual({
+      agent: {
+        agent_name: 'bot-1',
+        display_name: 'Bot One',
+        agent_category: 'app',
+        agent_platform: 'openai-sdk',
+      },
+    });
+  });
+
+  it('GET /agents/:agentName returns { agent: null } when not found', async () => {
+    const user = { id: 'u1' };
+    const result = await controller.getAgentInfo(user as never, 'missing');
+    expect(result).toEqual({ agent: null });
   });
 
   it('returns agent key prefix', async () => {
@@ -212,7 +246,12 @@ describe('AgentsController', () => {
         { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
         {
           provide: AgentLifecycleService,
-          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn(), updateAgentType: jest.fn() },
+          useValue: {
+            deleteAgent: jest.fn(),
+            renameAgent: jest.fn(),
+            updateAgentType: jest.fn(),
+            findAgentInfo: jest.fn().mockResolvedValue(null),
+          },
         },
         {
           provide: ApiKeyGeneratorService,
@@ -220,6 +259,7 @@ describe('AgentsController', () => {
         },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
+        { provide: IngestEventBusService, useValue: { emit: jest.fn() } },
         {
           provide: AgentDuplicationService,
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
@@ -263,7 +303,12 @@ describe('AgentsController', () => {
         { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
         {
           provide: AgentLifecycleService,
-          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn(), updateAgentType: jest.fn() },
+          useValue: {
+            deleteAgent: jest.fn(),
+            renameAgent: jest.fn(),
+            updateAgentType: jest.fn(),
+            findAgentInfo: jest.fn().mockResolvedValue(null),
+          },
         },
         {
           provide: ApiKeyGeneratorService,
@@ -271,6 +316,7 @@ describe('AgentsController', () => {
         },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
+        { provide: IngestEventBusService, useValue: { emit: jest.fn() } },
         {
           provide: AgentDuplicationService,
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
@@ -315,7 +361,12 @@ describe('AgentsController', () => {
         { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
         {
           provide: AgentLifecycleService,
-          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn(), updateAgentType: jest.fn() },
+          useValue: {
+            deleteAgent: jest.fn(),
+            renameAgent: jest.fn(),
+            updateAgentType: jest.fn(),
+            findAgentInfo: jest.fn().mockResolvedValue(null),
+          },
         },
         {
           provide: ApiKeyGeneratorService,
@@ -323,6 +374,7 @@ describe('AgentsController', () => {
         },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
+        { provide: IngestEventBusService, useValue: { emit: jest.fn() } },
         {
           provide: AgentDuplicationService,
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
@@ -349,7 +401,12 @@ describe('AgentsController', () => {
         { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
         {
           provide: AgentLifecycleService,
-          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn(), updateAgentType: jest.fn() },
+          useValue: {
+            deleteAgent: jest.fn(),
+            renameAgent: jest.fn(),
+            updateAgentType: jest.fn(),
+            findAgentInfo: jest.fn().mockResolvedValue(null),
+          },
         },
         {
           provide: ApiKeyGeneratorService,
@@ -357,6 +414,7 @@ describe('AgentsController', () => {
         },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
+        { provide: IngestEventBusService, useValue: { emit: jest.fn() } },
         {
           provide: AgentDuplicationService,
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
@@ -382,7 +440,12 @@ describe('AgentsController', () => {
         { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
         {
           provide: AgentLifecycleService,
-          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn(), updateAgentType: jest.fn() },
+          useValue: {
+            deleteAgent: jest.fn(),
+            renameAgent: jest.fn(),
+            updateAgentType: jest.fn(),
+            findAgentInfo: jest.fn().mockResolvedValue(null),
+          },
         },
         {
           provide: ApiKeyGeneratorService,
@@ -390,6 +453,7 @@ describe('AgentsController', () => {
         },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
+        { provide: IngestEventBusService, useValue: { emit: jest.fn() } },
         {
           provide: AgentDuplicationService,
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
@@ -467,7 +531,12 @@ describe('AgentsController', () => {
         { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
         {
           provide: AgentLifecycleService,
-          useValue: { deleteAgent: jest.fn(), renameAgent: jest.fn(), updateAgentType: jest.fn() },
+          useValue: {
+            deleteAgent: jest.fn(),
+            renameAgent: jest.fn(),
+            updateAgentType: jest.fn(),
+            findAgentInfo: jest.fn().mockResolvedValue(null),
+          },
         },
         {
           provide: ApiKeyGeneratorService,
@@ -475,6 +544,7 @@ describe('AgentsController', () => {
         },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
+        { provide: IngestEventBusService, useValue: { emit: jest.fn() } },
         {
           provide: AgentDuplicationService,
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },

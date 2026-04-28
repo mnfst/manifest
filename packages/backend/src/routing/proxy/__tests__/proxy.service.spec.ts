@@ -280,6 +280,58 @@ describe('ProxyService', () => {
     expect(body.messages[2].content).toBe('test');
   });
 
+  it('normalizes Responses API input for routing while preserving the original body', async () => {
+    resolveService.resolve.mockResolvedValue({
+      tier: 'simple',
+      model: 'gpt-4o',
+      provider: 'OpenAI',
+      confidence: 0.9,
+      score: 0.5,
+      reason: 'scored',
+    });
+    providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
+    providerClient.forward.mockResolvedValue({
+      response: new Response('{}', { status: 200 }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+      isResponses: true,
+    });
+
+    const responsesBody = {
+      instructions: 'Be concise.',
+      input: 'Hello from responses',
+      max_output_tokens: 64,
+      stream: false,
+    };
+
+    await service.proxyRequest({
+      agentId: 'agent-1',
+      userId: 'user-1',
+      body: responsesBody,
+      apiMode: 'responses',
+      sessionKey: 'default',
+    });
+
+    expect(resolveService.resolve.mock.calls[0][1]).toEqual([
+      { role: 'user', content: 'Hello from responses' },
+    ]);
+    expect(resolveService.resolve.mock.calls[0][4]).toBe(64);
+    expect(providerClient.forward).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: responsesBody,
+        chatBody: expect.objectContaining({
+          messages: [
+            { role: 'system', content: 'Be concise.' },
+            { role: 'user', content: 'Hello from responses' },
+          ],
+          max_tokens: 64,
+        }),
+        apiMode: 'responses',
+      }),
+    );
+  });
+
   it('returns synthetic response when no model is resolved', async () => {
     resolveService.resolve.mockResolvedValue({
       tier: 'simple',
