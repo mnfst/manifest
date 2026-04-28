@@ -14,7 +14,7 @@ import {
   isSupportedSubscriptionProvider,
 } from '../../common/utils/subscription-support';
 import type { AuthType } from 'manifest-shared';
-import { TIER_LABELS } from 'manifest-shared';
+import { TIER_LABELS, parseFallbackEntry, encodeFallbackEntry } from 'manifest-shared';
 import { detectQwenRegion, isQwenRegion, isQwenResolvedRegion } from '../qwen-region';
 
 const MAX_KEYS_PER_PROVIDER = 5;
@@ -733,6 +733,29 @@ export class ProviderService {
         s.updated_at = now;
       }
       await this.specificityRepo.save(specsToSave);
+    }
+
+    // Also relabel fallback_models entries that encode the old key label
+    // as `model||OldLabel`.
+    const tiersWithFallbacks = tiers.filter((t) =>
+      t.fallback_models?.some((entry) => {
+        const parsed = parseFallbackEntry(entry);
+        return parsed.providerKeyLabel?.toLowerCase() === previousLower;
+      }),
+    );
+    if (tiersWithFallbacks.length > 0) {
+      const now = new Date().toISOString();
+      for (const t of tiersWithFallbacks) {
+        t.fallback_models = t.fallback_models!.map((entry) => {
+          const parsed = parseFallbackEntry(entry);
+          if (parsed.providerKeyLabel?.toLowerCase() !== previousLower) return entry;
+          return nextLabel
+            ? encodeFallbackEntry({ model: parsed.model, providerKeyLabel: nextLabel })
+            : parsed.model;
+        });
+        t.updated_at = now;
+      }
+      await this.tierRepo.save(tiersWithFallbacks);
     }
   }
 

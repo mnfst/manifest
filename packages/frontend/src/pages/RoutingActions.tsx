@@ -50,6 +50,10 @@ export function createRoutingActions(input: RoutingActionsInput) {
         authType,
         providerKeyLabel,
       );
+      // Commit the primary update to local state immediately so the UI reflects
+      // the new model even if the fallback cleanup below fails.
+      input.mutateTiers((prev) => prev?.map((t) => (t.tier === tierId ? updated : t)));
+      toast.success('Routing updated');
       // Auto-remove any fallback that conflicts with the new primary's (model, key).
       // A fallback conflicts if:
       //   - Same model + same key label (exact match)
@@ -68,11 +72,11 @@ export function createRoutingActions(input: RoutingActionsInput) {
         });
         if (cleaned.length < updated.fallback_models.length) {
           await setFallbacks(input.agentName(), tierId, cleaned);
-          updated.fallback_models = cleaned;
+          input.mutateTiers((prev) =>
+            prev?.map((t) => (t.tier === tierId ? { ...t, fallback_models: cleaned } : t)),
+          );
         }
       }
-      input.mutateTiers((prev) => prev?.map((t) => (t.tier === tierId ? updated : t)));
-      toast.success('Routing updated');
     } catch {
       // error toast from fetchMutate
     } finally {

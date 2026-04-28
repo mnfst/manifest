@@ -453,7 +453,24 @@ const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) => {
   };
 
   return (
-    <Show when={isOpen()}>
+    <Show
+      when={isOpen()}
+      fallback={
+        !props.open ? (
+          <button
+            type="button"
+            class="provider-detail__add-link"
+            style="margin-top: 12px; background: none; border: none; padding: 0; color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); cursor: pointer; text-align: left;"
+            onClick={() => {
+              setLabel(defaultLabel());
+              setIsOpen(true);
+            }}
+          >
+            + Add another key
+          </button>
+        ) : undefined
+      }
+    >
       <div
         class="provider-detail__add-form"
         style="margin-top: 12px; padding: 12px; border: 1px solid hsl(var(--border)); border-radius: 6px;"
