@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "**Step\u202f1: Find Betty\u2019s points.**  \nBetty collected 30\u202f% more than Adam.  \n\\(30\\% \\text{ of } 50 = 0.30 \\times 50 = 15\\).  \nSo Betty has \\(50 + 15 = 65\\) points.\n\n**Step\u202f2: Find Tom\u2019s points.**  \nTom has 30 points less than Betty:  \n\\( \\text{Tom} = 65 - 30 = 35\\) points.\n\n**Step\u202f3: Find Martha\u2019s points.**  \nMartha collected \u201c3 times more points than Tom\u201d.  \nIn everyday wording this means Martha has three times as many points as Tom:  \n\\( \\text{Martha} = 3 \\times 35 = 105\\) points.\n\n**Step\u202f4: Compute the total points collected by the class.**  \n\\[\n\\text{Total}= \\text{Adam} + \\text{Betty} + \\text{Martha} + \\text{Tom}\n= 50 + 65 + 105 + 35 = 255.\n\\]\n\n**Step\u202f5: Determine how many points are missing to reach the 400\u2011point threshold.**  \n\\[\n\\text{Missing} = 400 - 255 = 145.\n\\]\n\n**Answer:**",
+  "score": 2,
+  "cost": 0.008976,
+  "expected": "145",
+  "tokens": {
+    "input": 160,
+    "output": 2000
+  }
+}

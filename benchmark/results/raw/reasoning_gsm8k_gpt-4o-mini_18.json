@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "To solve the problem, we start with the information given:\n\n1. Eve originally had 20 pieces of pomelos.\n2. After giving some away, she is left with 1/4 of the original amount.\n\nFirst, we need to calculate how many pomelos 1/4 of the original amount is:\n\n\\[\n\\text{1/4 of 20} = \\frac{20}{4} = 5\n\\]\n\nThis means that after giving some pomelos away, Eve has 5 pomelos left.\n\nNext, we need to determine how many pomelos Eve gave away. We can find this by subtracting the number of pomelos she has left from the original amount:\n\n\\[\n\\text{Pomelos given away} = \\text{Original amount} - \\text{Remaining amount}\n\\]\n\\[\n\\text{Pomelos given away} = 20 - 5 = 15\n\\]\n\nThus, Eve gave away 15 pomelos.\n\nFinally, we write the answer in the required format:\n\nANSWER: 15",
+  "score": 5,
+  "cost": 0.00014145,
+  "expected": "15",
+  "tokens": {
+    "input": 83,
+    "output": 215
+  }
+}

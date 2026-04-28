@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 15,
+  "response": "I need to find how many points Joey is winning by after both players take their turns.\n\nStep 1: Calculate Joey's points after his turn.\nJoey starts with 214 points and scores 26 points.\nJoey's new total = 214 + 26 = 240 points\n\nStep 2: Calculate Marcy's points after her turn.\nMarcy starts with 225 points and scores 10 points.\nMarcy's new total = 225 + 10 = 235 points\n\nStep 3: Find the difference between their scores.\nJoey has 240 points and Marcy has 235 points.\nDifference = 240 - 235 = 5 points\n\nSince Joey has more points than Marcy, Joey is winning by 5 points.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.003132,
+  "expected": "5",
+  "tokens": {
+    "input": 94,
+    "output": 190
+  }
+}

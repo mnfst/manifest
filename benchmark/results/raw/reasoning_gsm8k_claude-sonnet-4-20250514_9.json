@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 9,
+  "response": "I need to find the number of crabs each person has, then add them together.\n\nLet me start with what I know:\n- Bo has 40 crabs\n\nNow I can find how many crabs Monic has:\n- Monic has 4 fewer crabs than Bo\n- Monic's crabs = Bo's crabs - 4\n- Monic's crabs = 40 - 4 = 36 crabs\n\nNext, I can find how many crabs Rani has:\n- Rani has ten more crabs than Monic\n- Rani's crabs = Monic's crabs + 10\n- Rani's crabs = 36 + 10 = 46 crabs\n\nNow I can calculate the total number of crabs:\n- Total crabs = Bo's crabs + Monic's crabs + Rani's crabs\n- Total crabs = 40 + 36 + 46 = 122 crabs\n\nANSWER: 122",
+  "score": 5,
+  "cost": 0.003855,
+  "expected": "122",
+  "tokens": {
+    "input": 90,
+    "output": 239
+  }
+}

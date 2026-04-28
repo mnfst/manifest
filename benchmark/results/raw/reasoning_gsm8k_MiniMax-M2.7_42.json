@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 42,
+  "response": "**Step\u2011by\u2011step reasoning**\n\n1. Determine the number of children in one row:  \n   The problem states \u201cthey stand 8 in a row.\u201d  \n   \u21d2\u202fChildren per row = **8**.\n\n2. Determine the number of rows for each school:  \n   \u201cThere are 7 rows each for 5 different Schools.\u201d  \n   \u21d2\u202fRows per school = **7**.\n\n3. Compute the number of children contributed by one school:  \n   Children per school = (children per row) \u00d7 (rows per school)  \n   = 8\u202f\u00d7\u202f7 = **56**.\n\n4. Multiply by the number of schools:  \n   Total children = (children per school) \u00d7 (number of schools)  \n   = 56\u202f\u00d7\u202f5 = **280**.\n\n**Conclusion**\n\nThe total number of children that can take part in the mass drill is **280**.\n\nANSWER: 280",
+  "score": 5,
+  "cost": 0.0028831000000000004,
+  "expected": "280",
+  "tokens": {
+    "input": 125,
+    "output": 624
+  }
+}

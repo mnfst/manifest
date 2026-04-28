@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "Here's a step-by-step solution:\n\n1.  **Calculate the initial cost of the brooch (material + construction):**\n    Janet paid $500 for the material and $800 for the jeweler.\n    Initial cost = $500 + $800 = $1300\n\n2.  **Calculate the insurance cost:**\n    She pays 10% of the initial cost for insurance.\n    Insurance cost = 10% of $1300\n    Insurance cost = 0.10 * $1300 = $130\n\n3.  **Calculate the total amount Janet paid:**\n    Total paid = Initial cost + Insurance cost\n    Total paid = $1300 + $130 = $1430\n\nANSWER: 1430",
+  "score": 5,
+  "cost": 0.000123,
+  "expected": "1430",
+  "tokens": {
+    "input": 96,
+    "output": 181
+  }
+}

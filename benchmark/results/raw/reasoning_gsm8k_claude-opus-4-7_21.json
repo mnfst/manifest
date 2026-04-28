@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 21,
+  "response": "Half of 10000 = 5000. Plus 1000 = 6000. After jog, 2000 left, so done 8000. Jog = 8000-6000 = 2000.\n\nANSWER: 2000",
+  "score": 3,
+  "cost": 0.007845,
+  "expected": "2000",
+  "tokens": {
+    "input": 173,
+    "output": 70
+  }
+}

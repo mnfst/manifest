@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 32,
+  "response": "1. Convert the length from yards to feet:\n   - 1 yard = 3 feet\n   - Length in feet = 3 yards * 3 feet/yard = 9 feet\n\n2. Use the area formula for a rectangle (Area = Length * Width) to find the width:\n   - 360 square feet = 9 feet * Width\n   - Width = 360 square feet / 9 feet = 40 feet\n\n3. Calculate the perimeter of the rectangle using the formula (Perimeter = 2 * (Length + Width)):\n   - Perimeter = 2 * (9 feet + 40 feet)\n   - Perimeter = 2 * 49 feet\n   - Perimeter = 98 feet\n\nANSWER: 98",
+  "score": 5,
+  "cost": 5.890000000000001e-05,
+  "expected": "98",
+  "tokens": {
+    "input": 88,
+    "output": 167
+  }
+}

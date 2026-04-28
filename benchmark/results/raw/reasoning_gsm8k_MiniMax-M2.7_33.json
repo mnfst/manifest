@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 33,
+  "response": "The cost per lollipop is \\$0.40.  \nFive lollipops cost \\(5 \\times 0.40 = \\$2.00\\).  \n\nThe total cost of five lollipops and four candies is \\$3.20, so the cost of the four candies is  \n\\(3.20 - 2.00 = \\$1.20\\).  \n\nThus each candy costs \\(\\frac{1.20}{4} = \\$0.30\\).\n\nNow compute the cost for 10 lollipops and 10 candies:  \n\n- 10 lollipops: \\(10 \\times 0.40 = \\$4.00\\)  \n- 10 candies: \\(10 \\times 0.30 = \\$3.00\\)  \n\nTotal cost: \\(4.00 + 3.00 = \\$7.00\\).\n\nANSWER: 7.00",
+  "score": 5,
+  "cost": 0.0021098000000000002,
+  "expected": "7",
+  "tokens": {
+    "input": 118,
+    "output": 450
+  }
+}

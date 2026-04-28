@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "intent_clinc150",
+  "case": 33,
+  "response": "direct_deposit",
+  "score": 5,
+  "cost": 5.84e-05,
+  "expected": "direct_deposit",
+  "tokens": {
+    "input": 572,
+    "output": 4
+  }
+}

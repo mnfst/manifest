@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "Here is the step-by-step solution to the problem:\n\n**Step 1: Calculate the initial cost of the brooch.**\nThis is the sum of the cost of the material and the cost for the jeweler to construct it.\nCost of material = $500\nCost of jeweler = $800\nInitial cost = $500 + $800 = $1300\n\n**Step 2: Calculate the cost of insurance.**\nThe insurance cost is 10% of the initial cost calculated in Step 1.\nInsurance cost = 10% of $1300\nTo find 10% of a number, you can multiply it by 0.10.\nInsurance cost = 0.10 * $1300 = $130\n\n**Step 3: Calculate the total amount paid.**\nThis is the sum of the initial cost and the insurance cost.\nTotal paid = Initial cost + Insurance cost\nTotal paid = $1300 + $130 = $1430\n\nANSWER: 1430",
+  "score": 5,
+  "cost": 0.00247,
+  "expected": "1430",
+  "tokens": {
+    "input": 96,
+    "output": 235
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "# Step-by-step solution:\n\n**Step 1: Find how much yarn Mariah used**\n- Mariah used 1/4 of a skein\n- Yards used by Mariah = 1/4 \u00d7 364 = 91 yards\n\n**Step 2: Find how much yarn Grandma used**\n- Grandma used 1/2 of a skein\n- Yards used by Grandma = 1/2 \u00d7 364 = 182 yards\n\n**Step 3: Find the total yarn used**\n- Total = 91 + 182 = 273 yards\n\nANSWER: 273",
+  "score": 5,
+  "cost": 0.0007023999999999999,
+  "expected": "273",
+  "tokens": {
+    "input": 113,
+    "output": 153
+  }
+}

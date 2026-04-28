@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 49,
+  "response": "The family consists of:\n\n- 3 sisters, each 16\u202fyears old \u2192 total age for sisters = \\(3 \\times 16 = 48\\).\n- 2 brothers. One brother is 12\u202fyears old.  \n  This brother is half the age of the older brother, so the older brother is \\(2 \\times 12 = 24\\)\u202fyears old.  \n  Total age for brothers = \\(12 + 24 = 36\\).\n\nAdd the ages together:\n\n\\[\n\\text{Total age} = 48\\ (\\text{sisters}) + 36\\ (\\text{brothers}) = 84.\n\\]\n\n**Answer:**  \n\nANSWER: 84",
+  "score": 5,
+  "cost": 0.0021428000000000003,
+  "expected": "84",
+  "tokens": {
+    "input": 132,
+    "output": 454
+  }
+}

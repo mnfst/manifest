@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 14,
+  "response": "10 ducks \u00d7 3.5 = 35 pounds/week\n35/7 = 5 pounds/day\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.005325,
+  "expected": "5",
+  "tokens": {
+    "input": 115,
+    "output": 48
+  }
+}

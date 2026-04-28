@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "# Step-by-Step Solution\n\n**Step 1: Calculate the loan amount**\n- House value: $250,000\n- Loan = 40% of house value\n- Loan = 0.40 \u00d7 $250,000 = $100,000\n\n**Step 2: Calculate the amount used to pay off debts**\n- Amount used for debt = 60% of the loan\n- Amount used for debt = 0.60 \u00d7 $100,000 = $60,000\n\n**Step 3: Calculate the leftover money**\n- Leftover = Loan amount - Amount used for debt\n- Leftover = $100,000 - $60,000 = $40,000\n\nANSWER: 40000",
+  "score": 5,
+  "cost": 0.0007624,
+  "expected": "40,000",
+  "tokens": {
+    "input": 108,
+    "output": 169
+  }
+}

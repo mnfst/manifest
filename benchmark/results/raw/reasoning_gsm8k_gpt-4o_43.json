@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "reasoning_gsm8k",
+  "case": 43,
+  "response": "To solve the problem, we need to determine the ages of Martha and Jeff based on the information given about their relationships with Mike.\n\n1. **Identify Mike's Age:**\n   - Mike is 24 years old.\n\n2. **Determine Martha's Age:**\n   - According to the problem, Martha is 4 years younger than Mike.\n   - Therefore, Martha's age is calculated as follows:\n     \\[\n     \\text{Martha's age} = \\text{Mike's age} - 4 = 24 - 4 = 20\n     \\]\n\n3. **Determine Jeff's Age:**\n   - Jeff is 10 years older than Martha.\n   - Therefore, Jeff's age is calculated as follows:\n     \\[\n     \\text{Jeff's age} = \\text{Martha's age} + 10 = 20 + 10 = 30\n     \\]\n\nThus, Jeff is 30 years old.\n\nANSWER: 30",
+  "score": 5,
+  "cost": 0.0021925,
+  "expected": "30",
+  "tokens": {
+    "input": 85,
+    "output": 198
+  }
+}

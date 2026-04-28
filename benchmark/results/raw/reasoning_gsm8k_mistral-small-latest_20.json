@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 20,
+  "response": "Step 1: Determine the number of days in May.\nMay has 31 days.\n\nStep 2: Calculate the daily cost of fish food.\nJen has 3 fish, and each fish needs $1 worth of food per day.\nTotal daily cost = 3 fish * $1/fish/day = $3/day\n\nStep 3: Calculate the total cost for the month of May.\nTotal cost = Daily cost * Number of days in May\nTotal cost = $3/day * 31 days = $93\n\nANSWER: 93",
+  "score": 5,
+  "cost": 4.3799999999999994e-05,
+  "expected": "93",
+  "tokens": {
+    "input": 84,
+    "output": 118
+  }
+}

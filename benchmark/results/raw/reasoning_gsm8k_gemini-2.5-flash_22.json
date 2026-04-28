@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "reasoning_gsm8k",
+  "case": 22,
+  "response": "Here's a step-by-step solution to the problem:\n\n1.  **Calculate the total money Rafaela received in tips:**\n    Rafaela received a $20 tip from each of the forty customers.\n    Rafaela's tips = Number of customers \u00d7 Tip per customer\n    Rafaela's tips = 40 \u00d7 $20 = $800\n\n2.  **Calculate the total money Julieta received in tips:**\n    Julieta received 10% less money than Rafaela.\n    First, find 10% of Rafaela's tips:\n    10% of $800 = 0.10 \u00d7 $800 = $80\n    Now, subtract this amount from Rafaela's tips to find Julieta's tips:\n    Julieta's tips = Rafaela's tips - 10% of Rafaela's tips\n    Julieta's tips = $800 - $80 = $720\n    Alternatively, Julieta received 100% - 10% = 90% of Rafaela's tips:\n    Julieta's tips = 0.90 \u00d7 $800 = $720\n\n3.  **Calculate the total money Julieta and Rafaela received altogether:**\n    Total tips = Rafaela's tips + Julieta's tips\n    Total tips = $800 + $720 = $1520\n\nANSWER: 1520",
+  "score": 5,
+  "cost": 0.00021644999999999998,
+  "expected": "1520",
+  "tokens": {
+    "input": 91,
+    "output": 338
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "# Solving the Bumper Car Problem\n\nLet me work through this step by step.\n\n**Step 1: Find the number of green cars**\n- Red cars: 12\n- Green cars: 2 fewer than red cars\n- Green cars = 12 - 2 = 10\n\n**Step 2: Find the number of blue cars**\n- Blue cars: 3 times the number of green cars\n- Blue cars = 3 \u00d7 10 = 30\n\n**Step 3: Find the number of yellow cars**\n- Total cars: 75\n- Red + Green + Blue + Yellow = 75\n- 12 + 10 + 30 + Yellow = 75\n- 52 + Yellow = 75\n- Yellow = 75 - 52 = 23\n\nANSWER: 23",
+  "score": 5,
+  "cost": 0.0008576,
+  "expected": "23",
+  "tokens": {
+    "input": 117,
+    "output": 191
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "Let's solve the problem step by step:\n\n1. **Identify the initial number of students:**\n   Last year, there were 50 students enrolled in the calligraphy class.\n\n2. **Determine the percentage increase:**\n   This year, there was a 20% increase in enrollment.\n\n3. **Calculate the increase in number of students:**\n   To find the increase, multiply the initial number of students by the percentage increase (expressed as a decimal).\n   \\[\n   20\\% = 0.20\n   \\]\n   \\[\n   \\text{Increase} = 50 \\times 0.20 = 10\n   \\]\n\n4. **Add the increase to the initial number of students:**\n   \\[\n   \\text{Total enrollment this year} = 50 + 10 = 60\n   \\]\n\nANSWER: 60",
+  "score": 5,
+  "cost": 1.08e-05,
+  "expected": "60",
+  "tokens": {
+    "input": 82,
+    "output": 188
+  }
+}

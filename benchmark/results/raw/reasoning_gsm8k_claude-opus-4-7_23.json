@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 23,
+  "response": "900/20 = 45. New price = 65. 170*65 = 11050.\n\nANSWER: 11050",
+  "score": 4,
+  "cost": 0.005055,
+  "expected": "11050",
+  "tokens": {
+    "input": 142,
+    "output": 39
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "intent_clinc150",
+  "case": 1,
+  "response": "find_phone",
+  "score": 5,
+  "cost": 0.00080375,
+  "expected": "find_phone",
+  "tokens": {
+    "input": 619,
+    "output": 3
+  }
+}

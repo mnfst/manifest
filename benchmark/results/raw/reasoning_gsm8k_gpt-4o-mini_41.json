@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "Let \\( H \\) represent the number of copies Harald sold. According to the problem, Marilyn sold 10 times as many copies as Harald, which can be expressed as \\( 10H \\).\n\nThe total number of copies sold by both Marilyn and Harald is given as 88,000. Therefore, we can set up the following equation:\n\n\\[\nH + 10H = 88000\n\\]\n\nCombining the terms on the left side gives:\n\n\\[\n11H = 88000\n\\]\n\nTo find \\( H \\), we divide both sides of the equation by 11:\n\n\\[\nH = \\frac{88000}{11}\n\\]\n\nCalculating the right side:\n\n\\[\nH = 8000\n\\]\n\nThus, Harald sold 8,000 copies. \n\nNow, we can write the final answer in the required format:\n\nANSWER: 8000",
+  "score": 5,
+  "cost": 0.00011895,
+  "expected": "8000",
+  "tokens": {
+    "input": 73,
+    "output": 180
+  }
+}

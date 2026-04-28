@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "Kim: 430+320=750\nAlexandra: 430\nMaryam: 300+400=700\nSarah: 300\nTotal: 750+430+700+300=2180\n\nANSWER: 2180",
+  "score": 3,
+  "cost": 0.007215,
+  "expected": "2280",
+  "tokens": {
+    "input": 141,
+    "output": 68
+  }
+}

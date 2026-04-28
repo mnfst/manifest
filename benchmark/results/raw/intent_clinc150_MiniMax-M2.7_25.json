@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "intent_clinc150",
+  "case": 25,
+  "response": "shopping_list",
+  "score": 0,
+  "cost": 0.0013519,
+  "expected": "shopping_list_update",
+  "tokens": {
+    "input": 553,
+    "output": 169
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "To solve the problem, we will break it down step by step.\n\n1. **Understanding the quantities**:\n   - Twenty dozen cups means \\( 20 \\times 12 = 240 \\) cups.\n   - Half a dozen plates means \\( \\frac{1}{2} \\times 12 = 6 \\) plates.\n\n2. **Calculating the total cost of the plates**:\n   - Each plate costs $6000.\n   - Therefore, the total cost of 6 plates is:\n     \\[\n     6 \\times 6000 = 36000 \\text{ dollars}\n     \\]\n\n3. **Setting up the equation for the cost of cups**:\n   - Let \\( C \\) be the total cost of the 240 cups.\n   - According to the problem, the cost of the cups is $1200 less than the total cost of the plates:\n     \\[\n     C = 36000 - 1200\n     \\]\n\n4. **Calculating the total cost of the cups**:\n   - Now we calculate \\( C \\):\n     \\[\n     C = 36000 - 1200 = 34800 \\text{ dollars}\n     \\]\n\n5. **Calculating the cost per cup**:\n   - To find the cost per cup, we divide the total cost of the cups by the number of cups:\n     \\[\n     \\text{Cost per cup} = \\frac{C}{240} = \\frac{34800}{240}\n     \\]\n\n6. **Performing the division**:\n   - Now we calculate \\( \\frac{34800}{240} \\):\n     \\[\n     \\frac{34800}{240} = 145\n     \\]\n\nThus, the total cost of buying each cup is $145.\n\nFinal answer:\nANSWER: 145",
+  "score": 4,
+  "cost": 0.0002361,
+  "expected": "145",
+  "tokens": {
+    "input": 74,
+    "output": 375
+  }
+}

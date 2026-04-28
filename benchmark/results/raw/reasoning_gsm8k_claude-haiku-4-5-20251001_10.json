@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 10,
+  "response": "# Step-by-Step Solution\n\n**Step 1: Determine the water removal rate for each setting.**\n\n- Low setting: 1 liter per day\n- Medium setting: twice as much as low = 2 \u00d7 1 = 2 liters per day\n- High setting: twice as much as medium = 2 \u00d7 2 = 4 liters per day\n\n**Step 2: Calculate water removed during each period.**\n\n- Low setting (3 days): 3 days \u00d7 1 liter/day = 3 liters\n- Medium setting (3 days): 3 days \u00d7 2 liters/day = 6 liters\n- High setting (5 days): 5 days \u00d7 4 liters/day = 20 liters\n\n**Step 3: Calculate total water removed.**\n\nTotal = 3 + 6 + 20 = 29 liters\n\nANSWER: 29",
+  "score": 5,
+  "cost": 0.0010552,
+  "expected": "29",
+  "tokens": {
+    "input": 214,
+    "output": 221
+  }
+}

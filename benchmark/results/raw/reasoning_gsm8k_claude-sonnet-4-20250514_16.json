@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "I need to find how many books each child received.\n\nLet me work through this step by step:\n\nStep 1: Find the total number of books Sarah bought.\n- Sarah spent $300 total\n- Each book cost $15\n- Number of books = Total spent \u00f7 Cost per book\n- Number of books = $300 \u00f7 $15 = 20 books\n\nStep 2: Find how many books each child received.\n- Sarah has 4 kids\n- She gave an equal number of books to each child\n- Books per child = Total books \u00f7 Number of children\n- Books per child = 20 \u00f7 4 = 5 books\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.002736,
+  "expected": "5",
+  "tokens": {
+    "input": 92,
+    "output": 164
+  }
+}

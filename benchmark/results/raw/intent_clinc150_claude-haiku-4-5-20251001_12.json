@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "intent_clinc150",
+  "case": 12,
+  "response": "oil_change_how",
+  "score": 5,
+  "cost": 0.0005352,
+  "expected": "oil_change_how",
+  "tokens": {
+    "input": 629,
+    "output": 8
+  }
+}

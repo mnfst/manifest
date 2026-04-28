@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "Here is the step-by-step solution to the problem:\n\n**Step 1: Identify the number of boys.**\nThe problem states that the classroom has 30 boys.\nNumber of boys = 30\n\n**Step 2: Calculate the number of girls.**\nThe problem states there are 3 times as many girls as boys.\nNumber of girls = 3 * (Number of boys)\nNumber of girls = 3 * 30 = 90\n\n**Step 3: Calculate the number of nongendered children.**\nThe problem states there are 1/10 as many nongendered children as boys.\nNumber of nongendered children = (1/10) * (Number of boys)\nNumber of nongendered children = (1/10) * 30 = 3\n\n**Step 4: Calculate the total number of children.**\nTo find the total, add the number of boys, girls, and nongendered children together.\nTotal children = (Number of boys) + (Number of girls) + (Number of nongendered children)\nTotal children = 30 + 90 + 3 = 123\n\nANSWER: 123",
+  "score": 4,
+  "cost": 0.00271875,
+  "expected": "123",
+  "tokens": {
+    "input": 87,
+    "output": 261
+  }
+}

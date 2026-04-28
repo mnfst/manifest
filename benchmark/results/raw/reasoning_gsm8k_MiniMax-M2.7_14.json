@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 14,
+  "response": "**Step\u2011by\u2011step solution**\n\n1. **Find the weekly requirement for one duck.**  \n   The problem states that each duck needs **3.5\u202flb of insects per week**.\n\n2. **Scale the requirement to the whole flock.**  \n   There are ten ducks, so multiply the single\u2011duck amount by 10:  \n   \\[\n   3.5\\ \\text{lb/duck/week} \\times 10 = 35\\ \\text{lb/week for the flock}\n   \\]\n\n3. **Convert the weekly amount to a daily amount.**  \n   A week contains 7 days, so divide the weekly total by 7:  \n   \\[\n   \\frac{35\\ \\text{lb}}{7\\ \\text{days}} = 5\\ \\text{lb/day}\n   \\]\n\n4. **Result.**  \n   The flock of ten ducks needs **5 pounds of insects each day**.\n\n**Answer**\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.0019514,
+  "expected": "5",
+  "tokens": {
+    "input": 110,
+    "output": 416
+  }
+}

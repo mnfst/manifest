@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "reasoning_gsm8k",
+  "case": 49,
+  "response": "To solve this problem, we need to find the ages of all the siblings and then sum them up.\n\n1. **Ages of the Sisters:**\n   - There are 3 sisters, and each sister is 16 years old.\n   - Therefore, the total age of the sisters is:\n     \\[\n     3 \\times 16 = 48\n     \\]\n\n2. **Ages of the Brothers:**\n   - One of the brothers is 12 years old.\n   - The problem states that this brother's age is half the age of the older brother.\n   - Let the age of the older brother be \\( x \\).\n   - According to the problem, \\( \\frac{x}{2} = 12 \\).\n   - Solving for \\( x \\), we multiply both sides by 2:\n     \\[\n     x = 12 \\times 2 = 24\n     \\]\n   - Therefore, the older brother is 24 years old.\n\n3. **Total Age of the Brothers:**\n   - The younger brother is 12 years old, and the older brother is 24 years old.\n   - Therefore, the total age of the brothers is:\n     \\[\n     12 + 24 = 36\n     \\]\n\n4. **Total Age of All Siblings:**\n   - Now, we add the total age of the sisters and the total age of the brothers:\n     \\[\n     48 + 36 = 84\n     \\]\n\nThus, the total age of all the siblings is 84.\n\nANSWER: 84",
+  "score": 4,
+  "cost": 0.0034725,
+  "expected": "84",
+  "tokens": {
+    "input": 97,
+    "output": 323
+  }
+}

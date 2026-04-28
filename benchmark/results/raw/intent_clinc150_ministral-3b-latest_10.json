@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "intent_clinc150",
+  "case": 10,
+  "response": "book_hotel",
+  "score": 0,
+  "cost": 2.236e-05,
+  "expected": "pto_request",
+  "tokens": {
+    "input": 555,
+    "output": 4
+  }
+}

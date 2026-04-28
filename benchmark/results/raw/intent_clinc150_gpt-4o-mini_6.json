@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "intent_clinc150",
+  "case": 6,
+  "response": "confirm_reservation",
+  "score": 5,
+  "cost": 7.919999999999999e-05,
+  "expected": "confirm_reservation",
+  "tokens": {
+    "input": 516,
+    "output": 3
+  }
+}

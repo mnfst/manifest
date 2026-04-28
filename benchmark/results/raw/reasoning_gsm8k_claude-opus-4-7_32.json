@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 32,
+  "response": "Length = 3 yards = 9 feet. Width = 360/9 = 40 feet. Perimeter = 2(9+40) = 98.\n\nANSWER: 98",
+  "score": 4,
+  "cost": 0.006195,
+  "expected": "98",
+  "tokens": {
+    "input": 113,
+    "output": 60
+  }
+}

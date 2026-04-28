@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "reasoning_gsm8k",
+  "case": 9,
+  "response": "Let's solve the problem step by step.\n\n1. **Bo's crabs**: We are given that Bo has 40 crabs.\n   \\[\n   \\text{Bo} = 40\n   \\]\n\n2. **Monic's crabs**: Monic has 4 fewer crabs than Bo.\n   \\[\n   \\text{Monic} = \\text{Bo} - 4 = 40 - 4 = 36\n   \\]\n\n3. **Rani's crabs**: Rani has 10 more crabs than Monic.\n   \\[\n   \\text{Rani} = \\text{Monic} + 10 = 36 + 10 = 46\n   \\]\n\n4. **Total crabs**: Add the number of crabs each person has.\n   \\[\n   \\text{Total} = \\text{Bo} + \\text{Monic} + \\text{Rani} = 40 + 36 + 46 = 122\n   \\]\n\nANSWER: 122",
+  "score": 5,
+  "cost": 1.2440000000000001e-05,
+  "expected": "122",
+  "tokens": {
+    "input": 82,
+    "output": 229
+  }
+}

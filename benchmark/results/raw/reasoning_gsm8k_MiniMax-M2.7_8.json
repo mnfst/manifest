@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "Step 1: Calculate the amount of increase.  \n\\(20\\% \\times 50 = 0.20 \\times 50 = 10\\).\n\nStep 2: Add the increase to last year\u2019s enrollment.  \n\\(50 + 10 = 60\\).\n\nThus, the number of students enrolled this year is **60**.\n\nANSWER: 60",
+  "score": 5,
+  "cost": 0.0014102000000000003,
+  "expected": "60",
+  "tokens": {
+    "input": 94,
+    "output": 297
+  }
+}

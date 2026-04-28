@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 20,
+  "response": "I need to find how much Jen spends on fish food in May.\n\nLet me break this down step by step:\n\n1) First, I need to identify the given information:\n   - Jen has 3 fish\n   - Each fish needs $1 worth of food per day\n   - I need to find the cost for the month of May\n\n2) Next, I need to determine how many days are in May:\n   - May has 31 days\n\n3) Now I can calculate the daily cost:\n   - 3 fish \u00d7 $1 per fish per day = $3 per day\n\n4) Finally, I can calculate the total cost for May:\n   - $3 per day \u00d7 31 days = $93\n\nANSWER: 93",
+  "score": 5,
+  "cost": 0.002835,
+  "expected": "93",
+  "tokens": {
+    "input": 80,
+    "output": 173
+  }
+}

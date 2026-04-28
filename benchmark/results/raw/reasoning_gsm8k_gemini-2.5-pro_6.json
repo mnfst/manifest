@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 6,
+  "response": "Here is the step-by-step solution:\n\n**Step 1: Find the brother's current age.**\nAnn is 9 years old. Her brother is twice her age, which means we need to multiply Ann's age by 2.\n9 years * 2 = 18 years.\nSo, the brother is currently 18 years old.\n\n**Step 2: Calculate the brother's age in 3 years.**\nThe question asks for the brother's age in 3 years. To find this, we add 3 years to his current age.\n18 years + 3 years = 21 years.\nIn 3 years, the brother will be 21 years old.\n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.00167875,
+  "expected": "21",
+  "tokens": {
+    "input": 63,
+    "output": 160
+  }
+}

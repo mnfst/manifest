@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 40,
+  "response": "April has 30 days. First half: 15 days at x, second half: 15 days at 2x.\n15x + 30x = 1125\n45x = 1125, x = 25\nSecond half daily: 50\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.00753,
+  "expected": "50",
+  "tokens": {
+    "input": 132,
+    "output": 74
+  }
+}

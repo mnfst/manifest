@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 43,
+  "response": "# Step-by-step solution\n\n**Step 1: Find Martha's age**\n- Mike is 24 years old\n- Martha is 4 years younger than Mike\n- Martha's age = 24 - 4 = 20 years old\n\n**Step 2: Find Jeff's age**\n- Jeff is 10 years older than Martha\n- Jeff's age = 20 + 10 = 30 years old\n\nANSWER: 30",
+  "score": 5,
+  "cost": 0.0005016,
+  "expected": "30",
+  "tokens": {
+    "input": 92,
+    "output": 107
+  }
+}

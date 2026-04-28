@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 42,
+  "response": "Step 1: Determine the number of children per school.\n- Each school has 7 rows.\n- Each row has 8 children.\n- So, children per school = 7 rows \u00d7 8 children/row = 56 children.\n\nStep 2: Calculate the total number of children for all schools.\n- There are 5 different schools.\n- Total children = 5 schools \u00d7 56 children/school = 280 children.\n\nANSWER: 280",
+  "score": 5,
+  "cost": 4.1200000000000005e-05,
+  "expected": "280",
+  "tokens": {
+    "input": 106,
+    "output": 102
+  }
+}

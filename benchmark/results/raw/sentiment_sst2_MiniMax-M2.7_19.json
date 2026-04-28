@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "sentiment_sst2",
+  "case": 19,
+  "response": "positive",
+  "score": 5,
+  "cost": 0.00038940000000000003,
+  "expected": "positive",
+  "tokens": {
+    "input": 66,
+    "output": 72
+  }
+}

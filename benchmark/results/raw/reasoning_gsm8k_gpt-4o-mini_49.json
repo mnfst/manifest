@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "reasoning_gsm8k",
+  "case": 49,
+  "response": "To find the total age of all the siblings, we need to calculate the ages of each sibling and then sum them up.\n\n1. **Ages of the sisters**: \n   - There are 3 sisters, and each sister is 16 years old.\n   - Total age of the sisters = Number of sisters \u00d7 Age of each sister\n   - Total age of the sisters = 3 \u00d7 16 = 48 years\n\n2. **Ages of the brothers**:\n   - One brother is 12 years old.\n   - The other brother is older and is twice the age of the younger brother (since the younger brother is 12).\n   - Age of the older brother = 2 \u00d7 Age of the younger brother = 2 \u00d7 12 = 24 years\n\n3. **Total age of the brothers**:\n   - Total age of the brothers = Age of younger brother + Age of older brother\n   - Total age of the brothers = 12 + 24 = 36 years\n\n4. **Total age of all siblings**:\n   - Total age of all siblings = Total age of sisters + Total age of brothers\n   - Total age of all siblings = 48 + 36 = 84 years\n\nThus, the total age of all the siblings is 84 years.\n\nFinal answer:\nANSWER: 84",
+  "score": 5,
+  "cost": 0.00017835,
+  "expected": "84",
+  "tokens": {
+    "input": 97,
+    "output": 273
+  }
+}

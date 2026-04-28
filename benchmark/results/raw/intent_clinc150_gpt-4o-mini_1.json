@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "intent_clinc150",
+  "case": 1,
+  "response": "find_phone",
+  "score": 5,
+  "cost": 7.815e-05,
+  "expected": "find_phone",
+  "tokens": {
+    "input": 513,
+    "output": 2
+  }
+}

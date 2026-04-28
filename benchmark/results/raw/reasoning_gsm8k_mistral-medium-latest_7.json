@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "Let's solve the problem step by step.\n\n### Understanding the Problem\nWe need to find the cost of each cup given the following information:\n1. Twenty dozen cups cost $1200 less than the total cost of half a dozen plates.\n2. Each plate is sold at $6000.\n\n### Step 1: Calculate the Total Cost of the Plates\nFirst, determine how many plates are in half a dozen:\n- Half a dozen = 6 plates.\n\nNow, calculate the total cost of the plates:\n- Cost per plate = $6000.\n- Total cost of plates = Number of plates \u00d7 Cost per plate = 6 \u00d7 $6000 = $36,000.\n\n### Step 2: Calculate the Total Cost of the Cups\nThe problem states that twenty dozen cups cost $1200 less than the total cost of the plates. So:\n- Total cost of cups = Total cost of plates - $1200 = $36,000 - $1200 = $34,800.\n\n### Step 3: Calculate the Number of Cups\nTwenty dozen cups means:\n- 1 dozen = 12 cups.\n- 20 dozen = 20 \u00d7 12 = 240 cups.\n\n### Step 4: Calculate the Cost per Cup\nNow, divide the total cost of the cups by the number of cups to find the cost per cup:\n- Cost per cup = Total cost of cups / Number of cups = $34,800 / 240 = $145.\n\n### Final Answer\nANSWER: 145",
+  "score": 0,
+  "cost": 0.0007327999999999999,
+  "expected": "145",
+  "tokens": {
+    "input": 77,
+    "output": 351
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "Here is the step-by-step solution:\n\n**Step 1: Calculate the number of cards collected in the first month.**\nElaine initially had 20 cards. She collected three times that number.\n20 cards * 3 = 60 cards.\nSo, she collected 60 cards in the first month.\n\n**Step 2: Calculate the number of cards collected in the second month.**\nShe collected 20 fewer cards than in the first month.\n60 cards - 20 cards = 40 cards.\nSo, she collected 40 cards in the second month.\n\n**Step 3: Calculate the number of cards collected in the third month.**\nFirst, find the combined number of cards from the first and second months.\n60 cards (first month) + 40 cards (second month) = 100 cards.\nShe collected twice this combined number.\n100 cards * 2 = 200 cards.\nSo, she collected 200 cards in the third month.\n\n**Step 4: Calculate the total number of cards Elaine has now.**\nThis is the sum of her initial cards and the cards collected in all three months.\n20 (initial) + 60 (first month) + 40 (second month) + 200 (third month) = 320 cards.\n\nANSWER: 320",
+  "score": 5,
+  "cost": 0.00319,
+  "expected": "320",
+  "tokens": {
+    "input": 112,
+    "output": 305
+  }
+}

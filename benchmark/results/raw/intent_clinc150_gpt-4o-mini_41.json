@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "intent_clinc150",
+  "case": 41,
+  "response": "bill_due",
+  "score": 5,
+  "cost": 7.755e-05,
+  "expected": "bill_due",
+  "tokens": {
+    "input": 509,
+    "output": 2
+  }
+}

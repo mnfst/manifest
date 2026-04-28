@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "I need to find the total number of leftover burritos by calculating how many were consumed and subtracting from the original amount.\n\nGiven information:\n- Total burritos ordered: 600\n- Number of students: 50\n- Burritos per student: 10\n- Burritos eaten by Mr. George: 20\n\nStep 1: Calculate the total burritos eaten by students.\nBurritos eaten by students = Number of students \u00d7 Burritos per student\nBurritos eaten by students = 50 \u00d7 10 = 500\n\nStep 2: Calculate the total burritos consumed.\nTotal burritos consumed = Burritos eaten by students + Burritos eaten by Mr. George\nTotal burritos consumed = 500 + 20 = 520\n\nStep 3: Calculate the leftover burritos.\nLeftover burritos = Total burritos ordered - Total burritos consumed\nLeftover burritos = 600 - 520 = 80\n\nANSWER: 80",
+  "score": 5,
+  "cost": 0.003963,
+  "expected": "80",
+  "tokens": {
+    "input": 116,
+    "output": 241
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "reasoning_gsm8k",
+  "case": 49,
+  "response": "Let's solve the problem step by step.\n\n1. **Number of siblings**:\n   - Brothers: 2\n   - Sisters: 3\n   - Total siblings: 2 brothers + 3 sisters = 5 siblings.\n\n2. **Ages of the sisters**:\n   - All 3 sisters are the same age, which is 16.\n   - Total age of sisters: 3 sisters \u00d7 16 years = 48 years.\n\n3. **Ages of the brothers**:\n   - One brother is 12 years old.\n   - The other brother is twice as old as the 12-year-old brother (since 12 is half the age of the older brother).\n   - Age of the older brother: 12 \u00d7 2 = 24 years.\n   - Total age of brothers: 12 years + 24 years = 36 years.\n\n4. **Total age of all siblings**:\n   - Total age of sisters: 48 years.\n   - Total age of brothers: 36 years.\n   - Combined total age: 48 + 36 = 84 years.\n\nANSWER: 84",
+  "score": 5,
+  "cost": 0.0005332000000000001,
+  "expected": "84",
+  "tokens": {
+    "input": 98,
+    "output": 247
+  }
+}

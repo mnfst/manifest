@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 23,
+  "response": "# Step-by-Step Solution\n\n**Step 1: Find the original cost per balloon**\n\nTotal cost for 20 balloons = $900\n\nCost per balloon = $900 \u00f7 20 = $45 per balloon\n\n**Step 2: Find the new cost per balloon after the increase**\n\nPrice increase = $20 per balloon\n\nNew cost per balloon = $45 + $20 = $65 per balloon\n\n**Step 3: Calculate the cost to fill 170 balloons at the new price**\n\nCost for 170 balloons = 170 \u00d7 $65 = $11,050\n\nANSWER: 11050",
+  "score": 5,
+  "cost": 0.0006824,
+  "expected": "11050",
+  "tokens": {
+    "input": 108,
+    "output": 149
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "reasoning_gsm8k",
+  "case": 3,
+  "response": "Here's a step-by-step solution to the problem:\n\n1.  **Determine the age of the second son:**\n    The first son is 12 years old. The second son is 4 years younger.\n    Age of second son = 12 - 4 = 8 years old.\n\n2.  **Calculate the total number of candles needed:**\n    James needs 12 candles for the first son and 8 candles for the second son.\n    Total candles needed = 12 + 8 = 20 candles.\n\n3.  **Determine how many packs of candles James needs to buy:**\n    Each pack contains 5 candles. James needs 20 candles in total.\n    Number of packs = Total candles needed / Candles per pack\n    Number of packs = 20 / 5 = 4 packs.\n\n4.  **Calculate the total cost:**\n    Each pack costs $3. James needs to buy 4 packs.\n    Total cost = Number of packs * Cost per pack\n    Total cost = 4 * $3 = $12.\n\nANSWER: 12",
+  "score": 5,
+  "cost": 0.0001581,
+  "expected": "12",
+  "tokens": {
+    "input": 86,
+    "output": 242
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "reasoning_gsm8k",
+  "case": 12,
+  "response": "To solve this problem, we need to calculate the total time Jim spends on watching TV and reading over a period of 4 weeks.\n\n1. **Calculate the time spent on TV per session:**\n   - Jim spends 2 hours watching TV each time.\n\n2. **Calculate the time spent reading per session:**\n   - Jim reads for half as long as he watches TV.\n   - Therefore, he reads for \\( \\frac{2}{2} = 1 \\) hour each time.\n\n3. **Calculate the total time spent on TV and reading per session:**\n   - Total time per session = Time spent on TV + Time spent reading\n   - Total time per session = 2 hours (TV) + 1 hour (reading) = 3 hours\n\n4. **Calculate the total time spent per week:**\n   - Jim does this 3 times a week.\n   - Total time per week = 3 sessions/week \u00d7 3 hours/session = 9 hours/week\n\n5. **Calculate the total time spent over 4 weeks:**\n   - Total time over 4 weeks = 4 weeks \u00d7 9 hours/week = 36 hours\n\nTherefore, Jim spends a total of 36 hours on TV and reading in 4 weeks.\n\nANSWER: 36",
+  "score": 5,
+  "cost": 0.00284,
+  "expected": "36",
+  "tokens": {
+    "input": 88,
+    "output": 262
+  }
+}

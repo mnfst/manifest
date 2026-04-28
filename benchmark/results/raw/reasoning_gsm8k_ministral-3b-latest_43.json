@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "reasoning_gsm8k",
+  "case": 43,
+  "response": "Let's solve the problem step by step.\n\n1. **Given Information:**\n   - Mike's age = 24 years\n   - Martha is 4 years younger than Mike.\n   - Jeff is 10 years older than Martha.\n\n2. **Find Martha's age:**\n   Since Martha is 4 years younger than Mike:\n   Martha's age = Mike's age - 4\n   Martha's age = 24 - 4 = 20 years\n\n3. **Find Jeff's age:**\n   Jeff is 10 years older than Martha:\n   Jeff's age = Martha's age + 10\n   Jeff's age = 20 + 10 = 30 years\n\nANSWER: 30",
+  "score": 5,
+  "cost": 9.640000000000001e-06,
+  "expected": "30",
+  "tokens": {
+    "input": 86,
+    "output": 155
+  }
+}

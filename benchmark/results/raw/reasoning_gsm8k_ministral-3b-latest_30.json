@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "Let's solve the problem step by step.\n\n1. **Adam's points**: Given as 50 points.\n\n2. **Betty's points**: Betty collected 30% more points than Adam.\n   - 30% of Adam's points = 0.30 * 50 = 15 points.\n   - Betty's points = Adam's points + 15 = 50 + 15 = 65 points.\n\n3. **Tom's points**: Tom has 30 points less than Betty.\n   - Tom's points = Betty's points - 30 = 65 - 30 = 35 points.\n\n4. **Martha's points**: Martha collected 3 times more points than Tom.\n   - 3 times Tom's points = 3 * 35 = 105 points.\n\n5. **Total points collected by the class**:\n   - Total = Adam + Betty + Martha + Tom = 50 + 65 + 105 + 35 = 255 points.\n\n6. **Points missing to reach the threshold**:\n   - Minimum threshold = 400 points.\n   - Points missing = 400 - 255 = 145 points.\n\nANSWER: 145",
+  "score": 2,
+  "cost": 1.7e-05,
+  "expected": "145",
+  "tokens": {
+    "input": 149,
+    "output": 276
+  }
+}

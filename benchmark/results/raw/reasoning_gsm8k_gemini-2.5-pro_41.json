@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "Here is the step-by-step solution:\n\n**Step 1: Define the variables.**\nLet H be the number of copies Harald sold.\nLet M be the number of copies Marilyn sold.\n\n**Step 2: Set up equations based on the problem statement.**\nThe problem states that Marilyn's record sold 10 times as many copies as Harald's. We can write this as:\nM = 10 * H\n\nThe problem also states that they sold a combined total of 88,000 copies. We can write this as:\nM + H = 88,000\n\n**Step 3: Solve the system of equations.**\nWe can substitute the first equation (M = 10 * H) into the second equation:\n(10 * H) + H = 88,000\n\n**Step 4: Simplify the equation and solve for H.**\nCombine the terms with H:\n11 * H = 88,000\n\nNow, divide both sides by 11 to find the value of H:\nH = 88,000 / 11\nH = 8,000\n\nSo, Harald sold 8,000 copies.\n\nANSWER: 8000",
+  "score": 5,
+  "cost": 0.00286375,
+  "expected": "8000",
+  "tokens": {
+    "input": 75,
+    "output": 277
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 37,
+  "response": "**Step\u2011by\u2011step solution**\n\n1. **Find A\u2019s votes**  \n   A received 20\u202f% of the 100 votes:  \n   \\[\n   \\text{A's votes}=0.20 \\times 100 = 20.\n   \\]\n\n2. **Find B\u2019s votes**  \n   B received \u201c50\u202f% more than A\u2019s votes\u201d.  \n   This means B\u2019s votes are A\u2019s votes plus an additional 50\u202f% of A\u2019s votes:  \n   \\[\n   \\text{B's votes}=A + 0.50 \\times A = 1.5 \\times A.\n   \\]  \n   Substituting A\u2019s count:  \n   \\[\n   \\text{B's votes}=1.5 \\times 20 = 30.\n   \\]\n\n3. **Find C\u2019s votes**  \n   The remaining votes after A and B are for C:  \n   \\[\n   \\text{C's votes}= \\text{total votes} - (\\text{A's votes} + \\text{B's votes})\n   = 100 - (20 + 30) = 100 - 50 = 50.\n   \\]\n\n**Answer**\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.0023452000000000004,
+  "expected": "50",
+  "tokens": {
+    "input": 128,
+    "output": 501
+  }
+}

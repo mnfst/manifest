@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "intent_clinc150",
+  "case": 13,
+  "response": "nutrition_info",
+  "score": 5,
+  "cost": 9.419999999999999e-05,
+  "expected": "nutrition_info",
+  "tokens": {
+    "input": 616,
+    "output": 3
+  }
+}

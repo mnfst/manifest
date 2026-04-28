@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "intent_clinc150",
+  "case": 18,
+  "response": "current_location",
+  "score": 5,
+  "cost": 0.0009009,
+  "expected": "current_location",
+  "tokens": {
+    "input": 551,
+    "output": 67
+  }
+}

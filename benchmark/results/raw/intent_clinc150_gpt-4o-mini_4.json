@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "intent_clinc150",
+  "case": 4,
+  "response": "uber",
+  "score": 5,
+  "cost": 7.814999999999999e-05,
+  "expected": "uber",
+  "tokens": {
+    "input": 517,
+    "output": 1
+  }
+}

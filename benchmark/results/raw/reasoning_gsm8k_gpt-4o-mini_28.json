@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "Let \\( x \\) be the number of people who got on the bus at the terminal.\n\n1. Initially, there are \\( x \\) people on the bus.\n2. At the first bus stop, 5 more people got on the bus. So, the total number of people after the first stop is:\n   \\[\n   x + 5\n   \\]\n3. At the second bus stop, 7 people got down, and then 8 more got in. The number of people after 7 got down is:\n   \\[\n   (x + 5) - 7 = x - 2\n   \\]\n   Then, after 8 more got in, the total becomes:\n   \\[\n   (x - 2) + 8 = x + 6\n   \\]\n4. We know that there are a total of 20 people heading to the third stop. Therefore, we can set up the equation:\n   \\[\n   x + 6 = 20\n   \\]\n5. To find \\( x \\), we solve the equation:\n   \\[\n   x = 20 - 6\n   \\]\n   \\[\n   x = 14\n   \\]\n\nThus, the number of people who got on the bus at the terminal is 14.\n\nFinal answer:\nANSWER: 14",
+  "score": 5,
+  "cost": 0.00018135,
+  "expected": "14",
+  "tokens": {
+    "input": 109,
+    "output": 275
+  }
+}

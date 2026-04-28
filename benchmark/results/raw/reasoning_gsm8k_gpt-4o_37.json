@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "reasoning_gsm8k",
+  "case": 37,
+  "response": "To solve this problem, we need to determine how many votes each candidate received and then find out how many votes candidate C got.\n\n1. **Determine the number of votes candidate A received:**\n   - Candidate A received 20% of the votes.\n   - Since there were 100 voters, candidate A received:\n     \\[\n     0.20 \\times 100 = 20 \\text{ votes}\n     \\]\n\n2. **Determine the number of votes candidate B received:**\n   - Candidate B received 50% more votes than candidate A.\n   - 50% more than candidate A's votes is calculated as:\n     \\[\n     0.50 \\times 20 = 10 \\text{ votes}\n     \\]\n   - Therefore, candidate B received:\n     \\[\n     20 + 10 = 30 \\text{ votes}\n     \\]\n\n3. **Determine the number of votes candidate C received:**\n   - The total number of votes is 100.\n   - The votes received by candidates A and B together are:\n     \\[\n     20 + 30 = 50 \\text{ votes}\n     \\]\n   - Therefore, the number of votes candidate C received is:\n     \\[\n     100 - 50 = 50 \\text{ votes}\n     \\]\n\nThus, candidate C received 50 votes.\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.00307,
+  "expected": "50",
+  "tokens": {
+    "input": 96,
+    "output": 283
+  }
+}

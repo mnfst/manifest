@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "1. First, calculate the total time Tom spends sailing away from the starting point.\n   - From 1 PM to 4 PM is 3 hours.\n\n2. Determine the distance Tom travels away from the starting point.\n   - Speed = 10 miles per hour\n   - Time = 3 hours\n   - Distance = Speed \u00d7 Time = 10 mph \u00d7 3 hours = 30 miles\n\n3. Calculate the time it takes Tom to return.\n   - Return speed = 6 miles per hour\n   - Distance = 30 miles (same distance as the trip away)\n   - Time = Distance \u00f7 Speed = 30 miles \u00f7 6 mph = 5 hours\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.001102,
+  "expected": "5",
+  "tokens": {
+    "input": 89,
+    "output": 154
+  }
+}

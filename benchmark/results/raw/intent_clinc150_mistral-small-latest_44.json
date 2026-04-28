@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "intent_clinc150",
+  "case": 44,
+  "response": "insurance_change",
+  "score": 5,
+  "cost": 5.84e-05,
+  "expected": "insurance_change",
+  "tokens": {
+    "input": 572,
+    "output": 4
+  }
+}

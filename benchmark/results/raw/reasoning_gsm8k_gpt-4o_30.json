@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "To solve this problem, we need to calculate the total points collected by the students and then determine how many more points are needed to reach the threshold of 400 points.\n\n1. **Calculate Betty's points:**\n   - Adam has 50 points.\n   - Betty collected 30% more points than Adam.\n   - 30% of Adam's points is \\(0.30 \\times 50 = 15\\).\n   - Therefore, Betty has \\(50 + 15 = 65\\) points.\n\n2. **Calculate Tom's points:**\n   - Tom has 30 points less than Betty.\n   - Since Betty has 65 points, Tom has \\(65 - 30 = 35\\) points.\n\n3. **Calculate Martha's points:**\n   - Martha collected 3 times more points than Tom.\n   - Tom has 35 points, so Martha has \\(3 \\times 35 = 105\\) points.\n\n4. **Calculate the total points collected by the class:**\n   - Adam: 50 points\n   - Betty: 65 points\n   - Tom: 35 points\n   - Martha: 105 points\n   - Total points = \\(50 + 65 + 35 + 105 = 255\\) points\n\n5. **Determine how many more points are needed:**\n   - The class needs a minimum of 400 points to go on the trip.\n   - They currently have 255 points.\n   - Points needed = \\(400 - 255 = 145\\) points\n\nTherefore, the class is missing 145 points to reach the threshold.\n\nANSWER: 145",
+  "score": 3,
+  "cost": 0.0036925,
+  "expected": "145",
+  "tokens": {
+    "input": 145,
+    "output": 333
+  }
+}

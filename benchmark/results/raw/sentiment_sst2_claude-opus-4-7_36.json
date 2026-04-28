@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "sentiment_sst2",
+  "case": 36,
+  "response": "negative",
+  "score": 5,
+  "cost": 0.0015,
+  "expected": "negative",
+  "tokens": {
+    "input": 70,
+    "output": 6
+  }
+}

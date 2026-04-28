@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "Step 1: Jamaal starts with an 8-pound weight.\nStep 2: He increases the weight by 50%. To find 50% of 8 pounds, calculate 0.50 * 8 = 4 pounds.\nStep 3: Add the increase to the original weight: 8 + 4 = 12 pounds.\nStep 4: The new weight is too heavy, so he reduces it by 2 pounds: 12 - 2 = 10 pounds.\n\nANSWER: 10",
+  "score": 5,
+  "cost": 4.62e-05,
+  "expected": "10",
+  "tokens": {
+    "input": 114,
+    "output": 116
+  }
+}

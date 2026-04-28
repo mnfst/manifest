@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "intent_clinc150",
+  "case": 23,
+  "response": "account_blocked",
+  "score": 5,
+  "cost": 0.0018557,
+  "expected": "account_blocked",
+  "tokens": {
+    "input": 555,
+    "output": 283
+  }
+}

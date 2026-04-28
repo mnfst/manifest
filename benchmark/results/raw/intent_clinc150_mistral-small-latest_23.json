@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "intent_clinc150",
+  "case": 23,
+  "response": "account_blocked",
+  "score": 5,
+  "cost": 5.8200000000000005e-05,
+  "expected": "account_blocked",
+  "tokens": {
+    "input": 570,
+    "output": 4
+  }
+}

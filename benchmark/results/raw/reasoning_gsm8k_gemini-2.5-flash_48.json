@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "Here's a step-by-step solution:\n\n1.  **Starting weight:** Jamaal begins with an 8-pound weight.\n2.  **Increase in weight:** He increases the weight by 50%.\n    *   50% of 8 pounds = 0.50 * 8 pounds = 4 pounds.\n3.  **New heavier weight:** Add the increase to the starting weight.\n    *   8 pounds + 4 pounds = 12 pounds.\n4.  **Final weight adjustment:** This new weight is too heavy, so he uses a weight two pounds lighter.\n    *   12 pounds - 2 pounds = 10 pounds.\n\nThe weight Jamaal now uses is 10 pounds.\n\nANSWER: 10",
+  "score": 5,
+  "cost": 0.00011564999999999999,
+  "expected": "10",
+  "tokens": {
+    "input": 99,
+    "output": 168
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "Here is the step-by-step solution to the problem:\n\n**Step 1: Calculate the total number of lollipops sold.**\nThere are 30 students, and on average, each student sold 10 lollipops.\nTotal lollipops sold = Number of students \u00d7 Average lollipops sold per student\nTotal lollipops sold = 30 \u00d7 10 = 300 lollipops.\n\n**Step 2: Calculate the profit made on each lollipop.**\nThe selling price of one lollipop is $0.80.\nThe cost to buy one lollipop was $0.50.\nProfit per lollipop = Selling price - Cost price\nProfit per lollipop = $0.80 - $0.50 = $0.30.\n\n**Step 3: Calculate the total profit raised by the class.**\nThe total profit is the total number of lollipops sold multiplied by the profit made on each one.\nTotal profit = Total lollipops sold \u00d7 Profit per lollipop\nTotal profit = 300 \u00d7 $0.30 = $90.\n\nThe class was able to raise $90 from the profit of selling lollipops.\n\nANSWER: 90",
+  "score": 5,
+  "cost": 0.00275375,
+  "expected": "90",
+  "tokens": {
+    "input": 115,
+    "output": 261
+  }
+}

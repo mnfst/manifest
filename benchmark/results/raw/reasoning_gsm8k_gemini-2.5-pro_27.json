@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 27,
+  "response": "This problem is best solved by working backward from the final number of vacuum cleaners.\n\n**Step 1: Before the orange house**\nMelanie has 5 vacuum cleaners left. This is what remained after she sold half of her stock at the orange house. This means the 5 vacuum cleaners represent the other half. Therefore, before selling at the orange house, she must have had 5 * 2 = 10 vacuum cleaners.\n\n**Step 2: Before the red house**\nBefore arriving at the orange house, Melanie had sold 2 vacuum cleaners to the red house. To find out how many she had before this sale, we add those 2 back to the 10 she had afterward. So, before the red house, she had 10 + 2 = 12 vacuum cleaners.\n\n**Step 3: Before the green house (the start)**\nThe 12 vacuum cleaners are what she had left after selling a third of her original stock at the green house. If she sold one-third, that means the remaining 12 vacuum cleaners represent two-thirds (2/3) of her starting amount.\n\n**Step 4: Calculate the starting amount**\nIf 12 is two-thirds of the total, we can find one-third by dividing 12 by 2, which is 6.\nSo, one-third (1/3) of the starting amount is 6.\nTo find the total starting amount (three-thirds), we multiply this by 3: 6 * 3 = 18.\n\nTherefore, Melanie started with 18 vacuum cleaners.\n\nANSWER: 18",
+  "score": 0,
+  "cost": 0.0036,
+  "expected": "18",
+  "tokens": {
+    "input": 96,
+    "output": 348
+  }
+}

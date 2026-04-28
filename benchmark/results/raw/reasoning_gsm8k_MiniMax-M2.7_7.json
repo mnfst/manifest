@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "The cost of the plates is:\n- Half a dozen plates = 6 plates  \n- Price per plate = $6000  \n- Total cost of plates = 6\u202f\u00d7\u202f6000 = $36,000  \n\nThe cups cost $1200 less than this amount:\n- Total cost of cups = 36,000\u202f\u2212\u202f1,200 = $34,800  \n\nNumber of cups:\n- 20 dozen cups = 20\u202f\u00d7\u202f12 = 240 cups  \n\nCost per cup (total cost divided by number of cups):\n- 34,800 \u00f7 240 = $145  \n\nANSWER: 145",
+  "score": 5,
+  "cost": 0.0030459000000000007,
+  "expected": "145",
+  "tokens": {
+    "input": 89,
+    "output": 670
+  }
+}

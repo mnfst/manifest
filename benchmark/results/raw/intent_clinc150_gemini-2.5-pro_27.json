@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "intent_clinc150",
+  "case": 27,
+  "response": "apr",
+  "score": 5,
+  "cost": 0.00079125,
+  "expected": "apr",
+  "tokens": {
+    "input": 625,
+    "output": 1
+  }
+}

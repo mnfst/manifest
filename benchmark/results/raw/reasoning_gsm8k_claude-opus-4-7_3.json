@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 3,
+  "response": "Son 1: 12 candles, Son 2: 8 candles = 20 candles\n20/5 = 4 packs \u00d7 $3 = $12\n\nANSWER: 12",
+  "score": 3,
+  "cost": 0.006255,
+  "expected": "12",
+  "tokens": {
+    "input": 127,
+    "output": 58
+  }
+}

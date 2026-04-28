@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "To solve this problem, we need to calculate the total profit made from selling the lollipops. Here's a step-by-step breakdown:\n\n1. **Calculate the total number of lollipops sold:**\n   - Each student sold an average of 10 lollipops.\n   - There are 30 students in the class.\n   - Total lollipops sold = 30 students * 10 lollipops/student = 300 lollipops.\n\n2. **Calculate the total revenue from selling the lollipops:**\n   - Each lollipop is sold for $0.8.\n   - Total revenue = 300 lollipops * $0.8/lollipop = $240.\n\n3. **Calculate the total cost of buying the lollipops:**\n   - Each lollipop is bought for $0.5.\n   - Total cost = 300 lollipops * $0.5/lollipop = $150.\n\n4. **Calculate the total profit:**\n   - Profit is the difference between total revenue and total cost.\n   - Total profit = Total revenue - Total cost = $240 - $150 = $90.\n\nTherefore, the class was able to raise $90 from the profit of selling lollipops.\n\nANSWER: 90",
+  "score": 5,
+  "cost": 0.0029525,
+  "expected": "90",
+  "tokens": {
+    "input": 121,
+    "output": 265
+  }
+}

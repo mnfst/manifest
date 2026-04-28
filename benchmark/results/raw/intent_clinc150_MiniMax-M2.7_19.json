@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "intent_clinc150",
+  "case": 19,
+  "response": "calendar",
+  "score": 5,
+  "cost": 0.001298,
+  "expected": "calendar",
+  "tokens": {
+    "input": 568,
+    "output": 153
+  }
+}

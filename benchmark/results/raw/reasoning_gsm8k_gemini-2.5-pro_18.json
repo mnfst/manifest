@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "Here is the step-by-step solution:\n\n**Step 1: Find out how many pomelos Eve has left.**\nEve started with 20 pomelos and is left with 1/4 of that amount. To find this, we multiply the total number of pomelos by the fraction.\nNumber of pomelos left = (1/4) * 20\nNumber of pomelos left = 20 / 4 = 5\nSo, Eve has 5 pomelos left.\n\n**Step 2: Calculate how many pomelos Eve gave away.**\nTo find the number of pomelos she gave away, we subtract the number of pomelos she has left from the number she originally had.\nNumber of pomelos given away = Original number - Number left\nNumber of pomelos given away = 20 - 5 = 15\n\nEve gave away 15 pomelos.\n\nANSWER: 15",
+  "score": 5,
+  "cost": 0.00207,
+  "expected": "15",
+  "tokens": {
+    "input": 80,
+    "output": 197
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "intent_clinc150",
+  "case": 17,
+  "response": "todo_list",
+  "score": 0,
+  "cost": 5.77e-05,
+  "expected": "reminder",
+  "tokens": {
+    "input": 568,
+    "output": 3
+  }
+}

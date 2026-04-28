@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 34,
+  "response": "Here is the step-by-step solution to the problem:\n\n**Step 1: Find the total cost of the tickets.**\nThe problem states that the three friends spent $20.25 on 3 tickets.\nCost of tickets = $20.25\n\n**Step 2: Find the total cost of the food.**\nThey spent $4.50 less on food than on the tickets.\nCost of food = Cost of tickets - $4.50\nCost of food = $20.25 - $4.50 = $15.75\n\n**Step 3: Find the total cost of the rides.**\nThey went on 2 different rides, and each ride cost $33.\nCost of rides = 2 * $33.00\nCost of rides = $66.00\n\n**Step 4: Find the total cost of all expenses.**\nThis is the sum of the costs for tickets, food, and rides.\nTotal cost = Cost of tickets + Cost of food + Cost of rides\nTotal cost = $20.25 + $15.75 + $66.00\nTotal cost = $36.00 + $66.00\nTotal cost = $102.00\n\n**Step 5: Find the cost per person.**\nThe three friends agreed to split all the costs evenly.\nCost per person = Total cost / Number of friends\nCost per person = $102.00 / 3\nCost per person = $34.00\n\nANSWER: 34",
+  "score": 2,
+  "cost": 0.00359125,
+  "expected": "34",
+  "tokens": {
+    "input": 105,
+    "output": 346
+  }
+}

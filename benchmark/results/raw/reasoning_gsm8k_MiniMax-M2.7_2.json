@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "Tom travels for 3\u202fhours (from 1\u202fPM to 4\u202fPM) at 10\u202fmph, covering a distance of  \n\\(10\\text{ mph} \\times 3\\text{ h} = 30\\)\u202fmiles.  \n\nReturning at 6\u202fmph, the time needed is  \n\\(\\frac{30\\text{ miles}}{6\\text{ mph}} = 5\\)\u202fhours.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.0022088000000000003,
+  "expected": "5",
+  "tokens": {
+    "input": 104,
+    "output": 476
+  }
+}

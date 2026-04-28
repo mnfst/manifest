@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 9,
+  "response": "Bo=40, Monic=36, Rani=46. Total=122.\n\nANSWER: 122",
+  "score": 5,
+  "cost": 0.004515,
+  "expected": "122",
+  "tokens": {
+    "input": 121,
+    "output": 36
+  }
+}

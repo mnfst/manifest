@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "reasoning_gsm8k",
+  "case": 21,
+  "response": "Elliott's daily goal is 10,000 steps.\n\n1.  **Calculate steps from walks to and from school:**\n    He finished half of his steps on his walks to and from school.\n    Steps from school = 10,000 steps / 2 = 5,000 steps.\n\n2.  **Calculate total steps taken before the jog:**\n    He took 5,000 steps from school walks and another 1,000 steps with his friend.\n    Steps taken before jog = 5,000 steps + 1,000 steps = 6,000 steps.\n\n3.  **Calculate the total steps Elliott had taken after his jog:**\n    After his jog, he only had 2,000 steps left to take to reach his 10,000 step goal.\n    Total steps taken after jog = Daily goal - Steps left\n    Total steps taken after jog = 10,000 steps - 2,000 steps = 8,000 steps.\n\n4.  **Calculate the steps taken during his jog:**\n    The steps taken during the jog are the difference between the total steps taken after the jog and the steps taken before the jog.\n    Steps during jog = Total steps taken after jog - Steps taken before jog\n    Steps during jog = 8,000 steps - 6,000 steps = 2,000 steps.\n\nANSWER: 2000",
+  "score": 4,
+  "cost": 0.00021735,
+  "expected": "2000",
+  "tokens": {
+    "input": 129,
+    "output": 330
+  }
+}

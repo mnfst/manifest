@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "To solve this problem, we need to calculate the number of students enrolled this year after a 20% increase from last year's enrollment.\n\n1. **Identify the initial number of students:**\n   Last year, there were 50 students enrolled in the calligraphy class.\n\n2. **Calculate the 20% increase:**\n   A 20% increase means we need to find 20% of 50.\n   \\[\n   20\\% \\text{ of } 50 = 0.20 \\times 50 = 10\n   \\]\n\n3. **Add the increase to the initial number of students:**\n   \\[\n   \\text{Number of students this year} = 50 + 10 = 60\n   \\]\n\nANSWER: 60",
+  "score": 5,
+  "cost": 0.0003768,
+  "expected": "60",
+  "tokens": {
+    "input": 82,
+    "output": 172
+  }
+}

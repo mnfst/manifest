@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "Here is the step-by-step solution to the problem:\n\n**Step 1: Find the increase in the number of students.**\nThe problem states there was a 20% increase in enrollment from last year. Last year, there were 50 students. To find the number of new students, we need to calculate 20% of 50.\n\nTo calculate the percentage, we can convert the percentage to a decimal and multiply it by the original number.\n20% = 20 / 100 = 0.20\nIncrease = 0.20 * 50 = 10\n\nSo, the number of students increased by 10.\n\n**Step 2: Calculate the total number of students for this year.**\nTo find the total number of students this year, we add the increase in students to the original number of students from last year.\n\nTotal students this year = Students last year + Increase\nTotal students this year = 50 + 10 = 60\n\nTherefore, there are 60 students enrolled in the calligraphy class this year.\n\nANSWER: 60",
+  "score": 5,
+  "cost": 0.00250625,
+  "expected": "60",
+  "tokens": {
+    "input": 77,
+    "output": 241
+  }
+}

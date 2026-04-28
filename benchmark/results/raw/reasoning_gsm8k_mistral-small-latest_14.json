@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 14,
+  "response": "Step 1: Determine the total weekly insect consumption for the flock.\n- Each duck needs 3.5 pounds per week.\n- There are 10 ducks in the flock.\n- Total weekly consumption = 3.5 pounds/duck/week \u00d7 10 ducks = 35 pounds/week.\n\nStep 2: Convert the weekly consumption to daily consumption.\n- There are 7 days in a week.\n- Daily consumption = 35 pounds/week \u00f7 7 days/week = 5 pounds/day.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 4.4699999999999996e-05,
+  "expected": "5",
+  "tokens": {
+    "input": 90,
+    "output": 119
+  }
+}

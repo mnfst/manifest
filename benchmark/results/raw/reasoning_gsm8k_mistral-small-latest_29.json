@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "Let's solve the problem step by step.\n\n1. **Number of Red Cars:**\n   - Given: 12 red cars.\n   - \\( \\text{Red} = 12 \\)\n\n2. **Number of Green Cars:**\n   - They have 2 fewer green cars than red cars.\n   - \\( \\text{Green} = \\text{Red} - 2 = 12 - 2 = 10 \\)\n\n3. **Number of Blue Cars:**\n   - They have 3 times the number of blue cars as green cars.\n   - \\( \\text{Blue} = 3 \\times \\text{Green} = 3 \\times 10 = 30 \\)\n\n4. **Total Cars:**\n   - The rink has a total of 75 cars.\n   - \\( \\text{Total} = \\text{Red} + \\text{Green} + \\text{Blue} + \\text{Yellow} \\)\n   - \\( 75 = 12 + 10 + 30 + \\text{Yellow} \\)\n\n5. **Solve for Yellow Cars:**\n   - \\( 75 = 52 + \\text{Yellow} \\)\n   - \\( \\text{Yellow} = 75 - 52 = 23 \\)\n\n**Final Answer:**\nANSWER: 23",
+  "score": 5,
+  "cost": 9.829999999999999e-05,
+  "expected": "23",
+  "tokens": {
+    "input": 119,
+    "output": 288
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "**Step\u2011by\u2011step reasoning**\n\n1. **Original amount:** Eve started with 20 pomelos.\n2. **Remaining amount:** After giving some away, she has \\( \\frac14 \\) of the original amount left.  \n   \\[\n   \\frac14 \\times 20 = 5 \\text{ pomelos}\n   \\]\n3. **Pomelos given away:** Subtract the remaining pomelos from the original amount.  \n   \\[\n   20 - 5 = 15\n   \\]\n\nSo Eve gave away **15 pomelos**.\n\nANSWER: 15",
+  "score": 5,
+  "cost": 0.0017182,
+  "expected": "15",
+  "tokens": {
+    "input": 98,
+    "output": 366
+  }
+}

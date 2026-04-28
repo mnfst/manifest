@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "To solve this problem, we need to calculate the number of students enrolled this year after a 20% increase from last year's enrollment.\n\n1. **Identify last year's enrollment**: Last year, there were 50 students enrolled in the calligraphy class.\n\n2. **Calculate the increase in enrollment**: \n   - A 20% increase means that the number of students increased by 20% of last year's enrollment.\n   - To find 20% of 50, we multiply 50 by 0.20 (since 20% as a decimal is 0.20).\n   \\[\n   50 \\times 0.20 = 10\n   \\]\n   So, the increase in the number of students is 10.\n\n3. **Calculate this year's enrollment**:\n   - Add the increase to last year's enrollment to find this year's enrollment.\n   \\[\n   50 + 10 = 60\n   \\]\n\nTherefore, the number of students enrolled this year in the calligraphy class is 60.\n\nANSWER: 60",
+  "score": 5,
+  "cost": 0.0023425,
+  "expected": "60",
+  "tokens": {
+    "input": 81,
+    "output": 214
+  }
+}

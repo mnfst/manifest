@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "**Step\u2011by\u2011step solution**\n\n1. **Determine the total number of lollipops sold.**  \n   - There are 30 students.  \n   - On average each student sells 10 lollipops.  \n   - Total lollipops sold = \\(30 \\times 10 = 300\\).\n\n2. **Find the profit per lollipop.**  \n   - Selling price = \\$0.8 per lollipop.  \n   - Purchase (cost) price = \\$0.5 per lollipop.  \n   - Profit per lollipop = \\(0.8 - 0.5 = \\$0.3\\).\n\n3. **Calculate the total profit.**  \n   - Total profit = profit per lollipop \\(\\times\\) total lollipops sold.  \n   - Total profit = \\(0.3 \\times 300 = \\$90\\).\n\n**Answer**\n\nANSWER: 90",
+  "score": 5,
+  "cost": 0.0026719,
+  "expected": "90",
+  "tokens": {
+    "input": 149,
+    "output": 570
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "sentiment_sst2",
+  "case": 21,
+  "response": "positive",
+  "score": 5,
+  "cost": 8.16e-05,
+  "expected": "positive",
+  "tokens": {
+    "input": 82,
+    "output": 4
+  }
+}

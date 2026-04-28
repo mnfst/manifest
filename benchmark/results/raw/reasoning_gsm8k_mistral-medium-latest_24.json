@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "Let's solve the problem step by step.\n\n1. **Calculate the total number of lollipops sold:**\n   - Number of students = 30\n   - Average lollipops sold per student = 10\n   - Total lollipops sold = Number of students \u00d7 Average lollipops sold per student\n   - Total lollipops sold = 30 \u00d7 10 = 300 lollipops\n\n2. **Calculate the total revenue from selling the lollipops:**\n   - Selling price per lollipop = $0.8\n   - Total revenue = Total lollipops sold \u00d7 Selling price per lollipop\n   - Total revenue = 300 \u00d7 $0.8 = $240\n\n3. **Calculate the total cost of buying the lollipops:**\n   - Cost price per lollipop = $0.5\n   - Total cost = Total lollipops sold \u00d7 Cost price per lollipop\n   - Total cost = 300 \u00d7 $0.5 = $150\n\n4. **Calculate the profit:**\n   - Profit = Total revenue - Total cost\n   - Profit = $240 - $150 = $90\n\nANSWER: 90",
+  "score": 5,
+  "cost": 0.0006148,
+  "expected": "90",
+  "tokens": {
+    "input": 122,
+    "output": 283
+  }
+}

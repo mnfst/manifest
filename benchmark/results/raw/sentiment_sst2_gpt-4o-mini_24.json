@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "sentiment_sst2",
+  "case": 24,
+  "response": "positive",
+  "score": 5,
+  "cost": 7.049999999999999e-06,
+  "expected": "positive",
+  "tokens": {
+    "input": 43,
+    "output": 1
+  }
+}

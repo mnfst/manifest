@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "1/4 + 1/2 = 3/4\n3/4 \u00d7 364 = 273\n\nANSWER: 273",
+  "score": 4,
+  "cost": 0.00534,
+  "expected": "273",
+  "tokens": {
+    "input": 151,
+    "output": 41
+  }
+}

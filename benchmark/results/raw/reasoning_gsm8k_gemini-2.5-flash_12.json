@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "reasoning_gsm8k",
+  "case": 12,
+  "response": "Here's a step-by-step solution:\n\n1.  **Calculate the time Jim spends reading for one instance:**\n    He watches TV for 2 hours and reads for half as long.\n    Reading time = 2 hours / 2 = 1 hour.\n\n2.  **Calculate the total time Jim spends on TV and reading for one instance:**\n    Total time per instance = TV time + Reading time\n    Total time per instance = 2 hours + 1 hour = 3 hours.\n\n3.  **Calculate the total time Jim spends on TV and reading in one week:**\n    He does this 3 times a week.\n    Total time per week = Total time per instance * Number of times per week\n    Total time per week = 3 hours/instance * 3 instances/week = 9 hours/week.\n\n4.  **Calculate the total time Jim spends on TV and reading in 4 weeks:**\n    Total time in 4 weeks = Total time per week * Number of weeks\n    Total time in 4 weeks = 9 hours/week * 4 weeks = 36 hours.\n\nANSWER: 36",
+  "score": 5,
+  "cost": 0.00016079999999999998,
+  "expected": "36",
+  "tokens": {
+    "input": 84,
+    "output": 247
+  }
+}

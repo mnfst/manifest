@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "First, determine each girl\u2019s amount:\n\n- Alexandra raises \\$430.\n- Kim raises \\$320 more than Alexandra:  \n  \\(430 + 320 = \\$750\\).\n\n- Sarah raises \\$300.\n- Maryam raises \\$400 more than Sarah:  \n  \\(300 + 400 = \\$700\\).\n\nNow add all four amounts:\n\n\\[\n750 + 430 + 700 + 300 = 1180 + 1000 = 2180.\n\\]\n\nSo the total money raised by the girls is **\\$2180**.\n\nANSWER: 2180",
+  "score": 4,
+  "cost": 0.0022363,
+  "expected": "2280",
+  "tokens": {
+    "input": 129,
+    "output": 476
+  }
+}

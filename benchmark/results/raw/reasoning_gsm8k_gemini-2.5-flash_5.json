@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "Here's a step-by-step solution to the problem:\n\n1.  **Start with the initial number of fairies:** Katelyn saw 50 fairies.\n2.  **Calculate the number of fairies that joined:** Her friend saw half as many fairies as Katelyn saw. Half of 50 is 50 / 2 = 25 fairies.\n3.  **Add the joining fairies to the initial number:** 50 (initial) + 25 (joined) = 75 fairies.\n4.  **Subtract the fairies that flew away:** 75 (total) - 30 (flew away) = 45 fairies.\n\nThe time intervals mentioned (twenty minutes, ten minutes) are not relevant to the calculation of the number of fairies.\n\nANSWER: 45",
+  "score": 5,
+  "cost": 0.00012194999999999998,
+  "expected": "45",
+  "tokens": {
+    "input": 109,
+    "output": 176
+  }
+}

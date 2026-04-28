@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 12,
+  "response": "# Step-by-Step Solution\n\n**Step 1: Calculate time spent reading**\n- Jim watches TV for 2 hours\n- He reads for half as long as he watches TV\n- Reading time = 2 \u00f7 2 = 1 hour\n\n**Step 2: Calculate total time per day (or per session)**\n- TV time + Reading time = 2 + 1 = 3 hours per session\n\n**Step 3: Calculate time per week**\n- He does this 3 times a week\n- Weekly time = 3 hours \u00d7 3 = 9 hours per week\n\n**Step 4: Calculate time for 4 weeks**\n- Total time in 4 weeks = 9 hours \u00d7 4 = 36 hours\n\nANSWER: 36",
+  "score": 5,
+  "cost": 0.0008208,
+  "expected": "36",
+  "tokens": {
+    "input": 96,
+    "output": 186
+  }
+}

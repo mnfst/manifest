@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "intent_clinc150",
+  "case": 49,
+  "response": "international_visa",
+  "score": 5,
+  "cost": 2.2599999999999997e-05,
+  "expected": "international_visa",
+  "tokens": {
+    "input": 559,
+    "output": 6
+  }
+}

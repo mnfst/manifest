@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "**Step\u2011by\u2011step solution**\n\n1. **Burritos ordered:**  \n   \\(600\\)\n\n2. **Burritos given to students:**  \n   There are 50 students and each receives 10 burritos.  \n   \\[\n   50 \\times 10 = 500\n   \\]\n\n3. **Burritos eaten by Mr. George:**  \n   He eats 20 of the burritos.  \n\n4. **Total burritos consumed:**  \n   \\[\n   500\\ (\\text{given to students}) + 20\\ (\\text{eaten by George}) = 520\n   \\]\n\n5. **Burritos left over:**  \n   \\[\n   600\\ (\\text{ordered}) - 520\\ (\\text{consumed}) = 80\n   \\]\n\n**Answer**\n\nANSWER: 80",
+  "score": 5,
+  "cost": 0.0021219,
+  "expected": "80",
+  "tokens": {
+    "input": 133,
+    "output": 449
+  }
+}

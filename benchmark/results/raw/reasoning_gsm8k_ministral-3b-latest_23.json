@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "reasoning_gsm8k",
+  "case": 23,
+  "response": "Let's solve the problem step by step.\n\n1. **Initial Cost Calculation:**\n   - The total cost for filling 20 balloons is $900.\n   - To find the cost per balloon initially:\n     \\[\n     \\text{Cost per balloon initially} = \\frac{\\$900}{20} = \\$45\n     \\]\n\n2. **Price Increase:**\n   - Two days later, the cost per balloon increased by $20.\n   - New cost per balloon:\n     \\[\n     \\$45 + \\$20 = \\$65\n     \\]\n\n3. **Total Cost for 170 Balloons:**\n   - Bentley fills 170 balloons at the new price.\n   - Total cost:\n     \\[\n     170 \\times \\$65 = \\$11,050\n     \\]\n\nANSWER: 11050",
+  "score": 5,
+  "cost": 1.18e-05,
+  "expected": "11050",
+  "tokens": {
+    "input": 104,
+    "output": 191
+  }
+}

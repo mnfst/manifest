@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "intent_clinc150",
+  "case": 38,
+  "response": "oil_change_when",
+  "score": 5,
+  "cost": 0.00201,
+  "expected": "oil_change_when",
+  "tokens": {
+    "input": 630,
+    "output": 8
+  }
+}

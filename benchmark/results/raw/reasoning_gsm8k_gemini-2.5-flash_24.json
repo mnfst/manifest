@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "Here's a step-by-step solution to the problem:\n\n1.  **Calculate the total number of lollipops sold by the class:**\n    There are 30 students, and each student sold an average of 10 lollipops.\n    Total lollipops sold = Number of students \u00d7 Average lollipops sold per student\n    Total lollipops sold = 30 students \u00d7 10 lollipops/student = 300 lollipops\n\n2.  **Calculate the total revenue from selling the lollipops:**\n    Each lollipop was sold for $0.8.\n    Total revenue = Total lollipops sold \u00d7 Selling price per lollipop\n    Total revenue = 300 lollipops \u00d7 $0.8/lollipop = $240\n\n3.  **Calculate the total cost of buying the lollipops:**\n    Each lollipop was bought for $0.5.\n    Total cost = Total lollipops sold \u00d7 Cost price per lollipop\n    Total cost = 300 lollipops \u00d7 $0.5/lollipop = $150\n\n4.  **Calculate the total profit:**\n    Profit = Total revenue - Total cost\n    Profit = $240 - $150 = $90\n\nThe class was able to raise $90 from the profit of selling lollipops.\n\nANSWER: 90",
+  "score": 5,
+  "cost": 0.00019605,
+  "expected": "90",
+  "tokens": {
+    "input": 115,
+    "output": 298
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "Let  \n\n- \\(N\\) = number of people who boarded at the terminal.  \n\nAfter the first stop, 5 more people board:  \n\n\\[\n\\text{people after first stop}= N + 5\n\\]\n\nAt the second stop, 7 people get off and then 8 board:  \n\n\\[\n\\begin{aligned}\n\\text{after getting off}&= (N+5) - 7 = N - 2,\\\\\n\\text{after boarding}&= (N-2) + 8 = N + 6.\n\\end{aligned}\n\\]\n\nThe problem states that there are 20 people heading to the third stop, so\n\n\\[\nN + 6 = 20 \\quad\\Longrightarrow\\quad N = 20 - 6 = 14.\n\\]\n\nThus, 14 people got on the bus at the terminal.\n\nANSWER: 14",
+  "score": 5,
+  "cost": 0.0032516000000000003,
+  "expected": "14",
+  "tokens": {
+    "input": 124,
+    "output": 708
+  }
+}

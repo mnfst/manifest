@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 34,
+  "response": "Tickets: 20.25\nFood: 20.25 - 4.50 = 15.75\nRides: 2 \u00d7 33 = 66\nTotal: 20.25 + 15.75 + 66 = 102\nPer person: 102/3 = 34\n\nANSWER: 34",
+  "score": 4,
+  "cost": 0.00915,
+  "expected": "34",
+  "tokens": {
+    "input": 150,
+    "output": 92
+  }
+}

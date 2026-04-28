@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "intent_clinc150",
+  "case": 31,
+  "response": "freeze_account",
+  "score": 5,
+  "cost": 0.0013233000000000001,
+  "expected": "freeze_account",
+  "tokens": {
+    "input": 575,
+    "output": 157
+  }
+}

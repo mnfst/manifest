@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "reasoning_gsm8k",
+  "case": 45,
+  "response": "Let's break down the problem step by step to find out how many wheels Henry will have left after assembling all the toys.\n\n### Step 1: Calculate the total number of wheels needed for the cars\nHenry needs to assemble 57 cars, and each car requires 4 wheels.\n\n\\[\n\\text{Wheels for cars} = 57 \\times 4 = 228\n\\]\n\n### Step 2: Calculate the total number of wheels needed for the motorcycles\nHenry needs to assemble 73 motorcycles, and each motorcycle requires 2 wheels.\n\n\\[\n\\text{Wheels for motorcycles} = 73 \\times 2 = 146\n\\]\n\n### Step 3: Calculate the total number of wheels needed for all toys\nAdd the wheels needed for cars and motorcycles.\n\n\\[\n\\text{Total wheels needed} = 228 + 146 = 374\n\\]\n\n### Step 4: Calculate the number of wheels left\nHenry starts with 650 wheels. Subtract the total wheels needed from the initial number of wheels.\n\n\\[\n\\text{Wheels left} = 650 - 374 = 276\n\\]\n\n### Final Answer:\nANSWER: 276",
+  "score": 5,
+  "cost": 1.476e-05,
+  "expected": "276",
+  "tokens": {
+    "input": 104,
+    "output": 265
+  }
+}

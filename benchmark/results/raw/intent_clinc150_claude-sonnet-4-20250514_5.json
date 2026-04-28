@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "intent_clinc150",
+  "case": 5,
+  "response": "restaurant_suggestion",
+  "score": 5,
+  "cost": 0.001992,
+  "expected": "restaurant_suggestion",
+  "tokens": {
+    "input": 634,
+    "output": 6
+  }
+}

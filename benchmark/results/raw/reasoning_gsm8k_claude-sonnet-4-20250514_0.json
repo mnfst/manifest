@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "I need to find the total amount of money raised by all four girls: Kim, Alexandra, Maryam, and Sarah.\n\nLet me identify what each person raised:\n\nSarah raises $300.\n\nMaryam raises $400 more than Sarah.\nMaryam raises: $300 + $400 = $700\n\nAlexandra raises $430.\n\nKim raises $320 more than Alexandra.\nKim raises: $430 + $320 = $750\n\nNow I'll add up all the amounts:\n- Sarah: $300\n- Maryam: $700\n- Alexandra: $430\n- Kim: $750\n\nTotal = $300 + $700 + $430 + $750 = $2,180\n\nANSWER: 2180",
+  "score": 5,
+  "cost": 0.002886,
+  "expected": "2280",
+  "tokens": {
+    "input": 102,
+    "output": 172
+  }
+}

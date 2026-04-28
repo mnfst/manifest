@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "To solve this problem, we need to determine the cost of each cup given the information about the cups and plates.\n\n1. **Understand the problem statement:**\n   - We have twenty dozen cups.\n   - The cost of these cups is $1200 less than the cost of half a dozen plates.\n   - Each plate costs $6000.\n\n2. **Calculate the total cost of half a dozen plates:**\n   - Half a dozen plates means 6 plates.\n   - Each plate costs $6000.\n   - Total cost for 6 plates = 6 plates \u00d7 $6000/plate = $36,000.\n\n3. **Determine the cost of the cups:**\n   - The cost of the cups is $1200 less than the cost of the plates.\n   - Cost of cups = $36,000 - $1200 = $34,800.\n\n4. **Calculate the number of cups:**\n   - Twenty dozen cups means 20 \u00d7 12 = 240 cups.\n\n5. **Calculate the cost per cup:**\n   - Total cost of cups is $34,800.\n   - Number of cups is 240.\n   - Cost per cup = Total cost of cups / Number of cups = $34,800 / 240.\n\n6. **Perform the division:**\n   - $34,800 \u00f7 240 = $145.\n\nTherefore, the total cost of buying each cup is $145.\n\nANSWER: 145",
+  "score": 0,
+  "cost": 0.003155,
+  "expected": "145",
+  "tokens": {
+    "input": 74,
+    "output": 297
+  }
+}

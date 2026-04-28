@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "500+800=1300, 10% = 130, total = 1430\n\nANSWER: 1430",
+  "score": 4,
+  "cost": 0.00456,
+  "expected": "1430",
+  "tokens": {
+    "input": 134,
+    "output": 34
+  }
+}

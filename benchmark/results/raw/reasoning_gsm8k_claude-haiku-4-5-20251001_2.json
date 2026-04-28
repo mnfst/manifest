@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "# Step-by-Step Solution\n\n**Step 1: Calculate the distance traveled going out**\n- Tom sails from 1 to 4 PM\n- Time elapsed: 4 PM - 1 PM = 3 hours\n- Speed going out: 10 mph\n- Distance = Speed \u00d7 Time = 10 mph \u00d7 3 hours = 30 miles\n\n**Step 2: Calculate the time to return**\n- Distance to travel back: 30 miles\n- Speed returning: 6 mph\n- Time = Distance \u00f7 Speed = 30 miles \u00f7 6 mph = 5 hours\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.0006936,
+  "expected": "5",
+  "tokens": {
+    "input": 97,
+    "output": 154
+  }
+}

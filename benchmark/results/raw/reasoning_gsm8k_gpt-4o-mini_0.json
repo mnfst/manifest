@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "Let's break down the problem step by step.\n\n1. **Identify how much Alexandra raised:**\n   - Alexandra raises $430.\n\n2. **Calculate how much Kim raised:**\n   - Kim raises $320 more than Alexandra.\n   - Therefore, Kim's amount = Alexandra's amount + $320\n   - Kim's amount = $430 + $320 = $750.\n\n3. **Identify how much Sarah raised:**\n   - Sarah raises $300.\n\n4. **Calculate how much Maryam raised:**\n   - Maryam raises $400 more than Sarah.\n   - Therefore, Maryam's amount = Sarah's amount + $400\n   - Maryam's amount = $300 + $400 = $700.\n\n5. **Calculate the total amount raised by all the girls:**\n   - Total amount = Alexandra's amount + Kim's amount + Sarah's amount + Maryam's amount\n   - Total amount = $430 + $750 + $300 + $700.\n\nNow, let's perform the addition step by step:\n\n- First, add Alexandra's and Kim's amounts:\n  - $430 + $750 = $1180.\n\n- Next, add Sarah's amount:\n  - $1180 + $300 = $1480.\n\n- Finally, add Maryam's amount:\n  - $1480 + $700 = $2180.\n\nThus, the total amount raised by all the girls is $2180.\n\nFinal answer:\nANSWER: 2180",
+  "score": 2,
+  "cost": 0.0001935,
+  "expected": "2280",
+  "tokens": {
+    "input": 94,
+    "output": 299
+  }
+}

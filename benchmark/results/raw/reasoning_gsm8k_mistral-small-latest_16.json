@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "Step 1: Determine the total number of books Sarah bought.\n- She spent $300 in total.\n- Each book costs $15.\n- Total number of books = Total money spent / Cost per book\n- Total number of books = 300 / 15 = 20 books\n\nStep 2: Divide the total number of books equally among her 4 kids.\n- Number of books per child = Total number of books / Number of kids\n- Number of books per child = 20 / 4 = 5 books\n\nANSWER: 5",
+  "score": 5,
+  "cost": 4.709999999999999e-05,
+  "expected": "5",
+  "tokens": {
+    "input": 99,
+    "output": 124
+  }
+}

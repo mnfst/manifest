@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 20,
+  "response": "3 fish \u00d7 $1 \u00d7 31 days = $93\n\nANSWER: 93",
+  "score": 2,
+  "cost": 0.00378,
+  "expected": "93",
+  "tokens": {
+    "input": 102,
+    "output": 30
+  }
+}

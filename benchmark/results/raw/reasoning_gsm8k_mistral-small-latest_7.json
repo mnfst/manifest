@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "Let's break down the problem step by step to find the total cost of buying each cup.\n\n### Step 1: Define the Variables\n- Let \\( C \\) be the cost of one cup.\n- The cost of one plate is given as \\$6000.\n\n### Step 2: Calculate the Total Cost of Plates\n- Half a dozen plates = 6 plates.\n- Total cost of plates = \\( 6 \\times 6000 = \\$36,000 \\).\n\n### Step 3: Calculate the Total Cost of Cups\n- Twenty dozen cups = \\( 20 \\times 12 = 240 \\) cups.\n- Total cost of cups = \\( 240 \\times C \\).\n\n### Step 4: Set Up the Equation\nAccording to the problem, the total cost of cups is \\$1200 less than the total cost of plates:\n\\[\n240C = 36,000 - 1,200\n\\]\n\n### Step 5: Solve for \\( C \\)\n\\[\n240C = 34,800\n\\]\n\\[\nC = \\frac{34,800}{240}\n\\]\n\\[\nC = 145\n\\]\n\n### Final Answer\nThe total cost of buying each cup is:\nANSWER: 145",
+  "score": 5,
+  "cost": 9.740000000000001e-05,
+  "expected": "145",
+  "tokens": {
+    "input": 89,
+    "output": 295
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "intent_clinc150",
+  "case": 29,
+  "response": "recipe",
+  "score": 5,
+  "cost": 0.0012825,
+  "expected": "recipe",
+  "tokens": {
+    "input": 509,
+    "output": 1
+  }
+}

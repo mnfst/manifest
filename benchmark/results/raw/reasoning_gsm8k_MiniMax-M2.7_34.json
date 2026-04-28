@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 34,
+  "response": "**Step\u2011by\u2011step solution**\n\n1. **Cost of tickets**  \n   The three friends bought 3 tickets for a total of \\$20.25.\n\n2. **Cost of food**  \n   They spent \u201c\\$4.50 less on food than on the tickets.\u201d  \n   \\[\n   \\text{Food cost}=20.25-4.50 = \\$15.75\n   \\]\n\n3. **Cost of rides**  \n   Two rides were taken, each costing \\$33.  \n   \\[\n   \\text{Rides total}=2 \\times 33 = \\$66\n   \\]\n\n4. **Total cost for everything**  \n   \\[\n   \\text{Total}=20.25 + 15.75 + 66 = \\$102.00\n   \\]\n\n5. **Split evenly among three friends**  \n   \\[\n   \\frac{102.00}{3}= \\$34.00\n   \\]\n\nEach friend paid **\\$34.00**.\n\nANSWER: 34",
+  "score": 5,
+  "cost": 0.0056276,
+  "expected": "34",
+  "tokens": {
+    "input": 120,
+    "output": 1249
+  }
+}

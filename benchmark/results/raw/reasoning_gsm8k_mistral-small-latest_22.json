@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 22,
+  "response": "Step 1: Calculate the total tips Rafaela received.\n- Each of the 40 customers gave Rafaela a $20 tip.\n- Total tips for Rafaela = 40 customers * $20/customer = $800.\n\nStep 2: Calculate the tips Julieta received.\n- Julieta received 10% less than Rafaela.\n- 10% of Rafaela's tips = 10% of $800 = 0.10 * $800 = $80.\n- Julieta's tips = Rafaela's tips - 10% of Rafaela's tips = $800 - $80 = $720.\n\nStep 3: Calculate the total tips received by both Julieta and Rafaela.\n- Total tips = Rafaela's tips + Julieta's tips = $800 + $720 = $1520.\n\nANSWER: 1520",
+  "score": 2,
+  "cost": 7.48e-05,
+  "expected": "1520",
+  "tokens": {
+    "input": 109,
+    "output": 213
+  }
+}

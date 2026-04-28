@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "intent_clinc150",
+  "case": 4,
+  "response": "book_hotel",
+  "score": 0,
+  "cost": 2.272e-05,
+  "expected": "uber",
+  "tokens": {
+    "input": 564,
+    "output": 4
+  }
+}

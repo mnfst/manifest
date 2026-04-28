@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "reasoning_gsm8k",
+  "case": 27,
+  "response": "Let X be the total number of vacuum cleaners Melanie started with.\n\nStep 1: Sales at the green house.\nMelanie sold a third of her vacuum cleaners at the green house.\nNumber sold at green house = X/3\nNumber remaining = X - X/3 = 2X/3\n\nStep 2: Sales at the red house.\nMelanie sold 2 more to the red house.\nNumber remaining after red house sales = (2X/3) - 2\n\nStep 3: Sales at the orange house.\nMelanie sold half of what was left at the orange house.\nWhat was left before orange house sales = (2X/3) - 2\nNumber sold at orange house = 1/2 * [(2X/3) - 2]\nNumber remaining after orange house sales = (2X/3) - 2 - {1/2 * [(2X/3) - 2]}\nThis means half of what was left is still remaining.\nSo, the number remaining is also 1/2 * [(2X/3) - 2].\n\nStep 4: Final number of vacuum cleaners left.\nMelanie has 5 vacuum cleaners left.\nSo, we can set up the equation:\n1/2 * [(2X/3) - 2] = 5\n\nStep 5: Solve the equation for X.\nMultiply both sides by 2:\n(2X/3) - 2 = 10\n\nAdd 2 to both sides:\n2X/3 = 12\n\nMultiply both sides by 3:\n2X = 36\n\nDivide both sides by 2:\nX = 18\n\nSo, Melanie started with 18 vacuum cleaners.\n\nLet's verify the answer:\n- Started with 18.\n- Sold a third at the green house: 18 / 3 = 6. Remaining: 18 - 6 = 12.\n- Sold 2 more at the red house: 12 - 2 = 10.\n- Sold half of what was left at the orange house: 10 / 2 = 5. Remaining: 10 - 5 = 5.\nThis matches the problem statement that Melanie has 5 vacuum cleaners left.\n\nThe final answer is $\\boxed{18}$",
+  "score": 4,
+  "cost": 0.0003204,
+  "expected": "18",
+  "tokens": {
+    "input": 96,
+    "output": 510
+  }
+}

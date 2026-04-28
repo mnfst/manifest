@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "reasoning_gsm8k",
+  "case": 37,
+  "response": "Here's a step-by-step solution to the problem:\n\n1.  **Calculate the number of votes for candidate A:**\n    Candidate A received 20% of the total votes.\n    Total voters = 100\n    Votes for A = 20% of 100 = (20/100) * 100 = 20 votes.\n\n2.  **Calculate the number of votes for candidate B:**\n    Candidate B received 50% more than candidate A's votes.\n    First, calculate 50% of A's votes:\n    50% of 20 = (50/100) * 20 = 0.5 * 20 = 10 votes.\n    Now, add this to A's votes to find B's votes:\n    Votes for B = Votes for A + (50% of A's votes) = 20 + 10 = 30 votes.\n\n3.  **Calculate the total votes for candidate A and candidate B:**\n    Total votes for A and B = Votes for A + Votes for B = 20 + 30 = 50 votes.\n\n4.  **Calculate the number of votes for candidate C:**\n    Candidate C received the rest of the votes.\n    Votes for C = Total voters - (Votes for A + Votes for B)\n    Votes for C = 100 - 50 = 50 votes.\n\nThe final numerical answer is on the last line.\nANSWER: 50",
+  "score": 5,
+  "cost": 0.00022275,
+  "expected": "50",
+  "tokens": {
+    "input": 97,
+    "output": 347
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "intent_clinc150",
+  "case": 34,
+  "response": "replacement_card_duration",
+  "score": 5,
+  "cost": 0.002037,
+  "expected": "replacement_card_duration",
+  "tokens": {
+    "input": 639,
+    "output": 8
+  }
+}

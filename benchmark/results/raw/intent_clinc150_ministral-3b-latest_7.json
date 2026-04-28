@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "intent_clinc150",
+  "case": 7,
+  "response": "change_user_name",
+  "score": 0,
+  "cost": 2.248e-05,
+  "expected": "change_ai_name",
+  "tokens": {
+    "input": 558,
+    "output": 4
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "To find out how much money the class was able to raise from the profit of selling lollipops, we can follow these steps:\n\n1. **Calculate the total number of lollipops sold**:\n   Each of the 30 students sold an average of 10 lollipops. Therefore, the total number of lollipops sold is:\n   \\[\n   \\text{Total lollipops sold} = \\text{Number of students} \\times \\text{Average lollipops sold per student} = 30 \\times 10 = 300\n   \\]\n\n2. **Calculate the total revenue from selling the lollipops**:\n   Each lollipop was sold for $0.8. Thus, the total revenue from selling all the lollipops is:\n   \\[\n   \\text{Total revenue} = \\text{Total lollipops sold} \\times \\text{Price per lollipop} = 300 \\times 0.8 = 240\n   \\]\n\n3. **Calculate the total cost of buying the lollipops**:\n   Each lollipop was bought for $0.5. Therefore, the total cost for buying all the lollipops is:\n   \\[\n   \\text{Total cost} = \\text{Total lollipops sold} \\times \\text{Cost per lollipop} = 300 \\times 0.5 = 150\n   \\]\n\n4. **Calculate the profit**:\n   The profit is the total revenue minus the total cost:\n   \\[\n   \\text{Profit} = \\text{Total revenue} - \\text{Total cost} = 240 - 150 = 90\n   \\]\n\nThus, the class was able to raise $90 from the profit of selling lollipops.\n\nFinal answer:\nANSWER: 90",
+  "score": 0,
+  "cost": 0.00025035,
+  "expected": "90",
+  "tokens": {
+    "input": 121,
+    "output": 387
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 37,
+  "response": "# Step-by-Step Solution\n\n**Step 1: Find candidate A's votes**\n- Candidate A got 20% of 100 votes\n- A's votes = 20% \u00d7 100 = 0.20 \u00d7 100 = 20 votes\n\n**Step 2: Find candidate B's votes**\n- Candidate B got 50% more than candidate A's votes\n- B's votes = A's votes + 50% of A's votes\n- B's votes = 20 + (0.50 \u00d7 20)\n- B's votes = 20 + 10 = 30 votes\n\n**Step 3: Find candidate C's votes**\n- Total votes = 100\n- C's votes = Total votes - A's votes - B's votes\n- C's votes = 100 - 20 - 30 = 50 votes\n\n**Verification:**\n- A: 20 votes (20%)\n- B: 30 votes (30%)\n- C: 50 votes (50%)\n- Total: 20 + 30 + 50 = 100 \u2713\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.0011528,
+  "expected": "50",
+  "tokens": {
+    "input": 101,
+    "output": 268
+  }
+}

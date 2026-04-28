@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "Here is the step-by-step solution to the problem:\n\n**Step 1: Calculate the total number of burritos given to the students.**\nThere are 50 students, and each student was given 10 burritos.\nTotal burritos for students = 50 students \u00d7 10 burritos/student = 500 burritos.\n\n**Step 2: Calculate the total number of burritos that were eaten.**\nThe students were given 500 burritos, and Mr. George ate 20 burritos.\nTotal burritos eaten = 500 (by students) + 20 (by Mr. George) = 520 burritos.\n\n**Step 3: Calculate the number of leftover burritos.**\nGeorge started with 600 burritos, and a total of 520 burritos were eaten.\nLeftover burritos = Total burritos ordered - Total burritos eaten\nLeftover burritos = 600 - 520 = 80 burritos.\n\nANSWER: 80",
+  "score": 5,
+  "cost": 0.0024275,
+  "expected": "80",
+  "tokens": {
+    "input": 102,
+    "output": 230
+  }
+}

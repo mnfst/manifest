@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 27,
+  "response": "Let x = start. After green: 2x/3. After red: 2x/3 - 2. After orange: half left = (2x/3-2)/2 = 5, so 2x/3-2=10, 2x/3=12, x=18.\n\nANSWER: 18",
+  "score": 5,
+  "cost": 0.008655,
+  "expected": "18",
+  "tokens": {
+    "input": 147,
+    "output": 86
+  }
+}

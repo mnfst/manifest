@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 40,
+  "response": "Let's break down the problem step by step.\n\n1. **Total Days in April**:\n   April has 30 days.\n\n2. **Divide the Month into Two Halves**:\n   - First half: 15 days\n   - Second half: 15 days\n\n3. **Define Variables**:\n   Let \\( x \\) be the amount Elvis saves each day in the first half.\n   Then, he saves \\( 2x \\) each day in the second half.\n\n4. **Set Up the Equation**:\n   Total savings for the month should equal the target of $1125.\n   \\[\n   15x + 15(2x) = 1125\n   \\]\n\n5. **Simplify and Solve for \\( x \\)**:\n   \\[\n   15x + 30x = 1125\n   \\]\n   \\[\n   45x = 1125\n   \\]\n   \\[\n   x = \\frac{1125}{45} = 25\n   \\]\n\n6. **Find Savings for the Second Half**:\n   Since he saves \\( 2x \\) in the second half:\n   \\[\n   2x = 2 \\times 25 = 50\n   \\]\n\n**Final Answer**:\nANSWER: 50",
+  "score": 5,
+  "cost": 9.76e-05,
+  "expected": "50",
+  "tokens": {
+    "input": 112,
+    "output": 288
+  }
+}

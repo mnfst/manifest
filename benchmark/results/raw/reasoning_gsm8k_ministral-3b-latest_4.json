@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "Let's solve the problem step by step.\n\n1. **Mariah's yarn usage**:\n   Mariah used \\( \\frac{1}{4} \\) of a skein.\n   Since 1 skein = 364 yards,\n   Mariah used \\( \\frac{1}{4} \\times 364 = 91 \\) yards.\n\n2. **Grandma's yarn usage**:\n   Grandma used \\( \\frac{1}{2} \\) of a skein.\n   Grandma used \\( \\frac{1}{2} \\times 364 = 182 \\) yards.\n\n3. **Total yarn used**:\n   Add Mariah's and grandma's usage together:\n   \\( 91 + 182 = 273 \\) yards.\n\nANSWER: 273",
+  "score": 5,
+  "cost": 1.132e-05,
+  "expected": "273",
+  "tokens": {
+    "input": 105,
+    "output": 178
+  }
+}

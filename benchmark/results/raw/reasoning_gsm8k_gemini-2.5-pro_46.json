@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 46,
+  "response": "Here is the step-by-step solution:\n\n**Step 1: Determine the number of creatures Anakin caught.**\nAnakin caught:\n*   10 starfish\n*   6 sea horses\n*   3 clownfish\nTotal for Anakin = 10 + 6 + 3 = 19 creatures.\n\n**Step 2: Determine the number of creatures Locsin caught.**\n*   Starfish: 5 fewer than Anakin, so 10 - 5 = 5 starfish.\n*   Sea horses: 3 fewer than Anakin, so 6 - 3 = 3 sea horses.\n*   Clownfish: 2 more than Anakin, so 3 + 2 = 5 clownfish.\nTotal for Locsin = 5 + 3 + 5 = 13 creatures.\n\n**Step 3: Calculate the total number of creatures they caught together.**\nAdd Anakin's total to Locsin's total:\nTotal catch = 19 (Anakin) + 13 (Locsin) = 32 creatures.\n\nANSWER: 32",
+  "score": 5,
+  "cost": 0.0024775,
+  "expected": "32",
+  "tokens": {
+    "input": 102,
+    "output": 235
+  }
+}

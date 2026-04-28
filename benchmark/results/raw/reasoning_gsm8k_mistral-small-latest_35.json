@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 35,
+  "response": "Step 1: Calculate the cost of peaches\n6 pounds \u00d7 $2.00 per pound = $12.00\n\nStep 2: Calculate the cost of plums\n8 pounds \u00d7 $1.00 per pound = $8.00\n\nStep 3: Calculate the cost of apricots\n6 pounds \u00d7 $3.00 per pound = $18.00\n\nStep 4: Add all costs together\n$12.00 + $8.00 + $18.00 = $38.00\n\nANSWER: 38",
+  "score": 5,
+  "cost": 5.2799999999999996e-05,
+  "expected": "38",
+  "tokens": {
+    "input": 135,
+    "output": 131
+  }
+}

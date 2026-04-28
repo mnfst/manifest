@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "Here is the step-by-step solution:\n\n**Step 1: Calculate the increase in weight.**\nJamaal increases the 8-pound weight by 50%. To find 50% of 8, we can multiply 8 by 0.50.\n8 * 0.50 = 4 pounds.\nSo, the increase is 4 pounds.\n\n**Step 2: Calculate the new, heavier weight.**\nAdd the increase to the original weight.\n8 pounds + 4 pounds = 12 pounds.\nThe new weight that was too heavy is 12 pounds.\n\n**Step 3: Calculate the final weight.**\nJamaal uses a weight that is two pounds lighter than the 12-pound weight.\n12 pounds - 2 pounds = 10 pounds.\n\nThe weight that he now uses is 10 pounds.\n\nANSWER: 10",
+  "score": 5,
+  "cost": 0.00207375,
+  "expected": "10",
+  "tokens": {
+    "input": 99,
+    "output": 195
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "Here's a step-by-step solution to the problem:\n\n1.  **Calculate Adam's points:**\n    Adam has collected 50 points.\n\n2.  **Calculate Betty's points:**\n    Betty collected 30% more than Adam.\n    30% of Adam's points = 0.30 * 50 = 15 points.\n    Betty's points = Adam's points + 15 = 50 + 15 = 65 points.\n\n3.  **Calculate Tom's points:**\n    Tom has 30 points less than Betty.\n    Tom's points = Betty's points - 30 = 65 - 30 = 35 points.\n\n4.  **Calculate Martha's points:**\n    Marta collected 3 times more points than Tom.\n    Martha's points = 3 * Tom's points = 3 * 35 = 105 points.\n\n5.  **Calculate the total points collected by the class:**\n    Total points = Adam's points + Betty's points + Tom's points + Martha's points\n    Total points = 50 + 65 + 35 + 105 = 255 points.\n\n6.  **Calculate the points missing to reach the threshold:**\n    The minimum threshold is 400 points.\n    Missing points = Minimum threshold - Total points collected\n    Missing points = 400 - 255 = 145 points.\n\nANSWER: 145",
+  "score": 2,
+  "cost": 0.0002307,
+  "expected": "145",
+  "tokens": {
+    "input": 146,
+    "output": 348
+  }
+}

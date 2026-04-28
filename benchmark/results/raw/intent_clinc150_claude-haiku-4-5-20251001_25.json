@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "intent_clinc150",
+  "case": 25,
+  "response": "shopping_list_update",
+  "score": 5,
+  "cost": 0.0005352,
+  "expected": "shopping_list_update",
+  "tokens": {
+    "input": 629,
+    "output": 8
+  }
+}

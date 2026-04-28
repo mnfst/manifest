@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "intent_clinc150",
+  "case": 30,
+  "response": "where_are_you_from",
+  "score": 5,
+  "cost": 9.659999999999999e-05,
+  "expected": "where_are_you_from",
+  "tokens": {
+    "input": 616,
+    "output": 7
+  }
+}

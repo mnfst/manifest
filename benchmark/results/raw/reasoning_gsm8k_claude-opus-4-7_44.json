@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 44,
+  "response": "10 stalls have 20 cows each. He adds 40 cows divided into 20 stalls = 2 each.\n\nWait, originally 10 stalls. \"putting equal number into each of the twenty stalls\" - so there are 20 stalls total? Let me re-read.\n\n\"Ten stalls have 20 cows each\" - 10 stalls, 20 cows each.\n\"divides them equally, putting an equal number of the new cows into each of the twenty stalls\"\n\nHmm, says twenty stalls but only 10 mentioned. Likely typo, should be ten stalls. 40/10 = 4 new cows per stall. Each stall now has 24 cows. 8 stalls = 192.\n\nANSWER: 192",
+  "score": 3,
+  "cost": 0.01974,
+  "expected": "192",
+  "tokens": {
+    "input": 136,
+    "output": 236
+  }
+}

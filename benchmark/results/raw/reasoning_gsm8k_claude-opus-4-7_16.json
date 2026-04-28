@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "300/15 = 20 books. 20/4 = 5.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.004245,
+  "expected": "5",
+  "tokens": {
+    "input": 118,
+    "output": 33
+  }
+}

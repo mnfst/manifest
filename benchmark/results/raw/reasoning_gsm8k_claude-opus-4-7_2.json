@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "Distance: 3\u00d710=30 miles. Return time: 30/6=5 hours.\n\nANSWER: 5",
+  "score": 2,
+  "cost": 0.00498,
+  "expected": "5",
+  "tokens": {
+    "input": 127,
+    "output": 41
+  }
+}

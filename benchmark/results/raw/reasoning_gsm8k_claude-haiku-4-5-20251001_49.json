@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 49,
+  "response": "# Step-by-Step Solution\n\n**Given information:**\n- 2 brothers and 3 sisters\n- All 3 sisters are 16 years old each\n- One brother is 12 years old\n- This 12-year-old brother is half the age of the older brother\n\n**Step 1: Find the age of the older brother**\n- If 12 is half the age of the older brother, then:\n- Older brother's age = 12 \u00d7 2 = 24 years old\n\n**Step 2: Calculate the total age of the sisters**\n- 3 sisters \u00d7 16 years each = 48 years\n\n**Step 3: Calculate the total age of the brothers**\n- Younger brother: 12 years\n- Older brother: 24 years\n- Total for brothers: 12 + 24 = 36 years\n\n**Step 4: Calculate the total age of all siblings**\n- Total = Sisters' ages + Brothers' ages\n- Total = 48 + 36 = 84 years\n\nANSWER: 84",
+  "score": 5,
+  "cost": 0.0010832,
+  "expected": "84",
+  "tokens": {
+    "input": 104,
+    "output": 250
+  }
+}

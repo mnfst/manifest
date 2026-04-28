@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "Let's solve the problem step by step.\n\n1. **Initial number of cards:**\n   Elaine starts with 20 cards.\n\n2. **First month:**\n   She collects three times her initial number of cards.\n   \\( 3 \\times 20 = 60 \\) cards.\n\n3. **Second month:**\n   She collects 20 fewer cards than she did in the first month.\n   \\( 60 - 20 = 40 \\) cards.\n\n4. **Third month:**\n   She collects twice the combined number of cards from the first and second months.\n   Combined cards from first and second months: \\( 60 + 40 = 100 \\) cards.\n   \\( 2 \\times 100 = 200 \\) cards.\n\n5. **Total number of cards:**\n   Add all the cards collected over the three months to the initial number.\n   \\( 20 + 60 + 40 + 200 = 320 \\) cards.\n\nANSWER: 320",
+  "score": 5,
+  "cost": 0.000496,
+  "expected": "320",
+  "tokens": {
+    "input": 115,
+    "output": 225
+  }
+}

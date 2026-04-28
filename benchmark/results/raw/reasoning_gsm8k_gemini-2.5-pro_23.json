@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 23,
+  "response": "Here is the step-by-step solution to the problem:\n\n**Step 1: Find the original cost of filling one balloon.**\nThe total cost for 20 balloons was $900. To find the cost per balloon, we divide the total cost by the number of balloons.\n$900 / 20 = $45\nSo, the original cost to fill one balloon was $45.\n\n**Step 2: Calculate the new cost of filling one balloon.**\nThe cost of filling each balloon was increased by $20. We add this increase to the original cost per balloon.\n$45 (original cost) + $20 (increase) = $65\nThe new cost to fill one balloon is $65.\n\n**Step 3: Calculate the total cost for Bentley to fill 170 balloons.**\nBentley filled 170 balloons at the new, increased price. To find the total cost, we multiply the number of balloons by the new cost per balloon.\n170 balloons * $65/balloon = $11,050\n\nBentley paid $11,050 to fill 170 balloons.\n\nANSWER: 11050",
+  "score": 5,
+  "cost": 0.00275375,
+  "expected": "11050",
+  "tokens": {
+    "input": 99,
+    "output": 263
+  }
+}

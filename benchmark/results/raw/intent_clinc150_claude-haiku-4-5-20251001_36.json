@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "intent_clinc150",
+  "case": 36,
+  "response": "insurance",
+  "score": 5,
+  "cost": 0.00052,
+  "expected": "insurance",
+  "tokens": {
+    "input": 630,
+    "output": 4
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "I need to track the number of fairies step by step.\n\nStep 1: Initial number of fairies\nKatelyn saw 50 fairies flying above the forest initially.\n\nStep 2: Additional fairies arrive\nAfter twenty minutes, her friend saw half as many fairies as Katelyn originally saw come from the east.\n- Katelyn originally saw 50 fairies\n- Half of 50 = 50 \u00f7 2 = 25 fairies\n- These 25 fairies joined the existing 50 fairies\n- Total fairies = 50 + 25 = 75 fairies\n\nStep 3: Some fairies fly away\nTen minutes later, 30 fairies flew away.\n- Remaining fairies = 75 - 30 = 45 fairies\n\nANSWER: 45",
+  "score": 5,
+  "cost": 0.003291,
+  "expected": "45",
+  "tokens": {
+    "input": 122,
+    "output": 195
+  }
+}

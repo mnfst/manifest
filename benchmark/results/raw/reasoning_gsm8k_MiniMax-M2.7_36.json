@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "Elaine started with 20 cards.\n\n- **First month:** She collected three times the initial number: \\(3 \\times 20 = 60\\) cards.  \n  Total after month\u202f1: \\(20 + 60 = 80\\).\n\n- **Second month:** She collected 20 fewer than in the first month: \\(60 - 20 = 40\\) cards.  \n  Total after month\u202f2: \\(80 + 40 = 120\\).\n\n- **Third month:** She collected twice the combined total of the first two months:  \n  \\(2 \\times (60 + 40) = 2 \\times 100 = 200\\) cards.  \n  Total after month\u202f3: \\(120 + 200 = 320\\).\n\nThus Elaine now has **320** Pokemon cards.\n\nANSWER: 320",
+  "score": 5,
+  "cost": 0.0055891000000000005,
+  "expected": "320",
+  "tokens": {
+    "input": 129,
+    "output": 1238
+  }
+}

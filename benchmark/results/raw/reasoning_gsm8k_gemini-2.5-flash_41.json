@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "Let H be the number of copies Harald sold.\nLet M be the number of copies Marilyn sold.\n\nFrom the problem statement, we can set up two equations:\n\n1.  \"Marilyn's first record sold 10 times as many copies as Harald's.\"\n    This translates to: M = 10 * H\n\n2.  \"If they sold 88,000 copies combined\"\n    This translates to: M + H = 88,000\n\nNow we have a system of two linear equations:\n1) M = 10H\n2) M + H = 88,000\n\nWe can substitute the first equation into the second equation to solve for H:\n(10H) + H = 88,000\n\nCombine the terms with H:\n11H = 88,000\n\nNow, divide both sides by 11 to find the value of H:\nH = 88,000 / 11\nH = 8,000\n\nSo, Harald sold 8,000 copies.\n\nTo verify:\nIf Harald sold 8,000 copies, then Marilyn sold 10 * 8,000 = 80,000 copies.\nCombined sales: 8,000 + 80,000 = 88,000 copies, which matches the total given in the problem.\n\nThe final answer is $\\boxed{8000}$",
+  "score": 5,
+  "cost": 0.00021165,
+  "expected": "8000",
+  "tokens": {
+    "input": 75,
+    "output": 334
+  }
+}

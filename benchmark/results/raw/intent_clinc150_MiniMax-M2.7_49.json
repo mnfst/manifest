@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "intent_clinc150",
+  "case": 49,
+  "response": "international_visa",
+  "score": 5,
+  "cost": 0.0012353000000000002,
+  "expected": "international_visa",
+  "tokens": {
+    "input": 555,
+    "output": 142
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "# Step-by-step solution:\n\n**Step 1: Calculate the total cost of materials and construction**\n- Material cost: $500\n- Jeweler cost: $800\n- Subtotal: $500 + $800 = $1,300\n\n**Step 2: Calculate the insurance cost**\n- Insurance is 10% of the subtotal\n- Insurance cost: 10% \u00d7 $1,300 = 0.10 \u00d7 $1,300 = $130\n\n**Step 3: Calculate the total amount paid**\n- Total: $1,300 + $130 = $1,430\n\nANSWER: 1430",
+  "score": 5,
+  "cost": 0.000676,
+  "expected": "1430",
+  "tokens": {
+    "input": 105,
+    "output": 148
+  }
+}

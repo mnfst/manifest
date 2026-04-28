@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "intent_clinc150",
+  "case": 33,
+  "response": "direct_deposit",
+  "score": 5,
+  "cost": 0.0013175,
+  "expected": "direct_deposit",
+  "tokens": {
+    "input": 515,
+    "output": 3
+  }
+}

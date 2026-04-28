@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "intent_clinc150",
+  "case": 34,
+  "response": "replacement_card_duration",
+  "score": 5,
+  "cost": 0.00083375,
+  "expected": "replacement_card_duration",
+  "tokens": {
+    "input": 627,
+    "output": 5
+  }
+}

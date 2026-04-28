@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 42,
+  "response": "I need to find the total number of children performing in the mass drill.\n\nLet me break down the given information:\n- Children stand 8 in a row\n- There are 7 rows for each school\n- There are 5 different schools\n\nStep 1: Calculate the number of children per school.\nChildren per row = 8\nNumber of rows per school = 7\nChildren per school = 8 \u00d7 7 = 56 children\n\nStep 2: Calculate the total number of children across all schools.\nNumber of schools = 5\nChildren per school = 56\nTotal children = 56 \u00d7 5 = 280 children\n\nLet me verify this calculation:\n- 8 children per row \u00d7 7 rows per school = 56 children per school\n- 56 children per school \u00d7 5 schools = 280 total children\n\nANSWER: 280",
+  "score": 5,
+  "cost": 0.003336,
+  "expected": "280",
+  "tokens": {
+    "input": 102,
+    "output": 202
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "intent_clinc150",
+  "case": 16,
+  "response": "order_checks",
+  "score": 5,
+  "cost": 0.0012694000000000002,
+  "expected": "order_checks",
+  "tokens": {
+    "input": 558,
+    "output": 149
+  }
+}

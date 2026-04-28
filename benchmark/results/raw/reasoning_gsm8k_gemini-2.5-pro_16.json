@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "Here is the step-by-step solution:\n\n**Step 1: Find the total number of books Sarah bought.**\nTo find out how many books Sarah bought, we need to divide the total amount of money she spent by the cost of each book.\nTotal money spent = $300\nCost per book = $15\nTotal books = $300 / $15 = 20 books.\n\n**Step 2: Find the number of books each child received.**\nSarah has 20 books in total and wants to give an equal number to her 4 kids. We need to divide the total number of books by the number of children.\nTotal books = 20\nNumber of children = 4\nBooks per child = 20 / 4 = 5 books.\n\nSo, each child received 5 books.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.001955,
+  "expected": "5",
+  "tokens": {
+    "input": 84,
+    "output": 185
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 39,
+  "response": "Let's solve the problem step by step.\n\n1. **Madeline's Grapes:**\n   - Madeline ate **6 grapes**.\n\n2. **Brother's Grapes:**\n   - Her brother used **5 times** as many grapes as Madeline to make grape juice.\n   - Calculation: \\( 5 \\times 6 = 30 \\) grapes.\n\n3. **Mother's Grapes:**\n   - The mother used the **remaining grapes** to make 4 pies.\n   - Each pie requires **12 grapes**.\n   - Total grapes used for pies: \\( 4 \\times 12 = 48 \\) grapes.\n\n4. **Total Grapes at the Beginning:**\n   - Sum of grapes eaten by Madeline, used by the brother, and used by the mother.\n   - Calculation: \\( 6 + 30 + 48 = 84 \\) grapes.\n\n**ANSWER: 84**",
+  "score": 5,
+  "cost": 7.27e-05,
+  "expected": "84",
+  "tokens": {
+    "input": 118,
+    "output": 203
+  }
+}

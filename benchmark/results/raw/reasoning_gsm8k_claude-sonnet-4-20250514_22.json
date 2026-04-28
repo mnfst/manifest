@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 22,
+  "response": "I need to find the total tips received by both Rafaela and Julieta.\n\nStep 1: Calculate Rafaela's total tips.\n- Number of customers: 40\n- Tip per customer: $20\n- Rafaela's total tips = 40 \u00d7 $20 = $800\n\nStep 2: Calculate Julieta's total tips.\n- Julieta received 10% less than Rafaela\n- 10% of Rafaela's tips = 10% \u00d7 $800 = 0.10 \u00d7 $800 = $80\n- Julieta's tips = Rafaela's tips - 10% of Rafaela's tips\n- Julieta's tips = $800 - $80 = $720\n\nStep 3: Calculate the total tips received by both.\n- Total tips = Rafaela's tips + Julieta's tips\n- Total tips = $800 + $720 = $1,520\n\nANSWER: 1520",
+  "score": 4,
+  "cost": 0.003879,
+  "expected": "1520",
+  "tokens": {
+    "input": 108,
+    "output": 237
+  }
+}

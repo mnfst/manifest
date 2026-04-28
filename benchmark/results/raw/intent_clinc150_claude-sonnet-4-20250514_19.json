@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "intent_clinc150",
+  "case": 19,
+  "response": "calendar",
+  "score": 5,
+  "cost": 0.001941,
+  "expected": "calendar",
+  "tokens": {
+    "input": 627,
+    "output": 4
+  }
+}

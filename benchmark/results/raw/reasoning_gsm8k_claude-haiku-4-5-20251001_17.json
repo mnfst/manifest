@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 17,
+  "response": "# Step-by-step solution:\n\n**Step 1: Calculate the cost of books**\n- Number of books: 3\n- Cost per book: $16\n- Total cost of books = 3 \u00d7 $16 = $48\n\n**Step 2: Calculate the cost of pencils**\n- Number of pencils: 3\n- Cost per pencil: $6\n- Total cost of pencils = 3 \u00d7 $6 = $18\n\n**Step 3: Calculate total spending**\n- Total spent = Cost of books + Cost of pencils\n- Total spent = $48 + $18 = $66\n\nANSWER: 66",
+  "score": 5,
+  "cost": 0.000664,
+  "expected": "66",
+  "tokens": {
+    "input": 85,
+    "output": 149
+  }
+}

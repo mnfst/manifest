@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "reasoning_gsm8k",
+  "case": 38,
+  "response": "Here's how to solve the problem step-by-step:\n\n1.  **Find the total number of parts in the ratio:**\n    The ratio is 3:2, so the total number of parts is 3 + 2 = 5 parts.\n\n2.  **Determine the value of one part:**\n    The total money is $100. Divide this by the total number of parts:\n    $100 / 5 parts = $20 per part.\n\n3.  **Calculate Gerald's share:**\n    Gerald's share is 3 parts of the ratio:\n    3 parts * $20/part = $60.\n\n4.  **Calculate how much money Gerald had left after spending:**\n    Gerald started with $60 and spent $10 on a book:\n    $60 - $10 = $50.\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.00012885,
+  "expected": "50",
+  "tokens": {
+    "input": 71,
+    "output": 197
+  }
+}

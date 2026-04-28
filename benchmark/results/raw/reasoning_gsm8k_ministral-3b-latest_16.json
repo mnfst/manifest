@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "Let's solve the problem step by step.\n\n1. **Total amount spent on books**: $300\n2. **Cost per book**: $15\n3. **Number of books Sarah bought**:\n   \\[\n   \\text{Number of books} = \\frac{\\text{Total amount spent}}{\\text{Cost per book}} = \\frac{300}{15} = 20\n   \\]\n4. **Number of kids**: 4\n5. **Books per child**:\n   \\[\n   \\text{Books per child} = \\frac{\\text{Number of books}}{\\text{Number of kids}} = \\frac{20}{4} = 5\n   \\]\n\nANSWER: 5",
+  "score": 5,
+  "cost": 9.640000000000001e-06,
+  "expected": "5",
+  "tokens": {
+    "input": 87,
+    "output": 154
+  }
+}

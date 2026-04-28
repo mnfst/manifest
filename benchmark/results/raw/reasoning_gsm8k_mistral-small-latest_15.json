@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 15,
+  "response": "Step 1: Calculate Joey's new score after scoring 26 points.\nJoey's initial score = 214\nPoints scored by Joey = 26\nJoey's new score = 214 + 26 = 240\n\nStep 2: Calculate Marcy's new score after scoring 10 points.\nMarcy's initial score = 225\nPoints scored by Marcy = 10\nMarcy's new score = 225 + 10 = 235\n\nStep 3: Determine by how many points Joey is now winning.\nJoey's new score = 240\nMarcy's new score = 235\nDifference = 240 - 235 = 5\n\nANSWER: 5",
+  "score": 5,
+  "cost": 6.170000000000001e-05,
+  "expected": "5",
+  "tokens": {
+    "input": 101,
+    "output": 172
+  }
+}

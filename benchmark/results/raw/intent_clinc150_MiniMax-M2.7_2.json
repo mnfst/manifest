@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "intent_clinc150",
+  "case": 2,
+  "response": "report_lost_card",
+  "score": 5,
+  "cost": 0.0014575,
+  "expected": "report_lost_card",
+  "tokens": {
+    "input": 573,
+    "output": 188
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "intent_clinc150",
+  "case": 21,
+  "response": "recipe",
+  "score": 0,
+  "cost": 7.709999999999999e-05,
+  "expected": "ingredient_substitution",
+  "tokens": {
+    "input": 510,
+    "output": 1
+  }
+}

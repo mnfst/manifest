@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "Here is the step-by-step solution to the problem:\n\n**Step 1: Calculate Betty's points.**\nAdam has 50 points. Betty collected 30% more than Adam.\nFirst, find 30% of Adam's points: 0.30 * 50 = 15 points.\nThen, add this to Adam's total: 50 + 15 = 65 points.\nSo, Betty has 65 points.\n\n**Step 2: Calculate Tom's points.**\nTom has 30 points less than Betty.\nBetty has 65 points, so Tom has: 65 - 30 = 35 points.\nSo, Tom has 35 points.\n\n**Step 3: Calculate Marta's points.**\nMarta collected 3 times more points than Tom.\nTom has 35 points, so Marta has: 3 * 35 = 105 points.\nSo, Marta has 105 points.\n\n**Step 4: Calculate the total points collected by the class.**\nAdd up the points from all four students:\nAdam: 50\nBetty: 65\nTom: 35\nMarta: 105\nTotal points = 50 + 65 + 35 + 105 = 255 points.\n\n**Step 5: Calculate how many points are missing.**\nThe minimum threshold for the trip is 400 points. The class has collected 255 points.\nMissing points = Threshold - Total collected\nMissing points = 400 - 255 = 145 points.\n\nThe class is missing 145 points to go on the trip.\n\nANSWER: 145",
+  "score": 1,
+  "cost": 0.0040825,
+  "expected": "145",
+  "tokens": {
+    "input": 146,
+    "output": 390
+  }
+}

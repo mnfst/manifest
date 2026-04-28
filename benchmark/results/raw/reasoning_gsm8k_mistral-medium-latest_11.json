@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "Let's solve the problem step by step.\n\n1. **Total burritos ordered**: George ordered 600 burritos.\n\n2. **Burritos given to students**:\n   - There are 50 students.\n   - Each student was given 10 burritos.\n   - Total burritos given to students = 50 students * 10 burritos/student = 500 burritos.\n\n3. **Burritos eaten by Mr. George**: Mr. George ate 20 burritos.\n\n4. **Total burritos consumed**:\n   - Burritos given to students + burritos eaten by Mr. George = 500 + 20 = 520 burritos.\n\n5. **Leftover burritos**:\n   - Total burritos ordered - total burritos consumed = 600 - 520 = 80 burritos.\n\nANSWER: 80",
+  "score": 5,
+  "cost": 0.00042439999999999996,
+  "expected": "80",
+  "tokens": {
+    "input": 106,
+    "output": 191
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "reasoning_gsm8k",
+  "case": 6,
+  "response": "To solve the problem, we start by determining the current age of Ann's brother.\n\n1. Ann's current age is 9 years.\n2. Since her brother is twice her age, we calculate his current age:\n   \\[\n   \\text{Brother's age} = 2 \\times \\text{Ann's age} = 2 \\times 9 = 18 \\text{ years}\n   \\]\n\nNext, we need to find out how old her brother will be in 3 years.\n\n3. We add 3 years to her brother's current age:\n   \\[\n   \\text{Brother's age in 3 years} = \\text{Brother's current age} + 3 = 18 + 3 = 21 \\text{ years}\n   \\]\n\nThus, her brother will be 21 years old in 3 years.\n\nFinal answer:\nANSWER: 21",
+  "score": 5,
+  "cost": 0.00011985,
+  "expected": "21",
+  "tokens": {
+    "input": 67,
+    "output": 183
+  }
+}

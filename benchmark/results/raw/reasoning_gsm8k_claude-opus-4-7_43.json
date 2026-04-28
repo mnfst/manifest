@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 43,
+  "response": "Mike=24, Martha=20, Jeff=30\n\nANSWER: 30",
+  "score": 4,
+  "cost": 0.004305,
+  "expected": "30",
+  "tokens": {
+    "input": 132,
+    "output": 31
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "I need to find the total number of children in the classroom by calculating the number of boys, girls, and nongendered children.\n\nGiven information:\n- The classroom has 30 boys\n- There are 3 times as many girls as boys\n- There are 1/10 as many nongendered children as boys\n\nLet me calculate each group:\n\nBoys: 30 (given)\n\nGirls: 3 times as many as boys\nGirls = 3 \u00d7 30 = 90\n\nNongendered children: 1/10 as many as boys\nNongendered children = (1/10) \u00d7 30 = 3\n\nTotal children = Boys + Girls + Nongendered children\nTotal children = 30 + 90 + 3 = 123\n\nANSWER: 123",
+  "score": 2,
+  "cost": 0.003063,
+  "expected": "123",
+  "tokens": {
+    "input": 96,
+    "output": 185
+  }
+}

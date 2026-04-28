@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "To solve this problem, we need to set up equations based on the information given.\n\n1. Let's denote the number of copies Harald sold as \\( H \\).\n\n2. According to the problem, Marilyn's record sold 10 times as many copies as Harald's. Therefore, the number of copies Marilyn sold is \\( 10H \\).\n\n3. Together, they sold a total of 88,000 copies. This gives us the equation:\n   \\[\n   H + 10H = 88,000\n   \\]\n\n4. Simplify the equation:\n   \\[\n   11H = 88,000\n   \\]\n\n5. Solve for \\( H \\) by dividing both sides of the equation by 11:\n   \\[\n   H = \\frac{88,000}{11}\n   \\]\n\n6. Calculate the division:\n   \\[\n   H = 8,000\n   \\]\n\nTherefore, Harald sold 8,000 copies.\n\nANSWER: 8000",
+  "score": 5,
+  "cost": 0.0022025,
+  "expected": "8000",
+  "tokens": {
+    "input": 73,
+    "output": 202
+  }
+}

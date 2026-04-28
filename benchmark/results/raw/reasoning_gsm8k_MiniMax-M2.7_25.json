@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "John\u2019s house is worth  \n\n\\[\n\\$250{,}000.\n\\]\n\nHe obtains a loan equal to 40\u202f% of the house\u2019s value:\n\n\\[\n\\text{Loan}=0.40 \\times \\$250{,}000 = \\$100{,}000.\n\\]\n\nHe uses 60\u202f% of that loan to pay off his debts:\n\n\\[\n\\text{Debt payment}=0.60 \\times \\$100{,}000 = \\$60{,}000.\n\\]\n\nThe amount left over after paying the debt is the remainder of the loan:\n\n\\[\n\\text{Leftover}= \\$100{,}000 - \\$60{,}000 = \\$40{,}000.\n\\]\n\n\\[\n\\boxed{\\$40{,}000}\n\\]\n\nANSWER: 40000",
+  "score": 5,
+  "cost": 0.0034870000000000005,
+  "expected": "40,000",
+  "tokens": {
+    "input": 134,
+    "output": 759
+  }
+}

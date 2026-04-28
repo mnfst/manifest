@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 21,
+  "response": "Here is the step-by-step solution to the problem:\n\n**Step 1: Find the number of steps from walking to and from school.**\nElliott's goal is 10,000 steps. He finished half of his steps on his walks to and from school.\n10,000 steps / 2 = 5,000 steps\n\n**Step 2: Calculate the total steps taken before the jog.**\nHe took 5,000 steps walking to and from school and another 1,000 steps walking with his friend.\n5,000 steps + 1,000 steps = 6,000 steps\n\n**Step 3: Determine the total number of steps completed after the jog.**\nElliott's goal is 10,000 steps, and he had 2,000 steps left to take after his jog. To find out how many steps he had already completed, we subtract the remaining steps from the goal.\n10,000 steps (goal) - 2,000 steps (left) = 8,000 steps (completed)\n\n**Step 4: Calculate the number of steps taken during the jog.**\nWe know he had completed a total of 8,000 steps after his jog, and he had completed 6,000 steps before his jog. The difference is the number of steps he took during the jog.\n8,000 steps (total completed) - 6,000 steps (before jog) = 2,000 steps\n\nElliott took 2,000 steps during his jog.\n\nANSWER: 2000",
+  "score": 4,
+  "cost": 0.00381125,
+  "expected": "2000",
+  "tokens": {
+    "input": 129,
+    "output": 365
+  }
+}

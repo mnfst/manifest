@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 35,
+  "response": "# Step-by-Step Solution\n\n**Step 1: Calculate the cost of peaches**\n- Peaches: 6 pounds \u00d7 $2.00 per pound = $12.00\n\n**Step 2: Calculate the cost of plums**\n- Plums: 8 pounds \u00d7 $1.00 per pound = $8.00\n\n**Step 3: Calculate the cost of apricots**\n- Apricots: 6 pounds \u00d7 $3.00 per pound = $18.00\n\n**Step 4: Calculate the total cost**\n- Total = $12.00 + $8.00 + $18.00 = $38.00\n\nANSWER: 38.00",
+  "score": 5,
+  "cost": 0.0007647999999999999,
+  "expected": "38",
+  "tokens": {
+    "input": 131,
+    "output": 165
+  }
+}

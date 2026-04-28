@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "I need to find how many copies Harald sold.\n\nLet me define variables:\n- Let H = number of copies Harald sold\n- Let M = number of copies Marilyn sold\n\nFrom the problem, I know:\n1) Marilyn's record sold 10 times as many copies as Harald's: M = 10H\n2) Together they sold 88,000 copies: M + H = 88,000\n\nNow I'll substitute the first equation into the second equation:\n10H + H = 88,000\n11H = 88,000\nH = 88,000 \u00f7 11\nH = 8,000\n\nLet me verify this answer:\n- Harald sold 8,000 copies\n- Marilyn sold 10 \u00d7 8,000 = 80,000 copies\n- Total: 8,000 + 80,000 = 88,000 copies \u2713\n\nANSWER: 8000",
+  "score": 5,
+  "cost": 0.003513,
+  "expected": "8000",
+  "tokens": {
+    "input": 81,
+    "output": 218
+  }
+}

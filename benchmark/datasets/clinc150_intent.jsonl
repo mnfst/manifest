@@ -1,0 +1,50 @@
+{"input": "can you tell me how to transfer my 401k", "expected": "rollover_401k", "source": "clinc150-test"}
+{"input": "can you help me hunt for my missing cellphone", "expected": "find_phone", "source": "clinc150-test"}
+{"input": "what is the process for reporting my card as lost", "expected": "report_lost_card", "source": "clinc150-test"}
+{"input": "should i call a car maintenance", "expected": "schedule_maintenance", "source": "clinc150-test"}
+{"input": "i want an uber for one person to go to bank of america", "expected": "uber", "source": "clinc150-test"}
+{"input": "what are the best places to get shrimp in chicago", "expected": "restaurant_suggestion", "source": "clinc150-test"}
+{"input": "i'll be confirming my reservation for joseph at red lobster", "expected": "confirm_reservation", "source": "clinc150-test"}
+{"input": "i'm changing your name to goliath", "expected": "change_ai_name", "source": "clinc150-test"}
+{"input": "i am not sure", "expected": "maybe", "source": "clinc150-test"}
+{"input": "what is the weather doing in austin", "expected": "weather", "source": "clinc150-test"}
+{"input": "how is a vacation request made", "expected": "pto_request", "source": "clinc150-test"}
+{"input": "is there a travel alert for france", "expected": "travel_alert", "source": "clinc150-test"}
+{"input": "how do i do an oil change", "expected": "oil_change_how", "source": "clinc150-test"}
+{"input": "tell me nutritional info for lettuce", "expected": "nutrition_info", "source": "clinc150-test"}
+{"input": "what date is it tomorrow", "expected": "date", "source": "clinc150-test"}
+{"input": "i'd like for this person to know my location", "expected": "share_location", "source": "clinc150-test"}
+{"input": "i am in need of new checks i'm completely out of mine", "expected": "order_checks", "source": "clinc150-test"}
+{"input": "what stuff am i trying to remember", "expected": "reminder", "source": "clinc150-test"}
+{"input": "where is my current location", "expected": "current_location", "source": "clinc150-test"}
+{"input": "is bowling on my calendar", "expected": "calendar", "source": "clinc150-test"}
+{"input": "are there any shots i need to travel to karachi", "expected": "vaccines", "source": "clinc150-test"}
+{"input": "can i substitute butter for oil", "expected": "ingredient_substitution", "source": "clinc150-test"}
+{"input": "i would like help moving money from one account to another", "expected": "transfer", "source": "clinc150-test"}
+{"input": "why is there a stop on my deposit account", "expected": "account_blocked", "source": "clinc150-test"}
+{"input": "my bill shows a purchase from payless shoes but i didn't buy anything", "expected": "report_fraud", "source": "clinc150-test"}
+{"input": "please put chips on my shopping list", "expected": "shopping_list_update", "source": "clinc150-test"}
+{"input": "can you speak quieter", "expected": "change_volume", "source": "clinc150-test"}
+{"input": "i need to know what the current apr is for my chase sapphire, please", "expected": "apr", "source": "clinc150-test"}
+{"input": "could you repeat that", "expected": "repeat", "source": "clinc150-test"}
+{"input": "how do you make pasta", "expected": "recipe", "source": "clinc150-test"}
+{"input": "what area did you come from", "expected": "where_are_you_from", "source": "clinc150-test"}
+{"input": "would you be able to freeze my bank account", "expected": "freeze_account", "source": "clinc150-test"}
+{"input": "have i already got eggs down on the shopping list", "expected": "shopping_list", "source": "clinc150-test"}
+{"input": "how does one set up direct deposit to my bank account", "expected": "direct_deposit", "source": "clinc150-test"}
+{"input": "what is amount of time it takes to get a new credit card i lost mine recently", "expected": "replacement_card_duration", "source": "clinc150-test"}
+{"input": "can i get you to change your language setting to russian", "expected": "change_language", "source": "clinc150-test"}
+{"input": "tell me what health plan coverage i have", "expected": "insurance", "source": "clinc150-test"}
+{"input": "find out when my next upcoming payday will be", "expected": "payday", "source": "clinc150-test"}
+{"input": "what are the manufacturers guidance on oil changes", "expected": "oil_change_when", "source": "clinc150-test"}
+{"input": "how old will you be this year", "expected": "how_old_are_you", "source": "clinc150-test"}
+{"input": "i need to know my cars mpg", "expected": "mpg", "source": "clinc150-test"}
+{"input": "is the bill due today", "expected": "bill_due", "source": "clinc150-test"}
+{"input": "start the next song", "expected": "next_song", "source": "clinc150-test"}
+{"input": "can i fly from atlanta to san francisco for less than 100 dollars", "expected": "book_flight", "source": "clinc150-test"}
+{"input": "i want to change to a new allstate insurance plan", "expected": "insurance_change", "source": "clinc150-test"}
+{"input": "can i reserve tables at the new york restaurant", "expected": "accept_reservations", "source": "clinc150-test"}
+{"input": "what is 25% of $54,788", "expected": "calculator", "source": "clinc150-test"}
+{"input": "tell me how long it will take to prepare a lasagna", "expected": "cook_time", "source": "clinc150-test"}
+{"input": "has my application for american express gone through yet", "expected": "application_status", "source": "clinc150-test"}
+{"input": "is a visa necessary for traveling to south africa", "expected": "international_visa", "source": "clinc150-test"}

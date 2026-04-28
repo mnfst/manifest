@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 49,
+  "response": "I need to find the total age of all siblings in the family.\n\nLet me identify what I know:\n- There are 2 brothers and 3 sisters (5 siblings total)\n- All 3 sisters are the same age: 16 years old each\n- One brother is 12 years old\n- The 12-year-old brother is half the age of the older brother\n\nFirst, let me find the age of the older brother:\n- If the younger brother (12 years old) is half the age of the older brother\n- Then: 12 = (older brother's age) \u00f7 2\n- So: older brother's age = 12 \u00d7 2 = 24 years old\n\nNow I can calculate the total age of all siblings:\n- 3 sisters: 3 \u00d7 16 = 48 years\n- Younger brother: 12 years\n- Older brother: 24 years\n\nTotal age = 48 + 12 + 24 = 84 years\n\nANSWER: 84",
+  "score": 5,
+  "cost": 0.003942,
+  "expected": "84",
+  "tokens": {
+    "input": 104,
+    "output": 242
+  }
+}

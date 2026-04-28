@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "Step 1: Calculate Mitchell's total earnings.\nMitchell sold 21 lemonades at $4 each.\nTotal earnings = 21 \u00d7 $4 = $84\n\nStep 2: Determine how much more Mitchell made than Liam.\nLiam made $63.\nDifference = Mitchell's earnings - Liam's earnings\nDifference = $84 - $63 = $21\n\nANSWER: 21",
+  "score": 5,
+  "cost": 3.85e-05,
+  "expected": "21",
+  "tokens": {
+    "input": 118,
+    "output": 89
+  }
+}

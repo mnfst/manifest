@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "To find out how many yards of yarn Mariah and her grandma used altogether, we first need to determine how much yarn each of them used in yards.\n\n1. **Calculate the amount of yarn Mariah used:**\n   - Mariah used \\( \\frac{1}{4} \\) of a skein.\n   - Since there are 364 yards in a skein, we calculate:\n     \\[\n     \\text{Yards used by Mariah} = \\frac{1}{4} \\times 364 = \\frac{364}{4} = 91 \\text{ yards}\n     \\]\n\n2. **Calculate the amount of yarn her grandma used:**\n   - Her grandma used \\( \\frac{1}{2} \\) of a skein.\n   - We calculate:\n     \\[\n     \\text{Yards used by grandma} = \\frac{1}{2} \\times 364 = \\frac{364}{2} = 182 \\text{ yards}\n     \\]\n\n3. **Add the amounts of yarn used by both:**\n   - Now we add the yards used by Mariah and her grandma:\n     \\[\n     \\text{Total yards used} = 91 + 182 = 273 \\text{ yards}\n     \\]\n\nThus, the total amount of yarn used by Mariah and her grandma is 273 yards.\n\nFinal answer:\nANSWER: 273",
+  "score": 5,
+  "cost": 0.00018855,
+  "expected": "273",
+  "tokens": {
+    "input": 101,
+    "output": 289
+  }
+}

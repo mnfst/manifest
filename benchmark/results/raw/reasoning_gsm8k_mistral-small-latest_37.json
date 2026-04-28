@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 37,
+  "response": "Step 1: Determine the number of votes candidate A received.\n- Candidate A got 20% of the votes.\n- Total votes = 100\n- Votes for A = 20% of 100 = 0.20 * 100 = 20 votes\n\nStep 2: Determine the number of votes candidate B received.\n- Candidate B got 50% more votes than candidate A.\n- 50% of A's votes = 0.50 * 20 = 10 votes\n- Votes for B = Votes for A + 50% more = 20 + 10 = 30 votes\n\nStep 3: Determine the number of votes candidate C received.\n- The rest of the votes went to candidate C.\n- Votes for C = Total votes - (Votes for A + Votes for B)\n- Votes for C = 100 - (20 + 30) = 100 - 50 = 50 votes\n\nANSWER: 50",
+  "score": 5,
+  "cost": 7.95e-05,
+  "expected": "50",
+  "tokens": {
+    "input": 111,
+    "output": 228
+  }
+}

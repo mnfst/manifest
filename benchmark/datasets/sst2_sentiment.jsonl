@@ -1,0 +1,50 @@
+{"input": "my wife is an actress is an utterly charming french comedy that feels so american in sensibility and style it 's virtually its own hollywood remake . ", "expected": "positive", "source": "sst2-validation"}
+{"input": "... a story we have n't seen on the big screen before , and it 's a story that we as americans , and human beings , should know . ", "expected": "positive", "source": "sst2-validation"}
+{"input": "it 's dumb , but more importantly , it 's just not scary . ", "expected": "negative", "source": "sst2-validation"}
+{"input": "it 's great escapist fun that recreates a place and time that will never happen again . ", "expected": "positive", "source": "sst2-validation"}
+{"input": "all that 's missing is the spontaneity , originality and delight . ", "expected": "negative", "source": "sst2-validation"}
+{"input": "outer-space buffs might love this film , but others will find its pleasures intermittent . ", "expected": "negative", "source": "sst2-validation"}
+{"input": "but this films lacks the passion required to sell the material . ", "expected": "negative", "source": "sst2-validation"}
+{"input": "it 's a scattershot affair , but when it hits its mark it 's brilliant . ", "expected": "positive", "source": "sst2-validation"}
+{"input": "it can not be enjoyed , even on the level that one enjoys a bad slasher flick , primarily because it is dull . ", "expected": "negative", "source": "sst2-validation"}
+{"input": "you really have to wonder how on earth anyone , anywhere could have thought they 'd make audiences guffaw with a script as utterly diabolical as this . ", "expected": "negative", "source": "sst2-validation"}
+{"input": "this is a shameless sham , calculated to cash in on the popularity of its stars . ", "expected": "negative", "source": "sst2-validation"}
+{"input": "scores no points for originality , wit , or intelligence . ", "expected": "negative", "source": "sst2-validation"}
+{"input": "as surreal as a dream and as detailed as a photograph , as visually dexterous as it is at times imaginatively overwhelming . ", "expected": "positive", "source": "sst2-validation"}
+{"input": "slick piece of cross-promotion . ", "expected": "positive", "source": "sst2-validation"}
+{"input": "neither parker nor donovan is a typical romantic lead , but they bring a fresh , quirky charm to the formula . ", "expected": "positive", "source": "sst2-validation"}
+{"input": "of course , by more objective measurements it 's still quite bad . ", "expected": "negative", "source": "sst2-validation"}
+{"input": "the humor is forced and heavy-handed , and occasionally simply unpleasant . ", "expected": "negative", "source": "sst2-validation"}
+{"input": "as the two leads , lathan and diggs are charming and have chemistry both as friends and lovers . ", "expected": "positive", "source": "sst2-validation"}
+{"input": "whether you like rap music or loathe it , you ca n't deny either the tragic loss of two young men in the prime of their talent or the power of this movie . ", "expected": "positive", "source": "sst2-validation"}
+{"input": "puts a human face on a land most westerners are unfamiliar with . ", "expected": "positive", "source": "sst2-validation"}
+{"input": "sticky sweet sentimentality , clumsy plotting and a rosily myopic view of life in the wwii-era mississippi delta undermine this adaptation . ", "expected": "negative", "source": "sst2-validation"}
+{"input": "the fly-on-the-wall method used to document rural french school life is a refreshing departure from the now more prevalent technique of the docu-makers being a visible part of their work . ", "expected": "positive", "source": "sst2-validation"}
+{"input": "a literate presentation that wonderfully weaves a murderous event in 1873 with murderous rage in 2002 . ", "expected": "positive", "source": "sst2-validation"}
+{"input": "the so-inept - it 's - surreal dubbing ( featuring the voices of glenn close , regis philbin and breckin meyer ) brings back memories of cheesy old godzilla flicks . ", "expected": "negative", "source": "sst2-validation"}
+{"input": "one from the heart . ", "expected": "positive", "source": "sst2-validation"}
+{"input": "it 's everything you do n't go to the movies for . ", "expected": "negative", "source": "sst2-validation"}
+{"input": "what 's surprising about full frontal is that despite its overt self-awareness , parts of the movie still manage to break past the artifice and thoroughly engage you . ", "expected": "positive", "source": "sst2-validation"}
+{"input": "the film contains no good jokes , no good scenes , barely a moment when carvey 's saturday night live-honed mimicry rises above the level of embarrassment . ", "expected": "negative", "source": "sst2-validation"}
+{"input": "uncommonly stylish but equally silly ... the picture fails to generate much suspense , nor does it ask searching enough questions to justify its pretensions . ", "expected": "negative", "source": "sst2-validation"}
+{"input": "suffocated by its fussy script and uptight characters , this musty adaptation is all the more annoying since it 's been packaged and sold back to us by hollywood . ", "expected": "negative", "source": "sst2-validation"}
+{"input": "the story and the friendship proceeds in such a way that you 're watching a soap opera rather than a chronicle of the ups and downs that accompany lifelong friendships . ", "expected": "negative", "source": "sst2-validation"}
+{"input": "why make a documentary about these marginal historical figures ? ", "expected": "negative", "source": "sst2-validation"}
+{"input": "uses sharp humor and insight into human nature to examine class conflict , adolescent yearning , the roots of friendship and sexual identity . ", "expected": "positive", "source": "sst2-validation"}
+{"input": "instead of hiding pinocchio from critics , miramax should have hidden it from everyone . ", "expected": "negative", "source": "sst2-validation"}
+{"input": "it just may inspire a few younger moviegoers to read stevenson 's book , which is a treasure in and of itself . ", "expected": "positive", "source": "sst2-validation"}
+{"input": "jaglom ... put ( s ) the audience in the privileged position of eavesdropping on his characters ", "expected": "positive", "source": "sst2-validation"}
+{"input": "that 's a cheat . ", "expected": "negative", "source": "sst2-validation"}
+{"input": "a simple , but gritty and well-acted ensemble drama that encompasses a potent metaphor for a country still dealing with its fascist past . ", "expected": "positive", "source": "sst2-validation"}
+{"input": "corny , schmaltzy and predictable , but still manages to be kind of heartwarming , nonetheless . ", "expected": "positive", "source": "sst2-validation"}
+{"input": "or doing last year 's taxes with your ex-wife . ", "expected": "negative", "source": "sst2-validation"}
+{"input": "it 's a work by an artist so in control of both his medium and his message that he can improvise like a jazzman . ", "expected": "positive", "source": "sst2-validation"}
+{"input": "that dogged good will of the parents and ` vain ' jia 's defoliation of ego , make the film touching despite some doldrums . ", "expected": "positive", "source": "sst2-validation"}
+{"input": "what better message than ` love thyself ' could young women of any size receive ? ", "expected": "positive", "source": "sst2-validation"}
+{"input": "a better title , for all concerned , might be swept under the rug . ", "expected": "negative", "source": "sst2-validation"}
+{"input": "it 's clear the filmmakers were n't sure where they wanted their story to go , and even more clear that they lack the skills to get us to this undetermined destination . ", "expected": "negative", "source": "sst2-validation"}
+{"input": "it 's an offbeat treat that pokes fun at the democratic exercise while also examining its significance for those who take part . ", "expected": "positive", "source": "sst2-validation"}
+{"input": "the weight of the piece , the unerring professionalism of the chilly production , and the fascination embedded in the lurid topic prove recommendation enough . ", "expected": "positive", "source": "sst2-validation"}
+{"input": "there seems to be no clear path as to where the story 's going , or how long it 's going to take to get there . ", "expected": "negative", "source": "sst2-validation"}
+{"input": "combining quick-cut editing and a blaring heavy metal much of the time , beck seems to be under the illusion that he 's shooting the latest system of a down video . ", "expected": "negative", "source": "sst2-validation"}
+{"input": "thanks to scott 's charismatic roger and eisenberg 's sweet nephew , roger dodger is one of the most compelling variations on in the company of men . ", "expected": "positive", "source": "sst2-validation"}

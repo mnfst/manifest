@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "**Step\u2011by\u2011step solution**\n\n1. Let the number of boys be \\(B\\).  \n   The problem tells us there are **30 boys**, so  \n   \\[\n   B = 30.\n   \\]\n\n2. The number of girls is \u201c3 times as many as the number of boys\u201d.  \n   \\[\n   G = 3B = 3 \\times 30 = 90.\n   \\]\n\n3. The number of nongendered children is \u201c\\( \\frac{1}{10} \\) as many as the number of boys\u201d.  \n   \\[\n   N = \\frac{1}{10}B = \\frac{1}{10}\\times 30 = 3.\n   \\]\n\n4. Total children \\(T\\) is the sum of boys, girls, and nongendered children:  \n   \\[\n   T = B + G + N = 30 + 90 + 3 = 123.\n   \\]\n\n**Answer**\n\nANSWER: 123",
+  "score": 4,
+  "cost": 0.0032516000000000003,
+  "expected": "123",
+  "tokens": {
+    "input": 104,
+    "output": 713
+  }
+}

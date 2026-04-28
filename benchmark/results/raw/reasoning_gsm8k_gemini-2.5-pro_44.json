@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 44,
+  "response": "Here is the step-by-step solution:\n\n**Step 1: Determine how many new cows are added to each stall.**\nMr. Sylas buys 40 new cows. The problem states there are ten stalls. He divides the 40 cows equally among these 10 stalls.\n40 cows / 10 stalls = 4 new cows per stall.\n\n**Step 2: Calculate the new total number of cows in one stall.**\nEach stall initially had 20 cows. After Mr. Sylas adds the new cows, each stall has its original number of cows plus the new ones.\n20 initial cows + 4 new cows = 24 cows per stall.\n\n**Step 3: Calculate the total number of cows in 8 stalls.**\nNow that we know each stall has 24 cows, we can find the total number of cows in 8 of those stalls by multiplying.\n24 cows/stall * 8 stalls = 192 cows.\n\nANSWER: 192",
+  "score": 5,
+  "cost": 0.0022875,
+  "expected": "192",
+  "tokens": {
+    "input": 86,
+    "output": 218
+  }
+}

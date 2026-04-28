@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "Let \\(x\\) be the number of copies Harald sold.  \nMarilyn sold 10 times as many copies, so she sold \\(10x\\) copies.  \n\nThe total number of copies sold by both is 88,000:\n\n\\[\nx + 10x = 88{,}000.\n\\]\n\nCombine like terms:\n\n\\[\n11x = 88{,}000.\n\\]\n\nSolve for \\(x\\) by dividing both sides by 11:\n\n\\[\nx = \\frac{88{,}000}{11} = 8{,}000.\n\\]\n\nThus, Harald sold **8,000 copies**.\n\nANSWER: 8000",
+  "score": 5,
+  "cost": 0.0014971000000000001,
+  "expected": "8000",
+  "tokens": {
+    "input": 105,
+    "output": 314
+  }
+}

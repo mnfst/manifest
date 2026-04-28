@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 43,
+  "response": "Let\u2019s denote the ages:\n\n- Let \\(M\\) be Martha\u2019s age.\n- Let \\(J\\) be Jeff\u2019s age.\n- Let \\(K\\) be Mike\u2019s age (we\u2019re given \\(K = 24\\)).\n\nFrom the problem statements:\n\n1. Jeff is 10 years older than Martha:  \n   \\[\n   J = M + 10\n   \\]\n\n2. Martha is 4 years younger than Mike:  \n   \\[\n   M = K - 4\n   \\]\n\nSince Mike\u2019s age is known, compute Martha\u2019s age:\n\\[\nM = 24 - 4 = 20.\n\\]\n\nNow substitute Martha\u2019s age into the first equation to find Jeff\u2019s age:\n\\[\nJ = 20 + 10 = 30.\n\\]\n\nSo Jeff is 30 years old.\n\n**Answer:**  \nANSWER: 30",
+  "score": 5,
+  "cost": 0.00143,
+  "expected": "30",
+  "tokens": {
+    "input": 100,
+    "output": 300
+  }
+}

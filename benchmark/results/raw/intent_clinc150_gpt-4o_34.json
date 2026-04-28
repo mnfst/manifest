@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "intent_clinc150",
+  "case": 34,
+  "response": "replacement_card_duration",
+  "score": 5,
+  "cost": 0.0013325,
+  "expected": "replacement_card_duration",
+  "tokens": {
+    "input": 521,
+    "output": 3
+  }
+}

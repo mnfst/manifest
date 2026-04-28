@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 44,
+  "response": "",
+  "score": 1,
+  "cost": 0.008932,
+  "expected": "192",
+  "tokens": {
+    "input": 120,
+    "output": 2000
+  }
+}

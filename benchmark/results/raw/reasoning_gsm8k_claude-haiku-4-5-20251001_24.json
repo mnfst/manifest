@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "# Step-by-Step Solution\n\n**Step 1: Calculate total number of lollipops sold**\n- Number of students: 30\n- Average lollipops sold per student: 10\n- Total lollipops sold = 30 \u00d7 10 = 300 lollipops\n\n**Step 2: Calculate total revenue from selling lollipops**\n- Selling price per lollipop: $0.8\n- Total revenue = 300 \u00d7 $0.8 = $240\n\n**Step 3: Calculate total cost of lollipops**\n- Cost per lollipop: $0.5\n- Total cost = 300 \u00d7 $0.5 = $150\n\n**Step 4: Calculate profit (money raised)**\n- Profit = Total revenue - Total cost\n- Profit = $240 - $150 = $90\n\nANSWER: 90",
+  "score": 5,
+  "cost": 0.000932,
+  "expected": "90",
+  "tokens": {
+    "input": 130,
+    "output": 207
+  }
+}

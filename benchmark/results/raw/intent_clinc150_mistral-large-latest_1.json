@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "intent_clinc150",
+  "case": 1,
+  "response": "find_phone",
+  "score": 5,
+  "cost": 0.001136,
+  "expected": "find_phone",
+  "tokens": {
+    "input": 559,
+    "output": 3
+  }
+}

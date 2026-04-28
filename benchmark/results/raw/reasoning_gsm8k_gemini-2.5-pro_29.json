@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "Here is the step-by-step solution to the problem:\n\n**Step 1: Find the number of green cars.**\nThe problem states there are 12 red cars and 2 fewer green cars than red cars.\n12 (red cars) - 2 = 10 green cars.\n\n**Step 2: Find the number of blue cars.**\nThe problem states there are 3 times the number of blue cars as there are green cars.\n10 (green cars) * 3 = 30 blue cars.\n\n**Step 3: Find the total number of red, green, and blue cars.**\nAdd the number of cars for each of these colors together.\n12 (red) + 10 (green) + 30 (blue) = 52 cars.\n\n**Step 4: Find the number of yellow cars.**\nThe total number of cars in the rink is 75. To find the number of yellow cars, subtract the total of the other colored cars from the overall total.\n75 (total cars) - 52 (red, green, and blue cars) = 23 yellow cars.\n\nANSWER: 23",
+  "score": 5,
+  "cost": 0.00265875,
+  "expected": "23",
+  "tokens": {
+    "input": 103,
+    "output": 253
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "intent_clinc150",
+  "case": 36,
+  "response": "healthcare",
+  "score": 0,
+  "cost": 5.79e-05,
+  "expected": "insurance",
+  "tokens": {
+    "input": 570,
+    "output": 3
+  }
+}

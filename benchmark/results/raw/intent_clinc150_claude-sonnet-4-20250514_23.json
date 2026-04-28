@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "intent_clinc150",
+  "case": 23,
+  "response": "account_blocked",
+  "score": 5,
+  "cost": 0.001983,
+  "expected": "account_blocked",
+  "tokens": {
+    "input": 631,
+    "output": 6
+  }
+}

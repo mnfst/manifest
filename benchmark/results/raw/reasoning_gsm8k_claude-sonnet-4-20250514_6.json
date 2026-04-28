@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 6,
+  "response": "I need to find Ann's brother's current age, then add 3 years to find his age in 3 years.\n\nStep 1: Find Ann's current age.\nAnn is 9 years old.\n\nStep 2: Find her brother's current age.\nHer brother is twice her age, so:\nBrother's current age = 2 \u00d7 9 = 18 years old\n\nStep 3: Find her brother's age in 3 years.\nBrother's age in 3 years = 18 + 3 = 21 years old\n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.002259,
+  "expected": "21",
+  "tokens": {
+    "input": 73,
+    "output": 136
+  }
+}

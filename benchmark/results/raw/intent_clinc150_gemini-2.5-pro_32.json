@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "intent_clinc150",
+  "case": 32,
+  "response": "shopping_list",
+  "score": 5,
+  "cost": 0.000805,
+  "expected": "shopping_list",
+  "tokens": {
+    "input": 620,
+    "output": 3
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 6,
+  "response": "# Step-by-step solution:\n\n**Step 1: Find the brother's current age**\n- Ann's current age = 9 years old\n- Brother's age = twice Ann's age\n- Brother's current age = 2 \u00d7 9 = 18 years old\n\n**Step 2: Find the brother's age in 3 years**\n- Brother's age in 3 years = 18 + 3 = 21 years old\n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.0005103999999999999,
+  "expected": "21",
+  "tokens": {
+    "input": 73,
+    "output": 113
+  }
+}

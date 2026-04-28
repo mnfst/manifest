@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "intent_clinc150",
+  "case": 35,
+  "response": "change_language",
+  "score": 5,
+  "cost": 5.8200000000000005e-05,
+  "expected": "change_language",
+  "tokens": {
+    "input": 573,
+    "output": 3
+  }
+}

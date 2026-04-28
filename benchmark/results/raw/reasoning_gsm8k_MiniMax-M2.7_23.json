@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 23,
+  "response": "The cost per balloon initially was  \n\n\\[\n\\frac{900}{20}=45\\text{ dollars}.\n\\]\n\nTwo days later the price per balloon rose by \\$20, so the new price per balloon is  \n\n\\[\n45+20=65\\text{ dollars}.\n\\]\n\nBentley filled 170 balloons at this increased price, so his total cost is  \n\n\\[\n170 \\times 65 = 11\\,050\\text{ dollars}.\n\\]\n\nANSWER: 11050",
+  "score": 5,
+  "cost": 0.0027632,
+  "expected": "11050",
+  "tokens": {
+    "input": 112,
+    "output": 600
+  }
+}

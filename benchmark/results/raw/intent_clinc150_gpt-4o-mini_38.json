@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "intent_clinc150",
+  "case": 38,
+  "response": "oil_change_when",
+  "score": 5,
+  "cost": 7.86e-05,
+  "expected": "oil_change_when",
+  "tokens": {
+    "input": 512,
+    "output": 3
+  }
+}

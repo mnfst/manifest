@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "intent_clinc150",
+  "case": 42,
+  "response": "update_playlist",
+  "score": 0,
+  "cost": 2.228e-05,
+  "expected": "next_song",
+  "tokens": {
+    "input": 553,
+    "output": 4
+  }
+}

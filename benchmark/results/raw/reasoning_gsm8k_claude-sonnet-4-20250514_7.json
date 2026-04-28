@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "I need to find the cost of each cup by setting up an equation based on the given information.\n\nLet me define variables:\n- Let x = cost of each cup\n- Twenty dozen cups = 20 \u00d7 12 = 240 cups\n- Half a dozen plates = 6 plates\n\nFirst, I'll calculate the total cost of half a dozen plates:\n- Each plate costs $6000\n- Total cost of 6 plates = 6 \u00d7 $6000 = $36,000\n\nNow I'll set up the equation based on the given relationship:\n- Twenty dozen cups cost $1200 less than the total cost of half a dozen plates\n- Cost of 240 cups = Total cost of 6 plates - $1200\n- 240x = $36,000 - $1200\n- 240x = $34,800\n\nNow I'll solve for x:\nx = $34,800 \u00f7 240\nx = $145\n\nLet me verify this answer:\n- Cost of 240 cups at $145 each = 240 \u00d7 $145 = $34,800\n- Total cost of 6 plates = $36,000\n- Difference = $36,000 - $34,800 = $1,200 \u2713\n\nThis confirms that twenty dozen cups cost $1200 less than the total cost of half a dozen plates.\n\nANSWER: 145",
+  "score": 5,
+  "cost": 0.00504,
+  "expected": "145",
+  "tokens": {
+    "input": 80,
+    "output": 320
+  }
+}

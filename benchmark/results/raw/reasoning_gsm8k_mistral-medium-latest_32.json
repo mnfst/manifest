@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "reasoning_gsm8k",
+  "case": 32,
+  "response": "Let's solve the problem step by step.\n\n1. **Convert the length from yards to feet:**\n   - 1 yard = 3 feet\n   - Length = 3 yards = 3 \u00d7 3 = 9 feet\n\n2. **Find the width of the room using the area:**\n   - Area = Length \u00d7 Width\n   - 360 square feet = 9 feet \u00d7 Width\n   - Width = 360 / 9 = 40 feet\n\n3. **Calculate the perimeter of the room:**\n   - Perimeter = 2 \u00d7 (Length + Width)\n   - Perimeter = 2 \u00d7 (9 + 40) = 2 \u00d7 49 = 98 feet\n\nANSWER: 98",
+  "score": 5,
+  "cost": 0.00035039999999999995,
+  "expected": "98",
+  "tokens": {
+    "input": 76,
+    "output": 160
+  }
+}

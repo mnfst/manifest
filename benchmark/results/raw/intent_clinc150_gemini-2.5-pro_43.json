@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "intent_clinc150",
+  "case": 43,
+  "response": "book_flight",
+  "score": 5,
+  "cost": 0.00081375,
+  "expected": "book_flight",
+  "tokens": {
+    "input": 627,
+    "output": 3
+  }
+}

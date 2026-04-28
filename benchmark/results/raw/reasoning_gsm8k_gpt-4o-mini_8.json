@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "To find the number of students enrolled this year in the calligraphy class, we need to calculate the 20% increase based on last year's enrollment.\n\n1. **Identify last year's enrollment**: \n   Last year, there were 50 students.\n\n2. **Calculate the increase**: \n   We need to find 20% of 50. To do this, we can use the formula for percentage:\n   \\[\n   \\text{Increase} = \\text{Last year's enrollment} \\times \\frac{\\text{Percentage}}{100}\n   \\]\n   Substituting the values:\n   \\[\n   \\text{Increase} = 50 \\times \\frac{20}{100} = 50 \\times 0.20 = 10\n   \\]\n\n3. **Calculate this year's enrollment**: \n   To find the total number of students this year, we add the increase to last year's enrollment:\n   \\[\n   \\text{This year's enrollment} = \\text{Last year's enrollment} + \\text{Increase}\n   \\]\n   Substituting the values:\n   \\[\n   \\text{This year's enrollment} = 50 + 10 = 60\n   \\]\n\nThus, the number of students enrolled this year in the calligraphy class is 60.\n\nFinal answer:\nANSWER: 60",
+  "score": 5,
+  "cost": 0.00017595,
+  "expected": "60",
+  "tokens": {
+    "input": 81,
+    "output": 273
+  }
+}

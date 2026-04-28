@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 19,
+  "response": "**Step\u2011by\u2011step reasoning**\n\n1. The sisters already have **7 adopted kittens**.  \n2. Patchy (one house cat) has just had **thrice the number of adopted kittens**:  \n\n\\[\n3 \\times 7 = 21 \\text{ kittens}\n\\]\n\n3. Trixie (the other house cat) has just had **12 kittens**.  \n4. Add the newborn kittens to the adopted ones:  \n\n\\[\n7\\;(\\text{adopted}) + 21\\;(\\text{Patchy}) + 12\\;(\\text{Trixie}) = 40\n\\]\n\n**Final answer**\n\nANSWER: 40",
+  "score": 5,
+  "cost": 0.0033209,
+  "expected": "40",
+  "tokens": {
+    "input": 151,
+    "output": 717
+  }
+}

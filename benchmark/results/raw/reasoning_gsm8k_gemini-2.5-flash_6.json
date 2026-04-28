@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "reasoning_gsm8k",
+  "case": 6,
+  "response": "Here's how to solve the problem step by step:\n\n1.  **Find Ann's current age:**\n    Ann is currently 9 years old.\n\n2.  **Find her brother's current age:**\n    Her brother is twice her age, so his current age is 9 years * 2 = 18 years old.\n\n3.  **Find her brother's age in 3 years:**\n    In 3 years, her brother will be 18 years + 3 years = 21 years old.\n\nANSWER: 21",
+  "score": 5,
+  "cost": 8.265e-05,
+  "expected": "21",
+  "tokens": {
+    "input": 63,
+    "output": 122
+  }
+}

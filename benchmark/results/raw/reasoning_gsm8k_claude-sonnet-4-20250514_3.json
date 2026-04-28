@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 3,
+  "response": "I need to find out how much James spends on birthday candles for his 2 sons.\n\nFirst, let me determine the ages of both sons:\n- One son is 12 years old\n- The other son is 4 years younger than 12, so he is 12 - 4 = 8 years old\n\nNext, I'll calculate how many candles James needs:\n- For the 12-year-old: 12 candles\n- For the 8-year-old: 8 candles\n- Total candles needed: 12 + 8 = 20 candles\n\nNow I need to figure out how many packs of candles to buy:\n- Each pack contains 5 candles\n- James needs 20 candles total\n- Number of packs needed: 20 \u00f7 5 = 4 packs\n\nFinally, I'll calculate the total cost:\n- Each pack costs $3\n- James needs 4 packs\n- Total cost: 4 \u00d7 $3 = $12\n\nANSWER: 12",
+  "score": 5,
+  "cost": 0.00405,
+  "expected": "12",
+  "tokens": {
+    "input": 100,
+    "output": 250
+  }
+}

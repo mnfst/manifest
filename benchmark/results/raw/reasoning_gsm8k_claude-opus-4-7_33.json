@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 33,
+  "response": "Lollipops: 5\u00d70.40=2.00. Candies: 3.20-2.00=1.20 for 4, so 0.30 each.\n\n10 lollipops: 4.00. 10 candies: 3.00. Total: 7.00.\n\nANSWER: 7",
+  "score": 4,
+  "cost": 0.00861,
+  "expected": "7",
+  "tokens": {
+    "input": 119,
+    "output": 91
+  }
+}

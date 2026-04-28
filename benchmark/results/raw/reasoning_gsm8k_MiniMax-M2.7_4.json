@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "Mariah used \\( \\frac14 \\) of a skein and her grandma used \\( \\frac12 \\) of a skein.  \nFirst add the fractions of a skein they used:\n\n\\[\n\\frac14 + \\frac12 = \\frac14 + \\frac24 = \\frac34 \\text{ of a skein}.\n\\]\n\nA full skein contains 364 yards. The total yards used is\n\n\\[\n\\frac34 \\times 364 = \\frac{3 \\times 364}{4}.\n\\]\n\nCalculate the numerator:\n\n\\[\n3 \\times 364 = 1092.\n\\]\n\nNow divide by 4:\n\n\\[\n\\frac{1092}{4} = 273.\n\\]\n\nThus, they used a total of 273 yards of yarn.\n\nANSWER: 273",
+  "score": 5,
+  "cost": 0.0018876000000000003,
+  "expected": "273",
+  "tokens": {
+    "input": 136,
+    "output": 395
+  }
+}

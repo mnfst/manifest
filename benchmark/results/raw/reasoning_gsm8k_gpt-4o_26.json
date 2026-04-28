@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "To solve this problem, we need to determine how much money Mitchell made and then compare it to the amount Liam made.\n\n1. **Calculate Mitchell's Earnings:**\n   - Mitchell sold 21 lemonades.\n   - Each lemonade was sold for $4.\n   - To find out how much money Mitchell made, multiply the number of lemonades sold by the price per lemonade:\n     \\[\n     21 \\text{ lemonades} \\times 4 \\text{ dollars/lemonade} = 84 \\text{ dollars}\n     \\]\n\n2. **Compare Mitchell's and Liam's Earnings:**\n   - Liam made $63.\n   - Mitchell made $84.\n   - To find out how many more dollars Mitchell made than Liam, subtract Liam's earnings from Mitchell's earnings:\n     \\[\n     84 \\text{ dollars} - 63 \\text{ dollars} = 21 \\text{ dollars}\n     \\]\n\nTherefore, Mitchell made 21 more dollars than Liam.\n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.0023075,
+  "expected": "21",
+  "tokens": {
+    "input": 103,
+    "output": 205
+  }
+}

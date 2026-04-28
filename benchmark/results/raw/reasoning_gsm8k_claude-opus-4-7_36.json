@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "Initial: 20\nFirst month: 3\u00d720 = 60\nSecond month: 60-20 = 40\nThird month: 2\u00d7(60+40) = 200\n\nTotal: 20+60+40+200 = 320\n\nANSWER: 320",
+  "score": 5,
+  "cost": 0.008175,
+  "expected": "320",
+  "tokens": {
+    "input": 165,
+    "output": 76
+  }
+}

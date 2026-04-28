@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "I need to find the total yards of yarn used by Mariah and her grandma.\n\nFirst, let me find how much yarn Mariah used:\n- Mariah used 1/4 of a skein\n- There are 364 yards in a skein\n- Mariah used: 1/4 \u00d7 364 = 364 \u00f7 4 = 91 yards\n\nNext, let me find how much yarn her grandma used:\n- Grandma used 1/2 of a skein\n- There are 364 yards in a skein\n- Grandma used: 1/2 \u00d7 364 = 364 \u00f7 2 = 182 yards\n\nNow I'll find the total yards used:\n- Total = Mariah's yarn + Grandma's yarn\n- Total = 91 + 182 = 273 yards\n\nANSWER: 273",
+  "score": 5,
+  "cost": 0.003564,
+  "expected": "273",
+  "tokens": {
+    "input": 113,
+    "output": 215
+  }
+}

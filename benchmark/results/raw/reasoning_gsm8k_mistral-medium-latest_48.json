@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "Let's solve the problem step by step.\n\n1. **Initial weight**: Jamaal starts with an 8-pound weight.\n\n2. **Increase by 50%**:\n   - 50% of 8 pounds is \\( 0.5 \\times 8 = 4 \\) pounds.\n   - The new weight after the increase is \\( 8 + 4 = 12 \\) pounds.\n\n3. **Decrease by 2 pounds**:\n   - The weight is now too heavy, so Jamaal reduces it by 2 pounds.\n   - The final weight is \\( 12 - 2 = 10 \\) pounds.\n\nANSWER: 10",
+  "score": 5,
+  "cost": 0.0003308,
+  "expected": "10",
+  "tokens": {
+    "input": 102,
+    "output": 145
+  }
+}

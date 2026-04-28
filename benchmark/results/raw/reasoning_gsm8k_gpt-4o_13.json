@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "To solve this problem, we need to calculate the total cost Janet incurred for the brooch, including the cost of materials, construction, and insurance.\n\n1. **Calculate the cost of materials and construction:**\n   - Janet pays $500 for the material.\n   - She pays $800 for the jeweler to construct it.\n   - Total cost for materials and construction = $500 + $800 = $1300.\n\n2. **Calculate the insurance cost:**\n   - Janet pays 10% of the total cost of materials and construction for insurance.\n   - Insurance cost = 10% of $1300 = 0.10 * $1300 = $130.\n\n3. **Calculate the total amount Janet paid:**\n   - Total amount paid = Cost of materials and construction + Insurance cost\n   - Total amount paid = $1300 + $130 = $1430.\n\nTherefore, the total amount Janet paid for the brooch is $1430.\n\nANSWER: 1430",
+  "score": 5,
+  "cost": 0.0022525,
+  "expected": "1430",
+  "tokens": {
+    "input": 97,
+    "output": 201
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "Let's break down the problem step by step to find out how much money Kim, Alexandra, Maryam, and Sarah raised in total.\n\n1. **Alexandra's Raise:**\n   - Alexandra raises \\$430.\n\n2. **Kim's Raise:**\n   - Kim raises \\$320 more than Alexandra.\n   - Kim's raise = Alexandra's raise + \\$320\n   - Kim's raise = \\$430 + \\$320 = \\$750\n\n3. **Sarah's Raise:**\n   - Sarah raises \\$300.\n\n4. **Maryam's Raise:**\n   - Maryam raises \\$400 more than Sarah.\n   - Maryam's raise = Sarah's raise + \\$400\n   - Maryam's raise = \\$300 + \\$400 = \\$700\n\n5. **Total Money Raised:**\n   - Total = Alexandra + Kim + Sarah + Maryam\n   - Total = \\$430 + \\$750 + \\$300 + \\$700\n   - Total = \\$2180\n\nANSWER: 2180",
+  "score": 5,
+  "cost": 0.001668,
+  "expected": "2280",
+  "tokens": {
+    "input": 102,
+    "output": 244
+  }
+}

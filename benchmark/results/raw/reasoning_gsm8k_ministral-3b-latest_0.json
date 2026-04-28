@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "Let's break down the problem step by step to find the total amount of money raised by all the girls.\n\n1. **Alexandra's amount:**\n   - Alexandra raises **$430**.\n\n2. **Kim's amount:**\n   - Kim raises **$320 more** than Alexandra.\n   - Calculation: \\( 430 + 320 = 750 \\)\n   - Kim raises **$750**.\n\n3. **Sarah's amount:**\n   - Sarah raises **$300**.\n\n4. **Maryam's amount:**\n   - Maryam raises **$400 more** than Sarah.\n   - Calculation: \\( 300 + 400 = 700 \\)\n   - Maryam raises **$700**.\n\n5. **Total amount raised:**\n   - Sum of all amounts: \\( 430 + 750 + 300 + 700 \\)\n   - Calculation: \\( 430 + 750 = 1180 \\)\n   - \\( 1180 + 300 = 1480 \\)\n   - \\( 1480 + 700 = 2180 \\)\n   - Total raised: **$2180**.\n\nANSWER: 2180",
+  "score": 5,
+  "cost": 1.564e-05,
+  "expected": "2280",
+  "tokens": {
+    "input": 102,
+    "output": 289
+  }
+}

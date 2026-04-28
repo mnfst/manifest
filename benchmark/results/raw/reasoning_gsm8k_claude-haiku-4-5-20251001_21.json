@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 21,
+  "response": "# Step-by-Step Solution\n\nLet me work through this problem by tracking Elliott's steps.\n\n**Given information:**\n- Daily goal: 10,000 steps\n- Steps from walks to/from school: half of 10,000 = 5,000 steps\n- Steps from walk with friend: 1,000 steps\n- Steps remaining after jog: 2,000 steps\n- Steps during jog: unknown\n\n**Setting up the equation:**\n\nTotal steps = Steps to/from school + Steps with friend + Steps during jog + Remaining steps\n\n10,000 = 5,000 + 1,000 + Jog steps + 2,000\n\n**Solving for jog steps:**\n\n10,000 = 8,000 + Jog steps\n\nJog steps = 10,000 - 8,000\n\nJog steps = 2,000\n\n**Verification:**\n5,000 + 1,000 + 2,000 + 2,000 = 10,000 \u2713\n\nANSWER: 2000",
+  "score": 5,
+  "cost": 0.0011087999999999998,
+  "expected": "2000",
+  "tokens": {
+    "input": 136,
+    "output": 250
+  }
+}

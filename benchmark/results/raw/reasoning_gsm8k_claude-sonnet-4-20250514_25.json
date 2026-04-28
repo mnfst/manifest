@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "I need to find how much money John has leftover after paying his debts.\n\nLet me work through this step by step:\n\nStep 1: Find the value of John's loan.\n- House value: $250,000\n- Loan amount: 40% of house value\n- Loan amount = 0.40 \u00d7 $250,000 = $100,000\n\nStep 2: Find how much he used to pay off debts.\n- He uses 60% of the loan to pay off debts\n- Amount used for debts = 0.60 \u00d7 $100,000 = $60,000\n\nStep 3: Find how much money he has leftover.\n- Leftover amount = Total loan - Amount used for debts\n- Leftover amount = $100,000 - $60,000 = $40,000\n\nANSWER: 40000",
+  "score": 5,
+  "cost": 0.003324,
+  "expected": "40,000",
+  "tokens": {
+    "input": 108,
+    "output": 200
+  }
+}

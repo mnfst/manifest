@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "To solve this problem, we need to follow these steps:\n\n1. **Determine the loan amount**: \n   - The house is worth $250,000.\n   - John gets a loan worth 40% of the house's value.\n   - Calculate 40% of $250,000:\n     \\[\n     \\text{Loan amount} = 0.40 \\times 250,000 = 100,000\n     \\]\n\n2. **Calculate the amount used to pay off debts**:\n   - John uses 60% of the loan to pay off his debts.\n   - Calculate 60% of the loan amount:\n     \\[\n     \\text{Amount used for debts} = 0.60 \\times 100,000 = 60,000\n     \\]\n\n3. **Determine the leftover amount**:\n   - Subtract the amount used for debts from the total loan amount to find out how much money John has leftover:\n     \\[\n     \\text{Leftover amount} = 100,000 - 60,000 = 40,000\n     \\]\n\nTherefore, the amount of money John had leftover after paying his debt is:\n\nANSWER: 40000",
+  "score": 5,
+  "cost": 0.002715,
+  "expected": "40,000",
+  "tokens": {
+    "input": 102,
+    "output": 246
+  }
+}

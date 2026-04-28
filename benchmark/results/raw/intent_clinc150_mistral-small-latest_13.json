@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "intent_clinc150",
+  "case": 13,
+  "response": "nutrition_info",
+  "score": 5,
+  "cost": 5.78e-05,
+  "expected": "nutrition_info",
+  "tokens": {
+    "input": 569,
+    "output": 3
+  }
+}

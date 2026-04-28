@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "Let's break down the problem step by step to find out how many Pok\u00e9mon cards Elaine has now.\n\n1. **Initial Cards:**\n   - Elaine starts with **20** cards.\n\n2. **First Month:**\n   - She collects **three times** her initial number.\n   - Calculation: \\( 3 \\times 20 = 60 \\) cards.\n   - **Total after first month:** \\( 20 + 60 = 80 \\) cards.\n\n3. **Second Month:**\n   - She collects **20 fewer** cards than in the first month.\n   - Calculation: \\( 60 - 20 = 40 \\) cards.\n   - **Total after second month:** \\( 80 + 40 = 120 \\) cards.\n\n4. **Third Month:**\n   - She collects **twice** the combined number from the first and second months.\n   - Combined from first and second months: \\( 60 + 40 = 100 \\) cards.\n   - Calculation: \\( 2 \\times 100 = 200 \\) cards.\n   - **Total after third month:** \\( 120 + 200 = 320 \\) cards.\n\n**Final Total:**\n\\[\n\\boxed{320}\n\\]",
+  "score": 5,
+  "cost": 9.790000000000001e-05,
+  "expected": "320",
+  "tokens": {
+    "input": 127,
+    "output": 284
+  }
+}

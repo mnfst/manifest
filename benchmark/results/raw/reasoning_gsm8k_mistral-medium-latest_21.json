@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "reasoning_gsm8k",
+  "case": 21,
+  "response": "Let's break down the problem step by step to find out how many steps Elliott took during his jog.\n\n1. **Total Steps Goal**: Elliott aims to walk 10,000 steps a day.\n\n2. **Steps Taken So Far**:\n   - **Steps to and from school**: He completed half of his total steps, which is:\n     \\[\n     \\frac{1}{2} \\times 10,000 = 5,000 \\text{ steps}\n     \\]\n   - **Steps with friend**: He took an additional 1,000 steps.\n\n3. **Steps Remaining After Jog**: After his jog, Elliott had 2,000 steps left to reach his goal.\n\n4. **Total Steps Taken Before Jog**:\n   - Steps to and from school: 5,000\n   - Steps with friend: 1,000\n   - Total before jog: \\(5,000 + 1,000 = 6,000\\) steps\n\n5. **Steps Taken During Jog**:\n   - Let \\(x\\) be the steps taken during the jog.\n   - After the jog, the total steps taken would be \\(6,000 + x\\).\n   - The remaining steps after the jog are 2,000, so:\n     \\[\n     6,000 + x + 2,000 = 10,000\n     \\]\n   - Simplifying:\n     \\[\n     8,000 + x = 10,000\n     \\]\n     \\[\n     x = 10,000 - 8,000\n     \\]\n     \\[\n     x = 2,000\n     \\]\n\nHowever, let's verify this with a different approach for clarity:\n\n- **Total steps taken after jog**: \\(10,000 - 2,000 = 8,000\\) steps.\n- **Steps taken before jog**: 6,000 steps.\n- **Steps taken during jog**: \\(8,000 - 6,000 = 2,000\\) steps.\n\nBoth methods confirm the same result.\n\nANSWER: 2000",
+  "score": 8,
+  "cost": 0.0010207999999999999,
+  "expected": "2000",
+  "tokens": {
+    "input": 132,
+    "output": 484
+  }
+}

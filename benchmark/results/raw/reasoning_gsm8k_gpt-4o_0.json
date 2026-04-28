@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "To solve this problem, we need to determine how much money each girl raised and then sum these amounts to find the total.\n\n1. **Determine how much Alexandra raised:**\n   - Alexandra raised $430.\n\n2. **Determine how much Kim raised:**\n   - Kim raised $320 more than Alexandra.\n   - Therefore, Kim raised: \\( 430 + 320 = 750 \\).\n\n3. **Determine how much Sarah raised:**\n   - Sarah raised $300.\n\n4. **Determine how much Maryam raised:**\n   - Maryam raised $400 more than Sarah.\n   - Therefore, Maryam raised: \\( 300 + 400 = 700 \\).\n\n5. **Calculate the total amount raised by all the girls:**\n   - Total amount = Amount raised by Alexandra + Amount raised by Kim + Amount raised by Sarah + Amount raised by Maryam.\n   - Total amount = \\( 430 + 750 + 300 + 700 \\).\n\n6. **Perform the addition:**\n   - \\( 430 + 750 = 1180 \\)\n   - \\( 1180 + 300 = 1480 \\)\n   - \\( 1480 + 700 = 2180 \\)\n\nTherefore, the total amount of money raised by all the girls is:\n\nANSWER: 2180",
+  "score": 5,
+  "cost": 0.002915,
+  "expected": "2280",
+  "tokens": {
+    "input": 94,
+    "output": 268
+  }
+}

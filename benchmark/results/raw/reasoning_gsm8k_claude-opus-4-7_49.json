@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 49,
+  "response": "Sisters: 3\u00d716=48. Younger brother: 12. Older brother: 24. Total: 48+12+24=84.\n\nANSWER: 84",
+  "score": 5,
+  "cost": 0.006045,
+  "expected": "84",
+  "tokens": {
+    "input": 133,
+    "output": 54
+  }
+}

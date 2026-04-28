@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "intent_clinc150",
+  "case": 39,
+  "response": "how_old_are_you",
+  "score": 5,
+  "cost": 0.0005432000000000001,
+  "expected": "how_old_are_you",
+  "tokens": {
+    "input": 629,
+    "output": 10
+  }
+}

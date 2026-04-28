@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 12,
+  "response": "Here is the step-by-step solution:\n\n**Step 1: Calculate the time spent reading.**\nJim watches TV for 2 hours. He reads for half as long as he watches TV.\nTime spent reading = 2 hours / 2 = 1 hour.\n\n**Step 2: Calculate the total time spent on TV and reading in one day.**\nAdd the time spent watching TV and the time spent reading.\nTotal time per day = 2 hours (TV) + 1 hour (reading) = 3 hours.\n\n**Step 3: Calculate the total time spent per week.**\nJim does this 3 times a week.\nTotal time per week = 3 hours/day * 3 times/week = 9 hours.\n\n**Step 4: Calculate the total time spent in 4 weeks.**\nMultiply the weekly total by the number of weeks.\nTotal time in 4 weeks = 9 hours/week * 4 weeks = 36 hours.\n\nANSWER: 36",
+  "score": 5,
+  "cost": 0.002265,
+  "expected": "36",
+  "tokens": {
+    "input": 84,
+    "output": 216
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "To solve the problem, we need to determine how many books Sarah bought and then how many books each of her 4 kids received.\n\n1. **Calculate the number of books Sarah bought:**\n   - Sarah spent a total of $300 on books.\n   - Each book costs $15.\n   - To find the number of books, we divide the total amount spent by the cost per book:\n     \\[\n     \\text{Number of books} = \\frac{\\text{Total amount spent}}{\\text{Cost per book}} = \\frac{300}{15}\n     \\]\n\n2. **Perform the division:**\n   \\[\n   \\frac{300}{15} = 20\n   \\]\n   So, Sarah bought 20 books.\n\n3. **Distribute the books among her 4 kids:**\n   - Since Sarah has 4 kids and she gives an equal number of books to each child, we need to divide the total number of books by the number of kids:\n     \\[\n     \\text{Books per child} = \\frac{\\text{Total number of books}}{\\text{Number of kids}} = \\frac{20}{4}\n     \\]\n\n4. **Perform the division:**\n   \\[\n   \\frac{20}{4} = 5\n   \\]\n   Each child receives 5 books.\n\nThus, the final answer is:\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.00018554999999999998,
+  "expected": "5",
+  "tokens": {
+    "input": 85,
+    "output": 288
+  }
+}

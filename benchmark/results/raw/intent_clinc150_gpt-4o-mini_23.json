@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "intent_clinc150",
+  "case": 23,
+  "response": "account_blocked",
+  "score": 5,
+  "cost": 7.875e-05,
+  "expected": "account_blocked",
+  "tokens": {
+    "input": 513,
+    "output": 3
+  }
+}

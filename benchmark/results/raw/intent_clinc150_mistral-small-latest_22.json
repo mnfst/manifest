@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "intent_clinc150",
+  "case": 22,
+  "response": "transfer",
+  "score": 5,
+  "cost": 5.78e-05,
+  "expected": "transfer",
+  "tokens": {
+    "input": 572,
+    "output": 2
+  }
+}

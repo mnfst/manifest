@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "reasoning_gsm8k",
+  "case": 34,
+  "response": "Here's a step-by-step solution to the problem:\n\n1.  **Calculate the cost of tickets:**\n    The friends spent $20.25 on 3 tickets.\n\n2.  **Calculate the cost of food:**\n    They spent $4.50 less on food than on tickets.\n    Food cost = Cost of tickets - $4.50\n    Food cost = $20.25 - $4.50 = $15.75\n\n3.  **Calculate the cost of rides:**\n    They went on 2 different rides, and each ride cost $33.\n    Ride cost = Number of rides \u00d7 Cost per ride\n    Ride cost = 2 \u00d7 $33 = $66.00\n\n4.  **Calculate the total cost:**\n    Add up the cost of tickets, food, and rides.\n    Total cost = Cost of tickets + Cost of food + Cost of rides\n    Total cost = $20.25 + $15.75 + $66.00\n    Total cost = $36.00 + $66.00\n    Total cost = $102.00\n\n5.  **Calculate how much each friend paid:**\n    They agreed to split all the costs evenly among the three friends.\n    Cost per friend = Total cost / Number of friends\n    Cost per friend = $102.00 / 3\n    Cost per friend = $34.00\n\nEach friend paid $34.00.\n\nANSWER: 34.00",
+  "score": 2,
+  "cost": 0.00022395,
+  "expected": "34",
+  "tokens": {
+    "input": 105,
+    "output": 347
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 49,
+  "response": "Step 1: Identify the ages of the sisters.\n- There are 3 sisters, all the same age.\n- Each sister is 16 years old.\n- Total age of sisters = 3 * 16 = 48 years.\n\nStep 2: Identify the ages of the brothers.\n- There are 2 brothers.\n- One brother is 12 years old.\n- The other brother is older, and the 12-year-old is half the age of the older brother.\n- Therefore, the older brother's age = 12 * 2 = 24 years.\n- Total age of brothers = 12 + 24 = 36 years.\n\nStep 3: Calculate the total age of all siblings.\n- Total age = Total age of sisters + Total age of brothers\n- Total age = 48 + 36 = 84 years.\n\nANSWER: 84",
+  "score": 5,
+  "cost": 6.95e-05,
+  "expected": "84",
+  "tokens": {
+    "input": 110,
+    "output": 195
+  }
+}

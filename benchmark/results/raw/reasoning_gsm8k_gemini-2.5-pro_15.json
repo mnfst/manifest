@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 15,
+  "response": "Here is the step-by-step solution:\n\n**Step 1: Calculate Joey's new score.**\nJoey started with 214 points and scored 26 points.\n214 + 26 = 240\nJoey's new score is 240 points.\n\n**Step 2: Calculate Marcy's new score.**\nMarcy started with 225 points and scored 10 points.\n225 + 10 = 235\nMarcy's new score is 235 points.\n\n**Step 3: Find the difference between their scores.**\nTo find out by how many points Joey is winning, subtract Marcy's score from Joey's score.\n240 - 235 = 5\n\nJoey is winning by 5 points.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.00194625,
+  "expected": "5",
+  "tokens": {
+    "input": 85,
+    "output": 184
+  }
+}

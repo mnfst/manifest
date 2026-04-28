@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "intent_clinc150",
+  "case": 45,
+  "response": "accept_reservations",
+  "score": 5,
+  "cost": 0.0005327999999999999,
+  "expected": "accept_reservations",
+  "tokens": {
+    "input": 631,
+    "output": 7
+  }
+}

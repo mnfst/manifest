@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 46,
+  "response": "# Step-by-Step Solution\n\n**Anakin's catches:**\n- Starfish: 10\n- Sea horses: 6\n- Clownfish: 3\n- Anakin's total: 10 + 6 + 3 = 19\n\n**Locsin's catches:**\n- Starfish: 5 fewer than Anakin = 10 - 5 = 5\n- Sea horses: 3 fewer than Anakin = 6 - 3 = 3\n- Clownfish: 2 more than Anakin = 3 + 2 = 5\n- Locsin's total: 5 + 3 + 5 = 13\n\n**Combined total:**\n19 + 13 = 32\n\nANSWER: 32",
+  "score": 5,
+  "cost": 0.0008648,
+  "expected": "32",
+  "tokens": {
+    "input": 131,
+    "output": 190
+  }
+}

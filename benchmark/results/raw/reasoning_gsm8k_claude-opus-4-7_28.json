@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "x+5-7+8=20, x=14\n\nANSWER: 14",
+  "score": 4,
+  "cost": 0.004185,
+  "expected": "14",
+  "tokens": {
+    "input": 149,
+    "output": 26
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "Profit per lollipop: 0.3\nTotal: 30\u00d710\u00d70.3 = 90\n\nANSWER: 90",
+  "score": 4,
+  "cost": 0.005505,
+  "expected": "90",
+  "tokens": {
+    "input": 157,
+    "output": 42
+  }
+}

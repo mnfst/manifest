@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "intent_clinc150",
+  "case": 21,
+  "response": "ingredients_list",
+  "score": 0,
+  "cost": 0.01368,
+  "expected": "ingredient_substitution",
+  "tokens": {
+    "input": 862,
+    "output": 10
+  }
+}

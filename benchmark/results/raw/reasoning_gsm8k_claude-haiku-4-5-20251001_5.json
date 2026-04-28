@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "Let me work through this step-by-step.\n\n**Initial situation:**\n- Katelyn saw 50 fairies flying above the forest\n\n**After 20 minutes:**\n- One friend saw half as many fairies as Katelyn saw come from the east\n- Half of what Katelyn saw = 50 \u00f7 2 = 25 fairies\n- These 25 fairies join the original 50\n- Total fairies now = 50 + 25 = 75 fairies\n\n**10 minutes later:**\n- 30 fairies flew away\n- Remaining fairies = 75 - 30 = 45 fairies\n\nANSWER: 45",
+  "score": 5,
+  "cost": 0.0007456,
+  "expected": "45",
+  "tokens": {
+    "input": 122,
+    "output": 162
+  }
+}

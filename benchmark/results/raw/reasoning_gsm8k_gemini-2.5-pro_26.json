@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "Here is the step-by-step solution:\n\n**Step 1: Calculate Mitchell's total earnings.**\nMitchell sold 21 lemonades at a price of $4 each. To find his total earnings, we multiply the number of lemonades by the price per lemonade.\n21 lemonades * $4/lemonade = $84\n\n**Step 2: Identify Liam's total earnings.**\nThe problem states that Liam made $63.\n\n**Step 3: Find the difference between their earnings.**\nTo find out how many more dollars Mitchell made than Liam, we subtract Liam's earnings from Mitchell's earnings.\n$84 (Mitchell's earnings) - $63 (Liam's earnings) = $21\n\nMitchell made $21 more than Liam.\n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.001875,
+  "expected": "21",
+  "tokens": {
+    "input": 100,
+    "output": 175
+  }
+}

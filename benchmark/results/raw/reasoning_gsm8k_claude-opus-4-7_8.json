@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "50 \u00d7 1.20 = 60\n\nANSWER: 60",
+  "score": 5,
+  "cost": 0.00369,
+  "expected": "60",
+  "tokens": {
+    "input": 121,
+    "output": 25
+  }
+}

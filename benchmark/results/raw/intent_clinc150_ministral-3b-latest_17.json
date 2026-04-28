@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "intent_clinc150",
+  "case": 17,
+  "response": "meaning_of_life",
+  "score": 0,
+  "cost": 2.2440000000000002e-05,
+  "expected": "reminder",
+  "tokens": {
+    "input": 556,
+    "output": 5
+  }
+}

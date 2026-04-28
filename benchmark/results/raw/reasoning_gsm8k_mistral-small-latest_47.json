@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 47,
+  "response": "Step 1: Determine the number of boxes needed.\n- Nik has 200 crayons.\n- Each box holds 8 crayons.\n- Number of boxes = Total crayons / Crayons per box = 200 / 8 = 25 boxes.\n\nStep 2: Calculate the total weight of the crayons.\n- Each crayon weighs 1 ounce.\n- Total weight of crayons = Number of crayons * Weight per crayon = 200 * 1 = 200 ounces.\n\nStep 3: Calculate the total weight of the boxes.\n- Each box weighs 8 ounces.\n- Total weight of boxes = Number of boxes * Weight per box = 25 * 8 = 200 ounces.\n\nStep 4: Calculate the combined weight of crayons and boxes in ounces.\n- Combined weight = Weight of crayons + Weight of boxes = 200 + 200 = 400 ounces.\n\nStep 5: Convert the combined weight from ounces to pounds.\n- There are 16 ounces in a pound.\n- Weight in pounds = Combined weight in ounces / Ounces per pound = 400 / 16 = 25 pounds.\n\nANSWER: 25",
+  "score": 5,
+  "cost": 9.910000000000001e-05,
+  "expected": "25",
+  "tokens": {
+    "input": 139,
+    "output": 284
+  }
+}

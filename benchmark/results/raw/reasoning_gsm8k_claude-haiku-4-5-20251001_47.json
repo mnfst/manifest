@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 47,
+  "response": "# Step-by-Step Solution\n\n**Step 1: Find how many boxes are needed**\n- Nik has 200 crayons\n- Each box holds 8 crayons\n- Number of boxes = 200 \u00f7 8 = 25 boxes\n\n**Step 2: Calculate the weight of all crayons**\n- Each crayon weighs 1 ounce\n- Total weight of crayons = 200 \u00d7 1 = 200 ounces\n\n**Step 3: Calculate the weight of all boxes**\n- Each box weighs 8 ounces\n- Total weight of boxes = 25 \u00d7 8 = 200 ounces\n\n**Step 4: Calculate total weight in ounces**\n- Total weight = weight of crayons + weight of boxes\n- Total weight = 200 + 200 = 400 ounces\n\n**Step 5: Convert ounces to pounds**\n- 16 ounces = 1 pound\n- Total weight in pounds = 400 \u00f7 16 = 25 pounds\n\nANSWER: 25",
+  "score": 5,
+  "cost": 0.001172,
+  "expected": "25",
+  "tokens": {
+    "input": 140,
+    "output": 265
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "To solve this problem, we need to calculate how much money Mitchell made and then compare it to Liam's earnings.\n\n1.  **Calculate Mitchell's earnings:**\n    Mitchell sold 21 lemonades at $4 apiece.\n    Mitchell's earnings = 21 lemonades * $4/lemonade = $84\n\n2.  **Identify Liam's earnings:**\n    Liam made $63.\n\n3.  **Calculate the difference:**\n    To find out how many more dollars Mitchell made than Liam, subtract Liam's earnings from Mitchell's earnings.\n    Difference = Mitchell's earnings - Liam's earnings\n    Difference = $84 - $63 = $21\n\nMitchell made $21 more than Liam.\n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.0001158,
+  "expected": "21",
+  "tokens": {
+    "input": 100,
+    "output": 168
+  }
+}

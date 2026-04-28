@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 6,
+  "response": "Step 1: Determine the current age of Ann's brother.\n- Ann is 9 years old.\n- Her brother is twice her age.\n- Brother's current age = 2 * Ann's age = 2 * 9 = 18 years.\n\nStep 2: Calculate the brother's age in 3 years.\n- Brother's age in 3 years = Current age + 3 = 18 + 3 = 21 years.\n\nANSWER: 21",
+  "score": 5,
+  "cost": 3.84e-05,
+  "expected": "21",
+  "tokens": {
+    "input": 78,
+    "output": 102
+  }
+}

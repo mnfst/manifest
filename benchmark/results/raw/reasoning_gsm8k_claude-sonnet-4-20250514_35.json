@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 35,
+  "response": "I need to calculate the total cost of Winston's fruit by multiplying the pounds of each fruit by their respective prices, then adding them together.\n\nLet me break this down by fruit type:\n\nPeaches:\n- Price: $2.00 per pound\n- Amount picked: 6 pounds\n- Cost: 6 \u00d7 $2.00 = $12.00\n\nPlums:\n- Price: $1.00 per pound\n- Amount picked: 8 pounds\n- Cost: 8 \u00d7 $1.00 = $8.00\n\nApricots:\n- Price: $3.00 per pound\n- Amount picked: 6 pounds\n- Cost: 6 \u00d7 $3.00 = $18.00\n\nTotal cost:\n$12.00 + $8.00 + $18.00 = $38.00\n\nANSWER: 38",
+  "score": 5,
+  "cost": 0.003468,
+  "expected": "38",
+  "tokens": {
+    "input": 131,
+    "output": 205
+  }
+}

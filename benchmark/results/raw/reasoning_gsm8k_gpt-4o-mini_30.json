@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "Let's break down the problem step by step.\n\n1. **Points collected by Adam**: \n   - Adam has collected 50 points.\n\n2. **Points collected by Betty**: \n   - Betty collected 30% more points than Adam. \n   - To find Betty's points, we calculate:\n     \\[\n     \\text{Betty's points} = \\text{Adam's points} + 0.3 \\times \\text{Adam's points} = 50 + 0.3 \\times 50 = 50 + 15 = 65\n     \\]\n\n3. **Points collected by Tom**: \n   - Tom has 30 points less than Betty. \n   - Therefore, Tom's points are:\n     \\[\n     \\text{Tom's points} = \\text{Betty's points} - 30 = 65 - 30 = 35\n     \\]\n\n4. **Points collected by Martha**: \n   - Martha collected 3 times more points than Tom. \n   - Thus, Martha's points are:\n     \\[\n     \\text{Martha's points} = 3 \\times \\text{Tom's points} = 3 \\times 35 = 105\n     \\]\n\n5. **Total points collected by the class**: \n   - Now we can sum up the points collected by all four students:\n     \\[\n     \\text{Total points} = \\text{Adam's points} + \\text{Betty's points} + \\text{Tom's points} + \\text{Martha's points}\n     \\]\n     \\[\n     \\text{Total points} = 50 + 65 + 35 + 105 = 255\n     \\]\n\n6. **Points needed to reach the threshold**: \n   - The class needs a minimum of 400 points to go on the trip. \n   - Therefore, the points missing are:\n     \\[\n     \\text{Points missing} = \\text{Minimum threshold} - \\text{Total points} = 400 - 255 = 145\n     \\]\n\nFinally, the class is missing 145 points to go on the trip.\n\nANSWER: 145",
+  "score": 4,
+  "cost": 0.00029534999999999994,
+  "expected": "145",
+  "tokens": {
+    "input": 145,
+    "output": 456
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "Here is the step-by-step solution to the problem:\n\n**Step 1: Calculate the total loan amount.**\nFirst, we need to find out the total amount of money John received from the loan. The loan is 40% of his house's value, which is $250,000.\nLoan Amount = House Value \u00d7 Loan Percentage\nLoan Amount = $250,000 \u00d7 40%\nLoan Amount = $250,000 \u00d7 0.40\nLoan Amount = $100,000\n\n**Step 2: Calculate the amount used to pay off debt.**\nNext, we calculate how much of the $100,000 loan was used to pay off debts. John used 60% of the loan for this purpose.\nDebt Payment = Loan Amount \u00d7 Percentage Used for Debt\nDebt Payment = $100,000 \u00d7 60%\nDebt Payment = $100,000 \u00d7 0.60\nDebt Payment = $60,000\n\n**Step 3: Calculate the leftover money.**\nTo find out how much money John had left, we subtract the amount used for debt from the total loan amount.\nLeftover Money = Total Loan Amount - Debt Payment\nLeftover Money = $100,000 - $60,000\nLeftover Money = $40,000\n\nAlternatively, if 60% was used for debt, then 100% - 60% = 40% was leftover. We can calculate this directly:\nLeftover Money = $100,000 \u00d7 40% = $40,000.\n\nANSWER: 40000",
+  "score": 5,
+  "cost": 0.00400875,
+  "expected": "40,000",
+  "tokens": {
+    "input": 103,
+    "output": 388
+  }
+}

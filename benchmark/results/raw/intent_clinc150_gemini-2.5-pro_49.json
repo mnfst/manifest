@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "intent_clinc150",
+  "case": 49,
+  "response": "international_visa",
+  "score": 5,
+  "cost": 0.00080375,
+  "expected": "international_visa",
+  "tokens": {
+    "input": 619,
+    "output": 3
+  }
+}

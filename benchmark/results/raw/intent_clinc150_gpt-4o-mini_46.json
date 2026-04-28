@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "intent_clinc150",
+  "case": 46,
+  "response": "calculator",
+  "score": 5,
+  "cost": 7.769999999999999e-05,
+  "expected": "calculator",
+  "tokens": {
+    "input": 514,
+    "output": 1
+  }
+}

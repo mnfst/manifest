@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "intent_clinc150",
+  "case": 21,
+  "response": "recipe",
+  "score": 0,
+  "cost": 9.299999999999998e-05,
+  "expected": "ingredient_substitution",
+  "tokens": {
+    "input": 616,
+    "output": 1
+  }
+}

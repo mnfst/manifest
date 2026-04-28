@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "reasoning_gsm8k",
+  "case": 38,
+  "response": "Let's solve the problem step by step.\n\n1. **Understand the ratio**: Gerald and Julia divided $100 in the ratio 3:2. This means for every 3 parts Gerald gets, Julia gets 2 parts.\n\n2. **Calculate the total number of parts**:\n   Total parts = 3 (Gerald) + 2 (Julia) = 5 parts.\n\n3. **Determine the value of each part**:\n   Each part = Total amount / Total parts = $100 / 5 = $20.\n\n4. **Calculate Gerald's share**:\n   Gerald's share = 3 parts * $20/part = $60.\n\n5. **Subtract the amount Gerald spent**:\n   Amount left with Gerald = $60 - $10 = $50.\n\nANSWER: 50",
+  "score": 5,
+  "cost": 1e-05,
+  "expected": "50",
+  "tokens": {
+    "input": 74,
+    "output": 176
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 22,
+  "response": "**Step\u2011by\u2011step reasoning**\n\n1. **Rafaela\u2019s tips**  \n   Each of the 40 customers gave her $20.  \n   \\[\n   \\text{Total for Rafaela} = 40 \\times 20 = \\$800\n   \\]\n\n2. **Julieta\u2019s tips**  \n   Julieta received 10\u202f% less than Rafaela.  \n   10\u202f% of \\$800 is  \n   \\[\n   0.10 \\times 800 = \\$80\n   \\]\n   Subtracting this from Rafaela\u2019s amount gives Julieta\u2019s tip total:  \n   \\[\n   800 - 80 = \\$720\n   \\]\n\n3. **Combined tips**  \n   \\[\n   800 + 720 = \\$1520\n   \\]\n\n**Final answer**\n\nANSWER: 1520",
+  "score": 4,
+  "cost": 0.0028644000000000005,
+  "expected": "1520",
+  "tokens": {
+    "input": 108,
+    "output": 624
+  }
+}

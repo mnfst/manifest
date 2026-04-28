@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 24,
+  "response": "Step 1: Calculate the total number of lollipops sold by the class.\nEach student sold 10 lollipops, and there are 30 students.\nTotal lollipops sold = 30 students * 10 lollipops/student = 300 lollipops\n\nStep 2: Calculate the total revenue from selling the lollipops.\nEach lollipop is sold for $0.8.\nTotal revenue = 300 lollipops * $0.8/lollipop = $240\n\nStep 3: Calculate the total cost of buying the lollipops.\nEach lollipop costs $0.5 to buy.\nTotal cost = 300 lollipops * $0.5/lollipop = $150\n\nStep 4: Calculate the profit from selling the lollipops.\nProfit = Total revenue - Total cost\nProfit = $240 - $150 = $90\n\nANSWER: 90",
+  "score": 5,
+  "cost": 8.09e-05,
+  "expected": "90",
+  "tokens": {
+    "input": 134,
+    "output": 225
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 45,
+  "response": "**Step\u2011by\u2011step reasoning**\n\n1. **Wheels needed for the cars**  \n   - Each car needs 4 wheels.  \n   - Number of cars: 57  \n   - Total wheels for cars = \\(57 \\times 4 = 228\\).\n\n2. **Wheels needed for the motorcycles**  \n   - Each motorcycle needs 2 wheels.  \n   - Number of motorcycles: 73  \n   - Total wheels for motorcycles = \\(73 \\times 2 = 146\\).\n\n3. **Total wheels required**  \n   - Sum of wheels for cars and motorcycles:  \n   - \\(228 + 146 = 374\\) wheels.\n\n4. **Wheels left from the supply**  \n   - He has 650 wheels in the box.  \n   - Wheels left = total supply \u2013 total needed = \\(650 - 374 = 276\\).\n\n**Final answer**\n\nANSWER: 276",
+  "score": 5,
+  "cost": 0.0019525000000000002,
+  "expected": "276",
+  "tokens": {
+    "input": 135,
+    "output": 410
+  }
+}

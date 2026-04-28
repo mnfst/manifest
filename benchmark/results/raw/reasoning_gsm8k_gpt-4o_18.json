@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "To solve this problem, we need to determine how many pomelos Eve gave away.\n\n1. **Determine the original number of pomelos:**\n   Eve originally had 20 pieces of pomelos.\n\n2. **Calculate the number of pomelos Eve has left:**\n   According to the problem, Eve is left with 1/4 of the pomelos she originally had. \n   \\[\n   \\text{Number of pomelos left} = \\frac{1}{4} \\times 20 = 5\n   \\]\n\n3. **Calculate the number of pomelos Eve gave away:**\n   To find out how many pomelos Eve gave away, subtract the number of pomelos she has left from the original number of pomelos.\n   \\[\n   \\text{Number of pomelos given away} = 20 - 5 = 15\n   \\]\n\nTherefore, Eve gave away 15 pomelos.\n\nANSWER: 15",
+  "score": 5,
+  "cost": 0.0021375,
+  "expected": "15",
+  "tokens": {
+    "input": 83,
+    "output": 193
+  }
+}

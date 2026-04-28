@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "# Step-by-Step Solution\n\n**Given information:**\n- Number of boys = 30\n- Number of girls = 3 times as many as boys\n- Number of nongendered children = 1/10 as many as boys\n\n**Step 1: Calculate the number of girls**\n- Girls = 3 \u00d7 boys\n- Girls = 3 \u00d7 30\n- Girls = 90\n\n**Step 2: Calculate the number of nongendered children**\n- Nongendered = 1/10 \u00d7 boys\n- Nongendered = 1/10 \u00d7 30\n- Nongendered = 3\n\n**Step 3: Calculate total children**\n- Total = boys + girls + nongendered\n- Total = 30 + 90 + 3\n- Total = 123\n\nANSWER: 123",
+  "score": 2,
+  "cost": 0.0008447999999999999,
+  "expected": "123",
+  "tokens": {
+    "input": 96,
+    "output": 192
+  }
+}

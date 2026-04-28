@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "sentiment_sst2",
+  "case": 31,
+  "response": "negative",
+  "score": 5,
+  "cost": 1.8800000000000002e-06,
+  "expected": "negative",
+  "tokens": {
+    "input": 45,
+    "output": 2
+  }
+}

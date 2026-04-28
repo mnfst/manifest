@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "Let's solve the problem step by step.\n\n1. Let\u2019s denote the number of people who got on the bus at the terminal as **x**.\n\n2. At the first bus stop, 5 more people got on the bus. So, the number of people on the bus becomes:\n   **x + 5**\n\n3. At the second bus stop, 7 people got off and 8 more got on. So, the number of people on the bus becomes:\n   **(x + 5) - 7 + 8 = x + 6**\n\n4. We are told that there were 20 people heading to the third stop. Therefore:\n   **x + 6 = 20**\n\n5. Solving for **x**:\n   **x = 20 - 6**\n   **x = 14**\n\nSo, the number of people who got on the bus at the terminal is 14.\n\nANSWER: 14",
+  "score": 5,
+  "cost": 7.209999999999999e-05,
+  "expected": "14",
+  "tokens": {
+    "input": 121,
+    "output": 200
+  }
+}

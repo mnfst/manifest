@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "intent_clinc150",
+  "case": 5,
+  "response": "restaurant_suggestion",
+  "score": 5,
+  "cost": 7.89e-05,
+  "expected": "restaurant_suggestion",
+  "tokens": {
+    "input": 514,
+    "output": 3
+  }
+}

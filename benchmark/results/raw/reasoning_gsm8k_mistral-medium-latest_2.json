@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "Let's solve the problem step by step.\n\n1. **Determine the time Tom spends sailing outbound:**\n   - Tom sails from 1 PM to 4 PM, which is a total of 3 hours.\n\n2. **Calculate the distance traveled outbound:**\n   - Speed = 10 mph\n   - Time = 3 hours\n   - Distance = Speed \u00d7 Time = 10 mph \u00d7 3 hours = 30 miles\n\n3. **Determine the time it takes to return:**\n   - Return speed = 6 mph\n   - Distance to return = 30 miles\n   - Time = Distance / Speed = 30 miles / 6 mph = 5 hours\n\nSo, it takes Tom 5 hours to get back.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.00036760000000000004,
+  "expected": "5",
+  "tokens": {
+    "input": 89,
+    "output": 166
+  }
+}

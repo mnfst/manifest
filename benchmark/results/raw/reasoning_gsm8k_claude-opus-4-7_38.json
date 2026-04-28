@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 38,
+  "response": "Gerald: 60, spent 10, left 50.\n\nANSWER: 50",
+  "score": 3,
+  "cost": 0.00387,
+  "expected": "50",
+  "tokens": {
+    "input": 108,
+    "output": 30
+  }
+}

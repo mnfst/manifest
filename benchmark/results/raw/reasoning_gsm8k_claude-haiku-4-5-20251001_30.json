@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "I need to find the total points collected by all students, then calculate how many points are missing to reach 400.\n\n**Step 1: Find Adam's points**\nAdam = 50 points\n\n**Step 2: Find Betty's points**\nBetty collected 30% more than Adam\nBetty = 50 + (30% of 50)\nBetty = 50 + 0.30 \u00d7 50\nBetty = 50 + 15\nBetty = 65 points\n\n**Step 3: Find Tom's points**\nTom has 30 points less than Betty\nTom = 65 - 30\nTom = 35 points\n\n**Step 4: Find Martha's points**\nMartha collected 3 times more points than Tom\nMartha = 3 \u00d7 35\nMartha = 105 points\n\n**Step 5: Calculate total points**\nTotal = Adam + Betty + Martha + Tom\nTotal = 50 + 65 + 105 + 35\nTotal = 255 points\n\n**Step 6: Calculate missing points**\nMinimum threshold = 400 points\nMissing points = 400 - 255\nMissing points = 145 points\n\nANSWER: 145",
+  "score": 2,
+  "cost": 0.001212,
+  "expected": "145",
+  "tokens": {
+    "input": 155,
+    "output": 272
+  }
+}

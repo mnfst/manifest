@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "# Step-by-Step Solution\n\n**Step 1: Calculate the cost of half a dozen plates at $6000 each**\n- Half a dozen = 6 plates\n- Cost of plates = 6 \u00d7 $6000 = $36,000\n\n**Step 2: Calculate the cost of twenty dozen cups**\n- According to the problem, twenty dozen cups cost $1200 less than the plates\n- Cost of cups = $36,000 - $1,200 = $34,800\n\n**Step 3: Calculate the total number of cups**\n- Twenty dozen = 20 \u00d7 12 = 240 cups\n\n**Step 4: Calculate the cost per cup**\n- Cost per cup = $34,800 \u00f7 240 = $145\n\nANSWER: 145",
+  "score": 5,
+  "cost": 0.0008,
+  "expected": "145",
+  "tokens": {
+    "input": 80,
+    "output": 184
+  }
+}

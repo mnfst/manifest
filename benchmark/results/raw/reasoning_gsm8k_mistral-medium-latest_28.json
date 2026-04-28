@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "Let's solve the problem step by step.\n\n1. Let \\( x \\) be the number of people who got on the bus at the terminal.\n2. At the first bus stop, 5 more people got in. So, the total number of people on the bus after the first stop is \\( x + 5 \\).\n3. At the second bus stop, 7 people got down and 8 more got in. So, the total number of people on the bus after the second stop is \\( (x + 5) - 7 + 8 \\).\n4. Simplify the expression: \\( x + 5 - 7 + 8 = x + 6 \\).\n5. According to the problem, there are 20 people heading to the third stop. So, we have the equation \\( x + 6 = 20 \\).\n6. Solve for \\( x \\): \\( x = 20 - 6 \\).\n7. Therefore, \\( x = 14 \\).\n\nANSWER: 14",
+  "score": 5,
+  "cost": 0.0004816,
+  "expected": "14",
+  "tokens": {
+    "input": 109,
+    "output": 219
+  }
+}

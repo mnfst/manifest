@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "Let's break down the costs step by step to find out how much Janet paid in total.\n\n1. **Cost of material**: Janet pays $500 for the material.\n   \\[\n   \\text{Material cost} = \\$500\n   \\]\n\n2. **Cost of construction by the jeweler**: She pays an additional $800 for the jeweler to construct the brooch.\n   \\[\n   \\text{Construction cost} = \\$800\n   \\]\n\n3. **Total cost before insurance**: Add the material and construction costs.\n   \\[\n   \\text{Total before insurance} = \\$500 + \\$800 = \\$1300\n   \\]\n\n4. **Insurance cost**: Janet pays 10% of the total cost before insurance for insurance.\n   \\[\n   \\text{Insurance cost} = 10\\% \\times \\$1300 = 0.10 \\times \\$1300 = \\$130\n   \\]\n\n5. **Total amount paid**: Add the insurance cost to the total before insurance.\n   \\[\n   \\text{Total paid} = \\$1300 + \\$130 = \\$1430\n   \\]\n\nANSWER: 1430",
+  "score": 5,
+  "cost": 1.488e-05,
+  "expected": "1430",
+  "tokens": {
+    "input": 103,
+    "output": 269
+  }
+}

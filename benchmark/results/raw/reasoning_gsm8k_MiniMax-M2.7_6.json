@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 6,
+  "response": "**Step\u2011by\u2011step reasoning:**\n\n1. Ann\u2019s current age:\u202f9\u202fyears.\n2. Her brother\u2019s current age is twice Ann\u2019s age:  \n   \\(2 \\times 9 = 18\\)\u202fyears.\n3. In 3 years, his age will increase by 3:  \n   \\(18 + 3 = 21\\)\u202fyears.\n\n**Final answer:**\n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.0008954000000000001,
+  "expected": "21",
+  "tokens": {
+    "input": 82,
+    "output": 183
+  }
+}

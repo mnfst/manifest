@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "To solve the problem step by step, we will follow these calculations:\n\n1. **Calculate the loan amount**: \n   John gets a loan worth 40% of the value of his house. The value of his house is $250,000.\n\n   \\[\n   \\text{Loan Amount} = 0.40 \\times 250,000 = 100,000\n   \\]\n\n2. **Calculate the amount used to pay off debts**: \n   John uses 60% of the loan amount to pay off his debts.\n\n   \\[\n   \\text{Amount for Debts} = 0.60 \\times 100,000 = 60,000\n   \\]\n\n3. **Calculate the leftover money**: \n   To find out how much money John has left after paying off his debts, we subtract the amount used for debts from the total loan amount.\n\n   \\[\n   \\text{Leftover Money} = \\text{Loan Amount} - \\text{Amount for Debts} = 100,000 - 60,000 = 40,000\n   \\]\n\nThus, the amount of money John has leftover after paying off his debts is $40,000.\n\nFinal answer:\nANSWER: 40000",
+  "score": 5,
+  "cost": 0.0001689,
+  "expected": "40,000",
+  "tokens": {
+    "input": 102,
+    "output": 256
+  }
+}

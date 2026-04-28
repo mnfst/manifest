@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "intent_clinc150",
+  "case": 5,
+  "response": "restaurant_suggestion",
+  "score": 5,
+  "cost": 9.48e-05,
+  "expected": "restaurant_suggestion",
+  "tokens": {
+    "input": 620,
+    "output": 3
+  }
+}

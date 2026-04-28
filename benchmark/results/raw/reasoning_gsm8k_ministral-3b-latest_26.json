@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "Let's break down the problem step by step to find out how many more dollars Mitchell made than Liam.\n\n1. **Calculate Liam's earnings:**\n   - Liam made **$63** one weekend.\n   - This is already the total amount he earned, so we don't need to calculate it further.\n\n2. **Calculate Mitchell's earnings:**\n   - Mitchell sold **21 lemonades** at **$4** each.\n   - To find the total earnings, multiply the number of lemonades by the price per lemonade:\n     \\[\n     21 \\times 4 = 84\n     \\]\n   - So, Mitchell made **$84**.\n\n3. **Find the difference in earnings:**\n   - Subtract Liam's earnings from Mitchell's earnings to find how many more dollars Mitchell made:\n     \\[\n     84 - 63 = 21\n     \\]\n\n**Final Answer:**\nANSWER: 21",
+  "score": 5,
+  "cost": 1.208e-05,
+  "expected": "21",
+  "tokens": {
+    "input": 106,
+    "output": 196
+  }
+}

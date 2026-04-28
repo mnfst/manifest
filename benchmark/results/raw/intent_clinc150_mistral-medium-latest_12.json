@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "intent_clinc150",
+  "case": 12,
+  "response": "oil_change_how",
+  "score": 5,
+  "cost": 0.0002344,
+  "expected": "oil_change_how",
+  "tokens": {
+    "input": 556,
+    "output": 6
+  }
+}

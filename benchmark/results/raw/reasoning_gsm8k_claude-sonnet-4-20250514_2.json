@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "I need to find how long it takes Tom to travel back to his starting point.\n\nFirst, let me find how far Tom traveled during his initial journey.\n\nInitial journey details:\n- Speed: 10 mph\n- Time: from 1 PM to 4 PM = 3 hours\n- Distance = Speed \u00d7 Time = 10 mph \u00d7 3 hours = 30 miles\n\nNow I need to find how long it takes to travel back this same distance at a different speed.\n\nReturn journey details:\n- Distance: 30 miles (same distance back)\n- Speed: 6 mph\n- Time = Distance \u00f7 Speed = 30 miles \u00f7 6 mph = 5 hours\n\nTherefore, it takes Tom 5 hours to get back.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.003051,
+  "expected": "5",
+  "tokens": {
+    "input": 97,
+    "output": 184
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 22,
+  "response": "Here is the step-by-step solution:\n\n**Step 1: Calculate the total amount of tips Rafaela received.**\nRafaela had 40 customers, and each gave her a $20 tip.\nTotal tips for Rafaela = Number of customers \u00d7 Tip per customer\nTotal tips for Rafaela = 40 \u00d7 $20 = $800\n\n**Step 2: Calculate the amount of tips Julieta received.**\nJulieta received 10% less money than Rafaela. First, we need to find out what 10% of Rafaela's tips is.\n10% of $800 = 0.10 \u00d7 $800 = $80\nThis is the amount *less* that Julieta received. To find Julieta's total, we subtract this from Rafaela's total.\nTotal tips for Julieta = Rafaela's total - 10% of Rafaela's total\nTotal tips for Julieta = $800 - $80 = $720\n\n**Step 3: Calculate the total amount of tips they received altogether.**\nTo find the combined total, we add Rafaela's tips and Julieta's tips.\nTotal altogether = Rafaela's tips + Julieta's tips\nTotal altogether = $800 + $720 = $1520\n\nANSWER: 1520",
+  "score": 5,
+  "cost": 0.00317375,
+  "expected": "1520",
+  "tokens": {
+    "input": 91,
+    "output": 306
+  }
+}

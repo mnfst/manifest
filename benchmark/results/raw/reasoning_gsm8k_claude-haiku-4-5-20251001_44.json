@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 44,
+  "response": "Let me work through this step-by-step.\n\n**Initial Setup:**\n- 10 stalls with 20 cows each\n- Total cows initially: 10 \u00d7 20 = 200 cows\n\n**Mr. Sylas's Purchase:**\n- He buys 40 new cows\n- He divides them equally among the stalls\n- Wait, I need to clarify: the problem says \"putting an equal number of the new cows into each of the twenty stalls\"\n\nThis is a bit confusing because we started with 10 stalls, but now it mentions \"twenty stalls.\" Let me re-read...\n\nThe problem states he divides the 40 cows \"equally, putting an equal number of the new cows into each of the twenty stalls.\"\n\nI believe there's a typo in the problem, and it should say \"ten stalls\" (matching the original number). However, I'll solve it as written with \"twenty stalls\" since that's what the problem explicitly states.\n\n**Distribution of New Cows:**\n- 40 new cows divided equally among 20 stalls\n- Cows per stall from the new purchase: 40 \u00f7 20 = 2 cows per stall\n\n**Cows in Each Stall After Distribution:**\n- Original cows per stall: 20\n- New cows added per stall: 2\n- Total cows per stall: 20 + 2 = 22 cows per stall\n\n**Cows in 8 of the Stalls:**\n- 8 stalls \u00d7 22 cows per stall = 176 cows\n\nANSWER: 176",
+  "score": 2,
+  "cost": 0.001652,
+  "expected": "192",
+  "tokens": {
+    "input": 105,
+    "output": 392
+  }
+}

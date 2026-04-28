@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 43,
+  "response": "Here is the step-by-step solution to the problem:\n\n**Step 1: Find Martha's age.**\nWe are given that Mike is 24 years old.\nThe problem states that Martha is 4 years younger than Mike.\nTo find Martha's age, we subtract 4 from Mike's age:\n24 - 4 = 20\nSo, Martha is 20 years old.\n\n**Step 2: Find Jeff's age.**\nThe problem states that Jeff is 10 years older than his sister, Martha.\nWe just found that Martha is 20 years old.\nTo find Jeff's age, we add 10 to Martha's age:\n20 + 10 = 30\nSo, Jeff is 30 years old.\n\nANSWER: 30",
+  "score": 5,
+  "cost": 0.00191375,
+  "expected": "30",
+  "tokens": {
+    "input": 83,
+    "output": 181
+  }
+}

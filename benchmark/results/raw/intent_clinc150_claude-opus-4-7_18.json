@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "intent_clinc150",
+  "case": 18,
+  "response": "current_location",
+  "score": 5,
+  "cost": 0.01338,
+  "expected": "current_location",
+  "tokens": {
+    "input": 857,
+    "output": 7
+  }
+}

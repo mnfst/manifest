@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 15,
+  "response": "Joey starts with 214 points and adds 26 points:\n\n\\[\n214 + 26 = 240\n\\]\n\nMarcy starts with 225 points and adds 10 points:\n\n\\[\n225 + 10 = 235\n\\]\n\nNow compare the two totals:\n\n\\[\n240 - 235 = 5\n\\]\n\nJoey is ahead by 5 points.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.0016269000000000004,
+  "expected": "5",
+  "tokens": {
+    "input": 99,
+    "output": 345
+  }
+}

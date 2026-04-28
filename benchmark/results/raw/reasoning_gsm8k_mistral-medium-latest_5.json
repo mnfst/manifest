@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "Let's solve the problem step by step:\n\n1. **Initial number of fairies:**\n   Katelyn saw 50 fairies flying above the forest.\n   **Fairies at this point:** 50\n\n2. **Fairies joining from the east:**\n   Katelyn's friend saw half as many fairies as Katelyn saw (which is half of 50) come from the east and join the existing fairies.\n   **Fairies joining:** 50 / 2 = 25\n   **Total fairies after joining:** 50 + 25 = 75\n\n3. **Fairies flying away:**\n   Ten minutes later, 30 fairies flew away.\n   **Fairies remaining:** 75 - 30 = 45\n\nANSWER: 45",
+  "score": 5,
+  "cost": 0.0003988,
+  "expected": "45",
+  "tokens": {
+    "input": 117,
+    "output": 176
+  }
+}

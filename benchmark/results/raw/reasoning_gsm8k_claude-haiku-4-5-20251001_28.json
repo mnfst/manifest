@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "# Step-by-Step Solution\n\nLet me denote the number of people who got on at the terminal as **x**.\n\n**Track the changes at each stop:**\n\n- **At terminal:** x people on the bus\n- **At first stop:** 5 more people got in\n  - Total: x + 5\n- **At second stop:** 7 people got down, 8 got in\n  - Total: (x + 5) - 7 + 8 = x + 6\n- **Heading to third stop:** 20 people total\n\n**Set up the equation:**\n\nx + 6 = 20\n\n**Solve for x:**\n\nx = 20 - 6\nx = 14\n\n**Verification:**\n- Started with: 14 people\n- After 1st stop: 14 + 5 = 19 people\n- After 2nd stop: 19 - 7 + 8 = 20 people \u2713\n\nANSWER: 14",
+  "score": 5,
+  "cost": 0.0010256,
+  "expected": "14",
+  "tokens": {
+    "input": 117,
+    "output": 233
+  }
+}

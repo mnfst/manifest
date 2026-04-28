@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "# Step-by-step solution:\n\n**Step 1: Identify the initial enrollment**\n- Last year: 50 students\n\n**Step 2: Calculate the 20% increase**\n- 20% of 50 = 0.20 \u00d7 50 = 10 students\n\n**Step 3: Add the increase to the original enrollment**\n- This year's enrollment = 50 + 10 = 60 students\n\n**Verification:**\n- 50 \u00d7 1.20 = 60 \u2713\n\nANSWER: 60",
+  "score": 5,
+  "cost": 0.000596,
+  "expected": "60",
+  "tokens": {
+    "input": 90,
+    "output": 131
+  }
+}

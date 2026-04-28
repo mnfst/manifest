@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "intent_clinc150",
+  "case": 4,
+  "response": "book_flight",
+  "score": 0,
+  "cost": 5.8800000000000006e-05,
+  "expected": "uber",
+  "tokens": {
+    "input": 576,
+    "output": 4
+  }
+}

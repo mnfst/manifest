@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 38,
+  "response": "# Step-by-step solution\n\n**Step 1: Find how the $100 is divided in the ratio 3:2**\n\nThe ratio 3:2 means the total parts = 3 + 2 = 5 parts\n\n**Step 2: Calculate Gerald's share**\n\nGerald gets the \"3\" part of the ratio.\n- Gerald's share = (3/5) \u00d7 $100 = $60\n\n**Step 3: Subtract the amount Gerald spent**\n\nGerald spent $10 on a book.\n- Money left = $60 - $10 = $50\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.0006303999999999999,
+  "expected": "50",
+  "tokens": {
+    "input": 78,
+    "output": 142
+  }
+}

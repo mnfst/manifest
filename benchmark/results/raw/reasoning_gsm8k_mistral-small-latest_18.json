@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "Step 1: Identify the total number of pomelos Eve originally had.\nEve originally had 20 pieces of pomelos.\n\nStep 2: Determine how many pomelos Eve is left with after giving some away.\nEve is left with 1/4 of the original amount.\n1/4 of 20 = 20 * (1/4) = 5 pomelos.\n\nStep 3: Calculate the number of pomelos Eve gave away.\nOriginal amount - Remaining amount = Pomelos given away\n20 - 5 = 15 pomelos.\n\nANSWER: 15",
+  "score": 5,
+  "cost": 4.819999999999999e-05,
+  "expected": "15",
+  "tokens": {
+    "input": 95,
+    "output": 129
+  }
+}

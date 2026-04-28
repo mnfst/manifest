@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 34,
+  "response": "# Step-by-Step Solution\n\n**Step 1: Calculate the cost of tickets**\n- Tickets cost: $20.25\n\n**Step 2: Calculate the cost of food**\n- Food cost $4.50 less than tickets\n- Food cost: $20.25 - $4.50 = $15.75\n\n**Step 3: Calculate the cost of rides**\n- 2 rides at $33 each\n- Rides cost: 2 \u00d7 $33 = $66\n\n**Step 4: Calculate total cost**\n- Total: $20.25 + $15.75 + $66 = $102\n\n**Step 5: Split evenly among 3 friends**\n- Cost per person: $102 \u00f7 3 = $34\n\nANSWER: 34",
+  "score": 5,
+  "cost": 0.000844,
+  "expected": "34",
+  "tokens": {
+    "input": 115,
+    "output": 188
+  }
+}

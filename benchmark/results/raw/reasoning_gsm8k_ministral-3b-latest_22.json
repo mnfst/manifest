@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "reasoning_gsm8k",
+  "case": 22,
+  "response": "Let's solve the problem step by step.\n\n1. **Calculate Rafaela's total tips:**\n   - Number of customers: 40\n   - Tip per customer: \\$20\n   - Total tips for Rafaela = 40 customers \u00d7 \\$20 = \\$800\n\n2. **Calculate Julieta's tips:**\n   - Julieta received 10% less than Rafaela.\n   - 10% of Rafaela's tips = 0.10 \u00d7 \\$800 = \\$80\n   - Julieta's tips = Rafaela's tips - \\$80 = \\$800 - \\$80 = \\$720\n\n3. **Calculate the combined total tips for Julieta and Rafaela:**\n   - Combined total = Rafaela's tips + Julieta's tips = \\$800 + \\$720 = \\$1520\n\nANSWER: 1520",
+  "score": 4,
+  "cost": 1.204e-05,
+  "expected": "1520",
+  "tokens": {
+    "input": 97,
+    "output": 204
+  }
+}

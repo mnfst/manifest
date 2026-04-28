@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "Let's break down the problem step by step.\n\n1. **Initial Number of Cards**: Elaine starts with 20 Pokemon cards.\n\n2. **First Month**: \n   - She collects three times the initial number of cards.\n   - Cards collected in the first month = 3 * 20 = 60 cards.\n   - Total after the first month = Initial cards + Cards collected = 20 + 60 = 80 cards.\n\n3. **Second Month**: \n   - She collects 20 fewer cards than what she collected in the first month.\n   - Cards collected in the second month = 60 - 20 = 40 cards.\n   - Total after the second month = Total after first month + Cards collected in the second month = 80 + 40 = 120 cards.\n\n4. **Third Month**: \n   - She collects twice the combined number of cards collected in the first and second months.\n   - Total cards collected in the first and second months = 60 + 40 = 100 cards.\n   - Cards collected in the third month = 2 * 100 = 200 cards.\n   - Total after the third month = Total after second month + Cards collected in the third month = 120 + 200 = 320 cards.\n\nNow, we can summarize the total number of Pokemon cards Elaine has after three months:\n\nTotal cards = 320.\n\nThus, the final answer is:\n\nANSWER: 320",
+  "score": 5,
+  "cost": 0.0001935,
+  "expected": "320",
+  "tokens": {
+    "input": 114,
+    "output": 294
+  }
+}

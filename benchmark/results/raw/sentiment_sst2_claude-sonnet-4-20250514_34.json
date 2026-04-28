@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "sentiment_sst2",
+  "case": 34,
+  "response": "positive",
+  "score": 5,
+  "cost": 0.000264,
+  "expected": "positive",
+  "tokens": {
+    "input": 68,
+    "output": 4
+  }
+}

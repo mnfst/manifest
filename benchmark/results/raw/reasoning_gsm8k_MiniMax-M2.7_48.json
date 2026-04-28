@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "**Step\u2011by\u2011step reasoning**\n\n1. **Original weight**: 8\u202flb.  \n2. **Increase by 50\u202f%**:  \n   \\[\n   8\\text{ lb} + 0.5 \\times 8\\text{ lb}=8\\text{ lb}+4\\text{ lb}=12\\text{ lb}\n   \\]\n3. **Weight is too heavy**, so Jamaal chooses a weight **2\u202flb lighter**:  \n   \\[\n   12\\text{ lb} - 2\\text{ lb}=10\\text{ lb}\n   \\]\n\nThus, the weight Jamaal now uses is **10\u202flb**.\n\n**Final answer**\n\nANSWER: 10",
+  "score": 5,
+  "cost": 0.0015884,
+  "expected": "10",
+  "tokens": {
+    "input": 136,
+    "output": 327
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 38,
+  "response": "1. **Understand the ratio**: Gerald and Julia divided $100 in the ratio 3:2. This means for every 3 parts Gerald gets, Julia gets 2 parts.\n\n2. **Calculate the total parts**: Add the parts of the ratio together.\n   3 (Gerald) + 2 (Julia) = 5 parts\n\n3. **Determine the value of one part**: Divide the total amount by the total parts.\n   $100 \u00f7 5 = $20 per part\n\n4. **Calculate Gerald's share**: Multiply the value of one part by Gerald's parts.\n   $20 \u00d7 3 = $60\n\n5. **Subtract the amount Gerald spent**: Gerald spent $10 on a book.\n   $60 - $10 = $50\n\nANSWER: 50",
+  "score": 5,
+  "cost": 6.35e-05,
+  "expected": "50",
+  "tokens": {
+    "input": 86,
+    "output": 183
+  }
+}

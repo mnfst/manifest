@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 1,
+  "response": "4+2=6 per minute. 360/6=60 minutes=1 hour.\n\nANSWER: 1",
+  "score": 3,
+  "cost": 0.005205,
+  "expected": "1",
+  "tokens": {
+    "input": 147,
+    "output": 40
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "To solve this problem, we need to determine how many people initially got on the bus at the terminal. Let's break down the problem step by step:\n\n1. **Let \\( x \\) be the number of people who got on the bus at the terminal.**\n\n2. **First Bus Stop:**\n   - 5 more people got on the bus.\n   - Therefore, the number of people on the bus after the first stop is \\( x + 5 \\).\n\n3. **Second Bus Stop:**\n   - 7 people got down from the bus.\n   - 8 more people got on the bus.\n   - Therefore, the number of people on the bus after the second stop is:\n     \\[\n     (x + 5) - 7 + 8 = x + 6\n     \\]\n\n4. **Heading to the Third Stop:**\n   - We are told there are 20 people heading to the third stop.\n   - Therefore, we set up the equation:\n     \\[\n     x + 6 = 20\n     \\]\n\n5. **Solve for \\( x \\):**\n   - Subtract 6 from both sides of the equation:\n     \\[\n     x = 20 - 6\n     \\]\n   - Simplify:\n     \\[\n     x = 14\n     \\]\n\nThus, the number of people who got on the bus at the terminal is 14.\n\nANSWER: 14",
+  "score": 5,
+  "cost": 0.0032225,
+  "expected": "14",
+  "tokens": {
+    "input": 109,
+    "output": 295
+  }
+}

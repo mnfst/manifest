@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "To solve this problem, we need to determine the number of each color of car and then find out how many yellow cars there are.\n\n1. **Determine the number of red cars:**\n   - The problem states there are 12 red cars.\n\n2. **Determine the number of green cars:**\n   - The problem states there are 2 fewer green cars than red cars.\n   - Therefore, the number of green cars is \\(12 - 2 = 10\\).\n\n3. **Determine the number of blue cars:**\n   - The problem states there are 3 times as many blue cars as green cars.\n   - Therefore, the number of blue cars is \\(3 \\times 10 = 30\\).\n\n4. **Determine the total number of cars:**\n   - The problem states the total number of cars is 75.\n\n5. **Calculate the number of yellow cars:**\n   - We know the total number of cars is the sum of red, green, blue, and yellow cars.\n   - Let \\(y\\) be the number of yellow cars.\n   - The equation for the total number of cars is:\n     \\[\n     12 \\text{ (red)} + 10 \\text{ (green)} + 30 \\text{ (blue)} + y \\text{ (yellow)} = 75\n     \\]\n   - Simplifying the equation:\n     \\[\n     52 + y = 75\n     \\]\n   - Solving for \\(y\\):\n     \\[\n     y = 75 - 52 = 23\n     \\]\n\nTherefore, the number of yellow cars is 23.\n\nANSWER: 23",
+  "score": 4,
+  "cost": 0.0036725,
+  "expected": "23",
+  "tokens": {
+    "input": 105,
+    "output": 341
+  }
+}

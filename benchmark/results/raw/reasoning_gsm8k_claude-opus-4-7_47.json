@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 47,
+  "response": "200 crayons / 8 = 25 boxes\nBox weight: 25 \u00d7 8 = 200 oz\nCrayon weight: 200 oz\nTotal: 400 oz = 25 lbs\n\nANSWER: 25",
+  "score": 4,
+  "cost": 0.008505,
+  "expected": "25",
+  "tokens": {
+    "input": 177,
+    "output": 78
+  }
+}

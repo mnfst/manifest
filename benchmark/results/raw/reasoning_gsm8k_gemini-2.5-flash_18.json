@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "Here's a step-by-step solution:\n\n1.  **Find the original number of pomelos:**\n    Eve started with 20 pieces of pomelos.\n\n2.  **Calculate the number of pomelos Eve was left with:**\n    She was left with 1/4 of the original amount.\n    Remaining pomelos = (1/4) * 20\n    Remaining pomelos = 20 / 4\n    Remaining pomelos = 5 pieces\n\n3.  **Calculate the number of pomelos Eve gave away:**\n    To find out how many she gave away, subtract the remaining pomelos from the original number.\n    Pomelos given away = Original pomelos - Remaining pomelos\n    Pomelos given away = 20 - 5\n    Pomelos given away = 15 pieces\n\nANSWER: 15",
+  "score": 5,
+  "cost": 0.0001224,
+  "expected": "15",
+  "tokens": {
+    "input": 80,
+    "output": 184
+  }
+}

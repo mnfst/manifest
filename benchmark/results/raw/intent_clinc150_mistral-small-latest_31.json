@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "intent_clinc150",
+  "case": 31,
+  "response": "freeze_account",
+  "score": 5,
+  "cost": 5.8200000000000005e-05,
+  "expected": "freeze_account",
+  "tokens": {
+    "input": 570,
+    "output": 4
+  }
+}

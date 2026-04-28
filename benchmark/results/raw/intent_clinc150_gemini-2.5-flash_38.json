@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "intent_clinc150",
+  "case": 38,
+  "response": "oil_change_when",
+  "score": 5,
+  "cost": 9.570000000000001e-05,
+  "expected": "oil_change_when",
+  "tokens": {
+    "input": 618,
+    "output": 5
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "To find the total number of leftover burritos from the picnic, we can follow these steps:\n\n1. **Calculate the total number of burritos consumed by the students:**\n   - There are 50 students, and each student is given 10 burritos.\n   - Total burritos consumed by students = Number of students \u00d7 Burritos per student\n   - Total burritos consumed by students = 50 \u00d7 10 = 500 burritos\n\n2. **Calculate the total number of burritos consumed by Mr. George:**\n   - Mr. George eats 20 burritos.\n\n3. **Calculate the total number of burritos consumed at the picnic:**\n   - Total burritos consumed = Burritos consumed by students + Burritos consumed by Mr. George\n   - Total burritos consumed = 500 + 20 = 520 burritos\n\n4. **Calculate the total number of leftover burritos:**\n   - Total burritos ordered = 600\n   - Total leftover burritos = Total burritos ordered - Total burritos consumed\n   - Total leftover burritos = 600 - 520 = 80 burritos\n\nThus, the total number of leftover burritos from the picnic is:\n\nANSWER: 80",
+  "score": 4,
+  "cost": 0.00016515,
+  "expected": "80",
+  "tokens": {
+    "input": 101,
+    "output": 250
+  }
+}

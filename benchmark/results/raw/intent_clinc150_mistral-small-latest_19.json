@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "intent_clinc150",
+  "case": 19,
+  "response": "calendar",
+  "score": 5,
+  "cost": 5.72e-05,
+  "expected": "calendar",
+  "tokens": {
+    "input": 566,
+    "output": 2
+  }
+}

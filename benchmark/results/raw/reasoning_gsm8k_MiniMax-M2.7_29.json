@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "The rink has:\n- Red cars: 12  \n- Green cars: 2 fewer than the red cars \u2192 \\(12 - 2 = 10\\)  \n- Blue cars: 3 times the number of green cars \u2192 \\(3 \\times 10 = 30\\)\n\nLet the number of yellow cars be \\(Y\\).\n\nThe total number of cars is 75:\n\n\\[\n12\\ (\\text{red}) + 10\\ (\\text{green}) + 30\\ (\\text{blue}) + Y = 75\n\\]\n\nAdd the known quantities:\n\n\\[\n52 + Y = 75\n\\]\n\nSolve for \\(Y\\):\n\n\\[\nY = 75 - 52 = 23\n\\]\n\nThus, the rink has **23 yellow cars**.\n\nANSWER: 23",
+  "score": 5,
+  "cost": 0.0020284,
+  "expected": "23",
+  "tokens": {
+    "input": 120,
+    "output": 431
+  }
+}

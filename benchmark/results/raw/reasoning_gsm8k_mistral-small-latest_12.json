@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 12,
+  "response": "Let's break down the problem step by step to find out how many hours Jim spends on TV and reading in 4 weeks.\n\n1. **Time spent watching TV per day:**\n   - Jim watches TV for 2 hours each time.\n\n2. **Time spent reading per day:**\n   - He reads for half as long as he watches TV.\n   - Half of 2 hours is \\( \\frac{2}{2} = 1 \\) hour.\n\n3. **Total time spent per day (TV + reading):**\n   - \\( 2 \\) hours (TV) \\( + 1 \\) hour (reading) \\( = 3 \\) hours.\n\n4. **Total time spent per week:**\n   - He does this 3 times a week.\n   - \\( 3 \\) hours/day \\( \\times 3 \\) days/week \\( = 9 \\) hours/week.\n\n5. **Total time spent in 4 weeks:**\n   - \\( 9 \\) hours/week \\( \\times 4 \\) weeks \\( = 36 \\) hours.\n\n**ANSWER: 36**",
+  "score": 5,
+  "cost": 7.98e-05,
+  "expected": "36",
+  "tokens": {
+    "input": 99,
+    "output": 233
+  }
+}

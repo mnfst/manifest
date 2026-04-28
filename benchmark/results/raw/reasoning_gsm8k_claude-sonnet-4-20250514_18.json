@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 18,
+  "response": "I need to find how many pomelos Eve gave away.\n\nLet me start by identifying what I know:\n- Eve originally had 20 pomelos\n- After giving some away, she has 1/4 of her original amount left\n- I need to find how many she gave away\n\nFirst, let me calculate how many pomelos Eve has left:\nEve has 1/4 of her original 20 pomelos remaining\n1/4 \u00d7 20 = 5 pomelos\n\nSo Eve has 5 pomelos left.\n\nNow I can find how many she gave away:\nPomelos given away = Original amount - Amount remaining\nPomelos given away = 20 - 5 = 15\n\nLet me verify this answer:\n- Started with: 20 pomelos\n- Gave away: 15 pomelos\n- Left with: 20 - 15 = 5 pomelos\n- Check: Is 5 equal to 1/4 of 20? Yes, 1/4 \u00d7 20 = 5 \u2713\n\nANSWER: 15",
+  "score": 5,
+  "cost": 0.004032,
+  "expected": "15",
+  "tokens": {
+    "input": 89,
+    "output": 251
+  }
+}

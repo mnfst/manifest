@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "sentiment_sst2",
+  "case": 28,
+  "response": "negative",
+  "score": 5,
+  "cost": 8.5e-05,
+  "expected": "negative",
+  "tokens": {
+    "input": 60,
+    "output": 1
+  }
+}

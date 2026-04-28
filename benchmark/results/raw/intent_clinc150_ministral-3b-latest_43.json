@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "intent_clinc150",
+  "case": 43,
+  "response": "book_flight",
+  "score": 5,
+  "cost": 2.2879999999999998e-05,
+  "expected": "book_flight",
+  "tokens": {
+    "input": 568,
+    "output": 4
+  }
+}

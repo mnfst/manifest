@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "intent_clinc150",
+  "case": 40,
+  "response": "mpg",
+  "score": 5,
+  "cost": 0.001965,
+  "expected": "mpg",
+  "tokens": {
+    "input": 630,
+    "output": 5
+  }
+}

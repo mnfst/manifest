@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "Let's solve the problem step by step.\n\n1. **Alexandra's amount**: Alexandra raises $430.\n\n2. **Kim's amount**: Kim raises $320 more than Alexandra.\n   \\[\n   \\text{Kim} = \\text{Alexandra} + 320 = 430 + 320 = 750\n   \\]\n\n3. **Sarah's amount**: Sarah raises $300.\n\n4. **Maryam's amount**: Maryam raises $400 more than Sarah.\n   \\[\n   \\text{Maryam} = \\text{Sarah} + 400 = 300 + 400 = 700\n   \\]\n\n5. **Total amount raised**: Add up the amounts raised by all four girls.\n   \\[\n   \\text{Total} = \\text{Alexandra} + \\text{Kim} + \\text{Sarah} + \\text{Maryam} = 430 + 750 + 300 + 700 = 2180\n   \\]\n\nANSWER: 2180",
+  "score": 5,
+  "cost": 0.0005267999999999999,
+  "expected": "2280",
+  "tokens": {
+    "input": 102,
+    "output": 243
+  }
+}

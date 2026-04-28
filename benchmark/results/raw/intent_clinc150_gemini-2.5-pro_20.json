@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "intent_clinc150",
+  "case": 20,
+  "response": "vaccines",
+  "score": 5,
+  "cost": 0.00079625,
+  "expected": "vaccines",
+  "tokens": {
+    "input": 621,
+    "output": 2
+  }
+}

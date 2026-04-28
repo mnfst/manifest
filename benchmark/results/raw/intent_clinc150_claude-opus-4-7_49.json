@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "intent_clinc150",
+  "case": 49,
+  "response": "international_visa",
+  "score": 5,
+  "cost": 0.013605,
+  "expected": "international_visa",
+  "tokens": {
+    "input": 867,
+    "output": 8
+  }
+}

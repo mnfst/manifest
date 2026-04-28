@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "sentiment_sst2",
+  "case": 3,
+  "response": "positive",
+  "score": 5,
+  "cost": 7.2999999999999996e-06,
+  "expected": "positive",
+  "tokens": {
+    "input": 67,
+    "output": 2
+  }
+}

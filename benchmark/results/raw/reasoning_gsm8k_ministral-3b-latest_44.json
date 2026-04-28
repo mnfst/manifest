@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "reasoning_gsm8k",
+  "case": 44,
+  "response": "Let's break down the problem step by step:\n\n1. **Initial number of cows in each stall:**\n   There are 10 stalls, each with 20 cows.\n   Total initial cows = 10 stalls * 20 cows/stall = 200 cows.\n\n2. **Number of cows Mr. Sylas buys:**\n   He buys 40 cows.\n\n3. **Dividing the new cows equally among the stalls:**\n   He divides the 40 cows equally into the 20 stalls.\n   Number of new cows per stall = 40 cows / 20 stalls = 2 cows/stall.\n\n4. **Total cows in each stall after adding the new cows:**\n   Initial cows per stall + new cows per stall = 20 + 2 = 22 cows/stall.\n\n5. **Calculating the total number of cows in 8 stalls:**\n   Cows in 8 stalls = 8 stalls * 22 cows/stall = 176 cows.\n\nANSWER: 176",
+  "score": 5,
+  "cost": 1.2960000000000001e-05,
+  "expected": "192",
+  "tokens": {
+    "input": 93,
+    "output": 231
+  }
+}

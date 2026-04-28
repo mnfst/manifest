@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "reasoning_gsm8k",
+  "case": 34,
+  "response": "Let's break down the problem step by step to find out how much each friend paid.\n\n### Step 1: Calculate the total cost of the tickets\nThe three friends spent **$20.25** on 3 tickets to the fair.\n\n### Step 2: Calculate the cost of food\nThey spent **$4.50 less** on food than on the tickets.\nCost of food = Cost of tickets - $4.50\nCost of food = $20.25 - $4.50 = **$15.75**\n\n### Step 3: Calculate the total cost of the rides\nThey went on **2 rides**, each costing **$33**.\nTotal cost of rides = 2 \u00d7 $33 = **$66**\n\n### Step 4: Calculate the total combined cost\nNow, add up all the costs:\nTotal cost = Cost of tickets + Cost of food + Cost of rides\nTotal cost = $20.25 + $15.75 + $66 = **$102.00**\n\n### Step 5: Split the total cost evenly among the three friends\nEach friend's share = Total cost \u00f7 3\nEach friend's share = $102.00 \u00f7 3 = **$34.00**\n\nANSWER: 34",
+  "score": 5,
+  "cost": 1.58e-05,
+  "expected": "34",
+  "tokens": {
+    "input": 108,
+    "output": 287
+  }
+}

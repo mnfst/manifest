@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 17,
+  "response": "Step 1: Calculate the total cost of the books.\nTed buys 3 books at $16 each.\n3 * 16 = 48\nSo, the total cost for the books is $48.\n\nStep 2: Calculate the total cost of the pencils.\nTed buys 3 pencils at $6 each.\n3 * 6 = 18\nSo, the total cost for the pencils is $18.\n\nStep 3: Calculate the total amount spent.\nAdd the total cost of the books and the total cost of the pencils.\n48 + 18 = 66\nSo, Ted spent a total of $66.\n\nANSWER: 66",
+  "score": 5,
+  "cost": 5.44e-05,
+  "expected": "66",
+  "tokens": {
+    "input": 91,
+    "output": 151
+  }
+}

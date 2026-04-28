@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "To solve this problem, we need to follow the sequence of events and keep track of the number of fairies at each step.\n\n1. **Initial Number of Fairies:**\n   - Katelyn initially saw 50 fairies flying above the forest.\n\n2. **Additional Fairies Joining:**\n   - One of Katelyn's friends saw half as many fairies as Katelyn saw come from the east and join the existing fairies.\n   - Half of 50 is calculated as follows:\n     \\[\n     \\frac{50}{2} = 25\n     \\]\n   - Therefore, 25 additional fairies joined the 50 fairies.\n\n3. **Total Number of Fairies After Joining:**\n   - The total number of fairies after the additional fairies joined is:\n     \\[\n     50 + 25 = 75\n     \\]\n\n4. **Fairies Flying Away:**\n   - Ten minutes later, 30 fairies flew away.\n\n5. **Final Number of Fairies Remaining:**\n   - Subtract the 30 fairies that flew away from the total number of fairies:\n     \\[\n     75 - 30 = 45\n     \\]\n\nThus, the final number of fairies remaining is 45.\n\nANSWER: 45",
+  "score": 5,
+  "cost": 0.00296,
+  "expected": "45",
+  "tokens": {
+    "input": 116,
+    "output": 267
+  }
+}

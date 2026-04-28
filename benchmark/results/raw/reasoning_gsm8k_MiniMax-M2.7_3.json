@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 3,
+  "response": "The two sons are 12\u202fyears old and 4\u202fyears younger, i.e., \\(12-4=8\\) years old.  \nJames needs a number of candles equal to each son\u2019s age, so he needs \\(12+8=20\\) candles.\n\nCandles are sold in packs of 5 for $3.  \nNumber of packs required: \\(\\frac{20}{5}=4\\) packs.  \n\nTotal cost: \\(4 \\times \\$3 = \\$12\\).\n\nANSWER: 12",
+  "score": 5,
+  "cost": 0.0020988,
+  "expected": "12",
+  "tokens": {
+    "input": 104,
+    "output": 451
+  }
+}

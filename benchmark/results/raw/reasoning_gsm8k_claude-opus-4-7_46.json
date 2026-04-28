@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 46,
+  "response": "Anakin: 10+6+3=19\nLocsin: 5+3+5=13\nTotal: 32\n\nANSWER: 32",
+  "score": 1,
+  "cost": 0.006045,
+  "expected": "32",
+  "tokens": {
+    "input": 173,
+    "output": 46
+  }
+}

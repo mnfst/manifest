@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "Here is the step-by-step solution to the problem:\n\n**Step 1: Define the unknown**\nLet 'x' be the number of people who got on the bus at the terminal.\n\n**Step 2: Track the changes at the first stop**\nAt the first bus stop, 5 more people got in. The number of people on the bus is now:\nx + 5\n\n**Step 3: Track the changes at the second stop**\nAt the second bus stop, 7 people got down, and 8 more got in. We update the total number of people:\n(x + 5) - 7 + 8\n\n**Step 4: Set up the equation**\nWe are told that the final number of people on the bus heading to the third stop is 20. So, we can set our expression equal to 20:\nx + 5 - 7 + 8 = 20\n\n**Step 5: Solve the equation**\nFirst, simplify the numbers on the left side of the equation:\n5 - 7 = -2\n-2 + 8 = 6\n\nSo the equation becomes:\nx + 6 = 20\n\nNow, to find x, subtract 6 from both sides of the equation:\nx = 20 - 6\nx = 14\n\nSo, 14 people got on the bus at the terminal.\n\n**Step 6: Check the answer**\n*   Start at the terminal: 14 people\n*   First stop (5 get in): 14 + 5 = 19 people\n*   Second stop (7 get down, 8 get in): 19 - 7 = 12, then 12 + 8 = 20 people.\nThis matches the final count given in the problem.\n\nANSWER: 14",
+  "score": 5,
+  "cost": 0.0041725,
+  "expected": "14",
+  "tokens": {
+    "input": 106,
+    "output": 404
+  }
+}

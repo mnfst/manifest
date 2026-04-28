@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "Here is the step-by-step solution to the problem:\n\n**Step 1: Find the initial number of fairies.**\nKatelyn initially saw 50 fairies.\nInitial number = 50\n\n**Step 2: Calculate the number of fairies that joined.**\nHalf as many fairies as Katelyn saw came from the east. To find this number, we divide the initial number of fairies by 2.\n50 / 2 = 25\nSo, 25 more fairies joined.\n\n**Step 3: Calculate the new total number of fairies.**\nAdd the number of fairies that joined to the initial number.\n50 + 25 = 75\nAfter the new fairies joined, there were 75 fairies in total.\n\n**Step 4: Calculate the number of remaining fairies after some flew away.**\n30 fairies flew away. To find the remaining number, we subtract 30 from the current total.\n75 - 30 = 45\n\nThere are 45 fairies remaining.\n\nANSWER: 45",
+  "score": 5,
+  "cost": 0.00242625,
+  "expected": "45",
+  "tokens": {
+    "input": 109,
+    "output": 229
+  }
+}

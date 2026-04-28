@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "To find out how much Janet paid in total for the brooch, we will break down the costs step by step.\n\n1. **Cost of materials**: Janet pays $500 for the materials.\n   \n   \\[\n   \\text{Cost of materials} = 500\n   \\]\n\n2. **Cost of construction**: Janet pays $800 for the jeweler to construct the brooch.\n   \n   \\[\n   \\text{Cost of construction} = 800\n   \\]\n\n3. **Total cost before insurance**: We add the cost of materials and the cost of construction together.\n   \n   \\[\n   \\text{Total cost before insurance} = \\text{Cost of materials} + \\text{Cost of construction} = 500 + 800 = 1300\n   \\]\n\n4. **Insurance cost**: Janet pays 10% of the total cost before insurance to get it insured. We calculate 10% of $1300.\n   \n   \\[\n   \\text{Insurance cost} = 0.10 \\times 1300 = 130\n   \\]\n\n5. **Total cost including insurance**: Finally, we add the insurance cost to the total cost before insurance.\n   \n   \\[\n   \\text{Total cost including insurance} = \\text{Total cost before insurance} + \\text{Insurance cost} = 1300 + 130 = 1430\n   \\]\n\nThus, the total amount Janet paid for the brooch is $1430.\n\nFinal numerical answer:\nANSWER: 1430",
+  "score": 4,
+  "cost": 0.00020535,
+  "expected": "1430",
+  "tokens": {
+    "input": 97,
+    "output": 318
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 16,
+  "response": "# Step-by-Step Solution\n\n**Step 1: Find the total number of books Sarah bought**\n- Total money spent: $300\n- Cost per book: $15\n- Total books = $300 \u00f7 $15 = 20 books\n\n**Step 2: Distribute the books equally among 4 kids**\n- Total books: 20\n- Number of kids: 4\n- Books per child = 20 \u00f7 4 = 5 books\n\n**Step 3: Verify the answer**\n- 5 books \u00d7 4 kids = 20 books \u2713\n- 20 books \u00d7 $15 = $300 \u2713\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.0007416,
+  "expected": "5",
+  "tokens": {
+    "input": 92,
+    "output": 167
+  }
+}

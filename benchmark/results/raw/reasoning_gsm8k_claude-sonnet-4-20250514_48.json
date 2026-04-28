@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "I need to find the weight Jamaal is now using after these changes.\n\nLet me work through this step by step:\n\nStep 1: Find the weight after increasing by 50%.\n- Jamaal starts with an 8-pound weight\n- He increases it by 50%\n- 50% of 8 pounds = 0.50 \u00d7 8 = 4 pounds\n- New weight = 8 + 4 = 12 pounds\n\nStep 2: Find the final weight after reducing by 2 pounds.\n- The 12-pound weight is too heavy\n- He uses a weight that is 2 pounds lighter than 12 pounds\n- Final weight = 12 - 2 = 10 pounds\n\nTherefore, Jamaal now uses a 10-pound weight.\n\nANSWER: 10",
+  "score": 5,
+  "cost": 0.003186,
+  "expected": "10",
+  "tokens": {
+    "input": 107,
+    "output": 191
+  }
+}

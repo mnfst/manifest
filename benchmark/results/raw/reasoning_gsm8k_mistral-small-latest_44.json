@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 44,
+  "response": "Step 1: Calculate the initial number of cows in all stalls.\n- There are 10 stalls, each with 20 cows.\n- Total initial cows = 10 stalls * 20 cows/stall = 200 cows.\n\nStep 2: Add the cows Mr. Sylas bought.\n- Mr. Sylas buys 40 cows.\n- Total cows after purchase = 200 cows + 40 cows = 240 cows.\n\nStep 3: Divide the new total number of cows equally among the 10 stalls.\n- Cows per stall = 240 cows / 10 stalls = 24 cows/stall.\n\nStep 4: Calculate the number of cows in 8 stalls.\n- Cows in 8 stalls = 8 stalls * 24 cows/stall = 192 cows.\n\nANSWER: 192",
+  "score": 5,
+  "cost": 7.05e-05,
+  "expected": "192",
+  "tokens": {
+    "input": 105,
+    "output": 200
+  }
+}

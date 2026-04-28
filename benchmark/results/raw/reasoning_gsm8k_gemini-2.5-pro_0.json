@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "Here is the step-by-step solution to the problem:\n\n**Step 1: Find the amount of money Kim raised.**\nThe problem states that Kim raises $320 more than Alexandra. Alexandra raised $430.\nSo, we add $320 to Alexandra's amount:\n$430 (Alexandra) + $320 = $750\nKim raised $750.\n\n**Step 2: Find the amount of money Maryam raised.**\nThe problem states that Maryam raises $400 more than Sarah. Sarah raised $300.\nSo, we add $400 to Sarah's amount:\n$300 (Sarah) + $400 = $700\nMaryam raised $700.\n\n**Step 3: Find the total amount of money raised by all four girls.**\nNow we need to add the amounts raised by each girl: Kim, Alexandra, Maryam, and Sarah.\n- Kim: $750\n- Alexandra: $430\n- Maryam: $700\n- Sarah: $300\n\nTotal = $750 + $430 + $700 + $300\nTotal = $1180 + $1000\nTotal = $2180\n\nThe total amount of money they all raised is $2180.\n\nANSWER: 2180",
+  "score": 3,
+  "cost": 0.0032325,
+  "expected": "2280",
+  "tokens": {
+    "input": 98,
+    "output": 311
+  }
+}

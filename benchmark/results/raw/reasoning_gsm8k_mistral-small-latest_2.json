@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "1. First, let's determine how far Tom travels away from his starting point.\n   - Tom's speed is 10 miles per hour.\n   - He travels from 1 PM to 4 PM, which is 3 hours.\n   - Distance = Speed \u00d7 Time\n   - Distance = 10 mph \u00d7 3 hours = 30 miles\n\n2. Now, we need to find out how long it takes Tom to travel back the same distance at a speed of 6 miles per hour.\n   - Time = Distance / Speed\n   - Time = 30 miles / 6 mph = 5 hours\n\nANSWER: 5",
+  "score": 5,
+  "cost": 5.1200000000000004e-05,
+  "expected": "5",
+  "tokens": {
+    "input": 101,
+    "output": 137
+  }
+}

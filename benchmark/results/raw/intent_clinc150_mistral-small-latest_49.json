@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "intent_clinc150",
+  "case": 49,
+  "response": "exchange_rate",
+  "score": 0,
+  "cost": 5.8e-05,
+  "expected": "international_visa",
+  "tokens": {
+    "input": 571,
+    "output": 3
+  }
+}

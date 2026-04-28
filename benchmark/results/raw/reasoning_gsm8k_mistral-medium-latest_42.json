@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "reasoning_gsm8k",
+  "case": 42,
+  "response": "Let's solve the problem step by step.\n\n1. **Children per row**: There are 8 children in each row.\n2. **Rows per school**: There are 7 rows for each school.\n3. **Number of schools**: There are 5 different schools participating.\n\nTo find the total number of children, we multiply the number of children per row by the number of rows per school and then by the number of schools:\n\n\\[\n\\text{Total children} = \\text{Children per row} \\times \\text{Rows per school} \\times \\text{Number of schools}\n\\]\n\n\\[\n\\text{Total children} = 8 \\times 7 \\times 5\n\\]\n\n\\[\n\\text{Total children} = 56 \\times 5\n\\]\n\n\\[\n\\text{Total children} = 280\n\\]\n\nANSWER: 280",
+  "score": 5,
+  "cost": 0.0003996,
+  "expected": "280",
+  "tokens": {
+    "input": 94,
+    "output": 181
+  }
+}

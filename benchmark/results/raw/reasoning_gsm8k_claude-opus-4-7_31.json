@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "Girls: 90, boys: 30, nongendered: 3. Total: 123.\n\nANSWER: 123",
+  "score": 1,
+  "cost": 0.004845,
+  "expected": "123",
+  "tokens": {
+    "input": 123,
+    "output": 40
+  }
+}

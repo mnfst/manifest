@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 45,
+  "response": "# Step-by-Step Solution\n\n**Step 1: Calculate wheels needed for cars**\n- Number of cars: 57\n- Wheels per car: 4\n- Wheels for cars = 57 \u00d7 4 = 228 wheels\n\n**Step 2: Calculate wheels needed for motorcycles**\n- Number of motorcycles: 73\n- Wheels per motorcycle: 2\n- Wheels for motorcycles = 73 \u00d7 2 = 146 wheels\n\n**Step 3: Calculate total wheels needed**\n- Total wheels needed = 228 + 146 = 374 wheels\n\n**Step 4: Calculate wheels left**\n- Wheels available: 650\n- Wheels left = 650 - 374 = 276 wheels\n\nANSWER: 276",
+  "score": 5,
+  "cost": 0.0008096000000000001,
+  "expected": "276",
+  "tokens": {
+    "input": 112,
+    "output": 180
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "I need to calculate the total amount Janet paid for the brooch, including materials, construction, and insurance.\n\nStep 1: Calculate the cost of materials and construction.\n- Material cost: $500\n- Jeweler construction cost: $800\n- Total for materials and construction: $500 + $800 = $1,300\n\nStep 2: Calculate the insurance cost.\n- Insurance is 10% of the total cost for materials and construction\n- Insurance cost: 10% \u00d7 $1,300 = 0.10 \u00d7 $1,300 = $130\n\nStep 3: Calculate the total amount paid.\n- Total amount = Materials + Construction + Insurance\n- Total amount = $500 + $800 + $130 = $1,430\n\nANSWER: 1430",
+  "score": 5,
+  "cost": 0.002985,
+  "expected": "1430",
+  "tokens": {
+    "input": 105,
+    "output": 178
+  }
+}

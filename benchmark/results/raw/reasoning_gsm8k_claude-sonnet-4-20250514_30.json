@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 30,
+  "response": "I need to find how many points each student has collected, then calculate the total and see how many more points they need to reach 400.\n\nLet me start by finding each student's points:\n\n**Adam's points:**\nAdam has collected 50 points.\n\n**Betty's points:**\nBetty collected 30% more than Adam.\nBetty's points = 50 + (30% of 50) = 50 + (0.30 \u00d7 50) = 50 + 15 = 65 points\n\n**Tom's points:**\nTom has 30 points less than Betty.\nTom's points = 65 - 30 = 35 points\n\n**Martha's points:**\nMartha collected 3 times more points than Tom.\n\"3 times more\" means Tom's points + (3 \u00d7 Tom's points) = 4 \u00d7 Tom's points\nMartha's points = 4 \u00d7 35 = 140 points\n\n**Total points collected:**\nTotal = Adam + Betty + Tom + Martha\nTotal = 50 + 65 + 35 + 140 = 290 points\n\n**Points needed for the trip:**\nThe minimum threshold is 400 points.\nPoints missing = 400 - 290 = 110 points\n\nANSWER: 110",
+  "score": 3,
+  "cost": 0.00486,
+  "expected": "145",
+  "tokens": {
+    "input": 155,
+    "output": 293
+  }
+}

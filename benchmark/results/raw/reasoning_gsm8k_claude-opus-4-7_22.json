@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 22,
+  "response": "Rafaela: 40 \u00d7 20 = 800\nJulieta: 800 \u00d7 0.9 = 720\nTotal: 1520\n\nANSWER: 1520",
+  "score": 2,
+  "cost": 0.006285,
+  "expected": "1520",
+  "tokens": {
+    "input": 144,
+    "output": 55
+  }
+}

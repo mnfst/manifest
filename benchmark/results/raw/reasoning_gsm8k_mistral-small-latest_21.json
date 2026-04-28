@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 21,
+  "response": "Let's break down Elliott's steps step by step to find out how many steps he took during his jog.\n\n1. **Total Steps Goal:**\n   Elliott aims to walk 10,000 steps a day.\n\n2. **Steps Taken to and from School:**\n   - He completed half of his total steps on his walks to and from school.\n   - Steps taken: \\( \\frac{10,000}{2} = 5,000 \\) steps.\n\n3. **Steps Taken with Friend:**\n   - He did an additional 1,000 steps going for a short walk with his friend.\n   - Total steps so far: \\( 5,000 + 1,000 = 6,000 \\) steps.\n\n4. **Steps Remaining Before Jog:**\n   - After the above activities, he had 2,000 steps left to take.\n   - This means the total steps taken before the jog were: \\( 10,000 - 2,000 = 8,000 \\) steps.\n\n5. **Steps Taken During Jog:**\n   - To find the steps taken during the jog, subtract the steps already taken from the total steps before the jog.\n   - Steps during jog: \\( 8,000 - 6,000 = 2,000 \\) steps.\n\n**Final Answer:**\nANSWER: 2000",
+  "score": 5,
+  "cost": 0.0001068,
+  "expected": "2000",
+  "tokens": {
+    "input": 144,
+    "output": 308
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 42,
+  "response": "# Solution\n\nLet me break down this problem step by step.\n\n**Given information:**\n- Children stand 8 in a row\n- There are 7 rows for each school\n- There are 5 different schools\n\n**Step 1: Calculate children per school**\n- Children per row = 8\n- Number of rows per school = 7\n- Children per school = 8 \u00d7 7 = 56 children\n\n**Step 2: Calculate total children for all schools**\n- Number of schools = 5\n- Total children = 56 \u00d7 5 = 280 children\n\n**Verification:**\nTotal = 8 (children per row) \u00d7 7 (rows per school) \u00d7 5 (schools) = 280 \u2713\n\nANSWER: 280",
+  "score": 5,
+  "cost": 0.0008056000000000001,
+  "expected": "280",
+  "tokens": {
+    "input": 102,
+    "output": 181
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 19,
+  "response": "7 + 3*7 + 12 = 7+21+12 = 40\n\nANSWER: 40",
+  "score": 2,
+  "cost": 0.00546,
+  "expected": "40",
+  "tokens": {
+    "input": 179,
+    "output": 37
+  }
+}

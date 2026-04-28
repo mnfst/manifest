@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 27,
+  "response": "**Step\u2011by\u2011step reasoning**\n\n1. Let the initial number of vacuum cleaners be \\(N\\).\n\n2. At the **green house** she sells a third:\n   \\[\n   \\text{sold}_G = \\frac13N\n   \\]\n   \\[\n   \\text{remaining after G} = N - \\frac13N = \\frac23N\n   \\]\n\n3. At the **red house** she sells 2 more:\n   \\[\n   \\text{remaining after R} = \\frac23N - 2\n   \\]\n\n4. At the **orange house** she sells half of what is left:\n   \\[\n   \\text{sold}_O = \\frac12\\Bigl(\\frac23N - 2\\Bigr)=\\frac13N - 1\n   \\]\n   \\[\n   \\text{remaining after O} = \\Bigl(\\frac23N - 2\\Bigr) - \\Bigl(\\frac13N - 1\\Bigr)\n   = \\frac13N - 1\n   \\]\n\n5. We are told the number left after the orange house is 5:\n   \\[\n   \\frac13N - 1 = 5\n   \\]\n   \\[\n   \\frac13N = 6 \\quad\\Longrightarrow\\quad N = 18\n   \\]\n\n6. Verification:\n   - Start with 18.\n   - Green: sell \\( \\frac13(18)=6\\); left 12.\n   - Red: sell 2; left 10.\n   - Orange: sell half of 10 = 5; left 5 (as given).\n\nThus Melanie originally had **18 vacuum cleaners**.\n\nANSWER: 18",
+  "score": 5,
+  "cost": 0.0036058,
+  "expected": "18",
+  "tokens": {
+    "input": 130,
+    "output": 787
+  }
+}

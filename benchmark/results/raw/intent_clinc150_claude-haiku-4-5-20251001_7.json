@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "intent_clinc150",
+  "case": 7,
+  "response": "change_ai_name",
+  "score": 5,
+  "cost": 0.0005367999999999999,
+  "expected": "change_ai_name",
+  "tokens": {
+    "input": 631,
+    "output": 8
+  }
+}

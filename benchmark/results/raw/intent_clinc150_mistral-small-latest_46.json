@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "intent_clinc150",
+  "case": 46,
+  "response": "calculator",
+  "score": 5,
+  "cost": 5.8399999999999997e-05,
+  "expected": "calculator",
+  "tokens": {
+    "input": 575,
+    "output": 3
+  }
+}

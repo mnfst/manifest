@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "intent_clinc150",
+  "case": 49,
+  "response": "international_visa",
+  "score": 5,
+  "cost": 0.0013125,
+  "expected": "international_visa",
+  "tokens": {
+    "input": 513,
+    "output": 3
+  }
+}

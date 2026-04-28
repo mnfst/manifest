@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "# Solving the Problem\n\nLet me define variables:\n- Let H = copies Harald sold\n- Let M = copies Marilyn sold\n\n**Set up equations from the problem:**\n\n1) \"Marilyn's first record sold 10 times as many copies as Harald's\"\n   - M = 10H\n\n2) \"They sold 88,000 copies combined\"\n   - M + H = 88,000\n\n**Substitute equation 1 into equation 2:**\n\n10H + H = 88,000\n\n11H = 88,000\n\nH = 88,000 \u00f7 11\n\nH = 8,000\n\n**Verify:**\n- Harald sold: 8,000 copies\n- Marilyn sold: 10 \u00d7 8,000 = 80,000 copies\n- Combined: 8,000 + 80,000 = 88,000 \u2713\n\nANSWER: 8000",
+  "score": 5,
+  "cost": 0.0009368,
+  "expected": "8000",
+  "tokens": {
+    "input": 81,
+    "output": 218
+  }
+}

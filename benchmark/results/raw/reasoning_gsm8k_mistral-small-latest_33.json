@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 33,
+  "response": "Step 1: Determine the cost of the lollipops.\nManolo bought 5 lollipops at $0.40 each.\nCost of lollipops = 5 * $0.40 = $2.00\n\nStep 2: Find the cost of the candies.\nTotal cost for 5 lollipops and 4 candies is $3.20.\nCost of candies = Total cost - Cost of lollipops\nCost of candies = $3.20 - $2.00 = $1.20\n\nStep 3: Calculate the cost per candy.\nNumber of candies = 4\nCost per candy = $1.20 / 4 = $0.30\n\nStep 4: Calculate the cost of 10 lollipops.\nCost of 10 lollipops = 10 * $0.40 = $4.00\n\nStep 5: Calculate the cost of 10 candies.\nCost of 10 candies = 10 * $0.30 = $3.00\n\nStep 6: Find the total cost for 10 lollipops and 10 candies.\nTotal cost = Cost of 10 lollipops + Cost of 10 candies\nTotal cost = $4.00 + $3.00 = $7.00\n\nANSWER: 7.00",
+  "score": 5,
+  "cost": 0.00010520000000000001,
+  "expected": "7",
+  "tokens": {
+    "input": 104,
+    "output": 316
+  }
+}

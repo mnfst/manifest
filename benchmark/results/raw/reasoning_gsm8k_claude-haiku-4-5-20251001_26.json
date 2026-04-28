@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "# Step-by-Step Solution\n\n**Step 1: Calculate Mitchell's earnings**\n- Mitchell sold 21 lemonades at $4 each\n- Mitchell's earnings = 21 \u00d7 $4 = $84\n\n**Step 2: Identify Liam's earnings**\n- Liam made $63 (given in the problem)\n\n**Step 3: Find the difference**\n- Difference = Mitchell's earnings - Liam's earnings\n- Difference = $84 - $63 = $21\n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.0006032,
+  "expected": "21",
+  "tokens": {
+    "input": 124,
+    "output": 126
+  }
+}

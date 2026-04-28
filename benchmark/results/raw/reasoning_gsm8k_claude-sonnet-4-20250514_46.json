@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 46,
+  "response": "I need to find the total number of fish caught by both Anakin and Locsin.\n\nFirst, let me identify what Anakin caught:\n- Starfish: 10\n- Sea horses: 6\n- Clownfish: 3\n\nNow, let me find what Locsin caught:\n- Starfish: 5 fewer than Anakin = 10 - 5 = 5\n- Sea horses: 3 fewer than Anakin = 6 - 3 = 3\n- Clownfish: 2 more than Anakin = 3 + 2 = 5\n\nNow I'll calculate the total for each person:\n\nAnakin's total: 10 + 6 + 3 = 19 fish\n\nLocsin's total: 5 + 3 + 5 = 13 fish\n\nTotal fish caught by both: 19 + 13 = 32 fish\n\nANSWER: 32",
+  "score": 5,
+  "cost": 0.003813,
+  "expected": "32",
+  "tokens": {
+    "input": 131,
+    "output": 228
+  }
+}

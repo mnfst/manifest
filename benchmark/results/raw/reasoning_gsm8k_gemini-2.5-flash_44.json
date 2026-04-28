@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "reasoning_gsm8k",
+  "case": 44,
+  "response": "Here's a step-by-step solution to the problem:\n\n1.  **Determine the initial number of cows per stall:**\n    The problem states that ten stalls have 20 cows each.\n    So, initially, each stall has 20 cows.\n\n2.  **Calculate how many new cows are added to each stall:**\n    Mr. Sylas buys 40 cows.\n    He divides these 40 cows equally into \"each of the twenty stalls\".\n    Number of new cows per stall = Total new cows / Number of stalls receiving new cows\n    Number of new cows per stall = 40 cows / 20 stalls = 2 cows per stall.\n\n3.  **Calculate the total number of cows in each of the original stalls:**\n    The question asks about \"8 of the stalls,\" which refers to the original stalls mentioned at the beginning. We assume these original stalls are among the \"twenty stalls\" that received new cows.\n    Total cows in each original stall = Initial cows per stall + New cows per stall\n    Total cows in each original stall = 20 cows + 2 cows = 22 cows.\n\n4.  **Calculate the total number of cows in 8 of these stalls:**\n    Since each of these stalls now has 22 cows, we multiply this by 8.\n    Total cows in 8 stalls = 8 stalls * 22 cows/stall = 176 cows.\n\nThe final answer is $\\boxed{176}$",
+  "score": 0,
+  "cost": 0.00020669999999999998,
+  "expected": "192",
+  "tokens": {
+    "input": 86,
+    "output": 323
+  }
+}

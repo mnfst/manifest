@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "# Step-by-Step Solution\n\n**Step 1: Find the increased weight**\n- Original weight: 8 pounds\n- Increase by 50%: 8 \u00d7 0.50 = 4 pounds\n- New weight after increase: 8 + 4 = 12 pounds\n\n**Step 2: Find the final weight**\n- The 12-pound weight is too heavy\n- He uses a weight 2 pounds lighter than that\n- Final weight: 12 - 2 = 10 pounds\n\nANSWER: 10",
+  "score": 5,
+  "cost": 0.0006056,
+  "expected": "10",
+  "tokens": {
+    "input": 107,
+    "output": 130
+  }
+}

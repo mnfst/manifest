@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "intent_clinc150",
+  "case": 7,
+  "response": "change_ai_name",
+  "score": 5,
+  "cost": 0.013695,
+  "expected": "change_ai_name",
+  "tokens": {
+    "input": 863,
+    "output": 10
+  }
+}

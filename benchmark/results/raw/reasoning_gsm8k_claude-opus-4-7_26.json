@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "21*4=84, 84-63=21\n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.00453,
+  "expected": "21",
+  "tokens": {
+    "input": 172,
+    "output": 26
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 45,
+  "response": "57\u00d74=228, 73\u00d72=146, total=374, 650-374=276\n\nANSWER: 276",
+  "score": 5,
+  "cost": 0.005145,
+  "expected": "276",
+  "tokens": {
+    "input": 158,
+    "output": 37
+  }
+}

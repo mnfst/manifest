@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 1,
+  "response": "# Solving the Puzzle Problem\n\n**Step 1: Find how many pieces per minute each person can add.**\n- Kalinda: 4 pieces per minute\n- Mom: half as many as Kalinda = 4 \u00f7 2 = 2 pieces per minute\n\n**Step 2: Find their combined rate.**\n- Combined rate = 4 + 2 = 6 pieces per minute\n\n**Step 3: Calculate how many minutes to complete the puzzle.**\n- Total pieces = 360\n- Time in minutes = 360 \u00f7 6 = 60 minutes\n\n**Step 4: Convert minutes to hours.**\n- Time in hours = 60 \u00f7 60 = 1 hour\n\nANSWER: 1",
+  "score": 5,
+  "cost": 0.0007984,
+  "expected": "1",
+  "tokens": {
+    "input": 103,
+    "output": 179
+  }
+}

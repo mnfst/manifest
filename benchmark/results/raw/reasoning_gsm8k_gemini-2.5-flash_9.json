@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "reasoning_gsm8k",
+  "case": 9,
+  "response": "Here's a step-by-step solution:\n\n1.  **Find the number of crabs Bo has:**\n    Bo has 40 crabs.\n\n2.  **Find the number of crabs Monic has:**\n    Monic has 4 fewer crabs than Bo.\n    Monic's crabs = Bo's crabs - 4\n    Monic's crabs = 40 - 4 = 36 crabs.\n\n3.  **Find the number of crabs Rani has:**\n    Rani has ten more crabs than Monic.\n    Rani's crabs = Monic's crabs + 10\n    Rani's crabs = 36 + 10 = 46 crabs.\n\n4.  **Calculate the total number of crabs the three have together:**\n    Total crabs = Bo's crabs + Monic's crabs + Rani's crabs\n    Total crabs = 40 + 36 + 46\n    Total crabs = 76 + 46\n    Total crabs = 122 crabs.\n\nANSWER: 122",
+  "score": 4,
+  "cost": 0.0001545,
+  "expected": "122",
+  "tokens": {
+    "input": 74,
+    "output": 239
+  }
+}

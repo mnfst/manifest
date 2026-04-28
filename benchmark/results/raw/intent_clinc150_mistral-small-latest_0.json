@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "intent_clinc150",
+  "case": 0,
+  "response": "rollover_401k",
+  "score": 5,
+  "cost": 5.9800000000000003e-05,
+  "expected": "rollover_401k",
+  "tokens": {
+    "input": 574,
+    "output": 8
+  }
+}

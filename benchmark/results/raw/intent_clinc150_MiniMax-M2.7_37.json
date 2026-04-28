@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "intent_clinc150",
+  "case": 37,
+  "response": "payday",
+  "score": 5,
+  "cost": 0.0009581,
+  "expected": "payday",
+  "tokens": {
+    "input": 575,
+    "output": 74
+  }
+}

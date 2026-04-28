@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 45,
+  "response": "Here is the step-by-step solution to the problem:\n\n**Step 1: Calculate the total number of wheels needed for the cars.**\nHenry has 57 cars, and each car needs 4 wheels.\nNumber of wheels for cars = 57 cars * 4 wheels/car\n57 * 4 = 228 wheels\n\n**Step 2: Calculate the total number of wheels needed for the motorcycles.**\nHenry has 73 motorcycles, and each motorcycle needs 2 wheels.\nNumber of wheels for motorcycles = 73 motorcycles * 2 wheels/motorcycle\n73 * 2 = 146 wheels\n\n**Step 3: Calculate the total number of wheels needed for all the toys.**\nThis is the sum of the wheels needed for the cars and the motorcycles.\nTotal wheels needed = 228 (for cars) + 146 (for motorcycles)\n228 + 146 = 374 wheels\n\n**Step 4: Calculate the number of wheels left over.**\nHenry starts with 650 wheels and uses 374 wheels. To find the remainder, subtract the wheels used from the total number of wheels he has.\nWheels left = 650 (total wheels) - 374 (wheels needed)\n650 - 374 = 276 wheels\n\nSo, Henry will have 276 wheels left.\n\nANSWER: 276",
+  "score": 5,
+  "cost": 0.003275,
+  "expected": "276",
+  "tokens": {
+    "input": 100,
+    "output": 315
+  }
+}

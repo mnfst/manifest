@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "I need to work backwards from the final number of people to find how many got on at the terminal.\n\nLet me define the variable:\n- Let x = number of people who got on at the terminal\n\nNow I'll track the changes at each stop:\n\nStarting at terminal: x people\n\nAt first bus stop:\n- 5 more people got in\n- Total after first stop: x + 5\n\nAt second bus stop:\n- 7 people got down: (x + 5) - 7\n- 8 more people got in: (x + 5) - 7 + 8\n- Total after second stop: x + 5 - 7 + 8 = x + 6\n\nWe know that after the second stop, there were 20 people heading to the third stop.\n\nSo: x + 6 = 20\n\nSolving for x:\nx = 20 - 6\nx = 14\n\nLet me verify this answer:\n- Started with 14 people at terminal\n- After first stop: 14 + 5 = 19 people\n- After second stop: 19 - 7 + 8 = 20 people \u2713\n\nANSWER: 14",
+  "score": 5,
+  "cost": 0.004536,
+  "expected": "14",
+  "tokens": {
+    "input": 117,
+    "output": 279
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "Loan: 250000*0.4=100000. Debts: 60000. Left: 40000.\n\nANSWER: 40000",
+  "score": 2,
+  "cost": 0.005385,
+  "expected": "40,000",
+  "tokens": {
+    "input": 139,
+    "output": 44
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 12,
+  "response": "I need to find the total hours Jim spends on TV and reading over 4 weeks.\n\nLet me break this down step by step:\n\nFirst, let me find how much time Jim spends in one session:\n- TV watching: 2 hours\n- Reading: half as long as TV = 2 \u00f7 2 = 1 hour\n- Total per session: 2 + 1 = 3 hours\n\nNext, let me find how much time he spends per week:\n- He does this 3 times a week\n- Time per week: 3 hours \u00d7 3 times = 9 hours per week\n\nFinally, let me find the total time over 4 weeks:\n- Time over 4 weeks: 9 hours per week \u00d7 4 weeks = 36 hours\n\nANSWER: 36",
+  "score": 5,
+  "cost": 0.003213,
+  "expected": "36",
+  "tokens": {
+    "input": 96,
+    "output": 195
+  }
+}

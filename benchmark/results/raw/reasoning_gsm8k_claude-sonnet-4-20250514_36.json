@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "I need to track Elaine's Pokemon card collection month by month.\n\nInitial cards: 20 Pokemon cards\n\nFirst month:\n- She collected three times her initial number\n- Cards collected = 3 \u00d7 20 = 60 cards\n- Total after first month = 20 + 60 = 80 cards\n\nSecond month:\n- She collected 20 fewer cards than in the first month\n- Cards collected = 60 - 20 = 40 cards\n- Total after second month = 80 + 40 = 120 cards\n\nThird month:\n- She collected twice the combined number from first and second months\n- Combined from first and second months = 60 + 40 = 100 cards\n- Cards collected in third month = 2 \u00d7 100 = 200 cards\n- Total after third month = 120 + 200 = 320 cards\n\nLet me verify:\n- Initial: 20 cards\n- First month: +60 cards\n- Second month: +40 cards  \n- Third month: +200 cards\n- Total: 20 + 60 + 40 + 200 = 320 cards\n\nANSWER: 320",
+  "score": 5,
+  "cost": 0.004536,
+  "expected": "320",
+  "tokens": {
+    "input": 122,
+    "output": 278
+  }
+}

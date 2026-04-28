@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "To solve this problem, we need to determine the number of girls, boys, and nongendered children in the classroom and then sum them up to find the total number of children.\n\n1. **Number of Boys:**\n   - The problem states that there are 30 boys in the classroom.\n\n2. **Number of Girls:**\n   - The classroom has 3 times as many girls as boys.\n   - Therefore, the number of girls is \\(3 \\times 30 = 90\\).\n\n3. **Number of Nongendered Children:**\n   - The classroom has \\(\\frac{1}{10}\\) as many nongendered children as boys.\n   - Therefore, the number of nongendered children is \\(\\frac{1}{10} \\times 30 = 3\\).\n\n4. **Total Number of Children:**\n   - To find the total number of children, we add the number of boys, girls, and nongendered children together:\n   \\[\n   30 \\text{ (boys)} + 90 \\text{ (girls)} + 3 \\text{ (nongendered children)} = 123\n   \\]\n\nThus, the total number of children in the classroom is 123.\n\nANSWER: 123",
+  "score": 2,
+  "cost": 0.0028025,
+  "expected": "123",
+  "tokens": {
+    "input": 89,
+    "output": 258
+  }
+}

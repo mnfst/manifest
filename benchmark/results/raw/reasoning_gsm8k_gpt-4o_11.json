@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "To solve this problem, we need to determine how many burritos were consumed and then subtract that number from the total number of burritos ordered to find out how many were leftover.\n\n1. **Calculate the total number of burritos consumed by the students:**\n   - Each student was given 10 burritos.\n   - There were 50 students.\n   - Total burritos consumed by students = 50 students \u00d7 10 burritos/student = 500 burritos.\n\n2. **Calculate the number of burritos consumed by Mr. George:**\n   - Mr. George ate 20 burritos.\n\n3. **Calculate the total number of burritos consumed:**\n   - Total burritos consumed = Burritos consumed by students + Burritos consumed by Mr. George\n   - Total burritos consumed = 500 burritos + 20 burritos = 520 burritos.\n\n4. **Calculate the number of leftover burritos:**\n   - Total burritos ordered = 600 burritos.\n   - Leftover burritos = Total burritos ordered - Total burritos consumed\n   - Leftover burritos = 600 burritos - 520 burritos = 80 burritos.\n\nTherefore, the total number of leftover burritos is:\n\nANSWER: 80",
+  "score": 0,
+  "cost": 0.0028125,
+  "expected": "80",
+  "tokens": {
+    "input": 101,
+    "output": 256
+  }
+}

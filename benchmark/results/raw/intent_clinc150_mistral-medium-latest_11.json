@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "intent_clinc150",
+  "case": 11,
+  "response": "travel_alert",
+  "score": 5,
+  "cost": 0.0002324,
+  "expected": "travel_alert",
+  "tokens": {
+    "input": 556,
+    "output": 5
+  }
+}

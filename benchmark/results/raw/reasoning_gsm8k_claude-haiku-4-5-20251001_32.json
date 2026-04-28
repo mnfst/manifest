@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 32,
+  "response": "# Step-by-step solution\n\n**Step 1: Convert the length from yards to feet**\n- Length = 3 yards\n- Since 1 yard = 3 feet\n- Length = 3 \u00d7 3 = 9 feet\n\n**Step 2: Find the width using the area formula**\n- Area of rectangle = length \u00d7 width\n- 360 = 9 \u00d7 width\n- width = 360 \u00f7 9 = 40 feet\n\n**Step 3: Calculate the perimeter**\n- Perimeter of rectangle = 2(length + width)\n- Perimeter = 2(9 + 40)\n- Perimeter = 2(49)\n- Perimeter = 98 feet\n\nANSWER: 98",
+  "score": 5,
+  "cost": 0.0007912,
+  "expected": "98",
+  "tokens": {
+    "input": 84,
+    "output": 181
+  }
+}

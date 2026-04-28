@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 23,
+  "response": "I need to find the cost of filling 170 balloons after a price increase.\n\nStep 1: Find the original cost per balloon.\n- 20 balloons cost $900 total\n- Original cost per balloon = $900 \u00f7 20 = $45 per balloon\n\nStep 2: Find the new cost per balloon after the increase.\n- The cost increased by $20 per balloon\n- New cost per balloon = $45 + $20 = $65 per balloon\n\nStep 3: Calculate the total cost for 170 balloons at the new price.\n- Bentley needs 170 balloons\n- Cost = 170 \u00d7 $65 = $11,050\n\nANSWER: 11050",
+  "score": 5,
+  "cost": 0.002844,
+  "expected": "11050",
+  "tokens": {
+    "input": 108,
+    "output": 168
+  }
+}

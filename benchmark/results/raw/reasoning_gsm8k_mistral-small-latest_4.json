@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 4,
+  "response": "Step 1: Determine the amount of yarn Mariah used.\nMariah used 1/4 of a skein. Since 1 skein = 364 yards,\nMariah used (1/4) * 364 = 91 yards.\n\nStep 2: Determine the amount of yarn her grandma used.\nHer grandma used 1/2 of a skein. Since 1 skein = 364 yards,\nGrandma used (1/2) * 364 = 182 yards.\n\nStep 3: Calculate the total yards of yarn used by both.\nTotal yards = Mariah's yarn + Grandma's yarn\nTotal yards = 91 + 182 = 273 yards.\n\nANSWER: 273",
+  "score": 5,
+  "cost": 6.24e-05,
+  "expected": "273",
+  "tokens": {
+    "input": 117,
+    "output": 169
+  }
+}

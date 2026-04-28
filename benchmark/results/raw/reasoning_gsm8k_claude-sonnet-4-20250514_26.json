@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "I need to find how much Mitchell made and compare it to Liam's earnings.\n\nFirst, let me calculate Mitchell's earnings:\n- Mitchell sold 21 lemonades at $4 each\n- Mitchell's total earnings = 21 \u00d7 $4 = $84\n\nNext, I know Liam's earnings:\n- Liam made $63\n\nNow I can find the difference:\n- Difference = Mitchell's earnings - Liam's earnings\n- Difference = $84 - $63 = $21\n\nTherefore, Mitchell made $21 more than Liam that weekend.\n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.002487,
+  "expected": "21",
+  "tokens": {
+    "input": 124,
+    "output": 141
+  }
+}

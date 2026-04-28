@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "intent_clinc150",
+  "case": 29,
+  "response": "recipe",
+  "score": 5,
+  "cost": 2.2239999999999997e-05,
+  "expected": "recipe",
+  "tokens": {
+    "input": 554,
+    "output": 2
+  }
+}

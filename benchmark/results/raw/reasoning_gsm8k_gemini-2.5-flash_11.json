@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "Here's a step-by-step solution to calculate the number of leftover burritos:\n\n1.  **Identify the total number of burritos ordered:**\n    George ordered 600 burritos.\n\n2.  **Calculate the total number of burritos eaten by students:**\n    There were 50 students, and each student was given 10 burritos.\n    Burritos eaten by students = Number of students \u00d7 Burritos per student\n    Burritos eaten by students = 50 \u00d7 10 = 500 burritos.\n\n3.  **Identify the number of burritos eaten by Mr. George:**\n    Mr. George ate 20 burritos.\n\n4.  **Calculate the total number of burritos consumed:**\n    Total consumed = Burritos eaten by students + Burritos eaten by Mr. George\n    Total consumed = 500 + 20 = 520 burritos.\n\n5.  **Calculate the number of leftover burritos:**\n    Leftover burritos = Total burritos ordered - Total burritos consumed\n    Leftover burritos = 600 - 520 = 80 burritos.\n\nANSWER: 80",
+  "score": 5,
+  "cost": 0.00017070000000000003,
+  "expected": "80",
+  "tokens": {
+    "input": 102,
+    "output": 259
+  }
+}

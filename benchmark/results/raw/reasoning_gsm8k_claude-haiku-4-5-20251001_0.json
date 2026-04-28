@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "# Step-by-Step Solution\n\n**Step 1: Find how much Kim raises**\n- Alexandra raises: $430\n- Kim raises $320 more than Alexandra\n- Kim raises: $430 + $320 = $750\n\n**Step 2: Find how much Maryam raises**\n- Sarah raises: $300\n- Maryam raises $400 more than Sarah\n- Maryam raises: $300 + $400 = $700\n\n**Step 3: Calculate the total amount raised**\n- Kim: $750\n- Alexandra: $430\n- Maryam: $700\n- Sarah: $300\n- Total: $750 + $430 + $700 + $300 = $2,180\n\nANSWER: 2180",
+  "score": 5,
+  "cost": 0.0007896,
+  "expected": "2280",
+  "tokens": {
+    "input": 102,
+    "output": 177
+  }
+}

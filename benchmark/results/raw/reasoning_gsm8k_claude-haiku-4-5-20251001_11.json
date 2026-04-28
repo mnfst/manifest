@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "# Step-by-Step Solution\n\n**Step 1: Calculate burritos given to students**\n- Number of students: 50\n- Burritos per student: 10\n- Total burritos for students: 50 \u00d7 10 = 500 burritos\n\n**Step 2: Calculate burritos eaten by Mr. George**\n- Burritos eaten by Mr. George: 20 burritos\n\n**Step 3: Calculate total burritos consumed**\n- Total consumed: 500 + 20 = 520 burritos\n\n**Step 4: Calculate leftover burritos**\n- Total ordered: 600 burritos\n- Total consumed: 520 burritos\n- Leftover: 600 - 520 = 80 burritos\n\nANSWER: 80",
+  "score": 5,
+  "cost": 0.0008648,
+  "expected": "80",
+  "tokens": {
+    "input": 116,
+    "output": 193
+  }
+}

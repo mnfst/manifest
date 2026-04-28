@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "intent_clinc150",
+  "case": 47,
+  "response": "cook_time",
+  "score": 5,
+  "cost": 9.494999999999999e-05,
+  "expected": "cook_time",
+  "tokens": {
+    "input": 621,
+    "output": 3
+  }
+}

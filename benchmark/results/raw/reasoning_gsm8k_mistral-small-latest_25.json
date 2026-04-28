@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 25,
+  "response": "Step 1: Calculate the total loan amount John gets.\n- House value = $250,000\n- Loan is 40% of the house value.\n- Loan amount = 40% of $250,000 = 0.40 * $250,000 = $100,000\n\nStep 2: Calculate the amount John uses to pay off his debts.\n- He uses 60% of the loan amount to pay off debts.\n- Amount used to pay debts = 60% of $100,000 = 0.60 * $100,000 = $60,000\n\nStep 3: Calculate the leftover money after paying debts.\n- Leftover money = Total loan amount - Amount used to pay debts\n- Leftover money = $100,000 - $60,000 = $40,000\n\nANSWER: 40000",
+  "score": 5,
+  "cost": 7.930000000000002e-05,
+  "expected": "40,000",
+  "tokens": {
+    "input": 121,
+    "output": 224
+  }
+}

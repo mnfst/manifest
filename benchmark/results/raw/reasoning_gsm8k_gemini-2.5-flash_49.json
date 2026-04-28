@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "reasoning_gsm8k",
+  "case": 49,
+  "response": "Here's a step-by-step solution to find the total age of all siblings:\n\n1.  **Determine the age of the sisters:**\n    There are 3 sisters, and all are 16 years old.\n    Total age of sisters = 3 sisters * 16 years/sister = 48 years.\n\n2.  **Determine the age of the brothers:**\n    There are 2 brothers.\n    One brother is 12 years old.\n    This 12-year-old brother's age is half the age of the older brother.\n    Let the older brother's age be 'O'.\n    12 = O / 2\n    O = 12 * 2 = 24 years.\n    So, the ages of the two brothers are 12 years and 24 years.\n    Total age of brothers = 12 years + 24 years = 36 years.\n\n3.  **Calculate the total age of all siblings:**\n    Total age of all siblings = Total age of sisters + Total age of brothers\n    Total age = 48 years + 36 years = 84 years.\n\nThe total age of all these siblings is 84 years.\n\nANSWER: 84",
+  "score": 5,
+  "cost": 0.00017985,
+  "expected": "84",
+  "tokens": {
+    "input": 95,
+    "output": 276
+  }
+}

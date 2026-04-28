@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 36,
+  "response": "Let me work through this step-by-step.\n\n**Initial amount:**\n- Elaine starts with 20 Pokemon cards\n\n**First month:**\n- She collected three times the initial number\n- First month collection = 3 \u00d7 20 = 60 cards\n\n**Second month:**\n- She collected 20 fewer cards than the first month\n- Second month collection = 60 - 20 = 40 cards\n\n**Third month:**\n- She collected twice the combined number from first and second months\n- Combined from first and second months = 60 + 40 = 100 cards\n- Third month collection = 2 \u00d7 100 = 200 cards\n\n**Total cards now:**\n- Initial cards + First month + Second month + Third month\n- Total = 20 + 60 + 40 + 200 = 320 cards\n\nANSWER: 320",
+  "score": 5,
+  "cost": 0.0009176,
+  "expected": "320",
+  "tokens": {
+    "input": 122,
+    "output": 205
+  }
+}

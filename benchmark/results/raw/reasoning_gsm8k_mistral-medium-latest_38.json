@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "reasoning_gsm8k",
+  "case": 38,
+  "response": "Let's solve the problem step by step.\n\n1. **Determine the total parts in the ratio:**\n   The ratio given is 3:2. This means there are a total of 3 + 2 = 5 parts.\n\n2. **Calculate the value of each part:**\n   The total amount of money is $100. So, each part is worth $100 / 5 = $20.\n\n3. **Find Gerald's share:**\n   Gerald's share is 3 parts. So, Gerald receives 3 * $20 = $60.\n\n4. **Subtract the amount Gerald spent:**\n   Gerald spent $10 on a book. So, the amount he has left is $60 - $10 = $50.\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.0003656,
+  "expected": "50",
+  "tokens": {
+    "input": 74,
+    "output": 168
+  }
+}

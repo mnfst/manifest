@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 13,
+  "response": "Step 1: Calculate the cost of materials\nJanet pays $500 for the material.\n\nStep 2: Calculate the cost of construction\nJanet pays $800 for the jeweler to construct the brooch.\n\nStep 3: Calculate the total cost before insurance\nTotal cost = Material cost + Construction cost\nTotal cost = $500 + $800 = $1300\n\nStep 4: Calculate the insurance cost\nInsurance cost = 10% of total cost before insurance\nInsurance cost = 0.10 \u00d7 $1300 = $130\n\nStep 5: Calculate the total amount paid\nTotal amount paid = Total cost before insurance + Insurance cost\nTotal amount paid = $1300 + $130 = $1430\n\nANSWER: 1430",
+  "score": 5,
+  "cost": 6.67e-05,
+  "expected": "1430",
+  "tokens": {
+    "input": 115,
+    "output": 184
+  }
+}

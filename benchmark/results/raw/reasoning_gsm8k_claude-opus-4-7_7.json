@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "Plates: 6 \u00d7 6000 = 36000\nCups cost: 36000 - 1200 = 34800\nNumber of cups: 20 \u00d7 12 = 240\nEach cup: 34800/240 = 145\n\nANSWER: 145",
+  "score": 4,
+  "cost": 0.007815,
+  "expected": "145",
+  "tokens": {
+    "input": 116,
+    "output": 81
+  }
+}

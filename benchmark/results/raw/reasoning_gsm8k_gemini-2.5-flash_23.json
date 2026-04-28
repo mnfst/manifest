@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "reasoning_gsm8k",
+  "case": 23,
+  "response": "Here's a step-by-step solution to the problem:\n\n1.  **Calculate the initial cost per helium balloon:**\n    On the certain day, 20 balloons cost $900.\n    Cost per balloon = Total cost / Number of balloons\n    Cost per balloon = $900 / 20 = $45\n\n2.  **Calculate the new cost per helium balloon after the increase:**\n    The cost of filling each balloon was increased by $20.\n    New cost per balloon = Initial cost per balloon + Increase\n    New cost per balloon = $45 + $20 = $65\n\n3.  **Calculate the total amount Bentley paid:**\n    Bentley filled 170 balloons after the price increase.\n    Total cost for Bentley = Number of balloons * New cost per balloon\n    Total cost for Bentley = 170 * $65\n    Total cost for Bentley = $11,050\n\nANSWER: 11050",
+  "score": 5,
+  "cost": 0.00014445,
+  "expected": "11050",
+  "tokens": {
+    "input": 99,
+    "output": 216
+  }
+}

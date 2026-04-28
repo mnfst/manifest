@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 11,
+  "response": "600 - (50\u00d710) - 20 = 600 - 500 - 20 = 80\n\nANSWER: 80",
+  "score": 5,
+  "cost": 0.005355,
+  "expected": "80",
+  "tokens": {
+    "input": 152,
+    "output": 41
+  }
+}

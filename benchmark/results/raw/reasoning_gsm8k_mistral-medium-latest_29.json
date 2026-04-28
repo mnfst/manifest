@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "Let's solve the problem step by step.\n\n1. **Red Cars**: The rink has 12 red cars.\n   - Red cars = 12\n\n2. **Green Cars**: They have 2 fewer green cars than red cars.\n   - Green cars = Red cars - 2\n   - Green cars = 12 - 2 = 10\n\n3. **Blue Cars**: They have 3 times the number of blue cars as green cars.\n   - Blue cars = 3 \u00d7 Green cars\n   - Blue cars = 3 \u00d7 10 = 30\n\n4. **Total Cars**: The rink has 75 cars in total. The total number of cars is the sum of red, green, blue, and yellow cars.\n   - Total cars = Red cars + Green cars + Blue cars + Yellow cars\n   - 75 = 12 + 10 + 30 + Yellow cars\n\n5. **Yellow Cars**: Solve for the number of yellow cars.\n   - Yellow cars = 75 - (12 + 10 + 30)\n   - Yellow cars = 75 - 52\n   - Yellow cars = 23\n\nANSWER: 23",
+  "score": 5,
+  "cost": 0.0005688,
+  "expected": "23",
+  "tokens": {
+    "input": 107,
+    "output": 263
+  }
+}

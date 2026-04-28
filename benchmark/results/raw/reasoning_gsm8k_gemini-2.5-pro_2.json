@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "Here is the step-by-step solution:\n\n**Step 1: Calculate the duration of the outbound trip.**\nTom sails from 1 PM to 4 PM.\nThe duration of this trip is 4 PM - 1 PM = 3 hours.\n\n**Step 2: Calculate the distance of the outbound trip.**\nThe formula for distance is Distance = Speed \u00d7 Time.\nTom's speed is 10 miles per hour, and the time is 3 hours.\nDistance = 10 mph \u00d7 3 hours = 30 miles.\n\n**Step 3: Calculate the time for the return trip.**\nThe distance for the return trip is the same, which is 30 miles.\nTom's speed on the way back is 6 mph.\nThe formula for time is Time = Distance / Speed.\nTime = 30 miles / 6 mph = 5 hours.\n\nSo, it takes him 5 hours to get back.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.00221875,
+  "expected": "5",
+  "tokens": {
+    "input": 87,
+    "output": 211
+  }
+}

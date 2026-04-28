@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "intent_clinc150",
+  "case": 41,
+  "response": "bill_due",
+  "score": 5,
+  "cost": 9.405e-05,
+  "expected": "bill_due",
+  "tokens": {
+    "input": 615,
+    "output": 3
+  }
+}

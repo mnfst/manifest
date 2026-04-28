@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "reasoning_gsm8k",
+  "case": 0,
+  "response": "Here's a step-by-step solution to calculate the total money raised:\n\n1.  **Determine how much Alexandra raised:**\n    Alexandra raised $430.\n\n2.  **Determine how much Kim raised:**\n    Kim raised $320 more than Alexandra.\n    Kim = Alexandra's amount + $320\n    Kim = $430 + $320 = $750\n\n3.  **Determine how much Sarah raised:**\n    Sarah raised $300.\n\n4.  **Determine how much Maryam raised:**\n    Maryam raised $400 more than Sarah.\n    Maryam = Sarah's amount + $400\n    Maryam = $300 + $400 = $700\n\n5.  **Calculate the total money raised by all of them:**\n    Total = Alexandra + Kim + Maryam + Sarah\n    Total = $430 + $750 + $700 + $300\n    Total = $1180 + $700 + $300\n    Total = $1880 + $300\n    Total = $2180\n\nThe total money raised by all the girls is $2180.\n\nANSWER: 2180",
+  "score": 4,
+  "cost": 0.00018389999999999997,
+  "expected": "2280",
+  "tokens": {
+    "input": 98,
+    "output": 282
+  }
+}

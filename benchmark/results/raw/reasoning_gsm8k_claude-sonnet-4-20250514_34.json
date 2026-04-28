@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 34,
+  "response": "I need to find the total cost and then divide by 3 friends.\n\nLet me calculate each expense:\n\n**Tickets:**\n$20.25\n\n**Food:**\nThey spent $4.50 less on food than on tickets\nFood cost = $20.25 - $4.50 = $15.75\n\n**Rides:**\n2 rides at $33 each\nRides cost = 2 \u00d7 $33 = $66\n\n**Total cost:**\nTotal = Tickets + Food + Rides\nTotal = $20.25 + $15.75 + $66\nTotal = $102\n\n**Cost per person:**\nSince they split evenly among 3 friends:\nCost per person = $102 \u00f7 3 = $34\n\nANSWER: 34",
+  "score": 4,
+  "cost": 0.003075,
+  "expected": "34",
+  "tokens": {
+    "input": 115,
+    "output": 182
+  }
+}

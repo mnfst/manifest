@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "reasoning_gsm8k",
+  "case": 20,
+  "response": "Let's solve the problem step by step.\n\n1. **Number of fish**: Jen has 3 fish.\n2. **Cost per fish per day**: Each fish requires $1 worth of food per day.\n3. **Total cost per day**: Since there are 3 fish, the total cost per day is:\n   \\[\n   3 \\text{ fish} \\times \\$1/\\text{fish/day} = \\$3/\\text{day}\n   \\]\n4. **Number of days in May**: May has 31 days.\n5. **Total cost for May**: Multiply the daily cost by the number of days in May:\n   \\[\n   \\$3/\\text{day} \\times 31 \\text{ days} = \\$93\n   \\]\n\nANSWER: 93",
+  "score": 5,
+  "cost": 0.00036480000000000003,
+  "expected": "93",
+  "tokens": {
+    "input": 72,
+    "output": 168
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "reasoning_gsm8k",
+  "case": 20,
+  "response": "Here is the step-by-step solution:\n\n**Step 1: Calculate the total cost of food per day.**\nJen has 3 fish, and each fish needs $1 worth of food per day.\n3 fish * $1/fish = $3 per day.\n\n**Step 2: Determine the number of days in May.**\nThe month of May has 31 days.\n\n**Step 3: Calculate the total cost for the month of May.**\nMultiply the daily cost by the number of days in the month.\n$3 per day * 31 days = $93.\n\nANSWER: 93",
+  "score": 5,
+  "cost": 0.00142625,
+  "expected": "93",
+  "tokens": {
+    "input": 69,
+    "output": 134
+  }
+}

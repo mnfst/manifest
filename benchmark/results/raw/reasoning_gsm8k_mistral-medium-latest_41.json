@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "reasoning_gsm8k",
+  "case": 41,
+  "response": "Let's solve the problem step by step.\n\n1. **Define Variables:**\n   - Let \\( H \\) represent the number of copies Harald sold.\n   - Since Marilyn's record sold 10 times as many copies as Harald's, Marilyn sold \\( 10H \\) copies.\n\n2. **Set Up the Equation:**\n   - The total number of copies sold by both is 88,000. Therefore:\n     \\[\n     H + 10H = 88,000\n     \\]\n\n3. **Combine Like Terms:**\n   \\[\n   11H = 88,000\n   \\]\n\n4. **Solve for \\( H \\):**\n   \\[\n   H = \\frac{88,000}{11} = 8,000\n   \\]\n\n5. **Conclusion:**\n   Harald sold 8,000 copies.\n\nANSWER: 8000",
+  "score": 5,
+  "cost": 0.0004344,
+  "expected": "8000",
+  "tokens": {
+    "input": 76,
+    "output": 202
+  }
+}

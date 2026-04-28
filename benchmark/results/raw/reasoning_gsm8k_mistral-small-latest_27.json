@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 27,
+  "response": "Let's solve the problem step by step.\n\n1. **Let \\( x \\) be the initial number of vacuum cleaners Melanie had.**\n\n2. **Sold at the green house:**\n   - She sold a third of her vacuum cleaners.\n   - Number sold: \\( \\frac{x}{3} \\)\n   - Remaining after green house: \\( x - \\frac{x}{3} = \\frac{2x}{3} \\)\n\n3. **Sold at the red house:**\n   - She sold 2 more vacuum cleaners.\n   - Remaining after red house: \\( \\frac{2x}{3} - 2 \\)\n\n4. **Sold at the orange house:**\n   - She sold half of what was left.\n   - Number sold: \\( \\frac{1}{2} \\left( \\frac{2x}{3} - 2 \\right) = \\frac{x}{3} - 1 \\)\n   - Remaining after orange house: \\( \\frac{2x}{3} - 2 - \\left( \\frac{x}{3} - 1 \\right) = \\frac{x}{3} - 1 \\)\n\n5. **Given that she has 5 vacuum cleaners left:**\n   \\[\n   \\frac{x}{3} - 1 = 5\n   \\]\n   \\[\n   \\frac{x}{3} = 6\n   \\]\n   \\[\n   x = 18\n   \\]\n\n**ANSWER: 18**",
+  "score": 5,
+  "cost": 0.000105,
+  "expected": "18",
+  "tokens": {
+    "input": 111,
+    "output": 313
+  }
+}

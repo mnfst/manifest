@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "reasoning_gsm8k",
+  "case": 14,
+  "response": "I need to find how many pounds of insects 10 ducks need per day.\n\nGiven information:\n- Each duck needs 3.5 pounds of insects per week\n- There are 10 ducks in the flock\n- I need to find the daily requirement\n\nStep 1: Calculate the total weekly insect requirement for the flock.\nTotal weekly requirement = 10 ducks \u00d7 3.5 pounds per duck per week\nTotal weekly requirement = 35 pounds per week\n\nStep 2: Convert the weekly requirement to a daily requirement.\nSince there are 7 days in a week:\nDaily requirement = 35 pounds per week \u00f7 7 days per week\nDaily requirement = 5 pounds per day\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.002853,
+  "expected": "5",
+  "tokens": {
+    "input": 86,
+    "output": 173
+  }
+}

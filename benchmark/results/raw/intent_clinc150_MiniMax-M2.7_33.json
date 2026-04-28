@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "intent_clinc150",
+  "case": 33,
+  "response": "direct_deposit",
+  "score": 5,
+  "cost": 0.0009471000000000001,
+  "expected": "direct_deposit",
+  "tokens": {
+    "input": 577,
+    "output": 71
+  }
+}

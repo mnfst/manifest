@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 17,
+  "response": "**Step\u2011by\u2011step solution**\n\n1. Compute the cost of the books:  \n   \\(3 \\text{ books} \\times \\$16\\text{ per book} = 3 \\times 16 = \\$48\\).\n\n2. Compute the cost of the pencils:  \n   \\(3 \\text{ pencils} \\times \\$6\\text{ per pencil} = 3 \\times 6 = \\$18\\).\n\n3. Add the two amounts to find the total amount spent:  \n   \\(\\$48 + \\$18 = \\$66\\).\n\nThus Ted spent **\\$66** in total.\n\nANSWER: 66",
+  "score": 5,
+  "cost": 0.0024497,
+  "expected": "66",
+  "tokens": {
+    "input": 107,
+    "output": 530
+  }
+}

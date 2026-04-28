@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "intent_clinc150",
+  "case": 24,
+  "response": "report_fraud",
+  "score": 5,
+  "cost": 5.91e-05,
+  "expected": "report_fraud",
+  "tokens": {
+    "input": 576,
+    "output": 5
+  }
+}

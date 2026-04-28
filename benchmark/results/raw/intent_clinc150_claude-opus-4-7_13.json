@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "intent_clinc150",
+  "case": 13,
+  "response": "nutrition_info",
+  "score": 5,
+  "cost": 0.013725,
+  "expected": "nutrition_info",
+  "tokens": {
+    "input": 865,
+    "output": 10
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "reasoning_gsm8k",
+  "case": 20,
+  "response": "# Step-by-step solution:\n\n**Step 1: Find the daily food cost**\n- Number of fish: 3\n- Cost per fish per day: $1\n- Daily food cost = 3 \u00d7 $1 = $3\n\n**Step 2: Find the number of days in May**\n- May has 31 days\n\n**Step 3: Calculate total food cost for May**\n- Total cost = Daily cost \u00d7 Number of days\n- Total cost = $3 \u00d7 31 = $93\n\nANSWER: 93",
+  "score": 5,
+  "cost": 0.00056,
+  "expected": "93",
+  "tokens": {
+    "input": 80,
+    "output": 124
+  }
+}

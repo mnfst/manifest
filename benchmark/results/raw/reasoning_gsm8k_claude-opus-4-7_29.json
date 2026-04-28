@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 29,
+  "response": "Red=12, Green=10, Blue=30, total so far=52, Yellow=75-52=23\n\nANSWER: 23",
+  "score": 5,
+  "cost": 0.00564,
+  "expected": "23",
+  "tokens": {
+    "input": 151,
+    "output": 45
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "To find out how much more money Mitchell made than Liam, we first need to calculate the total amount of money Mitchell made from selling lemonade.\n\nMitchell sold 21 lemonades at $4 each. We can calculate his total earnings as follows:\n\n\\[\n\\text{Total earnings of Mitchell} = \\text{Number of lemonades sold} \\times \\text{Price per lemonade}\n\\]\n\\[\n\\text{Total earnings of Mitchell} = 21 \\times 4\n\\]\n\\[\n\\text{Total earnings of Mitchell} = 84\n\\]\n\nNow, we know that Liam made $63. To find out how much more money Mitchell made than Liam, we subtract Liam's earnings from Mitchell's earnings:\n\n\\[\n\\text{Difference in earnings} = \\text{Total earnings of Mitchell} - \\text{Total earnings of Liam}\n\\]\n\\[\n\\text{Difference in earnings} = 84 - 63\n\\]\n\\[\n\\text{Difference in earnings} = 21\n\\]\n\nThus, Mitchell made $21 more than Liam that weekend.\n\nFinal answer:\nANSWER: 21",
+  "score": 5,
+  "cost": 0.00015285,
+  "expected": "21",
+  "tokens": {
+    "input": 103,
+    "output": 229
+  }
+}

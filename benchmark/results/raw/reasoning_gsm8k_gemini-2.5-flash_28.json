@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "Let 'X' be the number of people who got on the bus at the terminal.\n\n1.  **At the terminal:**\n    The number of people on the bus is X.\n\n2.  **At the first bus stop:**\n    5 more people got in.\n    The number of people on the bus became X + 5.\n\n3.  **At the second bus stop:**\n    7 people got down.\n    The number of people on the bus became (X + 5) - 7.\n    Then, 8 more people got in.\n    The number of people on the bus became (X + 5) - 7 + 8.\n\n4.  **Total people heading to the third stop:**\n    We are told that there were a total of 20 people heading to the third stop.\n    So, we can set up the equation:\n    X + 5 - 7 + 8 = 20\n\n5.  **Solve the equation for X:**\n    Combine the constant terms:\n    X + (5 - 7 + 8) = 20\n    X + (-2 + 8) = 20\n    X + 6 = 20\n    Subtract 6 from both sides of the equation:\n    X = 20 - 6\n    X = 14\n\nTherefore, 14 people got on the bus at the terminal.\n\nThe final answer is $\\boxed{14}$",
+  "score": 5,
+  "cost": 0.0002079,
+  "expected": "14",
+  "tokens": {
+    "input": 106,
+    "output": 320
+  }
+}

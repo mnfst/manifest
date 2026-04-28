@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "intent_clinc150",
+  "case": 43,
+  "response": "book_flight",
+  "score": 5,
+  "cost": 7.98e-05,
+  "expected": "book_flight",
+  "tokens": {
+    "input": 520,
+    "output": 3
+  }
+}

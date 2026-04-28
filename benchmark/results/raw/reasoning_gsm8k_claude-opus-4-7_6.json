@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 6,
+  "response": "Brother is 18 now, in 3 years he'll be 21.\n\nANSWER: 21",
+  "score": 4,
+  "cost": 0.00399,
+  "expected": "21",
+  "tokens": {
+    "input": 96,
+    "output": 34
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "intent_clinc150",
+  "case": 47,
+  "response": "cook_time",
+  "score": 5,
+  "cost": 7.86e-05,
+  "expected": "cook_time",
+  "tokens": {
+    "input": 516,
+    "output": 2
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "Let's break down the problem step by step to find out how many fairies remain.\n\n1. **Initial number of fairies:**\n   - Katelyn saw 50 fairies flying above the forest.\n   - **Fairies remaining:** 50\n\n2. **Fairies joining from the east:**\n   - One of her friends saw half as many fairies as Katelyn initially saw come from the east.\n   - Half of 50 is \\( \\frac{50}{2} = 25 \\).\n   - **Fairies added:** 25\n   - **Total fairies now:** \\( 50 + 25 = 75 \\)\n\n3. **Fairies flying away:**\n   - 30 fairies flew away.\n   - **Fairies remaining:** \\( 75 - 30 = 45 \\)\n\n**Final number of fairies remaining:**\nANSWER: 45",
+  "score": 5,
+  "cost": 7.23e-05,
+  "expected": "45",
+  "tokens": {
+    "input": 129,
+    "output": 198
+  }
+}

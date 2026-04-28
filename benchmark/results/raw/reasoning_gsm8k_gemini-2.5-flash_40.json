@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "reasoning_gsm8k",
+  "case": 40,
+  "response": "To solve this problem, we need to break it down into several steps:\n\n1.  **Determine the number of days in April and divide it into two halves.**\n    April has 30 days.\n    The first half of April consists of days 1-15, which is 15 days.\n    The second half of April consists of days 16-30, which is 15 days.\n\n2.  **Define variables for the daily saving amounts.**\n    Let `S1` be the daily saving amount in the first half of April.\n    Let `S2` be the daily saving amount in the second half of April.\n\n3.  **Set up the relationship between the daily saving amounts.**\n    The problem states that Elvis wants to save twice as much daily in the second half as he saves in the first half.\n    So, `S2 = 2 * S1`.\n\n4.  **Set up the equation for the total monthly saving target.**\n    The total monthly saving target is $1125.\n    Total savings = (Number of days in first half * S1) + (Number of days in second half * S2)\n    $1125 = (15 * S1) + (15 * S2)$\n\n5.  **Substitute the relationship from step 3 into the equation from step 4 and solve for S1.**\n    $1125 = 15 * S1 + 15 * (2 * S1)$\n    $1125 = 15 * S1 + 30 * S1$\n    $1125 = 45 * S1$\n    $S1 = 1125 / 45$\n    $S1 = 25$\n    So, Elvis needs to save $25 per day in the first half of April.\n\n6.  **Calculate the daily saving amount for the second half (S2).**\n    We know `S2 = 2 * S1`.\n    `S2 = 2 * 25`\n    `S2 = 50`\n    So, Elvis needs to save $50 per day in the second half of April.\n\n7.  **Verify the total savings.**\n    Savings in the first half: 15 days * $25/day = $375\n    Savings in the second half: 15 days * $50/day = $750\n    Total savings: $375 + $750 = $1125\n    This matches the target.\n\nThe amount Elvis has to save for each day in the second half of the month is $50.\n\nANSWER: 50",
+  "score": 4,
+  "cost": 0.00037275,
+  "expected": "50",
+  "tokens": {
+    "input": 97,
+    "output": 597
+  }
+}

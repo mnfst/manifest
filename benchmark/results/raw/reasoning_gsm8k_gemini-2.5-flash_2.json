@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "reasoning_gsm8k",
+  "case": 2,
+  "response": "Here's a step-by-step solution:\n\n1.  **Calculate the duration of the outbound journey:**\n    Tom sails from 1 PM to 4 PM.\n    Time = 4 PM - 1 PM = 3 hours.\n\n2.  **Calculate the distance traveled during the outbound journey:**\n    Tom's ship travels at 10 miles per hour.\n    Distance = Speed \u00d7 Time\n    Distance = 10 mph \u00d7 3 hours = 30 miles.\n\n3.  **Calculate the time it takes to travel back:**\n    Tom travels back the same distance (30 miles) at a rate of 6 mph.\n    Time = Distance / Speed\n    Time = 30 miles / 6 mph = 5 hours.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.00011564999999999999,
+  "expected": "5",
+  "tokens": {
+    "input": 87,
+    "output": 171
+  }
+}

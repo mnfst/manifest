@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "reasoning_gsm8k",
+  "case": 46,
+  "response": "**Step\u2011by\u2011step reasoning**\n\n1. **Anakin\u2019s catch**  \n   - Starfish: 10  \n   - Sea horses: 6  \n   - Clownfish: 3  \n\n   Total for Anakin = \\(10 + 6 + 3 = 19\\) fish.\n\n2. **Locsin\u2019s catch**  \n   - Starfish: 5 fewer than Anakin \u2192 \\(10 - 5 = 5\\)  \n   - Sea horses: 3 fewer than Anakin \u2192 \\(6 - 3 = 3\\)  \n   - Clownfish: 2 more than Anakin \u2192 \\(3 + 2 = 5\\)  \n\n   Total for Locsin = \\(5 + 3 + 5 = 13\\) fish.\n\n3. **Combined total**  \n   \\(19\\) (Anakin) + \\(13\\) (Locsin) = **32** fish.\n\n**Answer**\n\nANSWER: 32",
+  "score": 5,
+  "cost": 0.0032076000000000006,
+  "expected": "32",
+  "tokens": {
+    "input": 124,
+    "output": 698
+  }
+}

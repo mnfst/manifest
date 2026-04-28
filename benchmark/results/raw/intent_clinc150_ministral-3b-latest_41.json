@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "intent_clinc150",
+  "case": 41,
+  "response": "bill_due",
+  "score": 5,
+  "cost": 2.232e-05,
+  "expected": "bill_due",
+  "tokens": {
+    "input": 554,
+    "output": 4
+  }
+}

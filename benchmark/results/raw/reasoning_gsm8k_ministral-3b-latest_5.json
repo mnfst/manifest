@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "reasoning_gsm8k",
+  "case": 5,
+  "response": "Let's break down the problem step by step to find out how many fairies remain.\n\n1. **Initial number of fairies:**\n   Katelyn initially sees 50 fairies.\n   \\[\n   \\text{Initial fairies} = 50\n   \\]\n\n2. **Fairies joining from the east:**\n   After twenty minutes, half as many fairies as Katelyn saw come from the east.\n   \\[\n   \\text{Fairies joining} = \\frac{1}{2} \\times 50 = 25\n   \\]\n   Now, the total number of fairies is the initial number plus the new ones:\n   \\[\n   \\text{Total fairies after joining} = 50 + 25 = 75\n   \\]\n\n3. **Fairies flying away:**\n   Ten minutes later, 30 fairies flew away.\n   \\[\n   \\text{Fairies remaining} = 75 - 30 = 45\n   \\]\n\nANSWER: 45",
+  "score": 5,
+  "cost": 1.344e-05,
+  "expected": "45",
+  "tokens": {
+    "input": 117,
+    "output": 219
+  }
+}

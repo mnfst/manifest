@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "reasoning_gsm8k",
+  "case": 12,
+  "response": "2+1=3 hours/day, 3\u00d73=9/week, \u00d74=36\n\nANSWER: 36",
+  "score": 2,
+  "cost": 0.004845,
+  "expected": "36",
+  "tokens": {
+    "input": 128,
+    "output": 39
+  }
+}

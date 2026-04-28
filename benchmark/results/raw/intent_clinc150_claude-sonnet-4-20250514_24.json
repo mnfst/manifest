@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "intent_clinc150",
+  "case": 24,
+  "response": "report_fraud",
+  "score": 5,
+  "cost": 0.002001,
+  "expected": "report_fraud",
+  "tokens": {
+    "input": 637,
+    "output": 6
+  }
+}
