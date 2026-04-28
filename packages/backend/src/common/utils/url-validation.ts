@@ -1,4 +1,5 @@
 import { lookup } from 'dns/promises';
+import { isIP } from 'net';
 
 const PRIVATE_RANGES: { addr: bigint; mask: bigint }[] = [
   cidr('127.0.0.0', 8), // Loopback
@@ -9,7 +10,10 @@ const PRIVATE_RANGES: { addr: bigint; mask: bigint }[] = [
   cidr('0.0.0.0', 8), // Current network
 ];
 
-const PRIVATE_V6_PREFIXES = ['::1', 'fc00::', 'fd00::', 'fe80::'];
+// ULA (fc00::/7) covers fc00::–fdff::, link-local is fe80::/10.
+// We match by two-character hex prefix to avoid false negatives on
+// addresses like fdc4:… that don't literally start with "fd00::".
+const PRIVATE_V6_PREFIXES = ['::1', 'fc', 'fd', 'fe80::'];
 
 function cidr(base: string, prefix: number): { addr: bigint; mask: bigint } {
   const addr = ipv4ToBigInt(base);
@@ -22,6 +26,10 @@ function ipv4ToBigInt(ip: string): bigint {
   return (
     BigInt((parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8) | parts[3]) & BigInt('0xFFFFFFFF')
   );
+}
+
+export function isIpLiteral(host: string): boolean {
+  return isIP(host) !== 0;
 }
 
 export function isPrivateIp(ip: string): boolean {
@@ -66,7 +74,10 @@ export function isCloudMetadataIp(ip: string): boolean {
   return CLOUD_METADATA_RANGES.some((range) => (addr & range.mask) === range.addr);
 }
 
-export async function validatePublicUrl(url: string): Promise<void> {
+export async function validatePublicUrl(
+  url: string,
+  opts: { allowPrivate?: boolean } = {},
+): Promise<void> {
   // Skip SSRF validation in test mode (set SKIP_SSRF_VALIDATION=false to force validation)
   if (process.env['NODE_ENV'] === 'test' && process.env['SKIP_SSRF_VALIDATION'] !== 'false') return;
 
@@ -77,28 +88,75 @@ export async function validatePublicUrl(url: string): Promise<void> {
     throw new Error('Invalid URL format');
   }
 
-  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+  const allowPrivate = opts.allowPrivate === true;
+
+  // Only http(s) schemes are acceptable. Everything else (ftp, file, gopher,
+  // etc.) is rejected in both modes.
+  if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
     throw new Error('Only http and https URLs are allowed');
+  }
+  // HTTPS-only when we can't allow private destinations. Manifest forwards
+  // API keys in Authorization headers and plaintext prompts/completions to
+  // this URL; any non-TLS hop would expose them to passive wire-sniffing
+  // (AC-2 in the Mine paper, arXiv:2604.08407). In self-hosted mode we allow
+  // http:// for local destinations only — see the final check below.
+  if (parsed.protocol === 'http:' && !allowPrivate) {
+    throw new Error('Only https URLs are allowed');
   }
 
   const hostname = parsed.hostname.replace(/^\[|\]$/g, '');
 
-  // Reject IP literals directly in the URL
-  if (isPrivateIp(hostname)) {
-    throw new Error('URLs pointing to private or internal networks are not allowed');
+  // Cloud-metadata endpoints are always blocked (even in self-hosted mode).
+  if (isCloudMetadataIp(hostname)) {
+    throw new Error('URLs pointing to cloud metadata endpoints are not allowed');
   }
 
-  // Resolve DNS and check all resolved IPs
-  try {
-    const result = await lookup(hostname, { all: true });
-    const addresses = Array.isArray(result) ? result : [result];
-    for (const entry of addresses) {
-      if (isPrivateIp(entry.address)) {
+  // Private IP literal in the URL itself
+  if (isPrivateIp(hostname)) {
+    if (!allowPrivate) {
+      throw new Error('URLs pointing to private or internal networks are not allowed');
+    }
+    // allowPrivate + private literal: accept. No DNS resolution needed.
+    return;
+  }
+
+  // Public IP literal: skip DNS, check http plaintext gate below.
+  let addresses: { address: string }[];
+  if (isIpLiteral(hostname)) {
+    addresses = [{ address: hostname }];
+  } else {
+    try {
+      const result = await lookup(hostname, { all: true });
+      addresses = Array.isArray(result) ? result : [result];
+    } catch {
+      // Self-hosted deployments sometimes use hostnames that only resolve
+      // inside the host's resolver (mDNS, /etc/hosts aliases, LAN-only
+      // names). In allowPrivate mode we trust the operator and let the
+      // subsequent fetch attempt decide — cloud metadata is still caught
+      // on the resolved path when DNS succeeds, and a hostile public host
+      // isn't reachable if DNS can't resolve it from inside the container.
+      if (allowPrivate) return;
+      throw new Error(`Failed to resolve hostname: ${hostname}`);
+    }
+  }
+
+  let anyPublic = false;
+  for (const { address } of addresses) {
+    if (isCloudMetadataIp(address)) {
+      throw new Error('URLs pointing to cloud metadata endpoints are not allowed');
+    }
+    if (isPrivateIp(address)) {
+      if (!allowPrivate) {
         throw new Error('URLs pointing to private or internal networks are not allowed');
       }
+    } else {
+      anyPublic = true;
     }
-  } catch (err) {
-    if (err instanceof Error && err.message.includes('private')) throw err;
-    throw new Error(`Failed to resolve hostname: ${hostname}`);
+  }
+
+  // Defense in depth: refuse to send plaintext credentials to a public IP
+  // via http even when allowPrivate is on (mixed-A-record attack).
+  if (parsed.protocol === 'http:' && anyPublic) {
+    throw new Error('http:// is only allowed for private hosts');
   }
 }

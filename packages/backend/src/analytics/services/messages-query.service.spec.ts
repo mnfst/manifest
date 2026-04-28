@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Brackets, DataSource } from 'typeorm';
+import { Brackets } from 'typeorm';
 import { MessagesQueryService } from './messages-query.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
@@ -63,10 +63,6 @@ describe('MessagesQueryService', () => {
         {
           provide: getRepositoryToken(AgentMessage),
           useValue: { createQueryBuilder: jest.fn().mockReturnValue(mockQb) },
-        },
-        {
-          provide: DataSource,
-          useValue: { options: { type: 'postgres' } },
         },
         {
           provide: TenantCacheService,

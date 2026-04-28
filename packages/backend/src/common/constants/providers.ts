@@ -2,177 +2,36 @@
  * ╔══════════════════════════════════════════════════════════════════════╗
  * ║              PROVIDER REGISTRY — Single Source of Truth             ║
  * ╠══════════════════════════════════════════════════════════════════════╣
- * ║  This file defines ALL supported LLM providers for the routing     ║
- * ║  system. Every provider ID, display name, alias, and OpenRouter    ║
- * ║  prefix mapping MUST be defined here.                              ║
+ * ║  The canonical provider list lives in `manifest-shared/providers`.  ║
+ * ║  This module re-exports it under the historical backend-facing      ║
+ * ║  names + the derived lookup maps used across the backend.           ║
  * ║                                                                    ║
- * ║  To add a new provider:                                            ║
- * ║   1. Add an entry to PROVIDER_REGISTRY below                       ║
- * ║   2. Add a FetcherConfig in provider-model-fetcher.service.ts      ║
- * ║   3. Add a ProviderEndpoint in proxy/provider-endpoints.ts         ║
- * ║   4. Add a ProviderDef in frontend/src/services/providers.ts       ║
+ * ║  To add a new provider:                                             ║
+ * ║   1. Add an entry to `SHARED_PROVIDERS` in the shared package       ║
+ * ║   2. Add a FetcherConfig in provider-model-fetcher.service.ts       ║
+ * ║   3. Add a ProviderEndpoint in proxy/provider-endpoints.ts          ║
+ * ║   4. (Frontend auto-picks up shared fields; add UI-only bits in     ║
+ * ║       packages/frontend/src/services/providers.ts if needed)        ║
  * ║                                                                    ║
- * ║  DO NOT duplicate provider names/IDs in other files.               ║
- * ║  Import from this module instead.                                  ║
+ * ║  DO NOT duplicate provider names/IDs in other files.                ║
  * ╚══════════════════════════════════════════════════════════════════════╝
  */
 
-export interface ProviderRegistryEntry {
-  /** Internal provider ID used across the system (lowercase, no spaces). */
-  id: string;
-  /** Human-readable display name shown in the UI. */
-  displayName: string;
-  /** Alternative IDs that map to this provider. */
-  aliases: string[];
-  /**
-   * OpenRouter vendor prefixes that map to this provider.
-   * Used to attribute models from OpenRouter's API to their real provider.
-   * E.g. "anthropic" prefix in "anthropic/claude-opus-4-6" → Anthropic.
-   */
-  openRouterPrefixes: string[];
-  /** Whether the provider requires an API key for model fetching. */
-  requiresApiKey: boolean;
-  /** Whether this provider is local-only (e.g. Ollama). */
-  localOnly: boolean;
-}
+import {
+  SHARED_PROVIDERS,
+  SHARED_PROVIDER_BY_ID,
+  SHARED_PROVIDER_BY_ID_OR_ALIAS,
+  type SharedProviderEntry,
+} from 'manifest-shared';
 
-export const PROVIDER_REGISTRY: readonly ProviderRegistryEntry[] = [
-  {
-    id: 'anthropic',
-    displayName: 'Anthropic',
-    aliases: [],
-    openRouterPrefixes: ['anthropic'],
-    requiresApiKey: true,
-    localOnly: false,
-  },
-  {
-    id: 'openai',
-    displayName: 'OpenAI',
-    aliases: [],
-    openRouterPrefixes: ['openai'],
-    requiresApiKey: true,
-    localOnly: false,
-  },
-  {
-    id: 'gemini',
-    displayName: 'Google',
-    aliases: ['google'],
-    openRouterPrefixes: ['google'],
-    requiresApiKey: true,
-    localOnly: false,
-  },
-  {
-    id: 'deepseek',
-    displayName: 'DeepSeek',
-    aliases: [],
-    openRouterPrefixes: ['deepseek'],
-    requiresApiKey: true,
-    localOnly: false,
-  },
-  {
-    id: 'mistral',
-    displayName: 'Mistral',
-    aliases: [],
-    openRouterPrefixes: ['mistralai'],
-    requiresApiKey: true,
-    localOnly: false,
-  },
-  {
-    id: 'moonshot',
-    displayName: 'Moonshot',
-    aliases: ['kimi'],
-    openRouterPrefixes: ['moonshotai'],
-    requiresApiKey: true,
-    localOnly: false,
-  },
-  {
-    id: 'xai',
-    displayName: 'xAI',
-    aliases: [],
-    openRouterPrefixes: ['xai', 'x-ai'],
-    requiresApiKey: true,
-    localOnly: false,
-  },
-  {
-    id: 'minimax',
-    displayName: 'MiniMax',
-    aliases: [],
-    openRouterPrefixes: ['minimax'],
-    requiresApiKey: true,
-    localOnly: false,
-  },
-  {
-    id: 'qwen',
-    displayName: 'Alibaba',
-    aliases: ['alibaba'],
-    openRouterPrefixes: ['qwen', 'alibaba'],
-    requiresApiKey: true,
-    localOnly: false,
-  },
-  {
-    id: 'zai',
-    displayName: 'Z.ai',
-    aliases: ['z.ai'],
-    openRouterPrefixes: ['z-ai', 'zhipuai'],
-    requiresApiKey: true,
-    localOnly: false,
-  },
-  {
-    id: 'copilot',
-    displayName: 'GitHub Copilot',
-    aliases: [],
-    openRouterPrefixes: [],
-    requiresApiKey: false,
-    localOnly: false,
-  },
-  {
-    id: 'opencode-go',
-    displayName: 'OpenCode Go',
-    aliases: ['opencodego'],
-    openRouterPrefixes: [],
-    requiresApiKey: true,
-    localOnly: false,
-  },
-  {
-    id: 'openrouter',
-    displayName: 'OpenRouter',
-    aliases: [],
-    openRouterPrefixes: ['openrouter'],
-    requiresApiKey: true,
-    localOnly: false,
-  },
-  {
-    id: 'ollama',
-    displayName: 'Ollama',
-    aliases: [],
-    openRouterPrefixes: [],
-    requiresApiKey: false,
-    localOnly: true,
-  },
-  {
-    id: 'ollama-cloud',
-    displayName: 'Ollama Cloud',
-    aliases: [],
-    openRouterPrefixes: [],
-    requiresApiKey: false,
-    localOnly: false,
-  },
-] as const;
+export type ProviderRegistryEntry = SharedProviderEntry;
 
-/* ── Derived lookup maps (computed once at import time) ── */
+export const PROVIDER_REGISTRY: readonly ProviderRegistryEntry[] = SHARED_PROVIDERS;
 
-/** Map from provider ID → registry entry. */
-export const PROVIDER_BY_ID: ReadonlyMap<string, ProviderRegistryEntry> = new Map(
-  PROVIDER_REGISTRY.map((p) => [p.id, p]),
-);
+export const PROVIDER_BY_ID: ReadonlyMap<string, ProviderRegistryEntry> = SHARED_PROVIDER_BY_ID;
 
-/** Map from any ID or alias → registry entry. */
-export const PROVIDER_BY_ID_OR_ALIAS: ReadonlyMap<string, ProviderRegistryEntry> = new Map(
-  PROVIDER_REGISTRY.flatMap((p) => [
-    [p.id, p],
-    ...p.aliases.map((a): [string, ProviderRegistryEntry] => [a, p]),
-  ]),
-);
+export const PROVIDER_BY_ID_OR_ALIAS: ReadonlyMap<string, ProviderRegistryEntry> =
+  SHARED_PROVIDER_BY_ID_OR_ALIAS;
 
 /** Map from OpenRouter vendor prefix → provider display name. */
 export const OPENROUTER_PREFIX_TO_PROVIDER: ReadonlyMap<string, string> = new Map(

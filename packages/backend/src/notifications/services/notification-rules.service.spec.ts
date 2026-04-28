@@ -1,19 +1,63 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { DataSource } from 'typeorm';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { In } from 'typeorm';
 import { NotificationRulesService } from './notification-rules.service';
+import { NotificationRule } from '../../entities/notification-rule.entity';
+import { NotificationLog } from '../../entities/notification-log.entity';
+import { AgentMessage } from '../../entities/agent-message.entity';
+import { Agent } from '../../entities/agent.entity';
+import { Tenant } from '../../entities/tenant.entity';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 describe('NotificationRulesService', () => {
   let service: NotificationRulesService;
-  let mockQuery: jest.Mock;
+  let ruleRepo: {
+    find: jest.Mock;
+    findOneBy: jest.Mock;
+    insert: jest.Mock;
+    update: jest.Mock;
+    delete: jest.Mock;
+    count: jest.Mock;
+  };
+  let logRepo: { createQueryBuilder: jest.Mock };
+  let messageRepo: { createQueryBuilder: jest.Mock };
+  let agentRepo: { createQueryBuilder: jest.Mock };
+
+  const makeQb = <T>(rawOne: T | null = null, rawMany: T[] = []) => {
+    const qb: Record<string, jest.Mock> = {};
+    qb.select = jest.fn().mockReturnValue(qb);
+    qb.addSelect = jest.fn().mockReturnValue(qb);
+    qb.where = jest.fn().mockReturnValue(qb);
+    qb.andWhere = jest.fn().mockReturnValue(qb);
+    qb.groupBy = jest.fn().mockReturnValue(qb);
+    qb.innerJoin = jest.fn().mockReturnValue(qb);
+    qb.getRawOne = jest.fn().mockResolvedValue(rawOne);
+    qb.getRawMany = jest.fn().mockResolvedValue(rawMany);
+    qb.getOne = jest.fn().mockResolvedValue(rawOne);
+    return qb;
+  };
 
   beforeEach(async () => {
-    mockQuery = jest.fn();
+    ruleRepo = {
+      find: jest.fn().mockResolvedValue([]),
+      findOneBy: jest.fn().mockResolvedValue(null),
+      insert: jest.fn().mockResolvedValue({}),
+      update: jest.fn().mockResolvedValue({}),
+      delete: jest.fn().mockResolvedValue({}),
+      count: jest.fn().mockResolvedValue(0),
+    };
+    logRepo = { createQueryBuilder: jest.fn().mockReturnValue(makeQb()) };
+    messageRepo = { createQueryBuilder: jest.fn().mockReturnValue(makeQb()) };
+    agentRepo = { createQueryBuilder: jest.fn().mockReturnValue(makeQb()) };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         NotificationRulesService,
-        { provide: DataSource, useValue: { query: mockQuery, options: { type: 'postgres' } } },
+        { provide: getRepositoryToken(NotificationRule), useValue: ruleRepo },
+        { provide: getRepositoryToken(NotificationLog), useValue: logRepo },
+        { provide: getRepositoryToken(AgentMessage), useValue: messageRepo },
+        { provide: getRepositoryToken(Agent), useValue: agentRepo },
+        { provide: getRepositoryToken(Tenant), useValue: {} },
       ],
     }).compile();
 
@@ -21,44 +65,74 @@ describe('NotificationRulesService', () => {
   });
 
   describe('listRules', () => {
-    it('returns rules for user and agent', async () => {
-      const rules = [{ id: 'r1' }];
-      mockQuery.mockResolvedValue(rules);
+    it('returns rules decorated with trigger counts', async () => {
+      const rule = { id: 'r1', user_id: 'u1', agent_name: 'a1' } as NotificationRule;
+      ruleRepo.find.mockResolvedValueOnce([rule]);
+      logRepo.createQueryBuilder.mockReturnValueOnce(
+        makeQb(null, [{ rule_id: 'r1', trigger_count: '5' }]),
+      );
 
-      const result = await service.listRules('user-1', 'my-agent');
-      expect(result).toEqual(rules);
-      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('FROM notification_rules'), [
-        'user-1',
-        'my-agent',
-        'user-1',
-        'my-agent',
-      ]);
+      const result = await service.listRules('u1', 'a1');
+      expect(result).toEqual([{ ...rule, trigger_count: 5 }]);
+      expect(ruleRepo.find).toHaveBeenCalledWith({
+        where: { user_id: 'u1', agent_name: 'a1' },
+        order: { created_at: 'DESC' },
+      });
+    });
+
+    it('returns empty array when no rules exist (skips log lookup)', async () => {
+      ruleRepo.find.mockResolvedValueOnce([]);
+
+      const result = await service.listRules('u1', 'a1');
+      expect(result).toEqual([]);
+      expect(logRepo.createQueryBuilder).not.toHaveBeenCalled();
+    });
+
+    it('defaults missing trigger counts to zero', async () => {
+      const rule = { id: 'r1', user_id: 'u1', agent_name: 'a1' } as NotificationRule;
+      ruleRepo.find.mockResolvedValueOnce([rule]);
+      logRepo.createQueryBuilder.mockReturnValueOnce(makeQb(null, []));
+
+      const result = await service.listRules('u1', 'a1');
+      expect(result[0].trigger_count).toBe(0);
     });
   });
 
   describe('createRule', () => {
-    it('creates a rule after resolving agent', async () => {
-      mockQuery
-        .mockResolvedValueOnce([{ id: 'agent-1', tenant_id: 'tenant-1' }]) // resolveAgent
-        .mockResolvedValueOnce(undefined) // INSERT
-        .mockResolvedValueOnce([{ id: 'new-rule' }]); // SELECT
+    it('resolves the agent and inserts a rule', async () => {
+      agentRepo.createQueryBuilder.mockReturnValueOnce(
+        makeQb({ id: 'agent-1', tenant_id: 'tenant-1' }),
+      );
+      ruleRepo.findOneBy.mockResolvedValueOnce({ id: 'new-rule' } as NotificationRule);
 
-      const result = await service.createRule('user-1', {
-        agent_name: 'my-agent',
+      const result = await service.createRule('u1', {
+        agent_name: 'a1',
         metric_type: 'tokens',
         threshold: 50000,
         period: 'day',
       });
 
       expect(result).toEqual({ id: 'new-rule' });
-      expect(mockQuery).toHaveBeenCalledTimes(3);
+      expect(ruleRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          agent_id: 'agent-1',
+          tenant_id: 'tenant-1',
+          agent_name: 'a1',
+          user_id: 'u1',
+          metric_type: 'tokens',
+          threshold: 50000,
+          period: 'day',
+          action: 'notify',
+          is_active: true,
+        }),
+      );
     });
 
     it('throws BadRequestException when agent not found', async () => {
-      mockQuery.mockResolvedValueOnce([]);
+      agentRepo.createQueryBuilder.mockReturnValueOnce(makeQb(null));
 
       await expect(
-        service.createRule('user-1', {
+        service.createRule('u1', {
           agent_name: 'unknown',
           metric_type: 'tokens',
           threshold: 100,
@@ -66,375 +140,195 @@ describe('NotificationRulesService', () => {
         }),
       ).rejects.toThrow(BadRequestException);
     });
+
+    it('uses provided action value', async () => {
+      agentRepo.createQueryBuilder.mockReturnValueOnce(
+        makeQb({ id: 'agent-1', tenant_id: 'tenant-1' }),
+      );
+      ruleRepo.findOneBy.mockResolvedValueOnce({ id: 'new-rule' } as NotificationRule);
+
+      await service.createRule('u1', {
+        agent_name: 'a1',
+        metric_type: 'tokens',
+        threshold: 1,
+        period: 'hour',
+        action: 'block',
+      });
+
+      expect(ruleRepo.insert).toHaveBeenCalledWith(expect.objectContaining({ action: 'block' }));
+    });
   });
 
   describe('updateRule', () => {
-    it('updates fields and returns updated rule', async () => {
-      mockQuery
-        .mockResolvedValueOnce([{ id: 'r1' }]) // verifyOwnership
-        .mockResolvedValueOnce(undefined) // UPDATE
-        .mockResolvedValueOnce([{ id: 'r1', threshold: 200 }]); // SELECT
+    it('patches only the provided fields', async () => {
+      ruleRepo.count.mockResolvedValueOnce(1);
+      ruleRepo.findOneBy.mockResolvedValueOnce({
+        id: 'r1',
+        threshold: 200,
+      } as NotificationRule);
 
-      const result = await service.updateRule('user-1', 'r1', { threshold: 200 });
-      expect(result.threshold).toBe(200);
+      const result = await service.updateRule('u1', 'r1', { threshold: 200 });
+      expect(result?.threshold).toBe(200);
+      expect(ruleRepo.update).toHaveBeenCalledWith(
+        { id: 'r1' },
+        expect.objectContaining({ threshold: 200, updated_at: expect.any(String) }),
+      );
     });
 
-    it('builds correct numbered params for multi-field update', async () => {
-      mockQuery
-        .mockResolvedValueOnce([{ id: 'r1' }]) // verifyOwnership
-        .mockResolvedValueOnce(undefined) // UPDATE
-        .mockResolvedValueOnce([
-          { id: 'r1', metric_type: 'cost', threshold: 500, period: 'week', is_active: false },
-        ]); // SELECT
+    it('returns existing rule when no fields to update (skips UPDATE)', async () => {
+      ruleRepo.count.mockResolvedValueOnce(1);
+      ruleRepo.findOneBy.mockResolvedValueOnce({ id: 'r1', threshold: 100 } as NotificationRule);
 
-      const result = await service.updateRule('user-1', 'r1', {
-        metric_type: 'cost',
-        threshold: 500,
-        period: 'week',
-        is_active: false,
-      });
-
-      // Verify the UPDATE query uses numbered PG params ($1, $2, etc.)
-      const updateCall = mockQuery.mock.calls[1];
-      const sql = updateCall[0] as string;
-      const params = updateCall[1] as unknown[];
-
-      expect(sql).toContain('metric_type = $1');
-      expect(sql).toContain('threshold = $2');
-      expect(sql).toContain('period = $3');
-      expect(sql).toContain('is_active = $4');
-      expect(sql).toContain('updated_at = $5');
-      expect(sql).toContain('WHERE id = $6');
-
-      // Params should be: metric_type, threshold, period, is_active, updated_at, ruleId
-      expect(params[0]).toBe('cost');
-      expect(params[1]).toBe(500);
-      expect(params[2]).toBe('week');
-      expect(params[3]).toBe(false);
-      expect(typeof params[4]).toBe('string'); // timestamp
-      expect(params[5]).toBe('r1');
-
-      expect(result.metric_type).toBe('cost');
-    });
-
-    it('returns existing rule when no fields to update', async () => {
-      mockQuery
-        .mockResolvedValueOnce([{ id: 'r1' }]) // verifyOwnership
-        .mockResolvedValueOnce([{ id: 'r1', threshold: 100 }]); // getRule (no UPDATE)
-
-      const result = await service.updateRule('user-1', 'r1', {});
-      expect(result.threshold).toBe(100);
-      // Only 2 calls: verifyOwnership + getRule (no UPDATE)
-      expect(mockQuery).toHaveBeenCalledTimes(2);
+      const result = await service.updateRule('u1', 'r1', {});
+      expect(result?.threshold).toBe(100);
+      expect(ruleRepo.update).not.toHaveBeenCalled();
     });
 
     it('throws NotFoundException when rule not owned', async () => {
-      mockQuery.mockResolvedValueOnce([]);
+      ruleRepo.count.mockResolvedValueOnce(0);
 
-      await expect(service.updateRule('user-1', 'r-missing', { threshold: 999 })).rejects.toThrow(
+      await expect(service.updateRule('u1', 'missing', { threshold: 1 })).rejects.toThrow(
         NotFoundException,
+      );
+    });
+
+    it('updates action when provided', async () => {
+      ruleRepo.count.mockResolvedValueOnce(1);
+      ruleRepo.findOneBy.mockResolvedValueOnce({ id: 'r1', action: 'block' } as NotificationRule);
+
+      const result = await service.updateRule('u1', 'r1', { action: 'block' });
+      expect(result?.action).toBe('block');
+      expect(ruleRepo.update).toHaveBeenCalledWith(
+        { id: 'r1' },
+        expect.objectContaining({ action: 'block' }),
       );
     });
   });
 
   describe('deleteRule', () => {
-    it('deletes a rule after ownership check', async () => {
-      mockQuery
-        .mockResolvedValueOnce([{ id: 'r1' }]) // verifyOwnership
-        .mockResolvedValueOnce(undefined); // DELETE
+    it('deletes the rule after ownership check', async () => {
+      ruleRepo.count.mockResolvedValueOnce(1);
 
-      await service.deleteRule('user-1', 'r1');
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('DELETE FROM notification_rules'),
-        ['r1'],
-      );
+      await service.deleteRule('u1', 'r1');
+      expect(ruleRepo.delete).toHaveBeenCalledWith({ id: 'r1' });
+    });
+
+    it('throws when not owned', async () => {
+      ruleRepo.count.mockResolvedValueOnce(0);
+      await expect(service.deleteRule('u1', 'r1')).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('getConsumption', () => {
-    it('returns token consumption for a period', async () => {
-      mockQuery.mockResolvedValueOnce([{ total: 12345 }]);
+    it('sums input+output tokens for tokens metric', async () => {
+      const qb = makeQb({ total: '12345' });
+      messageRepo.createQueryBuilder.mockReturnValueOnce(qb);
 
       const result = await service.getConsumption(
-        'tenant-1',
-        'my-agent',
+        't1',
+        'a1',
         'tokens',
         '2026-02-17 00:00:00',
         '2026-02-17 14:00:00',
       );
+
       expect(result).toBe(12345);
+      expect(qb.select).toHaveBeenCalledWith(
+        expect.stringContaining('SUM(at.input_tokens + at.output_tokens)'),
+        'total',
+      );
     });
 
-    it('returns cost consumption for a period', async () => {
-      mockQuery.mockResolvedValueOnce([{ total: 3.45 }]);
+    it('sums cost_usd for cost metric', async () => {
+      const qb = makeQb({ total: '3.45' });
+      messageRepo.createQueryBuilder.mockReturnValueOnce(qb);
 
       const result = await service.getConsumption(
-        'tenant-1',
-        'my-agent',
+        't1',
+        'a1',
         'cost',
         '2026-02-01 00:00:00',
         '2026-02-17 14:00:00',
       );
+
       expect(result).toBe(3.45);
+      expect(qb.select).toHaveBeenCalledWith(expect.stringContaining('SUM(at.cost_usd)'), 'total');
     });
 
-    it('uses SUM(input_tokens + output_tokens) for token metric type', async () => {
-      mockQuery.mockResolvedValueOnce([{ total: 999 }]);
+    it('returns 0 when no rows match', async () => {
+      messageRepo.createQueryBuilder.mockReturnValueOnce(makeQb(null));
 
-      await service.getConsumption(
-        'tenant-1',
-        'my-agent',
-        'tokens',
-        '2026-02-17 00:00:00',
-        '2026-02-17 14:00:00',
-      );
-
-      const sql = mockQuery.mock.calls[0][0] as string;
-      expect(sql).toContain('SUM(input_tokens + output_tokens)');
-      expect(sql).not.toContain('SUM(cost_usd)');
-    });
-
-    it('uses SUM(cost_usd) for cost metric type', async () => {
-      mockQuery.mockResolvedValueOnce([{ total: 1.23 }]);
-
-      await service.getConsumption(
-        'tenant-1',
-        'my-agent',
-        'cost',
-        '2026-02-01 00:00:00',
-        '2026-02-17 14:00:00',
-      );
-
-      const sql = mockQuery.mock.calls[0][0] as string;
-      expect(sql).toContain('SUM(cost_usd)');
-      expect(sql).not.toContain('SUM(input_tokens');
-    });
-
-    it('passes PG numbered params ($1-$4) for consumption query', async () => {
-      mockQuery.mockResolvedValueOnce([{ total: 0 }]);
-
-      await service.getConsumption(
-        'tenant-1',
-        'my-agent',
-        'tokens',
-        '2026-02-17 00:00:00',
-        '2026-02-17 14:00:00',
-      );
-
-      const sql = mockQuery.mock.calls[0][0] as string;
-      const params = mockQuery.mock.calls[0][1] as unknown[];
-      expect(sql).toContain('$1');
-      expect(sql).toContain('$4');
-      expect(params).toEqual([
-        'tenant-1',
-        'my-agent',
-        '2026-02-17 00:00:00',
-        '2026-02-17 14:00:00',
-      ]);
-    });
-
-    it('returns 0 when query returns null total', async () => {
-      mockQuery.mockResolvedValueOnce([{ total: null }]);
-
-      const result = await service.getConsumption(
-        'tenant-1',
-        'my-agent',
-        'tokens',
-        '2026-02-17 00:00:00',
-        '2026-02-17 14:00:00',
-      );
-      expect(result).toBe(0);
-    });
-
-    it('returns 0 when query returns empty rows', async () => {
-      mockQuery.mockResolvedValueOnce([]);
-
-      const result = await service.getConsumption(
-        'tenant-1',
-        'my-agent',
-        'tokens',
-        '2026-02-17 00:00:00',
-        '2026-02-17 14:00:00',
-      );
+      const result = await service.getConsumption('t1', 'a1', 'tokens', '', '');
       expect(result).toBe(0);
     });
   });
 
   describe('getAllActiveRules', () => {
-    it('returns active notify and both rules', async () => {
-      const rules = [{ id: 'r1', is_active: true, action: 'notify' }];
-      mockQuery.mockResolvedValueOnce(rules);
+    it('returns active notify+both rules', async () => {
+      const rules = [{ id: 'r1', is_active: true, action: 'notify' }] as NotificationRule[];
+      ruleRepo.find.mockResolvedValueOnce(rules);
 
       const result = await service.getAllActiveRules();
       expect(result).toEqual(rules);
-      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('is_active = $1'), [
-        true,
-        'notify',
-        'both',
-      ]);
+      expect(ruleRepo.find).toHaveBeenCalledWith({
+        where: { is_active: true, action: In(['notify', 'both']) },
+      });
     });
+  });
 
-    it('uses IN clause to include both action', async () => {
-      mockQuery.mockResolvedValueOnce([]);
-      await service.getAllActiveRules();
-      const sql = mockQuery.mock.calls[0][0] as string;
-      expect(sql).toContain('action IN ($2, $3)');
+  describe('getActiveRulesForUser', () => {
+    it('returns active notify+both rules for a specific user', async () => {
+      const rules = [{ id: 'r1' }] as NotificationRule[];
+      ruleRepo.find.mockResolvedValueOnce(rules);
+
+      const result = await service.getActiveRulesForUser('u1');
+      expect(result).toEqual(rules);
+      expect(ruleRepo.find).toHaveBeenCalledWith({
+        where: { user_id: 'u1', is_active: true, action: In(['notify', 'both']) },
+      });
     });
   });
 
   describe('getActiveBlockRules', () => {
-    it('returns block and both rules for tenant and agent', async () => {
-      const rules = [{ id: 'r1', action: 'block' }];
-      mockQuery.mockResolvedValueOnce(rules);
+    it('returns block+both rules for a tenant/agent', async () => {
+      const rules = [{ id: 'r1', action: 'block' }] as NotificationRule[];
+      ruleRepo.find.mockResolvedValueOnce(rules);
 
-      const result = await service.getActiveBlockRules('tenant-1', 'my-agent');
+      const result = await service.getActiveBlockRules('t1', 'a1');
       expect(result).toEqual(rules);
-      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('action IN ($4, $5)'), [
-        'tenant-1',
-        'my-agent',
-        true,
-        'block',
-        'both',
-      ]);
-    });
-
-    it('filters by tenant_id and agent_name', async () => {
-      mockQuery.mockResolvedValueOnce([]);
-
-      await service.getActiveBlockRules('tenant-2', 'other-agent');
-
-      const sql = mockQuery.mock.calls[0][0] as string;
-      expect(sql).toContain('tenant_id = $1');
-      expect(sql).toContain('agent_name = $2');
+      expect(ruleRepo.find).toHaveBeenCalledWith({
+        where: {
+          tenant_id: 't1',
+          agent_name: 'a1',
+          is_active: true,
+          action: In(['block', 'both']),
+        },
+      });
     });
   });
 
-  describe('getRule', () => {
-    it('returns the rule when found', async () => {
-      const rule = { id: 'r1', metric_type: 'tokens', threshold: 100 };
-      mockQuery.mockResolvedValueOnce([rule]);
+  describe('getRule / getOwnedRule', () => {
+    it('returns a rule by id', async () => {
+      const rule = { id: 'r1' } as NotificationRule;
+      ruleRepo.findOneBy.mockResolvedValueOnce(rule);
 
       const result = await service.getRule('r1');
       expect(result).toEqual(rule);
     });
 
-    it('returns undefined when rule not found', async () => {
-      mockQuery.mockResolvedValueOnce([]);
-
+    it('returns undefined when not found', async () => {
+      ruleRepo.findOneBy.mockResolvedValueOnce(null);
       const result = await service.getRule('missing');
       expect(result).toBeUndefined();
     });
-  });
 
-  describe('updateRule with action field', () => {
-    it('includes action in UPDATE when provided', async () => {
-      mockQuery
-        .mockResolvedValueOnce([{ id: 'r1' }]) // verifyOwnership
-        .mockResolvedValueOnce(undefined) // UPDATE
-        .mockResolvedValueOnce([{ id: 'r1', action: 'block' }]); // SELECT
+    it('getOwnedRule filters by user', async () => {
+      const rule = { id: 'r1', user_id: 'u1' } as NotificationRule;
+      ruleRepo.findOneBy.mockResolvedValueOnce(rule);
 
-      const result = await service.updateRule('user-1', 'r1', { action: 'block' });
-      expect(result.action).toBe('block');
-
-      const updateCall = mockQuery.mock.calls[1];
-      const sql = updateCall[0] as string;
-      expect(sql).toContain('action = $1');
-    });
-  });
-
-  describe('listRules with PG params', () => {
-    it('uses $1–$4 numbered params for user and agent', async () => {
-      mockQuery.mockResolvedValueOnce([]);
-
-      await service.listRules('user-1', 'agent-x');
-
-      const sql = mockQuery.mock.calls[0][0] as string;
-      expect(sql).toContain('$1');
-      expect(sql).toContain('$2');
-      expect(sql).toContain('$3');
-      expect(sql).toContain('$4');
-      const params = mockQuery.mock.calls[0][1];
-      expect(params).toEqual(['user-1', 'agent-x', 'user-1', 'agent-x']);
-    });
-  });
-
-  describe('createRule with PG params', () => {
-    it('uses $1 through $12 numbered params in INSERT', async () => {
-      mockQuery
-        .mockResolvedValueOnce([{ id: 'agent-1', tenant_id: 'tenant-1' }]) // resolveAgent
-        .mockResolvedValueOnce(undefined) // INSERT
-        .mockResolvedValueOnce([{ id: 'new-rule' }]); // SELECT
-
-      await service.createRule('user-1', {
-        agent_name: 'my-agent',
-        metric_type: 'tokens',
-        threshold: 50000,
-        period: 'day',
-      });
-
-      const insertCall = mockQuery.mock.calls[1];
-      const sql = insertCall[0] as string;
-      const params = insertCall[1] as unknown[];
-
-      expect(sql).toContain('$1');
-      expect(sql).toContain('$12');
-      expect(params).toHaveLength(12);
-    });
-
-    it('includes action field defaulting to notify', async () => {
-      mockQuery
-        .mockResolvedValueOnce([{ id: 'agent-1', tenant_id: 'tenant-1' }])
-        .mockResolvedValueOnce(undefined)
-        .mockResolvedValueOnce([{ id: 'new-rule' }]);
-
-      await service.createRule('user-1', {
-        agent_name: 'my-agent',
-        metric_type: 'tokens',
-        threshold: 50000,
-        period: 'day',
-      });
-
-      const insertCall = mockQuery.mock.calls[1];
-      const params = insertCall[1] as unknown[];
-      expect(params).toContain('notify');
-    });
-
-    it('uses provided action value when specified', async () => {
-      mockQuery
-        .mockResolvedValueOnce([{ id: 'agent-1', tenant_id: 'tenant-1' }])
-        .mockResolvedValueOnce(undefined)
-        .mockResolvedValueOnce([{ id: 'new-rule' }]);
-
-      await service.createRule('user-1', {
-        agent_name: 'my-agent',
-        metric_type: 'tokens',
-        threshold: 50000,
-        period: 'day',
-        action: 'block',
-      });
-
-      const insertCall = mockQuery.mock.calls[1];
-      const params = insertCall[1] as unknown[];
-      expect(params).toContain('block');
-    });
-
-    it('accepts both as action value', async () => {
-      mockQuery
-        .mockResolvedValueOnce([{ id: 'agent-1', tenant_id: 'tenant-1' }])
-        .mockResolvedValueOnce(undefined)
-        .mockResolvedValueOnce([{ id: 'new-rule' }]);
-
-      await service.createRule('user-1', {
-        agent_name: 'my-agent',
-        metric_type: 'tokens',
-        threshold: 50000,
-        period: 'day',
-        action: 'both',
-      });
-
-      const insertCall = mockQuery.mock.calls[1];
-      const params = insertCall[1] as unknown[];
-      expect(params).toContain('both');
+      const result = await service.getOwnedRule('u1', 'r1');
+      expect(result).toEqual(rule);
+      expect(ruleRepo.findOneBy).toHaveBeenCalledWith({ id: 'r1', user_id: 'u1' });
     });
   });
 });

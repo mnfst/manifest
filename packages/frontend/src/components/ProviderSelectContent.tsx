@@ -1,5 +1,6 @@
-import { createSignal, Show, type Component } from 'solid-js';
-import { PROVIDERS } from '../services/providers.js';
+import { createSignal, onMount, Show, type Component } from 'solid-js';
+import { normalizeProviderName } from 'manifest-shared';
+import { PROVIDERS, type ProviderDef } from '../services/providers.js';
 import {
   connectProvider,
   disconnectProvider,
@@ -9,10 +10,13 @@ import {
 } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
 import type { CustomProviderPrefill, ProviderDeepLink } from '../services/routing-params.js';
+import { checkIsSelfHosted } from '../services/setup-status.js';
 import CustomProviderForm from './CustomProviderForm.js';
 import CopilotDeviceLogin from './CopilotDeviceLogin.js';
+import LocalServerDetailView from './LocalServerDetailView.js';
 import ProviderDetailView from './ProviderDetailView.js';
 import ProviderApiKeyTab from './ProviderApiKeyTab.js';
+import ProviderLocalTab from './ProviderLocalTab.js';
 import ProviderSubscriptionTab from './ProviderSubscriptionTab.js';
 
 export interface ProviderSelectContentProps {
@@ -37,7 +41,13 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
   const deepLink = props.providerDeepLink;
   const deepLinkProv = deepLink ? PROVIDERS.find((p) => p.id === deepLink.providerId) : null;
 
-  const [activeTab, setActiveTab] = createSignal<'subscription' | 'api_key'>('subscription');
+  const [activeTab, setActiveTab] = createSignal<'subscription' | 'api_key' | 'local'>(
+    'subscription',
+  );
+  const [isSelfHosted, setIsSelfHosted] = createSignal(false);
+  onMount(async () => {
+    setIsSelfHosted(await checkIsSelfHosted());
+  });
   const [selectedProvider, setSelectedProvider] = createSignal<string | null>(
     deepLinkProv ? deepLinkProv.id : null,
   );
@@ -45,19 +55,22 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     deepLinkProv?.subscriptionOnly ? 'subscription' : 'api_key',
   );
   const [showCustomForm, setShowCustomForm] = createSignal(!!props.customProviderPrefill);
+  const [tilePrefill, setTilePrefill] = createSignal<CustomProviderPrefill | null>(null);
   const [editingCustomProvider, setEditingCustomProvider] = createSignal<CustomProviderData | null>(
     null,
   );
+  const [localServerProvider, setLocalServerProvider] = createSignal<ProviderDef | null>(null);
+  const [localServerEditData, setLocalServerEditData] = createSignal<
+    CustomProviderData | undefined
+  >(undefined);
   const [busy, setBusy] = createSignal(false);
   const [keyInput, setKeyInput] = createSignal('');
   const [editing, setEditing] = createSignal(false);
   const [validationError, setValidationError] = createSignal<string | null>(null);
   const [direction, setDirection] = createSignal<'forward' | 'back' | null>(null);
   const subscriptionProviders = () => PROVIDERS.filter((p) => p.supportsSubscription);
-  const apiKeyProviders = () => {
-    const filtered = PROVIDERS.filter((p) => !p.subscriptionOnly);
-    return [...filtered].sort((a, b) => (a.localOnly ? 1 : 0) - (b.localOnly ? 1 : 0));
-  };
+  const apiKeyProviders = () => PROVIDERS.filter((p) => !p.subscriptionOnly && !p.localOnly);
+  const localProviders = () => PROVIDERS.filter((p) => p.localOnly);
 
   const getProviderByAuth = (provId: string, authType: AuthType) =>
     props.providers.find((p) => p.provider === provId && p.auth_type === authType);
@@ -83,6 +96,40 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     return !!p && p.is_active && !!provDef?.noKeyRequired;
   };
 
+  // Local-tab connection check: Ollama / LM Studio rows carry
+  // `auth_type: 'local'` after the backfill migrations. Ignoring that would
+  // leave the Local tab's toggles permanently off even once the user
+  // connects the provider (its counterpart auth_type='api_key' row no
+  // longer exists).
+  const isLocalConnected = (provId: string): boolean => {
+    const p = getProviderByAuth(provId, 'local');
+    return !!p && p.is_active;
+  };
+
+  const resetToList = () => {
+    setSelectedProvider(null);
+    setShowCustomForm(false);
+    setTilePrefill(null);
+    setEditingCustomProvider(null);
+    setLocalServerProvider(null);
+    setLocalServerEditData(undefined);
+    setKeyInput('');
+    setEditing(false);
+    setValidationError(null);
+  };
+
+  const goBack = () => {
+    setDirection('back');
+    resetToList();
+  };
+
+  // Kept as an alias of goBack so callers that finish a flow (create /
+  // delete / connect) don't have to know how back-nav works.
+  const completeToList = () => {
+    setDirection('back');
+    resetToList();
+  };
+
   const openDetail = (provId: string, authType: AuthType) => {
     setDirection('forward');
     setSelectedProvider(provId);
@@ -92,24 +139,50 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     setValidationError(null);
   };
 
-  const goBack = () => {
-    setDirection('back');
-    setSelectedProvider(null);
-    setShowCustomForm(false);
-    setEditingCustomProvider(null);
-    setKeyInput('');
-    setEditing(false);
-    setValidationError(null);
-  };
-
-  const openCustomForm = () => {
+  const openCustomForm = (prefill?: CustomProviderPrefill) => {
     setDirection('forward');
+    setTilePrefill(prefill ?? null);
     setShowCustomForm(true);
   };
 
   const openEditCustom = (cp: CustomProviderData) => {
+    const normalized = normalizeProviderName(cp.name);
+    const localProv = PROVIDERS.find(
+      (p) => p.defaultLocalPort && normalizeProviderName(p.name) === normalized,
+    );
+    if (localProv) {
+      setDirection('forward');
+      setLocalServerProvider(localProv);
+      setLocalServerEditData(cp);
+      return;
+    }
     setDirection('forward');
     setEditingCustomProvider(cp);
+  };
+
+  const openLocalServer = (prov: ProviderDef) => {
+    setDirection('forward');
+    setLocalServerProvider(prov);
+  };
+
+  const handleLocalToggle = async (providerKey: string) => {
+    // The Local tab's toggle-off action deactivates the user_providers row
+    // without touching the custom_providers row (for LM Studio): the user
+    // can flip it back on via the same tile, and the backend cleans up
+    // dangling tier overrides as part of disconnect.
+    setBusy(true);
+    try {
+      const result = await disconnectProvider(props.agentName, providerKey, 'local');
+      if (result?.notifications?.length) {
+        for (const msg of result.notifications) toast.error(msg);
+      }
+      toast.success('Provider disconnected');
+      props.onUpdate();
+    } catch {
+      // error toast from fetchMutate
+    } finally {
+      setBusy(false);
+    }
   };
 
   const handleSubscriptionToggle = async (provId: string) => {
@@ -148,22 +221,44 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
 
   return (
     <>
+      {/* -- Local Server Detail View (LM Studio) -- */}
+      <Show when={localServerProvider() && !showCustomForm() && !editingCustomProvider()}>
+        <div class="provider-modal__view provider-modal__view--from-right">
+          <LocalServerDetailView
+            agentName={props.agentName}
+            provider={localServerProvider()!}
+            editData={localServerEditData()}
+            onConnected={() => {
+              completeToList();
+              props.onUpdate();
+            }}
+            onBack={goBack}
+            onOpenCustomForm={() => {
+              setLocalServerProvider(null);
+              openCustomForm();
+            }}
+          />
+        </div>
+      </Show>
+
       {/* -- Custom Provider Form View (create or edit) -- */}
-      <Show when={showCustomForm() || editingCustomProvider()}>
+      <Show when={(showCustomForm() || editingCustomProvider()) && !localServerProvider()}>
         <div class="provider-modal__view provider-modal__view--from-right">
           <CustomProviderForm
             agentName={props.agentName}
             initialData={editingCustomProvider() ?? undefined}
             prefill={
-              !editingCustomProvider() ? (props.customProviderPrefill ?? undefined) : undefined
+              !editingCustomProvider()
+                ? (tilePrefill() ?? props.customProviderPrefill ?? undefined)
+                : undefined
             }
             onCreated={() => {
-              goBack();
+              completeToList();
               props.onUpdate();
             }}
             onBack={goBack}
             onDeleted={() => {
-              goBack();
+              completeToList();
               props.onUpdate();
             }}
           />
@@ -171,7 +266,14 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
       </Show>
 
       {/* -- List View -- */}
-      <Show when={selectedProvider() === null && !showCustomForm() && !editingCustomProvider()}>
+      <Show
+        when={
+          selectedProvider() === null &&
+          !showCustomForm() &&
+          !editingCustomProvider() &&
+          !localServerProvider()
+        }
+      >
         <div
           class="provider-modal__view"
           classList={{ 'provider-modal__view--from-left': direction() === 'back' }}
@@ -257,6 +359,28 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
                 </svg>
                 API Keys
               </button>
+              <Show when={isSelfHosted()}>
+                <button
+                  role="tab"
+                  aria-selected={activeTab() === 'local'}
+                  class="panel__tab"
+                  classList={{ 'panel__tab--active': activeTab() === 'local' }}
+                  onClick={() => setActiveTab('local')}
+                >
+                  <svg
+                    class="provider-modal__tab-icon"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden="true"
+                    style="color: #F72585"
+                  >
+                    <path d="m13.18 6.75 2.66-4.22-1.69-1.07L12 4.87 9.85 1.46 8.16 2.53l2.66 4.22-8.67 13.72A1.006 1.006 0 0 0 3 22.01h18c.36 0 .7-.2.88-.52s.16-.71-.03-1.02zM10.24 20 12 16.98 13.76 20zm5.83 0-3.21-5.5c-.36-.62-1.37-.62-1.73 0L7.92 20H4.81L12 8.62 19.19 20h-3.11Z" />
+                  </svg>
+                  Local
+                </button>
+              </Show>
             </div>
           </div>
 
@@ -282,6 +406,20 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
               onOpenDetail={openDetail}
               onOpenCustomForm={openCustomForm}
               onEditCustom={openEditCustom}
+            />
+          </Show>
+
+          {/* -- Local Tab (self-hosted only) -- */}
+          <Show when={activeTab() === 'local' && isSelfHosted()}>
+            <ProviderLocalTab
+              localProviders={localProviders()}
+              customProviders={props.customProviders ?? []}
+              isConnected={isLocalConnected}
+              onToggle={handleLocalToggle}
+              busy={busy}
+              onOpenDetail={openDetail}
+              onEditCustom={openEditCustom}
+              onOpenLocalServer={openLocalServer}
             />
           </Show>
 

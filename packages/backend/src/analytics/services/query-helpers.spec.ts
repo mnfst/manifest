@@ -206,9 +206,9 @@ describe('selectMessageRowColumns', () => {
     expect(emittedAliases).toEqual([...MESSAGE_ROW_SELECT_ALIASES]);
   });
 
-  it('uses the caller-supplied cost expression so dialect handling stays at the call site', () => {
+  it('uses the caller-supplied cost expression verbatim', () => {
     const { qb, addSelectCalls } = makeMockQb();
-    const costExpr = 'SOME_DIALECT_SPECIFIC_CAST(at.cost_usd)';
+    const costExpr = 'CAST(CASE WHEN at.cost_usd >= 0 THEN at.cost_usd ELSE NULL END AS FLOAT)';
     selectMessageRowColumns(qb, costExpr);
 
     const costCall = addSelectCalls.find(([, alias]) => alias === 'cost');

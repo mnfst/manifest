@@ -143,6 +143,7 @@ describe('proxy-response-handler', () => {
           fallbackFromModel: undefined,
           fallbackIndex: undefined,
           authType: undefined,
+          reason: 'auto',
           specificityCategory: undefined,
         },
       );
@@ -151,6 +152,31 @@ describe('proxy-response-handler', () => {
         expect.objectContaining({
           error: expect.objectContaining({ type: 'upstream_error', status: 500 }),
         }),
+      );
+    });
+
+    it('forwards meta.reason so single-shot upstream errors keep routing_reason', async () => {
+      const { res } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta({ reason: 'header-match' });
+      const metaHeaders = buildMetaHeaders(meta);
+
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        metaHeaders,
+        500,
+        'oops',
+        undefined,
+        recorder as any,
+      );
+
+      expect(recorder.recordProviderError).toHaveBeenCalledWith(
+        testCtx,
+        500,
+        'oops',
+        expect.objectContaining({ reason: 'header-match' }),
       );
     });
 
@@ -372,7 +398,7 @@ describe('proxy-response-handler', () => {
         'Provider returned HTTP 503',
         expect.any(String),
         undefined,
-        { provider: 'anthropic', callerAttribution: undefined },
+        { provider: 'anthropic', reason: 'auto', callerAttribution: undefined },
       );
     });
 
@@ -392,7 +418,7 @@ describe('proxy-response-handler', () => {
         'Provider returned HTTP 500',
         expect.any(String),
         undefined,
-        { provider: 'anthropic', callerAttribution: undefined },
+        { provider: 'anthropic', reason: 'auto', callerAttribution: undefined },
       );
     });
 
@@ -411,7 +437,7 @@ describe('proxy-response-handler', () => {
         expect.any(String),
         expect.any(String),
         undefined,
-        { provider: undefined, callerAttribution: undefined },
+        { provider: undefined, reason: 'auto', callerAttribution: undefined },
       );
     });
   });
@@ -420,13 +446,19 @@ describe('proxy-response-handler', () => {
 
   describe('handleStreamResponse', () => {
     function mockForward(
-      flags: { isGoogle?: boolean; isAnthropic?: boolean; isChatGpt?: boolean } = {},
+      flags: {
+        isGoogle?: boolean;
+        isAnthropic?: boolean;
+        isChatGpt?: boolean;
+        isResponses?: boolean;
+      } = {},
     ) {
       return {
         response: { body: { getReader: jest.fn() } },
         isGoogle: flags.isGoogle ?? false,
         isAnthropic: flags.isAnthropic ?? false,
         isChatGpt: flags.isChatGpt ?? false,
+        isResponses: flags.isResponses ?? false,
       };
     }
 
@@ -526,6 +558,32 @@ describe('proxy-response-handler', () => {
       expect(pipeStreamSpy).toHaveBeenCalledWith(forward.response.body, res, expect.any(Function));
     });
 
+    it('ChatGPT stream transformer delegates each chunk to convertChatGptStreamChunk', async () => {
+      // Captures the inline transformer pipeStream receives and proves it
+      // forwards (chunk, model) to providerClient — the only behaviour that
+      // matters when the Codex Responses API streams.
+      const { res } = mockResponse();
+      const forward = mockForward({ isChatGpt: true });
+      const client = mockProviderClient();
+      client.convertChatGptStreamChunk.mockReturnValue('data: out\n\n');
+      const meta = makeMeta();
+
+      let captured: ((chunk: string) => string | null) | undefined;
+      pipeStreamSpy.mockImplementation(
+        async (_b: unknown, _r: unknown, transform?: (c: string) => string | null) => {
+          captured = transform;
+          return null;
+        },
+      );
+
+      await handleStreamResponse(res as any, forward as any, meta, {}, client as any);
+
+      expect(captured).toBeDefined();
+      const out = captured!('data: in\n\n');
+      expect(out).toBe('data: out\n\n');
+      expect(client.convertChatGptStreamChunk).toHaveBeenCalledWith('data: in\n\n', 'gpt-4o');
+    });
+
     it('should pipe without transformer for standard OpenAI responses', async () => {
       const { res } = mockResponse();
       const forward = mockForward();
@@ -536,6 +594,59 @@ describe('proxy-response-handler', () => {
 
       // Called with only 2 args (no transformer)
       expect(pipeStreamSpy).toHaveBeenCalledWith(forward.response.body, res);
+    });
+
+    it('should pass through native Responses streams without a transformer', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward({ isResponses: true });
+      const client = mockProviderClient();
+      const meta = makeMeta();
+
+      await handleStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        undefined,
+        undefined,
+        'responses',
+      );
+
+      expect(pipeStreamSpy).toHaveBeenCalledWith(forward.response.body, res);
+    });
+
+    it('should convert chat completion streams when serving Responses clients', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward();
+      const client = mockProviderClient();
+      const meta = makeMeta();
+      let capturedTransform: ((chunk: string) => string | null) | undefined;
+      pipeStreamSpy.mockImplementation(
+        async (_body: unknown, _res: unknown, transform?: (chunk: string) => string | null) => {
+          capturedTransform = transform;
+          return null;
+        },
+      );
+
+      await handleStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        undefined,
+        undefined,
+        'responses',
+      );
+
+      expect(capturedTransform).toBeDefined();
+      const converted = capturedTransform!(
+        'data: {"choices":[{"delta":{"content":"Hi"},"finish_reason":null}]}\n\n',
+      );
+      expect(converted).toContain('event: response.output_text.delta');
     });
 
     it('should cache thought_signatures from Google stream chunks', async () => {
@@ -624,16 +735,26 @@ describe('proxy-response-handler', () => {
 
     function mockForward(
       body: unknown,
-      flags: { isGoogle?: boolean; isAnthropic?: boolean; isChatGpt?: boolean } = {},
+      flags: {
+        isGoogle?: boolean;
+        isAnthropic?: boolean;
+        isChatGpt?: boolean;
+        isResponses?: boolean;
+        contentType?: string;
+      } = {},
     ) {
       return {
         response: {
           json: jest.fn().mockResolvedValue(body),
           text: jest.fn().mockResolvedValue(typeof body === 'string' ? body : JSON.stringify(body)),
+          headers: {
+            get: jest.fn().mockReturnValue(flags.contentType ?? 'application/json'),
+          },
         },
         isGoogle: flags.isGoogle ?? false,
         isAnthropic: flags.isAnthropic ?? false,
         isChatGpt: flags.isChatGpt ?? false,
+        isResponses: flags.isResponses ?? false,
       };
     }
 
@@ -782,6 +903,98 @@ describe('proxy-response-handler', () => {
       expect(res.json).toHaveBeenCalledWith(body);
     });
 
+    it('should pass through native Responses JSON and extract Responses usage', async () => {
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+      const body = {
+        id: 'resp_123',
+        object: 'response',
+        usage: {
+          input_tokens: 50,
+          input_tokens_details: { cached_tokens: 20 },
+          output_tokens: 25,
+          total_tokens: 75,
+        },
+      };
+      const forward = mockForward(body, { isResponses: true });
+      const meta = makeMeta();
+
+      const usage = await handleNonStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        undefined,
+        undefined,
+        'responses',
+      );
+
+      expect(usage).toEqual({
+        prompt_tokens: 50,
+        completion_tokens: 25,
+        cache_read_tokens: 20,
+        cache_creation_tokens: 0,
+      });
+      expect(res.json).toHaveBeenCalledWith(body);
+    });
+
+    it('should collect native Responses SSE for non-streaming Responses clients', async () => {
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+      const response = { id: 'resp_done', object: 'response', output: [] };
+      const sse = `event: response.completed\ndata: ${JSON.stringify({ response })}\n\n`;
+      const forward = mockForward(sse, {
+        isResponses: true,
+        contentType: 'text/event-stream',
+      });
+      const meta = makeMeta();
+
+      await handleNonStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        undefined,
+        undefined,
+        'responses',
+      );
+
+      expect(forward.response.text).toHaveBeenCalled();
+      expect(res.json).toHaveBeenCalledWith(response);
+    });
+
+    it('should collect native Responses SSE even when content type is not SSE', async () => {
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+      const response = { id: 'resp_done', object: 'response', output: [] };
+      const sse = `event: response.completed\ndata: ${JSON.stringify({ response })}\n\n`;
+      const forward = mockForward(sse, {
+        isResponses: true,
+        contentType: 'application/json',
+      });
+      const meta = makeMeta();
+
+      await handleNonStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        undefined,
+        undefined,
+        'responses',
+      );
+
+      expect(forward.response.text).toHaveBeenCalled();
+      expect(forward.response.json).not.toHaveBeenCalled();
+      expect(res.json).toHaveBeenCalledWith(response);
+    });
+
     it('should return null usage when no usage data in response', async () => {
       const { res } = mockResponse();
       const client = mockProviderClient();
@@ -926,6 +1139,7 @@ describe('proxy-response-handler', () => {
         fallbackIndex: 1,
         timestamp: '2025-01-01T00:00:00Z',
         authType: undefined,
+        reason: 'auto',
         usage,
       });
     });
@@ -1030,6 +1244,7 @@ describe('proxy-response-handler', () => {
         fallbackIndex: 0,
         timestamp: '2025-01-01T00:00:00Z',
         authType: undefined,
+        reason: 'auto',
         usage: undefined,
       });
     });
@@ -1064,6 +1279,178 @@ describe('proxy-response-handler', () => {
         'auto',
         usage,
         expect.objectContaining({ specificityCategory: 'coding' }),
+      );
+    });
+  });
+
+  describe('requestHeaders propagation', () => {
+    const headers = { 'x-custom-foo': 'bar' };
+
+    it('handleProviderError forwards requestHeaders to recordProviderError', async () => {
+      const { res } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta();
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        buildMetaHeaders(meta),
+        500,
+        'boom',
+        undefined,
+        recorder as any,
+        'trace-1',
+        null,
+        headers,
+      );
+      expect(recorder.recordProviderError).toHaveBeenCalledWith(
+        testCtx,
+        500,
+        'boom',
+        expect.objectContaining({ requestHeaders: headers }),
+      );
+    });
+
+    it('fallback-exhausted path forwards requestHeaders to both failure recorders', async () => {
+      const { res } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta();
+      const failedFallbacks: FailedFallback[] = [
+        {
+          model: 'claude-3-haiku',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+          status: 429,
+          errorBody: '',
+        },
+      ];
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        buildMetaHeaders(meta),
+        502,
+        'fail',
+        failedFallbacks,
+        recorder as any,
+        undefined,
+        null,
+        headers,
+      );
+      expect(recorder.recordFailedFallbacks).toHaveBeenCalledWith(
+        testCtx,
+        'standard',
+        'gpt-4o',
+        failedFallbacks,
+        expect.objectContaining({ requestHeaders: headers }),
+      );
+      expect(recorder.recordPrimaryFailure).toHaveBeenCalledWith(
+        testCtx,
+        'standard',
+        'gpt-4o',
+        'fail',
+        expect.any(String),
+        undefined,
+        expect.objectContaining({ requestHeaders: headers }),
+      );
+    });
+
+    it('recordFallbackFailures forwards requestHeaders to both failure recorders', () => {
+      const recorder = mockRecorder();
+      const meta = makeMeta({
+        fallbackFromModel: 'claude-sonnet-4',
+        primaryProvider: 'anthropic',
+      });
+      const failedFallbacks: FailedFallback[] = [
+        { model: 'x', provider: 'y', fallbackIndex: 0, status: 500, errorBody: '' },
+      ];
+      recordFallbackFailures(testCtx, meta, failedFallbacks, recorder as any, null, headers);
+      expect(recorder.recordPrimaryFailure).toHaveBeenCalledWith(
+        testCtx,
+        'standard',
+        'claude-sonnet-4',
+        expect.any(String),
+        expect.any(String),
+        undefined,
+        expect.objectContaining({ requestHeaders: headers }),
+      );
+      expect(recorder.recordFailedFallbacks).toHaveBeenCalledWith(
+        testCtx,
+        'standard',
+        'claude-sonnet-4',
+        failedFallbacks,
+        expect.objectContaining({ requestHeaders: headers }),
+      );
+    });
+
+    it('recordFallbackFailures threads meta.reason into the recordFailedFallbacks opts', () => {
+      // Sibling rows (the failed fallbacks of a fallback-success flow) must
+      // inherit the same routing_reason as the success row, otherwise the
+      // Messages log shows split reasons for one logical request.
+      const recorder = mockRecorder();
+      const meta = makeMeta({
+        fallbackFromModel: 'claude-sonnet-4',
+        primaryProvider: 'anthropic',
+        reason: 'header-match',
+      });
+      const failedFallbacks: FailedFallback[] = [
+        { model: 'x', provider: 'y', fallbackIndex: 0, status: 500, errorBody: '' },
+      ];
+      recordFallbackFailures(testCtx, meta, failedFallbacks, recorder as any);
+      expect(recorder.recordFailedFallbacks).toHaveBeenCalledWith(
+        testCtx,
+        'standard',
+        'claude-sonnet-4',
+        failedFallbacks,
+        expect.objectContaining({ reason: 'header-match' }),
+      );
+    });
+
+    it('recordSuccess forwards requestHeaders on the success-message path', () => {
+      const recorder = mockRecorder();
+      const meta = makeMeta();
+      recordSuccess(
+        testCtx,
+        meta,
+        { prompt_tokens: 1, completion_tokens: 1 },
+        undefined,
+        recorder as any,
+        undefined,
+        undefined,
+        undefined,
+        null,
+        headers,
+      );
+      expect(recorder.recordSuccessMessage).toHaveBeenCalledWith(
+        testCtx,
+        'gpt-4o',
+        'standard',
+        'auto',
+        expect.anything(),
+        expect.objectContaining({ requestHeaders: headers }),
+      );
+    });
+
+    it('recordSuccess forwards requestHeaders on the fallback-success path', () => {
+      const recorder = mockRecorder();
+      const meta = makeMeta({ fallbackFromModel: 'gpt-4o', fallbackIndex: 1 });
+      recordSuccess(
+        testCtx,
+        meta,
+        { prompt_tokens: 1, completion_tokens: 1 },
+        '2025-01-01T00:00:00Z',
+        recorder as any,
+        undefined,
+        undefined,
+        undefined,
+        null,
+        headers,
+      );
+      expect(recorder.recordFallbackSuccess).toHaveBeenCalledWith(
+        testCtx,
+        'gpt-4o',
+        'standard',
+        expect.objectContaining({ requestHeaders: headers }),
       );
     });
   });

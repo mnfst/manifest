@@ -21,7 +21,6 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     supportsSubscription: true as const,
     subscriptionLabel: 'ChatGPT Plus/Pro/Team',
     subscriptionAuthMode: 'popup_oauth' as const,
-    subscriptionOAuth: true,
     knownModels: Object.freeze([
       'gpt-5.4',
       'gpt-5.3-codex',

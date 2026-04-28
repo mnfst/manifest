@@ -52,6 +52,17 @@ const ChartCard: Component<ChartCardProps> = (props) => (
     <div class="chart-card__header">
       <div
         class="chart-card__stat chart-card__stat--clickable"
+        classList={{ 'chart-card__stat--active': props.activeView === 'messages' }}
+        onClick={() => props.onViewChange('messages')}
+      >
+        <span class="chart-card__label">Messages</span>
+        <div class="chart-card__value-row">
+          <span class="chart-card__value">{props.messagesValue}</span>
+          {trendBadge(props.messagesTrendPct, props.messagesValue, 'neutral')}
+        </div>
+      </div>
+      <div
+        class="chart-card__stat chart-card__stat--clickable"
         classList={{ 'chart-card__stat--active': props.activeView === 'cost' }}
         onClick={() => props.onViewChange('cost')}
       >
@@ -73,17 +84,6 @@ const ChartCard: Component<ChartCardProps> = (props) => (
         <div class="chart-card__value-row">
           <span class="chart-card__value">{formatNumber(props.tokensValue)}</span>
           {trendBadge(props.tokensTrendPct, props.tokensValue, 'inverted')}
-        </div>
-      </div>
-      <div
-        class="chart-card__stat chart-card__stat--clickable"
-        classList={{ 'chart-card__stat--active': props.activeView === 'messages' }}
-        onClick={() => props.onViewChange('messages')}
-      >
-        <span class="chart-card__label">Messages</span>
-        <div class="chart-card__value-row">
-          <span class="chart-card__value">{props.messagesValue}</span>
-          {trendBadge(props.messagesTrendPct, props.messagesValue, 'neutral')}
         </div>
       </div>
     </div>

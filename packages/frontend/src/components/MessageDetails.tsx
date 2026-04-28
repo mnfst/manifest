@@ -1,6 +1,8 @@
-import { createResource, Show, For, type JSX } from 'solid-js';
+import { createResource, createSignal, Show, For, type JSX } from 'solid-js';
 import {
   getMessageDetails,
+  flagMessageMiscategorized,
+  clearMessageMiscategorized,
   type MessageDetailLlmCall,
   type MessageDetailToolExecution,
   type MessageDetailLog,
@@ -85,6 +87,56 @@ function LogRow(props: { log: MessageDetailLog }): JSX.Element {
   );
 }
 
+function RequestHeadersSection(props: { headers: Record<string, string> }): JSX.Element {
+  const [open, setOpen] = createSignal(false);
+  const entries = (): Array<[string, string]> =>
+    Object.entries(props.headers).sort(([a], [b]) => a.localeCompare(b));
+  const tableId = `msg-detail-request-headers-${Math.random().toString(36).slice(2, 10)}`;
+  return (
+    <div class="msg-detail__section">
+      <button
+        type="button"
+        class="msg-detail__section-title msg-detail__section-title--toggle"
+        aria-expanded={open() ? 'true' : 'false'}
+        aria-controls={tableId}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <span
+          class="msg-detail__chevron"
+          classList={{ 'msg-detail__chevron--open': open() }}
+          aria-hidden="true"
+        >
+          &#9656;
+        </span>
+        Request Headers
+        <span class="msg-detail__count">{entries().length}</span>
+      </button>
+      <Show when={open()}>
+        <div class="data-table-scroll" id={tableId}>
+          <table class="data-table msg-detail__table">
+            <thead>
+              <tr>
+                <th>Header</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <For each={entries()}>
+                {([k, v]) => (
+                  <tr>
+                    <td class="msg-detail__mono-xs">{k}</td>
+                    <td class="msg-detail__mono-xs msg-detail__log-body">{v}</td>
+                  </tr>
+                )}
+              </For>
+            </tbody>
+          </table>
+        </div>
+      </Show>
+    </div>
+  );
+}
+
 function MetaField(props: { label: string; value: string | null | undefined }): JSX.Element {
   return (
     <Show when={props.value}>
@@ -93,6 +145,48 @@ function MetaField(props: { label: string; value: string | null | undefined }): 
         {props.value}
       </span>
     </Show>
+  );
+}
+
+function MiscategorizeControl(props: {
+  messageId: string;
+  initiallyFlagged: boolean;
+}): JSX.Element {
+  const [flagged, setFlagged] = createSignal(props.initiallyFlagged);
+  const [busy, setBusy] = createSignal(false);
+
+  async function toggle() {
+    // Belt-and-suspenders: `disabled={busy()}` on the button already rejects
+    // real clicks during an in-flight request. This guard catches the narrow
+    // race where Solid's event delegation could fire the handler before the
+    // disabled attribute commits, and tests can't reliably reproduce it.
+    /* v8 ignore next */
+    if (busy()) return;
+    setBusy(true);
+    try {
+      if (flagged()) {
+        await clearMessageMiscategorized(props.messageId);
+        setFlagged(false);
+      } else {
+        await flagMessageMiscategorized(props.messageId);
+        setFlagged(true);
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      class="msg-detail__miscat-btn"
+      onClick={toggle}
+      disabled={busy()}
+      title="Flag this message's routing category as wrong. Repeated flags reduce this category's routing score for this agent."
+      aria-pressed={flagged()}
+    >
+      {flagged() ? 'Flagged as miscategorized — undo' : 'Wrong category?'}
+    </button>
   );
 }
 
@@ -129,7 +223,8 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                   Fallback from <strong>{m.fallback_from_model}</strong>
                   <Show when={m.fallback_index != null}>
                     {' '}
-                    (attempt #{(m.fallback_index ?? 0) + 1})
+                    {/* Show guard above ensures fallback_index is non-null here. */}
+                    (attempt #{(m.fallback_index as number) + 1})
                   </Show>
                 </div>
               </Show>
@@ -150,18 +245,31 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                   <MetaField
                     label="Routing"
                     value={
-                      m.specificity_category
+                      m.header_tier_name ??
+                      (m.specificity_category
                         ? m.specificity_category.replace(/_/g, ' ')
-                        : m.routing_tier
+                        : m.routing_tier)
                     }
                   />
+                  <Show when={m.specificity_category}>
+                    <MiscategorizeControl
+                      messageId={m.id}
+                      initiallyFlagged={m.specificity_miscategorized}
+                    />
+                  </Show>
                   <MetaField label="Reason" value={m.routing_reason} />
                   <MetaField label="Service" value={m.service_type} />
                   <MetaField label="Session" value={m.session_key} />
                   <MetaField label="Description" value={m.description} />
+                  <MetaField label="App" value={m.caller_attribution?.appName} />
+                  <MetaField label="SDK" value={m.caller_attribution?.sdk} />
                   <MetaField label="Skill" value={m.skill_name} />
                 </div>
               </div>
+
+              <Show when={m.request_headers && Object.keys(m.request_headers).length > 0}>
+                <RequestHeadersSection headers={m.request_headers!} />
+              </Show>
 
               <Show when={d.llm_calls.length > 0}>
                 <div class="msg-detail__section">
@@ -178,7 +286,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                           <th>Response Model</th>
                           <th>Input</th>
                           <th>Output</th>
-                          <th>Duration</th>
+                          <th>Latency</th>
                           <th>TTFT</th>
                         </tr>
                       </thead>
@@ -201,7 +309,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                       <thead>
                         <tr>
                           <th>Tool</th>
-                          <th>Duration</th>
+                          <th>Latency</th>
                           <th>Status</th>
                           <th>Error</th>
                         </tr>

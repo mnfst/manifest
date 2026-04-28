@@ -51,12 +51,7 @@ describe("Sidebar with agent", () => {
     expect(screen.getByText("MANAGE")).toBeDefined();
   });
 
-  it("shows Settings link in local mode", () => {
-    render(() => <Sidebar />);
-    expect(screen.getByText("Settings")).toBeDefined();
-  });
-
-  it("renders Settings link in cloud mode", () => {
+  it("renders Settings link", () => {
     render(() => <Sidebar />);
     expect(screen.getByText("Settings")).toBeDefined();
   });
@@ -199,13 +194,13 @@ describe("Sidebar active states for sub-paths", () => {
   });
 });
 
-describe("Sidebar in local mode", () => {
+describe("Sidebar with no agent selected", () => {
   beforeAll(() => {
     mockAgentName = null;
     mockPathname = "/";
   });
 
-  it("shows Agents link in local mode when no agent selected", () => {
+  it("shows Agents link when no agent is selected", () => {
     render(() => <Sidebar />);
     expect(screen.getByText("Agents")).toBeDefined();
   });

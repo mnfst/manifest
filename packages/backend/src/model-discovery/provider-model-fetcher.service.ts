@@ -72,21 +72,12 @@ const parseOpenAI = createModelParser<OpenAIModelEntry>({
 /** Date-suffixed snapshots returned by OpenAI (e.g. gpt-4o-mini-2024-07-18). */
 const OPENAI_DATE_SUFFIX_RE = /-\d{4}-\d{2}-\d{2}$/;
 
-/**
- * OpenAI models only supported in v1/responses (not v1/chat/completions).
- * Codex models (except codex-mini-latest), -pro variants of GPT-5+,
- * image generation models, o1-pro, and deep-research models.
- */
-const OPENAI_RESPONSES_ONLY_RE =
-  /(?:-codex(?!-mini-latest)|^gpt-5[^/]*-pro(?:-|$)|^gpt-image-|^o1-pro|^o4-mini-deep-research)/i;
-
 function parseOpenAIDeduped(body: unknown, provider: string): DiscoveredModel[] {
-  const filtered = parseOpenAI(body, provider).filter((m) => !OPENAI_RESPONSES_ONLY_RE.test(m.id));
-
+  const parsed = parseOpenAI(body, provider);
   // Deduplicate: if both an alias (gpt-4o-mini) and a dated snapshot
   // (gpt-4o-mini-2024-07-18) exist, keep only the alias.
-  const ids = new Set(filtered.map((m) => m.id));
-  return filtered.filter((m) => {
+  const ids = new Set(parsed.map((m) => m.id));
+  return parsed.filter((m) => {
     if (!OPENAI_DATE_SUFFIX_RE.test(m.id)) return true;
     const alias = m.id.replace(OPENAI_DATE_SUFFIX_RE, '');
     return !ids.has(alias);
@@ -109,9 +100,9 @@ export const UNIVERSAL_NON_CHAT_RE =
  */
 export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
   openai:
-    /(?:moderation|davinci|babbage|^text-|realtime|-transcribe|^sora|^gpt-3\.5-turbo-instruct|audio|^chatgpt-image|search-api)/i,
+    /(?:moderation|davinci|babbage|^text-|realtime|-transcribe|^sora|^gpt-3\.5-turbo-instruct|audio|^chatgpt-image|^gpt-image-|search-api)/i,
   'openai-subscription':
-    /(?:moderation|davinci|babbage|^text-|realtime|-transcribe|^sora|audio|^chatgpt-image)/i,
+    /(?:moderation|davinci|babbage|^text-|realtime|-transcribe|^sora|audio|^chatgpt-image|^gpt-image-)/i,
   gemini:
     /(?:^aqs-|nano-banana|^deep-research|computer-use|^lyria|^gemini-2\.0-flash-lite$|flash-lite-preview|robotics)/i,
   mistral:

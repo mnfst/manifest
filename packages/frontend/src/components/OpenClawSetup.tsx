@@ -146,7 +146,7 @@ const OpenClawSetup: Component<Props> = (props) => {
               <CopyButton text={copyKey()} />
             </span>
           </div>
-          <OnboardField label="Endpoint compatibility" value="OpenAI-compatible" />
+          <OnboardField label="Endpoint compatibility" value="OpenAI Responses-compatible" />
           <OnboardField label="Model ID" value="auto" copyable />
           <OnboardField label="Endpoint ID" value="manifest" copyable />
         </div>

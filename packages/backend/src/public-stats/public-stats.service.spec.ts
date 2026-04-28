@@ -29,8 +29,6 @@ function makePricingEntry(overrides: Partial<PricingEntry> = {}): PricingEntry {
   };
 }
 
-const mockDataSource = { options: { type: 'postgres' } };
-
 describe('PublicStatsService', () => {
   let service: PublicStatsService;
   let mockRepo: { createQueryBuilder: jest.Mock };
@@ -45,7 +43,6 @@ describe('PublicStatsService', () => {
     service = new PublicStatsService(
       mockRepo as never,
       mockPricingCache as unknown as ModelPricingCacheService,
-      mockDataSource as never,
     );
   });
 

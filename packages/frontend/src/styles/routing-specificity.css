@@ -44,7 +44,7 @@
 /* ── Section header layout for specificity ──────── */
 .specificity-header.routing-section__header {
   flex-direction: row;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
 }
 

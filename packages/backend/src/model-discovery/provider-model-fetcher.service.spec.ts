@@ -180,7 +180,7 @@ describe('ProviderModelFetcherService', () => {
       expect(result.map((m) => m.id)).toEqual(['gpt-4o', 'gpt-4.1']);
     });
 
-    it('should filter out v1/responses-only models', async () => {
+    it('should keep Responses-only chat models (Codex/-pro/o1-pro/deep-research) so the proxy can route them to /v1/responses', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,
         json: async () => ({
@@ -206,8 +206,41 @@ describe('ProviderModelFetcherService', () => {
       });
 
       const result = await service.fetch('openai', 'sk-test');
-      // chat-latest, codex-mini-latest, and o3 should pass; codex, pro, image, and deep-research filtered
-      expect(result.map((m) => m.id)).toEqual(['gpt-5-chat-latest', 'codex-mini-latest', 'o3']);
+      // Image-gen is not chat and stays filtered; everything else passes through
+      // so the proxy can swap to openai-responses at forward time.
+      expect(result.map((m) => m.id)).toEqual([
+        'gpt-5-chat-latest',
+        'gpt-5-codex',
+        'gpt-5-pro',
+        'gpt-5.1-codex',
+        'gpt-5.1-codex-mini',
+        'gpt-5.2-codex',
+        'gpt-5.2-pro',
+        'gpt-5.4-pro',
+        'gpt-5.3-codex',
+        'codex-mini-latest',
+        'o1-pro',
+        'o4-mini-deep-research',
+        'o3',
+      ]);
+    });
+
+    it('should drop image-generation models from discovery (not chat-compatible)', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'gpt-image-1' },
+            { id: 'gpt-image-1-mini' },
+            { id: 'gpt-image-1.5' },
+            { id: 'gpt-image-2' },
+            { id: 'gpt-4o' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('openai', 'sk-test');
+      expect(result.map((m) => m.id)).toEqual(['gpt-4o']);
     });
 
     it('should not filter non-OpenAI providers with similar model names', async () => {
@@ -223,7 +256,7 @@ describe('ProviderModelFetcherService', () => {
       expect(result).toHaveLength(2);
     });
 
-    it('should keep codex-mini-latest (chat-compatible codex model)', async () => {
+    it('should keep both codex-mini-latest (chat-compatible) and Responses-only Codex variants (routed at proxy time)', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,
         json: async () => ({
@@ -232,7 +265,7 @@ describe('ProviderModelFetcherService', () => {
       });
 
       const result = await service.fetch('openai', 'sk-test');
-      expect(result.map((m) => m.id)).toEqual(['codex-mini-latest']);
+      expect(result.map((m) => m.id)).toEqual(['codex-mini-latest', 'gpt-5-codex']);
     });
 
     it('should deduplicate dated snapshots when alias exists', async () => {
@@ -1606,7 +1639,7 @@ describe('ProviderModelFetcherService', () => {
       expect(result[0].id).toBe('o3');
     });
 
-    it('should keep codex-mini-latest but filter other codex models', async () => {
+    it('should keep all Codex variants in discovery (proxy routes them to /v1/responses)', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,
         json: async () => ({
@@ -1620,10 +1653,15 @@ describe('ProviderModelFetcherService', () => {
       });
 
       const result = await service.fetch('openai', 'sk-test');
-      expect(result.map((m) => m.id)).toEqual(['codex-mini-latest']);
+      expect(result.map((m) => m.id)).toEqual([
+        'codex-mini-latest',
+        'gpt-5-codex',
+        'gpt-5.1-codex',
+        'gpt-5.2-codex',
+      ]);
     });
 
-    it('should filter out gpt-5-pro but keep gpt-5-chat-latest', async () => {
+    it('should keep gpt-5 -pro variants alongside gpt-5-chat-latest (proxy routes -pro to /v1/responses)', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,
         json: async () => ({
@@ -1637,7 +1675,12 @@ describe('ProviderModelFetcherService', () => {
       });
 
       const result = await service.fetch('openai', 'sk-test');
-      expect(result.map((m) => m.id)).toEqual(['gpt-5-chat-latest', 'gpt-5']);
+      expect(result.map((m) => m.id)).toEqual([
+        'gpt-5-pro',
+        'gpt-5.2-pro',
+        'gpt-5-chat-latest',
+        'gpt-5',
+      ]);
     });
 
     it('should filter out audio models', async () => {

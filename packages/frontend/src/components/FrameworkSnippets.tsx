@@ -1,12 +1,13 @@
 import { createEffect, createSignal, For, Show, type Component } from 'solid-js';
 import CopyButton from './CopyButton.jsx';
-import CodeBlock from './CodeBlock.jsx';
 import { highlight } from '../services/syntax-highlight.js';
 import {
   type ToolkitId,
   type OpenAILangId,
+  type OpenAIApiId,
   TOOLKIT_TABS,
   SDK_LANG_TOGGLE,
+  OPENAI_API_TOGGLE,
   getStoredToolkit,
   storeToolkit,
   getStoredOpenAILang,
@@ -21,6 +22,12 @@ interface Props {
   baseUrl: string;
   hideFullKey?: boolean;
   defaultToolkit?: ToolkitId;
+  /**
+   * Extra request headers to weave into every snippet (OpenAI's defaultHeaders,
+   * Vercel AI's headers, LangChain's configuration.defaultHeaders, curl -H).
+   * Used by the header-tier "How to send this" modal.
+   */
+  customHeaders?: Record<string, string>;
 }
 
 const EyeOpen: Component = () => (
@@ -64,6 +71,7 @@ const FrameworkSnippets: Component<Props> = (props) => {
     props.defaultToolkit ?? getStoredToolkit(),
   );
   const [openaiLang, setOpenaiLang] = createSignal<OpenAILangId>(getStoredOpenAILang());
+  const [openaiApi, setOpenaiApi] = createSignal<OpenAIApiId>('responses');
   const [keyRevealed, setKeyRevealed] = createSignal(!props.hideFullKey);
 
   createEffect(() => {
@@ -89,10 +97,27 @@ const FrameworkSnippets: Component<Props> = (props) => {
   };
 
   const snippet = () =>
-    getSnippetForToolkit(activeTab(), props.baseUrl, displayKey(), openaiLang());
+    getSnippetForToolkit(
+      activeTab(),
+      props.baseUrl,
+      displayKey(),
+      openaiLang(),
+      props.customHeaders,
+      openaiApi(),
+    );
   const snippetForCopy = () =>
-    getSnippetForToolkit(activeTab(), props.baseUrl, copyKey(), openaiLang());
+    getSnippetForToolkit(
+      activeTab(),
+      props.baseUrl,
+      copyKey(),
+      openaiLang(),
+      props.customHeaders,
+      openaiApi(),
+    );
   const language = () => getLangForToolkit(activeTab(), openaiLang());
+
+  const headerEntries = (): [string, string][] =>
+    props.customHeaders ? Object.entries(props.customHeaders) : [];
 
   return (
     <div class="framework-snippets">
@@ -119,21 +144,41 @@ const FrameworkSnippets: Component<Props> = (props) => {
         </Show>
 
         <Show when={activeTab() === 'openai-sdk' || activeTab() === 'vercel-ai-sdk'}>
-          <div class="toolkit-lang-toggle" role="tablist" aria-label="Language">
-            <For each={SDK_LANG_TOGGLE}>
-              {(lang) => (
-                <button
-                  class="toolkit-lang-toggle__btn"
-                  classList={{ 'toolkit-lang-toggle__btn--active': openaiLang() === lang.id }}
-                  onClick={() => handleLangChange(lang.id)}
-                  role="tab"
-                  aria-selected={openaiLang() === lang.id}
-                >
-                  <img src={lang.icon} alt="" width="14" height="14" />
-                  {lang.label}
-                </button>
-              )}
-            </For>
+          <div class="framework-snippets__toggle-row">
+            <div class="toolkit-lang-toggle" role="tablist" aria-label="Language">
+              <For each={SDK_LANG_TOGGLE}>
+                {(lang) => (
+                  <button
+                    class="toolkit-lang-toggle__btn"
+                    classList={{ 'toolkit-lang-toggle__btn--active': openaiLang() === lang.id }}
+                    onClick={() => handleLangChange(lang.id)}
+                    role="tab"
+                    aria-selected={openaiLang() === lang.id}
+                  >
+                    <img src={lang.icon} alt="" width="14" height="14" />
+                    {lang.label}
+                  </button>
+                )}
+              </For>
+            </div>
+
+            <Show when={activeTab() === 'openai-sdk'}>
+              <div class="toolkit-api-toggle" role="tablist" aria-label="OpenAI API">
+                <For each={OPENAI_API_TOGGLE}>
+                  {(api) => (
+                    <button
+                      class="toolkit-api-toggle__btn"
+                      classList={{ 'toolkit-api-toggle__btn--active': openaiApi() === api.id }}
+                      onClick={() => setOpenaiApi(api.id)}
+                      role="tab"
+                      aria-selected={openaiApi() === api.id}
+                    >
+                      {api.label}
+                    </button>
+                  )}
+                </For>
+              </div>
+            </Show>
           </div>
         </Show>
 
@@ -196,6 +241,19 @@ const FrameworkSnippets: Component<Props> = (props) => {
             <CopyButton text="auto" />
           </span>
         </div>
+        <For each={headerEntries()}>
+          {([key, value]) => (
+            <div class="setup-onboard-fields__row" role="listitem">
+              <span class="setup-onboard-fields__label">
+                Header <code>{key}</code>
+              </span>
+              <span class="setup-onboard-fields__value">
+                <code>{value}</code>
+                <CopyButton text={value} />
+              </span>
+            </div>
+          )}
+        </For>
       </div>
     </div>
   );

@@ -1,10 +1,16 @@
 # First boot: `docker compose up -d` starts the stack. Visit
-# http://localhost:3001 and the app walks you through creating the first
+# http://localhost:2099 and the app walks you through creating the first
 # admin account via the setup wizard at /setup. No hardcoded credentials.
 #
 # Configuration comes from a `.env` file next to this compose file.
 # Copy `.env.example` to `.env` and set at least BETTER_AUTH_SECRET before
 # booting. The install script does this automatically.
+#
+# Connecting local LLM servers (Ollama, LM Studio, or any OpenAI-compatible server):
+# Install your server on the host, bind it to 0.0.0.0, and point Manifest
+# at `http://host.docker.internal:<port>/v1`. Manifest auto-allows private
+# and http URLs in the self-hosted version. See DOCKER_README.md for the
+# full flow — no `--profile` flag is needed. Requires Docker Engine 20.10+.
 #
 # Before exposing this instance beyond localhost:
 #   - Set a real BETTER_AUTH_SECRET in .env (openssl rand -hex 32).
@@ -18,22 +24,46 @@
 #     set BETTER_AUTH_URL to a reachable public URL so the verification
 #     links resolve.
 #   - The app port binds to 127.0.0.1 by default. To expose on the LAN,
-#     change `127.0.0.1:3001:3001` below to `3001:3001` AND update
-#     BETTER_AUTH_URL in .env to match the host you reach it on.
+#     change `127.0.0.1:${PORT:-2099}:${PORT:-2099}` below to
+#     `${PORT:-2099}:${PORT:-2099}` AND update BETTER_AUTH_URL in .env to
+#     match the host you reach it on.
+#
+# Staying on the legacy 3001 port (existing installs):
+#   Set `PORT=3001` in `.env`. Everything below reads `${PORT:-2099}`, so
+#   the compose file honours it without further edits.
+
+# Pin the Compose project name so containers, networks, and volumes have
+# stable, predictable names regardless of the install directory's
+# basename. Without this, the project name would be inherited from the
+# directory (commonly `manifest`) and would silently collide with any
+# other Docker project the user happens to have called `manifest` —
+# including older Manifest installs moved to a different path.
+name: mnfst
 
 services:
   manifest:
     image: manifestdotbuild/manifest:latest
     ports:
-      - "127.0.0.1:3001:3001"
+      - "127.0.0.1:${PORT:-2099}:${PORT:-2099}"
+    # Lets the container reach LLM servers running on the host (Ollama,
+    # LM Studio, or any other OpenAI-compatible server) at
+    # host.docker.internal:<port>. Requires Docker Engine 20.10+ (Docker
+    # Desktop works out of the box).
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
+      # Default to 2099 (the current dashboard port). Existing installs can
+      # pin PORT=3001 in .env to stay on the previous port without having
+      # to reconfigure reverse proxies, OAuth callbacks, or bookmarks.
+      - PORT=${PORT:-2099}
       - DATABASE_URL=${DATABASE_URL:-postgresql://manifest:manifest@postgres:5432/manifest}
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET must be set in .env}
-      - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:3001}
-      - OLLAMA_HOST=http://ollama:11434
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:${PORT:-2099}}
+      # Defaults to the host-installed Ollama. Override in .env if your
+      # Ollama runs elsewhere (e.g. on another host on your LAN).
+      - OLLAMA_HOST=${OLLAMA_HOST:-http://host.docker.internal:11434}
       - SEED_DATA=false
       - NODE_ENV=production
-      - AUTO_MIGRATE=true
       # Email provider (optional). Covers both login/verification emails
       # and threshold alert notifications. Set one provider block — see
       # DOCKER_README.md "Email setup". Supports resend, mailgun, sendgrid.
@@ -48,24 +78,43 @@ services:
       - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
       - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID:-}
       - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET:-}
+      # Anonymous usage telemetry (opt-out). Set to 1 to disable. See
+      # https://manifest.build/telemetry for the exact payload shape.
+      - MANIFEST_TELEMETRY_DISABLED=${MANIFEST_TELEMETRY_DISABLED:-0}
     depends_on:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3001/api/v1/health || exit 1"]
+      test:
+        - "CMD"
+        - "node"
+        - "-e"
+        - "const p=process.env.PORT||'2099';fetch(`http://127.0.0.1:$${p}/api/v1/health`).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
       interval: 30s
       timeout: 5s
-      start_period: 45s
+      # Cold first-pull with migrations + pricing-cache warmup comfortably
+      # runs past 60s. A 90s grace keeps Docker from flipping the container
+      # to `unhealthy` (and tripping `depends_on: service_healthy`) while
+      # the app is still legitimately booting.
+      start_period: 90s
       retries: 3
+    # Cap container logs at ~50 MB (5 × 10 MB) so a long-running install
+    # can't fill the host disk via Docker's default unbounded json-file
+    # driver. Rotated logs are still retrievable via `docker logs`.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     read_only: true
     tmpfs:
-      - /tmp
+      - /tmp:size=64m
     security_opt:
       - no-new-privileges:true
     cap_drop:
       - ALL
     mem_limit: 1g
-    pids_limit: 256
+    pids_limit: 512
     networks:
       - internal
       - frontend
@@ -83,24 +132,13 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     security_opt:
       - no-new-privileges:true
-    networks:
-      - internal
-
-  # Optional: run local LLMs via Ollama.
-  # Start with: docker compose --profile ollama up -d
-  ollama:
-    image: ollama/ollama:latest
-    profiles: ["ollama"]
-    volumes:
-      - ollama_data:/root/.ollama
-    healthcheck:
-      test: ["CMD-SHELL", "ollama list || exit 1"]
-      interval: 30s
-      timeout: 5s
-      start_period: 30s
-      retries: 3
     networks:
       - internal
 
@@ -112,5 +150,11 @@ networks:
     driver: bridge
 
 volumes:
+  # Pin the volume name so existing installs (whose project name was
+  # inherited from the `manifest` directory basename) keep seeing their
+  # historical `manifest_pgdata` volume after we set an explicit
+  # `name: mnfst` project name above. Without this pin, renaming the
+  # project would orphan the old volume and the new stack would come up
+  # against a fresh empty DB — i.e. data loss.
   pgdata:
-  ollama_data:
+    name: manifest_pgdata

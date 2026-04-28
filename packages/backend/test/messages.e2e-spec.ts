@@ -121,6 +121,49 @@ describe('GET /api/v1/messages', () => {
     expect(item).toHaveProperty('feedback_rating');
     expect(item.feedback_rating).toBeNull();
   });
+
+  it('filters to successful messages with status=ok', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/v1/messages?range=24h&status=ok')
+      .set('x-api-key', TEST_API_KEY)
+      .expect(200);
+
+    expect(res.body.items.length).toBeGreaterThan(0);
+    expect(res.body.items.every((item: Record<string, string>) => item['status'] === 'ok')).toBe(
+      true,
+    );
+  });
+
+  it('filters to error messages with status=error', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/v1/messages?range=24h&status=error')
+      .set('x-api-key', TEST_API_KEY)
+      .expect(200);
+
+    expect(res.body.items.length).toBeGreaterThan(0);
+    expect(res.body.items.every((item: Record<string, string>) => item['status'] === 'error')).toBe(
+      true,
+    );
+  });
+
+  it('filters to all error variants with status=errors', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/v1/messages?range=24h&status=errors')
+      .set('x-api-key', TEST_API_KEY)
+      .expect(200);
+
+    expect(res.body.items.length).toBeGreaterThan(0);
+    for (const item of res.body.items) {
+      expect(['error', 'fallback_error', 'rate_limited']).toContain(item['status']);
+    }
+  });
+
+  it('rejects an invalid status value with 400', async () => {
+    await request(app.getHttpServer())
+      .get('/api/v1/messages?range=24h&status=bogus')
+      .set('x-api-key', TEST_API_KEY)
+      .expect(400);
+  });
 });
 
 describe('PATCH /api/v1/messages/:id/feedback', () => {
@@ -194,6 +237,60 @@ describe('PATCH /api/v1/messages/:id/feedback', () => {
       .set('x-api-key', TEST_API_KEY)
       .send({ rating: 'like' })
       .expect(404);
+  });
+});
+
+describe('GET /api/v1/messages/:id/details — request_headers', () => {
+  it('returns null request_headers for messages stored without them', async () => {
+    const list = await request(app.getHttpServer())
+      .get('/api/v1/messages?range=24h&limit=1')
+      .set('x-api-key', TEST_API_KEY)
+      .expect(200);
+    const id = list.body.items[0].id;
+
+    const details = await request(app.getHttpServer())
+      .get(`/api/v1/messages/${id}/details`)
+      .set('x-api-key', TEST_API_KEY)
+      .expect(200);
+
+    expect(details.body.message.request_headers).toBeNull();
+    expect(details.body.message.caller_attribution).toBeNull();
+  });
+
+  it('returns the stored headers verbatim', async () => {
+    const ds = app.get(DataSource);
+    const id = uuid();
+    const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
+    const headers = { 'user-agent': 'curl/8.14.1', 'x-custom-foo': 'bar' };
+
+    await ds.query(
+      `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, description, service_type, agent_name, user_id, request_headers)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
+      [
+        id,
+        TEST_TENANT_ID,
+        TEST_AGENT_ID,
+        now,
+        'ok',
+        'gpt-4o',
+        10,
+        5,
+        0,
+        0,
+        'Headers test',
+        'agent',
+        'test-agent',
+        'test-user-001',
+        JSON.stringify(headers),
+      ],
+    );
+
+    const details = await request(app.getHttpServer())
+      .get(`/api/v1/messages/${id}/details`)
+      .set('x-api-key', TEST_API_KEY)
+      .expect(200);
+
+    expect(details.body.message.request_headers).toEqual(headers);
   });
 });
 

@@ -8,7 +8,7 @@ import { RoutingCacheService } from './routing-cache.service';
 import { ProviderService } from './provider.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { randomUUID } from 'crypto';
-import { TIERS, Tier } from '../../scoring/types';
+import { TIER_SLOTS, TierSlot } from 'manifest-shared';
 import { isManifestUsableProvider } from '../../common/utils/subscription-support';
 
 @Injectable()
@@ -37,49 +37,60 @@ export class TierService {
     await this.providerService.getProviders(agentId);
     const rows = await this.tierRepo.find({ where: { agent_id: agentId } });
 
-    if (rows.length === 0) {
-      // Batch tier inserts — create all 4 tier rows in one query
-      const created: TierAssignment[] = TIERS.map((tier: Tier) =>
-        Object.assign(new TierAssignment(), {
-          id: randomUUID(),
-          user_id: userId ?? '',
-          agent_id: agentId,
-          tier,
-          override_model: null,
-          override_provider: null,
-          override_auth_type: null,
-          auto_assigned_model: null,
-        }),
-      );
-      try {
-        await this.tierRepo.insert(created);
-      } catch {
-        // Concurrent request already created the rows — re-read
-        const existing = await this.tierRepo.find({ where: { agent_id: agentId } });
-        if (existing.length > 0) {
-          this.routingCache.setTiers(agentId, existing);
-          return existing;
-        }
-      }
+    // Figure out which slots are missing. Every agent should have a row for
+    // each slot in TIER_SLOTS (4 scoring tiers + 'default'). If a previous
+    // boot or older migration created a subset, fill the gaps instead of
+    // throwing on the unique index.
+    const present = new Set(rows.map((r) => r.tier));
+    const missing = TIER_SLOTS.filter((slot) => !present.has(slot));
 
-      // If agent has active providers, recalculate immediately
-      const providers = await this.providerRepo.find({
-        where: { agent_id: agentId, is_active: true },
-      });
-      const usableProviders = providers.filter(isManifestUsableProvider);
-      if (usableProviders.length > 0) {
-        await this.autoAssign.recalculate(agentId);
-        const result = await this.tierRepo.find({ where: { agent_id: agentId } });
-        this.routingCache.setTiers(agentId, result);
-        return result;
-      }
-
-      this.routingCache.setTiers(agentId, created);
-      return created;
+    if (missing.length === 0) {
+      this.routingCache.setTiers(agentId, rows);
+      return rows;
     }
 
-    this.routingCache.setTiers(agentId, rows);
-    return rows;
+    const created: TierAssignment[] = missing.map((slot: TierSlot) =>
+      Object.assign(new TierAssignment(), {
+        id: randomUUID(),
+        user_id: userId ?? '',
+        agent_id: agentId,
+        tier: slot,
+        override_model: null,
+        override_provider: null,
+        override_auth_type: null,
+        auto_assigned_model: null,
+      }),
+    );
+    try {
+      await this.tierRepo.insert(created);
+    } catch (err) {
+      // A concurrent request may have inserted the same slots first, which
+      // hits the unique (agent_id, tier) index. Re-read and adopt its rows
+      // if present; otherwise the failure is something else (FK violation,
+      // connection error, …) and we rethrow rather than silently proceed.
+      const existing = await this.tierRepo.find({ where: { agent_id: agentId } });
+      if (existing.length > 0) {
+        this.routingCache.setTiers(agentId, existing);
+        return existing;
+      }
+      throw err;
+    }
+
+    // If agent has active providers, recalculate so new slots get auto-assigned models.
+    const providers = await this.providerRepo.find({
+      where: { agent_id: agentId, is_active: true },
+    });
+    const usableProviders = providers.filter(isManifestUsableProvider);
+    if (usableProviders.length > 0) {
+      await this.autoAssign.recalculate(agentId);
+      const result = await this.tierRepo.find({ where: { agent_id: agentId } });
+      this.routingCache.setTiers(agentId, result);
+      return result;
+    }
+
+    const merged = [...rows, ...created];
+    this.routingCache.setTiers(agentId, merged);
+    return merged;
   }
 
   async setOverride(

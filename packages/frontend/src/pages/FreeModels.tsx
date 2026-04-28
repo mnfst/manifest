@@ -5,7 +5,7 @@ import ErrorState from '../components/ErrorState.jsx';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import { getFreeModels, type FreeProviderDto } from '../services/api.js';
 import { PROVIDERS } from '../services/providers.js';
-import { checkIsLocalMode } from '../services/setup-status.js';
+import { checkIsSelfHosted } from '../services/setup-status.js';
 import { toast } from '../services/toast-store.js';
 
 /** Logos that have a `-dark-mode` variant in /icons/ */
@@ -87,7 +87,7 @@ const FREE_TO_BUILTIN: Record<string, string> = {
 const ConnectButton: Component<{ provider: FreeProviderDto }> = (props) => {
   const params = useParams<{ agentName: string }>();
   const agentName = () => decodeURIComponent(params.agentName);
-  const [isLocal] = createResource(() => checkIsLocalMode());
+  const [isSelfHosted] = createResource(() => checkIsSelfHosted());
 
   const builtinId = () => FREE_TO_BUILTIN[props.provider.name];
   const builtin = () => {
@@ -111,7 +111,7 @@ const ConnectButton: Component<{ provider: FreeProviderDto }> = (props) => {
     return m ? `${base}&models=${encodeURIComponent(m)}` : base;
   };
 
-  // Ollama (local-only) is disabled in cloud mode
+  // Ollama (self-hosted only) is disabled in cloud mode
   const isOllamaLocal = () => {
     const b = builtin();
     return b?.localOnly === true;
@@ -119,9 +119,12 @@ const ConnectButton: Component<{ provider: FreeProviderDto }> = (props) => {
 
   return (
     <Show
-      when={!isOllamaLocal() || isLocal()}
+      when={!isOllamaLocal() || isSelfHosted()}
       fallback={
-        <span class="free-models-disabled-btn" data-tooltip="Available in local mode only">
+        <span
+          class="free-models-disabled-btn"
+          data-tooltip="Available on the self-hosted version only"
+        >
           Connect {props.provider.name}
         </span>
       }
@@ -187,18 +190,29 @@ const FreeModels: Component = () => {
               <div class="panel" style="margin-bottom: 24px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 8px;">
                   <h2 style="margin: 0; font-size: var(--font-size-lg); display: flex; align-items: center; gap: 8px;">
-                    {provider.logo && (() => {
-                      const dark = provider.logo.replace(/\.([^.]+)$/, '-dark-mode.$1');
-                      const hasDark = DARK_MODE_LOGOS.has(provider.logo);
-                      return hasDark ? (
-                        <>
-                          <img src={provider.logo} alt="" class="free-models-logo-light" style="height: 20px;" />
-                          <img src={dark} alt="" class="free-models-logo-dark" style="height: 20px;" />
-                        </>
-                      ) : (
-                        <img src={provider.logo} alt="" style="height: 20px;" />
-                      );
-                    })()}
+                    {provider.logo &&
+                      (() => {
+                        const dark = provider.logo.replace(/\.([^.]+)$/, '-dark-mode.$1');
+                        const hasDark = DARK_MODE_LOGOS.has(provider.logo);
+                        return hasDark ? (
+                          <>
+                            <img
+                              src={provider.logo}
+                              alt=""
+                              class="free-models-logo-light"
+                              style="height: 20px;"
+                            />
+                            <img
+                              src={dark}
+                              alt=""
+                              class="free-models-logo-dark"
+                              style="height: 20px;"
+                            />
+                          </>
+                        ) : (
+                          <img src={provider.logo} alt="" style="height: 20px;" />
+                        );
+                      })()}
                     {provider.name}
                   </h2>
                   <div style="display: flex; gap: 8px; flex-shrink: 0;">
@@ -272,9 +286,7 @@ const FreeModels: Component = () => {
                           style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-sm); color: hsl(var(--foreground)); padding: 0; background: none; border: none; cursor: pointer; white-space: nowrap; font-weight: 500;"
                           onClick={() => setShowModels((v) => !v)}
                         >
-                          {showModels()
-                            ? 'Hide models'
-                            : `Show models (${displayModels().length})`}
+                          {showModels() ? 'Hide models' : `Show models (${displayModels().length})`}
                           <img
                             src="/icons/caret-down.svg"
                             alt=""

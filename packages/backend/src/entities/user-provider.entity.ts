@@ -1,5 +1,6 @@
 import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
-import { timestampType, timestampDefault } from '../common/utils/sql-dialect';
+import type { AuthType } from 'manifest-shared';
+import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
 import type { DiscoveredModel } from '../model-discovery/model-fetcher';
 
 @Entity('user_providers')
@@ -24,7 +25,7 @@ export class UserProvider {
   key_prefix!: string | null;
 
   @Column('varchar', { default: 'api_key' })
-  auth_type!: 'api_key' | 'subscription';
+  auth_type!: AuthType;
 
   @Column('varchar', { nullable: true, default: null })
   region!: string | null;

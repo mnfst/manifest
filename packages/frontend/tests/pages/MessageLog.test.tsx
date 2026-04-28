@@ -48,9 +48,9 @@ vi.mock("../../src/services/formatters.js", () => ({
   customProviderColor: vi.fn(() => '#6366f1'),
 }));
 
-const mockCheckIsLocalMode = vi.fn(() => Promise.resolve(false));
+const mockCheckIsSelfHosted = vi.fn(() => Promise.resolve(false));
 vi.mock("../../src/services/setup-status.js", () => ({
-  checkIsLocalMode: () => mockCheckIsLocalMode(),
+  checkIsSelfHosted: () => mockCheckIsSelfHosted(),
 }));
 
 vi.mock("../../src/components/SetupModal.jsx", () => ({
@@ -166,7 +166,7 @@ describe("MessageLog", () => {
       expect(container.textContent).toContain("Total Tokens");
       expect(container.textContent).toContain("Model");
       expect(container.textContent).toContain("Cache");
-      expect(container.textContent).toContain("Duration");
+      expect(container.textContent).toContain("Latency");
       expect(container.textContent).toContain("Status");
     });
   });
@@ -528,24 +528,25 @@ describe("MessageLog", () => {
     expect(container.querySelector('[data-testid="setup-modal"]')).not.toBeNull();
   });
 
-  it("shows Enable routing button when setupCompleted but no providers", async () => {
+  it("shows Connect provider button when setupCompleted but no providers", async () => {
     localStorage.setItem("setup_completed_test-agent", "1");
     mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Enable routing");
+      expect(container.textContent).toContain("Connect provider");
       expect(container.textContent).toContain("Connect a provider to start routing LLM calls");
+      expect(container.textContent).not.toContain("Enable routing");
       const btn = container.querySelector('.empty-state button.btn--primary');
       expect(btn).not.toBeNull();
     });
   });
 
-  it("navigates to routing with openProviders state when Enable routing clicked", async () => {
+  it("navigates to routing with openProviders state when Connect provider clicked", async () => {
     localStorage.setItem("setup_completed_test-agent", "1");
     mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Enable routing");
+      expect(container.textContent).toContain("Connect provider");
     });
     const btn = container.querySelector('.empty-state button.btn--primary') as HTMLButtonElement;
     fireEvent.click(btn);
@@ -572,6 +573,7 @@ describe("MessageLog", () => {
     await vi.waitFor(() => {
       expect(container.textContent).toContain("Set up agent");
       expect(container.textContent).not.toContain("Enable routing");
+      expect(container.textContent).not.toContain("Connect provider");
     });
   });
 
@@ -949,8 +951,8 @@ describe("MessageLog", () => {
       expect(modal?.getAttribute("data-open")).toBe("false");
     });
 
-    it("hides feedback column and modal in local mode", async () => {
-      mockCheckIsLocalMode.mockResolvedValue(true);
+    it("hides feedback column and modal in the self-hosted version", async () => {
+      mockCheckIsSelfHosted.mockResolvedValue(true);
       mockGetMessages.mockResolvedValue(messagesData);
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
@@ -958,7 +960,7 @@ describe("MessageLog", () => {
       });
       expect(container.querySelector(".feedback-btn")).toBeNull();
       expect(container.querySelector('[data-testid="feedback-modal"]')).toBeNull();
-      mockCheckIsLocalMode.mockResolvedValue(false);
+      mockCheckIsSelfHosted.mockResolvedValue(false);
     });
 
     it("reverts optimistic like on API error", async () => {

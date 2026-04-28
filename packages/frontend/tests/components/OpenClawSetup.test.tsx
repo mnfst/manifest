@@ -126,7 +126,7 @@ describe("OpenClawSetup", () => {
     expect(fields[0].textContent).toContain("http://localhost:3001/v1");
     expect(fields[1].textContent).toContain("API Key");
     expect(fields[2].textContent).toContain("Endpoint compatibility");
-    expect(fields[2].textContent).toContain("OpenAI-compatible");
+    expect(fields[2].textContent).toContain("OpenAI Responses-compatible");
     expect(fields[3].textContent).toContain("Model ID");
     expect(fields[3].textContent).toContain("auto");
     expect(fields[4].textContent).toContain("Endpoint ID");
@@ -189,6 +189,15 @@ describe("OpenClawSetup", () => {
       <OpenClawSetup {...defaultProps} baseUrl="https://example.com/v1" />
     ));
     expect(container.textContent).toContain("https://example.com/v1");
+    expect(container.textContent).toContain("openai-responses");
+    expect(container.textContent).not.toContain("openai-completions");
+  });
+
+  it("labels the onboarding compatibility as Responses-compatible", () => {
+    const { container } = render(() => <OpenClawSetup {...defaultProps} />);
+    const segment = container.querySelector(".setup-segment--full");
+    fireEvent.click(segment!.querySelectorAll(".setup-segment__btn")[1]);
+    expect(container.textContent).toContain("OpenAI Responses-compatible");
   });
 
   it("renders CLI copy button with snippet text containing masked key", () => {

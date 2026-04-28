@@ -73,11 +73,13 @@ export class ApiKeyGuard implements CanActivate {
   }
 
   private safeCompare(a: string, b: string): boolean {
-    const maxLen = Math.max(a.length, b.length);
-    const aBuf = Buffer.alloc(maxLen);
-    const bBuf = Buffer.alloc(maxLen);
-    Buffer.from(a).copy(aBuf);
-    Buffer.from(b).copy(bBuf);
-    return a.length === b.length && timingSafeEqual(aBuf, bBuf);
+    const aBuf = Buffer.from(a, 'utf8');
+    const bBuf = Buffer.from(b, 'utf8');
+    // timingSafeEqual requires equal-length inputs. A length mismatch is
+    // a definite mismatch, and the length of the configured env-based
+    // API_KEY is not a secret worth hiding. Real agent ingest keys take
+    // the scrypt path via hash.util.verifyKey further up.
+    if (aBuf.length !== bBuf.length) return false;
+    return timingSafeEqual(aBuf, bBuf);
   }
 }

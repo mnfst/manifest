@@ -74,7 +74,7 @@ describe("Limits page", () => {
 
   it("renders Create rule button", () => {
     render(() => <Limits />);
-    expect(screen.getByText("+ Create rule")).toBeDefined();
+    expect(screen.getByText("Create rule")).toBeDefined();
   });
 
   it("renders empty state when no rules", async () => {
@@ -107,22 +107,24 @@ describe("Limits page", () => {
     });
   });
 
-  it("shows routing CTA banner when routing disabled", async () => {
+  it("shows Connect-provider CTA banner when no provider is active", async () => {
     mockRoutingStatus = { enabled: false };
 
     const { container } = render(() => <Limits />);
 
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Enable routing to set hard limits");
+      expect(container.textContent).toContain("Connect a provider to set hard limits");
+      expect(container.textContent).not.toContain("Enable routing to set hard limits");
     });
   });
 
-  it("hides routing CTA banner when routing enabled", async () => {
+  it("hides the CTA banner when a provider is already active", async () => {
     mockRoutingStatus = { enabled: true };
 
     const { container } = render(() => <Limits />);
 
     await vi.waitFor(() => {
+      expect(container.textContent).not.toContain("Connect a provider to set hard limits");
       expect(container.textContent).not.toContain("Enable routing to set hard limits");
     });
   });
@@ -230,11 +232,11 @@ describe("Limits page", () => {
     });
   });
 
-  it("shows disabled row style for inactive rules (is_active=0)", async () => {
+  it("shows disabled row style for inactive rules", async () => {
     mockRules = [{
       id: "r1", agent_name: "test-agent", metric_type: "tokens",
       threshold: 50000, period: "day", action: "notify",
-      is_active: 0, trigger_count: 0, created_at: "2026-01-01",
+      is_active: false, trigger_count: 0, created_at: "2026-01-01",
     }];
     const { container } = render(() => <Limits />);
     await vi.waitFor(() => {
@@ -242,11 +244,11 @@ describe("Limits page", () => {
     });
   });
 
-  it("does not show disabled row for active rules (is_active=1, sql.js local mode)", async () => {
+  it("does not show disabled row for active rules", async () => {
     mockRules = [{
       id: "r1", agent_name: "test-agent", metric_type: "tokens",
       threshold: 50000, period: "day", action: "notify",
-      is_active: 1, trigger_count: 0, created_at: "2026-01-01",
+      is_active: true, trigger_count: 0, created_at: "2026-01-01",
     }];
     const { container } = render(() => <Limits />);
     await vi.waitFor(() => {
@@ -515,7 +517,7 @@ describe("Limits page", () => {
     render(() => <Limits />);
 
     // Open the create rule modal
-    fireEvent.click(screen.getByText("+ Create rule"));
+    fireEvent.click(screen.getByText("Create rule"));
     await vi.waitFor(() => {
       const modal = screen.getByTestId("limit-modal");
       expect(modal.getAttribute("data-open")).toBe("true");

@@ -1,10 +1,22 @@
+import { Repository } from 'typeorm';
 import { ModelPricingCacheService } from './model-pricing-cache.service';
 import { PricingSyncService, OpenRouterPricingEntry } from '../database/pricing-sync.service';
 import { ModelsDevSyncService } from '../database/models-dev-sync.service';
 import { ProviderModelRegistryService } from '../model-discovery/provider-model-registry.service';
+import { CustomProvider } from '../entities/custom-provider.entity';
 
 function makeEntry(input: number, output: number): OpenRouterPricingEntry {
   return { input, output };
+}
+
+function makeCustomProviderRepo(rows: CustomProvider[] | Error) {
+  const find = jest.fn();
+  if (rows instanceof Error) {
+    find.mockRejectedValue(rows);
+  } else {
+    find.mockResolvedValue(rows);
+  }
+  return { find } as unknown as Repository<CustomProvider>;
 }
 
 function makeMockRegistry() {
@@ -618,6 +630,205 @@ describe('ModelPricingCacheService', () => {
       const entry = service.getByModel('claude-test');
       expect(entry).toBeDefined();
       expect(entry!.validated).toBe(false);
+    });
+  });
+
+  describe('custom provider entries', () => {
+    const makeCp = (overrides: Partial<CustomProvider> = {}): CustomProvider =>
+      ({
+        id: 'cp-uuid-1',
+        agent_id: 'agent-1',
+        user_id: 'user-1',
+        name: 'CPA',
+        base_url: 'https://example.com/v1',
+        models: [],
+        created_at: '2026-01-01T00:00:00.000Z',
+        ...overrides,
+      }) as CustomProvider;
+
+    function makeServiceWithCustom(rows: CustomProvider[] | Error) {
+      const mockSync = { getAll: mockGetAll } as unknown as PricingSyncService;
+      return new ModelPricingCacheService(
+        mockSync,
+        mockModelsDevSync as unknown as ModelsDevSyncService,
+        mockRegistry as unknown as ProviderModelRegistryService,
+        makeCustomProviderRepo(rows),
+      );
+    }
+
+    it('indexes prices under the `custom:<uuid>/<model>` key used by the proxy', async () => {
+      mockGetAll.mockReturnValue(new Map());
+      const svc = makeServiceWithCustom([
+        makeCp({
+          models: [
+            {
+              model_name: 'gemini-3-flash',
+              input_price_per_million_tokens: 2,
+              output_price_per_million_tokens: 6,
+            },
+          ],
+        }),
+      ]);
+
+      await svc.reload();
+
+      const entry = svc.getByModel('custom:cp-uuid-1/gemini-3-flash');
+      expect(entry).toBeDefined();
+      // Per-million input/output → per-token (divide by 1e6).
+      expect(entry!.input_price_per_token).toBe(2 / 1_000_000);
+      expect(entry!.output_price_per_token).toBe(6 / 1_000_000);
+      expect(entry!.provider).toBe('Custom');
+      expect(entry!.source).toBe('custom');
+    });
+
+    it('excludes custom entries from getAll() to avoid leaking across tenants', async () => {
+      mockGetAll.mockReturnValue(
+        new Map<string, OpenRouterPricingEntry>([['openai/gpt-4o', makeEntry(0.001, 0.002)]]),
+      );
+      const svc = makeServiceWithCustom([
+        makeCp({
+          models: [
+            {
+              model_name: 'private-model',
+              input_price_per_million_tokens: 1,
+              output_price_per_million_tokens: 1,
+            },
+          ],
+        }),
+      ]);
+
+      await svc.reload();
+
+      // The custom model must still be resolvable by getByModel (the UUID
+      // makes the key globally unique), but must NOT appear in getAll()
+      // since /api/v1/model-prices is not scoped by user.
+      expect(svc.getByModel('custom:cp-uuid-1/private-model')).toBeDefined();
+      const all = svc.getAll();
+      expect(all.some((e) => e.model_name.startsWith('custom:'))).toBe(false);
+      expect(all.some((e) => e.model_name === 'openai/gpt-4o')).toBe(true);
+    });
+
+    it('handles models with only input or only output pricing set', async () => {
+      mockGetAll.mockReturnValue(new Map());
+      const svc = makeServiceWithCustom([
+        makeCp({
+          models: [
+            { model_name: 'input-only', input_price_per_million_tokens: 5 },
+            { model_name: 'output-only', output_price_per_million_tokens: 10 },
+          ],
+        }),
+      ]);
+
+      await svc.reload();
+
+      const inputOnly = svc.getByModel('custom:cp-uuid-1/input-only');
+      expect(inputOnly!.input_price_per_token).toBe(5 / 1_000_000);
+      expect(inputOnly!.output_price_per_token).toBeNull();
+
+      const outputOnly = svc.getByModel('custom:cp-uuid-1/output-only');
+      expect(outputOnly!.input_price_per_token).toBeNull();
+      expect(outputOnly!.output_price_per_token).toBe(10 / 1_000_000);
+    });
+
+    it('skips entries with no pricing at all (nothing to compute)', async () => {
+      mockGetAll.mockReturnValue(new Map());
+      const svc = makeServiceWithCustom([
+        makeCp({
+          models: [{ model_name: 'no-price' }],
+        }),
+      ]);
+
+      await svc.reload();
+
+      expect(svc.getByModel('custom:cp-uuid-1/no-price')).toBeUndefined();
+    });
+
+    it('skips rows with a missing/empty models array without crashing', async () => {
+      mockGetAll.mockReturnValue(new Map());
+      const svc = makeServiceWithCustom([
+        makeCp({ models: undefined as unknown as CustomProvider['models'] }),
+        makeCp({ id: 'cp-uuid-2', models: [] }),
+      ]);
+
+      await expect(svc.reload()).resolves.toBeUndefined();
+      expect(svc.getAll()).toEqual([]);
+    });
+
+    it('skips rows whose model_name is empty (no valid cache key)', async () => {
+      mockGetAll.mockReturnValue(new Map());
+      const svc = makeServiceWithCustom([
+        makeCp({
+          models: [
+            {
+              model_name: '',
+              input_price_per_million_tokens: 1,
+              output_price_per_million_tokens: 2,
+            },
+          ],
+        }),
+      ]);
+
+      await svc.reload();
+      // No entry keyed on an empty model name should end up in the cache.
+      expect(svc.getAll()).toEqual([]);
+    });
+
+    it('degrades gracefully when the custom provider repo read fails', async () => {
+      mockGetAll.mockReturnValue(
+        new Map<string, OpenRouterPricingEntry>([['openai/gpt-4o', makeEntry(0.001, 0.002)]]),
+      );
+      const svc = makeServiceWithCustom(new Error('db down'));
+
+      await expect(svc.reload()).resolves.toBeUndefined();
+      // OpenRouter entries must still be present even if custom load fails.
+      expect(svc.getByModel('openai/gpt-4o')).toBeDefined();
+    });
+
+    it('works when no custom provider repo is injected (legacy wiring)', async () => {
+      const mockSync = { getAll: mockGetAll } as unknown as PricingSyncService;
+      const svc = new ModelPricingCacheService(
+        mockSync,
+        mockModelsDevSync as unknown as ModelsDevSyncService,
+        mockRegistry as unknown as ProviderModelRegistryService,
+      );
+      mockGetAll.mockReturnValue(new Map([['openai/gpt-4o', makeEntry(0.001, 0.002)]]));
+
+      await expect(svc.reload()).resolves.toBeUndefined();
+      expect(svc.getByModel('openai/gpt-4o')).toBeDefined();
+    });
+
+    it('drops stale custom entries on reload when rows are removed', async () => {
+      mockGetAll.mockReturnValue(new Map());
+      // Mutable rows array so we can simulate a removal between reloads.
+      const rows: CustomProvider[] = [
+        makeCp({
+          models: [
+            {
+              model_name: 'gemini-3-flash',
+              input_price_per_million_tokens: 2,
+              output_price_per_million_tokens: 6,
+            },
+          ],
+        }),
+      ];
+      const mockSync = { getAll: mockGetAll } as unknown as PricingSyncService;
+      const repo = {
+        find: jest.fn().mockImplementation(() => Promise.resolve(rows)),
+      } as unknown as Repository<CustomProvider>;
+      const svc = new ModelPricingCacheService(
+        mockSync,
+        mockModelsDevSync as unknown as ModelsDevSyncService,
+        mockRegistry as unknown as ProviderModelRegistryService,
+        repo,
+      );
+
+      await svc.reload();
+      expect(svc.getByModel('custom:cp-uuid-1/gemini-3-flash')).toBeDefined();
+
+      // Simulate provider deletion → repo now returns an empty list.
+      rows.length = 0;
+      await svc.reload();
+      expect(svc.getByModel('custom:cp-uuid-1/gemini-3-flash')).toBeUndefined();
     });
   });
 });

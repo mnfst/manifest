@@ -17,7 +17,7 @@ describe('LimitCheckService', () => {
   let mockInsertLog: jest.Mock;
   let mockResolveUserEmail: jest.Mock;
   let ingestSubject: Subject<string>;
-  let mockRuntime: { isLocalMode: jest.Mock; getAuthBaseUrl: jest.Mock };
+  let mockRuntime: { getAuthBaseUrl: jest.Mock };
 
   beforeEach(() => {
     mockGetActiveBlockRules = jest.fn().mockResolvedValue([]);
@@ -38,7 +38,6 @@ describe('LimitCheckService', () => {
       getFullConfig: mockGetFullConfig,
     } as unknown as EmailProviderConfigService;
     mockRuntime = {
-      isLocalMode: jest.fn().mockReturnValue(false),
       getAuthBaseUrl: jest.fn().mockReturnValue('http://localhost:3001'),
     };
 

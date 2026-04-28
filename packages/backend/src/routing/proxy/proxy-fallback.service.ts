@@ -15,6 +15,7 @@ import {
   resolveEndpointKey,
 } from './provider-endpoints';
 import { CopilotTokenService } from './copilot-token.service';
+import { buildProviderExtraHeaders } from './provider-hooks';
 import { shouldTriggerFallback } from './fallback-status-codes';
 import { inferProviderFromModelName } from '../../common/utils/provider-aliases';
 import { normalizeMinimaxSubscriptionBaseUrl } from '../provider-base-url';
@@ -26,6 +27,7 @@ import {
   describeTransportError,
 } from './proxy-transport';
 import type { SignatureLookup, ThinkingBlockLookup } from './proxy-types';
+import type { ProxyApiMode } from './proxy-types';
 
 export interface FailedFallback {
   model: string;
@@ -63,6 +65,8 @@ export class ProxyFallbackService {
     primaryAuthType?: string,
     signatureLookup?: SignatureLookup,
     thinkingLookup?: ThinkingBlockLookup,
+    apiMode?: ProxyApiMode,
+    chatBody?: Record<string, unknown>,
   ): Promise<{
     success: {
       forward: ForwardResult;
@@ -139,10 +143,12 @@ export class ProxyFallbackService {
         apiKey: resolvedCredentials.apiKey,
         model,
         body,
+        chatBody,
         stream,
         sessionKey,
         signal,
         authType,
+        apiMode,
         resourceUrl: resolvedCredentials.resourceUrl,
         providerRegion,
         signatureLookup,
@@ -180,12 +186,14 @@ export class ProxyFallbackService {
     apiKey: string;
     model: string;
     body: Record<string, unknown>;
+    chatBody?: Record<string, unknown>;
     stream: boolean;
     sessionKey: string;
     signal?: AbortSignal;
     authType?: string;
     resourceUrl?: string;
     providerRegion?: string | null;
+    apiMode?: ProxyApiMode;
     signatureLookup?: SignatureLookup;
     thinkingLookup?: ThinkingBlockLookup;
   }): Promise<ForwardResult> {
@@ -215,18 +223,21 @@ export class ProxyFallbackService {
     apiKey: string;
     model: string;
     body: Record<string, unknown>;
+    chatBody?: Record<string, unknown>;
     stream: boolean;
     sessionKey: string;
     signal?: AbortSignal;
     authType?: string;
     resourceUrl?: string;
     providerRegion?: string | null;
+    apiMode?: ProxyApiMode;
     signatureLookup?: SignatureLookup;
     thinkingLookup?: ThinkingBlockLookup;
   }): Promise<ForwardResult> {
     const {
       provider,
       body,
+      chatBody,
       stream,
       signal,
       authType,
@@ -236,11 +247,7 @@ export class ProxyFallbackService {
       thinkingLookup,
     } = opts;
 
-    const extraHeaders: Record<string, string> = {};
-    if (provider === 'xai') {
-      extraHeaders['x-grok-conv-id'] = opts.sessionKey;
-    }
-    const hasExtraHeaders = Object.keys(extraHeaders).length > 0;
+    const extraHeaders = buildProviderExtraHeaders(provider, opts.sessionKey);
 
     // Copilot: exchange the stored GitHub OAuth token for a short-lived API token
     let effectiveKey = opts.apiKey;
@@ -260,7 +267,7 @@ export class ProxyFallbackService {
       const cpId = CustomProviderService.extractId(provider);
       const cp = await this.customProviderRepo.findOne({ where: { id: cpId } });
       if (cp) {
-        customEndpoint = buildCustomEndpoint(cp.base_url);
+        customEndpoint = buildCustomEndpoint(cp.base_url, cp.api_kind ?? 'openai');
         forwardModel = CustomProviderService.rawModelName(opts.model);
       }
     } else if (resolveEndpointKey(provider) === 'qwen' && isQwenResolvedRegion(providerRegion)) {
@@ -279,11 +286,13 @@ export class ProxyFallbackService {
       apiKey: effectiveKey,
       model: forwardModel,
       body,
+      chatBody,
       stream,
       signal,
-      extraHeaders: hasExtraHeaders ? extraHeaders : undefined,
+      extraHeaders,
       customEndpoint,
       authType,
+      apiMode: opts.apiMode,
       signatureLookup,
       thinkingLookup,
     });

@@ -19,7 +19,7 @@ vi.mock('../../src/services/agent-display-name.js', () => ({
 }));
 
 vi.mock('../../src/services/setup-status.js', () => ({
-  checkIsLocalMode: vi.fn().mockResolvedValue(false),
+  checkIsSelfHosted: vi.fn().mockResolvedValue(false),
 }));
 
 vi.mock('../../src/services/providers.js', () => ({
@@ -310,7 +310,9 @@ describe('FreeModels', () => {
       const disabled = container.querySelector('.free-models-disabled-btn');
       expect(disabled).not.toBeNull();
       expect(disabled!.textContent).toContain('Connect Ollama Cloud');
-      expect(disabled!.getAttribute('data-tooltip')).toBe('Available in local mode only');
+      expect(disabled!.getAttribute('data-tooltip')).toBe(
+        'Available on the self-hosted version only',
+      );
     });
   });
 

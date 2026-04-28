@@ -25,11 +25,6 @@ vi.mock("../../src/components/ProviderIcon.js", () => ({
   customProviderLogo: () => null,
 }));
 
-vi.mock("../../src/services/local-mode.js", () => ({
-  isLocalMode: () => false,
-  checkLocalMode: () => Promise.resolve(false),
-}));
-
 // Only mock opencode-go so the subscription tab has a single entry to click.
 vi.mock("../../src/services/providers.js", () => {
   const opencodeGoProvider = {

@@ -33,8 +33,16 @@ const KEY_ICON = (s: number) => (
   </svg>
 );
 
+const LOCAL_ICON = (s: number) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="m13.18 6.75 2.66-4.22-1.69-1.07L12 4.87 9.85 1.46 8.16 2.53l2.66 4.22-8.67 13.72A1.006 1.006 0 0 0 3 22.01h18c.36 0 .7-.2.88-.52s.16-.71-.03-1.02zM10.24 20 12 16.98 13.76 20zm5.83 0-3.21-5.5c-.36-.62-1.37-.62-1.73 0L7.92 20H4.81L12 8.62 19.19 20h-3.11Z" />
+  </svg>
+);
+
 export function authLabel(authType: string | null | undefined): string {
-  return authType === 'subscription' ? 'Subscription' : 'API Key';
+  if (authType === 'subscription') return 'Subscription';
+  if (authType === 'local') return 'Local';
+  return 'API Key';
 }
 
 export function authBadgeFor(
@@ -47,7 +55,8 @@ export function authBadgeFor(
       <span
         class={`provider-auth-badge provider-auth-badge--sub${overlay}`}
         style={{ width: `${size}px`, height: `${size}px` }}
-        aria-label="Subscription"
+        role="img"
+        aria-label="Subscription provider"
       >
         {USER_ICON(size * 0.58)}
       </span>
@@ -57,9 +66,21 @@ export function authBadgeFor(
       <span
         class={`provider-auth-badge provider-auth-badge--key${overlay}`}
         style={{ width: `${size}px`, height: `${size}px` }}
-        aria-label="API Key"
+        role="img"
+        aria-label="API key provider"
       >
         {KEY_ICON(size * 0.58)}
+      </span>
+    );
+  if (authType === 'local')
+    return (
+      <span
+        class={`provider-auth-badge provider-auth-badge--local${overlay}`}
+        style={{ width: `${size}px`, height: `${size}px` }}
+        role="img"
+        aria-label="Local provider"
+      >
+        {LOCAL_ICON(size * 0.7)}
       </span>
     );
   return null;

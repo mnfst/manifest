@@ -1,10 +1,5 @@
-import {
-  Entity,
-  Column,
-  PrimaryColumn,
-  Index,
-} from 'typeorm';
-import { timestampType, timestampDefault } from '../common/utils/sql-dialect';
+import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
+import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
 
 @Entity('notification_logs')
 @Index(['rule_id', 'period_start'], { unique: true })

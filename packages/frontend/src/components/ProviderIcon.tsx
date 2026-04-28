@@ -1,4 +1,5 @@
 import type { JSX } from 'solid-js';
+import { SHARED_PROVIDER_BY_ID_OR_ALIAS, normalizeProviderName } from 'manifest-shared';
 
 /**
  * Returns an inline SVG icon for a given provider ID, or null if no icon exists.
@@ -260,6 +261,87 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         </svg>
       );
 
+    /* ── llama.cpp ───────────────────────────────── */
+    case 'llamacpp':
+      return (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={size}
+          height={size}
+          viewBox="0 0 212 212"
+          fill="none"
+          style={s}
+          aria-hidden="true"
+        >
+          <path
+            d="M147.308 83.4933L133.808 107.493C116.008 93.7933 89.608 91.7933 71.808 106.493C43.108 130.193 45.108 184.993 89.808 185.293C102.308 185.293 112.908 179.393 124.308 175.493L130.308 199.393C120.208 204.093 109.908 208.893 98.808 210.393C-2.39198 224.193 3.40799 78.0933 94.908 70.4933C114.108 68.8933 131.008 73.8933 147.408 83.4933H147.308Z"
+            fill="#FF8236"
+          />
+          <path
+            d="M77.4072 60.4935C62.0072 65.0935 47.7072 73.5935 36.9072 85.4935C34.9072 61.2935 40.3072 12.3935 67.2072 2.79347C71.2072 1.39347 84.9072 -2.10653 84.5072 4.99347C84.1072 12.0935 74.6073 24.2935 72.3073 30.8935C68.3073 42.4935 72.0072 50.4935 77.5072 60.5935L77.4072 60.4935Z"
+            fill="#FF8236"
+          />
+          <path
+            d="M115.406 115.494V133.494H131.406V147.494H115.406V164.494H100.406V147.494H83.4062V133.494H98.9062L100.406 131.994V115.494H115.406Z"
+            fill="#FF8236"
+          />
+          <path
+            d="M170.406 115.494V131.994L171.906 133.494H187.406V147.494H170.406V164.494H155.406V147.494H139.406V133.494H155.406V115.494H170.406Z"
+            fill="#FF8236"
+          />
+          <path
+            d="M126.306 13.5934C128.306 16.5934 117.006 29.4934 115.206 32.7934C110.006 42.5934 113.506 48.1934 117.406 57.4934C106.106 55.7934 95.6062 57.1934 84.4062 58.4934C86.9062 36.9934 99.0063 5.69339 126.306 13.5934Z"
+            fill="#FF8236"
+          />
+        </svg>
+      );
+
+    /* ── LM Studio ───────────────────────────────── */
+    case 'lmstudio':
+      return (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={size}
+          height={size}
+          viewBox="0 0 16 16"
+          fill="none"
+          style={s}
+        >
+          <rect width="16" height="16" fill="url(#lms-icon-grad)" rx="3" />
+          <g clip-path="url(#lms-icon-clip)">
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M3.42 3a.637.637 0 1 0 0 1.274h7.053a.637.637 0 0 0 0-1.274H3.42Zm2.547 1.665a.637.637 0 0 0 0 1.274h7.053a.637.637 0 0 0 0-1.274H5.967ZM3.812 6.968c0-.352.285-.638.637-.638h7.053a.637.637 0 0 1 0 1.274H4.449a.637.637 0 0 1-.637-.637ZM2.636 8.094a.637.637 0 0 0 0 1.274h7.054a.637.637 0 0 0 0-1.274H2.636Zm1.176 2.302c0-.352.285-.637.637-.637h7.053a.637.637 0 0 1 0 1.274H4.449a.637.637 0 0 1-.637-.637Zm4.702 1.028a.637.637 0 0 0 0 1.274h4.849a.637.637 0 0 0 0-1.274H8.514Z"
+              fill="#fff"
+              fill-opacity="0.3"
+            />
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M3.42 3a.637.637 0 1 0 0 1.274h5.143a.637.637 0 0 0 0-1.274H3.42Zm2.547 1.665a.637.637 0 0 0 0 1.274h5.143a.637.637 0 0 0 0-1.274H5.967ZM3.812 6.968c0-.352.285-.638.637-.638h5.143a.637.637 0 0 1 0 1.274H4.449a.637.637 0 0 1-.637-.637ZM2.636 8.094a.637.637 0 0 0 0 1.274h5.144a.637.637 0 0 0 0-1.274H2.636Zm1.176 2.302c0-.352.285-.637.637-.637h5.143a.637.637 0 0 1 0 1.274H4.449a.637.637 0 0 1-.637-.637Zm4.702 1.028a.637.637 0 0 0 0 1.274h2.89a.637.637 0 0 0 0-1.274h-2.89Z"
+              fill="#fff"
+            />
+          </g>
+          <defs>
+            <linearGradient
+              id="lms-icon-grad"
+              x1="0"
+              y1="0"
+              x2="16"
+              y2="16"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop stop-color="#6C79EF" />
+              <stop offset="1" stop-color="#4F14BE" />
+            </linearGradient>
+            <clipPath id="lms-icon-clip">
+              <rect width="12" height="12" fill="white" transform="translate(2 2)" />
+            </clipPath>
+          </defs>
+        </svg>
+      );
+
     /* ── OpenCode Go ──────────────────────────────── */
     case 'opencode-go':
       return (
@@ -297,6 +379,9 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
 }
 
 const CUSTOM_PROVIDER_LOGOS: Record<string, string> = {
+  azure: '/icons/azure.svg',
+  'azure openai': '/icons/azure.svg',
+  'microsoft azure': '/icons/azure.svg',
   cerebras: '/icons/cerebras.svg',
   'cloudflare workers ai': '/icons/workersai.svg',
   cohere: '/icons/cohere.svg',
@@ -323,6 +408,7 @@ const CUSTOM_PROVIDER_LOGOS: Record<string, string> = {
 };
 
 const BASE_URL_TO_PROVIDER: [RegExp, string][] = [
+  [/\.azure\.com|azure\.openai\.com|openai\.azure\.com/i, 'azure'],
   [/api\.cerebras\.ai/i, 'cerebras'],
   [/api\.cloudflare\.com|workers\.ai/i, 'cloudflare workers ai'],
   [/cohere\.ai/i, 'cohere'],
@@ -378,6 +464,11 @@ function resolveCustomLogo(name: string, baseUrl?: string, modelName?: string): 
 /**
  * Returns an <img> icon for a custom provider if a known logo exists,
  * or null if no logo is available. Matches by name, base URL, or model name.
+ *
+ * Local-LLM custom providers (LM Studio, Ollama) share a
+ * canonical display name across the codebase — we look those up against
+ * the shared provider registry first so the branded `providerIcon` is
+ * used everywhere, not a letter badge.
  */
 export function customProviderLogo(
   name: string,
@@ -385,6 +476,16 @@ export function customProviderLogo(
   baseUrl?: string,
   modelName?: string,
 ): JSX.Element | null {
+  const normalized = normalizeProviderName(name);
+  const shared =
+    SHARED_PROVIDER_BY_ID_OR_ALIAS.get(normalized) ??
+    SHARED_PROVIDER_BY_ID_OR_ALIAS.get(name) ??
+    SHARED_PROVIDER_BY_ID_OR_ALIAS.get(name.toLowerCase());
+  if (shared) {
+    const branded = providerIcon(shared.id, size);
+    if (branded) return branded;
+  }
+
   const logo = resolveCustomLogo(name, baseUrl, modelName);
   if (!logo) return null;
   return (

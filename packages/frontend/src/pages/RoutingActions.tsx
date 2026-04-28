@@ -1,22 +1,18 @@
 import { createSignal, type Accessor, type Setter } from 'solid-js';
 import { toast } from '../services/toast-store.js';
 import {
-  deactivateAllProviders,
   overrideTier,
   resetTier,
   resetAllTiers,
   setFallbacks,
   type TierAssignment,
   type AuthType,
-  type RoutingProvider,
 } from '../services/api.js';
 
 interface RoutingActionsInput {
   agentName: () => string;
   tiers: Accessor<TierAssignment[] | undefined>;
   mutateTiers: Setter<TierAssignment[] | undefined>;
-  connectedProviders: Accessor<RoutingProvider[] | undefined>;
-  mutateProviders: Setter<RoutingProvider[] | undefined>;
   refetchAll: () => Promise<void>;
   setInstructionModal: Setter<'enable' | 'disable' | null>;
 }
@@ -25,7 +21,6 @@ export function createRoutingActions(input: RoutingActionsInput) {
   const [changingTier, setChangingTier] = createSignal<string | null>(null);
   const [resettingAll, setResettingAll] = createSignal(false);
   const [resettingTier, setResettingTier] = createSignal<string | null>(null);
-  const [disabling, setDisabling] = createSignal(false);
   const [addingFallback, setAddingFallback] = createSignal<string | null>(null);
   const [fallbackOverrides, setFallbackOverrides] = createSignal<Record<string, string[]>>({});
 
@@ -136,22 +131,6 @@ export function createRoutingActions(input: RoutingActionsInput) {
     }
   };
 
-  const handleDisable = async () => {
-    setDisabling(true);
-    const prevProviders = input.connectedProviders();
-    input.mutateProviders((prev) => prev?.map((p) => ({ ...p, is_active: false })));
-    try {
-      await deactivateAllProviders(input.agentName());
-    } catch {
-      input.mutateProviders(prevProviders);
-      setDisabling(false);
-      return;
-    }
-    await input.refetchAll().catch(() => {});
-    input.setInstructionModal('disable');
-    setDisabling(false);
-  };
-
   const handleFallbackUpdate = (tierId: string, updatedFallbacks: string[]) => {
     setFallbackOverrides((prev) => {
       const next = { ...prev };
@@ -167,7 +146,6 @@ export function createRoutingActions(input: RoutingActionsInput) {
     changingTier,
     resettingAll,
     resettingTier,
-    disabling,
     addingFallback,
     getTier,
     getFallbacksFor,
@@ -175,7 +153,6 @@ export function createRoutingActions(input: RoutingActionsInput) {
     handleResetAll,
     handleReset,
     handleAddFallback,
-    handleDisable,
     handleFallbackUpdate,
   };
 }

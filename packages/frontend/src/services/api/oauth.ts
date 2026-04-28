@@ -1,4 +1,4 @@
-import { fetchJson, fetchMutate, BASE_URL } from './core.js';
+import { fetchJson, fetchMutate } from './core.js';
 
 export type MinimaxOAuthRegion = 'global' | 'cn';
 
@@ -23,7 +23,7 @@ export function getOpenaiOAuthUrl(agentName: string) {
 }
 
 export function submitOpenaiOAuthCallback(code: string, state: string) {
-  return fetchMutate<{ ok: boolean }>(`${BASE_URL}/oauth/openai/callback`, {
+  return fetchMutate<{ ok: boolean }>('/oauth/openai/callback', {
     method: 'POST',
     body: JSON.stringify({ code, state }),
     headers: { 'Content-Type': 'application/json' },
@@ -32,14 +32,14 @@ export function submitOpenaiOAuthCallback(code: string, state: string) {
 
 export function revokeOpenaiOAuth(agentName: string) {
   return fetchMutate<{ ok: boolean }>(
-    `${BASE_URL}/oauth/openai/revoke?agentName=${encodeURIComponent(agentName)}`,
+    `/oauth/openai/revoke?agentName=${encodeURIComponent(agentName)}`,
     { method: 'POST' },
   );
 }
 
 export function startMinimaxOAuth(agentName: string, region: MinimaxOAuthRegion = 'global') {
   return fetchMutate<MinimaxOAuthStartResponse>(
-    `${BASE_URL}/oauth/minimax/start?agentName=${encodeURIComponent(agentName)}&region=${encodeURIComponent(region)}`,
+    `/oauth/minimax/start?agentName=${encodeURIComponent(agentName)}&region=${encodeURIComponent(region)}`,
     { method: 'POST' },
   );
 }

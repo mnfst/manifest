@@ -5,6 +5,7 @@ import { RoutingCacheService } from './routing-cache.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { UserProvider } from '../../entities/user-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
+import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
 
 jest.mock('../../common/utils/crypto.util', () => ({
   encrypt: jest.fn().mockReturnValue('encrypted-value'),
@@ -19,14 +20,34 @@ jest.mock('../../common/utils/subscription-support', () => ({
   }),
 }));
 
-function makeMockRepo() {
-  return {
-    find: jest.fn().mockResolvedValue([]),
-    findOne: jest.fn().mockResolvedValue(null),
-    save: jest.fn().mockImplementation((entity: unknown) => Promise.resolve(entity)),
-    insert: jest.fn().mockResolvedValue(undefined),
-    update: jest.fn().mockResolvedValue(undefined),
+type MockRepo = {
+  find: jest.Mock;
+  findOne: jest.Mock;
+  save: jest.Mock;
+  insert: jest.Mock;
+  update: jest.Mock;
+  remove: jest.Mock;
+  manager: { transaction: jest.Mock };
+};
+
+function makeMockRepo(): MockRepo {
+  const find = jest.fn().mockResolvedValue([]);
+  const findOne = jest.fn().mockResolvedValue(null);
+  const save = jest.fn().mockImplementation((entity: unknown) => Promise.resolve(entity));
+  const insert = jest.fn().mockResolvedValue(undefined);
+  const update = jest.fn().mockResolvedValue(undefined);
+  const remove = jest.fn().mockResolvedValue(undefined);
+  const repoFacade = { find, findOne, save, insert, update, remove };
+  // The real Repository.manager.transaction(cb) invokes cb with an
+  // EntityManager; our mock invokes cb with a thin shim that routes
+  // getRepository() back to this same facade. Mirrors proxy-message-dedup's
+  // test setup so assertions stay at the repo level.
+  const manager = {
+    transaction: jest.fn(async (cb: (m: { getRepository: () => unknown }) => Promise<unknown>) =>
+      cb({ getRepository: () => repoFacade }),
+    ),
   };
+  return { find, findOne, save, insert, update, remove, manager };
 }
 
 function makeProvider(overrides: Partial<UserProvider> = {}): UserProvider {
@@ -67,6 +88,7 @@ describe('ProviderService', () => {
   let service: ProviderService;
   let providerRepo: ReturnType<typeof makeMockRepo>;
   let tierRepo: ReturnType<typeof makeMockRepo>;
+  let specificityRepo: ReturnType<typeof makeMockRepo>;
   let autoAssign: { recalculate: jest.Mock };
   let routingCache: {
     invalidateAgent: jest.Mock;
@@ -79,6 +101,7 @@ describe('ProviderService', () => {
     jest.clearAllMocks();
     providerRepo = makeMockRepo();
     tierRepo = makeMockRepo();
+    specificityRepo = makeMockRepo();
     autoAssign = { recalculate: jest.fn().mockResolvedValue(undefined) };
     routingCache = {
       invalidateAgent: jest.fn(),
@@ -90,6 +113,7 @@ describe('ProviderService', () => {
     service = new ProviderService(
       providerRepo as unknown as any,
       tierRepo as unknown as any,
+      specificityRepo as unknown as any,
       autoAssign as unknown as TierAutoAssignService,
       pricingCache as unknown as ModelPricingCacheService,
       routingCache as unknown as RoutingCacheService,
@@ -276,6 +300,55 @@ describe('ProviderService', () => {
       expect(providerRepo.insert).toHaveBeenCalled();
       expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1');
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+  });
+
+  /* ── retagAuthType ── */
+
+  describe('retagAuthType', () => {
+    it('flips auth_type in place on the existing row without touching tier overrides', async () => {
+      const existing = makeProvider({
+        id: 'p-1',
+        provider: 'custom:abc',
+        auth_type: 'api_key',
+        api_key_encrypted: 'enc',
+      });
+      providerRepo.find.mockResolvedValue([existing]);
+
+      await service.retagAuthType('agent-1', 'custom:abc', 'local');
+
+      expect(existing.auth_type).toBe('local');
+      expect(providerRepo.save).toHaveBeenCalledWith(existing);
+      expect(autoAssign.recalculate).not.toHaveBeenCalled();
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+
+    it('removes a colliding destination row before flipping, protecting the unique index', async () => {
+      const target = makeProvider({
+        id: 'p-target',
+        provider: 'custom:abc',
+        auth_type: 'api_key',
+      });
+      const collision = makeProvider({
+        id: 'p-collision',
+        provider: 'custom:abc',
+        auth_type: 'local',
+      });
+      providerRepo.find.mockResolvedValue([target, collision]);
+
+      await service.retagAuthType('agent-1', 'custom:abc', 'local');
+
+      expect(providerRepo.remove).toHaveBeenCalledWith(collision);
+      expect(target.auth_type).toBe('local');
+    });
+
+    it('is a no-op when no active row matches the source auth_type', async () => {
+      providerRepo.find.mockResolvedValue([]);
+
+      await service.retagAuthType('agent-1', 'custom:abc', 'local');
+
+      expect(providerRepo.save).not.toHaveBeenCalled();
+      expect(routingCache.invalidateAgent).not.toHaveBeenCalled();
     });
   });
 
@@ -525,7 +598,7 @@ describe('ProviderService', () => {
       // First find (cleanup) returns the unsupported provider
       providerRepo.find.mockResolvedValueOnce([unsupported]);
 
-      // clearTierAssignmentsForProviders returns hadTierAssignments: true
+      // cleanupProviderReferences returns hadTierAssignments: true
       const existingTier = makeTier({ agent_id: 'agent-1', override_model: null });
       tierRepo.find
         .mockResolvedValueOnce([]) // overrides (Not IsNull)
@@ -541,9 +614,9 @@ describe('ProviderService', () => {
     });
   });
 
-  /* ── clearTierAssignmentsForProviders (private, tested via removeProvider) ── */
+  /* ── cleanupProviderReferences (private, tested via removeProvider) ── */
 
-  describe('clearTierAssignmentsForProviders (via removeProvider)', () => {
+  describe('cleanupProviderReferences (via removeProvider)', () => {
     it('should clear override when pricing provider matches', async () => {
       const existing = makeProvider({ is_active: true });
       providerRepo.findOne.mockResolvedValue(existing);
@@ -687,6 +760,175 @@ describe('ProviderService', () => {
       expect(tierRepo.save).toHaveBeenCalledWith([
         expect.objectContaining({ fallback_models: ['unknown-model'] }),
       ]);
+    });
+  });
+
+  /* ── cleanupProviderReferences: custom provider + specificity (#1603) ── */
+
+  describe('cleanupProviderReferences — custom provider + specificity', () => {
+    function makeSpecificity(
+      overrides: Partial<SpecificityAssignment> = {},
+    ): SpecificityAssignment {
+      return Object.assign(new SpecificityAssignment(), {
+        id: 'spec-1',
+        user_id: 'user-1',
+        agent_id: 'agent-1',
+        category: 'coding',
+        is_active: true,
+        override_model: null,
+        override_provider: null,
+        override_auth_type: null,
+        auto_assigned_model: null,
+        fallback_models: null,
+        updated_at: '2025-01-01T00:00:00Z',
+        ...overrides,
+      });
+    }
+
+    it('clears specificity overrides pointing to the deleted custom provider', async () => {
+      const existing = makeProvider({ provider: 'custom:abc-123', is_active: true });
+      providerRepo.findOne.mockResolvedValue(existing);
+      providerRepo.find.mockResolvedValue([]);
+      tierRepo.find.mockResolvedValue([]);
+
+      const orphanSpec = makeSpecificity({
+        override_model: 'custom:abc-123/gemini-2.5-flash',
+        override_provider: 'custom:abc-123',
+        override_auth_type: 'api_key',
+      });
+      specificityRepo.find.mockResolvedValue([orphanSpec]);
+
+      await service.removeProvider('agent-1', 'custom:abc-123');
+
+      expect(specificityRepo.save).toHaveBeenCalledWith([
+        expect.objectContaining({
+          id: 'spec-1',
+          override_model: null,
+          override_provider: null,
+          override_auth_type: null,
+        }),
+      ]);
+    });
+
+    it('clears specificity override when model uses custom prefix but override_provider is null', async () => {
+      const existing = makeProvider({ provider: 'custom:abc-123', is_active: true });
+      providerRepo.findOne.mockResolvedValue(existing);
+      providerRepo.find.mockResolvedValue([]);
+      tierRepo.find.mockResolvedValue([]);
+
+      const orphanSpec = makeSpecificity({
+        override_model: 'custom:abc-123/gemini-2.5-flash',
+        override_provider: null,
+      });
+      specificityRepo.find.mockResolvedValue([orphanSpec]);
+
+      await service.removeProvider('agent-1', 'custom:abc-123');
+
+      expect(specificityRepo.save).toHaveBeenCalledWith([
+        expect.objectContaining({ id: 'spec-1', override_model: null }),
+      ]);
+    });
+
+    it('removes custom-prefixed entries from specificity fallback_models', async () => {
+      const existing = makeProvider({ provider: 'custom:abc-123', is_active: true });
+      providerRepo.findOne.mockResolvedValue(existing);
+      providerRepo.find.mockResolvedValue([]);
+      tierRepo.find.mockResolvedValue([]);
+
+      const spec = makeSpecificity({
+        override_model: null,
+        fallback_models: ['custom:abc-123/gemini-2.5-flash', 'anthropic/claude-opus-4'],
+      });
+      specificityRepo.find.mockResolvedValue([spec]);
+
+      await service.removeProvider('agent-1', 'custom:abc-123');
+
+      expect(specificityRepo.save).toHaveBeenCalledWith([
+        expect.objectContaining({ fallback_models: ['anthropic/claude-opus-4'] }),
+      ]);
+    });
+
+    it('removes custom-prefixed entries from tier fallback_models (pricing cache would miss them)', async () => {
+      const existing = makeProvider({ provider: 'custom:abc-123', is_active: true });
+      providerRepo.findOne.mockResolvedValue(existing);
+      providerRepo.find.mockResolvedValue([]);
+
+      const tier = makeTier({
+        override_model: null,
+        fallback_models: ['custom:abc-123/gemini-2.5-flash', 'gpt-4o'],
+      });
+      tierRepo.find.mockResolvedValueOnce([]).mockResolvedValueOnce([tier]);
+      pricingCache.getByModel.mockImplementation((model: string) => {
+        if (model === 'gpt-4o') return { provider: 'OpenAI' };
+        return undefined;
+      });
+
+      await service.removeProvider('agent-1', 'custom:abc-123');
+
+      expect(tierRepo.save).toHaveBeenCalledWith([
+        expect.objectContaining({ fallback_models: ['gpt-4o'] }),
+      ]);
+    });
+
+    it('clears tier override when only override_model carries the custom prefix', async () => {
+      const existing = makeProvider({ provider: 'custom:abc-123', is_active: true });
+      providerRepo.findOne.mockResolvedValue(existing);
+      providerRepo.find.mockResolvedValue([]);
+
+      const orphanTier = makeTier({
+        tier: 'standard',
+        override_model: 'custom:abc-123/gemini-2.5-flash',
+        override_provider: null,
+      });
+      tierRepo.find
+        .mockResolvedValueOnce([orphanTier])
+        .mockResolvedValueOnce([orphanTier])
+        .mockResolvedValueOnce([makeTier({ tier: 'standard', override_model: null })]);
+
+      const result = await service.removeProvider('agent-1', 'custom:abc-123');
+
+      expect(tierRepo.save).toHaveBeenCalled();
+      expect(result.notifications).toHaveLength(1);
+    });
+
+    it('sets specificity fallback_models to null when every entry belongs to the deleted custom provider', async () => {
+      // Regression for #1603: specificity fallback list containing only orphan entries
+      // should be nulled out (not kept as an empty array) so resolve() has no leftover
+      // references to silently forward to the dead provider.
+      const existing = makeProvider({ provider: 'custom:abc-123', is_active: true });
+      providerRepo.findOne.mockResolvedValue(existing);
+      providerRepo.find.mockResolvedValue([]);
+      tierRepo.find.mockResolvedValue([]);
+
+      const spec = makeSpecificity({
+        override_model: null,
+        fallback_models: ['custom:abc-123/gemini-2.5-flash', 'custom:abc-123/gemini-2.5-pro'],
+      });
+      specificityRepo.find.mockResolvedValue([spec]);
+
+      await service.removeProvider('agent-1', 'custom:abc-123');
+
+      expect(specificityRepo.save).toHaveBeenCalledWith([
+        expect.objectContaining({ fallback_models: null }),
+      ]);
+    });
+
+    it('leaves specificity rows untouched when they reference a different provider', async () => {
+      const existing = makeProvider({ provider: 'custom:abc-123', is_active: true });
+      providerRepo.findOne.mockResolvedValue(existing);
+      providerRepo.find.mockResolvedValue([]);
+      tierRepo.find.mockResolvedValue([]);
+
+      const unrelated = makeSpecificity({
+        override_model: 'anthropic/claude-opus-4',
+        override_provider: 'anthropic',
+        fallback_models: ['anthropic/claude-sonnet-4'],
+      });
+      specificityRepo.find.mockResolvedValue([unrelated]);
+
+      await service.removeProvider('agent-1', 'custom:abc-123');
+
+      expect(specificityRepo.save).not.toHaveBeenCalled();
     });
   });
 });

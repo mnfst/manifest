@@ -9,6 +9,7 @@ import { NotificationsModule } from '../../notifications/notifications.module';
 import { OtlpModule } from '../../otlp/otlp.module';
 import { OAuthModule } from '../oauth/oauth.module';
 import { ResolveModule } from '../resolve/resolve.module';
+import { CustomProviderModule } from '../custom-provider/custom-provider.module';
 import { ProxyController } from './proxy.controller';
 import { ProxyService } from './proxy.service';
 import { ProxyFallbackService } from './proxy-fallback.service';
@@ -32,6 +33,7 @@ import { ProxyExceptionFilter } from './proxy-exception.filter';
     OtlpModule,
     OAuthModule,
     ResolveModule,
+    CustomProviderModule,
   ],
   controllers: [ProxyController],
   providers: [

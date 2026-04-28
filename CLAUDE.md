@@ -10,7 +10,7 @@ Manifest is a smart model router for **personal AI agents**. It sits between an 
 
 ## IMPORTANT: Cloud Mode Always
 
-When starting the app for development or testing (e.g. `/serve`), **always use `MANIFEST_MODE=cloud`** (the default). Never use local/SQLite mode — multiple concurrent Claude instances cause SQLite lock conflicts. Every dev session must use a **fresh PostgreSQL database** via Docker:
+When starting the app for development or testing (e.g. `/serve`), **always use `MANIFEST_MODE=cloud`** (the default). Every dev session must use a **fresh PostgreSQL database** via Docker — multiple concurrent dev instances sharing one DB cause cross-run data pollution and intermittent test failures:
 
 ```bash
 # 1. Ensure the postgres_db container is running
@@ -47,7 +47,7 @@ openclaw config set agents.defaults.model.primary manifest/auto
 openclaw gateway restart
 ```
 
-The `AgentKeyAuthGuard` accepts any non-`mnfst_*` token from loopback IPs in local mode, so local-only testing works even without a valid key. After restarting the backend, also restart the OpenClaw gateway — it doesn't reconnect automatically.
+The `AgentKeyAuthGuard` accepts any non-`mnfst_*` token from loopback IPs in the self-hosted version, so loopback-only testing works even without a valid key. After restarting the backend, also restart the OpenClaw gateway — it doesn't reconnect automatically.
 
 ## Active Technologies
 
@@ -74,7 +74,6 @@ packages/
 │   │   ├── database/
 │   │   │   ├── database.module.ts           # TypeORM PostgreSQL config
 │   │   │   ├── database-seeder.service.ts   # Seeds demo data (users, agents, security events)
-│   │   │   ├── local-bootstrap.service.ts   # Seeds local mode (SQLite)
 │   │   │   ├── datasource.ts               # CLI DataSource for migration commands
 │   │   │   ├── pricing-sync.service.ts      # OpenRouter pricing data sync
 │   │   │   ├── ollama-sync.service.ts       # Ollama model sync
@@ -91,12 +90,12 @@ packages/
 │   │   │   ├── dto/                         # create-agent, range-query, rename-agent DTOs
 │   │   │   ├── filters/spa-fallback.filter.ts
 │   │   │   ├── interceptors/               # agent-cache, user-cache
-│   │   │   ├── constants/                   # api-key, cache, local-mode, ollama
+│   │   │   ├── constants/                   # api-key, cache, ollama, providers
 │   │   │   ├── services/                    # ingest-event-bus, manifest-runtime, tenant-cache
 │   │   │   ├── utils/range.util.ts
 │   │   │   ├── utils/hash.util.ts           # API key hashing (scrypt KDF)
 │   │   │   ├── utils/crypto.util.ts         # AES-256-GCM encryption
-│   │   │   ├── utils/sql-dialect.ts         # Cross-DB SQL helpers (Postgres/SQLite)
+│   │   │   ├── utils/postgres-sql.ts        # Postgres SQL helpers (column types, bucket/cast expressions)
 │   │   │   ├── utils/slugify.ts             # Name slugification
 │   │   │   ├── utils/url-validation.ts      # URL validation
 │   │   │   ├── utils/provider-inference.ts  # Provider detection from model names
@@ -154,8 +153,7 @@ packages/
 │   │   │   ├── provider-utils.ts            # LLM provider helpers
 │   │   │   ├── routing.ts, routing-utils.ts # Routing config helpers
 │   │   │   ├── theme.ts                     # Theme management
-│   │   │   ├── toast-store.ts               # Toast notification state
-│   │   │   └── local-mode.ts               # Local mode detection
+│   │   │   └── toast-store.ts               # Toast notification state
 │   │   ├── layouts/                         # Layout components
 │   │   └── styles/
 │   └── tests/
@@ -360,9 +358,8 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` — GitHub OAuth (optional)
 - `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET` — Discord OAuth (optional)
 - `SEED_DATA` — Set `true` to seed demo data on startup.
-- `MANIFEST_MODE` — `local` or `cloud` (default: `cloud`). Switches between SQLite/loopback auth and PostgreSQL/Better Auth.
-- `MANIFEST_DB_PATH` — SQLite file path for local mode (default: in-memory).
-- `MANIFEST_UPDATE_CHECK_OPTOUT` — Set `1` to disable local-mode npm version checks.
+- `MANIFEST_MODE` — `selfhosted` or `cloud` (default: `cloud`; auto-`selfhosted` inside Docker via `/.dockerenv`). Self-hosted mode enables loopback auth shortcuts and allows custom-provider URLs with `http://` / private IPs. `local` is accepted as a legacy alias for `selfhosted`.
+- `OLLAMA_HOST` — Ollama endpoint for the built-in tile. Defaults to `http://localhost:11434` outside Docker and `http://host.docker.internal:11434` inside the bundled `docker/docker-compose.yml`.
 
 ## Domain Terminology
 
@@ -396,6 +393,44 @@ To add a new font or icon library:
 3. Reference the local CSS in `index.html` (e.g. `<link href="/fonts/..." />`)
 4. Do **not** add external domains to the CSP directives
 
+## Anonymous Usage Telemetry (self-hosted)
+
+Self-hosted installs (Docker / `node dist/main.js` with `NODE_ENV=production`)
+send one aggregate usage report per 24h to `TELEMETRY_ENDPOINT` (default
+`https://telemetry.manifest.build/v1/report`). The module lives at
+`packages/backend/src/telemetry/`.
+
+**Payload fields (v1) — keep this list minimal**:
+
+- `schema_version`, `install_id` (random UUIDv4, persisted once in
+  `install_metadata`), `manifest_version`
+- Last 24h aggregates from `agent_messages`: `messages_total`,
+  `messages_by_provider` (bucketed via `PROVIDER_BY_ID_OR_ALIAS` — unknown
+  values collapse to `"custom"`, NULL to `"unknown"`), `messages_by_tier`
+  (`simple` / `standard` / `complex` / `reasoning`, NULL → `"unknown"`),
+  `messages_by_auth_type` (`api_key` / `subscription`), `tokens_input_total`,
+  `tokens_output_total`
+- Configuration: `agents_total`, `agents_by_platform`
+- Runtime: `platform` (`process.platform`), `arch` (`process.arch`)
+
+User-facing spec: https://manifest.build/docs/self-hosted#telemetry
+
+**Explicitly never sent**: tenant/user IDs, emails, API keys, prompts,
+message contents, model names, custom provider URLs, OAuth client IDs,
+raw IPs.
+
+**Opt-out**: `MANIFEST_TELEMETRY_DISABLED=1`. Also auto-disabled when
+`NODE_ENV !== 'production'` so dev instances never report.
+
+**Cadence**: `@Cron(CronExpression.EVERY_HOUR)` fires once an hour but
+short-circuits unless the last send was ≥24h ago (and the first-send jitter
+window has elapsed). Hourly tick + timestamp check beats a daily cron
+because it survives restarts without missing windows.
+
+**Extending the payload**: bump `TELEMETRY_SCHEMA_VERSION` and add fields
+additively — the ingest (peacock-backend) rejects unknown `schema_version`
+values with 400, so downgrades stay safe.
+
 ## Architecture Notes
 
 - **Single-service**: In production, `@nestjs/serve-static` serves `frontend/dist/` with SPA fallback. API routes (`/api/*`, `/otlp/*`) are excluded.
@@ -403,8 +438,7 @@ To add a new font or icon library:
 - **Body parsing**: Disabled at NestJS level (`bodyParser: false`). Better Auth mounted first (needs raw body), then `express.json()` and `express.urlencoded()`.
 - **QueryBuilder API**: Analytics and ingestion services use TypeORM `Repository.createQueryBuilder()` instead of raw SQL. The `addTenantFilter()` helper in `query-helpers.ts` applies multi-tenant WHERE clauses. Only the database seeder and notification cron still use `DataSource.query()` with numbered `$1, $2, ...` placeholders.
 - **PostgreSQL time functions**: `NOW() - CAST(:interval AS interval)`, `to_char(date_trunc('hour', timestamp), ...)`, `timestamp::date`.
-- **Better Auth database**: In cloud mode, uses a `pg.Pool` instance passed directly to `betterAuth({ database: pool })`. In local mode, Better Auth is skipped entirely (`auth = null`) — `LocalAuthGuard` handles auth via loopback IP check, and simple Express handlers serve session data.
-- **Local mode database**: Uses `sql.js` (WASM-based SQLite, zero native deps). TypeORM driver type is `'sqljs'` with `autoSave: true` for file persistence.
+- **Better Auth database**: Uses a `pg.Pool` instance passed directly to `betterAuth({ database: pool })`. See `packages/backend/src/auth/auth.instance.ts`.
 - **PostgreSQL container**: `docker run -d --name postgres_db -e POSTGRES_USER=myuser -e POSTGRES_PASSWORD=mypassword -e POSTGRES_DB=mydatabase -p 5432:5432 postgres:16`
 - **Validation**: Global `ValidationPipe` with `whitelist: true`, `forbidNonWhitelisted: true`. Explicit `@Type()` decorators on numeric DTO fields.
 - **Agent key auth caching**: `AgentKeyAuthGuard` caches valid API keys in-memory for 5 minutes to avoid repeated DB lookups.

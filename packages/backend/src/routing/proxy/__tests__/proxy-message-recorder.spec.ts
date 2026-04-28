@@ -27,7 +27,17 @@ describe('ProxyMessageRecorder', () => {
     } as unknown as ModelPricingCacheService;
     const dedup = {} as ProxyMessageDedup;
     const eventBus = { emit: emitMock } as unknown as IngestEventBusService;
-    recorder = new ProxyMessageRecorder(repo, pricingCache, dedup, eventBus);
+    const customProviders = {
+      canonicalizeAgentMessageKeys: jest
+        .fn()
+        .mockImplementation(
+          async (_agentId: string, provider: string | null, model: string | null) => ({
+            provider: provider ?? null,
+            model: model ?? null,
+          }),
+        ),
+    } as never;
+    recorder = new ProxyMessageRecorder(repo, pricingCache, dedup, eventBus, customProviders);
   });
 
   afterEach(() => {
@@ -234,6 +244,21 @@ describe('ProxyMessageRecorder', () => {
       });
       expect(insertMock.mock.calls[0][0].provider).toBe('ollama-cloud');
     });
+
+    it('persists routing_reason when passed via opts (parity with non-fallback success)', async () => {
+      await recorder.recordFallbackSuccess(ctx, 'gpt-4o', 'standard', {
+        reason: 'header-match',
+        usage: { prompt_tokens: 1, completion_tokens: 1 },
+      });
+      expect(insertMock.mock.calls[0][0].routing_reason).toBe('header-match');
+    });
+
+    it('writes null routing_reason when reason is omitted', async () => {
+      await recorder.recordFallbackSuccess(ctx, 'gpt-4o', 'standard', {
+        usage: { prompt_tokens: 1, completion_tokens: 1 },
+      });
+      expect(insertMock.mock.calls[0][0].routing_reason).toBeNull();
+    });
   });
 
   describe('recordProviderError', () => {
@@ -290,6 +315,29 @@ describe('ProxyMessageRecorder', () => {
         model: 'gpt-4o',
       });
       expect(insertMock.mock.calls[0][0].provider).toBeNull();
+    });
+
+    it('scrubs provider secrets from the persisted error_message', async () => {
+      const leaky = JSON.stringify({
+        error: { message: 'Invalid x-api-key: sk-ant-api03-SECRETKEYVALUE12345' },
+      });
+      await recorder.recordProviderError(ctx, 401, leaky, { model: 'claude-3' });
+      const stored: string = insertMock.mock.calls[0][0].error_message;
+      expect(stored).not.toContain('SECRETKEYVALUE12345');
+      expect(stored).toContain('[REDACTED]');
+    });
+
+    it('persists routing_reason when passed via opts', async () => {
+      await recorder.recordProviderError(ctx, 500, 'oops', {
+        model: 'gpt-4o',
+        reason: 'header-match',
+      });
+      expect(insertMock.mock.calls[0][0].routing_reason).toBe('header-match');
+    });
+
+    it('writes null routing_reason when reason is omitted', async () => {
+      await recorder.recordProviderError(ctx, 500, 'oops', { model: 'gpt-4o' });
+      expect(insertMock.mock.calls[0][0].routing_reason).toBeNull();
     });
   });
 
@@ -444,6 +492,44 @@ describe('ProxyMessageRecorder', () => {
       // baseTimeMs + (1 - 0) * 100 = 100ms past the base.
       expect(insertMock.mock.calls[0][0].timestamp).toBe('2025-01-01T00:00:00.100Z');
     });
+
+    it('scrubs provider secrets from each persisted fallback error_message', async () => {
+      const failures = [
+        {
+          model: 'gpt-4o',
+          provider: 'openai',
+          status: 401,
+          errorBody: 'Authorization: Bearer sk-proj-LEAKEDKEY1234567890',
+          fallbackIndex: 0,
+        },
+        {
+          model: 'claude-3',
+          provider: 'anthropic',
+          status: 401,
+          errorBody: 'x-api-key: sk-ant-api03-LEAKEDKEY0987654321',
+          fallbackIndex: 1,
+        },
+      ];
+      await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures);
+      const first: string = insertMock.mock.calls[0][0].error_message;
+      const second: string = insertMock.mock.calls[1][0].error_message;
+      expect(first).not.toContain('LEAKEDKEY1234567890');
+      expect(first).toContain('[REDACTED]');
+      expect(second).not.toContain('LEAKEDKEY0987654321');
+      expect(second).toContain('[REDACTED]');
+    });
+
+    it('persists routing_reason on every failed-fallback row when passed via opts', async () => {
+      const failures = [
+        { model: 'm1', provider: 'openai', status: 500, errorBody: 'oops', fallbackIndex: 0 },
+        { model: 'm2', provider: 'openai', status: 502, errorBody: 'oops', fallbackIndex: 1 },
+      ];
+      await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures, {
+        reason: 'header-match',
+      });
+      expect(insertMock.mock.calls[0][0].routing_reason).toBe('header-match');
+      expect(insertMock.mock.calls[1][0].routing_reason).toBe('header-match');
+    });
   });
 
   describe('recordPrimaryFailure', () => {
@@ -489,6 +575,19 @@ describe('ProxyMessageRecorder', () => {
       );
       expect(insertMock.mock.calls[0][0].provider).toBeNull();
     });
+
+    it('persists routing_reason when passed via opts', async () => {
+      await recorder.recordPrimaryFailure(
+        ctx,
+        'standard',
+        'gpt-4o',
+        'upstream error',
+        '2025-01-01T00:00:00.000Z',
+        undefined,
+        { reason: 'header-match' },
+      );
+      expect(insertMock.mock.calls[0][0].routing_reason).toBe('header-match');
+    });
   });
 
   describe('recordSuccessMessage', () => {
@@ -512,7 +611,23 @@ describe('ProxyMessageRecorder', () => {
       const pricingCache = { getByModel: getByModelMock } as unknown as ModelPricingCacheService;
       const eventBus = { emit: emitMock } as unknown as IngestEventBusService;
       recorder.onModuleDestroy();
-      recorder = new ProxyMessageRecorder(repo, pricingCache, dedupWithLock, eventBus);
+      const passthroughCustomProviders = {
+        canonicalizeAgentMessageKeys: jest
+          .fn()
+          .mockImplementation(
+            async (_agentId: string, provider: string | null, model: string | null) => ({
+              provider: provider ?? null,
+              model: model ?? null,
+            }),
+          ),
+      } as never;
+      recorder = new ProxyMessageRecorder(
+        repo,
+        pricingCache,
+        dedupWithLock,
+        eventBus,
+        passthroughCustomProviders,
+      );
     });
 
     afterEach(() => {
@@ -767,6 +882,128 @@ describe('ProxyMessageRecorder', () => {
     });
   });
 
+  describe('request_headers persistence', () => {
+    it('recordProviderError persists request_headers', async () => {
+      await recorder.recordProviderError(ctx, 500, 'boom', {
+        requestHeaders: { 'x-custom': 'yes' },
+      });
+      expect(insertMock.mock.calls[0][0].request_headers).toEqual({ 'x-custom': 'yes' });
+    });
+
+    it('recordProviderError defaults request_headers to null when opts omit them', async () => {
+      await recorder.recordProviderError(ctx, 500, 'boom');
+      expect(insertMock.mock.calls[0][0].request_headers).toBeNull();
+    });
+
+    it('recordFailedFallbacks persists request_headers on each row', async () => {
+      const failures = [
+        { model: 'gpt-4o', provider: 'openai', status: 500, errorBody: 'fail', fallbackIndex: 0 },
+        {
+          model: 'claude-3',
+          provider: 'anthropic',
+          status: 500,
+          errorBody: 'fail',
+          fallbackIndex: 1,
+        },
+      ];
+      await recorder.recordFailedFallbacks(ctx, 'standard', 'primary', failures, {
+        requestHeaders: { 'x-a': '1' },
+      });
+      expect(insertMock.mock.calls[0][0].request_headers).toEqual({ 'x-a': '1' });
+      expect(insertMock.mock.calls[1][0].request_headers).toEqual({ 'x-a': '1' });
+    });
+
+    it('recordPrimaryFailure persists request_headers', async () => {
+      await recorder.recordPrimaryFailure(
+        ctx,
+        'standard',
+        'gpt-4o',
+        'boom',
+        '2025-01-01T00:00:00.000Z',
+        'api_key',
+        { requestHeaders: { 'x-b': '2' } },
+      );
+      expect(insertMock.mock.calls[0][0].request_headers).toEqual({ 'x-b': '2' });
+    });
+
+    it('recordFallbackSuccess persists request_headers', async () => {
+      await recorder.recordFallbackSuccess(ctx, 'gpt-4o', 'standard', {
+        usage: { prompt_tokens: 1, completion_tokens: 1 },
+        requestHeaders: { 'x-c': '3' },
+      });
+      expect(insertMock.mock.calls[0][0].request_headers).toEqual({ 'x-c': '3' });
+    });
+
+    it('recordSuccessMessage persists request_headers on insert and update paths', async () => {
+      const dedupWithLock = {
+        normalizeSessionKey: jest.fn().mockReturnValue(undefined),
+        getSuccessWriteLockKey: jest.fn().mockReturnValue('lock-key'),
+        withSuccessWriteLock: jest
+          .fn()
+          .mockImplementation((_k: string, fn: () => Promise<void>) => fn()),
+        withAgentMessageTransaction: jest
+          .fn()
+          .mockImplementation((_repo: unknown, _ctx: unknown, fn: (r: unknown) => Promise<void>) =>
+            fn({ insert: insertMock, update: updateMock }),
+          ),
+        findExistingSuccessMessage: jest.fn().mockResolvedValue(null),
+      } as unknown as ProxyMessageDedup;
+      const updateMock = jest.fn();
+      const repo = { insert: insertMock } as never;
+      const pricingCache = { getByModel: getByModelMock } as unknown as ModelPricingCacheService;
+      const eventBus = { emit: emitMock } as unknown as IngestEventBusService;
+      recorder.onModuleDestroy();
+      const passthroughCustomProviders = {
+        canonicalizeAgentMessageKeys: jest
+          .fn()
+          .mockImplementation(
+            async (_agentId: string, provider: string | null, model: string | null) => ({
+              provider: provider ?? null,
+              model: model ?? null,
+            }),
+          ),
+      } as never;
+      recorder = new ProxyMessageRecorder(
+        repo,
+        pricingCache,
+        dedupWithLock,
+        eventBus,
+        passthroughCustomProviders,
+      );
+
+      // Insert path
+      await recorder.recordSuccessMessage(
+        ctx,
+        'gpt-4o',
+        'standard',
+        'scored',
+        { prompt_tokens: 1, completion_tokens: 1 },
+        { requestHeaders: { 'x-d': '4' } },
+      );
+      expect(insertMock.mock.calls.at(-1)![0].request_headers).toEqual({ 'x-d': '4' });
+
+      // Update path — flip findExistingSuccessMessage to return a zero-token row.
+      (dedupWithLock.findExistingSuccessMessage as jest.Mock).mockResolvedValue({
+        id: 'existing-msg-hdr',
+        timestamp: new Date().toISOString(),
+        input_tokens: 0,
+        output_tokens: 0,
+        cache_read_tokens: 0,
+        cache_creation_tokens: 0,
+        duration_ms: null,
+      });
+      await recorder.recordSuccessMessage(
+        ctx,
+        'gpt-4o',
+        'standard',
+        'scored',
+        { prompt_tokens: 5, completion_tokens: 5 },
+        { requestHeaders: { 'x-e': '5' } },
+      );
+      expect(updateMock.mock.calls[0][1].request_headers).toEqual({ 'x-e': '5' });
+    });
+  });
+
   describe('cooldown overflow eviction', () => {
     it('evicts expired entries when cooldown map exceeds MAX_COOLDOWN_ENTRIES', async () => {
       // Fill the cooldown map to capacity by recording 429 errors for unique agents
@@ -846,5 +1083,106 @@ describe('ProxyMessageRecorder', () => {
         Date.now = realDateNow;
       }
     });
+  });
+});
+
+/**
+ * Integration-style assertions that exercise the recorder with a REAL
+ * `CustomProviderService` (not the passthrough stub used in the suite
+ * above) so the full write path — recorder → canonicalizeAgentMessageKeys
+ * → custom_providers lookup → row rewrite → insert — is pinned end-to-end.
+ * The only stubs are the TypeORM repo and the cache/scheduler services
+ * `CustomProviderService` depends on for reasons unrelated to the rewrite.
+ */
+describe('ProxyMessageRecorder with real CustomProviderService', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { CustomProviderService } = require('../../custom-provider/custom-provider.service');
+
+  function wire(customProviderRow: { id: string; name: string; agent_id: string }) {
+    const insertMock = jest.fn();
+    const messageRepo = { insert: insertMock } as never;
+    const pricingCache = {
+      getByModel: jest.fn().mockReturnValue(undefined),
+      reload: jest.fn(),
+    } as never;
+    const dedup = {} as ProxyMessageDedup;
+    const eventBus = { emit: jest.fn() } as never;
+
+    const customProviderRepo = {
+      find: jest.fn().mockResolvedValue([customProviderRow]),
+    } as never;
+    const providerService = {
+      upsertProvider: jest.fn(),
+      removeProvider: jest.fn(),
+    } as never;
+    const routingCache = {
+      getCustomProviders: jest.fn().mockReturnValue(null),
+      setCustomProviders: jest.fn(),
+      invalidateAgent: jest.fn(),
+    } as never;
+    const autoAssign = { recalculate: jest.fn() } as never;
+
+    const customProviders = new CustomProviderService(
+      customProviderRepo,
+      providerService,
+      routingCache,
+      autoAssign,
+      pricingCache,
+    );
+
+    const recorder = new ProxyMessageRecorder(
+      messageRepo,
+      pricingCache,
+      dedup,
+      eventBus,
+      customProviders,
+    );
+    return { recorder, insertMock };
+  }
+
+  it('rewrites a llama.cpp row end-to-end: provider + model land canonical in the DB', async () => {
+    const { recorder, insertMock } = wire({
+      id: 'cp-llamacpp',
+      name: 'llama.cpp',
+      agent_id: 'agent-1',
+    });
+    try {
+      await recorder.recordProviderError(ctx, 500, 'upstream error', {
+        provider: 'custom:cp-llamacpp',
+        model: 'custom:cp-llamacpp/qwen2.5-0.5b-q4.gguf',
+        tier: 'default',
+      });
+
+      expect(insertMock).toHaveBeenCalledTimes(1);
+      expect(insertMock.mock.calls[0][0]).toMatchObject({
+        provider: 'llamacpp',
+        model: 'llamacpp/qwen2.5-0.5b-q4.gguf',
+      });
+    } finally {
+      recorder.onModuleDestroy();
+    }
+  });
+
+  it('leaves a user-defined custom provider unchanged (no tileOnly match)', async () => {
+    const { recorder, insertMock } = wire({
+      id: 'cp-my-groq',
+      name: 'My Groq',
+      agent_id: 'agent-1',
+    });
+    try {
+      await recorder.recordProviderError(ctx, 500, 'upstream error', {
+        provider: 'custom:cp-my-groq',
+        model: 'custom:cp-my-groq/llama-3.1-70b',
+        tier: 'default',
+      });
+
+      expect(insertMock).toHaveBeenCalledTimes(1);
+      expect(insertMock.mock.calls[0][0]).toMatchObject({
+        provider: 'custom:cp-my-groq',
+        model: 'custom:cp-my-groq/llama-3.1-70b',
+      });
+    } finally {
+      recorder.onModuleDestroy();
+    }
   });
 });

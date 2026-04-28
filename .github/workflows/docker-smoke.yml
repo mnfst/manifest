@@ -1,0 +1,204 @@
+name: Docker Smoke
+
+# Boots the production compose stack with `read_only: true` and verifies the
+# app comes up cleanly and answers /api/v1/health. Catches regressions from
+# code that silently writes outside /tmp at boot, which would crash users on
+# the locked-down default deployment.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/docker-smoke.yml"
+      - "docker/Dockerfile"
+      - ".dockerignore"
+      - "docker/docker-compose.yml"
+      - "docker/.env.example"
+      - "docker/install.sh"
+      - "packages/backend/**"
+      - "packages/frontend/**"
+      - "packages/shared/**"
+      - "package.json"
+      - "package-lock.json"
+      - "turbo.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Compose smoke test (read-only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build local image as manifestdotbuild/manifest:latest
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: false
+          load: true
+          tags: manifestdotbuild/manifest:latest
+          platforms: linux/amd64
+          cache-from: type=gha,scope=smoke-amd64
+          cache-to: type=gha,mode=max,scope=smoke-amd64
+
+      - name: Prepare .env from .env.example
+        working-directory: docker
+        run: |
+          cp .env.example .env
+          # Generate a real secret so BETTER_AUTH_SECRET=${VAR:?…} succeeds.
+          secret=$(openssl rand -hex 32)
+          # Replace the empty `BETTER_AUTH_SECRET=` line.
+          new=""
+          while IFS= read -r line || [[ -n "$line" ]]; do
+            if [[ "$line" == "BETTER_AUTH_SECRET=" ]]; then
+              new+="BETTER_AUTH_SECRET=${secret}"$'\n'
+            else
+              new+="$line"$'\n'
+            fi
+          done < .env
+          printf '%s' "$new" > .env
+
+      - name: Boot the stack
+        working-directory: docker
+        run: |
+          docker compose up -d
+          docker compose ps
+
+      - name: Wait for /api/v1/health
+        run: |
+          set -e
+          for i in $(seq 1 60); do
+            if curl -sSf http://127.0.0.1:2099/api/v1/health >/dev/null; then
+              echo "healthy after ${i}s"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "health never returned 200" >&2
+          (cd docker && docker compose logs manifest)
+          exit 1
+
+      - name: Verify health payload shape
+        run: |
+          response=$(curl -sS http://127.0.0.1:2099/api/v1/health)
+          echo "$response"
+          echo "$response" | grep -q '"status":"healthy"'
+
+      - name: Verify SPA index loads
+        run: |
+          curl -sSf http://127.0.0.1:2099/ -o /tmp/index.html
+          test -s /tmp/index.html
+          grep -q '<title>Manifest</title>' /tmp/index.html
+
+      - name: Verify public stats are gated off by default
+        run: |
+          status=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:2099/api/v1/public/usage)
+          if [[ "$status" != "404" ]]; then
+            echo "expected 404 for /public/usage when MANIFEST_PUBLIC_STATS is unset, got $status" >&2
+            exit 1
+          fi
+
+      - name: Dump backend logs on success (for diff inspection)
+        if: success()
+        working-directory: docker
+        run: docker compose logs --tail=200 manifest
+
+      - name: Dump backend logs on failure
+        if: failure()
+        working-directory: docker
+        run: |
+          docker compose logs manifest || true
+          docker compose logs postgres || true
+
+      - name: Tear down
+        if: always()
+        working-directory: docker
+        run: docker compose down -v
+
+  install-script:
+    name: install.sh end-to-end
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Exercises the published one-liner path — docker/install.sh pulled
+    # from HTTP — against the branch-under-test. The default source
+    # (raw.githubusercontent.com/.../main) would always test `main` even
+    # on a PR, so we point the installer at a local HTTP server serving
+    # the PR's docker/ directory via MANIFEST_INSTALLER_SOURCE.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build local image as manifestdotbuild/manifest:latest
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: false
+          load: true
+          tags: manifestdotbuild/manifest:latest
+          platforms: linux/amd64
+          cache-from: type=gha,scope=smoke-amd64
+          cache-to: type=gha,mode=max,scope=smoke-amd64
+
+      - name: Serve the PR's docker/ files on a local HTTP port
+        run: |
+          cd docker
+          # `python -m http.server` ships with every ubuntu-latest runner
+          # and serves the cwd verbatim. Install.sh will fetch
+          # docker-compose.yml and .env.example from this origin.
+          nohup python3 -m http.server 38000 >/tmp/http.log 2>&1 &
+          sleep 1
+          curl -sSf http://127.0.0.1:38000/docker-compose.yml -o /dev/null
+          curl -sSf http://127.0.0.1:38000/.env.example -o /dev/null
+
+      - name: Run install.sh against the local source
+        env:
+          MANIFEST_INSTALLER_SOURCE: http://127.0.0.1:38000
+        run: |
+          bash docker/install.sh --dir "$RUNNER_TEMP/install-smoke" --yes
+
+      - name: Verify /api/v1/health responds on the default port
+        run: |
+          curl -sSf http://127.0.0.1:2099/api/v1/health | tee /tmp/health.json
+          grep -q '"status":"healthy"' /tmp/health.json
+
+      - name: Verify install wrote the expected files
+        run: |
+          install_dir="$RUNNER_TEMP/install-smoke"
+          test -f "$install_dir/docker-compose.yml"
+          test -f "$install_dir/.env"
+          # .env must have a real BETTER_AUTH_SECRET written — not the
+          # empty template value.
+          grep -Eq '^BETTER_AUTH_SECRET=[0-9a-f]{64}$' "$install_dir/.env"
+
+      - name: Verify Compose project name is pinned (no dir-basename leak)
+        run: |
+          # `name: mnfst` in docker-compose.yml should win over the
+          # install-directory basename, so we always see `mnfst-*` here.
+          docker ps --format '{{.Names}}' | tee /tmp/containers.txt
+          grep -Eq '^mnfst-manifest-1$' /tmp/containers.txt
+          grep -Eq '^mnfst-postgres-1$' /tmp/containers.txt
+
+      - name: Dump backend logs on failure
+        if: failure()
+        run: |
+          install_dir="$RUNNER_TEMP/install-smoke"
+          (cd "$install_dir" && docker compose logs manifest || true)
+          (cd "$install_dir" && docker compose logs postgres || true)
+          cat /tmp/http.log || true
+
+      - name: Tear down
+        if: always()
+        run: |
+          install_dir="$RUNNER_TEMP/install-smoke"
+          if [ -d "$install_dir" ]; then
+            (cd "$install_dir" && docker compose down -v) || true
+          fi

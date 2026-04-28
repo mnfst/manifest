@@ -6,6 +6,7 @@ import { LlmCall } from '../../entities/llm-call.entity';
 import { ToolExecution } from '../../entities/tool-execution.entity';
 import { AgentLog } from '../../entities/agent-log.entity';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
+import type { CallerAttribution } from '../../routing/proxy/caller-classifier';
 
 export interface MessageDetailResponse {
   message: {
@@ -28,6 +29,7 @@ export interface MessageDetailResponse {
     routing_tier: string | null;
     routing_reason: string | null;
     specificity_category: string | null;
+    specificity_miscategorized: boolean;
     auth_type: string | null;
     skill_name: string | null;
     fallback_from_model: string | null;
@@ -36,6 +38,11 @@ export interface MessageDetailResponse {
     feedback_rating: string | null;
     feedback_tags: string[] | null;
     feedback_details: string | null;
+    request_headers: Record<string, string> | null;
+    caller_attribution: CallerAttribution | null;
+    header_tier_id: string | null;
+    header_tier_name: string | null;
+    header_tier_color: string | null;
   };
   llm_calls: {
     id: string;
@@ -147,6 +154,7 @@ export class MessageDetailsService {
         routing_tier: message.routing_tier,
         routing_reason: message.routing_reason,
         specificity_category: message.specificity_category,
+        specificity_miscategorized: message.specificity_miscategorized,
         auth_type: message.auth_type,
         skill_name: message.skill_name,
         fallback_from_model: message.fallback_from_model,
@@ -155,6 +163,11 @@ export class MessageDetailsService {
         feedback_rating: message.feedback_rating,
         feedback_tags: message.feedback_tags ? message.feedback_tags.split(',') : null,
         feedback_details: message.feedback_details,
+        request_headers: message.request_headers,
+        caller_attribution: message.caller_attribution,
+        header_tier_id: message.header_tier_id,
+        header_tier_name: message.header_tier_name,
+        header_tier_color: message.header_tier_color,
       },
       llm_calls: llmCalls.map((lc) => ({
         id: lc.id,

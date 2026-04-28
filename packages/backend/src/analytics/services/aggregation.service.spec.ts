@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Brackets, DataSource } from 'typeorm';
+import { Brackets } from 'typeorm';
 import { AggregationService } from './aggregation.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
@@ -61,10 +61,6 @@ describe('AggregationService', () => {
           useValue: { createQueryBuilder: jest.fn().mockReturnValue(mockQb) },
         },
         {
-          provide: DataSource,
-          useValue: { options: { type: 'postgres' } },
-        },
-        {
           provide: TenantCacheService,
           useValue: { resolve: jest.fn().mockResolvedValue('tenant-123') },
         },
@@ -92,102 +88,8 @@ describe('AggregationService', () => {
       const result = await service.hasAnyData('test-user');
       expect(result).toBe(false);
     });
-  });
 
-  describe('getTokenSummary', () => {
-    it('returns token totals with trend', async () => {
-      // 3A: Now 2 parallel queries (detail + prev) instead of 3 sequential
-      mockGetRawOne
-        .mockResolvedValueOnce({ inp: 3000, out: 2000 })
-        .mockResolvedValueOnce({ total: 4000 });
-
-      const result = await service.getTokenSummary('24h', 'test-user');
-      expect(result.tokens_today.value).toBe(5000);
-      expect(result.tokens_today.trend_pct).toBe(25);
-      expect(result.input_tokens).toBe(3000);
-      expect(result.output_tokens).toBe(2000);
-    });
-
-    it('returns zero trend when no previous data', async () => {
-      mockGetRawOne
-        .mockResolvedValueOnce({ inp: 600, out: 400 })
-        .mockResolvedValueOnce({ total: 0 });
-
-      const result = await service.getTokenSummary('24h', 'test-user');
-      expect(result.tokens_today.trend_pct).toBe(0);
-    });
-
-    it('should pass agentName to tenant filter when provided', async () => {
-      mockGetRawOne
-        .mockResolvedValueOnce({ inp: 60, out: 40 })
-        .mockResolvedValueOnce({ total: 50 });
-
-      const result = await service.getTokenSummary('24h', 'test-user', 'my-agent');
-      expect(result.tokens_today.value).toBe(100);
-    });
-
-    it('should handle null query results gracefully', async () => {
-      mockGetRawOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
-
-      const result = await service.getTokenSummary('24h', 'test-user');
-      expect(result.tokens_today.value).toBe(0);
-      expect(result.input_tokens).toBe(0);
-      expect(result.output_tokens).toBe(0);
-    });
-  });
-
-  describe('getCostSummary', () => {
-    it('returns cost with trend', async () => {
-      mockGetRawOne.mockResolvedValueOnce({ total: 1.5 }).mockResolvedValueOnce({ total: 1.0 });
-
-      const result = await service.getCostSummary('7d', 'test-user');
-      expect(result.value).toBe(1.5);
-      expect(result.trend_pct).toBe(50);
-    });
-
-    it('should pass agentName to tenant filter when provided', async () => {
-      mockGetRawOne.mockResolvedValueOnce({ total: 2.5 }).mockResolvedValueOnce({ total: 1.0 });
-
-      const result = await service.getCostSummary('7d', 'test-user', 'my-agent');
-      expect(result.value).toBe(2.5);
-    });
-
-    it('should handle null query results gracefully', async () => {
-      mockGetRawOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
-
-      const result = await service.getCostSummary('24h', 'test-user');
-      expect(result.value).toBe(0);
-      expect(result.trend_pct).toBe(0);
-    });
-  });
-
-  describe('getMessageCount', () => {
-    it('returns message count with trend', async () => {
-      mockGetRawOne.mockResolvedValueOnce({ total: 100 }).mockResolvedValueOnce({ total: 80 });
-
-      const result = await service.getMessageCount('24h', 'test-user');
-      expect(result.value).toBe(100);
-      expect(result.trend_pct).toBe(25);
-    });
-
-    it('should pass agentName to tenant filter when provided', async () => {
-      mockGetRawOne.mockResolvedValueOnce({ total: 50 }).mockResolvedValueOnce({ total: 40 });
-
-      const result = await service.getMessageCount('24h', 'test-user', 'my-agent');
-      expect(result.value).toBe(50);
-    });
-
-    it('should handle null query results gracefully', async () => {
-      mockGetRawOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
-
-      const result = await service.getMessageCount('24h', 'test-user');
-      expect(result.value).toBe(0);
-      expect(result.trend_pct).toBe(0);
-    });
-  });
-
-  describe('hasAnyData with agentName', () => {
-    it('should pass agentName to tenant filter when provided', async () => {
+    it('passes agentName to tenant filter when provided', async () => {
       mockGetRawOne.mockResolvedValueOnce({ '?column?': 1 });
       const result = await service.hasAnyData('test-user', 'my-agent');
       expect(result).toBe(true);

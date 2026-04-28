@@ -44,7 +44,39 @@ describe('SetupService', () => {
     jest.clearAllMocks();
   });
 
-  describe('isLocalMode', () => {
+  describe('getLocalLlmHost', () => {
+    let originalExistsSync: typeof import('fs').existsSync;
+    beforeEach(() => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      originalExistsSync = require('fs').existsSync;
+    });
+    afterEach(() => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require('fs').existsSync = originalExistsSync;
+    });
+
+    it("returns 'host.docker.internal' when /.dockerenv exists", () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require('fs').existsSync = (p: string) => p === '/.dockerenv';
+      expect(service.getLocalLlmHost()).toBe('host.docker.internal');
+    });
+
+    it("returns 'localhost' when /.dockerenv is absent", () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require('fs').existsSync = () => false;
+      expect(service.getLocalLlmHost()).toBe('localhost');
+    });
+
+    it("returns 'localhost' when existsSync throws", () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require('fs').existsSync = () => {
+        throw new Error('EACCES');
+      };
+      expect(service.getLocalLlmHost()).toBe('localhost');
+    });
+  });
+
+  describe('isSelfHosted', () => {
     const originalMode = process.env['MANIFEST_MODE'];
 
     afterEach(() => {
@@ -52,19 +84,24 @@ describe('SetupService', () => {
       else process.env['MANIFEST_MODE'] = originalMode;
     });
 
-    it('returns true when MANIFEST_MODE is local', () => {
+    it('returns true when MANIFEST_MODE is selfhosted', () => {
+      process.env['MANIFEST_MODE'] = 'selfhosted';
+      expect(service.isSelfHosted()).toBe(true);
+    });
+
+    it('returns true for legacy MANIFEST_MODE=local', () => {
       process.env['MANIFEST_MODE'] = 'local';
-      expect(service.isLocalMode()).toBe(true);
+      expect(service.isSelfHosted()).toBe(true);
     });
 
     it('returns false when MANIFEST_MODE is cloud', () => {
       process.env['MANIFEST_MODE'] = 'cloud';
-      expect(service.isLocalMode()).toBe(false);
+      expect(service.isSelfHosted()).toBe(false);
     });
 
     it('returns false when MANIFEST_MODE is not set', () => {
       delete process.env['MANIFEST_MODE'];
-      expect(service.isLocalMode()).toBe(false);
+      expect(service.isSelfHosted()).toBe(false);
     });
   });
 
@@ -97,6 +134,35 @@ describe('SetupService', () => {
         .fn()
         .mockRejectedValue(new DOMException('aborted', 'AbortError')) as unknown as typeof fetch;
       expect(await service.isOllamaAvailable()).toBe(false);
+    });
+
+    it('aborts via AbortController when the 3s timeout fires', async () => {
+      // Capture the timeout callback registered by the service so we can
+      // invoke it explicitly rather than trying to coordinate jest's fake
+      // timers with async AbortController listeners.
+      const realSetTimeout = global.setTimeout;
+      let fired: (() => void) | null = null;
+      global.setTimeout = ((cb: () => void) => {
+        fired = cb;
+        return 0 as unknown as NodeJS.Timeout;
+      }) as unknown as typeof setTimeout;
+
+      try {
+        global.fetch = jest.fn().mockImplementation((_url, init) => {
+          return new Promise((_resolve, reject) => {
+            (init as RequestInit).signal?.addEventListener('abort', () => {
+              reject(new DOMException('aborted', 'AbortError'));
+            });
+          });
+        }) as unknown as typeof fetch;
+
+        const pending = service.isOllamaAvailable();
+        expect(fired).not.toBeNull();
+        fired!(); // trigger controller.abort() from setup.service.ts:49
+        expect(await pending).toBe(false);
+      } finally {
+        global.setTimeout = realSetTimeout;
+      }
     });
   });
 
@@ -312,6 +378,19 @@ describe('SetupService', () => {
         await expect(service.createFirstAdmin(dto)).rejects.toThrow(ConflictException);
         expect(auth.api.signUpEmail).not.toHaveBeenCalled();
       });
+    });
+
+    it('treats an empty count result as count=0 and proceeds with signup', async () => {
+      runnerQuery
+        .mockResolvedValueOnce(undefined) // pg_advisory_lock
+        .mockResolvedValueOnce([]) // COUNT query returns no rows → rows[0] is undefined
+        .mockResolvedValueOnce(undefined) // UPDATE emailVerified
+        .mockResolvedValueOnce(undefined); // pg_advisory_unlock
+      (auth.api.signUpEmail as jest.Mock).mockResolvedValueOnce({});
+
+      await service.createFirstAdmin(dto);
+
+      expect(auth.api.signUpEmail).toHaveBeenCalled();
     });
 
     it('does not wrap the flow in a TypeORM transaction', async () => {

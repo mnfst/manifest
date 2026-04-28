@@ -799,7 +799,7 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('API Keys'));
       fireEvent.click(screen.getByText('Add custom provider'));
       await waitFor(() => {
-        expect(screen.getByPlaceholderText('e.g. Groq, vLLM, Azure')).toBeDefined();
+        expect(screen.getByPlaceholderText('e.g. Groq, Together, Azure')).toBeDefined();
       });
     });
 
@@ -927,117 +927,6 @@ describe('ProviderSelectModal', () => {
       // Should open detail view with setup token input
       expect(screen.getByLabelText('Anthropic setup token')).toBeDefined();
       expect(screen.getByText('Connect')).toBeDefined();
-    });
-
-    it('shows claim credits button for Anthropic provider', () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('Anthropic'));
-
-      const creditsLink = screen.getByText('Claim your credits on Claude');
-      expect(creditsLink).toBeDefined();
-      expect(creditsLink.closest('a')!.getAttribute('href')).toBe(
-        'https://claude.ai/settings/usage',
-      );
-      expect(creditsLink.closest('a')!.getAttribute('target')).toBe('_blank');
-    });
-
-    it('shows info tooltip on hover for Anthropic credits', async () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('Anthropic'));
-
-      const infoWrapper = screen.getByText('Claim your credits on Claude')
-        .closest('.anthropic-credits')!
-        .querySelector('.anthropic-credits__info-wrapper')!;
-      fireEvent.mouseEnter(infoWrapper);
-
-      await waitFor(() => {
-        expect(screen.getByText('Learn more about eligibility')).toBeDefined();
-      });
-    });
-
-    it('hides tooltip on mouse leave from info icon', async () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('Anthropic'));
-
-      const infoWrapper = screen.getByText('Claim your credits on Claude')
-        .closest('.anthropic-credits')!
-        .querySelector('.anthropic-credits__info-wrapper')!;
-      fireEvent.mouseEnter(infoWrapper);
-
-      await waitFor(() => {
-        expect(screen.getByText('Learn more about eligibility')).toBeDefined();
-      });
-
-      fireEvent.mouseLeave(infoWrapper);
-
-      await waitFor(
-        () => {
-          expect(screen.queryByText('Learn more about eligibility')).toBeNull();
-        },
-        { timeout: 500 },
-      );
-    });
-
-    it('keeps tooltip visible when moving mouse from icon to tooltip', async () => {
-      vi.useFakeTimers();
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('Anthropic'));
-
-      const infoWrapper = screen.getByText('Claim your credits on Claude')
-        .closest('.anthropic-credits')!
-        .querySelector('.anthropic-credits__info-wrapper')!;
-
-      // Show tooltip
-      fireEvent.mouseEnter(infoWrapper);
-      expect(screen.getByText('Learn more about eligibility')).toBeDefined();
-
-      // Leave icon — starts hide timer
-      fireEvent.mouseLeave(infoWrapper);
-
-      // Enter tooltip before timer fires — cancels hide
-      const tooltip = document.querySelector('.anthropic-credits__tooltip')!;
-      fireEvent.mouseEnter(tooltip);
-
-      // Advance past the 150ms hide delay
-      vi.advanceTimersByTime(200);
-
-      // Tooltip should still be visible
-      expect(screen.getByText('Learn more about eligibility')).toBeDefined();
-
-      // Leave tooltip — starts hide timer again
-      fireEvent.mouseLeave(tooltip);
-      vi.advanceTimersByTime(200);
-
-      expect(screen.queryByText('Learn more about eligibility')).toBeNull();
-      vi.useRealTimers();
     });
 
     it('does not show credits button for non-Anthropic providers', () => {
@@ -2427,7 +2316,7 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('Add custom provider'));
 
       // Fill in the custom provider form
-      const nameInput = screen.getByPlaceholderText('e.g. Groq, vLLM, Azure');
+      const nameInput = screen.getByPlaceholderText('e.g. Groq, Together, Azure');
       fireEvent.input(nameInput, { target: { value: 'NewProvider' } });
 
       const urlInput = screen.getByPlaceholderText('https://api.example.com/v1');

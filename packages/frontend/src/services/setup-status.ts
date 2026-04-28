@@ -6,15 +6,17 @@
 interface SetupStatusResponse {
   needsSetup: boolean;
   socialProviders?: string[];
-  isLocalMode?: boolean;
+  isSelfHosted?: boolean;
   ollamaAvailable?: boolean;
+  localLlmHost?: string;
 }
 
 interface SetupStatusResult {
   needsSetup: boolean;
   socialProviders: string[];
-  isLocalMode: boolean;
+  isSelfHosted: boolean;
   ollamaAvailable: boolean;
+  localLlmHost: string;
 }
 
 let cachedPromise: Promise<SetupStatusResult> | null = null;
@@ -26,16 +28,29 @@ async function fetchSetupStatus(): Promise<SetupStatusResult> {
       cache: 'no-store',
     });
     if (!res.ok)
-      return { needsSetup: false, socialProviders: [], isLocalMode: false, ollamaAvailable: false };
+      return {
+        needsSetup: false,
+        socialProviders: [],
+        isSelfHosted: false,
+        ollamaAvailable: false,
+        localLlmHost: 'localhost',
+      };
     const data = (await res.json()) as SetupStatusResponse;
     return {
       needsSetup: data.needsSetup === true,
       socialProviders: data.socialProviders ?? [],
-      isLocalMode: data.isLocalMode === true,
+      isSelfHosted: data.isSelfHosted === true,
       ollamaAvailable: data.ollamaAvailable === true,
+      localLlmHost: data.localLlmHost || 'localhost',
     };
   } catch {
-    return { needsSetup: false, socialProviders: [], isLocalMode: false, ollamaAvailable: false };
+    return {
+      needsSetup: false,
+      socialProviders: [],
+      isSelfHosted: false,
+      ollamaAvailable: false,
+      localLlmHost: 'localhost',
+    };
   }
 }
 
@@ -54,12 +69,16 @@ export async function checkSocialProviders(): Promise<string[]> {
   return (await getSetupStatus()).socialProviders;
 }
 
-export async function checkIsLocalMode(): Promise<boolean> {
-  return (await getSetupStatus()).isLocalMode;
+export async function checkIsSelfHosted(): Promise<boolean> {
+  return (await getSetupStatus()).isSelfHosted;
 }
 
 export async function checkIsOllamaAvailable(): Promise<boolean> {
   return (await getSetupStatus()).ollamaAvailable;
+}
+
+export async function checkLocalLlmHost(): Promise<string> {
+  return (await getSetupStatus()).localLlmHost;
 }
 
 /** Invalidate the cached status. Call this after a successful setup. */

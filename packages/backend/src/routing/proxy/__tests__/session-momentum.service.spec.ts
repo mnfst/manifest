@@ -120,4 +120,59 @@ describe('SessionMomentumService', () => {
     expect(service.getRecentTiers('a')).toEqual(['simple']);
     expect(service.getRecentTiers('b')).toEqual(['complex']);
   });
+
+  describe('specificity categories', () => {
+    it('returns undefined when no categories have been recorded', () => {
+      expect(service.getRecentCategories('unknown')).toBeUndefined();
+    });
+
+    it('creates a new entry when recordCategory is called first', () => {
+      service.recordCategory('sess-1', 'coding');
+      expect(service.getRecentCategories('sess-1')).toEqual(['coding']);
+    });
+
+    it('prepends new categories on an existing entry', () => {
+      service.recordCategory('sess-1', 'coding');
+      service.recordCategory('sess-1', 'web_browsing');
+      expect(service.getRecentCategories('sess-1')).toEqual(['web_browsing', 'coding']);
+    });
+
+    it('caps categories at 5 entries', () => {
+      for (const c of [
+        'coding',
+        'web_browsing',
+        'coding',
+        'coding',
+        'coding',
+        'web_browsing',
+      ] as const) {
+        service.recordCategory('sess-1', c);
+      }
+      const cats = service.getRecentCategories('sess-1')!;
+      expect(cats).toHaveLength(5);
+      expect(cats[0]).toBe('web_browsing');
+    });
+
+    it('returns undefined when the entry exists but has no categories', () => {
+      // recordTier creates an entry whose categories[] is empty — the guard
+      // in getRecentCategories must not surface the empty array as a result.
+      service.recordTier('sess-1', 'simple');
+      expect(service.getRecentCategories('sess-1')).toBeUndefined();
+    });
+
+    it('returns undefined for expired sessions even when categories were recorded', () => {
+      service.recordCategory('sess-1', 'coding');
+      const sessions = (service as unknown as { sessions: Map<string, { lastUpdated: number }> })
+        .sessions;
+      sessions.get('sess-1')!.lastUpdated = Date.now() - 31 * 60 * 1000;
+      expect(service.getRecentCategories('sess-1')).toBeUndefined();
+    });
+
+    it('keeps tier history intact when recordCategory appends to an existing entry', () => {
+      service.recordTier('sess-1', 'complex');
+      service.recordCategory('sess-1', 'coding');
+      expect(service.getRecentTiers('sess-1')).toEqual(['complex']);
+      expect(service.getRecentCategories('sess-1')).toEqual(['coding']);
+    });
+  });
 });

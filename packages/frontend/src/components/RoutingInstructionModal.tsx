@@ -2,9 +2,9 @@ import { type Component, Show, createResource, createSignal } from 'solid-js';
 import CopyButton from './CopyButton.jsx';
 import ModelSelectDropdown from './ModelSelectDropdown.jsx';
 import SetupStepAddProvider from './SetupStepAddProvider.jsx';
-import { PROVIDERS } from '../services/providers.js';
-import { getAgentKey, getHealth } from '../services/api.js';
-import { agentPlatform } from '../services/agent-platform-store.js';
+import { getAgentKey } from '../services/api.js';
+import { agentPlatform, agentCategory } from '../services/agent-platform-store.js';
+import { platformIcon } from 'manifest-shared';
 
 interface Props {
   open: boolean;
@@ -16,51 +16,26 @@ interface Props {
 
 const RoutingInstructionModal: Component<Props> = (props) => {
   const [selectedModel, setSelectedModel] = createSignal<string | null>(null);
-  const [selectedLabel, setSelectedLabel] = createSignal<string | null>(null);
   const isEnable = () => props.mode === 'enable';
-  const providerName = () => {
-    if (!props.connectedProvider) return null;
-    return PROVIDERS.find((p) => p.id === props.connectedProvider)?.name ?? props.connectedProvider;
-  };
   const title = () => (isEnable() ? 'Activate routing' : 'Deactivate routing');
   const modelOrPlaceholder = () => selectedModel() ?? '<provider/model>';
 
-  const [healthData] = createResource(() => (props.open ? true : null), getHealth);
-  const isLocal = () => (healthData() as { mode?: string })?.mode === 'local';
   const [apiKeyData] = createResource(
     () => (props.open && isEnable() ? props.agentName : null),
     (n) => getAgentKey(n),
   );
 
   const baseUrl = () => {
-    if (isLocal()) return `${window.location.origin}/v1`;
     const host = window.location.hostname;
     if (host === 'app.manifest.build') return 'https://app.manifest.build/v1';
     return `${window.location.origin}/v1`;
   };
 
-  const displayKey = () =>
-    apiKeyData()?.apiKey ??
-    (apiKeyData()?.keyPrefix ? `${apiKeyData()!.keyPrefix}...` : 'mnfst_YOUR_KEY');
-  const isKeyTruncated = () => !apiKeyData()?.apiKey;
-
-  const enableCmd = () => {
-    const providerJson = JSON.stringify({
-      baseUrl: baseUrl(),
-      api: 'openai-completions',
-      apiKey: displayKey(),
-      models: [{ id: 'auto', name: 'Manifest Auto' }],
-    });
-    return `openclaw config set models.providers.manifest '${providerJson}'\nopenclaw config set agents.defaults.model.primary manifest/auto\nopenclaw gateway restart`;
-  };
-
   const disableCmd = () =>
     `openclaw config unset models.providers.manifest\nopenclaw config unset agents.defaults.models.manifest/auto\nopenclaw config set agents.defaults.model.primary ${modelOrPlaceholder()}\nopenclaw gateway restart`;
-  const command = () => (isEnable() ? enableCmd() : disableCmd());
 
-  const handleModelSelect = (cliValue: string, displayLabel: string) => {
+  const handleModelSelect = (cliValue: string) => {
     setSelectedModel(cliValue);
-    setSelectedLabel(displayLabel);
   };
 
   return (
@@ -81,13 +56,23 @@ const RoutingInstructionModal: Component<Props> = (props) => {
           aria-modal="true"
           aria-labelledby="routing-instruction-title"
         >
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-            <h2
-              id="routing-instruction-title"
-              style="margin: 0; font-size: var(--font-size-lg); font-weight: 600;"
-            >
-              {title()}
-            </h2>
+          <div class="setup-modal__header">
+            <div class="modal-card__title" id="routing-instruction-title">
+              <Show when={isEnable()}>
+                <Show when={platformIcon(agentPlatform(), agentCategory())}>
+                  <img
+                    src={platformIcon(agentPlatform(), agentCategory())}
+                    alt=""
+                    width="28"
+                    height="28"
+                    class="setup-modal__platform-icon"
+                  />
+                </Show>
+              </Show>
+              <Show when={isEnable()} fallback={<>Deactivate routing</>}>
+                Set up agent: <em>{props.agentName}</em>
+              </Show>
+            </div>
             <button class="modal__close" onClick={() => props.onClose()} aria-label="Close">
               <svg
                 width="16"
@@ -105,6 +90,11 @@ const RoutingInstructionModal: Component<Props> = (props) => {
               </svg>
             </button>
           </div>
+          <Show when={isEnable()}>
+            <p class="modal-card__desc">
+              Connect your agent to Manifest to start routing requests.
+            </p>
+          </Show>
 
           <Show
             when={isEnable()}

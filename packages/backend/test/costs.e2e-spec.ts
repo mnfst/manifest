@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import request from 'supertest';
 import { createTestApp, TEST_API_KEY, TEST_USER_ID, TEST_TENANT_ID } from './helpers';
-import { detectDialect, portableSql, sqlNow } from '../src/common/utils/sql-dialect';
+import { sqlNow } from '../src/common/utils/postgres-sql';
 import { v4 as uuid } from 'uuid';
 import { PricingSyncService } from '../src/database/pricing-sync.service';
 import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
@@ -13,8 +13,6 @@ beforeAll(async () => {
   app = await createTestApp();
 
   const ds = app.get(DataSource);
-  const dialect = detectDialect(ds.options.type as string);
-  const sql = (q: string) => portableSql(q, dialect);
   const now = sqlNow();
 
   // Populate PricingSyncService cache with gpt-4o pricing
@@ -29,17 +27,18 @@ beforeAll(async () => {
   await app.get(ModelPricingCacheService).reload();
 
   // Seed agent_messages directly (with pre-calculated cost_usd) using the same
-  // timestamp format as sqlNow() so that date comparisons work in both PG & sql.js.
+  // timestamp format as sqlNow() so that date comparisons line up with the
+  // Postgres `timestamp without time zone` columns the analytics queries read.
   const costUsd1 = 5000 * 0.0000025 + 2000 * 0.00001; // 0.0325
   const costUsd2 = 3000 * 0.0000025 + 1000 * 0.00001; // 0.0175
   await ds.query(
-    sql(`INSERT INTO agent_messages (id, timestamp, description, service_type, status, model, input_tokens, output_tokens, cost_usd, user_id, tenant_id, agent_name)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`),
+    `INSERT INTO agent_messages (id, timestamp, description, service_type, status, model, input_tokens, output_tokens, cost_usd, user_id, tenant_id, agent_name)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
     [uuid(), now, 'Cost query 1', 'agent', 'ok', 'gpt-4o', 5000, 2000, costUsd1, TEST_USER_ID, TEST_TENANT_ID, null],
   );
   await ds.query(
-    sql(`INSERT INTO agent_messages (id, timestamp, description, service_type, status, model, input_tokens, output_tokens, cost_usd, user_id, tenant_id, agent_name)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`),
+    `INSERT INTO agent_messages (id, timestamp, description, service_type, status, model, input_tokens, output_tokens, cost_usd, user_id, tenant_id, agent_name)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
     [uuid(), now, 'Cost query 2', 'agent', 'ok', 'gpt-4o', 3000, 1000, costUsd2, TEST_USER_ID, TEST_TENANT_ID, null],
   );
 }, 30000);

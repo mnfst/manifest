@@ -58,6 +58,8 @@ describe('MessageDetailsService', () => {
     feedback_rating: null,
     feedback_tags: null,
     feedback_details: null,
+    request_headers: null,
+    caller_attribution: null,
   };
 
   beforeEach(async () => {
@@ -238,7 +240,23 @@ describe('MessageDetailsService', () => {
       feedback_rating: null,
       feedback_tags: null,
       feedback_details: null,
+      request_headers: null,
+      caller_attribution: null,
     });
+  });
+
+  it('returns caller_attribution when stored on the message', async () => {
+    const attribution = { sdk: 'openai-js', appName: 'OpenClaw', appUrl: 'https://openclaw.dev' };
+    msgQb.getOne.mockResolvedValue({ ...baseMessage, caller_attribution: attribution });
+    const result = await service.getDetails('msg-1', 'u1');
+    expect(result.message.caller_attribution).toEqual(attribution);
+  });
+
+  it('returns request_headers when stored on the message', async () => {
+    const headers = { 'user-agent': 'curl/8.14.1', 'x-custom-foo': 'bar' };
+    msgQb.getOne.mockResolvedValue({ ...baseMessage, request_headers: headers });
+    const result = await service.getDetails('msg-1', 'u1');
+    expect(result.message.request_headers).toEqual(headers);
   });
 
   it('splits feedback_tags into an array when present', async () => {

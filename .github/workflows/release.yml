@@ -43,11 +43,20 @@ jobs:
         id: detect
         env:
           BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
         run: |
-          # Read CURR from HEAD (not the working tree) because
-          # changesets/action runs `npm run version-packages` in place and
-          # may have mutated packages/manifest/package.json on disk.
-          CURR=$(git show HEAD:packages/manifest/package.json 2>/dev/null | jq -r .version 2>/dev/null || echo "")
+          # Read both versions from the immutable remote SHAs of the push
+          # event, NOT from `HEAD`. changesets/action@v1 runs
+          # `npm run version-packages` in this same checkout when there are
+          # unconsumed changesets and commits the result locally to push as
+          # a "chore: version packages" side-branch PR. After that runs,
+          # local HEAD points at a commit whose version bump is NOT yet on
+          # main — using it here would falsely report a bump and trigger
+          # downstream publish jobs with main's stale version number,
+          # clobbering an existing Docker tag and a GitHub Release. See the
+          # 5.47.0 re-publish incident during PR #1557 merge for the
+          # failure mode this guards against.
+          CURR=$(git show "${AFTER_SHA}:packages/manifest/package.json" 2>/dev/null | jq -r .version 2>/dev/null || echo "")
           # Compare against the push base so multi-commit pushes are handled
           # correctly. On first push to a branch, BEFORE_SHA is all zeros.
           if [ -n "$BEFORE_SHA" ] && [ "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then

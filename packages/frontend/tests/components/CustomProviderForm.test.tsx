@@ -4,11 +4,18 @@ import { render, screen, fireEvent, waitFor } from "@solidjs/testing-library";
 const mockCreateCustomProvider = vi.fn();
 const mockUpdateCustomProvider = vi.fn();
 const mockDeleteCustomProvider = vi.fn();
+const mockProbeCustomProvider = vi.fn();
+const mockCheckIsSelfHosted = vi.fn().mockResolvedValue(false);
 
 vi.mock("../../src/services/api.js", () => ({
   createCustomProvider: (...args: unknown[]) => mockCreateCustomProvider(...args),
   updateCustomProvider: (...args: unknown[]) => mockUpdateCustomProvider(...args),
   deleteCustomProvider: (...args: unknown[]) => mockDeleteCustomProvider(...args),
+  probeCustomProvider: (...args: unknown[]) => mockProbeCustomProvider(...args),
+}));
+
+vi.mock("../../src/services/setup-status.js", () => ({
+  checkIsSelfHosted: () => mockCheckIsSelfHosted(),
 }));
 
 vi.mock("../../src/services/toast-store.js", () => ({
@@ -28,6 +35,7 @@ describe("CustomProviderForm", () => {
       id: "cp-1",
       name: "Groq",
       base_url: "https://api.groq.com/openai/v1",
+      api_kind: "openai",
       has_api_key: true,
       models: [{ model_name: "llama-3.1-70b" }],
       created_at: "2026-03-04T00:00:00Z",
@@ -36,6 +44,7 @@ describe("CustomProviderForm", () => {
       id: "cp-1",
       name: "Updated Groq",
       base_url: "https://api.groq.com/openai/v1",
+      api_kind: "openai",
       has_api_key: true,
       models: [{ model_name: "llama-3.1-70b" }],
       created_at: "2026-03-04T00:00:00Z",
@@ -47,7 +56,7 @@ describe("CustomProviderForm", () => {
     render(() => (
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
-    expect(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure")).toBeDefined();
+    expect(screen.getByPlaceholderText("e.g. Groq, Together, Azure")).toBeDefined();
     expect(screen.getByPlaceholderText("https://api.example.com/v1")).toBeDefined();
     expect(screen.getByPlaceholderText("sk-...")).toBeDefined();
     expect(screen.getByPlaceholderText("Model name")).toBeDefined();
@@ -65,7 +74,7 @@ describe("CustomProviderForm", () => {
     render(() => (
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
-    const nameInput = screen.getByPlaceholderText("e.g. Groq, vLLM, Azure");
+    const nameInput = screen.getByPlaceholderText("e.g. Groq, Together, Azure");
     const urlInput = screen.getByPlaceholderText("https://api.example.com/v1");
     const modelInput = screen.getByPlaceholderText("Model name");
 
@@ -83,7 +92,7 @@ describe("CustomProviderForm", () => {
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
 
-    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure"), {
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
       target: { value: "Groq" },
     });
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
@@ -99,6 +108,7 @@ describe("CustomProviderForm", () => {
       expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
         name: "Groq",
         base_url: "https://api.groq.com/v1",
+        api_kind: "openai",
         apiKey: undefined,
         models: [{ model_name: "llama-3.1-70b" }],
       });
@@ -122,7 +132,7 @@ describe("CustomProviderForm", () => {
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
 
-    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure"), {
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
       target: { value: "Groq" },
     });
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
@@ -144,7 +154,7 @@ describe("CustomProviderForm", () => {
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
 
-    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure"), {
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
       target: { value: "Groq" },
     });
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
@@ -163,6 +173,7 @@ describe("CustomProviderForm", () => {
       expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
         name: "Groq",
         base_url: "https://api.groq.com/v1",
+        api_kind: "openai",
         apiKey: "gsk_test123",
         models: [{ model_name: "llama-3.1-70b" }],
       });
@@ -174,7 +185,7 @@ describe("CustomProviderForm", () => {
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
 
-    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure"), {
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
       target: { value: "Groq" },
     });
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
@@ -196,6 +207,7 @@ describe("CustomProviderForm", () => {
       expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
         name: "Groq",
         base_url: "https://api.groq.com/v1",
+        api_kind: "openai",
         apiKey: undefined,
         models: [
           {
@@ -213,7 +225,7 @@ describe("CustomProviderForm", () => {
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
 
-    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure"), {
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
       target: { value: "Groq" },
     });
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
@@ -235,6 +247,7 @@ describe("CustomProviderForm", () => {
       expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
         name: "Groq",
         base_url: "https://api.groq.com/v1",
+        api_kind: "openai",
         apiKey: undefined,
         models: [
           {
@@ -254,7 +267,7 @@ describe("CustomProviderForm", () => {
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
 
-    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure"), {
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
       target: { value: "Test" },
     });
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
@@ -278,7 +291,7 @@ describe("CustomProviderForm", () => {
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
 
-    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure"), {
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
       target: { value: "Test" },
     });
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
@@ -293,7 +306,7 @@ describe("CustomProviderForm", () => {
       expect(screen.getByText("Some error")).toBeDefined();
     });
 
-    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure"), {
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
       target: { value: "New Name" },
     });
     await waitFor(() => {
@@ -308,7 +321,7 @@ describe("CustomProviderForm", () => {
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
 
-    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure"), {
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
       target: { value: "Test" },
     });
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
@@ -362,7 +375,7 @@ describe("CustomProviderForm", () => {
       <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
     ));
 
-    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure"), {
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
       target: { value: "Test" },
     });
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
@@ -401,7 +414,7 @@ describe("CustomProviderForm", () => {
     await waitFor(() => expect(addBtn.hasAttribute("disabled")).toBe(false));
     fireEvent.click(addBtn);
 
-    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure"), {
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
       target: { value: "Test" },
     });
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
@@ -414,6 +427,7 @@ describe("CustomProviderForm", () => {
       expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
         name: "Test",
         base_url: "https://api.example.com/v1",
+        api_kind: "openai",
         apiKey: undefined,
         models: [{ model_name: "model-a" }],
       });
@@ -447,6 +461,90 @@ describe("CustomProviderForm", () => {
   });
 });
 
+describe("CustomProviderForm — Fetch models probe", () => {
+  const onCreated = vi.fn();
+  const onBack = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockCheckIsSelfHosted.mockResolvedValue(true);
+  });
+
+  it("fetches models via probe and populates the model rows", async () => {
+    mockProbeCustomProvider.mockResolvedValue({
+      models: [{ model_name: "llama-3.1-8b" }, { model_name: "qwen2.5-7b" }],
+    });
+
+    render(() => (
+      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+    ));
+
+    fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
+      target: { value: "http://host.docker.internal:8000/v1" },
+    });
+
+    fireEvent.click(screen.getByText("Fetch models"));
+
+    await waitFor(() => {
+      expect(mockProbeCustomProvider).toHaveBeenCalledWith(
+        "test-agent",
+        "http://host.docker.internal:8000/v1",
+        undefined,
+        "openai",
+      );
+      const inputs = screen.getAllByPlaceholderText("Model name") as HTMLInputElement[];
+      expect(inputs).toHaveLength(2);
+      expect(inputs[0].value).toBe("llama-3.1-8b");
+      expect(inputs[1].value).toBe("qwen2.5-7b");
+    });
+  });
+
+  it("shows an inline error when the probe fails", async () => {
+    mockProbeCustomProvider.mockRejectedValue(new Error("Connection refused"));
+
+    render(() => (
+      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+    ));
+
+    fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
+      target: { value: "http://host.docker.internal:9999/v1" },
+    });
+
+    fireEvent.click(screen.getByText("Fetch models"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Connection refused")).toBeDefined();
+    });
+  });
+
+  it("surfaces a 'no models' error when the server returns an empty list", async () => {
+    mockProbeCustomProvider.mockResolvedValue({ models: [] });
+
+    render(() => (
+      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+    ));
+
+    fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
+      target: { value: "http://host.docker.internal:8000/v1" },
+    });
+
+    fireEvent.click(screen.getByText("Fetch models"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Server returned no models")).toBeDefined();
+    });
+  });
+
+  it("disables the Fetch models button when the base URL is empty", async () => {
+    render(() => (
+      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+    ));
+
+    const fetchBtn = screen.getByText("Fetch models");
+    expect(fetchBtn.hasAttribute("disabled")).toBe(true);
+  });
+});
+
 describe("CustomProviderForm — prefill from URL params", () => {
   const onCreated = vi.fn();
   const onBack = vi.fn();
@@ -457,6 +555,7 @@ describe("CustomProviderForm — prefill from URL params", () => {
       id: "cp-1",
       name: "Groq",
       base_url: "https://api.groq.com/v1",
+      api_kind: "openai",
       has_api_key: true,
       models: [{ model_name: "llama-3.1-70b" }],
       created_at: "2026-03-04T00:00:00Z",
@@ -481,7 +580,7 @@ describe("CustomProviderForm — prefill from URL params", () => {
     ));
 
     expect(
-      (screen.getByPlaceholderText("e.g. Groq, vLLM, Azure") as HTMLInputElement).value,
+      (screen.getByPlaceholderText("e.g. Groq, Together, Azure") as HTMLInputElement).value,
     ).toBe("Groq");
     expect(
       (screen.getByPlaceholderText("https://api.example.com/v1") as HTMLInputElement).value,
@@ -509,7 +608,7 @@ describe("CustomProviderForm — prefill from URL params", () => {
     ));
 
     expect(
-      (screen.getByPlaceholderText("e.g. Groq, vLLM, Azure") as HTMLInputElement).value,
+      (screen.getByPlaceholderText("e.g. Groq, Together, Azure") as HTMLInputElement).value,
     ).toBe("Test");
     expect((screen.getByPlaceholderText("Model name") as HTMLInputElement).value).toBe("");
   });
@@ -534,6 +633,7 @@ describe("CustomProviderForm — prefill from URL params", () => {
       expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
         name: "Groq",
         base_url: "https://api.groq.com/v1",
+        api_kind: "openai",
         apiKey: undefined,
         models: [{ model_name: "llama-3.1-70b" }],
       });
@@ -550,6 +650,7 @@ describe("CustomProviderForm — edit mode", () => {
     id: "cp-1",
     name: "Groq",
     base_url: "https://api.groq.com/openai/v1",
+    api_kind: "openai" as const,
     has_api_key: true,
     models: [
       {
@@ -579,7 +680,7 @@ describe("CustomProviderForm — edit mode", () => {
 
     expect(screen.getByText("Edit custom provider")).toBeDefined();
     expect(screen.getByText("Save changes")).toBeDefined();
-    expect((screen.getByPlaceholderText("e.g. Groq, vLLM, Azure") as HTMLInputElement).value).toBe("Groq");
+    expect((screen.getByPlaceholderText("e.g. Groq, Together, Azure") as HTMLInputElement).value).toBe("Groq");
     expect((screen.getByPlaceholderText("https://api.example.com/v1") as HTMLInputElement).value).toBe("https://api.groq.com/openai/v1");
   });
 
@@ -637,7 +738,7 @@ describe("CustomProviderForm — edit mode", () => {
       />
     ));
 
-    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, vLLM, Azure"), {
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
       target: { value: "Updated Groq" },
     });
 
@@ -894,5 +995,387 @@ describe("CustomProviderForm — edit mode", () => {
 
     const modelInput = screen.getByLabelText("Model 1 name") as HTMLInputElement;
     expect(modelInput.value).toBe("llama-3.1-70b");
+  });
+});
+
+describe("CustomProviderForm — probe edge cases and model-row interactions", () => {
+  const onCreated = vi.fn();
+  const onBack = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockCheckIsSelfHosted.mockResolvedValue(true);
+  });
+
+  it("shows an error when Fetch models runs with an empty base URL", async () => {
+    // Cover the defensive `if (!url)` early-exit inside handleProbe. We
+    // type a URL so the Fetch button enables, clear the input, then
+    // remove the disabled attribute from the DOM so jsdom dispatches the
+    // click — the guard then reads '' from baseUrl() and short-circuits.
+    render(() => (
+      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+    ));
+
+    fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
+      target: { value: "http://x" },
+    });
+    const btn = screen.getByText("Fetch models") as HTMLButtonElement;
+    await waitFor(() => expect(btn.hasAttribute("disabled")).toBe(false));
+
+    fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
+      target: { value: "" },
+    });
+
+    // Force-remove the disabled attribute so jsdom delivers the click to
+    // our handler. (Solid will re-apply it on the next render tick.)
+    btn.removeAttribute("disabled");
+    btn.disabled = false;
+    fireEvent.click(btn);
+
+    await waitFor(() => {
+      expect(screen.getByText("Enter a base URL first")).toBeDefined();
+    });
+    expect(mockProbeCustomProvider).not.toHaveBeenCalled();
+  });
+
+  it("shows a non-Error probe rejection as 'Probe failed'", async () => {
+    // Rejecting with a non-Error value exercises the string-error ternary
+    // branch in handleProbe's catch block.
+    mockProbeCustomProvider.mockRejectedValue("boom");
+
+    render(() => (
+      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+    ));
+
+    fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
+      target: { value: "http://host.docker.internal:8000/v1" },
+    });
+    fireEvent.click(screen.getByText("Fetch models"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Probe failed")).toBeDefined();
+    });
+  });
+
+  it("leaves the rows untouched if removeRow is invoked while only one row exists", async () => {
+    // Solid sets `disabled` on the remove button when only one row exists,
+    // so jsdom won't deliver the click to the handler. We temporarily
+    // strip `disabled` and fire the click to exercise the defensive
+    // `prev.length <= 1 ? prev : prev.filter(...)` short-circuit.
+    render(() => (
+      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+    ));
+
+    const removeBtn = screen.getByLabelText("Remove model 1") as HTMLButtonElement;
+    removeBtn.removeAttribute("disabled");
+    removeBtn.disabled = false;
+    fireEvent.click(removeBtn);
+
+    expect(screen.getAllByPlaceholderText("Model name")).toHaveLength(1);
+  });
+
+  it("updates only the targeted row when multiple rows exist", async () => {
+    render(() => (
+      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+    ));
+
+    // Row 1
+    fireEvent.input(screen.getByPlaceholderText("Model name"), {
+      target: { value: "first" },
+    });
+
+    fireEvent.click(screen.getByText("+ Add model"));
+
+    await waitFor(() => {
+      expect(screen.getAllByPlaceholderText("Model name")).toHaveLength(2);
+    });
+
+    // Edit row 2 to exercise updateRow when i !== index for the other row.
+    const inputs = screen.getAllByPlaceholderText("Model name") as HTMLInputElement[];
+    fireEvent.input(inputs[1], { target: { value: "second" } });
+
+    await waitFor(() => {
+      const refreshed = screen.getAllByPlaceholderText("Model name") as HTMLInputElement[];
+      expect(refreshed[0].value).toBe("first");
+      expect(refreshed[1].value).toBe("second");
+    });
+  });
+});
+
+describe("CustomProviderForm — API format selector", () => {
+  const onCreated = vi.fn();
+  const onBack = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockCreateCustomProvider.mockResolvedValue({
+      id: "cp-1",
+      name: "Azure Claude",
+      base_url: "https://api.anthropic.com",
+      api_kind: "anthropic",
+      has_api_key: true,
+      models: [{ model_name: "claude-sonnet-4-5" }],
+      created_at: "2026-03-04T00:00:00Z",
+    });
+  });
+
+  it("defaults to the OpenAI option and shows both paths", () => {
+    render(() => (
+      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+    ));
+
+    const openaiRadio = screen.getByRole("radio", { name: /OpenAI/ }) as HTMLInputElement;
+    const anthropicRadio = screen.getByRole("radio", { name: /Anthropic/ }) as HTMLInputElement;
+    expect(openaiRadio.checked).toBe(true);
+    expect(anthropicRadio.checked).toBe(false);
+    expect(screen.getByText("/v1/chat/completions")).toBeDefined();
+    expect(screen.getByText("/v1/messages")).toBeDefined();
+    expect(screen.getByText("Most providers use OpenAI format.")).toBeDefined();
+  });
+
+  it("swaps the base URL placeholder when Anthropic is selected", async () => {
+    render(() => (
+      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+    ));
+
+    expect(screen.getByPlaceholderText("https://api.example.com/v1")).toBeDefined();
+
+    const anthropicRadio = screen.getByRole("radio", { name: /Anthropic/ });
+    fireEvent.click(anthropicRadio);
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("https://api.anthropic.com")).toBeDefined();
+      expect(screen.queryByPlaceholderText("https://api.example.com/v1")).toBeNull();
+    });
+  });
+
+  it("submits api_kind='anthropic' after selecting the Anthropic option", async () => {
+    render(() => (
+      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+    ));
+
+    fireEvent.click(screen.getByRole("radio", { name: /Anthropic/ }));
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("https://api.anthropic.com")).toBeDefined();
+    });
+
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
+      target: { value: "Azure Claude" },
+    });
+    fireEvent.input(screen.getByPlaceholderText("https://api.anthropic.com"), {
+      target: { value: "https://api.anthropic.com" },
+    });
+    fireEvent.input(screen.getByPlaceholderText("Model name"), {
+      target: { value: "claude-sonnet-4-5" },
+    });
+
+    fireEvent.click(screen.getByText("Connect"));
+
+    await waitFor(() => {
+      expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
+        name: "Azure Claude",
+        base_url: "https://api.anthropic.com",
+        api_kind: "anthropic",
+        apiKey: undefined,
+        models: [{ model_name: "claude-sonnet-4-5" }],
+      });
+    });
+  });
+
+  it("passes the selected api_kind to the probe call", async () => {
+    mockProbeCustomProvider.mockResolvedValue({
+      models: [{ model_name: "claude-sonnet-4-5" }],
+    });
+
+    render(() => (
+      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+    ));
+
+    fireEvent.click(screen.getByRole("radio", { name: /Anthropic/ }));
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("https://api.anthropic.com")).toBeDefined();
+    });
+
+    fireEvent.input(screen.getByPlaceholderText("https://api.anthropic.com"), {
+      target: { value: "https://api.anthropic.com" },
+    });
+
+    fireEvent.click(screen.getByText("Fetch models"));
+
+    await waitFor(() => {
+      expect(mockProbeCustomProvider).toHaveBeenCalledWith(
+        "test-agent",
+        "https://api.anthropic.com",
+        undefined,
+        "anthropic",
+      );
+    });
+  });
+
+  it("locks the format control and shows a muted note in edit mode", () => {
+    const initialData = {
+      id: "cp-1",
+      name: "Azure Claude",
+      base_url: "https://api.anthropic.com",
+      api_kind: "anthropic" as const,
+      has_api_key: true,
+      models: [{ model_name: "claude-sonnet-4-5" }],
+      created_at: "2026-03-04T00:00:00Z",
+    };
+
+    render(() => (
+      <CustomProviderForm
+        agentName="test-agent"
+        onCreated={onCreated}
+        onBack={onBack}
+        initialData={initialData}
+      />
+    ));
+
+    const anthropicRadio = screen.getByRole("radio", { name: /Anthropic/ }) as HTMLInputElement;
+    const openaiRadio = screen.getByRole("radio", { name: /OpenAI/ }) as HTMLInputElement;
+    expect(anthropicRadio.checked).toBe(true);
+    expect(anthropicRadio.disabled).toBe(true);
+    expect(openaiRadio.disabled).toBe(true);
+    expect(
+      screen.getByText(/Format can't be changed after creation/),
+    ).toBeDefined();
+  });
+});
+
+describe("CustomProviderForm — edit mode: extra API key + delete UI branches", () => {
+  const onCreated = vi.fn();
+  const onBack = vi.fn();
+  const onDeleted = vi.fn();
+  const initialData = {
+    id: "cp-1",
+    name: "Groq",
+    base_url: "https://api.groq.com/openai/v1",
+    api_kind: "openai" as const,
+    has_api_key: true,
+    models: [
+      {
+        model_name: "llama-3.1-70b",
+        input_price_per_million_tokens: 0.59,
+        output_price_per_million_tokens: 0.79,
+      },
+    ],
+    created_at: "2026-03-04T00:00:00Z",
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUpdateCustomProvider.mockResolvedValue({ ...initialData, name: "Updated" });
+    mockDeleteCustomProvider.mockResolvedValue({ ok: true });
+  });
+
+  it("sends apiKey=undefined when Change is clicked and the new key is left blank", async () => {
+    render(() => (
+      <CustomProviderForm
+        agentName="test-agent"
+        onCreated={onCreated}
+        onBack={onBack}
+        initialData={initialData}
+      />
+    ));
+
+    fireEvent.click(screen.getByText("Change"));
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("sk-...")).toBeDefined();
+    });
+
+    // Leave the input empty to exercise the `|| undefined` fallback when
+    // the trimmed string is empty.
+    fireEvent.click(screen.getByText("Save changes"));
+
+    await waitFor(() => {
+      expect(mockUpdateCustomProvider).toHaveBeenCalledWith("test-agent", "cp-1", {
+        name: "Groq",
+        base_url: "https://api.groq.com/openai/v1",
+        apiKey: undefined,
+        models: [
+          {
+            model_name: "llama-3.1-70b",
+            input_price_per_million_tokens: 0.59,
+            output_price_per_million_tokens: 0.79,
+          },
+        ],
+      });
+    });
+  });
+
+  it("closes the confirm modal when the overlay itself is clicked", async () => {
+    const { container } = render(() => (
+      <CustomProviderForm
+        agentName="test-agent"
+        onCreated={onCreated}
+        onBack={onBack}
+        onDeleted={onDeleted}
+        initialData={initialData}
+      />
+    ));
+
+    fireEvent.click(screen.getByText("Delete provider"));
+    await waitFor(() => {
+      expect(screen.getByText("Cancel")).toBeDefined();
+    });
+
+    // Click directly on the overlay — since e.target === e.currentTarget
+    // the handler closes the dialog.
+    const overlay = container.querySelector(".modal-overlay") as HTMLElement;
+    fireEvent.click(overlay);
+
+    await waitFor(() => {
+      expect(container.querySelector('[role="dialog"]')).toBeNull();
+    });
+  });
+
+  it("clicks inside the confirm modal content without closing the modal", async () => {
+    const { container } = render(() => (
+      <CustomProviderForm
+        agentName="test-agent"
+        onCreated={onCreated}
+        onBack={onBack}
+        onDeleted={onDeleted}
+        initialData={initialData}
+      />
+    ));
+
+    fireEvent.click(screen.getByText("Delete provider"));
+    await waitFor(() => {
+      expect(screen.getByText("Cancel")).toBeDefined();
+    });
+
+    // Click on the modal card itself — because e.target !== e.currentTarget
+    // the overlay handler should NOT close the dialog.
+    const card = container.querySelector(".modal-card") as HTMLElement;
+    fireEvent.click(card);
+
+    expect(container.querySelector('[role="dialog"]')).not.toBeNull();
+  });
+
+  it("closes the confirm modal when the close (X) button is clicked", async () => {
+    const { container } = render(() => (
+      <CustomProviderForm
+        agentName="test-agent"
+        onCreated={onCreated}
+        onBack={onBack}
+        onDeleted={onDeleted}
+        initialData={initialData}
+      />
+    ));
+
+    fireEvent.click(screen.getByText("Delete provider"));
+    await waitFor(() => {
+      expect(screen.getByText("Cancel")).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByLabelText("Close"));
+
+    await waitFor(() => {
+      expect(container.querySelector('[role="dialog"]')).toBeNull();
+    });
   });
 });

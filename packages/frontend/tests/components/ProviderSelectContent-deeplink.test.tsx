@@ -71,7 +71,7 @@ describe('ProviderSelectContent — providerDeepLink', () => {
     expect(container.querySelector('.provider-modal__view--from-right')).not.toBeNull();
 
     // Click the back button
-    const backBtn = container.querySelector('.provider-detail__back');
+    const backBtn = container.querySelector('.modal-back-btn');
     expect(backBtn).not.toBeNull();
     fireEvent.click(backBtn!);
 

@@ -45,19 +45,16 @@ const Account: Component = () => {
       <Title>Account Preferences - Manifest</Title>
       <Meta name="description" content="Manage your profile, workspace, and theme preferences." />
       <div class="account-modal__inner">
-        <button class="account-modal__back" onClick={() => navigate(-1)}>
+        <button class="btn btn--ghost btn--sm account-back-btn" onClick={() => navigate(-1)}>
           <svg
+            xmlns="http://www.w3.org/2000/svg"
             width="16"
             height="16"
+            fill="currentColor"
             viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
             aria-hidden="true"
           >
-            <path d="m15 18-6-6 6-6" />
+            <path d="M14.71 7.29a.996.996 0 0 0-1.41 0l-4 4a.996.996 0 0 0 0 1.41l4 4c.2.2.45.29.71.29s.51-.1.71-.29a.996.996 0 0 0 0-1.41L11.43 12l3.29-3.29a.996.996 0 0 0 0-1.41Z" />
           </svg>
           Back
         </button>
@@ -69,7 +66,7 @@ const Account: Component = () => {
         </div>
 
         {/* Profile Information */}
-        <h3 class="settings-section__title">Profile information</h3>
+        <h2 class="settings-section__title">Profile information</h2>
 
         <div class="settings-card">
           <div class="settings-card__row">
@@ -112,7 +109,7 @@ const Account: Component = () => {
         </div>
 
         {/* Workspace ID */}
-        <h3 class="settings-section__title">Workspace</h3>
+        <h2 class="settings-section__title">Workspace</h2>
 
         <div class="settings-card">
           <div class="settings-card__body">
@@ -164,7 +161,7 @@ const Account: Component = () => {
         </div>
 
         {/* Appearance */}
-        <h3 class="settings-section__title">Appearance</h3>
+        <h2 class="settings-section__title">Appearance</h2>
 
         <div class="settings-card">
           <div class="settings-card__body">

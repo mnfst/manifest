@@ -33,7 +33,7 @@ import {
 } from '../services/api.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
 import { isRecentlyCreated } from '../services/recent-agents.js';
-import { checkIsLocalMode } from '../services/setup-status.js';
+import { checkIsSelfHosted } from '../services/setup-status.js';
 import { pingCount } from '../services/sse.js';
 import '../styles/overview.css';
 
@@ -63,6 +63,7 @@ interface OverviewData {
     share_pct: number;
     estimated_cost: number;
     auth_type: string | null;
+    provider?: string | null;
   }>;
   recent_activity: MessageRow[];
   active_skills: Array<{
@@ -81,12 +82,12 @@ const Overview: Component = () => {
   const location = useLocation<{ newApiKey?: string }>();
   const navigate = useNavigate();
   preloadModelDisplayNames();
-  const [isLocal, setIsLocal] = createSignal(false);
+  const [isSelfHosted, setIsSelfHosted] = createSignal(false);
   onMount(() => {
-    checkIsLocalMode().then(setIsLocal);
+    checkIsSelfHosted().then(setIsSelfHosted);
   });
   const columns = () =>
-    isLocal() ? COMPACT_COLUMNS.filter((c) => c !== 'feedback') : COMPACT_COLUMNS;
+    isSelfHosted() ? COMPACT_COLUMNS.filter((c) => c !== 'feedback') : COMPACT_COLUMNS;
   const RANGE_STORAGE_KEY = 'manifest_chart_range';
   const VALID_RANGES = new Set(['24h', '7d', '30d']);
   const savedRange = localStorage.getItem(RANGE_STORAGE_KEY);
@@ -100,7 +101,7 @@ const Overview: Component = () => {
     setUserSelectedRange(true);
     localStorage.setItem(RANGE_STORAGE_KEY, value);
   };
-  const [activeView, setActiveView] = createSignal<'cost' | 'tokens' | 'messages'>('cost');
+  const [activeView, setActiveView] = createSignal<'cost' | 'tokens' | 'messages'>('messages');
   const [setupOpen, setSetupOpen] = createSignal(
     isRecentlyCreated(decodeURIComponent(params.agentName)),
   );
@@ -304,7 +305,7 @@ const Overview: Component = () => {
                     })
                   }
                 >
-                  Enable routing
+                  Connect provider
                 </button>
                 <div class="empty-state__img-wrapper">
                   <img
@@ -358,16 +359,16 @@ const Overview: Component = () => {
                     </div>
                     <MessageTable
                       items={
-                        isLocal()
+                        isSelfHosted()
                           ? (d().recent_activity?.slice(0, 5) ?? [])
                           : applyFeedbackOverrides(d().recent_activity?.slice(0, 5) ?? [])
                       }
                       columns={columns()}
                       agentName={params.agentName}
                       customProviderName={customProviderName}
-                      onFeedbackLike={isLocal() ? undefined : handleFeedbackLike}
-                      onFeedbackDislike={isLocal() ? undefined : handleFeedbackDislike}
-                      onFeedbackClear={isLocal() ? undefined : handleFeedbackClear}
+                      onFeedbackLike={isSelfHosted() ? undefined : handleFeedbackLike}
+                      onFeedbackDislike={isSelfHosted() ? undefined : handleFeedbackDislike}
+                      onFeedbackClear={isSelfHosted() ? undefined : handleFeedbackClear}
                     />
                   </div>
 
@@ -403,7 +404,7 @@ const Overview: Component = () => {
         }}
       />
 
-      <Show when={!isLocal()}>
+      <Show when={!isSelfHosted()}>
         <FeedbackModal
           open={feedbackModalOpen()}
           onClose={() => setFeedbackModalOpen(false)}

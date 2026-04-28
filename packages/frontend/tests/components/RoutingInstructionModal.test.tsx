@@ -7,16 +7,20 @@ vi.stubGlobal("navigator", {
 
 const mockGetModelPrices = vi.fn();
 const mockGetAgentKey = vi.fn();
-const mockGetHealth = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   getModelPrices: () => mockGetModelPrices(),
   getAgentKey: (n: string) => mockGetAgentKey(n),
-  getHealth: () => mockGetHealth(),
 }));
 
 vi.mock("../../src/services/agent-platform-store.js", () => ({
   agentPlatform: () => "openclaw",
+  agentCategory: () => null,
 }));
+
+vi.mock("manifest-shared", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("manifest-shared")>();
+  return { ...actual, platformIcon: () => undefined };
+});
 
 vi.mock("../../src/components/SetupStepAddProvider.jsx", () => ({
   default: (props: any) => (
@@ -42,7 +46,6 @@ describe("RoutingInstructionModal", () => {
   beforeEach(() => {
     mockGetModelPrices.mockResolvedValue(testModels);
     mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_abc", apiKey: "mnfst_abc123" });
-    mockGetHealth.mockResolvedValue({ mode: "cloud" });
   });
 
   it("renders nothing when open is false", () => {
@@ -52,11 +55,11 @@ describe("RoutingInstructionModal", () => {
     expect(container.querySelector(".modal-overlay")).toBeNull();
   });
 
-  it("shows 'Activate routing' title in enable mode", () => {
+  it("shows 'Set up agent' title in enable mode", () => {
     render(() => (
       <RoutingInstructionModal open={true} mode="enable" agentName="test-agent" onClose={() => {}} />
     ));
-    expect(screen.getByText("Activate routing")).toBeDefined();
+    expect(screen.getByText("test-agent")).toBeDefined();
   });
 
   it("shows SetupStepAddProvider in enable mode", () => {
@@ -299,18 +302,6 @@ describe("RoutingInstructionModal", () => {
       const el = container.querySelector('[data-testid="setup-add-provider"]');
       expect(el).not.toBeNull();
       expect(el!.getAttribute("data-api-key")).toBe("mnfst_abc123full");
-    });
-  });
-
-  it("uses origin/v1 as baseUrl in local mode", async () => {
-    mockGetHealth.mockResolvedValue({ mode: "local" });
-    const { container } = render(() => (
-      <RoutingInstructionModal open={true} mode="enable" agentName="test-agent" onClose={() => {}} />
-    ));
-    await vi.waitFor(() => {
-      const el = container.querySelector('[data-testid="setup-add-provider"]');
-      expect(el).not.toBeNull();
-      expect(el!.getAttribute("data-base-url")).toContain("/v1");
     });
   });
 

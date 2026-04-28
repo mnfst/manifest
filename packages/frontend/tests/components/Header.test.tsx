@@ -25,9 +25,27 @@ vi.mock("../../src/services/routing.js", () => ({
   useAgentName: () => () => mockAgentName,
 }));
 
+vi.mock("../../src/services/api.js", () => ({
+  duplicateAgent: vi.fn(),
+  getDuplicatePreview: vi.fn().mockResolvedValue(null),
+}));
+
+vi.mock("../../src/services/recent-agents.js", () => ({
+  markAgentCreated: vi.fn(),
+}));
+
+vi.mock("../../src/services/toast-store.js", () => ({
+  toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn() },
+}));
+
 let mockAgentDisplayName: string | null = null;
 vi.mock("../../src/services/agent-display-name.js", () => ({
   agentDisplayName: () => mockAgentDisplayName,
+}));
+
+const mockCheckIsSelfHosted = vi.fn().mockResolvedValue(false);
+vi.mock("../../src/services/setup-status.js", () => ({
+  checkIsSelfHosted: () => mockCheckIsSelfHosted(),
 }));
 
 import Header from "../../src/components/Header";
@@ -37,6 +55,8 @@ beforeEach(() => {
   sessionStorage.clear();
   mockAgentName = null;
   mockAgentDisplayName = null;
+  mockCheckIsSelfHosted.mockReset();
+  mockCheckIsSelfHosted.mockResolvedValue(false);
 });
 
 describe("Header", () => {
@@ -257,5 +277,62 @@ describe("Header - breadcrumb", () => {
     mockAgentName = "my-agent";
     render(() => <Header />);
     expect(screen.getByText("Workspace")).toBeDefined();
+  });
+});
+
+describe("Header - gear dropdown", () => {
+  it("shows gear button when on an agent page", () => {
+    mockAgentName = "my-agent";
+    render(() => <Header />);
+    expect(screen.getByLabelText("Agent actions")).toBeDefined();
+  });
+
+  it("does not show gear button when not on an agent page", () => {
+    mockAgentName = null;
+    render(() => <Header />);
+    expect(screen.queryByLabelText("Agent actions")).toBeNull();
+  });
+
+  it("opens dropdown with Settings and Duplicate items", async () => {
+    mockAgentName = "my-agent";
+    render(() => <Header />);
+    await fireEvent.click(screen.getByLabelText("Agent actions"));
+    expect(screen.getByText("Settings")).toBeDefined();
+    expect(screen.getByText("Duplicate agent")).toBeDefined();
+  });
+
+  it("Settings links to the agent settings page", async () => {
+    mockAgentName = "my-agent";
+    const { container } = render(() => <Header />);
+    await fireEvent.click(screen.getByLabelText("Agent actions"));
+    const settingsLink = container.querySelector('a[href="/agents/my-agent/settings"]');
+    expect(settingsLink).not.toBeNull();
+  });
+
+  it("closes gear dropdown when clicking outside", async () => {
+    mockAgentName = "my-agent";
+    render(() => <Header />);
+    await fireEvent.click(screen.getByLabelText("Agent actions"));
+    expect(screen.getByText("Settings")).toBeDefined();
+    await fireEvent.click(document.body);
+    expect(screen.queryByText("Duplicate agent")).toBeNull();
+  });
+});
+
+describe("Header - self-hosted badge", () => {
+  it("renders the Self-hosted badge when isSelfHosted is true", async () => {
+    mockCheckIsSelfHosted.mockResolvedValue(true);
+    const { container } = render(() => <Header />);
+    await new Promise((r) => setTimeout(r, 0));
+    const badge = container.querySelector(".header__mode-badge");
+    expect(badge).not.toBeNull();
+    expect(badge?.textContent?.trim()).toBe("Self-hosted");
+  });
+
+  it("does not render the badge in cloud mode", async () => {
+    mockCheckIsSelfHosted.mockResolvedValue(false);
+    const { container } = render(() => <Header />);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(container.querySelector(".header__mode-badge")).toBeNull();
   });
 });

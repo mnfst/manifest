@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
-import { timestampType, timestampDefault } from '../common/utils/sql-dialect';
+import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
 import { Agent } from './agent.entity';
 
 export interface CustomProviderModel {
@@ -8,6 +8,8 @@ export interface CustomProviderModel {
   output_price_per_million_tokens?: number;
   context_window?: number;
 }
+
+export type CustomProviderApiKind = 'openai' | 'anthropic';
 
 @Entity('custom_providers')
 @Index(['agent_id', 'name'], { unique: true })
@@ -26,6 +28,9 @@ export class CustomProvider {
 
   @Column('varchar')
   base_url!: string;
+
+  @Column('varchar', { default: 'openai' })
+  api_kind!: CustomProviderApiKind;
 
   @Column('simple-json')
   models!: CustomProviderModel[];

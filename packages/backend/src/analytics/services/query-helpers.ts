@@ -63,9 +63,9 @@ export function addTenantFilter<T extends ObjectLiteral>(
  * is the downstream contract — every field it declares must be selected here so
  * the shared badge/provider rendering works identically across every call site.
  *
- * Assumes the query builder aliases `agent_messages` as `at`. Callers pass a
- * dialect-specific `costExpr` (e.g. `sqlCastFloat(sqlSanitizeCost('at.cost_usd'), dialect)`)
- * so per-service dialect handling stays at the call site.
+ * Assumes the query builder aliases `agent_messages` as `at`. Callers pass the
+ * `costExpr` (e.g. `sqlCastFloat(sqlSanitizeCost('at.cost_usd'))`) so the
+ * shared helper stays agnostic to how each call site sanitises cost.
  */
 export const MESSAGE_ROW_SELECT_ALIASES = [
   'id',
@@ -87,6 +87,9 @@ export const MESSAGE_ROW_SELECT_ALIASES = [
   'fallback_from_model',
   'fallback_index',
   'feedback_rating',
+  'header_tier_id',
+  'header_tier_name',
+  'header_tier_color',
 ] as const;
 
 export function selectMessageRowColumns<T extends ObjectLiteral>(
@@ -112,5 +115,8 @@ export function selectMessageRowColumns<T extends ObjectLiteral>(
     .addSelect('at.auth_type', 'auth_type')
     .addSelect('at.fallback_from_model', 'fallback_from_model')
     .addSelect('at.fallback_index', 'fallback_index')
-    .addSelect('at.feedback_rating', 'feedback_rating');
+    .addSelect('at.feedback_rating', 'feedback_rating')
+    .addSelect('at.header_tier_id', 'header_tier_id')
+    .addSelect('at.header_tier_name', 'header_tier_name')
+    .addSelect('at.header_tier_color', 'header_tier_color');
 }

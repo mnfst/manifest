@@ -376,6 +376,51 @@ describe('ProviderKeyService', () => {
       // Empty set has size 0, so exclusion logic is skipped — defaults to subscription
       expect(result).toBe('subscription');
     });
+
+    it('should return local for Ollama providers', async () => {
+      providerService.getProviders.mockResolvedValue([
+        makeProvider({
+          provider: 'ollama',
+          auth_type: 'local',
+          api_key_encrypted: null,
+        }),
+      ]);
+
+      const result = await service.getAuthType('agent-1', 'ollama');
+
+      expect(result).toBe('local');
+    });
+
+    it('should return local for LM Studio providers', async () => {
+      providerService.getProviders.mockResolvedValue([
+        makeProvider({
+          provider: 'lmstudio',
+          auth_type: 'local',
+          api_key_encrypted: null,
+        }),
+      ]);
+
+      const result = await service.getAuthType('agent-1', 'lmstudio');
+
+      expect(result).toBe('local');
+    });
+
+    it('trusts the row auth_type — does NOT override api_key → local by provider name alone', async () => {
+      // A row explicitly tagged api_key for 'ollama' (e.g. a user who
+      // hand-edited the DB) should not be silently retagged as local.
+      // Migrations handle the normal backfill; this service just reads.
+      providerService.getProviders.mockResolvedValue([
+        makeProvider({
+          provider: 'ollama',
+          auth_type: 'api_key',
+          api_key_encrypted: 'enc',
+        }),
+      ]);
+
+      const result = await service.getAuthType('agent-1', 'ollama');
+
+      expect(result).toBe('api_key');
+    });
   });
 
   /* ── hasActiveProvider ── */

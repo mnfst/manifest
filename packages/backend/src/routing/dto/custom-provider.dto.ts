@@ -11,9 +11,13 @@ import {
   ArrayMinSize,
   ArrayMaxSize,
   IsUrl,
+  IsIn,
   Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+
+export const CUSTOM_PROVIDER_API_KINDS = ['openai', 'anthropic'] as const;
+export type CustomProviderApiKindDto = (typeof CUSTOM_PROVIDER_API_KINDS)[number];
 export class CustomProviderModelDto {
   @IsString()
   @IsNotEmpty()
@@ -44,8 +48,8 @@ export class CreateCustomProviderDto {
   @IsNotEmpty()
   @MinLength(1)
   @MaxLength(50)
-  @Matches(/^[a-zA-Z0-9 _-]+$/, {
-    message: 'Name can only contain letters, numbers, spaces, hyphens, and underscores',
+  @Matches(/^[a-zA-Z0-9 ._-]+$/, {
+    message: 'Name can only contain letters, numbers, spaces, dots, hyphens, and underscores',
   })
   name!: string;
 
@@ -53,6 +57,10 @@ export class CreateCustomProviderDto {
   @IsNotEmpty()
   @IsUrl({ require_tld: false, require_protocol: true }, { message: 'Must be a valid URL' })
   base_url!: string;
+
+  @IsOptional()
+  @IsIn(CUSTOM_PROVIDER_API_KINDS, { message: 'api_kind must be "openai" or "anthropic"' })
+  api_kind?: CustomProviderApiKindDto;
 
   @IsOptional()
   @IsString()
@@ -66,14 +74,29 @@ export class CreateCustomProviderDto {
   models!: CustomProviderModelDto[];
 }
 
+export class ProbeCustomProviderDto {
+  @IsString()
+  @IsNotEmpty()
+  @IsUrl({ require_tld: false, require_protocol: true }, { message: 'Must be a valid URL' })
+  base_url!: string;
+
+  @IsOptional()
+  @IsIn(CUSTOM_PROVIDER_API_KINDS, { message: 'api_kind must be "openai" or "anthropic"' })
+  api_kind?: CustomProviderApiKindDto;
+
+  @IsOptional()
+  @IsString()
+  apiKey?: string;
+}
+
 export class UpdateCustomProviderDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
   @MinLength(1)
   @MaxLength(50)
-  @Matches(/^[a-zA-Z0-9 _-]+$/, {
-    message: 'Name can only contain letters, numbers, spaces, hyphens, and underscores',
+  @Matches(/^[a-zA-Z0-9 ._-]+$/, {
+    message: 'Name can only contain letters, numbers, spaces, dots, hyphens, and underscores',
   })
   name?: string;
 
@@ -82,6 +105,10 @@ export class UpdateCustomProviderDto {
   @IsNotEmpty()
   @IsUrl({ require_tld: false, require_protocol: true }, { message: 'Must be a valid URL' })
   base_url?: string;
+
+  @IsOptional()
+  @IsIn(CUSTOM_PROVIDER_API_KINDS, { message: 'api_kind must be "openai" or "anthropic"' })
+  api_kind?: CustomProviderApiKindDto;
 
   @IsOptional()
   @IsString()

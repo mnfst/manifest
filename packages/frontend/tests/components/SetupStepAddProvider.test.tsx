@@ -136,7 +136,7 @@ describe("SetupStepAddProvider", () => {
     expect(fields[0].textContent).toContain("http://localhost:3001/v1");
     expect(fields[1].textContent).toContain("API Key");
     expect(fields[2].textContent).toContain("Endpoint compatibility");
-    expect(fields[2].textContent).toContain("OpenAI-compatible");
+    expect(fields[2].textContent).toContain("OpenAI Responses-compatible");
     expect(fields[3].textContent).toContain("Model ID");
     expect(fields[3].textContent).toContain("auto");
     expect(fields[4].textContent).toContain("Endpoint ID");
@@ -275,6 +275,8 @@ describe("SetupStepAddProvider", () => {
       expect(container.querySelector('[aria-label="Setup method"]')).toBeNull();
       // Should show OpenAI-specific code
       expect(container.textContent).toContain("OpenAI");
+      expect(container.textContent).toContain("client.responses.create");
+      expect(container.textContent).not.toContain("chat.completions.create");
     });
 
     it("shows Vercel AI SDK snippet when platform is vercel-ai-sdk", () => {

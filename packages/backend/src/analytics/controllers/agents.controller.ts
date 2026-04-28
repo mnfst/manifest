@@ -16,10 +16,12 @@ import { CACHE_MANAGER, CacheTTL } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
 import { TimeseriesQueriesService } from '../services/timeseries-queries.service';
 import { AgentLifecycleService } from '../services/agent-lifecycle.service';
+import { AgentDuplicationService } from '../services/agent-duplication.service';
 import { ApiKeyGeneratorService } from '../../otlp/services/api-key.service';
 import { CurrentUser } from '../../auth/current-user.decorator';
 import { AuthUser } from '../../auth/auth.instance';
 import { CreateAgentDto } from '../../common/dto/create-agent.dto';
+import { DuplicateAgentDto } from '../../common/dto/duplicate-agent.dto';
 import { RenameAgentDto } from '../../common/dto/rename-agent.dto';
 import { UserCacheInterceptor } from '../../common/interceptors/user-cache.interceptor';
 import { AGENT_LIST_CACHE_TTL_MS } from '../../common/constants/cache.constants';
@@ -31,6 +33,7 @@ export class AgentsController {
   constructor(
     private readonly timeseries: TimeseriesQueriesService,
     private readonly lifecycle: AgentLifecycleService,
+    private readonly duplication: AgentDuplicationService,
     private readonly apiKeyGenerator: ApiKeyGeneratorService,
     private readonly tenantCache: TenantCacheService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
@@ -82,6 +85,48 @@ export class AgentsController {
         agent_platform: body.agent_platform ?? null,
       },
       apiKey: result.apiKey,
+    };
+  }
+
+  @Get('agents/:agentName/duplicate-preview')
+  async getDuplicatePreview(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
+    const [copied, suggested_name] = await Promise.all([
+      this.duplication.getCopySummary(user.id, agentName),
+      this.duplication.suggestName(user.id, agentName),
+    ]);
+    return { copied, suggested_name };
+  }
+
+  @Post('agents/:agentName/duplicate')
+  async duplicateAgent(
+    @CurrentUser() user: AuthUser,
+    @Param('agentName') sourceName: string,
+    @Body() body: DuplicateAgentDto,
+  ) {
+    const slug = slugify(body.name);
+    if (!slug) throw new BadRequestException('Agent name produces an empty slug');
+    const displayName = body.name.trim();
+    let result;
+    try {
+      result = await this.duplication.duplicate(user.id, sourceName, {
+        name: slug,
+        displayName,
+      });
+    } catch (error) {
+      if (error instanceof QueryFailedError && /unique|duplicate/i.test(error.message)) {
+        throw new ConflictException(`Agent "${slug}" already exists`);
+      }
+      throw error;
+    }
+    await this.cacheManager.del(this.agentListCacheKey(user.id));
+    return {
+      agent: {
+        id: result.agentId,
+        name: result.agentName,
+        display_name: result.displayName,
+      },
+      apiKey: result.apiKey,
+      copied: result.copied,
     };
   }
 

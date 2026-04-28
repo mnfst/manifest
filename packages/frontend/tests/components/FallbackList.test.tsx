@@ -19,6 +19,8 @@ vi.mock("../../src/components/ProviderIcon.js", () => ({
 
 vi.mock("../../src/components/AuthBadge.js", () => ({
   authBadgeFor: () => null,
+  authLabel: (authType: string | null | undefined) =>
+    authType === "subscription" ? "Subscription" : authType === "local" ? "Local" : "API Key",
 }));
 
 vi.mock("../../src/services/providers.js", () => ({
@@ -70,7 +72,7 @@ describe("FallbackList", () => {
       <FallbackList {...defaultProps} fallbacks={[]} />
     ));
 
-    expect(screen.getByText("No fallback")).toBeDefined();
+    expect(screen.getByText("No fallbacks")).toBeDefined();
     expect(container.querySelector(".fallback-list__empty")).not.toBeNull();
     expect(container.querySelector(".fallback-list__items")).toBeNull();
   });

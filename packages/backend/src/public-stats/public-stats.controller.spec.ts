@@ -1,3 +1,4 @@
+import type { ConfigService } from '@nestjs/config';
 import type {
   PublicStatsService,
   UsageStats,
@@ -15,6 +16,12 @@ const mockService: Record<string, jest.Mock> = {
 const mockFreeModelsService: Record<string, jest.Mock> = {
   getAll: jest.fn().mockReturnValue({ providers: [], last_synced_at: null }),
 };
+
+function makeConfig(enabled: boolean): ConfigService {
+  return {
+    get: jest.fn((key: string) => (key === 'app.publicStatsEnabled' ? enabled : undefined)),
+  } as unknown as ConfigService;
+}
 
 jest.mock('./public-stats.service', () => ({
   PublicStatsService: jest.fn().mockImplementation(() => mockService),
@@ -44,11 +51,12 @@ const FREE_FIXTURE: FreeModel[] = [
 describe('PublicStatsController', () => {
   let controller: InstanceType<typeof import('./public-stats.controller').PublicStatsController>;
 
-  async function freshImport() {
+  async function freshImport(enabled = true) {
     const mod = await import('./public-stats.controller');
     return new mod.PublicStatsController(
       mockService as unknown as PublicStatsService,
       mockFreeModelsService as unknown as FreeModelsService,
+      makeConfig(enabled),
     );
   }
 
@@ -323,6 +331,62 @@ describe('PublicStatsController', () => {
     });
   });
 
+  describe('disabled via MANIFEST_PUBLIC_STATS', () => {
+    // jest.resetModules() inside freshImport gives this suite a different
+    // `NotFoundException` reference than the one imported above, so assert
+    // on the HTTP status instead of the class identity.
+    function expectNotFound(err: unknown): void {
+      expect(err).toBeDefined();
+      expect((err as { getStatus?: () => number }).getStatus?.()).toBe(404);
+    }
+
+    beforeEach(async () => {
+      jest.resetModules();
+      mockFreeModelsService.getAll.mockReset();
+      controller = await freshImport(false);
+    });
+
+    it('returns 404 from getUsage without calling the service', async () => {
+      await controller.getUsage().then(
+        () => {
+          throw new Error('expected NotFoundException');
+        },
+        (err) => expectNotFound(err),
+      );
+      expect(mockService.getUsageStats).not.toHaveBeenCalled();
+    });
+
+    it('returns 404 from getFreeModels without calling the service', async () => {
+      await controller.getFreeModels().then(
+        () => {
+          throw new Error('expected NotFoundException');
+        },
+        (err) => expectNotFound(err),
+      );
+      expect(mockService.getFreeModels).not.toHaveBeenCalled();
+    });
+
+    it('returns 404 from getProviderTokens without calling the service', async () => {
+      await controller.getProviderTokens().then(
+        () => {
+          throw new Error('expected NotFoundException');
+        },
+        (err) => expectNotFound(err),
+      );
+      expect(mockService.getProviderDailyTokens).not.toHaveBeenCalled();
+    });
+
+    it('returns 404 from getFreeProviders without calling the service', () => {
+      try {
+        controller.getFreeProviders();
+        throw new Error('expected NotFoundException');
+      } catch (err) {
+        expectNotFound(err);
+      }
+      expect(mockFreeModelsService.getAll).not.toHaveBeenCalled();
+    });
+  });
+
   describe('stampede prevention', () => {
     it('deduplicates concurrent usage requests', async () => {
       let resolve!: (v: UsageStats) => void;
@@ -395,7 +459,16 @@ describe('PublicStatsController', () => {
             warning: null,
             country: 'US',
             flag: '\u{1F1FA}\u{1F1F8}',
-            models: [{ id: 'model-1', name: 'Model One', context: '128K', max_output: '8K', modality: 'Text', rate_limit: '10 RPM' }],
+            models: [
+              {
+                id: 'model-1',
+                name: 'Model One',
+                context: '128K',
+                max_output: '8K',
+                modality: 'Text',
+                rate_limit: '10 RPM',
+              },
+            ],
           },
         ],
         last_synced_at: '2026-04-18T00:00:00.000Z',
@@ -464,7 +537,20 @@ describe('PublicStatsController', () => {
 
     it('free-providers does not expose internal provider IDs or database fields', () => {
       mockFreeModelsService.getAll.mockReturnValue({
-        providers: [{ name: 'X', logo: null, description: '', tags: [], api_key_url: '', base_url: null, warning: null, country: '', flag: '', models: [] }],
+        providers: [
+          {
+            name: 'X',
+            logo: null,
+            description: '',
+            tags: [],
+            api_key_url: '',
+            base_url: null,
+            warning: null,
+            country: '',
+            flag: '',
+            models: [],
+          },
+        ],
         last_synced_at: null,
       });
 

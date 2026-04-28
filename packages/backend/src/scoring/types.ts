@@ -33,7 +33,9 @@ export type ScoringReason =
   | 'momentum'
   | 'ambiguous'
   | 'heartbeat'
-  | 'specificity';
+  | 'specificity'
+  | 'default'
+  | 'header-match';
 
 export interface DimensionScore {
   name: string;

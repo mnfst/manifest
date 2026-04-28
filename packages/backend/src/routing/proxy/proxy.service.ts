@@ -9,19 +9,28 @@ import { ForwardResult } from './provider-client';
 import { SessionMomentumService } from './session-momentum.service';
 import { LimitCheckService } from '../../notifications/services/limit-check.service';
 import { shouldTriggerFallback } from './fallback-status-codes';
-import { Tier, ScorerMessage } from '../../scoring/types';
+import { Tier, TIERS, ScorerMessage } from '../../scoring/types';
+import type { SpecificityCategory, TierSlot } from 'manifest-shared';
+import { SPECIFICITY_CATEGORIES } from 'manifest-shared';
 import {
   ProxyFallbackService,
   FailedFallback,
   normalizeProviderModel,
   resolveApiKey,
 } from './proxy-fallback.service';
-import { ProxyRequestOptions } from './proxy-types';
+import {
+  ProxyApiMode,
+  ProxyRequestOptions,
+  SignatureLookup,
+  ThinkingBlockLookup,
+} from './proxy-types';
 import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
 import { buildFriendlyResponse, getDashboardUrl } from './proxy-friendly-response';
+import type { AuthType } from 'manifest-shared';
+import { toChatCompletionsRequest } from './responses-adapter';
 
-export { FailedFallback } from './proxy-fallback.service';
+type ResolvedRouting = Awaited<ReturnType<ResolveService['resolve']>>;
 
 /**
  * Roles excluded from scoring. Personal AI agents (OpenClaw, Hermes, and
@@ -32,15 +41,19 @@ export { FailedFallback } from './proxy-fallback.service';
  */
 const SCORING_EXCLUDED_ROLES = new Set(['system', 'developer']);
 const SCORING_RECENT_MESSAGES = 10;
+const MAX_MESSAGES_PER_REQUEST = 1000;
 
 export interface RoutingMeta {
-  tier: Tier;
+  tier: TierSlot;
   model: string;
   provider: string;
   confidence: number;
   reason: string;
   auth_type?: string;
   specificity_category?: string;
+  header_tier_id?: string;
+  header_tier_name?: string;
+  header_tier_color?: string;
   fallbackFromModel?: string;
   fallbackIndex?: number;
   primaryErrorStatus?: number;
@@ -79,41 +92,34 @@ export class ProxyService {
   ) {}
 
   async proxyRequest(opts: ProxyRequestOptions): Promise<ProxyResult> {
-    const { agentId, userId, body, sessionKey, tenantId, agentName, signal, specificityOverride } =
-      opts;
-    const messages = body.messages;
-    if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      throw new BadRequestException('messages array is required');
-    }
-    sanitizeNullContent(messages as Record<string, unknown>[]);
-
-    // Basic payload size guard — reject absurdly large message arrays
-    if (messages.length > 1000) {
-      throw new BadRequestException('messages array exceeds maximum length of 1000');
-    }
+    const {
+      agentId,
+      userId,
+      body,
+      sessionKey,
+      tenantId,
+      agentName,
+      signal,
+      specificityOverride,
+      headers,
+    } = opts;
+    const apiMode = opts.apiMode ?? 'chat_completions';
+    const chatBody = apiMode === 'responses' ? toChatCompletionsRequest(body) : undefined;
+    const routingBody = chatBody ?? body;
+    this.validatePayload(routingBody);
 
     const limitMessage = await this.enforceLimits(tenantId, agentName);
     if (limitMessage) {
-      return buildFriendlyResponse(limitMessage, body.stream === true, 'limit_exceeded');
+      return buildFriendlyResponse(limitMessage, routingBody.stream === true, 'limit_exceeded');
     }
 
-    const scoringMessages = this.filterScoringMessages(messages as ScorerMessage[]);
-    const scoringTools = Array.isArray(body.tools) ? body.tools : undefined;
-    const isHeartbeat = this.detectHeartbeat(scoringMessages);
-    const recentTiers = this.momentum.getRecentTiers(sessionKey);
-
-    const resolved = isHeartbeat
-      ? await this.resolveService.resolveForTier(agentId, 'simple')
-      : await this.resolveService.resolve(
-          agentId,
-          scoringMessages,
-          scoringTools,
-          body.tool_choice,
-          body.max_tokens as number | undefined,
-          recentTiers,
-          specificityOverride,
-        );
-
+    const resolved = await this.resolveRouting(
+      agentId,
+      routingBody,
+      sessionKey,
+      specificityOverride,
+      headers,
+    );
     if (!resolved.model || !resolved.provider) {
       this.logger.warn(
         `No model available for agent=${agentId}: ` +
@@ -123,18 +129,132 @@ export class ProxyService {
       return this.buildNoProviderResult(body.stream === true, agentName);
     }
 
-    let apiKey = await this.providerKeyService.getProviderApiKey(
-      agentId,
-      resolved.provider,
-      resolved.auth_type,
-    );
-    if (apiKey === null) {
+    const credentials = await this.resolveCredentials(agentId, userId, {
+      provider: resolved.provider,
+      auth_type: resolved.auth_type,
+    });
+    if (credentials === null) {
       const dashboardUrl = getDashboardUrl(this.config, agentName, 'routing');
       const content = `[🦚 Manifest] No ${resolved.provider} API key yet. Add one here: ${dashboardUrl}`;
       return buildFriendlyResponse(content, body.stream === true, 'no_provider_key');
     }
 
-    const resolvedCredentials = await resolveApiKey(
+    const primaryModel = normalizeProviderModel(resolved.provider, resolved.model);
+    this.logger.log(
+      `Proxy: tier=${resolved.tier} model=${primaryModel} provider=${resolved.provider} auth_type=${resolved.auth_type} confidence=${resolved.confidence}`,
+    );
+
+    const stream = body.stream === true;
+    const signatureLookup = (toolCallId: string) =>
+      this.signatureCache.retrieve(sessionKey, toolCallId);
+    const thinkingLookup = (firstToolUseId: string) =>
+      this.thinkingCache.retrieve(sessionKey, firstToolUseId);
+
+    const forward = await this.fallbackService.tryForwardToProvider({
+      provider: resolved.provider,
+      apiKey: credentials.apiKey,
+      model: primaryModel,
+      body,
+      chatBody,
+      stream,
+      sessionKey,
+      signal,
+      authType: resolved.auth_type,
+      apiMode,
+      resourceUrl: credentials.resourceUrl,
+      providerRegion: credentials.providerRegion,
+      signatureLookup,
+      thinkingLookup,
+    });
+
+    if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
+      const fallbackResult = await this.tryFallbackChain({
+        agentId,
+        userId,
+        resolved,
+        primaryModel,
+        forward,
+        body,
+        chatBody,
+        stream,
+        sessionKey,
+        signal,
+        signatureLookup,
+        thinkingLookup,
+        apiMode,
+      });
+      if (fallbackResult) return fallbackResult;
+    }
+
+    this.recordTierIfScoring(sessionKey, resolved.tier);
+    this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
+    return {
+      forward,
+      meta: this.buildBaseMeta(resolved, primaryModel),
+    };
+  }
+
+  private recordTierIfScoring(sessionKey: string, tier: TierSlot): void {
+    if ((TIERS as readonly string[]).includes(tier)) {
+      this.momentum.recordTier(sessionKey, tier as Tier);
+    }
+  }
+
+  private validatePayload(body: ProxyRequestOptions['body']): void {
+    const messages = body.messages;
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      throw new BadRequestException('messages array is required');
+    }
+    sanitizeNullContent(messages as Record<string, unknown>[]);
+    if (messages.length > MAX_MESSAGES_PER_REQUEST) {
+      throw new BadRequestException(
+        `messages array exceeds maximum length of ${MAX_MESSAGES_PER_REQUEST}`,
+      );
+    }
+  }
+
+  private async resolveRouting(
+    agentId: string,
+    body: ProxyRequestOptions['body'],
+    sessionKey: string,
+    specificityOverride: ProxyRequestOptions['specificityOverride'],
+    headers: ProxyRequestOptions['headers'],
+  ) {
+    const messages = body.messages as ScorerMessage[];
+    const scoringMessages = this.filterScoringMessages(messages);
+    const scoringTools = Array.isArray(body.tools) ? body.tools : undefined;
+    const isHeartbeat = this.detectHeartbeat(scoringMessages);
+    const recentTiers = this.momentum.getRecentTiers(sessionKey);
+    const recentCategories = this.momentum.getRecentCategories(sessionKey);
+
+    return isHeartbeat
+      ? this.resolveService.resolveForTier(agentId, 'simple')
+      : this.resolveService.resolve(
+          agentId,
+          scoringMessages,
+          scoringTools,
+          body.tool_choice,
+          body.max_tokens as number | undefined,
+          recentTiers,
+          specificityOverride,
+          recentCategories,
+          headers,
+        );
+  }
+
+  private async resolveCredentials(
+    agentId: string,
+    userId: string,
+    resolved: { provider: string; auth_type?: AuthType },
+  ): Promise<{ apiKey: string; resourceUrl?: string; providerRegion?: string | null } | null> {
+    const apiKey = await this.providerKeyService.getProviderApiKey(
+      agentId,
+      resolved.provider,
+      resolved.auth_type,
+    );
+    if (apiKey === null) return null;
+
+    const unwrapped = await resolveApiKey(
       resolved.provider,
       apiKey,
       resolved.auth_type,
@@ -148,125 +268,134 @@ export class ProxyService {
       resolved.provider,
       resolved.auth_type,
     );
-    const primaryModel = normalizeProviderModel(resolved.provider, resolved.model);
+    return { ...unwrapped, providerRegion };
+  }
 
-    this.logger.log(
-      `Proxy: tier=${resolved.tier} model=${primaryModel} provider=${resolved.provider} auth_type=${resolved.auth_type} confidence=${resolved.confidence}`,
-    );
-
-    const stream = body.stream === true;
-    const signatureLookup = (toolCallId: string) =>
-      this.signatureCache.retrieve(sessionKey, toolCallId);
-    const thinkingLookup = (firstToolUseId: string) =>
-      this.thinkingCache.retrieve(sessionKey, firstToolUseId);
-    const forward = await this.fallbackService.tryForwardToProvider({
-      provider: resolved.provider,
-      apiKey: resolvedCredentials.apiKey,
-      model: primaryModel,
+  private async tryFallbackChain(args: {
+    agentId: string;
+    userId: string;
+    resolved: ResolvedRouting;
+    primaryModel: string;
+    forward: ForwardResult;
+    body: ProxyRequestOptions['body'];
+    chatBody?: ProxyRequestOptions['body'];
+    stream: boolean;
+    sessionKey: string;
+    signal?: AbortSignal;
+    signatureLookup: SignatureLookup;
+    thinkingLookup: ThinkingBlockLookup;
+    apiMode: ProxyApiMode;
+  }): Promise<ProxyResult | null> {
+    const {
+      agentId,
+      userId,
+      resolved,
+      primaryModel,
+      forward,
       body,
+      chatBody,
       stream,
       sessionKey,
       signal,
-      authType: resolved.auth_type,
-      resourceUrl: resolvedCredentials.resourceUrl,
-      providerRegion,
-      signatureLookup,
-      thinkingLookup,
-    });
+      apiMode,
+    } = args;
+    const tiers = await this.tierService.getTiers(agentId);
+    const assignment = tiers.find((t) => t.tier === resolved.tier);
+    const fallbackModels = resolved.fallback_models ?? assignment?.fallback_models;
+    if (!fallbackModels || fallbackModels.length === 0) return null;
 
-    if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
-      const tiers = await this.tierService.getTiers(agentId);
-      const assignment = tiers.find((t) => t.tier === resolved.tier);
-      const fallbackModels = resolved.fallback_models ?? assignment?.fallback_models;
+    const primaryStatus = forward.response.status;
+    const primaryErrorBody = await forward.response.text();
+    const { success, failures } = await this.fallbackService.tryFallbacks(
+      agentId,
+      userId,
+      fallbackModels,
+      body,
+      stream,
+      sessionKey,
+      primaryModel,
+      signal,
+      resolved.provider ?? undefined,
+      resolved.auth_type,
+      args.signatureLookup,
+      args.thinkingLookup,
+      apiMode,
+      chatBody,
+    );
 
-      if (fallbackModels && fallbackModels.length > 0) {
-        const primaryStatus = forward.response.status;
-        const primaryErrorBody = await forward.response.text();
-        const { success, failures } = await this.fallbackService.tryFallbacks(
-          agentId,
-          userId,
-          fallbackModels,
-          body,
-          stream,
-          sessionKey,
-          primaryModel,
-          signal,
-          resolved.provider ?? undefined,
-          resolved.auth_type,
-          signatureLookup,
-          thinkingLookup,
-        );
+    this.recordTierIfScoring(sessionKey, resolved.tier);
+    this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
 
-        if (success) {
-          this.momentum.recordTier(sessionKey, resolved.tier as Tier);
-          return {
-            forward: success.forward,
-            meta: {
-              tier: resolved.tier as Tier,
-              model: success.model,
-              provider: success.provider,
-              confidence: resolved.confidence,
-              reason: resolved.reason,
-              auth_type: resolved.auth_type,
-              specificity_category: resolved.specificity_category,
-              fallbackFromModel: primaryModel,
-              fallbackIndex: success.fallbackIndex,
-              primaryErrorStatus: primaryStatus,
-              primaryErrorBody: primaryErrorBody,
-              primaryProvider: resolved.provider ?? undefined,
-            },
-            failedFallbacks: failures,
-          };
-        }
-
-        // All fallbacks exhausted — preserve the primary provider's real
-        // HTTP status. The gateway uses the X-Manifest-Fallback-Exhausted
-        // header (set by the response handler) to detect this case.
-        const safeHeaders = new Headers(forward.response.headers);
-        safeHeaders.delete('content-encoding');
-        safeHeaders.delete('content-length');
-        safeHeaders.delete('transfer-encoding');
-
-        const rebuilt = new Response(primaryErrorBody, {
-          status: primaryStatus,
-          headers: safeHeaders,
-        });
-        this.momentum.recordTier(sessionKey, resolved.tier as Tier);
-        return {
-          forward: {
-            response: rebuilt,
-            isGoogle: forward.isGoogle,
-            isAnthropic: forward.isAnthropic,
-            isChatGpt: forward.isChatGpt,
-          },
-          meta: {
-            tier: resolved.tier as Tier,
-            model: primaryModel,
-            provider: resolved.provider,
-            confidence: resolved.confidence,
-            reason: resolved.reason,
-            auth_type: resolved.auth_type,
-            specificity_category: resolved.specificity_category,
-          },
-          failedFallbacks: failures,
-        };
-      }
+    if (success) {
+      return {
+        forward: success.forward,
+        meta: this.buildBaseMeta(resolved, success.model, {
+          provider: success.provider,
+          fallbackFromModel: primaryModel,
+          fallbackIndex: success.fallbackIndex,
+          primaryErrorStatus: primaryStatus,
+          primaryErrorBody,
+          primaryProvider: resolved.provider ?? undefined,
+        }),
+        failedFallbacks: failures,
+      };
     }
 
-    this.momentum.recordTier(sessionKey, resolved.tier as Tier);
+    // All fallbacks exhausted — preserve the primary provider's real HTTP status.
+    // The gateway uses the X-Manifest-Fallback-Exhausted header (set by the
+    // response handler) to detect this case.
+    const safeHeaders = new Headers(forward.response.headers);
+    safeHeaders.delete('content-encoding');
+    safeHeaders.delete('content-length');
+    safeHeaders.delete('transfer-encoding');
+    const rebuilt = new Response(primaryErrorBody, { status: primaryStatus, headers: safeHeaders });
 
     return {
-      forward,
-      meta: {
-        tier: resolved.tier as Tier,
-        model: primaryModel,
-        provider: resolved.provider,
-        confidence: resolved.confidence,
-        reason: resolved.reason,
-        auth_type: resolved.auth_type,
-        specificity_category: resolved.specificity_category,
+      forward: {
+        response: rebuilt,
+        isGoogle: forward.isGoogle,
+        isAnthropic: forward.isAnthropic,
+        isChatGpt: forward.isChatGpt,
       },
+      meta: this.buildBaseMeta(resolved, primaryModel),
+      failedFallbacks: failures,
     };
+  }
+
+  private buildBaseMeta(
+    resolved: {
+      tier: string;
+      confidence: number;
+      reason: string;
+      auth_type?: string;
+      specificity_category?: string;
+      header_tier_id?: string;
+      header_tier_name?: string;
+      header_tier_color?: string;
+      provider?: string | null;
+    },
+    model: string,
+    overrides: Partial<RoutingMeta> = {},
+  ): RoutingMeta {
+    return {
+      tier: resolved.tier as TierSlot,
+      model,
+      provider: overrides.provider ?? resolved.provider ?? '',
+      confidence: resolved.confidence,
+      reason: resolved.reason,
+      auth_type: resolved.auth_type,
+      specificity_category: resolved.specificity_category,
+      header_tier_id: resolved.header_tier_id,
+      header_tier_name: resolved.header_tier_name,
+      header_tier_color: resolved.header_tier_color,
+      ...overrides,
+    };
+  }
+
+  private recordCategoryIfValid(sessionKey: string, category: string | undefined): void {
+    if (!category) return;
+    if (!(SPECIFICITY_CATEGORIES as readonly string[]).includes(category)) return;
+    this.momentum.recordCategory(sessionKey, category as SpecificityCategory);
   }
 
   private async enforceLimits(tenantId?: string, agentName?: string): Promise<string | null> {

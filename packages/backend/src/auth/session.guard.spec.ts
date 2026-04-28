@@ -86,7 +86,7 @@ describe('SessionGuard', () => {
     expect(request['authMethod']).toBe('session');
   });
 
-  it('returns true even when no session found (non-local mode)', async () => {
+  it('returns true even when no session found (anonymous passthrough)', async () => {
     jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
     (auth.api.getSession as jest.Mock).mockResolvedValue(null);
     const { context, request } = createMockContext({ ip: '203.0.113.1' });
@@ -98,7 +98,7 @@ describe('SessionGuard', () => {
     expect(request['authMethod']).toBeUndefined();
   });
 
-  it('returns true and leaves user undefined when getSession throws (non-local mode)', async () => {
+  it('returns true and leaves user undefined when getSession throws (cloud mode)', async () => {
     jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
     (auth.api.getSession as jest.Mock).mockRejectedValue(new Error('DB connection lost'));
     const { context, request } = createMockContext({ ip: '203.0.113.1' });
@@ -172,11 +172,11 @@ describe('SessionGuard', () => {
     });
   });
 
-  describe('local mode loopback fallback', () => {
+  describe('self-hosted loopback fallback', () => {
     const originalEnv = process.env['MANIFEST_MODE'];
 
     beforeEach(() => {
-      process.env['MANIFEST_MODE'] = 'local';
+      process.env['MANIFEST_MODE'] = 'selfhosted';
     });
 
     afterEach(() => {
@@ -199,7 +199,7 @@ describe('SessionGuard', () => {
       expect(request['authMethod']).toBe('session');
     });
 
-    it('falls back to synthetic local user when no session on loopback', async () => {
+    it('falls back to synthetic user when no session on loopback', async () => {
       jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
       (auth.api.getSession as jest.Mock).mockResolvedValue(null);
       const { context, request } = createMockContext({ ip: '127.0.0.1' });
@@ -214,7 +214,7 @@ describe('SessionGuard', () => {
       expect(request['authMethod']).toBe('session');
     });
 
-    it('falls back to synthetic local user when getSession throws on loopback', async () => {
+    it('falls back to synthetic user when getSession throws on loopback', async () => {
       jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
       (auth.api.getSession as jest.Mock).mockRejectedValue(new Error('DB error'));
       const { context, request } = createMockContext({ ip: '127.0.0.1' });

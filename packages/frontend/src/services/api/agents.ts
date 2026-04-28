@@ -1,4 +1,4 @@
-import { fetchJson, fetchMutate, BASE_URL } from './core.js';
+import { fetchJson, fetchMutate } from './core.js';
 
 export function getAgents() {
   return fetchJson('/agents');
@@ -24,12 +24,9 @@ export function getAgentKey(agentName: string) {
 }
 
 export function rotateAgentKey(agentName: string) {
-  return fetchMutate<{ apiKey: string }>(
-    `${BASE_URL}/agents/${encodeURIComponent(agentName)}/rotate-key`,
-    {
-      method: 'POST',
-    },
-  );
+  return fetchMutate<{ apiKey: string }>(`/agents/${encodeURIComponent(agentName)}/rotate-key`, {
+    method: 'POST',
+  });
 }
 
 export function updateAgent(
@@ -40,14 +37,11 @@ export function updateAgent(
     agent_platform?: string;
   },
 ) {
-  return fetchMutate<Record<string, unknown>>(
-    `${BASE_URL}/agents/${encodeURIComponent(currentName)}`,
-    {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(fields),
-    },
-  );
+  return fetchMutate<Record<string, unknown>>(`/agents/${encodeURIComponent(currentName)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(fields),
+  });
 }
 
 export function renameAgent(currentName: string, newName: string) {
@@ -55,15 +49,43 @@ export function renameAgent(currentName: string, newName: string) {
 }
 
 export function deleteAgent(agentName: string) {
-  return fetchMutate(`${BASE_URL}/agents/${encodeURIComponent(agentName)}`, {
-    method: 'DELETE',
-  });
+  return fetchMutate(`/agents/${encodeURIComponent(agentName)}`, { method: 'DELETE' });
 }
 
 export interface CreateAgentParams {
   name: string;
   agent_category?: string;
   agent_platform?: string;
+}
+
+export interface DuplicateAgentPreview {
+  copied: {
+    providers: number;
+    customProviders: number;
+    tierAssignments: number;
+    specificityAssignments: number;
+  };
+  suggested_name: string;
+}
+
+export function getDuplicatePreview(sourceName: string): Promise<DuplicateAgentPreview> {
+  return fetchJson<DuplicateAgentPreview>(
+    `/agents/${encodeURIComponent(sourceName)}/duplicate-preview`,
+  ) as Promise<DuplicateAgentPreview>;
+}
+
+export interface DuplicateAgentResult {
+  agent: { id: string; name: string; display_name: string };
+  apiKey: string;
+  copied: DuplicateAgentPreview['copied'];
+}
+
+export function duplicateAgent(sourceName: string, name: string) {
+  return fetchMutate<DuplicateAgentResult>(`/agents/${encodeURIComponent(sourceName)}/duplicate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
 }
 
 export function createAgent(params: CreateAgentParams) {
@@ -76,7 +98,7 @@ export function createAgent(params: CreateAgentParams) {
       agent_platform: string | null;
     };
     apiKey: string;
-  }>(`${BASE_URL}/agents`, {
+  }>('/agents', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params),

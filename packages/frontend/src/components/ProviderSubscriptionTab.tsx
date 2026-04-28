@@ -14,9 +14,7 @@ interface Props {
 
 const ProviderSubscriptionTab: Component<Props> = (props) => {
   const getSubscriptionAuthMode = (prov: ProviderDef) =>
-    prov.subscriptionAuthMode ??
-    (prov.subscriptionOAuth ? 'popup_oauth' : undefined) ??
-    (prov.subscriptionKeyPlaceholder ? 'token' : undefined);
+    prov.subscriptionAuthMode ?? (prov.subscriptionKeyPlaceholder ? 'token' : undefined);
 
   return (
     <>

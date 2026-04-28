@@ -31,6 +31,7 @@ describe('CustomProviderController', () => {
         created_at: '2026-03-04T00:00:00Z',
       }),
       remove: jest.fn().mockResolvedValue(undefined),
+      probeModels: jest.fn().mockResolvedValue([{ model_name: 'm1' }, { model_name: 'm2' }]),
     };
     mockProviderService = {
       getProviders: jest.fn().mockResolvedValue([]),
@@ -243,6 +244,48 @@ describe('CustomProviderController', () => {
       await expect(controller.remove(mockUser, 'test-agent', 'cp-1')).rejects.toThrow(
         NotFoundException,
       );
+    });
+  });
+
+  /* ── probe ── */
+
+  describe('probe', () => {
+    it('resolves the agent (authz) and returns the probed models', async () => {
+      const result = await controller.probe(mockUser, 'test-agent', {
+        base_url: 'http://host.docker.internal:8000/v1',
+        apiKey: 'sk-x',
+      } as never);
+
+      expect(mockResolveAgent.resolve).toHaveBeenCalledWith('user-1', 'test-agent');
+      expect(mockCustomProviderService.probeModels).toHaveBeenCalledWith(
+        'http://host.docker.internal:8000/v1',
+        'sk-x',
+        undefined,
+      );
+      expect(result).toEqual({ models: [{ model_name: 'm1' }, { model_name: 'm2' }] });
+    });
+
+    it('forwards api_kind to the service when provided in the body', async () => {
+      await controller.probe(mockUser, 'test-agent', {
+        base_url: 'https://api.anthropic.com',
+        apiKey: 'sk-ant-x',
+        api_kind: 'anthropic',
+      } as never);
+      expect(mockCustomProviderService.probeModels).toHaveBeenCalledWith(
+        'https://api.anthropic.com',
+        'sk-ant-x',
+        'anthropic',
+      );
+    });
+
+    it('propagates NotFoundException from resolveAgent (unauthorized agent)', async () => {
+      mockResolveAgent.resolve.mockRejectedValue(new NotFoundException('Agent not found'));
+      await expect(
+        controller.probe(mockUser, 'other', {
+          base_url: 'http://host.docker.internal:8000/v1',
+        } as never),
+      ).rejects.toThrow(NotFoundException);
+      expect(mockCustomProviderService.probeModels).not.toHaveBeenCalled();
     });
   });
 });

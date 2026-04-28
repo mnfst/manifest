@@ -32,7 +32,7 @@ import {
 import { createCursorPagination } from '../services/cursor-pagination.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
 import { PROVIDERS } from '../services/providers.js';
-import { checkIsLocalMode } from '../services/setup-status.js';
+import { checkIsSelfHosted } from '../services/setup-status.js';
 import { pingCount } from '../services/sse.js';
 import '../styles/overview.css';
 
@@ -47,12 +47,12 @@ const MessageLog: Component = () => {
   const params = useParams<{ agentName: string }>();
   const navigate = useNavigate();
   preloadModelDisplayNames();
-  const [isLocal, setIsLocal] = createSignal(false);
+  const [isSelfHosted, setIsSelfHosted] = createSignal(false);
   onMount(() => {
-    checkIsLocalMode().then(setIsLocal);
+    checkIsSelfHosted().then(setIsSelfHosted);
   });
   const columns = () =>
-    isLocal() ? DETAILED_COLUMNS.filter((c) => c !== 'feedback') : DETAILED_COLUMNS;
+    isSelfHosted() ? DETAILED_COLUMNS.filter((c) => c !== 'feedback') : DETAILED_COLUMNS;
   const [providerFilter, setProviderFilter] = createSignal('');
   const [costMin, setCostMin] = createSignal('');
   const [costMax, setCostMax] = createSignal('');
@@ -301,7 +301,7 @@ const MessageLog: Component = () => {
                     <th>Output</th>
                     <th>Model</th>
                     <th>Cache</th>
-                    <th>Duration</th>
+                    <th>Latency</th>
                     <th>Status</th>
                   </tr>
                 </thead>
@@ -386,7 +386,7 @@ const MessageLog: Component = () => {
                     })
                   }
                 >
-                  Enable routing
+                  Connect provider
                 </button>
                 <div class="empty-state__img-wrapper">
                   <img
@@ -439,15 +439,17 @@ const MessageLog: Component = () => {
               <div class="data-table-scroll">
                 <MessageTable
                   items={
-                    isLocal() ? (data()?.items ?? []) : applyFeedbackOverrides(data()?.items ?? [])
+                    isSelfHosted()
+                      ? (data()?.items ?? [])
+                      : applyFeedbackOverrides(data()?.items ?? [])
                   }
                   columns={columns()}
                   agentName={params.agentName}
                   customProviderName={customProviderName}
                   onFallbackErrorClick={scrollToFallbackSuccess}
-                  onFeedbackLike={isLocal() ? undefined : handleFeedbackLike}
-                  onFeedbackDislike={isLocal() ? undefined : handleFeedbackDislike}
-                  onFeedbackClear={isLocal() ? undefined : handleFeedbackClear}
+                  onFeedbackLike={isSelfHosted() ? undefined : handleFeedbackLike}
+                  onFeedbackDislike={isSelfHosted() ? undefined : handleFeedbackDislike}
+                  onFeedbackClear={isSelfHosted() ? undefined : handleFeedbackClear}
                   rowIdPrefix="msg-"
                   showHeaderTooltips
                   expandable
@@ -475,7 +477,7 @@ const MessageLog: Component = () => {
         onClose={() => setSetupOpen(false)}
       />
 
-      <Show when={!isLocal()}>
+      <Show when={!isSelfHosted()}>
         <FeedbackModal
           open={feedbackModalOpen()}
           onClose={() => setFeedbackModalOpen(false)}

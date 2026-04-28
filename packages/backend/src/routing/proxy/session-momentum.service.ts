@@ -1,8 +1,10 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { Tier } from '../../scoring/types';
+import type { SpecificityCategory } from 'manifest-shared';
 
 interface MomentumEntry {
   tiers: Tier[];
+  categories: SpecificityCategory[];
   lastUpdated: number;
 }
 
@@ -27,13 +29,14 @@ export class SessionMomentumService implements OnModuleDestroy {
   }
 
   getRecentTiers(sessionKey: string): Tier[] | undefined {
-    const entry = this.sessions.get(sessionKey);
-    if (!entry) return undefined;
-    if (Date.now() - entry.lastUpdated > TTL_MS) {
-      this.sessions.delete(sessionKey);
-      return undefined;
-    }
-    return entry.tiers;
+    const entry = this.readFresh(sessionKey);
+    return entry?.tiers;
+  }
+
+  getRecentCategories(sessionKey: string): SpecificityCategory[] | undefined {
+    const entry = this.readFresh(sessionKey);
+    if (!entry || entry.categories.length === 0) return undefined;
+    return entry.categories;
   }
 
   recordTier(sessionKey: string, tier: Tier): void {
@@ -44,9 +47,34 @@ export class SessionMomentumService implements OnModuleDestroy {
     } else {
       this.sessions.set(sessionKey, {
         tiers: [tier],
+        categories: [],
         lastUpdated: Date.now(),
       });
     }
+  }
+
+  recordCategory(sessionKey: string, category: SpecificityCategory): void {
+    const existing = this.sessions.get(sessionKey);
+    if (existing) {
+      existing.categories = [category, ...existing.categories].slice(0, MAX_ENTRIES);
+      existing.lastUpdated = Date.now();
+    } else {
+      this.sessions.set(sessionKey, {
+        tiers: [],
+        categories: [category],
+        lastUpdated: Date.now(),
+      });
+    }
+  }
+
+  private readFresh(sessionKey: string): MomentumEntry | undefined {
+    const entry = this.sessions.get(sessionKey);
+    if (!entry) return undefined;
+    if (Date.now() - entry.lastUpdated > TTL_MS) {
+      this.sessions.delete(sessionKey);
+      return undefined;
+    }
+    return entry;
   }
 
   private evictStale(): void {

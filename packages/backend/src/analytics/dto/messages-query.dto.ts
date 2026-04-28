@@ -1,5 +1,14 @@
 import { Type } from 'class-transformer';
-import { IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsIn, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+
+export const MESSAGE_STATUS_FILTER_VALUES = [
+  'ok',
+  'error',
+  'rate_limited',
+  'fallback_error',
+  'errors',
+] as const;
+export type MessageStatusFilter = (typeof MESSAGE_STATUS_FILTER_VALUES)[number];
 
 export class MessagesQueryDto {
   @IsOptional()
@@ -40,4 +49,10 @@ export class MessagesQueryDto {
   @IsOptional()
   @IsString()
   agent_name?: string;
+
+  @IsOptional()
+  @IsIn(MESSAGE_STATUS_FILTER_VALUES, {
+    message: `status must be one of: ${MESSAGE_STATUS_FILTER_VALUES.join(', ')}`,
+  })
+  status?: MessageStatusFilter;
 }

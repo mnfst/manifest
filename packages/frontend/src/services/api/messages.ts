@@ -1,4 +1,4 @@
-import { fetchJson, fetchMutate, BASE_URL } from './core.js';
+import { fetchJson, fetchMutate } from './core.js';
 
 export interface MessageDetailLlmCall {
   id: string;
@@ -54,6 +54,7 @@ export interface MessageDetailResponse {
     routing_tier: string | null;
     routing_reason: string | null;
     specificity_category: string | null;
+    specificity_miscategorized: boolean;
     auth_type: string | null;
     skill_name: string | null;
     fallback_from_model: string | null;
@@ -62,6 +63,22 @@ export interface MessageDetailResponse {
     feedback_rating: string | null;
     feedback_tags: string[] | null;
     feedback_details: string | null;
+    request_headers: Record<string, string> | null;
+    header_tier_id: string | null;
+    header_tier_name: string | null;
+    header_tier_color: string | null;
+    caller_attribution: {
+      sdk?: string;
+      sdkVersion?: string;
+      runtime?: string;
+      runtimeVersion?: string;
+      os?: string;
+      arch?: string;
+      userAgent?: string;
+      appName?: string;
+      appUrl?: string;
+      categories?: string[];
+    } | null;
   };
   llm_calls: MessageDetailLlmCall[];
   tool_executions: MessageDetailToolExecution[];
@@ -91,7 +108,7 @@ export function setMessageFeedback(
   id: string,
   body: { rating: 'like' | 'dislike'; tags?: string[]; details?: string },
 ) {
-  return fetchMutate<void>(`${BASE_URL}/messages/${encodeURIComponent(id)}/feedback`, {
+  return fetchMutate<void>(`/messages/${encodeURIComponent(id)}/feedback`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -99,7 +116,19 @@ export function setMessageFeedback(
 }
 
 export function clearMessageFeedback(id: string) {
-  return fetchMutate<void>(`${BASE_URL}/messages/${encodeURIComponent(id)}/feedback`, {
+  return fetchMutate<void>(`/messages/${encodeURIComponent(id)}/feedback`, {
+    method: 'DELETE',
+  });
+}
+
+export function flagMessageMiscategorized(id: string) {
+  return fetchMutate<void>(`/messages/${encodeURIComponent(id)}/miscategorized`, {
+    method: 'PATCH',
+  });
+}
+
+export function clearMessageMiscategorized(id: string) {
+  return fetchMutate<void>(`/messages/${encodeURIComponent(id)}/miscategorized`, {
     method: 'DELETE',
   });
 }

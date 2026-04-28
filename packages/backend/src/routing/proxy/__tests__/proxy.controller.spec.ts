@@ -6,6 +6,16 @@ import { IngestEventBusService } from '../../../common/services/ingest-event-bus
 import { ThoughtSignatureCache } from '../thought-signature-cache';
 import { ThinkingBlockCache } from '../thinking-block-cache';
 
+/**
+ * Flush enough microtasks for the recorder's fire-and-forget chain to
+ * complete. The chain is: `canonicalizeAgentMessageKeys` → `messageRepo.insert`
+ * → `.catch(...)` — three awaits in sequence. Ten rounds of `Promise.resolve`
+ * is deterministic (no timer involved) and forgiving if the chain grows.
+ */
+async function flushRecorderMicrotasks(): Promise<void> {
+  for (let i = 0; i < 10; i++) await Promise.resolve();
+}
+
 function mockResponse(): {
   res: Record<string, jest.Mock | boolean | number>;
   written: string[];
@@ -81,7 +91,6 @@ describe('ProxyController', () => {
     transaction: jest.Mock;
     getRepository: jest.Mock;
     query: jest.Mock;
-    connection: { options: { type: string } };
   };
   let mockMessageRepo: {
     insert: jest.Mock;
@@ -115,7 +124,6 @@ describe('ProxyController', () => {
       ),
       getRepository: jest.fn(),
       query: jest.fn().mockResolvedValue([]),
-      connection: { options: { type: 'sqlite' } },
     };
     mockMessageRepo = {
       insert: jest.fn().mockResolvedValue({}),
@@ -126,11 +134,22 @@ describe('ProxyController', () => {
     };
     mockMessageManager.getRepository.mockReturnValue(mockMessageRepo);
     mockPricingCache = { getByModel: jest.fn().mockReturnValue(undefined) };
+    const mockCustomProviders = {
+      canonicalizeAgentMessageKeys: jest
+        .fn()
+        .mockImplementation(
+          async (_agentId: string, provider: string | null, model: string | null) => ({
+            provider: provider ?? null,
+            model: model ?? null,
+          }),
+        ),
+    };
     recorder = new ProxyMessageRecorder(
       mockMessageRepo as never,
       mockPricingCache as never,
       new ProxyMessageDedup(),
       { emit: jest.fn() } as unknown as IngestEventBusService,
+      mockCustomProviders as never,
     );
     controller = new ProxyController(
       proxyService as never,
@@ -181,6 +200,89 @@ describe('ProxyController', () => {
     expect(headers['X-Manifest-Provider']).toBe('OpenAI');
     expect(headers['X-Manifest-Confidence']).toBe('0.9');
     expect(headers['X-Manifest-Reason']).toBe('scored');
+  });
+
+  it('should expose /v1/responses and convert chat completions output to Responses format', async () => {
+    const responseBody = {
+      created: 1234,
+      model: 'gpt-4o',
+      choices: [{ message: { content: 'hello' } }],
+      usage: { prompt_tokens: 4, completion_tokens: 2, total_tokens: 6 },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: {
+        response: mockProviderResp,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      },
+      meta: {
+        tier: 'simple',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({ input: 'hi' });
+    const { res } = mockResponse();
+
+    await controller.responses(req as never, res as never);
+
+    expect(proxyService.proxyRequest).toHaveBeenCalledWith(
+      expect.objectContaining({ apiMode: 'responses', body: { input: 'hi' } }),
+    );
+    const json = (res.json as jest.Mock).mock.calls[0][0];
+    expect(json.object).toBe('response');
+    expect(json.output[0].content[0]).toEqual({
+      type: 'output_text',
+      text: 'hello',
+      annotations: [],
+    });
+    expect(json.usage.input_tokens).toBe(4);
+  });
+
+  it('should pass through native Responses JSON bodies', async () => {
+    const responseBody = {
+      id: 'resp_1',
+      object: 'response',
+      output: [{ type: 'message' }],
+      usage: { input_tokens: 5, output_tokens: 3, total_tokens: 8 },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: {
+        response: mockProviderResp,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+        isResponses: true,
+      },
+      meta: {
+        tier: 'simple',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({ input: 'hi' });
+    const { res } = mockResponse();
+
+    await controller.responses(req as never, res as never);
+
+    expect(res.json).toHaveBeenCalledWith(responseBody);
   });
 
   it('should convert Google response for non-streaming', async () => {
@@ -629,7 +731,9 @@ describe('ProxyController', () => {
   it('should handle 500 errors from proxyService as friendly chat message', async () => {
     proxyService.proxyRequest.mockRejectedValue(new Error('Internal failure'));
 
-    const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] });
+    const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] }, 'user-1', {
+      accept: 'text/event-stream',
+    });
     const { res } = mockResponse();
 
     await controller.chatCompletions(req as never, res as never);
@@ -649,12 +753,31 @@ describe('ProxyController', () => {
     );
   });
 
+  it('should return HTTP 500 with structured envelope for non-chat clients', async () => {
+    proxyService.proxyRequest.mockRejectedValue(new Error('Internal failure'));
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: expect.objectContaining({
+          type: 'server_error',
+          message: expect.stringContaining('internal error'),
+        }),
+      }),
+    );
+  });
+
   it('should forward HttpException as friendly chat message', async () => {
     proxyService.proxyRequest.mockRejectedValue(
       new HttpException('Bad request: messages required', 400),
     );
 
-    const req = mockRequest({});
+    const req = mockRequest({}, 'user-1', { accept: 'text/event-stream' });
     const { res } = mockResponse();
 
     await controller.chatCompletions(req as never, res as never);
@@ -674,6 +797,27 @@ describe('ProxyController', () => {
     );
   });
 
+  it('should return HTTP 400 with structured envelope when caller is non-chat', async () => {
+    proxyService.proxyRequest.mockRejectedValue(
+      new HttpException('Bad request: messages required', 400),
+    );
+
+    const req = mockRequest({});
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: expect.objectContaining({
+          type: 'invalid_request_error',
+          message: 'Bad request: messages required',
+        }),
+      }),
+    );
+  });
+
   it('should record rate_limited agent_message on 429', async () => {
     proxyService.proxyRequest.mockRejectedValue(
       new HttpException('Too many requests — wait a few seconds and retry.', 429),
@@ -683,6 +827,7 @@ describe('ProxyController', () => {
     const { res } = mockResponse();
 
     await controller.chatCompletions(req as never, res as never);
+    await flushRecorderMicrotasks();
 
     expect(mockMessageRepo.insert).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -723,6 +868,7 @@ describe('ProxyController', () => {
     const { res } = mockResponse();
 
     await controller.chatCompletions(req as never, res as never);
+    await flushRecorderMicrotasks();
 
     expect(mockMessageRepo.insert).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -773,15 +919,18 @@ describe('ProxyController', () => {
 
     await controller.chatCompletions(req as never, res as never);
 
-    expect(proxyService.proxyRequest).toHaveBeenCalledWith({
-      agentId: 'agent-1',
-      userId: 'user-1',
-      body: req.body,
-      sessionKey: 'my-session',
-      tenantId: 'tenant-1',
-      agentName: 'test-agent',
-      signal: expect.any(AbortSignal),
-    });
+    expect(proxyService.proxyRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body: req.body,
+        sessionKey: 'my-session',
+        tenantId: 'tenant-1',
+        agentName: 'test-agent',
+        signal: expect.any(AbortSignal),
+        headers: expect.any(Object),
+      }),
+    );
   });
 
   it('should default session key to "default" when header is absent', async () => {
@@ -806,15 +955,18 @@ describe('ProxyController', () => {
 
     await controller.chatCompletions(req as never, res as never);
 
-    expect(proxyService.proxyRequest).toHaveBeenCalledWith({
-      agentId: 'agent-1',
-      userId: 'user-1',
-      body: req.body,
-      sessionKey: 'default',
-      tenantId: 'tenant-1',
-      agentName: 'test-agent',
-      signal: expect.any(AbortSignal),
-    });
+    expect(proxyService.proxyRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentId: 'agent-1',
+        userId: 'user-1',
+        body: req.body,
+        sessionKey: 'default',
+        tenantId: 'tenant-1',
+        agentName: 'test-agent',
+        signal: expect.any(AbortSignal),
+        headers: expect.any(Object),
+      }),
+    );
   });
 
   describe('rate limiting', () => {
@@ -916,6 +1068,7 @@ describe('ProxyController', () => {
       const { res } = mockResponse();
 
       await controller.chatCompletions(req as never, res as never);
+      await flushRecorderMicrotasks();
 
       expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1383,7 +1536,9 @@ describe('ProxyController', () => {
     it('should mask error message for 500+ status codes as friendly chat message', async () => {
       proxyService.proxyRequest.mockRejectedValue(new Error('Sensitive internal error details'));
 
-      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] }, 'user-1', {
+        accept: 'text/event-stream',
+      });
       const { res } = mockResponse();
 
       await controller.chatCompletions(req as never, res as never);
@@ -1408,7 +1563,9 @@ describe('ProxyController', () => {
         new HttpException('messages array is required', 400),
       );
 
-      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] }, 'user-1', {
+        accept: 'text/event-stream',
+      });
       const { res } = mockResponse();
 
       await controller.chatCompletions(req as never, res as never);
@@ -1430,7 +1587,9 @@ describe('ProxyController', () => {
     it('should handle non-Error throw as friendly chat message', async () => {
       proxyService.proxyRequest.mockRejectedValue('string error');
 
-      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] }, 'user-1', {
+        accept: 'text/event-stream',
+      });
       const { res } = mockResponse();
 
       await controller.chatCompletions(req as never, res as never);
@@ -1570,8 +1729,6 @@ describe('ProxyController', () => {
     });
 
     it('should allow recording after cooldown expires', async () => {
-      jest.useFakeTimers();
-
       const limitError = new HttpException('Limit exceeded', 429);
       proxyService.proxyRequest.mockRejectedValue(limitError);
 
@@ -1579,18 +1736,22 @@ describe('ProxyController', () => {
       const req1 = mockRequest({ messages: [{ role: 'user', content: 'a' }] });
       const { res: res1 } = mockResponse();
       await controller.chatCompletions(req1 as never, res1 as never);
+      await flushRecorderMicrotasks();
       expect(mockMessageRepo.insert).toHaveBeenCalledTimes(1);
 
-      // Advance past cooldown (60s)
-      jest.advanceTimersByTime(60_001);
+      // Expire the cooldown entry directly instead of advancing fake
+      // timers — fake timers would also freeze the microtask flush we
+      // rely on to wait for the recorder's fire-and-forget insert.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const map = (recorder as any).rateLimitCooldown as Map<string, number>;
+      map.set('tenant-1:agent-1', Date.now() - 120_000);
 
       // Second 429 after cooldown — should record again
       const req2 = mockRequest({ messages: [{ role: 'user', content: 'b' }] });
       const { res: res2 } = mockResponse();
       await controller.chatCompletions(req2 as never, res2 as never);
+      await flushRecorderMicrotasks();
       expect(mockMessageRepo.insert).toHaveBeenCalledTimes(2);
-
-      jest.useRealTimers();
     });
 
     it('should allow recording for different agents within cooldown', async () => {
@@ -1615,6 +1776,7 @@ describe('ProxyController', () => {
       };
       const { res: res2 } = mockResponse();
       await controller.chatCompletions(req2 as never, res2 as never);
+      await flushRecorderMicrotasks();
 
       expect(mockMessageRepo.insert).toHaveBeenCalledTimes(2);
     });
@@ -1679,6 +1841,16 @@ describe('ProxyController', () => {
         mockPricingCache as never,
         new ProxyMessageDedup(),
         { emit: jest.fn() } as unknown as IngestEventBusService,
+        {
+          canonicalizeAgentMessageKeys: jest
+            .fn()
+            .mockImplementation(
+              async (_agentId: string, provider: string | null, model: string | null) => ({
+                provider: provider ?? null,
+                model: model ?? null,
+              }),
+            ),
+        } as never,
       );
 
       const cooldownMap = (timedRecorder as any).rateLimitCooldown as Map<string, number>;
@@ -1700,6 +1872,16 @@ describe('ProxyController', () => {
         mockPricingCache as never,
         new ProxyMessageDedup(),
         { emit: jest.fn() } as unknown as IngestEventBusService,
+        {
+          canonicalizeAgentMessageKeys: jest
+            .fn()
+            .mockImplementation(
+              async (_agentId: string, provider: string | null, model: string | null) => ({
+                provider: provider ?? null,
+                model: model ?? null,
+              }),
+            ),
+        } as never,
       );
 
       timedRecorder.onModuleDestroy();

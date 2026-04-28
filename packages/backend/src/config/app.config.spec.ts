@@ -86,24 +86,6 @@ describe('appConfig', () => {
     expect(config.databaseUrl).toContain('postgresql://');
   });
 
-  it('defaults autoMigrate to false', async () => {
-    delete process.env['AUTO_MIGRATE'];
-    const config = await loadConfig();
-    expect(config.autoMigrate).toBe(false);
-  });
-
-  it('reads AUTO_MIGRATE=true from env', async () => {
-    process.env['AUTO_MIGRATE'] = 'true';
-    const config = await loadConfig();
-    expect(config.autoMigrate).toBe(true);
-  });
-
-  it('ignores non-true AUTO_MIGRATE values', async () => {
-    process.env['AUTO_MIGRATE'] = '1';
-    const config = await loadConfig();
-    expect(config.autoMigrate).toBe(false);
-  });
-
   it('reads EMAIL_PROVIDER from env', async () => {
     process.env['EMAIL_PROVIDER'] = 'resend';
     const config = await loadConfig();

@@ -1,4 +1,4 @@
-import { isPrivateIp, isCloudMetadataIp, validatePublicUrl } from './url-validation';
+import { isPrivateIp, isCloudMetadataIp, isIpLiteral, validatePublicUrl } from './url-validation';
 
 jest.mock('dns/promises', () => ({
   lookup: jest.fn(),
@@ -65,6 +65,10 @@ describe('isPrivateIp', () => {
     expect(isPrivateIp('fd00::1')).toBe(true);
   });
 
+  it('detects fd12:3456:789a::1 as private IPv6 (ULA beyond the fd00:: literal prefix)', () => {
+    expect(isPrivateIp('fd12:3456:789a::1')).toBe(true);
+  });
+
   it('detects fe80::1 as private IPv6 (link-local)', () => {
     expect(isPrivateIp('fe80::1')).toBe(true);
   });
@@ -124,6 +128,29 @@ describe('isCloudMetadataIp', () => {
   });
 });
 
+describe('isIpLiteral', () => {
+  it('recognises dotted-quad IPv4', () => {
+    expect(isIpLiteral('127.0.0.1')).toBe(true);
+    expect(isIpLiteral('8.8.8.8')).toBe(true);
+  });
+
+  it('recognises bracket-stripped IPv6', () => {
+    expect(isIpLiteral('::1')).toBe(true);
+    expect(isIpLiteral('fe80::1')).toBe(true);
+  });
+
+  it('rejects hostnames with : but non-hex characters', () => {
+    // Defensive branch: URL parsing rejects these before they reach
+    // validatePublicUrl, but the helper must still return false.
+    expect(isIpLiteral('host:with-letters')).toBe(false);
+    expect(isIpLiteral('zzz::1')).toBe(false);
+  });
+
+  it('rejects plain hostnames with no : or dotted-quad', () => {
+    expect(isIpLiteral('example.com')).toBe(false);
+  });
+});
+
 describe('validatePublicUrl', () => {
   const origNodeEnv = process.env['NODE_ENV'];
 
@@ -139,14 +166,14 @@ describe('validatePublicUrl', () => {
 
   it('skips validation in test mode', async () => {
     process.env['NODE_ENV'] = 'test';
-    await expect(validatePublicUrl('http://127.0.0.1:8080')).resolves.toBeUndefined();
+    await expect(validatePublicUrl('https://127.0.0.1:8080')).resolves.toBeUndefined();
   });
 
   it('enforces validation in test mode when SKIP_SSRF_VALIDATION=false', async () => {
     process.env['NODE_ENV'] = 'test';
     process.env['SKIP_SSRF_VALIDATION'] = 'false';
     try {
-      await expect(validatePublicUrl('http://127.0.0.1:8080')).rejects.toThrow(
+      await expect(validatePublicUrl('https://127.0.0.1:8080')).rejects.toThrow(
         'private or internal',
       );
     } finally {
@@ -163,7 +190,7 @@ describe('validatePublicUrl', () => {
     await expect(validatePublicUrl('not-a-url')).rejects.toThrow('Invalid URL format');
   });
 
-  it('rejects non-http/https schemes', async () => {
+  it('rejects non-http(s) schemes', async () => {
     await expect(validatePublicUrl('ftp://example.com')).rejects.toThrow(
       'Only http and https URLs are allowed',
     );
@@ -175,16 +202,30 @@ describe('validatePublicUrl', () => {
     );
   });
 
+  it('rejects ftp scheme even when allowPrivate=true', async () => {
+    await expect(validatePublicUrl('ftp://example.com', { allowPrivate: true })).rejects.toThrow(
+      'Only http and https URLs are allowed',
+    );
+  });
+
+  it('rejects plaintext http scheme (AC-2 passive exfiltration)', async () => {
+    await expect(validatePublicUrl('http://example.com/api')).rejects.toThrow(
+      'Only https URLs are allowed',
+    );
+  });
+
   it('rejects IP literal pointing to private network', async () => {
-    await expect(validatePublicUrl('http://127.0.0.1:8080')).rejects.toThrow('private or internal');
+    await expect(validatePublicUrl('https://127.0.0.1:8080')).rejects.toThrow(
+      'private or internal',
+    );
   });
 
   it('rejects IP literal 10.x.x.x', async () => {
-    await expect(validatePublicUrl('http://10.0.0.5/api')).rejects.toThrow('private or internal');
+    await expect(validatePublicUrl('https://10.0.0.5/api')).rejects.toThrow('private or internal');
   });
 
   it('rejects IP literal 192.168.x.x', async () => {
-    await expect(validatePublicUrl('http://192.168.1.100:3000')).rejects.toThrow(
+    await expect(validatePublicUrl('https://192.168.1.100:3000')).rejects.toThrow(
       'private or internal',
     );
   });
@@ -220,13 +261,83 @@ describe('validatePublicUrl', () => {
     );
   });
 
-  it('accepts http scheme', async () => {
+  it('accepts https scheme', async () => {
     mockLookup.mockResolvedValue([{ address: '93.184.216.34', family: 4 }] as never);
-    await expect(validatePublicUrl('http://example.com/api')).resolves.toBeUndefined();
+    await expect(validatePublicUrl('https://example.com/api')).resolves.toBeUndefined();
   });
 
   it('handles non-array lookup result (single object)', async () => {
     mockLookup.mockResolvedValue({ address: '93.184.216.34', family: 4 } as never);
     await expect(validatePublicUrl('https://single.example.com')).resolves.toBeUndefined();
+  });
+
+  describe('with allowPrivate=true (self-hosted)', () => {
+    it('accepts https loopback literal', async () => {
+      await expect(
+        validatePublicUrl('https://127.0.0.1:11434', { allowPrivate: true }),
+      ).resolves.toBeUndefined();
+    });
+
+    it('accepts http loopback literal', async () => {
+      await expect(
+        validatePublicUrl('http://127.0.0.1:11434', { allowPrivate: true }),
+      ).resolves.toBeUndefined();
+    });
+
+    it('accepts http 192.168.x.x literal', async () => {
+      await expect(
+        validatePublicUrl('http://192.168.1.50:8080/v1', { allowPrivate: true }),
+      ).resolves.toBeUndefined();
+    });
+
+    it('accepts hostname that resolves to a private IP', async () => {
+      mockLookup.mockResolvedValue([{ address: '172.17.0.1', family: 4 }] as never);
+      await expect(
+        validatePublicUrl('http://host.docker.internal:11434', { allowPrivate: true }),
+      ).resolves.toBeUndefined();
+    });
+
+    it('still blocks cloud metadata IP literal', async () => {
+      await expect(
+        validatePublicUrl('https://169.254.169.254', { allowPrivate: true }),
+      ).rejects.toThrow('cloud metadata endpoints');
+    });
+
+    it('still blocks hostname that resolves to a cloud metadata IP', async () => {
+      mockLookup.mockResolvedValue([{ address: '169.254.169.254', family: 4 }] as never);
+      await expect(
+        validatePublicUrl('https://evil.example.com', { allowPrivate: true }),
+      ).rejects.toThrow('cloud metadata endpoints');
+    });
+
+    it('rejects http:// to a public IP (plaintext exfil protection)', async () => {
+      await expect(validatePublicUrl('http://8.8.8.8', { allowPrivate: true })).rejects.toThrow(
+        'http:// is only allowed for private hosts',
+      );
+    });
+
+    it('rejects http:// when hostname resolves to mixed public+private A records', async () => {
+      mockLookup.mockResolvedValue([
+        { address: '10.0.0.1', family: 4 },
+        { address: '93.184.216.34', family: 4 },
+      ] as never);
+      await expect(
+        validatePublicUrl('http://mixed.example.com', { allowPrivate: true }),
+      ).rejects.toThrow('http:// is only allowed for private hosts');
+    });
+
+    it('accepts https:// to a public IP', async () => {
+      mockLookup.mockResolvedValue([{ address: '93.184.216.34', family: 4 }] as never);
+      await expect(
+        validatePublicUrl('https://example.com/api', { allowPrivate: true }),
+      ).resolves.toBeUndefined();
+    });
+
+    it('treats unresolvable hostnames as non-fatal (LAN-only names, mDNS)', async () => {
+      mockLookup.mockRejectedValue(new Error('ENOTFOUND'));
+      await expect(
+        validatePublicUrl('http://my-lan-box.local/v1', { allowPrivate: true }),
+      ).resolves.toBeUndefined();
+    });
   });
 });

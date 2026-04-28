@@ -182,7 +182,7 @@ const Settings: Component = () => {
       </div>
 
       {/* -- Agent Type (read-only + change modal) --- */}
-      <h3 class="settings-section__title">Agent type</h3>
+      <h2 class="settings-section__title">Agent type</h2>
       <div class="settings-card">
         <div class="settings-card__row">
           <div class="settings-card__label">
@@ -229,7 +229,7 @@ const Settings: Component = () => {
           />
         )}
       >
-        <h3 class="settings-section__title">API Key</h3>
+        <h2 class="settings-section__title">API Key</h2>
         <div class="settings-card">
           <div class="settings-card__body">
             <span class="settings-card__label-title">Agent API key</span>
@@ -296,7 +296,7 @@ const Settings: Component = () => {
         </div>
 
         {/* -- Setup Instructions ---------------------- */}
-        <h3 class="settings-section__title">Setup</h3>
+        <h2 class="settings-section__title">Setup</h2>
         <Show
           when={!apiKeyData.loading}
           fallback={<div class="skeleton skeleton--rect" style="width: 100%; height: 200px;" />}
@@ -320,7 +320,7 @@ const Settings: Component = () => {
       </ErrorBoundary>
 
       {/* -- Danger Zone -------------------------------- */}
-      <h3 class="settings-section__title settings-section__title--danger">Danger zone</h3>
+      <h2 class="settings-section__title settings-section__title--danger">Danger zone</h2>
       <div class="settings-card settings-card--danger">
         <div class="settings-card__row">
           <div class="settings-card__label">

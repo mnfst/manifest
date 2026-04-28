@@ -45,9 +45,9 @@ vi.mock("../../src/services/formatters.js", () => ({
   customProviderColor: vi.fn(() => '#6366f1'),
 }));
 
-const mockCheckIsLocalMode = vi.fn(() => Promise.resolve(false));
+const mockCheckIsSelfHosted = vi.fn(() => Promise.resolve(false));
 vi.mock("../../src/services/setup-status.js", () => ({
-  checkIsLocalMode: () => mockCheckIsLocalMode(),
+  checkIsSelfHosted: () => mockCheckIsSelfHosted(),
 }));
 
 vi.mock("../../src/components/CostChart.jsx", () => ({
@@ -323,20 +323,20 @@ describe("Overview", () => {
     mockGetOverview.mockResolvedValue(overviewData);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
+      expect(container.querySelector('[data-testid="single-token-chart"]')).not.toBeNull();
+    });
+
+    // Click cost stat
+    const stats = container.querySelectorAll(".chart-card__stat--clickable");
+    fireEvent.click(stats[1]); // cost
+    await vi.waitFor(() => {
       expect(container.querySelector('[data-testid="cost-chart"]')).not.toBeNull();
     });
 
     // Click tokens stat
-    const stats = container.querySelectorAll(".chart-card__stat--clickable");
-    fireEvent.click(stats[1]); // tokens
+    fireEvent.click(stats[2]); // tokens
     await vi.waitFor(() => {
       expect(container.querySelector('[data-testid="token-chart"]')).not.toBeNull();
-    });
-
-    // Click messages stat
-    fireEvent.click(stats[2]); // messages
-    await vi.waitFor(() => {
-      expect(container.querySelector('[data-testid="single-token-chart"]')).not.toBeNull();
     });
   });
 
@@ -519,24 +519,25 @@ describe("Overview", () => {
     });
   });
 
-  it("shows Enable routing button when setupCompleted but no providers and no data", async () => {
+  it("shows Connect provider button when setupCompleted but no providers and no data", async () => {
     localStorage.setItem("setup_completed_test-agent", "1");
     mockGetOverview.mockResolvedValue(emptyOverviewData);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Enable routing");
+      expect(container.textContent).toContain("Connect provider");
       expect(container.textContent).toContain("Connect a provider to start routing LLM calls");
+      expect(container.textContent).not.toContain("Enable routing");
       const btn = container.querySelector('.empty-state button.btn--primary');
       expect(btn).not.toBeNull();
     });
   });
 
-  it("navigates to routing with openProviders state when Enable routing clicked", async () => {
+  it("navigates to routing with openProviders state when Connect provider clicked", async () => {
     localStorage.setItem("setup_completed_test-agent", "1");
     mockGetOverview.mockResolvedValue(emptyOverviewData);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Enable routing");
+      expect(container.textContent).toContain("Connect provider");
     });
     const btn = container.querySelector('.empty-state button.btn--primary') as HTMLButtonElement;
     fireEvent.click(btn);
@@ -552,6 +553,7 @@ describe("Overview", () => {
     await vi.waitFor(() => {
       expect(container.textContent).toContain("Set up agent");
       expect(container.textContent).not.toContain("Enable routing");
+      expect(container.textContent).not.toContain("Connect provider");
     });
   });
 
@@ -868,8 +870,8 @@ describe("Overview", () => {
       expect(mockSetMessageFeedback).toHaveBeenCalledWith("msg-12345678", { rating: "dislike", tags: ["Too slow"], details: "test" });
     });
 
-    it("hides feedback column and modal in local mode", async () => {
-      mockCheckIsLocalMode.mockResolvedValue(true);
+    it("hides feedback column and modal in the self-hosted version", async () => {
+      mockCheckIsSelfHosted.mockResolvedValue(true);
       mockGetOverview.mockResolvedValue(overviewData);
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
@@ -877,7 +879,7 @@ describe("Overview", () => {
       });
       expect(container.querySelector(".feedback-btn")).toBeNull();
       expect(container.querySelector('[data-testid="feedback-modal"]')).toBeNull();
-      mockCheckIsLocalMode.mockResolvedValue(false);
+      mockCheckIsSelfHosted.mockResolvedValue(false);
     });
 
     it("reverts optimistic like on API error", async () => {

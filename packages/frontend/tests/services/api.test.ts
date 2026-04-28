@@ -14,7 +14,6 @@ import {
   getModelPrices,
   getProviders,
   connectProvider,
-  deactivateAllProviders,
   disconnectProvider,
   copilotDeviceCode,
   copilotPollToken,
@@ -49,6 +48,8 @@ import {
   setMessageFeedback,
   clearMessageFeedback,
   getMessageDetails,
+  flagMessageMiscategorized,
+  clearMessageMiscategorized,
 } from '../../src/services/api.js';
 
 vi.mock('../../src/services/toast-store.js', () => ({
@@ -568,19 +569,6 @@ describe('connectProvider', () => {
 
     await expect(connectProvider('my-agent', { provider: '' })).rejects.toThrow('Invalid provider');
     expect(toast.error).toHaveBeenCalledWith('Invalid provider');
-  });
-});
-
-describe('deactivateAllProviders', () => {
-  it('POSTs to /routing/:agentName/providers/deactivate-all', async () => {
-    mockMutateOk({ ok: true });
-
-    const result = await deactivateAllProviders('my-agent');
-    expect(result).toEqual({ ok: true });
-    expect(mockFetch).toHaveBeenCalledWith(
-      '/api/v1/routing/my-agent/providers/deactivate-all',
-      expect.objectContaining({ method: 'POST', credentials: 'include' }),
-    );
   });
 });
 
@@ -1368,6 +1356,55 @@ describe('clearMessageFeedback', () => {
     await clearMessageFeedback('a/b');
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining('/messages/a%2Fb/feedback'),
+      expect.any(Object),
+    );
+  });
+});
+
+describe('flagMessageMiscategorized', () => {
+  it('PATCHes /messages/:id/miscategorized', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, text: () => Promise.resolve('') });
+    await flagMessageMiscategorized('msg-1');
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/messages/msg-1/miscategorized'),
+      expect.objectContaining({ method: 'PATCH' }),
+    );
+  });
+
+  it('encodes special characters in id', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, text: () => Promise.resolve('') });
+    await flagMessageMiscategorized('a/b');
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/messages/a%2Fb/miscategorized'),
+      expect.any(Object),
+    );
+  });
+
+  it('throws and surfaces the toast on error', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 404,
+      json: () => Promise.resolve({ message: 'Message not found' }),
+    });
+    await expect(flagMessageMiscategorized('msg-1')).rejects.toThrow('Message not found');
+  });
+});
+
+describe('clearMessageMiscategorized', () => {
+  it('DELETEs /messages/:id/miscategorized', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, text: () => Promise.resolve('') });
+    await clearMessageMiscategorized('msg-1');
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/messages/msg-1/miscategorized'),
+      expect.objectContaining({ method: 'DELETE' }),
+    );
+  });
+
+  it('encodes special characters in id', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, text: () => Promise.resolve('') });
+    await clearMessageMiscategorized('a/b');
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/messages/a%2Fb/miscategorized'),
       expect.any(Object),
     );
   });

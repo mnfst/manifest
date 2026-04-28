@@ -55,4 +55,20 @@ describe('MessagesQueryDto', () => {
     const errors = await validate(dto);
     expect(errors.length).toBeGreaterThan(0);
   });
+
+  it('accepts each known status value', async () => {
+    for (const status of ['ok', 'error', 'rate_limited', 'fallback_error', 'errors']) {
+      const dto = plainToInstance(MessagesQueryDto, { status });
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(0);
+    }
+  });
+
+  it('rejects an unknown status value', async () => {
+    const dto = plainToInstance(MessagesQueryDto, { status: 'pending' });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+    const flat = errors.flatMap((e) => Object.values(e.constraints ?? {}));
+    expect(flat.join('\n')).toMatch(/status must be one of/);
+  });
 });

@@ -1,20 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { Agent } from '../../entities/agent.entity';
 import { rangeToInterval } from '../../common/utils/range.util';
 import { addTenantFilter, selectMessageRowColumns } from './query-helpers';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import {
-  DbDialect,
-  detectDialect,
   computeCutoff,
   sqlHourBucket,
   sqlDateBucket,
   sqlCastFloat,
   sqlSanitizeCost,
-} from '../../common/utils/sql-dialect';
+} from '../../common/utils/postgres-sql';
 
 interface TimeseriesBucketRow {
   hour?: string;
@@ -27,18 +25,13 @@ interface TimeseriesBucketRow {
 
 @Injectable()
 export class TimeseriesQueriesService {
-  private readonly dialect: DbDialect;
-
   constructor(
     @InjectRepository(AgentMessage)
     private readonly turnRepo: Repository<AgentMessage>,
     @InjectRepository(Agent)
     private readonly agentRepo: Repository<Agent>,
-    private readonly dataSource: DataSource,
     private readonly tenantCache: TenantCacheService,
-  ) {
-    this.dialect = detectDialect(this.dataSource.options.type as string);
-  }
+  ) {}
 
   async getTimeseries(
     range: string,
@@ -49,9 +42,7 @@ export class TimeseriesQueriesService {
   ) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
-    const bucketExpr = hourly
-      ? sqlHourBucket('at.timestamp', this.dialect)
-      : sqlDateBucket('at.timestamp', this.dialect);
+    const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
     const bucketAlias = hourly ? 'hour' : 'date';
 
     const qb = this.turnRepo
@@ -124,7 +115,7 @@ export class TimeseriesQueriesService {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
 
-    const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'), this.dialect);
+    const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'));
 
     const qb = selectMessageRowColumns(this.turnRepo.createQueryBuilder('at'), costExpr).where(
       'at.timestamp >= :cutoff',
@@ -146,6 +137,7 @@ export class TimeseriesQueriesService {
       .addSelect('SUM(at.input_tokens + at.output_tokens)', 'tokens')
       .addSelect(`COALESCE(SUM(${sqlSanitizeCost('at.cost_usd')}), 0)`, 'estimated_cost')
       .addSelect('at.auth_type', 'auth_type')
+      .addSelect('at.provider', 'provider')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.model IS NOT NULL')
       .andWhere("at.model != ''");
@@ -153,6 +145,7 @@ export class TimeseriesQueriesService {
     const rows = await qb
       .groupBy('at.model')
       .addGroupBy('at.auth_type')
+      .addGroupBy('at.provider')
       .orderBy('tokens', 'DESC')
       .getRawMany();
 
@@ -168,6 +161,7 @@ export class TimeseriesQueriesService {
         totalTokens === 0 ? 0 : Math.round((Number(r['tokens'] ?? 0) / totalTokens) * 1000) / 10,
       estimated_cost: Number(r['estimated_cost'] ?? 0),
       auth_type: r['auth_type'] ? String(r['auth_type']) : null,
+      provider: r['provider'] ? String(r['provider']) : null,
     }));
   }
 
@@ -182,7 +176,7 @@ export class TimeseriesQueriesService {
     }
 
     const statsCutoff = computeCutoff('30 days');
-    const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'), this.dialect);
+    const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'));
     const statsQb = this.turnRepo
       .createQueryBuilder('at')
       .select('at.agent_name', 'agent_name')
@@ -198,7 +192,7 @@ export class TimeseriesQueriesService {
     addTenantFilter(statsQb, userId, undefined, resolved);
 
     const sparkCutoff = computeCutoff('7 days');
-    const dateExpr = sqlDateBucket('at.timestamp', this.dialect);
+    const dateExpr = sqlDateBucket('at.timestamp');
     const sparkQb = this.turnRepo
       .createQueryBuilder('at')
       .select('at.agent_name', 'agent_name')

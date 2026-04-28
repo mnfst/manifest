@@ -38,7 +38,8 @@ describe('First-run setup wizard', () => {
       const res = await request(app.getHttpServer()).get('/api/v1/setup/status').expect(200);
       expect(res.body).toMatchObject({ needsSetup: true });
       expect(res.body).toHaveProperty('socialProviders');
-      expect(res.body).toHaveProperty('isLocalMode');
+      expect(res.body).toHaveProperty('isSelfHosted');
+      expect(res.body).toHaveProperty('localLlmHost');
       expect(res.body).toHaveProperty('ollamaAvailable');
     });
 

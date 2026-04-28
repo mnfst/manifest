@@ -9,12 +9,12 @@ Thanks for your interest in contributing to Manifest! This guide will help you g
 | Layer     | Technology                                    |
 | --------- | --------------------------------------------- |
 | Frontend  | SolidJS, uPlot, custom CSS theme              |
-| Backend   | NestJS 11, TypeORM, sql.js (local) / PostgreSQL (cloud) |
+| Backend   | NestJS 11, TypeORM, PostgreSQL 16             |
 | Auth      | Better Auth (auto-login on localhost)          |
 | Routing   | OpenAI-compatible proxy (`/v1/chat/completions`) |
 | Build     | Turborepo + npm workspaces                    |
 
-The full NestJS + SolidJS stack runs locally backed by sql.js (WASM SQLite). The same codebase also powers the [cloud version](https://app.manifest.build) with PostgreSQL — the only differences are the database driver and auth guard.
+The full NestJS + SolidJS stack runs locally against PostgreSQL, and the same database backend is used in the [cloud version](https://app.manifest.build). For local development, the simplest option is to run PostgreSQL in Docker and point `DATABASE_URL` at it.
 
 ## Prerequisites
 
@@ -62,7 +62,34 @@ API_KEY=dev-api-key-12345
 SEED_DATA=true
 ```
 
-3. Start the development servers (in separate terminals):
+3. Start PostgreSQL locally.
+
+If you already have PostgreSQL running, you can skip this step and reuse it. Otherwise, the quickest option is Docker:
+
+```bash
+docker run --name manifest-postgres \
+  -e POSTGRES_USER=myuser \
+  -e POSTGRES_PASSWORD=mypassword \
+  -e POSTGRES_DB=mydatabase \
+  -p 5432:5432 \
+  -d postgres:16
+```
+
+That container matches the sample `DATABASE_URL` above:
+
+```env
+DATABASE_URL=postgresql://myuser:mypassword@localhost:5432/mydatabase
+```
+
+Useful commands:
+
+```bash
+docker start manifest-postgres   # start again later
+docker stop manifest-postgres    # stop without deleting data
+docker rm -f manifest-postgres   # remove the container
+```
+
+4. Start the development servers (in separate terminals):
 
 ```bash
 # Backend (must preload dotenv)
@@ -74,7 +101,7 @@ cd packages/frontend && npx vite
 
 The frontend runs on `http://localhost:3000` and proxies API requests to the backend on `http://localhost:3001`.
 
-4. With `SEED_DATA=true`, you can log in with `admin@manifest.build` / `manifest`.
+5. With `SEED_DATA=true`, you can log in with `admin@manifest.build` / `manifest`.
 
 ## Testing Routing with a Personal AI Agent
 
@@ -84,11 +111,11 @@ This section walks through **OpenClaw** because it's the deepest integration and
 
 To test routing against your local backend, add Manifest as a model provider in your OpenClaw config:
 
-1. Build and start the backend in local mode:
+1. Build and start the backend in self-hosted mode:
 
 ```bash
 npm run build
-MANIFEST_MODE=local PORT=38238 BIND_ADDRESS=127.0.0.1 \
+MANIFEST_MODE=selfhosted PORT=38238 BIND_ADDRESS=127.0.0.1 \
   node -r dotenv/config packages/backend/dist/main.js
 ```
 
@@ -204,7 +231,7 @@ Write clear, concise commit messages that explain **why** the change was made. U
 
 - **Single-service deployment**: In production, NestJS serves both the API and the frontend static files from the same port via `@nestjs/serve-static`.
 - **Dev mode**: Vite on `:3000` proxies `/api` and `/v1` to the backend on `:3001`. CORS is enabled only in development.
-- **Database**: PostgreSQL 16. Schema changes are managed via TypeORM migrations (`migrationsRun: true` on boot). After modifying an entity, generate a migration with `npm run migration:generate -- src/database/migrations/Name`.
+- **Database**: PostgreSQL 16 for both local development and production. Schema changes are managed via TypeORM migrations (`migrationsRun: true` on boot). After modifying an entity, generate a migration with `npm run migration:generate -- src/database/migrations/Name`.
 - **Validation**: Global `ValidationPipe` with `whitelist: true` and `forbidNonWhitelisted: true`.
 - **TypeScript**: Strict mode across all packages.
 

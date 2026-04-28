@@ -1,5 +1,5 @@
 import { PROVIDERS } from './providers.js';
-import { inferProviderFromModel } from 'manifest-shared';
+import { inferProviderFromModel, SHARED_PROVIDERS } from 'manifest-shared';
 
 /** Format per-million token price: $0.15 */
 export function pricePerM(perToken: number | null | undefined): string {
@@ -11,18 +11,13 @@ export function pricePerM(perToken: number | null | undefined): string {
   return `$${perM.toFixed(2)}`;
 }
 
-/** Map DB provider names to frontend provider IDs */
-const PROVIDER_ALIASES: Record<string, string> = {
-  google: 'gemini',
-  alibaba: 'qwen',
-  copilot: 'copilot',
-  moonshot: 'moonshot',
-  kimi: 'moonshot',
-  meta: 'meta',
-  cohere: 'cohere',
-  ollama: 'ollama',
-  openrouter: 'openrouter',
-};
+/**
+ * Map DB provider names to frontend provider IDs, derived from the shared
+ * `SHARED_PROVIDERS` aliases so backend and frontend stay aligned.
+ */
+const PROVIDER_ALIASES: Record<string, string> = Object.fromEntries(
+  SHARED_PROVIDERS.flatMap((p) => p.aliases.map((alias) => [alias.toLowerCase(), p.id])),
+);
 
 export function resolveProviderId(dbProvider: string): string | undefined {
   // Custom providers use their own key as-is

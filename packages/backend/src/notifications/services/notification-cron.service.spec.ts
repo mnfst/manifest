@@ -25,7 +25,7 @@ describe('NotificationCronService', () => {
   let mockInsertLog: jest.Mock;
   let mockResolveUserEmail: jest.Mock;
   let mockGetFullConfig: jest.Mock;
-  let mockRuntime: { isLocalMode: jest.Mock; getAuthBaseUrl: jest.Mock };
+  let mockRuntime: { getAuthBaseUrl: jest.Mock };
 
   beforeEach(async () => {
     mockGetAllActiveRules = jest.fn();
@@ -36,7 +36,6 @@ describe('NotificationCronService', () => {
     mockResolveUserEmail = jest.fn().mockResolvedValue(null);
     mockGetFullConfig = jest.fn().mockResolvedValue(null);
     mockRuntime = {
-      isLocalMode: jest.fn().mockReturnValue(false),
       getAuthBaseUrl: jest.fn().mockReturnValue('http://localhost:3001'),
     };
 

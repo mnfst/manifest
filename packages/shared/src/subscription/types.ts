@@ -11,7 +11,6 @@ export interface SubscriptionProviderConfig {
   subscriptionCommand?: string;
   subscriptionAuthMode?: 'popup_oauth' | 'device_code' | 'token';
   subscriptionTokenPrefix?: string;
-  subscriptionOAuth?: boolean;
   knownModels?: readonly string[];
   subscriptionCapabilities?: Readonly<SubscriptionCapabilities>;
 }

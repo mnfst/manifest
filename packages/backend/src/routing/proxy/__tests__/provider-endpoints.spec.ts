@@ -35,6 +35,24 @@ describe('buildCustomEndpoint', () => {
 
     expect(path).toBe('/v1/chat/completions');
   });
+
+  it('returns an Anthropic-shaped endpoint when apiKind="anthropic"', () => {
+    const endpoint = buildCustomEndpoint('https://api.anthropic.com', 'anthropic');
+
+    expect(endpoint.format).toBe('anthropic');
+    expect(endpoint.buildPath('claude-sonnet-4-5')).toBe('/v1/messages');
+    // Non-subscription path: x-api-key + anthropic-version, no Bearer.
+    const headers = endpoint.buildHeaders('sk-ant-test');
+    expect(headers['x-api-key']).toBe('sk-ant-test');
+    expect(headers['anthropic-version']).toBe('2023-06-01');
+    expect(headers.Authorization).toBeUndefined();
+  });
+
+  it('strips trailing /v1 before switching to Anthropic path so /v1/messages is not duplicated', () => {
+    const endpoint = buildCustomEndpoint('https://api.anthropic.com/v1', 'anthropic');
+    expect(endpoint.baseUrl).toBe('https://api.anthropic.com');
+    expect(endpoint.buildPath('claude-sonnet-4-5')).toBe('/v1/messages');
+  });
 });
 
 describe('resolveEndpointKey', () => {
@@ -101,8 +119,12 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('opencodego')).toBe('opencode-go');
   });
 
-  it('resolves every built-in provider id and alias from the registry', () => {
+  it('resolves every proxy-capable provider id and alias from the registry', () => {
+    // tileOnly providers (LM Studio) don't have a fixed proxy endpoint —
+    // they deep-link to the local-server detail view and route through
+    // the `custom:<uuid>` path once connected.
     for (const entry of PROVIDER_REGISTRY) {
+      if (entry.tileOnly) continue;
       expect(resolveEndpointKey(entry.id)).not.toBeNull();
       for (const alias of entry.aliases) {
         expect(resolveEndpointKey(alias)).not.toBeNull();

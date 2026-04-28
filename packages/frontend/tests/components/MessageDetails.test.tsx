@@ -2,8 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@solidjs/testing-library';
 
 const mockGetMessageDetails = vi.fn();
+const mockFlagMiscategorized = vi.fn();
+const mockClearMiscategorized = vi.fn();
 vi.mock('../../src/services/api.js', () => ({
   getMessageDetails: (...args: unknown[]) => mockGetMessageDetails(...args),
+  flagMessageMiscategorized: (...args: unknown[]) => mockFlagMiscategorized(...args),
+  clearMessageMiscategorized: (...args: unknown[]) => mockClearMiscategorized(...args),
 }));
 
 vi.mock('../../src/services/formatters.js', () => ({
@@ -243,6 +247,30 @@ describe('MessageDetails', () => {
     });
   });
 
+  it('displays severity dot with warn color for warn logs', async () => {
+    const warnLogResponse = {
+      ...detailsResponse,
+      agent_logs: [
+        {
+          id: 'al-warn',
+          severity: 'warn',
+          body: 'Deprecation notice',
+          timestamp: '2026-02-16 10:00:00',
+          span_id: null,
+        },
+      ],
+    };
+    mockGetMessageDetails.mockResolvedValue(warnLogResponse);
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      const dot = container.querySelector('.msg-detail__severity-dot') as HTMLElement;
+      expect(dot).not.toBeNull();
+      expect(dot.getAttribute('title')).toBe('warn');
+      // The warn branch returns hsl(var(--chart-5)). The style attribute is a string.
+      expect(dot.getAttribute('style') ?? '').toContain('--chart-5');
+    });
+  });
+
   it('displays severity dot with correct color for error logs', async () => {
     const errorLogResponse = {
       ...detailsResponse,
@@ -368,6 +396,300 @@ describe('MessageDetails', () => {
     });
   });
 
+  it('renders App and SDK metadata when caller_attribution is present', async () => {
+    const withAttribution = {
+      ...detailsResponse,
+      message: {
+        ...detailsResponse.message,
+        caller_attribution: {
+          sdk: 'openai-js',
+          sdkVersion: '6.26.0',
+          appName: 'OpenClaw',
+          appUrl: 'https://openclaw.dev',
+        },
+      },
+    };
+    mockGetMessageDetails.mockResolvedValue(withAttribution);
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('App');
+      expect(container.textContent).toContain('OpenClaw');
+      expect(container.textContent).toContain('SDK');
+      expect(container.textContent).toContain('openai-js');
+    });
+  });
+
+  it('hides App and SDK fields when caller_attribution is null', async () => {
+    mockGetMessageDetails.mockResolvedValue(detailsResponse);
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Message');
+    });
+    const labels = Array.from(container.querySelectorAll('.msg-detail__meta-label')).map(
+      (n) => n.textContent,
+    );
+    expect(labels).not.toContain('App');
+    expect(labels).not.toContain('SDK');
+  });
+
+  it('renders Request Headers section collapsed by default with a visible count', async () => {
+    const withHeaders = {
+      ...detailsResponse,
+      message: {
+        ...detailsResponse.message,
+        request_headers: {
+          'user-agent': 'curl/8.14.1',
+          'x-custom-foo': 'bar',
+          'content-type': 'application/json',
+        },
+      },
+    };
+    mockGetMessageDetails.mockResolvedValue(withHeaders);
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Request Headers');
+    });
+
+    // Title button is visible with aria-expanded="false"
+    const toggle = container.querySelector(
+      '.msg-detail__section-title--toggle',
+    ) as HTMLButtonElement | null;
+    expect(toggle).not.toBeNull();
+    expect(toggle!.tagName).toBe('BUTTON');
+    expect(toggle!.getAttribute('aria-expanded')).toBe('false');
+
+    // Count badge stays visible when collapsed.
+    const counts = container.querySelectorAll('.msg-detail__count');
+    expect(counts.length).toBe(4);
+    expect(counts[0]!.textContent).toBe('3');
+
+    // Table body is not rendered while collapsed.
+    expect(container.textContent).not.toContain('curl/8.14.1');
+    expect(container.textContent).not.toContain('x-custom-foo');
+    // There should be 3 tables visible (LLM Calls, Tool Executions, Agent Logs), not 4.
+    const tables = container.querySelectorAll('table.msg-detail__table');
+    expect(tables.length).toBe(3);
+  });
+
+  it('expands Request Headers when the title is clicked, and collapses on second click', async () => {
+    const withHeaders = {
+      ...detailsResponse,
+      message: {
+        ...detailsResponse.message,
+        request_headers: {
+          'user-agent': 'curl/8.14.1',
+          'x-custom-foo': 'bar',
+        },
+      },
+    };
+    mockGetMessageDetails.mockResolvedValue(withHeaders);
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Request Headers');
+    });
+
+    const toggle = container.querySelector(
+      '.msg-detail__section-title--toggle',
+    ) as HTMLButtonElement;
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+
+    // Expand.
+    toggle.click();
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(container.textContent).toContain('curl/8.14.1');
+    expect(container.textContent).toContain('x-custom-foo');
+    expect(container.textContent).toContain('bar');
+
+    // aria-controls points at the now-rendered table wrapper.
+    const controlsId = toggle.getAttribute('aria-controls');
+    expect(controlsId).toBeTruthy();
+    expect(container.querySelector(`#${controlsId}`)).not.toBeNull();
+
+    // Collapse again.
+    toggle.click();
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(container.textContent).not.toContain('curl/8.14.1');
+  });
+
+  it('renders header rows sorted alphabetically by key when expanded', async () => {
+    const withHeaders = {
+      ...detailsResponse,
+      message: {
+        ...detailsResponse.message,
+        request_headers: { 'z-last': '3', 'a-first': '1', 'm-mid': '2' },
+      },
+    };
+    mockGetMessageDetails.mockResolvedValue(withHeaders);
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Request Headers');
+    });
+    const toggle = container.querySelector(
+      '.msg-detail__section-title--toggle',
+    ) as HTMLButtonElement;
+    toggle.click();
+    const tables = container.querySelectorAll('table.msg-detail__table');
+    // First table after expanding is Request Headers.
+    const headersTable = tables[0]!;
+    const keyCells = Array.from(headersTable.querySelectorAll('tbody tr td:first-child')).map(
+      (c) => c.textContent,
+    );
+    expect(keyCells).toEqual(['a-first', 'm-mid', 'z-last']);
+  });
+
+  it('rotates the chevron when the Request Headers section is expanded', async () => {
+    const withHeaders = {
+      ...detailsResponse,
+      message: {
+        ...detailsResponse.message,
+        request_headers: { 'a-first': '1' },
+      },
+    };
+    mockGetMessageDetails.mockResolvedValue(withHeaders);
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Request Headers');
+    });
+    const chevron = container.querySelector('.msg-detail__chevron')!;
+    expect(chevron.classList.contains('msg-detail__chevron--open')).toBe(false);
+    const toggle = container.querySelector(
+      '.msg-detail__section-title--toggle',
+    ) as HTMLButtonElement;
+    toggle.click();
+    expect(chevron.classList.contains('msg-detail__chevron--open')).toBe(true);
+  });
+
+  it('hides Request Headers section when headers are null', async () => {
+    const noHeaders = {
+      ...detailsResponse,
+      message: { ...detailsResponse.message, request_headers: null },
+    };
+    mockGetMessageDetails.mockResolvedValue(noHeaders);
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Message');
+    });
+    expect(container.textContent).not.toContain('Request Headers');
+  });
+
+  it('hides Request Headers section when headers are an empty object', async () => {
+    const empty = {
+      ...detailsResponse,
+      message: { ...detailsResponse.message, request_headers: {} },
+    };
+    mockGetMessageDetails.mockResolvedValue(empty);
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Message');
+    });
+    expect(container.textContent).not.toContain('Request Headers');
+  });
+
+  it('renders em dashes for null call_index, request_model, and response_model in an LLM call', async () => {
+    const nullFieldsResponse = {
+      ...detailsResponse,
+      llm_calls: [
+        {
+          ...detailsResponse.llm_calls[0],
+          call_index: null,
+          request_model: null,
+          response_model: null,
+        },
+      ],
+    };
+    mockGetMessageDetails.mockResolvedValue(nullFieldsResponse);
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('LLM Calls');
+      const cells = container.querySelectorAll('.msg-detail__table td');
+      const emDashes = Array.from(cells).filter((c) => c.textContent === '\u2014');
+      // Three null fields → at least three em-dashes in the LLM-call row.
+      expect(emDashes.length).toBeGreaterThanOrEqual(3);
+    });
+  });
+
+  it('renders em dash for null tool duration', async () => {
+    const nullToolDurationResponse = {
+      ...detailsResponse,
+      tool_executions: [
+        {
+          id: 'te-null',
+          llm_call_id: 'lc-1',
+          tool_name: 'Bash',
+          duration_ms: null,
+          status: 'ok',
+          error_message: null,
+        },
+      ],
+    };
+    mockGetMessageDetails.mockResolvedValue(nullToolDurationResponse);
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Bash');
+      const cells = container.querySelectorAll('.msg-detail__table td');
+      const emDashCells = Array.from(cells).filter((c) => c.textContent === '\u2014');
+      expect(emDashCells.length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  it('renders em dash for null log body', async () => {
+    const nullBodyLogResponse = {
+      ...detailsResponse,
+      agent_logs: [
+        {
+          id: 'al-nobody',
+          severity: 'info',
+          body: null,
+          timestamp: '2026-02-16 10:00:00',
+          span_id: null,
+        },
+      ],
+    };
+    mockGetMessageDetails.mockResolvedValue(nullBodyLogResponse);
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      const logCells = container.querySelectorAll('.msg-detail__log-body');
+      expect(logCells.length).toBe(1);
+      expect(logCells[0]!.textContent).toBe('\u2014');
+    });
+  });
+
+  it('omits Provider and Model when the message has no model attached', async () => {
+    const noModelResponse = {
+      ...detailsResponse,
+      message: { ...detailsResponse.message, model: null },
+    };
+    mockGetMessageDetails.mockResolvedValue(noModelResponse);
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      // With model=null, inferProviderName isn't called and `Provider` MetaField
+      // renders nothing (value is null).
+      expect(container.textContent).toContain('Message');
+      expect(container.textContent).not.toContain('Provider');
+      expect(container.textContent).not.toContain('Model ID');
+    });
+  });
+
+  it('omits the attempt # when fallback_index is null but fallback_from_model is set', async () => {
+    const fallbackNoIndexResponse = {
+      ...detailsResponse,
+      message: {
+        ...detailsResponse.message,
+        fallback_from_model: 'gemini-2.5-flash-lite',
+        fallback_index: null,
+      },
+    };
+    mockGetMessageDetails.mockResolvedValue(fallbackNoIndexResponse);
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      const banner = container.querySelector('.msg-detail__fallback-banner');
+      expect(banner).not.toBeNull();
+      expect(banner!.textContent).toContain('gemini-2.5-flash-lite');
+      // Without fallback_index, the "(attempt #N)" suffix is hidden.
+      expect(banner!.textContent).not.toContain('attempt #');
+    });
+  });
+
   it('shows em dash for null duration in LLM call', async () => {
     const nullDurationResponse = {
       ...detailsResponse,
@@ -380,6 +702,117 @@ describe('MessageDetails', () => {
       const cells = container.querySelectorAll('.msg-detail__table td');
       const durationValues = Array.from(cells).filter((c) => c.textContent === '\u2014');
       expect(durationValues.length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  describe('miscategorization control', () => {
+    const specificityResponse = {
+      ...detailsResponse,
+      message: {
+        ...detailsResponse.message,
+        specificity_category: 'web_browsing',
+        specificity_miscategorized: false,
+      },
+    };
+
+    it('is hidden when the message was not routed by specificity', async () => {
+      mockGetMessageDetails.mockResolvedValue(detailsResponse);
+      const { container } = render(() => <MessageDetails messageId="msg-1" />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain('Routing');
+      });
+      expect(container.querySelector('.msg-detail__miscat-btn')).toBeNull();
+    });
+
+    it('shows the button when specificity_category is set', async () => {
+      mockGetMessageDetails.mockResolvedValue(specificityResponse);
+      const { container } = render(() => <MessageDetails messageId="msg-1" />);
+      await vi.waitFor(() => {
+        const btn = container.querySelector('.msg-detail__miscat-btn') as HTMLButtonElement;
+        expect(btn).not.toBeNull();
+        expect(btn.textContent).toContain('Wrong category?');
+      });
+    });
+
+    it('reflects already-flagged state on initial render', async () => {
+      const flagged = {
+        ...specificityResponse,
+        message: { ...specificityResponse.message, specificity_miscategorized: true },
+      };
+      mockGetMessageDetails.mockResolvedValue(flagged);
+      const { container } = render(() => <MessageDetails messageId="msg-1" />);
+      await vi.waitFor(() => {
+        const btn = container.querySelector('.msg-detail__miscat-btn') as HTMLButtonElement;
+        expect(btn).not.toBeNull();
+        expect(btn.getAttribute('aria-pressed')).toBe('true');
+        expect(btn.textContent).toContain('undo');
+      });
+    });
+
+    it('calls flag API on first click and reveals undo state', async () => {
+      mockGetMessageDetails.mockResolvedValue(specificityResponse);
+      mockFlagMiscategorized.mockResolvedValue(undefined);
+      const { container } = render(() => <MessageDetails messageId="msg-1" />);
+      const btn = await vi.waitFor(() => {
+        const b = container.querySelector('.msg-detail__miscat-btn') as HTMLButtonElement;
+        expect(b).not.toBeNull();
+        return b;
+      });
+      btn.click();
+      await vi.waitFor(() => {
+        expect(mockFlagMiscategorized).toHaveBeenCalledWith('msg-1');
+        expect(btn.getAttribute('aria-pressed')).toBe('true');
+      });
+    });
+
+    it('calls clear API when undoing a flag', async () => {
+      const flagged = {
+        ...specificityResponse,
+        message: { ...specificityResponse.message, specificity_miscategorized: true },
+      };
+      mockGetMessageDetails.mockResolvedValue(flagged);
+      mockClearMiscategorized.mockResolvedValue(undefined);
+      const { container } = render(() => <MessageDetails messageId="msg-1" />);
+      const btn = await vi.waitFor(() => {
+        const b = container.querySelector('.msg-detail__miscat-btn') as HTMLButtonElement;
+        expect(b).not.toBeNull();
+        return b;
+      });
+      btn.click();
+      await vi.waitFor(() => {
+        expect(mockClearMiscategorized).toHaveBeenCalledWith('msg-1');
+        expect(btn.getAttribute('aria-pressed')).toBe('false');
+      });
+    });
+
+    it('ignores rapid clicks while a request is in flight', async () => {
+      mockGetMessageDetails.mockResolvedValue(specificityResponse);
+      let resolveFlag: (() => void) | null = null;
+      mockFlagMiscategorized.mockReturnValue(
+        new Promise<void>((resolve) => {
+          resolveFlag = resolve;
+        }),
+      );
+      const { container } = render(() => <MessageDetails messageId="msg-1" />);
+      const btn = await vi.waitFor(() => {
+        const b = container.querySelector('.msg-detail__miscat-btn') as HTMLButtonElement;
+        expect(b).not.toBeNull();
+        return b;
+      });
+      // The handler sets busy=true on the first click and early-returns on
+      // subsequent clicks while the flag request is pending. Yielding to the
+      // microtask queue between clicks lets the `setBusy(true)` write settle
+      // so the second click's `if (busy()) return` guard fires.
+      btn.click();
+      await Promise.resolve();
+      await Promise.resolve();
+      btn.click();
+      await Promise.resolve();
+      btn.click();
+      resolveFlag!();
+      await vi.waitFor(() => {
+        expect(mockFlagMiscategorized).toHaveBeenCalledTimes(1);
+      });
     });
   });
 });

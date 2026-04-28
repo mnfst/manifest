@@ -29,6 +29,12 @@ describe("providerIcon", () => {
     });
   }
 
+  it("returns an SVG for \"llamacpp\"", () => {
+    const { container } = render(() => <div>{providerIcon("llamacpp")}</div>);
+    const svg = container.querySelector("svg");
+    expect(svg).not.toBeNull();
+  });
+
   it("returns null for unknown provider", () => {
     const { container } = render(() => <div>{providerIcon("unknown-provider")}</div>);
     const svg = container.querySelector("svg");
@@ -92,6 +98,24 @@ describe("customProviderLogo", () => {
     expect(img!.getAttribute("src")).toBe("/icons/cohere.svg");
   });
 
+  it("resolves Azure by name", () => {
+    const { container } = render(() => (
+      <div>{customProviderLogo("Microsoft Azure")}</div>
+    ));
+    const img = container.querySelector("img");
+    expect(img).not.toBeNull();
+    expect(img!.getAttribute("src")).toBe("/icons/azure.svg");
+  });
+
+  it("resolves Azure by base URL", () => {
+    const { container } = render(() => (
+      <div>{customProviderLogo("my-provider", 16, "https://my-instance.openai.azure.com/v1")}</div>
+    ));
+    const img = container.querySelector("img");
+    expect(img).not.toBeNull();
+    expect(img!.getAttribute("src")).toBe("/icons/azure.svg");
+  });
+
   it("returns null when base URL does not match any pattern", () => {
     const { container } = render(() => (
       <div>{customProviderLogo("custom", 16, "https://api.example.com/v1")}</div>
@@ -106,11 +130,33 @@ describe("customProviderLogo", () => {
     expect(img).toBeNull();
   });
 
-  it("returns gemini logo for provider name 'Gemini'", () => {
+  it.each([
+    ["llama.cpp", "llamacpp"],
+    ["llama-cpp", "llamacpp"],
+    ["LM Studio", "lmstudio"],
+    ["lm-studio", "lmstudio"],
+    ["Ollama", "ollama"],
+  ])(
+    "resolves %s to the branded local-LLM logo via the shared registry",
+    (name: string, expectedSrcMatch: string) => {
+      const { container } = render(() => <div>{customProviderLogo(name)}</div>);
+      const img = container.querySelector("img");
+      // Ollama renders as an inline SVG via providerIcon('ollama'), so it
+      // won't produce an <img>. The others have PNG icons.
+      if (img) {
+        expect(img.getAttribute("src")).toContain(expectedSrcMatch);
+      } else {
+        expect(container.querySelector("svg")).not.toBeNull();
+      }
+    },
+  );
+
+  it("returns the branded gemini icon (shared registry match) for provider name 'Gemini'", () => {
+    // "Gemini" normalizes to the shared provider id `gemini`, which has a
+    // branded SVG from `providerIcon`. Custom providers with a canonical
+    // shared name now prefer the branded icon over the legacy <img>.
     const { container } = render(() => <div>{customProviderLogo("Gemini")}</div>);
-    const img = container.querySelector("img");
-    expect(img).not.toBeNull();
-    expect(img!.getAttribute("src")).toBe("/icons/gemini.svg");
+    expect(container.querySelector("svg")).not.toBeNull();
   });
 
   it("resolves gemini logo by googleapis base URL", () => {

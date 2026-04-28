@@ -12,7 +12,6 @@ export const appConfig = registerAs('app', () => ({
   port: Number(process.env['PORT'] ?? 3001),
   nodeEnv: process.env['NODE_ENV'] ?? 'development',
   databaseUrl: resolveDatabaseUrl(),
-  autoMigrate: process.env['AUTO_MIGRATE'] === 'true',
 
   corsOrigin: process.env['CORS_ORIGIN'] ?? 'http://localhost:3000',
   betterAuthUrl: process.env['BETTER_AUTH_URL'] ?? '',
@@ -33,4 +32,7 @@ export const appConfig = registerAs('app', () => ({
   mailgunDomain: process.env['MAILGUN_DOMAIN'] ?? '',
   notificationFromEmail: process.env['NOTIFICATION_FROM_EMAIL'] ?? 'noreply@manifest.build',
   dbPoolMax: Number(process.env['DB_POOL_MAX'] ?? 20),
+  // When true, /api/v1/public/* endpoints expose aggregate stats without auth.
+  // Off by default — only Manifest Cloud's marketing homepage should enable it.
+  publicStatsEnabled: process.env['MANIFEST_PUBLIC_STATS'] === 'true',
 }));

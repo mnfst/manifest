@@ -5,6 +5,7 @@ import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
 import { Agent } from '../../entities/agent.entity';
 import { Tenant } from '../../entities/tenant.entity';
+import { AgentMessage } from '../../entities/agent-message.entity';
 import { ModelPricesModule } from '../../model-prices/model-prices.module';
 import { ModelDiscoveryModule } from '../../model-discovery/model-discovery.module';
 import { ProviderService } from './provider.service';
@@ -15,10 +16,18 @@ import { RoutingInvalidationService } from './routing-invalidation.service';
 import { TierAutoAssignService } from './tier-auto-assign.service';
 import { ResolveAgentService } from './resolve-agent.service';
 import { SpecificityService } from './specificity.service';
+import { SpecificityPenaltyService } from './specificity-penalty.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserProvider, TierAssignment, SpecificityAssignment, Agent, Tenant]),
+    TypeOrmModule.forFeature([
+      UserProvider,
+      TierAssignment,
+      SpecificityAssignment,
+      Agent,
+      Tenant,
+      AgentMessage,
+    ]),
     ModelPricesModule,
     ModelDiscoveryModule,
   ],
@@ -31,6 +40,7 @@ import { SpecificityService } from './specificity.service';
     TierAutoAssignService,
     ResolveAgentService,
     SpecificityService,
+    SpecificityPenaltyService,
   ],
   exports: [
     TypeOrmModule,
@@ -42,6 +52,7 @@ import { SpecificityService } from './specificity.service';
     TierAutoAssignService,
     ResolveAgentService,
     SpecificityService,
+    SpecificityPenaltyService,
   ],
 })
 export class RoutingCoreModule {}

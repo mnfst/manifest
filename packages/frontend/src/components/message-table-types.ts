@@ -8,6 +8,9 @@ export interface MessageRow {
   routing_tier?: string;
   routing_reason?: string;
   specificity_category?: string;
+  header_tier_id?: string;
+  header_tier_name?: string;
+  header_tier_color?: string;
   input_tokens: number | null;
   output_tokens: number | null;
   total_tokens: number | null;

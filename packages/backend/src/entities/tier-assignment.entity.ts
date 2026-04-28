@@ -1,5 +1,6 @@
 import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
-import { timestampType, timestampDefault } from '../common/utils/sql-dialect';
+import type { AuthType } from 'manifest-shared';
+import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
 
 @Entity('tier_assignments')
 @Index(['agent_id', 'tier'], { unique: true })
@@ -23,7 +24,7 @@ export class TierAssignment {
   override_provider!: string | null;
 
   @Column('varchar', { nullable: true })
-  override_auth_type!: 'api_key' | 'subscription' | null;
+  override_auth_type!: AuthType | null;
 
   @Column('varchar', { nullable: true })
   auto_assigned_model!: string | null;
