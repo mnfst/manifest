@@ -13,6 +13,7 @@ import type {
   SpecificityAssignment,
 } from '../services/api.js';
 import type { CustomProviderPrefill, ProviderDeepLink } from '../services/routing-params.js';
+import { usedKeyLabelsForModelInTier } from '../services/routing-utils.js';
 
 interface RoutingModalsProps {
   agentName: () => string;
@@ -53,6 +54,7 @@ interface RoutingModalsProps {
     modelName: string,
     providerId: string,
     authType?: AuthType,
+    providerKeyLabel?: string,
   ) => void;
   onProviderUpdate: () => Promise<void>;
   onOpenProviderModal: () => void;
@@ -64,6 +66,7 @@ interface PendingOverride {
   providerId: string;
   authType?: AuthType;
   keys: RoutingProvider[];
+  isFallback?: boolean;
 }
 
 /**
@@ -121,7 +124,14 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
   const resolvePending = (label: string | null) => {
     const p = pendingOverride();
     if (!p) return;
-    props.onOverride(p.tierId, p.modelName, p.providerId, p.authType, label ?? undefined);
+    if (p.isFallback) {
+      // Close the fallback picker so the user must re-open it — this ensures
+      // the tier data is fresh and used-key filtering is accurate.
+      props.onFallbackPickerClose();
+      props.onAddFallback(p.tierId, p.modelName, p.providerId, p.authType, label ?? undefined);
+    } else {
+      props.onOverride(p.tierId, p.modelName, p.providerId, p.authType, label ?? undefined);
+    }
     setPendingOverride(null);
   };
 
@@ -173,18 +183,86 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
 
       <Show when={props.fallbackPickerTier()}>
         {(tierId) => {
-          const currentFallbacks = () => props.getTier(tierId())?.fallback_models ?? [];
-          const effectiveModel = () => {
-            const t = props.getTier(tierId());
-            return t ? (t.override_model ?? t.auto_assigned_model) : null;
+          const usedKeysForModel = (
+            modelName: string,
+            providerId?: string,
+            authType?: AuthType,
+          ) => {
+            // The default key (priority 0) is implicitly used when the primary has no pin
+            let defaultLabel: string | undefined;
+            if (providerId) {
+              const effectiveAuth = authType ?? 'api_key';
+              const keys = activeKeysFor(props.connectedProviders(), providerId, effectiveAuth);
+              defaultLabel = keys[0]?.label;
+            }
+            return usedKeyLabelsForModelInTier(
+              props.getTier(tierId()),
+              modelName,
+              undefined,
+              defaultLabel,
+            );
           };
-          const filteredModels = () =>
-            props
-              .models()
-              .filter(
-                (m) =>
-                  m.model_name !== effectiveModel() && !currentFallbacks().includes(m.model_name),
-              );
+
+          const filteredModels = () => {
+            return props.models().filter((m) => {
+              // Find how many keys exist for this model's provider
+              const providerId = m.provider;
+              const authType = m.auth_type ?? 'api_key';
+              const keys = activeKeysFor(props.connectedProviders(), providerId, authType);
+              if (keys.length <= 1) {
+                // Single-key model: hide if already used as primary or fallback (bare name)
+                const tier = props.getTier(tierId());
+                const primaryModel = tier?.override_model ?? tier?.auto_assigned_model;
+                if (primaryModel === m.model_name) return false;
+                const fallbacks = tier?.fallback_models ?? [];
+                return !fallbacks.some((entry) => {
+                  const sep = entry.indexOf('||');
+                  return (sep === -1 ? entry : entry.substring(0, sep)) === m.model_name;
+                });
+              }
+              // Multi-key model: hide only if ALL keys are already used
+              const used = usedKeysForModel(m.model_name, providerId, authType);
+              return used.size < keys.length;
+            });
+          };
+
+          const handleFallbackSelect = (
+            tid: string,
+            modelName: string,
+            providerId: string,
+            authType?: AuthType,
+          ) => {
+            const effectiveAuth = authType ?? 'api_key';
+            const allKeys = activeKeysFor(props.connectedProviders(), providerId, effectiveAuth);
+            if (allKeys.length <= 1) {
+              // Single-key (or no-key) provider: add fallback without key selection
+              props.onFallbackPickerClose();
+              props.onAddFallback(tid, modelName, providerId, authType);
+              return;
+            }
+            // Filter out keys already used for this model
+            const used = usedKeysForModel(modelName, providerId, authType);
+            const availableKeys = allKeys.filter((k) => !used.has(k.label.toLowerCase()));
+            if (availableKeys.length === 0) {
+              // All keys exhausted — shouldn't happen since filteredModels hides it
+              return;
+            }
+            if (availableKeys.length === 1) {
+              // Only one key left — auto-select it, close picker for fresh data
+              props.onFallbackPickerClose();
+              props.onAddFallback(tid, modelName, providerId, authType, availableKeys[0].label);
+              return;
+            }
+            // 2+ keys available → ask which one
+            setPendingOverride({
+              tierId: tid,
+              modelName,
+              providerId,
+              authType,
+              keys: availableKeys,
+              isFallback: true,
+            });
+          };
           return (
             <ModelPickerModal
               tierId={tierId()}
@@ -192,7 +270,7 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
               tiers={props.tiers()}
               customProviders={props.customProviders()}
               connectedProviders={props.connectedProviders()}
-              onSelect={props.onAddFallback}
+              onSelect={handleFallbackSelect}
               onClose={props.onFallbackPickerClose}
               onConnectProviders={() => {
                 props.onFallbackPickerClose();

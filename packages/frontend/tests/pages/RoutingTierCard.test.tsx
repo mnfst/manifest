@@ -42,6 +42,7 @@ vi.mock('../../src/services/routing-utils.js', () => ({
   pricePerM: () => '$0.00',
   resolveProviderId: (p: string) => mockResolveProviderId.current(p),
   inferProviderFromModel: (m: string) => mockInferProviderFromModel.current(m),
+  usedKeyLabelsForModelInTier: () => new Set<string>(),
 }));
 
 vi.mock('../../src/services/formatters.js', () => ({
@@ -225,13 +226,11 @@ describe('RoutingTierCard', () => {
     expect(onDropdownOpen).toHaveBeenCalledWith('premium');
   });
 
-  it('renders primary model chip with drag handle', () => {
+  it('renders primary model chip that is draggable', () => {
     const { container } = render(() => <RoutingTierCard {...baseProps} />);
     const chip = container.querySelector('.routing-card__model-chip');
     expect(chip).not.toBeNull();
     expect(chip!.getAttribute('draggable')).toBe('true');
-    const dragHandle = chip!.querySelector('.fallback-list__drag-handle');
-    expect(dragHandle).not.toBeNull();
   });
 
   it('primary model chip has Change icon with tooltip', () => {

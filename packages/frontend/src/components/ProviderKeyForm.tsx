@@ -2,6 +2,7 @@ import {
   For,
   Show,
   createMemo,
+  createEffect,
   createSignal,
   onMount,
   type Component,
@@ -24,7 +25,7 @@ import {
 } from '../services/provider-api-key-urls.js';
 import { toast } from '../services/toast-store.js';
 
-const MAX_KEYS_PER_PROVIDER = 5;
+export const MAX_KEYS_PER_PROVIDER = 5;
 const MAX_LABEL_LENGTH = 50;
 
 export interface ProviderKeyFormProps {
@@ -50,6 +51,8 @@ export interface ProviderKeyFormProps {
    * the form falls back to legacy single-key UX).
    */
   providers?: RoutingProvider[];
+  addKeyOpen?: Accessor<boolean>;
+  setAddKeyOpen?: Setter<boolean>;
   onBack: () => void;
   onUpdate: () => void;
 }
@@ -302,6 +305,8 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
                 whereToGetUrl={whereToGetUrl}
                 credentialNoun={credentialNoun}
                 existingLabels={() => activeKeys().map((k) => k.label)}
+                open={props.addKeyOpen}
+                setOpen={props.setAddKeyOpen}
               />
             </Show>
           </Show>
@@ -362,6 +367,8 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
           placeholder={placeholder() ?? 'Paste API key'}
           credentialNoun={credentialNoun}
           whereToGetUrl={whereToGetUrl}
+          addKeyOpen={props.addKeyOpen}
+          setAddKeyOpen={props.setAddKeyOpen}
           onUpdate={props.onUpdate}
           onDelete={(label) => handleDisconnect(label)}
         />
@@ -413,42 +420,40 @@ interface AddAnotherKeyActionProps {
   whereToGetUrl: () => string | undefined;
   credentialNoun: () => string;
   existingLabels: () => string[];
+  open?: Accessor<boolean>;
+  setOpen?: Setter<boolean>;
 }
 
 const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) => {
-  const [open, setOpen] = createSignal(false);
+  const [localOpen, setLocalOpen] = createSignal(false);
+  const isOpen = () => (props.open ?? localOpen)();
+  const setIsOpen = (v: boolean) => {
+    (props.setOpen ?? setLocalOpen)(v);
+  };
   const [label, setLabel] = createSignal('');
   const [apiKey, setApiKey] = createSignal('');
 
   const defaultLabel = () => suggestNextLabel(props.existingLabels());
 
+  // Sync label suggestion when opened externally
+  createEffect(() => {
+    if (isOpen() && !label().trim()) {
+      setLabel(defaultLabel());
+    }
+  });
+
   const submit = async () => {
     const labelToUse = (label().trim() || defaultLabel()).slice(0, MAX_LABEL_LENGTH);
     const ok = await props.onAdd(labelToUse, apiKey().trim());
     if (ok) {
-      setOpen(false);
+      setIsOpen(false);
       setLabel('');
       setApiKey('');
     }
   };
 
   return (
-    <Show
-      when={open()}
-      fallback={
-        <button
-          type="button"
-          class="provider-detail__add-link"
-          style="margin-top: 12px; background: none; border: none; padding: 0; color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); cursor: pointer; text-align: left;"
-          onClick={() => {
-            setLabel(defaultLabel());
-            setOpen(true);
-          }}
-        >
-          + Add another key
-        </button>
-      }
-    >
+    <Show when={isOpen()}>
       <div
         class="provider-detail__add-form"
         style="margin-top: 12px; padding: 12px; border: 1px solid hsl(var(--border)); border-radius: 6px;"
@@ -494,18 +499,22 @@ const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) => {
             </a>
           </p>
         </Show>
-        <div style="display: flex; gap: 8px; margin-top: 12px;">
+        <div style="display: flex; justify-content: space-between; margin-top: 12px;">
           <button
-            class="btn btn--primary"
+            class="btn btn--outline btn--sm"
+            onClick={() => setIsOpen(false)}
+            disabled={props.busy()}
+          >
+            Cancel
+          </button>
+          <button
+            class="btn btn--primary btn--sm"
             disabled={props.busy() || !apiKey().trim()}
             onClick={submit}
           >
             <Show when={!props.busy()} fallback={<span class="spinner" />}>
               Add key
             </Show>
-          </button>
-          <button class="btn btn--outline" onClick={() => setOpen(false)} disabled={props.busy()}>
-            Cancel
           </button>
         </div>
       </div>
@@ -524,6 +533,8 @@ interface KeyChainViewProps {
   placeholder: string;
   credentialNoun: () => string;
   whereToGetUrl: () => string | undefined;
+  addKeyOpen?: Accessor<boolean>;
+  setAddKeyOpen?: Setter<boolean>;
   onUpdate: () => void;
   onDelete: (label: string) => void;
 }
@@ -566,19 +577,22 @@ const KeyChainView: Component<KeyChainViewProps> = (props) => {
       >
         <For each={props.activeKeys()}>
           {(k) => (
-            <li style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid hsl(var(--border)); border-radius: 6px;">
+            <li style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--muted) / 0.3);">
               <Show
                 when={renamingId() === k.id}
                 fallback={
                   <>
                     <div style="flex: 1; min-width: 0;">
-                      <div style="font-weight: 500;">{k.label}</div>
+                      <div style="font-weight: 500; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        {k.label}
+                      </div>
                       <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                        {k.key_prefix ? `${k.key_prefix}${'•'.repeat(8)}` : '••••••••••••'}
+                        {k.key_prefix ? `${k.key_prefix}${'•'.repeat(12)}` : '••••••••••••'}
                       </div>
                     </div>
                     <button
                       class="btn btn--outline btn--sm"
+                      style="flex-shrink: 0;"
                       disabled={props.busy()}
                       onClick={() => startRename(k)}
                     >
@@ -679,6 +693,8 @@ const KeyChainView: Component<KeyChainViewProps> = (props) => {
           whereToGetUrl={props.whereToGetUrl}
           credentialNoun={props.credentialNoun}
           existingLabels={() => props.activeKeys().map((k) => k.label)}
+          open={props.addKeyOpen}
+          setOpen={props.setAddKeyOpen}
         />
       </Show>
     </div>

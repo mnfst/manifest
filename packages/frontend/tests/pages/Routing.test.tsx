@@ -303,7 +303,7 @@ describe("Routing — enabled state (providers active)", () => {
 
     // Should show OpenAI models, not Anthropic
     await waitFor(() => {
-      expect(screen.getByText("OpenAI")).toBeDefined();
+      expect(screen.getAllByText("OpenAI").length).toBeGreaterThan(0);
     });
   });
 
@@ -1953,7 +1953,9 @@ describe("Routing — specificity routing", () => {
     const chips = document.querySelectorAll<HTMLButtonElement>(".routing-card__key-chip");
     expect(chips.length).toBeGreaterThan(0);
     fireEvent.click(chips[chips.length - 1]);
-    fireEvent.click(screen.getByText("Work"));
+    // Target the listbox option specifically (there may be another "Work" text from the chip display)
+    const workOption = screen.getAllByText("Work").find((el) => el.closest('[role="option"]'));
+    fireEvent.click(workOption!);
 
     await waitFor(() => {
       expect(overrideSpecificity).toHaveBeenCalledWith(

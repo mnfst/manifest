@@ -150,7 +150,7 @@ describe('RoutingActions.handleAddFallback inheriting the primary pin', () => {
     setFallbacksMock.mockResolvedValue([]);
   });
 
-  it('appends the new fallback with the primary tier label suffixed when present', async () => {
+  it('appends the bare model when the primary has a key pin (no longer inherited)', async () => {
     const { actions } = setup([
       makeTier({
         override_model: 'gpt-4o',
@@ -161,8 +161,9 @@ describe('RoutingActions.handleAddFallback inheriting the primary pin', () => {
 
     await actions.handleAddFallback('standard', 'gpt-4o-mini', 'openai', 'api_key');
 
+    // Key label is NOT inherited from the primary — that would create duplicates.
     expect(setFallbacksMock).toHaveBeenCalledWith('test-agent', 'standard', [
-      'gpt-4o-mini||Work',
+      'gpt-4o-mini',
     ]);
   });
 
@@ -189,10 +190,11 @@ describe('RoutingActions.handleAddFallback inheriting the primary pin', () => {
         fallback_models: ['gpt-4o-mini||Personal'],
       }),
     ]);
+    // Without label inheritance, new entry is bare 'gpt-4o-mini'
     await actions.handleAddFallback('standard', 'gpt-4o-mini', 'openai', 'api_key');
     expect(setFallbacksMock).toHaveBeenCalledWith('test-agent', 'standard', [
       'gpt-4o-mini||Personal',
-      'gpt-4o-mini||Work',
+      'gpt-4o-mini',
     ]);
   });
 
@@ -200,9 +202,10 @@ describe('RoutingActions.handleAddFallback inheriting the primary pin', () => {
     const { actions } = setup([
       makeTier({
         override_provider_key_label: 'Work',
-        fallback_models: ['gpt-4o-mini||Work'],
+        fallback_models: ['gpt-4o-mini'],
       }),
     ]);
+    // Without label inheritance, new entry is bare 'gpt-4o-mini' — already exists
     await actions.handleAddFallback('standard', 'gpt-4o-mini', 'openai', 'api_key');
     expect(setFallbacksMock).not.toHaveBeenCalled();
   });

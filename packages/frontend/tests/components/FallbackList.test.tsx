@@ -33,6 +33,7 @@ vi.mock("../../src/services/providers.js", () => ({
 vi.mock("../../src/services/routing-utils.js", () => ({
   resolveProviderId: (p: string) => p.toLowerCase(),
   stripCustomPrefix: (m: string) => m.replace(/^custom:[^/]+\//, ""),
+  usedKeyLabelsForModelInTier: () => new Set<string>(),
 }));
 
 vi.mock("../../src/services/provider-utils.js", () => ({

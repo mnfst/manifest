@@ -71,6 +71,7 @@ interface MountOpts {
   editing?: boolean;
   keyInput?: string;
   providers?: RoutingProvider[];
+  addKeyOpen?: boolean;
   onBack?: () => void;
   onUpdate?: () => void;
 }
@@ -80,6 +81,7 @@ function mount(opts: MountOpts) {
   const [keyInput, setKeyInput] = createSignal(opts.keyInput ?? '');
   const [editing, setEditing] = createSignal(opts.editing ?? false);
   const [validationError, setValidationError] = createSignal<string | null>(null);
+  const [addKeyOpen, setAddKeyOpen] = createSignal(opts.addKeyOpen ?? false);
 
   const onBack = opts.onBack ?? vi.fn();
   const onUpdate = opts.onUpdate ?? vi.fn();
@@ -102,12 +104,14 @@ function mount(opts: MountOpts) {
       setValidationError={setValidationError}
       getKeyPrefixDisplay={() => 'sk-***'}
       providers={opts.providers}
+      addKeyOpen={addKeyOpen}
+      setAddKeyOpen={setAddKeyOpen}
       onBack={onBack}
       onUpdate={onUpdate}
     />
   ));
 
-  return { ...result, setKeyInput, onBack, onUpdate };
+  return { ...result, setKeyInput, setAddKeyOpen, onBack, onUpdate };
 }
 
 /* ── Tests ──────────────────────────────────────────────────── */
@@ -536,17 +540,18 @@ describe('ProviderKeyForm', () => {
       expect(container.querySelector('ul[role="list"]')).toBeNull();
     });
 
-    it('shows the "+ Add another key" link only for api_key providers below the single-key row', () => {
+    it('renders the add-key form when addKeyOpen signal is true for api_key providers', () => {
       const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
       const { getByText } = mount({
         provDef: def,
         connected: true,
+        addKeyOpen: true,
         providers: [makeProvider()],
       });
-      expect(getByText('+ Add another key')).toBeDefined();
+      expect(getByText('Add key')).toBeDefined();
     });
 
-    it('shows "+ Add another key" for subscription providers (multi-account chain)', () => {
+    it('renders the add-key form when addKeyOpen is true for subscription providers (multi-account chain)', () => {
       const def = makeProviderDef({
         id: 'anthropic',
         name: 'Anthropic',
@@ -558,11 +563,12 @@ describe('ProviderKeyForm', () => {
         connected: true,
         isSubMode: true,
         selectedAuthType: 'subscription',
+        addKeyOpen: true,
         providers: [
           makeProvider({ provider: 'anthropic', auth_type: 'subscription', label: 'Default' }),
         ],
       });
-      expect(getByText('+ Add another key')).toBeDefined();
+      expect(getByText('Add key')).toBeDefined();
     });
 
     it('does not show "+ Add another key" for local providers (Ollama)', () => {
@@ -737,11 +743,11 @@ describe('ProviderKeyForm', () => {
       const { container, getByText } = mount({
         provDef: def,
         connected: true,
+        addKeyOpen: true,
         onUpdate,
         providers: [makeProvider({ id: 'p1', label: 'Default', priority: 0 })],
       });
-      fireEvent.click(getByText('+ Add another key'));
-      // Form is now open. The api-key input has a placeholder "sk-...".
+      // Form is already open via addKeyOpen. The api-key input has a placeholder "sk-...".
       const apiKeyInput = container.querySelector(
         'input[placeholder="sk-..."]',
       ) as HTMLInputElement;
@@ -766,15 +772,14 @@ describe('ProviderKeyForm', () => {
       const { container, getByText } = mount({
         provDef: def,
         connected: true,
+        addKeyOpen: true,
         onUpdate,
         providers: [
           makeProvider({ id: 'p1', label: 'Personal', priority: 0 }),
           makeProvider({ id: 'p2', label: 'Work', priority: 1 }),
         ],
       });
-      // List mode is active because there are 2 keys; Add another key sits
-      // below the <ul role=list>.
-      fireEvent.click(getByText('+ Add another key'));
+      // List mode is active because there are 2 keys; form is open via addKeyOpen.
       // The api-key input has id="add-key-value".
       const apiKeyInput = container.querySelector('#add-key-value') as HTMLInputElement;
       fireEvent.input(apiKeyInput, { target: { value: 'sk-third' } });
@@ -802,6 +807,7 @@ describe('ProviderKeyForm', () => {
         connected: true,
         isSubMode: true,
         selectedAuthType: 'subscription',
+        addKeyOpen: true,
         providers: [
           makeProvider({
             id: 's1',
@@ -819,7 +825,6 @@ describe('ProviderKeyForm', () => {
           }),
         ],
       });
-      fireEvent.click(getByText('+ Add another key'));
       const tokenInput = container.querySelector('#add-key-value') as HTMLInputElement;
       fireEvent.input(tokenInput, { target: { value: 'sub-third-token' } });
       fireEvent.click(getByText('Add key'));
@@ -839,9 +844,9 @@ describe('ProviderKeyForm', () => {
       const { container, getByText } = mount({
         provDef: def,
         connected: true,
+        addKeyOpen: true,
         providers: [makeProvider({ id: 'p1', label: 'Default', priority: 0 })],
       });
-      fireEvent.click(getByText('+ Add another key'));
       const apiKeyInput = container.querySelector('#add-key-value') as HTMLInputElement;
       fireEvent.input(apiKeyInput, { target: { value: 'sk-second' } });
       fireEvent.click(getByText('Add key'));
@@ -856,9 +861,9 @@ describe('ProviderKeyForm', () => {
       const { container, getByText, queryByText } = mount({
         provDef: def,
         connected: true,
+        addKeyOpen: true,
         providers: [makeProvider({ id: 'p1', label: 'Default', priority: 0 })],
       });
-      fireEvent.click(getByText('+ Add another key'));
       expect(queryByText('Cancel')).toBeDefined();
       fireEvent.click(getByText('Cancel'));
       // Form collapses; the Cancel button is gone.

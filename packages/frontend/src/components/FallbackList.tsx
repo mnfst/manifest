@@ -1,15 +1,20 @@
-import { createSignal, For, Show, type Component } from 'solid-js';
+import { createSignal, createEffect, onCleanup, For, Show, type Component } from 'solid-js';
 import {
   clearFallbacks,
   setFallbacks,
   type AvailableModel,
   type CustomProviderData,
   type RoutingProvider,
+  type TierAssignment,
 } from '../services/api.js';
 import { customProviderColor } from '../services/formatters.js';
 import { getModelLabel } from '../services/provider-utils.js';
 import { PROVIDERS } from '../services/providers.js';
-import { resolveProviderId, stripCustomPrefix } from '../services/routing-utils.js';
+import {
+  resolveProviderId,
+  stripCustomPrefix,
+  usedKeyLabelsForModelInTier,
+} from '../services/routing-utils.js';
 import { toast } from '../services/toast-store.js';
 import { authBadgeFor } from './AuthBadge.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.js';
@@ -18,6 +23,7 @@ import { encodeFallbackEntry, parseFallbackEntry } from 'manifest-shared';
 interface FallbackListProps {
   agentName: string;
   tier: string;
+  tierData?: () => TierAssignment | undefined;
   fallbacks: string[];
   models: AvailableModel[];
   customProviders: CustomProviderData[];
@@ -267,16 +273,6 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                     draggable={true}
                     onDragStart={(e) => handleDragStart(i(), e)}
                   >
-                    <span class="fallback-list__drag-handle" aria-hidden="true">
-                      <svg width="8" height="14" viewBox="0 0 8 14" fill="currentColor">
-                        <circle cx="2" cy="2" r="1.2" />
-                        <circle cx="6" cy="2" r="1.2" />
-                        <circle cx="2" cy="7" r="1.2" />
-                        <circle cx="6" cy="7" r="1.2" />
-                        <circle cx="2" cy="12" r="1.2" />
-                        <circle cx="6" cy="12" r="1.2" />
-                      </svg>
-                    </span>
                     <Show when={provId() && !isCustom()}>
                       <span class="fallback-list__icon" title={title()}>
                         {providerIcon(provId()!, 14)}
@@ -318,6 +314,9 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                         keys={keys()}
                         currentLabel={pinnedLabel()}
                         modelLabel={modelLabel(model())}
+                        modelName={model()}
+                        tier={props.tierData ?? (() => undefined)}
+                        fallbackIndex={i()}
                         onPick={(label) => setLabelAt(i(), label)}
                       />
                     </Show>
@@ -444,15 +443,35 @@ interface FallbackKeyChipProps {
   keys: RoutingProvider[];
   currentLabel: string | undefined;
   modelLabel: string;
+  modelName: string;
+  tier: () => TierAssignment | undefined;
+  fallbackIndex: number;
   onPick: (label: string | null) => void;
 }
 
 const FallbackKeyChip: Component<FallbackKeyChipProps> = (props) => {
   const [open, setOpen] = createSignal(false);
+  let containerRef: HTMLSpanElement | undefined;
+  createEffect(() => {
+    if (open()) {
+      const handler = (e: MouseEvent) => {
+        if (containerRef && !containerRef.contains(e.target as Node)) setOpen(false);
+      };
+      document.addEventListener('mousedown', handler);
+      onCleanup(() => document.removeEventListener('mousedown', handler));
+    }
+  });
   const displayLabel = () => props.currentLabel ?? props.keys[0]?.label ?? '';
+  const usedKeys = () =>
+    usedKeyLabelsForModelInTier(
+      props.tier(),
+      props.modelName,
+      props.fallbackIndex,
+      props.keys[0]?.label,
+    );
 
   return (
-    <span style="position: relative; display: inline-flex; flex-shrink: 0;">
+    <span ref={containerRef} style="position: relative; display: inline-flex; flex-shrink: 0;">
       <button
         type="button"
         class="fallback-list__key-chip"
@@ -489,28 +508,42 @@ const FallbackKeyChip: Component<FallbackKeyChipProps> = (props) => {
             </li>
           </Show>
           <For each={props.keys}>
-            {(k) => (
-              <li>
-                <button
-                  type="button"
-                  role="option"
-                  aria-selected={
-                    props.currentLabel
-                      ? props.currentLabel.toLowerCase() === k.label.toLowerCase()
-                      : displayLabel().toLowerCase() === k.label.toLowerCase()
-                  }
-                  onClick={() => {
-                    setOpen(false);
-                    if ((props.currentLabel ?? '').toLowerCase() !== k.label.toLowerCase()) {
-                      props.onPick(k.label);
-                    }
-                  }}
-                  style="width: 100%; text-align: left; background: none; border: none; padding: 4px 6px; cursor: pointer; border-radius: 4px; font-size: var(--font-size-xs);"
-                >
-                  {k.label}
-                </button>
-              </li>
-            )}
+            {(k) => {
+              const isUsed = () => usedKeys().has(k.label.toLowerCase());
+              const isSelected = () =>
+                props.currentLabel
+                  ? props.currentLabel.toLowerCase() === k.label.toLowerCase()
+                  : displayLabel().toLowerCase() === k.label.toLowerCase();
+              return (
+                <li>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={isSelected()}
+                    disabled={isUsed()}
+                    onClick={() => {
+                      setOpen(false);
+                      if ((props.currentLabel ?? '').toLowerCase() !== k.label.toLowerCase()) {
+                        props.onPick(k.label);
+                      }
+                    }}
+                    style={`width: 100%; text-align: left; background: none; border: none; padding: 4px 6px; cursor: pointer; border-radius: 4px; font-size: var(--font-size-xs); color: hsl(var(--foreground)); display: flex; align-items: center; gap: 6px;${isUsed() ? ' opacity: 0.4; cursor: not-allowed;' : ''}`}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="8"
+                      height="8"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                      style={`visibility: ${isSelected() ? 'visible' : 'hidden'}`}
+                    >
+                      <path d="M12 5a7 7 0 1 0 0 14 7 7 0 1 0 0-14" />
+                    </svg>
+                    {k.label}
+                  </button>
+                </li>
+              );
+            }}
           </For>
         </ul>
       </Show>

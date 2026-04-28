@@ -1,4 +1,11 @@
-import { Show, createSignal, type Component, type Accessor, type Setter } from 'solid-js';
+import {
+  Show,
+  createSignal,
+  createMemo,
+  type Component,
+  type Accessor,
+  type Setter,
+} from 'solid-js';
 import { PROVIDERS } from '../services/providers.js';
 import { providerIcon } from './ProviderIcon.js';
 import {
@@ -9,7 +16,7 @@ import {
 } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
 import CopyButton from './CopyButton.js';
-import ProviderKeyForm from './ProviderKeyForm.js';
+import ProviderKeyForm, { MAX_KEYS_PER_PROVIDER } from './ProviderKeyForm.js';
 import OAuthDetailView from './OAuthDetailView.js';
 import DeviceCodeDetailView from './DeviceCodeDetailView.js';
 import { getRoutingProviderApiKeyUrl } from '../services/provider-api-key-urls.js';
@@ -84,6 +91,26 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
       : isConnectedApiKey() || isNoKeyConnected();
   const isOllama = provDef.noKeyRequired;
 
+  const [addKeyOpen, setAddKeyOpen] = createSignal(false);
+
+  const supportsMultiKey = () => props.selectedAuthType() !== 'local';
+
+  const activeKeys = createMemo(() =>
+    props.providers.filter(
+      (p) =>
+        p.provider === props.provId &&
+        p.auth_type === props.selectedAuthType() &&
+        p.is_active &&
+        p.has_api_key,
+    ),
+  );
+
+  const showAddKeyButton = () =>
+    connected() &&
+    supportsMultiKey() &&
+    activeKeys().length < MAX_KEYS_PER_PROVIDER &&
+    !addKeyOpen();
+
   const handleOllamaConnect = async () => {
     props.setBusy(true);
     try {
@@ -147,30 +174,42 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
       </div>
 
       {/* Provider row */}
-      <div class="provider-detail__header">
-        <span class="provider-detail__icon">
-          {providerIcon(props.provId, 28) ?? (
-            <span
-              class="provider-card__logo-letter"
-              style={{
-                background: provDef.color,
-                width: '32px',
-                height: '32px',
-                'font-size': '13px',
-              }}
-            >
-              {provDef.initial}
-            </span>
-          )}
-        </span>
-        <div class="provider-detail__title-group">
-          <div class="provider-detail__name">
-            {provDef.name}
-            <Show when={provDef.beta}>
-              <span class="provider-detail__beta-badge">beta</span>
-            </Show>
+      <div class="provider-detail__header" style="justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="provider-detail__icon">
+            {providerIcon(props.provId, 28) ?? (
+              <span
+                class="provider-card__logo-letter"
+                style={{
+                  background: provDef.color,
+                  width: '32px',
+                  height: '32px',
+                  'font-size': '13px',
+                }}
+              >
+                {provDef.initial}
+              </span>
+            )}
+          </span>
+          <div class="provider-detail__title-group">
+            <div class="provider-detail__name">
+              {provDef.name}
+              <Show when={provDef.beta}>
+                <span class="provider-detail__beta-badge">beta</span>
+              </Show>
+            </div>
           </div>
         </div>
+        <Show when={showAddKeyButton()}>
+          <button
+            type="button"
+            class="btn btn--sm"
+            style="background: hsl(var(--foreground)); color: hsl(var(--background)); border: none; font-size: var(--font-size-xs);"
+            onClick={() => setAddKeyOpen(true)}
+          >
+            Add another key
+          </button>
+        </Show>
       </div>
 
       {/* Subscription sign-in URL instruction (token mode with external sign-in) */}
@@ -348,6 +387,8 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
           setValidationError={props.setValidationError}
           getKeyPrefixDisplay={getKeyPrefixDisplay}
           providers={props.providers}
+          addKeyOpen={addKeyOpen}
+          setAddKeyOpen={setAddKeyOpen}
           onBack={props.onBack}
           onUpdate={props.onUpdate}
         />

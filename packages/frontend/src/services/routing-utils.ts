@@ -1,5 +1,43 @@
 import { PROVIDERS } from './providers.js';
-import { inferProviderFromModel, SHARED_PROVIDERS } from 'manifest-shared';
+import { inferProviderFromModel, SHARED_PROVIDERS, parseFallbackEntry } from 'manifest-shared';
+import type { TierAssignment } from './api.js';
+
+/**
+ * Collect all key labels already used for a given model within a tier
+ * (primary + fallbacks). Used to prevent duplicate (model, key) combos.
+ *
+ * @param excludeSlot - 'primary' to skip the primary slot (for the primary's
+ *   own dropdown), or a fallback index to skip that fallback (for its dropdown).
+ */
+export function usedKeyLabelsForModelInTier(
+  tier: TierAssignment | undefined,
+  modelName: string,
+  excludeSlot?: 'primary' | number,
+  /** When the primary has no explicit key pin, the proxy uses the first key
+   *  by priority. Pass that label here so it gets counted as "used". */
+  defaultKeyLabel?: string,
+): Set<string> {
+  const used = new Set<string>();
+  if (!tier) return used;
+  // Check primary
+  if (excludeSlot !== 'primary') {
+    const primaryModel = tier.override_model ?? tier.auto_assigned_model;
+    if (primaryModel === modelName) {
+      const label = tier.override_provider_key_label ?? defaultKeyLabel;
+      if (label) used.add(label.toLowerCase());
+    }
+  }
+  // Check fallbacks
+  const fallbacks = tier.fallback_models ?? [];
+  for (let i = 0; i < fallbacks.length; i++) {
+    if (excludeSlot === i) continue;
+    const parsed = parseFallbackEntry(fallbacks[i]);
+    if (parsed.model === modelName && parsed.providerKeyLabel) {
+      used.add(parsed.providerKeyLabel.toLowerCase());
+    }
+  }
+  return used;
+}
 
 /** Format per-million token price: $0.15 */
 export function pricePerM(perToken: number | null | undefined): string {

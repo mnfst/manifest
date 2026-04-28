@@ -50,6 +50,27 @@ export function createRoutingActions(input: RoutingActionsInput) {
         authType,
         providerKeyLabel,
       );
+      // Auto-remove any fallback that conflicts with the new primary's (model, key).
+      // A fallback conflicts if:
+      //   - Same model + same key label (exact match)
+      //   - Same model + fallback has no label (bare entry uses the default/primary key)
+      if (updated.fallback_models?.length) {
+        const cleaned = updated.fallback_models.filter((fb) => {
+          const sep = fb.indexOf('||');
+          const fbModel = sep === -1 ? fb : fb.substring(0, sep);
+          const fbLabel = sep === -1 ? null : fb.substring(sep + 2).trim();
+          if (fbModel !== modelName) return true; // different model, keep
+          // Same model: remove if labels match or fallback has no label
+          if (!fbLabel) return false; // bare entry = same model, remove
+          if (providerKeyLabel && fbLabel.toLowerCase() === providerKeyLabel.toLowerCase())
+            return false;
+          return true; // different key label, keep
+        });
+        if (cleaned.length < updated.fallback_models.length) {
+          await setFallbacks(input.agentName(), tierId, cleaned);
+          updated.fallback_models = cleaned;
+        }
+      }
       input.mutateTiers((prev) => prev?.map((t) => (t.tier === tierId ? updated : t)));
       toast.success('Routing updated');
     } catch {
@@ -139,14 +160,14 @@ export function createRoutingActions(input: RoutingActionsInput) {
     modelName: string,
     _providerId: string,
     _authType?: AuthType,
+    providerKeyLabel?: string,
   ) => {
     const tier = getTier(tierId);
     const current = tier?.fallback_models ?? [];
-    // Inherit the primary's pinned key label when present, so a new fallback
-    // doesn't silently fall back to a different account/credential than the
-    // primary just because the user added it after pinning the primary.
-    const primaryLabel = tier?.override_provider_key_label ?? null;
-    const newEntry = primaryLabel ? `${modelName}||${primaryLabel}` : modelName;
+    // Use the explicitly picked key label if provided (from KeyPickerModal).
+    // Do NOT inherit the primary's key — that would create a duplicate.
+    const label = providerKeyLabel ?? null;
+    const newEntry = label ? `${modelName}||${label}` : modelName;
     // Dedupe on the encoded entry so a user can still pin the same model on
     // two different keys (foo||Personal + foo||Work), but the exact same
     // model+label combo can't appear twice.

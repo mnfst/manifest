@@ -61,7 +61,7 @@ const KeyPickerModal: Component<KeyPickerModalProps> = (props) => (
                   type="button"
                   class="key-picker-modal__option"
                   onClick={() => props.onPick(k.label)}
-                  style="width: 100%; text-align: left; padding: 10px 12px; border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--background)); cursor: pointer;"
+                  style="width: 100%; text-align: left; padding: 10px 12px; border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--background)); color: hsl(var(--foreground)); cursor: pointer;"
                 >
                   <div style="font-weight: 500;">{k.label}</div>
                   <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">

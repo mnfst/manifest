@@ -43,7 +43,10 @@
 /* Horizontal scroll wrapper for data tables */
 .data-table-scroll {
   overflow-x: auto;
+  overflow-y: visible;
   -webkit-overflow-scrolling: touch;
+  padding-top: 60px;
+  margin-top: -60px;
 }
 
 .data-table tbody tr {

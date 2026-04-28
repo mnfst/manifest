@@ -132,6 +132,7 @@ const Routing: Component = () => {
     modelName,
     providerId,
     authType,
+    providerKeyLabel,
   ) => {
     setFallbackPickerTier(null);
     if (isSpecificityTier(tierId)) {
@@ -149,7 +150,7 @@ const Routing: Component = () => {
       }
       return;
     }
-    return actions.handleAddFallback(tierId, modelName, providerId, authType);
+    return actions.handleAddFallback(tierId, modelName, providerId, authType, providerKeyLabel);
   };
 
   const isEnabled = () => connectedProviders()?.some((p) => p.is_active) ?? false;

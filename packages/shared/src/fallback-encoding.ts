@@ -20,6 +20,7 @@ export interface FallbackEntry {
 }
 
 export function parseFallbackEntry(entry: string): FallbackEntry {
+  if (!entry) return { model: '' };
   const idx = entry.indexOf(FALLBACK_KEY_DELIMITER);
   if (idx < 0) return { model: entry };
   const model = entry.slice(0, idx);
