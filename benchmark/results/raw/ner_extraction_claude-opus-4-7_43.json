@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "ner_extraction",
+  "case": 43,
+  "response": "{\"persons\":[\"Satya Nadella\"],\"organizations\":[\"Microsoft\",\"OpenAI\",\"Office 365\"],\"locations\":[]}",
+  "score": 5,
+  "cost": 0.00552,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 50
+  }
+}

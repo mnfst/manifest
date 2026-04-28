@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "ner_extraction",
+  "case": 17,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"Toyota\"],\n  \"locations\": [\"Greensboro\", \"North Carolina\"]\n}\n```",
+  "score": 5,
+  "cost": 0.00022,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 40
+  }
+}

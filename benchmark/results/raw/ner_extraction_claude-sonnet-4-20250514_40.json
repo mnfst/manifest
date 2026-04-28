@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "ner_extraction",
+  "case": 40,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"Reserve Bank of Australia\", \"Goldman Sachs\"],\n  \"locations\": [\"Australia\"]\n}",
+  "score": 4,
+  "cost": 0.000786,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 37
+  }
+}

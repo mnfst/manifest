@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "ner_extraction",
+  "case": 0,
+  "response": "```json\n{\n  \"persons\": [\"Tim Cook\"],\n  \"organizations\": [\"Apple\", \"Samsung\", \"CES\"],\n  \"locations\": [\"Las Vegas\"]\n}\n```",
+  "score": 4,
+  "cost": 0.0009174000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 187
+  }
+}

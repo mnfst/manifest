@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "ner_extraction",
+  "case": 10,
+  "response": "```json\n{\n  \"persons\": [\"Jennifer Lopez\", \"Ben Affleck\"],\n  \"organizations\": [],\n  \"locations\": [\"Beverly Hills\"]\n}\n```",
+  "score": 5,
+  "cost": 0.000224,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 41
+  }
+}

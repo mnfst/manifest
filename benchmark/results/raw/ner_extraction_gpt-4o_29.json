@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "ner_extraction",
+  "case": 29,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"Tokyo Stock Exchange\"\n  ],\n  \"locations\": [\n    \"Tokyo\"\n  ]\n}\n```",
+  "score": 4,
+  "cost": 0.00053,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 35
+  }
+}

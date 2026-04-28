@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "ner_extraction",
+  "case": 22,
+  "response": "```json\n{\n  \"persons\": [\"Jamie Dimon\"],\n  \"organizations\": [\"JPMorgan Chase\", \"World Economic Forum\"],\n  \"locations\": [\"Davos\", \"Switzerland\"]\n}\n```",
+  "score": 5,
+  "cost": 0.0002744,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 52
+  }
+}

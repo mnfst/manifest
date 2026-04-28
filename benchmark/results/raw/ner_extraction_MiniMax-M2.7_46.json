@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "ner_extraction",
+  "case": 46,
+  "response": "{\n  \"persons\": [\"Liang Rubo\"],\n  \"organizations\": [\"ByteDance\", \"Senate Commerce Committee\", \"TikTok\"],\n  \"locations\": [\"Washington\"]\n}",
+  "score": 5,
+  "cost": 0.0019899,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 426
+  }
+}

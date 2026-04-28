@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "ner_extraction",
+  "case": 9,
+  "response": "{\"persons\": [], \"organizations\": [\"World Health Organization\"], \"locations\": [\"sub-Saharan Africa\", \"Geneva\"]}",
+  "score": 4,
+  "cost": 0.005595,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 51
+  }
+}

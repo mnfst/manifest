@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "ner_extraction",
+  "case": 34,
+  "response": "```json\n{\n  \"persons\": [\n    \"Gordon Ramsay\"\n  ],\n  \"organizations\": [\n    \"Bellagio\"\n  ],\n  \"locations\": [\n    \"Bellagio\",\n    \"Las Vegas\"\n  ]\n}\n```",
+  "score": 3,
+  "cost": 4.515e-05,
+  "expected": "",
+  "tokens": {
+    "input": 65,
+    "output": 59
+  }
+}

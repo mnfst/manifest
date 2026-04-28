@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "ner_extraction",
+  "case": 24,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\n    \"Indian Space Research Organisation\"\n  ],\n  \"locations\": [\n    \"Sriharikota\"\n  ]\n}",
+  "score": 5,
+  "cost": 3.21e-05,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 35
+  }
+}

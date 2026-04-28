@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "ner_extraction",
+  "case": 5,
+  "response": "```json\n{\n  \"persons\": [\"Dr. James Wilson\"],\n  \"organizations\": [\"Stanford University\", \"IEEE\"],\n  \"locations\": [\"Tokyo\"]\n}\n```",
+  "score": 5,
+  "cost": 1.9799999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 39
+  }
+}

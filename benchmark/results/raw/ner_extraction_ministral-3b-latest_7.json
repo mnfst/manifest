@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "ner_extraction",
+  "case": 7,
+  "response": "```json\n{\n  \"persons\": [\"Lionel Messi\"],\n  \"organizations\": [\"Inter Miami\", \"New York Red Bulls\"],\n  \"locations\": [\"Chase Stadium\", \"Fort Lauderdale\"]\n}\n```",
+  "score": 5,
+  "cost": 4.92e-06,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 48
+  }
+}

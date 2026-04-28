@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "ner_extraction",
+  "case": 15,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"SpaceX\"],\n  \"locations\": [\"Cape Canaveral\"]\n}\n```",
+  "score": 4,
+  "cost": 1.84e-05,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 33
+  }
+}

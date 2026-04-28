@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "ner_extraction",
+  "case": 29,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"Tokyo Stock Exchange\",\n    \"Nikkei 225\"\n  ],\n  \"locations\": [\n    \"Tokyo\"\n  ]\n}\n```",
+  "score": 4,
+  "cost": 0.00062625,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 54
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "ner_extraction",
+  "case": 30,
+  "response": "```json\n{\n  \"persons\": [\n    \"Justin Trudeau\"\n  ],\n  \"organizations\": [\n    \"General Assembly\",\n    \"United Nations\"\n  ],\n  \"locations\": [\n    \"New York\"\n  ]\n}\n```",
+  "score": 5,
+  "cost": 0.0006725,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 59
+  }
+}

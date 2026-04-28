@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "ner_extraction",
+  "case": 48,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"TSMC\",\n    \"Department of Commerce\"\n  ],\n  \"locations\": [\n    \"Phoenix\",\n    \"Arizona\"\n  ]\n}\n```",
+  "score": 5,
+  "cost": 0.0006275,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 44
+  }
+}

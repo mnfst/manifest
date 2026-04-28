@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "ner_extraction",
+  "case": 9,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"World Health Organization\"\n  ],\n  \"locations\": [\n    \"sub-Saharan Africa\",\n    \"Geneva\"\n  ]\n}\n```",
+  "score": 4,
+  "cost": 2.79e-05,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 53
+  }
+}

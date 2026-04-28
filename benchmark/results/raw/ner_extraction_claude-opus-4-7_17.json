@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "ner_extraction",
+  "case": 17,
+  "response": "{\"persons\": [], \"organizations\": [\"Toyota\"], \"locations\": [\"Greensboro\", \"North Carolina\"]}",
+  "score": 5,
+  "cost": 0.005085,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 45
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "ner_extraction",
+  "case": 4,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"Bank of England\", \"European Central Bank\"],\n  \"locations\": [\"Frankfurt\"]\n}\n```",
+  "score": 5,
+  "cost": 4.2000000000000004e-06,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 36
+  }
+}

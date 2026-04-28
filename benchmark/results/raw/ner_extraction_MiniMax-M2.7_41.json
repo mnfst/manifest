@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "ner_extraction",
+  "case": 41,
+  "response": "```json\n{\n  \"persons\": [\"LeBron James\"],\n  \"organizations\": [\"Los Angeles Lakers\"],\n  \"locations\": []\n}\n```",
+  "score": 4,
+  "cost": 0.0010153,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 209
+  }
+}

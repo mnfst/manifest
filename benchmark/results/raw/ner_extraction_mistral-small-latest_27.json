@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "ner_extraction",
+  "case": 27,
+  "response": "```json\n{\n  \"persons\": [\"Cristiano Ronaldo\"],\n  \"organizations\": [\"Al Nassr\", \"Manchester United\"],\n  \"locations\": [\"Riyadh\"]\n}\n```",
+  "score": 5,
+  "cost": 2.14e-05,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 42
+  }
+}

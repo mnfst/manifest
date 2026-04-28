@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "ner_extraction",
+  "case": 47,
+  "response": "```json\n{\n  \"persons\": [\n    \"Alain Aspect\"\n  ],\n  \"organizations\": [\n    \"Nobel Prize in Physics\",\n    \"Universite Paris-Saclay\"\n  ],\n  \"locations\": [\n    \"Stockholm\"\n  ]\n}\n```",
+  "score": 4,
+  "cost": 0.0007575,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 67
+  }
+}

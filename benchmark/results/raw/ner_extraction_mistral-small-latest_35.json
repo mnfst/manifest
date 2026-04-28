@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "ner_extraction",
+  "case": 35,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"European Space Agency\", \"NASA\"],\n  \"locations\": [\"lunar south pole\"]\n}\n```",
+  "score": 4,
+  "cost": 1.93e-05,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 37
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "ner_extraction",
+  "case": 26,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"ACLU\"],\n  \"locations\": [\"Texas\"]\n}\n```",
+  "score": 4,
+  "cost": 3.96e-06,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 29
+  }
+}

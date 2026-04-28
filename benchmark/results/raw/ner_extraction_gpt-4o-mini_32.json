@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "ner_extraction",
+  "case": 32,
+  "response": "{\n  \"persons\": [\"Serena Williams\"],\n  \"organizations\": [\"ESPY\"],\n  \"locations\": [\"Los Angeles\"]\n}",
+  "score": 5,
+  "cost": 2.6850000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 27
+  }
+}

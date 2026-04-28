@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "ner_extraction",
+  "case": 36,
+  "response": "{\"persons\":[\"Warren Buffett\"],\"organizations\":[\"Bank of America\",\"SEC\"],\"locations\":[]}",
+  "score": 5,
+  "cost": 0.0020515000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 445
+  }
+}

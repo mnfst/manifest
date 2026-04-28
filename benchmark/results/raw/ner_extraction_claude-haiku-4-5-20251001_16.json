@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "ner_extraction",
+  "case": 16,
+  "response": "```json\n{\n  \"persons\": [\"Angela Merkel\"],\n  \"organizations\": [\"White House\"],\n  \"locations\": [\"German\"]\n}\n```",
+  "score": 2,
+  "cost": 0.0002152,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 39
+  }
+}

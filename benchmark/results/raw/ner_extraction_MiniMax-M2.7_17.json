@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "ner_extraction",
+  "case": 17,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"Toyota\"],\n  \"locations\": [\"Greensboro\", \"North Carolina\"]\n}\n```",
+  "score": 5,
+  "cost": 0.0005335000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 100
+  }
+}

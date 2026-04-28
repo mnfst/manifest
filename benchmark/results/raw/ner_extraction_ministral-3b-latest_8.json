@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "ner_extraction",
+  "case": 8,
+  "response": "```json\n{\n  \"persons\": [\"Elon Musk\"],\n  \"organizations\": [\"Tesla\"],\n  \"locations\": [\"Fremont\", \"California\"]\n}\n```",
+  "score": 5,
+  "cost": 4.48e-06,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 39
+  }
+}

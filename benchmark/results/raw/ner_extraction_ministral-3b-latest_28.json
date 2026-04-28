@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "ner_extraction",
+  "case": 28,
+  "response": "```json\n{\n  \"persons\": [\"Johns Hopkins University\"],\n  \"organizations\": [],\n  \"locations\": [\"Johns Hopkins University\", \"Baltimore\"]\n}\n```",
+  "score": 2,
+  "cost": 4.32e-06,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 39
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "ner_extraction",
+  "case": 16,
+  "response": "{\n  \"persons\": [\"Angela Merkel\"],\n  \"organizations\": [\"Presidential Medal of Freedom\", \"White House\"],\n  \"locations\": [\"Germany\"]\n}",
+  "score": 2,
+  "cost": 2.97e-05,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 32
+  }
+}

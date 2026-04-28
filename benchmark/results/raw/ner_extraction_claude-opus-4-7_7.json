@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "ner_extraction",
+  "case": 7,
+  "response": "{\"persons\":[\"Lionel Messi\"],\"organizations\":[\"Inter Miami\",\"New York Red Bulls\"],\"locations\":[\"Chase Stadium\",\"Fort Lauderdale\"]}",
+  "score": 5,
+  "cost": 0.00696,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 67
+  }
+}

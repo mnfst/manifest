@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "ner_extraction",
+  "case": 23,
+  "response": "```json\n{\n  \"persons\": [\"Taylor Swift\"],\n  \"organizations\": [],\n  \"locations\": [\"Wembley Stadium\", \"London\"]\n}\n```",
+  "score": 4,
+  "cost": 0.0013057000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 275
+  }
+}

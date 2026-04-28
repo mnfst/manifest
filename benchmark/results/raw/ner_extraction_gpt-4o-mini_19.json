@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "ner_extraction",
+  "case": 19,
+  "response": "{\n  \"persons\": [\"Thierry Breton\"],\n  \"organizations\": [\"European Parliament\"],\n  \"locations\": [\"Brussels\"]\n}",
+  "score": 5,
+  "cost": 2.6549999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 27
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "ner_extraction",
+  "case": 19,
+  "response": "```json\n{\n  \"persons\": [\"Thierry Breton\"],\n  \"organizations\": [\"European Parliament\", \"Commissioner\"],\n  \"locations\": [\"Brussels\"]\n}\n```",
+  "score": 3,
+  "cost": 1.99e-05,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 40
+  }
+}

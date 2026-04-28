@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "ner_extraction",
+  "case": 41,
+  "response": "```json\n{\n  \"persons\": [\n    \"LeBron James\"\n  ],\n  \"organizations\": [\n    \"Los Angeles Lakers\"\n  ],\n  \"locations\": []\n}\n```",
+  "score": 4,
+  "cost": 0.0005475,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 46
+  }
+}

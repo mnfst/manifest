@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "ner_extraction",
+  "case": 27,
+  "response": "{\"persons\":[\"Cristiano Ronaldo\"],\"organizations\":[\"Al Nassr\",\"Manchester United\"],\"locations\":[\"Riyadh\"]}",
+  "score": 5,
+  "cost": 0.00603,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 56
+  }
+}

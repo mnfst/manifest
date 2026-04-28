@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "ner_extraction",
+  "case": 14,
+  "response": "```json\n{\n  \"persons\": [\n    \"Jerome Powell\"\n  ],\n  \"organizations\": [\n    \"Federal Reserve\",\n    \"Congress\"\n  ],\n  \"locations\": [\n    \"Washington DC\"\n  ]\n}\n```",
+  "score": 4,
+  "cost": 4.5e-05,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 59
+  }
+}

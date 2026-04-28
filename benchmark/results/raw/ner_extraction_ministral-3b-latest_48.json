@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "ner_extraction",
+  "case": 48,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"TSMC\", \"Department of Commerce\"],\n  \"locations\": [\"Phoenix\", \"Arizona\"]\n}\n```",
+  "score": 5,
+  "cost": 4.48e-06,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 39
+  }
+}

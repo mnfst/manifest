@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "ner_extraction",
+  "case": 39,
+  "response": "```json\n{\n  \"persons\": [\n    \"Dario Amodei\"\n  ],\n  \"organizations\": [\n    \"Anthropic\",\n    \"Aspen Ideas Festival\"\n  ],\n  \"locations\": [\n    \"Colorado\"\n  ]\n}\n```",
+  "score": 5,
+  "cost": 4.8599999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 63
+  }
+}

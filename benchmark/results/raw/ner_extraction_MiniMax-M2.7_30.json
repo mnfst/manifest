@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "ner_extraction",
+  "case": 30,
+  "response": "{\n  \"persons\": [\"Justin Trudeau\"],\n  \"organizations\": [\"General Assembly\", \"United Nations\"],\n  \"locations\": [\"New York\"]\n}",
+  "score": 5,
+  "cost": 0.0017655000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 380
+  }
+}

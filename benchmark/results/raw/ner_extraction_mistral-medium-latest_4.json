@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "ner_extraction",
+  "case": 4,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"Bank of England\",\n    \"European Central Bank\"\n  ],\n  \"locations\": [\n    \"Frankfurt\"\n  ]\n}\n```",
+  "score": 4,
+  "cost": 0.0001176,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 45
+  }
+}

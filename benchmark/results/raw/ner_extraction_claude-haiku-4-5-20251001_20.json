@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "ner_extraction",
+  "case": 20,
+  "response": "```json\n{\n  \"persons\": [\"Sundar Pichai\"],\n  \"organizations\": [\"Google\"],\n  \"locations\": [\"Malaysia\"]\n}\n```",
+  "score": 5,
+  "cost": 0.00022319999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 40
+  }
+}

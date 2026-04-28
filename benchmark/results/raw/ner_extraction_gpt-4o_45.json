@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "ner_extraction",
+  "case": 45,
+  "response": "```json\n{\n    \"persons\": [\n        \"Leonardo da Vinci\"\n    ],\n    \"organizations\": [\n        \"Louvre Museum\",\n        \"Royal Collection\"\n    ],\n    \"locations\": [\n        \"Paris\"\n    ]\n}\n```",
+  "score": 5,
+  "cost": 0.0006725,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 49
+  }
+}

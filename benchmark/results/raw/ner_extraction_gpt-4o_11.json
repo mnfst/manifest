@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "ner_extraction",
+  "case": 11,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"United Nations Security Council\"\n  ],\n  \"locations\": [\n    \"North Korea\",\n    \"New York\"\n  ]\n}\n```",
+  "score": 4,
+  "cost": 0.0006,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 42
+  }
+}

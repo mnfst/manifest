@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "ner_extraction",
+  "case": 35,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\n    \"European Space Agency\",\n    \"NASA\"\n  ],\n  \"locations\": [\n    \"lunar south pole\"\n  ]\n}",
+  "score": 4,
+  "cost": 3.3600000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 38
+  }
+}

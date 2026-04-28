@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "ner_extraction",
+  "case": 33,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"International Monetary Fund\"],\n  \"locations\": [\"Latin America\"]\n}\n```",
+  "score": 5,
+  "cost": 1.7800000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 32
+  }
+}

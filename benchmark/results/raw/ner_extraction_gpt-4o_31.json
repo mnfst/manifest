@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "ner_extraction",
+  "case": 31,
+  "response": "```json\n{\n    \"persons\": [],\n    \"organizations\": [\"Samsung Electronics\"],\n    \"locations\": [\"South Korea\"]\n}\n```",
+  "score": 5,
+  "cost": 0.000445,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 27
+  }
+}

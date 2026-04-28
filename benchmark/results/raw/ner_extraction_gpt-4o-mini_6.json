@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "ner_extraction",
+  "case": 6,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\n    \"Amazon\"\n  ],\n  \"locations\": [\n    \"Nashville\",\n    \"Davidson County\"\n  ]\n}",
+  "score": 5,
+  "cost": 3.3e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 37
+  }
+}

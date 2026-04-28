@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "ner_extraction",
+  "case": 42,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"African Union\"],\n  \"locations\": [\"Addis Ababa\", \"Sudan\", \"Egypt\", \"Ethiopia\"]\n}\n```",
+  "score": 4,
+  "cost": 0.000256,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 48
+  }
+}

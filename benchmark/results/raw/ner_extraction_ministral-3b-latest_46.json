@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "ner_extraction",
+  "case": 46,
+  "response": "```json\n{\n  \"persons\": [\"Liang Rubo\"],\n  \"organizations\": [\"ByteDance\", \"Senate Commerce Committee\"],\n  \"locations\": [\"Washington\"]\n}\n```",
+  "score": 5,
+  "cost": 4.48e-06,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 40
+  }
+}

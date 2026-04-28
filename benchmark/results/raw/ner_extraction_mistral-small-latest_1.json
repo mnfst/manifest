@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "ner_extraction",
+  "case": 1,
+  "response": "```json\n{\n  \"persons\": [\"Biden\", \"Macron\"],\n  \"organizations\": [\"NATO\", \"White House\"],\n  \"locations\": []\n}\n```",
+  "score": 4,
+  "cost": 1.95e-05,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 38
+  }
+}

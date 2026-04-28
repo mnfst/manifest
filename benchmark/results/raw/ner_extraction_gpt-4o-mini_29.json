@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "ner_extraction",
+  "case": 29,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\n    \"Tokyo Stock Exchange\",\n    \"Nikkei 225\"\n  ],\n  \"locations\": [\n    \"Tokyo\"\n  ]\n}",
+  "score": 4,
+  "cost": 3.42e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 39
+  }
+}

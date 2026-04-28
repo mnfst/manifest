@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "ner_extraction",
+  "case": 5,
+  "response": "```json\n{\n  \"persons\": [\"Dr. James Wilson\"],\n  \"organizations\": [\"Stanford University\", \"IEEE\"],\n  \"locations\": [\"Tokyo\"]\n}\n```",
+  "score": 5,
+  "cost": 0.0002264,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 42
+  }
+}

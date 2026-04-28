@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "ner_extraction",
+  "case": 36,
+  "response": "```json\n{\n  \"persons\": [\"Warren Buffett\"],\n  \"organizations\": [\"Bank of America\", \"SEC\"],\n  \"locations\": []\n}\n```",
+  "score": 5,
+  "cost": 1.92e-05,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 36
+  }
+}

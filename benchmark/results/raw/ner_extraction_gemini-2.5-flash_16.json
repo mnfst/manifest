@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "ner_extraction",
+  "case": 16,
+  "response": "```json\n{\n  \"persons\": [\n    \"Angela Merkel\"\n  ],\n  \"organizations\": [],\n  \"locations\": [\n    \"White House\",\n    \"Germany\"\n  ]\n}\n```",
+  "score": 3,
+  "cost": 3.9149999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 65,
+    "output": 49
+  }
+}

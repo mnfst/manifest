@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "ner_extraction",
+  "case": 14,
+  "response": "```json\n{\n  \"persons\": [\"Jerome Powell\"],\n  \"organizations\": [\"Federal Reserve\"],\n  \"locations\": [\"Washington DC\"]\n}\n```",
+  "score": 5,
+  "cost": 4.04e-06,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 34
+  }
+}

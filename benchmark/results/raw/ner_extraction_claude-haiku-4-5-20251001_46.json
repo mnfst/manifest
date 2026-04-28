@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "ner_extraction",
+  "case": 46,
+  "response": "```json\n{\n  \"persons\": [\"Liang Rubo\"],\n  \"organizations\": [\"ByteDance\", \"Senate Commerce Committee\", \"TikTok\"],\n  \"locations\": [\"Washington\"]\n}\n```",
+  "score": 5,
+  "cost": 0.0002776,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 53
+  }
+}

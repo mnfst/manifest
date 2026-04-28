@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "ner_extraction",
+  "case": 48,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"TSMC\", \"Department of Commerce\"],\n  \"locations\": [\"Phoenix\", \"Arizona\"]\n}\n```",
+  "score": 5,
+  "cost": 0.0002344,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 43
+  }
+}

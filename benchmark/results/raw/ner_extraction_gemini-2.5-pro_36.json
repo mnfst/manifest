@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "ner_extraction",
+  "case": 36,
+  "response": "```json\n{\n  \"persons\": [\"Warren Buffett\"],\n  \"organizations\": [\"Bank of America\", \"SEC\"],\n  \"locations\": []\n}\n```",
+  "score": 5,
+  "cost": 0.0004425,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 36
+  }
+}

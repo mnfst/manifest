@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "ner_extraction",
+  "case": 44,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [],\n  \"locations\": [\"Puerto Rico\", \"Dominican Republic\"]\n}\n```",
+  "score": 4,
+  "cost": 0.000465,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 29
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "ner_extraction",
+  "case": 12,
+  "response": "{\n  \"persons\": [\"Jensen Huang\"],\n  \"organizations\": [\"Nvidia\", \"GTC\"],\n  \"locations\": [\"San Jose\"]\n}",
+  "score": 5,
+  "cost": 2.9699999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 31
+  }
+}

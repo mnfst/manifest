@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "ner_extraction",
+  "case": 39,
+  "response": "```json\n{\n  \"persons\": [\"Dario Amodei\"],\n  \"organizations\": [\"Anthropic\", \"Aspen Ideas Festival\"],\n  \"locations\": [\"Colorado\"]\n}\n```",
+  "score": 5,
+  "cost": 2.1700000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 43
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "ner_extraction",
+  "case": 49,
+  "response": "```json\n{\n  \"persons\": [\n    \"Pope Francis\"\n  ],\n  \"organizations\": [],\n  \"locations\": [\n    \"St. Peter Square\",\n    \"Vatican\"\n  ]\n}\n```",
+  "score": 5,
+  "cost": 0.000615,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 53
+  }
+}

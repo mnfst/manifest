@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "ner_extraction",
+  "case": 42,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\n    \"African Union\"\n  ],\n  \"locations\": [\n    \"Addis Ababa\",\n    \"Sudan\",\n    \"Egypt\",\n    \"Ethiopia\"\n  ]\n}",
+  "score": 4,
+  "cost": 4.005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 48
+  }
+}

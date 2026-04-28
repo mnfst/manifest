@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "ner_extraction",
+  "case": 16,
+  "response": "```json\n{\n  \"persons\": [\"Angela Merkel\"],\n  \"organizations\": [\"White House\"],\n  \"locations\": [\"Germany\"]\n}\n```",
+  "score": 2,
+  "cost": 9.32e-05,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 33
+  }
+}

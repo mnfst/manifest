@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "ner_extraction",
+  "case": 25,
+  "response": "```json\n{\n  \"persons\": [\"Mark Zuckerberg\"],\n  \"organizations\": [\"Meta\"],\n  \"locations\": [\"Menlo Park\"]\n}\n```",
+  "score": 5,
+  "cost": 0.00043875,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 35
+  }
+}

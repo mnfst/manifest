@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "ner_extraction",
+  "case": 21,
+  "response": "```json\n{\n  \"persons\": [\n    \"Picasso\",\n    \"Monet\"\n  ],\n  \"organizations\": [\n    \"The Metropolitan Museum of Art\"\n  ],\n  \"locations\": [\n    \"New York\"\n  ]\n}\n```",
+  "score": 5,
+  "cost": 3.15e-05,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 62
+  }
+}

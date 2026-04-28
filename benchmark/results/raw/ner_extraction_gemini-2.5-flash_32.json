@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "ner_extraction",
+  "case": 32,
+  "response": "```json\n{\n  \"persons\": [\n    \"Serena Williams\"\n  ],\n  \"organizations\": [\n    \"ESPY\"\n  ],\n  \"locations\": [\n    \"Los Angeles\"\n  ]\n}\n```",
+  "score": 5,
+  "cost": 4.23e-05,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 54
+  }
+}

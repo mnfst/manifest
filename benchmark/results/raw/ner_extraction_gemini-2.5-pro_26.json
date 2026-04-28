@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "ner_extraction",
+  "case": 26,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"Supreme Court\",\n    \"ACLU\"\n  ],\n  \"locations\": [\n    \"State of Texas\"\n  ]\n}\n```",
+  "score": 3,
+  "cost": 0.0005925,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 51
+  }
+}

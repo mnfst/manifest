@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "ner_extraction",
+  "case": 18,
+  "response": "```json\n{\n  \"persons\": [\"Sarah Chen\"],\n  \"organizations\": [\"MIT\", \"Science\"],\n  \"locations\": []\n}\n```",
+  "score": 4,
+  "cost": 9.120000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 32
+  }
+}

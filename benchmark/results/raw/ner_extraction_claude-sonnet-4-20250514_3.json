@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "ner_extraction",
+  "case": 3,
+  "response": "{\n  \"persons\": [\"Maria Garcia\"],\n  \"organizations\": [\"Microsoft\", \"ACM\"],\n  \"locations\": [\"Seattle\"]\n}",
+  "score": 5,
+  "cost": 0.00075,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 35
+  }
+}

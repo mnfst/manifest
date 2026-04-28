@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "ner_extraction",
+  "case": 49,
+  "response": "```json\n{\n  \"persons\": [\"Pope Francis\"],\n  \"organizations\": [\"Vatican\"],\n  \"locations\": [\"St. Peter Square\", \"Vatican\"]\n}\n```",
+  "score": 4,
+  "cost": 2.11e-05,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 42
+  }
+}

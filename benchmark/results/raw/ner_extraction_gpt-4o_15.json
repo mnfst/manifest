@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "ner_extraction",
+  "case": 15,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"SpaceX\",\n    \"Starlink\"\n  ],\n  \"locations\": [\n    \"Cape Canaveral\"\n  ]\n}\n```",
+  "score": 4,
+  "cost": 0.000605,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 42
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "ner_extraction",
+  "case": 15,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"SpaceX\"],\n  \"locations\": [\"Cape Canaveral\"]\n}\n```",
+  "score": 4,
+  "cost": 0.0002208,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 39
+  }
+}

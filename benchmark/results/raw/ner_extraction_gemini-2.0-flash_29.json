@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "ner_extraction",
+  "case": 29,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"Tokyo Stock Exchange\"\n  ],\n  \"locations\": []\n}\n```",
+  "score": 4,
+  "cost": 2.1200000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 36
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "ner_extraction",
+  "case": 41,
+  "response": "{\"persons\": [\"LeBron James\"], \"organizations\": [\"Los Angeles Lakers\"], \"locations\": []}",
+  "score": 4,
+  "cost": 0.004965,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 43
+  }
+}

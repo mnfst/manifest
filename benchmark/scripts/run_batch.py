@@ -43,13 +43,14 @@ SPEND_FILE = "results/spend_tracker.json"
 # --- Reasoning models ---
 REASONING_MODELS = {
     "DeepSeek-R1", "o4-mini", "grok-4-20-reasoning", "gpt-5.1-chat",
-    "Kimi-K2.6", "gemini-2.5-pro", "MiniMax-M2.7", "claude-opus-4-7",
+    "Kimi-K2.6", "kimi-k2.6", "gemini-2.5-pro", "MiniMax-M2.7", "claude-opus-4-7",
     "Phi-4-reasoning", "qwen3-32b",
 }
 
 # Models that don't support temperature parameter
 NO_TEMPERATURE_MODELS = {"claude-opus-4-7", "DeepSeek-R1", "o4-mini",
-                         "grok-4-20-reasoning", "gpt-5.1-chat", "Phi-4-reasoning"}
+                         "grok-4-20-reasoning", "gpt-5.1-chat", "Phi-4-reasoning",
+                         "kimi-k2.6"}
 
 
 def strip_thinking(text):
@@ -108,9 +109,28 @@ MODELS = {
     "ministral-3b-latest": {
         "provider": "mistral", "input_price": 0.04, "output_price": 0.04,
     },
-    # Moonshot/Kimi (direct) — auth issue pending
-    "kimi-latest": {
+    # Moonshot/Kimi (direct via api.moonshot.ai)
+    "kimi-k2.6": {
         "provider": "moonshot", "input_price": 0.60, "output_price": 2.40,
+    },
+    # OpenRouter models (ByteDance, Qwen, DeepSeek, Grok)
+    "bytedance-seed/seed-2.0-lite": {
+        "provider": "openrouter", "input_price": 0.25, "output_price": 1.00,
+    },
+    "bytedance-seed/seed-1.6-flash": {
+        "provider": "openrouter", "input_price": 0.075, "output_price": 0.30,
+    },
+    "qwen/qwen3.6-flash": {
+        "provider": "openrouter", "input_price": 0.25, "output_price": 1.00,
+    },
+    "qwen/qwen3.6-max-preview": {
+        "provider": "openrouter", "input_price": 1.30, "output_price": 5.20,
+    },
+    "deepseek/deepseek-v3.2": {
+        "provider": "openrouter", "input_price": 0.25, "output_price": 1.10,
+    },
+    "x-ai/grok-4.20": {
+        "provider": "openrouter", "input_price": 2.00, "output_price": 8.00,
     },
     # Azure models (re-added when Azure is back)
     "DeepSeek-V3.2": {"provider": "azure", "input_price": 0.30, "output_price": 1.10},
@@ -152,6 +172,14 @@ TASK_DEFS = {
         "max_output_tokens": 800,
         "judge_prompt": "Rate the answer on a 1-5 scale. 5=completely correct final answer with sound reasoning. 4=correct answer with minor reasoning gaps. 3=partially correct. 2=wrong answer but some correct steps. 1=completely wrong. Respond with ONLY a number 1-5.",
         "native_metric": "exact_answer",  # extract number after ANSWER: and compare to expected
+    },
+    "ner_extraction": {
+        "dataset": "datasets/entity_extraction.jsonl",
+        "prompt_template": 'Extract all named entities from the following text. Return them as a JSON object with keys: "persons", "organizations", "locations". Each value should be a list of strings. Return ONLY the JSON, no explanation.\n\nText: "{input}"',
+        "eval_type": "llm_judge",
+        "max_output_tokens": 400,
+        "judge_prompt": "Rate this entity extraction on a 1-5 scale. 5=all entities correctly identified and categorized. 4=most entities correct with 1 minor miss. 3=major entities found but several missed or miscategorized. 2=many errors. 1=wrong format or mostly wrong. Respond with ONLY a number 1-5.",
+        "native_metric": None,
     },
     "intent_clinc150": {
         "dataset": "datasets/clinc150_intent.jsonl",
@@ -227,8 +255,20 @@ def call_mistral(model, messages, max_tokens):
 def call_moonshot(model, messages, max_tokens):
     """Call Moonshot/Kimi API (OpenAI-compatible)."""
     import requests as req
-    url = "https://api.moonshot.cn/v1/chat/completions"
+    url = "https://api.moonshot.ai/v1/chat/completions"
     headers = {"Authorization": f"Bearer {os.environ['MOONSHOT_API_KEY']}", "Content-Type": "application/json"}
+    body = {"model": model, "messages": messages, "max_tokens": max(max_tokens, 2000)}
+    if model not in NO_TEMPERATURE_MODELS:
+        body["temperature"] = 0
+    resp = req.post(url, json=body, headers=headers, timeout=180)
+    return resp.json()
+
+
+def call_openrouter(model, messages, max_tokens):
+    """Call OpenRouter API (OpenAI-compatible, routes to many providers)."""
+    import requests as req
+    url = "https://openrouter.ai/api/v1/chat/completions"
+    headers = {"Authorization": f"Bearer {os.environ['OPENROUTER_API_KEY']}", "Content-Type": "application/json"}
     body = {"model": model, "messages": messages, "max_tokens": max_tokens, "temperature": 0}
     resp = req.post(url, json=body, headers=headers, timeout=180)
     return resp.json()
@@ -265,6 +305,8 @@ def call_model(model_name, messages, max_tokens):
         return call_mistral(model_name, messages, mt)
     elif provider == "moonshot":
         return call_moonshot(model_name, messages, mt)
+    elif provider == "openrouter":
+        return call_openrouter(model_name, messages, mt)
     elif provider == "azure":
         return call_azure(model_name, messages, mt)
     return {"error": f"Unknown provider: {provider}"}
@@ -334,6 +376,7 @@ def is_provider_available(provider):
         "minimax": "MINIMAX_API_KEY",
         "mistral": "MISTRAL_API_KEY",
         "moonshot": "MOONSHOT_API_KEY",
+        "openrouter": "OPENROUTER_API_KEY",
         "azure": "AZURE_API_KEY",
     }
     env_var = key_map.get(provider, "")

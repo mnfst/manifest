@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "ner_extraction",
+  "case": 25,
+  "response": "{\"persons\":[\"Mark Zuckerberg\"],\"organizations\":[\"Meta\"],\"locations\":[\"Menlo Park\"]}",
+  "score": 5,
+  "cost": 0.005325,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 47
+  }
+}

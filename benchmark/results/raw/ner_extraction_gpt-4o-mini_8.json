@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "ner_extraction",
+  "case": 8,
+  "response": "{\n  \"persons\": [\"Elon Musk\"],\n  \"organizations\": [\"Tesla\"],\n  \"locations\": [\"Fremont\", \"California\"]\n}",
+  "score": 5,
+  "cost": 2.85e-05,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 30
+  }
+}

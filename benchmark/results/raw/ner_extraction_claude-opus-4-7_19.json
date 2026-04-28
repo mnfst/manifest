@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "ner_extraction",
+  "case": 19,
+  "response": "{\"persons\": [\"Thierry Breton\"], \"organizations\": [\"European Parliament\"], \"locations\": [\"Brussels\"]}",
+  "score": 5,
+  "cost": 0.00528,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 47
+  }
+}

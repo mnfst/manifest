@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "ner_extraction",
+  "case": 44,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [],\n  \"locations\": [\n    \"Puerto Rico\",\n    \"Dominican Republic\"\n  ]\n}\n```",
+  "score": 4,
+  "cost": 3.48e-05,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 42
+  }
+}

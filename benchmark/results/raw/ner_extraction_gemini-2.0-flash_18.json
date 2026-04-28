@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "ner_extraction",
+  "case": 18,
+  "response": "```json\n{\n  \"persons\": [\n    \"Sarah Chen\"\n  ],\n  \"organizations\": [\n    \"MIT\"\n  ],\n  \"locations\": []\n}\n```",
+  "score": 4,
+  "cost": 2.35e-05,
+  "expected": "",
+  "tokens": {
+    "input": 63,
+    "output": 43
+  }
+}

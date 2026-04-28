@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "ner_extraction",
+  "case": 0,
+  "response": "```json\n{\n  \"persons\": [\"Tim Cook\"],\n  \"organizations\": [\"Apple\", \"Samsung\"],\n  \"locations\": [\"Las Vegas\"]\n}\n```",
+  "score": 5,
+  "cost": 0.000364,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 37
+  }
+}

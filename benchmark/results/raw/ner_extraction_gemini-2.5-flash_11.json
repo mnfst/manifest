@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "ner_extraction",
+  "case": 11,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"United Nations Security Council\"\n  ],\n  \"locations\": [\n    \"North Korea\",\n    \"New York\"\n  ]\n}\n```",
+  "score": 4,
+  "cost": 4.125e-05,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 52
+  }
+}

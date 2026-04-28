@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "ner_extraction",
+  "case": 0,
+  "response": "```json\n{\n  \"persons\": [\"Tim Cook\"],\n  \"organizations\": [\"Apple\", \"Samsung\"],\n  \"locations\": [\"Las Vegas\"]\n}\n```",
+  "score": 5,
+  "cost": 0.00022,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 40
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "ner_extraction",
+  "case": 39,
+  "response": "```json\n{\n    \"persons\": [\"Dario Amodei\"],\n    \"organizations\": [\"Anthropic\", \"Aspen Ideas Festival\"],\n    \"locations\": [\"Colorado\"]\n}\n```",
+  "score": 5,
+  "cost": 0.0005725,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 38
+  }
+}

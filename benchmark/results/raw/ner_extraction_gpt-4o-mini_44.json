@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "ner_extraction",
+  "case": 44,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [],\n  \"locations\": [\n    \"Puerto Rico\",\n    \"Dominican Republic\"\n  ]\n}",
+  "score": 4,
+  "cost": 2.85e-05,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 30
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "ner_extraction",
+  "case": 16,
+  "response": "```json\n{\n  \"persons\": [\n    \"Angela Merkel\"\n  ],\n  \"organizations\": [\n    \"White House\"\n  ],\n  \"locations\": [\n    \"Germany\"\n  ]\n}\n```",
+  "score": 2,
+  "cost": 0.000585,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 41
+  }
+}

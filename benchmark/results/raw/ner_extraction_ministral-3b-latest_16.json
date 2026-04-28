@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "ner_extraction",
+  "case": 16,
+  "response": "```json\n{\n  \"persons\": [\"Angela Merkel\"],\n  \"organizations\": [],\n  \"locations\": [\"Germany\", \"White House\"]\n}\n```",
+  "score": 3,
+  "cost": 4.08e-06,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 34
+  }
+}

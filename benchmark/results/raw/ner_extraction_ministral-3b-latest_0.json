@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "ner_extraction",
+  "case": 0,
+  "response": "```json\n{\n  \"persons\": [\"Tim Cook\"],\n  \"organizations\": [\"Apple\", \"Samsung\"],\n  \"locations\": [\"Las Vegas\", \"CES\"]\n}\n```",
+  "score": 4,
+  "cost": 4.44e-06,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 40
+  }
+}

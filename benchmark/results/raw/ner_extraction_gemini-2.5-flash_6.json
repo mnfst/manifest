@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "ner_extraction",
+  "case": 6,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"Amazon\"\n  ],\n  \"locations\": [\n    \"Nashville\",\n    \"Davidson County\"\n  ]\n}\n```",
+  "score": 5,
+  "cost": 3.9149999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 48
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "ner_extraction",
+  "case": 37,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"University of Cambridge\",\n    \"AstraZeneca\"\n  ],\n  \"locations\": [\n    \"Oxford\"\n  ]\n}\n```",
+  "score": 4,
+  "cost": 0.00028639999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 56
+  }
+}

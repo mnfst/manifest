@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "ner_extraction",
+  "case": 7,
+  "response": "{\n  \"persons\": [\"Lionel Messi\"],\n  \"organizations\": [\"Inter Miami\", \"New York Red Bulls\"],\n  \"locations\": [\"Chase Stadium\", \"Fort Lauderdale\"]\n}",
+  "score": 5,
+  "cost": 3.39e-05,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 38
+  }
+}

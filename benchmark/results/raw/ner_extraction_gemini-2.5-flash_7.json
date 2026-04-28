@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "ner_extraction",
+  "case": 7,
+  "response": "```json\n{\n  \"persons\": [\n    \"Lionel Messi\"\n  ],\n  \"organizations\": [\n    \"Inter Miami\",\n    \"New York Red Bulls\"\n  ],\n  \"locations\": [\n    \"Chase Stadium\",\n    \"Fort Lauderdale\"\n  ]\n}\n```",
+  "score": 5,
+  "cost": 5.039999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 67
+  }
+}

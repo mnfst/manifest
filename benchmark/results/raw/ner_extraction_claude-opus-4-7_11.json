@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "ner_extraction",
+  "case": 11,
+  "response": "{\"persons\": [], \"organizations\": [\"United Nations Security Council\"], \"locations\": [\"North Korea\", \"New York\"]}",
+  "score": 4,
+  "cost": 0.005055,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 45
+  }
+}

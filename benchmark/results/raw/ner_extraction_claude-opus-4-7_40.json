@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "ner_extraction",
+  "case": 40,
+  "response": "{\"persons\": [], \"organizations\": [\"Reserve Bank of Australia\", \"Goldman Sachs\"], \"locations\": [\"Australia\"]}",
+  "score": 4,
+  "cost": 0.00579,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 53
+  }
+}

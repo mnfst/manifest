@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "ner_extraction",
+  "case": 7,
+  "response": "{\n  \"persons\": [\"Lionel Messi\"],\n  \"organizations\": [\"Inter Miami\", \"New York Red Bulls\"],\n  \"locations\": [\"Chase Stadium\", \"Fort Lauderdale\"]\n}",
+  "score": 5,
+  "cost": 0.000996,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 50
+  }
+}

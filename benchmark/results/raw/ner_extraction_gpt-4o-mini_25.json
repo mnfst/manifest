@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "ner_extraction",
+  "case": 25,
+  "response": "{\n  \"persons\": [\"Mark Zuckerberg\"],\n  \"organizations\": [\"Meta\"],\n  \"locations\": [\"Menlo Park\"]\n}",
+  "score": 5,
+  "cost": 2.67e-05,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 26
+  }
+}

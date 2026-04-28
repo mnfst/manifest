@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "ner_extraction",
+  "case": 11,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\n    \"United Nations\",\n    \"Security Council\"\n  ],\n  \"locations\": [\n    \"North Korea\",\n    \"New York\"\n  ]\n}",
+  "score": 4,
+  "cost": 3.54e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 41
+  }
+}

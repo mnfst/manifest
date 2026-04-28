@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "ner_extraction",
+  "case": 37,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"University of Cambridge\", \"AstraZeneca\"],\n  \"locations\": [\"Oxford\"]\n}\n```",
+  "score": 4,
+  "cost": 4.28e-06,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 36
+  }
+}

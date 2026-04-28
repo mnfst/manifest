@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "ner_extraction",
+  "case": 37,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"University of Cambridge\", \"AstraZeneca\"],\n  \"locations\": [\"Oxford\"]\n}\n```",
+  "score": 4,
+  "cost": 1.91e-05,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 36
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "ner_extraction",
+  "case": 12,
+  "response": "{\"persons\":[\"Jensen Huang\"],\"organizations\":[\"Nvidia\"],\"locations\":[\"San Jose\"]}",
+  "score": 5,
+  "cost": 0.0021351000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 459
+  }
+}

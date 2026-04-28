@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "ner_extraction",
+  "case": 9,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\n    \"World Health Organization\"\n  ],\n  \"locations\": [\n    \"sub-Saharan Africa\",\n    \"Geneva\"\n  ]\n}",
+  "score": 4,
+  "cost": 3.4349999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 39
+  }
+}

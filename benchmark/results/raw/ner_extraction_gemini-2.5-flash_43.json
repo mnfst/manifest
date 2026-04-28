@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "ner_extraction",
+  "case": 43,
+  "response": "```json\n{\n  \"persons\": [\n    \"Satya Nadella\"\n  ],\n  \"organizations\": [\n    \"Microsoft\",\n    \"OpenAI\"\n  ],\n  \"locations\": []\n}\n```",
+  "score": 5,
+  "cost": 4.094999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 51
+  }
+}

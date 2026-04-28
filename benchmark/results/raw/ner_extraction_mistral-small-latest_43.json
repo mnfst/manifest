@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "ner_extraction",
+  "case": 43,
+  "response": "```json\n{\n  \"persons\": [\"Satya Nadella\"],\n  \"organizations\": [\"Microsoft\", \"OpenAI\"],\n  \"locations\": []\n}\n```",
+  "score": 5,
+  "cost": 1.9e-05,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 35
+  }
+}

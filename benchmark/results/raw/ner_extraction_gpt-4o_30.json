@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "ner_extraction",
+  "case": 30,
+  "response": "```json\n{\n  \"persons\": [\n    \"Justin Trudeau\"\n  ],\n  \"organizations\": [\n    \"General Assembly\",\n    \"United Nations\"\n  ],\n  \"locations\": [\n    \"Canada\",\n    \"New York\"\n  ]\n}\n```",
+  "score": 3,
+  "cost": 0.0006875,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 51
+  }
+}

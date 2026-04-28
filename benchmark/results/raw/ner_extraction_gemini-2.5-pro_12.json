@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "ner_extraction",
+  "case": 12,
+  "response": "```json\n{\n  \"persons\": [\n    \"Jensen Huang\"\n  ],\n  \"organizations\": [\n    \"Nvidia\"\n  ],\n  \"locations\": [\n    \"San Jose\"\n  ]\n}\n```",
+  "score": 5,
+  "cost": 0.00061875,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 53
+  }
+}

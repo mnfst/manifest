@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "ner_extraction",
+  "case": 4,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"Bank of England\",\n    \"European Central Bank\"\n  ],\n  \"locations\": [\n    \"Frankfurt\"\n  ]\n}\n```",
+  "score": 5,
+  "cost": 0.0006025,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 52
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "ner_extraction",
+  "case": 29,
+  "response": "{\"persons\": [], \"organizations\": [\"Tokyo Stock Exchange\", \"Nikkei 225\"], \"locations\": [\"Tokyo\"]}",
+  "score": 4,
+  "cost": 0.005895,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 55
+  }
+}

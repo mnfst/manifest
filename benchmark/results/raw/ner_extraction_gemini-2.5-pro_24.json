@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "ner_extraction",
+  "case": 24,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"Indian Space Research Organisation\"\n  ],\n  \"locations\": [\n    \"Sriharikota\"\n  ]\n}\n```",
+  "score": 4,
+  "cost": 0.00056625,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 48
+  }
+}

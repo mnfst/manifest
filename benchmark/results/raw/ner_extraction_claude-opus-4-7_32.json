@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "ner_extraction",
+  "case": 32,
+  "response": "{\"persons\": [\"Serena Williams\"], \"organizations\": [\"ESPY\"], \"locations\": [\"Los Angeles\"]}",
+  "score": 5,
+  "cost": 0.00525,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 47
+  }
+}

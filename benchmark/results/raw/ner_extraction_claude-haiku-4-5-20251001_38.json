@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "ner_extraction",
+  "case": 38,
+  "response": "```json\n{\n  \"persons\": [\"Kamala Harris\"],\n  \"organizations\": [\"General Motors\"],\n  \"locations\": [\"Detroit\"]\n}\n```",
+  "score": 5,
+  "cost": 0.0002144,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 39
+  }
+}

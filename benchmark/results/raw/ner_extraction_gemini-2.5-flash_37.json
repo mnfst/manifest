@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "ner_extraction",
+  "case": 37,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"University of Cambridge\",\n    \"AstraZeneca\"\n  ],\n  \"locations\": [\n    \"Oxford\"\n  ]\n}\n```",
+  "score": 4,
+  "cost": 4.05e-05,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 51
+  }
+}

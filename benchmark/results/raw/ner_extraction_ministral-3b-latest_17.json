@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "ner_extraction",
+  "case": 17,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"Toyota\"],\n  \"locations\": [\"Greensboro\", \"North Carolina\"]\n}\n```",
+  "score": 5,
+  "cost": 4.2000000000000004e-06,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 35
+  }
+}

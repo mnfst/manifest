@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "ner_extraction",
+  "case": 7,
+  "response": "{\n  \"persons\": [\"Lionel Messi\"],\n  \"organizations\": [\"Inter Miami\", \"New York Red Bulls\"],\n  \"locations\": [\"Chase Stadium\", \"Fort Lauderdale\"]\n}",
+  "score": 5,
+  "cost": 0.0021659,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 466
+  }
+}

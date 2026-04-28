@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "ner_extraction",
+  "case": 26,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"Supreme Court\", \"State of Texas\", \"ACLU\"],\n  \"locations\": []\n}\n```",
+  "score": 3,
+  "cost": 1.93e-05,
+  "expected": "",
+  "tokens": {
+    "input": 82,
+    "output": 37
+  }
+}

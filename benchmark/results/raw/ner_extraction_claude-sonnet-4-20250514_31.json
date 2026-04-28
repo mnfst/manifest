@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "ner_extraction",
+  "case": 31,
+  "response": "{\n  \"persons\": [],\n  \"organizations\": [\"Samsung Electronics\"],\n  \"locations\": [\"South Korea\"]\n}",
+  "score": 5,
+  "cost": 0.000666,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 30
+  }
+}

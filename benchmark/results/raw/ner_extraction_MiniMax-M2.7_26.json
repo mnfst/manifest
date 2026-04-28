@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "ner_extraction",
+  "case": 26,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"The Supreme Court\", \"ACLU\"],\n  \"locations\": [\"Texas\"]\n}\n```",
+  "score": 4,
+  "cost": 0.0005599000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 106
+  }
+}

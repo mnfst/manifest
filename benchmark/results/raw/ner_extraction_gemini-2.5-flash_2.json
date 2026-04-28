@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "ner_extraction",
+  "case": 2,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"Google DeepMind\",\n    \"Nature\"\n  ],\n  \"locations\": []\n}\n```",
+  "score": 4,
+  "cost": 3.4049999999999994e-05,
+  "expected": "",
+  "tokens": {
+    "input": 63,
+    "output": 41
+  }
+}

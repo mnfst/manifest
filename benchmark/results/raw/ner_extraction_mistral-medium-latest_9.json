@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "ner_extraction",
+  "case": 9,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\"World Health Organization\"],\n  \"locations\": [\"sub-Saharan Africa\", \"Geneva\"]\n}\n```",
+  "score": 4,
+  "cost": 0.0001,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 36
+  }
+}

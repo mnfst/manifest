@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "ner_extraction",
+  "case": 21,
+  "response": "```json\n{\n  \"persons\": [\"Picasso\", \"Monet\"],\n  \"organizations\": [\"Metropolitan Museum of Art\"],\n  \"locations\": [\"New York\"]\n}\n```",
+  "score": 5,
+  "cost": 4.44e-06,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 40
+  }
+}

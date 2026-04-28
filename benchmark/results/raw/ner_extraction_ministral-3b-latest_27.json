@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "ner_extraction",
+  "case": 27,
+  "response": "```json\n{\n  \"persons\": [\"Cristiano Ronaldo\", \"Manchester United\"],\n  \"organizations\": [\"Al Nassr\"],\n  \"locations\": [\"Riyadh\"]\n}\n```",
+  "score": 4,
+  "cost": 4.72e-06,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 42
+  }
+}

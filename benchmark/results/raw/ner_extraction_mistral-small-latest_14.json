@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "ner_extraction",
+  "case": 14,
+  "response": "```json\n{\n  \"persons\": [\"Jerome Powell\"],\n  \"organizations\": [\"Federal Reserve\", \"Congress\"],\n  \"locations\": [\"Washington DC\"]\n}\n```",
+  "score": 5,
+  "cost": 1.93e-05,
+  "expected": "",
+  "tokens": {
+    "input": 79,
+    "output": 38
+  }
+}

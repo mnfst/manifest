@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "ner_extraction",
+  "case": 44,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [],\n  \"locations\": [\"Puerto Rico\", \"Dominican Republic\"]\n}\n```",
+  "score": 4,
+  "cost": 1.8e-05,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 33
+  }
+}

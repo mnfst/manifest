@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "ner_extraction",
+  "case": 13,
+  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"Oxford University\",\n    \"Pfizer\"\n  ],\n  \"locations\": []\n}\n```",
+  "score": 4,
+  "cost": 0.0005025,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 33
+  }
+}

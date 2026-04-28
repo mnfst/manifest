@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "ner_extraction",
+  "case": 45,
+  "response": "```json\n{\n  \"persons\": [\"Leonardo da Vinci\"],\n  \"organizations\": [\"The Louvre Museum\", \"Royal Collection\"],\n  \"locations\": [\"Paris\"]\n}\n```",
+  "score": 5,
+  "cost": 2e-05,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 39
+  }
+}

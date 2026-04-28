@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "ner_extraction",
+  "case": 8,
+  "response": "{\"persons\":[\"Elon Musk\"],\"organizations\":[\"Tesla\"],\"locations\":[\"Fremont\",\"California\"]}",
+  "score": 5,
+  "cost": 0.0024288,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 526
+  }
+}

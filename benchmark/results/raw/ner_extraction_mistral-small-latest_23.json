@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "ner_extraction",
+  "case": 23,
+  "response": "```json\n{\n  \"persons\": [\"Taylor Swift\"],\n  \"organizations\": [],\n  \"locations\": [\"Wembley Stadium\", \"London\"]\n}\n```",
+  "score": 4,
+  "cost": 1.8299999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 34
+  }
+}

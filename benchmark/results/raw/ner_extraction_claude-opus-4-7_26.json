@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "ner_extraction",
+  "case": 26,
+  "response": "{\"persons\": [], \"organizations\": [\"Supreme Court\", \"ACLU\"], \"locations\": [\"Texas\"]}",
+  "score": 4,
+  "cost": 0.00501,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 44
+  }
+}

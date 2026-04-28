@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "ner_extraction",
+  "case": 0,
+  "response": "{\n  \"persons\": [\"Tim Cook\"],\n  \"organizations\": [\"Apple\", \"Samsung\", \"CES\"],\n  \"locations\": [\"Las Vegas\"]\n}",
+  "score": 4,
+  "cost": 0.00081,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 39
+  }
+}
