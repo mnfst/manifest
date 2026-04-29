@@ -31,8 +31,7 @@ const SavingsChart: Component<SavingsChartProps> = (props) => {
       const w = el.clientWidth || el.getBoundingClientRect().width;
       if (w === 0) return null;
 
-      const actualColor = getHsl('--chart-3');
-      const baselineColor = getHslA('--foreground', 0.7);
+      const savingsColor = '#1cc4bf';
       const axisColor = getHslA('--foreground', 0.55);
       const gridColor = getHslA('--foreground', 0.05);
       const bgColor = getHsl('--card');
@@ -44,15 +43,14 @@ const SavingsChart: Component<SavingsChartProps> = (props) => {
           vals.map((v) => (isNaN(v) ? '\u2013' : v % 1 === 0 ? `$${v}` : `$${v.toFixed(2)}`)),
       };
 
-      const barLeft = uPlot.paths.bars!({ size: [0.35, 64], align: -1, gap: 2 });
-      const barRight = uPlot.paths.bars!({ size: [0.35, 64], align: 1, gap: 2 });
+      const bars = uPlot.paths.bars!({ size: [0.6, 64], gap: 2 });
 
       return new uPlot(
         {
           width: w,
           height: 260,
           padding: [16, 40, 0, 0],
-          cursor: createCursorSnap(bgColor, actualColor),
+          cursor: createCursorSnap(bgColor, savingsColor),
           scales: {
             x: { time: !isMultiDayRange(props.range), range: createTimeScaleRange(props.range) },
             y: { auto: true, range: (_u, _min, max) => [0, max > 0 ? max * 1.15 : 1] },
@@ -61,20 +59,11 @@ const SavingsChart: Component<SavingsChartProps> = (props) => {
           series: [
             { value: createFormatLegendTimestamp(props.range) },
             {
-              label: 'Actual cost',
-              stroke: actualColor,
-              fill: actualColor,
+              label: 'Savings',
+              stroke: savingsColor,
+              fill: savingsColor,
               width: 0,
-              paths: barLeft,
-              value: formatLegendCost,
-              points: { show: false },
-            },
-            {
-              label: 'Baseline cost',
-              stroke: baselineColor,
-              fill: baselineColor,
-              width: 0,
-              paths: barRight,
+              paths: bars,
               value: formatLegendCost,
               points: { show: false },
             },
@@ -93,8 +82,7 @@ const SavingsChart: Component<SavingsChartProps> = (props) => {
           );
           return [
             parseTimestamps(filled),
-            sanitizeNumbers(filled.map((d) => d.actual_cost)),
-            sanitizeNumbers(filled.map((d) => d.baseline_cost)),
+            sanitizeNumbers(filled.map((d) => Math.max(0, d.baseline_cost - d.actual_cost))),
           ];
         })(),
         el,
