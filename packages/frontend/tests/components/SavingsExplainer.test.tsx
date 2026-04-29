@@ -28,14 +28,13 @@ describe('SavingsExplainer', () => {
 
   it('does not show baseline name when null', () => {
     render(() => <SavingsExplainer baselineModelName={null} onClose={() => {}} />);
-    expect(screen.queryByText('Current baseline:')).toBeNull();
+    expect(screen.queryByText('Current reference:')).toBeNull();
   });
 
   it('renders all section headings', () => {
     render(() => <SavingsExplainer baselineModelName={null} onClose={() => {}} />);
-    expect(screen.getByText('The baseline')).toBeDefined();
-    expect(screen.getByText('The formula')).toBeDefined();
-    expect(screen.getByText('How different setups are handled')).toBeDefined();
+    expect(screen.getByText('How it works')).toBeDefined();
+    expect(screen.getByText('Savings by access type')).toBeDefined();
     expect(screen.getByText('Examples')).toBeDefined();
     expect(screen.getByText('What is not included yet')).toBeDefined();
   });
