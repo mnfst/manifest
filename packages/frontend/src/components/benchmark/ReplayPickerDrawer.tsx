@@ -16,6 +16,7 @@ import {
   formatRelativeTime,
 } from '../../services/formatters.js';
 import { getModelDisplayName } from '../../services/model-display.js';
+import { useFocusTrap } from '../../services/use-focus-trap.js';
 import { XIcon } from './icons.jsx';
 
 interface Props {
@@ -36,6 +37,8 @@ function truncate(text: string, max: number): string {
 
 const ReplayPickerDrawer: Component<Props> = (props) => {
   const [search, setSearch] = createSignal('');
+  const [drawerEl, setDrawerEl] = createSignal<HTMLElement | undefined>();
+  useFocusTrap(drawerEl, () => props.open);
 
   const [recordings] = createResource(
     () => (props.open ? props.agentName : null),
@@ -77,6 +80,7 @@ const ReplayPickerDrawer: Component<Props> = (props) => {
     <Show when={props.open}>
       <div class="benchmark-replay__backdrop" role="presentation" onClick={props.onClose} />
       <aside
+        ref={setDrawerEl}
         class="benchmark-replay benchmark-replay--open"
         role="dialog"
         aria-modal="true"

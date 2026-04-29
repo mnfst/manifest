@@ -44,6 +44,8 @@ export interface BenchmarkStore {
   ) => void;
   runAll: (options?: RunOptions) => Promise<void>;
   retryColumn: (id: string, options?: RunOptions) => Promise<void>;
+  cancelColumn: (id: string) => void;
+  cancelAll: () => void;
   recallPreviousPrompt: () => void;
   isAnyRunning: () => boolean;
   pickDefaults: (available: AvailableModel[], connected: RoutingProvider[]) => void;
@@ -59,6 +61,13 @@ export interface BenchmarkStore {
 }
 
 export const MAX_COLUMNS = 6;
+/**
+ * Per-column hard timeout. The proxy already enforces a 180s upstream
+ * timeout but the browser fetch has no built-in deadline. Without this
+ * cap a stuck connection (TCP black hole, hung TLS handshake) leaves
+ * the column spinning indefinitely and locks the prompt input.
+ */
+export const RUN_TIMEOUT_MS = 90_000;
 
 export interface RunOptions {
   requestHeaders?: Record<string, string>;
@@ -122,6 +131,10 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
   const [prompt, setPrompt] = createSignal('');
   const [history, setHistory] = createSignal<string[]>([]);
   const [replaySource, setReplaySource] = createSignal<ReplaySource | null>(null);
+  // Per-column AbortController so the user can cancel a stuck column without
+  // killing the rest of the run. Stored outside the store so SolidJS doesn't
+  // try to track it as reactive state (controllers aren't serializable).
+  const inflight = new Map<string, AbortController>();
 
   const addColumn: BenchmarkStore['addColumn'] = (model, provider, authType, displayName) => {
     if (columns.length >= MAX_COLUMNS) return;
@@ -172,9 +185,20 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
     runId: string,
     position: number,
     requestHeaders: Record<string, string> | undefined,
+    // Snapshot of replaySource() taken at runAll-entry, NOT re-read here:
+    // a `loadRecording` call mid-runAll must not flip later columns to use
+    // the new recording while earlier columns saw the old one.
+    source: ReplaySource | null,
   ): Promise<void> => {
     const col = columns.find((c) => c.id === colId);
     if (!col || col.isOriginal) return;
+    // Abort any in-flight call for this column (a quick re-Run before the
+    // previous request finished). Replace the controller before flipping
+    // the row to loading so listeners see a coherent state.
+    inflight.get(colId)?.abort();
+    const controller = new AbortController();
+    inflight.set(colId, controller);
+    const timeoutId = setTimeout(() => controller.abort(new Error('timeout')), RUN_TIMEOUT_MS);
     setColumns(
       (c) => c.id === colId,
       produce((c) => {
@@ -186,18 +210,20 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
       }),
     );
     try {
-      const source = replaySource();
-      const result = await runBenchmark({
-        agentName,
-        model: col.model,
-        provider: col.provider,
-        authType: col.authType,
-        messages: [{ role: 'user', content: promptText }],
-        runId,
-        position,
-        ...(requestHeaders && Object.keys(requestHeaders).length > 0 ? { requestHeaders } : {}),
-        ...(source ? { rawRequestBody: source.requestBody } : {}),
-      });
+      const result = await runBenchmark(
+        {
+          agentName,
+          model: col.model,
+          provider: col.provider,
+          authType: col.authType,
+          messages: [{ role: 'user', content: promptText }],
+          runId,
+          position,
+          ...(requestHeaders && Object.keys(requestHeaders).length > 0 ? { requestHeaders } : {}),
+          ...(source ? { rawRequestBody: source.requestBody } : {}),
+        },
+        controller.signal,
+      );
       setColumns(
         (c) => c.id === colId,
         produce((c) => {
@@ -208,7 +234,15 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
         }),
       );
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Request failed';
+      const aborted = controller.signal.aborted;
+      const message = aborted
+        ? controller.signal.reason instanceof Error &&
+          controller.signal.reason.message === 'timeout'
+          ? `Request timed out after ${Math.round(RUN_TIMEOUT_MS / 1000)}s`
+          : 'Cancelled'
+        : err instanceof Error
+          ? err.message
+          : 'Request failed';
       setColumns(
         (c) => c.id === colId,
         produce((c) => {
@@ -216,6 +250,11 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
           c.error = message;
         }),
       );
+    } finally {
+      clearTimeout(timeoutId);
+      // Only clear if the controller is still ours — a racing retry/cancel
+      // may have replaced it before we got here.
+      if (inflight.get(colId) === controller) inflight.delete(colId);
     }
   };
 
@@ -224,10 +263,14 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
     if (!promptText || columns.length === 0) return;
     setHistory((prev) => (prev[0] === promptText ? prev : [promptText, ...prev].slice(0, 20)));
     const runId = newRunId();
+    // Capture the replay source ONCE at the entry to runAll. If the user
+    // calls loadRecording mid-flight, columns scheduled later must not
+    // observe the new source mid-batch.
+    const source = replaySource();
     await Promise.allSettled(
       columns
         .filter((c) => !c.isOriginal)
-        .map((c, i) => runSingle(c.id, promptText, runId, i, options?.requestHeaders)),
+        .map((c, i) => runSingle(c.id, promptText, runId, i, options?.requestHeaders, source)),
     );
   };
 
@@ -235,7 +278,22 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
     const promptText = prompt().trim() || history()[0];
     if (!promptText) return;
     const position = columns.findIndex((c) => c.id === id);
-    await runSingle(id, promptText, newRunId(), Math.max(position, 0), options?.requestHeaders);
+    await runSingle(
+      id,
+      promptText,
+      newRunId(),
+      Math.max(position, 0),
+      options?.requestHeaders,
+      replaySource(),
+    );
+  };
+
+  const cancelColumn: BenchmarkStore['cancelColumn'] = (id) => {
+    inflight.get(id)?.abort();
+  };
+
+  const cancelAll: BenchmarkStore['cancelAll'] = () => {
+    for (const controller of inflight.values()) controller.abort();
   };
 
   const loadRecording: BenchmarkStore['loadRecording'] = (source, original) => {
@@ -379,6 +437,8 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
     replaceColumnModel,
     runAll,
     retryColumn,
+    cancelColumn,
+    cancelAll,
     recallPreviousPrompt,
     isAnyRunning,
     pickDefaults,

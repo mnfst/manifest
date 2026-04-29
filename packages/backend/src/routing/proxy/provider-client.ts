@@ -96,7 +96,10 @@ export class ProviderClient {
       thinkingLookup: opts.thinkingLookup,
     });
 
-    const finalHeaders = extraHeaders ? { ...headers, ...extraHeaders } : headers;
+    // Provider-managed headers (auth, content-type, x-manifest-*) win over
+    // user-supplied extras: any sanitizer gap upstream cannot trample auth
+    // before it reaches the provider.
+    const finalHeaders = extraHeaders ? { ...extraHeaders, ...headers } : headers;
 
     this.logger.debug(`Forwarding to ${endpointKey}: ${url.replace(/key=[^&]+/, 'key=***')}`);
 

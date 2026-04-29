@@ -167,10 +167,40 @@
   margin: 0;
 }
 
+.benchmark-column__loading {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .benchmark-column__skeleton {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.benchmark-column__cancel {
+  align-self: flex-start;
+  background: transparent;
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 10px;
+  transition:
+    var(--transition-fast, 120ms) border-color,
+    var(--transition-fast, 120ms) color;
+}
+
+.benchmark-column__cancel:hover {
+  border-color: hsl(var(--destructive) / 0.6);
+  color: hsl(var(--destructive));
+}
+
+.benchmark-column__cancel:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
 }
 
 .benchmark-column__skeleton > div {
@@ -760,12 +790,39 @@
   color: hsl(var(--foreground));
 }
 
+.benchmark__cross-provider-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  border: 1px dashed hsl(var(--border));
+  background: hsl(var(--muted) / 0.4);
+  color: hsl(var(--muted-foreground));
+  font-size: 13px;
+}
+
+.benchmark__cross-provider-link {
+  color: hsl(var(--primary));
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.benchmark__cross-provider-link:hover {
+  text-decoration: underline;
+}
+
 /* ── Request headers popover ─────────────────────────── */
 
 .benchmark-headers__backdrop {
   position: fixed;
   inset: 0;
-  z-index: 40;
+  /* Layer above the history (z:50) and replay (z:50) drawers so the popover,
+     which is invoked from inside one of those surfaces, is never buried. */
+  z-index: 60;
   background: transparent;
 }
 
@@ -781,7 +838,7 @@
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
   box-shadow: 0 8px 28px rgb(0 0 0 / 0.18);
-  z-index: 41;
+  z-index: 61;
   animation: fadeIn 120ms ease-out;
   padding: 0;
 }

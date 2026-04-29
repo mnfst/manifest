@@ -48,6 +48,23 @@ describe('BenchmarkPrompt', () => {
     expect(onSubmit).toHaveBeenCalledTimes(2);
   });
 
+  it('does not submit on Enter while an IME composition is active', () => {
+    // CJK / accent-IME users confirm a candidate with Enter. Without the
+    // isComposing guard, that Enter would dispatch a half-typed prompt to
+    // every column and bill the user across N providers.
+    const { container, onSubmit } = renderPrompt({ value: 'こんに' });
+    const textarea = container.querySelector('textarea')!;
+    fireEvent.keyDown(textarea, { key: 'Enter', isComposing: true });
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('does not submit on Enter when keyCode is 229 (legacy IME signal)', () => {
+    const { container, onSubmit } = renderPrompt({ value: '안' });
+    const textarea = container.querySelector('textarea')!;
+    fireEvent.keyDown(textarea, { key: 'Enter', keyCode: 229 });
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
   it('recalls previous prompt on ArrowUp when the textarea is empty', () => {
     const { container, onRecallPrevious } = renderPrompt({ value: '' });
     const textarea = container.querySelector('textarea')!;

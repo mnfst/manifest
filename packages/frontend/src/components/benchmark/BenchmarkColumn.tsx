@@ -13,6 +13,7 @@ interface Props {
   onRemove: (id: string) => void;
   onChangeModel: (id: string) => void;
   onRetry: (id: string) => void;
+  onCancel: (id: string) => void;
 }
 
 function providerIdFor(column: ColumnData): string {
@@ -91,6 +92,18 @@ const BenchmarkColumn: Component<Props> = (props) => {
         </Show>
       </header>
 
+      {/*
+        Live region: announce per-column status changes to screen readers so
+        a slow column failing while the user is reading another column is not
+        silently invisible. polite (not assertive) keeps it from interrupting.
+      */}
+      <p class="sr-only" aria-live="polite" role="status">
+        <Show when={props.column.status === 'loading'}>Loading {props.column.displayName}…</Show>
+        <Show when={props.column.status === 'success'}>{props.column.displayName} ready</Show>
+        <Show when={props.column.status === 'error'}>
+          {props.column.displayName} failed: {props.column.error ?? 'unknown error'}
+        </Show>
+      </p>
       <div class="benchmark-column__body">
         <Show when={props.column.status === 'idle'}>
           <p class="benchmark-column__placeholder">
@@ -100,10 +113,22 @@ const BenchmarkColumn: Component<Props> = (props) => {
           </p>
         </Show>
         <Show when={props.column.status === 'loading'}>
-          <div class="benchmark-column__skeleton" aria-hidden="true">
-            <div />
-            <div />
-            <div />
+          <div class="benchmark-column__loading">
+            <div class="benchmark-column__skeleton" aria-hidden="true">
+              <div />
+              <div />
+              <div />
+            </div>
+            <Show when={!isOriginal()}>
+              <button
+                type="button"
+                class="benchmark-column__cancel"
+                aria-label={`Cancel ${props.column.displayName}`}
+                onClick={() => props.onCancel(props.column.id)}
+              >
+                Cancel
+              </button>
+            </Show>
           </div>
         </Show>
         <Show when={props.column.status === 'success'}>

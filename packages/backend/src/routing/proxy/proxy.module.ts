@@ -50,6 +50,6 @@ import { ProxyExceptionFilter } from './proxy-exception.filter';
     ProxyExceptionFilter,
     MessageRecordingService,
   ],
-  exports: [ProviderClient],
+  exports: [ProviderClient, ProxyRateLimiter],
 })
 export class ProxyModule {}

@@ -1,12 +1,17 @@
 /* ── Recording toggle pill (Settings page) ─────────────── */
+/*
+  The pill marks a feature in the *enabled* state. Reserve `--destructive`
+  for genuinely-destructive states (rejected, over quota); use the muted
+  palette + accent dot here so the user reads "active recording" not "alert".
+*/
 .recording-status-pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 2px 8px;
   border-radius: 9999px;
-  background: hsl(var(--destructive) / 0.12);
-  color: hsl(var(--destructive));
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 600;
@@ -19,7 +24,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: hsl(var(--destructive));
+  background: hsl(var(--accent-foreground, var(--primary)));
   animation: recording-pulse 1.8s ease-in-out infinite;
 }
 
@@ -748,11 +753,24 @@
 }
 
 @media (max-width: 900px) {
+  /*
+    On small screens stack the rail above the main pane instead of hiding
+    it. The rail carries the search/filter/jump controls — hiding it lost
+    those controls on phones entirely. Cap the rail at ~40vh so the user
+    can still see the body without paging.
+  */
   .recorded-drawer__layout {
     grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
   }
   .recorded-modal__rail {
-    display: none;
+    border-right: none;
+    border-bottom: 1px solid hsl(var(--border));
+    max-height: 40vh;
+  }
+  .recorded-modal__rail-filters {
+    overflow-x: auto;
+    flex-wrap: nowrap;
   }
 }
 

@@ -1157,12 +1157,15 @@ describe('proxy-response-handler', () => {
 
       const call = recorder.recordSuccessMessage.mock.calls[0];
       const opts = call[5];
-      expect(opts.recordingPayload).toEqual({
+      // size_bytes now includes the request_body byte count too — request and
+      // response sizes are accounted symmetrically so retention / quotas can
+      // reason about the full row.
+      expect(opts.recordingPayload).toMatchObject({
         request_body: { messages: [] },
         response_body: { type: 'json', body: { ok: true } },
         response_headers: { 'content-type': 'application/json' },
-        size_bytes: 42,
       });
+      expect(opts.recordingPayload.size_bytes).toBeGreaterThanOrEqual(42);
     });
 
     it('omits recordingPayload when capture is overflowed', () => {
@@ -1231,6 +1234,10 @@ describe('proxy-response-handler', () => {
 
       const { res } = mockResponse();
       const headersObj = new Headers();
+      // Use an allowlisted header — the response-headers sanitizer is now
+      // an allowlist (x-ratelimit-*, x-request-id, content-type, …) so
+      // arbitrary debugging headers like x-trace are dropped.
+      headersObj.set('x-request-id', 'req-7');
       headersObj.set('x-trace', 'abc');
       const forward = {
         response: { body: { getReader: jest.fn() }, headers: headersObj },
@@ -1260,7 +1267,9 @@ describe('proxy-response-handler', () => {
         capture as any,
       );
 
-      expect(capture.setHeaders).toHaveBeenCalledWith({ 'x-trace': 'abc' });
+      const passed = (capture.setHeaders as jest.Mock).mock.calls[0][0];
+      expect(passed['x-request-id']).toBe('req-7');
+      expect(passed['x-trace']).toBeUndefined();
       expect(pipeSpy).toHaveBeenCalled();
       pipeSpy.mockRestore();
       initSpy.mockRestore();

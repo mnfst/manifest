@@ -27,6 +27,13 @@ const BenchmarkPrompt: Component<Props> = (props) => {
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
+    // Skip Enter while an IME composition is active (CJK / accent input).
+    // Without this guard, confirming an IME candidate with Enter fires Run
+    // and dispatches the half-typed prompt to every model column.
+    // `keyCode === 229` is the legacy fallback for browsers that don't
+    // expose `isComposing` on the KeyboardEvent.
+    if (event.isComposing || event.keyCode === 229) return;
+
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       props.onSubmit();

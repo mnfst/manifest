@@ -25,12 +25,16 @@ export interface RunBenchmarkRequest {
   rawRequestBody?: Record<string, unknown>;
 }
 
-export async function runBenchmark(req: RunBenchmarkRequest): Promise<BenchmarkRunResult> {
+export async function runBenchmark(
+  req: RunBenchmarkRequest,
+  signal?: AbortSignal,
+): Promise<BenchmarkRunResult> {
   const res = await fetch(`${BASE_URL}/benchmark/run`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(req),
+    signal,
   });
   if (!res.ok) {
     throw new Error(await parseErrorMessage(res));

@@ -142,10 +142,13 @@ function PrimaryActions(props: PrimaryActionsProps): JSX.Element {
           class="btn btn--primary btn--sm"
           onClick={props.onOptimize}
           disabled={props.optimizePending}
-          aria-describedby="recorded-drawer-optimize-hint"
-          title={props.optimizePending ? 'Waiting for the recording to load…' : 'Open in Benchmark'}
+          title={
+            props.optimizePending
+              ? 'Waiting for the recording to load…'
+              : 'Compare this query side-by-side on other models'
+          }
         >
-          Optimize
+          Compare on other models
         </button>
       </Show>
       <Show when={props.hasRequestBody}>
@@ -157,12 +160,6 @@ function PrimaryActions(props: PrimaryActionsProps): JSX.Element {
         <button type="button" class="btn btn--outline btn--sm" onClick={props.onCopyResponse}>
           Copy response
         </button>
-      </Show>
-      <Show when={props.canOptimize}>
-        <p class="recorded-modal__optimize-hint" id="recorded-drawer-optimize-hint">
-          Benchmark this query by running it on different models side by side to find the best
-          alternative.
-        </p>
       </Show>
     </>
   );

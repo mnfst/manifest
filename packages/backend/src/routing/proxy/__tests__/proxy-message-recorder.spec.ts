@@ -1050,8 +1050,10 @@ describe('ProxyMessageRecorder', () => {
   });
 
   describe('recordingPayload', () => {
-    it('persists a recording and sets recorded=true on the message (insert path)', async () => {
+    it('persists a recording and only flips recorded=true after the recording row lands', async () => {
       const saveMock = jest.fn().mockResolvedValue(undefined);
+      const updateMock = jest.fn().mockResolvedValue(undefined);
+      const messageRepo = { insert: insertMock, update: updateMock };
       const dedupWithLock = {
         normalizeSessionKey: jest.fn().mockReturnValue(null),
         getSuccessWriteLockKey: jest.fn().mockReturnValue('lock'),
@@ -1061,13 +1063,13 @@ describe('ProxyMessageRecorder', () => {
         withAgentMessageTransaction: jest
           .fn()
           .mockImplementation(async (_r: unknown, _c: unknown, fn: (m: unknown) => Promise<void>) =>
-            fn({ insert: insertMock, update: jest.fn() }),
+            fn(messageRepo),
           ),
         findExistingSuccessMessage: jest.fn().mockResolvedValue(null),
       } as unknown as ProxyMessageDedup;
 
       const scopedRecorder = new ProxyMessageRecorder(
-        { insert: insertMock } as never,
+        messageRepo as never,
         { getByModel: getByModelMock } as never,
         dedupWithLock,
         { emit: emitMock } as never,
@@ -1093,15 +1095,22 @@ describe('ProxyMessageRecorder', () => {
         },
       );
 
+      // The message row is inserted with recorded=true and the recording is
+      // persisted in the SAME transaction. A crash before commit rolls both
+      // back, so an orphan recorded=true row pointing at no recording is
+      // impossible. No follow-up update is needed on the happy path.
       expect(insertMock).toHaveBeenCalledTimes(1);
-      const inserted = insertMock.mock.calls[0][0];
-      expect(inserted.recorded).toBe(true);
+      expect(insertMock.mock.calls[0][0].recorded).toBe(true);
       expect(saveMock).toHaveBeenCalledTimes(1);
       expect(saveMock.mock.calls[0][1].size_bytes).toBe(100);
+      // No separate post-save update — recorded was set in the insert.
+      expect(updateMock).not.toHaveBeenCalled();
     });
 
-    it('swallows errors from the recording service without failing the insert', async () => {
+    it('does not flip recorded=true when the recording save throws', async () => {
       const saveMock = jest.fn().mockRejectedValue(new Error('disk full'));
+      const updateMock = jest.fn().mockResolvedValue(undefined);
+      const messageRepo = { insert: insertMock, update: updateMock };
       const dedupWithLock = {
         normalizeSessionKey: jest.fn().mockReturnValue(null),
         getSuccessWriteLockKey: jest.fn().mockReturnValue('lock'),
@@ -1111,13 +1120,13 @@ describe('ProxyMessageRecorder', () => {
         withAgentMessageTransaction: jest
           .fn()
           .mockImplementation(async (_r: unknown, _c: unknown, fn: (m: unknown) => Promise<void>) =>
-            fn({ insert: insertMock, update: jest.fn() }),
+            fn(messageRepo),
           ),
         findExistingSuccessMessage: jest.fn().mockResolvedValue(null),
       } as unknown as ProxyMessageDedup;
 
       const scopedRecorder = new ProxyMessageRecorder(
-        { insert: insertMock } as never,
+        messageRepo as never,
         { getByModel: getByModelMock } as never,
         dedupWithLock,
         { emit: emitMock } as never,
@@ -1143,6 +1152,12 @@ describe('ProxyMessageRecorder', () => {
       ).resolves.toBeUndefined();
       expect(saveMock).toHaveBeenCalled();
       expect(insertMock).toHaveBeenCalled();
+      // The insert pre-emptively sets recorded=true for the same-tx recording
+      // write; if save throws, the in-tx catch demotes it back to false so a
+      // commit produces a coherent row.
+      expect(insertMock.mock.calls[0][0].recorded).toBe(true);
+      expect(updateMock).toHaveBeenCalledTimes(1);
+      expect(updateMock.mock.calls[0][1]).toEqual({ recorded: false });
     });
   });
 });

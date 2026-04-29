@@ -357,7 +357,12 @@ describe('Benchmark page', () => {
     expect(promptProps.last).toBeDefined();
   });
 
-  it('disables the replay icon when no recorded messages exist', async () => {
+  it('keeps the replay icon clickable; the empty state is surfaced inside the picker drawer', async () => {
+    // Regression: the replay icon used to be gated on a cold-start probe
+    // (`getMessages({ recorded: 'true', limit: '1' })`); a transient probe
+    // failure silently locked the button out for the rest of the session.
+    // The picker drawer now owns the empty-state copy, so the button is
+    // always clickable.
     api.getProviders.mockResolvedValue([
       { id: 'p1', provider: 'openai', auth_type: 'api_key', is_active: true, has_api_key: true, connected_at: '' },
     ]);
@@ -366,12 +371,14 @@ describe('Benchmark page', () => {
     await flush();
     await flush();
     const headerButtons = container.querySelectorAll('.benchmark-prompt__headers');
-    // First button is the replay-icon button; second is the headers popover button.
     const replayBtn = headerButtons[0] as HTMLButtonElement;
-    expect(replayBtn.disabled).toBe(true);
+    expect(replayBtn.disabled).toBe(false);
   });
 
   it('pins an Original column when a recorded message is picked from the drawer', async () => {
+    // Picking a recording wipes the existing column board; confirm the
+    // wipe so the test can exercise the rest of the flow.
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
     api.getProviders.mockResolvedValue([
       { id: 'p1', provider: 'openai', auth_type: 'api_key', is_active: true, has_api_key: true, connected_at: '' },
     ]);
@@ -464,6 +471,7 @@ describe('Benchmark page', () => {
     // The replay banner replaces the textarea.
     expect(container.querySelector('.benchmark-prompt__banner')).toBeDefined();
     expect(container.querySelector('textarea')).toBeNull();
+    confirmSpy.mockRestore();
   });
 
   it('replaces a column model when the inline picker fires onSelect', async () => {
@@ -538,6 +546,10 @@ describe('Benchmark page', () => {
   });
 
   it('toasts when a picked recording has no request body', async () => {
+    // Picking a recording from the drawer wipes the existing column board;
+    // the confirm prompt asks the user to OK that. In jsdom, confirm()
+    // returns false by default, which would skip the rest of the flow.
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
     api.getProviders.mockResolvedValue([
       { id: 'p1', provider: 'openai', auth_type: 'api_key', is_active: true, has_api_key: true, connected_at: '' },
     ]);
@@ -564,6 +576,7 @@ describe('Benchmark page', () => {
     await flush();
     await flush();
     expect(toast.error).toHaveBeenCalledWith(expect.stringContaining('no recorded request body'));
+    confirmSpy.mockRestore();
   });
 
   it('adds a new column via the "+ Add model" picker', async () => {

@@ -19,7 +19,17 @@ describe('isBlockedHeaderKey', () => {
   it('lets normal provider headers through', () => {
     expect(isBlockedHeaderKey('HTTP-Referer')).toBe(false);
     expect(isBlockedHeaderKey('X-Title')).toBe(false);
-    expect(isBlockedHeaderKey('OpenAI-Organization')).toBe(false);
+  });
+
+  it('blocks provider account/identity and credential headers', () => {
+    // Mirrors the backend allowlist — letting users override these would
+    // leak account/tenant identifiers across the proxied call or supplant
+    // Manifest-managed credentials before they reach the upstream.
+    expect(isBlockedHeaderKey('OpenAI-Organization')).toBe(true);
+    expect(isBlockedHeaderKey('x-api-key')).toBe(true);
+    expect(isBlockedHeaderKey('X-Goog-API-Key')).toBe(true);
+    expect(isBlockedHeaderKey('Anthropic-Version')).toBe(true);
+    expect(isBlockedHeaderKey('x-aws-region')).toBe(true);
   });
 
   it('treats empty / whitespace as not blocked so the warning does not flash on new rows', () => {

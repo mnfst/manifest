@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import type {
   BenchmarkHistoryRunDetail,
   BenchmarkHistoryRunSummary,
@@ -20,6 +21,13 @@ export class BenchmarkController {
     private readonly resolveAgent: ResolveAgentService,
   ) {}
 
+  /**
+   * Tighter throttle than the global default (100/60s). Each click in the UI
+   * fans out up to MAX_COLUMNS=6 requests; the per-user concurrency cap in
+   * `BenchmarkService.run()` already bounds *parallelism*, but the throttle
+   * caps *churn* (e.g. a script repeatedly clicking Run).
+   */
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
   @Post('run')
   async run(
     @CurrentUser() user: AuthUser,

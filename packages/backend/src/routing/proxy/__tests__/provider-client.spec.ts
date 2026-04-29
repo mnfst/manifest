@@ -934,6 +934,27 @@ describe('ProviderClient', () => {
       expect(fetchOptions.headers['Authorization']).toBe('Bearer sk-test');
       expect(fetchOptions.headers['X-Custom']).toBe('value');
     });
+
+    it('provider-managed Authorization wins when extraHeaders attempts to clobber it', async () => {
+      // Defense-in-depth: if the sanitizer ever drops a `BLOCKED_EXACT` entry
+      // and a hostile extraHeaders["Authorization"] reaches forward(), the
+      // provider-managed value must still take precedence so the request is
+      // authenticated by Manifest's credentials, not the caller's spoof.
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-real',
+        model: 'gpt-4o',
+        body,
+        stream: false,
+        extraHeaders: { Authorization: 'Bearer sk-spoofed', 'X-Custom': 'kept' },
+      });
+
+      const fetchOptions = mockFetch.mock.calls[0][1];
+      expect(fetchOptions.headers['Authorization']).toBe('Bearer sk-real');
+      expect(fetchOptions.headers['X-Custom']).toBe('kept');
+    });
   });
 
   describe('Provider aliases', () => {

@@ -10,7 +10,7 @@ import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interf
 import { MessageRecordingService } from '../../analytics/services/message-recording.service';
 import { FailedFallback } from './proxy-fallback.service';
 import { StreamUsage } from './stream-writer';
-import { ProxyMessageDedup } from './proxy-message-dedup';
+import { ProxyMessageDedup, type DedupMatch } from './proxy-message-dedup';
 import { computeTokenCost } from '../../common/utils/cost-calculator';
 import { scrubSecrets } from '../../common/utils/secret-scrub';
 import { CallerAttribution } from './caller-classifier';
@@ -362,126 +362,182 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     usage: StreamUsage,
     opts?: SuccessMessageOpts,
   ): Promise<void> {
-    const {
-      traceId,
-      provider,
-      authType,
-      sessionKey,
-      durationMs,
-      specificityCategory,
-      callerAttribution,
-      requestHeaders,
-      recordingPayload,
-      headerTierId,
-      headerTierName,
-      headerTierColor,
-    } = opts ?? {};
-    const recorded = !!recordingPayload;
-
+    const o = opts ?? {};
     const costUsd = computeTokenCost({
       inputTokens: usage.prompt_tokens,
       outputTokens: usage.completion_tokens,
       model,
       pricing: this.pricingCache.getByModel(model),
-      isSubscription: authType === 'subscription',
+      isSubscription: o.authType === 'subscription',
     });
+    const normalizedSessionKey = this.dedup.normalizeSessionKey(o.sessionKey);
+    const willRecord = o.recordingPayload != null;
 
-    const normalizedSessionKey = this.dedup.normalizeSessionKey(sessionKey);
-
-    let wrote = false;
-    let writtenMessageId: string | null = null;
-    await this.dedup.withSuccessWriteLock(
-      this.dedup.getSuccessWriteLockKey(ctx, model, traceId, normalizedSessionKey),
-      async () => {
-        await this.dedup.withAgentMessageTransaction(this.messageRepo, ctx, async (messageRepo) => {
-          const existing = await this.dedup.findExistingSuccessMessage(
-            messageRepo,
-            ctx,
+    const writtenId = await this.dedup.withSuccessWriteLock(
+      this.dedup.getSuccessWriteLockKey(ctx, model, o.traceId, normalizedSessionKey),
+      () =>
+        this.dedup.withAgentMessageTransaction(this.messageRepo, ctx, (messageRepo) =>
+          this.writeSuccessMessageInTxn(messageRepo, ctx, {
             model,
+            tier,
+            reason,
             usage,
-            traceId,
+            costUsd,
             normalizedSessionKey,
-          );
-
-          if (existing) {
-            const hasRecordedTokens =
-              (existing.input_tokens ?? 0) > 0 || (existing.output_tokens ?? 0) > 0;
-            if (hasRecordedTokens) return;
-
-            const updatePayload: Partial<AgentMessage> = {
-              model,
-              provider: provider ?? null,
-              routing_tier: tier,
-              routing_reason: reason,
-              input_tokens: usage.prompt_tokens,
-              output_tokens: usage.completion_tokens,
-              cache_read_tokens: usage.cache_read_tokens ?? 0,
-              cache_creation_tokens: usage.cache_creation_tokens ?? 0,
-              cost_usd: costUsd,
-              auth_type: authType ?? null,
-              user_id: ctx.userId,
-              duration_ms: durationMs ?? null,
-              specificity_category: specificityCategory ?? null,
-              caller_attribution: callerAttribution ?? null,
-              request_headers: requestHeaders ?? null,
-              recorded,
-              header_tier_id: headerTierId ?? null,
-              header_tier_name: headerTierName ?? null,
-              header_tier_color: headerTierColor ?? null,
-            };
-            if (normalizedSessionKey) updatePayload.session_key = normalizedSessionKey;
-
-            await messageRepo.update({ id: existing.id }, updatePayload);
-            wrote = true;
-            writtenMessageId = existing.id;
-            return;
-          }
-
-          const newId = uuid();
-          await messageRepo.insert(
-            buildMessageRow(ctx, {
-              id: newId,
-              trace_id: traceId ?? null,
-              session_key: normalizedSessionKey,
-              timestamp: new Date().toISOString(),
-              status: 'ok',
-              model,
-              provider: provider ?? null,
-              routing_tier: tier,
-              routing_reason: reason,
-              input_tokens: usage.prompt_tokens,
-              output_tokens: usage.completion_tokens,
-              cache_read_tokens: usage.cache_read_tokens ?? 0,
-              cache_creation_tokens: usage.cache_creation_tokens ?? 0,
-              cost_usd: costUsd,
-              auth_type: authType ?? null,
-              fallback_from_model: null,
-              fallback_index: null,
-              duration_ms: durationMs ?? null,
-              specificity_category: specificityCategory ?? null,
-              caller_attribution: callerAttribution ?? null,
-              request_headers: requestHeaders ?? null,
-              recorded,
-              header_tier_id: headerTierId ?? null,
-              header_tier_name: headerTierName ?? null,
-              header_tier_color: headerTierColor ?? null,
-            }),
-          );
-          wrote = true;
-          writtenMessageId = newId;
-        });
-      },
+            willRecord,
+            opts: o,
+          }),
+        ),
     );
-    if (wrote) {
-      this.eventBus.emit(ctx.userId);
-      if (recordingPayload && writtenMessageId) {
-        try {
-          await this.recordingService.save(writtenMessageId, recordingPayload);
-        } catch (err) {
-          this.logger.warn(`Failed to save message recording: ${String(err)}`);
-        }
+    if (writtenId !== null) this.eventBus.emit(ctx.userId);
+  }
+
+  /**
+   * Single-transaction write path: dedup-resolve → upsert agent_messages →
+   * persist message_recordings. All three observe the same commit, so a
+   * crash before commit never leaves a `recorded=true` message without its
+   * recording row (or vice versa). Returns the written message id when a
+   * row was written; null when the dedup found an already-tokenised row
+   * (no-op).
+   */
+  private async writeSuccessMessageInTxn(
+    messageRepo: Repository<AgentMessage>,
+    ctx: IngestionContext,
+    args: {
+      model: string;
+      tier: string;
+      reason: string;
+      usage: StreamUsage;
+      costUsd: number | null;
+      normalizedSessionKey: string | null;
+      willRecord: boolean;
+      opts: SuccessMessageOpts;
+    },
+  ): Promise<string | null> {
+    const existing = await this.dedup.findExistingSuccessMessage(
+      messageRepo,
+      ctx,
+      args.model,
+      args.usage,
+      args.opts.traceId,
+      args.normalizedSessionKey,
+    );
+
+    const writtenId = existing
+      ? await this.upsertExistingSuccessRow(messageRepo, existing, ctx, args)
+      : await this.insertNewSuccessRow(messageRepo, ctx, args);
+
+    if (writtenId && args.willRecord && args.opts.recordingPayload) {
+      try {
+        await this.recordingService.save(
+          writtenId,
+          args.opts.recordingPayload,
+          messageRepo.manager,
+        );
+      } catch (err) {
+        // Audit-trail failure shouldn't fail the proxy response — demote to
+        // recorded=false in the same commit so the UI doesn't offer a
+        // "view recording" link for a row whose recording didn't land.
+        this.logger.warn(`Failed to save message recording: ${String(err)}`);
+        await messageRepo.update({ id: writtenId }, { recorded: false });
       }
     }
+    return writtenId;
+  }
+
+  private async upsertExistingSuccessRow(
+    messageRepo: Repository<AgentMessage>,
+    existing: DedupMatch,
+    ctx: IngestionContext,
+    args: {
+      model: string;
+      tier: string;
+      reason: string;
+      usage: StreamUsage;
+      costUsd: number | null;
+      normalizedSessionKey: string | null;
+      willRecord: boolean;
+      opts: SuccessMessageOpts;
+    },
+  ): Promise<string | null> {
+    const hasRecordedTokens = (existing.input_tokens ?? 0) > 0 || (existing.output_tokens ?? 0) > 0;
+    if (hasRecordedTokens) return null;
+
+    const o = args.opts;
+    const updatePayload: Partial<AgentMessage> = {
+      model: args.model,
+      provider: o.provider ?? null,
+      routing_tier: args.tier,
+      routing_reason: args.reason,
+      input_tokens: args.usage.prompt_tokens,
+      output_tokens: args.usage.completion_tokens,
+      cache_read_tokens: args.usage.cache_read_tokens ?? 0,
+      cache_creation_tokens: args.usage.cache_creation_tokens ?? 0,
+      cost_usd: args.costUsd,
+      auth_type: o.authType ?? null,
+      user_id: ctx.userId,
+      duration_ms: o.durationMs ?? null,
+      specificity_category: o.specificityCategory ?? null,
+      caller_attribution: o.callerAttribution ?? null,
+      request_headers: o.requestHeaders ?? null,
+      // Never downgrade an already-true flag — a prior attempt may have
+      // persisted a recording row that's still in `message_recordings`.
+      recorded: existing.recorded || args.willRecord,
+      header_tier_id: o.headerTierId ?? null,
+      header_tier_name: o.headerTierName ?? null,
+      header_tier_color: o.headerTierColor ?? null,
+    };
+    if (args.normalizedSessionKey) updatePayload.session_key = args.normalizedSessionKey;
+    await messageRepo.update({ id: existing.id }, updatePayload);
+    return existing.id;
+  }
+
+  private async insertNewSuccessRow(
+    messageRepo: Repository<AgentMessage>,
+    ctx: IngestionContext,
+    args: {
+      model: string;
+      tier: string;
+      reason: string;
+      usage: StreamUsage;
+      costUsd: number | null;
+      normalizedSessionKey: string | null;
+      willRecord: boolean;
+      opts: SuccessMessageOpts;
+    },
+  ): Promise<string> {
+    const o = args.opts;
+    const newId = uuid();
+    await messageRepo.insert(
+      buildMessageRow(ctx, {
+        id: newId,
+        trace_id: o.traceId ?? null,
+        session_key: args.normalizedSessionKey,
+        timestamp: new Date().toISOString(),
+        status: 'ok',
+        model: args.model,
+        provider: o.provider ?? null,
+        routing_tier: args.tier,
+        routing_reason: args.reason,
+        input_tokens: args.usage.prompt_tokens,
+        output_tokens: args.usage.completion_tokens,
+        cache_read_tokens: args.usage.cache_read_tokens ?? 0,
+        cache_creation_tokens: args.usage.cache_creation_tokens ?? 0,
+        cost_usd: args.costUsd,
+        auth_type: o.authType ?? null,
+        fallback_from_model: null,
+        fallback_index: null,
+        duration_ms: o.durationMs ?? null,
+        specificity_category: o.specificityCategory ?? null,
+        caller_attribution: o.callerAttribution ?? null,
+        request_headers: o.requestHeaders ?? null,
+        recorded: args.willRecord,
+        header_tier_id: o.headerTierId ?? null,
+        header_tier_name: o.headerTierName ?? null,
+        header_tier_color: o.headerTierColor ?? null,
+      }),
+    );
+    return newId;
   }
 
   private evictExpiredCooldowns(): void {

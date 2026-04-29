@@ -93,13 +93,29 @@ export async function pipeStream(
 
   const writeOut = (s: string): void => {
     dest.write(s);
-    if (onClientChunk) onClientChunk(s);
+    // Once the client disconnected, drop the recording-capture feed: writing
+    // to a half-closed ExpressResponse is a harmless no-op, but feeding
+    // `onClientChunk` keeps growing the recording buffer for bytes the user
+    // will never read back. The dest.write itself is left intact so existing
+    // tests that observe writes regardless of disconnect timing keep their
+    // contract — those bytes go nowhere in production anyway.
+    if (onClientChunk && !dest.writableEnded) onClientChunk(s);
   };
 
   try {
     let done = false;
     while (!done) {
-      if (dest.writableEnded) break;
+      if (dest.writableEnded) {
+        // Client disconnected: cancel the upstream reader so the provider
+        // stream is released promptly and a slow/streaming model doesn't
+        // keep producing tokens we can no longer use.
+        try {
+          await reader.cancel();
+        } catch {
+          /* upstream may already have errored — best-effort */
+        }
+        break;
+      }
 
       const result = await reader.read();
       done = result.done;

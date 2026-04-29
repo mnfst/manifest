@@ -1,5 +1,14 @@
-import { Show, createEffect, createMemo, createResource, on, type Component } from 'solid-js';
+import {
+  Show,
+  createEffect,
+  createMemo,
+  createResource,
+  createSignal,
+  on,
+  type Component,
+} from 'solid-js';
 import { Portal } from 'solid-js/web';
+import { useFocusTrap } from '../services/use-focus-trap.js';
 import { useNavigate } from '@solidjs/router';
 import { buildTurnPreview, estimateMessageTokens } from './recorded-message-helpers.js';
 import RecordedOutline, { type OutlineRow } from './RecordedOutline.jsx';
@@ -197,8 +206,11 @@ const RecordedMessageModal: Component<Props> = (props) => {
   };
 
   // Focus the drawer container when it opens so keyboard events (Esc, '/')
-  // reach it without the user having to click first.
+  // reach it without the user having to click first. The focus trap also
+  // restores focus to the previously-active element on close.
+  const [drawerElSignal, setDrawerEl] = createSignal<HTMLDivElement | undefined>();
   let drawerEl: HTMLDivElement | undefined;
+  useFocusTrap(drawerElSignal, () => props.open, { initialFocus: () => drawerElSignal() });
   createEffect(
     on(
       () => props.open,
@@ -247,7 +259,10 @@ const RecordedMessageModal: Component<Props> = (props) => {
             aria-modal="true"
             aria-labelledby="recorded-drawer-title"
             tabindex="-1"
-            ref={(el) => (drawerEl = el)}
+            ref={(el) => {
+              drawerEl = el;
+              setDrawerEl(el);
+            }}
             onKeyDown={onDrawerKeyDown}
           >
             <DrawerHeader data={data()} onClose={props.onClose} />

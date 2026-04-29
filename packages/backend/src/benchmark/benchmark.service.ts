@@ -5,10 +5,12 @@ import { v4 as uuid } from 'uuid';
 import type { BenchmarkRunResult } from 'manifest-shared';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { ProviderClient } from '../routing/proxy/provider-client';
+import { ProxyRateLimiter } from '../routing/proxy/proxy-rate-limiter';
 import { ProviderKeyService } from '../routing/routing-core/provider-key.service';
 import { ResolveAgentService } from '../routing/routing-core/resolve-agent.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { computeTokenCost } from '../common/utils/cost-calculator';
+import { scrubSecrets } from '../common/utils/secret-scrub';
 import { IngestEventBusService } from '../common/services/ingest-event-bus.service';
 import { whitelistResponseHeaders } from './benchmark-response-headers';
 import { sanitizeRequestHeaders } from './request-header-sanitizer';
@@ -68,69 +70,81 @@ export class BenchmarkService {
     private readonly pricingCache: ModelPricingCacheService,
     private readonly eventBus: IngestEventBusService,
     private readonly history: BenchmarkHistoryService,
+    private readonly rateLimiter: ProxyRateLimiter,
     @InjectRepository(AgentMessage)
     private readonly messageRepo: Repository<AgentMessage>,
   ) {}
 
   async run(userId: string, dto: RunBenchmarkDto): Promise<BenchmarkRunResult> {
-    const { agent, authType, apiKey } = await this.resolveCredentials(userId, dto);
-    const extraHeaders = sanitizeRequestHeaders(dto.requestHeaders);
-    const body = this.buildRequestBody(dto);
+    // Reuse the proxy's per-user concurrency cap (10 in-flight slots) so a
+    // benchmark fan-out can't run an unbounded parallel attack on a victim
+    // provider's quota — cap matches `/v1/chat/completions`.
+    this.rateLimiter.acquireSlot(userId);
+    try {
+      const { agent, authType, apiKey } = await this.resolveCredentials(userId, dto);
+      const extraHeaders = sanitizeRequestHeaders(dto.requestHeaders);
+      const body = this.buildRequestBody(dto);
 
-    const startedAt = Date.now();
-    const { response, flags } = await this.forwardRequest({
-      provider: dto.provider,
-      apiKey,
-      model: dto.model,
-      body,
-      authType,
-      extraHeaders,
-    });
-    const durationMs = Date.now() - startedAt;
+      const startedAt = Date.now();
+      const { response, flags } = await this.forwardRequest({
+        provider: dto.provider,
+        apiKey,
+        model: dto.model,
+        body,
+        authType,
+        extraHeaders,
+      });
+      const durationMs = Date.now() - startedAt;
 
-    const responseHeaders = whitelistResponseHeaders(response.headers);
-    const bodyText = await response.text();
+      const responseHeaders = whitelistResponseHeaders(response.headers);
+      const bodyText = await response.text();
 
-    if (!response.ok) {
-      await this.handleErrorResponse({
+      if (!response.ok) {
+        await this.handleErrorResponse({
+          userId,
+          agent,
+          dto,
+          authType,
+          status: response.status,
+          bodyText,
+          responseHeaders,
+          durationMs,
+        });
+        // handleErrorResponse always throws — unreachable. Asserted indirectly
+        // by the "records an error row and throws" test (any 4xx/5xx upstream
+        // bubbles a BadGatewayException out of handleErrorResponse).
+        /* istanbul ignore next */
+        throw new BadGatewayException('Provider request failed');
+      }
+
+      const { content, metrics } = this.processSuccess(bodyText, dto.model, flags, {
+        authType,
+        model: dto.model,
+        durationMs,
+      });
+      await this.persistSuccess({
         userId,
         agent,
         dto,
         authType,
-        status: response.status,
-        bodyText,
+        metrics,
+        content,
         responseHeaders,
-        durationMs,
       });
-      // handleErrorResponse always throws — unreachable.
-      throw new BadGatewayException('Provider request failed');
+
+      return {
+        content,
+        metrics: {
+          cost: metrics.cost,
+          inputTokens: metrics.inputTokens,
+          outputTokens: metrics.outputTokens,
+          durationMs: metrics.durationMs,
+        },
+        headers: responseHeaders,
+      };
+    } finally {
+      this.rateLimiter.releaseSlot(userId);
     }
-
-    const { content, metrics } = this.processSuccess(bodyText, dto.model, flags, {
-      authType,
-      model: dto.model,
-      durationMs,
-    });
-    await this.persistSuccess({
-      userId,
-      agent,
-      dto,
-      authType,
-      metrics,
-      content,
-      responseHeaders,
-    });
-
-    return {
-      content,
-      metrics: {
-        cost: metrics.cost,
-        inputTokens: metrics.inputTokens,
-        outputTokens: metrics.outputTokens,
-        durationMs: metrics.durationMs,
-      },
-      headers: responseHeaders,
-    };
   }
 
   private async resolveCredentials(
@@ -246,28 +260,45 @@ export class BenchmarkService {
     content: string;
     responseHeaders: Record<string, string>;
   }): Promise<void> {
-    await this.recordSuccess(args.userId, args.agent, args.dto, args.authType, args.metrics);
-    await this.history.saveColumn({
-      userId: args.userId,
-      agent: args.agent,
-      runId: args.dto.runId,
-      prompt: this.extractPrompt(args.dto.messages),
-      model: args.dto.model,
-      provider: args.dto.provider,
-      authType: args.authType,
-      displayName: null,
-      position: args.dto.position ?? 0,
-      status: 'success',
-      content: args.content,
-      headers: args.responseHeaders,
-      errorMessage: null,
-      metrics: {
-        inputTokens: args.metrics.inputTokens,
-        outputTokens: args.metrics.outputTokens,
-        cost: args.metrics.cost,
-        durationMs: args.metrics.durationMs,
-      },
+    // Wrap both writes in a single transaction so a crash between them
+    // can't leave a Messages-visible row with no benchmark history. The
+    // event-bus emit fires AFTER commit so SSE listeners only see rows
+    // that are actually in the database.
+    await this.messageRepo.manager.transaction(async (manager) => {
+      await this.recordSuccess(
+        args.userId,
+        args.agent,
+        args.dto,
+        args.authType,
+        args.metrics,
+        manager,
+      );
+      await this.history.saveColumn(
+        {
+          userId: args.userId,
+          agent: args.agent,
+          runId: args.dto.runId,
+          prompt: this.extractPrompt(args.dto.messages),
+          model: args.dto.model,
+          provider: args.dto.provider,
+          authType: args.authType,
+          displayName: null,
+          position: args.dto.position ?? 0,
+          status: 'success',
+          content: args.content,
+          headers: args.responseHeaders,
+          errorMessage: null,
+          metrics: {
+            inputTokens: args.metrics.inputTokens,
+            outputTokens: args.metrics.outputTokens,
+            cost: args.metrics.cost,
+            durationMs: args.metrics.durationMs,
+          },
+        },
+        manager,
+      );
     });
+    this.eventBus.emit(args.userId);
   }
 
   private async handleErrorResponse(args: {
@@ -339,9 +370,9 @@ export class BenchmarkService {
 
   /**
    * Flatten the assistant reply's content into a single string for storage.
-   * Not using the shared `coerceContentToText` here because it joins parts
-   * with `\n` for the display renderer; the benchmark column expects the
-   * parts concatenated as one stream (assistant text was sent contiguous).
+   * Multi-part content (Anthropic-style `[{type:'text', text:'…'}, …]`) joins
+   * with `\n` because providers split paragraphs/turns at block boundaries —
+   * concatenating with `''` runs paragraphs together at render time.
    */
   private extractContent(body: OpenAiBody): string {
     const raw = body.choices?.[0]?.message?.content;
@@ -355,7 +386,8 @@ export class BenchmarkService {
           }
           return '';
         })
-        .join('');
+        .filter((s) => s !== '')
+        .join('\n');
     }
     return '';
   }
@@ -366,8 +398,10 @@ export class BenchmarkService {
     dto: RunBenchmarkDto,
     authType: AuthType,
     metrics: SuccessMetrics,
+    manager?: import('typeorm').EntityManager,
   ): Promise<void> {
-    await this.messageRepo.insert({
+    const repo = manager ? manager.getRepository(AgentMessage) : this.messageRepo;
+    await repo.insert({
       id: uuid(),
       tenant_id: agent.tenant_id,
       agent_id: agent.id,
@@ -390,7 +424,9 @@ export class BenchmarkService {
       // They bypass the agent's record_messages toggle by design.
       recorded: false,
     });
-    this.eventBus.emit(userId);
+    // Caller decides when to emit — inside a transaction we wait until commit
+    // so SSE consumers don't see uncommitted rows.
+    if (!manager) this.eventBus.emit(userId);
   }
 
   private async recordError(
@@ -411,7 +447,9 @@ export class BenchmarkService {
         user_id: userId,
         timestamp: new Date().toISOString(),
         status: 'error',
-        error_message: errorBody.slice(0, 2000),
+        // Some providers echo the API key into their error body; scrub before
+        // persisting so we don't durably store the credential we just sent.
+        error_message: scrubSecrets(errorBody).slice(0, 2000),
         error_http_status: status,
         model: dto.model,
         provider: dto.provider,
@@ -430,7 +468,19 @@ export class BenchmarkService {
   }
 
   private truncateError(bodyText: string, status: number): string {
-    const snippet = bodyText.slice(0, 500).trim();
+    // Aggressive shortening + extra redaction on the surface that the user
+    // (and `benchmark_columns.error_message`) sees: provider error bodies
+    // commonly echo organization IDs, request IDs, and internal hostnames
+    // that are useful only as recon for follow-on attacks. 120 chars is
+    // enough to convey "rate limit" / "auth failed" / "bad request" without
+    // leaking those identifiers; the full upstream body still lands in
+    // `agent_messages.error_message` at 2 000 chars for operator debugging.
+    const scrubbed = scrubSecrets(bodyText)
+      .replace(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, '[id]')
+      .replace(/\b(req|request|trace|cf-ray)[_-]?[A-Za-z0-9_-]{8,}/gi, '$1_[id]')
+      .replace(/\borg[_-][A-Za-z0-9_-]{6,}/gi, 'org_[id]')
+      .replace(/\bproj[_-][A-Za-z0-9_-]{6,}/gi, 'proj_[id]');
+    const snippet = scrubbed.slice(0, 120).trim();
     return snippet ? `Provider returned ${status}: ${snippet}` : `Provider returned ${status}`;
   }
 }

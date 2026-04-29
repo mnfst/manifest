@@ -1,12 +1,7 @@
 import type { RecordingResponseBody } from '../../entities/message-recording.entity';
+import { filterResponseHeaders } from '../../common/utils/response-header-allowlist';
 
 export const RECORDING_MAX_BYTES = 2 * 1024 * 1024;
-
-const SENSITIVE_RESPONSE_HEADERS = new Set<string>([
-  'set-cookie',
-  'authorization',
-  'proxy-authorization',
-]);
 
 export interface CaptureSink {
   overflowed: boolean;
@@ -45,6 +40,15 @@ export function createCaptureSink(limitBytes: number = RECORDING_MAX_BYTES): Cap
       const serialized = safeStringify(body);
       if (serialized === '') return;
       const size = Buffer.byteLength(serialized, 'utf8');
+      // Don't accept a JSON body if we've already buffered streamed bytes —
+      // mixing the two breaks `buildResponseBody` (it can only emit one of
+      // the two shapes) and corrupts the byte accounting. Drop the JSON
+      // capture rather than silently overwrite the SSE buffer.
+      if (this.rawSse !== '') {
+        this.overflowed = true;
+        this.jsonBody = undefined;
+        return;
+      }
       if (size > limitBytes) {
         this.overflowed = true;
         this.jsonBody = undefined;
@@ -80,12 +84,13 @@ function safeStringify(value: unknown): string {
   }
 }
 
+/**
+ * Allowlist response headers before persisting them in `message_recordings`.
+ * The proxy's previous denylist was too narrow — provider/CDN echoes of
+ * `x-api-key`, custom `www-authenticate`, etc. would survive. Switching to
+ * the shared allowlist closes that gap and matches what we already expose
+ * for benchmark history.
+ */
 export function sanitizeResponseHeaders(headers: Headers): Record<string, string> {
-  const out: Record<string, string> = {};
-  headers.forEach((value, key) => {
-    const lower = key.toLowerCase();
-    if (SENSITIVE_RESPONSE_HEADERS.has(lower)) return;
-    out[lower] = value;
-  });
-  return out;
+  return filterResponseHeaders(headers);
 }

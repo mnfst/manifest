@@ -33,6 +33,12 @@ const PATTERNS: Pattern[] = [
   { re: /\bxai-[A-Za-z0-9_\-]{10,}/g, replacement: '[REDACTED]' },
   { re: /\bmnfst_[A-Za-z0-9_\-]{10,}/g, replacement: '[REDACTED]' },
   { re: /\bAIza[A-Za-z0-9_\-]{10,}/g, replacement: '[REDACTED]' },
+  // JWTs (header.payload.signature). The payload alone can leak account,
+  // tenant, or org identifiers — collapse the whole token rather than parse.
+  {
+    re: /\beyJ[A-Za-z0-9_\-]{8,}\.eyJ[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]*/g,
+    replacement: '[REDACTED]',
+  },
 ];
 
 export function scrubSecrets(text: string | null | undefined): string {

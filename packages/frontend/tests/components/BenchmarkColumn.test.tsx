@@ -54,6 +54,7 @@ describe('BenchmarkColumn', () => {
         onRemove={() => {}}
         onChangeModel={() => {}}
         onRetry={() => {}}
+        onCancel={() => {}}
       />
     ));
     expect(container.textContent).toContain('Type a prompt below');
@@ -68,9 +69,44 @@ describe('BenchmarkColumn', () => {
         onRemove={() => {}}
         onChangeModel={() => {}}
         onRetry={() => {}}
+        onCancel={() => {}}
       />
     ));
     expect(container.querySelector('.benchmark-column__skeleton')).toBeDefined();
+  });
+
+  it('shows a Cancel button while loading and fires onCancel(id)', () => {
+    const onCancel = vi.fn();
+    const { container } = render(() => (
+      <BenchmarkColumn
+        column={makeColumn({ status: 'loading' })}
+        isCheapest={false}
+        isFastest={false}
+        onRemove={() => {}}
+        onChangeModel={() => {}}
+        onRetry={() => {}}
+        onCancel={onCancel}
+      />
+    ));
+    const cancelBtn = container.querySelector('.benchmark-column__cancel') as HTMLButtonElement | null;
+    expect(cancelBtn).not.toBeNull();
+    fireEvent.click(cancelBtn!);
+    expect(onCancel).toHaveBeenCalledWith('col-1');
+  });
+
+  it('does not render a Cancel button on the pinned Original column', () => {
+    const { container } = render(() => (
+      <BenchmarkColumn
+        column={makeColumn({ isOriginal: true, status: 'loading' })}
+        isCheapest={false}
+        isFastest={false}
+        onRemove={() => {}}
+        onChangeModel={() => {}}
+        onRetry={() => {}}
+        onCancel={() => {}}
+      />
+    ));
+    expect(container.querySelector('.benchmark-column__cancel')).toBeNull();
   });
 
   it('renders the response via MarkdownContent and success metrics', () => {
@@ -87,6 +123,7 @@ describe('BenchmarkColumn', () => {
         onRemove={() => {}}
         onChangeModel={() => {}}
         onRetry={() => {}}
+        onCancel={() => {}}
       />
     ));
     expect(getByTestId('md').textContent).toBe('## title');
@@ -109,6 +146,7 @@ describe('BenchmarkColumn', () => {
         onRemove={() => {}}
         onChangeModel={() => {}}
         onRetry={() => {}}
+        onCancel={() => {}}
       />
     ));
     expect(container.textContent).toContain('Fastest');
@@ -125,6 +163,7 @@ describe('BenchmarkColumn', () => {
         onRemove={() => {}}
         onChangeModel={() => {}}
         onRetry={onRetry}
+        onCancel={() => {}}
       />
     ));
     expect(container.textContent).toContain('boom');
@@ -142,6 +181,7 @@ describe('BenchmarkColumn', () => {
         onRemove={() => {}}
         onChangeModel={onChange}
         onRetry={() => {}}
+        onCancel={() => {}}
       />
     ));
     fireEvent.click(container.querySelector('.benchmark-column__title')!);
@@ -158,6 +198,7 @@ describe('BenchmarkColumn', () => {
         onRemove={onRemove}
         onChangeModel={() => {}}
         onRetry={() => {}}
+        onCancel={() => {}}
       />
     ));
     fireEvent.click(container.querySelector('.benchmark-column__remove')!);
@@ -235,6 +276,7 @@ describe('BenchmarkColumn', () => {
         onRemove={() => {}}
         onChangeModel={() => {}}
         onRetry={() => {}}
+        onCancel={() => {}}
       />
     ));
     expect(container.querySelector('details.benchmark-column__headers')).toBeDefined();

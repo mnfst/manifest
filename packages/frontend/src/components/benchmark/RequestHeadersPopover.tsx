@@ -1,4 +1,5 @@
-import { For, Show, createEffect, onCleanup, type Component } from 'solid-js';
+import { For, Show, createEffect, createSignal, onCleanup, type Component } from 'solid-js';
+import { useFocusTrap } from '../../services/use-focus-trap.js';
 import { PlusIcon, TrashIcon, XIcon } from './icons.jsx';
 
 export interface HeaderEntry {
@@ -14,26 +15,43 @@ interface Props {
   onClose: () => void;
 }
 
+// Mirrors packages/backend/src/benchmark/request-header-sanitizer.ts. The
+// server is authoritative; the FE list exists only to surface "this header is
+// managed by Manifest and will be dropped" before the user submits.
 const BLOCKED_EXACT = new Set([
   'authorization',
   'proxy-authorization',
+  'x-api-key',
+  'api-key',
+  'x-goog-api-key',
+  'x-amz-security-token',
+  'x-azure-token',
   'cookie',
   'set-cookie',
+  'openai-organization',
+  'openai-project',
+  'anthropic-version',
   'host',
   'content-length',
   'content-type',
   'connection',
+  'proxy-connection',
   'transfer-encoding',
   'upgrade',
   'te',
   'trailer',
+  'expect',
+  'keep-alive',
+  'range',
 ]);
+
+const BLOCKED_PREFIXES = ['x-manifest-', 'x-aws-'];
 
 export function isBlockedHeaderKey(key: string): boolean {
   const lower = key.trim().toLowerCase();
   if (!lower) return false;
   if (BLOCKED_EXACT.has(lower)) return true;
-  return lower.startsWith('x-manifest-');
+  return BLOCKED_PREFIXES.some((p) => lower.startsWith(p));
 }
 
 export function toHeaderRecord(entries: HeaderEntry[]): Record<string, string> {
@@ -53,6 +71,9 @@ export function blankEntry(): HeaderEntry {
 }
 
 const RequestHeadersPopover: Component<Props> = (props) => {
+  const [popoverEl, setPopoverEl] = createSignal<HTMLElement | undefined>();
+  useFocusTrap(popoverEl, () => props.open);
+
   createEffect(() => {
     if (!props.open) return;
     const onKey = (event: KeyboardEvent) => {
@@ -79,7 +100,7 @@ const RequestHeadersPopover: Component<Props> = (props) => {
   return (
     <Show when={props.open}>
       <div class="benchmark-headers__backdrop" role="presentation" onClick={props.onClose} />
-      <div class="benchmark-headers" role="dialog" aria-label="Request headers">
+      <div ref={setPopoverEl} class="benchmark-headers" role="dialog" aria-label="Request headers">
         <header class="benchmark-headers__header">
           <h3 class="benchmark-headers__title">Request headers</h3>
           <button

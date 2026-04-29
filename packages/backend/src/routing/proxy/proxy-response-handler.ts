@@ -22,6 +22,14 @@ function recordSafely(promise: Promise<unknown>, label: string): void {
   promise.catch((e) => logger.warn(`Failed to record ${label}: ${e}`));
 }
 
+function estimateJsonSize(value: unknown): number {
+  try {
+    return Buffer.byteLength(JSON.stringify(value) ?? '', 'utf8');
+  } catch {
+    return 0;
+  }
+}
+
 export function buildMetaHeaders(meta: RoutingMeta): Record<string, string> {
   const headers: Record<string, string> = {
     'X-Manifest-Tier': meta.tier,
@@ -404,8 +412,12 @@ export function recordSuccess(
     let recordingPayload: SuccessRecordingPayload | undefined;
     if (recording) {
       const { capture, requestBody } = recording;
+      // Capture the full request body verbatim — replay needs to reissue
+      // the *exact* prompt + tools + temperature the user originally sent.
+      // The response side is capped by RECORDING_MAX_BYTES so an enormous
+      // streamed answer can still mark the row as overflowed.
       if (capture.overflowed) {
-        logger.warn('Recording skipped: payload exceeded size cap');
+        logger.warn('Recording skipped: response payload exceeded size cap');
       } else {
         const responseBody = capture.buildResponseBody();
         if (responseBody !== null) {
@@ -413,7 +425,7 @@ export function recordSuccess(
             request_body: requestBody,
             response_body: responseBody,
             response_headers: capture.responseHeaders,
-            size_bytes: capture.getSizeBytes(),
+            size_bytes: estimateJsonSize(requestBody) + capture.getSizeBytes(),
           };
         }
       }

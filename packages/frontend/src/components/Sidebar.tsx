@@ -45,6 +45,20 @@ const Sidebar: Component = () => {
         >
           Messages
         </A>
+        {/*
+          Benchmark belongs with MONITORING tools (an analyze-the-traffic
+          workflow), not MANAGE (configuration). Co-locating it with Routing
+          / Limits / Settings made it read as agent setup the user has to
+          maintain rather than a comparison workflow they invoke.
+        */}
+        <A
+          href={path('/benchmark')}
+          class="sidebar__link"
+          classList={{ active: isActive('/benchmark') }}
+          aria-current={isActive('/benchmark') ? 'page' : undefined}
+        >
+          Benchmark
+        </A>
 
         <div class="sidebar__section-label">MANAGE</div>
         <A
@@ -54,14 +68,6 @@ const Sidebar: Component = () => {
           aria-current={isActive('/routing') ? 'page' : undefined}
         >
           Routing
-        </A>
-        <A
-          href={path('/benchmark')}
-          class="sidebar__link"
-          classList={{ active: isActive('/benchmark') }}
-          aria-current={isActive('/benchmark') ? 'page' : undefined}
-        >
-          Benchmark
         </A>
         <A
           href={path('/limits')}

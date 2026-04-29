@@ -15,12 +15,12 @@ import {
   getBenchmarkRun,
   getCustomProviders,
   getMessageDetails,
-  getMessages,
   getProviders,
   listBenchmarkRuns,
 } from '../services/api.js';
 import { extractRecordedAssistantText } from '../services/recording-extract.js';
 import { inferProviderFromModel } from '../services/routing-utils.js';
+import { agentPath } from '../services/routing.js';
 import { coerceContentToText } from '../components/recorded-message-helpers.js';
 import { createBenchmarkStore, MAX_COLUMNS } from '../services/benchmark-store.js';
 import { toast } from '../services/toast-store.js';
@@ -67,19 +67,10 @@ const Benchmark: Component = () => {
   const [headersOpen, setHeadersOpen] = createSignal(false);
   const [replayPickerOpen, setReplayPickerOpen] = createSignal(false);
 
-  // Cold-start probe: does this agent have any recorded messages at all?
-  // Drives the enabled/disabled state of the replay button.
-  const [recordingsProbe] = createResource(agentName, async (name) => {
-    try {
-      const data = (await getMessages({ recorded: 'true', agent_name: name, limit: '1' })) as {
-        items?: unknown[];
-      };
-      return (data.items ?? []).length > 0;
-    } catch {
-      return false;
-    }
-  });
-
+  // Replay button is always enabled: the picker drawer handles the empty
+  // state ("No recorded messages yet") with its own copy. Gating on a
+  // cold-start probe meant a transient network blip silently locked the
+  // button out for the rest of the session.
   const updateHeaders = (entries: HeaderEntry[]) => {
     setHeaderEntries(entries);
     persistHeaders(entries);
@@ -175,6 +166,19 @@ const Benchmark: Component = () => {
   };
 
   const handlePickRecording = async (messageId: string) => {
+    // Confirm before wiping a non-empty board: replay enters recording mode,
+    // which replaces every existing column with a single Original. Without
+    // this, a user with a half-completed run loses it on a misclick.
+    const nonOriginal = store.columns.filter((c) => !c.isOriginal);
+    if (nonOriginal.length > 0 && !store.replaySource()) {
+      const confirmed =
+        typeof window !== 'undefined' && typeof window.confirm === 'function'
+          ? window.confirm(
+              `Loading this recording will replace your ${nonOriginal.length} current column${nonOriginal.length === 1 ? '' : 's'}. Continue?`,
+            )
+          : true;
+      if (!confirmed) return;
+    }
     try {
       const detail = await getMessageDetails(messageId);
       if (!detail.recording?.request_body) {
@@ -257,6 +261,15 @@ const Benchmark: Component = () => {
   });
 
   const hasConnectedProviders = () => (providers() ?? []).some((p) => p.is_active);
+  /**
+   * Cross-provider comparison is the value prop. When only one provider is
+   * connected, the auto-picked defaults will be two columns from the same
+   * vendor — surfacing this hint nudges users to wire up another so the
+   * Benchmark page actually answers "is there a cheaper/faster option?".
+   */
+  const onlyOneProvider = () =>
+    new Set((providers() ?? []).filter((p) => p.is_active).map((p) => p.provider.toLowerCase()))
+      .size <= 1;
   const winners = () => findWinners(store.columns);
 
   return (
@@ -294,6 +307,14 @@ const Benchmark: Component = () => {
           </Show>
         }
       >
+        <Show when={onlyOneProvider()}>
+          <div class="benchmark__cross-provider-hint" role="note">
+            <span>Add a second provider to compare across vendors.</span>
+            <a href={agentPath(agentName(), '/routing')} class="benchmark__cross-provider-link">
+              Open Routing
+            </a>
+          </div>
+        </Show>
         <div class="benchmark__columns" aria-label="Model comparison columns">
           <For each={store.columns}>
             {(col) => (
@@ -304,6 +325,7 @@ const Benchmark: Component = () => {
                 onRemove={store.removeColumn}
                 onChangeModel={setPickerForColumn}
                 onRetry={handleRetry}
+                onCancel={store.cancelColumn}
               />
             )}
           </For>
@@ -334,16 +356,8 @@ const Benchmark: Component = () => {
               <button
                 type="button"
                 class="benchmark-prompt__headers"
-                aria-label={
-                  recordingsProbe() ? 'Re-run a recorded query' : 'No recorded messages yet'
-                }
-                aria-disabled={!recordingsProbe()}
-                disabled={!recordingsProbe()}
-                title={
-                  recordingsProbe()
-                    ? 'Re-run a recorded query'
-                    : 'No recorded messages yet. Enable recording in Settings to replay past queries.'
-                }
+                aria-label="Re-run a recorded query"
+                title="Re-run a recorded query"
                 onClick={() => setReplayPickerOpen(true)}
               >
                 <ReplayIcon size={16} />

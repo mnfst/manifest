@@ -37,6 +37,15 @@ interface Props {
   class?: string;
 }
 
+// Force `target="_blank"` links to open in a way that can't reach back into
+// `window.opener` (tab-napping). Modern browsers default to noopener for
+// cross-origin nav, but we render arbitrary model output — be explicit.
+DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+  if (node instanceof HTMLAnchorElement && node.getAttribute('target') === '_blank') {
+    node.setAttribute('rel', 'noopener noreferrer');
+  }
+});
+
 const MarkdownContent: Component<Props> = (props) => {
   const html = createMemo(() => {
     const parsed = marked.parse(props.text ?? '') as string;

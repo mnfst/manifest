@@ -68,4 +68,42 @@ describe('sanitizeRequestHeaders', () => {
     expect(isBlockedHeaderName('X-Manifest-Anything')).toBe(true);
     expect(isBlockedHeaderName('X-Title')).toBe(false);
   });
+
+  it('blocks provider API-key headers (x-api-key, api-key, x-goog-api-key)', () => {
+    expect(
+      sanitizeRequestHeaders({
+        'x-api-key': 'sk-evil',
+        'API-KEY': 'evil-2',
+        'X-Goog-Api-Key': 'AIza-evil',
+        'X-Title': 'kept',
+      }),
+    ).toEqual({ 'X-Title': 'kept' });
+  });
+
+  it('blocks provider account/identity headers (openai-organization, openai-project, anthropic-version)', () => {
+    expect(
+      sanitizeRequestHeaders({
+        'OpenAI-Organization': 'org-evil',
+        'openai-project': 'proj-evil',
+        'Anthropic-Version': '2024-01-01',
+        'X-Title': 'kept',
+      }),
+    ).toEqual({ 'X-Title': 'kept' });
+  });
+
+  it('strips control characters (NUL, CR, LF, DEL) from header values', () => {
+    const out = sanitizeRequestHeaders({
+      'X-Title': 'foo\r\nbar\x00baz\x7fqux',
+    });
+    expect(out).toEqual({ 'X-Title': 'foobarbazqux' });
+  });
+
+  it('drops a header whose value becomes empty after control-char stripping', () => {
+    expect(sanitizeRequestHeaders({ 'X-Bad': '\r\n\x00' })).toBeUndefined();
+  });
+
+  it('blocks x-aws-* prefix headers', () => {
+    expect(isBlockedHeaderName('x-aws-region')).toBe(true);
+    expect(isBlockedHeaderName('X-AWS-Date')).toBe(true);
+  });
 });

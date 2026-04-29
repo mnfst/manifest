@@ -212,12 +212,14 @@ describe("RecordedMessageModal (drawer)", () => {
     });
   });
 
-  it("navigates to Benchmark with the messageId when Optimize is clicked", async () => {
+  it("navigates to Benchmark with the messageId when the compare CTA is clicked", async () => {
+    // The CTA copy was changed from "Optimize" to "Compare on other models"
+    // — it was previously redundant with the 18-word hint paragraph.
     const onClose = vi.fn();
     render(() => <RecordedMessageModal open={true} messageId="msg-42" onClose={onClose} />);
     mockGetMessageDetails.mockResolvedValue(baseDetails({ message: { ...baseDetails().message, id: "msg-42" } }));
-    await vi.waitFor(() => expect(findButton("Optimize")).toBeDefined());
-    fireEvent.click(findButton("Optimize")!);
+    await vi.waitFor(() => expect(findButton("Compare on other models")).toBeDefined());
+    fireEvent.click(findButton("Compare on other models")!);
     expect(onClose).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith("/agents/test-agent/benchmark?optimize=msg-42");
   });
@@ -228,7 +230,7 @@ describe("RecordedMessageModal (drawer)", () => {
     );
     render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
     await vi.waitFor(() => expect(q(".recorded-drawer__tabs")).not.toBeNull());
-    expect(findButton("Optimize")).toBeUndefined();
+    expect(findButton("Compare on other models")).toBeUndefined();
     expect(findButton("Copy request")).toBeUndefined();
     expect(findButton("Copy response")).toBeUndefined();
     expect(q(".recorded-modal__essentials")).toBeNull();

@@ -69,6 +69,19 @@ describe('createCaptureSink', () => {
     expect(sink.jsonBody).toBeUndefined();
   });
 
+  it('overflows when JSON is set after streamed bytes (mixed shapes are rejected)', () => {
+    // Streaming and JSON capture cannot coexist — the response body emitter
+    // can only ship one shape, so any attempt to set JSON after streamed
+    // bytes have arrived is treated as an overflow rather than silently
+    // dropping the SSE buffer.
+    const sink = createCaptureSink(1024);
+    sink.appendRaw('data: hello\n\n');
+    sink.setJson({ should: 'be dropped' });
+    expect(sink.overflowed).toBe(true);
+    expect(sink.jsonBody).toBeUndefined();
+    expect(sink.buildResponseBody()).toBeNull();
+  });
+
   it('stores sanitized headers', () => {
     const sink = createCaptureSink();
     sink.setHeaders({ 'content-type': 'application/json' });
@@ -89,17 +102,29 @@ describe('createCaptureSink', () => {
 });
 
 describe('sanitizeResponseHeaders', () => {
-  it('strips sensitive headers and lowercases keys', () => {
+  it('keeps allowlisted headers and drops everything else (lowercased keys)', () => {
+    // Allowlist is the safer default: provider-echoed creds (e.g. x-api-key)
+    // and arbitrary debugging headers must NOT make it into the recording.
     const headers = new Headers();
     headers.set('Content-Type', 'application/json');
     headers.set('Set-Cookie', 'sid=abc');
     headers.set('Authorization', 'Bearer secret');
     headers.set('X-Trace', 'trace-1');
+    headers.set('X-API-Key', 'echoed-secret');
+    headers.set('WWW-Authenticate', 'Bearer realm="x"');
+    headers.set('X-Request-Id', 'req-9');
+    headers.set('X-RateLimit-Remaining', '42');
+
     const result = sanitizeResponseHeaders(headers);
+
     expect(result).toEqual({
       'content-type': 'application/json',
-      'x-trace': 'trace-1',
+      'x-request-id': 'req-9',
+      'x-ratelimit-remaining': '42',
     });
+    expect(result['x-api-key']).toBeUndefined();
+    expect(result['www-authenticate']).toBeUndefined();
+    expect(result['x-trace']).toBeUndefined();
   });
 
   it('returns an empty object for empty headers', () => {

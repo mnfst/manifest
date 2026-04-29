@@ -238,6 +238,48 @@ describe('pipeStream', () => {
     expect(written).toEqual(['first']);
   });
 
+  it('stops feeding onClientChunk (recording capture) when the client disconnects', async () => {
+    // Regression: pipeStream used to keep filling the recording buffer after
+    // dest.writableEnded fired, wasting up to RECORDING_MAX_BYTES of memory
+    // on bytes the user can never read. The fix short-circuits writeOut.
+    const { res } = mockResponse();
+    const captured: string[] = [];
+    // The mock res starts with writableEnded=true so every chunk arrives
+    // post-disconnect. Recording capture must NOT fill — the user can't
+    // read this response anymore.
+    res.writableEnded = true;
+    const stream = createReadableStream(['chunk-after-disconnect-1', 'chunk-after-disconnect-2']);
+
+    await pipeStream(stream, res as never, undefined, (text) => captured.push(text));
+
+    expect(captured).toEqual([]);
+  });
+
+  it('cancels the upstream reader on client disconnect so the provider stream is released', async () => {
+    const { res } = mockResponse();
+    let cancelled = false;
+    const encoder = new TextEncoder();
+    let readCount = 0;
+
+    const stream = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        readCount++;
+        if (readCount === 1) {
+          controller.enqueue(encoder.encode('first'));
+        } else {
+          (res as Record<string, unknown>).writableEnded = true;
+          controller.enqueue(encoder.encode('second'));
+        }
+      },
+      cancel() {
+        cancelled = true;
+      },
+    });
+
+    await pipeStream(stream, res as never);
+    expect(cancelled).toBe(true);
+  });
+
   it('should handle empty stream', async () => {
     const { res, written } = mockResponse();
     const stream = createReadableStream([]);

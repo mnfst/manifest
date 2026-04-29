@@ -56,10 +56,50 @@ interface Mocks {
   pricingCache: { getByModel: jest.Mock };
   eventBus: { emit: jest.Mock };
   history: { saveColumn: jest.Mock };
-  messageRepo: { insert: jest.Mock };
+  rateLimiter: { acquireSlot: jest.Mock; releaseSlot: jest.Mock };
+  messageRepo: { insert: jest.Mock; manager: { transaction: jest.Mock } };
 }
 
-function buildService(mocks: Partial<Mocks> = {}): { service: BenchmarkService; mocks: Mocks } {
+interface MocksOverrides {
+  resolveAgent?: { resolve: jest.Mock };
+  providerKeyService?: {
+    hasActiveProvider: jest.Mock;
+    getAuthType: jest.Mock;
+    getProviderApiKey: jest.Mock;
+  };
+  providerClient?: {
+    forward: jest.Mock;
+    convertGoogleResponse: jest.Mock;
+    convertAnthropicResponse: jest.Mock;
+    convertChatGptResponse: jest.Mock;
+  };
+  pricingCache?: { getByModel: jest.Mock };
+  eventBus?: { emit: jest.Mock };
+  history?: { saveColumn: jest.Mock };
+  rateLimiter?: { acquireSlot: jest.Mock; releaseSlot: jest.Mock };
+  // Tests can pass just `{ insert }` here — the wrapper plumbs the txn-aware
+  // manager around it.
+  messageRepo?: { insert: jest.Mock };
+}
+
+function stripMessageRepo(o: MocksOverrides): Omit<MocksOverrides, 'messageRepo'> {
+  const { messageRepo: _ignored, ...rest } = o;
+  return rest;
+}
+
+function buildService(mocks: MocksOverrides = {}): { service: BenchmarkService; mocks: Mocks } {
+  // The transactional persistSuccess path calls messageRepo.manager.transaction
+  // and threads an EntityManager down into recordSuccess + history.saveColumn.
+  // The mock just runs the callback with a manager whose getRepository returns
+  // the same insert mock — the assertions still target messageRepo.insert /
+  // history.saveColumn.
+  const overrideRepo = mocks.messageRepo as { insert?: jest.Mock } | undefined;
+  const messageInsert = overrideRepo?.insert ?? jest.fn().mockResolvedValue(undefined);
+  const txn = jest.fn().mockImplementation(async (cb: (m: unknown) => unknown) =>
+    cb({
+      getRepository: () => ({ insert: messageInsert }),
+    }),
+  );
   const full: Mocks = {
     resolveAgent: {
       resolve: jest.fn().mockResolvedValue(AGENT),
@@ -83,8 +123,14 @@ function buildService(mocks: Partial<Mocks> = {}): { service: BenchmarkService; 
     },
     eventBus: { emit: jest.fn() },
     history: { saveColumn: jest.fn().mockResolvedValue(undefined) },
-    messageRepo: { insert: jest.fn().mockResolvedValue(undefined) },
-    ...mocks,
+    rateLimiter: {
+      acquireSlot: jest.fn(),
+      releaseSlot: jest.fn(),
+    },
+    messageRepo: { insert: messageInsert, manager: { transaction: txn } },
+    // Strip the override's `messageRepo` — its `{ insert }` was already
+    // captured into `messageInsert` above and re-wrapped with `manager.txn`.
+    ...stripMessageRepo(mocks),
   };
   const service = new BenchmarkService(
     full.resolveAgent as unknown as ResolveAgentService,
@@ -93,6 +139,7 @@ function buildService(mocks: Partial<Mocks> = {}): { service: BenchmarkService; 
     full.pricingCache as unknown as ModelPricingCacheService,
     full.eventBus as unknown as IngestEventBusService,
     full.history as unknown as BenchmarkHistoryService,
+    full.rateLimiter as unknown as import('../routing/proxy/proxy-rate-limiter').ProxyRateLimiter,
     full.messageRepo as unknown as Repository<AgentMessage>,
   );
   return { service, mocks: full };
@@ -272,7 +319,41 @@ describe('BenchmarkService', () => {
       isChatGpt: false,
     });
     const result = await service.run(USER_ID, makeDto());
-    expect(result.content).toBe('Hello bare string world');
+    // Multi-part assistant content is joined with `\n` so paragraph/turn
+    // boundaries the provider emitted via separate text blocks survive into
+    // the column UI. Empty parts (non-text blocks like images) are dropped.
+    expect(result.content).toBe('Hello \nbare string \nworld');
+  });
+
+  it('falls back to "" when no user message exists and the last message has nullish content', async () => {
+    // The DTO validator normally enforces non-empty content, but the service
+    // is robust to a malformed input that smuggles past it (legacy callers,
+    // direct internal use). Hits the trailing `?? ''` branch in extractPrompt.
+    const { service, mocks } = buildService();
+    mocks.providerClient.forward.mockResolvedValue({
+      response: jsonResponse({
+        choices: [{ message: { content: 'ok' } }],
+        usage: { prompt_tokens: 1, completion_tokens: 1 },
+      }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    });
+    await service.run(
+      USER_ID,
+      makeDto({
+        // Bypass the DTO type — at runtime the field can land as undefined
+        // if the validator was disabled or skipped (we still want a clean
+        // empty-string prompt rather than NaN/undefined leaking out).
+        messages: [{ role: 'assistant', content: undefined as unknown as string }],
+      }),
+    );
+    // saveColumn now receives an EntityManager as the second arg (transactional
+    // write); the matcher accepts anything for the manager slot.
+    expect(mocks.history.saveColumn).toHaveBeenCalledWith(
+      expect.objectContaining({ prompt: '' }),
+      expect.anything(),
+    );
   });
 
   it('falls back to the last message when there is no user message', async () => {
@@ -297,6 +378,7 @@ describe('BenchmarkService', () => {
     );
     expect(mocks.history.saveColumn).toHaveBeenCalledWith(
       expect.objectContaining({ prompt: 'ack' }),
+      expect.anything(),
     );
   });
 
@@ -347,6 +429,202 @@ describe('BenchmarkService', () => {
       temperature: 0.7,
       tools: [{ name: 'x' }],
     });
+  });
+
+  it('falls back to providerKeyService.getAuthType when the DTO omits authType', async () => {
+    const { service, mocks } = buildService();
+    mocks.providerKeyService.getAuthType.mockResolvedValueOnce('subscription');
+    mocks.providerClient.forward.mockResolvedValue({
+      response: jsonResponse({
+        choices: [{ message: { content: 'ok' } }],
+        usage: { prompt_tokens: 1, completion_tokens: 1 },
+      }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    });
+
+    const dto = makeDto();
+    delete (dto as Partial<RunBenchmarkDto>).authType;
+    await service.run(USER_ID, dto);
+
+    expect(mocks.providerKeyService.getAuthType).toHaveBeenCalledWith('agent-1', 'openai');
+    // The resolved authType is propagated to the recorded row.
+    expect(mocks.messageRepo.insert.mock.calls[0][0]).toMatchObject({
+      auth_type: 'subscription',
+    });
+  });
+
+  it('wraps a non-Error provider-client rejection (covers the String(err) branch)', async () => {
+    // The forwardRequest catch coerces err to a string only when it is not
+    // an Error instance. Throwing a bare string exercises the alternate
+    // branch of the `err instanceof Error ? err.message : String(err)` ternary.
+    const { service, mocks } = buildService();
+    mocks.providerClient.forward.mockRejectedValue('plain string failure');
+    await expect(service.run(USER_ID, makeDto())).rejects.toBeInstanceOf(BadGatewayException);
+  });
+
+  it('treats missing usage fields as zero tokens', async () => {
+    // No prompt_tokens / completion_tokens — the `?? 0` fallbacks fire so
+    // the metrics row stays well-formed instead of carrying NaN.
+    const { service, mocks } = buildService();
+    mocks.providerClient.forward.mockResolvedValue({
+      response: jsonResponse({ choices: [{ message: { content: 'ok' } }] }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    });
+    const result = await service.run(USER_ID, makeDto());
+    expect(result.metrics.inputTokens).toBe(0);
+    expect(result.metrics.outputTokens).toBe(0);
+  });
+
+  it('treats an empty body string as `{}` rather than throwing on JSON parse', async () => {
+    // The `bodyText ? JSON.parse(...) : {}` short-circuit prevents an empty
+    // 200 from blowing up; we should still produce an empty-content row.
+    const { service, mocks } = buildService();
+    mocks.providerClient.forward.mockResolvedValue({
+      response: new Response('', {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    });
+    const result = await service.run(USER_ID, makeDto());
+    expect(result.content).toBe('');
+    expect(result.metrics.inputTokens).toBe(0);
+  });
+
+  it('logs and swallows non-Error rejections when recording an error row', async () => {
+    // Hits the `err instanceof Error ? err.message : err` ternary in
+    // recordError — exercising the alternate branch keeps logging output
+    // sane when something throws a non-Error (libraries occasionally do).
+    const { service, mocks } = buildService({
+      messageRepo: {
+        insert: jest.fn().mockRejectedValue('non-error string'),
+      },
+    });
+    mocks.providerClient.forward.mockResolvedValue({
+      response: new Response('boom', { status: 500 }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    });
+    await expect(service.run(USER_ID, makeDto())).rejects.toBeInstanceOf(BadGatewayException);
+  });
+
+  it('acquires + releases a concurrency slot on the happy path', async () => {
+    const { service, mocks } = buildService();
+    mocks.providerClient.forward.mockResolvedValue({
+      response: jsonResponse({
+        choices: [{ message: { content: 'ok' } }],
+        usage: { prompt_tokens: 1, completion_tokens: 1 },
+      }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    });
+    await service.run(USER_ID, makeDto());
+    expect(mocks.rateLimiter.acquireSlot).toHaveBeenCalledWith(USER_ID);
+    expect(mocks.rateLimiter.releaseSlot).toHaveBeenCalledWith(USER_ID);
+  });
+
+  it('still releases the concurrency slot when the provider call throws', async () => {
+    const { service, mocks } = buildService();
+    mocks.providerClient.forward.mockRejectedValue(new Error('network down'));
+    await expect(service.run(USER_ID, makeDto())).rejects.toBeInstanceOf(BadGatewayException);
+    expect(mocks.rateLimiter.releaseSlot).toHaveBeenCalledWith(USER_ID);
+  });
+
+  it('redacts UUIDs / request-id / org-id shaped tokens in the surfaced error', async () => {
+    // Defense-in-depth: provider error bodies often echo internal request/
+    // org/account identifiers that are useful only as recon for follow-on
+    // attacks. Cap at 120 chars and replace those tokens with `[id]`.
+    const { service, mocks } = buildService();
+    const noisy =
+      'rate limit org_abcdef123456 request_id=req_zzz9999 trace deadbeef-1234-4321-aaaa-1234567890ab';
+    // mockImplementation so each call gets a fresh Response (response.text()
+    // consumes the body — calling service.run twice on the same Response
+    // throws on the second read).
+    mocks.providerClient.forward.mockImplementation(async () => ({
+      response: new Response(noisy, { status: 429 }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    }));
+    await expect(service.run(USER_ID, makeDto())).rejects.toMatchObject({
+      message: expect.not.stringMatching(/abcdef123456|req_zzz9999|deadbeef-1234/),
+    });
+    await expect(service.run(USER_ID, makeDto())).rejects.toMatchObject({
+      message: expect.stringMatching(/Provider returned 429:.*\[id\]/),
+    });
+  });
+
+  it('caps the surfaced error snippet at 120 characters', async () => {
+    const { service, mocks } = buildService();
+    const longBody = 'x'.repeat(500);
+    mocks.providerClient.forward.mockResolvedValue({
+      response: new Response(longBody, { status: 500 }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    });
+    let captured: Error | undefined;
+    try {
+      await service.run(USER_ID, makeDto());
+    } catch (err) {
+      captured = err as Error;
+    }
+    expect(captured).toBeDefined();
+    // "Provider returned 500: " is 23 chars; the snippet itself must be ≤ 120.
+    const snippet = captured!.message.replace(/^Provider returned \d+: /, '');
+    expect(snippet.length).toBeLessThanOrEqual(120);
+  });
+
+  it('truncateError returns just the status when the body is empty/whitespace', async () => {
+    // Empty body → snippet === '' → falls into the no-snippet branch of
+    // the truncateError ternary.
+    const { service, mocks } = buildService();
+    mocks.providerClient.forward.mockResolvedValue({
+      response: new Response('   ', { status: 503 }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    });
+    await expect(service.run(USER_ID, makeDto())).rejects.toMatchObject({
+      message: 'Provider returned 503',
+    });
+  });
+
+  it('returns empty content when the assistant message content is null/undefined', async () => {
+    // `extractContent` falls through to '' when raw is neither string nor
+    // Array. Hits the final return-empty branch at the bottom of the method.
+    const { service, mocks } = buildService();
+    mocks.providerClient.forward.mockResolvedValue({
+      response: jsonResponse({
+        choices: [{ message: { content: null } }],
+        usage: { prompt_tokens: 1, completion_tokens: 0 },
+      }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    });
+    const result = await service.run(USER_ID, makeDto());
+    expect(result.content).toBe('');
+  });
+
+  it('returns empty content when there is no choice at all', async () => {
+    const { service, mocks } = buildService();
+    mocks.providerClient.forward.mockResolvedValue({
+      response: jsonResponse({ usage: { prompt_tokens: 1, completion_tokens: 0 } }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    });
+    const result = await service.run(USER_ID, makeDto());
+    expect(result.content).toBe('');
   });
 
   it('only returns whitelisted response headers', async () => {
