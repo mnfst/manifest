@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "test_generation_v2",
+  "case": 13,
+  "response": "To write unit tests for the `fizzbuzz` function using the `pytest` framework, we need to cover the happy path, edge cases, and error cases. Below is a comprehensive set of tests:\n\n```python\nimport pytest\n\ndef test_fizzbuzz_happy_path():\n    # Happy path tests\n    assert fizzbuzz(3) == 'Fizz'\n    assert fizzbuzz(5) == 'Buzz'\n    assert fizzbuzz(15) == 'FizzBuzz'\n    assert fizzbuzz(30) == 'FizzBuzz'\n    assert fizzbuzz(9) == 'Fizz'\n    assert fizzbuzz(10) == 'Buzz'\n    assert fizzbuzz(7) == '7'\n\ndef test_fizzbuzz_edge_cases():\n    # Edge case tests\n    assert fizzbuzz(0) == 'FizzBuzz'  # 0 is divisible by any number\n    assert fizzbuzz(1) == '1'\n    assert fizzbuzz(2) == '2'\n    assert fizzbuzz(4) == '4'\n    assert fizzbuzz(6) == 'Fizz'\n    assert fizzbuzz(20) == 'Buzz'\n    assert fizzbuzz(45) == 'FizzBuzz'\n\ndef test_fizzbuzz_error_cases():\n    # Error case tests\n    with pytest.raises(TypeError):\n        fizzbuzz('a')  # Non-integer input\n    with pytest.raises(TypeError):\n        fizzbuzz(None)  # None as input\n    with pytest.raises(TypeError):\n        fizzbuzz(3.5)  # Float input\n\n# If you want to run the tests, you can use the following command in your terminal:\n# pytest <name_of_your_test_file>.py\n```\n\n### Explanation:\n\n1. **Happy Path Tests**: These tests cover typical scenarios where the function is expected to return 'Fizz', 'Buzz', 'FizzBuzz', or the number itself as a string. These include numbers like 3, 5, 15, and others that are divisible by 3 or 5.\n\n2. **Edge Case Tests**: These tests cover edge cases such as:\n   - `0`, which is divisible by any number and should return 'FizzBuzz'.\n   - Small numbers like `1`, `2`, and `4` that are not divisible by 3 or 5.\n   - Larger numbers like `45` that are divisible by both 3 and 5.\n\n3. **Error Case Tests**: These tests ensure that the function raises a `TypeError` when given invalid input types such as strings, `None`, or floats. The function is designed to accept only integers, so these tests check for proper error handling.\n\nTo run these tests, save the code in a file and execute it using the `pytest` command in your terminal. Make sure you have `pytest` installed in your environment.",
+  "score": 4,
+  "cost": 0.0060775,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 584
+  }
+}

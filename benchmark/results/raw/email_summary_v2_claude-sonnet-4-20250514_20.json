@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "email_summary_v2",
+  "case": 20,
+  "response": "A disk space alert occurred on the production database server Saturday at 2 AM due to misconfigured log rotation from the recent migration, requiring manual intervention at 8 AM to restore service after automated cleanup partially failed. There was no customer impact since this happened during a scheduled maintenance window.",
+  "score": 5,
+  "cost": 0.001245,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 62
+  }
+}

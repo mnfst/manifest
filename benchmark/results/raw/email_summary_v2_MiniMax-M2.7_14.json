@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "email_summary_v2",
+  "case": 14,
+  "response": "Your AWS bill increased 40% month-over-month, primarily due to new ML training jobs using expensive p4d instances, with an estimated monthly cost impact of $45K. To address this, DevOps is evaluating spot instances (70% savings with interruption risk) or reserved instances (30% savings with commitment), and a decision is needed by Friday.",
+  "score": 5,
+  "cost": 0.0010967000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 219
+  }
+}

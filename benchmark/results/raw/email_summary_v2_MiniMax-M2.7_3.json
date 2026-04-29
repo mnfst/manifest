@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "email_summary_v2",
+  "case": 3,
+  "response": "The March onboarding cohort\u2019s satisfaction fell to 7.2/10, with strong ratings for the buddy system and timely IT support but notable problems including benefits deadline confusion, delayed tool access (3\u20115\u202fdays vs. the 1\u2011day target), and a missing culture handbook. The priority action is to resolve the tool\u2011access issue, while also clarifying benefits deadlines and distributing the culture handbook.",
+  "score": 5,
+  "cost": 0.0025586,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 545
+  }
+}

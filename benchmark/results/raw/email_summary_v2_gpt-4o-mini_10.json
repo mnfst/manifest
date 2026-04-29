@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The CEO has shared the draft of the Q1 board deck, highlighting key metrics such as 127% of the revenue target and a 22% increase in CAC. The CEO requests the product roadmap section by Wednesday in preparation for the board meeting next Tuesday.",
+  "score": 5,
+  "cost": 4.41e-05,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 52
+  }
+}

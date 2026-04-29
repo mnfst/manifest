@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "email_summary_v2",
+  "case": 0,
+  "response": "The marketing department exceeded its budget by 15% due to an August campaign, while engineering is 8% under budget because of delayed hiring. Sarah proposes reallocating $50K from engineering to marketing to cover the overspend and suggests discussing this on Thursday.",
+  "score": 5,
+  "cost": 0.0007575,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 52
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "email_summary_v2",
+  "case": 38,
+  "response": "The bug bounty program's first month yielded 47 reports (12 valid, 3 critical) with $15K in payouts, with all critical issues\u2014an IDOR on user profiles, SSRF via webhook URL, and JWT secret in client bundle\u2014patched within 24 hours. Security recommends continuing the program due to its strong ROI.",
+  "score": 5,
+  "cost": 0.01098,
+  "expected": "",
+  "tokens": {
+    "input": 172,
+    "output": 112
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "The Customer Success team reported improved Q1 metrics, including an NPS increase to 62, a support CSAT of 4.3/5, and a reduced churn rate of 1.2%. Action items include addressing top feature requests for SSO, custom dashboards, and API rate limit increases, as well as pursuing three enterprise expansions totaling $800K.",
+  "score": 5,
+  "cost": 6.18e-05,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 74
+  }
+}

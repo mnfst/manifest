@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "email_summary_v2",
+  "case": 34,
+  "response": "The database team is migrating from MySQL 5.7 to PostgreSQL 16, with the cutover planned for July using a blue-green deployment to avoid downtime. The main action required is to rewrite three stored procedures, and the testing environment is now ready.",
+  "score": 5,
+  "cost": 0.0006475,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 53
+  }
+}

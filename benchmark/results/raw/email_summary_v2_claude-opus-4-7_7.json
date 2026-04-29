@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "email_summary_v2",
+  "case": 7,
+  "response": "The office is relocating to 500 Market St with the move taking place the weekend of June 7-8, preceded by IT network setup from June 4-6, and professional movers have been approved within budget. Each team must designate a move coordinator by Friday.",
+  "score": 5,
+  "cost": 0.008085,
+  "expected": "",
+  "tokens": {
+    "input": 139,
+    "output": 80
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The email outlines the timeline for the Japan launch, which includes setting up a legal entity in May, completing localization in June, starting a beta phase with 10 customers in July, and achieving general availability in August, with a total budget of $200K. CEO approval is required to proceed with the plan.",
+  "score": 5,
+  "cost": 5.1599999999999994e-05,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 62
+  }
+}

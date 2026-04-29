@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary_v2",
+  "case": 39,
+  "response": "The year-end audit begins January 15th, requiring immediate preparation based on a pre-audit checklist. This checklist includes finalizing Q4 revenue, reconciling bank accounts, verifying stock options, and preparing related-party disclosures, with responsibilities to be assigned at next Tuesday's Controller meeting.",
+  "score": 5,
+  "cost": 5.025e-05,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 60
+  }
+}

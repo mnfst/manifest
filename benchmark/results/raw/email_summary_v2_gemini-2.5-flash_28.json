@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary_v2",
+  "case": 28,
+  "response": "The annual Disaster Recovery test failed to meet its 4-hour RTO target, taking 6 hours and 23 minutes due to a longer-than-expected database restore. SRE recommends increasing backup frequency and pre-provisioning a standby database to address this before the next test in October.",
+  "score": 5,
+  "cost": 5.205e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 61
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "The Customer Success team reported strong Q1 performance with improved NPS (62), high support satisfaction (4.3/5), and reduced churn (1.2%). They have identified three top feature requests (SSO, custom dashboards, API rate limit increase) and are tracking $800K in potential enterprise expansions.",
+  "score": 5,
+  "cost": 0.001452,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 71
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "email_summary_v2",
+  "case": 47,
+  "response": "The March onboarding cohort's satisfaction dropped to 7.2/10 from 8.1/10, with main issues including confusion about benefits deadlines, delayed tools access (3-5 days vs. 1-day target), and missing culture handbooks, though the buddy system performed well at 9.1/10. Priority action items are to expedite tools access and address the benefits deadline communication and culture handbook distribution.",
+  "score": 5,
+  "cost": 0.0004848,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 96
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The CEO has shared the Q1 board deck showing strong performance at 127% of revenue target and 115% NRR, though CAC increased 22%, with the board meeting scheduled for next Tuesday. The action item requires you to provide your product roadmap section by Wednesday.",
+  "score": 5,
+  "cost": 0.0012617000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 257
+  }
+}

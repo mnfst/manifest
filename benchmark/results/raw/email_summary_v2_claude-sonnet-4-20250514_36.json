@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "email_summary_v2",
+  "case": 36,
+  "response": "The API's search endpoint experienced a significant performance regression after Thursday's deployment, with P99 latency increasing from 200ms to 800ms due to a new full-text search query not utilizing proper indexing. The backend team has identified the fix (adding a GIN index on the content column) and plans to deploy it during tonight's maintenance window.",
+  "score": 5,
+  "cost": 0.001476,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 77
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "test_generation_v2",
+  "case": 12,
+  "response": "To thoroughly test the `chunk_list` function using `pytest`, we need to cover the following scenarios:\n\n1. **Happy Path**: Normal cases where the list can be evenly divided into chunks.\n2. **Edge Cases**: \n   - When the list is empty.\n   - When the list size is not perfectly divisible by the chunk size.\n   - When the chunk size is 1.\n   - When the chunk size is larger than the list size.\n3. **Error Cases**: \n   - When the chunk size is zero or negative, which should raise a `ValueError`.\n\nHere's how you can write the unit tests using `pytest`:\n\n```python\nimport pytest\n\ndef test_chunk_list_happy_path():\n    assert chunk_list([1, 2, 3, 4, 5, 6], 2) == [[1, 2], [3, 4], [5, 6]]\n    assert chunk_list([1, 2, 3, 4, 5, 6], 3) == [[1, 2, 3], [4, 5, 6]]\n\ndef test_chunk_list_edge_cases():\n    # Empty list\n    assert chunk_list([], 3) == []\n    \n    # List size not perfectly divisible by chunk size\n    assert chunk_list([1, 2, 3, 4, 5], 2) == [[1, 2], [3, 4], [5]]\n    \n    # Chunk size is 1\n    assert chunk_list([1, 2, 3], 1) == [[1], [2], [3]]\n    \n    # Chunk size larger than list size\n    assert chunk_list([1, 2, 3], 5) == [[1, 2, 3]]\n\ndef test_chunk_list_error_cases():\n    # Chunk size is zero\n    with pytest.raises(ValueError, match='size must be positive'):\n        chunk_list([1, 2, 3], 0)\n    \n    # Chunk size is negative\n    with pytest.raises(ValueError, match='size must be positive'):\n        chunk_list([1, 2, 3], -1)\n\n# To run the tests, use the command: pytest <name_of_test_file>.py\n```\n\n### Explanation:\n\n- **Happy Path Tests**: These tests check if the function correctly divides the list into chunks of the specified size when the list can be evenly divided.\n  \n- **Edge Case Tests**: These tests handle special scenarios:\n  - An empty list should return an empty list of chunks.\n  - If the list size isn't perfectly divisible by the chunk size, the last chunk should contain the remaining elements.\n  - A chunk size of 1 should return a list of single-element lists.\n  - If the chunk size is larger than the list size, the entire list should be returned as a single chunk.\n\n- **Error Case Tests**: These tests ensure that the function raises a `ValueError` when the chunk size is zero or negative, as specified in the function's implementation. The `match` parameter in `pytest.raises` is used to verify that the exception message is as expected.",
+  "score": 4,
+  "cost": 0.006845,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 663
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "email_summary_v2",
+  "case": 11,
+  "response": "The SOC 2 Type II audit was completed with no critical findings, but three observations were noted: insufficient access review frequency, an untested incident response plan (6+ months), and incomplete vendor risk assessments for two vendors. Remediation for these items is due within 30 days.",
+  "score": 5,
+  "cost": 0.009315,
+  "expected": "",
+  "tokens": {
+    "input": 161,
+    "output": 92
+  }
+}

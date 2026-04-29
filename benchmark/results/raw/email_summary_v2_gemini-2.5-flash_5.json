@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary_v2",
+  "case": 5,
+  "response": "The product launch is delayed by two weeks because payment integration isn't passing PCI compliance. The team needs to decide between launching without payments (requiring T&C updates) or fully delaying until May 15, and will meet tomorrow at 10am to discuss.",
+  "score": 5,
+  "cost": 4.8299999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 56
+  }
+}

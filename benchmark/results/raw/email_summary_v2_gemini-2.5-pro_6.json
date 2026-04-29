@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "email_summary_v2",
+  "case": 6,
+  "response": "Acme Corp, a $450K ARR customer, is threatening to churn due to persistent API latency and an unanswered support ticket. An engineer has been assigned to the issue, and an executive sponsor is needed for a customer call this week.",
+  "score": 5,
+  "cost": 0.00062375,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 50
+  }
+}

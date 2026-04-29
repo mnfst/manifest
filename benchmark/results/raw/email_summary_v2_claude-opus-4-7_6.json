@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "email_summary_v2",
+  "case": 6,
+  "response": "Acme Corp ($450K ARR) is threatening to churn due to API latency issues and a five-day support delay, prompting James to assign a dedicated engineer to the account. He needs an executive sponsor to join a customer call this week.",
+  "score": 5,
+  "cost": 0.0084,
+  "expected": "",
+  "tokens": {
+    "input": 165,
+    "output": 79
+  }
+}

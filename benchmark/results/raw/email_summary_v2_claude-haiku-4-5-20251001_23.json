@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "email_summary_v2",
+  "case": 23,
+  "response": "The v1 API will be deprecated on June 30 and removed September 30, with 340 integrations still requiring migration to v2. Action items include conducting personal outreach to the top 20 enterprise customers and hosting a webinar for remaining users to facilitate the migration.",
+  "score": 5,
+  "cost": 0.0003376,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 63
+  }
+}

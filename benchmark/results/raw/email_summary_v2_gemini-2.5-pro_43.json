@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "email_summary_v2",
+  "case": 43,
+  "response": "The open-source license audit identified two problematic dependencies: a charting library with an incompatible AGPL license and another package with no license. Both packages should be removed before the next release, with the charting library being replaced by an approved alternative like Chart.js.",
+  "score": 5,
+  "cost": 0.00064875,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 52
+  }
+}

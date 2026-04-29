@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary_v2",
+  "case": 14,
+  "response": "The AWS bill is up 40% month-over-month, an estimated $45K monthly, primarily due to new ML training jobs using expensive p4d instances. DevOps needs a decision by Friday on whether to use spot instances (70% savings with interruption risk) or reserved instances (30% savings with commitment) to mitigate these costs.",
+  "score": 5,
+  "cost": 6.0899999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 74
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "test_generation_v2",
+  "case": 32,
+  "response": "To write unit tests for the `find_missing` function using the `pytest` framework, we will cover various scenarios including the happy path, edge cases, and error cases. Below is a set of tests that you can use:\n\n```python\nimport pytest\n\ndef find_missing(nums: list) -> int:\n    \"\"\"Find missing number in [0..n] sequence.\"\"\"\n    n = len(nums)\n    return n * (n + 1) // 2 - sum(nums)\n\ndef test_find_missing_happy_path():\n    # Happy path: normal cases\n    assert find_missing([0, 1, 2, 3, 5]) == 4\n    assert find_missing([1, 2, 3, 4, 5, 6, 7, 9]) == 8\n    assert find_missing([0]) == 1  # Missing 1 in [0]\n    assert find_missing([1]) == 0  # Missing 0 in [0, 1]\n\ndef test_find_missing_edge_cases():\n    # Edge cases: empty list and single element\n    assert find_missing([]) == 0  # Missing 0 in empty list\n    assert find_missing([0]) == 1  # Missing 1 in [0]\n    assert find_missing([1]) == 0  # Missing 0 in [0, 1]\n    assert find_missing([0, 1]) == 2  # Missing 2 in [0, 1]\n\ndef test_find_missing_error_cases():\n    # Error cases: non-integer values\n    with pytest.raises(TypeError):\n        find_missing([0, 1, '2', 3])  # String in the list\n    with pytest.raises(TypeError):\n        find_missing([None, 1, 2])  # None in the list\n    with pytest.raises(TypeError):\n        find_missing([0, 1, 2, 3.5])  # Float in the list\n\n    # Non-sequential numbers\n    assert find_missing([2, 3, 4]) == 0  # Missing 0 in [0, 1, 2, 3, 4]\n    assert find_missing([0, 1, 3]) == 2  # Missing 2 in [0, 1, 2, 3]\n\n# To run the tests, use the command: pytest <filename>.py\n```\n\n### Explanation of the Tests:\n\n1. **Happy Path Tests**: These tests check the function with typical inputs where a number is missing from a sequence. They ensure that the function correctly identifies the missing number.\n\n2. **Edge Cases**: These tests cover special scenarios such as an empty list and lists with only one or two elements. They ensure that the function behaves correctly in these situations.\n\n3. **Error Cases**: These tests check how the function handles invalid inputs, such as lists containing non-integer values (strings, None, floats). The function is expected to raise a `TypeError` in these cases.\n\n### Running the Tests:\nTo run these tests, save the code in a file (e.g., `test_find_missing.py`) and execute the command `pytest test_find_missing.py` in your terminal. Make sure you have `pytest` installed in your environment.",
+  "score": 4,
+  "cost": 0.000426,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 690
+  }
+}

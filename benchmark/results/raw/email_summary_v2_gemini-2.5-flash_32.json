@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary_v2",
+  "case": 32,
+  "response": "The SSL certificate for api.company.com expires in 7 days (May 4), and its auto-renewal failed due to a missing CNAME record from a recent DNS migration. DevOps will re-add the `_acme-challenge.api.company.com` CNAME record today to resolve the issue.",
+  "score": 5,
+  "cost": 5.55e-05,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 66
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_review_v2",
+  "case": 25,
+  "response": "# Code Review: Configuration Class\n\n## Critical Security Issues\n\n### 1. **Hardcoded Sensitive Credentials**\n```python\nAPI_KEY = 'sk-prod-abc123xyz'\nDB_PASSWORD = 'SuperSecret123'\n```\n**Problem:** Secrets are directly embedded in source code.\n\n**Impact:**\n- Anyone with code access can read production credentials\n- Credentials may leak via version control history\n- Cannot rotate secrets without code changes\n\n**Fix:**\n```python\nimport os\n\nclass Config:\n    API_KEY = os.environ.get('API_KEY')\n    DB_PASSWORD = os.environ.get('DB_PASSWORD')\n```\n\n### 2. **DEBUG = True in Production Code**\n```python\nDEBUG = True\n```\n**Problem:** Debug mode can expose stack traces, internal logic, and sensitive configuration.\n\n**Fix:**\n```python\nDEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'\n```\n\n---\n\n## Suggested Improvements\n\n```python\nimport os\nfrom dataclasses import dataclass\n\n@dataclass\nclass Config:\n    \"\"\"Configuration loaded from environment variables.\"\"\"\n    \n    api_key: str = ''\n    db_password: str = ''\n    debug: bool = False\n    \n    def __post_init__(self):\n        if not self.api_key:\n            raise ValueError(\"API_KEY environment variable is required\")\n        if not self.db_password:\n            raise ValueError(\"DB_PASSWORD environment variable is required\")\n    \n    @classmethod\n    def from_env(cls) -> 'Config':\n        return cls(\n            api_key=os.environ.get('API_KEY', ''),\n            db_password=os.environ.get('DB_PASSWORD', ''),\n            debug=os.environ.get('DEBUG', '').lower() == 'true'\n        )\n```\n\n---\n\n## Additional Recommendations\n\n| Issue | Recommendation |\n|-------|----------------|\n| Version control | Add `.env` to `.gitignore`, never commit secrets |\n| Secret rotation | Use a secrets manager (AWS Secrets, HashiCorp Vault) |\n| Validation | Fail fast if required secrets are missing |\n| Type safety | Use dataclasses or Pydantic for validation |\n| Environment separation | Use `.env.dev`, `.env.prod` for different stages |",
+  "score": 4,
+  "cost": 0.0031328000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 692
+  }
+}

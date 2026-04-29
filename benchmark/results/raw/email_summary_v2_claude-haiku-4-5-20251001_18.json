@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "email_summary_v2",
+  "case": 18,
+  "response": "The VP Engineering proposes splitting the Platform team into two separate teams\u2014Infrastructure and Developer Experience\u2014to resolve the bottleneck where developer experience work is consistently deprioritized. The action item is to review the attached draft organizational chart.",
+  "score": 5,
+  "cost": 0.0002872,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 51
+  }
+}

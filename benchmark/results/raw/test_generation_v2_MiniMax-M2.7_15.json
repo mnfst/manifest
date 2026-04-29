@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "test_generation_v2",
+  "case": 15,
+  "response": "Below is a **complete, ready\u2011to\u2011run** test suite that follows the **pytest** conventions.  \nIt is split into three logical groups:\n\n| Group | What it covers |\n|------|----------------|\n| **Happy\u2011path** | \u201cnormal\u201d usage \u2013 rotation by a positive `k`, including `k == 0` and `k ==",
+  "score": 5,
+  "cost": 0.008901200000000001,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 2000
+  }
+}

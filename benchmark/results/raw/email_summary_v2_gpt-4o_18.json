@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "email_summary_v2",
+  "case": 18,
+  "response": "The VP of Engineering proposes splitting the Platform team into two separate teams: Infrastructure and Developer Experience, to address the issue of Developer Experience work being deprioritized due to infrastructure incidents. An organizational chart draft is attached for review.",
+  "score": 5,
+  "cost": 0.00068,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 45
+  }
+}

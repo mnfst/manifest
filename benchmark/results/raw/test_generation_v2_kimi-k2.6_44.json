@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "test_generation_v2",
+  "case": 44,
+  "response": "Here is a comprehensive pytest suite covering happy paths, edge cases, and error scenarios.\n\n```python\nimport pytest\n\n# The function under test (copy or import from your module)\ndef compose(*fns):\n    def composed(x):\n        for fn in reversed(fns):\n            x = fn(x)\n        return x\n    return composed\n\n\n# -----------------------------------------------------------------------------\n# Helpers\n# -----------------------------------------------------------------------------\ndef add_one(x):\n    return x + 1\n\ndef double(x):\n    return x * 2\n\ndef to_string(x):\n    return str(x)\n\ndef explode(x):\n    raise ValueError(\"boom\")\n\nclass Multiplier:\n    \"\"\"Callable class to verify compose works with any callable, not just functions.\"\"\"\n    def __init__(self, factor):\n        self.factor = factor\n\n    def __call__(self, x):\n        return x * self.factor\n\n\n# -----------------------------------------------------------------------------\n# Happy Path\n# -----------------------------------------------------------------------------\ndef test_comp",
+  "score": 4,
+  "cost": 0.0048402,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 2000
+  }
+}

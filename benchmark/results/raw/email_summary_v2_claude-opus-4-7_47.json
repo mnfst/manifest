@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "email_summary_v2",
+  "case": 47,
+  "response": "March cohort onboarding satisfaction dropped to 7.2/10 from 8.1, with strong reviews for the buddy system and IT timeliness but issues around benefits deadline confusion, slow tools access (3-5 days vs. 1-day target), and missing culture handbooks. The top priority action item is to fix the tools access delay.",
+  "score": 5,
+  "cost": 0.0111,
+  "expected": "",
+  "tokens": {
+    "input": 170,
+    "output": 114
+  }
+}

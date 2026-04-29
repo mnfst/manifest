@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "test_generation_v2",
+  "case": 18,
+  "response": "**Test file \u2013\u202f`test_title_case.py`**  \n\n```python\n# --------------------------------------------------------------\n# test_title_case.py\n# --------------------------------------------------------------\n# Unit tests for the ``title_case`` function.\n# --------------------------------------------------------------\n\nimport pytest\n\n# --------------------------------------------------------------\n# The function under test (normally you would import it from your module)\n# --------------------------------------------------------------\ndef title_case(s: str) -> str:\n    \"\"\"Capitalise the first letter of each word and lower\u2011case the rest.\"\"\"\n    return \" \".join(word.capitalize() for word in s.split())\n\n\n# --------------------------------------------------------------\n# 1\ufe0f\u20e3  Happy\u2011path tests \u2013 normal inputs that should produce a correctly\n#     title\u2011cased string.\n# --------------------------------------------------------------\nclass TestTitleCaseHappyPath:\n    \"\"\"Tests for typical, well\u2011formed inputs.\"\"\"\n\n    @pytest.mark.parametrize(\n        \"input_str, expected\",\n        [\n            # Basic lower\u2011case\n            (\"hello world\", \"Hello World\"),\n            # All upper\u2011case\n            (\"HELLO WORLD\", \"Hello World\"),\n            # Mixed case\n            (\"HeLLo WoRLD\", \"Hello World\"),\n            # More than two words\n            (\"python is awesome\", \"Python Is Awesome\"),\n            # Unicode letters with diacritics\n            (\"caf\u00e9\", \"Caf\u00e9\"),\n            (\"\u00d1O\u00d1O\", \"\u00d1o\u00f1o\"),\n            (\"\u00fcber\", \"\u00dcber\"),",
+  "score": 3,
+  "cost": 0.008900100000000001,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 2000
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "email_summary_v2",
+  "case": 21,
+  "response": "The Platform Team proposes a cleanup sprint to remove 15 fully rolled out feature flags and archive 8 that are considered dead code, as there are currently 47 active feature flags, with 23 being over 6 months old. This action aims to reduce configuration complexity and improve the test suite speed by approximately 12%.",
+  "score": 5,
+  "cost": 5.34e-05,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 64
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "email_summary_v2",
+  "case": 4,
+  "response": "DataSync is proposing a revenue-sharing partnership where they provide data sync infrastructure to reduce customer latency and increase annual revenue by an estimated $2M. CEO Maria Chen is requesting a technical discussion next week to review the proposal.",
+  "score": 5,
+  "cost": 0.00056,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 45
+  }
+}

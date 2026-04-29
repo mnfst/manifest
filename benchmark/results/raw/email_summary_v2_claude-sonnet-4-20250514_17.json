@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "email_summary_v2",
+  "case": 17,
+  "response": "Version 4.2 is being rolled back due to a data corruption bug in the new sync engine that affected 23 accounts. The recovery plan includes restoring from backup, re-running transactions, notifying customers, and creating a hotfix branch.",
+  "score": 5,
+  "cost": 0.001179,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 56
+  }
+}

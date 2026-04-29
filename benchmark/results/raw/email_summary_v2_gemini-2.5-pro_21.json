@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "email_summary_v2",
+  "case": 21,
+  "response": "The Platform Team is proposing a cleanup sprint to remove old feature flags, which will reduce configuration complexity and speed up the test suite. The action is to remove 15 flags that are fully rolled out and archive 8 flags that are now dead code.",
+  "score": 5,
+  "cost": 0.00063625,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 51
+  }
+}

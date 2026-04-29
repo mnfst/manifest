@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "email_summary_v2",
+  "case": 31,
+  "response": "The email proposes introducing a 'Starter' pricing tier at $29/month to address the 40% of churned users who cite price as a reason for leaving, with features including 5 users, 10K API calls, and email support. The projected impact of this new tier is to recover 15% of price-churned users, potentially adding $180K in annual recurring revenue.",
+  "score": 5,
+  "cost": 0.001075,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 80
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "The Network Ops team proposes upgrading the current 1Gbps links to 10Gbps for a one-time cost of $45K plus $2K monthly, citing high capacity usage and future growth projections. An alternative option of traffic shaping and CDN optimization is available for $15K, but the team recommends the 10Gbps upgrade to prevent future capacity issues.",
+  "score": 5,
+  "cost": 6.075e-05,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 74
+  }
+}

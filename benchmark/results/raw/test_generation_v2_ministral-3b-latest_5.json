@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "test_generation_v2",
+  "case": 5,
+  "response": "Here are comprehensive unit tests for the `count_vowels` function using pytest, covering happy path, edge cases, and error cases:\n\n```python\nimport pytest\n\ndef test_count_vowels_happy_path():\n    # Test with a string containing all vowels\n    assert count_vowels(\"aeiou\") == 5\n\n    # Test with a string containing mixed case\n    assert count_vowels(\"Hello World\") == 3\n\n    # Test with a string containing no vowels\n    assert count_vowels(\"xyz\") == 0\n\n    # Test with an empty string\n    assert count_vowels(\"\") == 0\n\ndef test_count_vowels_edge_cases():\n    # Test with single character\n    assert count_vowels(\"a\") == 1\n    assert count_vowels(\"A\") == 1\n    assert count_vowels(\"z\") == 0\n\n    # Test with numbers and symbols\n    assert count_vowels(\"123!@#\") == 0\n    assert count_vowels(\"a1b2c3\") == 1\n\n    # Test with Unicode vowels (should be counted)\n    assert count_vowels(\"\u00e9\u00e8\u00ea\u00eb\") == 4\n    assert count_vowels(\"\u00c6\u00e6\u00d8\u00f8\") == 2\n\ndef test_count_vowels_error_cases():\n    # Test with non-string input (should raise TypeError)\n    with pytest.raises(TypeError):\n        count_vowels(123)\n    with pytest.raises(TypeError):\n        count_vowels(None)\n    with pytest.raises(TypeError):\n        count_vowels([1, 2, 3])\n\n    # Test with very long string (performance test)\n    long_string = \"a\" * 1000000\n    assert count_vowels(long_string) == 1000000\n\ndef test_count_vowels_whitespace():\n    # Test with whitespace characters\n    assert count_vowels(\"a b c\") == 1\n    assert count_vowels(\"a\\nb\\tc\") == 1\n    assert count_vowels(\"   \") == 0\n```\n\nNotes about these tests:\n1. The happy path tests cover basic functionality with various vowel combinations.\n2. Edge cases include:\n   - Single character strings\n   - Strings with numbers/symbols\n   - Unicode vowels\n   - Empty string\n3. Error cases include:\n   - Non-string inputs (should raise TypeError)\n   - Very long strings (performance test)\n4. Additional whitespace tests to ensure whitespace isn't counted as vowels.\n\nThe tests follow pytest conventions:\n- Each test function is named to indicate what it's testing\n- Uses `assert` statements for expected results\n- Uses `pytest.raises` for exception testing\n- Covers both positive and negative cases\n\nYou can run these tests with pytest by saving them in a file (e.g., `test_count_vowels.py`) and running `pytest test_count_vowels.py`.",
+  "score": 4,
+  "cost": 2.832e-05,
+  "expected": "",
+  "tokens": {
+    "input": 60,
+    "output": 648
+  }
+}

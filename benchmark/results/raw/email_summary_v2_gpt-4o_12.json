@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "There are currently four open engineering positions, with a particular concern about the frontend role, which has been open for 60 days without strong candidates. It is recommended to consider expanding to remote candidates or adjusting the compensation band to attract more applicants.",
+  "score": 5,
+  "cost": 0.0007225,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 48
+  }
+}

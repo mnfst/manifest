@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "email_summary_v2",
+  "case": 16,
+  "response": "The April marketing campaign generated 45K impressions with a 5.1% click-through rate and 187 signups at a $64 customer acquisition cost, showing improved CTR but lower conversion compared to March. The team recommends A/B testing the landing page CTA to optimize performance.",
+  "score": 5,
+  "cost": 0.000372,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 67
+  }
+}

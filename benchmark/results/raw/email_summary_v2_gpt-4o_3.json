@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "email_summary_v2",
+  "case": 3,
+  "response": "The March onboarding cohort reported a satisfaction score of 7.2/10, with positive feedback on the buddy system and IT timeliness, but issues with benefits deadline confusion, delayed tools access, and missing culture handbooks. The priority action item is to address the tools access delay.",
+  "score": 5,
+  "cost": 0.0008525,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 57
+  }
+}

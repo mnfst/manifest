@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "email_summary_v2",
+  "case": 9,
+  "response": "The nightly data pipeline failed due to a Salesforce change, causing dashboards to show stale data. A fix has been deployed, and full data recovery is expected by 4 PM today.",
+  "score": 5,
+  "cost": 0.0004675,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 36
+  }
+}

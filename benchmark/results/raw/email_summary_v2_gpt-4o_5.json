@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "email_summary_v2",
+  "case": 5,
+  "response": "The product launch is delayed due to payment integration failing PCI compliance, requiring an additional two weeks. Options include launching without payments, which necessitates updated T&Cs, or delaying the full launch to May 15, with a meeting scheduled for tomorrow at 10am to discuss further.",
+  "score": 5,
+  "cost": 0.00082,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 57
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "email_summary_v2",
+  "case": 24,
+  "response": "Design System v3 is ready for adoption and includes new dark mode color tokens, a revised 4px-based spacing scale, and updated Button and Modal components with a migration tool available. The Design Team recommends a team-by-team rollout starting with the Settings page.",
+  "score": 5,
+  "cost": 0.00032,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 61
+  }
+}

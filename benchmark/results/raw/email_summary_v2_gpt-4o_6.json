@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "email_summary_v2",
+  "case": 6,
+  "response": "Acme Corp, a customer with an ARR of $450K, is threatening to churn due to API latency issues and a lack of response from support. James, the CS Lead, has assigned a dedicated engineer and requests an executive sponsor for a call this week.",
+  "score": 5,
+  "cost": 0.000785,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 53
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The CEO has shared the Q1 board deck draft highlighting strong performance (127% of revenue target, 115% NRR) alongside a 22% increase in CAC, ahead of next Tuesday's board meeting. You need to submit your product roadmap section by Wednesday.",
+  "score": 5,
+  "cost": 0.009165,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 94
+  }
+}

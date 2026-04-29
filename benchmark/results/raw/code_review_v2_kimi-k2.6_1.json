@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_review_v2",
+  "case": 1,
+  "response": "Here is a detailed review of the code, ordered by severity.\n\n## 1. Critical Security Issue: Password Exposure\n**What is wrong:** The endpoint intentionally returns the user's password (likely a hash) to the client. This is a severe information disclosure vulnerability. Even hashed passwords should never leave the server.\n\n**How to fix",
+  "score": 5,
+  "cost": 0.004857,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 2000
+  }
+}

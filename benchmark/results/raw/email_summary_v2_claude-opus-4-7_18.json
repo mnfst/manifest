@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "email_summary_v2",
+  "case": 18,
+  "response": "The VP of Engineering proposes splitting the Platform team into two separate groups\u2014Infrastructure and Developer Experience\u2014to prevent DX work from being deprioritized during infra incidents. A draft org chart is attached for review.",
+  "score": 5,
+  "cost": 0.00816,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 77
+  }
+}

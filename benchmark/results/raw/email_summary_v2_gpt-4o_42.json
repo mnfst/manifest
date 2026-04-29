@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "The workshop with 15 enterprise customers highlighted the need for improved bulk import and SSO features, while the new analytics dashboard received positive feedback. Additionally, three customers expressed interest in our internal tool as a standalone product; see the attached report for further details.",
+  "score": 5,
+  "cost": 0.0007825,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 51
+  }
+}

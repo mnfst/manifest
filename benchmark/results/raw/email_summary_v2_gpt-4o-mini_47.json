@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "email_summary_v2",
+  "case": 47,
+  "response": "The March cohort's satisfaction rating decreased to 7.2/10, with positive feedback on the buddy system and timely IT support, but issues regarding benefits deadlines, delayed tools access, and the absence of a culture handbook were noted. The main action item is to prioritize fixing the tools access issue, as it currently takes 3-5 days instead of the targeted 1 day.",
+  "score": 5,
+  "cost": 6.314999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 77
+  }
+}

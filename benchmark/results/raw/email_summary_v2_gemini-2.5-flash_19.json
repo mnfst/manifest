@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary_v2",
+  "case": 19,
+  "response": "The Datadog contract expires June 30, with renewal offered at $155K/year for three years, or an alternative Grafana Cloud at $95K/year requiring a three-month migration. Finance needs a decision on which vendor to proceed with by May 15.",
+  "score": 5,
+  "cost": 5.3099999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 62
+  }
+}

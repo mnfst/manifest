@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "test_generation_v2",
+  "case": 0,
+  "response": "Below is a **complete, ready\u2011to\u2011run** test suite for the simple `add` function you posted.  \nIt follows the **pytest** conventions (plain test functions, `pytest.raises`, `pytest.mark.parametrize`, etc.) and is split into three logical sections:\n\n| Section | What is tested |\n|--------|----------------|\n| **Happy\u2011path** | \u201cnormal\u201d usage \u2013 positive, negative, zero, large integers |\n| **Edge\u2011cases** | values that sit at the boundary of the specification (e.g. `bool` is a subclass of `int`) |\n| **Error\u2011cases** | invalid argument types, missing arguments, etc. (we *expect* a `TypeError` to be raised) |\n\nYou can save the file as `test_add.py` (or any name you like) and run it with:\n\n```bash\n$ pytest test_add.py -v\n```\n\n---\n\n```python\n# test_add.py\n\"\"\"\nUnit tests for the ``add`` function.\n\nTests are organized into three groups:\n    * Happy\u2011path (normal, valid inputs)\n    * Edge\u2011cases (boundary conditions and \u201codd\u201d valid inputs)\n    * Error\u2011cases (invalid types, missing arguments)\n\nThe tests use pytest fixtures and parametrisation where appropriate.\n\"\"\"\n\nimport sys\nfrom typing import Any\n\nimport pytest\n\n# ----------------------------------------------------------------------\n# Import the function under test.\n# ----------------------------------------------------------------------\n# Adjust the import path to suit your project layout.\ntry:\n    from my_module import add  # type: ignore\nexcept ImportError:\n    # Fallback \u2013 allows running the file directly for quick sanity checks.\n    sys.path.insert(0, \".\")\n    from my_module import add  # type: ignore\n\n\n# ----------------------------------------------------------------------\n# Helpers / Fixtures\n# ----------------------------------------------------------------------\n\n\n# ----------------------------------------------------------------------\n# Happy",
+  "score": 4,
+  "cost": 0.0088924,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 2000
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "Q1 showed strong performance improvements with NPS increasing to 62, support satisfaction at 4.3/5, and churn declining to 1.2%. The team should prioritize developing SSO, custom dashboards, and API rate limit increases as the top feature requests, while working to close the three enterprise expansion deals worth $800K.",
+  "score": 5,
+  "cost": 0.0004072,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 76
+  }
+}

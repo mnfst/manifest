@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "test_generation_v2",
+  "case": 18,
+  "response": "To write unit tests for the `title_case` function using the `pytest` framework, we will cover various scenarios including happy paths, edge cases, and error cases. Below is an example of how you can structure your tests:\n\n```python\nimport pytest\n\ndef title_case(s: str) -> str:\n    return ' '.join(word.capitalize() for word in s.split())\n\n# Test cases for title_case function\ndef test_title_case_happy_path():\n    assert title_case(\"hello world\") == \"Hello World\"\n    assert title_case(\"python programming\") == \"Python Programming\"\n    assert title_case(\"unit tests are important\") == \"Unit Tests Are Important\"\n\ndef test_title_case_edge_cases():\n    assert title_case(\"\") == \"\"  # Empty string should return an empty string\n    assert title_case(\"   \") == \"\"  # String with only spaces should return an empty string\n    assert title_case(\"a\") == \"A\"  # Single character should be capitalized\n    assert title_case(\"a b c\") == \"A B C\"  # Multiple single characters should be capitalized\n    assert title_case(\"   leading and trailing spaces   \") == \"Leading And Trailing Spaces\"  # Spaces around the string\n\ndef test_title_case_error_cases():\n    with pytest.raises(TypeError):\n        title_case(None)  # Passing None should raise a TypeError\n    with pytest.raises(TypeError):\n        title_case(123)  # Passing an integer should raise a TypeError\n    with pytest.raises(TypeError):\n        title_case([])  # Passing a list should raise a TypeError\n\n# If you want to run the tests, you can use the following command in the terminal:\n# pytest -v <name_of_this_file>.py\n```\n\n### Explanation of the Tests:\n\n1. **Happy Path Tests**:\n   - These tests check the normal expected behavior of the function with typical input strings.\n\n2. **Edge Cases**:\n   - Tests for an empty string and strings with only spaces to ensure they return an empty string.\n   - Tests for single characters and strings with leading/trailing spaces to ensure they are handled correctly.\n\n3. **Error Cases**:\n   - Tests that check for `TypeError` when passing `None`, an integer, or a list to the function, which are invalid inputs for the expected string type.\n\n### Running the Tests:\nTo run these tests, save the code in a file (e.g., `test_title_case.py`) and execute the command `pytest -v test_title_case.py` in your terminal. This will run the tests and provide a detailed output of the results.",
+  "score": 4,
+  "cost": 0.0003315,
+  "expected": "",
+  "tokens": {
+    "input": 58,
+    "output": 538
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "email_summary_v2",
+  "case": 43,
+  "response": "An open source software audit identified 2 problematic packages: one using an incompatible AGPL license (recommend switching to Apache-licensed Chart.js) and one with no license. Both packages should be removed before the next release.",
+  "score": 5,
+  "cost": 0.00031039999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 53
+  }
+}

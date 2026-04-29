@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "test_generation_v2",
+  "case": 40,
+  "response": "To test the `rgb_to_hex` function thoroughly, we need to cover happy paths, edge cases, and error cases. Here's the pytest-style test suite:\n\n\n### Unit Tests for `rgb_to_hex`\n\n```python\nimport pytest\nfrom your_module import rgb_to_hex  # Replace 'your_module' with the actual module name\n\n\n@pytest.mark.parametrize(\n    \"r, g, b, expected\",\n    [\n        # Happy path: Valid values\n        (0, 0, 0, \"#000000\"),\n        (255, 255, 255, \"#ffffff\"),\n        (128, 128, 128, \"#808080\"),\n        (10, 20, 30, \"#0a141e\"),\n        (0, 1, 255, \"#0001ff\"),\n        (255, 0, 0, \"#ff0000\"),\n        (0, 255, 0, \"#00ff00\"),\n        (1, 2, 3, \"#010203\"),\n        (254, 253, 252, \"#fefdfc\"),\n        (127, 128, 129, \"#7f8081\"),\n        (1, 0, 0, \"#010000\"),\n        (0, 1, 0, \"#000100\"),\n        (0, 0, 1, \"#000001\"),\n        (254, 254, 254, \"#fefefe\"),\n        (127, 127, 127, \"#7f7f7f\"),\n        # Edge cases: Booleans (True=1, False=0)\n        (True, True, True, \"#010101\"),\n        (False, False, False, \"#000000\"),\n        # Edge cases: Float values that are whole numbers\n        (255.0, 0, 0, \"#ff0000\"),\n        (0, 255.0, 0, \"#00ff00\"),\n        (0, 0, 255.0, \"#0000ff\"),\n        (0.0, 0.0, 0.0, \"#000000\"),\n    ],\n)\ndef test_rgb_to_hex_happy_path(r, g, b, expected):\n    \"\"\"Test valid RGB values convert to the correct hex string.\"\"\"\n    assert rgb_to_hex(r, g, b) == expected\n\n\n@pytest.mark.parametrize(\n    \"r, g, b, error_msg\",\n    [\n        # Error cases: Values below 0\n        (-1, 0, 0, \"RGB values must be 0-255\"),\n        (0, -5, 0, \"RGB values must be 0-255\"),\n        (-1, -1, -1, \"RGB values must be 0-255\"),\n        (-0.5, 0, 0, \"RGB values must be 0-255\"),  # Float < 0\n        # Error cases: Values above 255\n        (256, 0, 0, \"RGB values must be 0-255\"),\n        (0, 0, 300, \"RGB values must be 0-255\"),\n        (256, 256, 256, \"RGB values must be 0-255\"),\n        (255.5, 0, 0, \"RGB values must be 0-255\"),  # Float > 255\n        (255, 255.5, 0, \"RGB values must be 0-255\"),  # Float > 255\n    ],\n)\ndef test_rgb_to_hex_error_cases(r, g, b, error_msg):\n    \"\"\"Test invalid RGB values raise ValueError with the correct message.\"\"\"\n    with pytest.raises(ValueError) as excinfo:\n        rgb_to_hex(r, g, b)\n    assert str(excinfo.value) ==",
+  "score": 4,
+  "cost": 0.0025347,
+  "expected": "",
+  "tokens": {
+    "input": 196,
+    "output": 8400
+  }
+}

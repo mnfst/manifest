@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary_v2",
+  "case": 26,
+  "response": "A GDPR data export request for user ID 45892 has been received, with a deadline of May 25. We need to compile all personal data (including analytics), processing purposes documentation, and third-party data sharing logs.",
+  "score": 5,
+  "cost": 4.5299999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 50
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "test_generation_v2",
+  "case": 19,
+  "response": "To test the `clamp` function thoroughly, we need to cover happy paths, edge cases, and error cases. Here's a comprehensive set of pytest tests:\n\n\n### Unit Tests for `clamp` Function\n\n```python\nimport pytest\nimport math\nfrom your_module import clamp  # Replace 'your_module' with the actual module name\n\n\ndef test_clamp_value_between_min_and_max():\n    \"\"\"Test when value is between min and max.\"\"\"\n    assert clamp(5.0, 3.0, 7.0) == 5.0\n    assert clamp(2.5, 1.0, 3.0) == 2.5\n    assert clamp(-1.0, -5.0, 0.0) == -1.0\n\n\ndef test_clamp_value_equal_to_min():\n    \"\"\"Test when value is exactly equal to min.\"\"\"\n    assert clamp(3.0, 3.0, 7.0) == 3.0\n    assert clamp(-5.0, -5.0, 0.0) == -5.0\n    assert clamp(0.0, 0.0, 0.0) == 0.0\n\n\ndef test_clamp_value_equal_to_max():\n    \"\"\"Test when value is exactly equal to max.\"\"\"\n    assert clamp(7.0, 3.0, 7.0) == 7.0\n    assert clamp(0.0, -5.0, 0.0) == 0.0\n    assert clamp(10.0, 5.0, 10.0) == 10.0\n\n\ndef test_clamp_value_below_min():\n    \"\"\"Test when value is below min.\"\"\"\n    assert clamp(2.0, 3.0, 7.0) == 3.0\n    assert clamp(-10.0, -5.0, 5.0) == -5.0\n    assert clamp(4.5, 5.0, 10.0) == 5.0\n\n\ndef test_clamp_value_above_max():\n    \"\"\"Test when value is above max.\"\"\"\n    assert clamp(8.0, 3.0, 7.0) == 7.0\n    assert clamp(10.0, -5.0, 5.0) == 5.0\n    assert clamp(3.2, 1.0, 3.0) == 3.0\n\n\ndef test_clamp_min_equal_to_max():\n    \"\"\"Test when min and max are the same.\"\"\"\n    assert clamp(3.0, 5.0, 5.0) == 5.0\n    assert clamp(5.0, 5.0, 5.0) == 5.0\n    assert clamp(6.0, 5.0, 5.0) == 5.0\n    assert clamp(-2.5, 0.0, 0.0) == 0.0\n    assert clamp(0.0, 0.0, 0.0) == 0.0\n\n\ndef test_clamp_negative_values():\n    \"\"\"Test with negative values.\"\"\"\n    assert clamp(-3.0, -5.0, 0.0) == -3.0\n    assert clamp(-6.0, -5.0, 0.0) == -5.0\n    assert clamp(-2.0, -5.0, -1.0) == -2.0\n    assert clamp(-1.5, -1.5, -1.0) == -1.5\n\n\ndef test_clamp_min_greater_than_max():\n    \"\"\"Test when min is greater than max (unintended behavior).\"\"\"\n    assert clamp(5.0, 7.0, 3.0) == 7.0  # min > max, result is min\n    assert clamp(2.0, 7.0, 3.0) == 7.0\n    assert clamp(10.0, 7.0, 3.0) == 7.0\n    assert clamp(-1.0, 7.0, 3.0) == 7.0\n    assert clamp(4.0, 3.0, 5.0) == 4.0  # Normal case (min < max)\n\n\ndef test_clamp_with_int_inputs():\n    \"\"\"Test when inputs are integers (function handles them).\"\"\"",
+  "score": 4,
+  "cost": 0.0017858249999999998,
+  "expected": "",
+  "tokens": {
+    "input": 143,
+    "output": 5917
+  }
+}

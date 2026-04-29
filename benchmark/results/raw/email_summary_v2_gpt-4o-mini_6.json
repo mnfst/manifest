@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "email_summary_v2",
+  "case": 6,
+  "response": "Acme Corp, a key customer with an annual recurring revenue of $450K, is threatening to churn due to API latency issues and a lack of support response. A dedicated engineer has been assigned to address the problem, and an executive sponsor is needed for a call this week to resolve the situation.",
+  "score": 5,
+  "cost": 5.13e-05,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 60
+  }
+}

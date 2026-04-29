@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "The recent customer workshop with 15 enterprise clients highlighted the need for improved bulk import functionality and addressed SSO issues for five accounts, while also receiving positive feedback on the new analytics dashboard. Additionally, three customers expressed interest in our internal tool as a standalone product, and a follow-up report is attached for further details.",
+  "score": 5,
+  "cost": 5.4149999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 63
+  }
+}

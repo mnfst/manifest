@@ -1,0 +1,50 @@
+{"input": "def login(username, password):\n    query = f\"SELECT * FROM users WHERE username='{username}' AND password='{password}'\"\n    result = db.execute(query)\n    if result:\n        session['user'] = username\n        return redirect('/dashboard')\n    return 'Invalid credentials', 401", "source": "hand-curated"}
+{"input": "app.get('/api/users/:id', async (req, res) => {\n  const user = await db.query('SELECT * FROM users WHERE id = $1', [req.params.id]);\n  res.json({ ...user.rows[0], password: user.rows[0].password });\n});", "source": "hand-curated"}
+{"input": "def transfer_money(from_account, to_account, amount):\n    from_balance = get_balance(from_account)\n    if from_balance >= amount:\n        set_balance(from_account, from_balance - amount)\n        set_balance(to_account, get_balance(to_account) + amount)\n    return True", "source": "hand-curated"}
+{"input": "async function processPayment(cardNumber, amount) {\n  console.log(`Processing payment: card=${cardNumber}, amount=${amount}`);\n  const response = await fetch('http://payment-api.internal/charge', {\n    method: 'POST',\n    body: JSON.stringify({ card: cardNumber, amount }),\n  });\n  return response.ok;\n}", "source": "hand-curated"}
+{"input": "def get_user_file(filename):\n    base_path = '/var/app/uploads/'\n    file_path = base_path + filename\n    with open(file_path, 'r') as f:\n        return f.read()", "source": "hand-curated"}
+{"input": "def process_items(items):\n    for item in items:\n        result = expensive_api_call(item)\n        db.save(result)\n    return 'Done'", "source": "hand-curated"}
+{"input": "function updateUser(req, res) {\n  const { id, role } = req.body;\n  db.query('UPDATE users SET role = $1 WHERE id = $2', [role, id]);\n  res.json({ success: true });\n}", "source": "hand-curated"}
+{"input": "def generate_token():\n    import random\n    return ''.join(random.choice('abcdef0123456789') for _ in range(32))", "source": "hand-curated"}
+{"input": "app.post('/api/webhook', (req, res) => {\n  const event = JSON.parse(req.body);\n  processEvent(event);\n  res.send('OK');\n});", "source": "hand-curated"}
+{"input": "def cache_user(user_id):\n    key = f'user:{user_id}'\n    data = redis.get(key)\n    if data:\n        return json.loads(data)\n    user = db.get_user(user_id)\n    redis.set(key, json.dumps(user))\n    return user", "source": "hand-curated"}
+{"input": "async function fetchAll(urls) {\n  const results = [];\n  for (const url of urls) {\n    const res = await fetch(url);\n    results.push(await res.json());\n  }\n  return results;\n}", "source": "hand-curated"}
+{"input": "def delete_account(user_id):\n    db.execute(f'DELETE FROM users WHERE id = {user_id}')\n    db.execute(f'DELETE FROM orders WHERE user_id = {user_id}')\n    db.execute(f'DELETE FROM sessions WHERE user_id = {user_id}')\n    return {'status': 'deleted'}", "source": "hand-curated"}
+{"input": "class UserService:\n    def __init__(self):\n        self.db = DatabaseConnection()\n    def get_user(self, id):\n        return self.db.query(f'SELECT * FROM users WHERE id = {id}')", "source": "hand-curated"}
+{"input": "function renderHTML(userInput) {\n  document.getElementById('output').innerHTML = userInput;\n}", "source": "hand-curated"}
+{"input": "def parse_config(config_str):\n    import yaml\n    return yaml.load(config_str)", "source": "hand-curated"}
+{"input": "def retry_request(url, max_retries=3):\n    for i in range(max_retries):\n        try:\n            return requests.get(url, timeout=30)\n        except:\n            time.sleep(1)\n    return None", "source": "hand-curated"}
+{"input": "def encrypt_password(password):\n    import hashlib\n    return hashlib.md5(password.encode()).hexdigest()", "source": "hand-curated"}
+{"input": "app.use(cors({ origin: '*' }));\napp.use(express.json({ limit: '50mb' }));", "source": "hand-curated"}
+{"input": "def log_action(user, action, details):\n    log_entry = f'{user} performed {action}: {details}'\n    with open('/var/log/app.log', 'a') as f:\n        f.write(log_entry + '\\n')", "source": "hand-curated"}
+{"input": "async function getPrice(productId) {\n  const cached = localStorage.getItem(`price_${productId}`);\n  if (cached) return parseFloat(cached);\n  const res = await fetch(`/api/price/${productId}`);\n  const price = await res.json();\n  localStorage.setItem(`price_${productId}`, price);\n  return price;\n}", "source": "hand-curated"}
+{"input": "def validate_age(age_str):\n    age = int(age_str)\n    if age < 0 or age > 150:\n        raise ValueError('Invalid age')\n    return age", "source": "hand-curated"}
+{"input": "import pickle\ndef load_model(path):\n    with open(path, 'rb') as f:\n        return pickle.load(f)", "source": "hand-curated"}
+{"input": "def send_email(to, subject, body):\n    msg = f'From: noreply@app.com\\nTo: {to}\\nSubject: {subject}\\n\\n{body}'\n    smtp = smtplib.SMTP('localhost')\n    smtp.sendmail('noreply@app.com', to, msg)\n    smtp.quit()", "source": "hand-curated"}
+{"input": "function checkAdmin(req, res, next) {\n  if (req.headers['x-admin'] === 'true') {\n    next();\n  } else {\n    res.status(403).json({ error: 'Not admin' });\n  }\n}", "source": "hand-curated"}
+{"input": "def download_file(url, dest):\n    response = requests.get(url)\n    with open(dest, 'wb') as f:\n        f.write(response.content)", "source": "hand-curated"}
+{"input": "class Config:\n    API_KEY = 'sk-prod-abc123xyz'\n    DB_PASSWORD = 'SuperSecret123'\n    DEBUG = True", "source": "hand-curated"}
+{"input": "def process_upload(file):\n    filename = file.filename\n    file.save(f'/uploads/{filename}')\n    return {'saved': filename}", "source": "hand-curated"}
+{"input": "async function authenticate(token) {\n  try {\n    const user = jwt.verify(token, process.env.JWT_SECRET);\n    return user;\n  } catch (e) {\n    return null;\n  }\n}", "source": "hand-curated"}
+{"input": "def create_temp_file(data):\n    path = '/tmp/data_' + str(os.getpid()) + '.json'\n    with open(path, 'w') as f:\n        json.dump(data, f)\n    return path", "source": "hand-curated"}
+{"input": "app.get('/api/search', (req, res) => {\n  const { q } = req.query;\n  const results = db.query(`SELECT * FROM products WHERE name LIKE '%${q}%'`);\n  res.json(results);\n});", "source": "hand-curated"}
+{"input": "def rate_limit(func):\n    last_call = [0]\n    def wrapper(*args):\n        now = time.time()\n        if now - last_call[0] < 1:\n            raise Exception('Rate limited')\n        last_call[0] = now\n        return func(*args)\n    return wrapper", "source": "hand-curated"}
+{"input": "function deepClone(obj) {\n  return JSON.parse(JSON.stringify(obj));\n}", "source": "hand-curated"}
+{"input": "def get_env(key):\n    return os.environ[key]", "source": "hand-curated"}
+{"input": "async function batchDelete(ids) {\n  for (const id of ids) {\n    await db.query('DELETE FROM records WHERE id = $1', [id]);\n  }\n  return { deleted: ids.length };\n}", "source": "hand-curated"}
+{"input": "def compare_passwords(stored, provided):\n    return stored == provided", "source": "hand-curated"}
+{"input": "class FileWatcher:\n    def __init__(self, path):\n        self.path = path\n        self.thread = threading.Thread(target=self._watch, daemon=True)\n        self.thread.start()\n    def _watch(self):\n        while True:\n            time.sleep(1)\n            # check for changes", "source": "hand-curated"}
+{"input": "def calculate_discount(price, code):\n    discounts = {'SAVE10': 0.10, 'SAVE20': 0.20, 'HALF': 0.50}\n    return price * (1 - discounts[code])", "source": "hand-curated"}
+{"input": "app.post('/api/reset-password', async (req, res) => {\n  const { email } = req.body;\n  const user = await db.findUser(email);\n  const token = Math.random().toString(36).substr(2);\n  await sendResetEmail(email, token);\n  res.json({ success: true });\n});", "source": "hand-curated"}
+{"input": "def merge_dicts(a, b):\n    a.update(b)\n    return a", "source": "hand-curated"}
+{"input": "SELECT * FROM users WHERE id = \" + request.params.id + \" LIMIT 1", "source": "hand-curated"}
+{"input": "def background_task(data):\n    thread = threading.Thread(target=process, args=(data,))\n    thread.start()\n    return {'status': 'started'}", "source": "hand-curated"}
+{"input": "function isValidURL(str) {\n  const pattern = new RegExp('^https?:\\/\\/[^\\s]+$');\n  return pattern.test(str);\n}", "source": "hand-curated"}
+{"input": "def upload_to_s3(data, bucket, key):\n    s3.put_object(Bucket=bucket, Key=key, Body=data)\n    return f'https://{bucket}.s3.amazonaws.com/{key}'", "source": "hand-curated"}
+{"input": "async function getUser(id) {\n  const response = await fetch(`/api/users/${id}`);\n  return response.json();\n}", "source": "hand-curated"}
+{"input": "def cleanup_old_files(directory, days=30):\n    import shutil\n    for f in os.listdir(directory):\n        path = os.path.join(directory, f)\n        if os.path.getmtime(path) < time.time() - days * 86400:\n            shutil.rmtree(path)", "source": "hand-curated"}
+{"input": "class Singleton:\n    _instance = None\n    def __new__(cls):\n        if cls._instance is None:\n            cls._instance = super().__new__(cls)\n        return cls._instance", "source": "hand-curated"}
+{"input": "def format_currency(amount):\n    return f'${amount}'", "source": "hand-curated"}
+{"input": "app.get('/health', (req, res) => {\n  db.query('SELECT 1')\n    .then(() => res.json({ status: 'ok' }))\n    .catch(() => res.json({ status: 'ok' }));\n});", "source": "hand-curated"}
+{"input": "def parse_jwt(token):\n    import base64\n    payload = token.split('.')[1]\n    return json.loads(base64.b64decode(payload))", "source": "hand-curated"}
+{"input": "async function withTimeout(promise, ms) {\n  return Promise.race([\n    promise,\n    new Promise((_, reject) => setTimeout(() => reject('timeout'), ms))\n  ]);\n}", "source": "hand-curated"}

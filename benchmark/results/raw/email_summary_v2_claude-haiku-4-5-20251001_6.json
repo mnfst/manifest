@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "email_summary_v2",
+  "case": 6,
+  "response": "Acme Corp, a $450K ARR customer, is at risk of churning due to API latency issues and poor support response times. A dedicated engineer has been assigned, and an executive sponsor is needed to conduct a call with their CTO this week.",
+  "score": 5,
+  "cost": 0.00032480000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 58
+  }
+}

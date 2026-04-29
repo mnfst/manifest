@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The International team has outlined a plan for launching in Japan, detailing a timeline from May to August and a budget of $200K covering legal, localization, and local hire costs. They are requesting CEO approval to move forward with this expansion.",
+  "score": 5,
+  "cost": 4.455e-05,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 50
+  }
+}

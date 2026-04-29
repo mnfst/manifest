@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "The network team proposes upgrading from 1Gbps to 10Gbps links for $45K plus $2K monthly due to current 78% peak capacity usage, with a cheaper $15K alternative of traffic shaping and CDN optimization. They recommend the 10Gbps upgrade based on growth projections to avoid needing another upgrade within 6 months.",
+  "score": 5,
+  "cost": 0.001638,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 84
+  }
+}

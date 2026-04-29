@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "email_summary_v2",
+  "case": 19,
+  "response": "We must decide whether to renew the Datadog contract at a discounted rate of $155K/year or migrate to the cheaper Grafana Cloud, which requires a three-month migration. A final decision must be communicated to Finance by May 15.",
+  "score": 5,
+  "cost": 0.0006725,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 54
+  }
+}

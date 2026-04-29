@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary_v2",
+  "case": 25,
+  "response": "The founders provided an April investor update, announcing they hit 10K MAU, closed an $8M Series A term sheet, and hired a VP Sales. They reported $85K MRR and 11 months runway post-raise, with fundraising set to close on May 10.",
+  "score": 5,
+  "cost": 5.4e-05,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 63
+  }
+}

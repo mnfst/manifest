@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "email_summary_v2",
+  "case": 20,
+  "response": "A production database server ran out of disk space over the weekend due to a misconfigured log rotation, which required manual intervention to resolve. The root cause has been identified, and the log rotation configuration needs to be corrected to prevent a recurrence.",
+  "score": 4,
+  "cost": 0.00059625,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 48
+  }
+}

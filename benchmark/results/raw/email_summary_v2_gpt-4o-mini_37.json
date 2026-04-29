@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "email_summary_v2",
+  "case": 37,
+  "response": "BigCo is interested in acqui-hiring our ML team for $15M, but the CEO believes this offer is too low and suggests countering or declining. A discussion is needed before responding, and the board should be informed.",
+  "score": 5,
+  "cost": 4.32e-05,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 47
+  }
+}

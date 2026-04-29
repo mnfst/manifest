@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "Q1 customer success metrics improved across the board with NPS rising to 62, CSAT at 4.3/5, and churn dropping to 1.2%, while three enterprise expansions worth $800K are in the pipeline. Key action items include addressing top feature requests for SSO, custom dashboards, and an API rate limit increase.",
+  "score": 5,
+  "cost": 0.010965,
+  "expected": "",
+  "tokens": {
+    "input": 176,
+    "output": 111
+  }
+}

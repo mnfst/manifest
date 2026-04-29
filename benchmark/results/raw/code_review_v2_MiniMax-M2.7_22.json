@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_review_v2",
+  "case": 22,
+  "response": "# Code Review: `send_email` Function\n\n## Bugs\n\n### 1. **Resource Leak on Exception**\nIf `smtp.sendmail()` raises an exception, `smtp.quit()` is never called, leaving the connection open.\n\n### 2. **No Exception Handling**\nAny SMTP error (connection failure, invalid recipient, etc.) will crash the caller with an unhandled exception.\n\n---\n\n## Security Issues\n\n### 1. **SMTP Header Injection (CRITICAL)**\nThe function is vulnerable to SMTP injection attacks. User-controlled `to`, `subject`, and `body` parameters are directly concatenated into the message without sanitization.\n\n```python\n# Malicious input example:\nsend_email(\"attacker@evil.com\\nBcc: victim@target.com\", \"Subject\", \"Body\")\n```\nAn attacker could:\n- Add hidden recipients\n- Modify headers\n- Inject arbitrary content\n\n### 2. **No TLS/Encryption**\nConnecting to localhost without TLS could expose credentials and email content if intercepted.\n\n### 3. **No Input Validation**\nNo checks for valid email format, empty strings, or malicious content.\n\n---\n\n## Suggested Improvements\n\n```python\nimport smtplib\nfrom email.message import EmailMessage\n\ndef send_email(to: str, subject: str, body: str) -> None:\n    \"\"\"Send an email with proper security measures.\"\"\"\n    \n    # Use EmailMessage for safe header handling\n    msg = EmailMessage()\n    msg[\"From\"] = \"noreply@app.com\"\n    msg[\"To\"] = to\n    msg[\"Subject\"] = subject\n    msg.set_content(body)\n\n    try:\n        with smtplib.SMTP('localhost') as smtp:\n            # Add TLS for security\n            smtp.starttls()\n            smtp.send_message(msg)\n    except smtplib.SMTPException as e:\n        # Log the error appropriately\n        raise RuntimeError(f\"Failed to send email: {e}\") from e\n```\n\n### Key Fixes:\n| Issue | Fix |\n|-------|-----|\n| Resource leak | Use `with` statement for automatic cleanup |\n| Header injection | Use `email.message.EmailMessage` which safely handles headers |\n| No TLS | Added `starttls()` for encrypted connection |\n| No error handling | Added `try/except` with specific `SMTPException` |\n| Input validation | Consider adding regex validation for email addresses |",
+  "score": 4,
+  "cost": 0.004939,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 1092
+  }
+}

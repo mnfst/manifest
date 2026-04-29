@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_review_v2",
+  "case": 3,
+  "response": "",
+  "score": 3,
+  "cost": 0.004863,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 2000
+  }
+}

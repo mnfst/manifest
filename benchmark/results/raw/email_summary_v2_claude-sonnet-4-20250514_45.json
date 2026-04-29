@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "email_summary_v2",
+  "case": 45,
+  "response": "A misconfigured load balancer caused a 47-minute service outage at 2:14 PM, affecting 12,000 users. The team must add load balancer configuration validation to CI, update the runbook, and implement traffic distribution alerts.",
+  "score": 5,
+  "cost": 0.001224,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 58
+  }
+}

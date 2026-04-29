@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "email_summary_v2",
+  "case": 37,
+  "response": "BigCo has offered $15M to acquire our 5-person ML team, which the CEO believes is undervalued. The CEO recommends discussing a counter-offer or polite decline before responding and informing the board.",
+  "score": 5,
+  "cost": 0.00029360000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 51
+  }
+}

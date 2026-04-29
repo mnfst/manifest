@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "Network Operations proposes upgrading to 10Gbps links ($45K one-time + $2K/month) to address current 1Gbps capacity constraints at 78% peak usage, recommending this option over a cheaper traffic shaping alternative to prevent needing upgrades again within 6 months. Action item: Decision needed on whether to proceed with the 10Gbps upgrade or pursue the lower-cost optimization approach.",
+  "score": 5,
+  "cost": 0.0004848,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 96
+  }
+}

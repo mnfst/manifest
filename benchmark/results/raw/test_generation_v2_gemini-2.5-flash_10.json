@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "test_generation_v2",
+  "case": 10,
+  "response": "The provided `is_valid_email` function uses a regular expression to validate email addresses. This regex is quite specific and has certain allowances and restrictions that might differ from a \"perfect\" email validation (which is notoriously complex). The tests below aim to cover the behavior of *this specific regex*.\n\nHere's a breakdown of the regex: `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$`\n\n*   `^`: Asserts the start of the string.\n*   `[a-zA-Z0-9._%+-]+`: Matches the username part.\n    *   Allows alphanumeric characters, `_`, `.`, `%`, `+`, `-`.\n    *   `+`: Requires at least one character.\n*   `@`: Matches the literal `@` symbol.\n*   `[a-zA-Z0-9.-]+`: Matches the domain part.\n    *   Allows alphanumeric characters, `.`, `-`.\n    *   `+`: Requires at least one character.\n    *   **Important Note:** This part is quite permissive. It allows domains to start/end with `.` or `-`, and allows consecutive `.` or `-` characters (e.g., `user@domain-.com`, `user@domain..com`, `user@.com`, `user@-.com` are all considered valid by this regex).\n*   `\\.`: Matches the literal dot separating the domain from the TLD.",
+  "score": 3,
+  "cost": 0.00021135,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 327
+  }
+}

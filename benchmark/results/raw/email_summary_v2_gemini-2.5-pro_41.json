@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "The network is nearing capacity, so Network Ops recommends a 10Gbps upgrade for $45K to support future growth. A decision is required between this long-term solution and a cheaper, short-term optimization.",
+  "score": 4,
+  "cost": 0.0005975,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 46
+  }
+}

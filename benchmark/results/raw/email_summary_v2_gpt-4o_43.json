@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "email_summary_v2",
+  "case": 43,
+  "response": "The OSS dependency audit revealed two issues: a charting library with an AGPL license incompatible with our SaaS model and a package with no license. It is recommended to switch to Apache-licensed Chart.js and remove both problematic packages before the next release.",
+  "score": 5,
+  "cost": 0.0007775,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 51
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "test_generation_v2",
+  "case": 16,
+  "response": "To write unit tests for the `gcd` function using the `pytest` framework, we need to cover various scenarios including the happy path, edge cases, and error cases. Below is a comprehensive set of tests:\n\n```python\nimport pytest\n\ndef test_gcd_happy_path():\n    # Test common cases\n    assert gcd(48, 18) == 6\n    assert gcd(54, 24) == 6\n    assert gcd(101, 10) == 1  # 101 is a prime number\n    assert gcd(0, 5) == 5\n    assert gcd(5, 0) == 5\n    assert gcd(0, 0) == 0\n\ndef test_gcd_edge_cases():\n    # Test with one or both numbers being zero\n    assert gcd(0, 0) == 0\n    assert gcd(0, 7) == 7\n    assert gcd(7, 0) == 7\n\n    # Test with negative numbers\n    assert gcd(-48, 18) == 6\n    assert gcd(48, -18) == 6\n    assert gcd(-48, -18) == 6\n\n    # Test with one number being 1\n    assert gcd(1, 5) == 1\n    assert gcd(5, 1) == 1\n\n    # Test with both numbers being the same\n    assert gcd(7, 7) == 7\n    assert gcd(-7, -7) == 7\n\ndef test_gcd_error_cases():\n    # Test with non-integer inputs\n    with pytest.raises(TypeError):\n        gcd(3.5, 2)\n    with pytest.raises(TypeError):\n        gcd(2, 3.5)\n    with pytest.raises(TypeError):\n        gcd(\"a\", 2)\n    with pytest.raises(TypeError):\n        gcd(2, \"b\")\n    with pytest.raises(TypeError):\n        gcd(\"a\", \"b\")\n\n# Run the tests\nif __name__ == \"__main__\":\n    pytest.main()\n```\n\n### Explanation:\n\n1. **Happy Path Tests**: These tests cover typical use cases where the function is expected to return the correct greatest common divisor for positive integers.\n\n2. **Edge Cases**: These tests handle scenarios such as:\n   - One or both numbers being zero.\n   - Negative numbers, ensuring the function returns the correct positive GCD.\n   - Cases where one number is 1, which should always return 1 as the GCD.\n   - Both numbers being the same, which should return the number itself.\n\n3. **Error Cases**: These tests ensure that the function raises a `TypeError` when non-integer inputs are provided. Since the function is annotated to accept integers, it should not accept floats or strings.\n\nNote: The original `gcd` function does not explicitly handle type checking, so if you want to enforce type checking, you might need to add explicit checks in the function or rely on static type checkers.",
+  "score": 4,
+  "cost": 0.0064975,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 633
+  }
+}

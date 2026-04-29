@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "email_summary_v2",
+  "case": 24,
+  "response": "Design System v3 is ready for adoption with updates including new dark mode color tokens, revised spacing scale, and updated Button and Modal components. The Design Team recommends a team-by-team rollout starting with the Settings page, with a migration tool available to assist the process.",
+  "score": 5,
+  "cost": 0.0012,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 61
+  }
+}

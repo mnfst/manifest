@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "The quarterly OKR review shows all teams met or exceeded targets except for the Product team, which missed its goal due to a delayed AI feature. The primary recommendation is to carry forward the AI OKR with increased resources, and planning for the next quarter will begin on Monday.",
+  "score": 5,
+  "cost": 0.00069625,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 55
+  }
+}

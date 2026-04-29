@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "test_generation_v2",
+  "case": 12,
+  "response": "To write unit tests for the `chunk_list` function using the `pytest` framework, we will cover the following scenarios:\n\n1. Happy path: Normal cases where the function should work as expected.\n2. Edge cases: Cases like an empty list or a list with fewer elements than the chunk size.\n3. Error cases: Cases where the input is invalid, such as a non-positive chunk size.\n\nHere are the unit tests:\n\n```python\nimport pytest\n\n# Assuming the chunk_list function is defined in a module named 'chunker'\n# from chunker import chunk_list\n\ndef chunk_list(lst: list, size: int) -> list:\n    if size <= 0:\n        raise ValueError('size must be positive')\n    return [lst[i:i+size] for i in range(0, len(lst), size)]\n\ndef test_chunk_list_happy_path():\n    assert chunk_list([1, 2, 3, 4, 5], 2) == [[1, 2], [3, 4], [5]]\n    assert chunk_list(['a', 'b', 'c', 'd'], 2) == [['a', 'b'], ['c', 'd']]\n    assert chunk_list([1, 2, 3], 1) == [[1], [2], [3]]\n    assert chunk_list([1, 2, 3, 4, 5], 5) == [[1, 2, 3, 4, 5]]\n\ndef test_chunk_list_edge_cases():\n    assert chunk_list([], 2) == []  # Empty list should return an empty list\n    assert chunk_list([1], 2) == [[1]]  # Single element list with chunk size greater than 1\n    assert chunk_list([1, 2], 3) == [[1, 2]]  # List smaller than chunk size\n\ndef test_chunk_list_error_cases():\n    with pytest.raises(ValueError, match='size must be positive'):\n        chunk_list([1, 2, 3], 0)  # Zero chunk size\n    with pytest.raises(ValueError, match='size must be positive'):\n        chunk_list([1, 2, 3], -1)  # Negative chunk size\n    with pytest.raises(ValueError, match='size must be positive'):\n        chunk_list([1, 2, 3], -10)  # Negative chunk size\n\n# To run the tests, you would typically use the command line:\n# pytest <name_of_this_file>.py\n```\n\n### Explanation of the Tests:\n\n1. **Happy Path Tests**:\n   - We test the function with a normal list and a valid chunk size.\n   - We check various scenarios including different types of elements and chunk sizes.\n\n2. **Edge Case Tests**:\n   - We test with an empty list to ensure it returns an empty list.\n   - We check a single-element list with a chunk size greater than 1.\n   - We test a list where the number of elements is less than the chunk size.\n\n3. **Error Case Tests**:\n   - We check that the function raises a `ValueError` when the chunk size is zero or negative, ensuring the error message is as expected.\n\nThese tests provide a comprehensive coverage of the `chunk_list` function's behavior.",
+  "score": 4,
+  "cost": 0.00042629999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 689
+  }
+}

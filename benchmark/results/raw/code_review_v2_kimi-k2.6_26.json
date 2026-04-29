@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_review_v2",
+  "case": 26,
+  "response": "This code has **critical security vulnerabilities** and several reliability issues. It appears to be a Flask (or similar Werkzeug-based) file upload handler.\n\n---\n\n### 1. Critical Security Issues\n\n#### **Path Traversal / Directory Traversal**\n**What is wrong:** `file.filename` is user-controlled input. An attacker can submit a filename like `../../../tmp/malicious` or `..\\\\..\\\\Windows\\\\System32\\\\evil.dll`. The code directly interpolates this into an absolute path, allowing arbitrary file writes anywhere on the filesystem.\n\n**How to fix:**\n- Never trust user-supplied filenames.\n- Use `werkzeug.utils.secure_filename()` to strip path components.\n- Validate the final resolved path is strictly inside the intended upload directory.\n\n```python\nfrom werkzeug.utils import secure_filename\nfrom pathlib import Path\n\nupload_dir = Path('/uploads').resolve()\nfilename = secure_filename(file.filename)  # Strips paths, keeps only basename\nif not filename:\n    raise ValueError(\"Invalid filename\")\n\nsave_path = (upload_dir / filename).resolve()\n\n# CRITICAL: Ensure the resolved path is still inside the upload folder\nif not str(save_path).startswith(str(upload_dir)):\n    raise ValueError(\"Path traversal detected\")\n```\n\n#### **Unrestricted File Upload \u2192 Remote Code Execution (RCE)**\n**What is wrong:** There is no validation of file type or extension. If `/uploads/` is web-accessible (or mapped to a static route), an attacker can upload executable files (`.php`, `.jsp`, `.py`, `.html` with JS, etc.) and trigger them via a URL. Even if not web-accessible, uploading `.exe`, `.sh`, or `.py` files can be dangerous.\n\n**How to fix:**\n- Whitelist allowed extensions (e.g., `png`, `jpg`, `pdf`) and validate both extension and MIME type.\n- Store uploads **outside** the web root, or use a non-executable content directory.\n- If using Flask, do not serve the upload",
+  "score": 4,
+  "cost": 0.0048384,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 2000
+  }
+}

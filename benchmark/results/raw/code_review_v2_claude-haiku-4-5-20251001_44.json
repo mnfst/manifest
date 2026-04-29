@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_review_v2",
+  "case": 44,
+  "response": "# Code Review: cleanup_old_files()\n\n## Critical Issues\n\n### 1. **Missing Imports**\n```python\n# \u274c PROBLEM: os and time are used but not imported\nimport os\nimport time\nimport shutil\n```\n**Fix:** Add `import os` and `import time` at the top of the file.\n\n---\n\n### 2. **No File Type Checking**\n```python\n# \u274c PROBLEM: Uses rmtree() on everything, including files\nif os.path.getmtime(path) < time.time() - days * 86400:\n    shutil.rmtree(path)  # Fails if path is a file, not a directory\n```\n**Fix:** Check if it's a file or directory:\n```python\nif os.path.getmtime(path) < time.time() - days * 86400:\n    if os.path.isfile(path):\n        os.remove(path)\n    elif os.path.isdir(path):\n        shutil.rmtree(path)\n```\n\n---\n\n### 3. **No Error Handling**\n```python\n# \u274c PROBLEM: No exception handling for:\n# - Permission denied\n# - File in use\n# - Symbolic links\n# - Race conditions\n```\n**Fix:** Add try-except blocks:\n```python\ntry:\n    if os.path.isfile(path):\n        os.remove(path)\n    elif os.path.isdir(path):\n        shutil.rmtree(path)\nexcept (OSError, PermissionError) as e:\n    print(f\"Failed to delete {path}: {e}\")\n    # Consider logging instead of print\n```\n\n---\n\n### 4. **Symlink Vulnerability**\n```python\n# \u274c PROBLEM: rmtree() follows symlinks by default\n# An attacker could create a symlink to /etc or other critical directories\nshutil.rmtree(path)  # Dangerous!\n```\n**Fix:** Use `os.walk()` with `followlinks=False` or check for symlinks:\n```python\nif os.path.islink(path):\n    os.unlink(path)  # Remove the symlink, not its target\nelif os.path.isfile(path):\n    os.remove(path)\nelif os.path.isdir(path):\n    shutil.rmtree(path)\n```\n\n---\n\n### 5. **No Input Validation**\n```python\n# \u274c PROBLEM: No validation of directory or days parameter\ndef cleanup_old_files(directory, days=30):\n    # What if directory doesn't exist?\n    # What if days is negative?\n    # What if directory is \"/\"?\n```\n**Fix:** Add validation:\n```python\ndef cleanup_old_files(directory, days=30):\n    if not os.path.isdir(directory):\n        raise ValueError(f\"Directory does not exist: {directory}\")\n    if days < 0:\n        raise ValueError(\"days must be non-negative\")\n    if os.path.abspath(directory) == \"/\":\n        raise ValueError(\"Cannot cleanup root directory\")\n```\n\n---\n\n### 6. **Race Condition**\n```python\n# \u274c PROBLEM: File could be deleted/modified between check and deletion\nif os.path.getmtime(path) < threshold:\n    shutil.rm",
+  "score": 4,
+  "cost": 0.003296,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 800
+  }
+}

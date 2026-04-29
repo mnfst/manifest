@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "test_generation_v2",
+  "case": 44,
+  "response": "Here is a full\u202fpytest\u202ftest suite for the `compose` function.  \nIt covers the \u201chappy path\u201d, a number of **edge cases** (zero functions, a single function, many functions, mixed\u2011type chaining, etc.) and a few **error cases** (passing a non\u2011callable, a function that expects more than one argument, an exception that bubbles up, etc.).\n\n```python\n# test_compose.py\n\"\"\"\nTests for the ``compose`` utility.\n\nThe module under test is assumed to be importable as\n``from your_module import compose`` \u2013 replace the import",
+  "score": 4,
+  "cost": 0.008907799999999999,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 2000
+  }
+}

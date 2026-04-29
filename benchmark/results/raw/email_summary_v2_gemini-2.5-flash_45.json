@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary_v2",
+  "case": 45,
+  "response": "A server outage was caused by a misconfigured load balancer at 2:14 PM, resulting in 47 minutes of degraded service for 12,000 users. To prevent future occurrences, actions include adding load balancer config validation to CI, updating the runbook, and implementing traffic distribution alerts.",
+  "score": 5,
+  "cost": 5.3849999999999994e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 64
+  }
+}

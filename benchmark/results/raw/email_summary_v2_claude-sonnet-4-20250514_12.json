@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "The engineering team has 4 open positions (2 backend, 1 frontend, 1 ML) with 23 candidates currently in the pipeline and 5 in final interview rounds. The frontend position has been open for 60 days without strong candidates, so the recruiting team recommends either expanding the search to include remote workers or increasing the compensation range.",
+  "score": 5,
+  "cost": 0.001539,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 80
+  }
+}

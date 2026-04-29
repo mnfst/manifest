@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "email_summary_v2",
+  "case": 15,
+  "response": "Legal approved the updated terms with two required changes\u2014adding an arbitration clause for the enterprise tier and shortening data retention from 180 to 90 days\u2014both of which must be live before the May 1 EU launch. Legal will prepare the final version today.",
+  "score": 5,
+  "cost": 0.008535,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 83
+  }
+}

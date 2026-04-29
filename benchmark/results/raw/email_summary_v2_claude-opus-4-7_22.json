@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The International team has outlined a Japan launch plan with a $200K budget, progressing from legal setup in May to general availability in August, including localization, a beta with 10 customers, and a local hire. CEO approval is required to proceed.",
+  "score": 5,
+  "cost": 0.007875,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 76
+  }
+}

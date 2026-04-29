@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_review_v2",
+  "case": 29,
+  "response": "# Code Review: Critical Issues Found\n\n## \ud83d\udd34 **CRITICAL: SQL Injection Vulnerability**\n\n**Problem:**\n```javascript\nconst results = db.query(`SELECT * FROM products WHERE name LIKE '%${q}%'`);\n```\n\nUser input is directly interpolated into the SQL query. An attacker can inject malicious SQL:\n```\nGET /api/search?q='; DROP TABLE products; --\n```\n\n**Fix:** Use parameterized queries:\n```javascript\nconst results = db.query(\n  'SELECT * FROM products WHERE name LIKE ?',\n  [`%${q}%`]\n);\n```\n\n---\n\n## \ud83d\udd34 **Missing Input Validation**\n\n**Problem:**\n- No check if `q` exists or is a string\n- No length limits (enables DoS attacks)\n- No sanitization\n\n**Fix:**\n```javascript\napp.get('/api/search', (req, res) => {\n  let { q } = req.query;\n  \n  // Validate input\n  if (!q || typeof q !== 'string') {\n    return res.status(400).json({ error: 'Invalid search query' });\n  }\n  \n  if (q.length > 100) {\n    return res.status(400).json({ error: 'Query too long' });\n  }\n  \n  q = q.trim();\n  \n  const results = db.query(\n    'SELECT * FROM products WHERE name LIKE ?',\n    [`%${q}%`]\n  );\n  \n  res.json(results);\n});\n```\n\n---\n\n## \ud83d\udfe1 **Performance Issues**\n\n**Problems:**\n- `SELECT *` returns unnecessary columns\n- `LIKE '%...%'` is slow on large tables (full table scan)\n- No pagination (could return millions of rows)\n- No error handling\n\n**Fix:**\n```javascript\napp.get('/api/search', (req, res) => {\n  let { q, limit = 20, offset = 0 } = req.query;\n  \n  // Validation\n  if (!q || typeof q !== 'string' || q.length > 100) {\n    return res.status(400).json({ error: 'Invalid search query' });\n  }\n  \n  limit = Math.min(parseInt(limit) || 20, 100); // Cap at 100\n  offset = Math.max(parseInt(offset) || 0, 0);\n  \n  try {\n    const results = db.query(\n      'SELECT id, name, price FROM products WHERE name LIKE ? LIMIT ? OFFSET ?',\n      [`%${q}%`, limit, offset]\n    );\n    \n    res.json({ data: results, limit, offset });\n  } catch (error) {\n    console.error('Search error:', error);\n    res.status(500).json({ error: 'Search failed' });\n  }\n});\n```\n\n---\n\n## \ud83d\udfe1 **Missing Security Headers**\n\nAdd rate limiting to prevent abuse:\n```javascript\nconst rateLimit = require('express-rate-limit');\n\nconst searchLimiter = rateLimit({\n  windowMs: 15 * 60 * 1000, // 15 minutes\n  max: 100, // 100 requests per window\n  message: 'Too many searches, please try again later'\n});\n\napp.get('/api/search',",
+  "score": 5,
+  "cost": 0.0032808000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 800
+  }
+}

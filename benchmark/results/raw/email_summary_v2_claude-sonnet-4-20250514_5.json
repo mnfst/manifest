@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "email_summary_v2",
+  "case": 5,
+  "response": "The product launch is delayed due to payment integration failing PCI compliance, with two options being considered: launching without payments (requiring updated terms and conditions) or delaying the full launch until May 15. A meeting is scheduled for tomorrow at 10am to discuss the options.",
+  "score": 5,
+  "cost": 0.001215,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 59
+  }
+}

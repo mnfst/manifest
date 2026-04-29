@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "There are currently four open engineering positions, including two backend, one frontend, and one ML, with 23 candidates in process and five in final rounds. To address the lack of strong candidates for the frontend role, it is recommended to consider expanding the search to remote candidates or adjusting the compensation band.",
+  "score": 5,
+  "cost": 5.0549999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 60
+  }
+}

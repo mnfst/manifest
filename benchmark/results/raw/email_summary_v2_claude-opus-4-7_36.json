@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "email_summary_v2",
+  "case": 36,
+  "response": "A performance regression on /api/v2/search caused P99 latency to jump from 200ms to 800ms after Thursday's deploy due to a full-text search query missing an index. The Backend team will deploy a fix tonight during the maintenance window by adding a GIN index on the content column.",
+  "score": 5,
+  "cost": 0.009255,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 94
+  }
+}

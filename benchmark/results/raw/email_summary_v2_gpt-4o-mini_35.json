@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "email_summary_v2",
+  "case": 35,
+  "response": "The content moderation policy is being updated to include new rules regarding AI-generated content, which will take effect on June 1. Key changes include labeling AI-generated images, prohibiting deepfakes, and requiring disclosure for AI-assisted text, with training materials currently being prepared.",
+  "score": 5,
+  "cost": 4.709999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 54
+  }
+}

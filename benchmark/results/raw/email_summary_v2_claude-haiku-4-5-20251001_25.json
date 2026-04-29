@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "email_summary_v2",
+  "case": 25,
+  "response": "The company achieved significant milestones in April including reaching 10K monthly active users, closing an $8M Series A funding round at a $40M valuation, and hiring a VP of Sales, with strong metrics showing $85K MRR and 11 months of runway. The Series A fundraising process closes on May 10.",
+  "score": 5,
+  "cost": 0.0003936,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 75
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "The engineering team has 4 open positions with 23 candidates in the pipeline, but the frontend role has been open for 60 days without strong candidates. Recruiting recommends expanding the search to remote candidates or adjusting compensation to fill this position.",
+  "score": 5,
+  "cost": 0.0003144,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 56
+  }
+}

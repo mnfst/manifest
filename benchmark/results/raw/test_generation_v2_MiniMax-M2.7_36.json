@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "test_generation_v2",
+  "case": 36,
+  "response": "Here is a complete, ready\u2011to\u2011run pytest test suite for `validate_password`.  \nIt is broken into three logical groups:\n\n* **Happy\u2011path tests** \u2013 passwords that satisfy *all* requirements.  \n* **Edge\u2011case tests** \u2013 boundary lengths, missing individual character classes, etc.  \n* **Error\u2011case tests** \u2013 calls that give the function a non\u2011string value and should raise a `TypeError`.\n\n```python\n# tests/test_validate_password.py\n\n\"\"\"\nTest suite for ``validate_password``.\n\nRun with:\n    $ pytest tests/test_validate_password.py -v\n\"\"\"\n\nimport pytest\n\n# ----------------------------------------------------------------------\n# Adjust this import to match your project layout.\n# ----------------------------------------------------------------------\n# from my_package.password import validate_password   # noqa: E501\n# For the example we place the function directly in this file:\ndef validate_password(pw: str) -> bool:\n    \"\"\"\n    Returns True if ``pw`` is at least 8 characters long and contains\n    at least one uppercase letter, one lowercase letter and one digit.\n    \"\"\"\n    if len(pw",
+  "score": 5,
+  "cost": 0.0089595,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 2000
+  }
+}

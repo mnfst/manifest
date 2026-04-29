@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "email_summary_v2",
+  "case": 18,
+  "response": "The VP of Engineering is proposing to split the Platform team into two new teams, Infrastructure and Developer Experience, to solve the bottleneck of infrastructure incidents derailing developer-focused work. A draft organizational chart outlining this change is attached for review.",
+  "score": 5,
+  "cost": 0.00057625,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 47
+  }
+}

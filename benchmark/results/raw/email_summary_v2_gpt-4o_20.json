@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "email_summary_v2",
+  "case": 20,
+  "response": "A disk space alert occurred on prod-db-01 early Saturday, and although an automated cleanup freed some space, manual intervention was required to fully restore service due to a log rotation misconfiguration. The issue was resolved without customer impact as it happened during a maintenance window.",
+  "score": 5,
+  "cost": 0.0007675,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 53
+  }
+}

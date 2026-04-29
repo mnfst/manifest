@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "test_generation_v2",
+  "case": 26,
+  "response": "To write unit tests for the `safe_divide` function using the `pytest` framework, we will cover the following scenarios:\n\n1. Happy path: Normal division where `b` is not zero.\n2. Edge cases: \n   - Division by a very small number (close to zero).\n   - Division of zero by a number.\n   - Division of a number by one.\n3. Error cases:\n   - Division by zero, which should return the default value.\n   - Division with non-numeric types (e.g., strings, None).\n\nHere are the unit tests:\n\n```python\nimport pytest\n\n# Assuming the safe_divide function is defined in a module named 'my_module'\n# from my_module import safe_divide\n\ndef safe_divide(a: float, b: float, default: float = 0.0) -> float:\n    try:\n        return a / b\n    except ZeroDivisionError:\n        return default\n\ndef test_safe_divide_happy_path():\n    assert safe_divide(10, 2) == 5.0\n    assert safe_divide(5, 2) == 2.5\n    assert safe_divide(-10, 2) == -5.0\n    assert safe_divide(0, 5) == 0.0\n    assert safe_divide(10, 1) == 10.0\n\ndef test_safe_divide_edge_cases():\n    assert safe_divide(10, 0.1) == 100.0  # Division by a small number\n    assert safe_divide(0, 1) == 0.0        # Zero divided by a number\n    assert safe_divide(10, 1) == 10.0      # Division by one\n\ndef test_safe_divide_error_cases():\n    assert safe_divide(10, 0) == 0.0       # Division by zero returns default\n    assert safe_divide(10, 0, default=5.0) == 5.0  # Custom default value\n    assert safe_divide(10, None) == 0.0    # Division by None returns default\n    assert safe_divide(10, 'a') == 0.0     # Division by a string returns default\n    assert safe_divide('a', 2) == 0.0      # Non-numeric numerator returns default\n    assert safe_divide(None, 2) == 0.0     # None as numerator returns default\n\n# To run the tests, use the command: pytest <filename>.py\n```\n\n### Explanation of the Tests:\n\n1. **Happy Path Tests**: These tests check normal division scenarios where the divisor is not zero.\n2. **Edge Case Tests**: These tests check how the function behaves with edge values, such as very small numbers and zero.\n3. **Error Case Tests**: These tests check how the function handles division by zero and non-numeric types, ensuring that it returns the default value in these cases.\n\nTo run these tests, save the code in a file (e.g., `test_safe_divide.py`) and execute it using the command `pytest test_safe_divide.py`.",
+  "score": 3,
+  "cost": 0.00041115,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 666
+  }
+}

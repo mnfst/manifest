@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "test_generation_v2",
+  "case": 21,
+  "response": "The provided `truncate` function has some interesting behavior, particularly when `max_len` is less than or equal to the length of the `suffix`, or when `max_len` is negative. The current implementation relies on Python's string slicing behavior, which can lead to results where the truncated string's length is *greater* than `max_len`.\n\nThe unit tests below cover the happy path, various edge cases, and error cases, explicitly testing the *actual* behavior of the given function, even if that behavior is unexpected or buggy.\n\n```python\nimport pytest\n\n# The function to be tested\ndef truncate(s: str, max_len: int, suffix: str = '...') -> str:\n    if len(s) <= max_len:\n        return s\n    return s[:max_len - len(suffix)] + suffix\n\nclass TestTruncate:\n\n    # --- Happy Path Tests ---\n\n    @pytest.mark.parametrize(\n        \"s, max_len, suffix, expected\",\n        [\n            # String length less than max_len\n            (\"hello world\", 20, \"...\", \"hello world\"),\n            (\"short\", 5, \"...\", \"short\"),\n            # String length equal to max_len\n            (\"exact length\", 12, \"...\", \"exact length\"),\n            (\"exact length\", 12, \"---\", \"exact length\"), # With custom suffix\n            # Empty string\n            (\"\", 0, \"...\", \"\"),\n            (\"\", 5, \"",
+  "score": 4,
+  "cost": 0.00020864999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 327
+  }
+}

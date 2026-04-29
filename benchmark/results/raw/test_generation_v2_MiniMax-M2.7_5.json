@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "test_generation_v2",
+  "case": 5,
+  "response": "Here is a **ready\u2011to\u2011run pytest test suite** for the tiny `count_vowels` function.  \nIt is split into three logical groups:\n\n* **Happy\u2011path** \u2013 typical strings with vowels, mixed case, punctuation, etc.  \n* **Edge\u2011cases** \u2013 empty string, no vowels, very long strings, Unicode characters that are *not* ASCII vowels, etc.  \n* **Error\u2011cases** \u2013 passing a non\u2011string argument (e.g. `None`, `int`, `list`, `bytes`) so we verify the function fails gracefully.\n\nSave the code below as **`test_count_vowels.py`** (or any name you prefer) and run it with `pytest`:\n\n```python\n# test_count_vowels.py\nimport pytest\n\n# ----------------------------------------------------------------------\n# Import the function under test.\n# If the function lives in another module adjust the import accordingly.\n# ----------------------------------------------------------------------\ntry:\n    from count_vowels import count_vowels   # noqa: F401\nexcept ImportError:\n    # Fallback \u2013 define a minimal stub so the",
+  "score": 4,
+  "cost": 0.008907799999999999,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 2000
+  }
+}

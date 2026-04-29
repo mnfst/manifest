@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "The sprint retrospective highlighted successful on-time delivery of the auth redesign and strong design collaboration, but identified issues with excessive context switching across multiple projects and lengthy 25-minute standups. The team will implement two action items: limiting work-in-progress to 2 items per developer and introducing timeboxed standups with a parking lot for off-topic discussions.",
+  "score": 5,
+  "cost": 0.001557,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 80
+  }
+}

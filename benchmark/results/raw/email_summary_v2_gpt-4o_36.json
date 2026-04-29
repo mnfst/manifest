@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "email_summary_v2",
+  "case": 36,
+  "response": "The P99 latency for /api/v2/search increased significantly due to a new full-text search query not utilizing the index. The backend team plans to deploy a fix by adding a GIN index on the content column during tonight's maintenance window.",
+  "score": 5,
+  "cost": 0.0007275,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 49
+  }
+}

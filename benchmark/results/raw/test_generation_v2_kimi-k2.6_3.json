@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "test_generation_v2",
+  "case": 3,
+  "response": "Here are comprehensive pytest unit tests covering happy paths, edge cases, and error cases:\n\n```python\nimport pytest\n\n\n# Replace this with the actual import from your module\n# from my_module import flatten\n\ndef flatten(lst: list) -> list:\n    result = []\n    for item in lst:\n        if isinstance(item, list):\n            result.extend(flatten(item))\n        else:",
+  "score": 1,
+  "cost": 0.004848,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 2000
+  }
+}

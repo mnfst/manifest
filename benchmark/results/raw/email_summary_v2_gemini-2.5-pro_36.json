@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "email_summary_v2",
+  "case": 36,
+  "response": "A recent deployment caused a significant latency increase on the search API because a new query is not using an index. The backend team will fix this by deploying a new index during tonight's maintenance window.",
+  "score": 5,
+  "cost": 0.00052375,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 40
+  }
+}

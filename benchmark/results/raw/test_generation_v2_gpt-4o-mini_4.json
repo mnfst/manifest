@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "test_generation_v2",
+  "case": 4,
+  "response": "To write unit tests for the `celsius_to_fahrenheit` function using the pytest framework, we will cover the following scenarios:\n\n1. Happy path: Normal conversions from Celsius to Fahrenheit.\n2. Edge cases: Conversions for extreme values, such as absolute zero and very high temperatures.\n3. Error cases: Handling of invalid inputs, such as non-numeric types.\n\nHere is how you can structure the tests:\n\n```python\nimport pytest\n\n# Assuming the function celsius_to_fahrenheit is defined in a module named temperature\n# from temperature import celsius_to_fahrenheit\n\ndef celsius_to_fahrenheit(c: float) -> float:\n    return c * 9/5 + 32\n\ndef test_celsius_to_fahrenheit_happy_path():\n    # Normal conversions\n    assert celsius_to_fahrenheit(0) == 32.0  # Freezing point of water\n    assert celsius_to_fahrenheit(100) == 212.0  # Boiling point of water\n    assert celsius_to_fahrenheit(25) == 77.0  # Room temperature\n    assert celsius_to_fahrenheit(-40) == -40.0  # -40\u00b0C is -40\u00b0F\n\ndef test_celsius_to_fahrenheit_edge_cases():\n    # Edge cases\n    assert celsius_to_fahrenheit(-273.15) == -459.67  # Absolute zero\n    assert celsius_to_fahrenheit(1000) == 1832.0  # Very high temperature\n\ndef test_celsius_to_fahrenheit_error_cases():\n    # Error cases\n    with pytest.raises(TypeError):\n        celsius_to_fahrenheit(\"string\")  # String input\n    with pytest.raises(TypeError):\n        celsius_to_fahrenheit(None)  # None input\n    with pytest.raises(TypeError):\n        celsius_to_fahrenheit([])  # List input\n    with pytest.raises(TypeError):\n        celsius_to_fahrenheit({})  # Dictionary input\n\n# To run the tests, you would typically use the command:\n# pytest <name_of_this_file>.py\n```\n\n### Explanation of the Tests:\n\n1. **Happy Path Tests**:\n   - We test common values like 0\u00b0C, 100\u00b0C, 25\u00b0C, and -40\u00b0C to ensure the function returns the expected Fahrenheit values.\n\n2. **Edge Case Tests**:\n   - We test the conversion of -273.15\u00b0C (absolute zero) to ensure it correctly converts to -459.67\u00b0F.\n   - We also test a very high temperature (1000\u00b0C) to see if the function can handle large values.\n\n3. **Error Case Tests**:\n   - We check that the function raises a `TypeError` when given invalid inputs such as strings, `None`, lists, and dictionaries. This ensures that the function is robust against incorrect data types.\n\nTo run these tests, you would save the code in a Python file and execute it using the pytest command in your terminal.",
+  "score": 4,
+  "cost": 0.00037545,
+  "expected": "",
+  "tokens": {
+    "input": 59,
+    "output": 611
+  }
+}

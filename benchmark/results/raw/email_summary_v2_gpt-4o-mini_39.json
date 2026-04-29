@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "email_summary_v2",
+  "case": 39,
+  "response": "The year-end audit is scheduled to begin on January 15, and a pre-audit checklist has been provided, which includes finalizing revenue recognition for Q4, reconciling bank accounts, verifying stock option records, and preparing related-party transaction disclosures. A meeting with the controller will take place next Tuesday to assign responsibilities for these tasks.",
+  "score": 5,
+  "cost": 5.519999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 68
+  }
+}

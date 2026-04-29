@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "test_generation_v2",
+  "case": 0,
+  "response": "Certainly! Below are unit tests for the `add` function using the `pytest` framework. The tests cover the happy path, edge cases, and error cases.\n\n```python\nimport pytest\n\n# Assuming the add function is defined in a module named 'my_module'\n# from my_module import add\n\ndef add(a: int, b: int) -> int:\n    return a + b\n\ndef test_add_happy_path():\n    assert add(1, 2) == 3\n    assert add(-1, 1) == 0\n    assert add(0, 0) == 0\n    assert add(100, 200) == 300\n    assert add(-100, -200) == -300\n\ndef test_add_edge_cases():\n    assert add(0, 1) == 1\n    assert add(1, 0) == 1\n    assert add(-1, -1) == -2\n    assert add(1, -1) == 0\n    assert add(-1, 1) == 0\n\ndef test_add_large_numbers():\n    assert add(10**6, 10**6) == 2 * 10**6\n    assert add(-10**6, -10**6) == -2 * 10**6\n    assert add(10**6, -10**6) == 0\n\ndef test_add_non_integer_inputs():\n    with pytest.raises(TypeError):\n        add(\"1\", 2)\n    with pytest.raises(TypeError):\n        add(1, \"2\")\n    with pytest.raises(TypeError):\n        add(1.5, 2)\n    with pytest.raises(TypeError):\n        add(1, None)\n    with pytest.raises(TypeError):\n        add([], 1)\n    with pytest.raises(TypeError):\n        add(1, {})\n\nif __name__ == \"__main__\":\n    pytest.main()\n```\n\n### Explanation of the Tests:\n\n1. **Happy Path Tests (`test_add_happy_path`)**:\n   - Tests typical cases where both positive and negative integers are added, including zero.\n\n2. **Edge Cases Tests (`test_add_edge_cases`)**:\n   - Tests cases involving zero and negative numbers to ensure the function handles these correctly.\n\n3. **Large Numbers Tests (`test_add_large_numbers`)**:\n   - Tests the function with large integers to ensure it can handle them without overflow.\n\n4. **Error Cases Tests (`test_add_non_integer_inputs`)**:\n   - Tests the function with non-integer inputs (like strings, floats, None, and lists) to ensure it raises a `TypeError`.\n\n### Running the Tests:\nTo run these tests, save the code in a file (e.g., `test_add.py`) and run the following command in your terminal:\n\n```bash\npytest test_add.py\n```\n\nMake sure you have `pytest` installed in your environment. You can install it using pip if you haven't done so:\n\n```bash\npip install pytest\n```",
+  "score": 4,
+  "cost": 0.00037995,
+  "expected": "",
+  "tokens": {
+    "input": 53,
+    "output": 620
+  }
+}

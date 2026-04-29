@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary_v2",
+  "case": 23,
+  "response": "The v1 API will be deprecated on June 30th and removed on September 30th, with 340 integrations, including 12 enterprise customers, still needing to migrate. The Platform team plans personal outreach to the top 20 remaining users and a webinar for the rest to facilitate their migration.",
+  "score": 5,
+  "cost": 5.415e-05,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 66
+  }
+}

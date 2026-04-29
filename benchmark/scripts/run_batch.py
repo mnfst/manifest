@@ -173,6 +173,30 @@ TASK_DEFS = {
         "judge_prompt": "Rate the answer on a 1-5 scale. 5=completely correct final answer with sound reasoning. 4=correct answer with minor reasoning gaps. 3=partially correct. 2=wrong answer but some correct steps. 1=completely wrong. Respond with ONLY a number 1-5.",
         "native_metric": "exact_answer",  # extract number after ANSWER: and compare to expected
     },
+    "test_generation_v2": {
+        "dataset": "datasets/test_generation.jsonl",
+        "prompt_template": "Write unit tests for the following function. Use pytest style. Cover happy path, edge cases, and error cases.\n\n```python\n{input}\n```",
+        "eval_type": "llm_judge",
+        "max_output_tokens": 1000,
+        "judge_prompt": "Rate these unit tests on a 1-5 scale. 5=comprehensive tests covering happy path, edge cases, and errors with good assertions. 4=good coverage with minor gaps. 3=basic happy path tests only. 2=tests exist but incomplete or incorrect. 1=not valid tests or empty. Respond with ONLY a number 1-5.",
+        "native_metric": None,
+    },
+    "code_review_v2": {
+        "dataset": "datasets/code_review.jsonl",
+        "prompt_template": "Review the following code. Identify bugs, security issues, and suggest improvements. Be specific about what is wrong and how to fix it.\n\n```\n{input}\n```",
+        "eval_type": "llm_judge",
+        "max_output_tokens": 800,
+        "judge_prompt": "Rate this code review on a 1-5 scale. 5=identifies all major bugs and security issues with specific fixes. 4=catches major issues with good suggestions. 3=catches some issues but misses important ones. 2=vague or mostly irrelevant. 1=wrong or empty. Respond with ONLY a number 1-5.",
+        "native_metric": None,
+    },
+    "email_summary_v2": {
+        "dataset": "datasets/email_summary.jsonl",
+        "prompt_template": "Summarize the following email in exactly 2 sentences. Capture the main point and any action items.\n\nEmail:\n{input}\n\nSummary:",
+        "eval_type": "llm_judge",
+        "max_output_tokens": 200,
+        "judge_prompt": "Rate this email summary on a 1-5 scale. 5=captures all key points and action items in 2 clear sentences. 4=captures main point with minor omissions. 3=gets topic right but misses specifics. 2=vaguely related. 1=wrong or empty. Respond with ONLY a number 1-5.",
+        "native_metric": None,
+    },
     "function_calling": {
         "dataset": "datasets/function_calling.jsonl",
         "prompt_template": 'Given the following available functions, generate the correct function call for the user request. Return ONLY valid JSON in this format: {{"name": "function_name", "arguments": {{...}}}}\n\nAvailable functions:\n{functions}\n\nUser request: {input}',

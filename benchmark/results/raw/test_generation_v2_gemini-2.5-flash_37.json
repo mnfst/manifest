@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "test_generation_v2",
+  "case": 37,
+  "response": "The `parse_csv_line` function provided implements a simplified CSV parsing logic. It handles commas as field separators and double quotes as toggles for an `in_quotes` state. A key characteristic of this implementation is that the double quote characters themselves are *not* included in the resulting field strings, and they do not follow standard CSV escaping rules (where `\"\"` inside a quoted field becomes a single `\"`). Instead, each `\"` simply flips the `in_quotes` flag. Commas are only treated as separators when `in_quotes` is `False`.\n\nThe unit tests below cover:\n1.  **Happy Path**: Standard CSV lines with various valid field contents, including spaces, empty fields, and fields containing commas when properly quoted.\n2.  **Edge Cases**: Empty input, single-field lines, lines with only commas, leading/trailing commas, and various scenarios involving the function's specific (and non-standard) quote handling logic, such as unclosed quotes, quotes within unquoted fields, and multiple quotes.\n3.  **Error Cases**: Passing non-string inputs to ensure the function raises a `TypeError` as expected by Python's runtime behavior for iterating over non-string types.\n\n```python\nimport pytest\n\n# The function to be tested\ndef parse_csv_line(line: str) -> list:\n    result = []\n    current = ''\n    in_quotes = False\n    for c in line:\n        if c == '\"':\n            # Toggle the in_quotes state. The",
+  "score": 4,
+  "cost": 0.00021465,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 325
+  }
+}

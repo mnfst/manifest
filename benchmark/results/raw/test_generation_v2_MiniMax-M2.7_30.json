@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "test_generation_v2",
+  "case": 30,
+  "response": "Here is a compact, fully\u2011featured test suite for `snake_to_camel`.  \nIt follows the **pytest** conventions, is organized into logical sections, and covers the three categories you asked for:\n\n* **Happy\u2011path** \u2013 the \u201cnormal\u201d conversions you expect.  \n* **Edge\u2011cases** \u2013 empty strings, missing/trailing/leading/multiple underscores, already\u2011camel strings, numeric parts, etc.  \n* **Error\u2011cases** \u2013 wrong types (e.g. `None`, `int`, `list`, `dict`) that should raise a `TypeError`.\n\n```python\n# test_snake_to_camel.py\n\"\"\"Unit\u2011tests for snake_to_camel() \u2013 pytest style.\"\"\"\n\nimport pytest\nfrom snake_to_camel import snake_to_camel   # adjust the import as needed\n\n\n# ----------------------------------------------------------------------\n# Happy\u2011path\n# ----------------------------------------------------------------------\nclass TestSnakeToCamelHappyPath:\n    \"\"\"Typical inputs that should convert cleanly.\"\"\"\n\n    def test_two_parts(self):\n        assert snake_to_camel(\"hello_world\") == \"helloWorld\"\n\n    def test_three_parts(self):\n        assert snake_to_camel(\"a_b_c\") == \"aBC\"\n\n    def test_four_parts(self):\n        assert snake_to_camel(\"snake_case_function\") == \"snakeCaseFunction\"\n\n    def test_mixed_case_input(self):\n        # Capital letters are preserved in the first segment, the rest are capitalized\n        assert snake_to_camel(\"Hello_world\") == \"HelloWorld\"\n\n    def test_numeric_parts(self):\n        assert snake_to_camel(\"test_123\") == \"test123\"\n        assert snake_to_camel(\"test_123_abc\") == \"test123Abc\"\n\n    def test_already_camel(self):\n        # No underscores \u2192 should stay unchanged\n        assert snake_to_camel(\"alreadyCamel\") == \"alreadyCamel\"\n\n    def test_single_word(self):\n        assert snake_to_camel(\"single\") == \"single\"\n\n\n# ----------------------------------------------------------------------\n# Edge\u2011cases\n# ----------------------------------------------------------------------\nclass TestSnakeToCamelEdgeCases:\n    \"\"\"Inputs that are unusual but still valid strings.\"\"\"\n\n    @pytest.mark.parametrize(",
+  "score": 4,
+  "cost": 0.0089199,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 2000
+  }
+}

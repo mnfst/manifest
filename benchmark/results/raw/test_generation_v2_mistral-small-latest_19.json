@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "test_generation_v2",
+  "case": 19,
+  "response": "Here are comprehensive unit tests for the `clamp` function using pytest style, covering happy paths, edge cases, and error cases:\n\n```python\nimport pytest\nfrom math import inf, nan\n\ndef test_clamp_happy_path():\n    \"\"\"Test normal cases where value is within bounds.\"\"\"\n    assert clamp(5.0, 0.0, 10.0) == 5.0\n    assert clamp(0.0, 0.0, 10.0) == 0.0\n    assert clamp(10.0, 0.0, 10.0) == 10.0\n    assert clamp(3.14, 0.0, 10.0) == 3.14\n    assert clamp(-5.0, -10.0, 0.0) == -5.0\n    assert clamp(-10.0, -10.0, 0.0) == -10.0\n    assert clamp(0.0, -10.0, 0.0) == 0.0\n\ndef test_clamp_below_min():\n    \"\"\"Test cases where value is below min_val.\"\"\"\n    assert clamp(-5.0, 0.0, 10.0) == 0.0\n    assert clamp(-100.0, -10.0, 10.0) == -10.0\n    assert clamp(-inf, 0.0, 10.0) == 0.0\n\ndef test_clamp_above_max():\n    \"\"\"Test cases where value is above max_val.\"\"\"\n    assert clamp(15.0, 0.0, 10.0) == 10.0\n    assert clamp(100.0, -10.0, 10.0) == 10.0\n    assert clamp(inf, 0.0, 10.0) == 10.0\n\ndef test_clamp_equal_bounds():\n    \"\"\"Test cases where min_val equals max_val.\"\"\"\n    assert clamp(5.0, 5.0, 5.0) == 5.0\n    assert clamp(0.0, 5.0, 5.0) == 5.0\n    assert clamp(10.0, 5.0, 5.0) == 5.0\n\ndef test_clamp_nan_values():\n    \"\"\"Test cases with NaN values.\"\"\"\n    assert nan == clamp(nan, 0.0, 10.0)\n    assert nan == clamp(5.0, nan, 10.0)\n    assert nan == clamp(5.0, 0.0, nan)\n\ndef test_clamp_infinity_values():\n    \"\"\"Test cases with infinity values.\"\"\"\n    assert clamp(inf, -inf, inf) == inf\n    assert clamp(-inf, -inf, inf) == -inf\n    assert clamp(0.0, -inf, inf) == 0.0\n    assert clamp(inf, 0.0, inf) == inf\n    assert clamp(-inf, -inf, 0.0) == -inf\n\ndef test_clamp_min_equals_max():\n    \"\"\"Test when min_val equals max_val.\"\"\"\n    assert clamp(5.0, 5.0, 5.0) == 5.0\n    assert clamp(0.0, 5.0, 5.0) == 5.0\n    assert clamp(10.0, 5.0, 5.0) == 5.0\n\ndef test_clamp_min_greater_than_max():\n    \"\"\"Test when min_val is greater than max_val (should still work due to min/max behavior).\"\"\"\n    # This is technically undefined behavior, but the function will return max_val\n    assert clamp(5.0, 10.0, 0.0) == 0.0\n    assert clamp(0.0, 10.0, 0.0) == 0.0\n    assert clamp(10.0, 10.0, 0.0) == 0.0\n\ndef test_clamp_negative_values():\n    \"\"\"Test with negative values.\"\"\"\n    assert clamp(-5.0, -10.0, -1.0) == -5.0\n    assert clamp(-15.0, -10.0, -1.0) == -10.0\n    assert clamp(-0.5, -10.0, -1.0",
+  "score": 4,
+  "cost": 0.0003073,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 1000
+  }
+}

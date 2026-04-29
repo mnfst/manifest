@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "test_generation_v2",
+  "case": 17,
+  "response": "Here is a comprehensive pytest suite that organizes cases into happy path, edge cases, and error/negative cases.\n\n```python\nimport pytest\n# from your_module import is_balanced_parens\n\n\nclass TestIsBalancedParens:\n    \"\"\"Unit tests for is_balanced_parens.\"\"\"\n\n    # ------------------------------------------------------------------ #\n    # Happy Path\n    # ------------------------------------------------------------------ #\n    @pytest.mark.parametrize(\"s, expected\", [\n        (\"\", True),                      # empty string\n        (\"()\", True),                    # simple pair\n        (\"[]\", True),                    # simple brackets\n        (\"{}\", True),                    # simple braces\n        (\"()[]{}\", True),                # sequential groups\n        (\"({[]})\", True),                # nested mixed\n        (\"{[()()][]}\", True),            # complex nested\n        (\"a(b)c\", True),                 # non-bracket chars ignored\n        (\"(a{b[c]d}e)\", True),           # text interspersed\n        (\"no brackets at all\", True),    # no brackets present\n    ])\n    def test_happy_path(self, s:",
+  "score": 4,
+  "cost": 0.0048696,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 2000
+  }
+}

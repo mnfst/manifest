@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "The team successfully shipped the auth redesign on time with strong cross-team collaboration, but identified issues with context switching across multiple projects and lengthy standups. Action items include limiting work-in-progress to 2 items per developer and implementing timeboxed standups with a parking lot for off-topic discussions.",
+  "score": 5,
+  "cost": 0.0003632,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 67
+  }
+}

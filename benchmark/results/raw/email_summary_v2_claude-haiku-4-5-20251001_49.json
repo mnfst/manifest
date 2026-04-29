@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "email_summary_v2",
+  "case": 49,
+  "response": "The product launch is delayed because the payment integration failed PCI compliance, requiring two additional weeks. The team must decide by tomorrow's 10am meeting whether to launch without payments (requiring updated terms and conditions) or delay the full launch until May 15.",
+  "score": 5,
+  "cost": 0.000308,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 55
+  }
+}

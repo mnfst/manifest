@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "email_summary_v2",
+  "case": 38,
+  "response": "The first month of the Bug Bounty Program resulted in 47 reports, with 12 valid and 3 critical findings, leading to $15K in payouts and all issues patched within 24 hours. The program shows a strong ROI, and continuation is recommended.",
+  "score": 5,
+  "cost": 0.0008075,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 53
+  }
+}

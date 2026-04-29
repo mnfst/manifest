@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "email_summary_v2",
+  "case": 31,
+  "response": "Revenue is proposing a new \"Starter\" tier at $29/month (5 users, 10K API calls, email support) to bridge the gap between the Free and Pro ($79) plans, addressing the 40% of churned users who cite price as their reason for leaving. The projected impact is recovering 15% of price-churned users, generating an estimated $180K in ARR.",
+  "score": 5,
+  "cost": 0.01149,
+  "expected": "",
+  "tokens": {
+    "input": 166,
+    "output": 120
+  }
+}

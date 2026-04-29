@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "The sprint succeeded with the on-time auth redesign and strong design collaboration, but suffered from excessive context switching across three projects and overly long 25-minute standups. To address these issues, developers will limit work-in-progress to two items each, and standups will be strictly timeboxed to 15 minutes with a parking lot for off-topic discussions.",
+  "score": 5,
+  "cost": 0.01101,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 115
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "test_generation_v2",
+  "case": 0,
+  "response": "Here are comprehensive **pytest** unit tests covering the happy path, edge cases, and error cases for `add`.\n\n```python\nimport pytest\n\n# Replace with your actual module import\n# from my_module import add\n\n\nclass TestAddHappyPath:\n    \"\"\"Tests for standard, expected integer",
+  "score": 5,
+  "cost": 0.0048318,
+  "expected": "",
+  "tokens": {
+    "input": 53,
+    "output": 2000
+  }
+}

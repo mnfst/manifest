@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "email_summary_v2",
+  "case": 33,
+  "response": "The Q1 employee engagement survey shows strong overall results at 7.8/10 with excellent team collaboration, but reveals concerns about career growth clarity at 6.1/10. The People Team proposes implementing quarterly career conversations, an internal mobility program, and mentorship matching, with a town hall discussion scheduled for Friday.",
+  "score": 5,
+  "cost": 0.00038480000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 71
+  }
+}

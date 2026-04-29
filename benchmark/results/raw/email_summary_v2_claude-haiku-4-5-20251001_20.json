@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "email_summary_v2",
+  "case": 20,
+  "response": "A disk space alert on the production database Saturday morning was resolved through manual intervention at 8 AM after automated cleanup failed to resize the disk, with no customer impact due to the maintenance window timing. The root cause was misconfigured log rotation following the last migration, which needs to be corrected to prevent recurrence.",
+  "score": 5,
+  "cost": 0.000356,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 68
+  }
+}

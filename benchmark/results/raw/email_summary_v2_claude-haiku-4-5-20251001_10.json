@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The Q1 board deck shows strong revenue performance at 127% of target and healthy net revenue retention at 115%, though customer acquisition costs have increased by 22%. Please submit your product roadmap section by Wednesday for the board meeting scheduled for next Tuesday.",
+  "score": 5,
+  "cost": 0.0003008,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 56
+  }
+}

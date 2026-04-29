@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "email_summary_v2",
+  "case": 43,
+  "response": "The OSS audit scanned 234 packages and found two issues: an AGPL-licensed charting library incompatible with the SaaS model and a package with no license. Both should be removed before the next release, with Chart.js (Apache-licensed) recommended as a replacement for the charting library.",
+  "score": 5,
+  "cost": 0.009645,
+  "expected": "",
+  "tokens": {
+    "input": 173,
+    "output": 94
+  }
+}

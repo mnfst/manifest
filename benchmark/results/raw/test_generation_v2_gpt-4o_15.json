@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "test_generation_v2",
+  "case": 15,
+  "response": "To write unit tests for the `rotate_list` function using the `pytest` framework, we need to cover various scenarios including the happy path, edge cases, and error cases. Below is a comprehensive set of tests:\n\n```python\nimport pytest\n\ndef test_rotate_list_happy_path():\n    # Happy path tests\n    assert rotate_list([1, 2, 3, 4, 5], 2) == [4, 5, 1, 2, 3]\n    assert rotate_list([1, 2, 3, 4, 5], 3) == [3, 4, 5, 1, 2]\n    assert rotate_list(['a', 'b', 'c', 'd'], 1) == ['d', 'a', 'b', 'c']\n\ndef test_rotate_list_edge_cases():\n    # Edge case: empty list\n    assert rotate_list([], 3) == []\n    \n    # Edge case: k is 0\n    assert rotate_list([1, 2, 3], 0) == [1, 2, 3]\n    \n    # Edge case: k is equal to the length of the list\n    assert rotate_list([1, 2, 3, 4], 4) == [1, 2, 3, 4]\n    \n    # Edge case: k is greater than the length of the list\n    assert rotate_list([1, 2, 3], 5) == [2, 3, 1]\n    \n    # Edge case: single element list\n    assert rotate_list([1], 3) == [1]\n\ndef test_rotate_list_error_cases():\n    # Error case: k is negative\n    assert rotate_list([1, 2, 3, 4], -1) == [4, 1, 2, 3]\n    \n    # Error case: k is a large negative number\n    assert rotate_list([1, 2, 3, 4], -5) == [4, 1, 2, 3]\n\n    # Error case: k is a large positive number\n    assert rotate_list([1, 2, 3, 4], 100) == [1, 2, 3, 4]\n\n    # Error case: list with duplicate elements\n    assert rotate_list([1, 2, 2, 3], 2) == [2, 3, 1, 2]\n\n# To run the tests, use the command: pytest <name_of_test_file>.py\n```\n\n### Explanation:\n\n1. **Happy Path Tests**: These tests check the function with typical inputs where the list is rotated by a positive integer `k`.\n\n2. **Edge Cases**:\n   - An empty list should return an empty list regardless of `k`.\n   - When `k` is 0, the list should remain unchanged.\n   - When `k` is equal to the length of the list, the list should remain unchanged.\n   - When `k` is greater than the length of the list, the function should still correctly rotate the list.\n   - A single-element list should remain unchanged regardless of `k`.\n\n3. **Error Cases**:\n   - Negative values of `k` should still rotate the list correctly, as the function handles negative indices.\n   - Large values of `k` (both positive and negative) should be handled correctly due to the modulo operation.\n   - Lists with duplicate elements should be rotated correctly without any issues.\n\nThese tests ensure that the `rotate_list` function behaves as expected across a wide range of inputs.",
+  "score": 4,
+  "cost": 0.00782,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 763
+  }
+}

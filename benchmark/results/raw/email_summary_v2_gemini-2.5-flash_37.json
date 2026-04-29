@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary_v2",
+  "case": 37,
+  "response": "BigCo has offered $15M to acqui-hire our 5-person ML team. The CEO believes this offer is too low and recommends discussing a counter or polite decline before informing the Board.",
+  "score": 5,
+  "cost": 4.034999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 42
+  }
+}

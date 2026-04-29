@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "test_generation_v2",
+  "case": 6,
+  "response": "To write unit tests for the `reverse_words` function using the `pytest` framework, we will cover various scenarios including the happy path, edge cases, and error cases. Below is the test code:\n\n```python\nimport pytest\n\ndef reverse_words(s: str) -> str:\n    return ' '.join(s.split()[::-1])\n\ndef test_reverse_words_happy_path():\n    assert reverse_words(\"Hello World\") == \"World Hello\"\n    assert reverse_words(\"Python is great\") == \"great is Python\"\n    assert reverse_words(\"Unit tests are important\") == \"important are tests Unit\"\n\ndef test_reverse_words_edge_cases():\n    assert reverse_words(\"\") == \"\"  # Empty string\n    assert reverse_words(\"   \") == \"\"  # String with only spaces\n    assert reverse_words(\"SingleWord\") == \"SingleWord\"  # Single word\n    assert reverse_words(\"   Leading and trailing spaces   \") == \"spaces trailing and Leading\"  # Leading and trailing spaces\n    assert reverse_words(\"   Multiple    spaces   between   words   \") == \"words between spaces    Multiple\"  # Multiple spaces between words\n\ndef test_reverse_words_error_cases():\n    with pytest.raises(TypeError):\n        reverse_words(None)  # None input should raise TypeError\n    with pytest.raises(TypeError):\n        reverse_words(123)  # Integer input should raise TypeError\n    with pytest.raises(TypeError):\n        reverse_words([])  # List input should raise TypeError\n\n# To run the tests, use the command: pytest <filename>.py\n```\n\n### Explanation of the Tests:\n\n1. **Happy Path Tests**:\n   - These tests check the function with normal input strings to ensure it correctly reverses the order of words.\n\n2. **Edge Case Tests**:\n   - An empty string should return an empty string.\n   - A string with only spaces should also return an empty string.\n   - A single word should return the same word.\n   - Strings with leading and trailing spaces should still reverse the words correctly.\n   - Strings with multiple spaces between words should handle those spaces correctly.\n\n3. **Error Case Tests**:\n   - The function should raise a `TypeError` when given `None`, an integer, or a list, as these are not valid input types for the function.\n\n### Running the Tests:\nTo run the tests, save the code in a file (e.g., `test_reverse_words.py`) and execute the command `pytest test_reverse_words.py` in your terminal. Make sure you have `pytest` installed in your environment.",
+  "score": 4,
+  "cost": 0.00032205,
+  "expected": "",
+  "tokens": {
+    "input": 55,
+    "output": 523
+  }
+}

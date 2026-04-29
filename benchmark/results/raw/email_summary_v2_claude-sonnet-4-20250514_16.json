@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "email_summary_v2",
+  "case": 16,
+  "response": "The April marketing campaign generated 187 signups at a cost of $64 per customer, with improved click-through rates but lower conversion rates compared to March. The marketing team recommends A/B testing the landing page call-to-action to improve conversion performance.",
+  "score": 5,
+  "cost": 0.001275,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 59
+  }
+}

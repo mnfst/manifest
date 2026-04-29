@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "email_summary_v2",
+  "case": 46,
+  "response": "A critical SQL injection vulnerability has been discovered in the login API, affecting versions 3.2.0 through 3.4.1. The recommended action is to review the prepared patch and deploy a hotfix within 24 hours.",
+  "score": 5,
+  "cost": 0.00061875,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 49
+  }
+}

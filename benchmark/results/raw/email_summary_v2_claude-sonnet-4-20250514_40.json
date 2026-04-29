@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "The quarterly OKR review shows Engineering, Sales, and Support met or exceeded their 0.7 targets with scores of 0.7, 0.9, and 0.8 respectively, while Product fell short at 0.6 due to a delayed AI feature. The recommended actions are to carry forward the AI OKR with increased resource allocation and begin next quarter planning on Monday.",
+  "score": 5,
+  "cost": 0.001731,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 88
+  }
+}

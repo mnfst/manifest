@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "email_summary_v2",
+  "case": 26,
+  "response": "The Privacy Team received a GDPR data export request from user ID 45892, due by May 25, requiring all personal data across services, processing purposes documentation, and a third-party data sharing log. Legal has specified that analytics data must also be included in the export.",
+  "score": 5,
+  "cost": 0.008535,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 83
+  }
+}

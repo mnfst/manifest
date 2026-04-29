@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "The quarterly OKR review shows that Engineering and Support met their targets, Sales exceeded its target, but Product fell short due to a delayed AI feature. It is recommended to carry forward the AI OKR with increased allocation, and planning for the next quarter begins on Monday.",
+  "score": 5,
+  "cost": 0.0008475,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 54
+  }
+}

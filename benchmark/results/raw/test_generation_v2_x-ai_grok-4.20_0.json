@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "test_generation_v2",
+  "case": 0,
+  "response": "**Here's a comprehensive set of pytest-style unit tests for the `add` function:**\n\n```python\nimport pytest\n\n\ndef test_add_happy_path():\n    \"\"\"Test normal cases with positive and negative integers.\"\"\"\n    assert add(2, 3) == 5\n    assert add(10, 5) == 15\n    assert add(-3, 7) == 4\n    assert add(-5, -5) == -10\n\n\ndef test_add_zero_cases():\n    \"\"\"Test edge cases involving zero.\"\"\"\n    assert add(0, 0) == 0\n    assert add(0, 5) == 5\n    assert add(7, 0) == 7\n    assert add(-3, 0) == -3\n    assert add(0, -8) == -8\n\n\ndef test_add_large_numbers():\n    \"\"\"Test with large integers (within Python's int limit).\"\"\"\n    assert add(1_000_000, 2_000_000) == 3_000_000\n    assert add(-1_000_000, 1_000_000) == 0\n\n\ndef test_add_commutative_property():\n    \"\"\"Test that addition is commutative (a + b == b + a).\"\"\"\n    a, b = 42, 13\n    assert add(a, b) == add(b, a)\n    \n    a, b = -25, 17\n    assert add(a, b) == add(b, a)\n\n\ndef test_add_associative_property():\n    \"\"\"Test that addition is associative (a + (b + c) == (a + b) + c).\"\"\"\n    a, b, c = 5, 7, 3\n    assert add(a, add(b, c)) == add(add(a, b), c)\n\n\ndef test_add_identity_element():\n    \"\"\"Test that 0 is the identity element for addition.\"\"\"\n    assert add(42, 0) == 42\n    assert add(0, -99) == -99\n\n\ndef test_add_type_error_non_integer():\n    \"\"\"Test that function raises TypeError when non-integers are passed.\"\"\"\n    with pytest.raises(TypeError):\n        add(5.5, 3)\n    \n    with pytest.raises(TypeError):\n        add(5, \"3\")\n    \n    with pytest.raises(TypeError):\n        add(\"hello\", 3)\n    \n    with pytest.raises(TypeError):\n        add(None, 5)\n\n\ndef test_add_type_error_none():\n    \"\"\"Test behavior when None is passed.\"\"\"\n    with pytest.raises(TypeError):\n        add(None, None)\n    \n    with pytest.raises(TypeError):\n        add(5, None)\n\n\ndef test_add_very_large_integers():\n    \"\"\"Test with very large integers (Python handles arbitrary precision).\"\"\"\n    big = 10**18\n    assert add(big, big) == 2 * big\n    assert add(-big, big) == 0\n```\n\nThese tests cover:\n\n- **Happy path**: Normal positive/negative integer combinations\n- **Edge cases**: Zeros, large numbers, identity element\n- **Mathematical properties**: Commutative and associative properties\n- **Error cases**: Type errors with floats, strings, None, etc.\n\nThe tests follow pytest best practices with clear, descriptive test names and focused test functions.",
+  "score": 4,
+  "cost": 0.00584,
+  "expected": "",
+  "tokens": {
+    "input": 168,
+    "output": 688
+  }
+}

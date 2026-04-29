@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary_v2",
+  "case": 9,
+  "response": "The nightly ETL job failed at 3 AM due to an upstream Salesforce schema change, causing dashboards to display stale data. A fix has been deployed and a backfill is running, with full data recovery expected by 4 PM today.",
+  "score": 5,
+  "cost": 4.11e-05,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 47
+  }
+}

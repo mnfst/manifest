@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "email_summary_v2",
+  "case": 15,
+  "response": "The legal team approved the updated terms with two changes: adding an arbitration clause for the enterprise tier and revising data retention to 90 days from 180. These changes must be implemented before the EU launch on May 1, and the final version will be prepared today.",
+  "score": 5,
+  "cost": 0.0008025,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 55
+  }
+}

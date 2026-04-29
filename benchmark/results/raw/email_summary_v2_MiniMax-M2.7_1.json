@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "email_summary_v2",
+  "case": 1,
+  "response": "A misconfigured load balancer caused a 47\u2011minute service degradation affecting roughly 12,000 users. The team will add LB config validation to CI, update the runbook, and implement traffic\u2011distribution alerts.",
+  "score": 5,
+  "cost": 0.001617,
+  "expected": "",
+  "tokens": {
+    "input": 138,
+    "output": 333
+  }
+}

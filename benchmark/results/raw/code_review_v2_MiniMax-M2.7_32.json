@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_review_v2",
+  "case": 32,
+  "response": "# Code Review: `get_env` Function\n\n## Bugs\n\n### 1. Missing Import\nThe `os` module is used but never imported. This will raise a `NameError` at runtime.\n\n```python\n# Current (broken):\ndef get_env(key):\n    return os.environ[key]\n\n# Fix:\nimport os\n\ndef get_env(key):\n    return os.environ[key]\n```\n\n---\n\n### 2. No Exception Handling\nAccessing `os.environ[key]` raises `KeyError` if the key doesn't exist, which will crash the application.\n\n```python\n# Current (crashes if key missing):\ndef get_env(key):\n    return os.environ[key]\n\n# Fix with explicit error:\ndef get_env(key):\n    if key not in os.environ:\n        raise KeyError(f\"Environment variable '{key}' is not set\")\n    return os.environ[key]\n```\n\n---\n\n## Security Issues\n\n### 1. Secret Exposure Risk\nEnvironment variables often contain sensitive data (API keys, passwords). Without safeguards, secrets may be logged or leaked.\n\n**Recommendation:** Document that this function handles sensitive data and consider logging only non-sensitive metadata, never the actual values.\n\n### 2. No Input Validation\nThe `key` parameter could be `None`, empty, or malformed.\n\n---\n\n## Suggested Improved Version\n\n```python\nimport os\nfrom typing import Optional\n\n\ndef get_env(key: str, default: Optional[str] = None) -> str:\n    \"\"\"\n    Retrieve an environment variable value.\n\n    Args:\n        key: The name of the environment variable.\n        default: Value to return if key is not found. If None and key is missing,\n                 a KeyError is raised.\n\n    Returns:\n        The value of the environment variable.\n\n    Raises:\n        KeyError: If the key is not found and no default is provided.\n        TypeError: If key is not a string.\n    \"\"\"\n    if not isinstance(key, str):\n        raise TypeError(f\"key must be a string, got {type(key).__name__}\")\n\n    if not key:\n        raise ValueError(\"key cannot be empty\")\n\n    value = os.environ.get(key, default)\n\n    if value is None:\n        raise KeyError(f\"Environment variable '{key}' is not set\")\n\n    return value\n```\n\n---\n\n## Summary of Issues\n\n| Issue | Severity | Type |\n|-------|----------|------|\n| Missing `import os` | High | Bug |\n| No `KeyError` handling | Medium | Bug |\n| No default value option | Low | Usability |\n| No input validation | Low | Robustness |\n| No type hints | Low | Maintainability |\n| No docstring | Low | Documentation |",
+  "score": 4,
+  "cost": 0.0038687,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 859
+  }
+}

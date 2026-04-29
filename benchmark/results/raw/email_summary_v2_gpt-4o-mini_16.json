@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "email_summary_v2",
+  "case": 16,
+  "response": "The April marketing campaign achieved 45K impressions and 187 signups, resulting in a cost per signup of $64, with a slight increase in click-through rate compared to March. It is recommended to conduct A/B testing on the landing page call-to-action to improve conversion rates.",
+  "score": 5,
+  "cost": 5.1599999999999994e-05,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 57
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The CEO has shared the Q1 board deck draft showing strong revenue performance (127% of target) and net revenue retention (115%), but customer acquisition costs have increased by 22%. You need to provide your product roadmap section by Wednesday for the board meeting scheduled for next Tuesday.",
+  "score": 5,
+  "cost": 0.001203,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 61
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "test_generation_v2",
+  "case": 49,
+  "response": "To write unit tests for the `intersection` function using the `pytest` framework, we will cover various scenarios including the happy path, edge cases, and error cases. Below is a sample test suite that you can use:\n\n```python\nimport pytest\n\n# Assuming the intersection function is defined in a module named 'module_name'\n# from module_name import intersection\n\ndef intersection(lst1: list, lst2: list) -> list:\n    set2 = set(lst2)\n    seen = set()\n    result = []\n    for item in lst1:\n        if item in set2 and item not in seen:\n            result.append(item)\n            seen.add(item)\n    return result\n\ndef test_intersection_happy_path():\n    assert intersection([1, 2, 3], [2, 3, 4]) == [2, 3]\n    assert intersection(['a', 'b', 'c'], ['b', 'c', 'd']) == ['b', 'c']\n    assert intersection([1, 2, 2, 3], [2, 2, 3, 4]) == [2, 3]\n    assert intersection([1, 2, 3], [1, 2, 3]) == [1, 2, 3]\n\ndef test_intersection_edge_cases():\n    assert intersection([], [1, 2, 3]) == []\n    assert intersection([1, 2, 3], []) == []\n    assert intersection([], []) == []\n    assert intersection([1], [1]) == [1]\n    assert intersection([1], [2]) == []\n    assert intersection([1, 1, 1], [1]) == [1]\n\ndef test_intersection_error_cases():\n    with pytest.raises(TypeError):\n        intersection(None, [1, 2, 3])\n    \n    with pytest.raises(TypeError):\n        intersection([1, 2, 3], None)\n    \n    with pytest.raises(TypeError):\n        intersection(123, [1, 2, 3])\n    \n    with pytest.raises(TypeError):\n        intersection([1, 2, 3], 123)\n\n# To run the tests, use the command: pytest <name_of_this_file>.py\n```\n\n### Explanation of the Tests:\n\n1. **Happy Path Tests**:\n   - Tests where both lists contain common elements and checks if the function returns the correct intersection.\n   - Tests with duplicates in the first list to ensure they are not included multiple times in the result.\n\n2. **Edge Cases**:\n   - Tests with empty lists to ensure the function handles them correctly.\n   - Tests with single elements to check if the function can handle minimal input sizes.\n\n3. **Error Cases**:\n   - Tests that check if the function raises a `TypeError` when provided with `None` or non-list types as input.\n\n### Running the Tests:\nTo run the tests, save the code in a file (e.g., `test_intersection.py`) and execute the command `pytest test_intersection.py` in your terminal. Make sure you have `pytest` installed in your environment.",
+  "score": 3,
+  "cost": 0.00040245,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 646
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "email_summary_v2",
+  "case": 6,
+  "response": "Acme Corp, a $450K ARR customer, is threatening to leave due to API latency issues over the past 3 weeks and lack of support response for 5 days. An engineer has been assigned and an executive sponsor is needed for a call this week to address the escalation.",
+  "score": 5,
+  "cost": 0.001338,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 66
+  }
+}

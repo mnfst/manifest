@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary_v2",
+  "case": 15,
+  "response": "Legal has approved the updated terms, requiring an arbitration clause for the enterprise tier and a revision of data retention to 90 days. These changes must go live before the May 1 EU launch, and Legal will prepare the final version today.",
+  "score": 5,
+  "cost": 4.455e-05,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 49
+  }
+}

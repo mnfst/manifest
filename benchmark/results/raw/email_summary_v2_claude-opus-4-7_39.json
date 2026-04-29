@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "email_summary_v2",
+  "case": 39,
+  "response": "The year-end audit begins January 15, requiring completion of a pre-audit checklist covering Q4 revenue recognition, bank reconciliations, stock option records, and related-party transaction disclosures. Responsibilities for these tasks will be assigned at the Controller meeting next Tuesday.",
+  "score": 5,
+  "cost": 0.01002,
+  "expected": "",
+  "tokens": {
+    "input": 168,
+    "output": 100
+  }
+}

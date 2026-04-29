@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "email_summary_v2",
+  "case": 26,
+  "response": "User ID 45892 has submitted a GDPR data export request with a May 25 deadline requiring all personal data, processing documentation, and third-party sharing logs across services, including analytics data. The Privacy Team must compile and deliver this information within 30 days to meet legal compliance requirements.",
+  "score": 5,
+  "cost": 0.0003544,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 66
+  }
+}

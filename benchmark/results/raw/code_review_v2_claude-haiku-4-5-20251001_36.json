@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_review_v2",
+  "case": 36,
+  "response": "# Code Review: `calculate_discount()`\n\n## Issues Found\n\n### 1. **Missing Error Handling (Critical)**\n**Problem:** If an invalid discount code is provided, the function crashes with a `KeyError`.\n\n```python\ncalculate_discount(100, 'INVALID')  # KeyError: 'INVALID'\n```\n\n**Fix:**\n```python\ndef calculate_discount(price, code):\n    discounts = {'SAVE10': 0.10, 'SAVE20': 0.20, 'HALF': 0.50}\n    if code not in discounts:\n        raise ValueError(f\"Invalid discount code: {code}\")\n    return price * (1 - discounts[code])\n```\n\nOr with a default:\n```python\nreturn price * (1 - discounts.get(code, 0))\n```\n\n---\n\n### 2. **No Input Validation (High)**\n**Problem:** Accepts invalid inputs without checking.\n\n```python\ncalculate_discount(-100, 'SAVE10')   # Returns negative result\ncalculate_discount(\"100\", 'SAVE10')  # Type error or unexpected behavior\ncalculate_discount(100, None)        # TypeError\n```\n\n**Fix:**\n```python\ndef calculate_discount(price, code):\n    if not isinstance(price, (int, float)) or price < 0:\n        raise ValueError(\"Price must be a non-negative number\")\n    if not isinstance(code, str):\n        raise TypeError(\"Discount code must be a string\")\n    \n    discounts = {'SAVE10': 0.10, 'SAVE20': 0.20, 'HALF': 0.50}\n    if code not in discounts:\n        raise ValueError(f\"Invalid discount code: {code}\")\n    \n    return price * (1 - discounts[code])\n```\n\n---\n\n### 3. **Floating-Point Precision Issues (Medium)**\n**Problem:** Financial calculations can lose precision.\n\n```python\ncalculate_discount(99.99, 'SAVE10')  # 89.991 (should be rounded)\n```\n\n**Fix:**\n```python\nfrom decimal import Decimal\n\ndef calculate_discount(price, code):\n    discounts = {'SAVE10': Decimal('0.10'), 'SAVE20': Decimal('0.20'), 'HALF': Decimal('0.50')}\n    price = Decimal(str(price))\n    return round(price * (1 - discounts[code]), 2)\n```\n\n---\n\n### 4. **Hardcoded Values (Low)**\n**Problem:** Discount codes are hardcoded; difficult to maintain or update.\n\n**Fix:**\n```python\nDISCOUNT_CODES = {'SAVE10': 0.10, 'SAVE20': 0.20, 'HALF': 0.50}\n\ndef calculate_discount(price, code):\n    if code not in DISCOUNT_CODES:\n        raise ValueError(f\"Invalid discount code: {code}\")\n    return price * (1 - DISCOUNT_CODES[code])\n```\n\n---\n\n## Improved Version\n\n```python\nfrom decimal import Decimal\n\nDISCOUNT_CODES = {\n    'SAVE10': Decimal('0.10'),\n    'SAVE20': Decimal('0.20'),\n    'HALF': Decimal('0.50')\n}\n\ndef calculate_discount(price, code):",
+  "score": 4,
+  "cost": 0.0032792,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 800
+  }
+}

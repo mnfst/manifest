@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary_v2",
+  "case": 16,
+  "response": "The April marketing campaign generated 187 signups from 45K impressions and 2.3K clicks, achieving a 5.1% CTR and 8.1% conversion rate for a $12K cost and $64 CAC. Compared to March, CTR improved by 1.2pp but conversion dropped by 0.8pp, leading to a recommendation to A/B test the landing page CTA.",
+  "score": 5,
+  "cost": 7.154999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 90
+  }
+}

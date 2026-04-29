@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "test_generation_v2",
+  "case": 27,
+  "response": "Here are comprehensive pytest unit tests covering happy paths, edge cases, and error cases:\n\n```python\nimport pytest\n\n\n# Assuming the function is imported from your module\n# from my_module import interleave\n\n\ndef interleave(a: list, b: list) -> list:\n    \"\"\"Local copy for self",
+  "score": 1,
+  "cost": 0.0048534,
+  "expected": "",
+  "tokens": {
+    "input": 89,
+    "output": 2000
+  }
+}

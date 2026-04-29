@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "email_summary_v2",
+  "case": 23,
+  "response": "The v1 API will be deprecated on June 30 and completely removed on September 30, with 340 integrations still needing to migrate including 12 enterprise customers who haven't started. The action plan includes conducting personal outreach to the top 20 customers and hosting a webinar for the remaining users to facilitate migration.",
+  "score": 5,
+  "cost": 0.001431,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 74
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "email_summary_v2",
+  "case": 30,
+  "response": "Competitor X introduced AI features, including auto-categorization, but their pricing is double ours, and the market response has been neutral. It is recommended to fast-track our AI roadmap to leverage our advantage in API and integrations.",
+  "score": 5,
+  "cost": 0.000695,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 46
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "email_summary_v2",
+  "case": 26,
+  "response": "A GDPR data export request has been received for user ID 45892, requiring all personal data, processing purposes documentation, and a third-party data sharing log by May 25. The Privacy Team must also include analytics data as mandated by the legal department.",
+  "score": 5,
+  "cost": 4.575e-05,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 51
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "email_summary_v2",
+  "case": 43,
+  "response": "The open source software audit found 2 problematic dependencies out of 234 packages: a charting library with an AGPL license that's incompatible with the SaaS model and one unlicensed package. Both issues need to be resolved by switching to Chart.js and removing the unlicensed package before the next release.",
+  "score": 5,
+  "cost": 0.001509,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 76
+  }
+}

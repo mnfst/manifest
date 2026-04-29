@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "test_generation_v2",
+  "case": 2,
+  "response": "Here's a complete set of pytest-style unit tests covering all required cases, with explanations of what each test validates:\n\n```python\nimport pytest\nfrom your_module import factorial  # Import the factorial function from its source module\n\n# Combined test for edge cases AND happy path valid inputs\n@pytest.mark.parametrize(\"n, expected\", [\n    # ------------------------------\n    # Edge cases (base cases of the function's logic)\n    # ------------------------------\n    (0, 1),  # 0! is mathematically defined as 1, minimum valid input\n    (1, 1),  # First base case for recursion\n    # ------------------------------\n    # Happy path (common valid use cases)\n    # ------------------------------\n    (2, 2),    # Smallest input that triggers recursion beyond base cases\n    (3, 6),\n    (5, 120),  # Common test value for factorial\n    (10, 3628800),  # Larger input to validate recursive chain works\n    (20, 2432902008176640000),  # Test Python's big integer support\n])\ndef test_factorial_valid_inputs(n, expected):\n    assert factorial(n) == expected\n\n# Test for error cases (invalid inputs that should raise exceptions)\n@pytest.mark.parametrize(\"invalid_n\", [\n    -1, -5, -100, -9999  # All negative integers, the only explicit error case in the function\n])\ndef test_factorial_negative_input_raises_value_error(invalid_n):\n    # Verify both the exception type AND the exact error message\n    with pytest.raises(ValueError, match=\"n must be non-negative\"):\n        factorial(invalid_n)\n```\n\n### Test Coverage Breakdown:\n1. **Edge Cases**:\n   - Validates the base cases of the recursive function: `n=0` and `n=1`, which are mathematically required to return 1\n   - Tests the boundary of valid inputs (the smallest allowed non-negative integers)\n\n2. **Happy Path**:\n   - Tests common small-to-medium valid positive integers to confirm the recursive calculation works as expected\n   - Verifies that multi-step recursion correctly multiplies values through the entire call chain\n\n3. **Error Cases**:\n   - Validates that all negative inputs throw the correct `ValueError` with the exact error message defined in the function\n   - Uses parameterization to test multiple invalid negative values efficiently",
+  "score": 4,
+  "cost": 0.00263875,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 2606
+  }
+}

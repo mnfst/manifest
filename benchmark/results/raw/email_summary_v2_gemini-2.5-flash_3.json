@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary_v2",
+  "case": 3,
+  "response": "Onboarding satisfaction for the March cohort dropped to 7.2/10, with key issues including confusion about benefits, delayed tools access, and no culture handbook. The immediate priority is to resolve the tools access delays.",
+  "score": 4,
+  "cost": 4.35e-05,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 45
+  }
+}

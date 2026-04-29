@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "test_generation_v2",
+  "case": 11,
+  "response": "To write unit tests for the `merge_sorted` function using the `pytest` framework, we will cover various scenarios including the happy path, edge cases, and error cases. Below is a set of tests that you can use:\n\n```python\nimport pytest\n\n# Assuming the merge_sorted function is defined in a module named 'merge_module'\n# from merge_module import merge_sorted\n\ndef merge_sorted(a: list, b: list) -> list:\n    result = []\n    i = j = 0\n    while i < len(a) and j < len(b):\n        if a[i] <= b[j]:\n            result.append(a[i])\n            i += 1\n        else:\n            result.append(b[j])\n            j += 1\n    result.extend(a[i:])\n    result.extend(b[j:])\n    return result\n\ndef test_merge_sorted_happy_path():\n    assert merge_sorted([1, 3, 5], [2, 4, 6]) == [1, 2, 3, 4, 5, 6]\n    assert merge_sorted([1, 2, 3], [4, 5, 6]) == [1, 2, 3, 4, 5, 6]\n    assert merge_sorted([], [1, 2, 3]) == [1, 2, 3]\n    assert merge_sorted([1, 2, 3], []) == [1, 2, 3]\n    assert merge_sorted([], []) == []\n\ndef test_merge_sorted_edge_cases():\n    assert merge_sorted([1], [2]) == [1, 2]\n    assert merge_sorted([2], [1]) == [1, 2]\n    assert merge_sorted([1], [1]) == [1, 1]\n    assert merge_sorted([1, 1, 1], [1, 1, 1]) == [1, 1, 1, 1, 1, 1]\n    assert merge_sorted([1, 3, 5], [1, 2, 3]) == [1, 1, 2, 3, 3, 5]\n\ndef test_merge_sorted_error_cases():\n    with pytest.raises(TypeError):\n        merge_sorted(None, [1, 2, 3])\n    \n    with pytest.raises(TypeError):\n        merge_sorted([1, 2, 3], None)\n    \n    with pytest.raises(TypeError):\n        merge_sorted(\"not a list\", [1, 2, 3])\n    \n    with pytest.raises(TypeError):\n        merge_sorted([1, 2, 3], \"not a list\")\n\n# To run the tests, you would typically use the command line:\n# pytest <name_of_this_file>.py\n```\n\n### Explanation of the Tests:\n\n1. **Happy Path Tests**:\n   - Tests where both lists are non-empty and sorted.\n   - Tests with one empty list and one non-empty list.\n   - Tests with both lists empty.\n\n2. **Edge Cases**:\n   - Tests with single-element lists.\n   - Tests with lists containing duplicate elements.\n   - Tests with lists that have overlapping elements.\n\n3. **Error Cases**:\n   - Tests that check for `TypeError` when passing `None` or non-list types to the function.\n\n### Running the Tests:\nTo run these tests, save the code in a file (e.g., `test_merge.py`) and execute the command `pytest test_merge.py` in your terminal. Make sure you have `pytest` installed in your environment.",
+  "score": 3,
+  "cost": 0.00046334999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 741
+  }
+}

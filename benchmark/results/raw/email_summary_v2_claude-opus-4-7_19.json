@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "email_summary_v2",
+  "case": 19,
+  "response": "Datadog's contract expires June 30, with a renewal option at $155K/year (14% discount) over 3 years, while Grafana Cloud offers a cheaper alternative at $95K/year but requires a 3-month migration. A decision must be submitted to Finance by May 15.",
+  "score": 5,
+  "cost": 0.009375,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 94
+  }
+}

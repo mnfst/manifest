@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "email_summary_v2",
+  "case": 48,
+  "response": "Maria Chen from DataSync is proposing a revenue-sharing partnership where DataSync provides data synchronization infrastructure while the recipient integrates their SDK, potentially reducing customer latency by 60% and generating an estimated $2M additional annual revenue for each company. She is requesting a technical discussion meeting next week to move forward with the proposal.",
+  "score": 5,
+  "cost": 0.001368,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 71
+  }
+}

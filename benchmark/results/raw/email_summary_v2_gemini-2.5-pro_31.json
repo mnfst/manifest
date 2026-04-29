@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "email_summary_v2",
+  "case": 31,
+  "response": "A new \"Starter\" pricing tier is being proposed at $29/month to reduce customer churn due to the high cost of the Pro plan. This proposal aims to recover 15% of churned users, which is projected to add $180K in annual revenue.",
+  "score": 5,
+  "cost": 0.00072,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 58
+  }
+}

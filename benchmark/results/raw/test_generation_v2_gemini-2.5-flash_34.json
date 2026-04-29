@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "test_generation_v2",
+  "case": 34,
+  "response": "To write comprehensive unit tests for the `levenshtein` function using `pytest`, we'll cover:\n\n1.  **Happy Path**: Standard inputs with expected differences (insertions, deletions, substitutions).\n2.  **Edge Cases**: Empty strings, single-character strings, strings with special characters (like Unicode or spaces), strings that are substrings or permutations of each other.\n3.  **Error Cases**: Inputs that are not strings, to ensure the function handles invalid types gracefully (or raises appropriate errors).\n\nWe'll use `pytest.mark.parametrize` to efficiently test multiple scenarios for happy path and edge cases, and for error cases.\n\n```python\nimport pytest\n\n# The function to be tested\ndef levenshtein(s1: str, s2: str) -> int:\n    \"\"\"\n    Calculates the Levenshtein distance between two strings.\n\n    The Levenshtein distance is the minimum number of single-character edits\n    (insertions, deletions or substitutions) required to change one word\n    into the other.\n\n    Args:\n        s1: The first string.\n        s2: The second string.\n\n    Returns:\n        The Levenshtein distance as an integer.\n    \"\"\"\n    # Ensure s1 is always the longer or equal length string for optimization\n    # and to simplify the DP table dimensions.\n    if len(s1) < len(s2):\n        return levenshtein(s2, s1)\n\n    # Base case: if one string is empty,",
+  "score": 4,
+  "cost": 0.00022334999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 189,
+    "output": 325
+  }
+}

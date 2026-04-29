@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "email_summary_v2",
+  "case": 24,
+  "response": "Design System v3 is now available for adoption, featuring new dark mode color tokens, a revised 4px-based spacing scale, and updated Button and Modal components. Teams should use the provided migration tool and roll out changes incrementally, beginning with the Settings page.",
+  "score": 5,
+  "cost": 0.00879,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 89
+  }
+}

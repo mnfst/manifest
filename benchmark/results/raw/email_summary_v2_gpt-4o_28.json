@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "email_summary_v2",
+  "case": 28,
+  "response": "The annual disaster recovery test revealed that the recovery time objective was exceeded, taking 6 hours and 23 minutes instead of the targeted 4 hours, primarily due to a longer-than-expected database restore. To address this, it is recommended to increase backup frequency and pre-provision a standby database, with the next test scheduled for October.",
+  "score": 5,
+  "cost": 0.00095,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 68
+  }
+}

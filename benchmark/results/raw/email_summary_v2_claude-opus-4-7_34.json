@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "email_summary_v2",
+  "case": 34,
+  "response": "The Database Team is migrating from MySQL 5.7 to PostgreSQL 16 using a blue-green deployment with no planned downtime, following a three-phase timeline: schema conversion and testing in May, dual-write in June, and cutover in July. Action items include rewriting 3 stored procedures identified as a risk, while the testing environment is already prepared.",
+  "score": 5,
+  "cost": 0.011535,
+  "expected": "",
+  "tokens": {
+    "input": 164,
+    "output": 121
+  }
+}

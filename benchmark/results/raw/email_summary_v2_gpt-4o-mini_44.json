@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "email_summary_v2",
+  "case": 44,
+  "response": "Sarah proposes reallocating $50K from engineering, which is under budget, to cover marketing's 15% overspend due to the August campaign. She requests a discussion on this matter during Thursday's meeting.",
+  "score": 5,
+  "cost": 3.9450000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 42
+  }
+}

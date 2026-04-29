@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The Q1 board deck draft shows strong revenue and NRR at 127% and 115% respectively, but a 22% increase in CAC. The CEO needs the product roadmap section by Wednesday for the board meeting next Tuesday.",
+  "score": 5,
+  "cost": 4.41e-05,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 52
+  }
+}

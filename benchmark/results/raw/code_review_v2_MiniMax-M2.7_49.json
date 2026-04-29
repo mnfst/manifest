@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_review_v2",
+  "case": 49,
+  "response": "",
+  "score": 1,
+  "cost": 0.0089177,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 2000
+  }
+}

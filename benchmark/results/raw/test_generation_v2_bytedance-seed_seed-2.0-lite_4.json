@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "test_generation_v2",
+  "case": 4,
+  "response": "Here's a complete set of pytest-style unit tests covering all required scenarios, with type safety, floating point precision handling, and clear test case grouping:\n\n```python\nimport pytest\nfrom your_module import celsius_to_fahrenheit  # Import your function\n\n# Test happy path and edge case valid inputs\n@pytest.mark.parametrize(\n    \"celsius, expected_fahrenheit\",\n    [\n        # Happy path (common real-world temperatures)\n        (0, 32.0),          # Freezing point of water\n        (100, 212.0),        # Boiling point of water\n        (20, 68.0),          # Standard room temperature\n        (37, 98.6),          # Average human body temperature\n        (25, 77.0),          # Typical mild day\n        \n        # Edge cases\n        (-273.15, -459.67), # Absolute zero (lowest possible temperature)\n        (-40, -40.0),        # Intersection point of both scales\n        (22.5, 72.5),        # Non-integer Celsius value\n        (5505, 9941.0),      # Extremely high temperature (sun's surface)\n        (0.0001, 32.00018),  # Very small positive temperature\n    ]\n)\ndef test_celsius_to_fahrenheit_valid_inputs(celsius, expected_fahrenheit):\n    # Use pytest.approx to handle floating point precision errors\n    assert celsius_to_fahrenheit(celsius) == pytest.approx(expected_fahrenheit)\n\n# Test error cases for invalid input types\n@pytest.mark.parametrize(\n    \"invalid_input\",\n    [\n        \"25\",       # String input\n        None,       # None value\n        [10],       # List input\n        {\"temp\": 0},# Dictionary input\n        True,       # Boolean (edge invalid type, though Python int subclass would technically compute)\n    ]\n)\ndef test_celsius_to_fahrenheit_invalid_inputs_raise_error(invalid_input):\n    with pytest.raises(TypeError):\n        celsius_to_fahrenheit(invalid_input)\n```\n\n### Key Test Coverage:\n1. **Happy Path**: Tests common real-world temperatures that the function would regularly encounter, all with well-known conversion values.\n2. **Edge Cases**:\n   - Physical minimum temperature (absolute zero)\n   - The unique point where both scales share the same value (-40\u00b0)\n   - Non-integer, very small, and extremely large numeric inputs\n3. **Error Cases**: Validates that non-numeric inputs correctly throw TypeErrors, as the function only operates on float/int numeric types.\n4. **Floating point safety**: Uses `pytest.approx` to avoid false failures from minor floating-point arithmetic precision errors.",
+  "score": 4,
+  "cost": 0.00261875,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 2593
+  }
+}

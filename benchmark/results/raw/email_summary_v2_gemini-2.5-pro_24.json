@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "email_summary_v2",
+  "case": 24,
+  "response": "The Design Team has released Design System v3, which includes new color tokens, a revised spacing scale, and updated components. Teams should begin a gradual rollout starting with the Settings page, using the provided migration tool to assist with the update.",
+  "score": 5,
+  "cost": 0.00058375,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 48
+  }
+}

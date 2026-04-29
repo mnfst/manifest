@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "email_summary_v2",
+  "case": 39,
+  "response": "The year-end audit will begin on January 15, with a pre-audit checklist that includes finalizing Q4 revenue recognition, reconciling bank accounts, verifying stock option records, and preparing related-party transaction disclosures. A controller meeting is scheduled for next Tuesday to assign responsibilities for these audit preparation tasks.",
+  "score": 5,
+  "cost": 0.001374,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 70
+  }
+}

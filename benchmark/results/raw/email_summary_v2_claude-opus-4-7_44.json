@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "email_summary_v2",
+  "case": 44,
+  "response": "Marketing exceeded its Q3 budget by 15% from the August campaign while engineering came in 8% under due to delayed hiring, prompting Sarah to propose reallocating $50K from engineering to marketing. She is asking the team to discuss the proposal on Thursday.",
+  "score": 5,
+  "cost": 0.009435,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 94
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "email_summary_v2",
+  "case": 28,
+  "response": "The annual disaster recovery test revealed that actual recovery time (6 hours 23 minutes) exceeded the target of 4 hours, primarily due to database restoration taking 3 hours instead of the expected 1 hour. The SRE team recommends increasing backup frequency and pre-provisioning a standby database to close this gap, with the next test scheduled for October.",
+  "score": 5,
+  "cost": 0.0004248,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 82
+  }
+}

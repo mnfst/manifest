@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "test_generation_v2",
+  "case": 6,
+  "response": "To write unit tests for the `reverse_words` function using pytest, we need to consider various scenarios including the happy path, edge cases, and potential error cases. Below is a comprehensive set of unit tests:\n\n```python\nimport pytest\n\ndef test_reverse_words_happy_path():\n    # Happy path test cases\n    assert reverse_words(\"hello world\") == \"world hello\"\n    assert reverse_words(\"The quick brown fox\") == \"fox brown quick The\"\n    assert reverse_words(\"Python is fun\") == \"fun is Python\"\n\ndef test_reverse_words_edge_cases():\n    # Edge case: empty string\n    assert reverse_words(\"\") == \"\"\n    \n    # Edge case: single word\n    assert reverse_words(\"hello\") == \"hello\"\n    \n    # Edge case: multiple spaces between words\n    assert reverse_words(\"hello    world\") == \"world hello\"\n    \n    # Edge case: leading and trailing spaces\n    assert reverse_words(\"   hello world   \") == \"world hello\"\n    \n    # Edge case: string with only spaces\n    assert reverse_words(\"     \") == \"\"\n\ndef test_reverse_words_error_cases():\n    # Error case: non-string input should raise an error\n    with pytest.raises(AttributeError):\n        reverse_words(None)\n    \n    with pytest.raises(AttributeError):\n        reverse_words(12345)\n    \n    with pytest.raises(AttributeError):\n        reverse_words([\"hello\", \"world\"])\n\n# To run the tests, use the command: pytest <name_of_test_file>.py\n```\n\n### Explanation:\n\n1. **Happy Path Tests**: These tests cover typical use cases where the input is a normal sentence with words separated by single spaces.\n\n2. **Edge Cases**:\n   - **Empty String**: The function should return an empty string when given an empty string.\n   - **Single Word**: The function should return the word itself when there is only one word.\n   - **Multiple Spaces**: The function should handle multiple spaces between words by treating them as a single space.\n   - **Leading and Trailing Spaces**: The function should ignore leading and trailing spaces.\n   - **String with Only Spaces**: The function should return an empty string when the input is only spaces.\n\n3. **Error Cases**:\n   - **Non-String Input**: The function is expected to raise an `AttributeError` when the input is not a string, as the `split()` method is not applicable to non-string types.\n\nThese tests should provide a comprehensive check of the `reverse_words` function's behavior across a variety of inputs.",
+  "score": 4,
+  "cost": 0.0053475,
+  "expected": "",
+  "tokens": {
+    "input": 55,
+    "output": 521
+  }
+}

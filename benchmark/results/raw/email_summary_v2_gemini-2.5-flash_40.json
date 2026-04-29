@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "Engineering, Sales, and Support met or exceeded their quarterly OKR targets, but Product missed its target of 0.7, scoring 0.6 due to a delayed AI feature. It is recommended to carry forward the AI OKR for Product with increased allocation, and next quarter planning will commence on Monday.",
+  "score": 5,
+  "cost": 5.535e-05,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 63
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary_v2",
+  "case": 24,
+  "response": "The Design Team announced DS v3 is ready for adoption, featuring new dark mode color tokens, a revised 4px spacing scale, and updated Button and Modal components. A migration tool is available, and they recommend a team-by-team rollout, beginning with the Settings page.",
+  "score": 5,
+  "cost": 4.664999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 57
+  }
+}

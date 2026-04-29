@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "test_generation_v2",
+  "case": 2,
+  "response": "To write unit tests for the `factorial` function, we need to cover happy paths, edge cases, and error cases. Here's how we can do it using `pytest`:\n\n\n### Unit Tests for `factorial` Function\n\n```python\nimport pytest\nfrom your_module import factorial  # Replace 'your_module' with the actual module name\n\n@pytest.mark.parametrize(\"n, expected\", [\n    (0, 1),          # Edge case: 0! is 1\n    (1, 1),          # Edge case: 1! is 1\n    (2, 2),          # Happy path: 2! = 2\n    (3, 6),          # Happy path: 3! = 6\n    (5, 120),        # Happy path: 5! = 120\n    (10, 3628800),   # Larger happy path: 10! = 3628800\n    (100, 9332621544398999999999999999999999999999999999999999999999999999999999999999999999999999999999999999)  # Very large n\n])\ndef test_factorial_positive(n, expected):\n    \"\"\"Test factorial with non-negative integers (happy path and edge cases).\"\"\"\n    assert factorial(n) == expected\n\n@pytest.mark.parametrize(\"n\", [-1, -2, -5, -10, -100])\ndef test_factorial_negative(n):\n    \"\"\"Test factorial with negative integers (error case).\"\"\"\n    with pytest.raises(ValueError) as excinfo:\n        factorial(n)\n    assert str(excinfo.value) == \"n must be non-negative\"\n```\n\n\n### Explanation\n\n1. **Happy Paths**: The tests cover non-negative integers from `0` to `100`, ensuring the function returns the correct factorial value. This includes edge cases like `0` and `1`, which are defined to return `1`.\n\n2. **Edge Cases**: The test for `n=0` and `n=1` are explicitly included as edge cases since they are critical for defining factorials. The test for `n=100` verifies the function handles very large integers (Python's arbitrary-precision integers allow this).\n\n3. **Error Cases**: The tests for negative integers ensure the function raises a `ValueError` with the correct message. This covers invalid inputs that the function explicitly checks for.\n\n\n### How to Run\n\nSave the tests in a file (e.g., `test_factorial.py`) and run them using `pytest`:\n\n```bash\npytest test_factorial.py -v\n```\n\nThis will execute all tests and show detailed results, ensuring the `factorial` function works as expected across all scenarios.",
+  "score": 4,
+  "cost": 0.0009246749999999999,
+  "expected": "",
+  "tokens": {
+    "input": 165,
+    "output": 3041
+  }
+}

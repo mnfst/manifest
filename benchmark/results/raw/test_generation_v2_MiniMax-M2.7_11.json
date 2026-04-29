@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "test_generation_v2",
+  "case": 11,
+  "response": "Below is a fully\u2011featured pytest test suite for `merge_sorted`.  \nAll usual **happy\u2011path**, **edge\u2011case**, and **error\u2011case** scenarios are covered.  \nFeel free to copy the file into your test directory (e.g. `tests/test_merge_sorted.py`) and run it with `pytest`.\n\n```python\n# -----------------------------------------------------------------\n# tests/test_merge_sorted.py\n# -----------------------------------------------------------------\n\"\"\"\nPytest suite for ``merge_sorted``.\nCovers:\n* happy path \u2013 normal merges of two sorted lists\n* edge cases \u2013 empty inputs, one\u2011element lists, all\u2011same values, etc.\n* error cases \u2013 wrong types, non",
+  "score": 4,
+  "cost": 0.0089716,
+  "expected": "",
+  "tokens": {
+    "input": 156,
+    "output": 2000
+  }
+}

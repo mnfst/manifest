@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "email_summary_v2",
+  "case": 19,
+  "response": "The Datadog vendor contract expires June 30th with a renewal option at $155K/year (14% discount) or an alternative Grafana Cloud solution at $95K/year that requires 3 months migration time. Finance requires a decision by May 15th to proceed with either option.",
+  "score": 5,
+  "cost": 0.001341,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 67
+  }
+}

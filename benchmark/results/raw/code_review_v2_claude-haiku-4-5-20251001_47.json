@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_review_v2",
+  "case": 47,
+  "response": "# Code Review: Health Check Endpoint\n\n## Critical Issues\n\n### 1. **Swallowing Errors (Logic Bug)**\n```javascript\n.catch(() => res.json({ status: 'ok' }));\n```\n**Problem:** Database failures return `{ status: 'ok' }`, masking real problems.\n\n**Fix:**\n```javascript\n.catch((err) => {\n  console.error('Health check failed:', err);\n  res.status(503).json({ status: 'unhealthy', error: 'Database unavailable' });\n});\n```\n\n### 2. **Missing HTTP Status Codes**\n**Problem:** Both success and failure return 200 OK, making it impossible for monitoring tools to detect failures.\n\n**Fix:**\n```javascript\n.then(() => res.status(200).json({ status: 'ok' }))\n.catch(() => res.status(503).json({ status: 'unhealthy' }));\n```\n\n### 3. **No Error Logging**\n**Problem:** Failures are silently ignored, making debugging impossible.\n\n**Fix:** Add logging (see example above).\n\n---\n\n## Improved Implementation\n\n```javascript\napp.get('/health', async (req, res) => {\n  try {\n    await db.query('SELECT 1');\n    res.status(200).json({ \n      status: 'ok',\n      timestamp: new Date().toISOString()\n    });\n  } catch (err) {\n    console.error('Health check failed:', err);\n    res.status(503).json({ \n      status: 'unhealthy',\n      error: process.env.NODE_ENV === 'production' ? 'Service unavailable' : err.message\n    });\n  }\n});\n```\n\n---\n\n## Additional Recommendations\n\n| Issue | Suggestion |\n|-------|-----------|\n| **Timeout** | Add timeout to prevent hanging: `db.query('SELECT 1', { timeout: 5000 })` |\n| **Rate limiting** | Health checks shouldn't be rate-limited, but document this |\n| **Sensitive info** | Don't expose error details in production (see code above) |\n| **Async/await** | More readable than `.then()/.catch()` chains |\n| **Metadata** | Include timestamp or version for better monitoring |",
+  "score": 4,
+  "cost": 0.0022408000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 540
+  }
+}

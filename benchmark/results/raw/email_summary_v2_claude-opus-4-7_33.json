@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "email_summary_v2",
+  "case": 33,
+  "response": "Q1 employee engagement scored 7.8/10 (above the 7.2 industry average), with team collaboration rated highest (8.9) and career growth clarity lowest (6.1), prompting proposed actions including quarterly career conversations, an internal mobility program, and mentorship matching. Employees are expected to attend Friday's town hall to discuss the results and next steps.",
+  "score": 5,
+  "cost": 0.012135,
+  "expected": "",
+  "tokens": {
+    "input": 184,
+    "output": 125
+  }
+}

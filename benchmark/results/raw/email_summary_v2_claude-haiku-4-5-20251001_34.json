@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "email_summary_v2",
+  "case": 34,
+  "response": "The Database Team is migrating from MySQL 5.7 to PostgreSQL 16 over three months (May-July) using a blue-green deployment to avoid downtime. Action items include rewriting 3 stored procedures and conducting schema conversion and testing in May, followed by a dual-write period in June and cutover in July.",
+  "score": 5,
+  "cost": 0.00038639999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 75
+  }
+}

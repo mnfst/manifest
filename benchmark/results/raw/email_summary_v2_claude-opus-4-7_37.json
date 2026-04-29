@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "email_summary_v2",
+  "case": 37,
+  "response": "BigCo has offered $15M to acqui-hire our 5-person ML team, but the CEO believes this undervalues the team and recommends countering or declining politely. The team needs to discuss before responding, and the board should be informed.",
+  "score": 5,
+  "cost": 0.008055,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 76
+  }
+}

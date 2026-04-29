@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "The quarterly OKR review shows mixed results with Sales exceeding targets at 0.9, Engineering meeting targets at 0.7, but Product underperforming at 0.6 due to delayed AI feature development. The recommended action is to carry forward the AI OKR with increased resource allocation, with next quarter planning beginning Monday.",
+  "score": 5,
+  "cost": 0.00040960000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 75
+  }
+}

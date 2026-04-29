@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "email_summary_v2",
+  "case": 25,
+  "response": "The company achieved significant milestones in April including reaching 10,000 monthly active users, closing an $8M Series A term sheet at $40M pre-money valuation, and hiring a VP of Sales, with current MRR at $85K and 11 months of runway after the raise. The fundraising round is scheduled to close on May 10th.",
+  "score": 5,
+  "cost": 0.001596,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 83
+  }
+}

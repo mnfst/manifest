@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "test_generation_v2",
+  "case": 0,
+  "response": "To write unit tests for the `add` function using the `pytest` framework, we need to consider various scenarios including the happy path, edge cases, and potential error cases. Below is a comprehensive set of tests:\n\n```python\nimport pytest\n\ndef test_add_happy_path():\n    # Happy path tests\n    assert add(1, 2) == 3\n    assert add(0, 0) == 0\n    assert add(-1, -1) == -2\n    assert add(100, 200) == 300\n\ndef test_add_edge_cases():\n    # Edge case tests\n    assert add(0, 5) == 5\n    assert add(5, 0) == 5\n    assert add(-5, 5) == 0\n    assert add(5, -5) == 0\n    assert add(-5, -5) == -10\n\ndef test_add_large_numbers():\n    # Test with large numbers\n    assert add(10**6, 10**6) == 2 * 10**6\n    assert add(-10**6, 10**6) == 0\n\ndef test_add_min_max_int():\n    # Test with minimum and maximum integer values\n    import sys\n    assert add(sys.maxsize, 0) == sys.maxsize\n    assert add(-sys.maxsize, 0) == -sys.maxsize\n    assert add(sys.maxsize, -sys.maxsize) == 0\n\ndef test_add_type_errors():\n    # Error case tests\n    with pytest.raises(TypeError):\n        add(\"1\", 2)\n    with pytest.raises(TypeError):\n        add(1, \"2\")\n    with pytest.raises(TypeError):\n        add(\"1\", \"2\")\n    with pytest.raises(TypeError):\n        add(1.5, 2)\n    with pytest.raises(TypeError):\n        add(1, 2.5)\n    with pytest.raises(TypeError):\n        add(1.5, 2.5)\n\n# If you want to run the tests, you can use the following command in your terminal:\n# pytest <name_of_your_test_file>.py\n```\n\n### Explanation:\n\n1. **Happy Path Tests**: These tests cover typical use cases where the function is expected to work correctly with standard inputs.\n\n2. **Edge Case Tests**: These tests cover scenarios that are at the boundary of typical input ranges, such as adding zero or negative numbers.\n\n3. **Large Numbers**: These tests ensure that the function can handle large integer values without issues.\n\n4. **Min/Max Integer Values**: These tests use Python's `sys.maxsize` to check the behavior with the largest possible integer values.\n\n5. **Type Errors**: These tests ensure that the function raises a `TypeError` when non-integer types are passed as arguments, as the function is annotated to accept only integers.",
+  "score": 4,
+  "cost": 0.0061925,
+  "expected": "",
+  "tokens": {
+    "input": 53,
+    "output": 606
+  }
+}

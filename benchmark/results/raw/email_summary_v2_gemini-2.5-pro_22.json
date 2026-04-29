@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The international team has proposed a four-month plan and a $200K budget to launch in Japan, with general availability targeted for August. The team is seeking CEO approval to proceed with this expansion plan.",
+  "score": 5,
+  "cost": 0.00055125,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 43
+  }
+}

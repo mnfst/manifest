@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "email_summary_v2",
+  "case": 15,
+  "response": "Legal has approved the updated terms with two required changes: adding an arbitration clause and reducing data retention to 90 days. These updated terms must go live before the EU launch on May 1.",
+  "score": 5,
+  "cost": 0.00052625,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 40
+  }
+}

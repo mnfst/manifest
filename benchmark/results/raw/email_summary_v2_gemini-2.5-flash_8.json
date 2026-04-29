@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary_v2",
+  "case": 8,
+  "response": "The annual performance review cycle begins May 1, with self-reviews due May 15, manager reviews May 22, calibration May 28, and delivery on June 5. This year introduces a new competency framework, and managers must attend a training session on April 30.",
+  "score": 5,
+  "cost": 5.01e-05,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 61
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary_v2",
+  "case": 46,
+  "response": "A critical SQL injection vulnerability (CVSS 9.8) has been found in `/api/v2/auth/login`, affecting versions v3.2.0-v3.4.1. A patch is ready to fix this by parameterizing the query in `auth_controller.py:142`, and a hotfix is recommended within 24 hours.",
+  "score": 5,
+  "cost": 6.285e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 79
+  }
+}

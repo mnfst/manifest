@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "email_summary_v2",
+  "case": 38,
+  "response": "The bug bounty program's first month was a success, identifying 12 valid vulnerabilities, including three critical ones, for a total payout of $15,000. Based on the strong ROI and the fact that all issues were patched, the security team recommends continuing the program.",
+  "score": 5,
+  "cost": 0.00072625,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 59
+  }
+}

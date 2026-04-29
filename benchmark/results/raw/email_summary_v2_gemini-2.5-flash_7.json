@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary_v2",
+  "case": 7,
+  "response": "The new office at 500 Market St will be ready June 1, with the move scheduled for June 7-8. IT requires June 4-6 for network setup, and each team must designate a move coordinator by Friday.",
+  "score": 4,
+  "cost": 4.32e-05,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 50
+  }
+}

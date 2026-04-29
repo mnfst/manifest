@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "Engineering has 4 open requisitions (2 backend, 1 frontend, 1 ML) with 23 candidates in the pipeline and 5 in final rounds, though the frontend role has been unfilled for 60 days without strong candidates. Recruiting recommends expanding the search to remote candidates or adjusting the compensation band to address the frontend hiring gap.",
+  "score": 5,
+  "cost": 0.01176,
+  "expected": "",
+  "tokens": {
+    "input": 164,
+    "output": 124
+  }
+}

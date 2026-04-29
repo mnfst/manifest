@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "email_summary_v2",
+  "case": 49,
+  "response": "The product launch faces a delay because payment integration failed PCI compliance, requiring a choice between launching without payments on time (option 1, which Legal says needs updated T&Cs) or postponing the full launch to May 15 (option 2). A decision meeting is scheduled for tomorrow at 10am.",
+  "score": 5,
+  "cost": 0.00996,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 101
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "email_summary_v2",
+  "case": 35,
+  "response": "The Trust & Safety team is updating its content moderation policy to address AI-generated content, requiring labels for AI images, prohibiting deepfakes, and mandating disclosure for AI-assisted text. These new rules will be enforced starting June 1, with training materials currently being prepared.",
+  "score": 5,
+  "cost": 4.8599999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 57
+  }
+}

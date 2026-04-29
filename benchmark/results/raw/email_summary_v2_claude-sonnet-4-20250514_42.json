@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "A customer workshop with 15 enterprise clients revealed that bulk import improvements are the top priority (mentioned by 8 customers) and SSO implementation is blocking 5 accounts, while the new analytics dashboard received positive feedback. Additionally, 3 customers expressed interest in purchasing an internal tool as a standalone product, with a follow-up report provided for further details.",
+  "score": 5,
+  "cost": 0.00153,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 78
+  }
+}

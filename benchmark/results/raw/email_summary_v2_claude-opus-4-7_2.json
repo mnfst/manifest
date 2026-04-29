@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "email_summary_v2",
+  "case": 2,
+  "response": "A critical SQL injection vulnerability (CVSS 9.8) has been identified in the /api/v2/auth/login endpoint affecting versions 3.2.0\u20133.4.1, with a fix ready that parameterizes the query in auth_controller.py:142. David recommends reviewing the patch and deploying a hotfix within 24 hours.",
+  "score": 5,
+  "cost": 0.011055,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 117
+  }
+}

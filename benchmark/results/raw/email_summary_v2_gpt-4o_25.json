@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "email_summary_v2",
+  "case": 25,
+  "response": "In April, the company achieved significant milestones, including surpassing 10,000 monthly active users, closing a Series A term sheet for $8 million at a $40 million pre-money valuation, and hiring a VP of Sales. The current metrics show a monthly recurring revenue of $85K with a 12% month-over-month growth, a burn rate of $120K/month, and an 11-month runway post-raise, with fundraising set to close on May 10.",
+  "score": 5,
+  "cost": 0.001235,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 97
+  }
+}

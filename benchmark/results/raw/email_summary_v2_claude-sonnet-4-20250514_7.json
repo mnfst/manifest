@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "email_summary_v2",
+  "case": 7,
+  "response": "The office is moving to 500 Market St with the move scheduled for June 7-8, and IT will set up the network from June 4-6. Each team must designate a move coordinator by Friday.",
+  "score": 4,
+  "cost": 0.001035,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 49
+  }
+}

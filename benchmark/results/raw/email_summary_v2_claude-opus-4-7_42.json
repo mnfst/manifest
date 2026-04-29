@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "Yesterday's workshop with 15 enterprise customers surfaced key requests for improved bulk import (8/15) and SSO support (blocker for 5 accounts), positive reception of the new analytics dashboard, and unexpected interest from 3 customers in productizing the internal tool. A detailed follow-up report is attached for review.",
+  "score": 5,
+  "cost": 0.0111,
+  "expected": "",
+  "tokens": {
+    "input": 180,
+    "output": 112
+  }
+}
