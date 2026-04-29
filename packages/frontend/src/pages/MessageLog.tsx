@@ -33,7 +33,7 @@ import { createCursorPagination } from '../services/cursor-pagination.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
 import { PROVIDERS } from '../services/providers.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
-import { pingCount } from '../services/sse.js';
+import { messagePing } from '../services/sse.js';
 import '../styles/overview.css';
 
 interface MessagesData {
@@ -160,7 +160,7 @@ const MessageLog: Component = () => {
       costMin: costMin(),
       costMax: costMax(),
       agentName: params.agentName,
-      _ping: pingCount(),
+      _ping: messagePing(),
       cursor: pager.currentCursor(),
       limit: pager.pageSize,
     }),

@@ -12,7 +12,8 @@ import { computeCutoff, sqlCastFloat, sqlSanitizeCost } from '../../common/utils
 import { inferProviderFromModel } from '../../common/utils/provider-inference';
 import { TtlCache } from '../../common/utils/ttl-cache';
 
-const MODELS_CACHE_TTL_MS = 60_000;
+const MODELS_CACHE_TTL_MS = 5 * 60_000;
+const DISTINCT_MODELS_DEFAULT_INTERVAL = '90 days';
 const COUNT_CACHE_TTL_MS = 30_000;
 const MAX_CACHE_ENTRIES = 5_000;
 
@@ -231,17 +232,20 @@ export class MessagesQueryService {
     const cached = this.modelsCache.get(cacheKey);
     if (cached) return cached;
 
-    const cutoff = range ? computeCutoff(rangeToInterval(range)) : undefined;
+    // Bound the scan: when the caller doesn't constrain the range, default to
+    // the last 90 days. The DISTINCT covers the entire agent_messages table
+    // otherwise, which scales poorly as ingest grows.
+    const cutoff = range
+      ? computeCutoff(rangeToInterval(range))
+      : computeCutoff(DISTINCT_MODELS_DEFAULT_INTERVAL);
     const modelsQb = this.turnRepo
       .createQueryBuilder('at')
       .select('at.model', 'model')
       .addSelect('at.provider', 'provider')
       .distinct(true)
       .where('at.model IS NOT NULL')
-      .andWhere("at.model != ''");
-    if (cutoff) {
-      modelsQb.andWhere('at.timestamp >= :cutoff', { cutoff });
-    }
+      .andWhere("at.model != ''")
+      .andWhere('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(modelsQb, userId, agentName, tenantId);
     const modelsResult = await modelsQb.orderBy('at.model', 'ASC').getRawMany();
 

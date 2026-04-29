@@ -1,5 +1,49 @@
 # manifest
 
+## 5.55.5
+
+### Patch Changes
+
+- 40faabb: fix(dashboard): the OpenClaw setup snippet was generating a config with `api: 'openai-responses'`, but Manifest's cloud proxy speaks Chat Completions. OpenClaw rendered empty assistant bubbles even though tokens were billed correctly. Snippet now writes `api: 'openai-completions'` and the dashboard label reads "OpenAI Chat Completions-compatible". Existing OpenClaw users who pasted the broken snippet need to re-run the updated config block (or flip `models.providers.manifest.api` manually).
+
+## 5.55.4
+
+### Patch Changes
+
+- b2f01c4: Drop bundled `@esbuild/linux-x64` from the Docker image so CVE scanners no longer flag the embedded Go 1.23.12 stdlib (CVE-2025-68121 plus 10 high-severity CVEs). The binary was hoisted into the production `node_modules` despite `npm ci --omit=dev`; adding `--omit=optional` removes it along with other unused platform-specific binaries.
+
+## 5.55.3
+
+### Patch Changes
+
+- 77a1db3: Backend hot-path and dashboard query optimization pass: 60s LRU session cache in SessionGuard, slimmed AgentKeyAuthGuard query with 30min cache, retuned specificity miscategorization index, batched proxy fallback inserts, merged agent-list stats+sparkline into a single query, bounded distinct-models scan to 90 days, plus typed SSE events so dashboard pages only refetch on relevant changes instead of every ingest ping.
+- a5f0ef9: Security audit fixes (OWASP review).
+  - Auth: SessionGuard and AgentKeyAuthGuard now read `request.socket.remoteAddress` for the loopback bypass decision instead of `request.ip`, which is forgeable via `X-Forwarded-For` when `trust proxy` is enabled. The production `trust proxy` setting is narrowed to `loopback, linklocal, uniquelocal` (override with `TRUST_PROXY` env).
+  - Proxy: custom-provider and subscription endpoint URLs are revalidated against the SSRF allowlist immediately before each forward (DNS-rebinding defense). All proxy `fetch()` calls now use `redirect: 'error'` to block redirect-based escalation.
+  - Auth rate limiting: added per-endpoint limits for `sign-up`, `forget-password` / `forgot-password` / `reset-password`, and `verify-email` / `send-verification-email` (Better Auth runs outside NestJS so `ThrottlerGuard` doesn't apply).
+  - ApiKeyGuard: DB-API-key path now populates `request.user`, so user-scoped controllers no longer crash with a 500. `@CurrentUser()` fails closed with a 401 when no user is attached.
+  - Crypto: AES-GCM IV length set to the standard 12 bytes (was 16), scrypt-derived keys cached per (secret, salt) to remove the per-call ~50ms cost on the proxy hot path. Boots warns once when `MANIFEST_ENCRYPTION_KEY` falls back to `BETTER_AUTH_SECRET` in production.
+  - OAuth: `backendUrl` is validated against the allowlist at storage time instead of being trusted on the way out.
+  - Telemetry: `routing_tier` and `auth_type` buckets are whitelisted against the shared enums; unknown values collapse to `"other"` instead of leaking verbatim.
+  - Frontend: 401 responses no longer force a redirect to `/login` for per-endpoint auth failures. Only session-shaped 401s log the user out.
+  - HSTS: warns at boot when production runs without HSTS on a non-loopback bind. Silence with `MANIFEST_DISABLE_HSTS=1`.
+  - Dev CORS: defaults to a single origin (`http://localhost:3000`); set `CORS_ORIGIN` for anything else.
+
+## 5.55.2
+
+### Patch Changes
+
+- 3173336: Bump Docker runtime to Node 24 LTS (`gcr.io/distroless/nodejs24-debian13`). Active LTS through April 2028, replacing Node 22 (Maintenance LTS, EOL April 2027). Build and prod-deps stages move to `node:24-alpine` and `node:24-slim` to keep install and runtime majors aligned. CI and release workflows updated to Node 24. Dependabot is now pinned to ignore Node major bumps so non-LTS Current releases (Node 23, 25, 27…) won't open noisy PRs — LTS upgrades happen on a deliberate cadence.
+
+## 5.55.1
+
+### Patch Changes
+
+- f5c9af8: Polish auth flow accessibility and a few content fixes from a UX audit. Login, Register, and Reset Password inputs now have proper label/`for` association, `autocomplete` attributes for password-manager autofill, and `aria-describedby` linking errors to inputs. The cooldown intervals on resend buttons clean up on unmount. The Register page now links to real Terms and Privacy URLs (was `href="#"`). Section titles on Settings and Account use `<h2>` instead of `<h3>` to fix a heading hierarchy skip. Dark-variant logos use empty alt text so screen readers don't read "Manifest" twice. The Limits "Create rule" button uses the same plus icon as Workspace's "Connect Agent" button.
+- 4664b2d: Fix agent duplication not copying local/custom providers correctly
+- cc09e4f: Expose the OpenAI-compatible Responses API proxy at `/v1/responses` and show Responses API setup snippets by default for OpenAI SDK users.
+- 0e8035c: Fix agent duplication not copying routing mode, local provider models missing from model picker, and local provider toggle errors
+
 ## 5.55.0
 
 ### Minor Changes

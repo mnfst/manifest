@@ -39,6 +39,7 @@ import {
   createCustomProvider,
   updateCustomProvider,
   deleteCustomProvider,
+  invalidateCustomProvidersCache,
   getRoutingStatus,
   getFallbacks,
   setFallbacks,
@@ -63,8 +64,14 @@ vi.mock('../../src/services/toast-store.js', () => ({
 const mockFetch = vi.fn();
 
 beforeEach(() => {
+  // mockFetch is module-scoped, so call counts and resolved values persist
+  // across tests if we don't reset them here.
+  mockFetch.mockReset();
   vi.stubGlobal('fetch', mockFetch);
   vi.stubGlobal('location', { origin: 'http://localhost:3000' });
+  // Module-scoped caches survive across tests; reset them so a previous test's
+  // mock response doesn't satisfy the next test's call.
+  invalidateCustomProvidersCache();
 });
 
 afterEach(() => {
@@ -116,7 +123,7 @@ describe('getAgents', () => {
     expect(result).toEqual(payload);
     expect(mockFetch).toHaveBeenCalledWith('http://localhost:3000/api/v1/agents', {
       credentials: 'include',
-      cache: 'no-store',
+      cache: 'default',
     });
   });
 });
@@ -229,7 +236,7 @@ describe('getAgentKey', () => {
 
     expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('/api/v1/agents/bot/key'), {
       credentials: 'include',
-      cache: 'no-store',
+      cache: 'default',
     });
   });
 });
@@ -385,31 +392,31 @@ describe('renameAgent', () => {
 
 describe('getAgentInfo', () => {
   it('should return agent info when agent exists', async () => {
-    const agents = [
-      { agent_name: 'my-agent', display_name: 'My Agent', agent_category: 'personal', agent_platform: 'openclaw' },
-      { agent_name: 'other', display_name: 'Other', agent_category: null, agent_platform: null },
-    ];
-    mockOk({ agents });
+    const agent = {
+      agent_name: 'my-agent',
+      display_name: 'My Agent',
+      agent_category: 'personal',
+      agent_platform: 'openclaw',
+    };
+    mockOk({ agent });
 
     const result = await getAgentInfo('my-agent');
 
-    expect(result).toEqual(agents[0]);
+    expect(result).toEqual(agent);
   });
 
-  it('should return null when agent not found', async () => {
-    mockOk({ agents: [{ agent_name: 'other', display_name: 'Other', agent_category: null, agent_platform: null }] });
+  it('should return null when backend returns { agent: null }', async () => {
+    mockOk({ agent: null });
 
     const result = await getAgentInfo('missing-agent');
 
     expect(result).toBeNull();
   });
 
-  it('should return null when agents list is empty', async () => {
-    mockOk({ agents: [] });
+  it('propagates fetch errors instead of swallowing them', async () => {
+    mockError(500, 'Internal Server Error');
 
-    const result = await getAgentInfo('any-agent');
-
-    expect(result).toBeNull();
+    await expect(getAgentInfo('any-agent')).rejects.toThrow('API error: 500 Internal Server Error');
   });
 });
 
@@ -459,7 +466,7 @@ describe('getModelPrices', () => {
     expect(result).toEqual(prices);
     expect(mockFetch).toHaveBeenCalledWith('http://localhost:3000/api/v1/model-prices', {
       credentials: 'include',
-      cache: 'no-store',
+      cache: 'default',
     });
   });
 });
@@ -507,7 +514,7 @@ describe('getProviders', () => {
     expect(result).toEqual(payload);
     expect(mockFetch).toHaveBeenCalledWith(
       'http://localhost:3000/api/v1/routing/my-agent/providers',
-      { credentials: 'include', cache: 'no-store' },
+      { credentials: 'include', cache: 'default' },
     );
   });
 });
@@ -691,7 +698,7 @@ describe('getTierAssignments', () => {
     expect(result).toEqual(payload);
     expect(mockFetch).toHaveBeenCalledWith('http://localhost:3000/api/v1/routing/my-agent/tiers', {
       credentials: 'include',
-      cache: 'no-store',
+      cache: 'default',
     });
   });
 });
@@ -787,7 +794,7 @@ describe('getAvailableModels', () => {
     expect(result).toEqual(payload);
     expect(mockFetch).toHaveBeenCalledWith(
       'http://localhost:3000/api/v1/routing/my-agent/available-models',
-      { credentials: 'include', cache: 'no-store' },
+      { credentials: 'include', cache: 'default' },
     );
   });
 });
@@ -1059,6 +1066,61 @@ describe('getCustomProviders', () => {
     await getCustomProviders('agent/special name');
     const url = mockFetch.mock.calls[0]?.[0] as string;
     expect(url).toContain('/routing/agent%2Fspecial%20name/custom-providers');
+  });
+
+  it('caches results per agent across calls', async () => {
+    mockOk([{ id: 'cp-1', name: 'A', base_url: '', has_api_key: false, models: [], created_at: '' }]);
+
+    const first = await getCustomProviders('agent-a');
+    const second = await getCustomProviders('agent-a');
+
+    expect(first).toBe(second);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('refetches after invalidateCustomProvidersCache for the same agent', async () => {
+    mockOk([{ id: 'cp-1', name: 'A', base_url: '', has_api_key: false, models: [], created_at: '' }]);
+    await getCustomProviders('agent-a');
+
+    invalidateCustomProvidersCache('agent-a');
+
+    mockOk([{ id: 'cp-2', name: 'B', base_url: '', has_api_key: false, models: [], created_at: '' }]);
+    await getCustomProviders('agent-a');
+
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('invalidates only the named agent when called with a key', async () => {
+    mockOk([{ id: 'cp-1', name: 'A', base_url: '', has_api_key: false, models: [], created_at: '' }]);
+    await getCustomProviders('agent-a');
+    mockOk([{ id: 'cp-2', name: 'B', base_url: '', has_api_key: false, models: [], created_at: '' }]);
+    await getCustomProviders('agent-b');
+
+    invalidateCustomProvidersCache('agent-a');
+
+    mockOk([{ id: 'cp-3', name: 'C', base_url: '', has_api_key: false, models: [], created_at: '' }]);
+    await getCustomProviders('agent-a');
+    // agent-b is still cached, no new fetch
+    await getCustomProviders('agent-b');
+
+    expect(mockFetch).toHaveBeenCalledTimes(3);
+  });
+
+  it('does not poison the cache on fetch failure', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      text: () => Promise.resolve(''),
+      statusText: 'Server Error',
+      json: () => Promise.resolve({}),
+    });
+
+    await expect(getCustomProviders('agent-x')).rejects.toThrow();
+
+    mockOk([{ id: 'cp-1', name: 'A', base_url: '', has_api_key: false, models: [], created_at: '' }]);
+    const result = await getCustomProviders('agent-x');
+    expect(result).toHaveLength(1);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
   });
 });
 
@@ -1414,7 +1476,7 @@ describe('fetchJson 401 redirect', () => {
   it('redirects to /login on 401 response and throws', async () => {
     const loc = { origin: 'http://localhost:3000', pathname: '/overview', href: '' };
     vi.stubGlobal('location', loc);
-    mockFetch.mockResolvedValueOnce({ ok: false, status: 401 });
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 401, text: async () => '' });
 
     await expect(getHealth()).rejects.toThrow('Session expired');
     expect(loc.href).toBe('/login');
@@ -1423,7 +1485,7 @@ describe('fetchJson 401 redirect', () => {
   it('does not redirect if already on /login but still throws', async () => {
     const loc = { origin: 'http://localhost:3000', pathname: '/login', href: '' };
     vi.stubGlobal('location', loc);
-    mockFetch.mockResolvedValueOnce({ ok: false, status: 401 });
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 401, text: async () => '' });
 
     await expect(getHealth()).rejects.toThrow('Session expired');
     expect(loc.href).toBe('');

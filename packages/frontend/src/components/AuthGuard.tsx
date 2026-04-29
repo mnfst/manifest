@@ -21,11 +21,7 @@ const AuthGuard: ParentComponent = (props) => {
           <div class="auth-card" style="text-align: center;">
             <div class="auth-logo">
               <img src="/logo.svg" alt="Manifest" class="auth-logo__img auth-logo__img--light" />
-              <img
-                src="/logo-white.svg"
-                alt="Manifest"
-                class="auth-logo__img auth-logo__img--dark"
-              />
+              <img src="/logo-white.svg" alt="" class="auth-logo__img auth-logo__img--dark" />
             </div>
             <p style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm);">
               Loading...

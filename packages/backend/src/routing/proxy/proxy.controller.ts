@@ -31,6 +31,7 @@ import {
 } from './proxy-response-handler';
 import { ProxyExceptionFilter, isChatRenderingClient } from './proxy-exception.filter';
 import { sendFriendlyResponse } from './proxy-friendly-response';
+import type { ProxyApiMode } from './proxy-types';
 
 const MAX_SEEN_USERS = 10_000;
 const SEEN_USER_TTL_MS = 24 * 60 * 60 * 1000;
@@ -57,6 +58,22 @@ export class ProxyController {
   async chatCompletions(
     @Req() req: Request & { ingestionContext: IngestionContext },
     @Res() res: ExpressResponse,
+  ): Promise<void> {
+    await this.handleProxyRequest(req, res, 'chat_completions');
+  }
+
+  @Post('responses')
+  async responses(
+    @Req() req: Request & { ingestionContext: IngestionContext },
+    @Res() res: ExpressResponse,
+  ): Promise<void> {
+    await this.handleProxyRequest(req, res, 'responses');
+  }
+
+  private async handleProxyRequest(
+    req: Request & { ingestionContext: IngestionContext },
+    res: ExpressResponse,
+    apiMode: ProxyApiMode,
   ): Promise<void> {
     const { userId } = req.ingestionContext;
     const body = req.body as Record<string, unknown>;
@@ -88,6 +105,7 @@ export class ProxyController {
         signal: clientAbort.signal,
         specificityOverride,
         headers: req.headers,
+        apiMode,
       });
 
       this.trackFirstProxyRequest(userId);
@@ -135,6 +153,7 @@ export class ProxyController {
           this.signatureCache,
           sessionKey,
           this.thinkingCache,
+          apiMode,
         );
       } else {
         streamUsage = await handleNonStreamResponse(
@@ -146,6 +165,7 @@ export class ProxyController {
           this.signatureCache,
           sessionKey,
           this.thinkingCache,
+          apiMode,
         );
       }
 

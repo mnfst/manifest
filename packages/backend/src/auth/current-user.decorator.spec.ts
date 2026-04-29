@@ -2,7 +2,7 @@
 // metadata below. NestJS normally does this transitively, but this spec
 // exercises the decorator in isolation.
 import 'reflect-metadata';
-import { ExecutionContext } from '@nestjs/common';
+import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { ROUTE_ARGS_METADATA } from '@nestjs/common/constants';
 import { CurrentUser } from './current-user.decorator';
 
@@ -36,8 +36,10 @@ describe('@CurrentUser()', () => {
     expect(factory(undefined, createContext(user))).toBe(user);
   });
 
-  it('returns undefined when no user is attached to the request', () => {
-    expect(factory(undefined, createContext(undefined))).toBeUndefined();
+  it('throws UnauthorizedException when no user is attached to the request', () => {
+    // Without a user we can't filter analytics by tenant — fail closed with
+    // a 401 instead of letting controllers crash on `user.id`.
+    expect(() => factory(undefined, createContext(undefined))).toThrow(UnauthorizedException);
   });
 
   it('ignores the data argument (decorator is not field-scoped)', () => {

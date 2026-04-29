@@ -144,10 +144,9 @@ describe('ProviderLocalTab', () => {
     expect(container.querySelector('.provider-toggle__switch--on')).not.toBeNull();
   });
 
-  it('disconnects a connected standard tile on click instead of reopening the detail view', () => {
+  it('navigates to detail view when clicking a connected standard tile', () => {
     const onToggle = vi.fn();
     const onOpenDetail = vi.fn();
-    const onOpenLocalServer = vi.fn();
     render(() => (
       <ProviderLocalTab
         {...baseProps}
@@ -156,16 +155,32 @@ describe('ProviderLocalTab', () => {
         isConnected={() => true}
         onToggle={onToggle}
         onOpenDetail={onOpenDetail}
-        onOpenLocalServer={onOpenLocalServer}
       />
     ));
     fireEvent.click(document.querySelector('button.provider-toggle') as HTMLButtonElement);
-    expect(onToggle).toHaveBeenCalledWith('ollama');
-    expect(onOpenDetail).not.toHaveBeenCalled();
-    expect(onOpenLocalServer).not.toHaveBeenCalled();
+    expect(onOpenDetail).toHaveBeenCalledWith('ollama', 'local');
+    expect(onToggle).not.toHaveBeenCalled();
   });
 
-  it('disconnects a connected custom tile via its custom:<uuid> provider key', () => {
+  it('disconnects a connected standard tile when clicking the toggle switch', () => {
+    const onToggle = vi.fn();
+    const onOpenDetail = vi.fn();
+    render(() => (
+      <ProviderLocalTab
+        {...baseProps}
+        localProviders={[provider({ id: 'ollama', name: 'Ollama' })]}
+        customProviders={[]}
+        isConnected={() => true}
+        onToggle={onToggle}
+        onOpenDetail={onOpenDetail}
+      />
+    ));
+    fireEvent.click(document.querySelector('.provider-toggle__switch') as HTMLElement);
+    expect(onToggle).toHaveBeenCalledWith('ollama');
+    expect(onOpenDetail).not.toHaveBeenCalled();
+  });
+
+  it('opens edit for a connected custom tile on click', () => {
     const onToggle = vi.fn();
     const onEditCustom = vi.fn();
     render(() => (
@@ -186,8 +201,76 @@ describe('ProviderLocalTab', () => {
       />
     ));
     fireEvent.click(document.querySelector('button.provider-toggle') as HTMLButtonElement);
+    expect(onEditCustom).toHaveBeenCalled();
+    expect(onToggle).not.toHaveBeenCalled();
+  });
+
+  it('disconnects a connected custom tile when clicking the toggle switch', () => {
+    const onToggle = vi.fn();
+    const onEditCustom = vi.fn();
+    render(() => (
+      <ProviderLocalTab
+        {...baseProps}
+        localProviders={[]}
+        customProviders={[
+          {
+            id: 'cp-lms',
+            name: 'LM Studio',
+            base_url: 'http://localhost:1234/v1',
+            models: [],
+          } as never,
+        ]}
+        isConnected={(key) => key === 'custom:cp-lms'}
+        onToggle={onToggle}
+        onEditCustom={onEditCustom}
+      />
+    ));
+    fireEvent.click(document.querySelector('.provider-toggle__switch') as HTMLElement);
     expect(onToggle).toHaveBeenCalledWith('custom:cp-lms');
     expect(onEditCustom).not.toHaveBeenCalled();
+  });
+
+  it('opens connect flow when clicking the toggle on a disconnected standard tile', () => {
+    const onToggle = vi.fn();
+    const onOpenDetail = vi.fn();
+    render(() => (
+      <ProviderLocalTab
+        {...baseProps}
+        localProviders={[provider({ id: 'ollama', name: 'Ollama' })]}
+        customProviders={[]}
+        isConnected={() => false}
+        onToggle={onToggle}
+        onOpenDetail={onOpenDetail}
+      />
+    ));
+    fireEvent.click(document.querySelector('.provider-toggle__switch') as HTMLElement);
+    expect(onOpenDetail).toHaveBeenCalledWith('ollama', 'local');
+    expect(onToggle).not.toHaveBeenCalled();
+  });
+
+  it('opens edit when clicking the toggle on a disconnected custom tile', () => {
+    const onToggle = vi.fn();
+    const onEditCustom = vi.fn();
+    render(() => (
+      <ProviderLocalTab
+        {...baseProps}
+        localProviders={[]}
+        customProviders={[
+          {
+            id: 'cp-lms',
+            name: 'LM Studio',
+            base_url: 'http://localhost:1234/v1',
+            models: [],
+          } as never,
+        ]}
+        isConnected={() => false}
+        onToggle={onToggle}
+        onEditCustom={onEditCustom}
+      />
+    ));
+    fireEvent.click(document.querySelector('.provider-toggle__switch') as HTMLElement);
+    expect(onEditCustom).toHaveBeenCalled();
+    expect(onToggle).not.toHaveBeenCalled();
   });
 
   it('disables all tiles while busy is true', () => {

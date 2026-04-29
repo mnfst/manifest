@@ -64,21 +64,34 @@ describe('DuplicateAgentModal', () => {
     });
   });
 
-  it('shows counts in the details disclosure', async () => {
+  it('shows copied and not-copied sections without an accordion', async () => {
     render(() => (
       <DuplicateAgentModal open={true} sourceName="my-agent" onClose={vi.fn()} />
     ));
 
     await waitFor(() => {
-      const list = qa('.duplicate-agent__list li');
-      expect(list.length).toBeGreaterThan(0);
+      const allItems = qa('.duplicate-agent__list li');
+      // Wait for the copied section to render (more than just the 3 "not copied" items)
+      expect(allItems.length).toBeGreaterThan(3);
     });
 
+    // "What is copied" items
     const list = qa('.duplicate-agent__list li').map((li) => li.textContent);
     expect(list.some((t) => t?.includes('3') && t?.includes('provider credential'))).toBe(true);
     expect(list.some((t) => t?.includes('1') && t?.includes('custom provider'))).toBe(true);
     expect(list.some((t) => t?.includes('4') && t?.includes('tier override'))).toBe(true);
     expect(list.some((t) => t?.includes('2') && t?.includes('specificity override'))).toBe(true);
+
+    // "What is not copied" items are always visible (no accordion)
+    const headers = qa('.duplicate-agent__section-header').map((h) => h.textContent?.trim());
+    expect(headers.some((h) => h?.includes("What is copied"))).toBe(true);
+    expect(headers.some((h) => h?.includes("What is not copied"))).toBe(true);
+    expect(list.some((t) => t === 'Messages')).toBe(true);
+    expect(list.some((t) => t === 'Logs')).toBe(true);
+    expect(list.some((t) => t === 'Notification rules')).toBe(true);
+
+    // No <details> elements — content is always visible
+    expect(document.querySelector('details')).toBeNull();
   });
 
   it('calls duplicateAgent, shows toast, and navigates on success', async () => {

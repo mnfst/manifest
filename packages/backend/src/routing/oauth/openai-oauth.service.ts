@@ -49,11 +49,15 @@ export class OpenaiOauthService {
     const state = randomBytes(32).toString('hex');
     const verifier = randomBytes(32).toString('base64url');
     const challenge = createHash('sha256').update(verifier).digest('base64url');
+    // Validate the redirect target now (at storage time) instead of trusting
+    // it on the way out. The callback server only ever redirects to
+    // localhost-shaped origins, so anything else is dropped here.
+    const safeBackendUrl = backendUrl && this.isAllowedRedirectOrigin(backendUrl) ? backendUrl : '';
     this.pending.set(state, {
       verifier,
       agentId,
       userId,
-      backendUrl: backendUrl ?? '',
+      backendUrl: safeBackendUrl,
       expiresAt: Date.now() + STATE_TTL_MS,
     });
     if (this.useCallbackServer) {

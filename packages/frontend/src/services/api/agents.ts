@@ -12,8 +12,11 @@ export interface AgentInfo {
 }
 
 export function getAgentInfo(agentName: string): Promise<AgentInfo | null> {
-  return fetchJson<{ agents: AgentInfo[] }>('/agents').then(
-    (data) => data?.agents?.find((a) => a.agent_name === agentName) ?? null,
+  // Backend returns { agent: null } for missing agents (200), so we don't need
+  // to swallow errors here. Network/server failures should propagate to the
+  // caller rather than masquerade as "agent not found".
+  return fetchJson<{ agent: AgentInfo | null }>(`/agents/${encodeURIComponent(agentName)}`).then(
+    (data) => data?.agent ?? null,
   );
 }
 

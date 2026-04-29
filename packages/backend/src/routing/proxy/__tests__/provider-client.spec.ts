@@ -177,6 +177,83 @@ describe('ProviderClient', () => {
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.stream).toBe(true);
     });
+
+    it('routes public Responses API requests for OpenAI to /v1/responses', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body: { input: 'Hello', stream: false },
+        chatBody: { messages: [{ role: 'user', content: 'Hello' }], stream: false },
+        stream: false,
+        apiMode: 'responses',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.openai.com/v1/responses',
+        expect.any(Object),
+      );
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody).toMatchObject({
+        input: 'Hello',
+        model: 'gpt-4o',
+        stream: false,
+        store: false,
+      });
+      expect(sentBody.messages).toBeUndefined();
+      expect(sentBody.instructions).toBeUndefined();
+      expect(result.isResponses).toBe(true);
+      expect(result.isChatGpt).toBe(false);
+    });
+
+    it('adds default instructions for subscription Responses requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'oauth-token',
+        model: 'gpt-5.4',
+        body: { input: 'Hello', stream: false },
+        chatBody: { messages: [{ role: 'user', content: 'Hello' }], stream: false },
+        stream: false,
+        authType: 'subscription',
+        apiMode: 'responses',
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://chatgpt.com/backend-api/codex/responses');
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.instructions).toBe('You are a helpful assistant.');
+      expect(sentBody.input).toEqual([
+        { role: 'user', content: [{ type: 'input_text', text: 'Hello' }] },
+      ]);
+      expect(sentBody.stream).toBe(true);
+    });
+
+    it('uses normalized chat body for non-native Responses providers', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'deepseek',
+        apiKey: 'sk-test',
+        model: 'deepseek-chat',
+        body: { input: 'Hello', stream: false },
+        chatBody: { messages: [{ role: 'user', content: 'Hello' }], stream: false },
+        stream: false,
+        apiMode: 'responses',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.deepseek.com/v1/chat/completions',
+        expect.any(Object),
+      );
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages).toEqual([{ role: 'user', content: 'Hello' }]);
+      expect(sentBody.input).toBeUndefined();
+      expect(result.isResponses).toBe(false);
+    });
   });
 
   describe('Anthropic provider', () => {

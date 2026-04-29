@@ -166,8 +166,9 @@ describe("ProviderSelectContent", () => {
       return t;
     });
     // Toggle should be ON since the provider is connected with auth_type='local'
-    expect(ollamaTile.querySelector(".provider-toggle__switch--on")).not.toBeNull();
-    fireEvent.click(ollamaTile);
+    const toggle = ollamaTile.querySelector(".provider-toggle__switch") as HTMLElement;
+    expect(toggle.classList.contains("provider-toggle__switch--on")).toBe(true);
+    fireEvent.click(toggle);
     await waitFor(() => expect(disconnect).toHaveBeenCalledWith("test-agent", "ollama", "local"));
     await waitFor(() => expect(onUpdateLocal).toHaveBeenCalled());
   });
@@ -203,7 +204,8 @@ describe("ProviderSelectContent", () => {
       if (!t) throw new Error("Ollama tile not found");
       return t;
     });
-    fireEvent.click(ollamaTile);
+    const toggle = ollamaTile.querySelector(".provider-toggle__switch") as HTMLElement;
+    fireEvent.click(toggle);
     await waitFor(() => expect(disconnect).toHaveBeenCalled());
     expect(onUpdateLocal).not.toHaveBeenCalled();
   });

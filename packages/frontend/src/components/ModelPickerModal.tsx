@@ -487,7 +487,7 @@ const ModelPickerModal: Component<Props> = (props) => {
                   : isSub()
                     ? 'No subscription providers connected. Connect a provider to see models.'
                     : isLocal()
-                      ? 'No local providers connected. Connect Ollama or LM Studio to see models.'
+                      ? 'No local providers connected. Connect a local provider to see models.'
                       : 'No API key providers connected. Connect a provider to see models.'}
               <Show when={!search().trim() && !showFreeOnly() && props.onConnectProviders}>
                 <button

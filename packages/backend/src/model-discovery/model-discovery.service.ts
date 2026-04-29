@@ -228,6 +228,14 @@ export class ModelDiscoveryService {
       }
     }
 
+    // Build auth_type lookup for custom providers from their user_providers rows
+    const customAuthTypes = new Map<string, AuthType>();
+    for (const p of providers) {
+      if (p.provider.startsWith('custom:')) {
+        customAuthTypes.set(p.provider, p.auth_type);
+      }
+    }
+
     // Merge custom provider models
     const customProviders = await this.customProviderRepo.find({
       where: { agent_id: agentId },
@@ -251,6 +259,7 @@ export class ModelDiscoveryService {
           id: modelKey,
           displayName: m.model_name,
           provider: cpKey,
+          authType: customAuthTypes.get(cpKey) ?? 'api_key',
           contextWindow: m.context_window ?? 128000,
           inputPricePerToken: inputPerToken,
           outputPricePerToken: outputPerToken,

@@ -17,7 +17,7 @@ import { toast } from '../services/toast-store.js';
 import { markAgentCreated } from '../services/recent-agents.js';
 import { formatNumber } from '../services/formatters.js';
 import Sparkline from '../components/Sparkline.jsx';
-import { pingCount } from '../services/sse.js';
+import { agentPing, messagePing } from '../services/sse.js';
 import {
   type AgentCategory,
   type AgentPlatform,
@@ -285,7 +285,7 @@ const AgentCardMenu: Component<{
 
 const Workspace: Component = () => {
   const [data, { refetch }] = createResource(
-    () => ({ _ping: pingCount() }),
+    () => ({ _agentPing: agentPing(), _messagePing: messagePing() }),
     () => getAgents() as Promise<AgentsData>,
   );
   const [modalOpen, setModalOpen] = createSignal(false);

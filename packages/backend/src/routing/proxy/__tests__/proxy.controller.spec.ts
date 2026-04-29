@@ -206,6 +206,89 @@ describe('ProxyController', () => {
     expect(headers['X-Manifest-Reason']).toBe('scored');
   });
 
+  it('should expose /v1/responses and convert chat completions output to Responses format', async () => {
+    const responseBody = {
+      created: 1234,
+      model: 'gpt-4o',
+      choices: [{ message: { content: 'hello' } }],
+      usage: { prompt_tokens: 4, completion_tokens: 2, total_tokens: 6 },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: {
+        response: mockProviderResp,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      },
+      meta: {
+        tier: 'simple',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({ input: 'hi' });
+    const { res } = mockResponse();
+
+    await controller.responses(req as never, res as never);
+
+    expect(proxyService.proxyRequest).toHaveBeenCalledWith(
+      expect.objectContaining({ apiMode: 'responses', body: { input: 'hi' } }),
+    );
+    const json = (res.json as jest.Mock).mock.calls[0][0];
+    expect(json.object).toBe('response');
+    expect(json.output[0].content[0]).toEqual({
+      type: 'output_text',
+      text: 'hello',
+      annotations: [],
+    });
+    expect(json.usage.input_tokens).toBe(4);
+  });
+
+  it('should pass through native Responses JSON bodies', async () => {
+    const responseBody = {
+      id: 'resp_1',
+      object: 'response',
+      output: [{ type: 'message' }],
+      usage: { input_tokens: 5, output_tokens: 3, total_tokens: 8 },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: {
+        response: mockProviderResp,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+        isResponses: true,
+      },
+      meta: {
+        tier: 'simple',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({ input: 'hi' });
+    const { res } = mockResponse();
+
+    await controller.responses(req as never, res as never);
+
+    expect(res.json).toHaveBeenCalledWith(responseBody);
+  });
+
   it('should convert Google response for non-streaming', async () => {
     const googleBody = { candidates: [{ content: { parts: [{ text: 'hi' }] } }] };
     const convertedBody = { choices: [{ message: { content: 'hi' } }] };
@@ -2276,26 +2359,24 @@ describe('ProxyController', () => {
       await controller.chatCompletions(req as never, res as never);
       await new Promise((r) => setTimeout(r, 10));
 
-      // 4 inserts: primary failure + 2 intermediate failures + fallback success
-      expect(mockMessageRepo.insert).toHaveBeenCalledTimes(4);
+      // 3 inserts: primary failure + 1 batched failed-fallbacks + fallback success
+      expect(mockMessageRepo.insert).toHaveBeenCalledTimes(3);
 
-      // Intermediate failures recorded as fallback_error (handled)
-      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      // Intermediate failures batched into a single insert with both rows
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith([
         expect.objectContaining({
           model: 'deepseek-chat',
           status: 'fallback_error',
           fallback_from_model: 'gemini-flash',
           fallback_index: 0,
         }),
-      );
-      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
           model: 'gpt-4o-mini',
           status: 'fallback_error',
           fallback_from_model: 'gemini-flash',
           fallback_index: 1,
         }),
-      );
+      ]);
     });
 
     it('should record message with zero tokens when response has no usage data', async () => {
@@ -2422,7 +2503,7 @@ describe('ProxyController', () => {
           error_message: 'primary error',
         }),
       );
-      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith([
         expect.objectContaining({
           model: 'deepseek-chat',
           status: 'error',
@@ -2430,7 +2511,7 @@ describe('ProxyController', () => {
           fallback_index: 0,
           error_message: 'auth fail',
         }),
-      );
+      ]);
       expect(headers['X-Manifest-Fallback-Exhausted']).toBe('true');
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -2622,28 +2703,26 @@ describe('ProxyController', () => {
       await controller.chatCompletions(req as never, res as never);
       await new Promise((r) => setTimeout(r, 10));
 
-      // 3 inserts: primary (fallback_error) + intermediate (fallback_error) + last (error)
-      expect(mockMessageRepo.insert).toHaveBeenCalledTimes(3);
+      // 2 inserts: primary (fallback_error) + 1 batched failed-fallbacks (2 rows)
+      expect(mockMessageRepo.insert).toHaveBeenCalledTimes(2);
       expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
           model: 'gemini-flash',
           status: 'fallback_error',
         }),
       );
-      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith([
         expect.objectContaining({
           model: 'deepseek-chat',
           status: 'fallback_error',
           fallback_index: 0,
         }),
-      );
-      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
           model: 'gpt-4o-mini',
           status: 'error',
           fallback_index: 1,
         }),
-      );
+      ]);
     });
   });
 
@@ -2685,13 +2764,13 @@ describe('ProxyController', () => {
     await controller.chatCompletions(req as never, res as never);
     await new Promise((r) => setTimeout(r, 50));
 
-    // Fallback failure recorded with auth_type from meta
-    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+    // Fallback failure recorded with auth_type from meta (batched as array)
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith([
       expect.objectContaining({
         model: 'deepseek-chat',
         auth_type: 'subscription',
       }),
-    );
+    ]);
     // Primary failure also recorded with auth_type
     expect(mockMessageRepo.insert).toHaveBeenCalledWith(
       expect.objectContaining({

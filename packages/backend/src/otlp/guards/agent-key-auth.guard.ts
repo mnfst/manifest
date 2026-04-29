@@ -15,7 +15,7 @@ import { AgentApiKey } from '../../entities/agent-api-key.entity';
 import { IngestionContext } from '../interfaces/ingestion-context.interface';
 import { verifyKey, keyPrefix as computePrefix } from '../../common/utils/hash.util';
 import { API_KEY_PREFIX } from '../../common/constants/api-key.constants';
-import { isLoopbackIp } from '../../common/utils/local-ip';
+import { isLoopbackPeer } from '../../common/utils/local-ip';
 const MIN_TOKEN_LENGTH = 12;
 
 function cacheKey(token: string): string {
@@ -35,6 +35,9 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleDestroy {
   private readonly logger = new Logger(AgentKeyAuthGuard.name);
   private cache = new Map<string, CachedKey>();
   private devContext: { context: IngestionContext; expiresAt: number } | null = null;
+  // 5 min TTL keeps revoked-key staleness bounded while still amortizing the
+  // DB lookup across hot ingest bursts. Mutations call invalidateCache()
+  // directly when keys rotate or deactivate.
   private readonly CACHE_TTL_MS = 5 * 60 * 1000;
   private readonly MAX_CACHE_SIZE = 10_000;
   private readonly cleanupTimer: ReturnType<typeof setInterval>;
@@ -58,9 +61,10 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleDestroy {
     const request = context.switchToHttp().getRequest<Request>();
     const authHeader = request.headers['authorization'];
 
-    const ip = request.ip ?? '';
+    // Use socket.remoteAddress (TCP peer) — request.ip honors X-Forwarded-For
+    // and is spoofable when `trust proxy` is enabled.
     const isDevLoopback =
-      this.configService.get<string>('app.nodeEnv') === 'development' && isLoopbackIp(ip);
+      this.configService.get<string>('app.nodeEnv') === 'development' && isLoopbackPeer(request);
 
     if (!authHeader) {
       if (await this.handleDevLoopback(request, isDevLoopback)) return true;
@@ -107,8 +111,12 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleDestroy {
   }
 
   private async validateMnfstToken(request: Request, token: string): Promise<boolean> {
-    const cached = this.cache.get(cacheKey(token));
+    const hashed = cacheKey(token);
+    const cached = this.cache.get(hashed);
     if (cached && cached.expiresAt > Date.now()) {
+      // LRU touch — re-insert to move to tail of insertion order
+      this.cache.delete(hashed);
+      this.cache.set(hashed, cached);
       this.setContext(request, {
         tenantId: cached.tenantId,
         agentId: cached.agentId,
@@ -121,8 +129,17 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleDestroy {
     const prefix = computePrefix(token);
     const candidates = await this.keyRepo
       .createQueryBuilder('k')
-      .leftJoinAndSelect('k.agent', 'a')
-      .leftJoinAndSelect('k.tenant', 't')
+      .select([
+        'k.id',
+        'k.key_hash',
+        'k.tenant_id',
+        'k.agent_id',
+        'k.expires_at',
+        'a.name',
+        't.name',
+      ])
+      .leftJoin('k.agent', 'a')
+      .leftJoin('k.tenant', 't')
       .where('k.key_prefix = :prefix', { prefix })
       .andWhere('k.is_active = true')
       .getMany();
@@ -147,12 +164,13 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleDestroy {
       .catch((err: Error) => this.logger.warn(`Failed to update last_used_at: ${err.message}`));
 
     this.evictExpired();
-    if (this.cache.size >= this.MAX_CACHE_SIZE) {
+    while (this.cache.size >= this.MAX_CACHE_SIZE) {
       const firstKey = this.cache.keys().next().value;
-      if (firstKey) this.cache.delete(firstKey);
+      if (firstKey === undefined) break;
+      this.cache.delete(firstKey);
     }
 
-    this.cache.set(cacheKey(token), {
+    this.cache.set(hashed, {
       tenantId: keyRecord.tenant_id,
       agentId: keyRecord.agent_id,
       agentName: keyRecord.agent.name,

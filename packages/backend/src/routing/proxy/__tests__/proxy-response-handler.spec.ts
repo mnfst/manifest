@@ -446,13 +446,19 @@ describe('proxy-response-handler', () => {
 
   describe('handleStreamResponse', () => {
     function mockForward(
-      flags: { isGoogle?: boolean; isAnthropic?: boolean; isChatGpt?: boolean } = {},
+      flags: {
+        isGoogle?: boolean;
+        isAnthropic?: boolean;
+        isChatGpt?: boolean;
+        isResponses?: boolean;
+      } = {},
     ) {
       return {
         response: { body: { getReader: jest.fn() } },
         isGoogle: flags.isGoogle ?? false,
         isAnthropic: flags.isAnthropic ?? false,
         isChatGpt: flags.isChatGpt ?? false,
+        isResponses: flags.isResponses ?? false,
       };
     }
 
@@ -590,6 +596,59 @@ describe('proxy-response-handler', () => {
       expect(pipeStreamSpy).toHaveBeenCalledWith(forward.response.body, res);
     });
 
+    it('should pass through native Responses streams without a transformer', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward({ isResponses: true });
+      const client = mockProviderClient();
+      const meta = makeMeta();
+
+      await handleStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        undefined,
+        undefined,
+        'responses',
+      );
+
+      expect(pipeStreamSpy).toHaveBeenCalledWith(forward.response.body, res);
+    });
+
+    it('should convert chat completion streams when serving Responses clients', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward();
+      const client = mockProviderClient();
+      const meta = makeMeta();
+      let capturedTransform: ((chunk: string) => string | null) | undefined;
+      pipeStreamSpy.mockImplementation(
+        async (_body: unknown, _res: unknown, transform?: (chunk: string) => string | null) => {
+          capturedTransform = transform;
+          return null;
+        },
+      );
+
+      await handleStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        undefined,
+        undefined,
+        'responses',
+      );
+
+      expect(capturedTransform).toBeDefined();
+      const converted = capturedTransform!(
+        'data: {"choices":[{"delta":{"content":"Hi"},"finish_reason":null}]}\n\n',
+      );
+      expect(converted).toContain('event: response.output_text.delta');
+    });
+
     it('should cache thought_signatures from Google stream chunks', async () => {
       const { res } = mockResponse();
       const forward = mockForward({ isGoogle: true });
@@ -676,16 +735,26 @@ describe('proxy-response-handler', () => {
 
     function mockForward(
       body: unknown,
-      flags: { isGoogle?: boolean; isAnthropic?: boolean; isChatGpt?: boolean } = {},
+      flags: {
+        isGoogle?: boolean;
+        isAnthropic?: boolean;
+        isChatGpt?: boolean;
+        isResponses?: boolean;
+        contentType?: string;
+      } = {},
     ) {
       return {
         response: {
           json: jest.fn().mockResolvedValue(body),
           text: jest.fn().mockResolvedValue(typeof body === 'string' ? body : JSON.stringify(body)),
+          headers: {
+            get: jest.fn().mockReturnValue(flags.contentType ?? 'application/json'),
+          },
         },
         isGoogle: flags.isGoogle ?? false,
         isAnthropic: flags.isAnthropic ?? false,
         isChatGpt: flags.isChatGpt ?? false,
+        isResponses: flags.isResponses ?? false,
       };
     }
 
@@ -832,6 +901,98 @@ describe('proxy-response-handler', () => {
         cache_creation_tokens: undefined,
       });
       expect(res.json).toHaveBeenCalledWith(body);
+    });
+
+    it('should pass through native Responses JSON and extract Responses usage', async () => {
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+      const body = {
+        id: 'resp_123',
+        object: 'response',
+        usage: {
+          input_tokens: 50,
+          input_tokens_details: { cached_tokens: 20 },
+          output_tokens: 25,
+          total_tokens: 75,
+        },
+      };
+      const forward = mockForward(body, { isResponses: true });
+      const meta = makeMeta();
+
+      const usage = await handleNonStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        undefined,
+        undefined,
+        'responses',
+      );
+
+      expect(usage).toEqual({
+        prompt_tokens: 50,
+        completion_tokens: 25,
+        cache_read_tokens: 20,
+        cache_creation_tokens: 0,
+      });
+      expect(res.json).toHaveBeenCalledWith(body);
+    });
+
+    it('should collect native Responses SSE for non-streaming Responses clients', async () => {
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+      const response = { id: 'resp_done', object: 'response', output: [] };
+      const sse = `event: response.completed\ndata: ${JSON.stringify({ response })}\n\n`;
+      const forward = mockForward(sse, {
+        isResponses: true,
+        contentType: 'text/event-stream',
+      });
+      const meta = makeMeta();
+
+      await handleNonStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        undefined,
+        undefined,
+        'responses',
+      );
+
+      expect(forward.response.text).toHaveBeenCalled();
+      expect(res.json).toHaveBeenCalledWith(response);
+    });
+
+    it('should collect native Responses SSE even when content type is not SSE', async () => {
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+      const response = { id: 'resp_done', object: 'response', output: [] };
+      const sse = `event: response.completed\ndata: ${JSON.stringify({ response })}\n\n`;
+      const forward = mockForward(sse, {
+        isResponses: true,
+        contentType: 'application/json',
+      });
+      const meta = makeMeta();
+
+      await handleNonStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        undefined,
+        undefined,
+        'responses',
+      );
+
+      expect(forward.response.text).toHaveBeenCalled();
+      expect(forward.response.json).not.toHaveBeenCalled();
+      expect(res.json).toHaveBeenCalledWith(response);
     });
 
     it('should return null usage when no usage data in response', async () => {

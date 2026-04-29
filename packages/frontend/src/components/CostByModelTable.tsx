@@ -6,8 +6,10 @@ import { getModelDisplayName } from '../services/model-display.js';
 import {
   inferProviderFromModel,
   inferProviderName,
+  resolveProviderId,
   stripCustomPrefix,
 } from '../services/routing-utils.js';
+import { PROVIDERS } from '../services/providers.js';
 
 interface CostByModelRow {
   model: string;
@@ -16,11 +18,29 @@ interface CostByModelRow {
   share_pct: number;
   estimated_cost: number;
   auth_type: string | null;
+  provider?: string | null;
 }
 
 interface CostByModelTableProps {
   rows: CostByModelRow[];
   customProviderName: (model: string) => string | undefined;
+}
+
+function resolveRowProvider(row: CostByModelRow): string | undefined {
+  if (row.provider) {
+    const resolved = resolveProviderId(row.provider);
+    if (resolved) return resolved;
+  }
+  if (row.model) return inferProviderFromModel(row.model);
+  return undefined;
+}
+
+function resolveRowProviderName(row: CostByModelRow): string | undefined {
+  const id = resolveRowProvider(row);
+  if (!id) return undefined;
+  return (
+    PROVIDERS.find((p) => p.id === id)?.name ?? (row.model ? inferProviderName(row.model) : id)
+  );
 }
 
 const CostByModelTable: Component<CostByModelTableProps> = (props) => {
@@ -49,8 +69,11 @@ const CostByModelTable: Component<CostByModelTableProps> = (props) => {
               <tr>
                 <td style="font-family: var(--font-mono); font-size: var(--font-size-sm);">
                   <span style="display: inline-flex; align-items: center; gap: 4px;">
-                    {row.model && inferProviderFromModel(row.model) === 'custom' ? (
-                      (() => {
+                    {(() => {
+                      const provId = resolveRowProvider(row);
+                      const isCustom =
+                        provId === 'custom' || provId?.startsWith('custom:') === true;
+                      if (row.model && isCustom) {
                         const provName = props.customProviderName(row.model);
                         const logo = customProviderLogo(
                           provName ?? '',
@@ -78,17 +101,21 @@ const CostByModelTable: Component<CostByModelTableProps> = (props) => {
                             {letter}
                           </span>
                         );
-                      })()
-                    ) : row.model && inferProviderFromModel(row.model) ? (
-                      <span
-                        title={`${inferProviderName(row.model)} (${authLabel(row.auth_type)})`}
-                        style="display: inline-flex; flex-shrink: 0; position: relative;"
-                      >
-                        {/* v8 ignore next 2 */}
-                        {providerIcon(inferProviderFromModel(row.model)!, 14)}
-                        {authBadgeFor(row.auth_type, 8)}
-                      </span>
-                    ) : null}
+                      }
+                      if (provId) {
+                        const provName = resolveRowProviderName(row);
+                        return (
+                          <span
+                            title={`${provName ?? provId} (${authLabel(row.auth_type)})`}
+                            style="display: inline-flex; flex-shrink: 0; position: relative;"
+                          >
+                            {providerIcon(provId, 14)}
+                            {authBadgeFor(row.auth_type, 8)}
+                          </span>
+                        );
+                      }
+                      return null;
+                    })()}
                     {row.model
                       ? row.model.startsWith('custom:')
                         ? `custom:${props.customProviderName(row.model) ?? 'Custom'}/${stripCustomPrefix(row.model)}`

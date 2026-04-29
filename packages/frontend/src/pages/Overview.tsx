@@ -34,7 +34,7 @@ import {
 import { preloadModelDisplayNames } from '../services/model-display.js';
 import { isRecentlyCreated } from '../services/recent-agents.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
-import { pingCount } from '../services/sse.js';
+import { messagePing } from '../services/sse.js';
 import SavingsCard from '../components/SavingsCard.jsx';
 import SavingsExplainer from '../components/SavingsExplainer.jsx';
 import '../styles/overview.css';
@@ -66,6 +66,7 @@ interface OverviewData {
     share_pct: number;
     estimated_cost: number;
     auth_type: string | null;
+    provider?: string | null;
   }>;
   recent_activity: MessageRow[];
   active_skills: Array<{
@@ -181,7 +182,7 @@ const Overview: Component = () => {
   };
 
   const [data, { refetch }] = createResource(
-    () => ({ range: range(), agentName: params.agentName, _ping: pingCount() }),
+    () => ({ range: range(), agentName: params.agentName, _ping: messagePing() }),
     (p) => getOverview(p.range, p.agentName) as Promise<OverviewData>,
   );
 
@@ -364,7 +365,7 @@ const Overview: Component = () => {
                           <SavingsCard
                             agentName={decodeURIComponent(params.agentName)}
                             range={range()}
-                            ping={pingCount()}
+                            ping={messagePing()}
                             onOpenExplainer={(name) => {
                               setExplainerBaseline(name);
                               setExplainerOpen(true);

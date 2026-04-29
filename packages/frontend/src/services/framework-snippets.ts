@@ -14,6 +14,7 @@ export const FRAMEWORK_TABS: FrameworkTab[] = [
 
 export type ToolkitId = 'openai-sdk' | 'vercel-ai-sdk' | 'langchain' | 'curl';
 export type OpenAILangId = 'python' | 'typescript';
+export type OpenAIApiId = 'responses' | 'chat-completions';
 
 export interface ToolkitTab {
   id: ToolkitId;
@@ -34,9 +35,19 @@ export interface OpenAILangTab {
   icon: string;
 }
 
+export interface OpenAIApiTab {
+  id: OpenAIApiId;
+  label: string;
+}
+
 export const SDK_LANG_TOGGLE: OpenAILangTab[] = [
   { id: 'python', label: 'Python', icon: '/icons/python.svg' },
   { id: 'typescript', label: 'TypeScript', icon: '/icons/typescript.svg' },
+];
+
+export const OPENAI_API_TOGGLE: OpenAIApiTab[] = [
+  { id: 'responses', label: 'Responses API' },
+  { id: 'chat-completions', label: 'Chat Completions' },
 ];
 
 /** @deprecated Use SDK_LANG_TOGGLE instead */
@@ -103,6 +114,50 @@ function headerLine(
   return `${indent}${keyword}${sep}${dict},`;
 }
 
+function getOpenAIChatPythonSnippet(
+  baseUrl: string,
+  apiKey: string,
+  customHeaders?: CustomHeaders,
+): Snippet {
+  const openaiHeaders = headerLine(customHeaders, 'py-kwarg', 'default_headers');
+  return {
+    title: 'Chat Completions',
+    code: `from openai import OpenAI
+
+client = OpenAI(
+    base_url="${baseUrl}",
+    api_key="${apiKey}",${openaiHeaders}
+)
+
+response = client.chat.completions.create(
+    model="auto",
+    messages=[{"role": "user", "content": "Hello"}],
+)`,
+  };
+}
+
+function getOpenAIChatTypeScriptSnippet(
+  baseUrl: string,
+  apiKey: string,
+  customHeaders?: CustomHeaders,
+): Snippet {
+  const openaiHeaders = headerLine(customHeaders, 'ts-prop', 'defaultHeaders');
+  return {
+    title: 'Chat Completions',
+    code: `import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "${baseUrl}",
+  apiKey: "${apiKey}",${openaiHeaders}
+});
+
+const response = await client.chat.completions.create({
+  model: "auto",
+  messages: [{ role: "user", content: "Hello" }],
+});`,
+  };
+}
+
 export function getPythonSnippets(
   baseUrl: string,
   apiKey: string,
@@ -130,9 +185,10 @@ client = OpenAI(
     api_key="${apiKey}",${openaiHeaders}
 )
 
-response = client.chat.completions.create(
+response = client.responses.create(
     model="auto",
-    messages=[{"role": "user", "content": "Hello"}],
+    input="Hello",
+    store=False,
 )`,
     },
   ];
@@ -193,15 +249,22 @@ const client = new OpenAI({
   apiKey: "${apiKey}",${openaiHeaders}
 });
 
-const response = await client.chat.completions.create({
+const response = await client.responses.create({
   model: "auto",
-  messages: [{ role: "user", content: "Hello" }],
+  input: "Hello",
+  store: false,
 });`,
     },
   ];
 }
 
 export function getOpenClawSnippet(baseUrl: string, apiKey: string): string {
+  // Manifest's cloud proxy speaks OpenAI Chat Completions
+  // (`/v1/chat/completions`). OpenClaw's `openai-responses` parser reads
+  // assistant text from the Responses API shape (`output[].content[].text`),
+  // which doesn't match — chat bubbles render empty even though tokens are
+  // billed correctly. Stay on `openai-completions` until the proxy exposes a
+  // first-class `/v1/responses` endpoint.
   const providerJson = JSON.stringify({
     baseUrl,
     api: 'openai-completions',
@@ -236,12 +299,13 @@ export function getCurlSnippet(
   return [
     {
       title: 'cURL',
-      code: `curl -X POST ${baseUrl}/chat/completions \\
+      code: `curl -X POST ${baseUrl}/responses \\
   -H "Authorization: Bearer ${apiKey}" \\
   -H "Content-Type: application/json" \\
 ${extraHeaders}  -d '{
     "model": "auto",
-    "messages": [{"role": "user", "content": "Hello"}]
+    "input": "Hello",
+    "store": false
   }'`,
     },
   ];
@@ -307,9 +371,15 @@ export function getSnippetForToolkit(
   apiKey: string,
   openaiLang: OpenAILangId = 'python',
   customHeaders?: CustomHeaders,
+  openaiApi: OpenAIApiId = 'responses',
 ): Snippet {
   switch (id) {
     case 'openai-sdk':
+      if (openaiApi === 'chat-completions') {
+        return openaiLang === 'python'
+          ? getOpenAIChatPythonSnippet(baseUrl, apiKey, customHeaders)
+          : getOpenAIChatTypeScriptSnippet(baseUrl, apiKey, customHeaders);
+      }
       return openaiLang === 'python'
         ? getPythonSnippets(baseUrl, apiKey, customHeaders)[1]!
         : getTypeScriptSnippets(baseUrl, apiKey, customHeaders)[1]!;
