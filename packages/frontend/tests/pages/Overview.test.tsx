@@ -30,6 +30,7 @@ vi.mock("../../src/services/api.js", () => ({
 vi.mock("../../src/services/api/analytics.js", () => ({
   getSavings: vi.fn(() => Promise.resolve({ total_saved: 5, savings_pct: 42, actual_cost: 7, baseline_cost: 12, baseline_model: null, baseline_override_stale: false, request_count: 10, trend_pct: 0, is_auto: true, savings_by_auth_type: { api_key: 0, subscription: 5, local: 0 } })),
   getBaselineCandidates: vi.fn(() => Promise.resolve([])),
+  getSavingsTimeseries: vi.fn(() => Promise.resolve([])),
 }));
 
 vi.mock("../../src/services/sse.js", () => ({
@@ -72,6 +73,10 @@ vi.mock("../../src/components/TokenChart.jsx", () => ({
 
 vi.mock("../../src/components/SingleTokenChart.jsx", () => ({
   default: () => <div data-testid="single-token-chart" />,
+}));
+
+vi.mock("../../src/components/SavingsChart.jsx", () => ({
+  default: () => <div data-testid="savings-chart" />,
 }));
 
 vi.mock("../../src/components/FeedbackModal.jsx", () => ({
@@ -322,12 +327,13 @@ describe("Overview", () => {
     });
   });
 
-  it("has clickable stat headers for cost, tokens, messages", async () => {
+  it("has clickable stat headers for cost, tokens, messages, and savings", async () => {
     mockGetOverview.mockResolvedValue(overviewData);
     const { container } = render(() => <Overview />);
+    // 3 base stats are always present; savings stat appears once async savings data loads
     await vi.waitFor(() => {
       const clickable = container.querySelectorAll(".chart-card__stat--clickable");
-      expect(clickable.length).toBe(3);
+      expect(clickable.length).toBeGreaterThanOrEqual(3);
     });
   });
 

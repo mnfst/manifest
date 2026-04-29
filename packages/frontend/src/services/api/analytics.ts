@@ -62,3 +62,20 @@ export function getBaselineCandidates(agentName: string): Promise<BaselineCandid
     agent_name: agentName,
   });
 }
+
+export interface SavingsTimeseriesRow {
+  date?: string;
+  hour?: string;
+  actual_cost: number;
+  baseline_cost: number;
+}
+
+export function getSavingsTimeseries(
+  range: string,
+  agentName: string,
+): Promise<SavingsTimeseriesRow[]> {
+  return fetchJson<SavingsTimeseriesRow[]>('/savings/timeseries', {
+    range,
+    agent_name: agentName,
+  });
+}

@@ -1,5 +1,5 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { SavingsQueryDto } from '../../common/dto/savings-query.dto';
+import { SavingsQueryDto, SavingsTimeseriesQueryDto } from '../../common/dto/savings-query.dto';
 import { CurrentUser } from '../../auth/current-user.decorator';
 import { AuthUser } from '../../auth/auth.instance';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
@@ -24,6 +24,15 @@ export class SavingsController {
       tenantId,
       query.baseline,
     );
+  }
+
+  @Get('timeseries')
+  async getSavingsTimeseries(
+    @Query() query: SavingsTimeseriesQueryDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+    return this.savingsQuery.getSavingsTimeseries(query.range, user.id, query.agent_name, tenantId);
   }
 
   @Get('baseline-candidates')

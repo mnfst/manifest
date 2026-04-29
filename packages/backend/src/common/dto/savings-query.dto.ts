@@ -13,3 +13,12 @@ export class SavingsQueryDto {
   @MaxLength(256)
   baseline?: string;
 }
+
+export class SavingsTimeseriesQueryDto {
+  @IsIn(['1h', '6h', '24h', '7d', '30d'])
+  range!: string;
+
+  @IsNotEmpty()
+  @IsString()
+  agent_name!: string;
+}

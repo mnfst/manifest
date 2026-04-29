@@ -1,26 +1,11 @@
 /* ── Savings controls (inside ChartCard header) ──── */
-.savings-controls__vs {
-  font-size: var(--font-size-sm);
-  color: hsl(var(--muted-foreground));
-}
-
 .savings-controls__info-wrap {
   position: relative;
   display: inline-flex;
   align-items: center;
-}
-
-.savings-controls__info-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  color: hsl(var(--muted-foreground));
-  cursor: pointer;
-  padding: 2px;
-  border-radius: var(--radius);
-  transition: color var(--transition-fast);
+  margin-left: 4px;
+  cursor: help;
+  vertical-align: middle;
 }
 
 .savings-controls__info-btn:hover {
@@ -59,6 +44,7 @@
   cursor: pointer;
   padding: 4px 8px;
   border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.5);
   transition: background var(--transition-fast);
 }
 

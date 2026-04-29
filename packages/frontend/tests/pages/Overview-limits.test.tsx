@@ -23,6 +23,7 @@ vi.mock("../../src/services/api.js", () => ({
 vi.mock("../../src/services/api/analytics.js", () => ({
   getSavings: vi.fn(() => Promise.resolve({ total_saved: 0, savings_pct: 0, actual_cost: 0, baseline_cost: 0, baseline_model: null, baseline_override_stale: false, request_count: 0, trend_pct: 0, is_auto: true, savings_by_auth_type: { api_key: 0, subscription: 0, local: 0 } })),
   getBaselineCandidates: vi.fn(() => Promise.resolve([])),
+  getSavingsTimeseries: vi.fn(() => Promise.resolve([])),
 }));
 
 vi.mock("../../src/services/toast-store.js", () => ({
@@ -56,6 +57,7 @@ vi.mock("../../src/components/ProviderIcon.jsx", () => ({
 vi.mock("../../src/components/CostChart.jsx", () => ({ default: () => <div data-testid="cost-chart" /> }));
 vi.mock("../../src/components/TokenChart.jsx", () => ({ default: () => <div data-testid="token-chart" /> }));
 vi.mock("../../src/components/SingleTokenChart.jsx", () => ({ default: () => <div data-testid="single-token-chart" /> }));
+vi.mock("../../src/components/SavingsChart.jsx", () => ({ default: () => <div data-testid="savings-chart" /> }));
 vi.mock("../../src/components/SetupModal.jsx", () => ({
   default: (props: any) => <div data-testid="setup-modal" data-open={props.open ? "true" : "false"} />,
 }));

@@ -6,7 +6,12 @@ import { Agent } from '../../entities/agent.entity';
 import { UserProvider } from '../../entities/user-provider.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { rangeToInterval, rangeToPreviousInterval } from '../../common/utils/range.util';
-import { computeCutoff, sqlSanitizeCost } from '../../common/utils/postgres-sql';
+import {
+  computeCutoff,
+  sqlSanitizeCost,
+  sqlDateBucket,
+  sqlHourBucket,
+} from '../../common/utils/postgres-sql';
 import { addTenantFilter, computeTrend } from './query-helpers';
 import {
   pickMostExpensiveRoutedModel,
@@ -52,6 +57,13 @@ export interface BaselineCandidate {
   is_current: boolean;
 }
 
+export interface SavingsTimeseriesRow {
+  date?: string;
+  hour?: string;
+  actual_cost: number;
+  baseline_cost: number;
+}
+
 @Injectable()
 export class SavingsQueryService {
   constructor(
@@ -88,6 +100,51 @@ export class SavingsQueryService {
     if (!agent) return this.emptySavings();
 
     return this.getSavingsOverride(range, userId, agentName, agent, baselineOverride, tenantId);
+  }
+
+  async getSavingsTimeseries(
+    range: string,
+    userId: string,
+    agentName: string,
+    tenantId?: string,
+  ): Promise<SavingsTimeseriesRow[]> {
+    const fallback = await this.resolveFallbackBaseline(agentName, tenantId);
+    const fbInput = fallback?.input ?? 0;
+    const fbOutput = fallback?.output ?? 0;
+
+    const cutoff = computeCutoff(rangeToInterval(range));
+    const safeCost = sqlSanitizeCost('at.cost_usd');
+    const safeBaseline = sqlSanitizeCost('at.baseline_cost_usd');
+
+    const baselineExpr = `COALESCE(
+      CASE WHEN ${safeBaseline} IS NOT NULL THEN ${safeBaseline} END,
+      at.input_tokens * :fbInput::double precision + at.output_tokens * :fbOutput::double precision
+    )`;
+
+    const isHourly = range === '24h';
+    const bucket = isHourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
+
+    const qb = this.messageRepo.createQueryBuilder('at');
+    addTenantFilter(qb, userId, agentName, tenantId);
+    qb.andWhere('at.timestamp >= :cutoff', { cutoff });
+    qb.andWhere("at.status = 'ok'");
+
+    qb.select(bucket, 'bucket');
+    qb.addSelect(
+      `COALESCE(SUM(CASE WHEN ${safeCost} IS NOT NULL THEN ${safeCost} ELSE 0 END), 0)`,
+      'actual_cost',
+    );
+    qb.addSelect(`COALESCE(SUM(${baselineExpr}), 0)`, 'baseline_cost');
+    qb.groupBy('bucket');
+    qb.orderBy('bucket', 'ASC');
+    qb.setParameters({ fbInput, fbOutput });
+
+    const rows = await qb.getRawMany();
+    return rows.map((r) => ({
+      ...(isHourly ? { hour: r.bucket } : { date: r.bucket }),
+      actual_cost: Number(r.actual_cost),
+      baseline_cost: Number(r.baseline_cost),
+    }));
   }
 
   private async getSavingsAuto(

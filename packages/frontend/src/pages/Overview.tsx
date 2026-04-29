@@ -104,11 +104,15 @@ const Overview: Component = () => {
     setUserSelectedRange(true);
     localStorage.setItem(RANGE_STORAGE_KEY, value);
   };
-  const [activeView, setActiveView] = createSignal<'cost' | 'tokens' | 'messages'>('messages');
+  const [activeView, setActiveView] = createSignal<'cost' | 'tokens' | 'messages' | 'savings'>(
+    'messages',
+  );
   const [explainerOpen, setExplainerOpen] = createSignal(false);
-  const [explainerBaseline, setExplainerBaseline] = createSignal<string | null>(null);
   const [savedCost, setSavedCost] = createSignal<number | null>(null);
   const [savedPct, setSavedPct] = createSignal<number | null>(null);
+  const [savingsTimeseries, setSavingsTimeseries] = createSignal<
+    Array<{ date?: string; hour?: string; actual_cost: number; baseline_cost: number }>
+  >([]);
   const [setupOpen, setSetupOpen] = createSignal(
     isRecentlyCreated(decodeURIComponent(params.agentName)),
   );
@@ -230,10 +234,7 @@ const Overview: Component = () => {
   return (
     <div class="container--md">
       <Show when={explainerOpen()}>
-        <SavingsExplainer
-          baselineModelName={explainerBaseline()}
-          onClose={() => setExplainerOpen(false)}
-        />
+        <SavingsExplainer baselineModelName={null} onClose={() => setExplainerOpen(false)} />
       </Show>
       <Show when={!explainerOpen()}>
         <Title>
@@ -360,20 +361,19 @@ const Overview: Component = () => {
                       range={range()}
                       savedCost={d().has_data !== false ? savedCost() : null}
                       savedPct={d().has_data !== false ? savedPct() : null}
-                      savedControls={
+                      savingsTimeseries={d().has_data !== false ? savingsTimeseries() : undefined}
+                      savingsInfoTooltip={
                         d().has_data !== false ? (
                           <SavingsCard
                             agentName={decodeURIComponent(params.agentName)}
                             range={range()}
                             ping={messagePing()}
-                            onOpenExplainer={(name) => {
-                              setExplainerBaseline(name);
-                              setExplainerOpen(true);
-                            }}
+                            onOpenExplainer={() => setExplainerOpen(true)}
                             onData={(cost, pct) => {
                               setSavedCost(cost);
                               setSavedPct(pct);
                             }}
+                            onTimeseriesData={setSavingsTimeseries}
                           />
                         ) : undefined
                       }

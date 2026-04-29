@@ -152,21 +152,6 @@
   gap: var(--gap-sm);
 }
 
-.chart-card__savings-area {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  flex: 1;
-  min-width: 0;
-  padding: var(--gap-lg) var(--gap-lg) var(--gap-lg) var(--gap-xl);
-}
-
-.chart-card__savings-area .chart-card__stat {
-  border-right: none;
-  padding: 0;
-  min-width: auto;
-}
-
 .chart-card__savings-pct {
   display: inline-flex;
   align-items: center;
@@ -178,12 +163,6 @@
   color: hsl(var(--success));
   background: hsl(var(--success) / 0.1);
   align-self: center;
-}
-
-.chart-card__savings-controls {
-  display: flex;
-  align-items: center;
-  gap: var(--gap-sm);
 }
 
 .chart-card__controls {

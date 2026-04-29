@@ -24,9 +24,12 @@ describe('SavingsController', () => {
   let mockTenantResolve: jest.Mock;
   let mockResolveAgent: jest.Mock;
 
+  let mockGetTimeseries: jest.Mock;
+
   beforeEach(async () => {
     mockGetSavings = jest.fn().mockResolvedValue(SAMPLE_SAVINGS);
     mockGetCandidates = jest.fn().mockResolvedValue([]);
+    mockGetTimeseries = jest.fn().mockResolvedValue([]);
     mockTenantResolve = jest.fn().mockResolvedValue('tenant-123');
     mockResolveAgent = jest.fn().mockResolvedValue({
       id: 'agent-uuid-1',
@@ -41,6 +44,7 @@ describe('SavingsController', () => {
           useValue: {
             getSavings: mockGetSavings,
             getBaselineCandidates: mockGetCandidates,
+            getSavingsTimeseries: mockGetTimeseries,
           },
         },
         { provide: TenantCacheService, useValue: { resolve: mockTenantResolve } },
@@ -82,6 +86,27 @@ describe('SavingsController', () => {
       await controller.getSavings({ range: '24h', agent_name: 'bot-1' }, user as never);
 
       expect(mockGetSavings).toHaveBeenCalledWith('24h', 'u1', 'bot-1', undefined, undefined);
+    });
+  });
+
+  describe('GET /savings/timeseries', () => {
+    it('returns timeseries data', async () => {
+      const rows = [{ date: '2026-04-20', actual_cost: 1, baseline_cost: 2 }];
+      mockGetTimeseries.mockResolvedValueOnce(rows);
+      const user = { id: 'u1' };
+      const result = await controller.getSavingsTimeseries(
+        { range: '7d', agent_name: 'bot-1' },
+        user as never,
+      );
+      expect(result).toEqual(rows);
+      expect(mockGetTimeseries).toHaveBeenCalledWith('7d', 'u1', 'bot-1', 'tenant-123');
+    });
+
+    it('passes undefined tenantId when tenant not found', async () => {
+      mockTenantResolve.mockResolvedValueOnce(null);
+      const user = { id: 'u1' };
+      await controller.getSavingsTimeseries({ range: '24h', agent_name: 'bot-1' }, user as never);
+      expect(mockGetTimeseries).toHaveBeenCalledWith('24h', 'u1', 'bot-1', undefined);
     });
   });
 

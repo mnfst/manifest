@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@solidjs/testing-library';
-import type { SavingsData, BaselineCandidateData } from '../../src/services/api/analytics.js';
+import type { SavingsData, SavingsTimeseriesRow } from '../../src/services/api/analytics.js';
 
 let mockSavingsResult: SavingsData | null = null;
-let mockCandidatesResult: BaselineCandidateData[] = [];
+let mockTimeseriesResult: SavingsTimeseriesRow[] = [];
 let mockSavingsError = false;
+let mockTimeseriesError = false;
 
 vi.mock('../../src/services/api/analytics.js', () => ({
   getSavings: vi.fn(() =>
@@ -12,7 +13,11 @@ vi.mock('../../src/services/api/analytics.js', () => ({
       ? Promise.reject(new Error('fail'))
       : Promise.resolve(mockSavingsResult),
   ),
-  getBaselineCandidates: vi.fn(() => Promise.resolve(mockCandidatesResult)),
+  getSavingsTimeseries: vi.fn(() =>
+    mockTimeseriesError
+      ? Promise.reject(new Error('fail'))
+      : Promise.resolve(mockTimeseriesResult),
+  ),
 }));
 
 import SavingsCard from '../../src/components/SavingsCard';
@@ -30,77 +35,40 @@ const AUTO_SAVINGS: SavingsData = {
   savings_by_auth_type: { api_key: 8.2, subscription: 3.5, local: 0.77 },
 };
 
-const OVERRIDE_SAVINGS: SavingsData = {
-  ...AUTO_SAVINGS,
-  is_auto: false,
-  baseline_model: {
-    id: 'claude-sonnet-4-5',
-    display_name: 'Claude Sonnet 4.5',
-    provider: 'anthropic',
-    input_price_per_token: 0.000003,
-    output_price_per_token: 0.000015,
-  },
-};
-
-const SAMPLE_CANDIDATES: BaselineCandidateData[] = [
-  {
-    id: 'gpt-4o',
-    display_name: 'GPT-4o',
-    provider: 'openai',
-    input_price_per_token: 0.005,
-    output_price_per_token: 0.015,
-    price_per_million: 20.0,
-    is_current: false,
-  },
+const SAMPLE_TIMESERIES: SavingsTimeseriesRow[] = [
+  { date: '2026-04-20', actual_cost: 2.0, baseline_cost: 5.0 },
+  { date: '2026-04-21', actual_cost: 1.5, baseline_cost: 4.0 },
 ];
 
 const noop = () => {};
 const noopData = () => {};
+const noopTimeseries = () => {};
+
+function defaultProps(overrides: Record<string, unknown> = {}) {
+  return {
+    agentName: 'bot-1',
+    range: '30d',
+    ping: 0,
+    onOpenExplainer: noop,
+    onData: noopData,
+    onTimeseriesData: noopTimeseries,
+    ...overrides,
+  };
+}
 
 describe('SavingsCard', () => {
   beforeEach(() => {
     mockSavingsResult = AUTO_SAVINGS;
-    mockCandidatesResult = SAMPLE_CANDIDATES;
+    mockTimeseriesResult = SAMPLE_TIMESERIES;
     mockSavingsError = false;
-    localStorage.clear();
-  });
-
-  it('renders controls in auto mode', async () => {
-    render(() => (
-      <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={noopData} />
-    ));
-    await vi.waitFor(() => {
-      expect(screen.getByText('vs')).toBeDefined();
-    });
-  });
-
-  it('shows Auto as display value in auto mode', async () => {
-    render(() => (
-      <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={noopData} />
-    ));
-    await vi.waitFor(() => {
-      expect(screen.getByText('Auto')).toBeDefined();
-    });
+    mockTimeseriesError = false;
   });
 
   it('calls onData with savings in auto mode', async () => {
     const onData = vi.fn();
-    render(() => (
-      <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={onData} />
-    ));
+    render(() => <SavingsCard {...defaultProps({ onData })} />);
     await vi.waitFor(() => {
       expect(onData).toHaveBeenCalledWith(12.47, 67);
-    });
-  });
-
-  it('shows model name when override is set', async () => {
-    mockSavingsResult = OVERRIDE_SAVINGS;
-    localStorage.setItem('manifest_savings_baseline_bot-1', 'claude-sonnet-4-5');
-    render(() => (
-      <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={noopData} />
-    ));
-    await vi.waitFor(() => {
-      expect(screen.getByText('Claude Sonnet 4.5')).toBeDefined();
     });
   });
 
@@ -112,9 +80,7 @@ describe('SavingsCard', () => {
       request_count: 0,
     };
     const onData = vi.fn();
-    render(() => (
-      <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={onData} />
-    ));
+    render(() => <SavingsCard {...defaultProps({ onData })} />);
     await vi.waitFor(() => {
       expect(onData).toHaveBeenCalledWith(null, null);
     });
@@ -122,67 +88,38 @@ describe('SavingsCard', () => {
 
   it('does not render controls on API error', async () => {
     mockSavingsError = true;
-    const { container } = render(() => (
-      <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={noopData} />
-    ));
+    const { container } = render(() => <SavingsCard {...defaultProps()} />);
     await vi.waitFor(() => {
-      expect(container.querySelector('.savings-controls__vs')).toBeNull();
+      expect(container.querySelector('.savings-controls__info-wrap')).toBeNull();
     });
   });
 
-  it('renders info button', async () => {
-    render(() => (
-      <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={noopData} />
-    ));
+  it('renders info icon', async () => {
+    const { container } = render(() => <SavingsCard {...defaultProps()} />);
     await vi.waitFor(() => {
-      expect(screen.getByLabelText('How savings are calculated')).toBeDefined();
+      expect(container.querySelector('.info-tooltip__icon')).not.toBeNull();
     });
   });
 
-  it('populates dropdown with candidates', async () => {
-    render(() => (
-      <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={noopData} />
-    ));
+  it('calls onTimeseriesData with timeseries data', async () => {
+    const onTimeseriesData = vi.fn();
+    render(() => <SavingsCard {...defaultProps({ onTimeseriesData })} />);
     await vi.waitFor(() => {
-      screen.getByLabelText('Baseline model').click();
-    });
-    await vi.waitFor(() => {
-      expect(screen.getByText('GPT-4o ($20.00/M)')).toBeDefined();
+      expect(onTimeseriesData).toHaveBeenCalledWith(SAMPLE_TIMESERIES);
     });
   });
 
-  it('stores override in localStorage on selection', async () => {
-    render(() => (
-      <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={noopData} />
-    ));
+  it('calls onTimeseriesData with empty array on API error', async () => {
+    mockTimeseriesError = true;
+    const onTimeseriesData = vi.fn();
+    render(() => <SavingsCard {...defaultProps({ onTimeseriesData })} />);
     await vi.waitFor(() => {
-      screen.getByLabelText('Baseline model').click();
+      expect(onTimeseriesData).toHaveBeenCalledWith([]);
     });
-    await vi.waitFor(() => {
-      screen.getByText('GPT-4o ($20.00/M)').click();
-    });
-    expect(localStorage.getItem('manifest_savings_baseline_bot-1')).toBe('gpt-4o');
-  });
-
-  it('clears localStorage on auto selection', async () => {
-    localStorage.setItem('manifest_savings_baseline_bot-1', 'gpt-4o');
-    mockSavingsResult = OVERRIDE_SAVINGS;
-    render(() => (
-      <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={noopData} />
-    ));
-    await vi.waitFor(() => {
-      screen.getByLabelText('Baseline model').click();
-    });
-    await vi.waitFor(() => {
-      screen.getByText('Auto (per-request baseline)').click();
-    });
-    expect(localStorage.getItem('manifest_savings_baseline_bot-1')).toBeNull();
   });
 
   it('shows tooltip on hover over info wrapper', async () => {
-    const { container } = render(() => (
-      <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={noopData} />
-    ));
+    const { container } = render(() => <SavingsCard {...defaultProps()} />);
     await vi.waitFor(() => {
       expect(container.querySelector('.savings-controls__info-wrap')).not.toBeNull();
     });
@@ -195,9 +132,7 @@ describe('SavingsCard', () => {
 
   it('hides tooltip after mouseleave with delay', async () => {
     vi.useFakeTimers();
-    const { container } = render(() => (
-      <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={noopData} />
-    ));
+    const { container } = render(() => <SavingsCard {...defaultProps()} />);
     await vi.waitFor(() => {
       expect(container.querySelector('.savings-controls__info-wrap')).not.toBeNull();
     });
@@ -214,9 +149,7 @@ describe('SavingsCard', () => {
 
   it('cancels hide timer when re-entering before delay expires', async () => {
     vi.useFakeTimers();
-    const { container } = render(() => (
-      <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={noop} onData={noopData} />
-    ));
+    const { container } = render(() => <SavingsCard {...defaultProps()} />);
     await vi.waitFor(() => {
       expect(container.querySelector('.savings-controls__info-wrap')).not.toBeNull();
     });
@@ -225,21 +158,17 @@ describe('SavingsCard', () => {
     await vi.waitFor(() => {
       expect(container.querySelector('.savings-tooltip')).not.toBeNull();
     });
-    // Leave then re-enter before delay fires
     wrap.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
-    vi.advanceTimersByTime(100); // less than 250ms delay
+    vi.advanceTimersByTime(100);
     wrap.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
-    vi.advanceTimersByTime(300); // past original delay
-    // Tooltip should still be visible because re-enter cancelled the timer
+    vi.advanceTimersByTime(300);
     expect(container.querySelector('.savings-tooltip')).not.toBeNull();
     vi.useRealTimers();
   });
 
   it('calls onOpenExplainer and closes tooltip when "More details" is clicked', async () => {
     const onOpen = vi.fn();
-    const { container } = render(() => (
-      <SavingsCard agentName="bot-1" range="30d" ping={0} onOpenExplainer={onOpen} onData={noopData} />
-    ));
+    const { container } = render(() => <SavingsCard {...defaultProps({ onOpenExplainer: onOpen })} />);
     await vi.waitFor(() => {
       expect(container.querySelector('.savings-controls__info-wrap')).not.toBeNull();
     });
@@ -250,7 +179,7 @@ describe('SavingsCard', () => {
     });
     const link = container.querySelector('.savings-tooltip__link') as HTMLAnchorElement;
     link.click();
-    expect(onOpen).toHaveBeenCalledWith(null);
+    expect(onOpen).toHaveBeenCalled();
     expect(container.querySelector('.savings-tooltip')).toBeNull();
   });
 });
