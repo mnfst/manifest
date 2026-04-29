@@ -124,4 +124,7 @@ export class AgentMessage {
 
   @Column('text', { nullable: true })
   feedback_details!: string | null;
+
+  @Column('varchar', { nullable: true })
+  provider_key_label!: string | null;
 }

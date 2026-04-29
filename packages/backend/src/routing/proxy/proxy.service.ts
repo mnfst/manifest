@@ -48,6 +48,7 @@ export interface RoutingMeta {
   header_tier_id?: string;
   header_tier_name?: string;
   header_tier_color?: string;
+  provider_key_label?: string;
   fallbackFromModel?: string;
   fallbackIndex?: number;
   primaryErrorStatus?: number;
@@ -348,6 +349,7 @@ export class ProxyService {
       header_tier_name?: string;
       header_tier_color?: string;
       provider?: string | null;
+      provider_key_label?: string;
     },
     model: string,
     overrides: Partial<RoutingMeta> = {},
@@ -360,6 +362,7 @@ export class ProxyService {
       reason: resolved.reason,
       auth_type: resolved.auth_type,
       specificity_category: resolved.specificity_category,
+      provider_key_label: resolved.provider_key_label,
       header_tier_id: resolved.header_tier_id,
       header_tier_name: resolved.header_tier_name,
       header_tier_color: resolved.header_tier_color,

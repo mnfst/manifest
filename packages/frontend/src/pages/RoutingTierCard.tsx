@@ -147,10 +147,27 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
     const currentModel = eff();
     if (!currentModel) return;
     const fallbacks = props.getFallbacksFor(props.stage.id);
-    // Encode the current primary with its key pin before inserting into fallback list
+    // Encode the current primary with its key pin before inserting into fallback list.
+    // Always encode with a label so handleOverride cleanup doesn't strip it.
     const currentTierKeyLabel = props.tier?.()?.override_provider_key_label ?? undefined;
-    const currentEncoded = currentTierKeyLabel
-      ? encodeFallbackEntry({ model: currentModel, providerKeyLabel: currentTierKeyLabel })
+    let effectiveLabel = currentTierKeyLabel;
+    if (!effectiveLabel) {
+      const currentProvId = providerIdForModel(currentModel, props.models());
+      if (currentProvId) {
+        const defaultKey = props
+          .activeProviders()
+          .filter(
+            (p) =>
+              p.provider.toLowerCase() === currentProvId.toLowerCase() &&
+              p.is_active &&
+              p.has_api_key,
+          )
+          .sort((a, b) => a.priority - b.priority)[0];
+        effectiveLabel = defaultKey?.label;
+      }
+    }
+    const currentEncoded = effectiveLabel
+      ? encodeFallbackEntry({ model: currentModel, providerKeyLabel: effectiveLabel })
       : currentModel;
     // Build the unified list: insert current primary at drop slot
     const newFallbacks = [...fallbacks];
@@ -187,11 +204,29 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
     const fbModel = parsed.model;
     const fbKeyLabel = parsed.providerKeyLabel;
     // Build the replacement fallback entry for the current primary.
-    // Preserve the current primary's key pin (from tier assignment) in the fallback slot.
+    // Always encode with a key label so the cleanup in handleOverride
+    // doesn't strip it as a "bare entry = same model" duplicate.
     const currentTierKeyLabel = props.tier?.()?.override_provider_key_label ?? undefined;
+    let effectiveKeyLabel = currentTierKeyLabel;
+    if (!effectiveKeyLabel) {
+      // No explicit pin: use the default (first) key for this provider
+      const currentProvId = providerIdForModel(currentModel, props.models());
+      if (currentProvId) {
+        const defaultKey = props
+          .activeProviders()
+          .filter(
+            (p) =>
+              p.provider.toLowerCase() === currentProvId.toLowerCase() &&
+              p.is_active &&
+              p.has_api_key,
+          )
+          .sort((a, b) => a.priority - b.priority)[0];
+        effectiveKeyLabel = defaultKey?.label;
+      }
+    }
     const newFallbacks = [...fallbacks];
-    const currentEncoded = currentTierKeyLabel
-      ? encodeFallbackEntry({ model: currentModel, providerKeyLabel: currentTierKeyLabel })
+    const currentEncoded = effectiveKeyLabel
+      ? encodeFallbackEntry({ model: currentModel, providerKeyLabel: effectiveKeyLabel })
       : currentModel;
     newFallbacks[fbIndex] = currentEncoded;
     // Update fallbacks first, then override primary with the fallback's key label

@@ -116,6 +116,13 @@ export class ResolveService {
         (await this.providerKeyService.getAuthType(agentId, provider)))
       : undefined;
 
+    // Resolve the actual key label: use the explicit pin if set, otherwise
+    // look up the default (first by priority) key for this provider.
+    let keyLabel = assignment.override_provider_key_label ?? undefined;
+    if (!keyLabel && provider && authType) {
+      keyLabel = await this.providerKeyService.getDefaultKeyLabel(agentId, provider, authType);
+    }
+
     return {
       tier: result.tier,
       model,
@@ -124,7 +131,7 @@ export class ResolveService {
       score: result.score,
       reason: result.reason,
       auth_type: authType,
-      provider_key_label: assignment.override_provider_key_label ?? undefined,
+      provider_key_label: keyLabel,
     };
   }
 
@@ -147,6 +154,11 @@ export class ResolveService {
         (await this.providerKeyService.getAuthType(agentId, provider)))
       : undefined;
 
+    let keyLabel = assignment.override_provider_key_label ?? undefined;
+    if (!keyLabel && provider && authType) {
+      keyLabel = await this.providerKeyService.getDefaultKeyLabel(agentId, provider, authType);
+    }
+
     return {
       tier,
       model: model ?? null,
@@ -156,7 +168,7 @@ export class ResolveService {
       reason,
       auth_type: authType,
       fallback_models: assignment.fallback_models ?? null,
-      provider_key_label: assignment.override_provider_key_label ?? undefined,
+      provider_key_label: keyLabel,
     };
   }
 
@@ -267,6 +279,11 @@ export class ResolveService {
         (await this.providerKeyService.getAuthType(agentId, provider)))
       : undefined;
 
+    let keyLabel = assignment.override_provider_key_label ?? undefined;
+    if (!keyLabel && provider && authType) {
+      keyLabel = await this.providerKeyService.getDefaultKeyLabel(agentId, provider, authType);
+    }
+
     return {
       tier: 'standard',
       model,
@@ -277,7 +294,7 @@ export class ResolveService {
       auth_type: authType,
       specificity_category: detected.category,
       fallback_models: assignment.fallback_models ?? null,
-      provider_key_label: assignment.override_provider_key_label ?? undefined,
+      provider_key_label: keyLabel,
     };
   }
 

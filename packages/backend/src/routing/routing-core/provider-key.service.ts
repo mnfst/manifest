@@ -51,6 +51,16 @@ export class ProviderKeyService {
     return result;
   }
 
+  /** Returns the label of the first (default) key for the given provider+authType. */
+  async getDefaultKeyLabel(
+    agentId: string,
+    provider: string,
+    authType?: AuthType,
+  ): Promise<string | undefined> {
+    const keys = await this.getProviderKeys(agentId, provider, authType);
+    return keys[0]?.label;
+  }
+
   async getProviderApiKey(
     agentId: string,
     provider: string,
