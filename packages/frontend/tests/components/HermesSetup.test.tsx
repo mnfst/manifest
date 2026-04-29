@@ -23,14 +23,14 @@ describe("HermesSetup", () => {
     expect(container.textContent).toContain("Point Hermes at the Manifest endpoint to route requests across multiple models");
   });
 
-  it("renders CLI and hermes onboard tabs", () => {
+  it("renders CLI and Hermes onboard tabs", () => {
     const { container } = render(() => <HermesSetup {...defaultProps} />);
     const segment = container.querySelector(".setup-segment--full");
     expect(segment).not.toBeNull();
     const btns = segment!.querySelectorAll(".setup-segment__btn");
     expect(btns).toHaveLength(2);
     expect(btns[0].textContent).toBe("Configuration file");
-    expect(btns[1].textContent).toBe("hermes onboard");
+    expect(btns[1].textContent).toBe("Hermes onboard");
   });
 
   it("defaults to Configuration file tab", () => {
@@ -180,9 +180,9 @@ describe("HermesSetup", () => {
     expect(container.textContent).toContain("mnfst_pre...");
   });
 
-  // --- hermes onboard (wizard) tab tests ---
+  // --- Hermes onboard (wizard) tab tests ---
 
-  it("switches to hermes onboard tab", () => {
+  it("switches to Hermes onboard tab", () => {
     const { container } = render(() => <HermesSetup {...defaultProps} />);
     const segment = container.querySelector(".setup-segment--full");
     const btns = segment!.querySelectorAll(".setup-segment__btn");
@@ -192,7 +192,7 @@ describe("HermesSetup", () => {
     expect(container.textContent).toContain("Custom endpoint");
   });
 
-  it("shows wizard hint text on hermes onboard tab", () => {
+  it("shows wizard hint text on Hermes onboard tab", () => {
     const { container } = render(() => <HermesSetup {...defaultProps} />);
     const segment = container.querySelector(".setup-segment--full");
     fireEvent.click(segment!.querySelectorAll(".setup-segment__btn")[1]);

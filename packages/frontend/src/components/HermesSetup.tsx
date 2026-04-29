@@ -99,7 +99,7 @@ const HermesSetup: Component<Props> = (props) => {
           role="tab"
           aria-selected={subTab() === 'wizard'}
         >
-          hermes onboard
+          Hermes onboard
         </button>
       </div>
 
