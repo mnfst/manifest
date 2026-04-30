@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 11,
+  "response": "The **SOC 2 Type II audit** passed without critical findings, but the team identified three areas needing immediate attention: **inadequate access review frequency**, an **untested incident response plan**, and **incomplete vendor risk assessments** for two vendors. **All remediation must be completed within 30 days**, per the Compliance Team.",
+  "score": 5,
+  "cost": 6.88e-06,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 73
+  }
+}

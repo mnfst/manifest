@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 43,
+  "response": "Did you know that a neutron star is so incredibly dense that a single teaspoon of its material would weigh about 6 billion tons on Earth? That's roughly the weight of all humanity combined!",
+  "score": 5,
+  "cost": 2.6099999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 39
+  }
+}

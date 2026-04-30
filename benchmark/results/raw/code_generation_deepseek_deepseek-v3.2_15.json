@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_generation",
+  "case": 15,
+  "response": "```python\n    factor = 2\n    while factor * factor <= n:\n        if n % factor == 0:\n            n //= factor\n        else:\n            factor += 1 if factor == 2 else 2\n    return n\n```",
+  "score": 5,
+  "cost": 8.45e-05,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 55
+  }
+}

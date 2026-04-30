@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "email_summary_v2",
+  "case": 3,
+  "response": "The March cohort's onboarding satisfaction score was 7.2/10 (down from 8.1), with positives including a 9.1/10 buddy system and timely IT support, and issues such as 5 out of 8 members being confused about the benefits deadline, tools access taking 3-5 days (vs a target of 1 day), and no culture handbook received. The priority action item is to fix tools access.",
+  "score": 5,
+  "cost": 0.0001299,
+  "expected": "",
+  "tokens": {
+    "input": 192,
+    "output": 385
+  }
+}

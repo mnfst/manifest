@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "email_summary_v2",
+  "case": 34,
+  "response": "The Database Team is planning to migrate from MySQL 5.7 to PostgreSQL 16 from May to July, with schema conversion in May, dual-write in June, and cutover in July. Key risks include rewriting 3 stored procedures, though no downtime is expected due to blue-green deployment.",
+  "score": 5,
+  "cost": 0.0021208000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 449
+  }
+}

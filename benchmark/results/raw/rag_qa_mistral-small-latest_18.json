@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "rag_qa",
+  "case": 18,
+  "response": "Allan Bloom",
+  "score": 0,
+  "cost": 1.9399999999999997e-05,
+  "expected": "Allan Bloom",
+  "tokens": {
+    "input": 182,
+    "output": 4
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 29,
+  "response": "```python\n    def order_by_points(nums):\n        def digit_sum(n):\n            return sum(int(d) for d in str(abs(n)))\n\n        return sorted(nums, key=lambda x: (digit_sum(x), nums.index(x)))\n```",
+  "score": 4,
+  "cost": 7.92e-06,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 49
+  }
+}

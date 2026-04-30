@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_generation",
+  "case": 40,
+  "response": "if a == 0:\n        return True\n    \n    if a > 0:\n        cube_root = round(a ** (1/3))\n        return cube_root ** 3 == a\n    else:\n        cube_root = -round((-a) ** (1/3))\n        return cube_root ** 3 == a",
+  "score": 4,
+  "cost": 0.001752,
+  "expected": "",
+  "tokens": {
+    "input": 164,
+    "output": 84
+  }
+}

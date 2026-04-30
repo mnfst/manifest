@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "structured_output",
+  "case": 40,
+  "response": "{\"ticket_id\": 8472, \"priority\": \"High\", \"created\": \"2h ago\", \"user\": \"premium_user@corp.com\", \"category\": \"billing\", \"subject\": \"Double charged for March subscription\", \"assigned_to\": \"Agent Mike\", \"status\": \"in progress\"}",
+  "score": 4,
+  "cost": 0.009405,
+  "expected": "",
+  "tokens": {
+    "input": 167,
+    "output": 92
+  }
+}

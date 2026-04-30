@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are known for their loyal nature, making them one of the most beloved pets worldwide. Their loyal companionship provides comfort and joy to countless families. Many stories highlight the loyal bond between dogs and their owners, showcasing their unwavering dedication. This loyal behavior is often seen when dogs protect their homes and loved ones. Even in challenging situations, a dog's loyal heart remains steadfast, proving their incredible devotion. The loyal friendship of a dog can brighten anyone's day, offering unconditional love and support.",
+  "score": 5,
+  "cost": 0.0010175,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 96
+  }
+}

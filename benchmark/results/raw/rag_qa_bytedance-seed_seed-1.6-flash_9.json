@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "rag_qa",
+  "case": 9,
+  "response": "70\nThe context states that in winter, the temperature ranges are 70-50's. The high end of this range is 70.",
+  "score": 2,
+  "cost": 7.484999999999999e-05,
+  "expected": "70",
+  "tokens": {
+    "input": 226,
+    "output": 193
+  }
+}

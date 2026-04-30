@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "rag_qa",
+  "case": 4,
+  "response": "",
+  "score": 0,
+  "cost": 0.0048924,
+  "expected": "North America",
+  "tokens": {
+    "input": 154,
+    "output": 2000
+  }
+}

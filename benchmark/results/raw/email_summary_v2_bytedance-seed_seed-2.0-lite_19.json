@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 19,
+  "response": "IT Procurement\u2019s email regarding the Datadog vendor contract renewal lays out that the current $180K annual Datadog contract expires June 30, with Datadog offering a 3-year renewal at a 14% discount that brings the annual cost to $155K, while a competing alternative Grafana Cloud would cost only $95K annually but require a 3-month migration to implement. Finance requires a final decision on which vendor option to select by May 15 to finalize all arrangements ahead of the existing Datadog contract\u2019s expiration.",
+  "score": 5,
+  "cost": 0.00080475,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 766
+  }
+}

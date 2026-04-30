@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "The storm arrives with a chest-vibrating cannonade of thunder that rolls across the horizon before the lightning flash even fades from your eyes. Jagged veins of electricity split the charcoal sky, bleaching the world into stark monochrome\u2014every tree, rooftop, and telephone wire thrown into sharp relief against the black clouds for one blinding instant. The air turns metallic and sharp on the tongue, charged with ozone that prickles the nose and makes the hair on bare arms stand at attention. Then the rain comes: first as fat, scattered drops that smack against hot pavement, quickly building into a deafening roar as it drums against glass and soaks through clothing with a cold, insistent weight. A sudden gust of wind shoves against the body like an invisible wall, carrying with it the deep, green smell of wet soil and crushed grass as the storm claims the valley for its own.",
+  "score": 5,
+  "cost": 0.0015815999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 654
+  }
+}

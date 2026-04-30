@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 38,
+  "response": "Invalid username or password. Please try again.",
+  "score": 5,
+  "cost": 8.1e-06,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 9
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_generation",
+  "case": 47,
+  "response": "return ' '.join(str(i) for i in range(n + 1))",
+  "score": 5,
+  "cost": 0.0003285,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 291
+  }
+}

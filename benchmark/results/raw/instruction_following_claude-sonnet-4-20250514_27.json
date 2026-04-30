@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 27,
+  "response": "# Mammals\n- Elephant\n- Dolphin\n- Tiger\n\n# Birds\n- Eagle\n- Penguin\n- Cardinal\n\n# Fish\n- Salmon\n- Shark\n- Goldfish",
+  "score": 5,
+  "cost": 0.000807,
+  "expected": "",
+  "tokens": {
+    "input": 29,
+    "output": 48
+  }
+}

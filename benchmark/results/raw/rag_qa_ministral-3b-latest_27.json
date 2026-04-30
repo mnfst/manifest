@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 27,
+  "response": "Newton's **First Law of Motion** connects relative velocities with inertia.",
+  "score": 3,
+  "cost": 1.112e-05,
+  "expected": "Newton's First",
+  "tokens": {
+    "input": 262,
+    "output": 16
+  }
+}

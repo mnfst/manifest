@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "instruction_following",
+  "case": 36,
+  "response": "1.  Java\n2.  C++\n3.  Rust\n4.  Go",
+  "score": 5,
+  "cost": 0.0002175,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 20
+  }
+}

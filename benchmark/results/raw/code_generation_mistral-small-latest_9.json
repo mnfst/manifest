@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "code_generation",
+  "case": 9,
+  "response": "```python\n    total = 0\n    for num in lst:\n        if isinstance(num, int) and num > 0 and num % 2 != 0:\n            total += num ** 2\n    return total\n```",
+  "score": 4,
+  "cost": 3.4e-05,
+  "expected": "",
+  "tokens": {
+    "input": 190,
+    "output": 50
+  }
+}

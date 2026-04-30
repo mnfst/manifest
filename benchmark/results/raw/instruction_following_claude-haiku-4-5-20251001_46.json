@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "# Goodbye Email\n\nSubject: Farewell and Thank You\n\nDear Team,\n\nToday marks my last day, and I wanted to express my gratitude for the wonderful time I've spent working alongside all of you. The support, collaboration, and friendships I've built here have been truly meaningful and will stay with me as I move forward. I'm grateful for the opportunities I've had to grow professionally and contribute to our shared goals. Please stay in touch, and I wish you all continued success in your future endeavors. Thank you for making my time here memorable.\n\nBest regards,\n[Your Name]",
+  "score": 4,
+  "cost": 0.0005344,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 129
+  }
+}

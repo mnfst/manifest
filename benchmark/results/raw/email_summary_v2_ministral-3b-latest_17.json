@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 17,
+  "response": "The team is rolling back **v4.2** due to a critical **data corruption bug** in the sync engine affecting **23 accounts**, requiring a **restore from pre-release backups** and manual re-processing of transactions. The **Release Manager** has initiated a **hotfix branch** and will notify impacted customers.",
+  "score": 5,
+  "cost": 6.6799999999999996e-06,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 68
+  }
+}

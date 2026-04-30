@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 23,
+  "response": "```python\n    min_so_far = nums[0]\n    current_min = nums[0]\n\n    for num in nums[1:]:\n        current_min = min(num, current_min + num)\n        min_so_far = min(min_so_far, current_min)\n\n    return min_so_far\n```",
+  "score": 5,
+  "cost": 6.57e-05,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 79
+  }
+}

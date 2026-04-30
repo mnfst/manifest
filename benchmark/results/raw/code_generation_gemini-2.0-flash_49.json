@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "code_generation",
+  "case": 49,
+  "response": "```python\n    if not string:\n        return ''\n\n    for i in range(len(string), 0, -1):\n        if is_palindrome(string[:i]):\n            return string + string[i:][::-1]\n```",
+  "score": 4,
+  "cost": 3.97e-05,
+  "expected": "",
+  "tokens": {
+    "input": 181,
+    "output": 54
+  }
+}

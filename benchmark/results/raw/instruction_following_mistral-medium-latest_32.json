@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "**Restaurant Review: *The Golden Clove***\n\u2b50\u2b50\u2b50\u2b50\u00bd (4.5/5)\n\n**Cuisine:** Modern Fusion (Asian-Latin American)\n**Location:** 123 Harbor View Lane, Port Haven\n**Price Range:** $$$ (Mains $22\u2013$45)\n**Ambiance:** Warm, moody lighting with exposed brick, lush greenery, and a sleek open kitchen. The soundtrack\u2014a mix of bossa nova and lo-fi beats\u2014sets a relaxed yet sophisticated vibe.\n\n---\n\n### **The Experience:**\nFrom the moment you step into *The Golden Clove*, it\u2019s clear this isn\u2019t your average fusion spot. The host, a charismatic former sommelier, greets you with a complimentary *lychee-sake spritz*\u2014a refreshing, floral prelude to the meal. The menu, a love letter to cross-continental flavors, dares you to try dishes you\u2019ve never heard of (in the best way).\n\n### **Standout Dishes:**\n- **Crispy Pork Belly Bao with Mango-Habanero Glaze** (\u2b50\u2b50\u2b50\u2b50\u2b50) \u2013 The bao was pillowy perfection, but the real star was the pork: crackling skin, melt-in-your-mouth fat, and a glaze that balanced sweet heat with a whisper of lime. *Order two.*\n- **Miso-Coffee Rubbed Short Rib** (\u2b50\u2b50\u2b50\u2b50\u00bd) \u2013 A bold, umami-packed dish with a caramelized crust and a side of smoked plantain pur\u00e9e. The coffee note was subtle but addictive\u2014like a gourmet wake-up call for your taste buds.\n- **Thai Basil & Queso Fresco Arepas** (\u2b50\u2b50\u2b50\u2b50) \u2013 A genius mashup of Venezuelan and Thai street food. The arepas were crispy outside, fluffy inside, and stuffed with spicy ground pork and herby cheese. *Why hasn\u2019t anyone done this before?*\n- **Dessert: Black Sesame Tres Leches** (\u2b50\u2b50\u2b50\u2b50\u2b50) \u2013 A revelation. The cake was airy yet rich,",
+  "score": 5,
+  "cost": 0.001008,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 500
+  }
+}

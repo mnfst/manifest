@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "email_summary_v2",
+  "case": 36,
+  "response": "Thursday's deployment caused the /api/v2/search endpoint's P99 latency to spike from 200ms to 800ms due to a new query failing to use the database index. The backend team will resolve the regression by deploying a GIN index fix during tonight's maintenance window.",
+  "score": 5,
+  "cost": 0.00124025,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 1214
+  }
+}

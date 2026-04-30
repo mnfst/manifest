@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "rag_qa",
+  "case": 14,
+  "response": "Ctenophora live in marine waters worldwide.",
+  "score": 5,
+  "cost": 0.00822,
+  "expected": "marine waters",
+  "tokens": {
+    "input": 443,
+    "output": 21
+  }
+}

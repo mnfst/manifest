@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_generation",
+  "case": 25,
+  "response": "s = paren_string.replace(\" \", \"\")\nbalance = 0\nresult = []\ncurrent_group = \"\"\nfor char in s:\n    current_group += char\n    if char == '(':\n        balance += 1\n    else:\n        balance -= 1\n    if balance == 0:\n        result.append(current_group)\n        current_group = \"\"\nreturn result",
+  "score": 4,
+  "cost": 0.00121,
+  "expected": "",
+  "tokens": {
+    "input": 200,
+    "output": 1160
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The **water cycle**, also known as the hydrologic cycle, is the continuous movement of water on, above, and below Earth\u2019s surface. It is driven by solar energy, which heats water in oceans, lakes, and rivers, causing it to **evaporate** and rise into the atmosphere as water vapor. Plants also contribute through **transpiration**, releasing water vapor from their leaves. As warm, moist air rises, it cools and condenses into tiny droplets, forming **clouds**. This process is essential for redistributing water across the planet and sustaining life.\n\nOnce water vapor condenses into clouds, it eventually falls back to Earth as **precipitation**\u2014rain, snow, sleet, or hail\u2014depending on temperature and atmospheric conditions. Precipitation replenishes freshwater sources like rivers, lakes, and groundwater, which are vital for drinking, agriculture, and ecosystems. Some water flows over land as **runoff**, collecting in bodies of water or soaking into the soil, while excess may cause flooding. This stage ensures that water is cyclically returned to the Earth\u2019s surface, maintaining balance in the environment.\n\nWater that infiltrates the ground becomes **groundwater**, stored in underground aquifers for long periods. Over time, groundwater may resurface through springs or be extracted via wells for human use. Meanwhile, surface water in rivers and streams eventually flows back into oceans, completing the cycle. **Sublimation**, where ice or snow turns directly into vapor, also plays a minor role, particularly in cold climates. Each of these processes interacts dynamically, influencing weather patterns and climate over time.\n\nThe water cycle is a **closed system**, meaning Earth\u2019s total water supply remains constant, though its distribution changes. Human activities, such as deforestation, pollution, and climate change, can disrupt this balance by altering evaporation rates, precipitation patterns, or water availability. Understanding the water cycle helps scientists predict droughts, manage water resources, and mitigate environmental impacts. By preserving natural water systems, we ensure the cycle continues to support all living organisms on the planet.",
+  "score": 3,
+  "cost": 0.000854,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 424
+  }
+}

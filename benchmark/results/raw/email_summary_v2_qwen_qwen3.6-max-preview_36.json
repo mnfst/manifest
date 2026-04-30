@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "email_summary_v2",
+  "case": 36,
+  "response": "The /api/v2/search endpoint experienced a significant latency spike after Thursday's deployment because a new full-text search query failed to utilize a database index. To resolve this, the backend team will add a GIN index to the content column and deploy the fix during tonight's maintenance window.",
+  "score": 5,
+  "cost": 0.0049049,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 917
+  }
+}

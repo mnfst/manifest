@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "rag_qa",
+  "case": 31,
+  "response": "Sharia",
+  "score": 5,
+  "cost": 1.7800000000000002e-05,
+  "expected": "Sharia",
+  "tokens": {
+    "input": 166,
+    "output": 3
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle, also known as the hydrologic cycle, describes the continuous movement of water on, above, and below the Earth's surface. This vital process ensures the constant recycling of our planet's water supply, making it available for all living organisms and shaping geological features. It involves changes in water's state\u2014liquid, vapor, and ice\u2014as it travels through various reservoirs like oceans, lakes, rivers, the atmosphere, and groundwater.\n\nThe cycle begins primarily with evaporation, where the sun's energy heats water in oceans, lakes, and rivers, turning it into water vapor that rises into the atmosphere. A significant contributor to atmospheric water is also transpiration, the process by which plants release water vapor from their leaves into the air. This invisible gas then ascends, carrying moisture high above the Earth's surface.\n\nAs the water vapor rises, it cools and undergoes condensation, transforming back into tiny liquid water droplets or ice crystals. These microscopic particles cluster together to form clouds. When these clouds become saturated with water, the water falls back to Earth in various forms of precipitation, such as rain, snow, sleet, or hail, depending on atmospheric temperature and conditions.\n\nUpon reaching the Earth's surface, this water can take several paths. Some collects in oceans, lakes, and rivers, while some flows over land as surface runoff, eventually joining larger bodies of water. A portion also infiltrates the ground, becoming groundwater that can be stored in aquifers or slowly make its way back to surface waters. This collected water then becomes available to evaporate once more, completing the endless journey of the water cycle.",
+  "score": 4,
+  "cost": 0.0001986,
+  "expected": "",
+  "tokens": {
+    "input": 12,
+    "output": 328
+  }
+}

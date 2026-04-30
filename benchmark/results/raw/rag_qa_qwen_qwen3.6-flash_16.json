@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "rag_qa",
+  "case": 16,
+  "response": "Approximately fifty percent more.",
+  "score": 5,
+  "cost": 0.000724,
+  "expected": "approximately fifty percent",
+  "tokens": {
+    "input": 224,
+    "output": 668
+  }
+}

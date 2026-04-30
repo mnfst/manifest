@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "email_summary_v2",
+  "case": 30,
+  "response": "Competitor X recently launched AI features with auto-categorization\u2014lacking in our product\u2014but at double our pricing, while our stronger API and integrations remain key advantages. The team recommends **prioritizing the AI roadmap item** to stay competitive.",
+  "score": 5,
+  "cost": 0.000148,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 55
+  }
+}

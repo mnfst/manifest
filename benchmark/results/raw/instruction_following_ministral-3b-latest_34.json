@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 34,
+  "response": "A **database index** is a data structure that improves search performance by allowing the database engine to quickly locate specific records in a table without scanning every row. It works like an optimized **book index**\u2014instead of reading every page, you can jump directly to the relevant section for faster queries.",
+  "score": 4,
+  "cost": 3.04e-06,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 60
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "The quarterly OKR review shows that most teams met or exceeded their targets, but Product fell short due to a delayed AI feature. To address this, the AI objective will be carried forward with increased resource allocation, and next quarter\u2019s planning will begin on Monday.",
+  "score": 5,
+  "cost": 0.007072,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 1328
+  }
+}

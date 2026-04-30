@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Imagine you and your friends have a special notebook where you write down every time someone trades toys, and everyone gets their own copy of the same notebook. Whenever someone wants to make a trade, everyone has to agree and write it down in all the notebooks at the same time. This way, no one can cheat or lie about what toys they have because everyone can check their notebook to see the truth!",
+  "score": 5,
+  "cost": 0.001368,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 86
+  }
+}

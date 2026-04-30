@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 34,
+  "response": "A database index is a data structure that improves the speed of data retrieval operations on a database table by providing quick access to rows based on the values of one or more columns. It functions similarly to an index in a book, allowing the database management system to locate and access the desired data without scanning the entire table.",
+  "score": 5,
+  "cost": 4.065e-05,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 63
+  }
+}

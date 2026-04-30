@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "Subject: Moving On - Farewell!\n\nDear Team, I'm writing to let you know that my last day at [Company Name] is [Date]. I've truly enjoyed my time working with all of you and appreciate the support and camaraderie I've experienced here. I'll cherish the memories and lessons learned during my time here. Please keep in touch via [LinkedIn Profile URL or Personal Email Address]. Wishing you all the best for the future!",
+  "score": 5,
+  "cost": 3.88e-05,
+  "expected": "",
+  "tokens": {
+    "input": 12,
+    "output": 94
+  }
+}

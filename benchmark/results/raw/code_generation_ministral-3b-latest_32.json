@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 32,
+  "response": "```python\n    words = s.split(' ')\n    result = []\n    for word in words:\n        if word:  # Check if the word is not empty\n            sorted_word = ''.join(sorted(word))\n            result.append(sorted_word)\n        else:\n            result.append(' ')\n    return ' '.join(result)\n```",
+  "score": 4,
+  "cost": 9.280000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 69
+  }
+}

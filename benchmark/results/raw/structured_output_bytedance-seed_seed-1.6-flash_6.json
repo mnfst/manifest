@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "structured_output",
+  "case": 6,
+  "response": "{\n  \"type\": \"bug report\",\n  \"summary\": \"App crashes on login when using Face ID on iPhone 14 with iOS 17.2\",\n  \"device\": \"iPhone 14\",\n  \"os_version\": \"iOS 17.2\",\n  \"reproducibility\": \"every time\",\n  \"severity\": \"critical\"\n}",
+  "score": 5,
+  "cost": 0.000216825,
+  "expected": "",
+  "tokens": {
+    "input": 175,
+    "output": 679
+  }
+}

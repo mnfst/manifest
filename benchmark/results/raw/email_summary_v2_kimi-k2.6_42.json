@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "A workshop with 15 enterprise customers identified urgent needs for better bulk import and SSO capabilities, highlighted praise for the new analytics dashboard, and revealed unexpected interest in offering an internal tool as a standalone product. Please review the attached follow-up report for complete details.",
+  "score": 5,
+  "cost": 0.0023442,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 950
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "structured_output",
+  "case": 13,
+  "response": "{\"city\":\"San Francisco\",\"temperature_f\":62,\"condition\":\"partly cloudy\",\"wind\":{\"direction\":\"NW\",\"speed_mph\":12},\"humidity_percent\":68,\"uv_index\":4,\"sunset\":\"7:45pm\"}",
+  "score": 5,
+  "cost": 0.008985,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 86
+  }
+}

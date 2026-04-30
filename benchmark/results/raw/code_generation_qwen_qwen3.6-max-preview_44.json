@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_generation",
+  "case": 44,
+  "response": "result = []\n    for char in message:\n        swapped = char.swapcase()\n        if swapped in \"AEIOUaeiou\":\n            swapped = chr(ord(swapped) + 2)\n        result.append(swapped)\n    return \"\".join(result)",
+  "score": 4,
+  "cost": 0.0168116,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 3195
+  }
+}

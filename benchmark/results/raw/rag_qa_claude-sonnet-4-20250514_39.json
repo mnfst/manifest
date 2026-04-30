@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "rag_qa",
+  "case": 39,
+  "response": "Based on the provided context, packet switching contrasts with circuit switching, which is described as \"another principal networking paradigm.\"",
+  "score": 5,
+  "cost": 0.000882,
+  "expected": "circuit switching",
+  "tokens": {
+    "input": 154,
+    "output": 28
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "rag_qa",
+  "case": 24,
+  "response": "According to the context, 5,500,000 square kilometres (2,100,000 sq mi) of the Amazon basin are covered by rainforest.",
+  "score": 2,
+  "cost": 0.0004176,
+  "expected": "5,500,000 square kilometres (2,100,000 sq mi) are covered by the rainforest.",
+  "tokens": {
+    "input": 332,
+    "output": 38
+  }
+}

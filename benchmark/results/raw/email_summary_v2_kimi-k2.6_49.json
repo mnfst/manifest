@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 49,
+  "response": "The product launch is delayed because the payment integration failed PCI compliance, presenting two options: launch without payments (which requires updated T&Cs per Legal) or delay the full launch until May 15. The team will meet tomorrow at 10am to discuss and decide on the next steps.",
+  "score": 5,
+  "cost": 0.0012066000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 478
+  }
+}

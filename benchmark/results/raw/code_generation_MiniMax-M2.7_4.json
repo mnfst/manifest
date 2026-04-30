@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_generation",
+  "case": 4,
+  "response": "if len(l) <= 1:\n        return True\n    increasing = decreasing = True\n    for i in range(1, len(l)):\n        if l[i] > l[i - 1]:\n            decreasing = False\n        elif l[i] < l[i - 1]:\n            increasing = False\n        if not increasing and not decreasing:\n            return False\n    return True",
+  "score": 5,
+  "cost": 0.0031064000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 674
+  }
+}

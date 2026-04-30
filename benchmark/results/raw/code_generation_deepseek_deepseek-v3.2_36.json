@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_generation",
+  "case": 36,
+  "response": "```python\n    for i in range(n-1, 0, -1):\n        if n % i == 0:\n            return i\n    return 1\n```",
+  "score": 5,
+  "cost": 6.18e-05,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 38
+  }
+}

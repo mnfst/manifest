@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The Q1 board deck draft highlights strong performance with **127% of revenue target and 115% NRR**, though **CAC rose 22%**, and the CEO requests your **product roadmap section by Wednesday** for the upcoming **board meeting on Tuesday**. Please review the attached draft and submit your updates promptly to meet the deadline.",
+  "score": 5,
+  "cost": 0.000186,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 75
+  }
+}

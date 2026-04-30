@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "The provided code implements the 0/1 Knapsack problem using dynamic programming. It constructs a 2D array `dp` where `dp[i][w]` represents the maximum value that can be achieved with the first `i` items and a weight limit of `w`, iteratively filling this table by deciding whether to include each item based on its weight and value, ultimately returning the maximum value that can be carried within the given capacity.",
+  "score": 5,
+  "cost": 7.665e-05,
+  "expected": "",
+  "tokens": {
+    "input": 151,
+    "output": 90
+  }
+}

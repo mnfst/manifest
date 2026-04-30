@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "# Meeting Invitation Subject Lines\n\nHere are a few options:\n\n1. **Q1 Planning Meeting \u2013 Tuesday, 2 PM**\n\n2. **Team Sync: Project Updates and Next Steps**\n\n3. **Budget Review Meeting \u2013 Your Input Needed**\n\n4. **Monthly All-Hands: Company Updates and Discussion**\n\n5. **Client Kickoff Call \u2013 New Project Overview**\n\nPick whichever matches your meeting type, or let me know if you'd like me to customize one further!",
+  "score": 3,
+  "cost": 0.0004704,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 113
+  }
+}

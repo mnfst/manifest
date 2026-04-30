@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_generation",
+  "case": 17,
+  "response": "import hashlib\n    if text == '':\n        return None\n    return hashlib.md5(text.encode('utf-8')).hexdigest()",
+  "score": 4,
+  "cost": 0.0071643,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 1346
+  }
+}

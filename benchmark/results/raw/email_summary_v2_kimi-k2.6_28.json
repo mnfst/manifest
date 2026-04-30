@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 28,
+  "response": "The annual disaster recovery test missed its 4-hour RTO target, taking 6 hours and 23 minutes due to an unexpectedly lengthy database restore caused by a larger dataset. The SRE team recommends increasing backup frequency and pre-provisioning a standby database to improve recovery time before the next test in October.",
+  "score": 5,
+  "cost": 0.0012114,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 478
+  }
+}

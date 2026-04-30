@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "Here are the ingredients for a basic salad:\n\n**Greens:**\n- [ ] Lettuce (romaine, iceberg, or mixed greens)\n- [ ] Spinach (optional)\n\n**Vegetables:**\n- [ ] Tomatoes\n- [ ] Cucumber\n- [ ] Red onion\n- [ ] Bell peppers\n- [ ] Carrots\n\n**Dressing:**\n- [ ] Olive oil\n- [ ] Vinegar (balsamic, red wine, or white)\n- [ ] Salt\n- [ ] Black pepper\n\n**Optional additions:**\n- [ ] Croutons\n- [ ] Cheese (feta, parmesan, or cheddar)\n- [ ] Avocado\n- [ ] Hard-boiled eggs",
+  "score": 5,
+  "cost": 0.002733,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 178
+  }
+}

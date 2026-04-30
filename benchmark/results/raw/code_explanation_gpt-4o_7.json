@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "The code defines a decorator function `lru_cache` that implements a Least Recently Used (LRU) caching mechanism with a specified maximum size (`maxsize`). It uses an `OrderedDict` to store function call results, ensuring that when the cache exceeds the specified size, the least recently used item is removed, while also updating the order of items to reflect recent usage when cache hits occur.",
+  "score": 5,
+  "cost": 0.00109,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 79
+  }
+}

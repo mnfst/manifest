@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "The **Network Ops team proposes upgrading from 1Gbps to 10Gbps links** (costing **$45K upfront + $2K/month**) to address current 78% peak capacity and future growth, avoiding another upgrade in six months. They also present a **$15K alternative (traffic shaping + CDN optimization)** but recommend the 10Gbps solution for long-term scalability.",
+  "score": 5,
+  "cost": 0.0002396,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 96
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are known throughout the world as exceptionally loyal companions. From the smallest lap dog to the largest working breed, every dog possesses a deeply loyal heart. A truly loyal canine will offer a protective bark at strangers and a joyful welcome for its family. This unwavering and loyal devotion forges an unbreakable bond between pet and owner. Ultimately, it is this profoundly loyal spirit that makes them such cherished members of our families.",
+  "score": 5,
+  "cost": 0.00084125,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 82
+  }
+}

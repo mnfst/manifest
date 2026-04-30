@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 40,
+  "response": "```python\nimport math\n\nreturn math.isqrt(a) ** 3 == a\n```",
+  "score": 2,
+  "cost": 7e-06,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 20
+  }
+}

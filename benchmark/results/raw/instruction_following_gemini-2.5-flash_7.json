@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "Whisk 2-3 eggs with a splash of milk or water, salt, and pepper. Melt butter in a non-stick pan over medium-low heat. Pour in eggs. Gently push cooked edges to the center, letting raw egg flow. Cook until mostly set but still moist. Serve immediately.",
+  "score": 2,
+  "cost": 3.99e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 62
+  }
+}

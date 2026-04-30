@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "code_generation",
+  "case": 39,
+  "response": "```python\n    if x == 0:\n        return '0'\n    digits = []\n    num = x\n    while num > 0:\n        digits.append(str(num % base))\n        num = num // base\n    return ''.join(reversed(digits))\n```",
+  "score": 5,
+  "cost": 3.1100000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 58
+  }
+}

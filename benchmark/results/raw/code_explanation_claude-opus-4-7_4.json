@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_explanation",
+  "case": 4,
+  "response": "This is a **memoization decorator** that caches the results of a function call based on its arguments, storing them in a dictionary keyed by the argument tuple. On subsequent calls with the same arguments, it returns the cached result instead of recomputing, optimizing repeated calls to expensive or recursive functions.",
+  "score": 5,
+  "cost": 0.009225,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 100
+  }
+}

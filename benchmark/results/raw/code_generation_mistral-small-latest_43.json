@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "code_generation",
+  "case": 43,
+  "response": "```python\n    if not numbers:\n        return []\n\n    result = []\n    for i, num in enumerate(numbers):\n        result.append(num)\n        if i != len(numbers) - 1:\n            result.append(delimeter)\n\n    return result\n```",
+  "score": 5,
+  "cost": 3.05e-05,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 55
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_explanation",
+  "case": 31,
+  "response": "This code implements the **A* pathfinding algorithm**, which finds the shortest path from `start` to `goal` in a weighted graph by using a priority queue (min-heap) ordered by `f(n) = g(n) + h(n)`, where `g(n)` is the actual cost from the start and `h(n)` is the heuristic estimate to the goal. It returns the optimal path as a list of nodes (assuming an admissible heuristic), or `None` if no path exists.",
+  "score": 5,
+  "cost": 0.015615,
+  "expected": "",
+  "tokens": {
+    "input": 261,
+    "output": 156
+  }
+}

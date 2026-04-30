@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "structured_output",
+  "case": 16,
+  "response": "```json\n{\n  \"artist\": \"Taylor Swift\",\n  \"tour_name\": \"Eras Tour\",\n  \"venue\": \"SoFi Stadium\",\n  \"city\": \"Los Angeles\",\n  \"date\": \"Aug 9 2024\",\n  \"doors_time\": \"5pm\",\n  \"show_time\": \"7pm\",\n  \"price_range\": {\n    \"min\": 89,\n    \"max\": 899\n  },\n  \"seats\": {\n    \"section\": \"234\",\n    \"row\": \"F\",\n    \"numbers\": [\n      12,\n      13\n    ]\n  }\n}\n```",
+  "score": 5,
+  "cost": 0.00178375,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 158
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 21,
+  "response": "The Platform Team proposes a feature flag cleanup sprint to remove 15 fully rolled-out flags and archive 8 dead code flags from releases older than 6 months. This initiative will reduce config complexity and speed up the test suite by approximately 12%.",
+  "score": 5,
+  "cost": 0.0014778,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 591
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 43,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 1.052e-05,
+  "expected": "Amazonia: Man and Culture in a Counterfeit Paradise",
+  "tokens": {
+    "input": 257,
+    "output": 6
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 45,
+  "response": "The show globe was employed until early in the 20th century.",
+  "score": 5,
+  "cost": 0.0007777000000000001,
+  "expected": "The show globe",
+  "tokens": {
+    "input": 235,
+    "output": 118
+  }
+}

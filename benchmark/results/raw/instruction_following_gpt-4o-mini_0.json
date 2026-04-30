@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "- **Improves Physical Health**: Regular exercise strengthens the heart, enhances lung capacity, and boosts overall physical fitness, reducing the risk of chronic diseases such as obesity, diabetes, and heart disease.\n\n- **Enhances Mental Well-being**: Exercise releases endorphins, which can improve mood, reduce stress, and alleviate symptoms of anxiety and depression.\n\n- **Promotes Better Sleep**: Engaging in regular physical activity can help regulate sleep patterns, leading to improved sleep quality and duration.",
+  "score": 2,
+  "cost": 6.225e-05,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 99
+  }
+}

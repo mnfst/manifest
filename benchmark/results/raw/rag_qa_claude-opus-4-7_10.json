@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "rag_qa",
+  "case": 10,
+  "response": "The Saxon Garden was formally a royal garden.",
+  "score": 5,
+  "cost": 0.010935,
+  "expected": "The Saxon Garden",
+  "tokens": {
+    "input": 624,
+    "output": 21
+  }
+}

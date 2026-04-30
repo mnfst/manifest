@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "Here's a Google-style docstring for a generic sort function:\n\n```python\ndef sort(items, key=None, reverse=False):\n    \"\"\"Sorts a sequence in ascending or descending order and returns the result.\n\n    Args:\n        items (MutableSequence): A sequence of comparable elements to be sorted.\n            Can be a list, tuple, or other mutable sequence type.\n        key (Callable, optional): A function of one argument that extracts a\n            comparison key from each element in the sequence (e.g., `key=str.lower`).\n            Defaults to None, which compares elements directly.\n        reverse (bool, optional): If True, sorts the sequence in descending order.\n            Defaults to False (ascending order).\n\n    Returns:\n        MutableSequence: A new sequence containing all items from the input in sorted order.\n            The type matches the input type (e.g., list \u2192 list, tuple \u2192 tuple).\n\n    Raises:\n        TypeError: If the items are not comparable (e.g., mixing strings and numbers)\n            or if the input is not a sequence.\n        ValueError: If the sequence contains invalid/unordered elements (e.g., NaN values).\n\n    Examples:\n        >>> sort([3, 1, 4, 1, 5, 9])\n        [1, 1, 3, 4, 5, 9]\n\n        >>> sort(['apple', 'Orange', 'banana'], key=str.lower)\n        ['apple', 'banana', 'Orange']\n\n        >>> sort([1, 3, 2], reverse=True)\n        [3, 2, 1]\n\n    Note:\n        - For large datasets, consider using `sorted()` (built-in) for better performance.\n        - This function does not modify the original sequence; it returns a new sorted copy.\n        - Stability: Equal elements retain their original order (stable sort).\n    \"\"\"\n    # Implementation would go here\n    pass\n```\n\n### Key Features of Google-Style Docstrings Used Here:\n1. **Args/Returns/Raises/Examples** sections clearly labeled.\n2. **Type hints** included for parameters and return values.\n3. **Detailed descriptions** of parameters (e.g., `key` explains how it works).\n4. **Examples** show common use cases.\n5. **Notes** for additional context (e.g., stability, performance).\n6. **Exceptions** documented with `Raises`.",
+  "score": 4,
+  "cost": 0.0010068,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 500
+  }
+}

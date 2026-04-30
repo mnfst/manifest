@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 33,
+  "response": "```python\n    a_sq = a * a\n    b_sq = b * b\n    c_sq = c * c\n\n    return (a_sq + b_sq == c_sq) or \\\n           (a_sq + c_sq == b_sq) or \\\n           (b_sq + c_sq == a_sq)\n```",
+  "score": 5,
+  "cost": 7.095e-05,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 81
+  }
+}

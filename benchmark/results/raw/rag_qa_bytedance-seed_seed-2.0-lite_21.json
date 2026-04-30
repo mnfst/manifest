@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "rag_qa",
+  "case": 21,
+  "response": "The context only specifies that oxygen is poisonous to the anaerobic bacteria that cause gas gangrene; no more specific pathogen name is provided in the given context.",
+  "score": 4,
+  "cost": 0.000792,
+  "expected": "anaerobic bacteria",
+  "tokens": {
+    "input": 248,
+    "output": 730
+  }
+}

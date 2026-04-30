@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "**\"Every small step forward is a victory\u2014keep walking, your future is waiting.\"**",
+  "score": 5,
+  "cost": 4.6399999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 19
+  }
+}

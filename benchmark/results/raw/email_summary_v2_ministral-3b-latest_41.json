@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "The email proposes upgrading from 1Gbps to 10Gbps network links for **$45K (one-time) + $2K/month**, citing current peak capacity at 78%, while suggesting a **$15K alternative** involving traffic shaping and CDN optimization. **Action:** Approve the 10Gbps upgrade to align with growth projections and prevent future capacity issues.",
+  "score": 5,
+  "cost": 8.279999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 88
+  }
+}

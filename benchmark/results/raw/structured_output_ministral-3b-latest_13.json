@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "structured_output",
+  "case": 13,
+  "response": "Here is the extracted information in valid JSON matching the provided schema:\n\n```json\n{\n  \"city\": \"San Francisco\",\n  \"temperature_f\": 62,\n  \"condition\": \"partly cloudy\",\n  \"wind\": {\n    \"direction\": \"NW\",\n    \"speed_mph\": 12\n  },\n  \"humidity_percent\": 68,\n  \"uv_index\": 4,\n  \"sunset\": \"19:45\"\n}\n```",
+  "score": 5,
+  "cost": 8.72e-06,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 102
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "rag_qa",
+  "case": 23,
+  "response": "Mortgage banker",
+  "score": 5,
+  "cost": 0.00027375,
+  "expected": "the mortgage banker",
+  "tokens": {
+    "input": 195,
+    "output": 3
+  }
+}

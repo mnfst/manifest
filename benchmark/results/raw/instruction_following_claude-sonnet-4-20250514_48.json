@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "Romeo and Juliet tells the story of two young lovers from feuding families in Verona. Romeo Montague and Juliet Capulet meet at a party and instantly fall in love, secretly marrying the next day. When Romeo kills Juliet's cousin Tybalt in a street fight, he's banished from the city. To avoid an arranged marriage to Paris, Juliet takes a potion that makes her appear dead. Romeo, believing she's truly dead, drinks poison beside her tomb. Juliet awakens to find Romeo dead and stabs herself with his dagger. Their deaths finally reconcile the warring families.",
+  "score": 5,
+  "cost": 0.002205,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 141
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 30,
+  "response": "Melbourne",
+  "score": 0,
+  "cost": 1.0359999999999999e-05,
+  "expected": "Melbourne",
+  "tokens": {
+    "input": 256,
+    "output": 3
+  }
+}

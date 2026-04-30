@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 45,
+  "response": "# TCP vs UDP Comparison\n\n## Overview\n\n**TCP (Transmission Control Protocol)** and **UDP (User Datagram Protocol)** are the two primary transport layer protocols in the Internet Protocol Suite. They differ fundamentally in how they handle data transmission.\n\n## Comparison Table\n\n| Feature | TCP | UDP |\n|---------|-----|-----|\n| **Connection** | Connection-oriented | Connectionless |\n| **Reliability** | Guaranteed delivery | No guarantee |\n| **Ordering** | In-order delivery | No ordering guarantee |\n| **Speed** | Slower (more overhead) | Faster (minimal overhead) |\n| **Error Checking** | Extensive | Basic checksum only |\n| **Flow Control** | Yes | No |\n| **Congestion Control** | Yes | No |\n| **Header Size** | 20-60 bytes | 8 bytes |\n| **Broadcasting** | No | Yes |\n| **Use Case** | Accuracy critical | Speed critical |\n\n## Key Differences Explained\n\n### **TCP (Reliable)**\n- Establishes connection before sending data (3-way handshake)\n- Ensures all packets arrive in correct order\n- Retransmits lost packets automatically\n- Best for: Email, file transfer, web browsing, banking\n\n### **UDP (Fast)**\n- Sends data immediately without connection setup\n- No guarantee packets arrive or arrive in order\n- Lower latency and bandwidth usage\n- Best for: Video streaming, online gaming, VoIP, DNS queries\n\n## Quick Decision Guide\n\n| Choose TCP if... | Choose UDP if... |\n|---|---|\n| Data accuracy is critical | Speed is more important |\n| You need guaranteed delivery | Some data loss is acceptable |\n| Order of data matters | Real-time communication needed |\n| You can tolerate latency | Low latency is essential |",
+  "score": 4,
+  "cost": 0.0016824000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 417
+  }
+}

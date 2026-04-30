@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "rag_qa",
+  "case": 32,
+  "response": "The world's economy grew significantly and became much more interconnected on a global scale as a result of imperialism.",
+  "score": 2,
+  "cost": 4.635e-05,
+  "expected": "the world's economy",
+  "tokens": {
+    "input": 225,
+    "output": 21
+  }
+}

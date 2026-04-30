@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "# What is an API?\n\nThink of an API like a **waiter at a restaurant**.\n\nYou sit down at a table with a menu. You don't go into the kitchen yourself to make food, and you don't need to know how the chef cooks. You just tell the waiter what you want, the waiter takes your order to the kitchen, and then brings back your meal.\n\nAn API works the same way between computer programs:\n\n- **You** = one program that wants something\n- **The kitchen** = another program that has what you want\n- **The waiter** = the API, carrying requests back and forth\n\n### A Real-Life Example\n\nWhen you check the weather on your phone, your weather app doesn't actually know the weather. It sends a \"waiter\" (the API) over to a big weather service, asks \"What's the weather in Chicago?\", and the waiter brings back the answer to display on your screen.\n\n### Why It's Useful\n\nAPIs let different apps and services talk to each other without needing to know how the other one works inside. That's how:\n\n- Your food delivery app shows a map (it's \"asking\" a map service)\n- A website lets you log in with your Google account\n- Your fitness tracker shares steps with other health apps\n\nIn short: **An API is a messenger that lets two programs share information or work together**, without either one needing to understand the other's inner workings.",
+  "score": 5,
+  "cost": 0.03078,
+  "expected": "",
+  "tokens": {
+    "input": 32,
+    "output": 404
+  }
+}

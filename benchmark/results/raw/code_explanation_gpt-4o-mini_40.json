@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_explanation",
+  "case": 40,
+  "response": "The provided code implements a Circuit Breaker pattern, which is a design pattern used to prevent an application from repeatedly trying to execute a failing operation, thereby allowing it to recover. It tracks the number of consecutive failures and transitions between three states: 'closed' (normal operation), 'open' (preventing calls to the function after exceeding a failure threshold), and 'half-open' (allowing a limited number of calls to test if the function has recovered after a timeout).",
+  "score": 5,
+  "cost": 8.67e-05,
+  "expected": "",
+  "tokens": {
+    "input": 198,
+    "output": 95
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_explanation",
+  "case": 32,
+  "response": "This code implements the **Union-Find data structure**, which efficiently manages a collection of disjoint sets. It uses **path compression** within the `find` operation to flatten the tree structure and **union by rank** within the `union` operation to keep the trees balanced, optimizing performance for subsequent operations.",
+  "score": 5,
+  "cost": 6.27e-05,
+  "expected": "",
+  "tokens": {
+    "input": 174,
+    "output": 61
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "\"Join Us: Project Update Meeting This Thursday at 3 PM\"",
+  "score": 2,
+  "cost": 0.000195,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 14
+  }
+}

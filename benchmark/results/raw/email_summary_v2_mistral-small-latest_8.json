@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 8,
+  "response": "The annual performance review cycle begins May 1, with key deadlines including self-reviews due May 15, manager reviews by May 22, calibration on May 28, and final delivery on June 5, using a new competency framework. A mandatory training session for managers is scheduled for April 30.",
+  "score": 5,
+  "cost": 3.1100000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 69
+  }
+}

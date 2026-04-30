@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "Here are three facts about the moon:\n\n1.  **We always see the same side.** The Moon is tidally locked with Earth, meaning it rotates on its axis at the exact same speed it takes to orbit our planet. This is why we only ever see one face of the Moon from Earth. The side we don't see is often called the \"dark side,\" but a more accurate term is the \"far side,\" as it receives just as much sunlight as the near side.\n\n2.  **It has no real atmosphere.** The Moon has an extremely thin and tenuous layer of gases called an exosphere, but it's not enough to be considered a true atmosphere. This lack of atmosphere means there is no weather, no wind to erode surfaces, and nothing to block radiation from the sun. It's also why the footprints left by the Apollo astronauts are still there and will remain for millions of years.\n\n3.  **The Moon is slowly drifting away from Earth.** Every year, the Moon moves about 3.8 centimeters (or 1.5 inches) farther away from our planet. This is caused by the transfer of energy from Earth's rotation to the Moon's orbit through tides.",
+  "score": 4,
+  "cost": 0.00252625,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 250
+  }
+}

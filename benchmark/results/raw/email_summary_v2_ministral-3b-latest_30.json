@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 30,
+  "response": "**Summary:**\nCompetitor X recently introduced AI auto-categorization at twice our pricing, while our superior API and integrations remain a key strength. The team recommends accelerating our AI roadmap to stay ahead.\n\n**Action Item:** Fast-track the AI roadmap development.",
+  "score": 5,
+  "cost": 6.040000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 56
+  }
+}

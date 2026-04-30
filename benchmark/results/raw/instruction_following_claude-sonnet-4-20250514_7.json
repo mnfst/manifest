@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "**Simple Scrambled Eggs**\n\nCrack 2-3 eggs into bowl, whisk with salt and pepper. Heat butter in non-stick pan over medium-low heat. Pour in eggs, let sit 20 seconds, then gently stir with spatula. Continue stirring every 20 seconds until just set but still creamy. Remove from heat immediately. Serve hot.",
+  "score": 2,
+  "cost": 0.001395,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 88
+  }
+}

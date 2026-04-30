@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 6,
+  "response": "The ocean waves crash.",
+  "score": 2,
+  "cost": 0.000174,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 8
+  }
+}

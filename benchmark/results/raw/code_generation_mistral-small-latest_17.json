@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "code_generation",
+  "case": 17,
+  "response": "```python\n    import hashlib\n\n    if not text:\n        return None\n\n    md5_hash = hashlib.md5(text.encode('utf-8')).hexdigest()\n    return md5_hash\n```",
+  "score": 5,
+  "cost": 2.6300000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 45
+  }
+}

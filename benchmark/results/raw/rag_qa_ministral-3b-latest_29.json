@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 29,
+  "response": "Istanbul",
+  "score": 5,
+  "cost": 7.04e-06,
+  "expected": "Istanbul",
+  "tokens": {
+    "input": 173,
+    "output": 3
+  }
+}

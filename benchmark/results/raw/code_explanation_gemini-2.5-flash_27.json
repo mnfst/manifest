@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_explanation",
+  "case": 27,
+  "response": "This code solves the \"Sliding Window Maximum\" problem. It uses a *monotonic deque* (double-ended queue) to efficiently find the maximum element within each sliding window of size `k`, maintaining indices in the deque such that their corresponding values are in decreasing order.",
+  "score": 5,
+  "cost": 5.325e-05,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 55
+  }
+}

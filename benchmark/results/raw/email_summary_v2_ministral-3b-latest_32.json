@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 32,
+  "response": "The **SSL certificate for `api.company.com` expires on May 4**, and an auto-renewal failed due to a missing CNAME record (`_acme-challenge.api.company.com`) caused by a recent DNS migration. **DevOps will re-add the record today**, but the team should monitor the status for visibility.",
+  "score": 5,
+  "cost": 6.84e-06,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 68
+  }
+}

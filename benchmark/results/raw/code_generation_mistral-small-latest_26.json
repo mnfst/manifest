@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "code_generation",
+  "case": 26,
+  "response": "```python\n    n = len(l)\n    if n < 3:\n        return False\n\n    l.sort()\n\n    for i in range(n - 2):\n        left = i + 1\n        right = n - 1\n        while left < right:\n            current_sum = l[i] + l[left] + l[right]\n            if current_sum == 0:\n                return True\n            elif current_sum < 0:\n                left += 1\n            else:\n                right -= 1\n    return False\n```",
+  "score": 5,
+  "cost": 5.48e-05,
+  "expected": "",
+  "tokens": {
+    "input": 206,
+    "output": 114
+  }
+}

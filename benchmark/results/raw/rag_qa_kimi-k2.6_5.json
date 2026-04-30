@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "rag_qa",
+  "case": 5,
+  "response": "Based on the context, the Rhine Bridge (the one immortalized in *A Bridge Too Far*) is at **Arnhem**. The context also mentions other bridges over the Rhine at Nijmegen and the Ludendorff Bridge at Remagen.",
+  "score": 4,
+  "cost": 0.0022926,
+  "expected": "Arnhem",
+  "tokens": {
+    "input": 233,
+    "output": 897
+  }
+}

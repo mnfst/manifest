@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "rag_qa",
+  "case": 2,
+  "response": "Taking physical control of another country, beginning a conquest over an area to rule it, and exploiting the valuable assets and supplies of the conquered nation.",
+  "score": 4,
+  "cost": 0.00066875,
+  "expected": "taking physical control of another",
+  "tokens": {
+    "input": 303,
+    "output": 29
+  }
+}

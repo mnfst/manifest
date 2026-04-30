@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "# Chatbot Greetings\n\n**Formal:**\n\"Good day. Welcome to our service. How may I assist you today?\"\n\n**Casual:**\n\"Hey there! What can I help you with?\"\n\n**Humorous:**\n\"Well, well, well... look who decided to show up! Ready to have your questions answered, or are you just here to chat?\"",
+  "score": 5,
+  "cost": 0.000368,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 86
+  }
+}

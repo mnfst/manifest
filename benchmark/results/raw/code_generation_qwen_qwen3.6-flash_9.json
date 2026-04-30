@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_generation",
+  "case": 9,
+  "response": "return sum(n**2 for n in lst if isinstance(n, int) and not isinstance(n, bool) and n >= 0 and n % 2 != 0)",
+  "score": 4,
+  "cost": 0.00345475,
+  "expected": "",
+  "tokens": {
+    "input": 179,
+    "output": 3410
+  }
+}

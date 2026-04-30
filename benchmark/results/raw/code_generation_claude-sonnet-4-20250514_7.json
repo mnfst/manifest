@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_generation",
+  "case": 7,
+  "response": "if n <= 0:\n        return 1\n    \n    result = 1\n    for i in range(1, n + 1):\n        factorial_i = 1\n        for j in range(1, i + 1):\n            factorial_i *= j\n        result *= factorial_i\n    \n    return result",
+  "score": 4,
+  "cost": 0.001581,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 78
+  }
+}

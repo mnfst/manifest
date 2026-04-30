@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_generation",
+  "case": 34,
+  "response": "\"\"\"A simple program which should return the value of x if n is \n    a prime number and should return the value of y otherwise.\n\n    Examples:\n    for x_or_y(7, 34, 12) == 34\n    for x_or_y(15, 8, 5) == 5\n    \n    \"\"\"\n    if n < 2:\n        return y\n    if n == 2:\n        return x\n    if n % 2 == 0:\n        return y\n    i = 3\n    while i * i <= n:\n        if n % i == 0:\n            return y\n        i += 2\n    return x",
+  "score": 4,
+  "cost": 0.005654,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 1252
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_generation",
+  "case": 2,
+  "response": "```python\n    res = []\n    s_lst = sorted(lst)\n    while s_lst:\n        res.append(s_lst.pop(0))\n        if s_lst:\n            res.append(s_lst.pop())\n    return res\n```",
+  "score": 4,
+  "cost": 0.00084125,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 63
+  }
+}

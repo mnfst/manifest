@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 5,
+  "response": "The product launch faces a two-week delay because the payment integration failed PCI compliance, and the team must choose between launching without payments or delaying entirely until May 15. A meeting is scheduled for tomorrow at 10am to decide, though Legal notes that launching without payments first requires updated terms and conditions.",
+  "score": 5,
+  "cost": 0.0012714,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 505
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 19,
+  "response": "The email discusses the renewal of a Datadog contract expiring June 30, with a current cost of $180K/year and a 3-year renewal offer at $155K/year (14% discount). Finance requires a decision by May 15, with an alternative Grafana Cloud option at $95K/year but requiring a 3-month migration.",
+  "score": 5,
+  "cost": 3.74e-05,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 84
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "rag_qa",
+  "case": 2,
+  "response": "taking physical control of another country (or: beginning a conquest over an area)\nThe context states: \"if colonialism refers to the process of a country taking physical control of another\" and \"Colonialism is when the imperial nation begins a conquest over an area and then eventually is able to rule over the areas the previous nation had controlled.\" These directly answer what colonialism often means a country doing.",
+  "score": 5,
+  "cost": 0.000131925,
+  "expected": "taking physical control of another",
+  "tokens": {
+    "input": 391,
+    "output": 342
+  }
+}

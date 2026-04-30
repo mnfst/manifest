@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "structured_output",
+  "case": 2,
+  "response": "Here is the extracted information in valid JSON matching the provided schema:\n\n```json\n{\n  \"product\": \"iPhone 15 Pro\",\n  \"price\": 999.0,\n  \"colors\": [\"black titanium\", \"white titanium\", \"blue titanium\"],\n  \"storage_options\": [\"128GB\", \"256GB\", \"512GB\", \"1TB\"]\n}\n```",
+  "score": 5,
+  "cost": 7.32e-06,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 86
+  }
+}

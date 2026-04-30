@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "\"Embrace challenges as stepping stones, for they lead you to your greatest growth.\"",
+  "score": 4,
+  "cost": 0.0002275,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 17
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "rag_qa",
+  "case": 0,
+  "response": "Lake \u00dcberlingen\nThe context states: \"A small fraction of the flow is diverted off the island of Mainau into Lake \u00dcberlingen.\" Since the flow in question is the cold water flow from Lake Constance, this directly answers the question.",
+  "score": 4,
+  "cost": 7.5225e-05,
+  "expected": "Lake \u00dcberlingen",
+  "tokens": {
+    "input": 315,
+    "output": 172
+  }
+}

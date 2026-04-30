@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "rag_qa",
+  "case": 45,
+  "response": "The show globe was employed until the early 20th century.",
+  "score": 5,
+  "cost": 4.124999999999999e-05,
+  "expected": "The show globe",
+  "tokens": {
+    "input": 223,
+    "output": 13
+  }
+}

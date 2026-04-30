@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 44,
+  "response": "In her email to the team regarding the Q3 budget review, Sarah shares key departmental budget variances confirmed with finance: marketing exceeded its allocated budget by 15% due to its August campaign, while engineering came in 8% under budget after experiencing delayed hiring. Sarah proposes reallocating $50K from engineering\u2019s unspent budget to cover marketing\u2019s overspend and asks the team to join a discussion of this plan this Thursday.",
+  "score": 5,
+  "cost": 0.0005545,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 519
+  }
+}

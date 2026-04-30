@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "rag_qa",
+  "case": 18,
+  "response": "Allan Bloom wrote \"The Closing of the American Mind.\"",
+  "score": 5,
+  "cost": 0.00055,
+  "expected": "Allan Bloom",
+  "tokens": {
+    "input": 172,
+    "output": 12
+  }
+}

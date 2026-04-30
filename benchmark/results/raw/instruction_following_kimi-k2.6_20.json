@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "",
+  "score": 1,
+  "cost": 0.0048132,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 2000
+  }
+}

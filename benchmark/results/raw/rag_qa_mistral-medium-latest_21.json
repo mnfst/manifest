@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "rag_qa",
+  "case": 21,
+  "response": "The context states that **anaerobic bacteria** that cause gas gangrene are poisoned by oxygen. However, it does not specify the exact genus or species of the pathogen.\n\nIf you are looking for a specific name (e.g., *Clostridium*), the answer is:\n**\"Not found in context.\"**",
+  "score": 5,
+  "cost": 0.00021040000000000002,
+  "expected": "anaerobic bacteria",
+  "tokens": {
+    "input": 201,
+    "output": 65
+  }
+}

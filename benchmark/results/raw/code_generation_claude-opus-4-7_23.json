@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_generation",
+  "case": 23,
+  "response": "```\n    min_sum = float('inf')\n    current = 0\n    for n in nums:\n        current = min(n, current + n)\n        min_sum = min(min_sum, current)\n    return min_sum\n```",
+  "score": 5,
+  "cost": 0.00768,
+  "expected": "",
+  "tokens": {
+    "input": 167,
+    "output": 69
+  }
+}

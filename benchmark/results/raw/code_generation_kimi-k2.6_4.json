@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_generation",
+  "case": 4,
+  "response": "return all(x <= y for x, y in zip(l, l[1:])) or all(x >= y for x, y in zip(l, l[1:]))",
+  "score": 5,
+  "cost": 0.0037554,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 1535
+  }
+}

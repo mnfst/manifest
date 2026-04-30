@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_explanation",
+  "case": 40,
+  "response": "The code implements a Circuit Breaker pattern, which is used to prevent a system from repeatedly trying to execute a failing operation. It tracks the number of consecutive failures (`failures`) and transitions between states ('closed', 'open', 'half-open') based on a failure threshold and a timeout period. If the failure count exceeds the threshold, the circuit opens, blocking further calls until the timeout expires, after which it transitions to 'half-open' to test if the operation can succeed again.",
+  "score": 5,
+  "cost": 0.001475,
+  "expected": "",
+  "tokens": {
+    "input": 198,
+    "output": 98
+  }
+}

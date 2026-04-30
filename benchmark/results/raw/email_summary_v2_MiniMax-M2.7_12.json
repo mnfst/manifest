@@ -2,12 +2,12 @@
   "model": "MiniMax-M2.7",
   "task": "email_summary_v2",
   "case": 12,
-  "response": "We have 4 open engineering reqs with 23 candidates in process, but the frontend role has been open 60 days without strong candidates. Recruiting recommends either expanding candidate search to remote or adjusting the compensation band to improve hiring prospects.",
+  "response": "We currently have 4 open engineering reqs with 23 candidates in pipeline and 5 in final rounds. The frontend role, open for 60 days with no strong candidates, requires action: the recruiter recommends either expanding to remote candidates or adjusting the compensation band.",
   "score": 5,
-  "cost": 0.0009570000000000001,
+  "cost": 0.0010318000000000003,
   "expected": "",
   "tokens": {
     "input": 110,
-    "output": 190
+    "output": 207
   }
 }

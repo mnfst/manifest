@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_generation",
+  "case": 6,
+  "response": "seen = set()\n    duplicates = set()\n    \n    # First pass: identify duplicates\n    for num in numbers:\n        if num in seen:\n            duplicates.add(num)\n        else:\n            seen.add(num)\n    \n    # Second pass: keep only non-duplicates\n    result = []\n    for num in numbers:\n        if num not in duplicates:\n            result.append(num)\n    \n    return result",
+  "score": 5,
+  "cost": 0.002025,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 109
+  }
+}

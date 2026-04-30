@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 34,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 1e-05,
+  "expected": "infinitely many prime numbers",
+  "tokens": {
+    "input": 244,
+    "output": 6
+  }
+}

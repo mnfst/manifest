@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "rag_qa",
+  "case": 22,
+  "response": "The South African Schools Act of 1996 recognized two types of schools.",
+  "score": 5,
+  "cost": 0.000738,
+  "expected": "South African Schools Act",
+  "tokens": {
+    "input": 151,
+    "output": 19
+  }
+}

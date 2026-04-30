@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_generation",
+  "case": 27,
+  "response": "best_strength = -float('inf')\n    best_ext = None\n    for ext in extensions:\n        cap = 0\n        sm = 0\n        for c in ext:\n            if c.isupper():\n                cap += 1\n            elif c.islower():\n                sm += 1\n        strength = cap - sm\n        if strength > best_strength:\n            best_strength = strength\n            best_ext = ext\n    return f\"{class_name}.{best_ext}\"",
+  "score": 4,
+  "cost": 0.000491025,
+  "expected": "",
+  "tokens": {
+    "input": 391,
+    "output": 1539
+  }
+}

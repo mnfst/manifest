@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "rag_qa",
+  "case": 34,
+  "response": "If q=9 and a=1,2,4,5,7, or 8, there would be infinitely many prime numbers in a progression.",
+  "score": 5,
+  "cost": 5.55e-05,
+  "expected": "infinitely many prime numbers",
+  "tokens": {
+    "input": 242,
+    "output": 32
+  }
+}

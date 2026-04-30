@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "1. The Moon is about 4.5 billion years old, roughly the same age as Earth.\n2. It has no atmosphere, which means there is no weather or sound on the Moon.\n3. The Moon is slowly moving away from Earth at a rate of about 3.8 centimeters (1.5 inches) per year.",
+  "score": 5,
+  "cost": 2.48e-05,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 71
+  }
+}

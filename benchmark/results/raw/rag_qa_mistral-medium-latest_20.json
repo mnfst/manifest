@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "rag_qa",
+  "case": 20,
+  "response": "Erg\u00e4nzungsschulen are **funded in whole by charging their students tuition fees**.",
+  "score": 2,
+  "cost": 9.559999999999999e-05,
+  "expected": "tuition",
+  "tokens": {
+    "input": 139,
+    "output": 20
+  }
+}

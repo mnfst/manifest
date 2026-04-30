@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "Here\u2019s a clear, step-by-step guide to creating a strong password:\n\n### **What Makes a Good Password?**\n\n1. **Length Matters**\n   - Use **at least 12 characters** (longer is better).\n   - The longer the password, the harder it is to crack.\n\n2. **Mix Character Types**\n   - Include **uppercase letters** (A-Z), **lowercase letters** (a-z), **numbers** (0-9), and **symbols** (!, @, #, $, etc.).\n   - Example: `T7#kL9!pQ2$vX`\n\n3. **Avoid Common Words & Patterns**\n   - Don\u2019t use **dictionary words** (e.g., \"password,\" \"qwerty\").\n   - Avoid **sequential patterns** (e.g., \"123456,\" \"abc123\").\n   - Skip **personal info** (names, birthdays, pet names).\n\n4. **Make It Random & Unique**\n   - Avoid **reusing passwords** across different accounts.\n   - Use a **password manager** to generate and store strong passwords.\n\n5. **Use Passphrases (Easier to Remember, Harder to Crack)**\n   - Combine **4-6 random words** with symbols/numbers.\n   - Example: `Purple$Giraffe2Jump!OverMoon`\n\n6. **Enable Two-Factor Authentication (2FA)**\n   - Even the best password can be compromised\u2014**add an extra layer** (SMS, authenticator app, or hardware key).\n\n7. **Change Passwords When Necessary**\n   - Update passwords if you suspect a breach.\n   - Avoid changing them too often unless required (e.g., after a security alert).\n\n8. **Test Your Password Strength**\n   - Use tools like [Kaspersky\u2019s Password Checker](https://password.kaspersky.com/) to see how secure it is.\n\n### **Example of a Strong Password:**\n`BlueSky$2024!Rocket#Jump42`\n\nWould you like help creating a password for a specific account?",
+  "score": 4,
+  "cost": 0.00013739999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 449
+  }
+}

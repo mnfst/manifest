@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 1,
+  "response": "Jen's post-mortem identified a misconfigured load balancer as the root cause of a 47-minute outage that degraded service for 12,000 users. The action items are to add load balancer configuration validation to CI, update the runbook, and implement traffic distribution alerts.",
+  "score": 5,
+  "cost": 0.0018432000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 742
+  }
+}

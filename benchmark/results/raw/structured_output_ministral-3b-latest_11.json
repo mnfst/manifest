@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "structured_output",
+  "case": 11,
+  "response": "Here is the extracted information in valid JSON matching the provided schema:\n\n```json\n{\n  \"name\": \"Maria Rodriguez\",\n  \"date_of_birth\": \"1985-03-22\",\n  \"blood_type\": \"O+\",\n  \"allergies\": [\"penicillin\", \"shellfish\"],\n  \"medications\": [\n    {\n      \"name\": \"lisinopril\",\n      \"dosage\": \"10mg\",\n      \"frequency\": \"daily\"\n    }\n  ]\n}\n```",
+  "score": 5,
+  "cost": 9.2e-06,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 111
+  }
+}

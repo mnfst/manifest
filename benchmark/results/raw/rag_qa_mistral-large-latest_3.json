@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "rag_qa",
+  "case": 3,
+  "response": "Based on the provided context, the leader of the Islamist regime in Sudan was **Hassan al-Turabi**.",
+  "score": 5,
+  "cost": 0.000456,
+  "expected": "Hassan al-Turabi",
+  "tokens": {
+    "input": 150,
+    "output": 26
+  }
+}

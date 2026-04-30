@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 45,
+  "response": "set1 = set(l1)\n    set2 = set(l2)\n    common_elements = list(set1.intersection(set2))\n    common_elements.sort()\n    return common_elements",
+  "score": 4,
+  "cost": 5.25e-05,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 48
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "Of course. Here is a description of a thunderstorm:\n\nThe storm announces its arrival not with a bang, but with a change in the air. The sky, once a placid blue, deepens into a bruised, charcoal gray, and the world below falls into an eerie twilight. A sudden, cool wind rushes through the trees, making them hiss and sway.\n\nThen comes the first low, distant rumble of thunder, a vibration you feel in your chest as much as you hear with your ears. It\u2019s the sound of a giant moving furniture in the heavens. A moment later, a jagged fork of brilliant white lightning silently splits the sky, etching the landscape in a stark, ghostly negative for a split second.\n\nThe first heavy drops of rain begin to fall, splattering like dark coins on the dry pavement. They release the rich, earthy **smell of petrichor**\u2014the scent of dust and dry soil finally quenched. The downpour quickly becomes a torrential sheet, a relentless drumming on the roof that drowns out all other sounds. The air is now filled with the sharp, clean **scent of ozone**, the ghost of the lightning's immense power. With a sudden, deafening **crack**, thunder explodes directly overhead, a violent sound so powerful it rattles the windows in their frames and makes your heart jump in your chest.",
+  "score": 5,
+  "cost": 0.00277625,
+  "expected": "",
+  "tokens": {
+    "input": 13,
+    "output": 276
+  }
+}

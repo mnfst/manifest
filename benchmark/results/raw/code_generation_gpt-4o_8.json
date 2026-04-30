@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_generation",
+  "case": 8,
+  "response": "```python\nreturn [value for value in values if isinstance(value, int)]\n```",
+  "score": 5,
+  "cost": 0.000485,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 17
+  }
+}

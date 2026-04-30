@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 40,
+  "response": "Full citizenship rights\u2014**\"assimilation\"**\u2014were offered, which was rare by imperial standards compared to other colonial powers. While many colonies granted limited rights or outright exclusion, France\u2019s promise of assimilation (though often delayed in practice) stood out as a more inclusive approach.",
+  "score": 5,
+  "cost": 9.04e-06,
+  "expected": "assimilation",
+  "tokens": {
+    "input": 170,
+    "output": 56
+  }
+}

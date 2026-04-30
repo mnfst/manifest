@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_generation",
+  "case": 14,
+  "response": "if n <= 0:\n        return 0\n    elif n == 1:\n        return 1\n    a, b = 0, 1\n    for _ in range(2, n + 1):\n        a, b = b, a + b\n    return b",
+  "score": 5,
+  "cost": 8.92e-05,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 62
+  }
+}

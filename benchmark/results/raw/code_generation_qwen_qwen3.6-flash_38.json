@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_generation",
+  "case": 38,
+  "response": "negs = [x for x in lst if x < 0]\n    pos = [x for x in lst if x > 0]\n    return (max(negs) if negs else None, min(pos) if pos else None)",
+  "score": 5,
+  "cost": 0.0013555,
+  "expected": "",
+  "tokens": {
+    "input": 182,
+    "output": 1310
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 15,
+  "response": "The legal team has approved the updated terms with two mandatory changes\u2014adding an arbitration clause for the enterprise tier and reducing the data retention period from 180 days to 90 days\u2014which must go live before the product\u2019s EU launch on May 1. The legal team confirmed they will complete and share the final revised version of the terms the same day they sent this email to ensure the project meets its critical launch timeline.",
+  "score": 5,
+  "cost": 0.000383,
+  "expected": "",
+  "tokens": {
+    "input": 148,
+    "output": 346
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "rag_qa",
+  "case": 49,
+  "response": "Patient care rounds drug product selection.",
+  "score": 1,
+  "cost": 0.00023625,
+  "expected": "patient care rounds drug product selection",
+  "tokens": {
+    "input": 133,
+    "output": 7
+  }
+}

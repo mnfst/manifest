@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "rag_qa",
+  "case": 4,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 2.625e-05,
+  "expected": "North America",
+  "tokens": {
+    "input": 155,
+    "output": 5
+  }
+}

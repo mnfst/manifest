@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Plants perform photosynthesis, producing sustenance systematically. Sunlight strikes plant surfaces, specifically specialized structures. Pigments present particularly capture photons. Subsequently, plants split substances - specifically separating H2O (splitting produces protons plus oxygen). \n\nPlants process carbon substances, synthesizing sugars systematically. Photosynthesis produces primary plant provisions. Simply put: sunlight plus substances produce sugars, supporting plant survival. Plants simultaneously produce oxygen, supporting surrounding species.\n\nPhotosynthesis permits plants' persistence, providing sustenance plus supporting planetary systems perpetually.",
+  "score": 5,
+  "cost": 0.00195,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 125
+  }
+}

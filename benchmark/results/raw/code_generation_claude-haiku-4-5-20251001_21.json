@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 21,
+  "response": "```python\ndef is_palindrome(num):\n    s = str(num)\n    return s == s[::-1]\n\neven_count = 0\nodd_count = 0\n\nfor i in range(1, n):\n    if is_palindrome(i):\n        if i % 2 == 0:\n            even_count += 1\n        else:\n            odd_count += 1\n\nreturn (even_count, odd_count)\n```",
+  "score": 3,
+  "cost": 0.0006544,
+  "expected": "",
+  "tokens": {
+    "input": 263,
+    "output": 111
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 20,
+  "response": "This weekend incident report from the on-call team details a 2 AM Saturday disk space alert on the production database prod-db-01, where automated disk cleanup freed just 40GB and failed to resize the disk, requiring 8 AM manual intervention to fully restore service, with no customer impact as the incident occurred during a scheduled maintenance window. The root cause of the alert was misconfigured log rotation put in place during the last server migration, and responsible engineering teams must remediate this configuration error to prevent similar disruptive disk space issues from impacting production systems going forward.",
+  "score": 5,
+  "cost": 0.00090775,
+  "expected": "",
+  "tokens": {
+    "input": 143,
+    "output": 872
+  }
+}

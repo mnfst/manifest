@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 35,
+  "response": "The email announces an update to the content moderation policy to address AI-generated content, with new rules requiring labeling of AI-generated images, prohibiting deepfakes, and allowing AI-assisted text with disclosure, effective June 1. Training materials are being prepared to support the implementation of these changes.",
+  "score": 5,
+  "cost": 2.8700000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 60
+  }
+}

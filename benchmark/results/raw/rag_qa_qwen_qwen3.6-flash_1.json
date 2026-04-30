@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "rag_qa",
+  "case": 1,
+  "response": "1665.",
+  "score": 1,
+  "cost": 0.0007045,
+  "expected": "1665",
+  "tokens": {
+    "input": 318,
+    "output": 625
+  }
+}

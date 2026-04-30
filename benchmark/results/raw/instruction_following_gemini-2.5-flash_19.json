@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "AI: Transforming industries, sparking innovation, and redefining what's possible. The future is intelligent! \ud83d\ude80 What's your favorite AI application today? #AI #Tech",
+  "score": 5,
+  "cost": 2.325e-05,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 35
+  }
+}

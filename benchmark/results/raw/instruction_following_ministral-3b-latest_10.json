@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "There once was a man named Dave,\nWhose code was always quite brave.\nWith a keyboard so tight,\nHe\u2019d debug all night\u2014\nTill his screen lit up with a *glow*!",
+  "score": 5,
+  "cost": 2.24e-06,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 42
+  }
+}

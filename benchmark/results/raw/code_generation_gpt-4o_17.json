@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_generation",
+  "case": 17,
+  "response": "```python\nimport hashlib\n\nif not text:\n    return None\nmd5_hash = hashlib.md5(text.encode())\nreturn md5_hash.hexdigest()\n```",
+  "score": 4,
+  "cost": 0.00059,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 32
+  }
+}

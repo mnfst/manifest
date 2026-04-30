@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "```python\ndef sort(iterable, *, key=None, reverse=False):\n    \"\"\"Sort an iterable and return a new sorted list.\n\n    Returns a new list containing all items from the input iterable in\n    ascending order. A custom key function can be supplied to customize\n    the sort order, and the direction can be reversed.\n\n    Args:\n        iterable (Iterable): The iterable of items to sort. Items must be\n            mutually comparable, or a ``key`` function must be provided.\n        key (Callable, optional): A function of one argument used to extract\n            a comparison key from each element in ``iterable``. Defaults to\n            ``None``, meaning the elements are compared directly.\n        reverse (bool, optional): If ``True``, the list is sorted in\n            descending order. Defaults to ``False``.\n\n    Returns:\n        list: A new list containing the sorted items from ``iterable``.\n\n    Raises:\n        TypeError: If the items in ``iterable`` are not comparable and no\n            ``key`` function is provided, or if ``key`` is not callable.\n\n    Example:\n        >>> sort([3, 1, 2])\n        [1, 2, 3]\n        >>> sort([\"banana\", \"apple\", \"cherry\"], key=len)\n        ['apple', 'banana', 'cherry']\n        >>> sort([1, 2, 3], reverse=True)\n        [3, 2, 1]\n    \"\"\"\n```",
+  "score": 4,
+  "cost": 0.03465,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 456
+  }
+}

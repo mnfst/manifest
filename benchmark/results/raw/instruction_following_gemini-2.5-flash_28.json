@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "Believe in yourself, take consistent action, and build the extraordinary future you envision.",
+  "score": 2,
+  "cost": 1.245e-05,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 16
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 35,
+  "response": "The **Content Moderation Policy** has been updated to require **AI-generated images to be labeled**, ban **deepfakes**, and mandate **disclosure for AI-assisted text**, with enforcement beginning **June 1**. Teams are preparing **training materials** to support compliance.",
+  "score": 5,
+  "cost": 6.040000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 56
+  }
+}

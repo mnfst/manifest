@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_generation",
+  "case": 25,
+  "response": "s = paren_string.replace(' ', '')\n    result = []\n    balance = 0\n    start = 0\n    for i, char in enumerate(s):\n        if char == '(':\n            balance += 1\n        elif char == ')':\n            balance -= 1\n        if balance == 0:\n            result.append(s[start:i+1])\n            start = i + 1\n    return result",
+  "score": 4,
+  "cost": 0.017212,
+  "expected": "",
+  "tokens": {
+    "input": 156,
+    "output": 3271
+  }
+}

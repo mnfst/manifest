@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 16,
+  "response": "The April campaign generated 45K impressions, 2.3K clicks, and 187 signups at a $12K cost ($64 CAC), with month-over-month CTR up 1.2pp but conversion down 0.8pp. The recommended action is to A/B test the landing page CTA.",
+  "score": 5,
+  "cost": 0.0020166,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 811
+  }
+}

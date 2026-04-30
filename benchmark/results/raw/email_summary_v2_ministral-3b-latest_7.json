@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 7,
+  "response": "The office will relocate to **500 Market St** starting **June 1**, with the move occurring over the weekend of **June 7\u20138**, while IT will prepare the network from **June 4\u20136**. Each team must appoint a **move coordinator by Friday**, and budget has been approved for professional movers.",
+  "score": 5,
+  "cost": 6.44e-06,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 70
+  }
+}

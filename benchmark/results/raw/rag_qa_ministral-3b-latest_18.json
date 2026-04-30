@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 18,
+  "response": "Studs Terkel wrote \"The Good War,\" but **Allan Bloom** wrote *The Closing of the American Mind*.\n\n*(Note: The question mistakenly refers to \"The Closing of the American Mind\" as an author's work, but the context lists Allan Bloom as the author of that book.)*",
+  "score": 5,
+  "cost": 9.4e-06,
+  "expected": "Allan Bloom",
+  "tokens": {
+    "input": 170,
+    "output": 65
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "The email reports **four open engineering roles** (2 backend, 1 frontend, 1 ML) with **23 candidates in the pipeline** and **5 in final rounds**, highlighting a **delay in the frontend position** (60 days without strong candidates). **Action:** Recruiting suggests expanding hiring options (e.g., remote roles) or adjusting compensation to attract talent.",
+  "score": 5,
+  "cost": 7.08e-06,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 79
+  }
+}

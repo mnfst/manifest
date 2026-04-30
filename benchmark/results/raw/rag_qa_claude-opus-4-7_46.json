@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "rag_qa",
+  "case": 46,
+  "response": "Los Angeles Kings",
+  "score": 5,
+  "cost": 0.004455,
+  "expected": "Los Angeles Kings",
+  "tokens": {
+    "input": 232,
+    "output": 13
+  }
+}

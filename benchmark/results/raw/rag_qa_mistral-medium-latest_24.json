@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "rag_qa",
+  "case": 24,
+  "response": "5,500,000 square kilometers.",
+  "score": 2,
+  "cost": 0.00015240000000000002,
+  "expected": "5,500,000 square kilometres (2,100,000 sq mi) are covered by the rainforest.",
+  "tokens": {
+    "input": 316,
+    "output": 13
+  }
+}

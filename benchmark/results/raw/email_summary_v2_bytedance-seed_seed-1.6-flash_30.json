@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "email_summary_v2",
+  "case": 30,
+  "response": "Competitor X launched AI features with auto-categorization (a capability we lack) at 2x our pricing, receiving a neutral market response, while our advantage lies in better APIs and integrations. The Product team recommends fast-tracking our AI roadmap item.",
+  "score": 5,
+  "cost": 9.5175e-05,
+  "expected": "",
+  "tokens": {
+    "input": 173,
+    "output": 274
+  }
+}

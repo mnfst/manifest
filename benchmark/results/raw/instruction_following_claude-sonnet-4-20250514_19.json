@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "\ud83e\udd16 AI isn't here to replace human creativity\u2014it's here to amplify it. The most exciting breakthroughs happen when human intuition meets machine precision. We're not building our replacements; we're building our thinking partners. #AI #Innovation #HumanAI",
+  "score": 5,
+  "cost": 0.00105,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 66
+  }
+}

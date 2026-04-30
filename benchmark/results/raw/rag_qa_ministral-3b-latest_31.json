@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 31,
+  "response": "Sharia",
+  "score": 5,
+  "cost": 7e-06,
+  "expected": "Sharia",
+  "tokens": {
+    "input": 172,
+    "output": 3
+  }
+}

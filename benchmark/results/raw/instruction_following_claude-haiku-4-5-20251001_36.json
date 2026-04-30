@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 36,
+  "response": "# 4 Programming Languages\n\n1. **Java** - A widely-used, object-oriented language known for its \"write once, run anywhere\" philosophy\n2. **C++** - A powerful, compiled language used for system software, game engines, and performance-critical applications\n3. **Go** - A modern language developed by Google, designed for simplicity and concurrent programming\n4. **Rust** - A systems programming language focused on memory safety and preventing common bugs",
+  "score": 5,
+  "cost": 0.0004288,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 103
+  }
+}

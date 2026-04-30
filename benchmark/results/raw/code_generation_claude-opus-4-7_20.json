@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_generation",
+  "case": 20,
+  "response": "```python\n    vals = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1]\n    syms = ['m', 'cm', 'd', 'cd', 'c', 'xc', 'l', 'xl', 'x', 'ix', 'v', 'iv', 'i']\n    result = ''\n    for v, s in zip(vals, syms):\n        while number >= v:\n            result += s\n            number -= v\n    return result\n```",
+  "score": 5,
+  "cost": 0.015315,
+  "expected": "",
+  "tokens": {
+    "input": 211,
+    "output": 162
+  }
+}

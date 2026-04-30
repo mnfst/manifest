@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 11,
+  "response": "Sure! Here are some questions based on your message:\n\n1. What topic or subject are you exploring?\n2. What specific details or points would you like to discuss?\n3. How can I best tailor my response to your needs?\n4. What kind of questions are you hoping to get answered?\n5. Are there any particular angles or perspectives you\u2019d like to explore?\n6. What\u2019s your current understanding of the topic?\n7. What kind of format or style would you prefer for the response?\n8. Are there any constraints or limitations you\u2019d like me to consider?\n9. What\u2019s the main question or confusion you\u2019re trying to address?\n10. Would you like me to focus on clarity, depth, or a different approach?",
+  "score": 5,
+  "cost": 6.519999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 12,
+    "output": 151
+  }
+}

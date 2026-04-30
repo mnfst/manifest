@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "rag_qa",
+  "case": 30,
+  "response": "Melbourne",
+  "score": 0,
+  "cost": 2.77e-05,
+  "expected": "Melbourne",
+  "tokens": {
+    "input": 268,
+    "output": 3
+  }
+}

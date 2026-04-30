@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "instruction_following",
+  "case": 3,
+  "response": "FRANCE\nGERMANY\nITALY\nSPAIN\nPOLAND",
+  "score": 5,
+  "cost": 0.00048,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 195
+  }
+}

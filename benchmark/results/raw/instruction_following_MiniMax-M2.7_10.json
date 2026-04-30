@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "There once was a programmer named Dave,  \nWho wrote code so elegant, brave.  \nHe\u2019d debug with a grin,  \nAnd let bugs never win,  \nAnd his programs would hum like a wave.",
+  "score": 5,
+  "cost": 0.005689200000000001,
+  "expected": "",
+  "tokens": {
+    "input": 32,
+    "output": 1285
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 20,
+  "response": "The email reports a disk space alert on prod-db-01 early Saturday, resolved by automated cleanup and manual intervention, with the root cause being a misconfigured log rotation post-migration. No customer impact occurred due to a maintenance window.",
+  "score": 5,
+  "cost": 2.58e-05,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 50
+  }
+}

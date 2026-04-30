@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "structured_output",
+  "case": 40,
+  "response": "```json\n{\n  \"ticket_id\": 8472,\n  \"priority\": \"High\",\n  \"created\": \"2h ago\",\n  \"user\": \"premium_user@corp.com\",\n  \"category\": \"billing\",\n  \"subject\": \"Double charged for March subscription\",\n  \"assigned_to\": \"Agent Mike\",\n  \"status\": \"in progress\"\n}\n```",
+  "score": 4,
+  "cost": 3.76e-05,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 83
+  }
+}

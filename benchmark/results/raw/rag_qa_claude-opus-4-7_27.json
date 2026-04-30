@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "rag_qa",
+  "case": 27,
+  "response": "Newton's First Law of Motion connects relative velocities with inertia. By making rest physically indistinguishable from non-zero constant velocity, Newton's First Law directly connects inertia with the concept of relative velocities.",
+  "score": 4,
+  "cost": 0.011745,
+  "expected": "Newton's First",
+  "tokens": {
+    "input": 408,
+    "output": 75
+  }
+}

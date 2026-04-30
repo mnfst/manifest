@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 22,
+  "response": "```python\n    balance = 0\n    for char in brackets:\n        if char == '<':\n            balance += 1\n        elif char == '>':\n            balance -= 1\n        \n        # If balance drops below zero, it means a closing bracket appeared without a matching opening one.\n        if balance < 0:\n            return False\n            \n    # After iterating through all characters, if balance is 0, all brackets are matched.\n    # If balance is positive, there are unmatched opening brackets.\n    return balance == 0\n```",
+  "score": 5,
+  "cost": 9.089999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 121
+  }
+}

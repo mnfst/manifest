@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 13,
+  "response": "The seven colors of the rainbow in order are:\n\n1. **Red**\n2. **Orange**\n3. **Yellow**\n4. **Green**\n5. **Blue**\n6. **Indigo**\n7. **Violet**",
+  "score": 5,
+  "cost": 0.00010159999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 48
+  }
+}

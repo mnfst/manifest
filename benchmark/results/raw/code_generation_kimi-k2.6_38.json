@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_generation",
+  "case": 38,
+  "response": "return (\n        max((x for x in lst if x < 0), default=None),\n        min((",
+  "score": 4,
+  "cost": 0.004902,
+  "expected": "",
+  "tokens": {
+    "input": 170,
+    "output": 2000
+  }
+}

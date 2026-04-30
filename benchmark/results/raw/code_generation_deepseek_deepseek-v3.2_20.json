@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_generation",
+  "case": 20,
+  "response": "```python\n    if not 1 <= number <= 1000:\n        return \"\"\n    \n    val = [\n        1000, 900, 500, 400,\n        100, 90, 50, 40,\n        10, 9, 5, 4,\n        1\n    ]\n    syb = [\n        \"M\", \"CM\", \"D\", \"CD\",\n        \"C\", \"XC\", \"L\", \"XL\",\n        \"X\", \"IX\", \"V\", \"IV\",\n        \"I\"\n    ]\n    \n    roman_numeral = []\n    i = 0\n    while number > 0:\n        for _ in range(number // val[i]):\n            roman_numeral.append(syb[i])\n            number -= val[i]\n        i += 1\n    \n    return ''.join(roman_numeral).lower()\n```",
+  "score": 5,
+  "cost": 0.00023040000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 179
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "# Pizza\n\nA delicious, crispy, golden crust. Melted, stretchy mozzarella cheese. Tangy, rich tomato sauce. Fresh basil leaves. Savory pepperoni slices. Juicy mushrooms. Sweet bell peppers. Aromatic garlic. Salty olives. Tender onions. A warm, satisfying meal. Pure comfort food.",
+  "score": 5,
+  "cost": 0.00038239999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 91
+  }
+}

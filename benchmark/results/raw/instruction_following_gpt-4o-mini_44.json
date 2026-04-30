@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "Sure! Here\u2019s a list of ingredients for a basic salad in checkbox format:\n\n- [ ] Lettuce (e.g., romaine, iceberg, or mixed greens)\n- [ ] Tomatoes (e.g., cherry or diced)\n- [ ] Cucumber\n- [ ] Carrots (shredded or sliced)\n- [ ] Bell peppers (any color)\n- [ ] Red onion (sliced or diced)\n- [ ] Radishes (sliced)\n- [ ] Avocado (optional)\n- [ ] Olive oil (for dressing)\n- [ ] Vinegar (e.g., balsamic, red wine, or apple cider)\n- [ ] Salt\n- [ ] Pepper\n\nFeel free to customize it with any additional ingredients you like!",
+  "score": 5,
+  "cost": 9.345e-05,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 151
+  }
+}

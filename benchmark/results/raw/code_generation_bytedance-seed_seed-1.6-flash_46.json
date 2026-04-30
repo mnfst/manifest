@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_generation",
+  "case": 46,
+  "response": "min_even = None\n    min_index = -1\n    for i, num in enumerate(arr):\n        if num % 2 == 0:\n            if min_even is None:\n                min_even = num\n                min_index = i\n            else:\n                if num < min_even:\n                    min_even = num\n                    min_index = i\n    return [min_even, min_index] if min_even is not None else []",
+  "score": 4,
+  "cost": 0.000508575,
+  "expected": "",
+  "tokens": {
+    "input": 449,
+    "output": 1583
+  }
+}

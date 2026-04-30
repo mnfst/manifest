@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "structured_output",
+  "case": 39,
+  "response": "{\n  \"build_number\": 4521,\n  \"branch\": \"feature/auth-v2\",\n  \"status\": \"failed\",\n  \"failed_stage\": \"test stage\",\n  \"duration\": \"8m 32s\",\n  \"tests\": {\n    \"passed\": 247,\n    \"failed\": 3,\n    \"skipped\": 0\n  },\n  \"trigger\": \"push from @alice\",\n  \"author\": \"@alice\"\n}",
+  "score": 5,
+  "cost": 0.0001434,
+  "expected": "",
+  "tokens": {
+    "input": 216,
+    "output": 424
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "- [ ] Lettuce\n- [ ] Tomatoes\n- [ ] Cucumber\n- [ ] Carrots\n- [ ] Red onion\n- [ ] Bell peppers\n- [ ] Olive oil\n- [ ] Lemon juice or vinegar\n- [ ] Salt\n- [ ] Pepper",
+  "score": 5,
+  "cost": 0.0006275,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 58
+  }
+}

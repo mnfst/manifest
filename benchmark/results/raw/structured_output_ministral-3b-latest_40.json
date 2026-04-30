@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "structured_output",
+  "case": 40,
+  "response": "Here is the extracted information in valid JSON matching the provided schema:\n\n```json\n{\n  \"ticket_id\": 8472,\n  \"priority\": \"High priority\",\n  \"created\": \"2h ago\",\n  \"user\": \"premium_user@corp.com\",\n  \"category\": \"billing\",\n  \"subject\": \"Double charged for March subscription\",\n  \"assigned_to\": \"Agent Mike\",\n  \"status\": \"in progress\"\n}\n```",
+  "score": 4,
+  "cost": 8.48e-06,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 97
+  }
+}

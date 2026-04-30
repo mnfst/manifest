@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_explanation",
+  "case": 8,
+  "response": "# Debounce Decorator\n\nThis code implements a **debounce pattern** that delays function execution by `wait` seconds and resets the timer each time the decorated function is called, ensuring the function only executes after a period of inactivity. It uses `threading.Timer` to cancel previous pending calls and schedule a new one, preventing rapid successive executions.",
+  "score": 5,
+  "cost": 0.00042080000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 81
+  }
+}

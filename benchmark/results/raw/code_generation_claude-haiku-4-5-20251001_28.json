@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 28,
+  "response": "```python\n    result = []\n    \n    # Iterate through each row with its index\n    for row_idx, row in enumerate(lst):\n        # Find all columns in this row that contain x\n        cols = []\n        for col_idx, val in enumerate(row):\n            if val == x:\n                cols.append(col_idx)\n        \n        # Sort columns in descending order\n        cols.sort(reverse=True)\n        \n        # Add tuples to result\n        for col_idx in cols:\n            result.append((row_idx, col_idx))\n    \n    return result\n```",
+  "score": 4,
+  "cost": 0.0008368,
+  "expected": "",
+  "tokens": {
+    "input": 321,
+    "output": 145
+  }
+}

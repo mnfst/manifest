@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_generation",
+  "case": 31,
+  "response": "filtered = [s for s in lst if len(s) % 2 == 0]\n    filtered.sort(key=lambda x: (len(x), x))\n    return filtered",
+  "score": 4,
+  "cost": 0.00039742499999999997,
+  "expected": "",
+  "tokens": {
+    "input": 311,
+    "output": 1247
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 39,
+  "response": "```python\n    if x == 0:\n        return '0'\n    \n    digits = []\n    while x > 0:\n        digits.append(str(x % base))\n        x //= base\n    \n    return ''.join(reversed(digits))\n```",
+  "score": 5,
+  "cost": 0.00038,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 67
+  }
+}

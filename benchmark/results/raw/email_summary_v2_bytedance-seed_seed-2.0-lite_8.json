@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 8,
+  "response": "HR has announced that the company\u2019s annual performance review cycle will begin May 1, incorporating a new competency framework this year and following a set timeline of milestones: self-reviews due May 15, manager reviews due May 22, calibration May 28, and final review delivery to employees June 5. The key action items tied to the cycle require all managers to attend a dedicated training session on April 30 to learn the new framework, and all participating employees and leaders to submit their required reviews by their respective deadlines to keep the process on track.",
+  "score": 5,
+  "cost": 0.0008075,
+  "expected": "",
+  "tokens": {
+    "input": 138,
+    "output": 773
+  }
+}

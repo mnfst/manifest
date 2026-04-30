@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "rag_qa",
+  "case": 12,
+  "response": "J. F. D. Shrewsbury",
+  "score": 5,
+  "cost": 0.0005958,
+  "expected": "British bacteriologist J. F. D. Shrewsbury",
+  "tokens": {
+    "input": 193,
+    "output": 200
+  }
+}

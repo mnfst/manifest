@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_generation",
+  "case": 32,
+  "response": "return ' '.join(''.join(sorted(word)) for word in s.split(' '))",
+  "score": 5,
+  "cost": 0.00196375,
+  "expected": "",
+  "tokens": {
+    "input": 219,
+    "output": 1909
+  }
+}

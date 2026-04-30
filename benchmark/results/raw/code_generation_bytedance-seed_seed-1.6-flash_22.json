@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_generation",
+  "case": 22,
+  "response": "stack = []\n    for char in brackets:\n        if char == '<':\n            stack.append(char)\n        else:\n            if not stack:\n                return False\n            stack.pop()\n    return len(stack) == 0",
+  "score": 4,
+  "cost": 0.00024375,
+  "expected": "",
+  "tokens": {
+    "input": 210,
+    "output": 760
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "rag_qa",
+  "case": 23,
+  "response": "mortgage banker\nThe context states: \"The presence of the mortgage banker is highly likely, even in relatively small projects since the owner's equity in the property is the most obvious source of funding for a building project.\" Thus, the answer is mortgage banker.",
+  "score": 5,
+  "cost": 6.727500000000001e-05,
+  "expected": "the mortgage banker",
+  "tokens": {
+    "input": 277,
+    "output": 155
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "- **Improves cardiovascular health**: Regular exercise strengthens the heart, lowers blood pressure, and improves circulation, reducing the risk of heart disease and stroke.\n- **Enhances mental well-being**: Exercise releases endorphins, which can reduce stress, anxiety, and depression while boosting mood and cognitive function.\n- **Boosts energy levels**: Physical activity increases oxygen flow and nutrient delivery to tissues, helping combat fatigue and improving overall stamina.",
+  "score": 2,
+  "cost": 3e-05,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 91
+  }
+}

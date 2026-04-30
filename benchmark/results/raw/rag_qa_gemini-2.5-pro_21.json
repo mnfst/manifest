@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "rag_qa",
+  "case": 21,
+  "response": "Anaerobic bacteria",
+  "score": 0,
+  "cost": 0.00028875,
+  "expected": "anaerobic bacteria",
+  "tokens": {
+    "input": 199,
+    "output": 4
+  }
+}

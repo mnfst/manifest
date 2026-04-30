@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "structured_output",
+  "case": 8,
+  "response": "```json\n{\n  \"unit\": \"Apartment 4B\",\n  \"street\": \"123 Main Street\",\n  \"city\": \"San Francisco\",\n  \"state\": \"CA\",\n  \"zip\": \"94105\",\n  \"country\": \"United States\"\n}\n```",
+  "score": 5,
+  "cost": 0.0007625,
+  "expected": "",
+  "tokens": {
+    "input": 81,
+    "output": 56
+  }
+}

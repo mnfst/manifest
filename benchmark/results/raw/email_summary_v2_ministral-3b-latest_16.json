@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 16,
+  "response": "The April marketing campaign achieved **45,000 impressions, 2,300 clicks (5.1% CTR), and 187 signups (8.1% conversion)**, costing **$12,000** with a **$64 CAC**, showing a **1.2% CTR increase** but a **0.8% drop in conversion** from March.\n\n**Action:** Propose **A/B testing the landing page CTA** to optimize performance.",
+  "score": 5,
+  "cost": 9.16e-06,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 108
+  }
+}

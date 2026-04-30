@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Crispy golden crust. Tangy tomato sauce. Melted mozzarella cheese. Spicy pepperoni slices. Fresh basil leaves. Aromatic garlic. Bubbly edges. Warm steam. Savory aroma. Circular perfection. Gooey strings. Herb seasoning. Crusty bottom. Tender dough. Rich flavors.",
+  "score": 5,
+  "cost": 0.001449,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 92
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "There once was a coder named Dave,\nWhose bugs he could rarely outbrave.\nHe'd debug all night,\nBy the cold monitor light,\nThen commit to the code he'd just save.",
+  "score": 5,
+  "cost": 0.00528,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 65
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "The engineering team has four open reqs\u2014two backend, one frontend, and one ML\u2014with 23 candidates currently in the pipeline and five in final rounds. The frontend position has been open for 60 days without strong candidates, and recruiting recommends expanding the search to remote applicants or adjusting the compensation band.",
+  "score": 5,
+  "cost": 0.0008964,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 349
+  }
+}

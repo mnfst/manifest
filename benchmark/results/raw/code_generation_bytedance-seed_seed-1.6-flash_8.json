@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_generation",
+  "case": 8,
+  "response": "return [v for v in values if isinstance(v, int)]",
+  "score": 5,
+  "cost": 0.00021675,
+  "expected": "",
+  "tokens": {
+    "input": 210,
+    "output": 670
+  }
+}

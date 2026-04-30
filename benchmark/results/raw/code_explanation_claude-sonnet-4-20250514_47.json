@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_explanation",
+  "case": 47,
+  "response": "This code implements the Shunting Yard algorithm to convert mathematical expressions from infix notation (e.g., \"2 + 3 * 4\") to postfix notation (e.g., \"2 3 4 * +\"). It uses two stacks - one for output and one for operators - and processes tokens by immediately outputting numbers, using parentheses to control precedence, and managing operator precedence by popping higher or equal precedence operators from the stack before pushing new ones.",
+  "score": 5,
+  "cost": 0.002394,
+  "expected": "",
+  "tokens": {
+    "input": 243,
+    "output": 111
+  }
+}

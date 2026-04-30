@@ -2,12 +2,12 @@
   "model": "MiniMax-M2.7",
   "task": "email_summary_v2",
   "case": 16,
-  "response": "The April marketing campaign generated 45\u202fK impressions, 2.3\u202fK clicks (5.1\u202f% CTR) and 187 sign\u2011ups (8.1\u202f% conversion) at a cost of $12\u202fK, giving a $64 CAC; CTR rose 1.2\u202fpp from March while conversion slipped 0.8\u202fpp. The team recommends A/B testing the landing\u2011page CTA to boost conversion.",
+  "response": "April's campaign generated 45K impressions, 2.3K clicks (5.1% CTR) and 187 sign\u2011ups (8.1% conversion) at a cost of $12K, resulting in a $64 CAC; while CTR improved by 1.2 percentage points versus March, conversion fell by 0.8 percentage points. The marketing team recommends conducting A/B testing on the landing\u2011page CTA to improve conversion performance.",
   "score": 5,
-  "cost": 0.0019371000000000002,
+  "cost": 0.0025223000000000003,
   "expected": "",
   "tokens": {
     "input": 149,
-    "output": 403
+    "output": 536
   }
 }

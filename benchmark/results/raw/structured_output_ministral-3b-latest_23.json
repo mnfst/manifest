@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "structured_output",
+  "case": 23,
+  "response": "Here is the extracted information in valid JSON matching the provided schema:\n\n```json\n{\n  \"type\": \"delivered\",\n  \"tracking_number\": \"TRK-99281\",\n  \"status\": \"delivered\",\n  \"delivery_location\": \"front door\",\n  \"delivery_time\": \"2:15 PM\",\n  \"delivery_date\": \"March 12\",\n  \"signed_by\": \"M. Johnson\",\n  \"carrier\": \"FedEx\"\n}\n```",
+  "score": 5,
+  "cost": 8.720000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 103
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_generation",
+  "case": 18,
+  "response": "```python\n    def is_prime(n):\n        if n <= 1:\n            return False\n        if n <= 3:\n            return True\n        if n % 2 == 0 or n % 3 == 0:\n            return False\n        i = 5\n        while i * i <= n:\n            if n % i == 0 or n % (i + 2) == 0:\n                return False\n            i += 6\n        return True\n\n    words = sentence.split()\n    prime_length_words = [word for word in words if is_prime(len(word))]\n    return ' '.join(prime_length_words)\n```",
+  "score": 4,
+  "cost": 0.0018075,
+  "expected": "",
+  "tokens": {
+    "input": 179,
+    "output": 136
+  }
+}

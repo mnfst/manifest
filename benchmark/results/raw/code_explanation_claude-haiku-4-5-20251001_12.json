@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "This code performs a **topological sort using depth-first search (DFS)**, visiting each node and its neighbors recursively, then appending nodes to a stack after exploring all their descendants. The final reversed stack gives a valid ordering where each node appears before all nodes that depend on it.",
+  "score": 5,
+  "cost": 0.0003592,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 63
+  }
+}

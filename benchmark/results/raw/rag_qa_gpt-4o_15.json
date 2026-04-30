@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "rag_qa",
+  "case": 15,
+  "response": "Prussia had a Calvinist ruler, the Great Elector Frederick William.",
+  "score": 5,
+  "cost": 0.0006875,
+  "expected": "Prussia",
+  "tokens": {
+    "input": 215,
+    "output": 15
+  }
+}

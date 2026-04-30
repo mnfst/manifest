@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "The code defines a function `connected_components` that identifies and returns all connected components in an undirected graph represented as an adjacency list. It uses a breadth-first search (BFS) algorithm to explore each component starting from unvisited nodes, collecting all reachable nodes into a list, and continues this process until all nodes in the graph have been visited.",
+  "score": 4,
+  "cost": 6.15e-05,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 70
+  }
+}

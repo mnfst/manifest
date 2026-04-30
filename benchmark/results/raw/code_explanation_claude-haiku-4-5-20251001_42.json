@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "This code implements an **async queue** using the producer-consumer pattern with futures for synchronization. When `put()` is called on a full queue, it suspends the producer until space is available; when `get()` is called on an empty queue, it suspends the consumer until an item arrives, with waiting tasks tracked in deque-based waiter lists that are resolved when the opposite operation occurs.",
+  "score": 5,
+  "cost": 0.0005584,
+  "expected": "",
+  "tokens": {
+    "input": 258,
+    "output": 88
+  }
+}

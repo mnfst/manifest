@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_generation",
+  "case": 42,
+  "response": "",
+  "score": 0,
+  "cost": 0.0090233,
+  "expected": "",
+  "tokens": {
+    "input": 203,
+    "output": 2000
+  }
+}

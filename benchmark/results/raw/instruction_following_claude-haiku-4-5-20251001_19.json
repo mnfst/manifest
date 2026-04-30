@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "AI is reshaping how we work and create. The key is ensuring it amplifies human potential rather than replaces it. The future belongs to those who learn to collaborate with these tools. \ud83e\udd16\u2728",
+  "score": 5,
+  "cost": 0.000204,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 47
+  }
+}

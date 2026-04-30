@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "Of course. Here is a description of my favorite book.\n\nIt begins with a man facing a firing squad, but instead of telling us how he got there, it throws us back to a memory of his father taking him to see ice for the first time\u2014a moment when the world was new and full of miracles.\n\nThis is the story of a family, a sprawling, passionate, and cursed dynasty, and the mythical town they build from scratch in the middle of a swampy, primordial jungle. The town is a universe unto itself, a place where the extraordinary is treated as utterly mundane. Ghosts are tied to chestnut trees and have conversations with the living, a young woman of impossible beauty ascends to heaven while folding laundry, a priest levitates after drinking hot chocolate, and a plague of insomnia sweeps through the population, forcing them to label everything just to remember what it\u2019s called.\n\nThe book is a whirlwind of history, myth, and memory. Time doesn't move in a straight line; it's a dizzying, repeating circle. Generations of men are given the same two names, and they are fated to inherit the same passions and fatal flaws\u2014the solitary dreamers who lock themselves away to decipher ancient prophecies, and the boisterous, worldly men who march off to fight in pointless wars.\n\nThrough it all, each member of the sprawling family is trapped in a profound, inescapable loneliness, a private sorrow that no love or war or discovery can truly breach. The story is carried forward by a current of magic and melancholy, haunted by a swarm of yellow butterflies that follow one character wherever he goes.\n\nIt all culminates in the deciphering of a prophecy that has been waiting for a century to be read, a prophecy that contains the entire history of the family, written down before it ever happened. The book ends as it began: with a single, powerful moment where the past, present, and future all collapse into one, and the world of this incredible family is finally, and completely, understood.",
+  "score": 5,
+  "cost": 0.004125,
+  "expected": "",
+  "tokens": {
+    "input": 12,
+    "output": 411
+  }
+}

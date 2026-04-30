@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "rag_qa",
+  "case": 27,
+  "response": "Newton's First Law of Motion.",
+  "score": 5,
+  "cost": 5.864999999999999e-05,
+  "expected": "Newton's First",
+  "tokens": {
+    "input": 346,
+    "output": 109
+  }
+}

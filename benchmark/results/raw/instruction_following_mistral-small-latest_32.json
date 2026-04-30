@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "**The Golden Spoon**\n\ud83d\udccd 123 Maple Street, Sweetwater, USA\n\ud83c\udf1f **Rating: 4.5/5**\n\n**Cuisine:** Modern American with a French twist\n**Atmosphere:** Cozy, elegant, and slightly upscale with warm lighting and soft jazz playing in the background.\n**Service:** Attentive but not intrusive\u2014waitstaff were knowledgeable and friendly.\n\n**The Good:**\n- **The Amuse-Bouche** was a delightful surprise\u2014a tiny, flavorful bite of truffle-infused mushroom tart that set the tone for the meal.\n- **Duck Confit** was a standout\u2014crispy skin, tender meat, and a rich red wine reduction that paired perfectly with the duck fat potatoes.\n- **Dessert (Chocolate Fondant)** was decadent, with a molten center that oozed over a scoop of vanilla bean ice cream. Pure bliss.\n- **Wine Pairing:** The sommelier\u2019s recommendations were spot-on, especially the 2018 Pinot Noir with the duck.\n\n**The Not-So-Good:**\n- **Wait Time:** Our reservation was for 7:30 PM, but we weren\u2019t seated until 7:50 PM. Not a dealbreaker, but worth noting.\n- **Portion Size:** The main courses were a bit small for the price (entrees ranged from $32\u2013$48). I left feeling satisfied but not *full*.\n- **Noise Level:** The open kitchen design made it a bit loud at times, which could be distracting during conversation.\n\n**Final Verdict:**\n*The Golden Spoon* is a gem for a special night out. The food is refined, the flavors are bold, and the service is polished. While not perfect, it\u2019s a restaurant I\u2019d happily return to\u2014just maybe with a bigger appetite!\n\n**Would I recommend it?** \u2605\u2605\u2605\u2605\u2606 (4.5/5) \u2013 *Highly recommended for date nights or celebrations!*",
+  "score": 4,
+  "cost": 0.00013189999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 32,
+    "output": 429
+  }
+}

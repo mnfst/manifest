@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_generation",
+  "case": 11,
+  "response": "sum_val = 0\n    product_val = 1\n    \n    for num in numbers:\n        sum_val += num\n        product_val *= num\n    \n    return (sum_val, product_val)",
+  "score": 3,
+  "cost": 0.001293,
+  "expected": "",
+  "tokens": {
+    "input": 161,
+    "output": 54
+  }
+}

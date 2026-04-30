@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 43,
+  "response": "The audit found **2 critical issues** in 234 scanned open-source packages: one requires switching to **Apache-licensed Chart.js** to comply with the AGPL license, while the other lacks a license and should be removed before the next release. **Action:** Legal/Engineering must approve the changes and coordinate a removal or replacement by the next release deadline.",
+  "score": 5,
+  "cost": 7.520000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 78
+  }
+}

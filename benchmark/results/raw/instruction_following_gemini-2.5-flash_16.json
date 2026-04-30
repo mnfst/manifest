@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is a fundamental force of nature that pulls any two objects with mass towards each other. Think of it as an invisible magnet that attracts everything. The more \"stuff\" (which scientists call mass) an object has, the stronger its gravitational pull. That's why the massive Earth pulls you down to its surface, preventing you from floating off into space.\n\nThe strength of this pull also depends on how close two objects are; the closer they are, the stronger the attraction. So, while everything in the universe has gravity, you only really notice it with very large objects like planets, stars, and galaxies. It's what makes things fall when you drop them, keeps the Moon orbiting Earth, and holds our entire solar system together. That is gravity.",
+  "score": 5,
+  "cost": 9.795000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 158
+  }
+}

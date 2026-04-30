@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "email_summary_v2",
+  "case": 36,
+  "response": "P99 latency on /api/v2/search increased from 200ms to 800ms after Thursday's deploy due to a new full-text search query not using the index. The fix is to add a GIN index on the content column, which will be deployed tonight during the maintenance window.",
+  "score": 5,
+  "cost": 0.0011616,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 232
+  }
+}

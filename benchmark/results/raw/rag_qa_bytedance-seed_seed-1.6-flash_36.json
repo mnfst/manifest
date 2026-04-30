@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "rag_qa",
+  "case": 36,
+  "response": "gaseous oxygen\nThe context states that oxygen therapy is used to treat \"any disease that impairs the body's ability to take up and use gaseous oxygen,\" indicating that it promotes the body to take up gaseous oxygen.",
+  "score": 4,
+  "cost": 9.404999999999998e-05,
+  "expected": "gaseous oxygen.",
+  "tokens": {
+    "input": 242,
+    "output": 253
+  }
+}

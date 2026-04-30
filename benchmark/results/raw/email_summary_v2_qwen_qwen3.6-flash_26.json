@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "email_summary_v2",
+  "case": 26,
+  "response": "The Privacy Team has received a GDPR data export request from user ID 45892 that must be fulfilled by May 25. To comply, we must compile and deliver all personal data across services, processing purposes documentation, a third-party data sharing log, and analytics data.",
+  "score": 5,
+  "cost": 0.00082575,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 798
+  }
+}

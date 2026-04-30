@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "rag_qa",
+  "case": 39,
+  "response": "Circuit switching.",
+  "score": 1,
+  "cost": 0.00035339999999999997,
+  "expected": "circuit switching",
+  "tokens": {
+    "input": 145,
+    "output": 111
+  }
+}

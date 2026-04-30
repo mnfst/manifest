@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 42,
+  "response": "```python\n    if n > m:\n        return -1\n    \n    avg = (n + m) / 2\n    rounded = round(avg)\n    return bin(rounded)\n```",
+  "score": 4,
+  "cost": 0.0003424,
+  "expected": "",
+  "tokens": {
+    "input": 188,
+    "output": 48
+  }
+}

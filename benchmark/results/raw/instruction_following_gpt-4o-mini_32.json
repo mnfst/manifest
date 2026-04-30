@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "**Restaurant Review: The Enchanted Fork**\n\nRating: \u2605\u2605\u2605\u2605\u2606 (4/5)\n\nNestled in the heart of Willow Creek, The Enchanted Fork is a whimsical dining experience that transports you to a world of culinary magic. From the moment you step through the intricately carved wooden doors, you are greeted by a warm ambiance filled with soft, twinkling lights and the gentle sound of a bubbling brook that runs through the restaurant's garden.\n\n**Atmosphere:**  \nThe decor is a delightful blend of rustic charm and fairy-tale elegance. Each table is adorned with hand-painted plates and flickering candles, while the walls are lined with vibrant murals depicting scenes from classic folklore. The staff, dressed in charming attire reminiscent of woodland creatures, adds to the enchanting experience. The overall vibe is cozy yet sophisticated, making it perfect for both romantic dinners and family gatherings.\n\n**Service:**  \nThe service at The Enchanted Fork is attentive without being intrusive. Our server, a cheerful young woman named Lila, was knowledgeable about the menu and offered excellent recommendations. She made sure our glasses were never empty and checked in at just the right moments, allowing us to enjoy our meal without feeling rushed.\n\n**Food:**  \nThe menu is a creative fusion of seasonal ingredients and international flavors. We started with the \"Mystical Mushroom Risotto,\" which was creamy and rich, with a hint of truffle oil that elevated the dish to new heights. For the main course, I opted for the \"Fairy Tale Duck,\" a perfectly seared duck breast served with a cherry reduction and accompanied by roasted root vegetables. The flavors were harmonious, and the presentation was nothing short of artful.\n\nMy dining companion chose the \"Mermaid's Pasta,\" a seafood linguine that was fresh and flavorful, featuring a medley of shrimp, scallops, and a light garlic sauce. The portion sizes were generous, and we both left feeling satisfied but not overly stuffed.\n\nFor dessert, we couldn't resist the \"Wishing Well Chocolate Fondue,\" served with an array of fruits and pastries for dipping. It was a delightful way to end the meal, and the rich, velvety chocolate was the perfect indulgence.\n\n**Value:**  \nWhile The Enchanted Fork is on the pricier side, the quality of the food and the overall experience justify the cost. Expect to spend around $50-70 per person, depending on your choices. The unique atmosphere and exceptional service make it a",
+  "score": 4,
+  "cost": 0.0003036,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 500
+  }
+}

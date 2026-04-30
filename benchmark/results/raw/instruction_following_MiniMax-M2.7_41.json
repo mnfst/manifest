@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "Here\u2019s a compact Google\u2011style docstring for a generic in\u2011place sort function:\n\n```python\ndef sort(data, key=None, reverse=False):\n    \"\"\"Sort a list in place.\n\n    Sorts the elements of `data` in ascending order (or descending if\n    `reverse` is True). The sorting algorithm is stable, preserving the\n    relative order of equal elements.\n\n    Args:\n        data (list): The list of elements to be sorted.\n        key (callable, optional): A function that extracts a comparison key\n            from each element. Defaults to None (natural ordering).\n        reverse (bool, optional): If True, the list is sorted in descending\n            order. Defaults to False.\n\n    Returns:\n        list: The sorted list (the same object as `data`).\n\n    Raises:\n        TypeError: If the elements are not mutually comparable or if `key`\n            returns non\u2011comparable values.\n\n    Example:\n        >>> sort([5, 2, 9, 1])\n        [1, 2, 5, 9]\n    \"\"\"\n    # <implementation goes here>\n```",
+  "score": 5,
+  "cost": 0.0087901,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 1989
+  }
+}

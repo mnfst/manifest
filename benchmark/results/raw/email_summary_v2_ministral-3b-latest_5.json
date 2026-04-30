@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 5,
+  "response": "The **Product Team** is delaying the launch due to unresolved PCI compliance issues in payment integration, requiring **two more weeks**\u2014with options to either launch without payments (requiring updated terms) or push the full release to **May 15**. They\u2019ve scheduled a **10 AM meeting tomorrow** to discuss next steps.",
+  "score": 5,
+  "cost": 6.6799999999999996e-06,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 68
+  }
+}

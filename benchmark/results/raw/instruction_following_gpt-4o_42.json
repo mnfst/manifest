@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "A thunderstorm is a powerful and dramatic weather event characterized by the presence of thunder and lightning, often accompanied by heavy rain, strong winds, and sometimes hail. Sensory details can vividly bring the experience of a thunderstorm to life:\n\n1. **Sight**: The sky darkens ominously as thick, towering cumulonimbus clouds gather, casting a shadow over the landscape. Flashes of lightning illuminate the sky in brilliant, jagged streaks, momentarily turning night into day and casting eerie shadows across the ground.\n\n2. **Sound**: The air is filled with the deep, rolling rumble of thunder, which can vary from distant, low growls to sharp, cracking booms that seem to shake the very earth. The sound of rain intensifies as it pelts against windows and rooftops, creating a rhythmic, almost hypnotic drumming.\n\n3. **Smell**: The air is infused with the distinctive, earthy scent of petrichor, a fragrance released when rain hits dry soil. This is often mixed with the fresh, clean smell of rain itself, which can be both invigorating and calming, providing a sensory contrast to the storm's intensity.",
+  "score": 4,
+  "cost": 0.00243,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 238
+  }
+}

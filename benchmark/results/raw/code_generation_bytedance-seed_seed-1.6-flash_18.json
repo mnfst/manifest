@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_generation",
+  "case": 18,
+  "response": "words = sentence.split()\n    primes = []\n    for word in words:\n        l = len(word)\n        if l < 2:\n            continue\n        is_prime = True\n        if l == 2:\n            is_prime = True\n        elif l % 2 == 0:\n            is_prime = False\n        else:\n            for i in range(3, int(l**0.5) + 1, 2):\n                if l % i == 0:\n                    is_prime = False\n                    break\n        if is_prime:\n            primes.append(word)\n    return ' '.join(primes)",
+  "score": 4,
+  "cost": 0.00039945,
+  "expected": "",
+  "tokens": {
+    "input": 278,
+    "output": 1262
+  }
+}

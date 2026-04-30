@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "rag_qa",
+  "case": 31,
+  "response": "Sharia",
+  "score": 5,
+  "cost": 2.7599999999999997e-05,
+  "expected": "Sharia",
+  "tokens": {
+    "input": 176,
+    "output": 2
+  }
+}

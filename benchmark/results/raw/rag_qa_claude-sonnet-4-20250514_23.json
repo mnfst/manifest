@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "rag_qa",
+  "case": 23,
+  "response": "Based on the provided context, the presence of **mortgage bankers** is highly likely even in small projects.",
+  "score": 5,
+  "cost": 0.001005,
+  "expected": "the mortgage banker",
+  "tokens": {
+    "input": 210,
+    "output": 25
+  }
+}

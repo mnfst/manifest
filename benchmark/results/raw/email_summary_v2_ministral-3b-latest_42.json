@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "The workshop highlighted customer feedback, including requests for improved bulk import functionality and SSO support, while praising the new analytics dashboard. Sales noted three potential standalone product opportunities and attached a follow-up report for further discussion.",
+  "score": 5,
+  "cost": 6.08e-06,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 43
+  }
+}

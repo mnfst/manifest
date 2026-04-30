@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "email_summary_v2",
+  "case": 14,
+  "response": "AWS infrastructure costs have surged 40% ($45K/month) due to new ML training jobs running on expensive p4d instances. To address this, the team must decide by Friday whether to switch to spot instances for maximum savings or reserved instances for a committed discount.",
+  "score": 5,
+  "cost": 0.0057642,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 1079
+  }
+}

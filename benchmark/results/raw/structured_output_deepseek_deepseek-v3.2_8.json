@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "structured_output",
+  "case": 8,
+  "response": "{\n    \"unit\": \"Apartment 4B\",\n    \"street\": \"123 Main Street\",\n    \"city\": \"San Francisco\",\n    \"state\": \"CA\",\n    \"zip\": \"94105\",\n    \"country\": \"United States\"\n}",
+  "score": 5,
+  "cost": 7.83e-05,
+  "expected": "",
+  "tokens": {
+    "input": 80,
+    "output": 53
+  }
+}

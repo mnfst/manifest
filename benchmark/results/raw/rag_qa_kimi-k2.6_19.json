@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "rag_qa",
+  "case": 19,
+  "response": "Based on the context, Europe achieved advancements in **communication**.",
+  "score": 4,
+  "cost": 0.000756,
+  "expected": "communication",
+  "tokens": {
+    "input": 156,
+    "output": 276
+  }
+}

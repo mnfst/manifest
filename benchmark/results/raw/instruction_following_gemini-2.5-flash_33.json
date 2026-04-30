@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "Here are 3 facts about the Moon:\n\n1.  **Formation:** The Moon is believed to have formed approximately 4.5 billion years ago, shortly after Earth, from the debris of a giant impact between Earth and a Mars-sized celestial body (often called Theia).\n2.  **Surface Features:** Its surface is heavily cratered from impacts with asteroids and comets, and also features vast, dark plains called \"maria\" (Latin for \"seas\"), which are actually ancient basaltic lava flows. The Moon has no atmosphere, so there is no wind or weather to erode these features.\n3.  **Tidal Lock:** The Moon is tidally locked with Earth, meaning it takes the same amount of time to rotate on its axis as it does to orbit Earth. This is why we always see the same side of the Moon from Earth.",
+  "score": 5,
+  "cost": 0.00010935000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 177
+  }
+}

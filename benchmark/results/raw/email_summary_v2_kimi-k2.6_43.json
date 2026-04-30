@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 43,
+  "response": "The completed open source audit of 234 packages identified two licensing issues: a charting library using the viral AGPL license, which is incompatible with the company's SaaS model, and a package with no license. Legal and Engineering recommend switching the charting library to Apache-licensed Chart.js and removing both problematic packages before the next release.",
+  "score": 5,
+  "cost": 0.0009162,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 355
+  }
+}

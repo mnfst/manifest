@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "structured_output",
+  "case": 7,
+  "response": "```json\n{\n  \"symbol\": \"AAPL\",\n  \"price\": 185.50,\n  \"change_percent\": 2.3,\n  \"volume\": \"45M\",\n  \"high_52w\": 198.0,\n  \"low_52w\": 155.0,\n  \"market_cap\": \"$2.87T\"\n}\n```",
+  "score": 5,
+  "cost": 0.0002272,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 89
+  }
+}

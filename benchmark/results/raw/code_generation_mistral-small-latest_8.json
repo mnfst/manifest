@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "code_generation",
+  "case": 8,
+  "response": "```python\n    return [value for value in values if isinstance(value, int) and not isinstance(value, bool)]\n```",
+  "score": 5,
+  "cost": 2.1400000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 26
+  }
+}

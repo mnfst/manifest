@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_generation",
+  "case": 32,
+  "response": "words = s.split(' ')\n    result = []\n    for word in words:\n        sorted_word = ''.join(sorted(word))\n        result.append(sorted_word)\n    return ' '.join(result)",
+  "score": 5,
+  "cost": 0.001377,
+  "expected": "",
+  "tokens": {
+    "input": 184,
+    "output": 55
+  }
+}

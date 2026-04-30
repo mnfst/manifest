@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_generation",
+  "case": 42,
+  "response": "```\n    if n > m:\n        return -1\n    avg = round((n + m) / 2)\n    return bin(avg)\n```",
+  "score": 4,
+  "cost": 0.00678,
+  "expected": "",
+  "tokens": {
+    "input": 232,
+    "output": 44
+  }
+}

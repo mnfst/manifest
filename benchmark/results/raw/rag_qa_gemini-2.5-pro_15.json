@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "rag_qa",
+  "case": 15,
+  "response": "Prussia",
+  "score": 5,
+  "cost": 0.00029,
+  "expected": "Prussia",
+  "tokens": {
+    "input": 216,
+    "output": 2
+  }
+}

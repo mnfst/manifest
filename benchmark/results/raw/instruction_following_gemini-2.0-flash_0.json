@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "Here are 3 benefits of exercise:\n\n*   **Improved Mood:** Exercise releases endorphins, which have mood-boosting effects and can help reduce feelings of stress, anxiety, and depression.\n*   **Stronger Bones and Muscles:** Weight-bearing exercises help increase bone density, reducing the risk of osteoporosis. Exercise also strengthens muscles, improving strength, balance, and overall physical function.\n*   **Reduced Risk of Chronic Diseases:** Regular physical activity can lower the risk of developing various chronic diseases, including heart disease, type 2 diabetes, some types of cancer, and stroke.",
+  "score": 5,
+  "cost": 4.92e-05,
+  "expected": "",
+  "tokens": {
+    "input": 12,
+    "output": 120
+  }
+}

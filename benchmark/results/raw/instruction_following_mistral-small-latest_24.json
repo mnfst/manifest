@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "- **Collision Details**: A rear-end collision occurred at the intersection of Main Street and 5th Avenue at 3:45 PM, involving a 2020 Honda Civic (Vehicle A) and a 2018 Toyota Camry (Vehicle B). Vehicle A was traveling northbound when it struck the rear of Vehicle B, which was stopped at a red light.\n\n- **Injuries & Damage**: No injuries were reported. Vehicle A sustained moderate damage to its front bumper and hood, while Vehicle B had minor damage to its rear bumper. Both vehicles were towed for repairs.\n\n- **Witnesses & Police Report**: Two witnesses confirmed Vehicle B was stationary before impact. Officer Smith filed a report (Case #2023-0456), citing Vehicle A for following too closely (Section 11-404 of the traffic code).",
+  "score": 5,
+  "cost": 5.7999999999999994e-05,
+  "expected": "",
+  "tokens": {
+    "input": 28,
+    "output": 184
+  }
+}

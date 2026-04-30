@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "email_summary_v2",
+  "case": 33,
+  "response": "The Q1 Employee Engagement Survey reveals overall engagement at 7.8/10 (above the industry average of 7.2), with team collaboration as the highest score (8.9/10) and career growth clarity the lowest (6.1/10). Proposed actions include quarterly career conversations, an internal mobility program, and mentorship matching, with a town hall to discuss these on Friday.",
+  "score": 5,
+  "cost": 0.00011857499999999998,
+  "expected": "",
+  "tokens": {
+    "input": 197,
+    "output": 346
+  }
+}

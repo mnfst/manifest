@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is the force that pulls objects toward each other. It is what keeps us grounded on Earth and causes objects to fall when dropped. The more massive an object is, the stronger its gravitational pull. For example, Earth's gravity is what keeps the Moon in orbit around it and what makes us stay on the ground instead of floating into space. That is gravity.",
+  "score": 5,
+  "cost": 0.0008275,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 76
+  }
+}

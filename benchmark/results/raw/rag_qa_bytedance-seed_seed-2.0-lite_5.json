@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "rag_qa",
+  "case": 5,
+  "response": "The context references a Rhine bridge at Arnhem. The Ludendorff Bridge, another crossing of the Rhine, is located at Remagen, and there are also bridges over the Waal (a distributary of the Rhine) at Nijmegen.",
+  "score": 4,
+  "cost": 0.00125075,
+  "expected": "Arnhem",
+  "tokens": {
+    "input": 283,
+    "output": 1180
+  }
+}

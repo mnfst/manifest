@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_explanation",
+  "case": 19,
+  "response": "This code implements a **sliding window counter** rate limiter. It maintains a log of timestamps for recent calls and allows a new call only if the number of calls within the specified `period` does not exceed the `calls` limit, pruning old timestamps with each check.",
+  "score": 5,
+  "cost": 4.8299999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 54
+  }
+}

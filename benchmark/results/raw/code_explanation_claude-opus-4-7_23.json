@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_explanation",
+  "case": 23,
+  "response": "This function performs a **binary search** on a sorted list `a` to find the leftmost insertion index for value `x`\u2014i.e., the smallest index where `x` can be inserted while keeping `a` sorted. If `x` already exists in `a`, it returns the index of its first occurrence.",
+  "score": 5,
+  "cost": 0.00906,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 94
+  }
+}

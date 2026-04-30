@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_explanation",
+  "case": 32,
+  "response": "The provided code implements the Union-Find (or Disjoint Set Union) data structure, which efficiently manages a partition of a set into disjoint subsets. It includes two main operations: `find`, which determines the root representative of a set containing a given element (with path compression for efficiency), and `union`, which merges two sets based on their ranks to keep the tree flat, thus optimizing future operations.",
+  "score": 5,
+  "cost": 7.305e-05,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 82
+  }
+}

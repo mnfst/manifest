@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "The western horizon became a vast, shifting canvas. As the day's star dipped, it painted the clouds in strokes of molten gold and vivid orange, which then softened into delicate peach and rose. Hues of lavender and deep violet began to creep in from the edges, deepening the sky's palette. A warm, radiant glow spread across the landscape, lengthening shadows until the world was silhouetted against the vibrant, fading light. The air grew still, steeped in the tranquil transition from day to dusk.",
+  "score": 5,
+  "cost": 6.405e-05,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 103
+  }
+}

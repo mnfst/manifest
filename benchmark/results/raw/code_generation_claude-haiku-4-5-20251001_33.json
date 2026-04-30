@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 33,
+  "response": "```python\n    sides = sorted([a, b, c])\n    return sides[0]**2 + sides[1]**2 == sides[2]**2\n```",
+  "score": 5,
+  "cost": 0.0003016,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 44
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_explanation",
+  "case": 2,
+  "response": "The provided code implements the QuickSort algorithm, which is a recursive sorting technique. It selects a pivot element (the middle element of the array), partitions the array into three sub-arrays (elements less than, equal to, and greater than the pivot), and recursively sorts the left and right sub-arrays before concatenating them with the middle sub-array to produce a sorted result.",
+  "score": 5,
+  "cost": 6.285e-05,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 76
+  }
+}

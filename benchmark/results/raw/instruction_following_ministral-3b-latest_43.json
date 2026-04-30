@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 43,
+  "response": "Did you know that if you could jump in mid-air on the surface of the Moon, you could bounce all the way to the other side\u2014because its gravity is only about **1/6th** of Earth\u2019s, meaning you\u2019d reach a height of roughly **12.7 meters (42 feet)**? (And yes, that\u2019s assuming you had superhuman jumping skills!) \ud83d\ude80\ud83c\udf15",
+  "score": 5,
+  "cost": 4.2800000000000005e-06,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 87
+  }
+}

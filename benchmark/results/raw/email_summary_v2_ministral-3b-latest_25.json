@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 25,
+  "response": "The company achieved key milestones in April, including hitting **10,000 monthly active users (MAU)**, securing a **$8M Series A term sheet at a $40M pre-money valuation**, and hiring a **VP of Sales**. **Action items:** Finalize fundraising by **May 10** and prepare for post-raise runway of **11 months** with a **$120K/month burn rate**.",
+  "score": 5,
+  "cost": 8.32e-06,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 95
+  }
+}

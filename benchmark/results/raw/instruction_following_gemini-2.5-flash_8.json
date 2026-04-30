@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Imagine a special storybook where everyone adds a new sentence to the end. Everyone has their own copy of the whole story, so we all know exactly what happened and no one can secretly change it!",
+  "score": 5,
+  "cost": 2.67e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 40
+  }
+}

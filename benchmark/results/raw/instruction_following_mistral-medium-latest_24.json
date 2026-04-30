@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "- **Incident Details**: Date, time, and exact location of the accident; weather/road conditions; and a brief description of how the collision occurred (e.g., rear-end, T-bone, single-vehicle).\n\n- **Parties Involved**: Names, contact info, and insurance details of all drivers/passengers; vehicle makes/models/license plates; and any witness statements or contact information.\n\n- **Damages & Injuries**: Extent of vehicle damage (with photos if available), reported injuries (if any), and actions taken (e.g., police notified, medical assistance called, towing arranged).",
+  "score": 5,
+  "cost": 0.0002604,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 127
+  }
+}

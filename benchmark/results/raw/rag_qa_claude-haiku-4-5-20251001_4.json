@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "rag_qa",
+  "case": 4,
+  "response": "Not found in context.\n\nThe context actually states the opposite - it indicates that in the United Kingdom and several Commonwealth countries (Australia and Canada), the term is \"almost never used of universities and other tertiary institutions.\" The context does not identify any region that uses the term \"private schools\" to refer to universities.",
+  "score": 5,
+  "cost": 0.0004016,
+  "expected": "North America",
+  "tokens": {
+    "input": 167,
+    "output": 67
+  }
+}

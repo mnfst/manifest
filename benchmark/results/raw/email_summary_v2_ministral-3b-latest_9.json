@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 9,
+  "response": "The nightly ETL job failed due to a Salesforce schema change breaking the connector, causing dashboards to display outdated data. The fix has been deployed, with a backfill in progress and full recovery expected by **4 PM today**.",
+  "score": 5,
+  "cost": 5.64e-06,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 49
+  }
+}

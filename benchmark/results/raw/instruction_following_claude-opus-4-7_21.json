@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "# Directions from the Park to the Library\n\n1. Exit the park and turn **right**\n2. Continue straight, then turn **left** at the traffic light\n3. Go straight for two blocks and turn **right** at the bakery\n4. Take your next **left** onto Main Street\n5. Continue straight, then turn **right** just after the fountain\n6. Take the second **left**\n7. The library will be on your **right**\n\n*Note: Since I don't have information about a specific park or library, these are example directions using only left and right turns as you requested. If you'd like real directions, please share the specific locations or use a maps application like Google Maps or Apple Maps.*",
+  "score": 5,
+  "cost": 0.016005,
+  "expected": "",
+  "tokens": {
+    "input": 32,
+    "output": 207
+  }
+}

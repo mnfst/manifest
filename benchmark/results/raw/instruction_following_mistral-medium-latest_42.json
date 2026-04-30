@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "A thunderstorm rolls in like a brooding giant, turning the sky from bright blue to an ominous, bruised gray. The air grows thick and heavy, clinging to your skin like a damp blanket, carrying the sharp, metallic scent of ozone\u2014like the world itself is holding its breath. Then, the first crack of thunder rumbles in the distance, a deep, growling warning that vibrates in your chest, making the windows hum in response.\n\nRaindrops begin to fall, at first sparse and hesitant, then exploding into a torrential downpour that drums against rooftops and pavement in a frantic rhythm. The sound is a chaotic symphony\u2014water hissing as it hits hot sidewalks, leaves rustling violently in the wind, and the occasional sharp *snap* of a branch breaking under the storm\u2019s fury. Lightning splits the sky in jagged veins of blinding white, searing the darkness for a split second before plunging everything back into shadow. The afterimage lingers behind your eyelids, a ghostly glow that mixes with the cool, electric tang in the air.\n\nThe wind howls, whipping hair and clothes into a frenzy, carrying with it the earthy smell of wet soil and crushed grass. It\u2019s wild and untamed, tugging at everything in its path as if trying to pull the world apart. Then, just as suddenly as it began, the storm softens\u2014the thunder fades to a grumble, the rain slows to a whisper, and the air is left clean and crisp, smelling of petrichor, the sweet, musky perfume of the earth after the storm\u2019s cleansing rage.",
+  "score": 5,
+  "cost": 0.0007028,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 348
+  }
+}

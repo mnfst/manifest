@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The CEO has shared the draft Q1 board deck, highlighting strong revenue and retention metrics alongside a 22% increase in CAC ahead of next Tuesday\u2019s meeting. Please submit your product roadmap section by Wednesday to finalize the presentation.",
+  "score": 5,
+  "cost": 0.0054093000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 1016
+  }
+}

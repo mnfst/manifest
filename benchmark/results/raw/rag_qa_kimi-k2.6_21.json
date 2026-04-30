@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "rag_qa",
+  "case": 21,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 0.0023736,
+  "expected": "anaerobic bacteria",
+  "tokens": {
+    "input": 208,
+    "output": 937
+  }
+}

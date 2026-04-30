@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_generation",
+  "case": 1,
+  "response": "```python\n    def depth(s: str) -> int:\n        max_depth = 0\n        current_depth = 0\n        for char in s:\n            if char == '(':\n                current_depth += 1\n                max_depth = max(max_depth, current_depth)\n            elif char == ')':\n                current_depth -= 1\n        return max_depth\n\n    return [depth(group) for group in paren_string.split()]\n```",
+  "score": 4,
+  "cost": 0.001255,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 90
+  }
+}

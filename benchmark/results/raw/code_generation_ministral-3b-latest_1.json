@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 1,
+  "response": "```python\n    stack = []\n    result = []\n    for char in paren_string.replace(' ', ''):\n        if char == '(':\n            stack.append(char)\n        elif char == ')':\n            stack.pop()\n            if not stack:\n                result.append(len(stack))\n    return result\n```",
+  "score": 2,
+  "cost": 8.279999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 62
+  }
+}

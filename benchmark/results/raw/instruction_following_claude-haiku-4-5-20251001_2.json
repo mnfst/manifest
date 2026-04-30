@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "# Code and Logic\n\nLoops iterate fast,\nBugs hide in dark corners\u2014\nDebug, then deploy.",
+  "score": 5,
+  "cost": 0.0001192,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 27
+  }
+}

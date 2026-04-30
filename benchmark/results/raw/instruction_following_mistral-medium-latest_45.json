@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 45,
+  "response": "Here\u2019s a comparison table explaining the key differences between **TCP (Transmission Control Protocol)** and **UDP (User Datagram Protocol)**:\n\n| **Feature**               | **TCP (Transmission Control Protocol)**                          | **UDP (User Datagram Protocol)**                          |\n|---------------------------|---------------------------------------------------------------|---------------------------------------------------------|\n| **Connection Type**       | Connection-oriented (establishes a connection before data transfer) | Connectionless (no connection setup)                   |\n| **Reliability**           | Reliable (guarantees delivery, error-checking, retransmission) | Unreliable (no guarantee of delivery, no error recovery) |\n| **Ordering**              | Sequenced (packets arrive in order)                            | Unordered (packets may arrive out of order)             |\n| **Flow Control**          | Yes (adjusts data flow to prevent congestion)                 | No (no flow control)                                    |\n| **Error Checking**        | Yes (checksum + acknowledgments)                              | Limited (checksum only, no retransmission)             |\n| **Overhead**              | Higher (due to handshaking, acknowledgments, sequencing)      | Lower (minimal headers, no extra mechanisms)           |\n| **Speed**                 | Slower (due to reliability mechanisms)                        | Faster (no overhead for connection setup or error checks) |\n| **Use Cases**             | Web browsing (HTTP/HTTPS), email (SMTP), file transfer (FTP), SSH | Video streaming, VoIP, online gaming, DNS, live broadcasts |\n| **Header Size**           | 20\u201360 bytes (variable)                                         | 8 bytes (fixed)                                         |\n| **Handshaking**           | Requires 3-way handshake (SYN, SYN-ACK, ACK)                  | No handshake                                           |\n| **Congestion Control**    | Yes (adjusts transmission rate to avoid network congestion)  | No (sends data at maximum possible rate)               |\n| **Multicast/Broadcast**   | Not supported (point-to-point only)                           | Supports multicast and broadcast                       |\n| **Example Protocols**     | HTTP, HTTPS, FTP, SMTP, Telnet, SSH                            | DNS, DHCP, TFTP, VoIP (SIP), RTP (Real-Time Protocol)   |\n\n###",
+  "score": 4,
+  "cost": 0.0010056,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 500
+  }
+}

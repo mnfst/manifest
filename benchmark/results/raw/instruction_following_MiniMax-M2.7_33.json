@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "1. **Earth\u2019s only natural satellite** \u2013 The Moon orbits our planet and is the fifth\u2011largest satellite in the Solar System.  \n2. **Relative size** \u2013 Its diameter is about\u202f\u00bc\u202f(\u2248\u202f3,474\u202fkm) that of Earth, making it the largest moon relative to its host planet.  \n3. **No atmosphere and a dusty surface** \u2013 The Moon has essentially no atmosphere, so sound doesn\u2019t carry and temperatures vary dramatically. Its surface is covered with a fine, powdery layer of regolith created by micrometeorite impacts.",
+  "score": 5,
+  "cost": 0.0014234,
+  "expected": "",
+  "tokens": {
+    "input": 58,
+    "output": 309
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "rag_qa",
+  "case": 4,
+  "response": "Not found in context.\n\nThe context states that in the United Kingdom and Commonwealth countries, the term is \"almost never used of universities and other tertiary institutions,\" and mentions that North America covers \"the whole gamut of educational activity, ranging from pre-school to tertiary level institutions,\" but it does not explicitly state that North America uses the term \"private schools\" to refer to universities.",
+  "score": 5,
+  "cost": 0.001746,
+  "expected": "North America",
+  "tokens": {
+    "input": 167,
+    "output": 83
+  }
+}

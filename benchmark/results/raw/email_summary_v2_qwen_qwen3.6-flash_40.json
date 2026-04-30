@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "The quarterly OKR review shows that Engineering, Sales, and Support met or exceeded their targets, while Product fell short due to a delayed AI feature. Accordingly, the AI OKR should be carried forward with increased allocation, and next quarter planning begins on Monday.",
+  "score": 5,
+  "cost": 0.001109,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 1077
+  }
+}

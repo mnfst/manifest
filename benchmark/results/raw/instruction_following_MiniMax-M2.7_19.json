@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "\"AI is transforming how we work, create, and solve problems. The future isn't about replacing humans\u2014it's about amplifying what we can achieve together. The best is yet to come. \ud83d\ude80 #AI #Innovation\"",
+  "score": 5,
+  "cost": 0.00043230000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 33,
+    "output": 90
+  }
+}

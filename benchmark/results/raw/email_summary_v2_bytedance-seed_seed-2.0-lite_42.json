@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "In an email recapping yesterday\u2019s workshop with 15 enterprise customers, the sales team shared key takeaways, including that 8 attendees requested better bulk import functionality, 5 accounts cited SSO as a major blocker, the group universally praised the new analytics dashboard, and 3 customers unexpectedly expressed interest in the company\u2019s internal tool as a standalone product. The email attaches a full follow-up report, tasking relevant internal teams with reviewing the detailed customer feedback to resolve the highlighted adoption barriers and pursue the unanticipated demand for a standalone version of the internal tool.",
+  "score": 5,
+  "cost": 0.000811,
+  "expected": "",
+  "tokens": {
+    "input": 156,
+    "output": 772
+  }
+}

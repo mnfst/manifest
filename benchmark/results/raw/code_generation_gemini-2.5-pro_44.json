@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_generation",
+  "case": 44,
+  "response": "```python\n    swapped = message.swapcase()\n    vowels = \"aeiouAEIOU\"\n    replacements = \"cgikwCGIKW\"\n    translation_table = str.maketrans(vowels, replacements)\n    return swapped.translate(translation_table)\n```",
+  "score": 4,
+  "cost": 0.00084,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 65
+  }
+}

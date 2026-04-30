@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_generation",
+  "case": 9,
+  "response": "return sum(num ** 2 for num in lst if num >= 0 and isinstance(num, int) and num % 2 == 1)",
+  "score": 4,
+  "cost": 0.001847,
+  "expected": "",
+  "tokens": {
+    "input": 224,
+    "output": 1791
+  }
+}

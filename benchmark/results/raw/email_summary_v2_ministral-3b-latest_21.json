@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 21,
+  "response": "The **Platform Team** proposes a **feature flag cleanup sprint** to remove 15 fully rolled-out flags and archive 8 dead-code flags, reducing config complexity and speeding up tests by **~12%**\u2014totaling 47 active flags down to 24.\n\n**Action:** Approve or discuss the plan to proceed with the sprint.",
+  "score": 5,
+  "cost": 7.08e-06,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 74
+  }
+}

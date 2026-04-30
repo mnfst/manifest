@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_explanation",
+  "case": 32,
+  "response": "The code implements a Union-Find (or Disjoint Set Union, DSU) data structure with path compression and union by rank optimizations. The `find` function determines the root representative of a set containing element `x`, applying path compression to flatten the structure for efficiency, while the `union` function merges the sets containing elements `x` and `y`, using rank to keep the tree flat by attaching the smaller tree under the root of the larger tree.",
+  "score": 5,
+  "cost": 0.0013375,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 94
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_generation",
+  "case": 41,
+  "response": "```python\n    indices = [i for i in range(len(l)) if i % 3 == 0]\n    sorted_values = sorted(l[i] for i in indices)\n    for idx, value in zip(indices, sorted_values):\n        l[idx] = value\n    return l\n```",
+  "score": 4,
+  "cost": 0.0010725,
+  "expected": "",
+  "tokens": {
+    "input": 185,
+    "output": 61
+  }
+}

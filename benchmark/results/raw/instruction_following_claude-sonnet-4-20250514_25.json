@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "\"Team Strategy Meeting - Thursday 2PM Conference Room\"",
+  "score": 4,
+  "cost": 0.000294,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 15
+  }
+}

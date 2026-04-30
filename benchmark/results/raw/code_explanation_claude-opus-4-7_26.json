@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "This code solves the **0/1 Knapsack problem** using bottom-up dynamic programming, building a 2D table where `dp[i][w]` represents the maximum value achievable using the first `i` items within weight capacity `w`. For each item, it chooses the better of either excluding it (inheriting `dp[i-1][w]`) or including it (adding its value to the best solution for the remaining capacity).",
+  "score": 5,
+  "cost": 0.01326,
+  "expected": "",
+  "tokens": {
+    "input": 219,
+    "output": 133
+  }
+}

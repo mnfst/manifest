@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "The sky swells with a bruise\u2011purple curtain of clouds that seem to swallow the light, and a sudden flash of white\u2011hot lightning splits the darkness, briefly turning the night into a silvery sketch of the world below. The thunder follows like a rolling drum, each crack reverberating through the air and rattling the windows, while the steady patter of rain grows from a gentle whisper to a relentless drumbeat against the roof and leaves. As the wind whips the trees, a cool, damp gust brushes against your skin, carrying the metallic scent of ozone and the earthy perfume of wet soil\u2014petrichor\u2014that rises after the first drops hit the ground. The taste of fresh rain lingers on your tongue, and the world around you is a symphony of sight, sound, touch, and smell, all merging into a dramatic, raw encounter with nature.",
+  "score": 5,
+  "cost": 0.0026070000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 34,
+    "output": 584
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 31,
+  "response": "The email proposes adding a 'Starter' pricing tier at $29/month to address price sensitivity, with features like 5 users, 10K API calls, and email support. The goal is to recover 15% of price-churned users, projected to generate $180K in additional annual recurring revenue (ARR).",
+  "score": 5,
+  "cost": 3.53e-05,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 74
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "# The Taste of Chocolate\n\nChocolate is like a **symphony for your mouth**\u2014rich, complex notes unfold in layers. The initial sweetness hits like bright violins, while deeper cocoa undertones rumble beneath like cellos, creating a full, harmonious experience.\n\nThere's a velvety smoothness that coats your tongue, followed by a subtle bitterness that adds depth, much like how a minor key adds poignancy to music. The flavor lingers and evolves, never quite the same from moment to moment, keeping your senses engaged until the final note fades away.",
+  "score": 5,
+  "cost": 0.0005456,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 132
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "rag_qa",
+  "case": 36,
+  "response": "Based on the context, oxygen therapy is used to treat diseases that impair the body's ability to take up and use gaseous oxygen.",
+  "score": 5,
+  "cost": 0.007515,
+  "expected": "gaseous oxygen.",
+  "tokens": {
+    "input": 266,
+    "output": 47
+  }
+}

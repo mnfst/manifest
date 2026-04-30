@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are known for their loyal nature, forming deep bonds with their human companions. A loyal dog often serves as a vigilant guardian, alerting owners to any potential threats. Their loyal disposition makes them ideal therapy animals, providing comfort in hospitals and schools. In return for a loyal heart, dogs ask for love, exercise, and occasional treats. Even after a long day of play, a loyal pup will curl up beside you, offering silent companionship.",
+  "score": 5,
+  "cost": 0.0030591000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 53,
+    "output": 682
+  }
+}

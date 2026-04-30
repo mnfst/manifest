@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle, also known as the hydrological cycle, is a continuous process by which water circulates through the Earth's atmosphere, land, and oceans. It is a crucial component of the Earth's system, playing a vital role in regulating climate, supporting ecosystems, and sustaining life. The cycle is driven by solar energy, which powers the evaporation of water from surfaces such as oceans, rivers, and lakes. This evaporated water vapor rises into the atmosphere, where it cools and condenses to form clouds, eventually leading to precipitation.\n\nEvaporation is the initial stage of the water cycle, where water is transformed from a liquid state to a gaseous state due to the heat from the sun. This process occurs not only from open water bodies but also from soil and vegetation through transpiration. Together, these processes are referred to as evapotranspiration. The water vapor formed during evaporation rises into the atmosphere, where it encounters cooler temperatures. As the air cools, the water vapor condenses into tiny droplets, forming clouds. This condensation process releases latent heat, which further fuels atmospheric movements and weather patterns.\n\nOnce clouds are formed, they are transported by wind across the globe. When these clouds become saturated with water droplets, they release precipitation in the form of rain, snow, sleet, or hail, depending on the temperature and atmospheric conditions. Precipitation is a critical component of the water cycle, as it replenishes water in rivers, lakes, and aquifers, and provides essential moisture for terrestrial ecosystems. The distribution and intensity of precipitation vary widely across different regions, influencing local climates and weather patterns.\n\nAfter precipitation, water follows various pathways. Some of it infiltrates the ground, replenishing groundwater supplies and aquifers, while the rest flows over the surface as runoff, eventually reaching rivers, lakes, and oceans. This surface runoff is crucial for transporting nutrients and sediments, shaping landscapes, and supporting aquatic habitats. The water that infiltrates the ground may be taken up by plants, contributing to the process of transpiration, or it may continue to move through the soil, eventually returning to the atmosphere through evaporation. This cyclical movement of water through different phases and locations ensures the continuous availability of fresh water, supporting life and maintaining the balance of ecosystems on Earth.",
+  "score": 3,
+  "cost": 0.004605,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 456
+  }
+}

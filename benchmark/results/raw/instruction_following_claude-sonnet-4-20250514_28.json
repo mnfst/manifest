@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "\"Every small step forward today builds the extraordinary future you're destined to create.\"",
+  "score": 5,
+  "cost": 0.000378,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 20
+  }
+}

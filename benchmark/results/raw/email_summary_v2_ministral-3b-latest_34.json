@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 34,
+  "response": "The **Database Team** is planning a **no-downtime migration** from MySQL 5.7 to PostgreSQL 16, with phases in **May (schema conversion/testing)**, **June (dual-write period)**, and **July (cutover)**. **Key action:** Review and rewrite the **3 stored procedures** before proceeding, as they require adjustments.",
+  "score": 5,
+  "cost": 7.04e-06,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 78
+  }
+}

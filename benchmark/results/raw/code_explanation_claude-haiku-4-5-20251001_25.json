@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "This code implements the **Observer/Pub-Sub pattern**, allowing objects to register callback functions for named events and then trigger all registered callbacks when those events are emitted. The class maintains a dictionary mapping event names to lists of listener functions, supporting subscription (`on`), publication (`emit`), and unsubscription (`off`).",
+  "score": 5,
+  "cost": 0.000404,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 72
+  }
+}

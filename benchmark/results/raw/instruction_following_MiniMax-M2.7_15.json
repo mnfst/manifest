@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 15,
+  "response": "Here are four words that rhyme with **cat**:\n\n- **bat**\n- **rat**\n- **hat**\n- **mat**",
+  "score": 5,
+  "cost": 0.0007183000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 49,
+    "output": 151
+  }
+}

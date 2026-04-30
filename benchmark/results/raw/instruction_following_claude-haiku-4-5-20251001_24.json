@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "# Car Accident Report\n\n\u2022 **Incident Details**: Two-vehicle collision occurred on Main Street at 2:45 PM; 2007 Honda Civic (Vehicle A) struck by 2019 Ford F-150 (Vehicle B) at intersection traffic light, with Vehicle B failing to stop at red light.\n\n\u2022 **Parties Involved**: Driver A (John Smith, age 34) sustained minor injuries; Driver B (Maria Garcia, age 28) uninjured; both vehicles towed from scene; police report filed with case number #2024-156789.\n\n\u2022 **Damage Assessment**: Vehicle A sustained $8,500 in damage to front and driver's side; Vehicle B sustained $3,200 in damage to front bumper and hood; no pedestrians involved; Driver B cited for failure to obey traffic signal.",
+  "score": 5,
+  "cost": 0.0007568,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 185
+  }
+}

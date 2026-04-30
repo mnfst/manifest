@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "rag_qa",
+  "case": 40,
+  "response": "Full citizenship rights \u2013 \u2018\u2019assimilation\u2019\u2019 \u2013 to the populations of its colonies.",
+  "score": 4,
+  "cost": 0.00057275,
+  "expected": "assimilation",
+  "tokens": {
+    "input": 219,
+    "output": 518
+  }
+}

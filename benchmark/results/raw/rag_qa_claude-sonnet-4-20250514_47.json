@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "rag_qa",
+  "case": 47,
+  "response": "Based on the provided context, the Urarina are another group struggling in the Amazon. The text specifically mentions that \"the Urarina continue to struggle to fight for their cultural survival and the fate of their forested territories.\"",
+  "score": 5,
+  "cost": 0.001254,
+  "expected": "Urarina",
+  "tokens": {
+    "input": 173,
+    "output": 49
+  }
+}

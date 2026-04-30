@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 1,
+  "response": "A CPU (central processing unit) executes instructions from programs by performing calculations and logical operations, then controls the flow of data between other computer components.",
+  "score": 3,
+  "cost": 0.0001464,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 33
+  }
+}

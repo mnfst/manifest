@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "rag_qa",
+  "case": 32,
+  "response": "The world's economy grew significantly and became much more interconnected in the decades before World War I as a result of the resources made available by imperialism, which also made the many imperial powers rich and prosperous.",
+  "score": 3,
+  "cost": 0.00066375,
+  "expected": "the world's economy",
+  "tokens": {
+    "input": 275,
+    "output": 595
+  }
+}

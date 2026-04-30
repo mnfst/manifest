@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_explanation",
+  "case": 0,
+  "response": "This function computes the nth Fibonacci number using naive recursion, returning `n` directly for the base cases (0 and 1) and otherwise summing the results of two recursive calls on `n-1` and `n-2`. This approach has exponential time complexity O(2^n) because it repeatedly recomputes the same subproblems without memoization.",
+  "score": 5,
+  "cost": 0.009885,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 112
+  }
+}

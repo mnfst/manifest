@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_generation",
+  "case": 16,
+  "response": "```python\n    from collections import deque\n\n    n = len(grid)\n    directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n    min_path = None\n\n    def bfs(start_x, start_y):\n        nonlocal min_path\n        queue = deque([(start_x, start_y, [grid[start_x][start_y]])])\n        while queue:\n            x, y, path = queue.popleft()\n            if len(path) == k:\n                if min_path is None or path < min_path:\n                    min_path = path\n                continue\n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < n and 0 <= ny < n:\n                    queue.append((nx, ny, path + [grid[nx][ny]]))\n\n    for i in range(n):\n        for j in range(n):\n            bfs(i, j)\n\n    return min_path\n```",
+  "score": 4,
+  "cost": 0.000189,
+  "expected": "",
+  "tokens": {
+    "input": 428,
+    "output": 208
+  }
+}

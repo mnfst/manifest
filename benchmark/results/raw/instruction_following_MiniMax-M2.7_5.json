@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "The sky was a slow\u2011moving canvas of shifting hues as the sun slipped toward the horizon. Low on the horizon a molten band of amber and gold stretched across the edge of the world, its light spilling over the clouds in ribbons of orange and pink. Higher up, the blue deepened to violet, and the first stars began to prick through the twilight, their faint glimmering softened by the lingering glow. The air turned cooler, carrying a faint scent of earth and the distant, gentle rustle of evening. Shadows stretched longer across the landscape, and the whole scene seemed to hold its breath, suspended between day\u2019s end and night\u2019s quiet arrival.",
+  "score": 5,
+  "cost": 0.0025729,
+  "expected": "",
+  "tokens": {
+    "input": 55,
+    "output": 571
+  }
+}

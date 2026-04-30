@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 6,
+  "response": "Blue ocean stretches wide.",
+  "score": 5,
+  "cost": 4.8e-06,
+  "expected": "",
+  "tokens": {
+    "input": 12,
+    "output": 5
+  }
+}

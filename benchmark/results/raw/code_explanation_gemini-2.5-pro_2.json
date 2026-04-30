@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_explanation",
+  "case": 2,
+  "response": "This code implements the Quicksort algorithm using a recursive, divide-and-conquer strategy. It partitions the list around a central pivot into smaller and larger sub-lists, which are then recursively sorted and combined to produce the final sorted list.",
+  "score": 5,
+  "cost": 0.0006525,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 50
+  }
+}

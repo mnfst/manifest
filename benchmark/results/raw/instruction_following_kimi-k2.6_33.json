@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "1. The Moon is tidally locked to Earth, which means the same side always faces our planet, and we never see the \"far side\" from the ground.\n2. Scientists believe the Moon formed roughly 4.5 billion years ago when a Mars-sized object named Theia collided with early Earth.\n3. The Moon is slowly drifting away from Earth at a rate of about 3.8 centimeters per year.",
+  "score": 5,
+  "cost": 0.0007866,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 321
+  }
+}

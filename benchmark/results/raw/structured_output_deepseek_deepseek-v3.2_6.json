@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "structured_output",
+  "case": 6,
+  "response": "```json\n{\n    \"type\": \"Bug report\",\n    \"summary\": \"App crashes on login when using Face ID\",\n    \"device\": \"iPhone 14\",\n    \"os_version\": \"iOS 17.2\",\n    \"reproducibility\": \"every time\",\n    \"severity\": \"critical\"\n}\n```",
+  "score": 5,
+  "cost": 0.00010115,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 69
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 19,
+  "response": "IT Procurement must decide whether to renew the Datadog contract at $155K/year or switch to Grafana Cloud at $95K/year, which requires a three-month migration. Finance needs the vendor contract renewal decision by May 15.",
+  "score": 5,
+  "cost": 0.0025703999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 1047
+  }
+}

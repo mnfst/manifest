@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "I\u2019d be happy to give you turn\u2011by\u2011turn directions, but I need to know where you\u2019re starting and ending. Could you tell me:\n\n* **Which park** you\u2019re leaving from (name or address/city)?\n* **Which library** you\u2019re heading to (name or address/city)?\n\nWith that information I can map out a route that uses only left and right turns.",
+  "score": 1,
+  "cost": 0.0019393000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 55,
+    "output": 427
+  }
+}

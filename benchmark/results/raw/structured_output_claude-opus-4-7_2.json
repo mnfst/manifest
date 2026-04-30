@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "structured_output",
+  "case": 2,
+  "response": "{\"product\": \"iPhone 15 Pro\", \"price\": 999.00, \"colors\": [\"black titanium\", \"white titanium\", \"blue titanium\"], \"storage_options\": [\"128GB\", \"256GB\", \"512GB\", \"1TB\"]}",
+  "score": 5,
+  "cost": 0.008145,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 82
+  }
+}

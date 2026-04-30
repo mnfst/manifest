@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_generation",
+  "case": 14,
+  "response": "```python\n    if n <= 1:\n        return n\n    a, b = 0, 1\n    for _ in range(n - 1):\n        a, b = b, a + b\n    return b\n```",
+  "score": 5,
+  "cost": 0.00064875,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 54
+  }
+}

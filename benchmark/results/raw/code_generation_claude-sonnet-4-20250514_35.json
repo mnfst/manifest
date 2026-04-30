@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_generation",
+  "case": 35,
+  "response": "unit_a = abs(a) % 10\n    unit_b = abs(b) % 10\n    return unit_a * unit_b",
+  "score": 5,
+  "cost": 0.000984,
+  "expected": "",
+  "tokens": {
+    "input": 143,
+    "output": 37
+  }
+}

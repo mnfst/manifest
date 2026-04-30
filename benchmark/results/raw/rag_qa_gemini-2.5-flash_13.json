@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "rag_qa",
+  "case": 13,
+  "response": "The Victorian Government",
+  "score": 0,
+  "cost": 2.475e-05,
+  "expected": "Victorian Government",
+  "tokens": {
+    "input": 153,
+    "output": 3
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "```python\ndef sort_function(data, reverse=False, key=None):\n    \"\"\"Sorts a list of comparable elements.\n\n    This function rearranges the elements of the input `data` list into\n    a new sorted list. By default, it sorts in ascending order.\n    The sort is stable, meaning that the relative order of equal elements\n    is preserved.\n\n    Args:\n        data (list): The list of elements to be sorted. Elements must be\n            mutually comparable (e.g., numbers, strings) or a `key`\n            function must be provided.\n        reverse (bool, optional): If `True`, the list is sorted in\n            descending order. Defaults to `False` (ascending).\n        key (callable, optional): A function of one argument that is used\n            to extract a comparison key from each list element. For example,\n            `key=str.lower` for case-insensitive sorting, or `key=len` for\n            sorting by length. Defaults to `None`, meaning elements are\n            compared directly.\n\n    Returns:\n        list: A new list containing all items from `data` in sorted order.\n\n    Raises:\n        TypeError: If elements in `data` are not mutually comparable and\n            no `key` is provided, or if the `key` function raises an error.\n\n    Examples:\n        >>> sort_function([3, 1, 4, 1, 5, 9, 2])\n        [1, 1, 2, 3, 4, 5, 9]\n\n        >>> sort_function(['banana', 'apple', 'cherry'])\n        ['apple', 'banana', 'cherry']\n\n        >>> sort_function([3, 1, 4], reverse=True)\n        [4, 3, 1]\n\n        >>> sort_function(['Banana', 'apple', 'Cherry'], key=str.lower)\n        ['apple', 'Banana', 'Cherry']\n\n        >>> sort_function(['cat', 'dog', 'elephant'], key=len)\n        ['cat', 'dog', 'elephant'] # 'cat' (3), 'dog' (3), 'elephant' (8)\n    \"\"\"\n    # Example implementation (not part of the docstring itself)\n    # This would typically be Python's built-in sorted() function\n    # or a custom sorting algorithm.\n    return sorted(data, reverse=reverse, key=key)\n\n```",
+  "score": 4,
+  "cost": 0.00032744999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 542
+  }
+}

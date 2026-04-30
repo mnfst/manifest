@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "rag_qa",
+  "case": 19,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 0.00044,
+  "expected": "communication",
+  "tokens": {
+    "input": 156,
+    "output": 5
+  }
+}

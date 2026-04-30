@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "rag_qa",
+  "case": 45,
+  "response": "Based on the provided context, the show globe was employed until early in the 20th century.",
+  "score": 5,
+  "cost": 0.001053,
+  "expected": "The show globe",
+  "tokens": {
+    "input": 236,
+    "output": 23
+  }
+}

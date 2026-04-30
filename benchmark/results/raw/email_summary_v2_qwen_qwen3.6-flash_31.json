@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "email_summary_v2",
+  "case": 31,
+  "response": "The Revenue team proposes launching a $29/month \"Starter\" tier to address the 40% of users who churn due to pricing. Leadership should review and approve this plan, which includes five users, 10K API calls, and email support, to recover 15% of price-sensitive churn and generate $180K in annual recurring revenue.",
+  "score": 5,
+  "cost": 0.00175175,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 1721
+  }
+}

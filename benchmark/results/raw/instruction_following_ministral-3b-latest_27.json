@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 27,
+  "response": "Here\u2019s a categorized list of mammals, birds, and fish:\n\n---\n\n### **Mammals**\n1. **Human** (*Homo sapiens*)\n2. **Dog** (*Canis lupus familiaris*)\n3. **Elephant** (*Loxodonta africana* or *Elephas maximus*)\n\n---\n\n### **Birds**\n1. **Eagle** (*Aquila chrysaetos*)\n2. **Penguin** (*Spheniscus spp.* \u2013 e.g., African penguin)\n3. **Parrot** (*Psittaciformes* \u2013 e.g., Macaw)\n\n---\n### **Fish**\n1. **Tuna** (*Thunnus spp.* \u2013 e.g., Bluefin tuna)\n2. **Clownfish** (*Amphiprion spp.* \u2013 e.g., Nemo\u2019s fish)\n3. **Salmon** (*Oncorhynchus spp.* \u2013 e.g., Atlantic salmon)",
+  "score": 5,
+  "cost": 8.599999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 193
+  }
+}

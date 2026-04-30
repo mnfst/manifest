@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "rag_qa",
+  "case": 12,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 2.23e-05,
+  "expected": "British bacteriologist J. F. D. Shrewsbury",
+  "tokens": {
+    "input": 205,
+    "output": 6
+  }
+}

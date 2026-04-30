@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_generation",
+  "case": 14,
+  "response": "if n == 1 or n == 2:\n        return 1\n    a, b = 1, 1\n    for _ in range(3, n + 1):\n        a, b = b, a + b\n    return b",
+  "score": 5,
+  "cost": 0.00040575,
+  "expected": "",
+  "tokens": {
+    "input": 170,
+    "output": 1310
+  }
+}

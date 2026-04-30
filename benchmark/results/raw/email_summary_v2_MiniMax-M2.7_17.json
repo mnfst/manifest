@@ -2,12 +2,12 @@
   "model": "MiniMax-M2.7",
   "task": "email_summary_v2",
   "case": 17,
-  "response": "We are rolling back Release\u202fv4.2 because a data\u2011corruption bug in the new sync engine has affected 23 accounts. The recovery plan is to restore from the pre\u2011release backup, re\u2011run the impacted transactions, and notify the customers, and a hotfix branch has already been created.",
+  "response": "The v4.2 release is being rolled back due to a data\u2011corruption bug in the new sync engine that has impacted 23 accounts. The recovery plan includes restoring from the pre\u2011release backup, re\u2011running the affected transactions, notifying the impacted customers, and creating a hotfix branch.",
   "score": 5,
-  "cost": 0.0015796000000000002,
+  "cost": 0.0013101000000000002,
   "expected": "",
   "tokens": {
-    "input": 132,
-    "output": 326
+    "input": 135,
+    "output": 264
   }
 }

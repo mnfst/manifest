@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "rag_qa",
+  "case": 0,
+  "response": "Based on the context provided, a small fraction of the flow is diverted off the island of Mainau into Lake \u00dcberlingen.",
+  "score": 1,
+  "cost": 0.001239,
+  "expected": "Lake \u00dcberlingen",
+  "tokens": {
+    "input": 258,
+    "output": 31
+  }
+}

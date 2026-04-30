@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "This function splits an iterable into two groups based on a predicate condition using the **tee pattern**: it creates two independent copies of the input iterable, then returns one filtered to include only elements matching the predicate and another with elements that don't match.",
+  "score": 4,
+  "cost": 0.0002992,
+  "expected": "",
+  "tokens": {
+    "input": 89,
+    "output": 57
+  }
+}

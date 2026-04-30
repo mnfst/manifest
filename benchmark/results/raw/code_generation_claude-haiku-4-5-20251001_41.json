@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 41,
+  "response": "```python\n    # Extract elements at indices divisible by 3\n    third_elements = [l[i] for i in range(len(l)) if i % 3 == 0]\n    \n    # Sort them\n    third_elements.sort()\n    \n    # Create result list\n    result = l.copy()\n    \n    # Replace elements at indices divisible by 3 with sorted values\n    sorted_index = 0\n    for i in range(len(result)):\n        if i % 3 == 0:\n            result[i] = third_elements[sorted_index]\n            sorted_index += 1\n    \n    return result\n```",
+  "score": 5,
+  "cost": 0.0007888,
+  "expected": "",
+  "tokens": {
+    "input": 196,
+    "output": 158
+  }
+}

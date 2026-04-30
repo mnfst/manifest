@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "The code defines an `EventEmitter` class that implements the observer pattern, allowing functions (listeners) to be registered for specific events using the `on` method, triggered with the `emit` method, and removed with the `off` method. This pattern facilitates event-driven programming by managing a collection of event-function mappings.",
+  "score": 5,
+  "cost": 0.0009425,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 65
+  }
+}

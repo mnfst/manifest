@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "Here are a few options, all under 10 words:\n\n**Meeting Invitation: [Topic] on [Date] at [Time]**\n\n**Invitation: Please Join the [Team] Meeting [Date]**\n\n**Meeting Request: [Topic] Discussion \u2014 [Date]**",
+  "score": 5,
+  "cost": 0.0029771999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 1235
+  }
+}

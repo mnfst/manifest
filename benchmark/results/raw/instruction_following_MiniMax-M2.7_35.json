@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "The old lighthouse keeper had not seen a ship in decades, until one stormy night a faint glimmer pierced the fog. He lit the beacon and watched the beam sweep across the restless sea, only to reveal a small wooden boat tossing dangerously near the jagged rocks. The captain, a desperate sailor with a bleeding arm, called out for help, his voice trembling against the howl of the wind. The keeper, remembering the stories his father told of the sea's mercy, lowered a rope ladder and guided the stranger onto the rocks with steady hands. As dawn broke, the two sat together sharing stories and a steaming pot of tea, while the lighthouse beam continued its eternal watch. From that night on, the lighthouse no longer stood alone, for the keeper's heart had found a companion.",
+  "score": 5,
+  "cost": 0.004976400000000001,
+  "expected": "",
+  "tokens": {
+    "input": 48,
+    "output": 1119
+  }
+}

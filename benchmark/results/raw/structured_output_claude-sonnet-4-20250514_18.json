@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "structured_output",
+  "case": 18,
+  "response": "```json\n{\n  \"plan\": \"Pro Plan\",\n  \"price_monthly\": 29.0,\n  \"price_annual\": 348.0,\n  \"start_date\": \"Jan 1 2024\",\n  \"renewal_date\": \"Jan 1 2025\",\n  \"payment_method\": \"Visa\",\n  \"card_last4\": \"4242\",\n  \"status\": \"active\"\n}\n```",
+  "score": 5,
+  "cost": 0.001968,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 105
+  }
+}

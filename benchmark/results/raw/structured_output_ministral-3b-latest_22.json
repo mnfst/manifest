@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "structured_output",
+  "case": 22,
+  "response": "Here is the extracted information in valid JSON matching the provided schema:\n\n```json\n{\n  \"activity\": \"run\",\n  \"distance_km\": 5.0,\n  \"duration\": \"24:30\",\n  \"avg_pace\": \"4:54\",\n  \"heart_rate\": {\n    \"avg_bpm\": 155,\n    \"max_bpm\": 178\n  },\n  \"calories\": 380,\n  \"date\": \"Monday March 4\"\n}\n```",
+  "score": 5,
+  "cost": 9.760000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 111
+  }
+}

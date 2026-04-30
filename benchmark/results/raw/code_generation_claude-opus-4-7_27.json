@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_generation",
+  "case": 27,
+  "response": "```\n    strongest = extensions[0]\n    best = sum(1 for c in strongest if c.isupper()) - sum(1 for c in strongest if c.islower())\n    for ext in extensions[1:]:\n        s = sum(1 for c in ext if c.isupper()) - sum(1 for c in ext if c.islower())\n        if s > best:\n            best = s\n            strongest = ext\n    return class_name + '.' + strongest\n```",
+  "score": 4,
+  "cost": 0.01752,
+  "expected": "",
+  "tokens": {
+    "input": 428,
+    "output": 148
+  }
+}

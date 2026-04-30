@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "Restaurant Name: The Enchanted Fork\n\nRating: \u2605\u2605\u2605\u2605\u2606\n\nNestled in the heart of the bustling city, The Enchanted Fork offers a whimsical dining experience that transports you to a world where culinary artistry meets fairy-tale charm. From the moment you step through its ornate doors, you are greeted by an ambiance that feels both magical and inviting, with twinkling fairy lights and lush greenery adorning the walls.\n\nThe menu is a delightful fusion of classic and contemporary dishes, each with a unique twist that showcases the chef's creativity. To start, I indulged in the \"Mystical Mushroom Medley,\" a rich and earthy blend of wild mushrooms served on a bed of truffle-infused polenta. The flavors were perfectly balanced, setting the stage for the culinary journey ahead.\n\nFor the main course, I opted for the \"Dragon's Breath Risotto,\" a vibrant saffron-infused dish with tender pieces of grilled chicken and a hint of chili that added just the right amount of heat. The risotto was creamy and cooked to perfection, with each bite offering a burst of flavor that was both comforting and exciting.\n\nDessert was a showstopper: the \"Fairy Tale Forest,\" a decadent chocolate mousse shaped like a miniature woodland scene, complete with edible flowers and a dusting of pistachio \"moss.\" It was almost too beautiful to eat, but the rich, velvety chocolate was impossible to resist.\n\nService at The Enchanted Fork was attentive and friendly, with staff members who seemed genuinely passionate about the food and eager to share their recommendations. The only slight drawback was the wait time for the main course, which was a bit longer than expected. However, the enchanting atmosphere and delightful appetizers made the wait more than bearable.\n\nOverall, The Enchanted Fork offers a dining experience that is both enchanting and satisfying. With its imaginative menu and charming setting, it's a place that invites you to linger and savor every moment. While there is room for improvement in terms of service speed, the overall experience is one that leaves you with a sense of wonder and a desire to return.",
+  "score": 4,
+  "cost": 0.00434,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 428
+  }
+}

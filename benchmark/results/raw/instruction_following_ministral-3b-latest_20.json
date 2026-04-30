@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Sure! Here\u2019s a simple **S**tory on **P**hotosynthesis:\n\n**Sunlight** shines bright, **sun**\u2019s power pure.\nPlants **stand** tall, **sun**\u2019s rays they **s**tudy.\n**S**tems soak up **sun**\u2019s **s**parkling **p**ulse.\n**P**igments **p**ick up **s**hiny **p**articles.\n\n**S**ugar **s**tarts to **p**roduce\u2014**s**weet **p**ower!\n**P**lants **p**ush it deep, **s**toring **p**lenty.\n**S**un\u2019s **p**ulse fuels their **s**hiny **p**lane,\n**P**reparing **s**tems for **p**lenty **s**till **p**lane.",
+  "score": 5,
+  "cost": 8.48e-06,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 194
+  }
+}

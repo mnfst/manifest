@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_generation",
+  "case": 16,
+  "response": "```python\n    n = len(grid)\n    # Flatten grid to easily find positions of values\n    pos = {}\n    for i in range(n):\n        for j in range(n):\n            pos[grid[i][j]] = (i, j)\n    \n    # All possible moves: up, down, left, right\n    directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]\n    \n    # Start with all possible cells as starting points\n    # Each element: (current_path_list, last_position)\n    paths = [([val], (i, j)) for i in range(n) for j, val in enumerate(grid[i][j])]\n    \n    # We need to build paths of length k\n    for step in range(1, k):\n        new_paths = []\n        for path, (x, y) in paths:\n            # Try all neighbors\n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < n and 0 <= ny < n:\n                    new_path = path + [grid[nx][ny]]\n                    new_paths.append((new_path, (nx, ny)))\n        # Keep only the best path for each ending position\n        # But we need to compare lexicographically across all paths\n        # Since answer is unique, we can just take the minimum\n        if new_paths:\n            # Sort by path lexicographically\n            new_paths.sort(key=lambda x: x[0])\n            # For each ending position, keep only the best path\n            best_for_pos = {}\n            for path, end_pos in new_paths:\n                if end_pos not in best_for_pos:\n                    best_for_pos[end_pos] = (path, end_pos)\n            paths = list(best_for_pos.values())\n    \n    # Now paths contains all candidate paths of length k\n    # Return the lexicographically smallest one\n    paths.sort(key=lambda x: x[0])\n    return paths[0][0]\n```",
+  "score": 3,
+  "cost": 0.00058735,
+  "expected": "",
+  "tokens": {
+    "input": 431,
+    "output": 436
+  }
+}

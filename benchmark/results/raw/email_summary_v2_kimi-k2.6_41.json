@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "Network Operations recommends upgrading the current 1Gbps network links to 10Gbps to accommodate peak usage already reaching 78% and projected traffic growth, at an estimated cost of $45,000 plus $2,000 per month. They advise against the $15,000 traffic shaping and CDN optimization alternative, noting that growth projections would likely necessitate revisiting the upgrade within six months.",
+  "score": 5,
+  "cost": 0.0020063999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 809
+  }
+}

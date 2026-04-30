@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 39,
+  "response": "```python\n    if x == 0:\n        return '0'\n\n    result_digits = []\n    while x > 0:\n        remainder = x % base\n        result_digits.append(str(remainder))\n        x //= base\n\n    # The digits are collected in reverse order, so we need to reverse the list\n    # before joining them into a string.\n    return ''.join(reversed(result_digits))\n```",
+  "score": 5,
+  "cost": 7.98e-05,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 98
+  }
+}

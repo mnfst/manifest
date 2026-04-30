@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "Most teams met or exceeded their quarterly OKR targets, but Product scored 0.6 and missed its goal due to a delayed AI feature. Ops recommends carrying forward the AI OKR with increased allocation, and next quarter planning begins on Monday.",
+  "score": 5,
+  "cost": 0.000954,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 367
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 5,
+  "response": "```python\n    if not l:\n        return None\n    return max(l)\n```",
+  "score": 5,
+  "cost": 0.00019360000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 24
+  }
+}

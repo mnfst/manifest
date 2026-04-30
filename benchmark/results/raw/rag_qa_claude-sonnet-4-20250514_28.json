@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "rag_qa",
+  "case": 28,
+  "response": "Based on the context provided, C\u00e9loron handled business on his trip by informing British merchants or fur-traders of French claims on the territory and telling them to leave whenever he encountered them. He also buried lead plates engraved with the French claim to the Ohio Country at the site of present-day Pittsburgh.",
+  "score": 5,
+  "cost": 0.001728,
+  "expected": "British merchants or fur-traders, C\u00e9loron informed them of the French claims on the territory and told them to leave.",
+  "tokens": {
+    "input": 236,
+    "output": 68
+  }
+}

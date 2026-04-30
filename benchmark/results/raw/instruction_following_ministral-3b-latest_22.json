@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are known for their unwavering loyalty, making them some of the most devoted companions in the world. Their loyalty shines brightly when they stand by their humans through every challenge, offering unwavering support and comfort. No matter how far life takes them, a dog\u2019s loyalty never truly fades, remaining steadfast and true. Families often cherish their dogs\u2019 loyalty, as it fosters a bond that is both deep and enduring. Even in moments of separation, their loyalty keeps them hopeful, always waiting for their loved ones to return. A loyal dog\u2019s presence brings joy and security, proving that true friendship is built on such unshakable devotion.",
+  "score": 2,
+  "cost": 6.24e-06,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 137
+  }
+}

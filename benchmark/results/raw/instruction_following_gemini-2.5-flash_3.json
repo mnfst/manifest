@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 3,
+  "response": "FRANCE\nGERMANY\nITALY\nSPAIN\nUNITED KINGDOM",
+  "score": 5,
+  "cost": 1.0949999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 13,
+    "output": 15
+  }
+}

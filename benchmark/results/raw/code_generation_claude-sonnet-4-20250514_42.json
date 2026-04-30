@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_generation",
+  "case": 42,
+  "response": "if n > m:\n    return -1\n    \navg = sum(range(n, m + 1)) / (m - n + 1)\nrounded_avg_val = round(avg)\nreturn bin(rounded_avg_val)",
+  "score": 4,
+  "cost": 0.001449,
+  "expected": "",
+  "tokens": {
+    "input": 188,
+    "output": 59
+  }
+}

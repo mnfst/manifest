@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "rag_qa",
+  "case": 12,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 0.0005225,
+  "expected": "British bacteriologist J. F. D. Shrewsbury",
+  "tokens": {
+    "input": 189,
+    "output": 5
+  }
+}

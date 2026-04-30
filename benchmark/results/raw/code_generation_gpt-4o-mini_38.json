@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_generation",
+  "case": 38,
+  "response": "```python\n    largest_negative = None\n    smallest_positive = None\n    \n    for num in lst:\n        if num < 0:\n            if largest_negative is None or num > largest_negative:\n                largest_negative = num\n        elif num > 0:\n            if smallest_positive is None or num < smallest_positive:\n                smallest_positive = num\n    \n    return (largest_negative, smallest_positive)\n```",
+  "score": 5,
+  "cost": 7.47e-05,
+  "expected": "",
+  "tokens": {
+    "input": 174,
+    "output": 81
+  }
+}

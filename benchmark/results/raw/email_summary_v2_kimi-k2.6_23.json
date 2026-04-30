@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 23,
+  "response": "Version 1 of the API is scheduled for deprecation on June 30 and removal on September 30, yet 340 integrations\u2014including 12 enterprise customers\u2014have not migrated despite the published guide. The action plan involves personally contacting the top 20 customers and holding a webinar for the remaining users to drive migration completion.",
+  "score": 5,
+  "cost": 0.0009245999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 362
+  }
+}

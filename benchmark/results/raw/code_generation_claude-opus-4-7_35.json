@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_generation",
+  "case": 35,
+  "response": "```python\n    return abs(a) % 10 * (abs(b) % 10)\n```",
+  "score": 4,
+  "cost": 0.005115,
+  "expected": "",
+  "tokens": {
+    "input": 181,
+    "output": 32
+  }
+}

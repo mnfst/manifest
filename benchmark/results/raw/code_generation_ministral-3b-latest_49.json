@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 49,
+  "response": "```python\n    longest_palindrome_suffix = \"\"\n    n = len(string)\n    for i in range(n):\n        substring = string[i:]\n        if substring == substring[::-1]:\n            longest_palindrome_suffix = substring\n    prefix = string[:len(string) - len(longest_palindrome_suffix)]\n    return string + prefix[::-1]\n```",
+  "score": 4,
+  "cost": 1.04e-05,
+  "expected": "",
+  "tokens": {
+    "input": 179,
+    "output": 81
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_generation",
+  "case": 27,
+  "response": "strongest = max(extensions, key=lambda ext: sum(c.isupper() for c in ext) - sum(c.islower() for c in ext))\n    return f\"{class_name}.{strongest}\"",
+  "score": 4,
+  "cost": 0.00089875,
+  "expected": "",
+  "tokens": {
+    "input": 319,
+    "output": 50
+  }
+}

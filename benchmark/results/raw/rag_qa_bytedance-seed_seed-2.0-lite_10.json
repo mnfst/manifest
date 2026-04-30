@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "rag_qa",
+  "case": 10,
+  "response": "The Saxon Garden",
+  "score": 5,
+  "cost": 0.0002245,
+  "expected": "The Saxon Garden",
+  "tokens": {
+    "input": 474,
+    "output": 106
+  }
+}

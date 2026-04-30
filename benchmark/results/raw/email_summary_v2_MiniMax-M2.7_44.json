@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "email_summary_v2",
+  "case": 44,
+  "response": "Marketing overspent its Q3 budget by 15% due to the August campaign, while engineering is 8% under budget because of delayed hiring; Sarah proposes moving $50K from engineering to cover marketing's shortfall. She requests a discussion on Thursday to review the reallocation.",
+  "score": 5,
+  "cost": 0.001859,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 391
+  }
+}

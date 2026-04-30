@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "rag_qa",
+  "case": 33,
+  "response": "OPEC raised the price of oil to $5.11 in response to American aid to Israel.",
+  "score": 5,
+  "cost": 5.265e-05,
+  "expected": "In response to American aid to Israel",
+  "tokens": {
+    "input": 271,
+    "output": 20
+  }
+}

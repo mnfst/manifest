@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "email_summary_v2",
+  "case": 3,
+  "response": "The March onboarding cohort rated satisfaction at 7.2/10, with strengths in the buddy system and IT support but concerns over benefits confusion, delayed tool access, and missing culture handbooks. Lisa prioritizes improving tool access speed as the key action item.",
+  "score": 5,
+  "cost": 0.000554,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 55
+  }
+}

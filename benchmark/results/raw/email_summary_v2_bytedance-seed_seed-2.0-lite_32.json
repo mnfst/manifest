@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 32,
+  "response": "This email from DevOps alerts recipients that the SSL certificate for api.company.com will expire in 7 days on May 4, as its automatic renewal failed due to a DNS validation issue that arose when the required CNAME record for the domain was removed during a recent DNS migration. DevOps plans to resolve the issue the same day the alert was sent by re-adding the missing CNAME record _acme-challenge.api.company.com, and only flagged the problem to keep relevant stakeholders informed of the temporary risk to the service.",
+  "score": 5,
+  "cost": 0.0005935,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 556
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 29,
+  "response": "The mobile team reported that yesterday's release caused Android 12+ crash rates to spike to 2.3%\u2014well above the 0.5% threshold\u2014due to a null pointer exception in the notification handler, while iOS remained unaffected. A fix has already been merged to the main branch, and an emergency release request has been submitted to the Play Store.",
+  "score": 5,
+  "cost": 0.0013296,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 530
+  }
+}

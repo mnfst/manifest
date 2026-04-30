@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 16,
+  "response": "```python\n    N = len(grid)\n\n    # Base case for k=1: the path is just the smallest value in the grid.\n    # Since values are 1 to N*N, the smallest value is 1.\n    if k == 1:\n        return [1]\n\n    # dp_current_length will store a dictionary where keys are (row, col) tuples\n    # and values are the lexicographically smallest path (as a list) of the\n    # current length ending at that cell.\n    # Initialize for paths of length 1.\n    dp_current_length = {}\n    for r in range(N):\n        for c in range(N):\n            dp_current_length[(r, c)] = [grid[r][c]]\n\n    # Directions for moving to neighbors (up, down, left, right)\n    dr = [-1, 1, 0, 0]\n    dc = [0, 0, -1, 1]\n\n    # Iterate for path length from 2 up to k\n    for length in range(2, k + 1):\n        dp_next_length = {} # Stores paths for the current 'length' being computed\n        \n        # For each cell (r, c) in the grid, calculate the minimum path of 'length'\n        # ending at (r, c).\n        for r in range(N):\n            for c in range(N):\n                # Initialize min",
+  "score": 3,
+  "cost": 0.00026355000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 453,
+    "output": 326
+  }
+}

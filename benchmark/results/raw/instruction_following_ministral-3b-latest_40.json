@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "Here are five capital cities, each from a different continent:\n\n1. **Abuja** \u2013 Nigeria (Africa)\n2. **Canberra** \u2013 Australia (Oceania)\n3. **Madrid** \u2013 Spain (Europe)\n4. **Tokyo** \u2013 Japan (Asia)\n5. **Buenos Aires** \u2013 Argentina (South America)",
+  "score": 5,
+  "cost": 3.5600000000000002e-06,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 72
+  }
+}

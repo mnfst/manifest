@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 45,
+  "response": "```python\n    common_elements = set(l1) & set(l2)\n    return sorted(common_elements)\n```",
+  "score": 5,
+  "cost": 7.04e-06,
+  "expected": "",
+  "tokens": {
+    "input": 151,
+    "output": 25
+  }
+}

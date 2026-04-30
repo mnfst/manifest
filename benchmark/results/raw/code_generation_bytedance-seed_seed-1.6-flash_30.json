@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_generation",
+  "case": 30,
+  "response": "def is_prime(x):\n        if x <= 1:\n            return False\n        if x == 2:\n            return True\n        if x % 2 == 0:\n            return False\n        for i in range(3, int(x**0.5) + 1, 2):\n            if x % i == 0:\n                return False\n        return True\n    primes = []\n    a, b = 0, 1\n    while len(primes) < n:\n        next_fib = a + b\n        if is_prime(next_fib):\n            primes.append(next_fib)\n        a, b = b, next_fib\n    return primes[-1]",
+  "score": 3,
+  "cost": 0.0010641749999999999,
+  "expected": "",
+  "tokens": {
+    "input": 217,
+    "output": 3493
+  }
+}

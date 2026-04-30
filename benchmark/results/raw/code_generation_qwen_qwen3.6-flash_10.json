@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_generation",
+  "case": 10,
+  "response": "count = 0\n    for n in arr:\n        s = str(abs(n))\n        total = sum(int(d) for d in s)\n        if n < 0:\n            total -= 2 * int(s[0])\n        if total > 0:\n            count += 1\n    return count",
+  "score": 3,
+  "cost": 0.00512825,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 5086
+  }
+}

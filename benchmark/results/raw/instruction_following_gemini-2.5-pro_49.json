@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "Of course! Here are three different greetings for a chatbot, each with a distinct tone.\n\n### Formal\n\n**Greetings.** I am the virtual assistant for [Company Name]. How may I assist you today? Please type your question below.\n\n### Casual\n\n**Hey there!** I'm here to help. Feel free to ask me anything about our products, your order, or just for a recommendation.\n\n### Humorous\n\n**Greetings, human!** I'm the friendly bot in the machine, powered by coffee and code. What can I help you with today before my next scheduled nap?",
+  "score": 5,
+  "cost": 0.00125375,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 123
+  }
+}

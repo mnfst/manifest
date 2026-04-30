@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 4,
+  "response": "Based on the provided context, **North America** uses the term \"private schools\" to refer to universities and other tertiary level institutions. The context states that \"Private education in North America covers the whole gamut of educational activity, ranging from pre-school to tertiary level institutions.\"",
+  "score": 2,
+  "cost": 0.0011077,
+  "expected": "North America",
+  "tokens": {
+    "input": 183,
+    "output": 206
+  }
+}

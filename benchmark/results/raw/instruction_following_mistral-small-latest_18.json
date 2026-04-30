@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "One of my favorite books is a beautifully written coming-of-age story set in a small, coastal town. The protagonist is a young girl navigating the complexities of family, friendship, and self-discovery during a transformative summer. The narrative is rich with vivid descriptions of the natural world, particularly the ocean and the salt-kissed air, which mirror her inner emotional landscape.\n\nThe book explores themes of loss, resilience, and the quiet strength found in unexpected places. The relationships\u2014especially with a wise, older woman who becomes a mentor\u2014are deeply moving, and the prose has a lyrical quality that lingers long after the last page. It\u2019s a story that feels both intimate and universal, capturing the bittersweet essence of growing up.\n\nWhat makes it truly special is how it balances melancholy with hope, leaving the reader with a sense of warmth and reflection. Have you read anything like that?",
+  "score": 5,
+  "cost": 5.79e-05,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 184
+  }
+}

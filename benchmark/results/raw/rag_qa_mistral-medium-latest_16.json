@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "rag_qa",
+  "case": 16,
+  "response": "The school owns **approximately fifty percent more land in Allston than in Cambridge**.",
+  "score": 5,
+  "cost": 0.00011960000000000001,
+  "expected": "approximately fifty percent",
+  "tokens": {
+    "input": 214,
+    "output": 17
+  }
+}

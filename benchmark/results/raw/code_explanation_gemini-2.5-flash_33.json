@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_explanation",
+  "case": 33,
+  "response": "This code implements **Reservoir Sampling**, an algorithm for selecting `k` random items from a stream of unknown or very large length. It initially fills a reservoir with the first `k` items, then for each subsequent item, it randomly decides whether to replace one of the existing `k` items with the current item, ensuring each item in the stream has an equal probability of being in the final sample.",
+  "score": 5,
+  "cost": 6.434999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 82
+  }
+}

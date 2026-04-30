@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "rag_qa",
+  "case": 38,
+  "response": "Along or near the Charles River.",
+  "score": 2,
+  "cost": 4.125e-05,
+  "expected": "Charles River",
+  "tokens": {
+    "input": 247,
+    "output": 7
+  }
+}

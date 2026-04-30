@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "code_generation",
+  "case": 49,
+  "response": "```python\n    if not string:\n        return string\n\n    for i in range(len(string)):\n        substring = string[i:]\n        if substring == substring[::-1]:\n            return string + string[:i][::-1]\n\n    return string + string[:-1][::-1]\n```",
+  "score": 4,
+  "cost": 3.77e-05,
+  "expected": "",
+  "tokens": {
+    "input": 191,
+    "output": 62
+  }
+}

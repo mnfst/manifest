@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_generation",
+  "case": 24,
+  "response": "# Check if the three sides form a valid triangle\nif a + b <= c or a + c <= b or b + c <= a:\n    return -1\n\n# Calculate the semi-perimeter\ns = (a + b + c) / 2\n\n# Calculate the area using Heron's formula\narea = (s * (s - a) * (s - b) * (s - c)) ** 0.5\n\n# Return the area rounded to 2 decimal places\nreturn round(area, 2)",
+  "score": 5,
+  "cost": 0.002283,
+  "expected": "",
+  "tokens": {
+    "input": 166,
+    "output": 119
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 30,
+  "response": "The product team\u2019s competitive analysis update outlines that Competitor X launched new AI features last week, which include an auto-categorization capability our product currently lacks, are priced twice as high as our offering, and have earned a neutral market response, while our product retains key competitive advantages of better APIs and third-party integrations. To counter this new competitor launch and sustain our market edge, the product team recommends fast-tracking our internal AI roadmap development item.",
+  "score": 5,
+  "cost": 0.00073875,
+  "expected": "",
+  "tokens": {
+    "input": 139,
+    "output": 704
+  }
+}

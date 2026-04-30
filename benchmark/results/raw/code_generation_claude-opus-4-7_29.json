@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_generation",
+  "case": 29,
+  "response": "```\n    def digits_sum(n):\n        neg = 1\n        if n < 0:\n            n, neg = -1 * n, -1\n        s = [int(d) for d in str(n)]\n        s[0] = s[0] * neg\n        return sum(s)\n    return sorted(nums, key=digits_sum)\n```",
+  "score": 3,
+  "cost": 0.01095,
+  "expected": "",
+  "tokens": {
+    "input": 200,
+    "output": 106
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 47,
+  "response": "```python\nnumbers = list(range(n + 1))\nreturn ' '.join(map(str, numbers))\n```",
+  "score": 5,
+  "cost": 4.84e-06,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 23
+  }
+}

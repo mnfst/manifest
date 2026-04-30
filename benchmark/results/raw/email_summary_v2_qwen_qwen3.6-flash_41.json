@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "Network Operations recommends upgrading the current 1Gbps links to 10Gbps for $45,000 upfront plus $2,000 monthly to accommodate peak usage and future growth, rather than a cheaper $15,000 traffic-shaping alternative. Please review and approve this upgrade to prevent the need for another capacity assessment within six months.",
+  "score": 5,
+  "cost": 0.00114375,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 1114
+  }
+}

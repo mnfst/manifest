@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "The email reports four open engineering roles (2 backend, 1 frontend, 1 ML) with 23 candidates in process and 5 in final rounds, noting the frontend role has been open for 60 days without strong candidates. Recruiting recommends either expanding the role to remote or adjusting the compensation band to attract better applicants.",
+  "score": 5,
+  "cost": 3.2e-05,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 70
+  }
+}

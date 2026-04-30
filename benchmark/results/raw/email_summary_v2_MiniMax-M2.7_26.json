@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "email_summary_v2",
+  "case": 26,
+  "response": "The Privacy Team received a GDPR data export request from user ID 45892 with a 30-day deadline (May 25). They must compile all personal data across services, processing purposes documentation, third-party data sharing logs, and analytics data as mandated by Legal.",
+  "score": 5,
+  "cost": 0.0017138000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 361
+  }
+}

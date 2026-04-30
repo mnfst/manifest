@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Sunshine strikes, sparking process. Plants, primarily, perform photosynthesis. Sunlight, striking surfaces, stimulates chlorophyll. Pigments, specifically chlorophyll, start absorbing sunlight. Subsequently, splitting water, producing protons, electrons. Sugars synthesize, storing solar power. Photosynthesis sustains species, supplying sustenance.",
+  "score": 5,
+  "cost": 0.000725,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 67
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_generation",
+  "case": 40,
+  "response": "c = int(round(abs(a) ** (1/3)))\nreturn c**3 == abs(a)",
+  "score": 4,
+  "cost": 0.0039335,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 3895
+  }
+}

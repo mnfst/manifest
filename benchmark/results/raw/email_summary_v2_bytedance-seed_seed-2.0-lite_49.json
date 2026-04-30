@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 49,
+  "response": "The Product Team\u2019s urgent email about an impending product launch delay outlines that the launch requires an extra two weeks because its payment integration is failing PCI compliance, presenting two potential paths forward: launch without payment functionality to add at a later date, or delay the full launch to May 15, with the Legal team confirming that the first option would require updated terms and conditions. The email calls all relevant stakeholders to attend a meeting tomorrow at 10am to discuss these options and finalize a plan to move forward with the launch.",
+  "score": 5,
+  "cost": 0.0008445,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 808
+  }
+}

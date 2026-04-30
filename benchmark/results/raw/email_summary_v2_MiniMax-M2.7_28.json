@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "email_summary_v2",
+  "case": 28,
+  "response": "The annual disaster\u2011recovery test missed its 4\u2011hour RTO target, finishing in 6\u202fhours\u202f23\u202fminutes because the database restore took three hours due to a larger dataset. The SRE recommends increasing backup frequency and pre\u2011provisioning a standby database before the next test in October.",
+  "score": 5,
+  "cost": 0.001243,
+  "expected": "",
+  "tokens": {
+    "input": 138,
+    "output": 248
+  }
+}

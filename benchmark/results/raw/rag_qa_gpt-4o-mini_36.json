@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "rag_qa",
+  "case": 36,
+  "response": "Oxygen therapy promotes the body to take up oxygen (O2) from the air.",
+  "score": 4,
+  "cost": 3.51e-05,
+  "expected": "gaseous oxygen.",
+  "tokens": {
+    "input": 162,
+    "output": 18
+  }
+}

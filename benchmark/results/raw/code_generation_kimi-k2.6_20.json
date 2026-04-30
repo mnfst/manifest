@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_generation",
+  "case": 20,
+  "response": "values = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1]\n    numerals = ['m', 'cm', 'd', 'cd', 'c', 'xc', 'l', 'xl', 'x', 'ix', 'v', 'iv', 'i']\n    result = ''\n    for v, numeral in zip(values, numerals):\n        result += numeral * (number // v)\n        number %= v\n    return result",
+  "score": 5,
+  "cost": 0.0046505999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 1904
+  }
+}

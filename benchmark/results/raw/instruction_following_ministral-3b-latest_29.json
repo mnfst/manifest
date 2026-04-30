@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "DNA (deoxyribonucleic acid) is a molecule that carries genetic instructions for all known life forms, encoding information for growth, development, and functioning through sequences of four chemical bases. It is organized into chromosomes, typically forming a double helix structure that replicates and passes traits to offspring.",
+  "score": 2,
+  "cost": 3.12e-06,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 60
+  }
+}

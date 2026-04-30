@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 27,
+  "response": "Sure! Here are the groups:\n\n### Mammals\n1. Elephant\n2. Tiger\n3. Dolphin\n\n### Birds\n1. Eagle\n2. Penguin\n3. Parrot\n\n### Fish\n1. Salmon\n2. Clownfish\n3. Goldfish",
+  "score": 5,
+  "cost": 3.75e-05,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 56
+  }
+}

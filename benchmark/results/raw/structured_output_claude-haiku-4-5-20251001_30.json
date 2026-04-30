@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "structured_output",
+  "case": 30,
+  "response": "```json\n{\n  \"name\": \"Bitcoin\",\n  \"symbol\": \"BTC\",\n  \"price\": 43250.80,\n  \"change_24h_percent\": -1.2,\n  \"market_cap\": \"$847B\",\n  \"volume_24h\": \"$18.5B\",\n  \"circulating_supply\": \"19.6M BTC\"\n}\n```",
+  "score": 5,
+  "cost": 0.0004816,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 95
+  }
+}

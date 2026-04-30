@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "In a quiet village nestled between two mountains, a mysterious fog rolled in every evening, cloaking the streets in a silvery haze. The villagers whispered tales of a hidden treasure buried deep within the fog, said to grant the finder their heart's desire. One brave girl named Elara decided to venture into the mist, armed only with a lantern and her unwavering courage. As she wandered deeper, she stumbled upon an ancient stone, its surface etched with symbols that glowed softly in the darkness. With a deep breath, she traced the symbols with her fingers, and the fog parted to reveal a shimmering chest filled with golden light. Instead of riches, Elara found a mirror reflecting her true self, and in that moment, she realized her heart's desire was not treasure, but the courage to embrace who she truly was.",
+  "score": 5,
+  "cost": 0.00010155,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 165
+  }
+}

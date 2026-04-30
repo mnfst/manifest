@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "DNA (deoxyribonucleic acid) is a molecule that contains the biological instructions an organism needs to develop, survive, and reproduce. It consists of two long strands coiled into a double helix and is passed from parents to offspring, carrying the genetic code for inherited traits.",
+  "score": 2,
+  "cost": 0.0005454,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 222
+  }
+}

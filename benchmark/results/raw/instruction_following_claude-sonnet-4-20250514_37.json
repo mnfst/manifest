@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "Chocolate tastes like a warm embrace for your taste buds - rich and enveloping, with deep, earthy notes that melt into waves of sweetness. Dark chocolate carries hints of bitter sophistication, like a complex novel that reveals new layers with each bite, while milk chocolate flows like liquid comfort, smooth and familiar. The experience unfolds slowly across your palate, leaving behind a lingering warmth that beckons you back for more.",
+  "score": 5,
+  "cost": 0.001506,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 96
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "rag_qa",
+  "case": 2,
+  "response": "Colonialism often means a country taking physical control of another and exploiting the valuable assets and supplies of the conquered nation.",
+  "score": 4,
+  "cost": 6.18e-05,
+  "expected": "taking physical control of another",
+  "tokens": {
+    "input": 316,
+    "output": 24
+  }
+}

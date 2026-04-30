@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_generation",
+  "case": 21,
+  "response": "even = odd = 0\nfor i in range(1, n + 1):\n    s = str(i)\n    if s == s[::-1]:          # palindrome check\n        if i % 2 == 0:\n            even += 1\n        else:\n            odd += 1\nreturn (even, odd)",
+  "score": 5,
+  "cost": 0.0025256,
+  "expected": "",
+  "tokens": {
+    "input": 276,
+    "output": 505
+  }
+}

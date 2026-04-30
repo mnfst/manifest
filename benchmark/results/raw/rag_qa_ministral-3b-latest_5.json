@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 5,
+  "response": "The Rhine Bridge mentioned in the context is located at **Arnhem** (in the Netherlands) and the bridge at **Nijmegen** (also in the Netherlands, over the Waal distributary of the Rhine). Additionally, the **Ludendorff Bridge** is located at **Remagen** (also in Germany).",
+  "score": 4,
+  "cost": 1.18e-05,
+  "expected": "Arnhem",
+  "tokens": {
+    "input": 228,
+    "output": 67
+  }
+}

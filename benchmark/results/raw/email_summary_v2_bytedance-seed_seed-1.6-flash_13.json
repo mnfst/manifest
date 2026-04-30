@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "Q1 customer success metrics include an NPS of 62 (up from 58), a support CSAT of 4.3/5, and a churn rate of 1.2% (down from 1.8%), with top feature requests being SSO, custom dashboards, and an API rate limit increase. Additionally, there are 3 enterprise expansions in the pipeline totaling $800K, and the CS team should prioritize addressing the top feature requests.",
+  "score": 5,
+  "cost": 0.00014864999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 198,
+    "output": 446
+  }
+}

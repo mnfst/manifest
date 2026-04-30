@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is the invisible force that pulls two objects toward each other. The bigger an object is, the stronger its gravitational pull\u2014like how Earth pulls you down to keep you from floating into space. The closer you are to an object, the stronger the pull feels, too. This is why you stay grounded on Earth but feel lighter on the Moon, which is smaller. Gravity isn\u2019t just on Earth\u2014it\u2019s everywhere in the universe, shaping how planets orbit stars, stars cluster into galaxies, and even how apples fall from trees. That is gravity.",
+  "score": 5,
+  "cost": 0.0002416,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 116
+  }
+}

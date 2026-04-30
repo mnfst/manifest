@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "# Three Facts About the Moon\n\n1. The Moon is Earth's only natural satellite and orbits our planet approximately every 27.3 days.\n\n2. The Moon is about one-quarter the size of Earth, with a diameter of roughly 2,159 miles (3,474 kilometers).\n\n3. The same side of the Moon always faces Earth because the Moon is tidally locked to our planet, meaning its rotation period matches its orbital period.",
+  "score": 5,
+  "cost": 0.0004184,
+  "expected": "",
+  "tokens": {
+    "input": 28,
+    "output": 99
+  }
+}

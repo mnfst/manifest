@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "rag_qa",
+  "case": 46,
+  "response": "Los Angeles Kings",
+  "score": 5,
+  "cost": 0.00017375,
+  "expected": "Los Angeles Kings",
+  "tokens": {
+    "input": 115,
+    "output": 3
+  }
+}

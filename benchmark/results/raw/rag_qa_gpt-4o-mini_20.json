@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "rag_qa",
+  "case": 20,
+  "response": "Erg\u00e4nzungsschulen are funded in whole by charging their students tuition fees.",
+  "score": 2,
+  "cost": 3.1349999999999996e-05,
+  "expected": "tuition",
+  "tokens": {
+    "input": 141,
+    "output": 17
+  }
+}

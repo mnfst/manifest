@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_generation",
+  "case": 16,
+  "response": "```python\n    N = len(grid)\n    \n    # Create a map from a cell's value to its (row, col) coordinates for efficient lookup.\n    val_to_pos = {val: (r, c) for r, row in enumerate(grid) for c, val in enumerate(row)}\n    \n    # To find the lexicographically smallest path, we must start with the smallest\n    # possible value. Since the grid contains all integers from 1 to N*N, the\n    # smallest starting value is 1.\n    current_r, current_c = val_to_pos[1]\n    path = [1]\n    \n    # Greedily build the rest of the path. At each step, move to the neighbor\n    # with the minimum value to keep the path lexicographically as small as possible.\n    for _ in range(k - 1):\n        min_neighbor_val = float('inf')\n        best_next_pos = None\n        \n        # Check the four possible neighbors (up, down, left, right).\n        for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:\n            nr, nc = current_r + dr, current_c + dc\n            \n            # Ensure the neighbor is within the grid boundaries.\n            if 0 <= nr < N and 0 <= nc < N:\n                neighbor_val = grid[nr][nc]\n                if neighbor_val < min_neighbor_val:\n                    min_neighbor_val = neighbor_val\n                    best_next_pos = (nr, nc)\n        \n        # Move to the best neighbor found and add its value to the path.\n        path.append(min_neighbor_val)\n        current_r, current_c = best_next_pos\n        \n    return path\n```",
+  "score": 4,
+  "cost": 0.00477625,
+  "expected": "",
+  "tokens": {
+    "input": 453,
+    "output": 421
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "\"Romeo and Juliet\" is a tragic play by William Shakespeare about two young lovers from feuding families in Verona, Italy. Romeo Montague and Juliet Capulet fall deeply in love and secretly marry. However, their families' enmity leads to a series of misunderstandings and violent encounters. After Romeo is banished for avenging his friend's death by killing Juliet's cousin, the couple devises a plan to reunite. Tragically, the plan fails, resulting in both lovers taking their own lives. Their deaths ultimately reconcile their feuding families, highlighting the senselessness of their longstanding conflict.",
+  "score": 4,
+  "cost": 0.0012875,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 122
+  }
+}

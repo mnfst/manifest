@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The email outlines Japan\u2019s planned **May\u2013August 2024 expansion**, with key milestones including legal entity setup (May), full localization (June), a beta test with 10 customers (July), and general availability (GA) in August, totaling a **$200K budget**. The CEO must approve the plan before proceeding, with breakdowns for legal ($50K), localization ($80K), and local hiring ($70K).",
+  "score": 5,
+  "cost": 7.84e-06,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 98
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "rag_qa",
+  "case": 23,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 2.32e-05,
+  "expected": "the mortgage banker",
+  "tokens": {
+    "input": 214,
+    "output": 6
+  }
+}

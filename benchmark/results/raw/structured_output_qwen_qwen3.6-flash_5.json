@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "structured_output",
+  "case": 5,
+  "response": "{\n  \"name\": \"Spaghetti Carbonara\",\n  \"servings\": 4,\n  \"prep_time_minutes\": 25,\n  \"ingredients\": [\n    {\"item\": \"spaghetti\", \"amount\": \"400g\"},\n    {\"item\": \"guanciale\", \"amount\": \"200g\"},\n    {\"item\": \"eggs\", \"amount\": \"4\"},\n    {\"item\": \"pecorino\", \"amount\": \"100g\"},\n    {\"item\": \"black pepper\", \"amount\": \"\"}\n  ]\n}",
+  "score": 4,
+  "cost": 0.0025825,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 2553
+  }
+}

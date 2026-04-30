@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_generation",
+  "case": 29,
+  "response": "```python\n    return sorted(nums, key=lambda x: (sum(int(d) for d in str(abs(x))), nums.index(x)))\n```",
+  "score": 5,
+  "cost": 3.9450000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 29
+  }
+}

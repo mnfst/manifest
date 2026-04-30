@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "rag_qa",
+  "case": 32,
+  "response": "Based on the provided context, the world's economy grew on a global scale as a result of imperialism. The context states: \"Because of the resources made available by imperialism, the world's economy grew significantly and became much more interconnected in the decades before World War I, making the many imperial powers rich and prosperous.\"",
+  "score": 2,
+  "cost": 0.0004688,
+  "expected": "the world's economy",
+  "tokens": {
+    "input": 236,
+    "output": 70
+  }
+}

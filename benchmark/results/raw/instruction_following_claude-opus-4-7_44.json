@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "Here's a list of ingredients for a basic salad in checkbox format:\n\n- [ ] Lettuce (romaine, iceberg, or mixed greens)\n- [ ] Tomatoes\n- [ ] Cucumber\n- [ ] Red onion\n- [ ] Carrots\n- [ ] Bell peppers\n- [ ] Radishes\n- [ ] Croutons\n- [ ] Cheese (feta, parmesan, or cheddar)\n- [ ] Olives\n- [ ] Salt\n- [ ] Pepper\n- [ ] Olive oil\n- [ ] Vinegar or lemon juice\n- [ ] Salad dressing (of choice)\n\nFeel free to mix and match based on your preferences! \ud83e\udd57",
+  "score": 5,
+  "cost": 0.019155,
+  "expected": "",
+  "tokens": {
+    "input": 32,
+    "output": 249
+  }
+}

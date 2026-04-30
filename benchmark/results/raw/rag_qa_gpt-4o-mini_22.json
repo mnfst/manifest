@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "rag_qa",
+  "case": 22,
+  "response": "The South African Schools Act of 1996 recognized two types of schools.",
+  "score": 5,
+  "cost": 3.06e-05,
+  "expected": "South African Schools Act",
+  "tokens": {
+    "input": 144,
+    "output": 15
+  }
+}

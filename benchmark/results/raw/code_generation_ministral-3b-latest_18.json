@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 18,
+  "response": "```python\n    words = sentence.split()\n    prime_words = []\n    for word in words:\n        length = len(word)\n        if length > 1:\n            is_prime = True\n            for i in range(2, int(length**0.5) + 1):\n                if length % i == 0:\n                    is_prime = False\n                    break\n            if is_prime:\n                prime_words.append(word)\n    return ' '.join(prime_words)\n```",
+  "score": 4,
+  "cost": 1.136e-05,
+  "expected": "",
+  "tokens": {
+    "input": 183,
+    "output": 101
+  }
+}

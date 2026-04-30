@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_explanation",
+  "case": 40,
+  "response": "This code implements the **Circuit Breaker pattern**, which prevents cascading failures by monitoring function call failures and temporarily blocking calls when a failure threshold is exceeded. The circuit has three states: closed (normal operation), open (blocking calls after too many failures), and half-open (allowing one test call after a timeout period to check if the service has recovered).",
+  "score": 5,
+  "cost": 0.001863,
+  "expected": "",
+  "tokens": {
+    "input": 241,
+    "output": 76
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_generation",
+  "case": 44,
+  "response": "```python\n    vowels = 'aeiouAEIOU'\n    vowel_map = {'a': 'c', 'e': 'g', 'i': 'k', 'o': 'q', 'u': 'w',\n                 'A': 'C', 'E': 'G', 'I': 'K', 'O': 'Q', 'U': 'W'}\n    encoded_message = []\n    for char in message:\n        if char in vowels:\n            encoded_message.append(vowel_map[char])\n        else:\n            encoded_message.append(char.swapcase())\n    return ''.join(encoded_message)\n```",
+  "score": 4,
+  "cost": 0.0015925,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 124
+  }
+}

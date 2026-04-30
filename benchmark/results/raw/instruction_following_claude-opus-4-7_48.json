@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "In Verona, two feuding families\u2014the Montagues and Capulets\u2014are torn apart when their children fall in love. Romeo Montague and Juliet Capulet meet at a masquerade ball and secretly marry with the help of Friar Laurence. After Romeo kills Juliet's cousin Tybalt in a duel and is banished, Juliet fakes her death using a potion to avoid marrying Paris. The message explaining the plan never reaches Romeo, who, believing Juliet truly dead, drinks poison beside her tomb. Juliet awakens, finds him dead, and stabs herself. Their tragic deaths ultimately reconcile their grieving families.",
+  "score": 5,
+  "cost": 0.017265,
+  "expected": "",
+  "tokens": {
+    "input": 46,
+    "output": 221
+  }
+}

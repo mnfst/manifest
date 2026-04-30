@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "rag_qa",
+  "case": 34,
+  "response": "Infinitely many prime numbers.",
+  "score": 3,
+  "cost": 0.0003625,
+  "expected": "infinitely many prime numbers",
+  "tokens": {
+    "input": 242,
+    "output": 6
+  }
+}

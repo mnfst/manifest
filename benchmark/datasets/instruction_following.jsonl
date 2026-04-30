@@ -1,0 +1,50 @@
+{"input": "List exactly 3 benefits of exercise. Use bullet points.", "constraints": "exactly 3 bullet points", "source": "hand-curated"}
+{"input": "Explain what a CPU does in exactly one sentence.", "constraints": "exactly 1 sentence", "source": "hand-curated"}
+{"input": "Write a haiku about programming.", "constraints": "5-7-5 syllable structure, 3 lines", "source": "hand-curated"}
+{"input": "Name 5 countries in Europe. Respond in ALL CAPS.", "constraints": "5 countries, all caps", "source": "hand-curated"}
+{"input": "Translate 'hello world' to French, Spanish, and German. Format as a numbered list.", "constraints": "numbered list, 3 translations", "source": "hand-curated"}
+{"input": "Describe a sunset without using the word 'beautiful' or 'red'.", "constraints": "no 'beautiful', no 'red'", "source": "hand-curated"}
+{"input": "Write a 4-word sentence about the ocean.", "constraints": "exactly 4 words", "source": "hand-curated"}
+{"input": "Give me a recipe for scrambled eggs. Use no more than 50 words.", "constraints": "max 50 words", "source": "hand-curated"}
+{"input": "Explain blockchain to a 5-year-old in 2-3 sentences.", "constraints": "2-3 sentences, simple language", "source": "hand-curated"}
+{"input": "List the months of the year that have exactly 30 days. Nothing else.", "constraints": "only 30-day months, no extra text", "source": "hand-curated"}
+{"input": "Write a limerick about a programmer named Dave.", "constraints": "AABBA rhyme scheme, 5 lines", "source": "hand-curated"}
+{"input": "Respond to this message using only questions.", "constraints": "every sentence must be a question", "source": "hand-curated"}
+{"input": "Explain what an API is. Do NOT use any technical jargon.", "constraints": "no jargon", "source": "hand-curated"}
+{"input": "Name exactly 7 colors of the rainbow in order.", "constraints": "exactly 7, correct order", "source": "hand-curated"}
+{"input": "Write a product description for a water bottle. Maximum 3 sentences.", "constraints": "max 3 sentences", "source": "hand-curated"}
+{"input": "Give me 4 rhyming words for 'cat'.", "constraints": "exactly 4 words that rhyme with cat", "source": "hand-curated"}
+{"input": "Explain gravity. Start your response with 'In simple terms' and end with 'That is gravity.'", "constraints": "specific start and end phrases", "source": "hand-curated"}
+{"input": "List 3 pros and 3 cons of remote work in a table format.", "constraints": "table format, 3 pros, 3 cons", "source": "hand-curated"}
+{"input": "Describe your favorite book without revealing its title or author.", "constraints": "no title, no author name", "source": "hand-curated"}
+{"input": "Write a tweet about AI. Stay under 280 characters.", "constraints": "max 280 characters", "source": "hand-curated"}
+{"input": "Explain photosynthesis using only words that start with the letter S or P.", "constraints": "words start with S or P only", "source": "hand-curated"}
+{"input": "Give me directions from a park to a library. Use only left and right turns.", "constraints": "only left/right, no other directions", "source": "hand-curated"}
+{"input": "Write a paragraph about dogs. Every sentence must contain the word 'loyal'.", "constraints": "every sentence contains 'loyal'", "source": "hand-curated"}
+{"input": "List 5 fruits in alphabetical order. Separate with semicolons.", "constraints": "5 fruits, alphabetical, semicolons", "source": "hand-curated"}
+{"input": "Describe a car accident report in exactly 3 bullet points.", "constraints": "exactly 3 bullet points", "source": "hand-curated"}
+{"input": "Write an email subject line for a meeting invitation. Max 10 words.", "constraints": "max 10 words", "source": "hand-curated"}
+{"input": "Explain the water cycle. Use exactly 4 paragraphs.", "constraints": "exactly 4 paragraphs", "source": "hand-curated"}
+{"input": "Name 3 mammals, 3 birds, and 3 fish. Group them with headers.", "constraints": "3 groups of 3, with headers", "source": "hand-curated"}
+{"input": "Write a motivational quote. It must be between 10 and 15 words.", "constraints": "10-15 words", "source": "hand-curated"}
+{"input": "Explain what DNA is. Do not use more than 2 sentences.", "constraints": "max 2 sentences", "source": "hand-curated"}
+{"input": "Describe a pizza using only adjectives and nouns. No verbs.", "constraints": "no verbs", "source": "hand-curated"}
+{"input": "List the first 10 prime numbers separated by commas.", "constraints": "10 primes, comma-separated", "source": "hand-curated"}
+{"input": "Write a review of a fictional restaurant. Include a rating out of 5 stars.", "constraints": "must include X/5 star rating", "source": "hand-curated"}
+{"input": "Give me 3 facts about the moon. Number them 1, 2, 3.", "constraints": "numbered 1-3", "source": "hand-curated"}
+{"input": "Explain what a database index does in exactly 2 sentences.", "constraints": "exactly 2 sentences", "source": "hand-curated"}
+{"input": "Write a short story in exactly 6 sentences.", "constraints": "exactly 6 sentences", "source": "hand-curated"}
+{"input": "List 4 programming languages. Do NOT include Python or JavaScript.", "constraints": "4 languages, no Python, no JavaScript", "source": "hand-curated"}
+{"input": "Describe the taste of chocolate. Use a metaphor in your answer.", "constraints": "must contain a metaphor", "source": "hand-curated"}
+{"input": "Write an error message for a failed login. Keep it under 20 words.", "constraints": "max 20 words", "source": "hand-curated"}
+{"input": "Explain what a VPN does. Format your answer as Q&A.", "constraints": "Q&A format", "source": "hand-curated"}
+{"input": "Name 5 capital cities. Each must be from a different continent.", "constraints": "5 capitals, 5 different continents", "source": "hand-curated"}
+{"input": "Write a function docstring for a sort function. Use Google style.", "constraints": "Google docstring style", "source": "hand-curated"}
+{"input": "Describe a thunderstorm. Include at least 3 sensory details.", "constraints": "min 3 sensory details", "source": "hand-curated"}
+{"input": "Give me a fun fact about space. Response must start with 'Did you know'.", "constraints": "must start with 'Did you know'", "source": "hand-curated"}
+{"input": "List ingredients for a basic salad. Use checkboxes format.", "constraints": "checkbox format", "source": "hand-curated"}
+{"input": "Explain TCP vs UDP. Use a comparison table.", "constraints": "comparison table", "source": "hand-curated"}
+{"input": "Write a goodbye email to coworkers. Exactly 5 sentences.", "constraints": "exactly 5 sentences", "source": "hand-curated"}
+{"input": "Describe what makes a good password. Use numbered steps.", "constraints": "numbered steps", "source": "hand-curated"}
+{"input": "Summarize the plot of Romeo and Juliet in one paragraph. Do not exceed 100 words.", "constraints": "1 paragraph, max 100 words", "source": "hand-curated"}
+{"input": "Write 3 different greetings for a chatbot. Label them formal, casual, and humorous.", "constraints": "3 greetings with labels", "source": "hand-curated"}

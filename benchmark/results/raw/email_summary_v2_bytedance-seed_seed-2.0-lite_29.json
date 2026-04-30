@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 29,
+  "response": "The Mobile Team sent a mobile app crash rate alert stating that the app\u2019s crash rate spiked to 2.3%\u2014well above the 0.5% threshold\u2014after yesterday\u2019s release, with a null pointer error in the notification handler causing crashes only on Android 12+ devices while the iOS version of the app remains completely unaffected. The team has already merged a fix for the crashing bug to the app\u2019s main codebase and submitted an emergency release request to the Google Play Store to resolve the elevated crash issue for all affected Android users.",
+  "score": 5,
+  "cost": 0.00090125,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 866
+  }
+}

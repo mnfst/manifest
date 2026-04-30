@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 46,
+  "response": "```python\n    min_even_value = float('inf')\n    min_even_index = -1\n\n    for i, num in enumerate(arr):\n        if num % 2 == 0:  # Check if the number is even\n            if num < min_even_value:\n                min_even_value = num\n                min_even_index = i\n            # If num == min_even_value, we don't need to update min_even_index\n            # because we are iterating from left to right, so the first occurrence\n            # of that smallest value will naturally have the smallest index.\n            # Any subsequent occurrence of the same value will have a larger index.\n\n    if min_even_index == -1:\n        return []\n    else:\n        return [min_even_value, min_even_index]\n```",
+  "score": 4,
+  "cost": 0.00016994999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 369,
+    "output": 191
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "The code implements the Knuth-Morris-Pratt (KMP) algorithm for substring search. It first constructs the longest prefix suffix (LPS) array for the given pattern, which is used to skip unnecessary comparisons in the main search loop, and then it searches for the pattern in the text, returning the starting index of the first occurrence of the pattern or -1 if the pattern is not found.",
+  "score": 5,
+  "cost": 0.00127,
+  "expected": "",
+  "tokens": {
+    "input": 184,
+    "output": 81
+  }
+}

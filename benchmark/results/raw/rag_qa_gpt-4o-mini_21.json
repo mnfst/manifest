@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "rag_qa",
+  "case": 21,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 3.375e-05,
+  "expected": "anaerobic bacteria",
+  "tokens": {
+    "input": 205,
+    "output": 5
+  }
+}

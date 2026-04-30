@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "```python\ndef sort(array, reverse=False):\n    \"\"\"\n    Sorts a list of elements in ascending or descending order.\n\n    This function takes a list of comparable elements and sorts them in\n    either ascending or descending order based on the value of the \n    `reverse` parameter. The sorting is done in-place, and the original \n    list is modified.\n\n    Args:\n        array (list): A list of elements to be sorted. The elements must \n                      be comparable (i.e., they must support comparison \n                      operations).\n        reverse (bool, optional): If True, the list is sorted in \n                                  descending order. Defaults to False, \n                                  which sorts the list in ascending order.\n\n    Returns:\n        None: The function modifies the input list in place and does not \n              return a new list.\n\n    Raises:\n        TypeError: If the elements in the list are not comparable.\n    \n    Example:\n        >>> numbers = [5, 2, 9, 1]\n        >>> sort(numbers)\n        >>> print(numbers)\n        [1, 2, 5, 9]\n\n        >>> sort(numbers, reverse=True)\n        >>> print(numbers)\n        [9, 5, 2, 1]\n    \"\"\"\n    pass  # Implementation goes here\n```",
+  "score": 4,
+  "cost": 0.00016155000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 264
+  }
+}

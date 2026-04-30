@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle, also known as the hydrological cycle, describes the continuous movement of water on, above, and below the Earth's surface. It begins with evaporation, where the sun's heat causes water from oceans, lakes, and rivers to turn into water vapor. This vapor rises into the atmosphere, where it cools and condenses into tiny droplets, forming clouds. The cycle then progresses to precipitation, where these droplets combine and fall back to the Earth as rain, snow, sleet, or hail, depending on atmospheric conditions.\n\nOnce water reaches the ground, it follows several paths. Some of it infiltrates the soil, replenishing groundwater supplies, while some flows over the surface as runoff, eventually returning to rivers, lakes, and oceans. A portion is also absorbed by plants, which later release it into the air through transpiration\u2014a process similar to evaporation but driven by plant life. This interconnected system ensures that water is constantly recycled and redistributed across the planet.\n\nHuman activities, such as deforestation, urbanization, and pollution, can disrupt the water cycle. For example, removing trees reduces transpiration, while paving over land increases runoff and reduces groundwater recharge. Climate change further intensifies the cycle, leading to more extreme weather events like droughts and floods. These disruptions highlight the importance of sustainable water management to maintain the balance of the hydrological system.\n\nThe water cycle is essential for life, supporting ecosystems, agriculture, and human survival. It regulates temperature, distributes nutrients, and shapes landscapes over time. By understanding and protecting this natural process, we can ensure a stable supply of freshwater and mitigate the impacts of environmental changes. The cycle\u2019s complexity reminds us of the delicate balance that sustains our planet.",
+  "score": 0,
+  "cost": 0.000108,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 351
+  }
+}

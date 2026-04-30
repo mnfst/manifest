@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Stay perfectly hydrated with our premium insulated water bottle, crafted from durable stainless steel. It keeps your drinks ice-cold for 24 hours or hot for 12, thanks to its advanced double-wall vacuum insulation. Featuring a leak-proof design and comfortable carry handle, it's your ideal companion for any adventure.",
+  "score": 4,
+  "cost": 4.185e-05,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 66
+  }
+}

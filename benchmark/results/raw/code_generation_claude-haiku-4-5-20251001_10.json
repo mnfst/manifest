@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 10,
+  "response": "```python\ndef count_nums(arr):\n    count = 0\n    for num in arr:\n        digit_sum = 0\n        if num < 0:\n            # For negative numbers, first digit is negative\n            num_str = str(num)[1:]  # Remove the '-' sign\n            first_digit = -int(num_str[0])\n            digit_sum = first_digit\n            for digit in num_str[1:]:\n                digit_sum += int(digit)\n        else:\n            # For positive numbers, sum all digits\n            for digit in str(num):\n                digit_sum += int(digit)\n        \n        if digit_sum > 0:\n            count += 1\n    \n    return count\n```",
+  "score": 4,
+  "cost": 0.0008456000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 172,
+    "output": 177
+  }
+}

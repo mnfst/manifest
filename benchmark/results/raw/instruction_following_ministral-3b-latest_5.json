@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "The sky stretches out in a slow, fading embrace, its edges dissolving into hues of gold and violet. The sun, a distant ember, dips below the horizon, leaving behind a trail of warm amber that bleeds across the landscape. Shadows stretch long and thin, catching the last light like scattered threads of silk. The air hums with quiet warmth, the world growing softer as the day\u2019s glow fades into twilight. The horizon blurs into a soft, shifting line where light and dark begin to merge.",
+  "score": 5,
+  "cost": 5.04e-06,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 106
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "Sure! Here\u2019s a general set of directions you can follow from a park to a library using only left and right turns. Please adjust the specific street names and distances based on your actual location:\n\n1. Start at the park entrance.\n2. Turn right onto Main Street.\n3. Continue straight for two blocks.\n4. Turn left onto Oak Avenue.\n5. Go straight for one block.\n6. Turn right onto Maple Drive.\n7. Continue for three blocks.\n8. Turn left onto Pine Street.\n9. The library will be on your right.\n\nFeel free to modify the street names and distances to fit your specific route!",
+  "score": 4,
+  "cost": 7.98e-05,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 127
+  }
+}

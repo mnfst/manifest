@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_generation",
+  "case": 20,
+  "response": "values = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1]\n    numerals = ['m', 'cm', 'd', 'cd', 'c', 'xc', 'l', 'xl', 'x', 'ix', 'v', 'iv', 'i']\n    \n    result = ''\n    for i in range(len(values)):\n        count = number // values[i]\n        if count:\n            result += numerals[i] * count\n            number -= values[i] * count\n    \n    return result",
+  "score": 4,
+  "cost": 0.002889,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 161
+  }
+}

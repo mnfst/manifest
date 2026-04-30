@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "Here's a well-formatted Google-style docstring for a sorting function:\n\n```python\ndef sort_items(items, *, key=None, reverse=False, **kwargs):\n    \"\"\"Sorts a collection of items in ascending order by default.\n\n    Sorts the input items in-place (modifies the original list) and returns the sorted list.\n    Supports various sorting options including custom keys, reverse order, and additional\n    parameters for specific sorting algorithms.\n\n    Args:\n        items: An iterable of items to be sorted. Must be hashable if used with key.\n        key: A function to extract a comparison key from each item. Defaults to identity.\n        reverse: If True, sorts in descending order. Defaults to False.\n        **kwargs: Additional keyword arguments passed to the underlying sorting algorithm.\n                  For example, for TimSort (Python's default), this could include:\n                  - 'cmp' for comparison function (deprecated in Python 3)\n                  - 'key' (already handled above)\n                  - 'reverse' (already handled above)\n                  - Other algorithm-specific parameters\n\n    Returns:\n        The sorted list of items.\n\n    Raises:\n        TypeError: If the input items cannot be sorted (e.g., contains unhashable types\n                  when key is not provided or when key returns unhashable types).\n\n    Examples:\n        >>> sort_items([3, 1, 2])\n        [1, 2, 3]\n\n        >>> sort_items(['banana', 'apple', 'cherry'], key=lambda x: len(x))\n        ['apple', 'banana', 'cherry']\n\n        >>> sort_items([(1, 'a'), (2, 'b')], key=lambda x: x[0], reverse=True)\n        [(2, 'b'), (1, 'a')]\n    \"\"\"\n    # Implementation would go here\n```\n\nNotes about this docstring:\n1. It follows Google style documentation format\n2. It clearly describes the purpose and behavior\n3. It documents all parameters with their types and default values\n4. It specifies the return value and possible exceptions\n5. It includes practical examples showing usage\n6. It mentions the in-place modification behavior\n7. It handles edge cases like hashable requirements\n8. It documents the special case of Python's built-in sort behavior\n\nYou might want to adjust the `**kwargs` documentation based on your specific sorting implementation details.",
+  "score": 4,
+  "cost": 2.068e-05,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 500
+  }
+}

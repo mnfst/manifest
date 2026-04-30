@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "rag_qa",
+  "case": 30,
+  "response": "Melbourne\nThe context states that \"Melbourne... is also described as the 'sporting capital of Australia'.\"",
+  "score": 1,
+  "cost": 5.8574999999999994e-05,
+  "expected": "Melbourne",
+  "tokens": {
+    "input": 337,
+    "output": 111
+  }
+}

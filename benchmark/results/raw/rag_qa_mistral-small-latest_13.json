@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "rag_qa",
+  "case": 13,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 1.86e-05,
+  "expected": "Victorian Government",
+  "tokens": {
+    "input": 168,
+    "output": 6
+  }
+}

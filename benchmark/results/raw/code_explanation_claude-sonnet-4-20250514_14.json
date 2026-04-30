@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_explanation",
+  "case": 14,
+  "response": "This code implements Dijkstra's algorithm to find the shortest paths from a starting vertex to all other vertices in a weighted graph. It uses a min-heap (priority queue) to always process the vertex with the smallest known distance first, updating distances to neighboring vertices when a shorter path is discovered.",
+  "score": 5,
+  "cost": 0.00147,
+  "expected": "",
+  "tokens": {
+    "input": 170,
+    "output": 64
+  }
+}

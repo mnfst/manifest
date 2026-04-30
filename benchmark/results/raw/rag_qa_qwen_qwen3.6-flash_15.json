@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "rag_qa",
+  "case": 15,
+  "response": "Prussia",
+  "score": 5,
+  "cost": 0.00087475,
+  "expected": "Prussia",
+  "tokens": {
+    "input": 231,
+    "output": 817
+  }
+}

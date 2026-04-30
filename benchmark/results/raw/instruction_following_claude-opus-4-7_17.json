@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 17,
+  "response": "# Remote Work: Pros and Cons\n\n| **Pros** | **Cons** |\n|----------|----------|\n| **Flexibility & Work-Life Balance** \u2013 Employees can structure their day around personal needs, reducing stress and improving overall well-being. | **Isolation & Loneliness** \u2013 Limited face-to-face interaction can lead to feelings of disconnection from colleagues and the company culture. |\n| **No Commute** \u2013 Saves time, money, and reduces environmental impact, while giving workers more hours for productive or personal activities. | **Communication Challenges** \u2013 Reliance on digital tools can cause misunderstandings, delayed responses, and reduced team collaboration. |\n| **Increased Productivity** \u2013 Many workers report fewer office distractions and the ability to create a personalized, focused work environment. | **Blurred Work-Life Boundaries** \u2013 Without a clear separation between home and office, employees may struggle to \"switch off,\" leading to burnout. |",
+  "score": 5,
+  "cost": 0.024255,
+  "expected": "",
+  "tokens": {
+    "input": 32,
+    "output": 317
+  }
+}

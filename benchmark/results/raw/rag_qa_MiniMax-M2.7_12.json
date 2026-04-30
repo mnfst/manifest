@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 12,
+  "response": "J.\u202fF.\u202fD.\u202fShrewsbury.",
+  "score": 5,
+  "cost": 0.0013882,
+  "expected": "British bacteriologist J. F. D. Shrewsbury",
+  "tokens": {
+    "input": 218,
+    "output": 261
+  }
+}

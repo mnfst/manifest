@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_explanation",
+  "case": 0,
+  "response": "This code computes the nth Fibonacci number using **recursion**, where each number is the sum of the two preceding numbers. It has exponential time complexity O(2^n) because it recalculates the same values many times without memoization.",
+  "score": 5,
+  "cost": 0.00028480000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 57
+  }
+}

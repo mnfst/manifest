@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "structured_output",
+  "case": 13,
+  "response": "```json\n{\n  \"city\": \"San Francisco\",\n  \"temperature_f\": 62,\n  \"condition\": \"partly cloudy\",\n  \"wind\": {\n    \"direction\": \"NW\",\n    \"speed_mph\": 12\n  },\n  \"humidity_percent\": 68,\n  \"uv_index\": 4,\n  \"sunset\": \"7:45pm\"\n}\n```",
+  "score": 5,
+  "cost": 0.0013985999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 554
+  }
+}

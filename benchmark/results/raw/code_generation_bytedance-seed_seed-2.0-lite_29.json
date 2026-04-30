@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_generation",
+  "case": 29,
+  "response": "sorted_items = sorted(enumerate(nums), key=lambda x: (sum(int(d) for d in str(abs(x[1]))), x[0]))\nreturn [num for idx, num in sorted_items]",
+  "score": 5,
+  "cost": 0.00453825,
+  "expected": "",
+  "tokens": {
+    "input": 205,
+    "output": 4487
+  }
+}

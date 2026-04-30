@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_explanation",
+  "case": 31,
+  "response": "This function implements the A* search algorithm to find the shortest path from a `start` to a `goal` node in a graph. It uses a priority queue to always explore the node with the lowest total estimated cost, which is the sum of the actual cost from the start and a heuristic estimate to the goal.",
+  "score": 5,
+  "cost": 0.000875,
+  "expected": "",
+  "tokens": {
+    "input": 188,
+    "output": 64
+  }
+}

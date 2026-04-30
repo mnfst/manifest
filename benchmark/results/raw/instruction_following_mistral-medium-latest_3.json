@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 3,
+  "response": "1. FRANCE\n2. GERMANY\n3. ITALY\n4. SPAIN\n5. UNITED KINGDOM",
+  "score": 5,
+  "cost": 6.840000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 31
+  }
+}

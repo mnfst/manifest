@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_generation",
+  "case": 6,
+  "response": "seen = set()\nduplicates = set()\nresult = []\nfor num in numbers:\n    if num in seen:\n        duplicates.add(num)\n    else:\n        seen.add(num)\nfor num in numbers:\n    if num not in duplicates:\n        result.append(num)\nreturn result",
+  "score": 5,
+  "cost": 9.235000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 56
+  }
+}

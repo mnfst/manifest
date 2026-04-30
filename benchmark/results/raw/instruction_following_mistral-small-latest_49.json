@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "Here are three different greetings for a chatbot, each with a distinct tone:\n\n### **Formal**\n*\"Good [morning/afternoon/evening]. How may I assist you today?\"*\n\n### **Casual**\n*\"Hey there! What can I help you with?\"*\n\n### **Humorous**\n*\"Greetings, human! \ud83d\ude80 Ready to chat, or should I fetch you a cup of coffee first?\"*",
+  "score": 5,
+  "cost": 3.08e-05,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 91
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "**Formal:**  \n\"Good day! Welcome to our service. I am your virtual assistant, and I am here to provide you with support. How may I assist you today?\"\n\n**Casual:**  \n\"Hey there! \ud83d\udc4b Nice to see you. What can I help you out with today?\"\n\n**Humorous:**  \n\"Greetings, human! I come in peace, armed with endless FAQs and a questionable sense of humor. What digital emergency can I pretend to be an expert about today?\"",
+  "score": 5,
+  "cost": 0.0006372000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 259
+  }
+}

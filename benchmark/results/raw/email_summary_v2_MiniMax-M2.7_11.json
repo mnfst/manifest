@@ -2,12 +2,12 @@
   "model": "MiniMax-M2.7",
   "task": "email_summary_v2",
   "case": 11,
-  "response": "The SOC 2 Type II audit completed with no critical findings, but three observations require remediation within 30 days: insufficient access review frequency, untested incident response plan (past 6 months), and incomplete vendor risk assessments for two vendors.",
+  "response": "The SOC 2 Type\u202fII audit completed with no critical findings, but identified three observations: insufficient access\u2011review frequency, an untested incident\u2011response plan over the past six months, and incomplete vendor\u2011risk assessments for two vendors. Remediation of these issues is required within 30\u202fdays.",
   "score": 5,
-  "cost": 0.0008459,
+  "cost": 0.0019448000000000002,
   "expected": "",
   "tokens": {
-    "input": 129,
-    "output": 160
+    "input": 132,
+    "output": 409
   }
 }

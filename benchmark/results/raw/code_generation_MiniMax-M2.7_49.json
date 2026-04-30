@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_generation",
+  "case": 49,
+  "response": "if not string:\n    return ''\nfor i in range(len(string)):\n    if string[i:] == string[i:][::-1]:\n        return string + string[:i][::-1]",
+  "score": 4,
+  "cost": 0.006947600000000002,
+  "expected": "",
+  "tokens": {
+    "input": 216,
+    "output": 1525
+  }
+}

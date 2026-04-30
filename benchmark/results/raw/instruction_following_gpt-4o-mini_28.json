@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "\"Embrace challenges as opportunities; each step forward brings you closer to your dreams.\"",
+  "score": 4,
+  "cost": 1.3649999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 17
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "rag_qa",
+  "case": 43,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 2.8700000000000003e-05,
+  "expected": "Amazonia: Man and Culture in a Counterfeit Paradise",
+  "tokens": {
+    "input": 269,
+    "output": 6
+  }
+}

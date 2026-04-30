@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "This function implements a **partitioning** algorithm, dividing an `iterable` into two separate iterators: one containing elements for which the `predicate` returns `True`, and another for which it returns `False`. It efficiently achieves this by using `itertools.tee` to create independent streams from the original iterable, allowing both filtering operations to proceed concurrently without exhausting the source.",
+  "score": 5,
+  "cost": 5.625e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 76
+  }
+}

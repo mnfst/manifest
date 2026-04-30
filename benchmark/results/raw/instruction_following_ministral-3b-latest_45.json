@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 45,
+  "response": "Here\u2019s a clear comparison between **TCP (Transmission Control Protocol)** and **UDP (User Datagram Protocol)** in a table format:\n\n| **Feature**               | **TCP (Transmission Control Protocol)**                          | **UDP (User Datagram Protocol)**                              |\n|---------------------------|------------------------------------------------------------------|----------------------------------------------------------------|\n| **Connection Type**       | **Connection-oriented** (3-way handshake before data transfer)   | **Connectionless** (No handshake; sends datagrams independently) |\n| **Reliability**           | **Reliable** (Checks for lost packets, retransmits if needed)     | **Unreliable** (No guarantee of delivery or order)             |\n| **Ordering**              | **Sequenced** (Data arrives in the correct order)               | **Unsequenced** (Data may arrive out of order)                |\n| **Flow Control**          | Yes (Adjusts sending rate to avoid overwhelming the receiver)   | No (No control over sending speed)                            |\n| **Congestion Control**    | Yes (Reduces transmission rate if network is congested)         | No (No congestion control)                                     |\n| **Header Size**           | Larger (~20-60 bytes) due to control fields (ACK, sequence, etc.) | Smaller (~8 bytes)                                            |\n| **Speed**                 | Slower (due to overhead for reliability)                         | Faster (no overhead for reliability)                           |\n| **Use Cases**             | Web browsing (HTTP/HTTPS), Email (SMTP), File transfers (FTP), SSH | Video streaming (RTSP), Online gaming, DNS, VoIP (VoIP may use TCP for reliability) |\n| **Latency**               | Higher (due to acknowledgments and retransmissions)               | Lower (no waiting for acknowledgments)                         |\n| **Throughput**            | Lower (due to reliability mechanisms)                            | Higher (no overhead for reliability)                           |\n| **Error Handling**        | Uses **ACKs (Acknowledgments)** and **retransmissions**          | No error handling (loses packets silently)                     |\n| **Multiplexing**          | Supports multiple streams (ports)                                | Each datagram is independent (no multiplexing)                |\n| **Example Protocols**     | FTP, HTTP, HTTPS, SSH, Telnet, SMTP |",
+  "score": 4,
+  "cost": 2.056e-05,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 500
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 49,
+  "response": "Patient care rounds, drug product selection, and collaboration with physicians and other healthcare professionals (as part of interdisciplinary care).",
+  "score": 4,
+  "cost": 6.4000000000000006e-06,
+  "expected": "patient care rounds drug product selection",
+  "tokens": {
+    "input": 136,
+    "output": 24
+  }
+}

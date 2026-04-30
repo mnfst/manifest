@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 8,
+  "response": "The **annual performance review cycle** begins on **May 1**, with self-reviews due by **May 15**, manager reviews on **May 22**, and calibration on **May 28**, followed by final delivery by **June 5**\u2014using a new competency framework. Managers must attend a **training session on April 30** to prepare.",
+  "score": 5,
+  "cost": 6.92e-06,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 81
+  }
+}

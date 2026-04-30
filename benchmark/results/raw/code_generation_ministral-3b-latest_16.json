@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 16,
+  "response": "```python\n    from collections import deque\n\n    def minPath(grid, k):\n        n = len(grid)\n        min_path = None\n        min_val = float('inf')\n\n        for i in range(n):\n            for j in range(n):\n                queue = deque()\n                queue.append((i, j, [grid[i][j]]))\n                visited = set()\n                visited.add((i, j))\n\n                while queue:\n                    x, y, path = queue.popleft()\n                    if len(path) == k:\n                        current_val = path[-1]\n                        if current_val < min_val:\n                            min_val = current_val\n                            min_path = path.copy()\n                        continue\n\n                    for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:\n                        nx, ny = x + dx, y + dy\n                        if 0 <= nx < n and 0 <= ny < n and (nx, ny) not in visited:\n                            new_path = path + [grid[nx][ny]]\n                            queue.append((nx, ny, new_path))\n                            visited.add((nx, ny))\n\n        return min_path\n```",
+  "score": 3,
+  "cost": 2.7e-05,
+  "expected": "",
+  "tokens": {
+    "input": 425,
+    "output": 250
+  }
+}

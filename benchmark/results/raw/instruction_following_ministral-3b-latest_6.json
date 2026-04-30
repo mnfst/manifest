@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 6,
+  "response": "**\"Waves dance endless blue.\"**",
+  "score": 5,
+  "cost": 8.8e-07,
+  "expected": "",
+  "tokens": {
+    "input": 13,
+    "output": 9
+  }
+}

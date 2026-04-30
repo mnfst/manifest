@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "# A Mystery Without a Name\n\nIt's a story about obsession and the unreliable nature of memory. The narrator is a man living in a sparse room, documenting his thoughts in notebooks, trying to piece together who he really is after a violent incident left him with gaps in his past.\n\nHe becomes fixated on a stranger\u2014following him through a city, constructing elaborate theories about this person's life and significance. The line between observer and participant blurs dangerously. There's a philosophical quality to it: questions about identity, free will, and whether we can ever truly know another person.\n\nThe prose is deliberately sparse and repetitive, which mirrors the narrator's fractured mental state. What makes it compelling is the uncertainty\u2014you're never quite sure what's real, what's imagined, or what the narrator is deliberately hiding from himself.\n\nIt's the kind of book that rewards rereading because the ending recontextualizes everything that came before. It's unsettling and brilliant, exploring how easily we construct narratives about ourselves and others, and how those narratives can become prisons.\n\n---\n\nI'm curious if anyone recognizes it! But I'm also happy to discuss what draws me to this type of unreliable narrator story if you're interested.",
+  "score": 5,
+  "cost": 0.0010992,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 271
+  }
+}

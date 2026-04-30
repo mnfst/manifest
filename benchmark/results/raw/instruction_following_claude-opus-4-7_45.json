@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 45,
+  "response": "# TCP vs UDP\n\n**TCP (Transmission Control Protocol)** and **UDP (User Datagram Protocol)** are the two main transport layer protocols in the Internet Protocol suite. They differ primarily in reliability, speed, and use cases.\n\n## Comparison Table\n\n| Feature | TCP | UDP |\n|---------|-----|-----|\n| **Connection** | Connection-oriented (handshake required) | Connectionless (no handshake) |\n| **Reliability** | Reliable \u2014 guarantees delivery | Unreliable \u2014 no delivery guarantee |\n| **Ordering** | Packets arrive in order | No ordering guarantee |\n| **Error Checking** | Extensive; retransmits lost packets | Basic checksum only; no retransmission |\n| **Speed** | Slower due to overhead | Faster, lightweight |\n| **Header Size** | 20\u201360 bytes | 8 bytes |\n| **Flow Control** | Yes (windowing) | No |\n| **Congestion Control** | Yes | No |\n| **Data Transmission** | Stream of bytes | Discrete packets (datagrams) |\n| **Broadcast/Multicast** | Not supported | Supported |\n| **Use Cases** | Web (HTTP/HTTPS), email (SMTP), file transfer (FTP), SSH | Video/voice streaming, gaming, DNS, VoIP, DHCP |\n\n## Key Concepts Explained\n\n### TCP \u2014 \"Reliable Conversation\"\n- Establishes a connection via a **3-way handshake** (SYN \u2192 SYN-ACK \u2192 ACK).\n- Numbers each packet (sequence numbers) so they can be reassembled in order.\n- If a packet is lost, TCP retransmits it.\n- Uses **flow control** (so the sender doesn't overwhelm the receiver) and **congestion control** (to avoid overloading the network).\n\n### UDP \u2014 \"Fire and Forget\"\n- Just sends packets without setting up a connection.\n- No acknowledgments, no retransmissions, no ordering.\n- Much lower latency and overhead.\n- The application is responsible for handling any reliability if needed.\n\n## When to Use Which?\n\n- **Use TCP** when **accuracy matters more than speed** \u2014 e.g., loading a web page, sending a file, or logging into a server. Missing data would corrupt the result.\n- **Use UDP** when **speed matters more than perfection** \u2014 e.g., a live video call where a slightly dropped frame is better than a delayed one.\n\n## Quick Analogy\n- **TCP** is like a phone call: both parties confirm they're connected, and if you don't hear something, you ask \"Can you repeat that?\"\n- **UDP** is like shouting an announcement: you broadcast the message and hope people hear it \u2014 you don't wait for confirmation.",
+  "score": 4,
+  "cost": 0.07029,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 931
+  }
+}

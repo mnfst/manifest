@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "rag_qa",
+  "case": 29,
+  "response": "Istanbul",
+  "score": 5,
+  "cost": 0.005145,
+  "expected": "Istanbul",
+  "tokens": {
+    "input": 298,
+    "output": 9
+  }
+}

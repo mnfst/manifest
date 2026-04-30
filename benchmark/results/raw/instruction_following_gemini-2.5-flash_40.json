@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "Here are 5 capital cities, each from a different continent:\n\n1.  **Washington D.C.** (North America)\n2.  **Bras\u00edlia** (South America)\n3.  **Paris** (Europe)\n4.  **Tokyo** (Asia)\n5.  **Cairo** (Africa)",
+  "score": 5,
+  "cost": 4.365e-05,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 69
+  }
+}

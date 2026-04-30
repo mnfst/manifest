@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 29,
+  "response": "```python\ndef digit_sum(n):\n    return sum(int(d) for d in str(abs(n)))\n\nreturn sorted(enumerate(nums), key=lambda x: (digit_sum(x[1]), x[0]))[1]\n```\n\nWait, let me reconsider. The function should return a list of the numbers sorted, not tuples. Let me fix that:\n\n```python\ndef digit_sum(n):\n    return sum(int(d) for d in str(abs(n)))\n\nreturn [num for _, num in sorted(enumerate(nums), key=lambda x: (digit_sum(x[1]), x[0]))]\n```",
+  "score": 4,
+  "cost": 0.0007512,
+  "expected": "",
+  "tokens": {
+    "input": 164,
+    "output": 155
+  }
+}

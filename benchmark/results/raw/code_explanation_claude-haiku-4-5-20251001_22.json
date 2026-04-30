@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "This code implements an **LRU (Least Recently Used) Cache** using an OrderedDict to maintain insertion order. When accessing or updating a key, it moves that key to the end (marking it as recently used), and when the cache exceeds capacity, it removes the least recently used item from the front.",
+  "score": 4,
+  "cost": 0.00042239999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 183,
+    "output": 69
+  }
+}

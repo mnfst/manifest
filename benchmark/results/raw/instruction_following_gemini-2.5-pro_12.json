@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "Of course! Here is an explanation of what an API is without any technical jargon.\n\n***\n\nImagine you\u2019re sitting at a table in a restaurant. The kitchen is a separate system where the food is prepared. You can't just walk into the kitchen and cook your own meal. You need a way to communicate with the kitchen.\n\nIn this scenario, the **waiter** is the API.\n\nHere's how it works:\n\n1.  **You have a request:** You look at the menu (a list of what's possible) and decide what you want to order.\n2.  **You give your order to the waiter (the API):** You tell the waiter, \"I'd like the cheeseburger and fries.\"\n3.  **The waiter takes the request to the system:** The waiter goes to the kitchen and gives your specific order to the chefs. The waiter knows exactly how to talk to the kitchen.\n4.  **The system does the work:** The kitchen prepares your cheeseburger and fries.\n5.  **The waiter brings the result back to you:** The waiter returns from the kitchen and places your meal on your table.\n\nThe waiter is the messenger that allows you, the customer, to get something you want from the kitchen, without you having to know anything about how the kitchen works.\n\n**An API is a waiter for software.**\n\nIt's a messenger that takes a request from one piece of software, carries it to another, and then brings the response back.\n\n**A few real-world examples:**\n\n*   **Weather App:** When you check the weather on your phone, your app doesn't have its own weather satellite. It uses an API to ask a big weather service (like The Weather Channel) for the information. The API is the waiter that brings the forecast back to your app.\n*   **Travel Websites:** When you search for flights on a site like Kayak or Expedia, that website uses APIs to ask all the different airlines, \"What are your flight prices for this date and destination?\" The airlines' APIs bring all that information back, and the website shows it to you.\n\nSo, an API is simply a way for different computer programs to talk to each other in a structured, predictable way, just like a waiter allows you to communicate with the kitchen.",
+  "score": 5,
+  "cost": 0.0048675,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 485
+  }
+}

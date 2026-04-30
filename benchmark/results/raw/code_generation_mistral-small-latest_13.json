@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "code_generation",
+  "case": 13,
+  "response": "```python\n    count = 0\n    for _ in string:\n        count += 1\n    return count\n```",
+  "score": 5,
+  "cost": 1.64e-05,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 27
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "rag_qa",
+  "case": 34,
+  "response": "Infinitely many prime numbers.",
+  "score": 3,
+  "cost": 0.00018375,
+  "expected": "infinitely many prime numbers",
+  "tokens": {
+    "input": 291,
+    "output": 111
+  }
+}

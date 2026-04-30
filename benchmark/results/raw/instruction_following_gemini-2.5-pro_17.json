@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "instruction_following",
+  "case": 17,
+  "response": "Of course. Here are 3 pros and 3 cons of remote work in a table format.\n\n| Pros | Cons |\n| :--- | :--- |\n| **1. Increased Flexibility and Autonomy** | **1. Potential for Social Isolation** |\n| Employees often have more control over their work schedule, allowing for a better work-life balance. This makes it easier to manage personal appointments, family needs, and errands. | The lack of daily, in-person interaction with colleagues can lead to feelings of loneliness and disconnection from the company culture and team camaraderie. |\n| **2. Reduced Commute Time and Costs** | **2. Difficulty Separating Work and Home Life** |\n| Eliminating the daily commute saves significant time, money (on gas, public transport, car maintenance), and reduces stress, while also being environmentally friendly. | When your home is also your office, the lines between personal time and work time can blur, making it difficult to \"switch off\" and potentially leading to overwork and burnout. |\n| **3. Access to a Wider Talent Pool** | **3. Communication and Collaboration Hurdles** |\n| Companies are no longer limited by geography when hiring. They can recruit the best talent from anywhere in the world, leading to a more diverse and skilled workforce. | Spontaneous brainstorming and quick problem-solving can be more challenging. Reliance on digital tools can lead to miscommunication and a lack of non-verbal cues. |",
+  "score": 4,
+  "cost": 0.00306125,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 304
+  }
+}

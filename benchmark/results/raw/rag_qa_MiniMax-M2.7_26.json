@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 26,
+  "response": "The very first Fresno television station to begin broadcasting was KMJ-TV, which debuted on June 1, 1953.",
+  "score": 5,
+  "cost": 0.0006061000000000001,
+  "expected": "KMJ-TV",
+  "tokens": {
+    "input": 211,
+    "output": 85
+  }
+}

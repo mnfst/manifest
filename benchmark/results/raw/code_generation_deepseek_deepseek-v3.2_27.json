@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_generation",
+  "case": 27,
+  "response": "```python\n    strongest_strength = -float('inf')\n    strongest_name = None\n    for ext in extensions:\n        cap = sum(1 for c in ext if c.isupper())\n        sm = sum(1 for c in ext if c.islower())\n        strength = cap - sm\n        if strength > strongest_strength:\n            strongest_strength = strength\n            strongest_name = ext\n    return f\"{class_name}.{strongest_name}\"\n```",
+  "score": 4,
+  "cost": 0.000186,
+  "expected": "",
+  "tokens": {
+    "input": 304,
+    "output": 100
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "instruction_following",
+  "case": 6,
+  "response": "Waves crash against rocky shores.",
+  "score": 1,
+  "cost": 0.0001125,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 7
+  }
+}

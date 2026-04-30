@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_generation",
+  "case": 9,
+  "response": "sum_odd_squares = 0\nfor num in lst:\n    if isinstance(num, bool):\n        continue\n    if isinstance(num, int):\n        is_integer = True\n    elif isinstance(num, float):\n        if not num.is_integer():\n            continue\n        is_integer = True\n    else:\n        continue\n    if num < 0:\n        continue\n    if (num // 2) * 2 != num:\n        sum_odd_squares += num ** 2\nreturn sum_odd_squares",
+  "score": 3,
+  "cost": 0.0013159499999999998,
+  "expected": "",
+  "tokens": {
+    "input": 258,
+    "output": 4322
+  }
+}

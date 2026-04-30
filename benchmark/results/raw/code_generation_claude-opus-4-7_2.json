@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_generation",
+  "case": 2,
+  "response": "```\n    res = []\n    s = sorted(lst)\n    while s:\n        res.append(s.pop(0))\n        if s:\n            res.append(s.pop())\n    return res\n```",
+  "score": 4,
+  "cost": 0.00801,
+  "expected": "",
+  "tokens": {
+    "input": 224,
+    "output": 62
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Cheesy, savory, crispy crust, tangy tomato sauce, fresh basil, pepperoni slices, colorful bell peppers, black olives, aromatic garlic, melted mozzarella, zesty oregano, golden-brown edges, delicious toppings, mouthwatering aroma.",
+  "score": 5,
+  "cost": 3.225e-05,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 49
+  }
+}

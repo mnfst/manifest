@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "email_summary_v2",
+  "case": 39,
+  "response": "The year-end audit begins on January 15, requiring the completion of several critical pre-audit financial tasks. Team members must finalize Q4 revenue recognition, reconcile all bank accounts, verify stock option records, and prepare related-party transaction disclosures, with specific responsibilities to be assigned at a controller meeting next Tuesday.",
+  "score": 5,
+  "cost": 0.00105275,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 1027
+  }
+}

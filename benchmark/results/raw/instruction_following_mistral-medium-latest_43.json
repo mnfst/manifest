@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 43,
+  "response": "Did you know that **Neptune\u2019s days are shorter than Earth\u2019s**, even though it\u2019s *way* farther from the Sun? A single day on Neptune lasts just **16 hours**, while its year is a whopping **165 Earth years long**\u2014meaning it\u2019s only completed *one full orbit* since its discovery in 1846! \ud83e\ude90\u23f3",
+  "score": 5,
+  "cost": 0.000174,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 83
+  }
+}

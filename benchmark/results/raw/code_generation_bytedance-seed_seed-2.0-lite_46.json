@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_generation",
+  "case": 46,
+  "response": "min_val = float('inf')\nmin_idx = -1\nfor i, num in enumerate(arr):\n    if num % 2 == 0:\n        if num < min_val:\n            min_val = num\n            min_idx = i\nreturn [] if min_idx == -1 else [min_val, min_idx]",
+  "score": 4,
+  "cost": 0.00165775,
+  "expected": "",
+  "tokens": {
+    "input": 415,
+    "output": 1554
+  }
+}

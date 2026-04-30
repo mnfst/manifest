@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_explanation",
+  "case": 4,
+  "response": "This code defines a decorator that implements the memoization pattern to optimize a function. It uses a dictionary as a cache to store the results of function calls, returning the cached value for any subsequent calls with the same arguments to avoid redundant computation.",
+  "score": 5,
+  "cost": 0.0005775,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 48
+  }
+}

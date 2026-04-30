@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "This function partitions an iterable's elements into two separate iterators based on a predicate. It uses the `itertools.tee` pattern to efficiently create two independent iterators from the input, allowing one to be filtered for `True` results and the other for `False` results in a single pass.",
+  "score": 5,
+  "cost": 0.00070875,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 62
+  }
+}

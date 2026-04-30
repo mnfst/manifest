@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 15,
+  "response": "Here are 4 rhyming words for 'cat':\n\n1.  **Hat**\n2.  **Mat**\n3.  **Bat**\n4.  **Sat**",
+  "score": 5,
+  "cost": 2.52e-05,
+  "expected": "",
+  "tokens": {
+    "input": 12,
+    "output": 39
+  }
+}

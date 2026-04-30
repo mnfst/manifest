@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_explanation",
+  "case": 31,
+  "response": "This code implements the A* search algorithm, which finds the shortest path from a `start` node to a `goal` node in a `graph`. It uses a priority queue to efficiently explore nodes, prioritizing those with the lowest estimated total cost (actual cost from the start plus a heuristic estimate to the goal).",
+  "score": 5,
+  "cost": 6.6e-05,
+  "expected": "",
+  "tokens": {
+    "input": 188,
+    "output": 63
+  }
+}

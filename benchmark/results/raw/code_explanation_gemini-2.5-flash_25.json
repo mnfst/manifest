@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "This `EventEmitter` class implements the **Observer design pattern**, allowing objects to register callback functions (`on`) for specific events. When an event is `emit`ted, all registered functions for that event are invoked with the provided arguments, effectively notifying all subscribers.",
+  "score": 5,
+  "cost": 5.1149999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 52
+  }
+}

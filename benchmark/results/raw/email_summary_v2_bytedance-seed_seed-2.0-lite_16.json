@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 16,
+  "response": "The marketing team shared April\u2019s marketing campaign results in an email, reporting 45,000 impressions, a 5.1% CTR that is 1.2 percentage points higher than March\u2019s, an 8.1% conversion rate that is 0.8 percentage points lower than March\u2019s, a total campaign cost of $12,000, and a $64 customer acquisition cost from the 187 signups the campaign drove. To address the decline in conversion rates, the marketing team recommended the core action item of A/B testing the campaign\u2019s landing page call-to-action to improve outcomes for future marketing efforts.",
+  "score": 5,
+  "cost": 0.00093425,
+  "expected": "",
+  "tokens": {
+    "input": 165,
+    "output": 893
+  }
+}

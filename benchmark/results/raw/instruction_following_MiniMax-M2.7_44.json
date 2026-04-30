@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "**Basic Salad Ingredients**\n\n- [ ] Romaine or iceberg lettuce (chopped)  \n- [ ] Mixed greens (baby spinach, arugula, etc.)  \n- [ ] Cherry tomatoes (halved)  \n- [ ] Cucumber (sliced)  \n- [ ] Red onion (thinly sliced)  \n- [ ] Bell pepper (any color, diced)  \n- [ ] Shredded carrots  \n- [ ] Feta or goat cheese (crumbled)  \n- [ ] Sliced olives (kalamata, black, or green)  \n- [ ] Sunflower seeds or toasted walnuts (optional)  \n- [ ] Fresh herbs (parsley, dill, basil \u2013 roughly chopped)  \n- [ ] Olive oil (extra\u2011virgin)  \n- [ ] Lemon juice or red wine vinegar  \n- [ ] Dijon mustard (optional, for emulsification)  \n- [ ] Salt and freshly ground black pepper  \n\nFeel free to mix and match based on your taste\u2014just tick the items you\u2019d like to include and enjoy your fresh, customizable salad!",
+  "score": 5,
+  "cost": 0.002673,
+  "expected": "",
+  "tokens": {
+    "input": 50,
+    "output": 595
+  }
+}

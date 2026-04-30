@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "1. **Length is key** \u2013 Aim for at least 12\u201316 characters. Longer passwords (e.g., 20\u201130 characters) dramatically increase the time needed to guess them.\n\n2. **Mix character types** \u2013 Combine uppercase letters, lowercase letters, numbers, and special symbols (e.g.,\u202f!\u202f@\u202f#\u202f$\u202f%\u202f^\u202f&\u202f*). Avoid predictable substitutions like \u201c@\u201d for \u201ca\u201d if they\u2019re over\u2011used.\n\n3. **Avoid common words and patterns** \u2013 Don\u2019t use dictionary words, phrases, or obvious sequences (e.g.,\u202f\u201cpassword123\u201d, \u201c123456\u201d, \u201cqwerty\u201d). Stay away from personal information such as birthdays, names of pets, or street addresses.\n\n4. **Make it random\u2011sounding** \u2013 If you can write it down on a sticky note, it\u2019s probably too guessable. Use a random string of characters or a passphrase that\u2019s nonsensical but memorable to you (e.g.,\u202f\u201ccactus\u2011frown\u2011giraffe\u20117\u201d).\n\n5. **Use unique passwords for each account** \u2013 Re\u2011using the same password across multiple services means a breach of one site compromises all of them. Each login should have its own strong, distinct password.\n\n6. **Consider a password manager** \u2013 These tools can generate, store, and auto\u2011fill complex passwords for you, so you only need to remember one master password (which itself should follow the rules above).\n\n7. **Enable two\u2011factor authentication (2FA)** \u2013 Even the strongest password can be phished; adding a second verification method (e.g., a text message, authenticator app, or hardware token) dramatically improves security.\n\n8. **Regularly update critical passwords** \u2013 Change passwords for high\u2011value accounts (banking, email, etc.) periodically, especially if you suspect any compromise.\n\n9. **Verify against breach\u2011databases** \u2013 Before settling on a password, check it against known breach lists (many password managers do this automatically) to ensure it hasn\u2019t been exposed.\n\n10. **Educate yourself on phishing** \u2013 Even the strongest password is ineffective if you inadvertently give it away. Learn to spot suspicious emails, links, and login pages.",
+  "score": 5,
+  "cost": 0.0026576,
+  "expected": "",
+  "tokens": {
+    "input": 32,
+    "output": 596
+  }
+}

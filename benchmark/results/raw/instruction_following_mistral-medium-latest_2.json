@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "Silent keys do speak,\nLogic flows in endless streams\u2014\nBugs hide in the dark.",
+  "score": 5,
+  "cost": 4.6e-05,
+  "expected": "",
+  "tokens": {
+    "input": 10,
+    "output": 21
+  }
+}

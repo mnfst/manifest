@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "structured_output",
+  "case": 20,
+  "response": "{\n  \"items\": [\n    {\"name\": \"pepperoni pizza\", \"size\": \"large\", \"price\": 18.99},\n    {\"name\": \"margherita pizza\", \"size\": \"medium\", \"price\": 14.99},\n    {\"name\": \"Coke\", \"size\": \"2L\", \"price\": 3.99}\n  ],\n  \"delivery_address\": \"456 Oak Ave\",\n  \"special_instructions\": \"ring doorbell twice\",\n  \"total\": 37.97\n}",
+  "score": 4,
+  "cost": 0.00088475,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 844
+  }
+}

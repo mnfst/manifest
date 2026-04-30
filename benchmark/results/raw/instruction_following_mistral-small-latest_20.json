@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Photosynthesis is a process where plants produce sustenance. Sunlight powers this process, splitting water into parts. Plants pull in sunlight, producing sugars and releasing oxygen. Special structures in plants, called stomata, suck in carbon dioxide. Pigments, such as chlorophyll, soak up sunlight. This process sustains life on Earth.",
+  "score": 4,
+  "cost": 2.37e-05,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 69
+  }
+}

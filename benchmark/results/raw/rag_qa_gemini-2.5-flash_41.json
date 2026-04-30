@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "rag_qa",
+  "case": 41,
+  "response": "Duquesne sent 500 men to relieve Saint-Pierre.",
+  "score": 4,
+  "cost": 3.809999999999999e-05,
+  "expected": "Contrec\u0153ur led 500 men south from Fort Venango on April 5, 1754",
+  "tokens": {
+    "input": 194,
+    "output": 15
+  }
+}

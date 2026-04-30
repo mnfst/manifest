@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 2,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 1.2800000000000001e-05,
+  "expected": "taking physical control of another",
+  "tokens": {
+    "input": 314,
+    "output": 6
+  }
+}

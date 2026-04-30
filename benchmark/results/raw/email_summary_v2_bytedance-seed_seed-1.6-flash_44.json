@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "email_summary_v2",
+  "case": 44,
+  "response": "Sarah proposes reallocating $50K from engineering (which is 8% under budget due to delayed hiring) to cover marketing's 15% overspend from the August campaign, after reviewing with finance. The team is asked to discuss this proposal on Thursday.",
+  "score": 5,
+  "cost": 9.42e-05,
+  "expected": "",
+  "tokens": {
+    "input": 176,
+    "output": 270
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "rag_qa",
+  "case": 14,
+  "response": "Ctenophora live in marine waters worldwide.",
+  "score": 5,
+  "cost": 0.000875,
+  "expected": "marine waters",
+  "tokens": {
+    "input": 310,
+    "output": 10
+  }
+}

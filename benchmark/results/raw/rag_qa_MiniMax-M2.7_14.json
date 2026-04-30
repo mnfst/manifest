@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 14,
+  "response": "Ctenophora live in marine waters worldwide.",
+  "score": 5,
+  "cost": 0.0007117,
+  "expected": "marine waters",
+  "tokens": {
+    "input": 335,
+    "output": 78
+  }
+}

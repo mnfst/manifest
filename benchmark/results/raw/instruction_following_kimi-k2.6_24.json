@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "\u2022 At approximately 3:45 PM on March 15th, a silver 2019 Honda Accord failed to stop at a red light at the intersection of Maple Street and 5th Avenue, striking the driver's side of a blue 2021 Toyota Camry that was proceeding through the intersection on a green light.\n\u2022 Both vehicles sustained significant front-end and side damage and were towed from the scene; the driver of the Camry was transported to Central Hospital with minor injuries, while the Accord driver declined medical treatment.\n\u2022 Police officers documented witness statements and issued a traffic citation to the Accord driver for running a red light; both parties exchanged insurance information and the incident has been referred to their respective carriers for claims processing.",
+  "score": 2,
+  "cost": 0.001065,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 439
+  }
+}

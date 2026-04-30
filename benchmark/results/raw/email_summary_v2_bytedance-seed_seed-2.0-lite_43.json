@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 43,
+  "response": "The Legal/Engineering team shared results of a completed open source software dependency audit, which scanned 234 total packages and identified two problematic licensing issues that conflict with the company\u2019s SaaS model: a charting library relying on the incompatible AGPL \u201cviral\u201d license and a second package with no license at all. The team recommends resolving both issues ahead of the company\u2019s next release by swapping the AGPL-licensed charting library for the safe, Apache-licensed Chart.js alternative and removing the unlicensed package from the project\u2019s dependencies entirely.",
+  "score": 5,
+  "cost": 0.0006205,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 582
+  }
+}

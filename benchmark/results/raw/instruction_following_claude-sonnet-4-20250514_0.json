@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "\u2022 **Improves cardiovascular health** - Regular exercise strengthens the heart muscle, lowers blood pressure, and reduces the risk of heart disease and stroke.\n\n\u2022 **Enhances mental well-being** - Physical activity releases endorphins that reduce stress, anxiety, and depression while boosting mood and self-esteem.\n\n\u2022 **Increases strength and endurance** - Exercise builds muscle mass, improves bone density, and enhances overall physical stamina for daily activities.",
+  "score": 4,
+  "cost": 0.00162,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 104
+  }
+}

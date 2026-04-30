@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "email_summary_v2",
+  "case": 37,
+  "response": "BigCo is interested in acqui-hiring the company's ML team (5 people) with a $15M offer, and the CEO believes the offer is too low, recommending a counter or polite decline. The CEO suggests discussing the matter before responding and informs the board should be informed.",
+  "score": 5,
+  "cost": 8.647499999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 181,
+    "output": 243
+  }
+}

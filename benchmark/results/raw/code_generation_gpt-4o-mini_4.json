@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_generation",
+  "case": 4,
+  "response": "```python\n    if not l:\n        return True\n    increasing = decreasing = True\n    for i in range(1, len(l)):\n        if l[i] > l[i - 1]:\n            decreasing = False\n        elif l[i] < l[i - 1]:\n            increasing = False\n    return increasing or decreasing\n```",
+  "score": 5,
+  "cost": 6.0299999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 71
+  }
+}

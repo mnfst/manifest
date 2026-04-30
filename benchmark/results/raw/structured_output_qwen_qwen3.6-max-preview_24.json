@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "structured_output",
+  "case": 24,
+  "response": "{\n  \"restaurant\": \"Chez Marie\",\n  \"rating\": 4.5,\n  \"cuisine\": \"French\",\n  \"price_range\": \"$$$\",\n  \"recommended_dish\": \"duck confit\",\n  \"service_rating\": \"excellent\",\n  \"wait_time_minutes\": 15,\n  \"recommended_for\": \"date night\"\n}",
+  "score": 5,
+  "cost": 0.0061425,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 1150
+  }
+}

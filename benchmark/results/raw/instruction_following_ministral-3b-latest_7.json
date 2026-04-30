@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "**Quick Scrambled Eggs (50 words):**\n\nWhisk **2 eggs** + **1 tbsp milk** (or water) in a bowl. Heat **1 tbsp butter/oil** in a pan on **low-medium**. Pour in eggs, stirring gently until soft, creamy curls form (~2-3 mins). Season with **salt/pepper**. Remove from heat; fold gently. Serve warm!",
+  "score": 5,
+  "cost": 4.520000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 93
+  }
+}

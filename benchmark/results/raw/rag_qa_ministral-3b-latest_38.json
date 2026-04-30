@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 38,
+  "response": "Nine residential houses at Harvard are located **along or near the Charles River**.",
+  "score": 2,
+  "cost": 1.096e-05,
+  "expected": "Charles River",
+  "tokens": {
+    "input": 258,
+    "output": 16
+  }
+}

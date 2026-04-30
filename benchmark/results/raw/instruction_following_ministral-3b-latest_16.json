@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is the invisible force that pulls objects toward each other. Imagine you\u2019re holding a ball\u2014it stays in your hand because gravity keeps it close to Earth. If you drop the ball, it falls *down* because Earth\u2019s gravity pulls it toward its center. The same happens with planets: they stay in orbit around the sun because gravity keeps them from flying away. Even the moon orbits Earth because of gravity. The stronger the mass of an object, the stronger its gravitational pull\u2014so a black hole\u2019s gravity is so intense it can bend light and trap everything near it.\n\nThat is gravity.",
+  "score": 5,
+  "cost": 5.96e-06,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 125
+  }
+}

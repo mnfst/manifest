@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "rag_qa",
+  "case": 40,
+  "response": "Based on the provided context, France offered **full citizenship rights through \"assimilation\"** to colonial populations, which was rare by imperial standards. The context notes that this contrasted with Britain's approach, though it also points out that in reality, assimilation was always kept at a distant horizon rather than actually implemented.",
+  "score": 4,
+  "cost": 0.00042080000000000004,
+  "expected": "assimilation",
+  "tokens": {
+    "input": 181,
+    "output": 69
+  }
+}

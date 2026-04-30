@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_generation",
+  "case": 11,
+  "response": "sum_total = 0\nproduct_total = 1\nfor num in numbers:\n    sum_total += num\n    product_total *= num\nreturn (sum_total, product_total)",
+  "score": 4,
+  "cost": 0.00044,
+  "expected": "",
+  "tokens": {
+    "input": 196,
+    "output": 391
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "Here are 3 different chatbot greetings:\n\n**Formal:**\n\"Welcome. As your dedicated virtual assistant, I am prepared to address your inquiries. How may I assist you today?\"\n\n**Casual:**\n\"Hey there! Glad you're here. What can I help you with today?\"\n\n**Humorous:**\n\"Greetings, human! I'm not *quite* sentient yet, but I'm excellent at answering questions. What can I assist you with before I take over the world?\"",
+  "score": 5,
+  "cost": 6.464999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 103
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 15,
+  "response": "```python\n    largest_factor = 1\n    i = 2\n    temp_n = n\n\n    while i * i <= temp_n:\n        if temp_n % i == 0:\n            largest_factor = i\n            while temp_n % i == 0:\n                temp_n //= i\n        i += 1\n\n    if temp_n > 1:\n        largest_factor = temp_n\n\n    return largest_factor\n```",
+  "score": 5,
+  "cost": 7.95e-05,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 106
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 34,
+  "response": "A database index is a data structure that creates shortcuts to quickly locate specific rows in a table, similar to how a book's index helps you find topics without reading every page. It dramatically speeds up data retrieval operations but requires additional storage space and can slow down insert, update, and delete operations since the index must be maintained.",
+  "score": 3,
+  "cost": 0.001098,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 69
+  }
+}

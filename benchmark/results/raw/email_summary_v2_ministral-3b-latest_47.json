@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 47,
+  "response": "The March cohort received a satisfaction score of **7.2/10**, dropping from 8.1, with praise for the buddy system but concerns over unclear benefits deadlines, delayed tool access (taking 3\u20135 days instead of the target 1 day), and missing a culture handbook. **Lisa prioritizes fixing the tools access delay** as the top action item.",
+  "score": 5,
+  "cost": 7.680000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 80
+  }
+}

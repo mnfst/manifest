@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 47,
+  "response": "March onboarding satisfaction dropped to 7.2/10 from 8.1, with key issues including confusion about benefits deadlines, delayed tools access, and missing culture handbooks. Lisa prioritized fixing the tools access process, which is currently taking 3-5 days against a one-day target.",
+  "score": 4,
+  "cost": 0.0017112,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 685
+  }
+}

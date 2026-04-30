@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "code_generation",
+  "case": 41,
+  "response": "```python\n    # Extract elements at indices divisible by 3\n    divisible_by_three = [l[i] for i in range(len(l)) if i % 3 == 0]\n    # Sort these elements\n    divisible_by_three.sort()\n    # Create a new list with the sorted elements at the correct positions\n    result = l.copy()\n    for idx, val in enumerate(divisible_by_three):\n        result[idx * 3] = val\n    return result\n```",
+  "score": 4,
+  "cost": 5.05e-05,
+  "expected": "",
+  "tokens": {
+    "input": 193,
+    "output": 104
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "rag_qa",
+  "case": 37,
+  "response": "Korea bordered the northeast of Kublai's territory. The context notes that Kublai secured the northeast border of his domain in 1259 by installing Wonjong as the ruler of Korea, making Korea a Mongol tributary state.",
+  "score": 5,
+  "cost": 0.00074075,
+  "expected": "northeast",
+  "tokens": {
+    "input": 263,
+    "output": 675
+  }
+}

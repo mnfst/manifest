@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "The Scrum Master\u2019s email sharing sprint retrospective notes highlights two recent sprint successes\u2014shipping the auth redesign on time and strong cross-team collaboration with the design team\u2014along with two key shortcomings: excessive context switches from developers working across three different projects, and standups that ran 10 minutes over the 15-minute target at 25 minutes long. The email lays out two action items to resolve those gaps: limiting each developer\u2019s work in progress to only two items, and implementing timeboxed standups with a parking lot to keep future meetings efficient.",
+  "score": 5,
+  "cost": 0.000786,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 748
+  }
+}

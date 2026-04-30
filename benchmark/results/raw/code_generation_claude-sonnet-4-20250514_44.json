@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_generation",
+  "case": 44,
+  "response": "vowels = 'aeiouAEIOU'\n    vowel_map = {'a': 'c', 'e': 'g', 'i': 'k', 'o': 'q', 'u': 'w',\n                 'A': 'C', 'E': 'G', 'I': 'K', 'O': 'Q', 'U': 'W'}\n    \n    result = ''\n    for char in message:\n        if char in vowels:\n            result += vowel_map[char]\n        elif char.isalpha():\n            result += char.swapcase()\n        else:\n            result += char\n    \n    return result",
+  "score": 4,
+  "cost": 0.003072,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 171
+  }
+}

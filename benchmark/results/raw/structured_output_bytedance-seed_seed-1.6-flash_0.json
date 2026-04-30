@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "structured_output",
+  "case": 0,
+  "response": "{\n  \"name\": \"John Smith\",\n  \"age\": 32,\n  \"job_title\": \"software engineer\",\n  \"company\": \"Google\",\n  \"location\": {\n    \"city\": \"Mountain View\",\n    \"state\": \"CA\"\n  }\n}",
+  "score": 5,
+  "cost": 0.00011144999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 332
+  }
+}

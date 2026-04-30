@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 35,
+  "response": "```python\n    return (abs(a) % 10) * (abs(b) % 10)\n```",
+  "score": 5,
+  "cost": 0.00023040000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 143,
+    "output": 29
+  }
+}

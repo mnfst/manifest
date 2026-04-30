@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "The email reports quarterly OKR scores, with Product missing its target due to a delayed AI feature, recommending the AI OKR be carried forward with increased resources. Next quarter's planning begins Monday.",
+  "score": 5,
+  "cost": 2.58e-05,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 42
+  }
+}

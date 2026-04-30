@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "Here is a car accident report in exactly 3 bullet points:\n\n- **Incident Details:** On October 15, 2024, at approximately 3:45 PM, a two-vehicle collision occurred at the intersection of Main Street and Oak Avenue. A blue 2019 Honda Civic, traveling northbound, was struck on the passenger side by a red 2021 Ford F-150 that ran a red light while heading eastbound, resulting in moderate front-end and side damage to both vehicles.\n\n- **Parties Involved:** The Honda Civic was driven by Sarah Mitchell (age 34), who sustained minor whiplash and was treated at the scene by paramedics. The Ford F-150 was operated by James Carter (age 47), who was uninjured but cited for failure to obey a traffic signal; both drivers exchanged insurance information and provided statements to responding officers from the local police department.\n\n- **Scene Conditions and Response:** Weather conditions were clear and dry, with normal afternoon traffic and fully functional traffic signals at the intersection. Officer Daniels (Badge #4521) arrived within seven minutes, secured the scene, took witness statements from two bystanders, and arranged for both vehicles to be towed, with the official report filed under case number 2024-10-1507.",
+  "score": 3,
+  "cost": 0.032415,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 426
+  }
+}

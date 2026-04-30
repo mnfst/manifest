@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "Here are three key benefits of exercise:\n\n- **Improves physical health** \u2013 Strengthens the heart, muscles, and bones; reduces the risk of chronic diseases (e.g., diabetes, hypertension); and boosts immune function.\n- **Enhances mental well-being** \u2013 Reduces stress, anxiety, and depression by releasing endorphins (natural mood lifters) and improving sleep quality.\n- **Boosts energy and brain function** \u2013 Increases oxygen flow to the brain, sharpening focus, memory, and cognitive performance while combating fatigue.",
+  "score": 5,
+  "cost": 0.000234,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 114
+  }
+}

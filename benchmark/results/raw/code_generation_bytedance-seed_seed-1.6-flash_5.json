@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_generation",
+  "case": 5,
+  "response": "return max(l)",
+  "score": 5,
+  "cost": 0.00011159999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 200,
+    "output": 322
+  }
+}

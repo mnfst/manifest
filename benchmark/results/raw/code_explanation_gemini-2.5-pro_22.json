@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "This code implements a Least Recently Used (LRU) cache using an `OrderedDict` to maintain the order of use. When an item is accessed or added it is moved to the end, and if the cache exceeds its capacity, the item at the beginning (the least recently used) is removed.",
+  "score": 4,
+  "cost": 0.000825,
+  "expected": "",
+  "tokens": {
+    "input": 172,
+    "output": 61
+  }
+}

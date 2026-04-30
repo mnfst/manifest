@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 6,
+  "response": "**Summary:**\nAcme Corp, a $450K ARR client, is threatening to leave due to unresolved API latency issues (lasting three weeks) and a five-day lack of support response, prompting James to assign a dedicated engineer and seek executive sponsorship for an urgent meeting.\n\n**Action Items:**\n- Secure executive sponsorship for a call this week.\n- Assign a dedicated engineer to address the API latency and support delays.",
+  "score": 5,
+  "cost": 7.599999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 87
+  }
+}

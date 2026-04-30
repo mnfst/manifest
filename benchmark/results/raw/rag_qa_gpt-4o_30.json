@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "rag_qa",
+  "case": 30,
+  "response": "Melbourne is called the sporting capital of Australia.",
+  "score": 1,
+  "cost": 0.0007225,
+  "expected": "Melbourne",
+  "tokens": {
+    "input": 249,
+    "output": 10
+  }
+}

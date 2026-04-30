@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 36,
+  "response": "def largest_divisor(n: int) -> int:\n    for i in range(n, 1, -1):\n        if n % i == 0:\n            return i\n    return 1",
+  "score": 3,
+  "cost": 5.04e-06,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 43
+  }
+}

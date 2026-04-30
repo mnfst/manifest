@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 40,
+  "response": "Full citizenship rights (assimilation).",
+  "score": 5,
+  "cost": 0.001122,
+  "expected": "assimilation",
+  "tokens": {
+    "input": 204,
+    "output": 204
+  }
+}

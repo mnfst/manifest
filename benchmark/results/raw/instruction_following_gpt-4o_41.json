@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "Certainly! Below is an example of a Google style docstring for a sort function:\n\n```python\ndef sort_list(input_list):\n    \"\"\"Sorts a list of elements in ascending order.\n\n    This function takes a list of elements and returns a new list with the \n    elements sorted in ascending order. The input list can contain any \n    comparable elements, such as integers, floats, or strings.\n\n    Args:\n        input_list (list): A list of comparable elements to be sorted.\n\n    Returns:\n        list: A new list containing the elements from `input_list`, sorted \n        in ascending order.\n\n    Raises:\n        TypeError: If the elements in `input_list` are not comparable.\n\n    Example:\n        >>> sort_list([3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5])\n        [1, 1, 2, 3, 3, 4, 5, 5, 5, 6, 9]\n    \"\"\"\n    pass\n```\n\nThis docstring provides a clear description of the function's purpose, its parameters, return value, possible exceptions, and an example of how to use the function.",
+  "score": 5,
+  "cost": 0.0026025,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 255
+  }
+}

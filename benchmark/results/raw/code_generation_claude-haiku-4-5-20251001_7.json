@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 7,
+  "response": "```python\n    result = 1\n    factorial = 1\n    \n    for i in range(1, n + 1):\n        factorial *= i\n        result *= factorial\n    \n    return result\n```",
+  "score": 4,
+  "cost": 0.00031360000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 51
+  }
+}

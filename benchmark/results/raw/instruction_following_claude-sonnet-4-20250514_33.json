@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "1. The Moon is about 238,855 miles (384,400 kilometers) away from Earth on average, making it our closest celestial neighbor.\n\n2. The Moon is gradually moving away from Earth at a rate of about 1.5 inches (3.8 centimeters) per year due to tidal forces.\n\n3. The Moon's gravity is about one-sixth of Earth's gravity, which is why astronauts could jump so high and far during the Apollo missions.",
+  "score": 5,
+  "cost": 0.001734,
+  "expected": "",
+  "tokens": {
+    "input": 28,
+    "output": 110
+  }
+}

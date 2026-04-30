@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 3,
+  "response": "```python\n    if len(xs) <= 1:\n        return []\n    return [xs[i] * i for i in range(1, len(xs))]\n```",
+  "score": 5,
+  "cost": 0.0002984,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 44
+  }
+}

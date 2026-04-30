@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_generation",
+  "case": 23,
+  "response": "min_sum = float('inf')\n    current_sum = 0\n    \n    for num in nums:\n        current_sum = min(num, current_sum + num)\n        min_sum = min(min_sum, current_sum)\n    \n    return min_sum",
+  "score": 5,
+  "cost": 0.001407,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 68
+  }
+}

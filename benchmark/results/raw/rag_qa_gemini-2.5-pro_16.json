@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "rag_qa",
+  "case": 16,
+  "response": "Approximately fifty percent more land in Allston than in Cambridge.",
+  "score": 5,
+  "cost": 0.00038625,
+  "expected": "approximately fifty percent",
+  "tokens": {
+    "input": 213,
+    "output": 12
+  }
+}

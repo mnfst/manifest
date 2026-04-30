@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The email outlines the timeline and budget for Japan's international expansion, with key milestones from May to August and a total budget of $200K. The sender requests CEO approval to proceed with the plan.",
+  "score": 5,
+  "cost": 2.42e-05,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 44
+  }
+}

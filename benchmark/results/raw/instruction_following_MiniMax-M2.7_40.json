@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "Here are five capital cities, one from each of five different continents:\n\n1. **Africa** \u2013\u202fCairo, Egypt  \n2. **Asia** \u2013\u202fTokyo, Japan  \n3. **Europe** \u2013\u202fParis, France  \n4. **North America** \u2013\u202fWashington, D.C., United States  \n5. **South America** \u2013\u202fBuenos\u202fAires, Argentina  \n\n(If you\u2019d like capitals from other continents\u2014such as Oceania or Antarctica\u2014just let me know!)",
+  "score": 5,
+  "cost": 0.0014729,
+  "expected": "",
+  "tokens": {
+    "input": 55,
+    "output": 321
+  }
+}

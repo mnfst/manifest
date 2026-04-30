@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 8,
+  "response": "return [value for value in values if isinstance(value, int)]",
+  "score": 5,
+  "cost": 2.8049999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 14
+  }
+}

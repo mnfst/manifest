@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "The team successfully completed the auth redesign on time with strong cross-functional collaboration but faced inefficiencies like excessive context switching and long standups. **Action items:** limit work-in-progress (WIP) to 2 items per developer and implement timeboxed standups (max 15 min) with a parking lot.",
+  "score": 5,
+  "cost": 6.92e-06,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 67
+  }
+}

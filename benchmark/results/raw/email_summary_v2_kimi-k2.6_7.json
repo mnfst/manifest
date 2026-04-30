@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 7,
+  "response": "The new office at 500 Market St will be ready June 1, with IT handling network setup from June 4\u20136 and the professional move occurring on June 7\u20138. Each team must designate a move coordinator by Friday.",
+  "score": 4,
+  "cost": 0.0010956,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 434
+  }
+}

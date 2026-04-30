@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "A programmer, whose first name was Dave,\nWrote code that would often misbehave.\nWith a bug in the script,\nHis whole monitor flipped,\nAnd he lost all the work he could save.",
+  "score": 5,
+  "cost": 0.000465,
+  "expected": "",
+  "tokens": {
+    "input": 12,
+    "output": 45
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_generation",
+  "case": 10,
+  "response": "```python\n    count = 0\n    for num in arr:\n        s = str(num)\n        if num < 0:\n            # For a number like -123, s is \"-123\".\n            # The signed digits are -1, 2, 3. The sum is 4.\n            # This is calculated as -int(s[1]) + sum of the rest of the digits.\n            digit_sum = -int(s[1]) + sum(int(d) for d in s[2:])\n        else:\n            # For a positive number like 123, s is \"123\".\n            # The sum of digits is 1 + 2 + 3 = 6.\n            digit_sum = sum(int(d) for d in s)\n        \n        if digit_sum > 0:\n            count += 1\n            \n    return count\n```",
+  "score": 4,
+  "cost": 0.00229875,
+  "expected": "",
+  "tokens": {
+    "input": 167,
+    "output": 209
+  }
+}

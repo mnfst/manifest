@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_generation",
+  "case": 23,
+  "response": "min_ending_here = min_so_far = nums[0]\n    for x in nums[1:]:\n        min_ending_here = min(x, min_ending_here + x)\n        min_so_far = min(min_so_far, min_ending_here)\n    return min_so_far",
+  "score": 5,
+  "cost": 0.012619100000000001,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 2395
+  }
+}

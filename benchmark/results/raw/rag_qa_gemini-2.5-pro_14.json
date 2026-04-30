@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "rag_qa",
+  "case": 14,
+  "response": "in marine waters worldwide",
+  "score": 5,
+  "cost": 0.00040125,
+  "expected": "marine waters",
+  "tokens": {
+    "input": 289,
+    "output": 4
+  }
+}

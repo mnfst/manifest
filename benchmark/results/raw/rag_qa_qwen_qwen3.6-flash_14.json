@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "rag_qa",
+  "case": 14,
+  "response": "Marine waters worldwide.",
+  "score": 5,
+  "cost": 0.00067875,
+  "expected": "marine waters",
+  "tokens": {
+    "input": 323,
+    "output": 598
+  }
+}

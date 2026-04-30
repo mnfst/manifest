@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 31,
+  "response": "```python\n    # Filter out strings with odd lengths\n    even_length_strings = [s for s in lst if len(s) % 2 == 0]\n    \n    # Sort by length first, then alphabetically\n    even_length_strings.sort(key=lambda x: (len(x), x))\n    \n    return even_length_strings\n```",
+  "score": 4,
+  "cost": 0.0005496,
+  "expected": "",
+  "tokens": {
+    "input": 247,
+    "output": 88
+  }
+}

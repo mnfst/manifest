@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 37,
+  "response": "BigCo has offered $15 million to acqui-hire the five-person ML team, though the CEO believes the valuation is too low and recommends either countering or politely declining. The CEO requests a discussion before any response is sent and advises that the board be informed.",
+  "score": 5,
+  "cost": 0.0012503999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 496
+  }
+}

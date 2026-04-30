@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_generation",
+  "case": 37,
+  "response": "```python\nreturn 0.5 * a * h\n```",
+  "score": 5,
+  "cost": 0.000335,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 14
+  }
+}

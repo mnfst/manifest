@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 23,
+  "response": "```python\n    min_sum = float('inf')\n    current_sum = 0\n    \n    for num in nums:\n        current_sum += num\n        min_sum = min(min_sum, current_sum)\n        if current_sum > 0:\n            current_sum = 0\n    \n    return min_sum\n```",
+  "score": 4,
+  "cost": 0.0004352,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 83
+  }
+}

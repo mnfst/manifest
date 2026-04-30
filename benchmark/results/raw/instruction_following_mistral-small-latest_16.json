@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is the invisible force that pulls two objects toward each other. It\u2019s what keeps your feet on the ground, makes things fall, and holds planets in orbit around the sun. The bigger an object is, the stronger its gravitational pull. For example, Earth\u2019s gravity keeps us from floating into space, while the moon\u2019s weaker gravity allows astronauts to jump higher there. Even light can\u2019t escape the pull of a black hole because gravity is so strong there. That is gravity.",
+  "score": 5,
+  "cost": 3.42e-05,
+  "expected": "",
+  "tokens": {
+    "input": 36,
+    "output": 102
+  }
+}

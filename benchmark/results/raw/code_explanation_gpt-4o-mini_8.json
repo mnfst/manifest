@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_explanation",
+  "case": 8,
+  "response": "The provided code defines a `debounce` decorator that limits the rate at which a function (`fn`) can be executed by delaying its invocation until after a specified `wait` time has elapsed since the last call. If the decorated function is called again before the wait time is over, the previous timer is canceled and reset, ensuring that `fn` is only executed once after the final call within the wait period.",
+  "score": 5,
+  "cost": 6.525e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 83
+  }
+}

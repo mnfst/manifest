@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "rag_qa",
+  "case": 2,
+  "response": "Colonialism often means a country taking physical control of another, beginning a conquest over an area, ruling over the areas the previous nation had controlled, and exploiting the valuable assets and supplies of the conquered nation.",
+  "score": 4,
+  "cost": 7.065e-05,
+  "expected": "taking physical control of another",
+  "tokens": {
+    "input": 303,
+    "output": 42
+  }
+}

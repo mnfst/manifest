@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "# The Fading Day\n\nThe sun descends toward the horizon, painting the sky in layers of amber and gold. Clouds catch fire with orange light, their edges glowing like embers. The atmosphere softens everything\u2014sharp lines blur into gradients of peach, coral, and deep crimson.\n\nAs the sun sinks lower, the colors deepen. Violet and indigo creep across the upper sky while the lower clouds hold onto warmth, burning bronze and copper. The light grows honeyed and thick, casting long shadows across the land.\n\nEverything it touches seems to glow from within\u2014trees become silhouettes, water transforms into molten metal, skin takes on a warm, luminous quality. The air itself seems to thicken and slow.\n\nThen, in those final moments, the sun touches the edge of the world. The sky blazes one last time in brilliant intensity before the light begins its retreat. Colors fade to dusty rose and mauve. The day exhales.\n\nWithin minutes, the spectacle dims. Stars emerge in the deepening blue-black. The world settles into twilight, then dusk, then night\u2014the sun's brief performance complete.",
+  "score": 3,
+  "cost": 0.0010392,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 255
+  }
+}

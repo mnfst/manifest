@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "# Google Style Function Docstring for a Sort Function\n\n```python\ndef sort_list(items, reverse=False, key=None):\n    \"\"\"Sorts a list of items in ascending or descending order.\n    \n    This function sorts the provided list using Python's built-in sorting\n    algorithm. It supports custom sorting keys and can sort in either\n    ascending or descending order.\n    \n    Args:\n        items (list): The list of items to be sorted. Items should be\n            comparable types (int, str, float, etc.).\n        reverse (bool, optional): If True, sorts in descending order.\n            Defaults to False (ascending order).\n        key (callable, optional): A function of one argument that is used\n            to extract a comparison key from each element. For example,\n            key=str.lower for case-insensitive string sorting. Defaults\n            to None (compare items directly).\n    \n    Returns:\n        list: A new sorted list containing all items from the input list.\n            The original list is not modified.\n    \n    Raises:\n        TypeError: If items are not comparable or if key is not callable.\n        ValueError: If the list is empty.\n    \n    Example:\n        >>> sort_list([3, 1, 4, 1, 5, 9])\n        [1, 1, 3, 4, 5, 9]\n        \n        >>> sort_list(['apple', 'Banana', 'cherry'], key=str.lower)\n        ['apple', 'Banana', 'cherry']\n        \n        >>> sort_list([1, 2, 3], reverse=True)\n        [3, 2, 1]\n    \"\"\"\n    pass\n```\n\n## Key Elements of Google Style:\n\n- **Summary line**: Brief one-line description\n- **Extended description**: More detailed explanation (optional)\n- **Args**: Parameter names, types, and descriptions\n- **Returns**: Return type and description\n- **Raises**: Exceptions that may be raised\n- **Example**: Usage examples with expected output",
+  "score": 4,
+  "cost": 0.0019207999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 476
+  }
+}

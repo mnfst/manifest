@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 13,
+  "response": "The seven colors of the rainbow in order are: Red, Orange, Yellow, Green, Blue, Indigo, and Violet.",
+  "score": 5,
+  "cost": 1.77e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 25
+  }
+}

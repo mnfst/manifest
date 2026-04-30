@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 38,
+  "response": "Login failed. Please check your username and password, and try again.",
+  "score": 3,
+  "cost": 1.185e-05,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 14
+  }
+}

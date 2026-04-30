@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "email_summary_v2",
+  "case": 5,
+  "response": "The product launch requires a two-week extension due to PCI compliance failures in the payment integration, leaving the team to choose between a payment-free launch with updated terms or a full delay until May 15. Please attend tomorrow\u2019s 10 a.m. meeting to decide on the preferred option and coordinate next steps.",
+  "score": 5,
+  "cost": 0.005917599999999999,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 1111
+  }
+}

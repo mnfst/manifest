@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "**Stay Hydrated, Stay Refreshed with Our Premium Leak-Proof Water Bottle!** Crafted with durable, BPA-free materials, this sleek bottle keeps your drinks cold for hours or hot for up to 12 hours\u2014perfect for gym sessions, travel, or daily adventures. Lightweight yet sturdy, it features an ergonomic grip and a built-in straw for effortless sipping, ensuring you stay hydrated without the hassle.",
+  "score": 3,
+  "cost": 4.5599999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 97
+  }
+}

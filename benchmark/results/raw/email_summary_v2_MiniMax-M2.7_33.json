@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "email_summary_v2",
+  "case": 33,
+  "response": "The Q1 Employee Engagement Survey reports an overall engagement score of 7.8/10 (above the industry average of 7.2), with team collaboration as the highest\u2011scoring area (8.9) and career growth clarity the lowest (6.1). The People Team proposes three actions\u2014quarterly career conversations, an internal mobility program, and mentorship matching\u2014and will present them at a town hall on Friday.",
+  "score": 5,
+  "cost": 0.0025102,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 534
+  }
+}

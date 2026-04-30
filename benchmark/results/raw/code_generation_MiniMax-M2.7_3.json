@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_generation",
+  "case": 3,
+  "response": "return [i * xs[i] for i in range(1, len(xs))]",
+  "score": 3,
+  "cost": 0.0041646,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 908
+  }
+}

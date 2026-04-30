@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "# What an API Is\n\nImagine you're at a restaurant. You don't go into the kitchen and make your own food\u2014instead, you:\n\n1. **Look at the menu** (the options available)\n2. **Tell the waiter what you want** (make a request)\n3. **The waiter brings your food** (get a response)\n\nAn **API works exactly like this waiter**.\n\n## The Simple Version\n\nAn API is a messenger between two things. It lets one piece of software ask another piece of software to do something and get back an answer.\n\n## Real-World Example\n\nWhen you check the weather on your phone:\n- Your weather app doesn't measure the temperature itself\n- Instead, it asks a weather service \"What's the temperature in my city?\"\n- The weather service sends back the answer\n- Your app displays it to you\n\nThe API is the system that handles that question and answer.\n\n## Why It Matters\n\nAPIs let different apps and services work together without needing to rebuild everything from scratch. It's like having a standard way for apps to talk to each other and share information.\n\n**In short:** An API is a tool that lets software ask other software for information or to do something, and get a useful answer back.",
+  "score": 5,
+  "cost": 0.0011144,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 274
+  }
+}

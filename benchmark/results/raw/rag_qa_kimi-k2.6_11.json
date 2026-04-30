@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "rag_qa",
+  "case": 11,
+  "response": "Of the order of 1.1 \u00d7 10\u00b9\u00b9 metric tonnes of carbon (representing about 10% of the carbon stores in ecosystems).",
+  "score": 2,
+  "cost": 0.0022409999999999995,
+  "expected": "10% of the carbon stores",
+  "tokens": {
+    "input": 167,
+    "output": 892
+  }
+}

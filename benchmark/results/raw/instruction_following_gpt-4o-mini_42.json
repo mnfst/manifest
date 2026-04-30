@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "A thunderstorm rolls in with an ominous darkness, the sky transforming into a swirling mass of deep gray clouds that seem to pulse with energy. The air grows heavy and thick, carrying the sharp, electric scent of ozone that tingles in your nostrils, a precursor to the impending downpour. Suddenly, a brilliant flash of lightning splits the sky, illuminating the landscape for a brief moment, followed by a deep, rumbling thunder that vibrates through your chest, echoing like a distant drum. As the first raindrops begin to fall, they create a rhythmic patter on rooftops and pavement, quickly escalating into a torrential downpour that drowns out all other sounds, enveloping the world in a symphony of nature's raw power.",
+  "score": 5,
+  "cost": 9.6e-05,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 155
+  }
+}

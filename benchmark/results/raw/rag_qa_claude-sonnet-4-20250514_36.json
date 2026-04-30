@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "rag_qa",
+  "case": 36,
+  "response": "Based on the provided context, oxygen therapy promotes the body to take up gaseous oxygen. The context specifically mentions that oxygen therapy is used to treat \"any disease that impairs the body's ability to take up and use gaseous oxygen.\"",
+  "score": 2,
+  "cost": 0.001305,
+  "expected": "gaseous oxygen.",
+  "tokens": {
+    "input": 180,
+    "output": 51
+  }
+}

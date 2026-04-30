@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_explanation",
+  "case": 45,
+  "response": "This code defines a `Middleware` class that implements a middleware pattern, commonly used in web frameworks. It maintains a stack of functions (middleware) and executes them in sequence, passing a `context` object and a `next` function to each, allowing each middleware to perform operations and then call `next` to proceed to the subsequent middleware in the stack.",
+  "score": 5,
+  "cost": 0.0009875,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 72
+  }
+}

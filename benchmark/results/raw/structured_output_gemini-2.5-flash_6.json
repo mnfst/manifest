@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "structured_output",
+  "case": 6,
+  "response": "```json\n{\n  \"type\": \"Bug report\",\n  \"summary\": \"App crashes on login when using Face ID\",\n  \"device\": \"iPhone 14\",\n  \"os_version\": \"iOS 17.2\",\n  \"reproducibility\": \"Reproducible every time\",\n  \"severity\": \"critical\"\n}\n```",
+  "score": 5,
+  "cost": 6.18e-05,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 80
+  }
+}

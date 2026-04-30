@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "structured_output",
+  "case": 12,
+  "response": "```json\n{\n  \"title\": \"Senior DevOps Engineer\",\n  \"company\": \"Stripe\",\n  \"location\": \"US\",\n  \"remote\": true,\n  \"salary_range\": {\n    \"min\": 180000,\n    \"max\": 220000\n  },\n  \"requirements\": {\n    \"min_years\": 5,\n    \"skills\": [\n      \"Kubernetes\",\n      \"AWS\",\n      \"Terraform\"\n    ]\n  },\n  \"benefits\": [\n    \"unlimited PTO\",\n    \"401k match\"\n  ]\n}\n```",
+  "score": 5,
+  "cost": 0.00164125,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 148
+  }
+}

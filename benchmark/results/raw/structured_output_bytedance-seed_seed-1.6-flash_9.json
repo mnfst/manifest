@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "structured_output",
+  "case": 9,
+  "response": "{\n  \"title\": \"Introduction to Machine Learning\",\n  \"instructor\": \"Dr. Sarah Chen\",\n  \"duration_weeks\": 12,\n  \"prerequisites\": [\n    \"Linear Algebra\",\n    \"Python\"\n  ],\n  \"level\": \"Intermediate\"\n}",
+  "score": 5,
+  "cost": 9.285e-05,
+  "expected": "",
+  "tokens": {
+    "input": 170,
+    "output": 267
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "rag_qa",
+  "case": 19,
+  "response": "Advancements in communication.",
+  "score": 2,
+  "cost": 0.00024825,
+  "expected": "communication",
+  "tokens": {
+    "input": 205,
+    "output": 197
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 36,
+  "response": "Here are 4 programming languages (excluding Python and JavaScript):\n\n1. **Java**\n2. **C++**\n3. **Rust**\n4. **Go**",
+  "score": 4,
+  "cost": 0.004725,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 56
+  }
+}

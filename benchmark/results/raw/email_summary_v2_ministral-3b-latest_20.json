@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 20,
+  "response": "The **Weekend Incident Report** highlights a disk space alert on `prod-db-01` at 2 AM, where automated cleanup freed 40GB but failed to resize the disk, requiring manual intervention by 8 AM\u2014caused by misconfigured log rotation after a migration. **Action:** Review and fix the log rotation settings to prevent recurrence.",
+  "score": 5,
+  "cost": 6.84e-06,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 75
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 14,
+  "response": "The email alerts that AWS costs have surged 40% due to expensive ML training jobs on p4d instances, with an estimated $45K monthly impact, and requests a decision by Friday on using either spot instances (70% savings with interruption risk) or reserved instances (30% savings with commitment). The DevOps team needs to choose an option to mitigate costs.",
+  "score": 5,
+  "cost": 3.6299999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 80
+  }
+}

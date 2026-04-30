@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "rag_qa",
+  "case": 7,
+  "response": "Based on the provided context, when an external force acts on the system, the magnitude of the external force is divided by **the mass of the system** to determine the acceleration of the center of mass.",
+  "score": 4,
+  "cost": 0.00031360000000000003,
+  "expected": "mass of the system",
+  "tokens": {
+    "input": 172,
+    "output": 44
+  }
+}

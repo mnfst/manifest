@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_explanation",
+  "case": 19,
+  "response": "This code implements a **sliding window rate limiter** that returns a function which allows at most `calls` requests within a `period` time window. Each time `allow()` is called, it removes timestamps older than the period, and only permits new requests if fewer than the allowed number of calls have occurred in the current window.",
+  "score": 5,
+  "cost": 0.000376,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 71
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 34,
+  "response": "A database index creates a sorted data structure that allows the database to quickly locate rows without scanning the entire table. It works similarly to a book's index, enabling faster queries at the cost of additional storage space and slower write operations.",
+  "score": 4,
+  "cost": 0.00021280000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 49
+  }
+}

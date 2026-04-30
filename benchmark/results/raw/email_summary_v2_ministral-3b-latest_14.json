@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 14,
+  "response": "AWS costs are rising by **40% month-over-month** due to new ML training jobs on **p4d instances**, costing an estimated **$45K/month**. The team proposes **spot instances (70% savings, with potential interruptions)** or **reserved instances (30% savings, requiring a commitment)**\u2014decision needed by **Friday**.",
+  "score": 5,
+  "cost": 7.600000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 79
+  }
+}

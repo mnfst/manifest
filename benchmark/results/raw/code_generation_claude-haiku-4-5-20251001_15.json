@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 15,
+  "response": "```python\n    largest = -1\n    \n    # Remove all factors of 2\n    while n % 2 == 0:\n        largest = 2\n        n = n // 2\n    \n    # Check odd factors from 3 onwards\n    i = 3\n    while i * i <= n:\n        while n % i == 0:\n            largest = i\n            n = n // i\n        i += 2\n    \n    # If n is still greater than 1, then it's a prime factor\n    if n > 1:\n        largest = n\n    \n    return largest\n```",
+  "score": 5,
+  "cost": 0.0006663999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 145
+  }
+}

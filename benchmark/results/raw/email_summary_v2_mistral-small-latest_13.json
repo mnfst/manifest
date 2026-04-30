@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "The email reports Q1 customer success metrics, highlighting improvements in NPS (62), support CSAT (4.3/5), and churn rate (1.2%), while noting top feature requests (SSO, custom dashboards, API rate limit increase) and $800K in enterprise expansion opportunities. The CS team is responsible for tracking and addressing these priorities.",
+  "score": 4,
+  "cost": 3.64e-05,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 78
+  }
+}

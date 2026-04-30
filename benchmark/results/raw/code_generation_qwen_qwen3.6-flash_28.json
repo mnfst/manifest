@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_generation",
+  "case": 28,
+  "response": "coords = [(r, c) for r, row in enumerate(lst) for c, val in enumerate(row) if val == x]\n    return sorted(coords, key=lambda p: (p[0], -p[1]))",
+  "score": 4,
+  "cost": 0.002778,
+  "expected": "",
+  "tokens": {
+    "input": 312,
+    "output": 2700
+  }
+}

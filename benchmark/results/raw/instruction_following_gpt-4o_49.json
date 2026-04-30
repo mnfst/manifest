@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "**Formal:**\n\"Good day! How may I assist you with your inquiries today?\"\n\n**Casual:**\n\"Hey there! What can I help you with today?\"\n\n**Humorous:**\n\"Hello, human! Ready to chat with your friendly neighborhood chatbot? Let's make some digital magic happen!\"",
+  "score": 5,
+  "cost": 0.0006725,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 61
+  }
+}

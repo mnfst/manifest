@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 4,
+  "response": "Here\u2019s the translation of *\"hello world\"* in French, Spanish, and German as a numbered list:\n\n1. **French**: *Bonjour le monde*\n2. **Spanish**: *Hola mundo*\n3. **German**: *Hallo Welt*",
+  "score": 5,
+  "cost": 0.0001148,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 53
+  }
+}

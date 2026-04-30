@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_generation",
+  "case": 29,
+  "response": "def digit_sum(n):\n        if n == 0:\n            return 0\n        if n > 0:\n            return sum(int(digit) for digit in str(n))\n        else:\n            # For negative numbers, subtract the first digit (which includes the sign)\n            # and add the rest normally\n            str_n = str(n)[1:]  # Remove the negative sign\n            return -int(str_n[0]) + sum(int(digit) for digit in str_n[1:])\n    \n    # Create list of (value, original_index, digit_sum) tuples\n    indexed_nums = [(num, i, digit_sum(num)) for i, num in enumerate(nums)]\n    \n    # Sort by digit sum first, then by original index\n    indexed_nums.sort(key=lambda x: (x[2], x[1]))\n    \n    # Return just the values\n    return [x[0] for x in indexed_nums]",
+  "score": 4,
+  "cost": 0.003957,
+  "expected": "",
+  "tokens": {
+    "input": 164,
+    "output": 231
+  }
+}

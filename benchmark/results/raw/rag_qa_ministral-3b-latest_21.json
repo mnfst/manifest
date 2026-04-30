@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 21,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 8.28e-06,
+  "expected": "anaerobic bacteria",
+  "tokens": {
+    "input": 201,
+    "output": 6
+  }
+}

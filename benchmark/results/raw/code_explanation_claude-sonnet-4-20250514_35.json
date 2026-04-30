@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "This code implements the Knuth-Morris-Pratt (KMP) string matching algorithm to find the first occurrence of a pattern within a text. It first builds a \"longest proper prefix which is also suffix\" (LPS) array to precompute how far to shift the pattern when a mismatch occurs, then uses this array during the search to avoid redundant character comparisons, achieving O(n+m) time complexity.",
+  "score": 5,
+  "cost": 0.002064,
+  "expected": "",
+  "tokens": {
+    "input": 213,
+    "output": 95
+  }
+}

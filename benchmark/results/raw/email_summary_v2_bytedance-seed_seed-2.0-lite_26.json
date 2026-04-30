@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 26,
+  "response": "The Privacy Team has notified internal stakeholders of a GDPR data export request received from user ID 45892, which carries a 30-day completion deadline of May 25, and the legal team has clarified that the user\u2019s analytics data must be included in the formal response to the request. To meet this regulatory deadline, responsible teams must compile all required materials for the submission: the user\u2019s full personal data across all company services, formal documentation of the data\u2019s processing purposes, and a complete log of any third parties that the user\u2019s data has been shared with.",
+  "score": 5,
+  "cost": 0.00081225,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 775
+  }
+}

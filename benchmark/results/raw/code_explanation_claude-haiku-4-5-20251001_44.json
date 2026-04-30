@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "This code finds all connected components in an undirected graph using **breadth-first search (BFS)**. It iterates through each unvisited node, performs BFS to explore all reachable nodes from that starting point, and collects each connected group as a separate component.",
+  "score": 4,
+  "cost": 0.00038239999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 63
+  }
+}

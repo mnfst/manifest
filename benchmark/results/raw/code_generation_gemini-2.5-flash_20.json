@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 20,
+  "response": "roman_map = [\n        (1000, 'm'), (900, 'cm'), (500, 'd'), (400, 'cd'),\n        (100, 'c'), (90, 'xc'), (50, 'l'), (40, 'xl'),\n        (10, 'x'), (9, 'ix'), (5, 'v'), (4, 'iv'),\n        (1, 'i')\n    ]\n\n    roman_numeral = \"\"\n    for value, symbol in roman_map:\n        while number >= value:\n            roman_numeral += symbol\n            number -= value\n    return roman_numeral",
+  "score": 5,
+  "cost": 0.00011595,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 155
+  }
+}

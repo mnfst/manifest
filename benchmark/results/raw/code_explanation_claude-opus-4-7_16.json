@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_explanation",
+  "case": 16,
+  "response": "This function runs multiple coroutines concurrently while capping the number of simultaneously executing tasks at `limit`, using an `asyncio.Semaphore` to throttle concurrency. Each coroutine is wrapped so it must acquire the semaphore before running, then all wrapped coroutines are awaited together via `asyncio.gather`, which returns their results in order.",
+  "score": 5,
+  "cost": 0.011235,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 123
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_generation",
+  "case": 35,
+  "response": "```python\n    return (a % 10) * (b % 10)\n```",
+  "score": 5,
+  "cost": 0.00040875,
+  "expected": "",
+  "tokens": {
+    "input": 151,
+    "output": 22
+  }
+}

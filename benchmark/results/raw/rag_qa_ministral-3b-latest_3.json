@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 3,
+  "response": "Hassan al-Turabi",
+  "score": 0,
+  "cost": 6.3200000000000005e-06,
+  "expected": "Hassan al-Turabi",
+  "tokens": {
+    "input": 150,
+    "output": 8
+  }
+}

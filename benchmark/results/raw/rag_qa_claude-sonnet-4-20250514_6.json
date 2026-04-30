@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "rag_qa",
+  "case": 6,
+  "response": "TFEU article 294 defines the \"ordinary legislative procedure\" that applies for most EU acts.",
+  "score": 5,
+  "cost": 0.001593,
+  "expected": "TFEU article 294",
+  "tokens": {
+    "input": 411,
+    "output": 24
+  }
+}

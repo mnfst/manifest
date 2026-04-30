@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "code_generation",
+  "case": 35,
+  "response": "```python\n    return (a % 10) * (b % 10)\n```",
+  "score": 5,
+  "cost": 2.2e-05,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 22
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_generation",
+  "case": 25,
+  "response": "res = []\n    cur = []\n    bal = 0\n    for c in paren_string:\n        if c == ' ':\n            continue\n        cur.append(c)\n        if c == '(':\n            bal += 1\n        else:\n            bal -= 1\n        if bal == 0:\n            res.append(''.join(cur))\n            cur = []\n    return res",
+  "score": 4,
+  "cost": 0.0031986,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 1296
+  }
+}

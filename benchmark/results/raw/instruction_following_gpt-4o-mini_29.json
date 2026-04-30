@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "DNA, or deoxyribonucleic acid, is the hereditary material in all living organisms, containing the genetic instructions necessary for growth, development, and reproduction. It is composed of two long strands forming a double helix, made up of nucleotides that include a sugar, phosphate group, and nitrogenous bases.",
+  "score": 1,
+  "cost": 4.215e-05,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 65
+  }
+}

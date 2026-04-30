@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "Here are a few options depending on your meeting's purpose:\n\n**General:**\n- Meeting Invitation: [Topic] \u2013 [Date] at [Time]\n\n**Project-focused:**\n- Project Kickoff Meeting \u2013 Your Input Needed\n\n**Team check-in:**\n- Team Sync: Quick 30-Minute Meeting [Date]\n\n**Client-facing:**\n- Invitation: Discussion on [Topic] \u2013 [Date]\n\n**Urgent:**\n- Action Required: Meeting Invite for [Date/Time]\n\nLet me know the meeting's purpose, and I can tailor it further!",
+  "score": 3,
+  "cost": 0.015585,
+  "expected": "",
+  "tokens": {
+    "input": 34,
+    "output": 201
+  }
+}

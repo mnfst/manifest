@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "rag_qa",
+  "case": 35,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 2.96e-05,
+  "expected": "by clapping their lobes",
+  "tokens": {
+    "input": 278,
+    "output": 6
+  }
+}

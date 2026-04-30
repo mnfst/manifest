@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "**Subject:** Farewell and Best Wishes\n\nDear [Team/Colleagues],\n\nAs I move on to my next chapter, I want to express my deepest gratitude for the incredible support, collaboration, and friendships we\u2019ve shared. Working with all of you has been a highlight of my career, and I\u2019ll truly miss the energy and camaraderie we built together. Please stay in touch\u2014I\u2019d love to hear about your future successes and adventures. Wishing you all continued growth, happiness, and success ahead.\n\nBest regards,\n[Your Name]",
+  "score": 5,
+  "cost": 3.699999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 28,
+    "output": 114
+  }
+}

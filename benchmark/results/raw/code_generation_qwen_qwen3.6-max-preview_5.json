@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_generation",
+  "case": 5,
+  "response": "return max(l)",
+  "score": 5,
+  "cost": 0.0031187,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 568
+  }
+}

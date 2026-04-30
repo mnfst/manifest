@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "The sprint retrospective highlighted successful delivery of the auth redesign and strong collaboration with design, but noted inefficiencies like excessive context switching and overlong standups. Action items include limiting work-in-progress to two items per developer and enforcing 15-minute timeboxed standups with a parking lot for off-topic discussions.",
+  "score": 5,
+  "cost": 3.16e-05,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 66
+  }
+}

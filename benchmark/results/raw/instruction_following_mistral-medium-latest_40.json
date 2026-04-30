@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "Here are five capital cities, each from a different continent:\n\n1. **Africa** \u2013 **Nairobi** (Kenya)\n2. **Asia** \u2013 **Tokyo** (Japan)\n3. **Europe** \u2013 **Paris** (France)\n4. **North America** \u2013 **Ottawa** (Canada)\n5. **South America** \u2013 **Lima** (Peru)",
+  "score": 5,
+  "cost": 0.0001728,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 83
+  }
+}

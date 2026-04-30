@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The International team has proposed a four-month timeline and $200K budget to launch operations in Japan, progressing from legal entity setup to general availability. CEO approval is required to proceed with this expansion plan.",
+  "score": 5,
+  "cost": 0.00081075,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 784
+  }
+}

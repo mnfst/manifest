@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_generation",
+  "case": 20,
+  "response": "```python\n    roman_numerals = [\n        (1000, 'm'), (900, 'cm'), (500, 'd'), (400, 'cd'),\n        (100, 'c'), (90, 'xc'), (50, 'l'), (40, 'xl'),\n        (10, 'x'), (9, 'ix'), (5, 'v'), (4, 'iv'), (1, 'i')\n    ]\n    \n    result = []\n    for value, numeral in roman_numerals:\n        while number >= value:\n            result.append(numeral)\n            number -= value\n            \n    return ''.join(result)\n```",
+  "score": 5,
+  "cost": 0.00010155,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 135
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "email_summary_v2",
+  "case": 8,
+  "response": "The annual performance review cycle starts May 1, with self-reviews due May 15, manager reviews by May 22, calibration on May 28, and delivery on June 5, and will use a new competency framework this year. A training session for managers is scheduled for April 30.",
+  "score": 5,
+  "cost": 0.0001059,
+  "expected": "",
+  "tokens": {
+    "input": 172,
+    "output": 310
+  }
+}

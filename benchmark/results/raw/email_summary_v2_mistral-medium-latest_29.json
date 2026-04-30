@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "email_summary_v2",
+  "case": 29,
+  "response": "The mobile app\u2019s crash rate surged to **2.3%** (exceeding the 0.5% threshold) due to a null pointer error in the Android 12+ notification handler, though iOS remains unaffected. A fix has been merged, and an **emergency Play Store release** has been requested by the Mobile Team.",
+  "score": 5,
+  "cost": 0.000184,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 73
+  }
+}

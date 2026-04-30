@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "rag_qa",
+  "case": 1,
+  "response": "The Great Plague of London was in 1665.",
+  "score": 0,
+  "cost": 5.37e-05,
+  "expected": "1665",
+  "tokens": {
+    "input": 306,
+    "output": 13
+  }
+}

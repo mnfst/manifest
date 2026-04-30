@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "This code implements a partition function that splits an iterable into two separate iterators based on a predicate function. It uses `itertools.tee()` to create two independent copies of the input iterable, then applies `filter()` to one copy (keeping elements where the predicate is True) and `itertools.filterfalse()` to the other copy (keeping elements where the predicate is False).",
+  "score": 5,
+  "cost": 0.001617,
+  "expected": "",
+  "tokens": {
+    "input": 89,
+    "output": 90
+  }
+}

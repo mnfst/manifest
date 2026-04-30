@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "instruction_following",
+  "case": 43,
+  "response": "Did you know that there's a planet made almost entirely of diamond? It's called 55 Cancri e and it's twice the size of Earth and eight times its mass!",
+  "score": 5,
+  "cost": 1.8100000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 41
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 17,
+  "response": "# Remote Work: Pros and Cons\n\n| **Pros** | **Cons** |\n|----------|----------|\n| **Flexibility** - Work from anywhere with flexible schedules, improving work-life balance | **Isolation** - Reduced face-to-face interaction can lead to loneliness and disconnection |\n| **Cost Savings** - Eliminates commute expenses and reduces spending on work attire and meals | **Communication Challenges** - Miscommunication can occur more easily without in-person interaction |\n| **Increased Productivity** - Fewer office distractions and interruptions can boost focus and output | **Work-Life Boundaries** - Difficulty separating work from personal life when working from home |",
+  "score": 5,
+  "cost": 0.000672,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 163
+  }
+}

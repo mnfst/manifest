@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "rag_qa",
+  "case": 39,
+  "response": "Based on the provided context, packet switching contrasts with **circuit switching**, which is described as another principal networking paradigm that pre-allocates dedicated network bandwidth specifically for each communication session.",
+  "score": 5,
+  "cost": 0.0002872,
+  "expected": "circuit switching",
+  "tokens": {
+    "input": 154,
+    "output": 41
+  }
+}

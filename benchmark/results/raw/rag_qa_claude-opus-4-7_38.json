@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "rag_qa",
+  "case": 38,
+  "response": "The Charles River.",
+  "score": 1,
+  "cost": 0.007155,
+  "expected": "Charles River",
+  "tokens": {
+    "input": 427,
+    "output": 10
+  }
+}

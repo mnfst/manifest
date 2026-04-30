@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "The old lighthouse keeper had tended his beacon for forty years, guiding ships safely through the treacherous rocks below. On his final night before retirement, a fierce storm rolled in, darker and more violent than any he'd ever witnessed. Through the howling wind and rain, he spotted a small fishing boat struggling against the massive waves, its engine clearly failing. Without hesitation, he cranked the lighthouse beam to its brightest setting and began flashing the emergency sequence he'd memorized decades ago. The boat followed his signals, navigating slowly but surely toward the hidden safe harbor that only locals knew existed. As dawn broke and the storm cleared, the keeper smiled watching the rescued fishermen wave their thanks, knowing he'd ended his career the same way he'd lived it\u2014saving lives.",
+  "score": 5,
+  "cost": 0.002529,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 165
+  }
+}

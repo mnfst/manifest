@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 38,
+  "response": "\"Login failed. Please check your email and password, then try again.\"",
+  "score": 4,
+  "cost": 0.0002563,
+  "expected": "",
+  "tokens": {
+    "input": 37,
+    "output": 49
+  }
+}

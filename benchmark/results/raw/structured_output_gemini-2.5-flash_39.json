@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "structured_output",
+  "case": 39,
+  "response": "```json\n{\n  \"build_number\": 4521,\n  \"branch\": \"feature/auth-v2\",\n  \"status\": \"failed\",\n  \"failed_stage\": \"test stage\",\n  \"duration\": \"8m 32s\",\n  \"tests\": {\n    \"passed\": 247,\n    \"failed\": 3,\n    \"skipped\": 0\n  },\n  \"trigger\": \"push\",\n  \"author\": \"@alice\"\n}\n```",
+  "score": 4,
+  "cost": 9.015e-05,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 116
+  }
+}

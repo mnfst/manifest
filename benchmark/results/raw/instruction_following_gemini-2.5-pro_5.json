@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "The sun began its slow surrender, dipping toward the horizon. The harsh light of day softened, melting into a wash of liquid gold that spilled across the landscape, gilding the edges of every leaf and stone. Long, inky shadows stretched out from the trees, reaching like fingers across the cooling earth.\n\nHigh above, the clouds, once white and indifferent, became a canvas for the spectacle. Their undersides caught fire, glowing with hues of apricot and deep salmon. The sky itself was a gradient of astonishing color, from a pale, luminous orange at the seam of the world to a deepening bruise of violet and indigo overhead.\n\nAs the searing orb finally kissed the distant hills, it seemed to flatten and spread, a molten coin dissolving into the earth. It left behind a final, breathtaking smear of tangerine and magenta, a painter's last, defiant stroke against a canvas of deepening cobalt. The world held its breath in the quiet afterglow, bathed in a soft, ethereal luminescence before the first star pricked the coming night.",
+  "score": 3,
+  "cost": 0.00210875,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 209
+  }
+}

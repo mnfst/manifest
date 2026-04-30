@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "Dear team, I wanted to take a moment to thank you all for the support and camaraderie during my time here. It has been a privilege to work alongside such talented and passionate individuals. I will cherish the memories and lessons I\u2019ve gained, and I look forward to staying in touch. Please feel free to reach out via\u202f[email/LinkedIn] for any future collaboration. Wishing you all continued success and happiness, John.",
+  "score": 5,
+  "cost": 0.0052734,
+  "expected": "",
+  "tokens": {
+    "input": 50,
+    "output": 1186
+  }
+}

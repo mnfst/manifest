@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_explanation",
+  "case": 0,
+  "response": "This function calculates the nth number in the Fibonacci sequence using a recursive algorithm. It defines the base cases for 0 and 1, and for any other number, it calls itself to sum the two preceding Fibonacci numbers.",
+  "score": 5,
+  "cost": 0.0005225,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 44
+  }
+}

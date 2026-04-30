@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_generation",
+  "case": 28,
+  "response": "result = []\nfor i, row in enumerate(lst):\n    for j, val in enumerate(row):\n        if val == x:\n            result.append((i, j))\nresult.sort(key=lambda t: (t[0], -t[1]))\nreturn result",
+  "score": 5,
+  "cost": 0.00013205,
+  "expected": "",
+  "tokens": {
+    "input": 295,
+    "output": 53
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 1,
+  "response": "```python\n    result = []\n    groups = paren_string.split(' ')\n\n    for group in groups:\n        if not group:\n            # Skip empty strings that might result from multiple spaces\n            continue\n\n        current_depth = 0\n        max_depth = 0\n        for char in group:\n            if char == '(':\n                current_depth += 1\n                max_depth = max(max_depth, current_depth)\n            elif char == ')':\n                current_depth -= 1\n        result.append(max_depth)\n    return result\n```",
+  "score": 4,
+  "cost": 0.0001014,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 131
+  }
+}

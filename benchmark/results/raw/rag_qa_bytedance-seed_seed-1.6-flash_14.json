@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "rag_qa",
+  "case": 14,
+  "response": "in marine waters worldwide",
+  "score": 5,
+  "cost": 7.290000000000001e-05,
+  "expected": "marine waters",
+  "tokens": {
+    "input": 384,
+    "output": 147
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "The quarterly OKR review results include Engineering (0.7, target 0.7), Product (0.6, target 0.7) due to a delayed AI feature, Sales (0.9, target 0.7), and Support (0.8, target 0.7). The recommendation is to carry forward the AI OKR with increased allocation, and next quarter planning starts Monday.",
+  "score": 5,
+  "cost": 0.00011970000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 200,
+    "output": 349
+  }
+}

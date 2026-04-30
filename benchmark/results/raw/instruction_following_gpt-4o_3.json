@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "instruction_following",
+  "case": 3,
+  "response": "GERMANY, FRANCE, ITALY, SPAIN, NORWAY",
+  "score": 5,
+  "cost": 0.0002075,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 16
+  }
+}

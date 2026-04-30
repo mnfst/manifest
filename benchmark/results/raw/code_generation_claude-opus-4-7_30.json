@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_generation",
+  "case": 30,
+  "response": "```\n    import math\n    def is_prime(p):\n        if p < 2:\n            return False\n        for k in range(2, int(math.sqrt(p)) + 1):\n            if p % k == 0:\n                return False\n        return True\n    f = [0, 1]\n    while True:\n        f.append(f[-1] + f[-2])\n        if is_prime(f[-1]):\n            n -= 1\n        if n == 0:\n            return f[-1]\n```",
+  "score": 3,
+  "cost": 0.013695,
+  "expected": "",
+  "tokens": {
+    "input": 183,
+    "output": 146
+  }
+}

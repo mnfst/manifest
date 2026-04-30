@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "rag_qa",
+  "case": 38,
+  "response": "Based on the context provided, nine of the twelve residential Houses are located along or near the **Charles River**.",
+  "score": 2,
+  "cost": 0.0003216,
+  "expected": "Charles River",
+  "tokens": {
+    "input": 277,
+    "output": 25
+  }
+}

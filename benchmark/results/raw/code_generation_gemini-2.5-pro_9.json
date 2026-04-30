@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_generation",
+  "case": 9,
+  "response": "return sum(num**2 for num in lst if isinstance(num, int) and num >= 0 and num % 2 != 0)",
+  "score": 4,
+  "cost": 0.00054125,
+  "expected": "",
+  "tokens": {
+    "input": 185,
+    "output": 31
+  }
+}

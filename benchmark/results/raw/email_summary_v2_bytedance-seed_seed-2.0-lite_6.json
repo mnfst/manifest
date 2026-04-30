@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 6,
+  "response": "CS Lead James shared an urgent customer escalation update regarding Acme Corp, a $450K annual recurring revenue client that is threatening to churn after experiencing three weeks of API latency spikes and five days without a response from their support team, leading Acme\u2019s CTO to reach out directly to raise their critical concerns. James has already assigned a dedicated engineer to address Acme Corp\u2019s outstanding issues, and he is requesting an executive sponsor to join a call with the client this week to de-escalate tensions and prevent the high-value client from leaving.",
+  "score": 5,
+  "cost": 0.00071425,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 677
+  }
+}

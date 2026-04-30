@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "rag_qa",
+  "case": 40,
+  "response": "Full citizenship rights \u2013 \u2018assimilation\u2019 \u2013 were offered. \n\nThe context contrasts France with Britain, noting that France sent small numbers of settlers, which implies that offering full citizenship rights (assimilation) was a rare practice by imperial standards, as it was not the norm compared to other imperial powers like Britain.",
+  "score": 4,
+  "cost": 0.000123975,
+  "expected": "assimilation",
+  "tokens": {
+    "input": 253,
+    "output": 350
+  }
+}

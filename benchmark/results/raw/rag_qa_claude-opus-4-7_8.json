@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "rag_qa",
+  "case": 8,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 0.00468,
+  "expected": "36%",
+  "tokens": {
+    "input": 262,
+    "output": 10
+  }
+}

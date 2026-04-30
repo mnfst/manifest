@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "structured_output",
+  "case": 12,
+  "response": "{\n  \"title\": \"Senior DevOps Engineer\",\n  \"company\": \"Stripe\",\n  \"location\": \"US\",\n  \"remote\": true,\n  \"salary_range\": {\n    \"min\": 180000,\n    \"max\": 220000\n  },\n  \"requirements\": {\n    \"min_years\": 5,\n    \"skills\": [\n      \"Kubernetes\",\n      \"AWS\",\n      \"Terraform\"\n    ]\n  },\n  \"benefits\": [\n    \"unlimited PTO\",\n    \"401k match\"\n  ]\n}",
+  "score": 5,
+  "cost": 0.0071916,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 1348
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_generation",
+  "case": 8,
+  "response": "result = []\n    for value in values:\n        if isinstance(value, int) and not isinstance(value, bool):\n            result.append(value)\n    return result",
+  "score": 5,
+  "cost": 0.001035,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 42
+  }
+}

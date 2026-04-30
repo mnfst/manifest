@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_generation",
+  "case": 40,
+  "response": "```python\nreturn round(a ** (1/3)) ** 3 == a\n```",
+  "score": 4,
+  "cost": 3.27e-05,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 19
+  }
+}

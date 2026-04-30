@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "Here\u2019s a warm and concise goodbye email for your coworkers:\n\n---\n**Subject:** Thank You for the Great Time\n\nDear Team,\n\nIt\u2019s been an incredible experience working with all of you\u2014your support, collaboration, and kindness made every day so much brighter. I\u2019m truly grateful for the friendships and memories we\u2019ve created together. While I\u2019m excited for what\u2019s next, I\u2019ll miss being part of this team. Please keep in touch, and I hope our paths cross again soon. Wishing you all the best in your future endeavors!\n\nBest,\n[Your Name]\n---",
+  "score": 5,
+  "cost": 5.399999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 119
+  }
+}

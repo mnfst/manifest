@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_explanation",
+  "case": 30,
+  "response": "This implements a **Bloom filter**, a probabilistic data structure that tests set membership using a fixed-size bit array and multiple hash functions (simulated here by appending an index `i` to the item before hashing); it can yield false positives but never false negatives, since `add` sets bits at all hashed positions and `__contains__` returns true only if all those bits are set.",
+  "score": 5,
+  "cost": 0.0123,
+  "expected": "",
+  "tokens": {
+    "input": 225,
+    "output": 119
+  }
+}

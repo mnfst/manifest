@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "rag_qa",
+  "case": 25,
+  "response": "Infrastructure.",
+  "score": 0,
+  "cost": 0.00022,
+  "expected": "infrastructure",
+  "tokens": {
+    "input": 160,
+    "output": 2
+  }
+}

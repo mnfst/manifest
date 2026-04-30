@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "rag_qa",
+  "case": 29,
+  "response": "Based on the provided context, the capital of the Ottoman Empire was Istanbul.",
+  "score": 5,
+  "cost": 0.0002208,
+  "expected": "Istanbul",
+  "tokens": {
+    "input": 186,
+    "output": 18
+  }
+}

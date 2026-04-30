@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_generation",
+  "case": 26,
+  "response": "n = len(l)\n    if n < 3:\n        return False\n    set_after = [set() for _ in range(n)]\n    for j in range(n-2, -1, -1):\n        set_after[j] = set_after[j+1].copy()\n        set_after[j].add(l[j+1])\n    for j in range(n):\n        for i in range(j):\n            target = -(l[i] + l[j])\n            if target in set_after[j]:\n                return True\n    return False",
+  "score": 3,
+  "cost": 0.001797975,
+  "expected": "",
+  "tokens": {
+    "input": 277,
+    "output": 5924
+  }
+}

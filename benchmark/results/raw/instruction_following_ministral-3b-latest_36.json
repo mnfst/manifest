@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 36,
+  "response": "Here are four programming languages (excluding Python and JavaScript):\n\n1. **C** \u2013 A general-purpose language widely used for system/embedded programming.\n2. **C++** \u2013 An object-oriented extension of C, popular for game development and high-performance applications.\n3. **R** \u2013 Primarily used for statistical computing and data analysis.\n4. **Go (Golang)** \u2013 Designed for simplicity and concurrency, often used in cloud and backend development.",
+  "score": 5,
+  "cost": 4.52e-06,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 96
+  }
+}

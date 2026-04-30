@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "code_generation",
+  "case": 3,
+  "response": "```python\n    if len(xs) <= 1:\n        return []\n    return [xs[i] * i for i in range(1, len(xs))]\n```",
+  "score": 5,
+  "cost": 0.0001296,
+  "expected": "",
+  "tokens": {
+    "input": 139,
+    "output": 37
+  }
+}

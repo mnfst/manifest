@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 44,
+  "response": "```python\n    vowels = 'aeiouAEIOU'\n    vowel_map = {'a': 'c', 'e': 'g', 'i': 'k', 'o': 'q', 'u': 'w',\n                 'A': 'C', 'E': 'G', 'I': 'K', 'O': 'Q', 'U': 'W'}\n    \n    result = []\n    for char in message:\n        if char in vowel_map:\n            result.append(vowel_map[char])\n        else:\n            result.append(char.swapcase())\n    \n    return ''.join(result)\n```",
+  "score": 4,
+  "cost": 0.0008312,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 174
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_generation",
+  "case": 17,
+  "response": "if not text:\n        return None\n    import hashlib\n    return hashlib.md5(text.encode()).hexdigest()",
+  "score": 5,
+  "cost": 0.0030912,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 1261
+  }
+}

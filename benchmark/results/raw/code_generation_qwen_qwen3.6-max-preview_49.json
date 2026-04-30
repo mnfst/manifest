@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_generation",
+  "case": 49,
+  "response": "for i in range(len(string)):\n        if string[i:] == string[i:][::-1]:\n            return string + string[:i][::-1]\n    return string",
+  "score": 4,
+  "cost": 0.0155402,
+  "expected": "",
+  "tokens": {
+    "input": 190,
+    "output": 2941
+  }
+}

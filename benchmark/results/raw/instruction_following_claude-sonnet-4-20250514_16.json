@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is the force that pulls objects toward each other. The more massive an object is, the stronger its gravitational pull. This is why everything falls toward Earth - our planet is so massive that it pulls all objects toward its center. Gravity keeps our feet on the ground, makes dropped items fall down rather than float away, and holds the Moon in orbit around Earth, just as it keeps Earth orbiting around the Sun. It's an invisible force that acts across distances, getting weaker as objects move farther apart, but never completely disappearing. Even you have gravity and pull on other objects, but your mass is so small compared to Earth that you don't notice it. That is gravity.",
+  "score": 5,
+  "cost": 0.002325,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 149
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "# In simple terms\n\ngravity is the force that pulls objects toward each other. Every object in the universe\u2014from tiny pebbles to massive planets\u2014has gravity and attracts other objects.\n\nThe most obvious example is Earth's gravity pulling you downward. You stay on the ground because Earth's enormous mass creates a strong gravitational pull. The same force keeps the Moon orbiting Earth and Earth orbiting the Sun.\n\n**Why does gravity exist?** According to Einstein's theory, massive objects actually bend the space around them, like a bowling ball creating a dip in a trampoline. Other objects roll toward this dip, which we experience as gravitational attraction.\n\n**Key points:**\n- Gravity gets weaker the farther apart objects are\n- Larger, more massive objects have stronger gravity\n- Gravity acts invisibly across any distance\n- It's the weakest of the four fundamental forces, yet it shapes the entire universe\n\nWithout gravity, there would be no stars, planets, or galaxies. You would float away from Earth, and the universe would be a completely different place.\n\nThat is gravity.",
+  "score": 3,
+  "cost": 0.000976,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 238
+  }
+}

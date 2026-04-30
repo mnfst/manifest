@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_generation",
+  "case": 41,
+  "response": "result = l[:]\n    result[::3] = sorted(l[::3])\n    return result",
+  "score": 4,
+  "cost": 0.0082445,
+  "expected": "",
+  "tokens": {
+    "input": 219,
+    "output": 1819
+  }
+}

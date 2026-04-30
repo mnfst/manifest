@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_generation",
+  "case": 31,
+  "response": "```python\n    lst.sort()\n    new_lst = []\n    for i in lst:\n        if len(i)%2 == 0:\n            new_lst.append(i)\n    return sorted(new_lst, key=len)\n```",
+  "score": 3,
+  "cost": 0.01035,
+  "expected": "",
+  "tokens": {
+    "input": 320,
+    "output": 74
+  }
+}

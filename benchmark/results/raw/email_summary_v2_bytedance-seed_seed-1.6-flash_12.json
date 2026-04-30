@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "There are 4 open engineering roles (2 backend, 1 frontend, 1 ML) with 23 candidates in process and 5 in final rounds, though the frontend role has been open for 60 days with no strong candidates. Recruiting recommends expanding the frontend role to remote or adjusting the comp band to address this issue.",
+  "score": 5,
+  "cost": 0.00010185,
+  "expected": "",
+  "tokens": {
+    "input": 178,
+    "output": 295
+  }
+}

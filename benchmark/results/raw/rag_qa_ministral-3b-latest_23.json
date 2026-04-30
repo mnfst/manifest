@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 23,
+  "response": "Mortgage banker",
+  "score": 5,
+  "cost": 8.32e-06,
+  "expected": "the mortgage banker",
+  "tokens": {
+    "input": 202,
+    "output": 6
+  }
+}

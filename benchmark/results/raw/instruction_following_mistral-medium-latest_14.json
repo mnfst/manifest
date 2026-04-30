@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "**Stay hydrated in style with our sleek, leak-proof **EcoFlow Water Bottle**\u2014crafted from premium, BPA-free stainless steel to keep drinks cold for 24 hours or hot for 12. Its ergonomic, non-slip design and one-handed flip lid make it perfect for workouts, travel, or daily use, while the eco-friendly build reduces single-use plastic waste. Lightweight yet durable, it\u2019s your go-to companion for fresh, refreshing sips anytime, anywhere.**",
+  "score": 2,
+  "cost": 0.00022280000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 108
+  }
+}

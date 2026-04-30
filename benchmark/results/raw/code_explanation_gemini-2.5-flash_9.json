@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_explanation",
+  "case": 9,
+  "response": "This code implements a **decorator** that retries a function call up to `max_attempts` times if it raises an exception. It employs an **exponential backoff** strategy, increasing the delay between retries with each subsequent attempt, and re-raises the exception only after all attempts are exhausted.",
+  "score": 5,
+  "cost": 5.4900000000000006e-05,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 61
+  }
+}

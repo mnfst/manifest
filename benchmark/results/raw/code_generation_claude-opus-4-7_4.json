@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_generation",
+  "case": 4,
+  "response": "```\n    if l == sorted(l) or l == sorted(l, reverse=True):\n        return True\n    return False\n```",
+  "score": 5,
+  "cost": 0.005625,
+  "expected": "",
+  "tokens": {
+    "input": 165,
+    "output": 42
+  }
+}

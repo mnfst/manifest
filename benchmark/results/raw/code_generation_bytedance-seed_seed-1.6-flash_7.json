@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_generation",
+  "case": 7,
+  "response": "product = 1\n    current_factorial = 1\n    for i in range(1, n + 1):\n        current_factorial *= i\n        product *= current_factorial\n    return product",
+  "score": 4,
+  "cost": 0.00031335,
+  "expected": "",
+  "tokens": {
+    "input": 218,
+    "output": 990
+  }
+}

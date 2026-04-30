@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "rag_qa",
+  "case": 11,
+  "response": "10% of the carbon stores in ecosystems\u2014of the order of 1.1 \u00d7 1011 metric tonnes of carbon.",
+  "score": 4,
+  "cost": 0.00050875,
+  "expected": "10% of the carbon stores",
+  "tokens": {
+    "input": 175,
+    "output": 29
+  }
+}

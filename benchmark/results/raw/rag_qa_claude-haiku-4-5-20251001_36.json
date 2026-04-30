@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "rag_qa",
+  "case": 36,
+  "response": "Based on the provided context, oxygen therapy promotes the body to take up **gaseous oxygen**.\n\nThe context states that oxygen therapy is used for \"any disease that impairs the body's ability to take up and use gaseous oxygen.\"",
+  "score": 4,
+  "cost": 0.000348,
+  "expected": "gaseous oxygen.",
+  "tokens": {
+    "input": 180,
+    "output": 51
+  }
+}

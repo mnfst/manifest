@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_generation",
+  "case": 10,
+  "response": "```python\n    count = 0\n    for num in arr:\n        s = str(num)\n        total = 0\n        i = 0\n        while i < len(s):\n            if s[i] == '-':\n                i += 1\n                total -= int(s[i])\n            else:\n                total += int(s[i])\n            i += 1\n        if total > 0:\n            count += 1\n    return count\n```",
+  "score": 3,
+  "cost": 0.00014425,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 95
+  }
+}

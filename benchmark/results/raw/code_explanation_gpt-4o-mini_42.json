@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "The `AsyncQueue` class implements an asynchronous queue that allows for concurrent `put` and `get` operations, using a deque to store items and manage waiting producers and consumers. It employs a producer-consumer pattern where `put` operations block if the queue reaches a specified maximum size, while `get` operations block if the queue is empty, utilizing futures to manage the waiting tasks efficiently.",
+  "score": 5,
+  "cost": 7.919999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 212,
+    "output": 79
+  }
+}

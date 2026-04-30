@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "An **API** (short for **Application Programming Interface**) is like a **menu at a restaurant**\u2014it helps different systems talk to each other without needing to know each other\u2019s secrets.\n\nImagine you\u2019re ordering food online. The website (your order) doesn\u2019t need to know how the kitchen (the restaurant\u2019s computer system) works\u2014it just follows the rules (the API) to send your request and get your meal. The restaurant\u2019s staff (the API) handles the rest, delivering your food to you.\n\nAn API is the same way for computers and apps. It lets one program ask another for data or services (like weather updates, stock prices, or even a photo) without them needing to understand each other\u2019s language. It\u2019s a simple, agreed-upon way to share information smoothly.",
+  "score": 4,
+  "cost": 7.280000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 164
+  }
+}

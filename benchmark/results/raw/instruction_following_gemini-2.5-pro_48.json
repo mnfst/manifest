@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "In the city of Verona, Romeo Montague and Juliet Capulet, children of bitter rival families, fall in love and secretly marry. Their happiness is short-lived when Romeo is banished for killing Juliet's cousin in a duel. To avoid a forced marriage to another man, Juliet fakes her own death with a sleeping potion. However, Romeo never receives the message explaining the plan. Believing her truly dead, he goes to her tomb and takes his own life. Juliet awakens to find him dead and, in her grief, kills herself, leading their feuding families to finally reconcile.",
+  "score": 5,
+  "cost": 0.0012075,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 118
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 9,
+  "response": "April, June, September, November",
+  "score": 5,
+  "cost": 0.0008426,
+  "expected": "",
+  "tokens": {
+    "input": 54,
+    "output": 178
+  }
+}

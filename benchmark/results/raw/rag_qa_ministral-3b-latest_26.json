@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 26,
+  "response": "KMJ-TV",
+  "score": 5,
+  "cost": 8.400000000000001e-06,
+  "expected": "KMJ-TV",
+  "tokens": {
+    "input": 206,
+    "output": 4
+  }
+}

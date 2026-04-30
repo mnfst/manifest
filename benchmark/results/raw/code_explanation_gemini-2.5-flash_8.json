@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_explanation",
+  "case": 8,
+  "response": "This code implements a **debounce decorator** that prevents a function from being called too frequently. It ensures that the decorated function (`fn`) is only executed after a specified `wait` period has passed *without any further calls* to that function; if called again within the `wait` period, any previously scheduled execution is canceled and a new timer is started.",
+  "score": 5,
+  "cost": 5.955e-05,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 72
+  }
+}

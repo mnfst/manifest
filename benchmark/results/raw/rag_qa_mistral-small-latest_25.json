@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "rag_qa",
+  "case": 25,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 1.9e-05,
+  "expected": "infrastructure",
+  "tokens": {
+    "input": 172,
+    "output": 6
+  }
+}

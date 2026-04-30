@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "email_summary_v2",
+  "case": 28,
+  "response": "The annual disaster recovery test was completed, with the RTO target of 4 hours not met (actual 6 hours 23 minutes) due to a 3-hour database restore, which took longer than expected because of a larger dataset. Recommendations include increasing backup frequency and pre-provisioning a standby database, and the next test is scheduled for October.",
+  "score": 5,
+  "cost": 0.00011265,
+  "expected": "",
+  "tokens": {
+    "input": 186,
+    "output": 329
+  }
+}

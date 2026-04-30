@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 42,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 8.720000000000001e-06,
+  "expected": "Moselle",
+  "tokens": {
+    "input": 212,
+    "output": 6
+  }
+}

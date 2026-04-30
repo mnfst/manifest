@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "rag_qa",
+  "case": 48,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 0.0016956,
+  "expected": "strictly contained in P or equal to P",
+  "tokens": {
+    "input": 122,
+    "output": 676
+  }
+}

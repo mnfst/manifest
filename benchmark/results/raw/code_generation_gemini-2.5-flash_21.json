@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 21,
+  "response": "even_palindromes = 0\n    odd_palindromes = 0\n\n    for i in range(1, n + 1):\n        s = str(i)\n        if s == s[::-1]:  # Check if it's a palindrome\n            if i % 2 == 0:  # Check if it's even\n                even_palindromes += 1\n            else:  # It's odd\n                odd_palindromes += 1\n\n    return (even_palindromes, odd_palindromes)",
+  "score": 5,
+  "cost": 0.00011144999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 251,
+    "output": 123
+  }
+}

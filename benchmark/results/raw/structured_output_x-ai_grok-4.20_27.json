@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "structured_output",
+  "case": 27,
+  "response": "```json\n{\"type\": \"RSA\", \"bits\": 4096, \"fingerprint\": \"SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8\", \"created\": \"2024-01-15\", \"comment\": \"deploy-key-prod\"}\n```",
+  "score": 5,
+  "cost": 0.001014,
+  "expected": "",
+  "tokens": {
+    "input": 223,
+    "output": 71
+  }
+}

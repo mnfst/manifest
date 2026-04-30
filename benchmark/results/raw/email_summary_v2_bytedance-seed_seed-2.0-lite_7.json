@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 7,
+  "response": "The facilities team issued an office move update detailing that the new 500 Market St office will be ready on June 1, IT will complete necessary network setup at the new space from June 4 to 6, the full office relocation will occur over the weekend of June 7-8, and the budget for professional movers has been approved. All teams are required to designate an internal move coordinator by this Friday to support the logistics of the upcoming move.",
+  "score": 5,
+  "cost": 0.000612,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 578
+  }
+}

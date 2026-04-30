@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 9,
+  "response": "```python\n    return sum(x**2 for x in lst if isinstance(x, int) and not isinstance(x, bool) and x >= 0 and x % 2 != 0)\n```",
+  "score": 5,
+  "cost": 0.00036,
+  "expected": "",
+  "tokens": {
+    "input": 195,
+    "output": 51
+  }
+}

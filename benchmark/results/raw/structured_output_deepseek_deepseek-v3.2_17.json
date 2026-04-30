@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "structured_output",
+  "case": 17,
+  "response": "```json\n{\n    \"message\": \"resolve session timeout on mobile browsers\",\n    \"type\": \"fix\",\n    \"scope\": \"auth\",\n    \"author\": \"@jdoe\",\n    \"branch\": \"fix/session-timeout\",\n    \"files_changed\": 3,\n    \"insertions\": 47,\n    \"deletions\": 12,\n    \"pr_number\": 892\n}\n```",
+  "score": 5,
+  "cost": 0.00012869999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 87
+  }
+}

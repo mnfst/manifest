@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "email_summary_v2",
+  "case": 39,
+  "response": "The year-end audit begins on January 15 with several pre-audit items that must be completed, including finalizing Q4 revenue recognition, reconciling bank accounts, verifying stock option records, and preparing related-party transaction disclosures. Responsibilities will be assigned at the controller meeting next Tuesday.",
+  "score": 5,
+  "cost": 0.0012122000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 244
+  }
+}

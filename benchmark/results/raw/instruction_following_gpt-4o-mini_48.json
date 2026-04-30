@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "\"Romeo and Juliet,\" a tragedy by William Shakespeare, follows the intense love story of two young lovers from feuding families, the Montagues and the Capulets, in Verona. Romeo Montague falls in love with Juliet Capulet at a masked ball, and they secretly marry the next day. However, a series of misunderstandings and tragic events, including the death of Mercutio and Tybalt, lead to Romeo's banishment. In a desperate attempt to reunite, Juliet fakes her death, but the plan goes awry. Believing she is truly dead, Romeo takes his own life, and upon awakening, Juliet follows suit, uniting them in death.",
+  "score": 4,
+  "cost": 8.744999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 139
+  }
+}

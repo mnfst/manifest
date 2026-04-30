@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "The email summarizes feedback from a customer workshop where bulk import improvements and SSO were identified as key needs, while the new analytics dashboard was well-received. Sales also noted unexpected interest in the internal tool as a standalone product and attached a follow-up report.",
+  "score": 5,
+  "cost": 2.7700000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 52
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_explanation",
+  "case": 6,
+  "response": "This function recursively flattens an arbitrarily nested list into a single-level sequence using a generator: it iterates through each item, recursively yielding from any sublists via `yield from`, and yielding non-list items directly.",
+  "score": 5,
+  "cost": 0.006915,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 72
+  }
+}

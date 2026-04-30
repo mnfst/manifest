@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_generation",
+  "case": 29,
+  "response": "```python\n    def digit_sum(num):\n        return sum(int(d) for d in str(abs(num)))\n    \n    return [num for num in sorted(nums, key=lambda x: (digit_sum(x), nums.index(x)))]\n```",
+  "score": 4,
+  "cost": 8.880000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 48
+  }
+}

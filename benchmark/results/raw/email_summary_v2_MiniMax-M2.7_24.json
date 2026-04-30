@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "email_summary_v2",
+  "case": 24,
+  "response": "Design System v3 is now ready for adoption, featuring new dark\u2011mode color tokens, a revised 4px spacing scale, and updated Button and Modal components, along with a migration tool to facilitate the transition. Teams should begin a phased rollout by adopting the new system on the Settings page first.",
+  "score": 5,
+  "cost": 0.0013992,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 289
+  }
+}

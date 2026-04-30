@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 12,
+  "response": "J. F. D. Shrewsbury (in 1970).",
+  "score": 5,
+  "cost": 8.400000000000001e-06,
+  "expected": "British bacteriologist J. F. D. Shrewsbury",
+  "tokens": {
+    "input": 193,
+    "output": 17
+  }
+}

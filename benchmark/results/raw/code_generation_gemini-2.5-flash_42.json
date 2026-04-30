@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 42,
+  "response": "```python\n    if n > m:\n        return -1\n    \n    # The average of an arithmetic progression (n, n+1, ..., m) is simply (n + m) / 2.\n    average = (n + m) / 2\n    \n    # Round the average to the nearest integer.\n    # Python's built-in round() function handles rounding to the nearest integer.\n    # For .5 cases, it rounds to the nearest even number (e.g., round(2.5) is 2, round(3.5) is 4).\n    # This behavior is consistent with the example rounded_avg(20, 33) where 26.5 rounds to 26.\n    rounded_int = round(average)\n    \n    # Convert the rounded integer to its binary representation as a string.\n    # The bin() function returns a string prefixed with \"0b\".\n    binary_representation = bin(rounded_int)\n    \n    return binary_representation\n```",
+  "score": 4,
+  "cost": 0.00016559999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 192,
+    "output": 228
+  }
+}

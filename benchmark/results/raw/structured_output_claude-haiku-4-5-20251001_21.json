@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "structured_output",
+  "case": 21,
+  "response": "```json\n{\n  \"name\": \"Jane Doe\",\n  \"email\": \"jane@email.com\",\n  \"phone\": \"555-0123\",\n  \"education\": [\n    {\n      \"degree\": \"BS Computer Science\",\n      \"school\": \"MIT\",\n      \"year\": 2018\n    }\n  ],\n  \"experience\": [\n    {\n      \"company\": \"Google\",\n      \"years\": \"2018-2021\",\n      \"role\": \"SWE\"\n    },\n    {\n      \"company\": \"Meta\",\n      \"years\": \"2021-present\",\n      \"role\": \"Senior SWE\"\n    }\n  ]\n}\n```",
+  "score": 5,
+  "cost": 0.0007752000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 139,
+    "output": 166
+  }
+}

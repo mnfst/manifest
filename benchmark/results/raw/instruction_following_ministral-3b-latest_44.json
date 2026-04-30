@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "Here\u2019s a list of basic salad ingredients in a checkbox format:\n\n- [ ] **Leafy greens** (e.g., lettuce, spinach, arugula, mixed greens)\n- [ ] **Veggies** (e.g., tomatoes, cucumbers, bell peppers, carrots, red onion)\n- [ ] **Protein** (e.g., chicken, hard-boiled eggs, chickpeas, feta cheese, nuts/seeds)\n- [ ] **Dressing** (e.g., vinaigrette, olive oil & lemon, ranch, balsamic)\n- [ ] **Optional add-ins** (e.g., avocado, olives, croutons, grilled veggies)",
+  "score": 5,
+  "cost": 6.76e-06,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 154
+  }
+}

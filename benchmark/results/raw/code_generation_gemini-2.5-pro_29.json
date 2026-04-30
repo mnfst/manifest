@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_generation",
+  "case": 29,
+  "response": "return sorted(nums, key=lambda n: sum(int(d) for d in str(abs(n))))",
+  "score": 4,
+  "cost": 0.00045375,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 25
+  }
+}

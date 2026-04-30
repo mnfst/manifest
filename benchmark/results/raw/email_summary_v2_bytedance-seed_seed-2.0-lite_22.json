@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The International team laid out a Japan market international expansion plan that includes a May-to-August rollout timeline with sequential key milestones: legal entity setup in May, full localization completed in June, a beta test with 10 customers launching in July, and a general availability launch in August, alongside a total $200,000 budget split between $50,000 for legal fees, $80,000 for localization work, and $70,000 for a new local hire. To move forward with executing this Japan launch plan, the team requires formal CEO approval to proceed.",
+  "score": 5,
+  "cost": 0.00074025,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 704
+  }
+}

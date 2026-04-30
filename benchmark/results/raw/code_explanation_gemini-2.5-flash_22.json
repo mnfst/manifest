@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "This code implements a Least Recently Used (LRU) cache. It utilizes an `OrderedDict` to store key-value pairs, efficiently updating an item's recency by moving it to the end upon `get` or `put` operations, and evicting the least recently used item from the beginning when the cache capacity is exceeded.",
+  "score": 5,
+  "cost": 6.78e-05,
+  "expected": "",
+  "tokens": {
+    "input": 172,
+    "output": 70
+  }
+}

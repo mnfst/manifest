@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "Here are a few options:\n\n- **\"Meeting Invitation - Please Confirm Your Availability\"** (7 words)\n- **\"Invitation: Team Meeting on [Date]\"** (5 words)\n- **\"Please Join Us: Meeting on [Date]\"** (6 words)\n- **\"Meeting Request: [Date/Time] - Confirmation Needed\"** (7 words)\n\nLet me know if you'd like me to customize it further!",
+  "score": 5,
+  "cost": 0.0010516000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 36,
+    "output": 230
+  }
+}

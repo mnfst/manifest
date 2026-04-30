@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 17,
+  "response": "| Pros | Cons |\n|------|------|\n| **Flexibility in work schedule** \u2013 Employees can tailor their day to suit personal productivity peaks and responsibilities. | **Potential for isolation** \u2013 Limited face\u2011to\u2011face interaction can lead to feelings of loneliness and reduced team cohesion. |\n| **Reduced commute time and cost** \u2013 No daily travel saves time, money, and lowers stress, while also benefiting the environment. | **Blurred work\u2011life boundaries** \u2013 It can be harder to \u201cswitch off\u201d when home and work share the same space, leading to burnout. |\n| **Access to a broader talent pool** \u2013 Companies can hire the best candidates regardless of geographic location, and employees can work for global organizations. | **Challenges in communication & collaboration** \u2013 Remote settings may cause miscommunication, slower decision\u2011making, and difficulty with complex teamwork. |",
+  "score": 5,
+  "cost": 0.0019811,
+  "expected": "",
+  "tokens": {
+    "input": 57,
+    "output": 436
+  }
+}

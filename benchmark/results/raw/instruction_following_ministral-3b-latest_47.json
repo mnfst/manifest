@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "Here\u2019s a numbered list of key principles for creating a **strong, secure password**:\n\n### **1. Length Matters**\n   - Use **at least 12 characters** (longer is better\u201416+ is ideal).\n   - Avoid short, predictable passwords (e.g., \"password123\").\n\n### **2. Use a Mix of Character Types**\n   - Include:\n     - **Uppercase letters** (A-Z)\n     - **Lowercase letters** (a-z)\n     - **Numbers** (0-9)\n     - **Special characters** (!@#$%^&* etc.)\n   - Example: `P@ssw0rd!2024`\n\n### **3. Avoid Common Patterns & Predictable Choices**\n   - Skip:\n     - Sequential characters (e.g., `qwerty`, `12345`)\n     - Repeated characters (e.g., `aaaa123`)\n     - Personal info (birthdays, names, pet names, etc.)\n     - Dictionary words (even misspelled ones like `p@ssw0rd`)\n\n### **4. Don\u2019t Reuse Passwords**\n   - Use a **unique password** for every account.\n   - If you must reuse, **increase complexity** (e.g., `MyAccount2024!`).\n\n### **5. Avoid Common Passwords & Dictionaries**\n   - Check if your password is in a **password database** (use [Have I Been Pwned](https://haveibeenpwned.com/)).\n   - Avoid **predefined phrases** (e.g., \"Admin123\", \"Welcome\").\n\n### **6. Use a Password Manager**\n   - Store passwords securely with a **master password** (e.g., Bitwarden, 1Password, KeePass).\n   - Generate and auto-fill strong passwords for all accounts.\n\n### **7. Consider Passphrases (For Extra Security)**\n   - A **long, random passphrase** with spaces can be easier to remember:\n     - `H3ll0!W0rld@2024!` (16 chars, mixed case/symbols)\n     - `T$h3!R3!D!P@ssphr@s3` (longer, more secure)\n\n### **8. Enable Additional Security**\n   - **Multi-F",
+  "score": 4,
+  "cost": 2.0600000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 500
+  }
+}

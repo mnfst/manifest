@@ -2,12 +2,12 @@
   "model": "MiniMax-M2.7",
   "task": "email_summary_v2",
   "case": 5,
-  "response": "The payment integration hasn't passed PCI compliance, so the launch is delayed, with two options: launch without payments (which requires updated T&Cs) or postpone the full launch to May\u202f15. The team needs to decide at a meeting tomorrow at 10\u202fam, and any chosen path will involve revising terms or extending the timeline by two weeks.",
-  "score": 4,
-  "cost": 0.0028083,
+  "response": "The product launch is delayed because the payment integration hasn\u2019t passed PCI compliance and will need an additional two weeks; two options are on the table\u2014launch without payments now (which requires updated T&Cs) or postpone the full launch to May\u202f15. Legal must draft revised Terms & Conditions if the first option is selected, and the team is meeting tomorrow at 10\u202fa.m. to decide the course of action.",
+  "score": 5,
+  "cost": 0.002607,
   "expected": "",
   "tokens": {
-    "input": 133,
-    "output": 605
+    "input": 130,
+    "output": 560
   }
 }

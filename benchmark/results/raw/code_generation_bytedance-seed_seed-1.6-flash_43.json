@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_generation",
+  "case": 43,
+  "response": "if not numbers:\n        return []\n    result = [numbers[0]]\n    for num in numbers[1:]:\n        result.append(delimeter)\n        result.append(num)\n    return result",
+  "score": 5,
+  "cost": 0.0002934,
+  "expected": "",
+  "tokens": {
+    "input": 212,
+    "output": 925
+  }
+}

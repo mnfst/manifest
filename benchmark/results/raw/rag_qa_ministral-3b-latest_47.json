@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 47,
+  "response": "Urarina",
+  "score": 0,
+  "cost": 6.28e-06,
+  "expected": "Urarina",
+  "tokens": {
+    "input": 153,
+    "output": 4
+  }
+}

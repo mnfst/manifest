@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "rag_qa",
+  "case": 38,
+  "response": "The Charles River",
+  "score": 0,
+  "cost": 0.0006012000000000001,
+  "expected": "Charles River",
+  "tokens": {
+    "input": 254,
+    "output": 187
+  }
+}

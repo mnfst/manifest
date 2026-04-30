@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_generation",
+  "case": 16,
+  "response": "n = len(grid)\n    start_r = start_c = -1\n    for r in range(n):\n        for c in range(n):\n            if grid[r][c] == 1:\n                start_r, start_c = r, c\n                break\n        if start_r != -1:\n            break\n            \n    path = [1]\n    curr_r, curr_c = start_r, start_c\n    dirs = [(0, 1), (0, -1), (1, 0), (-1, 0)]\n    \n    for _ in range(k - 1):\n        min_val = float('inf')\n        next_r, next_c = -1, -1\n        for dr, dc in dirs:\n            nr, nc = curr_r + dr, curr_c + dc\n            if 0 <= nr < n and 0 <= nc < n:\n                if grid[nr][nc] < min_val:\n                    min_val = grid[nr][nc]\n                    next_r, next_c = nr, nc\n        path.append(min_val)\n        curr_r, curr_c = next_r, next_c\n        \n    return path",
+  "score": 3,
+  "cost": 0.00748975,
+  "expected": "",
+  "tokens": {
+    "input": 447,
+    "output": 7378
+  }
+}

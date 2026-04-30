@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 42,
+  "response": "Based on the provided context, the **Moselle** is the tributary that contributes most, with an average discharge of more than 300 m\u00b3/s (11,000 cu ft/s).",
+  "score": 5,
+  "cost": 0.0013541,
+  "expected": "Moselle",
+  "tokens": {
+    "input": 211,
+    "output": 255
+  }
+}

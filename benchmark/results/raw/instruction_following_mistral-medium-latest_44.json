@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "Here\u2019s a list of basic salad ingredients in a checkbox format:\n\n### **Base Greens**\n- [ ] Lettuce (Romaine, Iceberg, Butter, etc.)\n- [ ] Spinach\n- [ ] Arugula\n- [ ] Mixed greens\n- [ ] Kale\n\n### **Vegetables**\n- [ ] Cherry tomatoes\n- [ ] Cucumber\n- [ ] Bell peppers (red, green, yellow)\n- [ ] Red onion\n- [ ] Carrots (shredded or sliced)\n- [ ] Radishes\n\n### **Proteins (Optional)**\n- [ ] Grilled chicken\n- [ ] Hard-boiled eggs\n- [ ] Tuna or salmon\n- [ ] Chickpeas\n- [ ] Tofu\n\n### **Cheese (Optional)**\n- [ ] Feta\n- [ ] Cheddar\n- [ ] Parmesan\n- [ ] Goat cheese\n\n### **Toppings & Extras**\n- [ ] Croutons\n- [ ] Nuts (almonds, walnuts, pecans)\n- [ ] Seeds (sunflower, pumpkin)\n- [ ] Avocado\n- [ ] Olives\n\n### **Dressing**\n- [ ] Olive oil & vinegar (balsamic, red wine, etc.)\n- [ ] Ranch\n- [ ] Caesar\n- [ ] Honey mustard\n- [ ] Lemon juice & herbs",
+  "score": 5,
+  "cost": 0.000604,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 299
+  }
+}

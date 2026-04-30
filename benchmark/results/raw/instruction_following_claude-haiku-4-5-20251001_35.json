@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "# The Last Letter\n\nSarah found the unopened envelope in her grandmother's desk, addressed to her in handwriting she hadn't seen in decades. With trembling hands, she carefully opened it and discovered a letter written on the day her grandmother learned she was ill. In careful script, her grandmother had written about the sacrifices she'd made, the dreams she'd deferred, and most importantly, the pride she felt watching Sarah become everything she'd hoped to be. The letter urged Sarah to chase the opportunities she'd been given and never settle for a life half-lived. Tears streamed down Sarah's face as she read the final line: \"Live boldly, my darling, for both of us.\" She folded the letter gently and placed it in her pocket, feeling her grandmother's hand on her shoulder, guiding her forward.",
+  "score": 5,
+  "cost": 0.0007224,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 177
+  }
+}

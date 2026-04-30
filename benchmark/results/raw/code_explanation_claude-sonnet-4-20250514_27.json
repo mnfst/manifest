@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_explanation",
+  "case": 27,
+  "response": "This code finds the maximum element in every sliding window of size `k` using a monotonic decreasing deque that stores array indices. The deque maintains potential maximum candidates by removing outdated indices (outside current window) from the front and smaller elements from the back, ensuring the front always contains the index of the current window's maximum.",
+  "score": 5,
+  "cost": 0.001542,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 72
+  }
+}

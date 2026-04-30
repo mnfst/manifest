@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_explanation",
+  "case": 32,
+  "response": "This code implements a **Union-Find (Disjoint Set Union) data structure** with path compression and union by rank optimizations. It returns two functions: `find()` locates the root representative of an element's set, and `union()` merges two sets by connecting their roots, maintaining balanced tree heights to ensure near-constant time operations.",
+  "score": 5,
+  "cost": 0.0004576,
+  "expected": "",
+  "tokens": {
+    "input": 182,
+    "output": 78
+  }
+}

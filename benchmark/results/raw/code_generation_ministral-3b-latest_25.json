@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 25,
+  "response": "```python\n    result = []\n    current_group = []\n    balance = 0\n\n    for char in paren_string.replace(\" \", \"\"):\n        if char == '(':\n            balance += 1\n            current_group.append(char)\n        else:\n            balance -= 1\n            current_group.append(char)\n\n        if balance == 0:\n            result.append(''.join(current_group))\n            current_group = []\n\n    return result\n```",
+  "score": 4,
+  "cost": 9.72e-06,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 91
+  }
+}

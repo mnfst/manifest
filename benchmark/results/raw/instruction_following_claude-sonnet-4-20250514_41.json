@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "```python\ndef sort(array, key=None, reverse=False):\n    \"\"\"Sorts an array in-place using a stable sorting algorithm.\n    \n    Sorts the elements of the input array in ascending order by default.\n    The sort is stable, meaning that when multiple records have the same\n    key, their original order is preserved.\n    \n    Args:\n        array (list): The list to be sorted in-place.\n        key (callable, optional): A function that takes one argument and\n            returns a value to use for sorting purposes. If None, elements\n            are compared directly. Defaults to None.\n        reverse (bool, optional): If True, the list elements are sorted\n            as if each comparison were reversed. Defaults to False.\n    \n    Returns:\n        None: This function modifies the original array in-place and\n            returns None.\n    \n    Raises:\n        TypeError: If array is not a list or if key is not callable.\n        ValueError: If elements in the array are not comparable when\n            no key function is provided.\n    \n    Example:\n        >>> numbers = [3, 1, 4, 1, 5, 9, 2, 6]\n        >>> sort(numbers)\n        >>> print(numbers)\n        [1, 1, 2, 3, 4, 5, 6, 9]\n        \n        >>> words = ['banana', 'pie', 'Washington', 'book']\n        >>> sort(words, key=len, reverse=True)\n        >>> print(words)\n        ['Washington', 'banana', 'book', 'pie']\n    \"\"\"\n```",
+  "score": 4,
+  "cost": 0.005793,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 382
+  }
+}

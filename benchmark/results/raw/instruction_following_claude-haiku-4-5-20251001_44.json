@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "# Basic Salad Ingredients\n\n- [ ] Lettuce or mixed greens\n- [ ] Tomatoes\n- [ ] Cucumber\n- [ ] Carrots\n- [ ] Red onion\n- [ ] Bell peppers\n- [ ] Olive oil\n- [ ] Vinegar or lemon juice\n- [ ] Salt\n- [ ] Black pepper",
+  "score": 5,
+  "cost": 0.0003528,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 84
+  }
+}

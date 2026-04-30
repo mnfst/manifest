@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "rag_qa",
+  "case": 19,
+  "response": "Based on the provided context, Europe achieved advancements in communication besides military technology.",
+  "score": 4,
+  "cost": 0.000813,
+  "expected": "communication",
+  "tokens": {
+    "input": 171,
+    "output": 20
+  }
+}

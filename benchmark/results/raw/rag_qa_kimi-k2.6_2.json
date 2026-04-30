@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "rag_qa",
+  "case": 2,
+  "response": "Based on the context, colonialism often means **a country taking physical control of another**.",
+  "score": 5,
+  "cost": 0.0011868,
+  "expected": "taking physical control of another",
+  "tokens": {
+    "input": 318,
+    "output": 415
+  }
+}

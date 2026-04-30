@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "rag_qa",
+  "case": 47,
+  "response": "The Urarina.",
+  "score": 5,
+  "cost": 0.0005987999999999999,
+  "expected": "Urarina",
+  "tokens": {
+    "input": 154,
+    "output": 211
+  }
+}

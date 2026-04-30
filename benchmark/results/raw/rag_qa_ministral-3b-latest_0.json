@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 0,
+  "response": "Lake \u00dcberlingen",
+  "score": 0,
+  "cost": 9.36e-06,
+  "expected": "Lake \u00dcberlingen",
+  "tokens": {
+    "input": 229,
+    "output": 5
+  }
+}

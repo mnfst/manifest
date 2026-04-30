@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is a force that pulls objects toward each other. It is what keeps us grounded on the Earth and causes things to fall when dropped. The strength of gravity depends on two main factors: the mass of the objects and the distance between them. For example, the Earth has a large mass, which creates a strong gravitational pull that keeps us and everything else on its surface. Similarly, the Moon's gravity affects the tides in our oceans. Even though we can't see gravity, we can observe its effects all around us, from the way planets orbit the Sun to how we experience weight. That is gravity.",
+  "score": 5,
+  "cost": 7.905e-05,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 125
+  }
+}

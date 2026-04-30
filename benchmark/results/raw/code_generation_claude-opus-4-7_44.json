@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_generation",
+  "case": 44,
+  "response": "```\n    vowels = \"aeiouAEIOU\"\n    result = \"\"\n    for c in message:\n        if c in vowels:\n            shifted = chr(ord(c) + 2)\n            result += shifted.swapcase()\n        else:\n            result += c.swapcase()\n    return result\n```",
+  "score": 4,
+  "cost": 0.010455,
+  "expected": "",
+  "tokens": {
+    "input": 212,
+    "output": 97
+  }
+}

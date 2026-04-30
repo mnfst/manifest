@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "structured_output",
+  "case": 34,
+  "response": "Here is the extracted information in valid JSON matching the provided schema:\n\n```json\n{\n  \"student_id\": \"20240156\",\n  \"course_code\": \"CS301\",\n  \"course_name\": \"Algorithms\",\n  \"score\": 87,\n  \"max_score\": 100,\n  \"grade\": \"A-\",\n  \"semester\": \"Fall 2024\",\n  \"instructor\": \"Prof. Williams\"\n}\n```",
+  "score": 5,
+  "cost": 9.16e-06,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 104
+  }
+}

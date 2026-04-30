@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 6,
+  "response": "Ocean waves crash peacefully.",
+  "score": 5,
+  "cost": 0.0013816000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 48,
+    "output": 302
+  }
+}

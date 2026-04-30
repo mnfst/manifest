@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The CEO attached a draft Q1 board deck featuring key metrics: 127% of revenue target, 115% NRR, but a 22% increase in CAC. The CEO requires the product roadmap section to be submitted by Wednesday for the next Tuesday board meeting.",
+  "score": 5,
+  "cost": 0.000106275,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 312
+  }
+}

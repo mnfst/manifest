@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_generation",
+  "case": 49,
+  "response": "n = len(string)\n    for l in range(n, 0, -1):\n        if string[-l:] == string[-l:][::-1]:\n            break\n    return string + string[:n-l][::-1]",
+  "score": 5,
+  "cost": 0.00060135,
+  "expected": "",
+  "tokens": {
+    "input": 282,
+    "output": 1934
+  }
+}

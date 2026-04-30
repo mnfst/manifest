@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "I'm drawn to a haunting tale set in a decaying Southern mansion, where a reclusive woman has lived in isolation for decades after a shocking incident in her youth. The story unfolds through the eyes of a young boy in a small Alabama town during the 1930s, as he and his sister become obsessed with their mysterious neighbor who never leaves his house.\n\nWhat captivates me is how the novel weaves together themes of prejudice, moral courage, and the loss of innocence. The children's father, a principled lawyer, defends a Black man falsely accused of rape, forcing the family to confront the ugly realities of their community's deep-seated racism. Meanwhile, the enigmatic neighbor becomes an unlikely guardian angel.\n\nThe book masterfully balances a child's perspective with profound moral questions, showing how ordinary people can choose between cowardice and courage when faced with injustice. The prose has a timeless quality that makes the Depression-era setting feel both historically specific and universally relevant.\n\nWhat moves me most is how it portrays the complexity of human nature - how the same community that harbors such prejudice also contains individuals capable of extraordinary compassion and bravery. It's a story about growing up and seeing the world's imperfections while still believing in the possibility of goodness.",
+  "score": 5,
+  "cost": 0.004287,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 282
+  }
+}

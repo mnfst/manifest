@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "The old lighthouse keeper woke to find the door swinging open in the wind. Outside, the storm had washed a wooden chest onto the rocks below. He descended the spiral stairs, his lantern flickering against walls that hadn't seen repair in decades. The chest contained letters dated fifty years into the future, all addressed to him by name. As he read the first line, the lighthouse beam swept across the horizon and illuminated a ship that shouldn't exist. He smiled, finally understanding why the sea had called him here all these lonely years.",
+  "score": 5,
+  "cost": 0.0009678,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 399
+  }
+}

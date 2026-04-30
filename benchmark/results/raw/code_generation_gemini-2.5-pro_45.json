@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_generation",
+  "case": 45,
+  "response": "```python\n    return sorted(list(set(l1) & set(l2)))\n```",
+  "score": 5,
+  "cost": 0.0004175,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 22
+  }
+}

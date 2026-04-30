@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "* Improves cardiovascular health and reduces the risk of chronic diseases.\n* Enhances mental well-being by reducing stress, anxiety, and depression symptoms.\n* Increases muscle strength, bone density, and overall physical function.",
+  "score": 5,
+  "cost": 0.00048419999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 197
+  }
+}

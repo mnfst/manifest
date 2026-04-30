@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_generation",
+  "case": 47,
+  "response": "```python\n    return \" \".join(map(str, range(n + 1)))\n```",
+  "score": 5,
+  "cost": 0.00035375,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 22
+  }
+}

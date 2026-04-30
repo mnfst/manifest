@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "1. **The Moon is Earth's Only Natural Satellite** \u2013 It is the fifth-largest moon in the solar system and the largest relative to its planet (about 1/4 the diameter of Earth). It formed around **4.5 billion years ago**, likely from debris after a massive collision between Earth and a Mars-sized object called Theia.\n\n2. **The Moon Has No Atmosphere** \u2013 Because of its weak gravity (about **1/6th of Earth's**), the Moon cannot hold onto an atmosphere. This means there\u2019s no weather, wind, or sound, and temperatures swing wildly\u2014from **127\u00b0C (260\u00b0F) in sunlight** to **-173\u00b0C (-280\u00b0F) in darkness**.\n\n3. **The Same Side Always Faces Earth (Tidal Locking)** \u2013 The Moon takes **27.3 days** to rotate on its axis and the same time to orbit Earth, which is why we always see the same side (the \"near side\"). The far side, often called the \"dark side\" (though it gets sunlight), wasn\u2019t seen by humans until 1959 when the Soviet **Luna 3** spacecraft photographed it.",
+  "score": 5,
+  "cost": 0.0005112,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 251
+  }
+}

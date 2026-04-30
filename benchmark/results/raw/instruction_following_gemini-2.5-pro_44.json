@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "Of course! Here are the ingredients for a basic salad in a checkbox format.\n\n### The Base (Choose one or a mix)\n- [ ] Romaine Lettuce\n- [ ] Mixed Greens or Spring Mix\n- [ ] Spinach\n- [ ] Iceberg Lettuce\n\n### Core Vegetables\n- [ ] Tomatoes (cherry, grape, or diced)\n- [ ] Cucumber (sliced or diced)\n- [ ] Carrots (shredded or sliced)\n- [ ] Red Onion (thinly sliced)\n- [ ] Bell Peppers (any color, sliced)\n\n### Optional Add-ins\n- [ ] Croutons\n- [ ] Shredded Cheese (like cheddar or mozzarella)\n- [ ] Crumbled Cheese (like feta or blue cheese)\n- [ ] Chickpeas or other beans\n\n### Simple Vinaigrette Dressing\n- [ ] Olive Oil\n- [ ] Vinegar (red wine, balsamic, or apple cider)\n- [ ] Salt\n- [ ] Black Pepper",
+  "score": 5,
+  "cost": 0.002075,
+  "expected": "",
+  "tokens": {
+    "input": 12,
+    "output": 206
+  }
+}

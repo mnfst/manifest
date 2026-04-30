@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 43,
+  "response": "```python\nresult = []\nfor i in range(len(numbers)):\n    result.append(numbers[i])\n    if i != len(numbers) - 1:\n        result.append(delimeter)\n```",
+  "score": 4,
+  "cost": 6.8e-06,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 42
+  }
+}

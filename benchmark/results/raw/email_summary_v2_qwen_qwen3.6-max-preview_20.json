@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "email_summary_v2",
+  "case": 20,
+  "response": "A Saturday disk space alert on prod-db-01 was manually resolved by 8 AM with no customer impact, stemming from a post-migration log rotation misconfiguration. The team must now correct the log rotation settings to prevent future incidents.",
+  "score": 5,
+  "cost": 0.0089986,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 1705
+  }
+}

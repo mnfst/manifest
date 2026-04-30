@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "code_generation",
+  "case": 17,
+  "response": "if not text:\n        return None\n    import hashlib\n    return hashlib.md5(text.encode()).hexdigest()",
+  "score": 5,
+  "cost": 0.00010240000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 28
+  }
+}

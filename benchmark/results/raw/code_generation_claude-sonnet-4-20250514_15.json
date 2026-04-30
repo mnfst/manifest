@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_generation",
+  "case": 15,
+  "response": "largest_factor = 1\n    d = 2\n    \n    while d * d <= n:\n        while n % d == 0:\n            largest_factor = d\n            n //= d\n        d += 1\n    \n    if n > 1:\n        largest_factor = n\n    \n    return largest_factor",
+  "score": 4,
+  "cost": 0.001524,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 80
+  }
+}

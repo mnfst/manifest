@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "The Customer Success team reported strong Q1 results with NPS increasing to 62, support CSAT at 4.3/5, and churn decreasing to 1.2%, alongside $800K in enterprise expansions currently in the pipeline. Key action items include evaluating top customer feature requests for SSO, custom dashboards, and API rate limit increases.",
+  "score": 5,
+  "cost": 0.0018593999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 746
+  }
+}

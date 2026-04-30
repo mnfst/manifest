@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "rag_qa",
+  "case": 38,
+  "response": "Charles River\nThe context states that \"nine of which are south of Harvard Yard along or near the Charles River,\" indicating that the nine residential houses are located along or near the Charles River.",
+  "score": 2,
+  "cost": 7.545e-05,
+  "expected": "Charles River",
+  "tokens": {
+    "input": 334,
+    "output": 168
+  }
+}

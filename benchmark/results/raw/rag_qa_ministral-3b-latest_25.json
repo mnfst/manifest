@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 25,
+  "response": "Infrastructure suffered considerably for Warsaw when it had an Eastern Bloc economy.",
+  "score": 5,
+  "cost": 7e-06,
+  "expected": "infrastructure",
+  "tokens": {
+    "input": 160,
+    "output": 15
+  }
+}

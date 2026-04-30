@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 38,
+  "response": "**\"Invalid email or password. Please try again or reset your password.\"**",
+  "score": 4,
+  "cost": 4e-05,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 16
+  }
+}

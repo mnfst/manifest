@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "structured_output",
+  "case": 22,
+  "response": "```json\n{\n  \"activity\": \"run\",\n  \"distance_km\": 5.0,\n  \"duration\": \"24:30\",\n  \"avg_pace\": \"4:54/km\",\n  \"heart_rate\": {\n    \"avg_bpm\": 155,\n    \"max_bpm\": 178\n  },\n  \"calories\": 380,\n  \"date\": \"Monday March 4\"\n}\n```",
+  "score": 5,
+  "cost": 0.0005312,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 106
+  }
+}

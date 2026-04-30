@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 12,
+  "response": "return [s for s in strings if substring in s]",
+  "score": 4,
+  "cost": 2.7e-05,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 12
+  }
+}

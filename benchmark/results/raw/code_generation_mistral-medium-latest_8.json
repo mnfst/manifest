@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "code_generation",
+  "case": 8,
+  "response": "```python\n    return [x for x in values if type(x) is int]\n```",
+  "score": 5,
+  "cost": 8.96e-05,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 20
+  }
+}

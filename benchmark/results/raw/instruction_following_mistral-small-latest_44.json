@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "Here\u2019s a list of ingredients for a basic salad in checkbox format:\n\n- [ ] Lettuce (e.g., romaine, iceberg, spinach, or mixed greens)\n- [ ] Tomatoes (cherry, grape, or diced)\n- [ ] Cucumber (sliced or diced)\n- [ ] Red onion (thinly sliced)\n- [ ] Carrots (shredded or julienned)\n- [ ] Bell peppers (any color, sliced)\n- [ ] Croutons (optional, for crunch)\n- [ ] Avocado (sliced or cubed, optional)\n- [ ] Hard-boiled eggs (quartered, optional)\n- [ ] Cheese (e.g., feta, cheddar, or parmesan, crumbled or shredded)\n- [ ] Dressing (e.g., vinaigrette, ranch, or olive oil & lemon juice)\n\nWould you like any variations or additional toppings?",
+  "score": 5,
+  "cost": 6.33e-05,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 202
+  }
+}

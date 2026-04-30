@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_generation",
+  "case": 29,
+  "response": "def digit_sum(n):\n        s = str(abs(n))\n        total = sum(int(c) for c in s)\n        if n < 0:\n            total -= 2 * int(s[0])\n        return total\n    return sorted(nums, key=digit_sum)",
+  "score": 4,
+  "cost": 0.032880900000000005,
+  "expected": "",
+  "tokens": {
+    "input": 165,
+    "output": 6282
+  }
+}

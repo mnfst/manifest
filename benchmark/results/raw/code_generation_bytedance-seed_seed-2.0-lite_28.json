@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_generation",
+  "case": 28,
+  "response": "coords = []\nfor i, row in enumerate(lst):\n    for j, val in enumerate(row):\n        if val == x:\n            coords.append((i, j))\nreturn sorted(coords, key=lambda t: (t[0], -t[1]))",
+  "score": 5,
+  "cost": 0.00204425,
+  "expected": "",
+  "tokens": {
+    "input": 353,
+    "output": 1956
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 44,
+  "response": "```python\n    encoded_message = []\n    vowels = \"aeiou\" # Only need lowercase vowels for checking\n\n    for char in message:\n        if char.isalpha():\n            # Check if the character (in lowercase) is a vowel\n            if char.lower() in vowels:\n                # It's a vowel. Replace with the letter 2 places ahead.\n                # First, get the lowercase ASCII value of the vowel\n                lower_char_code = ord(char.lower())\n                \n                # Calculate the ASCII value of the new character (2 places ahead)\n                new_char_code = lower_char_code + 2\n                \n                # Convert the ASCII value back to a character\n                new_char = chr(new_char_code)\n                \n                # Now, swap the case of this new character\n                encoded_message.append(new_char.swapcase())\n            else:\n                # It's a consonant. Just swap its case.\n                encoded_message.append(char.swapcase())\n        else:\n            # Not a letter (e.g., space, number, symbol). Keep it as is.\n            encoded_message.append(char)\n            \n    return \"\".join(encoded_message)\n```",
+  "score": 4,
+  "cost": 0.00019020000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 279
+  }
+}

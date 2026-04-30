@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_explanation",
+  "case": 27,
+  "response": "This function finds the maximum value in each sliding window of size `k` using a monotonic deque. The deque stores indices of elements from the input array, maintaining them in decreasing order of their corresponding values, which ensures the maximum element of the current window is always at the front of the deque.",
+  "score": 5,
+  "cost": 0.00075875,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 59
+  }
+}

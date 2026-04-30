@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "code_generation",
+  "case": 13,
+  "response": "return len(string)",
+  "score": 5,
+  "cost": 3.8400000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 5
+  }
+}

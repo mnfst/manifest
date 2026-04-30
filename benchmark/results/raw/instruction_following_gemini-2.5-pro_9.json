@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "instruction_following",
+  "case": 9,
+  "response": "April\nJune\nSeptember\nNovember",
+  "score": 5,
+  "cost": 9.25e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 7
+  }
+}

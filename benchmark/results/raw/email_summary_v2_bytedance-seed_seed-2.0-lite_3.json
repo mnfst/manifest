@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 3,
+  "response": "Lisa\u2019s March onboarding feedback states that the month\u2019s new hire cohort had an overall satisfaction score of 7.2/10, down from the previous 8.1/10, with high praise for the 9.1/10-rated buddy system and timely IT setup, but major pain points including majority confusion about benefits deadlines, tool access that took 3-5 days instead of the 1-day target, and unprovided culture handbooks. The clear top priority to improve future onboarding experiences is resolving the delayed tool access issue to align with the company\u2019s required 1-day turnaround for new hires.",
+  "score": 5,
+  "cost": 0.0008435,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 804
+  }
+}

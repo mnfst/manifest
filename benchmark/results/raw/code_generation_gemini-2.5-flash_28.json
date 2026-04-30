@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 28,
+  "response": "coordinates = []\nfor r_idx, row in enumerate(lst):\n    for c_idx, val in enumerate(row):\n        if val == x:\n            coordinates.append((r_idx, c_idx))\n\n# Sort the coordinates\n# Primary sort: by row in ascending order (coord[0])\n# Secondary sort: by column in descending order (-coord[1])\ncoordinates.sort(key=lambda coord: (coord[0], -coord[1]))\n\nreturn coordinates",
+  "score": 5,
+  "cost": 0.00011055000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 309,
+    "output": 107
+  }
+}

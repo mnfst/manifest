@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "rag_qa",
+  "case": 36,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 1.8900000000000002e-05,
+  "expected": "gaseous oxygen.",
+  "tokens": {
+    "input": 171,
+    "output": 6
+  }
+}

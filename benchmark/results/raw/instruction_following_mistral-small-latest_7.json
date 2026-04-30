@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "**Scrambled Eggs**\n\nWhisk 2 eggs with 1 tbsp milk, salt, and pepper. Melt 1 tbsp butter in a pan over medium heat. Pour in eggs, stirring gently until softly set. Remove from heat while still slightly runny. Serve immediately.",
+  "score": 4,
+  "cost": 2.21e-05,
+  "expected": "",
+  "tokens": {
+    "input": 32,
+    "output": 63
+  }
+}

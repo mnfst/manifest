@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_generation",
+  "case": 15,
+  "response": "largest = 1\n    i = 2\n    while i * i <= n:\n        while n % i == 0:\n            largest = i\n            n = n // i\n        i += 1\n    if n > 1:\n        largest = n\n    return largest",
+  "score": 4,
+  "cost": 0.001271475,
+  "expected": "",
+  "tokens": {
+    "input": 185,
+    "output": 4192
+  }
+}

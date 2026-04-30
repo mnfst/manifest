@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "The quarterly OKR review shows that Engineering, Sales, and Support met the 0.7 target while Product fell short at 0.6 due to a delayed AI feature, prompting a recommendation to carry the AI OKR forward with increased allocation. Next quarter planning begins Monday, so teams must address the Product shortfall and align on the revised AI objective.",
+  "score": 5,
+  "cost": 0.0025839000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 549
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_generation",
+  "case": 26,
+  "response": "l.sort()\n    n = len(l)\n    for i in range(n - 2):\n        left, right = i + 1, n - 1\n        while left < right:\n            s = l[i] + l[left] + l[right]\n            if s == 0:\n                return True\n            elif s < 0:\n                left += 1\n            else:\n                right -= 1\n    return False",
+  "score": 4,
+  "cost": 0.005609,
+  "expected": "",
+  "tokens": {
+    "input": 204,
+    "output": 5558
+  }
+}

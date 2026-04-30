@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 33,
+  "response": "The **Q1 employee engagement survey** shows a strong overall score of **7.8/10** (above industry average at 7.2), with top ratings for team collaboration (8.9/10) but low scores in career growth clarity (6.1/10). To address gaps, the team proposes **quarterly career conversations, an internal mobility program, and mentorship matching**, with a **town hall meeting scheduled for Friday**.",
+  "score": 5,
+  "cost": 8.599999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 95
+  }
+}

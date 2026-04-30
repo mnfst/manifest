@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 15,
+  "response": "def largest_prime_factor(n: int):\n    largest_factor = 1\n    while n % 2 == 0:\n        largest_factor = 2\n        n = n // 2\n    i = 3\n    while i * i <= n:\n        while n % i == 0:\n            largest_factor = i\n            n = n // i\n        i += 2\n    if n > 2:\n        largest_factor = n\n    return largest_factor",
+  "score": 5,
+  "cost": 8.04e-06,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 101
+  }
+}

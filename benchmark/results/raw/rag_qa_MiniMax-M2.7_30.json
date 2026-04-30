@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 30,
+  "response": "Melbourne",
+  "score": 0,
+  "cost": 0.0005863000000000001,
+  "expected": "Melbourne",
+  "tokens": {
+    "input": 261,
+    "output": 68
+  }
+}

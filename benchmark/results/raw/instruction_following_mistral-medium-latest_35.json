@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "**The Last Lightkeeper**\n\nOld Man Hargrove had kept the lighthouse for sixty years, winding its gears each dusk while the gulls screamed like lost souls. One stormy night, the beacon flickered\u2014then died\u2014and no matter how he cursed or pounded the rusted mechanism, the dark stayed thick as tar. As he leaned over the railing, a pale hand broke the waves below, gripping the slick rocks with too many fingers. The thing that climbed onto the shore wore his wife\u2019s face, her dress dripping seawater and something blacker. \"You let the light go out,\" it whispered, as the wind howled through the broken glass. By dawn, the lighthouse shone again, but the coast guard found only a single oil-stained boot and a journal open to the words: *\"They\u2019re waiting in the dark.\"*",
+  "score": 5,
+  "cost": 0.00035319999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 13,
+    "output": 174
+  }
+}

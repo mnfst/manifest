@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 37,
+  "response": "The CEO suggests exploring a counteroffer or polite decline to BigCo\u2019s $15M acquisition bid for the ML team, citing its higher value, while requesting a board discussion before finalizing. Action items include coordinating with the board and deciding on the next steps.",
+  "score": 5,
+  "cost": 6.2e-06,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 54
+  }
+}

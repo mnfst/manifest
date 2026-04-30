@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_explanation",
+  "case": 33,
+  "response": "This code implements the reservoir sampling algorithm to randomly select k items from a data stream of unknown length with equal probability. It maintains a reservoir of k items, initially filling it with the first k elements, then for each subsequent item, it randomly decides whether to replace an existing item in the reservoir based on decreasing probability as the stream grows.",
+  "score": 5,
+  "cost": 0.001395,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 71
+  }
+}

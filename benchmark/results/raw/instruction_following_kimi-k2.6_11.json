@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "instruction_following",
+  "case": 11,
+  "response": "Are you certain this is what you want? Should I limit myself to a specific number of inquiries? Is there a particular subject you\u2019d prefer I explore? Would rhetorical questions be acceptable, or do you want questions that demand answers? How will you respond if I ask too many? Does the tone matter? Can I ask why you issued this challenge? Are you testing my ability to follow constraints? What if my questions reveal more than your statement intended? Will you answer any of these, or must I remain forever curious?",
+  "score": 5,
+  "cost": 0.001005,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 415
+  }
+}

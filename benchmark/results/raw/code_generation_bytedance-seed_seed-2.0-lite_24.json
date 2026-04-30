@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_generation",
+  "case": 24,
+  "response": "import math\nif not (a + b > c and a + c > b and b + c > a):\n    return -1\ns = (a + b + c) / 2\narea = math.sqrt(s * (s - a) * (s - b) * (s - c))\nreturn round(area, 2)",
+  "score": 5,
+  "cost": 0.0016325,
+  "expected": "",
+  "tokens": {
+    "input": 202,
+    "output": 1582
+  }
+}

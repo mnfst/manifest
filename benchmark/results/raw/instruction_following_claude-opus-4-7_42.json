@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "# A Thunderstorm\n\nThe afternoon sky bruises into a deep, swollen purple, the kind of color that makes streetlights flicker on hours too early. A restless wind pushes through the trees, carrying the **sharp, mineral scent of rain on hot pavement**\u2014that unmistakable smell that arrives just before the first drop falls.\n\nThen comes the **low, rolling growl of thunder**, distant at first, like something heavy being dragged across the floor of the heavens. Lightning answers in jagged white veins, splitting the dark for a heartbeat before vanishing. Each flash leaves an afterimage burned behind your eyelids.\n\nThe rain breaks loose all at once. **Fat, cold drops drum hard against the rooftop**, gathering speed until the sound becomes a steady roar, drowning out conversation and traffic alike. Gutters overflow. Puddles tremble with each new impact, their surfaces dimpled like hammered tin.\n\nInside, the air feels charged and electric\u2014humid, alive. A bolt strikes close enough to rattle the windows, and the thunder that follows isn't a rumble this time but a sudden, bone-deep *crack* that you feel in your chest before you hear it.\n\nAnd then, just as quickly as it arrived, the storm begins to soften. The drumming slows to a patter. The thunder retreats into the distance, muttering to itself. The world emerges washed and gleaming, the air smelling green and new, as if the sky had simply needed to clear its throat.",
+  "score": 5,
+  "cost": 0.037635,
+  "expected": "",
+  "tokens": {
+    "input": 34,
+    "output": 495
+  }
+}

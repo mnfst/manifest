@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "**\u2605\u2605\u2605\u2605\u2606 *The Whispering Oyster* \u2013 A Culinary Escape in the Heart of the Harbor**\n\nNestled along the bustling waterfront of **Port Veyne**, *The Whispering Oyster* is a hidden gem that transforms seafood into an art form. With its intimate, candlelit dining rooms and a menu that dances between fresh, bold flavors, this restaurant is a must-visit for food lovers seeking something truly special.\n\n### **The Atmosphere**\nThe decor is a harmonious blend of rustic charm and modern elegance\u2014think reclaimed wood tables, warm brass accents, and soft lighting that casts a cozy glow. The scent of fresh sea air lingers in the air, mingling with the tantalizing aromas of sizzling fish and simmering sauces. The staff moves with quiet grace, ensuring every guest feels like they\u2019re part of a private, intimate gathering.\n\n### **The Food**\n*Whispering Oyster* doesn\u2019t just serve seafood\u2014it *celebrates* it. The **grilled scallop tartare**, drizzled with a tangy chili-lime reduction, is a revelation, with each bite bursting with umami depth. The **blackened mahi-mahi**, served with a smoky chipotle aioli and crispy slaw, is a masterclass in balance\u2014juicy, smoky, and perfectly crisp.\n\nFor those craving something heartier, the **lobster bisque** is creamy yet light, its rich broth enhanced by a whisper of truffle oil. The **oyster po\u2019boys**, loaded with spicy mayo and crispy fried oysters, are a local favorite\u2014perfect for sharing with friends.\n\nAnd of course, no visit is complete without the **house-made oyster shucking station**, where the staff expertly opens each oyster with a mix of garlic butter and a touch of lemon. The **oyster stew**, simmered with local mussels and a hint of smoked paprika, is a comforting yet sophisticated choice.\n\n### **The Service**\nThe staff at *The Whispering Oyster* is nothing short of exceptional. They remember regulars by name, anticipate their preferences, and never rush\u2014just like the restaurant itself, they take their time to make every moment memorable. The wine pairings are thoughtfully curated, and the",
+  "score": 4,
+  "cost": 2.08e-05,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 500
+  }
+}

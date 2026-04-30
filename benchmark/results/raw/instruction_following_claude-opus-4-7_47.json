@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "# What Makes a Good Password\n\n1. **Use sufficient length** \u2014 Aim for at least 12-16 characters. Longer passwords are exponentially harder to crack.\n\n2. **Mix character types** \u2014 Include uppercase letters, lowercase letters, numbers, and special symbols (e.g., !, @, #, $, %).\n\n3. **Avoid personal information** \u2014 Don't use your name, birthday, address, phone number, or family/pet names that others could guess or find online.\n\n4. **Skip common words and patterns** \u2014 Avoid dictionary words, sequential characters (like \"123456\" or \"qwerty\"), and predictable substitutions (like \"P@ssw0rd\").\n\n5. **Make it unique** \u2014 Use a different password for every account so a single breach doesn't compromise multiple services.\n\n6. **Consider a passphrase** \u2014 String together random, unrelated words (e.g., \"Purple-Tractor-Cloud-Banana-42\") for something memorable yet strong.\n\n7. **Use unpredictability** \u2014 The best passwords are random rather than meaningful; randomness defeats both human guessing and automated attacks.\n\n8. **Use a password manager** \u2014 Tools like Bitwarden, 1Password, or KeePass generate and store strong, unique passwords so you don't have to memorize them.\n\n9. **Enable two-factor authentication (2FA)** \u2014 While not part of the password itself, adding a second verification step greatly strengthens overall account security.\n\n10. **Update when compromised** \u2014 Change passwords immediately if a service reports a breach, and avoid reusing old ones.",
+  "score": 5,
+  "cost": 0.038235,
+  "expected": "",
+  "tokens": {
+    "input": 29,
+    "output": 504
+  }
+}

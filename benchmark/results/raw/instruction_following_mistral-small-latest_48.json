@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "*Romeo and Juliet* follows two young lovers from feuding families in Verona, the Montagues and Capulets. Despite their families' bitter rivalry, Romeo and Juliet meet at a masquerade ball and fall instantly in love. With the help of Friar Laurence, they secretly marry the next day. However, after Romeo kills Juliet\u2019s cousin Tybalt in a duel, he is banished. To avoid marrying Paris, her parents\u2019 choice, Juliet fakes her death with a potion. Romeo, unaware of the plan, poisons himself beside her tomb. Juliet awakens, finds him dead, and stabs herself. Their deaths finally reconcile the feuding families.",
+  "score": 5,
+  "cost": 4.57e-05,
+  "expected": "",
+  "tokens": {
+    "input": 37,
+    "output": 140
+  }
+}

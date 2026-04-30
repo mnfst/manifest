@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_generation",
+  "case": 10,
+  "response": "count = 0\n    for num in arr:\n        if num == 0:\n            sum_d = 0\n        else:\n            if num > 0:\n                m = num\n                sum_d = 0\n                while m > 0:\n                    sum_d += m % 10\n                    m = m // 10\n            else:\n                m = abs(num)\n                sum_d = 0\n                temp = m\n                while temp > 0:\n                    sum_d += temp % 10\n                    temp = temp // 10\n                first = m\n                while first >= 10:\n                    first = first // 10\n                sum_d -= 2 * first\n        if sum_d > 0:\n            count += 1\n    return count",
+  "score": 4,
+  "cost": 0.0009819,
+  "expected": "",
+  "tokens": {
+    "input": 248,
+    "output": 3211
+  }
+}

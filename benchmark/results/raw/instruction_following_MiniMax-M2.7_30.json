@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Crispy thin crust, golden\u2011brown surface, stretchy mozzarella, tangy tomato sauce, spicy pepperoni, sweet pineapple chunks, savory mushroom slices, fresh basil leaves, smoky grill aroma, rich olive\u2011oil drizzle, lingering peppery aftertaste.",
+  "score": 5,
+  "cost": 0.0076791,
+  "expected": "",
+  "tokens": {
+    "input": 53,
+    "output": 1732
+  }
+}

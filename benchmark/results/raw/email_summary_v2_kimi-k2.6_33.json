@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 33,
+  "response": "The Q1 employee engagement survey revealed an above-average overall score of 7.8/10, though career growth clarity lagged significantly at 6.1/10. The People Team proposed addressing this through quarterly career conversations, an internal mobility program, and mentorship matching, and will hold a town hall on Friday to discuss the results.",
+  "score": 5,
+  "cost": 0.001008,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 391
+  }
+}

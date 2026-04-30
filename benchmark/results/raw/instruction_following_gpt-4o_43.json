@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "instruction_following",
+  "case": 43,
+  "response": "Did you know that there are more stars in the universe than grains of sand on all the beaches on Earth? Scientists estimate that there are around 100 billion galaxies, each containing millions or even billions of stars, making the universe an incredibly vast and star-filled place!",
+  "score": 5,
+  "cost": 0.00059,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 53
+  }
+}

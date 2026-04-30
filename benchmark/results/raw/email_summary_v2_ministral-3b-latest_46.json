@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 46,
+  "response": "**Main point:** A severe SQL injection vulnerability (CVSS 9.8) has been discovered in the `/api/v2/auth/login` endpoint, affecting versions **3.2.0\u20133.4.1**, requiring immediate patching by parameterizing the query in `auth_controller.py:142`.\n\n**Action item:** Apply the provided patch **within 24 hours** to mitigate the risk.",
+  "score": 5,
+  "cost": 7.44e-06,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 86
+  }
+}

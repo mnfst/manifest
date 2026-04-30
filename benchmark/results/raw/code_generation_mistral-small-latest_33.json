@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "code_generation",
+  "case": 33,
+  "response": "```python\n    # Sort the sides to identify the hypotenuse (the longest side)\n    sides = sorted([a, b, c])\n    a_sq, b_sq, c_sq = sides[0]**2, sides[1]**2, sides[2]**2\n\n    # Check the Pythagorean theorem: a^2 + b^2 = c^2\n    return a_sq + b_sq == c_sq\n```",
+  "score": 5,
+  "cost": 4.47e-05,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 98
+  }
+}

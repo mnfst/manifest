@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "email_summary_v2",
+  "case": 43,
+  "response": "A recent open source dependency audit identified two licensing issues: an incompatible AGPL charting library and an unlicensed package. To ensure compliance, the team must replace the charting tool with Chart.js and remove the unlicensed dependency before the next release.",
+  "score": 5,
+  "cost": 0.0051207,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 956
+  }
+}

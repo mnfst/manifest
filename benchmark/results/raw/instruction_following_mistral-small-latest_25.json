@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "\"Quick Sync: [Topic] \u2013 [Date/Time]\"",
+  "score": 4,
+  "cost": 7.3e-06,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 14
+  }
+}

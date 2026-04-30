@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "Subject: Farewell and Thank You\n\nDear Team,\n\nAfter much reflection, I've decided to move on to a new chapter in my career, and today is my last day with the company. I want to sincerely thank each of you for the support, collaboration, and countless memories we've shared during my time here. Working alongside such a talented and kind group of people has been one of the highlights of my professional journey. Please feel free to stay in touch with me at [your email] or connect with me on LinkedIn\u2014I'd love to keep up with your continued successes. Wishing you all the very best in everything ahead!\n\nWarm regards,\n[Your Name]",
+  "score": 5,
+  "cost": 0.015465,
+  "expected": "",
+  "tokens": {
+    "input": 36,
+    "output": 199
+  }
+}

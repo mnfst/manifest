@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The CEO has circulated the Q1 board deck draft, which highlights exceeded revenue and retention targets alongside a significant rise in customer acquisition costs. You must submit your product roadmap section by Wednesday to ensure it is ready for next Tuesday's board meeting.",
+  "score": 5,
+  "cost": 0.00104325,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 1019
+  }
+}

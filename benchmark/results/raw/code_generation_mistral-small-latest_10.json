@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "code_generation",
+  "case": 10,
+  "response": "```python\n    count = 0\n    for num in arr:\n        total = 0\n        n = abs(num)\n        while n > 0:\n            total += n % 10\n            n = n // 10\n        if num < 0:\n            total -= 2 * (num % 10)\n        if total > 0:\n            count += 1\n    return count\n```",
+  "score": 3,
+  "cost": 4.47e-05,
+  "expected": "",
+  "tokens": {
+    "input": 174,
+    "output": 91
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 25,
+  "response": "The email announces April highlights, including surpassing 10K monthly active users, closing a $8M Series A term sheet at a $40M pre-money valuation, and hiring a VP of Sales, while also reporting an MRR of $85K (+12% MoM) and an 11-month runway post-raise, with fundraising closing on May 10. The founders emphasize these milestones and key metrics to update investors.",
+  "score": 4,
+  "cost": 4.1299999999999994e-05,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 96
+  }
+}

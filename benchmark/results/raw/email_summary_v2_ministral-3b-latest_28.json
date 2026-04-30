@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 28,
+  "response": "The annual disaster recovery test found the recovery time objective (RTO) of **4 hours** exceeded by **2 hours 23 minutes**, primarily due to a **3-hour database restore delay** caused by a larger-than-expected dataset. **Action items:** Increase backup frequency and pre-provision the standby database; the next test is scheduled for **October**.",
+  "score": 5,
+  "cost": 7.2000000000000005e-06,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 74
+  }
+}

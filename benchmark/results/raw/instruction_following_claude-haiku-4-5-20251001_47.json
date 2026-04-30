@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "# What Makes a Good Password\n\n1. **Use a mix of character types** - Include uppercase letters, lowercase letters, numbers, and special symbols (!@#$%^&*).\n\n2. **Make it long** - Aim for at least 12-16 characters; longer passwords are harder to crack.\n\n3. **Avoid personal information** - Don't use names, birthdays, addresses, or other details someone could easily guess about you.\n\n4. **Skip common words and patterns** - Avoid dictionary words, sequential numbers (123456), or keyboard patterns (qwerty).\n\n5. **Don't reuse passwords** - Use unique passwords for important accounts, especially email and banking.\n\n6. **Avoid predictable substitutions** - Don't just replace letters with numbers (like \"P@ssw0rd\"), as hackers expect this.\n\n7. **Make it random or use a passphrase** - Either use random character combinations or create a memorable phrase from unrelated words.\n\n8. **Update periodically** - Change passwords for sensitive accounts every few months or after a security breach.\n\n9. **Keep it private** - Never share your password with others or write it down in accessible places.\n\n10. **Use a password manager** - Consider using a reputable password manager to generate and securely store complex passwords.",
+  "score": 4,
+  "cost": 0.0011752,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 290
+  }
+}

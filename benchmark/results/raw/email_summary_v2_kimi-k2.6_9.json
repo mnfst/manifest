@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 9,
+  "response": "The nightly ETL job failed due to an upstream Salesforce schema change, leaving dashboards with stale data since yesterday. The Data Engineering team has deployed a fix and is currently running a backfill, with full recovery expected by 4 PM today.",
+  "score": 5,
+  "cost": 0.000777,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 301
+  }
+}

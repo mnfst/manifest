@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "There once was a programmer named Dave,\nWhose code was remarkably brave.\nHe debugged through the night,\nTill his program ran right,\nAnd his coffee addiction he'd crave.",
+  "score": 5,
+  "cost": 0.000726,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 45
+  }
+}

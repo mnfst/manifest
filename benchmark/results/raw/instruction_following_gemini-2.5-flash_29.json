@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "DNA is the molecule carrying the genetic instructions used in the growth, development, functioning, and reproduction of all known living organisms. It is a double helix structure made of two long strands of nucleotides that encode this hereditary information.",
+  "score": 2,
+  "cost": 2.865e-05,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 44
+  }
+}

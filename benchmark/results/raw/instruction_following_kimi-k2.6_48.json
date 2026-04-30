@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "Romeo and Juliet, children of the feuding Montague and Capulet families in Verona, fall in love at first sight and secretly marry. After Romeo kills Juliet's cousin Tybalt in a duel, he is banished. To escape an arranged marriage, Juliet fakes her death, but Romeo, unaware of the ruse, believes her truly dead and takes poison beside her. When Juliet awakens and finds Romeo dead, she kills herself. The double suicide finally ends the families' bitter feud.",
+  "score": 5,
+  "cost": 0.0016044,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 662
+  }
+}

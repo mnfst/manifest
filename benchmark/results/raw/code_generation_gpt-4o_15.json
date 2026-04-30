@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_generation",
+  "case": 15,
+  "response": "```python\n    def is_prime(num):\n        if num <= 1:\n            return False\n        if num <= 3:\n            return True\n        if num % 2 == 0 or num % 3 == 0:\n            return False\n        i = 5\n        while i * i <= num:\n            if num % i == 0 or num % (i + 2) == 0:\n                return False\n            i += 6\n        return True\n\n    largest_factor = 1\n    while n % 2 == 0:\n        largest_factor = 2\n        n //= 2\n\n    factor = 3\n    while factor * factor <= n:\n        while n % factor == 0:\n            largest_factor = factor\n            n //= factor\n        factor += 2\n\n    if n > 2:\n        largest_factor = n\n\n    return largest_factor\n```",
+  "score": 5,
+  "cost": 0.0021675,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 193
+  }
+}

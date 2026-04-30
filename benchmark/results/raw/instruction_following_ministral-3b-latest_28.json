@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "**\"Every step forward is a victory\u2014keep pushing, you\u2019ve got this!\"**",
+  "score": 4,
+  "cost": 1.56e-06,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 18
+  }
+}

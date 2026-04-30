@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "rag_qa",
+  "case": 5,
+  "response": "Based on the context provided, the Rhine bridge mentioned is at Arnhem. The text specifically states \"The Rhine bridge at Arnhem, immortalized in the book, A Bridge Too Far and the film, was a central focus of the battle for Arnhem, during the failed Operation Market Garden of September 1944.\"",
+  "score": 5,
+  "cost": 0.001794,
+  "expected": "Arnhem",
+  "tokens": {
+    "input": 248,
+    "output": 70
+  }
+}

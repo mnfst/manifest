@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "Subject: Farewell and Best Wishes\n\nDear Team,\n\nAs I prepare to embark on a new chapter in my career, I wanted to take a moment to express my heartfelt gratitude for the support and camaraderie we've shared. Working alongside such talented individuals has been a truly rewarding experience, and I will cherish the memories we've created together. I will miss our daily interactions and the collaborative spirit that makes this team so special. Please stay in touch, and I wish you all continued success in your endeavors. Thank you for everything!\n\nWarm regards,  \n[Your Name]",
+  "score": 4,
+  "cost": 7.005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 112
+  }
+}

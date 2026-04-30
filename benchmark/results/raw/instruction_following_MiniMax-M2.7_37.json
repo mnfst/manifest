@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "Chocolate tastes like a deep, velvet\u2011rich river of caramelized sunshine that slides across the tongue, blending a sweet, buttery smoothness with a lingering, slightly bitter whisper of roasted earth\u2014like the warm embrace of a twilight sunrise wrapped in silk.",
+  "score": 5,
+  "cost": 0.0015158,
+  "expected": "",
+  "tokens": {
+    "input": 54,
+    "output": 331
+  }
+}

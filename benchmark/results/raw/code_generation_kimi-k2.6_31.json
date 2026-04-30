@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_generation",
+  "case": 31,
+  "response": "return sorted([s for s in lst if len(s) % 2 == 0], key=lambda s: (len(s), s))",
+  "score": 4,
+  "cost": 0.003945,
+  "expected": "",
+  "tokens": {
+    "input": 219,
+    "output": 1589
+  }
+}

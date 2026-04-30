@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "Here are 5 capital cities from different continents:\n\n1. **Tokyo, Japan** (Asia)\n2. **Cairo, Egypt** (Africa)\n3. **Berlin, Germany** (Europe)\n4. **Bras\u00edlia, Brazil** (South America)\n5. **Canberra, Australia** (Australia/Oceania)",
+  "score": 5,
+  "cost": 0.001266,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 80
+  }
+}

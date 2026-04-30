@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 34,
+  "response": "A **database index** is a data structure that improves the speed of data retrieval by providing quick lookup paths to rows in a table, similar to an index in a book. By organizing a subset of columns (or expressions), it reduces the need for full table scans, significantly accelerating queries at the cost of slightly slower writes and increased storage.",
+  "score": 3,
+  "cost": 0.0001444,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 69
+  }
+}

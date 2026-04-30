@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "email_summary_v2",
+  "case": 25,
+  "response": "We crossed 10K MAU and closed our Series A at $8M valuation ($40M pre), with MRR at $85K (+12% MoM); we also hired a VP Sales. The company has 11 months runway post-raise with a $120K/month burn rate, and fundraising closes May 10.",
+  "score": 5,
+  "cost": 0.0020086,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 427
+  }
+}

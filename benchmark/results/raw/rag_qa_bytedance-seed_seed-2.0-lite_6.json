@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "rag_qa",
+  "case": 6,
+  "response": "TFEU article 294",
+  "score": 5,
+  "cost": 0.00024525,
+  "expected": "TFEU article 294",
+  "tokens": {
+    "input": 445,
+    "output": 134
+  }
+}

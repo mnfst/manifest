@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "structured_output",
+  "case": 1,
+  "response": "{\n  \"title\": \"Q4 Planning\",\n  \"date\": \"Dec 15 2024\",\n  \"time\": \"2pm\",\n  \"attendees\": [\n    \"Alice\",\n    \"Bob\",\n    \"Charlie\"\n  ],\n  \"room\": \"301B\"\n}",
+  "score": 5,
+  "cost": 0.00011279999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 168,
+    "output": 334
+  }
+}

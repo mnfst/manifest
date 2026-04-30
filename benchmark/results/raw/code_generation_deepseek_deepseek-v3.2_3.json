@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_generation",
+  "case": 3,
+  "response": "```python\n    if len(xs) <= 1:\n        return []\n    result = []\n    for i in range(1, len(xs)):\n        result.append(i * xs[i])\n    return result\n```",
+  "score": 5,
+  "cost": 8.4e-05,
+  "expected": "",
+  "tokens": {
+    "input": 138,
+    "output": 45
+  }
+}

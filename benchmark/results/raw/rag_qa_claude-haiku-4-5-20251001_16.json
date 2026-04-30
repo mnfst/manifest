@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "rag_qa",
+  "case": 16,
+  "response": "Based on the context provided, Harvard owns approximately fifty percent more land in Allston than in Cambridge.",
+  "score": 5,
+  "cost": 0.0002816,
+  "expected": "approximately fifty percent",
+  "tokens": {
+    "input": 232,
+    "output": 24
+  }
+}

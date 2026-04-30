@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 35,
+  "response": "The Trust & Safety team sent an email announcing an update to the platform\u2019s content moderation policy focused on regulating AI-generated content, outlining three new rules that will launch with enforcement starting June 1: AI-generated images must be labeled, deepfakes are prohibited, and AI-assisted text is allowed only if it discloses its use of AI. To support full compliance with the new policy, the Trust & Safety team is currently preparing required training materials for all relevant teams to review ahead of the June 1 enforcement start date.",
+  "score": 5,
+  "cost": 0.0009245,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 889
+  }
+}

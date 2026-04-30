@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_generation",
+  "case": 49,
+  "response": "```\n    if not string:\n        return ''\n    beginning_of_suffix = 0\n    while not is_palindrome(string[beginning_of_suffix:]):\n        beginning_of_suffix += 1\n    return string + string[:beginning_of_suffix][::-1]\n```",
+  "score": 4,
+  "cost": 0.011145,
+  "expected": "",
+  "tokens": {
+    "input": 273,
+    "output": 94
+  }
+}

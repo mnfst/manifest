@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "rag_qa",
+  "case": 1,
+  "response": "1665\nThe context states that the Great Plague of London ended in 1665.",
+  "score": 2,
+  "cost": 8.302499999999999e-05,
+  "expected": "1665",
+  "tokens": {
+    "input": 391,
+    "output": 179
+  }
+}

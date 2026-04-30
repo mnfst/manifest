@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "rag_qa",
+  "case": 8,
+  "response": "Not found in context.\n\nThe context states that BSkyB reached 36% of households in the UK when it achieved 10 million homes in 2010, but it does not specify what their target percentage of households was. It only mentions that they had a target of reaching 10 million homes, which was first announced in August 2004.",
+  "score": 5,
+  "cost": 0.001725,
+  "expected": "36%",
+  "tokens": {
+    "input": 190,
+    "output": 77
+  }
+}

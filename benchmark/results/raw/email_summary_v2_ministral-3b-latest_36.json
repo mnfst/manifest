@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 36,
+  "response": "The API\u2019s **P99 latency for `/api/v2/search`** has worsened from **200ms to 800ms** due to a new full-text search query not leveraging an index, requiring a **GIN index on the `content` column** to resolve. The backend team plans to deploy the fix **tonight during scheduled maintenance**.",
+  "score": 5,
+  "cost": 7e-06,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 77
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_generation",
+  "case": 43,
+  "response": "res = []\nfor num in numbers:\n    if res:\n        res.append(delimeter)\n    res.append(num)\nreturn res",
+  "score": 5,
+  "cost": 0.0009025,
+  "expected": "",
+  "tokens": {
+    "input": 178,
+    "output": 858
+  }
+}

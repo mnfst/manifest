@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "The sun melts toward the horizon like molten copper, painting the sky in layers of amber and coral. Wisps of clouds catch fire in shades of orange and pink, their edges glowing as if lit from within. The light softens and spreads, casting everything in a warm, golden embrace that makes the world seem to hold its breath.\n\nShadows stretch long across the landscape while the sky deepens from pale yellow to rich purple at its highest reaches. The air itself seems to shimmer with the day's final light, and there's a profound stillness as darkness slowly claims the edges of the world, leaving only the memory of that blazing farewell lingering in the western sky.",
+  "score": 5,
+  "cost": 0.002292,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 148
+  }
+}

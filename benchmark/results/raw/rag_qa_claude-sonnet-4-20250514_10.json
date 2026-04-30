@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "rag_qa",
+  "case": 10,
+  "response": "Based on the context provided, the Saxon Garden was formally a royal garden.",
+  "score": 5,
+  "cost": 0.001638,
+  "expected": "The Saxon Garden",
+  "tokens": {
+    "input": 456,
+    "output": 18
+  }
+}

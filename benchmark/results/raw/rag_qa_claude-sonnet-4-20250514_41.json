@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "rag_qa",
+  "case": 41,
+  "response": "Not found in context.\n\nThe context states that Governor Duquesne sent additional French forces under Claude-Pierre Pecaudy de Contrec\u0153ur to relieve Saint-Pierre, but it does not specify the number of men in those forces. The 500 men mentioned refers to the force that Contrec\u0153ur led south from Fort Venango, not specifically the number sent to relieve Saint-Pierre.",
+  "score": 5,
+  "cost": 0.002043,
+  "expected": "Contrec\u0153ur led 500 men south from Fort Venango on April 5, 1754",
+  "tokens": {
+    "input": 216,
+    "output": 93
+  }
+}

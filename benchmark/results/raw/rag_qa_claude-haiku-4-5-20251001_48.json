@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "rag_qa",
+  "case": 48,
+  "response": "Not found in context.\n\nThe provided context only states that it is unknown whether L is strictly contained in P or equal to P, and mentions that there are complexity classes between them (NL and NC). However, it does not discuss what the most commonly ascribed attributes of L in relation to P are.",
+  "score": 5,
+  "cost": 0.00036639999999999996,
+  "expected": "strictly contained in P or equal to P",
+  "tokens": {
+    "input": 128,
+    "output": 66
+  }
+}

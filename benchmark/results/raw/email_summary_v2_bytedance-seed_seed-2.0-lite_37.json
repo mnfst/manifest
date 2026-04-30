@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 37,
+  "response": "Following up on conversations with interested acquiring party BigCo, the CEO shares that BigCo has proposed to acqui-hire the company\u2019s 5-person ML team for $15M, an offer the CEO deems far too low given the team\u2019s higher inherent value, and recommends the company either submit a counteroffer or politely decline the bid.\nThe CEO has called for an internal discussion of the offer before any formal response is sent to BigCo, and also outlined that the company\u2019s board must be informed of the acqui-hire offer and upcoming review of next steps.",
+  "score": 5,
+  "cost": 0.00097175,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 935
+  }
+}

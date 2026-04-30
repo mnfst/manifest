@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "This implements the **Knuth-Morris-Pratt (KMP) string-matching algorithm**: it first builds the longest-proper-prefix-suffix (LPS) table for the pattern, then scans the text in O(n+m) time, using the LPS array to skip redundant comparisons after mismatches. It returns the starting index of the first occurrence of `pattern` in `text`, or -1 if not found.",
+  "score": 5,
+  "cost": 0.014025,
+  "expected": "",
+  "tokens": {
+    "input": 255,
+    "output": 136
+  }
+}

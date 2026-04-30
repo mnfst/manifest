@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_generation",
+  "case": 29,
+  "response": "def sum_digits(n):\n        n = abs(n)\n        s = 0\n        while n:\n            s += n % 10\n            n = n // 10\n        return s\n    return [x for i, x in sorted(enumerate(nums), key=lambda x: (sum_digits(x[1]), x[0]))]",
+  "score": 4,
+  "cost": 0.003368925,
+  "expected": "",
+  "tokens": {
+    "input": 239,
+    "output": 11170
+  }
+}

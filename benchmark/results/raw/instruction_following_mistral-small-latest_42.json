@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "A thunderstorm is a dramatic display of nature\u2019s power, unfolding with a symphony of sound and a dance of light. The air grows thick and heavy, carrying the scent of wet earth and ozone\u2014a sharp, metallic tang that tingles in the nose. Dark, towering clouds loom overhead, their underbellies churning like boiling ink, while distant rumbles of thunder growl like a restless beast. Suddenly, the sky splits open, unleashing a torrent of rain that drums against rooftops and pavement in a chaotic rhythm, each drop a tiny hammer striking the world. Lightning cracks like a whip, its jagged fingers splitting the darkness for a split second, casting everything in an eerie, flickering glow. The wind howls, bending trees and sending loose papers skittering across the ground, while the occasional gust carries the faint, earthy smell of rain-soaked soil. The storm feels alive\u2014wild, untamed, and utterly mesmerizing.",
+  "score": 5,
+  "cost": 6.319999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 29,
+    "output": 201
+  }
+}

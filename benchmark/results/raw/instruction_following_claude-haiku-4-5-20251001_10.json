@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "# Dave the Programmer\n\nThere once was a programmer named Dave,\nWhose code was remarkably brave,\nHe'd debug through the night,\nTill his programs ran right,\nAnd his coffee consumption? Depraved!",
+  "score": 5,
+  "cost": 0.0002216,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 52
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 20,
+  "response": "Based on the provided context, erg\u00e4nzungsschulen are funded in whole by charging their students tuition fees.",
+  "score": 2,
+  "cost": 0.0006138000000000001,
+  "expected": "tuition",
+  "tokens": {
+    "input": 178,
+    "output": 95
+  }
+}

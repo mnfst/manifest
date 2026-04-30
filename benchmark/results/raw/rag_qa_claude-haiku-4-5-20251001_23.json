@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "rag_qa",
+  "case": 23,
+  "response": "Based on the context provided, the presence of a **mortgage banker** is highly likely even in relatively small projects, since the owner's equity in the property is the most obvious source of funding for a building project.",
+  "score": 5,
+  "cost": 0.000352,
+  "expected": "the mortgage banker",
+  "tokens": {
+    "input": 210,
+    "output": 46
+  }
+}

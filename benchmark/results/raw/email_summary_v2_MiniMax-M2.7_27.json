@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "The sprint went well with the auth redesign shipped on time thanks to strong design collaboration, but too many context switches and lengthy standups need improvement. Action items include limiting WIP to 2 items per developer and implementing timeboxed standups with a parking lot for off-topic discussions.",
+  "score": 5,
+  "cost": 0.0007722,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 146
+  }
+}

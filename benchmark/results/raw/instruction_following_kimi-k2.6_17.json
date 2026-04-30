@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "instruction_following",
+  "case": 17,
+  "response": "| Pros | Cons |\n| :--- | :--- |\n| **Flexibility** \u2014 Employees can often set their own schedules and work from anywhere, improving work-life balance. | **Isolation** \u2014 Lack of in-person interaction with colleagues can lead to feelings of loneliness and disconnection. |\n| **No commute** \u2014 Eliminating travel time saves money on transportation and reduces daily stress. | **Communication challenges** \u2014 Collaborating across time zones and relying on digital tools can lead to miscommunication or delays. |\n| **Cost savings** \u2014 Both employees and employers save money on commuting, office space, meals, and work attire. | **Blurred boundaries** \u2014 The home can become an office, making it harder to \"switch off\" and increasing risk of burnout. |",
+  "score": 5,
+  "cost": 0.0008081999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 331
+  }
+}

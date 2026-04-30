@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 27,
+  "response": "```python\n    if not extensions:\n        # According to the problem description and examples, the extensions list\n        # is expected to be non-empty. If it could be empty, a specific\n        # return value or error handling would be needed.\n        # For this problem, we assume it's always non-empty.\n        # If it were empty, returning just the class_name or raising an error\n        # would be plausible, e.g., return class_name\n        pass\n\n    # Initialize with the first extension's strength and name\n    strongest_extension_name = extensions[0]\n    \n    cap_count_first = 0\n    sm_count_first = 0\n    for char in extensions[0]:\n        if char.isupper():\n            cap_count_first += 1\n        elif char.islower():\n            sm_count_first += 1\n    max_strength = cap_count_first - sm_count_first\n\n    # Iterate through the rest of the extensions to find the strongest\n    # (starting from the second element, as the first is already our initial strongest)\n    for extension in extensions[1:]:\n        cap_count = 0\n        sm_count = 0\n        for char in extension:\n            if char.isupper():\n                cap_count += 1\n            elif char.islower():\n                sm_count += 1\n        \n        current_strength = cap_count - sm_count\n        \n        # If the current extension is strictly stronger, update\n        # This handles the tie-breaking rule: \"choose the one that comes first\"\n        if current_strength > max_strength:\n            max_strength = current_strength\n            strongest_extension_name = extension\n    \n    return f\"{class_name}.{strongest_extension_name}\"\n```",
+  "score": 3,
+  "cost": 0.00029505,
+  "expected": "",
+  "tokens": {
+    "input": 319,
+    "output": 412
+  }
+}

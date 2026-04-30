@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_generation",
+  "case": 18,
+  "response": "return \" \".join(w for w in sentence.split() if len(w) > 1 and all(len(w) % i for i in range(2, int(len(w)**0.5) + 1)))",
+  "score": 3,
+  "cost": 0.020517900000000002,
+  "expected": "",
+  "tokens": {
+    "input": 199,
+    "output": 3896
+  }
+}

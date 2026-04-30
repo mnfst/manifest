@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 8,
+  "response": "The annual performance review cycle begins May 1 using a new competency framework, with self-reviews due May 15, manager reviews May 22, calibration May 28, and final delivery June 5. Managers must attend a training session on April 30 to prepare for the updated review process.",
+  "score": 5,
+  "cost": 0.0031092,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 1273
+  }
+}

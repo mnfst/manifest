@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "This function solves the 0/1 knapsack problem using a bottom-up dynamic programming approach. It builds a 2D table to find the maximum value of items that can be chosen for every possible sub-capacity, ultimately determining the optimal value for the full capacity.",
+  "score": 5,
+  "cost": 0.00076,
+  "expected": "",
+  "tokens": {
+    "input": 168,
+    "output": 55
+  }
+}

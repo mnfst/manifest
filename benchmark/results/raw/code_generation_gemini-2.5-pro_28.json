@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_generation",
+  "case": 28,
+  "response": "```python\n    coords = []\n    for i, row in enumerate(lst):\n        row_coords = []\n        for j, val in enumerate(row):\n            if val == x:\n                row_coords.append((i, j))\n        \n        row_coords.sort(key=lambda c: c[1], reverse=True)\n        coords.extend(row_coords)\n        \n    return coords\n```",
+  "score": 3,
+  "cost": 0.00134625,
+  "expected": "",
+  "tokens": {
+    "input": 309,
+    "output": 96
+  }
+}

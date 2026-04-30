@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "# Benefits of Exercise\n\n\u2022 **Improves cardiovascular health** - Regular exercise strengthens the heart, improves circulation, and helps lower blood pressure and cholesterol levels.\n\n\u2022 **Enhances mental health** - Exercise reduces stress and anxiety while boosting mood through the release of endorphins, promoting better emotional well-being.\n\n\u2022 **Increases energy and stamina** - Physical activity improves overall fitness and endurance, helping you feel more energized throughout the day and reducing fatigue.",
+  "score": 4,
+  "cost": 0.000448,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 108
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "rag_qa",
+  "case": 12,
+  "response": "British bacteriologist J. F. D. Shrewsbury was the first to significantly challenge the plague theory, doing so in 1970.",
+  "score": 5,
+  "cost": 0.00065575,
+  "expected": "British bacteriologist J. F. D. Shrewsbury",
+  "tokens": {
+    "input": 243,
+    "output": 595
+  }
+}

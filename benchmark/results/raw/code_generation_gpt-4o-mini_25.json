@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_generation",
+  "case": 25,
+  "response": "```python\n    paren_string = paren_string.replace(\" \", \"\")\n    groups = []\n    current_group = []\n    balance = 0\n\n    for char in paren_string:\n        if char == '(':\n            balance += 1\n            current_group.append(char)\n        elif char == ')':\n            balance -= 1\n            current_group.append(char)\n        \n        if balance == 0 and current_group:\n            groups.append(''.join(current_group))\n            current_group = []\n\n    return groups\n```",
+  "score": 4,
+  "cost": 8.445e-05,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 104
+  }
+}

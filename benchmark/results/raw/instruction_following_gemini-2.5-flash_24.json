@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "*   **Incident Summary:** On October 26, 2023, at approximately 3:15 PM, a two-vehicle collision occurred at the intersection of Main Street and Oak Avenue.\n*   **Parties & Circumstances:** Vehicle 1 (2018 Honda Civic, driven by Jane Doe) failed to yield while turning left, striking Vehicle 2 (2020 Ford F-150, driven by John Smith) traveling straight through the intersection.\n*   **Damages & Injuries:** Vehicle 1 sustained significant front-end damage; Vehicle 2 had moderate damage to its passenger side. Jane Doe reported minor whiplash, and both vehicles required towing.",
+  "score": 1,
+  "cost": 9.015000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 13,
+    "output": 147
+  }
+}

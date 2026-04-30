@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 14,
+  "response": "```python\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a\n```",
+  "score": 5,
+  "cost": 3.645e-05,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 39
+  }
+}

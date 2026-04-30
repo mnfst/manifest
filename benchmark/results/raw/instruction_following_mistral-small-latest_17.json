@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 17,
+  "response": "Here\u2019s a table summarizing **3 pros and 3 cons of remote work**:\n\n| **Pros of Remote Work**               | **Cons of Remote Work**               |\n|---------------------------------------|---------------------------------------|\n| **1. Flexibility & Work-Life Balance** | **1. Isolation & Loneliness**          |\n| - Freedom to set your own schedule.   | - Lack of in-person social interaction.|\n| - More time for family/personal life. | - Potential feelings of disconnection. |\n| **2. Cost Savings**                   | **2. Distractions & Productivity Challenges** |\n| - No commuting costs (gas, transit).  | - Home distractions (family, chores). |\n| - Savings on work attire, meals out.  | - Harder to separate work from personal life. |\n| **3. Increased Productivity (for some)** | **3. Career Growth & Visibility Issues** |\n| - Fewer office interruptions.         | - Limited face-to-face networking.     |\n| - Ability to work in a personalized environment. | - May miss out on promotions due to less visibility. |\n\nWould you like me to expand on any of these points?",
+  "score": 4,
+  "cost": 7.899999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 253
+  }
+}

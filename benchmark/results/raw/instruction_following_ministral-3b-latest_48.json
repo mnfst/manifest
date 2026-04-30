@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "*Romeo and Juliet* follows the passionate but doomed love story of two young Montague and Capulet families in Verona. Romeo, a Montague, secretly marries Juliet, a Capulet, after a botched fight between their feuding houses. Their love blossoms, but tragedy strikes when Romeo kills Juliet\u2019s cousin Tybalt in a duel, leading to his banishment. Juliet, desperate to avoid marrying Paris, fakes her death, only for Romeo to poison himself upon learning of her \"death.\" Juliet awakens to find him dead and kills herself with his dagger. Their deaths end the feud, but their tragic love remains immortalized in Shakespeare\u2019s play.",
+  "score": 3,
+  "cost": 6.64e-06,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 141
+  }
+}

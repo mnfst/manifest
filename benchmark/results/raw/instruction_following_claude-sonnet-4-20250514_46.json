@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "Subject: Farewell and Thank You\n\nDear Team,\n\nI wanted to let you know that my last day with the company will be [date], as I'll be moving on to pursue a new opportunity. Working alongside all of you has been an incredible experience, and I've learned so much from each of you during my time here. The collaborative spirit, support, and friendship you've shown me have made this workplace truly special. Please don't hesitate to stay in touch \u2013 you can reach me at [personal email] or connect with me on LinkedIn. I wish you all continued success and hope our paths cross again in the future.\n\nBest regards,\n[Your name]",
+  "score": 5,
+  "cost": 0.002199,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 142
+  }
+}

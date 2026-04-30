@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 35,
+  "response": "unit_digit_a = a % 10\n    unit_digit_b = b % 10\n    return unit_digit_a * unit_digit_b",
+  "score": 4,
+  "cost": 4.545e-05,
+  "expected": "",
+  "tokens": {
+    "input": 151,
+    "output": 38
+  }
+}

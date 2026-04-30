@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 31,
+  "response": "Sharia",
+  "score": 5,
+  "cost": 0.00042570000000000005,
+  "expected": "Sharia",
+  "tokens": {
+    "input": 187,
+    "output": 50
+  }
+}

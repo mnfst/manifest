@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 36,
+  "response": "Here are 4 programming languages:\n\n1. Java\n2. C++\n3. C#\n4. Ruby",
+  "score": 5,
+  "cost": 0.000498,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 29
+  }
+}

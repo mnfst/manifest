@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_generation",
+  "case": 46,
+  "response": "if not arr:\n    return []\n\nsmallest_even = None\nsmallest_index = None\n\nfor i, value in enumerate(arr):\n    if value % 2 == 0:  # Check if the value is even\n        if smallest_even is None or value < smallest_even:\n            smallest_even = value\n            smallest_index = i\n\nif smallest_even is None:\n    return []\nelse:\n    return [smallest_even, smallest_index]",
+  "score": 3,
+  "cost": 0.002805,
+  "expected": "",
+  "tokens": {
+    "input": 390,
+    "output": 109
+  }
+}

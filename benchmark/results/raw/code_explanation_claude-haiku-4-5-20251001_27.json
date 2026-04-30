@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_explanation",
+  "case": 27,
+  "response": "This code finds the maximum value in each sliding window of size `k` across an array using a **deque-based monotonic decreasing queue** algorithm. It maintains indices of elements in decreasing order of their values, removing outdated indices and smaller elements as it slides through the array, then appends the front element (maximum) to the result once the window is full.",
+  "score": 5,
+  "cost": 0.0004472,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 81
+  }
+}

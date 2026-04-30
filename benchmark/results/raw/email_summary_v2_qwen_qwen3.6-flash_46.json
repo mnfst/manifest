@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "email_summary_v2",
+  "case": 46,
+  "response": "A critical SQL injection vulnerability affecting versions 3.2.0 through 3.4.1 has been identified in the login API endpoint. The team must review and deploy the provided patch as a hotfix within 24 hours to resolve the security risk.",
+  "score": 5,
+  "cost": 0.00116975,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 1143
+  }
+}

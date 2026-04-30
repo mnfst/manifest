@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "rag_qa",
+  "case": 34,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 2.7400000000000002e-05,
+  "expected": "infinitely many prime numbers",
+  "tokens": {
+    "input": 256,
+    "output": 6
+  }
+}

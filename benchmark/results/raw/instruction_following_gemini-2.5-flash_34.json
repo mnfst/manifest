@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 34,
+  "response": "A database index is a data structure that improves the speed of data retrieval operations on a database table. It works by creating a sorted reference to the data in one or more columns, allowing the database system to quickly locate specific rows without scanning the entire table.",
+  "score": 3,
+  "cost": 3.255e-05,
+  "expected": "",
+  "tokens": {
+    "input": 13,
+    "output": 51
+  }
+}

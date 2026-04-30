@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "My favorite book transports you to a harsh, unforgiving desert world, a planet defined by its vast, arid landscapes and the colossal, subterranean creatures that dominate them. It's a story about a young nobleman thrust into a brutal struggle for survival and power after his family is betrayed and exiled.\n\nAt its heart is a single, incredibly valuable resource that fuels interstellar travel and extends life, making this desolate planet the most coveted in the known universe. The narrative weaves together intricate political intrigue between feuding noble houses, ancient religious prophecies, and deep ecological themes about humanity's relationship with its environment.\n\nThe protagonist grapples with a destiny he never sought, becoming a messianic figure to the planet's indigenous people, who have adapted to the extreme conditions with remarkable resilience and unique cultural practices. It explores the dangerous allure of a \"chosen one,\" the manipulation of faith, and the profound impact of a single individual on the course of history and the very ecosystem of a world.\n\nWhat I love most is its unparalleled world-building, the philosophical depth it brings to questions of power, destiny, and human evolution, and how it challenges readers to think about the long-term consequences of our actions, both personal and planetary. It's an epic saga that feels both ancient and futuristic, a true masterpiece of speculative fiction that has profoundly influenced countless other stories.",
+  "score": 5,
+  "cost": 0.00016620000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 12,
+    "output": 274
+  }
+}

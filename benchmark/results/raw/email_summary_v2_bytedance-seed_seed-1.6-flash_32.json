@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "email_summary_v2",
+  "case": 32,
+  "response": "The SSL certificate for api.company.com, which expires in 7 days (May 4), failed auto-renewal due to a DNS validation issue caused by the removal of the CNAME record during a recent DNS migration. To resolve this, the CNAME _acme-challenge.api.company.com must be re-added, and the DevOps team will handle this today.",
+  "score": 5,
+  "cost": 0.0001119,
+  "expected": "",
+  "tokens": {
+    "input": 184,
+    "output": 327
+  }
+}

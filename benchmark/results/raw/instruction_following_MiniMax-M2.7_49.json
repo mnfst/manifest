@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "**Formal:**  \nGood day! I\u2019m your virtual assistant, ready to help you with any questions or tasks you may have. How may I assist you today?\n\n**Casual:**  \nHey there! I\u2019m your friendly chatbot side\u2011kick. What\u2019s on your mind, and how can I help you out?\n\n**Humorous:**  \nGreetings, Earthling! I\u2019m the all\u2011knowing, coffee\u2011powered chatbot here to solve your mysteries faster than a caffeinated squirrel. What can I do for you?",
+  "score": 5,
+  "cost": 0.0018612000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 56,
+    "output": 409
+  }
+}

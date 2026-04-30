@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "Romeo Montague and Juliet Capulet meet at a masked ball, instantly fall in love, and secretly marry despite their families\u2019 bitter feud. Their friendship is complicated by Tybalt, a duel, Romeo\u2019s exile, and a mis\u2011delivered letter. Juliet fakes her death to avoid an arranged marriage, but Romeo, believing her dead, takes poison. Juliet awakens, finds Romeo dead, and kills herself. Their tragic end prompts the families to reconcile.",
+  "score": 5,
+  "cost": 0.0031020000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 40,
+    "output": 695
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "structured_output",
+  "case": 3,
+  "response": "{\"flight_number\": \"AA123\", \"origin\": \"JFK\", \"destination\": \"LAX\", \"departure\": \"3:45pm\", \"arrival\": \"6:30pm\", \"date\": \"March 5\", \"class\": \"Economy\", \"stops\": 1, \"stop_cities\": [\"Dallas\"]}",
+  "score": 5,
+  "cost": 0.00957,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 96
+  }
+}

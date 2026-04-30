@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Sure! Imagine a **big, safe notebook** where everyone writes down the same thing\u2014like how many apples you have\u2014but no one can erase or cheat because everyone checks it together! It\u2019s like a **super-trusty friend** that keeps everything honest, even when you\u2019re far away. \ud83d\ude0a",
+  "score": 5,
+  "cost": 3.3600000000000004e-06,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 65
+  }
+}

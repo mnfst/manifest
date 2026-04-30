@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "code_generation",
+  "case": 20,
+  "response": "```python\n    val = [\n        1000, 900, 500, 400,\n        100, 90, 50, 40,\n        10, 9, 5, 4,\n        1\n    ]\n    syb = [\n        \"m\", \"cm\", \"d\", \"cd\",\n        \"c\", \"xc\", \"l\", \"xl\",\n        \"x\", \"ix\", \"v\", \"iv\",\n        \"i\"\n    ]\n    roman_num = ''\n    i = 0\n    while number > 0:\n        for _ in range(number // val[i]):\n            roman_num += syb[i]\n            number -= val[i]\n        i += 1\n    return roman_num\n```",
+  "score": 4,
+  "cost": 6.69e-05,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 172
+  }
+}

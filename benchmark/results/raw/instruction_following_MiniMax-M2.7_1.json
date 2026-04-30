@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 1,
+  "response": "The CPU, or central processing unit, executes instructions of a computer program by performing arithmetic, logical, control, and input/output operations as directed by the software.",
+  "score": 3,
+  "cost": 0.0006468,
+  "expected": "",
+  "tokens": {
+    "input": 48,
+    "output": 135
+  }
+}

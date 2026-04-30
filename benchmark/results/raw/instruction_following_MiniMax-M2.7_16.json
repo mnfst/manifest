@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is the natural pull that objects with mass exert on one another. It\u2019s the reason why things fall to the ground, why the Earth orbits the Sun, and why the Moon stays around Earth. The larger an object\u2019s mass, the stronger its pull, and the pull becomes weaker as the distance between objects grows. This invisible force keeps planets in their orbits, holds the oceans on Earth, and even keeps the air wrapped around our planet. That is gravity.",
+  "score": 5,
+  "cost": 0.0031647000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 41,
+    "output": 709
+  }
+}

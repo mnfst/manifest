@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "structured_output",
+  "case": 20,
+  "response": "Here is the extracted information in valid JSON matching your schema:\n\n```json\n{\n  \"items\": [\n    {\"name\": \"large pepperoni\", \"size\": \"large\", \"price\": 18.99},\n    {\"name\": \"medium margherita\", \"size\": \"medium\", \"price\": 14.99},\n    {\"name\": \"2L Coke\", \"size\": \"2L\", \"price\": 3.99}\n  ],\n  \"delivery_address\": \"456 Oak Ave\",\n  \"special_instructions\": \"ring doorbell twice\",\n  \"total\": 37.97\n}\n```",
+  "score": 4,
+  "cost": 1.0160000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 137
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "structured_output",
+  "case": 9,
+  "response": "```json\n{\n  \"title\": \"Introduction to Machine Learning\",\n  \"instructor\": \"Dr. Sarah Chen\",\n  \"duration_weeks\": 12,\n  \"prerequisites\": [\"Linear Algebra\", \"Python\"],\n  \"level\": \"Intermediate\"\n}\n```",
+  "score": 5,
+  "cost": 0.0011,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 220
+  }
+}

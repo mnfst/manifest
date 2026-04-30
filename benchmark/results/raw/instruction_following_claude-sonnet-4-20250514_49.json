@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "**Formal:**\nGood day! I'm here to assist you with any questions or tasks you may have. How may I be of service to you today?\n\n**Casual:**\nHey there! I'm your friendly AI assistant. What can I help you out with?\n\n**Humorous:**\nWell hello there, human! I'm your digital sidekick, ready to tackle whatever curveballs you throw my way. Fair warning: I run on caffeine-free energy and dad jokes. What's on your mind?",
+  "score": 5,
+  "cost": 0.001815,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 115
+  }
+}

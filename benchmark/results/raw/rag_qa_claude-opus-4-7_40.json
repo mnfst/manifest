@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "rag_qa",
+  "case": 40,
+  "response": "Based on the context, France offered \"Full citizenship rights \u2013 assimilation,\" though in reality assimilation was always on the distant horizon.",
+  "score": 4,
+  "cost": 0.007485,
+  "expected": "assimilation",
+  "tokens": {
+    "input": 269,
+    "output": 46
+  }
+}

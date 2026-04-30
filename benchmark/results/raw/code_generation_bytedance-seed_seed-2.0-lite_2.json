@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_generation",
+  "case": 2,
+  "response": "sorted_lst = sorted(lst)\n    res = []\n    left = 0\n    right = len(sorted_lst) - 1\n    while left <= right:\n        if left == right:\n            res.append(sorted_lst[left])\n            left += 1\n        else:\n            res.append(sorted_lst[left])\n            res.append(sorted_lst[right])\n            left += 1\n            right -= 1\n    return res",
+  "score": 4,
+  "cost": 0.00160025,
+  "expected": "",
+  "tokens": {
+    "input": 209,
+    "output": 1548
+  }
+}

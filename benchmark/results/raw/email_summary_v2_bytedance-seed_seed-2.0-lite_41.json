@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "Network Operations submitted a network upgrade proposal noting that the company\u2019s current 1Gbps network links reach 78% capacity during peak usage, with two proposed solutions: a 10Gbps upgrade costing a one-time $45,000 plus $2,000 monthly, and a $15,000 alternative combining traffic shaping and CDN optimization. Based on growth projections that the cheaper alternative would only resolve capacity strain temporarily, Network Ops recommends approving the 10Gbps upgrade to avoid needing to revisit network capacity fixes in just six months.",
+  "score": 5,
+  "cost": 0.0009815,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 942
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_explanation",
+  "case": 33,
+  "response": "This implements **Algorithm R for reservoir sampling**, which selects a uniformly random sample of `k` items from a stream of unknown length in a single pass. It fills the reservoir with the first `k` items, then for each subsequent item at index `i`, replaces a random reservoir slot with probability `k/(i+1)`, ensuring every item seen has equal probability of being in the final sample.",
+  "score": 5,
+  "cost": 0.011955,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 130
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_generation",
+  "case": 38,
+  "response": "negatives = [x for x in lst if x < 0]\npositives = [x for x in lst if x > 0]\na = max(negatives) if negatives else None\nb = min(positives) if positives else None\nreturn (a, b)",
+  "score": 5,
+  "cost": 0.00011125,
+  "expected": "",
+  "tokens": {
+    "input": 181,
+    "output": 60
+  }
+}

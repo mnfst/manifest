@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_explanation",
+  "case": 32,
+  "response": "This code implements the Union-Find (or Disjoint Set Union) data structure, which efficiently tracks a collection of disjoint sets. It uses the path compression and union by rank optimizations to quickly find the set an element belongs to and merge two sets together.",
+  "score": 5,
+  "cost": 0.0007275,
+  "expected": "",
+  "tokens": {
+    "input": 174,
+    "output": 51
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "rag_qa",
+  "case": 36,
+  "response": "O2 (oxygen) / gaseous oxygen.",
+  "score": 0,
+  "cost": 0.002898,
+  "expected": "gaseous oxygen.",
+  "tokens": {
+    "input": 166,
+    "output": 1166
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "code_generation",
+  "case": 5,
+  "response": "```python\n    if not l:\n        return None\n    max_so_far = l[0]\n    for i in range(1, len(l)):\n        if l[i] > max_so_far:\n            max_so_far = l[i]\n    return max_so_far\n```",
+  "score": 5,
+  "cost": 4.1200000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 73
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 38,
+  "response": "```python\n    negatives = [x for x in lst if x < 0]\n    positives = [x for x in lst if x > 0]\n    \n    largest_negative = max(negatives) if negatives else None\n    smallest_positive = min(positives) if positives else None\n    \n    return (largest_negative, smallest_positive)\n```",
+  "score": 5,
+  "cost": 0.0005024,
+  "expected": "",
+  "tokens": {
+    "input": 183,
+    "output": 89
+  }
+}

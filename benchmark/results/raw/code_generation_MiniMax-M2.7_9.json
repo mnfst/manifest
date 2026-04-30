@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_generation",
+  "case": 9,
+  "response": "total = 0\nfor num in lst:\n    if isinstance(num, int) and not isinstance(num, bool) and num >= 0 and num % 2 != 0:\n        total += num * num\nreturn total",
+  "score": 4,
+  "cost": 0.0033132,
+  "expected": "",
+  "tokens": {
+    "input": 204,
+    "output": 702
+  }
+}

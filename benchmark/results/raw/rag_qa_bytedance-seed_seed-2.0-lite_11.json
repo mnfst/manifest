@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "rag_qa",
+  "case": 11,
+  "response": "The Amazonian evergreen forests account for about 10% of the world's ecosystem carbon stores, which is of the order of 1.1 \u00d7 1011 metric tonnes of carbon.",
+  "score": 4,
+  "cost": 0.00036275,
+  "expected": "10% of the carbon stores",
+  "tokens": {
+    "input": 223,
+    "output": 307
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "This code implements a bounded asynchronous FIFO queue using `asyncio` futures, where `put` and `get` coroutines suspend on per-call futures (stored in `_putters`/`_getters` deques) when the queue is full or empty, respectively, and are woken up by the complementary operation calling `set_result` on the next waiter. It's essentially a simplified reimplementation of `asyncio.Queue` using the producer-consumer pattern with future-based condition signaling.",
+  "score": 5,
+  "cost": 0.016455,
+  "expected": "",
+  "tokens": {
+    "input": 307,
+    "output": 158
+  }
+}

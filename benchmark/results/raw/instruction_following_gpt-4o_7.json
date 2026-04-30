@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "Whisk 4 eggs with salt and pepper. Melt 1 tbsp butter in a non-stick pan over medium heat. Pour eggs in, stirring gently with a spatula. Cook until softly set, about 3 minutes. Remove from heat slightly before fully cooked; they will continue to firm up. Serve immediately.",
+  "score": 3,
+  "cost": 0.0006875,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 63
+  }
+}

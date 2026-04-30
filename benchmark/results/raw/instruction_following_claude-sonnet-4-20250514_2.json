@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "Here's a haiku about programming:\n\nCode flows like water\u2014\nEach bug a stone in the stream,\nLogic finds its way.",
+  "score": 5,
+  "cost": 0.000522,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 32
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 4,
+  "response": "1. French: Bonjour le monde \u2013 this is the standard, widely used translation, employed both for general casual greetings and as the canonical version of the iconic \"hello world\" programming phrase across French-speaking regions.\n2. Spanish: Hola mundo \u2013 the natural, ubiquitous translation, used in everyday conversation and as the standard phrasing of the classic tech greeting for all Spanish-language contexts.\n3. German: Hallo Welt \u2013 the standard equivalent of \"hello world\", used in both casual everyday use and as the universal translation of the iconic programming greeting across German-speaking countries.",
+  "score": 5,
+  "cost": 0.00065175,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 635
+  }
+}

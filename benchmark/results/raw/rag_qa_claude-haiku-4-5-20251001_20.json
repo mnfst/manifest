@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "rag_qa",
+  "case": 20,
+  "response": "Based on the provided context, erg\u00e4nzungsschulen are funded in whole by charging their students tuition fees.",
+  "score": 2,
+  "cost": 0.00024,
+  "expected": "tuition",
+  "tokens": {
+    "input": 160,
+    "output": 28
+  }
+}

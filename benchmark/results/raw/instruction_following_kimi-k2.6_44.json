@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "- [ ] Lettuce (romaine, iceberg, or mixed greens)\n- [ ] Cherry tomatoes or sliced tomatoes\n- [ ] Cucumber\n- [ ] Red onion (thinly sliced)\n- [ ] Carrots (shredded or sliced)\n- [ ] Bell pepper\n- [ ] Salad dressing of choice (vinaigrette, ranch, etc.)",
+  "score": 5,
+  "cost": 0.00036659999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 148
+  }
+}

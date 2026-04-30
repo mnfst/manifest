@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "rag_qa",
+  "case": 10,
+  "response": "The Saxon Garden was formally a royal garden.",
+  "score": 5,
+  "cost": 6.855e-05,
+  "expected": "The Saxon Garden",
+  "tokens": {
+    "input": 421,
+    "output": 9
+  }
+}

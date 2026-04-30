@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "This code implements an asynchronous queue using the producer-consumer pattern, coordinating tasks with `asyncio.Future` objects. The `put` method asynchronously waits if the queue is full, and the `get` method waits if it is empty, allowing different coroutines to safely exchange data without blocking the event loop.",
+  "score": 4,
+  "cost": 0.00093375,
+  "expected": "",
+  "tokens": {
+    "input": 243,
+    "output": 63
+  }
+}

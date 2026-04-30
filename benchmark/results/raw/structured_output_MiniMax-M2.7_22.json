@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "structured_output",
+  "case": 22,
+  "response": "{\"activity\": \"run\", \"distance_km\": 5.0, \"duration\": \"24:30\", \"avg_pace\": \"4:54/km\", \"heart_rate\": {\"avg_bpm\": 155, \"max_bpm\": 178}, \"calories\": 380, \"date\": \"Monday March 4\"}",
+  "score": 5,
+  "cost": 0.004800400000000001,
+  "expected": "",
+  "tokens": {
+    "input": 160,
+    "output": 1051
+  }
+}

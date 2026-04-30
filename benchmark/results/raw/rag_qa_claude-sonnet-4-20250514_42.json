@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "rag_qa",
+  "case": 42,
+  "response": "Not found in context.\n\nThe context mentions that the Moselle contributes \"an average discharge of more than 300 m3/s\" but does not provide discharge information for the other tributaries mentioned (the Neckar and the Main), so it's impossible to determine which tributary contributes the most based on the given information.",
+  "score": 5,
+  "cost": 0.00177,
+  "expected": "Moselle",
+  "tokens": {
+    "input": 225,
+    "output": 73
+  }
+}

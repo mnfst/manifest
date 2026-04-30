@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_generation",
+  "case": 49,
+  "response": "if not string:\n    return ''\n\n# Find the longest suffix that is a palindrome\nfor i in range(len(string)):\n    suffix = string[i:]\n    if is_palindrome(suffix):\n        # Found the longest palindromic suffix\n        # Append the reverse of the prefix before this suffix\n        prefix = string[:i]\n        return string + prefix[::-1]\n\n# If no palindromic suffix found (shouldn't happen since single char is palindrome)\nreturn string",
+  "score": 4,
+  "cost": 0.00231,
+  "expected": "",
+  "tokens": {
+    "input": 200,
+    "output": 114
+  }
+}

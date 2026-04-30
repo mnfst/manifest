@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "structured_output",
+  "case": 11,
+  "response": "{\n  \"name\": \"Maria Rodriguez\",\n  \"date_of_birth\": \"1985-03-22\",\n  \"blood_type\": \"O+\",\n  \"allergies\": [\"penicillin\", \"shellfish\"],\n  \"medications\": [\n    {\n      \"name\": \"lisinopril\",\n      \"dosage\": \"10mg\",\n      \"frequency\": \"daily\"\n    }\n  ]\n}",
+  "score": 5,
+  "cost": 0.001124,
+  "expected": "",
+  "tokens": {
+    "input": 226,
+    "output": 84
+  }
+}

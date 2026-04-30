@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "rag_qa",
+  "case": 49,
+  "response": "Based on the provided context, clinical pharmacists often participate in patient care rounds and drug product selection.",
+  "score": 4,
+  "cost": 0.000789,
+  "expected": "patient care rounds drug product selection",
+  "tokens": {
+    "input": 148,
+    "output": 23
+  }
+}

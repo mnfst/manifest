@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "rag_qa",
+  "case": 39,
+  "response": "Packet switching contrasts with another principal networking paradigm, circuit switching.",
+  "score": 5,
+  "cost": 2.8349999999999998e-05,
+  "expected": "circuit switching",
+  "tokens": {
+    "input": 141,
+    "output": 12
+  }
+}

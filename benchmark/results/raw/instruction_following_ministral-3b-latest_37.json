@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "Chocolate tastes like a whispered secret from the sun\u2014sweet and warm, yet with a lingering edge that dances on your tongue like embers in a hearth. It\u2019s the first sip of a honeyed dream, rich and velvety, where every bite is a slow unraveling of something both indulgent and deeply comforting. Some chocolates are bold, like a bold kiss from a lover who knows just how to linger, while others are delicate, like the first light of dawn on a quiet morning. And then there\u2019s the bittersweet sting\u2014just enough to remind you that this joy isn\u2019t meant to last forever, but for a fleeting, perfect moment.",
+  "score": 5,
+  "cost": 6.28e-06,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 140
+  }
+}

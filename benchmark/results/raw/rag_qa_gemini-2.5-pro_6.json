@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "rag_qa",
+  "case": 6,
+  "response": "TFEU article 294",
+  "score": 5,
+  "cost": 0.000575,
+  "expected": "TFEU article 294",
+  "tokens": {
+    "input": 396,
+    "output": 8
+  }
+}

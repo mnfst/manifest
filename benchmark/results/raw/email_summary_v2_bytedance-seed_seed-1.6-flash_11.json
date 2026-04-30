@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "email_summary_v2",
+  "case": 11,
+  "response": "The SOC 2 Type II audit is complete with no critical findings, but three observations were identified: insufficient access review frequency, an incident response plan not tested in six months, and incomplete vendor risk assessments for two vendors. Remediation for these observations is due within 30 days.",
+  "score": 5,
+  "cost": 9.5175e-05,
+  "expected": "",
+  "tokens": {
+    "input": 177,
+    "output": 273
+  }
+}

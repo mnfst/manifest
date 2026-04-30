@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "rag_qa",
+  "case": 20,
+  "response": "Erg\u00e4nzungsschulen are funded in whole by charging their students tuition fees.",
+  "score": 3,
+  "cost": 0.00558,
+  "expected": "tuition",
+  "tokens": {
+    "input": 217,
+    "output": 31
+  }
+}

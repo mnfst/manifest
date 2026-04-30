@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 32,
+  "response": "```python\n    import re\n\n    segments = re.findall(r'(\\S+|\\s+)', s)\n    processed_segments = []\n    for segment in segments:\n        if segment.isspace():\n            processed_segments.append(segment)\n        else:\n            processed_segments.append(''.join(sorted(segment)))\n    return ''.join(processed_segments)\n```",
+  "score": 4,
+  "cost": 7.785e-05,
+  "expected": "",
+  "tokens": {
+    "input": 171,
+    "output": 87
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "Lines of code align,  \nLogic dances in the dark,  \nDreams in syntax bloom.",
+  "score": 5,
+  "cost": 1.35e-05,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 19
+  }
+}

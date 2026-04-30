@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 7,
+  "response": "```python\nresult = 1\nfor i in range(1, n + 1):\n    result *= math.factorial(i)\nreturn result\n```",
+  "score": 4,
+  "cost": 6.480000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 34
+  }
+}

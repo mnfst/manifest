@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "rag_qa",
+  "case": 21,
+  "response": "The anaerobic bacteria that cause gas gangrene.",
+  "score": 1,
+  "cost": 3.525e-05,
+  "expected": "anaerobic bacteria",
+  "tokens": {
+    "input": 199,
+    "output": 9
+  }
+}

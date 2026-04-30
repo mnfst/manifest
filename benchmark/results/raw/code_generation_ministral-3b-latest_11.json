@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 11,
+  "response": "```python\n    sum = 0\n    product = 1\n    for num in numbers:\n        sum += num\n        product *= num\n    return (sum, product)\n```",
+  "score": 4,
+  "cost": 7.24e-06,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 40
+  }
+}

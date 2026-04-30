@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are known for their loyal companionship, always ready to stand by their owners through thick and thin. Their loyal nature makes them excellent protectors, often sensing when their loved ones are in distress. Many people cherish the loyal bond they share with their dogs, which often transcends mere pet ownership. A loyal dog will greet you with enthusiasm after a long day, reminding you of the joy that comes from unconditional love. In return for their loyal devotion, dogs thrive on affection and attention, creating a beautiful cycle of loyalty between them and their humans.",
+  "score": 5,
+  "cost": 6.884999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 109
+  }
+}

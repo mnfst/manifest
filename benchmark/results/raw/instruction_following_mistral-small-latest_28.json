@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "\"Believe in yourself, take action, and watch your dreams unfold.\"",
+  "score": 4,
+  "cost": 8.1e-06,
+  "expected": "",
+  "tokens": {
+    "input": 33,
+    "output": 16
+  }
+}

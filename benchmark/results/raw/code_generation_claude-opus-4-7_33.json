@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_generation",
+  "case": 33,
+  "response": "```\n    sides = sorted([a, b, c])\n    return sides[0]**2 + sides[1]**2 == sides[2]**2\n```",
+  "score": 5,
+  "cost": 0.0069,
+  "expected": "",
+  "tokens": {
+    "input": 205,
+    "output": 51
+  }
+}

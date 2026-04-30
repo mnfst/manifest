@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "instruction_following",
+  "case": 38,
+  "response": "The username or password you entered is incorrect. Please try again.",
+  "score": 4,
+  "cost": 0.0001525,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 13
+  }
+}

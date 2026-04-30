@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 38,
+  "response": "The first month of the bug bounty program yielded **47 reports**, with **12 valid findings**, including **3 critical vulnerabilities** (IDOR, SSRF via webhook, and exposed JWT secrets), resulting in a **$15K payout**. All issues were patched within **24 hours**, and the program\u2019s ROI is deemed strong, prompting a recommendation to **continue**.\n\n**Action item:** Proceed with the bug bounty program based on its successful outcomes.",
+  "score": 5,
+  "cost": 8.52e-06,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 98
+  }
+}

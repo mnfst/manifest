@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "rag_qa",
+  "case": 48,
+  "response": "It is not known if L (the set of all problems that can be solved in logarithmic space) is strictly contained in P or equal to P.",
+  "score": 5,
+  "cost": 0.00051525,
+  "expected": "strictly contained in P or equal to P",
+  "tokens": {
+    "input": 165,
+    "output": 474
+  }
+}

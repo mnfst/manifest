@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 15,
+  "response": "Legal has approved updated terms with two key changes\u2014adding an arbitration clause for the enterprise tier and shortening data retention to 90 days\u2014requiring implementation by **May 1** for the EU launch. You should coordinate with Legal to review the final version by today.",
+  "score": 4,
+  "cost": 6.3200000000000005e-06,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 56
+  }
+}

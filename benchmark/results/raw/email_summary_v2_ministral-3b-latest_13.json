@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "The Q1 performance shows strong customer success metrics\u2014**NPS improved to 62 (from 58), support CSAT is 4.3/5, and churn dropped to 1.2% (from 1.8%)**\u2014while key feature requests (SSO, custom dashboards, API rate limits) and **$800K in enterprise expansion deals** are in progress.\n\n**Action:** Prioritize addressing the top feature requests and follow up on the three enterprise deals to capitalize on the growth momentum.",
+  "score": 5,
+  "cost": 9.2e-06,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 112
+  }
+}

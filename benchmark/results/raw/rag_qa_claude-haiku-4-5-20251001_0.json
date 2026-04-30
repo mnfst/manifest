@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "rag_qa",
+  "case": 0,
+  "response": "Based on the context provided, a small fraction of the cold water flow from Lake Constance is diverted off the island of Mainau into **Lake \u00dcberlingen**.",
+  "score": 2,
+  "cost": 0.00036239999999999997,
+  "expected": "Lake \u00dcberlingen",
+  "tokens": {
+    "input": 258,
+    "output": 39
+  }
+}

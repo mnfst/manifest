@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "This book is a captivating exploration of the human experience, set against a backdrop of a richly imagined world. The narrative follows a young protagonist who embarks on a journey of self-discovery, grappling with themes of identity, belonging, and the struggle between personal desires and societal expectations. \n\nThe story is woven with intricate relationships, showcasing the complexities of friendship, love, and betrayal. The author masterfully blends elements of fantasy and reality, creating a vivid landscape filled with both wonder and danger. As the protagonist faces various challenges, they encounter a diverse cast of characters, each contributing to their growth and understanding of the world around them.\n\nThe writing is lyrical and evocative, drawing readers into the emotional depths of the characters' experiences. The book raises profound questions about morality, sacrifice, and the choices that define us, leaving a lasting impact long after the final page is turned. Its themes resonate universally, making it a timeless tale that speaks to readers of all ages.",
+  "score": 5,
+  "cost": 0.0001191,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 194
+  }
+}

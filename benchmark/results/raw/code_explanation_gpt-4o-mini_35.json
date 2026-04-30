@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "The provided code implements the Knuth-Morris-Pratt (KMP) algorithm for substring search, which efficiently finds the starting index of a specified pattern within a given text. It first constructs a longest prefix-suffix (LPS) array to optimize the search process, allowing the algorithm to skip unnecessary comparisons when a mismatch occurs, thus achieving a linear time complexity of O(n + m), where n is the length of the text and m is the length of the pattern.",
+  "score": 5,
+  "cost": 8.46e-05,
+  "expected": "",
+  "tokens": {
+    "input": 184,
+    "output": 95
+  }
+}

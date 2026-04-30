@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "instruction_following",
+  "case": 6,
+  "response": "Endless blue waves crash.",
+  "score": 5,
+  "cost": 7.5e-05,
+  "expected": "",
+  "tokens": {
+    "input": 12,
+    "output": 6
+  }
+}

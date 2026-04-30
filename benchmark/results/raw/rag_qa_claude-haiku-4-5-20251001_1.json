@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "rag_qa",
+  "case": 1,
+  "response": "According to the context, the Great Plague of London was in 1665.",
+  "score": 1,
+  "cost": 0.00030720000000000004,
+  "expected": "1665",
+  "tokens": {
+    "input": 284,
+    "output": 20
+  }
+}

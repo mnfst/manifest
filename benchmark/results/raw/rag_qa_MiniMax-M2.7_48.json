@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 48,
+  "response": "The most common assumption is that L is a subset of\u202fP (i.e.,\u202fL\u202f\u2286\u202fP), and it is usually taken to be a proper subset (L\u202f\u2282\u202fP) rather than equal to\u202fP \u2013 though this containment has not been proved.",
+  "score": 4,
+  "cost": 0.0041393,
+  "expected": "strictly contained in P or equal to P",
+  "tokens": {
+    "input": 151,
+    "output": 903
+  }
+}

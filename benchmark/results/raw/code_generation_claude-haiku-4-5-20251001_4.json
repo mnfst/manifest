@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 4,
+  "response": "```python\n    if len(l) <= 1:\n        return True\n    \n    # Check if monotonically increasing\n    increasing = all(l[i] <= l[i+1] for i in range(len(l)-1))\n    \n    # Check if monotonically decreasing\n    decreasing = all(l[i] >= l[i+1] for i in range(len(l)-1))\n    \n    return increasing or decreasing\n```",
+  "score": 5,
+  "cost": 0.0005463999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 111
+  }
+}

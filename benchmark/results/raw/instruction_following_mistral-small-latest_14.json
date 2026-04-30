@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Introducing the **EcoFlow Water Bottle**\u2014crafted from durable, BPA-free Tritan\u2122 plastic, this sleek bottle keeps your drinks cold for 24 hours or hot for 12 hours. Its leak-proof flip-top lid and ergonomic design make hydration effortless, whether you're at the gym, office, or on the go. Lightweight yet rugged, it\u2019s the perfect blend of style and sustainability for your daily adventures.",
+  "score": 5,
+  "cost": 3.17e-05,
+  "expected": "",
+  "tokens": {
+    "input": 29,
+    "output": 96
+  }
+}

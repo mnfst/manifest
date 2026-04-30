@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is the natural attraction between any two objects that have mass.\n\nThink of it like this: the more \"stuff\" (or mass) an object has, the stronger its gravitational pull. The Earth has a lot of mass, so it pulls you and everything around you towards its center. This is why things fall down and why we have weight. This pull also gets weaker the farther apart the objects are, which is why we feel Earth's gravity so strongly but not the Sun's, even though the Sun is vastly more massive.\n\nA more complete picture describes gravity as a curve in the very fabric of the universe, called spacetime. Imagine spacetime is a giant, stretchy sheet, like a trampoline. A heavy object, like the Sun, placed in the middle of this sheet would cause it to bend and create a deep curve. Now, if you roll a smaller ball, like the Earth, nearby, it won't travel in a straight line. Instead, it will follow the curve in the sheet, circling the heavier object. This path it follows is its orbit.\n\nSo, what we experience as the \"force\" of gravity is actually us moving through this curved spacetime. It's the invisible influence that holds us on the ground, keeps the Moon circling the Earth, and clusters stars into galaxies.\n\nThat is gravity.",
+  "score": 3,
+  "cost": 0.00278625,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 276
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_generation",
+  "case": 5,
+  "response": "if not l:\n        return None\n    max_val = l[0]\n    for element in l:\n        if element > max_val:\n            max_val = element\n    return max_val",
+  "score": 5,
+  "cost": 0.001116,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 50
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "**Golden** crust, **crispy** edges, **chewy** dough.\n**Tangy** tomato sauce, **rich** and **savory**.\n**Melted** mozzarella, **gooey** strings, **creamy** bliss.\n**Spicy** pepperoni, **smoky** curls, **greasy** sheen.\n**Earthy** mushrooms, **plump** and **juicy**.\n**Fresh** basil, **vibrant** green, **aromatic** burst.\n**Salty** olives, **briny** bite, **dark** hue.\n**Crumbled** sausage, **herby** flecks, **meaty** depth.\n**Dusty** oregano, **garlicky** whisper, **warm** finish.\n**Wooden** board, **rustic** charm, **steaming** perfection.\n**Heavenly** aroma, **irresistible** allure, **pure** indulgence.",
+  "score": 4,
+  "cost": 0.0004308,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 212
+  }
+}

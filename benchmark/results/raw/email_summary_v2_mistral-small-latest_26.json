@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 26,
+  "response": "The email requests a GDPR data export for user ID 45892 by May 25, including personal data, processing purposes, third-party sharing logs, and analytics data. The Privacy Team emphasizes legal compliance, requiring all requested data to be compiled within the 30-day deadline.",
+  "score": 5,
+  "cost": 3.0299999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 62
+  }
+}

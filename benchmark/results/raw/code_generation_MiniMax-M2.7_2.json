@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_generation",
+  "case": 2,
+  "response": "sorted_lst = sorted(lst)\nresult = []\nleft, right = 0, len(sorted_lst) - 1\nwhile left <= right:\n    result.append(sorted_lst[left])\n    if left != right:\n        result.append(sorted_lst[right])\n    left += 1\n    right -= 1\nreturn result",
+  "score": 4,
+  "cost": 0.005366900000000001,
+  "expected": "",
+  "tokens": {
+    "input": 171,
+    "output": 1177
+  }
+}

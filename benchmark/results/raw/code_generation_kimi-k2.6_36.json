@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_generation",
+  "case": 36,
+  "response": "for i in range(n // 2, 0, -1):\n        if n % i == 0:\n            return i",
+  "score": 5,
+  "cost": 0.0044567999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 1836
+  }
+}

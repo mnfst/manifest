@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Plants perform a special process. Sunlight powers this process. Plants pull water up, plus they pull in small particles from the air. Sunlight splits water. This produces pure oxygen, plus small power packets. Plants then use these power packets to process the small particles, producing sugar. This sugar provides plants with stored power. Plants store sugar, plus they pass pure oxygen into the air. So, plants provide us with pure oxygen, plus they produce their own power.",
+  "score": 5,
+  "cost": 5.7449999999999994e-05,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 92
+  }
+}

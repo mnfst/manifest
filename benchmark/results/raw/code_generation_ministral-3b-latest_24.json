@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 24,
+  "response": "```python\n    sides = [a, b, c]\n    sides.sort()\n    if sides[0] + sides[1] <= sides[2]:\n        return -1\n    s = (a + b + c) / 2\n    area = (s * (s - a) * (s - b) * (s - c)) ** 0.5\n    return round(area, 2)\n```",
+  "score": 4,
+  "cost": 9.800000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 92
+  }
+}

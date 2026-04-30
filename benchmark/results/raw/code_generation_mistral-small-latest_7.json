@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "code_generation",
+  "case": 7,
+  "response": "```python\n    if n == 0:\n        return 1\n    result = 1\n    for i in range(1, n + 1):\n        factorial = 1\n        for j in range(1, i + 1):\n            factorial *= j\n        result *= factorial\n    return result\n```",
+  "score": 4,
+  "cost": 3.47e-05,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 69
+  }
+}

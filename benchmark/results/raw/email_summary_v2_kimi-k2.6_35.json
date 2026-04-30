@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 35,
+  "response": "Trust & Safety is updating the content moderation policy to require labeling AI-generated images, prohibit deepfakes, and mandate disclosure of AI-assisted text, with enforcement beginning June 1. Training materials are being prepared to support implementation of these new AI content rules.",
+  "score": 5,
+  "cost": 0.0021269999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 862
+  }
+}

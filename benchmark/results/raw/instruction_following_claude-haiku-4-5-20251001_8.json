@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "# Blockchain for a 5-Year-Old\n\nImagine a notebook that lots of people share, where everyone writes down who gave toys to whom. Once something is written down, nobody can erase it or change it, so everyone knows it's true. It's like a super honest record book that everyone watches together!",
+  "score": 5,
+  "cost": 0.0003008,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 70
+  }
+}

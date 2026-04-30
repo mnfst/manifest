@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "structured_output",
+  "case": 29,
+  "response": "```json\n{\n  \"bedrooms\": 2,\n  \"bathrooms\": 1,\n  \"sqft\": 850,\n  \"rent_monthly\": 2400,\n  \"address\": \"789 Pine St #3\",\n  \"city\": \"Brooklyn\",\n  \"state\": \"NY\",\n  \"zip\": \"11201\",\n  \"available_date\": \"April 1\",\n  \"pets_allowed\": true,\n  \"amenities\": [\"Laundry in-unit\"],\n  \"broker_fee\": false\n}\n```",
+  "score": 5,
+  "cost": 0.00010305,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 132
+  }
+}

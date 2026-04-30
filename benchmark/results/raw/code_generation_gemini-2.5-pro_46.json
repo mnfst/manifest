@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_generation",
+  "case": 46,
+  "response": "```python\n    smallest_even_value = float('inf')\n    result = []\n\n    for i, value in enumerate(arr):\n        if value % 2 == 0:\n            if value < smallest_even_value:\n                smallest_even_value = value\n                result = [value, i]\n    \n    return result\n```",
+  "score": 3,
+  "cost": 0.00124125,
+  "expected": "",
+  "tokens": {
+    "input": 369,
+    "output": 78
+  }
+}

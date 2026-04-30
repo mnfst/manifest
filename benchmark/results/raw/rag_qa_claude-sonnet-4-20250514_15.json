@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "rag_qa",
+  "case": 15,
+  "response": "Based on the context provided, Prussia had a Calvinist ruler. The text mentions \"Prussia \u2014 whose Calvinist Great Elector Frederick William welcomed them to help rebuild his war-ravaged and underpopulated country.\"",
+  "score": 5,
+  "cost": 0.00144,
+  "expected": "Prussia",
+  "tokens": {
+    "input": 230,
+    "output": 50
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "Here are a few options, keeping it concise and clear:\n\n**General:**\n\n1.  Meeting Invitation: [Topic]\n2.  Invitation: [Meeting Purpose]\n3.  Meeting Request: [Topic]\n4.  [Project Name] Sync Meeting\n5.  Please Join: [Meeting Topic]\n\n**More Specific:**\n\n6.  Q3 Planning Meeting Invitation\n7.  Marketing Strategy Discussion\n8.  Weekly Team Sync\n9.  Project Alpha Kick-off Meeting\n10. Budget Review Session",
+  "score": 5,
+  "cost": 6.975e-05,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 112
+  }
+}

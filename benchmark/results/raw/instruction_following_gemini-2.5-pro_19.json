@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "AI is no longer science fiction. It's a powerful tool reshaping everything from medicine to art. The potential to solve huge global challenges is immense, but so is our responsibility to build and deploy it ethically. The future is a collaboration. #AI #Tech #Innovation",
+  "score": 5,
+  "cost": 0.00055875,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 54
+  }
+}

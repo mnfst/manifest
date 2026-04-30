@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "email_summary_v2",
+  "case": 0,
+  "response": "Sarah reports that marketing overspent by 15% while engineering is 8% under budget and proposes reallocating $50K from engineering to marketing; she requests a discussion on Thursday to finalize the plan.",
+  "score": 5,
+  "cost": 0.000464,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 46
+  }
+}

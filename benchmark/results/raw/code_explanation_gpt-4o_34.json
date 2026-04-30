@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "The given code defines a class `MinStack` that implements a stack data structure with an additional feature to retrieve the minimum element in constant time. It uses two lists: `stack` to store all the elements and `min_stack` to keep track of the minimum element at each level of the stack, updating it with each push and pop operation.",
+  "score": 5,
+  "cost": 0.001,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 70
+  }
+}

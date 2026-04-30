@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "**Simple Scrambled Eggs**\n\nCrack 3 eggs into a bowl, add a splash of milk, salt, and pepper. Whisk well. Melt 1 tablespoon butter in a nonstick pan over low heat. Pour in eggs. Stir gently and continuously with a spatula until soft curds form. Remove while slightly wet. Serve immediately.",
+  "score": 2,
+  "cost": 0.010155,
+  "expected": "",
+  "tokens": {
+    "input": 37,
+    "output": 128
+  }
+}

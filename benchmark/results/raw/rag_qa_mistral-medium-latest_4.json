@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "rag_qa",
+  "case": 4,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 7.36e-05,
+  "expected": "North America",
+  "tokens": {
+    "input": 154,
+    "output": 6
+  }
+}

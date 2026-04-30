@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "rag_qa",
+  "case": 10,
+  "response": "The Saxon Garden.",
+  "score": 5,
+  "cost": 0.00081925,
+  "expected": "The Saxon Garden",
+  "tokens": {
+    "input": 437,
+    "output": 710
+  }
+}

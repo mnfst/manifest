@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 14,
+  "response": "DevOps sent an AWS infrastructure cost alert warning that this month\u2019s bill is 40% higher month-over-month, driven primarily by new ML training jobs using $32-per-hour p4d instances that carry an estimated $45,000 negative monthly impact. To offset these added costs, DevOps outlined two savings solutions\u201470% off via interruption-prone spot instances, or 30% off via committed reserved instances\u2014and requires a decision on which option to move forward with by Friday.",
+  "score": 5,
+  "cost": 0.00065825,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 619
+  }
+}

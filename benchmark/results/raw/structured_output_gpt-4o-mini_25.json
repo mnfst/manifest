@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "structured_output",
+  "case": 25,
+  "response": "```json\n{\n  \"status_code\": 200,\n  \"status_text\": \"OK\",\n  \"content_type\": \"application/json\",\n  \"payload_size_kb\": 1.2,\n  \"latency_ms\": 45,\n  \"rate_limit\": {\n    \"remaining\": 98,\n    \"total\": 100\n  },\n  \"request_id\": \"abc-123-def\"\n}\n```",
+  "score": 5,
+  "cost": 6.9e-05,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 85
+  }
+}

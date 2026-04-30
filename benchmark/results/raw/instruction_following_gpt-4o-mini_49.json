@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "**Formal:**  \n\"Good day! How may I assist you today? Your inquiries are important to us, and I am here to provide the information you seek.\"\n\n**Casual:**  \n\"Hey there! What\u2019s up? I\u2019m here to help you out with whatever you need. Just let me know!\"\n\n**Humorous:**  \n\"Greetings, Earthling! \ud83e\udd16 I\u2019m your friendly neighborhood chatbot, here to answer your questions and possibly save the world\u2014one query at a time! What can I do for you today?\"",
+  "score": 5,
+  "cost": 6.855e-05,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 108
+  }
+}

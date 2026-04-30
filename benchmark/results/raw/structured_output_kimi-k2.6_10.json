@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "structured_output",
+  "case": 10,
+  "response": "",
+  "score": 0,
+  "cost": 0.0048858,
+  "expected": "",
+  "tokens": {
+    "input": 143,
+    "output": 2000
+  }
+}

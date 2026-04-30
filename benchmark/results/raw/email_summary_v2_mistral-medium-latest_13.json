@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "The **Q1 Customer Success metrics** show improved performance with **NPS rising to 62**, **CSAT at 4.3/5**, and **churn dropping to 1.2%**, while key feature requests include **SSO, custom dashboards, and higher API rate limits**. Additionally, **three enterprise expansions worth $800K** are in the pipeline, requiring follow-up on prioritizing requested features and closing deals.",
+  "score": 5,
+  "cost": 0.0002352,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 94
+  }
+}

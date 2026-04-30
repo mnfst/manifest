@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 40,
+  "response": "```python\n    if a == 0:\n        return True\n\n    # Calculate the absolute cube root using float power and round to the nearest integer.\n    # round() is crucial here to handle potential floating point inaccuracies,\n    # e.g., 64**(1/3) might be 3.9999999999999996, which round() correctly converts to 4.\n    root = round(abs(a)**(1/3))\n\n    # If the original number 'a' is negative, its integer cube root must also be negative.\n    # So, we check if (-root) cubed equals 'a'.\n    # If 'a' is positive, we check if (root) cubed equals 'a'.\n    if a < 0:\n        return (-root)**3 == a\n    else: # a > 0\n        return root**3 == a\n```",
+  "score": 5,
+  "cost": 0.000144,
+  "expected": "",
+  "tokens": {
+    "input": 148,
+    "output": 203
+  }
+}

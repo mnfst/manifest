@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 10,
+  "response": "The Saxon Garden",
+  "score": 5,
+  "cost": 0.0008404,
+  "expected": "The Saxon Garden",
+  "tokens": {
+    "input": 432,
+    "output": 83
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "rag_qa",
+  "case": 28,
+  "response": "Whenever he encountered British merchants or fur-traders, C\u00e9loron informed them of the French claims on the territory and told them to leave.",
+  "score": 5,
+  "cost": 0.0005625,
+  "expected": "British merchants or fur-traders, C\u00e9loron informed them of the French claims on the territory and told them to leave.",
+  "tokens": {
+    "input": 218,
+    "output": 29
+  }
+}

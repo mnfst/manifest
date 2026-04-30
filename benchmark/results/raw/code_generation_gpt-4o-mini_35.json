@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_generation",
+  "case": 35,
+  "response": "```python\n    return (abs(a) % 10) * (abs(b) % 10)\n```",
+  "score": 5,
+  "cost": 3.3299999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 23
+  }
+}

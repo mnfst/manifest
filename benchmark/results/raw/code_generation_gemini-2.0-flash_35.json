@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "code_generation",
+  "case": 35,
+  "response": "```python\n    return abs(a) % 10 * abs(b) % 10\n```",
+  "score": 3,
+  "cost": 2.46e-05,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 24
+  }
+}

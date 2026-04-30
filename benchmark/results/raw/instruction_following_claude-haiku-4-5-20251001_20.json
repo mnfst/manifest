@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "# Photosynthesis Simplified\n\nPlants synthesize sustenance using sunlight. Specifically, solar power stimulates special structures called plastids.\n\nSunlight strikes plant surfaces, particularly leaves. Specialized pigments\u2014primarily a substance called \"photosynthetic pigment\"\u2014seize photons. This process starts a sequence: photons push electrons, producing power.\n\nSubsequently, plants split water, separating hydrogen. Simultaneously, plants process soil-sourced phosphorus and sulfur. \n\nThe procedure produces sugars. Specifically, plants synthesize simple sugars\u2014primarily sucrose. This sustenance supplies plant survival, supporting stems, seeds, and shoots.\n\nSimultaneously, plants produce oxygen as a secondary product. Sunlight, soil, and simple substances (like phosphorus) supply the system.\n\nSimply stated: sunlight plus soil substances = sugars plus surplus oxygen. Photosynthesis sustains practically all planetary life.",
+  "score": 4,
+  "cost": 0.000832,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 203
+  }
+}

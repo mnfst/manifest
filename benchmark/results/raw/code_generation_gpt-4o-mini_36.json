@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_generation",
+  "case": 36,
+  "response": "```python\nfor i in range(n // 2, 0, -1):\n        if n % i == 0:\n            return i\n```",
+  "score": 5,
+  "cost": 3.18e-05,
+  "expected": "",
+  "tokens": {
+    "input": 84,
+    "output": 32
+  }
+}

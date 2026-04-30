@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "The engineering recruiting pipeline currently has 23 candidates across four open roles, but the frontend position has remained unfilled for 60 days due to a lack of qualified applicants. To resolve this, the recruiting team recommends either opening the frontend role to remote candidates or adjusting its compensation band.",
+  "score": 5,
+  "cost": 0.0039845,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 740
+  }
+}

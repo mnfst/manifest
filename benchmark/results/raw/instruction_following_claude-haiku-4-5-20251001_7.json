@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "# Scrambled Eggs\n\n**Ingredients:** 2 eggs, 1 tbsp butter, salt, pepper\n\n**Instructions:**\n1. Crack eggs into a bowl and whisk\n2. Heat butter in a pan over medium heat\n3. Pour in eggs, stir gently until cooked through (2-3 minutes)\n4. Season with salt and pepper\n5. Serve immediately",
+  "score": 2,
+  "cost": 0.000388,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 92
+  }
+}

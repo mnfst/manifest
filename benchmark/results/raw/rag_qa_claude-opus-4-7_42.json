@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "rag_qa",
+  "case": 42,
+  "response": "The Moselle, which contributes an average discharge of more than 300 m\u00b3/s (11,000 cu ft/s).",
+  "score": 5,
+  "cost": 0.007755,
+  "expected": "Moselle",
+  "tokens": {
+    "input": 312,
+    "output": 41
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 45,
+  "response": "```python\nreturn sorted(list(set(l1) & set(l2)))\n```",
+  "score": 5,
+  "cost": 0.00022,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 24
+  }
+}

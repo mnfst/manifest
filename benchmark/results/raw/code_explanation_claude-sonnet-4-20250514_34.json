@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "This code implements a stack data structure that can retrieve the minimum element in O(1) constant time using an auxiliary stack pattern. It maintains two parallel stacks: one for the actual values and another (`min_stack`) that stores the minimum value seen so far at each level, allowing instant access to the current minimum without scanning all elements.",
+  "score": 5,
+  "cost": 0.001563,
+  "expected": "",
+  "tokens": {
+    "input": 161,
+    "output": 72
+  }
+}

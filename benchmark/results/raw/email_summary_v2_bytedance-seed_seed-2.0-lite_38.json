@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 38,
+  "response": "The security team shared first-month results for the bug bounty program, noting 47 total reports received, 12 valid submissions (including 3 critical severity issues), $15,000 in total payouts, all three critical bugs patched within 24 hours of identification, and an overall strong return on investment for the initiative. Citing the program\u2019s strong early performance, the security team is recommending the company continue running the bug bounty program moving forward.",
+  "score": 5,
+  "cost": 0.000695,
+  "expected": "",
+  "tokens": {
+    "input": 160,
+    "output": 655
+  }
+}

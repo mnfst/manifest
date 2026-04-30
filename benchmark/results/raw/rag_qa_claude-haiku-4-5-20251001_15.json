@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "rag_qa",
+  "case": 15,
+  "response": "Based on the context provided, **Prussia** had a Calvinist ruler. The text specifically mentions that Prussia's \"Calvinist Great Elector Frederick William welcomed\" the Huguenots to help rebuild his country.",
+  "score": 5,
+  "cost": 0.000384,
+  "expected": "Prussia",
+  "tokens": {
+    "input": 230,
+    "output": 50
+  }
+}

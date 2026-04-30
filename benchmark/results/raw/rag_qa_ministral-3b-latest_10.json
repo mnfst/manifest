@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 10,
+  "response": "The Saxon Garden.",
+  "score": 5,
+  "cost": 1.736e-05,
+  "expected": "The Saxon Garden",
+  "tokens": {
+    "input": 429,
+    "output": 5
+  }
+}

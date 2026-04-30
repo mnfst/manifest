@@ -2,12 +2,12 @@
   "model": "MiniMax-M2.7",
   "task": "email_summary_v2",
   "case": 19,
-  "response": "Datadog is offering a 3-year contract renewal at $155K/year (14% discount), with Grafana Cloud as a lower-cost alternative at $95K/year that requires a 3-month migration. Finance must make a decision by May 15.",
+  "response": "The Datadog contract expiring June 30 can be renewed for 3 years at $155K/year (14% discount) or migrated to Grafana Cloud for $95K/year, though Grafana would require a 3-month migration. Finance must make a decision by May 15.",
   "score": 5,
-  "cost": 0.0010681000000000002,
+  "cost": 0.0005928999999999999,
   "expected": "",
   "tokens": {
     "input": 111,
-    "output": 215
+    "output": 107
   }
 }

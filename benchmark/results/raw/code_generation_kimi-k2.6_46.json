@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_generation",
+  "case": 46,
+  "response": "smallest = None\n    index = -1\n    for i, x in enumerate(arr):\n        if x % 2 == 0:\n            if smallest is None or x < smallest:\n                smallest = x\n                index = i\n    if smallest is None:\n        return []\n    return [smallest, index]",
+  "score": 4,
+  "cost": 0.0025824,
+  "expected": "",
+  "tokens": {
+    "input": 344,
+    "output": 990
+  }
+}

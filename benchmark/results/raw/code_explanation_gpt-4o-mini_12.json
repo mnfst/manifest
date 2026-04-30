@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "The provided code implements a topological sort algorithm using Depth-First Search (DFS) on a directed acyclic graph (DAG). It recursively visits each node, marking it as visited, and appends it to a stack after all its neighbors have been processed, ultimately returning the nodes in reverse order to represent a valid linear ordering.",
+  "score": 5,
+  "cost": 5.625e-05,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 67
+  }
+}

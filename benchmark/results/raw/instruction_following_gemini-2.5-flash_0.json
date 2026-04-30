@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "Here are 3 benefits of exercise:\n\n*   **Improved Mood:** Exercise releases endorphins, which have mood-boosting effects and can reduce feelings of stress and anxiety.\n*   **Enhanced Physical Health:** Regular physical activity strengthens your heart and lungs, helps maintain a healthy weight, and reduces the risk of chronic diseases like diabetes and certain cancers.\n*   **Better Sleep Quality:** Engaging in moderate exercise can help you fall asleep faster and experience deeper, more restorative sleep.",
+  "score": 5,
+  "cost": 6.015e-05,
+  "expected": "",
+  "tokens": {
+    "input": 13,
+    "output": 97
+  }
+}

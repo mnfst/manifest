@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are often celebrated as the most loyal companions a person can have, offering unwavering devotion throughout their lives. Their loyal nature stems from thousands of years of domestication, during which they evolved alongside humans as loyal partners in hunting, herding, and protection. A loyal dog will greet its owner with the same enthusiasm whether they've been gone for five minutes or five hours, demonstrating a kind of pure, loyal affection rarely found elsewhere. Even when faced with hardship or neglect, many dogs remain stubbornly loyal, a trait that has inspired countless stories of loyal hounds waiting faithfully for owners who never returned. Whether they are tiny lap dogs or massive working breeds, all dogs share this remarkable capacity to form loyal bonds that enrich human lives in ways few other animals can match.",
+  "score": 5,
+  "cost": 0.021525,
+  "expected": "",
+  "tokens": {
+    "input": 40,
+    "output": 279
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 5,
+  "response": "```python\nmax_val = l[0]\nfor num in l:\n    if num > max_val:\n        max_val = num\nreturn max_val\n```",
+  "score": 5,
+  "cost": 5.9600000000000005e-06,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 34
+  }
+}

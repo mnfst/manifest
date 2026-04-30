@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are known for being incredibly loyal companions, always by their owners' sides through thick and thin. Their loyal nature makes them one of the most beloved pets in the world. A loyal dog will protect its family without hesitation, showcasing its deep devotion. Even in old age, a loyal dog remains steadfast, never wavering in its commitment. The loyal bond between a dog and its owner is often unbreakable, filled with trust and affection. Whether playing fetch or simply cuddling, a loyal dog brings endless joy to its family.",
+  "score": 5,
+  "cost": 3.7e-05,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 113
+  }
+}

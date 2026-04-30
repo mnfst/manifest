@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "rag_qa",
+  "case": 36,
+  "response": "Gaseous oxygen",
+  "score": 1,
+  "cost": 0.000537,
+  "expected": "gaseous oxygen.",
+  "tokens": {
+    "input": 208,
+    "output": 485
+  }
+}

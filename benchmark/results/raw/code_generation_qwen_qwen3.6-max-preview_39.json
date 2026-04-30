@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_generation",
+  "case": 39,
+  "response": "if x == 0:\n        return \"0\"\n    res = \"\"\n    while x > 0:\n        res = str(x % base) + res\n        x //= base\n    return res",
+  "score": 5,
+  "cost": 0.011594700000000001,
+  "expected": "",
+  "tokens": {
+    "input": 143,
+    "output": 2194
+  }
+}

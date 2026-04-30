@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "rag_qa",
+  "case": 29,
+  "response": "Istanbul\nThe context explicitly states, \"With Istanbul as its capital...\", which directly answers the question.",
+  "score": 5,
+  "cost": 5.1525e-05,
+  "expected": "Istanbul",
+  "tokens": {
+    "input": 255,
+    "output": 108
+  }
+}

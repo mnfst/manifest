@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "structured_output",
+  "case": 5,
+  "response": "{\"name\": \"Spaghetti Carbonara\", \"servings\": 4, \"prep_time_minutes\": 25, \"ingredients\": [{\"item\": \"spaghetti\", \"amount\": \"400g\"}, {\"item\": \"guanciale\", \"amount\": \"200g\"}, {\"item\": \"eggs\", \"amount\": \"4\"}, {\"item\": \"pecorino\", \"amount\": \"100g\"}, {\"item\": \"black pepper\", \"amount\": \"to taste\"}]}",
+  "score": 4,
+  "cost": 0.01362,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 149
+  }
+}

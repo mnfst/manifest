@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "instruction_following",
+  "case": 38,
+  "response": "Invalid username or password. Please try again.",
+  "score": 5,
+  "cost": 0.0005705999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 232
+  }
+}

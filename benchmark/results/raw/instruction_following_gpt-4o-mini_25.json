@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "\"Team Meeting: Project Updates and Next Steps\"",
+  "score": 4,
+  "cost": 9.3e-06,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 10
+  }
+}

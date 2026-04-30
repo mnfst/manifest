@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_generation",
+  "case": 9,
+  "response": "return sum(x**2 for x in lst if x > 0 and x % 2 == 1 and isinstance(x, int))",
+  "score": 3,
+  "cost": 0.0231907,
+  "expected": "",
+  "tokens": {
+    "input": 179,
+    "output": 4415
+  }
+}

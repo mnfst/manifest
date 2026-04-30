@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 32,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 9.56e-06,
+  "expected": "the world's economy",
+  "tokens": {
+    "input": 233,
+    "output": 6
+  }
+}

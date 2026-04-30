@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 31,
+  "response": "Here are the first 10 prime numbers:\n\n2, 3, 5, 7, 11, 13, 17, 19, 23, 29",
+  "score": 4,
+  "cost": 2.44e-06,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 45
+  }
+}

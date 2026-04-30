@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 34,
+  "response": "A database index is a data structure that improves the speed of data retrieval operations by creating a sorted reference to specific columns, allowing the database to locate rows without scanning the entire table. However, indexes come with trade-offs, as they consume additional storage space and can slow down write operations like inserts, updates, and deletes since the index must also be maintained.",
+  "score": 2,
+  "cost": 0.00885,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 112
+  }
+}

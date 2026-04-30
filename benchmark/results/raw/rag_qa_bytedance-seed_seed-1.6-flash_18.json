@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "rag_qa",
+  "case": 18,
+  "response": "Allan Bloom\nThe context states that Allan Bloom is the author of \"The Closing of the American Mind\" and is listed as a notable alumni.",
+  "score": 4,
+  "cost": 5.5575e-05,
+  "expected": "Allan Bloom",
+  "tokens": {
+    "input": 253,
+    "output": 122
+  }
+}

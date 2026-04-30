@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_generation",
+  "case": 11,
+  "response": "```python\nif not numbers:\n    return (0, 1)\ntotal_sum = sum(numbers)\ntotal_product = 1\nfor number in numbers:\n    total_product *= number\nreturn (total_sum, total_product)\n```",
+  "score": 5,
+  "cost": 0.000825,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 47
+  }
+}

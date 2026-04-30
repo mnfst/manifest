@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The CEO attached the Q1 board deck draft showing strong performance with 127% revenue attainment and 115% NRR, but a 22% rise in CAC. Please submit your product roadmap section by Wednesday for next Tuesday's board meeting.",
+  "score": 5,
+  "cost": 0.0012564,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 502
+  }
+}

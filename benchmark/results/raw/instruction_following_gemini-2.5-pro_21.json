@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "Of course. Here are the directions.\n\nStart by leaving the park and walking to the nearest street corner. Then follow these turns:\n\n1.  Turn right.\n2.  Turn left.\n3.  Turn left.\n4.  Turn right.\n\nYou have arrived at the library.",
+  "score": 4,
+  "cost": 0.0006525,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 63
+  }
+}

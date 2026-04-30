@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 11,
+  "response": "What would you like me to ask about? Is there a specific topic or concern you want me to explore? How can I best help you with your request?",
+  "score": 2,
+  "cost": 0.0025014,
+  "expected": "",
+  "tokens": {
+    "input": 46,
+    "output": 557
+  }
+}

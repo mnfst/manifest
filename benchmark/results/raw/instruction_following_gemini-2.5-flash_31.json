@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 31,
+  "response": "2, 3, 5, 7, 11, 13, 17, 19, 23, 29",
+  "score": 5,
+  "cost": 2.2349999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 13,
+    "output": 34
+  }
+}

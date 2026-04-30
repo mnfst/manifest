@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "rag_qa",
+  "case": 15,
+  "response": "Prussia had a Calvinist ruler, the Great Elector Frederick William.",
+  "score": 5,
+  "cost": 0.00711,
+  "expected": "Prussia",
+  "tokens": {
+    "input": 319,
+    "output": 31
+  }
+}

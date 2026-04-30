@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 38,
+  "response": "```python\n    negatives = [x for x in lst if x < 0]\n    positives = [x for x in lst if x > 0]\n\n    a = None\n    if negatives:\n        a = max(negatives)\n\n    b = None\n    if positives:\n        b = min(positives)\n\n    return (a, b)\n```",
+  "score": 5,
+  "cost": 9.84e-06,
+  "expected": "",
+  "tokens": {
+    "input": 171,
+    "output": 75
+  }
+}

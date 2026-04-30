@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 16,
+  "response": "The April marketing campaign generated 45K impressions, 2.3K clicks (5.1% CTR), and 187 signups (8.1% conversion) at a cost of $12K, with a customer acquisition cost (CAC) of $64 per signup, though the conversion rate decreased by 0.8pp compared to March. The team recommends A/B testing the landing page call-to-action (CTA) to improve performance.",
+  "score": 5,
+  "cost": 4.3299999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 100
+  }
+}

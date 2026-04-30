@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 31,
+  "response": "The Revenue team has proposed launching a new $29/month \"Starter\" pricing tier, slotted between the platform\u2019s existing Free and $79/month Pro plans, that would include 5 user seats, 10,000 monthly API calls, and email support, a recommendation rooted in internal analysis that found 40% of churned users cited price as their reason for leaving. The team projects the new tier would recover 15% of users who churned due to pricing concerns, unlocking an additional $180,000 in annual recurring revenue, and the proposal requires stakeholder review and approval to move toward implementation.",
+  "score": 5,
+  "cost": 0.0011665,
+  "expected": "",
+  "tokens": {
+    "input": 162,
+    "output": 1126
+  }
+}

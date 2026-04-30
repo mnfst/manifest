@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_generation",
+  "case": 44,
+  "response": "vowels = {'a', 'e', 'i', 'o', 'u'}\nres = []\nfor c in message:\n    swapped = c.swapcase()\n    if swapped.lower() in vowels:\n        base = ord('A') if swapped.isupper() else ord('a')\n        offset = ord(swapped) - base\n        new_char = chr(base + (offset + 2) % 26)\n        res.append(new_char)\n    else:\n        res.append(swapped)\nreturn ''.join(res)",
+  "score": 3,
+  "cost": 0.0030425,
+  "expected": "",
+  "tokens": {
+    "input": 194,
+    "output": 2994
+  }
+}

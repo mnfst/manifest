@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 43,
+  "response": "```python\n    if not numbers:\n        return []\n    \n    result = []\n    for i, num in enumerate(numbers):\n        result.append(num)\n        if i < len(numbers) - 1:\n            result.append(delimeter)\n    \n    return result\n```",
+  "score": 5,
+  "cost": 0.000396,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 71
+  }
+}

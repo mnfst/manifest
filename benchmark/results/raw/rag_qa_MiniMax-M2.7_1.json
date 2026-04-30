@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 1,
+  "response": "According to the context, the Great Plague of London occurred in 1665.",
+  "score": 2,
+  "cost": 0.0008514000000000001,
+  "expected": "1665",
+  "tokens": {
+    "input": 282,
+    "output": 123
+  }
+}

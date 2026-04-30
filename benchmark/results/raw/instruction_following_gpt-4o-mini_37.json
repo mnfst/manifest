@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "The taste of chocolate is like a warm embrace on a chilly evening, wrapping your senses in a velvety richness that dances between sweet and bitter. Each bite unfolds layers of complexity, reminiscent of a symphony where deep, dark notes of cocoa harmonize with the playful highs of sugar, creating a melody that lingers on the palate long after the last morsel is savored.",
+  "score": 5,
+  "cost": 4.9199999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 77
+  }
+}

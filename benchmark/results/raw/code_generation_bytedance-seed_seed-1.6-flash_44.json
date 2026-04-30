@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_generation",
+  "case": 44,
+  "response": "vowels = {'a', 'e', 'i', 'o', 'u'}\n    encoded = []\n    for c in message:\n        if c.lower() in vowels:\n            lower_c = c.lower()\n            pos = ord(lower_c) - ord('a')\n            new_pos = pos + 2\n            new_lower = chr(ord('a') + new_pos)\n            temp = new_lower.upper() if c.isupper() else new_lower\n            swapped = temp.lower() if temp.isupper() else temp.upper()\n            encoded.append(swapped)\n        else:\n            swapped = c.lower() if c.isupper() else c.upper()\n            encoded.append(swapped)\n    return ''.join(encoded)",
+  "score": 3,
+  "cost": 0.0017636999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 228,
+    "output": 5822
+  }
+}

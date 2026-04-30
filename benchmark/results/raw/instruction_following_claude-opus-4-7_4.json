@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 4,
+  "response": "Here is \"hello world\" translated into the three languages:\n\n1. **French:** bonjour le monde\n2. **Spanish:** hola mundo\n3. **German:** hallo Welt",
+  "score": 5,
+  "cost": 0.00525,
+  "expected": "",
+  "tokens": {
+    "input": 40,
+    "output": 62
+  }
+}

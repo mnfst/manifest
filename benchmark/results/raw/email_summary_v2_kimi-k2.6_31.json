@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 31,
+  "response": "Revenue proposes adding a $29/month \"Starter\" tier between Free and Pro to win back users who churned due to price, offering 5 users, 10K API calls, and email support. The team projects this will recover 15% of price-churned users and generate $180K in ARR.",
+  "score": 5,
+  "cost": 0.0014555999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 579
+  }
+}

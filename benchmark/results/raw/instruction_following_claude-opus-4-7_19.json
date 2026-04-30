@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "Here's a tweet about AI:\n\n---\n\nAI won't replace you. But someone who knows how to use AI probably will.\n\nThe real skill isn't prompting\u2014it's knowing which problems are worth solving in the first place.\n\n---\n\n*Character count: 174*\n\nWant me to try a different angle? I can do funny, technical, contrarian, optimistic, or skeptical takes.",
+  "score": 5,
+  "cost": 0.009465,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 120
+  }
+}

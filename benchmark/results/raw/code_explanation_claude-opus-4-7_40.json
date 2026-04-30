@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_explanation",
+  "case": 40,
+  "response": "This implements the **Circuit Breaker pattern**, which wraps function calls and tracks failures: after `threshold` consecutive failures the circuit \"opens\" and rejects calls immediately, then transitions to \"half-open\" after `timeout` seconds to test recovery, returning to \"closed\" on a successful call.",
+  "score": 5,
+  "cost": 0.01227,
+  "expected": "",
+  "tokens": {
+    "input": 298,
+    "output": 104
+  }
+}

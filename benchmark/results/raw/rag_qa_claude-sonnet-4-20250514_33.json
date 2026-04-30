@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "rag_qa",
+  "case": 33,
+  "response": "Based on the context provided, OPEC raised the price of oil to $5.11 (a 70% increase) in response to American aid to Israel. This occurred on October 16, 1973, as part of OPEC's reaction to U.S. support for Israel during this period.",
+  "score": 5,
+  "cost": 0.001902,
+  "expected": "In response to American aid to Israel",
+  "tokens": {
+    "input": 289,
+    "output": 69
+  }
+}

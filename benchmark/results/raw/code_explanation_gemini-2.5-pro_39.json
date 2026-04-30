@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_explanation",
+  "case": 39,
+  "response": "This code implements the Producer-Consumer concurrency pattern using a shared queue for communication. The producer adds items and a final `None` \"poison pill\" to the queue, which consumers use as a signal to stop processing and propagate the shutdown signal to other consumers.",
+  "score": 5,
+  "cost": 0.0006725,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 52
+  }
+}

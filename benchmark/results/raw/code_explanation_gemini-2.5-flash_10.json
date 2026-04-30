@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_explanation",
+  "case": 10,
+  "response": "This code implements the **Sieve of Eratosthenes** algorithm to efficiently find all prime numbers up to a given integer `n`. It works by iteratively marking multiples of each prime number (starting from 2) as composite, leaving only the primes unmarked.",
+  "score": 5,
+  "cost": 5.4149999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 53
+  }
+}

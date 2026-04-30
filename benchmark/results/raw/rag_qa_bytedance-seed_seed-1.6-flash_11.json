@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "rag_qa",
+  "case": 11,
+  "response": "1.1 \u00d7 10^11 metric tonnes of carbon.",
+  "score": 2,
+  "cost": 9.2475e-05,
+  "expected": "10% of the carbon stores",
+  "tokens": {
+    "input": 257,
+    "output": 244
+  }
+}

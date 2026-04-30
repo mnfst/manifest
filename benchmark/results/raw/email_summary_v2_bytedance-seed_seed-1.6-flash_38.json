@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "email_summary_v2",
+  "case": 38,
+  "response": "The first month of the Bug Bounty Program received 47 reports, with 12 valid and 3 critical, totaling $15K in payouts, including findings such as IDOR on user profiles, SSRF via webhook URL, and a JWT secret in the client bundle. All critical findings were patched within 24 hours, and the program's strong ROI recommends continuing it.",
+  "score": 5,
+  "cost": 0.00012345,
+  "expected": "",
+  "tokens": {
+    "input": 194,
+    "output": 363
+  }
+}

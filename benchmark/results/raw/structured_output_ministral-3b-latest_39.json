@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "structured_output",
+  "case": 39,
+  "response": "Here is the extracted information in valid JSON matching the provided schema:\n\n```json\n{\n  \"build_number\": 4521,\n  \"branch\": \"feature/auth-v2\",\n  \"status\": \"failed\",\n  \"failed_stage\": \"test\",\n  \"duration\": \"8m 32s\",\n  \"tests\": {\n    \"passed\": 247,\n    \"failed\": 3,\n    \"skipped\": 0\n  },\n  \"trigger\": \"push from @alice\",\n  \"author\": \"alice\"\n}\n```",
+  "score": 4,
+  "cost": 1.0199999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 119
+  }
+}

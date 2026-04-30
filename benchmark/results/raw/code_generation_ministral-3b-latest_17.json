@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 17,
+  "response": "```python\nimport hashlib\n\nif not text:\n    return None\nreturn hashlib.md5(text.encode()).hexdigest()\n```",
+  "score": 4,
+  "cost": 5.7999999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 29
+  }
+}

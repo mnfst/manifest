@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "The taste of chocolate is like a warm embrace on a chilly evening, enveloping your senses with a rich, velvety smoothness that melts away the day's worries.",
+  "score": 5,
+  "cost": 0.00039,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 34
+  }
+}

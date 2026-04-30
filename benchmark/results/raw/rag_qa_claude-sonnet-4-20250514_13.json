@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "rag_qa",
+  "case": 13,
+  "response": "Based on the provided context, V/Line is owned by the Victorian Government.",
+  "score": 5,
+  "cost": 0.000786,
+  "expected": "Victorian Government",
+  "tokens": {
+    "input": 167,
+    "output": 19
+  }
+}

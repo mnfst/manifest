@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 15,
+  "response": "Legal approved the updated terms with two changes: adding an arbitration clause for the enterprise tier and reducing data retention to 90 days. The final version must be prepared and go live before the EU launch on May 1.",
+  "score": 5,
+  "cost": 2.52e-05,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 46
+  }
+}

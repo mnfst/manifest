@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 20,
+  "response": "Early Saturday morning, a disk space alert on prod-db-01 required manual intervention to restore service after automated cleanup freed 40GB but failed to resize during the maintenance window. The root cause was log rotation misconfigured after the last migration, which must be corrected to prevent recurrence.",
+  "score": 4,
+  "cost": 0.0024281999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 988
+  }
+}

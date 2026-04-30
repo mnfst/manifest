@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "email_summary_v2",
+  "case": 9,
+  "response": "A Salesforce schema change caused the nightly ETL job to fail, resulting in stale dashboard data. Data Engineering has deployed a fix and is running a backfill, with full recovery expected by 4 PM today and no further action required from recipients.",
+  "score": 5,
+  "cost": 0.0103142,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 1959
+  }
+}

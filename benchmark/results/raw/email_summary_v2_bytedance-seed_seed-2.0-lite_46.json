@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 46,
+  "response": "In an email with the subject line Security Vulnerability, David notified relevant teams of a critical CVSS 9.8 SQL injection vulnerability in the /api/v2/auth/login endpoint that impacts all software versions ranging from v3.2.0 to v3.4.1. The flaw can be resolved by parameterizing the query at line 142 of auth_controller.py, a patch implementing this fix is ready for review, and David strongly recommends teams deploy a hotfix to address the vulnerability within 24 hours.",
+  "score": 5,
+  "cost": 0.0008145,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 778
+  }
+}

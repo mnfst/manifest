@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "**\"Meeting Invite: [Topic] \u2013 [Date] at [Time]\"**\n\n*(Example: \"Meeting Invite: Q2 Strategy \u2013 June 5 at 2 PM\")*",
+  "score": 5,
+  "cost": 8.56e-05,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 39
+  }
+}

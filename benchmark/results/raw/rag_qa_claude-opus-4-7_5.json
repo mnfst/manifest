@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "rag_qa",
+  "case": 5,
+  "response": "The Rhine bridge mentioned in the context is at Arnhem.",
+  "score": 5,
+  "cost": 0.007545,
+  "expected": "Arnhem",
+  "tokens": {
+    "input": 368,
+    "output": 27
+  }
+}

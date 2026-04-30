@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "The air grew heavy and still, a strange quiet settling over everything as the sky, once a pale blue, deepened to a **bruised purple**, thick with ominous clouds. A sudden gust of wind whipped through the trees, rustling leaves into a frantic dance, and then came the unmistakable scent \u2013 a **sharp, metallic tang of ozone**, mingling with the damp earth.\n\nSuddenly, a **jagged, blinding flash of white light** tore across the darkened sky, momentarily etching the landscape in stark relief. A few heartbeats later, a low, guttural rumble vibrated through the ground, quickly erupting into an **ear-splitting crack** that shook the very foundations of the house. The first fat drops of rain splattered against the windowpane, quickly escalating into a **relentless drumming** as the heavens opened. The temperature plummeted, bringing a sudden chill that made goosebumps rise, and outside, the world became a blurry canvas of grey and green, obscured by the sheer volume of water.",
+  "score": 5,
+  "cost": 0.00012495,
+  "expected": "",
+  "tokens": {
+    "input": 13,
+    "output": 205
+  }
+}

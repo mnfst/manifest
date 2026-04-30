@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_generation",
+  "case": 20,
+  "response": "```python\n    val_map = [\n        (1000, \"m\"), (900, \"cm\"), (500, \"d\"), (400, \"cd\"),\n        (100, \"c\"), (90, \"xc\"), (50, \"l\"), (40, \"xl\"),\n        (10, \"x\"), (9, \"ix\"), (5, \"v\"), (4, \"iv\"),\n        (1, \"i\")\n    ]\n    \n    roman_parts = []\n    for val, sym in val_map:\n        count, number = divmod(number, val)\n        roman_parts.append(sym * count)\n        \n    return \"\".join(roman_parts)\n```",
+  "score": 5,
+  "cost": 0.00191125,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 172
+  }
+}

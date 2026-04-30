@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "email_summary_v2",
+  "case": 2,
+  "response": "A critical SQL injection vulnerability (CVSS 9.8) in versions 3.2.0\u20133.4.1 requires an urgent hotfix by parameterizing the query in *auth_controller.py:142*, with a patch already prepared for review. **Action item:** Prioritize and deploy the fix within 24 hours.",
+  "score": 5,
+  "cost": 0.000638,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 73
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 3,
+  "response": "FRANCE\nGERMANY\nITALY\nSPAIN\nUNITED KINGDOM",
+  "score": 5,
+  "cost": 0.000351,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 19
+  }
+}

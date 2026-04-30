@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "structured_output",
+  "case": 26,
+  "response": "Here is the extracted information in valid JSON matching the provided schema:\n\n```json\n{\n  \"title\": \"Team standup\",\n  \"recurrence\": \"weekdays\",\n  \"time_start\": \"09:00\",\n  \"time_end\": \"09:15\",\n  \"timezone\": \"PST\",\n  \"meeting_link\": \"meet.google.com/abc-defg-hij\",\n  \"organizer\": \"sarah@company.com\"\n}\n```",
+  "score": 5,
+  "cost": 8.48e-06,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 101
+  }
+}

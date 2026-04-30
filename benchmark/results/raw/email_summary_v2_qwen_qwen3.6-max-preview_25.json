@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "email_summary_v2",
+  "case": 25,
+  "response": "The company reported strong April progress, highlighting 10K MAU, $85K MRR, a new VP Sales hire, and a signed $8M Series A term sheet that extends its runway to 11 months. Final investor commitments and all fundraising paperwork must be completed before the round officially closes on May 10.",
+  "score": 5,
+  "cost": 0.0077415,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 1459
+  }
+}

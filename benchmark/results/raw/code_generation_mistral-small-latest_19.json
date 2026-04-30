@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "code_generation",
+  "case": 19,
+  "response": "```python\n    return \"\".join([chr(((ord(ch) - 5 - ord(\"a\")) % 26) + ord(\"a\")) for ch in s])\n```",
+  "score": 3,
+  "cost": 2.49e-05,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 39
+  }
+}

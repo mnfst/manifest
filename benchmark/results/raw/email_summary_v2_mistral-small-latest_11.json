@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 11,
+  "response": "The SOC 2 Type II audit found no critical issues but identified three observations: insufficient access review frequency, an untested incident response plan, and incomplete vendor risk assessments. The Compliance Team requires remediation within 30 days.",
+  "score": 5,
+  "cost": 2.58e-05,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 49
+  }
+}

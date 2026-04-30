@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "The recent enterprise customer workshop highlighted critical needs for improved bulk import and SSO capabilities, strong approval of the new analytics dashboard, and unexpected interest in commercializing an internal tool. Please review the attached follow-up report to prioritize these feature requests and evaluate the potential standalone product opportunity.",
+  "score": 5,
+  "cost": 0.0068276000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 1284
+  }
+}

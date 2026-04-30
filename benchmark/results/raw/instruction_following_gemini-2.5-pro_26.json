@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle, also known as the hydrologic cycle, is the continuous movement of water on, above, and below the surface of the Earth. This immense system has no starting or ending point and is powered by the sun's energy, which drives the key processes that change water from one state to another\u2014liquid, vapor (gas), and ice (solid). The total amount of water on our planet remains relatively constant over time, but the cycle ensures it is constantly being redistributed and purified, moving between the oceans, atmosphere, and land.\n\nThe journey begins with evaporation, the process where the sun's heat transforms liquid water from oceans, lakes, and rivers into water vapor, which rises into the atmosphere. A similar process, called transpiration, occurs when plants release water vapor from their leaves. As this warm, moist air ascends, it cools, leading to condensation. During condensation, the water vapor changes back into tiny liquid water droplets or ice crystals, which cluster together to form clouds.\n\nOnce the water droplets or ice crystals within the clouds grow heavy enough, they fall back to Earth's surface as precipitation. This can take various forms depending on atmospheric temperature, including rain, snow, sleet, or hail. When the precipitation reaches the ground, it follows several paths. Some of it flows over the land as surface runoff, collecting in rivers, lakes, and eventually returning to the ocean. Other water soaks into the ground through a process called infiltration, where it can be stored as groundwater.\n\nFinally, the cycle is completed as the collected water begins its journey anew. The water in oceans, lakes, and rivers is ready to be evaporated again, the groundwater can seep into bodies of water or be taken up by plants for transpiration, and the ice and snow can melt into runoff or turn directly into vapor through sublimation. This perpetual and vital process is responsible for replenishing freshwater sources, shaping our planet's landscapes, and sustaining all life on Earth by distributing water across the globe.",
+  "score": 4,
+  "cost": 0.004055,
+  "expected": "",
+  "tokens": {
+    "input": 12,
+    "output": 404
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "**P**lants' **p**rincipal **p**rocess, **p**hotosynthesis, **p**owers **p**lanetary **p**rosperity.\n\n**P**lants **p**rocure **p**recipitation, **p**lus **p**ervasive sky **p**articles. **P**owerful **s**olar **p**hotons **p**rovide **p**ower.\n\n**S**pecial **p**lant **p**arts, **p**ossessing **s**pecial **p**igments, **p**erform this **p**rocess. **S**olar **p**ower **s**plits **p**recipitation.\n\nThe **p**rocess **p**roduces **p**ower-packed **s**ugars, **p**roviding the **p**lant's **p**rincipal **p**rovisions. **S**ugars **p**romote **p**lant **p**rosperity.\n\n**S**urplus **s**tuff **p**ushes **s**kyward.\n\n**S**imply **p**ut: **s**unshine **p**owers **p**lants, **p**roviding **p**lanetary **s**ustenance.",
+  "score": 5,
+  "cost": 0.00283875,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 282
+  }
+}

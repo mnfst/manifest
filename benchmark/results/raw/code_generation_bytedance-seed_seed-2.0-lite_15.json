@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_generation",
+  "case": 15,
+  "response": "largest = 1\nwhile n % 2 == 0:\n    largest = 2\n    n = n // 2\ni = 3\nwhile i * i <= n:\n    while n % i == 0:\n        largest = i\n        n = n // i\n    i += 2\nif n > 2:\n    largest = n\nreturn largest",
+  "score": 5,
+  "cost": 0.00143975,
+  "expected": "",
+  "tokens": {
+    "input": 151,
+    "output": 1402
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The International team is proposing a Japan expansion with a phased timeline from May to August 2024, requiring $200K budget for legal setup, localization, and a local hire. CEO approval is needed before proceeding.",
+  "score": 5,
+  "cost": 0.0005742000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 99
+  }
+}

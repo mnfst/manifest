@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 34,
+  "response": "def is_prime(num):\n    if num <= 1:\n        return False\n    for i in range(2, int(num**0.5) + 1):\n        if num % i == 0:\n            return False\n    return True\n\n    if is_prime(n):\n        return x\n    else:\n        return y",
+  "score": 3,
+  "cost": 7.68e-06,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 71
+  }
+}

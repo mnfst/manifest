@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_explanation",
+  "case": 4,
+  "response": "This code implements a **memoization decorator** that caches function results based on their input arguments. When the wrapper function is called, it checks if the result for those arguments already exists in the cache; if not, it computes and stores the result, otherwise it returns the cached value to avoid redundant computation.",
+  "score": 5,
+  "cost": 0.0003416,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 68
+  }
+}

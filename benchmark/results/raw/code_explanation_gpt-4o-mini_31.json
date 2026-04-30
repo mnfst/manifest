@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_explanation",
+  "case": 31,
+  "response": "The provided code implements the A* search algorithm, which is used to find the shortest path from a starting node to a goal node in a weighted graph. It maintains a priority queue (using a min-heap) of nodes to explore, prioritizing nodes based on the sum of the cost to reach them and a heuristic estimate of the cost to reach the goal, while avoiding revisiting nodes that have already been processed.",
+  "score": 5,
+  "cost": 7.575e-05,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 84
+  }
+}

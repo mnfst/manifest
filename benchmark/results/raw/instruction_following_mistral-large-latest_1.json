@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "instruction_following",
+  "case": 1,
+  "response": "A CPU (Central Processing Unit) executes instructions from programs by performing arithmetic, logic, control, and input/output operations to process data and manage system tasks.",
+  "score": 2,
+  "cost": 0.00022,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 32
+  }
+}

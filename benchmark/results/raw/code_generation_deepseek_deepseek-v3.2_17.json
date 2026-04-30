@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_generation",
+  "case": 17,
+  "response": "```python\n    import hashlib\n    if not text:\n        return None\n    return hashlib.md5(text.encode()).hexdigest()\n```",
+  "score": 5,
+  "cost": 6.305e-05,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 33
+  }
+}

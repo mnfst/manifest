@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_explanation",
+  "case": 27,
+  "response": "This function finds the maximum value in every contiguous sliding window of size `k` in the array `nums`, using the **monotonic decreasing deque** pattern where the deque stores indices whose corresponding values are in decreasing order, allowing each window's maximum to be retrieved in O(1) from the front.\n\nThis achieves overall O(n) time complexity since each index is pushed and popped from the deque at most once.",
+  "score": 5,
+  "cost": 0.01275,
+  "expected": "",
+  "tokens": {
+    "input": 185,
+    "output": 133
+  }
+}

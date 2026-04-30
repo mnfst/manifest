@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 45,
+  "response": "The show globe was employed until early in the 20th century.",
+  "score": 5,
+  "cost": 9.48e-06,
+  "expected": "The show globe",
+  "tokens": {
+    "input": 221,
+    "output": 16
+  }
+}

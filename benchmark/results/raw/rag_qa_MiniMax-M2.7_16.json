@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 16,
+  "response": "Approximately fifty percent more land.",
+  "score": 5,
+  "cost": 0.0009031000000000001,
+  "expected": "approximately fifty percent",
+  "tokens": {
+    "input": 249,
+    "output": 143
+  }
+}

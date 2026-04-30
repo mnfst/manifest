@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "An API, or Application Programming Interface, is like a waiter in a restaurant. Imagine you're at a restaurant, and you want to order food. You don't go into the kitchen to make your meal; instead, you tell the waiter what you want. The waiter then tells the kitchen, and later brings your food back to you.\n\nSimilarly, an API is a way for different software programs to talk to each other. When you use an app or a website, the API is what allows it to get information or send instructions to another program or service. It's the middleman that makes sure everything works smoothly without you having to see or understand all the details happening behind the scenes.",
+  "score": 2,
+  "cost": 0.0014,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 135
+  }
+}

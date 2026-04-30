@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "This code performs a **topological sort** on a directed acyclic graph (DAG) using **depth-first search (DFS)**. It recursively visits each node's descendants, appends nodes to a stack in post-order (after all their dependencies are processed), then reverses the stack to produce a valid linear ordering where each node appears before its successors.",
+  "score": 5,
+  "cost": 0.01086,
+  "expected": "",
+  "tokens": {
+    "input": 174,
+    "output": 110
+  }
+}

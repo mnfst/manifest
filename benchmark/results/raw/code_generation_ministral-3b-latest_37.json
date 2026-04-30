@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 37,
+  "response": "```python\n    return 0.5 * a * h\n```",
+  "score": 5,
+  "cost": 3.6000000000000003e-06,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 16
+  }
+}

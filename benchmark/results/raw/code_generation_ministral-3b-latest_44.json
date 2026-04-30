@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 44,
+  "response": "```python\n    vowels = {'a': 'c', 'e': 'g', 'i': 'k', 'o': 'q', 'u': 'w'}\n    vowel_map = {'A': 'C', 'E': 'G', 'I': 'K', 'O': 'Q', 'U': 'W'}\n\n    encoded = []\n    for char in message:\n        if char.islower():\n            if char in vowels:\n                encoded.append(vowels[char])\n            else:\n                encoded.append(char.upper())\n        elif char.isupper():\n            if char in vowel_map:\n                encoded.append(vowel_map[char])\n            else:\n                encoded.append(char.lower())\n        else:\n            encoded.append(char)\n    return ''.join(encoded)\n```",
+  "score": 4,
+  "cost": 1.216e-05,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 160
+  }
+}

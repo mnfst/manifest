@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_explanation",
+  "case": 4,
+  "response": "This code implements a memoization decorator that caches function results to avoid redundant computations. It uses a dictionary to store previously computed results keyed by the function's arguments, returning cached values for repeated calls with the same parameters instead of re-executing the function.",
+  "score": 5,
+  "cost": 0.001131,
+  "expected": "",
+  "tokens": {
+    "input": 87,
+    "output": 58
+  }
+}

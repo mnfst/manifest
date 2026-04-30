@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_generation",
+  "case": 16,
+  "response": "```python\n    from heapq import heappop, heappush\n\n    def neighbors(r, c, N):\n        for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:\n            nr, nc = r + dr, c + dc\n            if 0 <= nr < N and 0 <= nc < N:\n                yield nr, nc\n\n    N = len(grid)\n    min_heap = []\n\n    for r in range(N):\n        for c in range(N):\n            heappush(min_heap, (grid[r][c], [(r, c)]))\n\n    while min_heap:\n        current_value, path = heappop(min_heap)\n        if len(path) == k:\n            return [grid[r][c] for r, c in path]\n\n        last_r, last_c = path[-1]\n        for nr, nc in neighbors(last_r, last_c, N):\n            new_path = path + [(nr, nc)]\n            heappush(min_heap, (grid[nr][nc], new_path))\n```",
+  "score": 3,
+  "cost": 0.00338,
+  "expected": "",
+  "tokens": {
+    "input": 428,
+    "output": 231
+  }
+}

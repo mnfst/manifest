@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "Here are three interesting facts about the Moon:\n\n1. **The Moon is Earth\u2019s Only Natural Satellite** \u2013 The Moon is the only natural satellite of Earth and is the fifth largest satellite in the solar system. It orbits Earth at an average distance of about **384,400 kilometers (238,855 miles)**.\n\n2. **It Has No Atmosphere (But Not Completely Empty)** \u2013 The Moon lacks a significant atmosphere (called an *exosphere*), which means there\u2019s almost no air to breathe or protect against space radiation. However, it does have trace gases like helium, neon, and argon trapped in its soil.\n\n3. **The Same Side Always Faces Earth (But It\u2019s Not Really \"Still\")** \u2013 The Moon is tidally locked to Earth, meaning the same side always faces us. However, it slowly rotates (a **27.3-day period**), causing the **Moon\u2019s libration**\u2014a slight wobble that lets us see about **59% of its surface** over time.",
+  "score": 4,
+  "cost": 9.6e-06,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 217
+  }
+}

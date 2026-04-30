@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 18,
+  "response": "The VP of Engineering sent an email with the subject line \u201cTeam Restructuring Proposal\u201d that puts forward a plan to split the existing Platform team into two separate groups, Infrastructure (which will manage networking, compute, and storage) and Developer Experience (which will oversee CI/CD, internal tooling, and new hire onboarding), to fix the persistent bottleneck of critical Developer Experience work always losing priority to unplanned infrastructure incidents. The email includes an attached draft org chart outlining the proposed new team structure, and all relevant team stakeholders are expected to review the full proposal and supporting materials to provide feedback before any final decision is made about moving forward with the restructuring.",
+  "score": 4,
+  "cost": 0.00098225,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 948
+  }
+}

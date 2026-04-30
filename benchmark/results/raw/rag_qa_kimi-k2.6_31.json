@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "rag_qa",
+  "case": 31,
+  "response": "Sharia",
+  "score": 0,
+  "cost": 0.00042239999999999997,
+  "expected": "Sharia",
+  "tokens": {
+    "input": 176,
+    "output": 132
+  }
+}

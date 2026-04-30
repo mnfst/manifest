@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "Chocolate is like a warm, velvety whisper on the tongue\u2014smooth and rich, melting into a dance of sweetness and depth, where a hint of bitterness lingers like the last note of a song.",
+  "score": 5,
+  "cost": 1.7299999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 29,
+    "output": 48
+  }
+}

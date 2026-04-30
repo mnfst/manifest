@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "rag_qa",
+  "case": 25,
+  "response": "Based on the context provided, **infrastructure** suffered considerably in Warsaw during its time as an Eastern Bloc economy.",
+  "score": 5,
+  "cost": 0.0002424,
+  "expected": "infrastructure",
+  "tokens": {
+    "input": 173,
+    "output": 26
+  }
+}

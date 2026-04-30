@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_generation",
+  "case": 4,
+  "response": "if len(l) <= 2:\n        return True\n    inc = all(l[i] <= l[i+1] for i in range(len(l)-1))\n    dec = all(l[i] >= l[i+1] for i in range(len(l)-1))\n    return inc or dec",
+  "score": 5,
+  "cost": 9.845000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 62
+  }
+}

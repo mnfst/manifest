@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Stay hydrated in style with this durable, BPA-free water bottle designed for active lifestyles and everyday use. Featuring double-wall insulation to keep drinks cold for up to 24 hours or hot for 12 hours, plus a leak-proof cap and wide mouth for easy filling and cleaning. The sleek, ergonomic design fits most cup holders and includes a convenient carry loop for hands-free transport.",
+  "score": 3,
+  "cost": 0.001476,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 94
+  }
+}

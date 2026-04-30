@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_explanation",
+  "case": 0,
+  "response": "This Python function calculates the nth number of the Fibonacci sequence using **recursion**, where it defines base cases for `n <= 1` and then computes each subsequent number as the sum of the two preceding ones by calling itself.",
+  "score": 5,
+  "cost": 3.6899999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 45
+  }
+}

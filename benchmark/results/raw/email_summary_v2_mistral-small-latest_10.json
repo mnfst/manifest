@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "The CEO shared a draft Q1 board deck highlighting strong revenue performance (127% of target) and solid NRR (115%), but noted a 22% increase in CAC. They requested the product roadmap section by Wednesday, as the board meeting is next Tuesday.",
+  "score": 5,
+  "cost": 2.85e-05,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 61
+  }
+}

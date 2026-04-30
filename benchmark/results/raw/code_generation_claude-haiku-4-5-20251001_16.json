@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 16,
+  "response": "```python\ndef minPath(grid, k):\n    n = len(grid)\n    \n    # Find the position of each value in the grid\n    pos = {}\n    for i in range(n):\n        for j in range(n):\n            pos[grid[i][j]] = (i, j)\n    \n    # Start from the cell with value 1\n    start_i, start_j = pos[1]\n    \n    # DFS with memoization to find the minimum path\n    memo = {}\n    \n    def dfs(i, j, remaining):\n        # remaining is the number of cells we still need to visit\n        if remaining == 0:\n            return []\n        \n        if (i, j, remaining) in memo:\n            return memo[(i, j, remaining)]\n        \n        current_val = grid[i][j]\n        \n        # If this is the last cell we need to visit\n        if remaining == 1:\n            return [current_val]\n        \n        # Try all four directions\n        best_path = None\n        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]\n        \n        for di, dj in directions:\n            ni, nj = i + di, j + dj\n            \n            # Check bounds\n            if 0 <= ni < n and 0 <= nj < n:\n                next_path = dfs(ni, nj, remaining - 1)\n                candidate = [current_val] + next_path\n                \n                # Update best_path if this is better lexicographically\n                if best_path is None or candidate < best_path:\n                    best_path = candidate\n        \n        memo[(i, j, remaining)] = best_path\n        return best_path\n    \n    result = dfs(start_i, start_j, k)\n    return result\n```",
+  "score": 3,
+  "cost": 0.0021736,
+  "expected": "",
+  "tokens": {
+    "input": 462,
+    "output": 451
+  }
+}

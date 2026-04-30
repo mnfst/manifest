@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 6,
+  "response": "Acme Corp, a $450K ARR customer, is threatening to churn due to ongoing API latency spikes and a five-day lack of support response, prompting their CTO to escalate directly. James has assigned a dedicated engineer to the account and requires an executive sponsor to join a call with them this week.",
+  "score": 5,
+  "cost": 0.0008717999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 338
+  }
+}

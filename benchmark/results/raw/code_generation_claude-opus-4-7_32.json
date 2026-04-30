@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_generation",
+  "case": 32,
+  "response": "```\n    return ' '.join(''.join(sorted(word)) for word in s.split(' '))\n```",
+  "score": 5,
+  "cost": 0.006705,
+  "expected": "",
+  "tokens": {
+    "input": 257,
+    "output": 38
+  }
+}

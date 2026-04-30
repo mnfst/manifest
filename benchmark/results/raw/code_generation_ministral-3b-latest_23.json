@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 23,
+  "response": "```python\n    min_sum = float('inf')\n    current_sum = 0\n    for num in nums:\n        current_sum += num\n        if current_sum < min_sum:\n            min_sum = current_sum\n        if current_sum > 0:\n            current_sum = 0\n    return min_sum\n```",
+  "score": 4,
+  "cost": 7.36e-06,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 67
+  }
+}

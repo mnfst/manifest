@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_generation",
+  "case": 16,
+  "response": "n = len(grid)\n    \n    # Find position of minimum value (which is 1)\n    min_pos = None\n    for i in range(n):\n        for j in range(n):\n            if grid[i][j] == 1:\n                min_pos = (i, j)\n                break\n        if min_pos:\n            break\n    \n    # Get neighbors of the minimum position\n    neighbors = []\n    directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]\n    \n    for di, dj in directions:\n        ni, nj = min_pos[0] + di, min_pos[1] + dj\n        if 0 <= ni < n and 0 <= nj < n:\n            neighbors.append(grid[ni][nj])\n    \n    # Find the minimum neighbor value\n    min_neighbor = min(neighbors)\n    \n    # Build the path\n    result = [1]  # Start with the minimum value\n    \n    for i in range(1, k):\n        if i % 2 == 1:  # Odd positions: go to minimum neighbor\n            result.append(min_neighbor)\n        else:  # Even positions: go back to 1\n            result.append(1)\n    \n    return result",
+  "score": 3,
+  "cost": 0.006126,
+  "expected": "",
+  "tokens": {
+    "input": 462,
+    "output": 316
+  }
+}

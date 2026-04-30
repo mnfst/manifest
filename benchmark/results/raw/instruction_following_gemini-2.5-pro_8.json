@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Imagine a special notebook that all your friends have a copy of. When you write something new in it, like \"I shared my cookie,\" it magically appears in everyone else's notebook too. Because everyone has a copy, no one can secretly erase what you wrote, so we all know the real story forever.",
+  "score": 5,
+  "cost": 0.0006525,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 63
+  }
+}

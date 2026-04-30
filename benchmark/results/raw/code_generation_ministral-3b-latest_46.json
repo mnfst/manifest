@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 46,
+  "response": "```python\n    min_even = None\n    min_index = -1\n\n    for i, num in enumerate(arr):\n        if num % 2 == 0:\n            if min_even is None or num < min_even:\n                min_even = num\n                min_index = i\n\n    if min_even is not None:\n        return [min_even, min_index]\n    else:\n        return []\n```",
+  "score": 4,
+  "cost": 1.7480000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 347,
+    "output": 90
+  }
+}

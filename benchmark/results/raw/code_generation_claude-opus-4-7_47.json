@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_generation",
+  "case": 47,
+  "response": "```python\n    return ' '.join(str(i) for i in range(n + 1))\n```",
+  "score": 5,
+  "cost": 0.00468,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 32
+  }
+}

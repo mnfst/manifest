@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "structured_output",
+  "case": 3,
+  "response": "```json\n{\n  \"flight_number\": \"AA123\",\n  \"origin\": \"JFK\",\n  \"destination\": \"LAX\",\n  \"departure\": \"3:45pm\",\n  \"arrival\": \"6:30pm\",\n  \"date\": \"March 5\",\n  \"class\": \"Economy\",\n  \"stops\": 1,\n  \"stop_cities\": [\"Dallas\"]\n}\n```",
+  "score": 5,
+  "cost": 0.0017347000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 357
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_generation",
+  "case": 15,
+  "response": "largest = -1\n    while n % 2 == 0:\n        largest =",
+  "score": 2,
+  "cost": 0.004857,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 2000
+  }
+}

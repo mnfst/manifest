@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "structured_output",
+  "case": 23,
+  "response": "{\"type\":\"delivery_notification\",\"tracking_number\":\"TRK-99281\",\"status\":\"delivered\",\"delivery_location\":\"front door\",\"delivery_time\":\"2:15 PM\",\"delivery_date\":\"March 12\",\"signed_by\":\"M. Johnson\",\"carrier\":\"FedEx\"}",
+  "score": 5,
+  "cost": 0.00966,
+  "expected": "",
+  "tokens": {
+    "input": 164,
+    "output": 96
+  }
+}

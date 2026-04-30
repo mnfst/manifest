@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 9,
+  "response": "70\u00b0F (Not found in context for exact degrees, but the context states winters are in the **70s**\u2014so the high end is **around 70\u00b0F**).",
+  "score": 4,
+  "cost": 7.4e-06,
+  "expected": "70",
+  "tokens": {
+    "input": 144,
+    "output": 41
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "rag_qa",
+  "case": 19,
+  "response": "Advancements in communication.",
+  "score": 2,
+  "cost": 2.67e-05,
+  "expected": "communication",
+  "tokens": {
+    "input": 158,
+    "output": 5
+  }
+}

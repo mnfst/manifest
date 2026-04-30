@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "rag_qa",
+  "case": 21,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 2.3100000000000002e-05,
+  "expected": "anaerobic bacteria",
+  "tokens": {
+    "input": 213,
+    "output": 6
+  }
+}

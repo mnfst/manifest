@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "rag_qa",
+  "case": 7,
+  "response": "The mass of the system.",
+  "score": 0,
+  "cost": 0.0010746,
+  "expected": "mass of the system",
+  "tokens": {
+    "input": 163,
+    "output": 407
+  }
+}

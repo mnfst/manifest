@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Crispy crust. Golden cheese. Tangy sauce. Fresh basil. Spicy pepperoni. Smoky char. Bubbly mozzarella. Aromatic garlic. Ripe tomatoes. Hearty slices. Savory perfection. Warm dough. Salty olives. Sweet onions. Fragrant oregano. Rustic edges. Glossy oil. Melty goodness. Italian classic.",
+  "score": 5,
+  "cost": 0.01161,
+  "expected": "",
+  "tokens": {
+    "input": 34,
+    "output": 148
+  }
+}

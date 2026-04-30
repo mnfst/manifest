@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "This code implements topological sorting using depth-first search (DFS) to find a linear ordering of vertices in a directed acyclic graph where each vertex appears before all vertices it has edges to. The algorithm performs DFS on each unvisited node, adds nodes to a stack in post-order (after visiting all descendants), then returns the reversed stack to get the correct topological order.",
+  "score": 5,
+  "cost": 0.001662,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 84
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 2,
+  "response": "Based on the provided context, colonialism often means **a country taking physical control of another and exploiting its valuable assets and supplies, with the conquering nation gaining benefits from the spoils**.\n\nThe context states: \"Colonialism's core meaning is the exploitation of the valuable assets and supplies of the nation that was conquered and the conquering nation then gaining the benefits from the spoils of the war.\"",
+  "score": 4,
+  "cost": 0.0016775000000000002,
+  "expected": "taking physical control of another",
+  "tokens": {
+    "input": 317,
+    "output": 302
+  }
+}

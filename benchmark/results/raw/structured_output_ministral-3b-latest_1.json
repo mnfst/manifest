@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "structured_output",
+  "case": 1,
+  "response": "Here is the extracted information in valid JSON matching the provided schema:\n\n```json\n{\n  \"title\": \"Q4 Planning\",\n  \"date\": \"Dec 15 2024\",\n  \"time\": \"2pm\",\n  \"attendees\": [\"Alice\", \"Bob\", \"Charlie\"],\n  \"room\": \"301B\"\n}\n```",
+  "score": 5,
+  "cost": 6.5999999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 77
+  }
+}

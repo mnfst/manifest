@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "rag_qa",
+  "case": 36,
+  "response": "Gaseous oxygen.",
+  "score": 1,
+  "cost": 0.00024875,
+  "expected": "gaseous oxygen.",
+  "tokens": {
+    "input": 159,
+    "output": 5
+  }
+}

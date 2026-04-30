@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "rag_qa",
+  "case": 0,
+  "response": "Lake \u00dcberlingen.",
+  "score": 0,
+  "cost": 0.0006225,
+  "expected": "Lake \u00dcberlingen",
+  "tokens": {
+    "input": 233,
+    "output": 4
+  }
+}

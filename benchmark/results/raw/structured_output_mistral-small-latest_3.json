@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "structured_output",
+  "case": 3,
+  "response": "```json\n{\n  \"flight_number\": \"AA123\",\n  \"origin\": \"JFK\",\n  \"destination\": \"LAX\",\n  \"departure\": \"15:45\",\n  \"arrival\": \"18:30\",\n  \"date\": \"March 5\",\n  \"class\": \"Economy\",\n  \"stops\": 1,\n  \"stop_cities\": [\"Dallas\"]\n}\n```",
+  "score": 5,
+  "cost": 4.1299999999999994e-05,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 95
+  }
+}

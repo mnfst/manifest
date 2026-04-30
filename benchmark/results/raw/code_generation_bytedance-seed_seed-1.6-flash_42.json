@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_generation",
+  "case": 42,
+  "response": "if n > m:\n        return -1\n    avg = (n + m) / 2\n    rounded = round(avg)\n    return bin(rounded)",
+  "score": 4,
+  "cost": 0.00049725,
+  "expected": "",
+  "tokens": {
+    "input": 266,
+    "output": 1591
+  }
+}

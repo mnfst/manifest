@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_generation",
+  "case": 8,
+  "response": "return [x for x in values if isinstance(x, int) and not isinstance(x, bool)]",
+  "score": 5,
+  "cost": 0.004293,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 1758
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "Here are 3 facts about the moon:\n\n1. The moon is Earth's only natural satellite and is about 1/4 the diameter of Earth, making it the fifth-largest moon in the solar system.\n\n2. The moon is slowly drifting away from Earth at a rate of approximately 3.8 centimeters (1.5 inches) per year.\n\n3. The same side of the moon always faces Earth due to a phenomenon called tidal locking, meaning we never see the \"far side\" of the moon from our planet without the help of spacecraft.",
+  "score": 5,
+  "cost": 0.01359,
+  "expected": "",
+  "tokens": {
+    "input": 36,
+    "output": 174
+  }
+}

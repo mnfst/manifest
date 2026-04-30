@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "code_generation",
+  "case": 12,
+  "response": "return [s for s in strings if substring in s]",
+  "score": 4,
+  "cost": 7.6e-05,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 13
+  }
+}

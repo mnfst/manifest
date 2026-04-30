@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 39,
+  "response": "The **Year-End Audit** begins on **January 15**, requiring completion of tasks like finalizing **Q4 revenue recognition**, reconciling **all bank accounts**, verifying **stock option records**, and preparing **related-party transaction disclosures**. The **Finance team** will hold a meeting next Tuesday to **assign responsibilities**.",
+  "score": 5,
+  "cost": 6.560000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 69
+  }
+}

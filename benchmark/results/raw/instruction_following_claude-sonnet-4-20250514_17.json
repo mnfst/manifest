@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 17,
+  "response": "| **Pros of Remote Work** | **Cons of Remote Work** |\n|-------------------------|-------------------------|\n| **Flexibility and Work-Life Balance** - Better control over schedule and more time with family | **Isolation and Loneliness** - Reduced social interaction and potential feelings of disconnection |\n| **No Commute** - Saves time, money, and reduces stress from daily travel | **Communication Challenges** - Harder to collaborate spontaneously and potential for miscommunication |\n| **Increased Productivity** - Fewer office distractions and ability to create personalized work environment | **Home Distractions** - Household responsibilities, family interruptions, and difficulty separating work/personal space |",
+  "score": 5,
+  "cost": 0.002475,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 160
+  }
+}

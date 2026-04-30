@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 26,
+  "response": "The Privacy Team has received a GDPR data export request (due by **May 25**) from user ID **45892**, requiring all personal data, processing purposes documentation, and a log of third-party data sharing\u2014including analytics data as legally mandated.\n\n**Action:** Compile and submit the requested materials by the deadline.",
+  "score": 5,
+  "cost": 7e-06,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 70
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 1,
+  "response": "The email reports a server outage caused by a misconfigured load balancer at 2:14 PM, affecting 47 minutes of service and 12,000 users. Jen outlines action items including adding LB config validation to CI, updating the runbook, and implementing traffic distribution alerts, with the full post-mortem document attached.",
+  "score": 5,
+  "cost": 3.43e-05,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 75
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "The sprint retrospective highlighted the successful on-time delivery of the auth redesign and strong cross-team design collaboration, while identifying excessive context switching and standups running over time as key areas needing improvement. To address these issues, the team will limit work in progress to two items per developer and implement timeboxed standups with a parking lot for side discussions.",
+  "score": 5,
+  "cost": 0.000843,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 325
+  }
+}

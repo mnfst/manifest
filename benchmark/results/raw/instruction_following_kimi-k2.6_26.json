@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle, also known as the hydrologic cycle, is the continuous movement of water on, above, and below Earth's surface. It begins primarily through evaporation, where heat from the sun transforms liquid water from oceans, lakes, and rivers into water vapor that rises into the atmosphere. Plants also contribute through transpiration, releasing water vapor from their leaves into the air. Together, these processes infuse the atmosphere with moisture, setting the stage for the cycle's next phase.\n\nAs water vapor ascends into cooler regions of the atmosphere, it undergoes condensation. The drop in temperature causes the water vapor to change back into tiny liquid water droplets or ice crystals, which cluster together to form clouds. This transformation occurs around microscopic particles like dust, salt, or smoke, which provide surfaces for the droplets to form. Without condensation, the water vapor would remain dispersed in the atmosphere, unable to return to Earth's surface.\n\nWhen these water droplets or ice crystals combine and grow heavy enough, gravity pulls them back to Earth as precipitation in the form of rain, snow, sleet, or hail. Once on the ground, the water follows various paths: some flows across the land as runoff, replenishing rivers, lakes, and eventually oceans; some infiltrates the soil to become groundwater, feeding aquifers and springs; and some may be frozen in glaciers or ice caps for thousands of years.\n\nRegardless of its temporary resting place, the water cycle never truly ends. Water constantly evaporates from surface water bodies, transpires from vegetation, and seeps through the ground, ensuring the perpetual circulation of Earth's most vital resource. This endless loop regulates global temperatures, shapes weather patterns, and distributes fresh water across the planet, making it fundamental to all known forms of life.",
+  "score": 3,
+  "cost": 0.002178,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 903
+  }
+}

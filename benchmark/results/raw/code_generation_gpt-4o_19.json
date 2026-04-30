@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_generation",
+  "case": 19,
+  "response": "```python\n    return \"\".join([chr(((ord(ch) - 5 - ord(\"a\")) % 26) + ord(\"a\")) for ch in s])\n```",
+  "score": 3,
+  "cost": 0.000665,
+  "expected": "",
+  "tokens": {
+    "input": 122,
+    "output": 36
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 39,
+  "response": "### **Q&A: What Does a VPN Do?**\n\n#### **Q: What is a VPN?**\nA **VPN (Virtual Private Network)** is a private network that creates a secure, encrypted connection between your device and a server operated by the VPN provider. This connection allows you to access the internet while protecting your privacy and security.\n\n---\n\n#### **Q: Why do people use a VPN?**\nPeople use a VPN for several reasons, including:\n- **Privacy & Security** \u2013 Hides your IP address and encrypts your internet traffic to prevent hackers, ISPs, or government surveillance from tracking your online activity.\n- **Bypassing Geo-Restrictions** \u2013 Allows access to websites, streaming services, or content that may be blocked in your country (e.g., Netflix, Hulu, or regional news).\n- **Safe Public Wi-Fi Use** \u2013 Protects against man-in-the-middle attacks when connecting to unsecured public networks (e.g., cafes, airports).\n- **Avoiding ISP Throttling** \u2013 Prevents your internet service provider (ISP) from slowing down your speed based on your browsing habits.\n- **Accessing Corporate Networks Securely** \u2013 Enables secure remote work by connecting to company networks securely.\n\n---\n\n#### **Q: How does a VPN work?**\nA VPN works by:\n1. **Encrypting Your Data** \u2013 Your internet traffic is scrambled into unreadable code, preventing anyone (including your ISP) from seeing what you\u2019re doing.\n2. **Routing Traffic Through a Server** \u2013 Instead of connecting directly to the internet, your device sends data through a VPN server in another location.\n3. **Changing Your IP Address** \u2013 The VPN assigns you a new IP address from its server location, making it appear as if you\u2019re browsing from that location.\n4. **Securing Connections** \u2013 Uses protocols like **OpenVPN, WireGuard, or IKEv2** to ensure a secure tunnel between your device and the VPN server.\n\n---\n\n#### **Q: What are the risks of using a VPN?**\nWhile VPNs offer many benefits, there are some potential risks:\n- **Privacy Concerns** \u2013 Some VPN providers may log your activity (even if they claim not to). Always check a VPN\u2019s **no-logs policy**.\n- **Performance Slowdown** \u2013 Encryption can slightly reduce internet speed, especially with poor server connections.\n- **Malware Risk**",
+  "score": 4,
+  "cost": 2.068e-05,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 500
+  }
+}

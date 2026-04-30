@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "rag_qa",
+  "case": 47,
+  "response": "The Urarina",
+  "score": 5,
+  "cost": 2.4599999999999998e-05,
+  "expected": "Urarina",
+  "tokens": {
+    "input": 148,
+    "output": 4
+  }
+}

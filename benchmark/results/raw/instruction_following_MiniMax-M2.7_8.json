@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Imagine you have a magic toy box that everyone can see, but nobody can secretly change what's inside. When you put a toy in, everyone knows it's there, and once it's in, it can't be taken out or changed without everyone noticing. That's kind of like a blockchain!",
+  "score": 5,
+  "cost": 0.0016588,
+  "expected": "",
+  "tokens": {
+    "input": 36,
+    "output": 368
+  }
+}

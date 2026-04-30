@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_generation",
+  "case": 1,
+  "response": "```python\n    def max_depth(s):\n        depth = 0\n        max_d = 0\n        for c in s:\n            if c == '(':\n                depth += 1\n                if depth > max_d:\n                    max_d = depth\n            elif c == ')':\n                depth -= 1\n        return max_d\n    return [max_depth(g) for g in paren_string.split() if g]\n```",
+  "score": 4,
+  "cost": 0.01242,
+  "expected": "",
+  "tokens": {
+    "input": 218,
+    "output": 122
+  }
+}

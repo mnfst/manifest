@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "rag_qa",
+  "case": 26,
+  "response": "KMJ-TV was the very first television station to broadcast in Fresno.",
+  "score": 5,
+  "cost": 0.0006425,
+  "expected": "KMJ-TV",
+  "tokens": {
+    "input": 201,
+    "output": 14
+  }
+}

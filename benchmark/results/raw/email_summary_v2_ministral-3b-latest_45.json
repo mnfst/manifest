@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 45,
+  "response": "The email outlines a server outage caused by a misconfigured load balancer, affecting 12,000 users for 47 minutes, and outlines three key action items: integrating load balancer configuration validation into CI/CD pipelines, updating the incident response runbook, and implementing alerts for traffic distribution issues. Jen requests review of the full post-mortem documentation.",
+  "score": 4,
+  "cost": 7.360000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 78
+  }
+}

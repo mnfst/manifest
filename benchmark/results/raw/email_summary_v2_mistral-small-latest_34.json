@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 34,
+  "response": "The email outlines a plan to migrate from MySQL 5.7 to PostgreSQL 16 between May and July, with key phases including schema conversion, dual-write testing, and final cutover, while addressing risks like rewriting 3 stored procedures. The team aims for zero downtime using a blue-green deployment and confirms the testing environment is ready.",
+  "score": 5,
+  "cost": 3.29e-05,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 73
+  }
+}

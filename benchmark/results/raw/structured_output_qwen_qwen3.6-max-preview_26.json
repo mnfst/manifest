@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "structured_output",
+  "case": 26,
+  "response": "{\n  \"title\": \"Team standup\",\n  \"recurrence\": \"weekdays\",\n  \"time_start\": \"9:00 AM\",\n  \"time_end\": \"9:15 AM\",\n  \"timezone\": \"PST\",\n  \"meeting_link\": \"meet.google.com/abc-defg-hij\",\n  \"organizer\": \"sarah@company.com\"\n}",
+  "score": 5,
+  "cost": 0.0060255,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 1130
+  }
+}

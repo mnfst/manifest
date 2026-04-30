@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 15,
+  "response": "Legal approved the updated terms with two required changes: adding an arbitration clause for the enterprise tier and revising the data retention period to 90 days. The updated terms must go live before the EU launch on May 1, and the final version will be prepared today.",
+  "score": 5,
+  "cost": 0.0012936,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 514
+  }
+}

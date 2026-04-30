@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "instruction_following",
+  "case": 27,
+  "response": "**Mammals**\n- Dog\n- Elephant\n- Whale\n\n**Birds**\n- Eagle\n- Penguin\n- Robin\n\n**Fish**\n- Salmon\n- Goldfish\n- Shark",
+  "score": 5,
+  "cost": 0.000378,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 151
+  }
+}

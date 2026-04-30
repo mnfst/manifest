@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "rag_qa",
+  "case": 15,
+  "response": "Prussia",
+  "score": 5,
+  "cost": 2.4100000000000003e-05,
+  "expected": "Prussia",
+  "tokens": {
+    "input": 232,
+    "output": 3
+  }
+}

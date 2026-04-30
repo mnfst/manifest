@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_generation",
+  "case": 40,
+  "response": "```python\nif a < 0:\n    a = -a\ncube_root = round(a ** (1/3))\nreturn cube_root ** 3 == a\n```",
+  "score": 4,
+  "cost": 0.000715,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 36
+  }
+}

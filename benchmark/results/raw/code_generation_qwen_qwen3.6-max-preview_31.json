@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_generation",
+  "case": 31,
+  "response": "return sorted([s for s in lst if len(s) % 2 == 0], key=lambda s: (len(s), s))",
+  "score": 4,
+  "cost": 0.0081588,
+  "expected": "",
+  "tokens": {
+    "input": 236,
+    "output": 1510
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_generation",
+  "case": 19,
+  "response": "return \"\".join([chr(((ord(ch) - 5 - ord(\"a\")) % 26) + ord(\"a\")) for ch in s])",
+  "score": 3,
+  "cost": 0.0013665749999999999,
+  "expected": "",
+  "tokens": {
+    "input": 209,
+    "output": 4503
+  }
+}

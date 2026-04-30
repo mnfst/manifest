@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "email_summary_v2",
+  "case": 16,
+  "response": "April marketing campaign results include 45K impressions, 2.3K clicks (5.1% CTR), 187 signups (8.1% conversion), a $12K cost, and a $64 CAC, with CTR up 1.2pp but conversion down 0.8pp compared to March. The recommendation is to A/B test the landing page CTA.",
+  "score": 5,
+  "cost": 0.000116625,
+  "expected": "",
+  "tokens": {
+    "input": 199,
+    "output": 339
+  }
+}

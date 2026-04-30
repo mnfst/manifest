@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_explanation",
+  "case": 8,
+  "response": "This is a **debounce decorator** that delays a function's execution until `wait` seconds have passed since its last invocation\u2014each new call cancels the previously scheduled `threading.Timer` and starts a fresh one, so the wrapped function only actually runs after a quiet period with no further calls.",
+  "score": 5,
+  "cost": 0.009555,
+  "expected": "",
+  "tokens": {
+    "input": 162,
+    "output": 95
+  }
+}

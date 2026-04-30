@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_explanation",
+  "case": 9,
+  "response": "The provided code defines a decorator function `retry` that allows a specified function (`fn`) to be retried a certain number of times (`max_attempts`) with an exponential backoff delay (`delay`) between attempts. If the function raises an exception, it will retry the function, increasing the wait time exponentially (doubling the delay after each failed attempt) until the maximum number of attempts is reached, at which point it re-raises the last exception encountered.",
+  "score": 5,
+  "cost": 7.305e-05,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 93
+  }
+}

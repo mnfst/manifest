@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "The recruiting team\u2019s engineering hiring update shares that there are 4 open requisitions for engineering roles\u20142 backend, 1 frontend, and 1 machine learning\u2014with 23 total candidates in the process and 5 currently in final interview rounds. The team flags a critical concern that the frontend role has remained open for 60 days with no strong applicants, and recommends two actionable adjustments to attract more qualified talent: expanding the role to accept remote hires or updating its compensation band.",
+  "score": 5,
+  "cost": 0.000628,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 592
+  }
+}

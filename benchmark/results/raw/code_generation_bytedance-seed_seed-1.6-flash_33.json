@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_generation",
+  "case": 33,
+  "response": "if a <= 0 or b <= 0 or c <= 0:\n        return False\n    max_side = max(a, b, c)\n    sides = [a, b, c]\n    sides.remove(max_side)\n    return sum(x**2 for x in sides) == max_side ** 2",
+  "score": 5,
+  "cost": 0.00121725,
+  "expected": "",
+  "tokens": {
+    "input": 226,
+    "output": 4001
+  }
+}

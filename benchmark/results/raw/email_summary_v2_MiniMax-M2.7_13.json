@@ -2,12 +2,12 @@
   "model": "MiniMax-M2.7",
   "task": "email_summary_v2",
   "case": 13,
-  "response": "The Q1 customer success metrics show strong performance with NPS at 62 (up from 58), CSAT at 4.3/5, and churn down to 1.2%. Top feature requests are SSO, custom dashboards, and API rate limit increases, while 3 enterprise expansions totaling $800K are in the pipeline.",
+  "response": "Q1 showed strong performance with NPS at 62 (up 4 points), CSAT at 4.3/5, and churn reduced to 1.2%; top feature requests are SSO, custom dashboards, and API rate limit increases. Three enterprise expansions worth $800K are currently in the pipeline.",
   "score": 5,
-  "cost": 0.0015873000000000003,
+  "cost": 0.0009097000000000002,
   "expected": "",
   "tokens": {
     "input": 127,
-    "output": 329
+    "output": 175
   }
 }

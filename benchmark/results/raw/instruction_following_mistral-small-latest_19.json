@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "\"AI isn\u2019t just the future\u2014it\u2019s the present. From writing code to composing music, it\u2019s reshaping creativity, work, and daily life. The question isn\u2019t *if* it\u2019ll change everything, but *how fast*. What\u2019s the wildest way you\u2019ve seen AI in action? \ud83e\udd16\u2728 #AI #TechRevolution\"",
+  "score": 5,
+  "cost": 2.57e-05,
+  "expected": "",
+  "tokens": {
+    "input": 29,
+    "output": 76
+  }
+}

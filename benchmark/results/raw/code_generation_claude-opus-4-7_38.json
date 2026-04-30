@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_generation",
+  "case": 38,
+  "response": "```\n    neg = [x for x in lst if x < 0]\n    pos = [x for x in lst if x > 0]\n    return (max(neg) if neg else None, min(pos) if pos else None)\n```",
+  "score": 5,
+  "cost": 0.008805,
+  "expected": "",
+  "tokens": {
+    "input": 237,
+    "output": 70
+  }
+}

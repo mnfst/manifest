@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "The old lighthouse keeper found a message in a bottle, its paper yellowed with age. Inside was a single sentence: *\"I\u2019m coming home.\"* That night, a storm raged, and the keeper swore he saw a shadowy figure on the rocks below. By dawn, the bottle was gone, and so was the figure. Years later, the keeper\u2019s grandson discovered the same message in a new bottle, dated the same day. The cycle began again, as if time itself refused to let go.",
+  "score": 5,
+  "cost": 3.3700000000000006e-05,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 104
+  }
+}

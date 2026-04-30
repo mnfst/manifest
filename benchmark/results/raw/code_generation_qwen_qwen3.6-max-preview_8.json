@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_generation",
+  "case": 8,
+  "response": "return [x for x in values if isinstance(x, int)]",
+  "score": 5,
+  "cost": 0.0084201,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 1586
+  }
+}

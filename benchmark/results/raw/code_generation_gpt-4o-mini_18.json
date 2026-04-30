@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_generation",
+  "case": 18,
+  "response": "```python\ndef is_prime(n):\n    if n <= 1:\n        return False\n    for i in range(2, int(n**0.5) + 1):\n        if n % i == 0:\n            return False\n    return True\n\nwords = sentence.split()\nprime_length_words = [word for word in words if is_prime(len(word))]\nreturn ' '.join(prime_length_words)\n```",
+  "score": 5,
+  "cost": 7.845000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 179,
+    "output": 86
+  }
+}

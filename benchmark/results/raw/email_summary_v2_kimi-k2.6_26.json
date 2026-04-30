@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 26,
+  "response": "The Privacy Team received a GDPR data export request from user ID 45892 requiring the compilation of all personal data across services\u2014including analytics\u2014along with processing purposes documentation and third-party data sharing logs. All requested materials must be gathered and delivered within 30 days, with a firm deadline of May 25.",
+  "score": 5,
+  "cost": 0.0015623999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 626
+  }
+}

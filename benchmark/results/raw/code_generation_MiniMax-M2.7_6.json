@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_generation",
+  "case": 6,
+  "response": "counts = {}\n    for num in numbers:\n        counts[num] = counts.get(num, 0) + 1\n    return [num for num in numbers if counts[num] == 1]",
+  "score": 5,
+  "cost": 0.0025531000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 547
+  }
+}

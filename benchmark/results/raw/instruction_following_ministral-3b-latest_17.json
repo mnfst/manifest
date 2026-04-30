@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 17,
+  "response": "Here\u2019s a table summarizing **three pros and three cons of remote work**:\n\n| **Aspect**       | **Pros**                                                                 | **Cons**                                                                 |\n|------------------|-------------------------------------------------------------------------|-------------------------------------------------------------------------|\n| **Pros**         |                                                                         |                                                                         |\n| **Flexibility**  | Employees can work from anywhere, reducing commute time and costs.     |                                                                         |\n| **Productivity** | Many remote workers report higher productivity due to fewer distractions. |                                                                         |\n| **Cost Savings** | Companies save on office space, utilities, and employee benefits.      |                                                                         |\n| **Cons**         |                                                                         |                                                                         |\n| **Communication**| Potential challenges in team collaboration and real-time decision-making. |                                                                         |\n| **Isolation**    | Employees may feel disconnected from colleagues and company culture.   |                                                                         |\n| **Technology**   | Requires reliable internet, hardware, and training for remote tools.    |                                                                         |",
+  "score": 3,
+  "cost": 9.04e-06,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 207
+  }
+}

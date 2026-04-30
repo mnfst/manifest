@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "- Date, time, and precise location of the crash, including weather and road conditions.  \n- Vehicles involved, driver information, passenger count, injuries sustained, and estimated property damage.  \n- Preliminary cause of the accident, witness statements, and police findings or citations issued.",
+  "score": 5,
+  "cost": 0.0032142000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 50,
+    "output": 718
+  }
+}

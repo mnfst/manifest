@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "# LRU Cache Decorator\n\nThis code implements a **Least Recently Used (LRU) cache** decorator that memoizes function results and automatically evicts the least recently accessed entry when the cache exceeds its maximum size. When a cached result is accessed, it's moved to the end of the OrderedDict to mark it as recently used, and if the cache overflows, the oldest (first) item is removed.",
+  "score": 5,
+  "cost": 0.000488,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 93
+  }
+}

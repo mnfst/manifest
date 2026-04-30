@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 33,
+  "response": "```python\n    sides_squared = [x**2 for x in (a, b, c)]\n    sides_squared.sort()\n    return sides_squared[0] + sides_squared[1] == sides_squared[2]\n```",
+  "score": 5,
+  "cost": 7.719999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 52
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "structured_output",
+  "case": 30,
+  "response": "Here is the extracted information in valid JSON matching the provided schema:\n\n```json\n{\n  \"name\": \"Bitcoin\",\n  \"symbol\": \"BTC\",\n  \"price\": 43250.8,\n  \"change_24h_percent\": -1.2,\n  \"market_cap\": \"847B\",\n  \"volume_24h\": \"18.5B\",\n  \"circulating_supply\": \"19.6M\"\n}\n```",
+  "score": 5,
+  "cost": 9.32e-06,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 103
+  }
+}

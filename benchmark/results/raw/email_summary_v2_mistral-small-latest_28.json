@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 28,
+  "response": "The annual disaster recovery (DR) test took 6 hours 23 minutes to complete, exceeding the 4-hour RTO target due to a slower-than-expected database restore. The team recommends increasing backup frequency and pre-provisioning a standby database, with the next test scheduled for October.",
+  "score": 5,
+  "cost": 3.01e-05,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 61
+  }
+}

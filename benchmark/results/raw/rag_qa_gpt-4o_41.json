@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "rag_qa",
+  "case": 41,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 0.0005125,
+  "expected": "Contrec\u0153ur led 500 men south from Fort Venango on April 5, 1754",
+  "tokens": {
+    "input": 185,
+    "output": 5
+  }
+}

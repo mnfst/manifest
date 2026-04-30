@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "A thunderstorm is a powerful and dramatic display of nature\u2019s raw energy, crackling with life and intensity. The air hums with an electric charge, thick and heavy, as dark, churning clouds roll in from the horizon, their edges jagged with towering, lightning-lit fingers. The scent of damp earth mingles with the sharp, metallic tang of ozone\u2014like the afterglow of a lightning bolt\u2014while the distant rumble of thunder grows louder, a deep, rolling bass that vibrates through your bones.\n\nThen, the first crack of lightning splits the sky, a blinding white bolt that splits the heavens like a knife through glass, leaving behind a sudden, blinding glare that makes your eyes water. The air shimmers with heat, and the wind howls through the trees, carrying the scent of rain-soaked leaves and the faint, bitter tang of lightning smoke. The storm\u2019s fury is almost palpable\u2014each drop of rain that lands with a wet, heavy *plink* against the pavement feels like a tiny hammer striking the earth, while the distant thunder echoes like a distant drumbeat, growing louder and closer with every passing second.",
+  "score": 5,
+  "cost": 1.024e-05,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 239
+  }
+}

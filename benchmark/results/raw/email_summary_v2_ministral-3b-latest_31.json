@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 31,
+  "response": "The email proposes a new **$29/month \"Starter\" plan** between the Free and Pro tiers to address user churn driven by pricing, targeting 40% of lost customers. **Action:** Approve the tier to recover **$180K in annual recurring revenue (ARR)** by offering 5 users, 10K API calls, and email support.",
+  "score": 5,
+  "cost": 8e-06,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 81
+  }
+}

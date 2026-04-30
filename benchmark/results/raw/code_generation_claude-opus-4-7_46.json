@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_generation",
+  "case": 46,
+  "response": "```python\n    if not arr:\n        return []\n    result = []\n    for i, v in enumerate(arr):\n        if v % 2 == 0:\n            if not result or v < result[0]:\n                result = [v, i]\n    return result\n```",
+  "score": 3,
+  "cost": 0.01296,
+  "expected": "",
+  "tokens": {
+    "input": 474,
+    "output": 78
+  }
+}

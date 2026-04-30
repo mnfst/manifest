@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_explanation",
+  "case": 9,
+  "response": "This code implements an **exponential backoff retry decorator** that automatically re-executes a failed function up to `max_attempts` times, waiting longer between each attempt (delay \u00d7 2^attempt). If all attempts fail, it raises the final exception.",
+  "score": 5,
+  "cost": 0.0003344,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 57
+  }
+}

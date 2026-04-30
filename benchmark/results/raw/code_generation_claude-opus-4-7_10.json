@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_generation",
+  "case": 10,
+  "response": "```\n    count = 0\n    for n in arr:\n        if n == 0:\n            continue\n        digits = [int(d) for d in str(abs(n))]\n        if n < 0:\n            digits[0] = -digits[0]\n        if sum(digits) > 0:\n            count += 1\n    return count\n```",
+  "score": 4,
+  "cost": 0.01074,
+  "expected": "",
+  "tokens": {
+    "input": 216,
+    "output": 100
+  }
+}

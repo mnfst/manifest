@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "rag_qa",
+  "case": 25,
+  "response": "Infrastructure suffered considerably for Warsaw when it had an Eastern Bloc economy.",
+  "score": 5,
+  "cost": 0.00696,
+  "expected": "infrastructure",
+  "tokens": {
+    "input": 279,
+    "output": 37
+  }
+}

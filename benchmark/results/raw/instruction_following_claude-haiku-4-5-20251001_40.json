@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "# 5 Capital Cities by Continent\n\n1. **Paris** - Europe\n2. **Cairo** - Africa\n3. **Tokyo** - Asia\n4. **Sydney** - Oceania\n5. **Bras\u00edlia** - South America",
+  "score": 5,
+  "cost": 0.0002456,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 57
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "rag_qa",
+  "case": 13,
+  "response": "The Victorian Government owns V/Line.",
+  "score": 5,
+  "cost": 0.00033779999999999997,
+  "expected": "Victorian Government",
+  "tokens": {
+    "input": 159,
+    "output": 101
+  }
+}

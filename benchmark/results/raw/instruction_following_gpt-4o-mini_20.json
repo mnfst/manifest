@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Sure! \n\nPlants synthesize sugars, using sunlight, soil, and water. Sunlight stimulates chlorophyll, producing energy. Photosynthesis supplies sustenance, supporting plant survival.",
+  "score": 5,
+  "cost": 2.43e-05,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 35
+  }
+}

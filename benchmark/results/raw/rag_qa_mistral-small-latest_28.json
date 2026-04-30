@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "rag_qa",
+  "case": 28,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 2.4700000000000004e-05,
+  "expected": "British merchants or fur-traders, C\u00e9loron informed them of the French claims on the territory and told them to leave.",
+  "tokens": {
+    "input": 229,
+    "output": 6
+  }
+}

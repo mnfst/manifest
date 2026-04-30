@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "email_summary_v2",
+  "case": 14,
+  "response": "The AWS bill surged **40% month-over-month** due to costly **p4d instances ($32/hr)** for new ML training jobs, adding **$45K/month**, and DevOps proposes **spot instances (70% savings, interruption risk)** or **reserved instances (30% savings, commitment)**. A **decision on the cost-saving option is required by Friday**.",
+  "score": 5,
+  "cost": 0.0002184,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 87
+  }
+}

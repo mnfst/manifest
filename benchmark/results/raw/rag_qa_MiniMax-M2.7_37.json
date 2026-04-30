@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 37,
+  "response": "Korea bordered Kublai's territory on the northeast.",
+  "score": 5,
+  "cost": 0.001199,
+  "expected": "northeast",
+  "tokens": {
+    "input": 246,
+    "output": 211
+  }
+}

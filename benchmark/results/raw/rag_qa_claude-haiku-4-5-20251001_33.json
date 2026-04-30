@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "rag_qa",
+  "case": 33,
+  "response": "Based on the context provided, OPEC raised the posted price of oil by 70% to $5.11 a barrel in response to American aid to Israel. This occurred on October 16, 1973, following the U.S. decision to provide military and financial support to Israel during that period.",
+  "score": 5,
+  "cost": 0.0005032000000000001,
+  "expected": "In response to American aid to Israel",
+  "tokens": {
+    "input": 289,
+    "output": 68
+  }
+}

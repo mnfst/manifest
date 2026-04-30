@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_generation",
+  "case": 12,
+  "response": "return [s for s in strings if substring in s]",
+  "score": 4,
+  "cost": 0.00026475,
+  "expected": "",
+  "tokens": {
+    "input": 175,
+    "output": 221
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_generation",
+  "case": 12,
+  "response": "```python\n    return [s for s in strings if substring in s]\n```",
+  "score": 4,
+  "cost": 0.0004825,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 17
+  }
+}

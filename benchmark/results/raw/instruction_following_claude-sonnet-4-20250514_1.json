@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 1,
+  "response": "A CPU (Central Processing Unit) executes instructions from computer programs by fetching, decoding, and performing calculations and logical operations that control all the basic functions of a computer system.",
+  "score": 3,
+  "cost": 0.000654,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 40
+  }
+}

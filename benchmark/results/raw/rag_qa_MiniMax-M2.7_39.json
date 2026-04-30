@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 39,
+  "response": "circuit switching",
+  "score": 5,
+  "cost": 0.0013882,
+  "expected": "circuit switching",
+  "tokens": {
+    "input": 178,
+    "output": 271
+  }
+}

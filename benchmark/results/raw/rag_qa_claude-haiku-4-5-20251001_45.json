@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "rag_qa",
+  "case": 45,
+  "response": "Based on the context provided, the **show globe** was employed as a pharmacy symbol until the early 20th century.",
+  "score": 5,
+  "cost": 0.0003008,
+  "expected": "The show globe",
+  "tokens": {
+    "input": 236,
+    "output": 28
+  }
+}

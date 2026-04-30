@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_generation",
+  "case": 11,
+  "response": "```python\n    s = 0\n    p = 1\n    for n in numbers:\n        s += n\n        p *= n\n    return (s, p)\n```",
+  "score": 4,
+  "cost": 0.006795,
+  "expected": "",
+  "tokens": {
+    "input": 208,
+    "output": 49
+  }
+}

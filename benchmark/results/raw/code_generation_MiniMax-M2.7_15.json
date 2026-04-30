@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_generation",
+  "case": 15,
+  "response": "largest = 1\nwhile n % 2 == 0:\n    largest = 2\n    n //= 2\nf = 3\nwhile f * f <= n:\n    while n % f == 0:\n        largest = f\n        n //= f\n    f += 2\nif n > 1:\n    largest = n\nreturn largest",
+  "score": 5,
+  "cost": 0.0078551,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 1758
+  }
+}

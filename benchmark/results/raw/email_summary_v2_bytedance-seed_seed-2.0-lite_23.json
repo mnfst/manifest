@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 23,
+  "response": "The Platform team\u2019s API deprecation notice announces the v1 API will be deprecated on June 30 and permanently removed on September 30, noting that 340 active integrations still rely on v1, a migration guide was published last month, and 12 enterprise customers have not yet started their migration work. To help all remaining users complete their transitions off the outdated API before the removal deadline, the team plans to conduct personal outreach to the top 20 affected customers and host a general webinar to support all remaining users still operating on v1.",
+  "score": 5,
+  "cost": 0.0008145,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 778
+  }
+}

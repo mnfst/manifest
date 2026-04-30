@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Imagine a special notebook where you and your friends write down every time you trade toys, and everyone has a copy of this notebook. Once something is written down, it can't be changed, and everyone can see it, so everyone knows who has which toys. This way, everyone plays fair and knows what's happening with the toys!",
+  "score": 5,
+  "cost": 0.000705,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 65
+  }
+}

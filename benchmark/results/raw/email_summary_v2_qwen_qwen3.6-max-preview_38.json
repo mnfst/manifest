@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "email_summary_v2",
+  "case": 38,
+  "response": "The bug bounty program's first month successfully identified and rapidly patched three critical vulnerabilities, demonstrating a strong return on investment. Based on these results, the security team recommends continuing the program.",
+  "score": 5,
+  "cost": 0.0041951,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 777
+  }
+}

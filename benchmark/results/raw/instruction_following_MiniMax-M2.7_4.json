@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 4,
+  "response": "1. French:\u202fBonjour le monde  \n2. Spanish:\u202fHola mundo  \n3. German:\u202fHallo Welt",
+  "score": 5,
+  "cost": 0.0012276000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 60,
+    "output": 264
+  }
+}

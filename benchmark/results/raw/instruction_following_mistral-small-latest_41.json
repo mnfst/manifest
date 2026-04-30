@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "Here's a Google-style docstring for a sorting function:\n\n```python\ndef sort(data, ascending=True):\n    \"\"\"Sorts a list of comparable elements in ascending or descending order.\n\n    Args:\n        data (list): A list of comparable elements (e.g., numbers, strings) to be sorted.\n        ascending (bool, optional): If True (default), sorts in ascending order.\n                                   If False, sorts in descending order. Defaults to True.\n\n    Returns:\n        list: A new list containing all items from the input list in sorted order.\n\n    Raises:\n        TypeError: If elements in the list are not comparable with each other.\n        ValueError: If the input is not a list.\n\n    Examples:\n        >>> sort([3, 1, 4, 1, 5])\n        [1, 1, 3, 4, 5]\n\n        >>> sort(['banana', 'apple', 'cherry'], ascending=False)\n        ['cherry', 'banana', 'apple']\n    \"\"\"\n    # Function implementation would go here\n    pass\n```\n\nThis docstring includes:\n1. A brief description of what the function does\n2. Detailed parameter descriptions\n3. Return value description\n4. Possible exceptions that might be raised\n5. Example usage in the docstring format\n\nYou can adjust the details based on your specific sorting implementation.",
+  "score": 4,
+  "cost": 8.840000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 29,
+    "output": 285
+  }
+}

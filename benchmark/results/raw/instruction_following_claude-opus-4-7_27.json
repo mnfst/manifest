@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 27,
+  "response": "# Mammals\n1. Elephant\n2. Tiger\n3. Dolphin\n\n# Birds\n1. Eagle\n2. Penguin\n3. Sparrow\n\n# Fish\n1. Salmon\n2. Clownfish\n3. Great White Shark",
+  "score": 4,
+  "cost": 0.007125,
+  "expected": "",
+  "tokens": {
+    "input": 40,
+    "output": 87
+  }
+}

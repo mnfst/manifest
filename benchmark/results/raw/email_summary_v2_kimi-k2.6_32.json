@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 32,
+  "response": "The SSL certificate for api.company.com expires in 7 days because auto-renewal failed when its DNS validation CNAME record was removed during a recent migration. DevOps will resolve the issue today by re-adding the missing _acme-challenge.api.company.com record and is flagging this for team visibility.",
+  "score": 5,
+  "cost": 0.0018702,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 753
+  }
+}

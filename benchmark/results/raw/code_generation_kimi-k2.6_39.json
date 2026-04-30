@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_generation",
+  "case": 39,
+  "response": "if x == 0:\n        return \"0\"\n    res = \"\"\n    while x > 0:\n        res = str(x % base) + res\n        x //= base\n    return res",
+  "score": 5,
+  "cost": 0.002733,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 1108
+  }
+}

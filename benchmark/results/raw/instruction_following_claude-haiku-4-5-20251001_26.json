@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "# The Water Cycle\n\nThe water cycle, also known as the hydrological cycle, is the continuous process by which water moves around Earth's surface and atmosphere. This cycle is essential for life, as it distributes fresh water across the planet and regulates temperature and weather patterns. The sun provides the energy that drives the entire cycle, causing water to change states between liquid, gas, and solid forms as it travels through different parts of the environment.\n\nEvaporation is the first major stage of the water cycle, where water from oceans, lakes, rivers, and soil surfaces transforms into water vapor due to heat from the sun. This invisible water vapor rises into the atmosphere, carrying moisture upward. Additionally, plants release water through transpiration, a process where water absorbed by roots is released through leaves. Together, evaporation and transpiration are often combined into the term \"evapotranspiration,\" which accounts for most of the water entering the atmosphere.\n\nAs water vapor rises higher into the atmosphere, it encounters cooler temperatures and undergoes condensation, transforming back into liquid water droplets. These droplets cluster together to form clouds and fog. When enough water droplets accumulate and become heavy enough, precipitation occurs in the form of rain, snow, sleet, or hail, returning water to Earth's surface. The type of precipitation depends on atmospheric temperature and conditions.\n\nOnce precipitation reaches the ground, water follows several pathways to complete the cycle. Some water infiltrates the soil, replenishing groundwater and underground aquifers, while some is absorbed by plant roots. Other water flows across the land surface as runoff, traveling through streams and rivers back to oceans and lakes. This continuous movement ensures that water is constantly recycled throughout Earth's systems, making the water cycle vital for sustaining all life on our planet.",
+  "score": 3,
+  "cost": 0.0015576,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 385
+  }
+}

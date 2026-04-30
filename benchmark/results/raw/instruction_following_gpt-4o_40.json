@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "Sure, here are five capital cities, each from a different continent:\n\n1. **Asia**: Tokyo (Japan)\n2. **Africa**: Nairobi (Kenya)\n3. **Europe**: Paris (France)\n4. **North America**: Ottawa (Canada)\n5. **South America**: Buenos Aires (Argentina)",
+  "score": 5,
+  "cost": 0.0007325,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 68
+  }
+}

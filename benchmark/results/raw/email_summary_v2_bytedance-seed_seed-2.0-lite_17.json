@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 17,
+  "response": "The release manager\u2019s email announcing the rollback of the v4.2 release explains that the rollback is necessary due to a data corruption bug in the product\u2019s new sync engine that has affected 23 accounts, and a hotfix branch to address the bug has already been created. The outlined recovery plan to remediate the bug\u2019s impacts includes three required action items: restoring from the pre-release backup, re-running all transactions linked to the affected accounts, and notifying all customers whose accounts were impacted by the issue.",
+  "score": 5,
+  "cost": 0.00092875,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 892
+  }
+}

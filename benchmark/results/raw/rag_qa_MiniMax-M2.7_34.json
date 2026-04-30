@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 34,
+  "response": "Infinitely many primes.",
+  "score": 5,
+  "cost": 0.0027082000000000005,
+  "expected": "infinitely many prime numbers",
+  "tokens": {
+    "input": 274,
+    "output": 547
+  }
+}

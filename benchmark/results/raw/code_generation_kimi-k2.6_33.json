@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_generation",
+  "case": 33,
+  "response": "a, b, c = sorted([a, b, c])\n    return a ** 2 + b ** 2 == c ** 2",
+  "score": 5,
+  "cost": 0.0040896,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 1669
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_explanation",
+  "case": 16,
+  "response": "This code runs multiple asynchronous coroutines concurrently while limiting the maximum number that execute simultaneously using a semaphore. It wraps each coroutine to acquire a semaphore permit before executing, ensuring no more than `limit` coroutines run at the same time.",
+  "score": 5,
+  "cost": 0.00033519999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 63
+  }
+}

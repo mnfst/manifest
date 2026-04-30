@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "rag_qa",
+  "case": 5,
+  "response": "Arnhem",
+  "score": 5,
+  "cost": 0.00099225,
+  "expected": "Arnhem",
+  "tokens": {
+    "input": 245,
+    "output": 931
+  }
+}

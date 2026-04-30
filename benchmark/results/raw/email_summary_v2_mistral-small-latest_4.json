@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 4,
+  "response": "DataSync proposes a revenue-sharing partnership where they handle data sync infrastructure while the recipient integrates their SDK, potentially reducing customer latency by 60% and generating an estimated $2M in additional annual revenue. Maria Chen, CEO of DataSync, invites the recipient to a technical discussion next week.",
+  "score": 5,
+  "cost": 2.8200000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 60
+  }
+}

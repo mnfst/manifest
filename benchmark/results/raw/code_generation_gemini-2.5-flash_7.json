@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 7,
+  "response": "```python\n    import math\n    result = 1\n    for i in range(n, 0, -1):\n        result *= math.factorial(i)\n    return result\n```",
+  "score": 4,
+  "cost": 4.575e-05,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 43
+  }
+}

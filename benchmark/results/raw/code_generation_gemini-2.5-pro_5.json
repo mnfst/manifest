@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_generation",
+  "case": 5,
+  "response": "```python\n    return max(l)\n```",
+  "score": 5,
+  "cost": 0.00026125,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 11
+  }
+}

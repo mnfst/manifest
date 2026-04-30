@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "email_summary_v2",
+  "case": 38,
+  "response": "In its first month, the bug bounty program received 47 reports, validated 12 (including three critical flaws\u2014an IDOR on user profiles, an SSRF via webhook URL, and an exposed JWT secret)\u2014all patched within 24\u202fhours at a cost of $15\u202fK. Because the program demonstrated strong ROI, the security team recommends continuing it.",
+  "score": 5,
+  "cost": 0.0023243,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 493
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "An **API** (Application Programming Interface) is like a waiter in a restaurant.\n\nWhen you go to a restaurant, you don\u2019t cook the food yourself\u2014you tell the waiter what you want, and they bring it to you from the kitchen. The waiter doesn\u2019t make the food; they just take your order and deliver it.\n\nSimilarly, an API is a messenger that lets different software programs talk to each other. Instead of one program doing everything, it asks the API for information or an action, and the API fetches it from another program (like a kitchen) and brings it back.\n\nFor example:\n- When you check the weather on your phone, the weather app doesn\u2019t store all the weather data itself\u2014it asks a weather service\u2019s API for the latest updates.\n- When you pay with a credit card online, the website\u2019s system uses an API to ask the bank if the payment is approved.\n\nSo, an API is just a way for programs to ask for and share information without needing to know all the details of how the other program works.",
+  "score": 4,
+  "cost": 6.75e-05,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 215
+  }
+}

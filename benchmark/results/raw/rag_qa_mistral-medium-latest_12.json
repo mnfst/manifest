@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "rag_qa",
+  "case": 12,
+  "response": "Based on the provided context, **J. F. D. Shrewsbury** was the first to **significantly challenge** the plague theory in **1970**.",
+  "score": 5,
+  "cost": 0.0001512,
+  "expected": "British bacteriologist J. F. D. Shrewsbury",
+  "tokens": {
+    "input": 193,
+    "output": 37
+  }
+}

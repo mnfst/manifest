@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 41,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 7.840000000000001e-06,
+  "expected": "Contrec\u0153ur led 500 men south from Fort Venango on April 5, 1754",
+  "tokens": {
+    "input": 190,
+    "output": 6
+  }
+}

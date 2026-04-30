@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "DNA (deoxyribonucleic acid) is a molecule that carries the genetic instructions for the development, functioning, and reproduction of all living organisms, encoded in a double-helix structure made of four chemical bases. It acts as a blueprint for proteins and traits, passed from parents to offspring.",
+  "score": 2,
+  "cost": 0.0001312,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 62
+  }
+}

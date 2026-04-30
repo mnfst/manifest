@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_generation",
+  "case": 22,
+  "response": "depth = 0\n    for char in brackets:\n        if char == '<':\n            depth += 1\n        else:\n            depth -= 1\n        if depth < 0:\n            return False\n    return depth == 0",
+  "score": 4,
+  "cost": 0.0079807,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 1501
+  }
+}

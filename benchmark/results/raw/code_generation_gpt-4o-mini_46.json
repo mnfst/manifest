@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_generation",
+  "case": 46,
+  "response": "```python\n    smallest_even = float('inf')\n    smallest_index = -1\n    \n    for index, value in enumerate(arr):\n        if value % 2 == 0 and value < smallest_even:\n            smallest_even = value\n            smallest_index = index\n    \n    if smallest_index == -1:\n        return []\n    \n    return [smallest_even, smallest_index]\n```",
+  "score": 4,
+  "cost": 9.779999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 344,
+    "output": 77
+  }
+}

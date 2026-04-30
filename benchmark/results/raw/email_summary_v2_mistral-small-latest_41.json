@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "The email proposes upgrading network links from 1Gbps to 10Gbps at a cost of $45K upfront plus $2K/month, or implementing traffic shaping and CDN optimization for $15K, with the recommendation to choose the 10Gbps upgrade to accommodate projected growth and avoid revisiting the issue in six months. The action item is for the recipient to review and approve the proposed upgrade.",
+  "score": 5,
+  "cost": 4.1e-05,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 93
+  }
+}

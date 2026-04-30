@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_explanation",
+  "case": 33,
+  "response": "This code implements **reservoir sampling**, an algorithm that selects k random items uniformly from a stream of unknown length by maintaining a fixed-size reservoir and replacing elements with decreasing probability as the stream progresses. Each new item after the first k has a k/(i+1) chance of being included, ensuring every item has equal probability of being in the final sample.",
+  "score": 5,
+  "cost": 0.000404,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 79
+  }
+}

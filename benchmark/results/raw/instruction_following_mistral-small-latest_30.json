@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Crispy crust, melted cheese, tangy tomato sauce, savory pepperoni, spicy sausage, earthy mushrooms, fresh basil, creamy mozzarella, golden edges, gooey center, smoky bacon, sweet pineapple, sharp cheddar, buttery garlic, zesty oregano, juicy bell peppers, caramelized onions, rich olive oil, flaky sea salt, rustic wood-fired.",
+  "score": 5,
+  "cost": 3.14e-05,
+  "expected": "",
+  "tokens": {
+    "input": 29,
+    "output": 95
+  }
+}

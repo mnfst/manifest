@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 24,
+  "response": "Design System v3 has been released with new dark mode color tokens, a revised 4px spacing scale, and updated Button and Modal components. A migration tool is available, and the Design Team recommends adopting it through a team-by-team rollout starting with the Settings page.",
+  "score": 5,
+  "cost": 0.0012533999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 501
+  }
+}

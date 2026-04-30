@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "Here are the key elements that make a good password:\n\n## Password Creation Guidelines\n\n1. **Use at least 12-16 characters** - Longer passwords are exponentially harder to crack than shorter ones.\n\n2. **Include a mix of character types:**\n   - Uppercase letters (A-Z)\n   - Lowercase letters (a-z)\n   - Numbers (0-9)\n   - Special symbols (!@#$%^&*)\n\n3. **Avoid predictable patterns** - Don't use sequential numbers (123), repeated characters (aaa), or keyboard patterns (qwerty).\n\n4. **Make it unique for each account** - Never reuse passwords across multiple sites or services.\n\n5. **Avoid personal information** - Don't include your name, birthday, address, phone number, or other easily discoverable details.\n\n6. **Skip common words and phrases** - Avoid dictionary words, common phrases, or popular culture references that could be guessed.\n\n7. **Consider using a passphrase** - String together 4-6 random, unrelated words (like \"coffee-bicycle-mountain-purple\") for a memorable yet secure option.\n\n8. **Use a password manager** - Let it generate and store complex, unique passwords for all your accounts.\n\n9. **Enable two-factor authentication** - Add an extra security layer whenever possible, even with strong passwords.\n\n10. **Update passwords regularly** - Change them if there's been a security breach or every 6-12 months for sensitive accounts.",
+  "score": 5,
+  "cost": 0.005097,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 336
+  }
+}

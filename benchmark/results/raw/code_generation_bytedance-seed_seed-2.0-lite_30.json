@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_generation",
+  "case": 30,
+  "response": "def is_prime(x):\n        if x <= 1:\n            return False\n        if x == 2:\n            return True\n        if x % 2 == 0:\n            return False\n        for i in range(3, int(x**0.5) + 1, 2):\n            if x % i == 0:\n                return False\n        return True\n    count = 0\n    a, b = 0, 1\n    while True:\n        a, b = b, a + b\n        if is_prime(b):\n            count += 1\n            if count == n:\n                return b",
+  "score": 3,
+  "cost": 0.00211775,
+  "expected": "",
+  "tokens": {
+    "input": 183,
+    "output": 2072
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 11,
+  "response": "```python\n    total_sum = sum(numbers)\n    total_product = 1\n    for num in numbers:\n        total_product *= num\n    return (total_sum, total_product)\n```",
+  "score": 4,
+  "cost": 0.0003328,
+  "expected": "",
+  "tokens": {
+    "input": 161,
+    "output": 51
+  }
+}

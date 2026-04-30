@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "The old lighthouse keeper found a single, glowing coin in the storm-washed rocks. When he opened it, the coin whispered secrets of the sea\u2014of a ship lost at midnight, and a child who had once sailed with it. He followed the coin\u2019s pull to the cliffs, where the waves whispered back, revealing a hidden cave. Inside, he found a map leading to a sunken treasure, but the cave\u2019s door was sealed with a lock only the tide could turn. That night, as the moon rose, the keeper realized the coin was a test: to choose between saving the past or claiming the future. He chose the child\u2019s story, and the tide carried him back to shore, the coin now dull and silent.",
+  "score": 5,
+  "cost": 6.519999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 13,
+    "output": 150
+  }
+}

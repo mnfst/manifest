@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 9,
+  "response": "April, June, September, November.",
+  "score": 5,
+  "cost": 8.25e-06,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 8
+  }
+}

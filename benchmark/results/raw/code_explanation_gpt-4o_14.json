@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_explanation",
+  "case": 14,
+  "response": "The code implements Dijkstra's algorithm to find the shortest path from a starting node to all other nodes in a weighted graph. It uses a priority queue (min-heap) to efficiently select the next node with the smallest tentative distance, updating the shortest known distances to each node as it explores the graph.",
+  "score": 5,
+  "cost": 0.0009625,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 61
+  }
+}

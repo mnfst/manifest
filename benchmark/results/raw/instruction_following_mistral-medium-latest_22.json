@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are known for their incredibly **loyal** nature, making them beloved companions worldwide. Their **loyal** bond with humans dates back thousands of years, proving their unwavering devotion. Whether as protectors, service animals, or family pets, dogs remain **loyal** through every challenge. Stories of **loyal** dogs waiting for their owners or saving lives highlight their deep emotional connection. Even in difficult times, a dog\u2019s **loyal** heart never wavers, offering comfort and love. Training strengthens their **loyal** instincts, reinforcing trust between pet and owner. From tiny lap dogs to massive guard dogs, every breed carries a **loyal** spirit. It\u2019s no wonder people cherish these **loyal** creatures as more than just pets\u2014they\u2019re family. The world is brighter because of the **loyal** friendship dogs so freely give. A home with a **loyal** dog is filled with joy, security, and endless affection.",
+  "score": 5,
+  "cost": 0.00040960000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 201
+  }
+}

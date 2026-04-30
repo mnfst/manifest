@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "code_generation",
+  "case": 24,
+  "response": "```python\n    # Check if the sides form a valid triangle\n    if a + b <= c or a + c <= b or b + c <= a:\n        return -1\n\n    # Calculate the semi-perimeter\n    s = (a + b + c) / 2\n\n    # Calculate the area using Heron's formula\n    area = (s * (s - a) * (s - b) * (s - c)) ** 0.5\n\n    # Return the area rounded to 2 decimal places\n    return round(area, 2)\n```",
+  "score": 5,
+  "cost": 5.37e-05,
+  "expected": "",
+  "tokens": {
+    "input": 165,
+    "output": 124
+  }
+}

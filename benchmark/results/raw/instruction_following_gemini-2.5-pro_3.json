@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "instruction_following",
+  "case": 3,
+  "response": "FRANCE\nGERMANY\nITALY\nSPAIN\nPOLAND",
+  "score": 5,
+  "cost": 0.00015625,
+  "expected": "",
+  "tokens": {
+    "input": 13,
+    "output": 14
+  }
+}

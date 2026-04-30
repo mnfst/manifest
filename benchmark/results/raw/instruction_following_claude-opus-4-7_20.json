@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Photosynthesis: a Plant's Splendid Process\n\nPlants soak up solar shine. Specifically, sunlight strikes special structures\u2014",
+  "score": 4,
+  "cost": 0.004845,
+  "expected": "",
+  "tokens": {
+    "input": 33,
+    "output": 58
+  }
+}

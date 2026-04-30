@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_generation",
+  "case": 8,
+  "response": "return [v for v in values if type(v) is int]",
+  "score": 5,
+  "cost": 0.001233,
+  "expected": "",
+  "tokens": {
+    "input": 176,
+    "output": 1189
+  }
+}

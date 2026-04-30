@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are widely celebrated as loyal companions who have stood by humans for thousands of years. Their loyal nature makes them exceptional family pets, as they form deep bonds with their owners and will often protect them from danger. Many breeds demonstrate their loyal characteristics through unwavering devotion, following their humans from room to room and greeting them enthusiastically after any absence. Police and military units rely on dogs specifically because of their loyal temperament, knowing these animals will obey commands and work tirelessly alongside their handlers. Whether serving as guide dogs for the visually impaired or simply providing emotional support, dogs prove time and again that their loyal hearts make them irreplaceable members of our families and communities.",
+  "score": 5,
+  "cost": 0.002229,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 144
+  }
+}

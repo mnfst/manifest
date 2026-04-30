@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "email_summary_v2",
+  "case": 47,
+  "response": "March cohort satisfaction dropped to 7.2/10 (down from 8.1), despite strong feedback on the buddy system (9.1/10) and timely IT support. Priority action is to fix tools access, which currently takes 3-5 days against the 1-day target.",
+  "score": 4,
+  "cost": 0.0012485,
+  "expected": "",
+  "tokens": {
+    "input": 143,
+    "output": 248
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "This code implements the **Observer pattern** (also known as the Publisher-Subscriber pattern) through an EventEmitter class that maintains a dictionary mapping event names to lists of callback functions. It allows objects to register listeners for specific events (`on`), trigger all registered callbacks when an event occurs (`emit`), and unregister specific listeners (`off`).",
+  "score": 5,
+  "cost": 0.001575,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 76
+  }
+}

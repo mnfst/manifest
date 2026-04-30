@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "instruction_following",
+  "case": 27,
+  "response": "Certainly! Here are examples of each category:\n\n### Mammals\n1. Elephant\n2. Tiger\n3. Dolphin\n\n### Birds\n1. Eagle\n2. Penguin\n3. Parrot\n\n### Fish\n1. Salmon\n2. Clownfish\n3. Shark",
+  "score": 4,
+  "cost": 0.000635,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 57
+  }
+}

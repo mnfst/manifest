@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "# Romeo and Juliet Summary\n\nTwo feuding families in Verona, the Montagues and Capulets, have a long-standing hatred. Romeo Montague and Juliet Capulet meet at a party and fall deeply in love, unaware of each other's identities. They secretly marry the next day. When Romeo's friend Mercutio is killed by Juliet's cousin Tybalt, Romeo kills Tybalt in revenge and is banished. A miscommunication leads Juliet to fake her death. Romeo, believing she's truly dead, kills himself. Juliet awakens to find Romeo dead and takes her own life. Their deaths finally reconcile the warring families.",
+  "score": 5,
+  "cost": 0.000656,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 158
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "structured_output",
+  "case": 33,
+  "response": "Here is the extracted information in valid JSON matching the provided schema:\n\n```json\n{\n  \"username\": \"techguru42\",\n  \"joined_year\": 2020,\n  \"followers\": \"1.2K\",\n  \"following\": 890,\n  \"posts\": 342,\n  \"verified\": true,\n  \"bio\": \"Building the future of AI\"\n}\n```",
+  "score": 5,
+  "cost": 7.92e-06,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 89
+  }
+}

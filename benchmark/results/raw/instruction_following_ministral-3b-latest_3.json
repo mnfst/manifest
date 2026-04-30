@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 3,
+  "response": "1. GERMANY\n2. FRANCE\n3. ITALY\n4. UNITED KINGDOM\n5. SPAIN",
+  "score": 5,
+  "cost": 1.8799999999999998e-06,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 31
+  }
+}

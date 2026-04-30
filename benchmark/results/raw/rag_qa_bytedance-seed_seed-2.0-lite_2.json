@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "rag_qa",
+  "case": 2,
+  "response": "Colonialism often means a country taking physical control of another land and its indigenous populations. Specifically, it is the process of an imperial nation beginning a conquest over an area, eventually ruling over those conquered lands, acting as the architect of that domination. At its core, colonialism involves exploiting the conquered nation's valuable assets and supplies so the conquering nation gains benefits from the spoils of war. It also means the conquering nation builds and preserves its colonial possessions in the area via populations from the foreign region, and it can completely reshape the conquered area's existing social, physical, and economic structures, with it being common for the conquered indigenous populations to inherit the characteristics of the conquering peoples.",
+  "score": 4,
+  "cost": 0.00103725,
+  "expected": "taking physical control of another",
+  "tokens": {
+    "input": 357,
+    "output": 948
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_generation",
+  "case": 40,
+  "response": "abs_a = abs(a)\nroot = round(abs_a ** (1/3))\nreturn root ** 3 == abs_a",
+  "score": 4,
+  "cost": 0.00159775,
+  "expected": "",
+  "tokens": {
+    "input": 199,
+    "output": 1548
+  }
+}

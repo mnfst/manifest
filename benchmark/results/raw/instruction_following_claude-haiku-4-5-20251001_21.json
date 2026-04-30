@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "# Directions from Park to Library\n\n1. Exit the park and turn **right** onto Main Street\n2. Continue straight, then turn **left** onto Oak Avenue\n3. Turn **right** onto Elm Street\n4. Turn **left** into the library parking lot\n\nThe library will be on your right.\n\n---\n\n*Note: These are example directions since I don't know your specific location. For real directions, I'd recommend using Google Maps or a similar service with your actual starting point and destination.*",
+  "score": 4,
+  "cost": 0.0004632,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 111
+  }
+}

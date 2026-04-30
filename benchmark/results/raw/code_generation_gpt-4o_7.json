@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_generation",
+  "case": 7,
+  "response": "```python\n    from math import factorial\n\n    result = 1\n    for i in range(1, n + 1):\n        result *= factorial(i)\n    return result\n```",
+  "score": 5,
+  "cost": 0.0007075,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 39
+  }
+}

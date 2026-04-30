@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "**\"AI isn\u2019t just smarter\u2014it\u2019s *thinking* differently. From coding to creativity, it\u2019s rewriting what humans can do. But here\u2019s the question: Are we building a partner\u2026 or a playground?\"**\n\n*(279 chars)*",
+  "score": 5,
+  "cost": 2.8400000000000003e-06,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 54
+  }
+}

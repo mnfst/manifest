@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "structured_output",
+  "case": 34,
+  "response": "```json\n{\n  \"student_id\": \"20240156\",\n  \"course_code\": \"CS301\",\n  \"course_name\": \"Algorithms\",\n  \"score\": 87,\n  \"max_score\": 100,\n  \"grade\": \"A-\",\n  \"semester\": \"Fall 2024\",\n  \"instructor\": \"Prof. Williams\"\n}\n```",
+  "score": 5,
+  "cost": 0.001764,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 93
+  }
+}

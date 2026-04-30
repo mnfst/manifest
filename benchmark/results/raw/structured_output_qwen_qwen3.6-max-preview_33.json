@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "structured_output",
+  "case": 33,
+  "response": "{\n  \"username\": \"@techguru42\",\n  \"joined_year\": 2020,\n  \"followers\": \"1.2K\",\n  \"following\": 890,\n  \"posts\": 342,\n  \"verified\": true,\n  \"bio\": \"Building the future of AI\"\n}",
+  "score": 5,
+  "cost": 0.0089596,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 1694
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_generation",
+  "case": 43,
+  "response": "if not numbers:\n        return []\n    \n    result = [numbers[0]]\n    for i in range(1, len(numbers)):\n        result.append(delimeter)\n        result.append(numbers[i])\n    \n    return result",
+  "score": 5,
+  "cost": 0.00132,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 60
+  }
+}

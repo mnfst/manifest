@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 33,
+  "response": "The email reports that employee engagement scored 7.8/10, above the industry average, with team collaboration rated highest and career growth clarity lowest. The People Team proposes quarterly career conversations, an internal mobility program, and mentorship matching, with a town hall scheduled for Friday to discuss further.",
+  "score": 5,
+  "cost": 3.18e-05,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 62
+  }
+}

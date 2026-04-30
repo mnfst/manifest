@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 4,
+  "response": "```python\n    if len(l) <= 1:\n        return True\n\n    is_increasing = all(l[i] <= l[i+1] for i in range(len(l) - 1))\n    is_decreasing = all(l[i] >= l[i+1] for i in range(len(l) - 1))\n\n    return is_increasing or is_decreasing\n```",
+  "score": 5,
+  "cost": 7.364999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 93
+  }
+}

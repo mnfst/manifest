@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "The sun slipped toward the horizon, dragging the day's heat down with it. Clouds caught fire in slow motion\u2014amber along their bellies, bruised violet at their edges, with streaks of molten gold bleeding between them. The whole western sky seemed to exhale color.\n\nFor a few minutes, everything on the ground borrowed that light. Windows turned to sheets of copper. The undersides of leaves glowed as if lit from within. Long shadows stretched east, thin and exaggerated, while the air itself took on a warm, particulate haze.\n\nThen the sun pressed itself flat against the skyline, swelled briefly, and sank. The brightest colors followed it down, leaving behind a cooling wash of rose and tangerine that faded, minute by minute, into deeper indigo. A single planet pricked through first\u2014Venus, probably\u2014and the day was quietly, unceremoniously gone.",
+  "score": 5,
+  "cost": 0.022425,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 292
+  }
+}

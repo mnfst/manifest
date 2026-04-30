@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 36,
+  "response": "The backend team shared that a Thursday deploy caused a critical API performance regression, pushing P99 latency for the /api/v2/search endpoint from 200ms to 800ms because the update\u2019s new full-text search query was not using an index. To resolve the issue, the team will deploy a corrective GIN index on the content column during tonight\u2019s scheduled maintenance window.",
+  "score": 5,
+  "cost": 0.00064625,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 610
+  }
+}

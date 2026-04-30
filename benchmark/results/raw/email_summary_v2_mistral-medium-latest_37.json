@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "email_summary_v2",
+  "case": 37,
+  "response": "The CEO reports that BigCo offered **$15M to acqui-hire our 5-person ML team**, which they believe undervalues the team, and recommends **countering or politely declining**. A discussion is needed before responding, and the **board must be informed** of the offer.",
+  "score": 5,
+  "cost": 0.0001684,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 64
+  }
+}

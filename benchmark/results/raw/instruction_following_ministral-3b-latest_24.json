@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "- **Date, Time, and Location**: The accident occurred on **June 15, 2024, at 3:17 PM**, near **Interstate 95 Exit 42A (Exit 42A, City of Boston, MA)**. The collision involved a **2018 Toyota Camry (Driver: John Doe, 42, male)** and a **2020 Honda Civic (Driver: Jane Smith, 38, female)**. The scene was at a **right-in/right-out intersection** with no traffic signals.\n\n- **Incident Details**: The Toyota rear-ended the Honda due to **sudden braking by the Civic driver**, causing a **stacked rear-end collision**. Minor property damage was noted: the Camry\u2019s rear bumper and Honda\u2019s front bumper sustained **$1,200 and $850 in repairs**, respectively. No injuries were reported, but **police reported a possible speeding violation (10 mph over limit) for Doe**.\n\n- **Responsibility & Next Steps**: The **Honda driver (Jane Smith)** was cited for **failure to yield at an intersection** and **distracted driving (phone use)**. The **Toyota driver (John Doe)** was cited for **reckless following distance**. Both drivers were advised to **submit insurance claims (Toyota: 123-456-7890, Honda: 987-654-3210)** and **attend a police report (File #: BOS-2024-06-15-1234)** for further investigation.",
+  "score": 2,
+  "cost": 1.4720000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 352
+  }
+}

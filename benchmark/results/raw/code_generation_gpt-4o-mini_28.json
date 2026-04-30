@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_generation",
+  "case": 28,
+  "response": "```python\n    result = []\n    for i, row in enumerate(lst):\n        for j, value in enumerate(row):\n            if value == x:\n                result.append((i, j))\n    result.sort(key=lambda coord: (coord[0], -coord[1]))\n    return result\n```",
+  "score": 5,
+  "cost": 8.025e-05,
+  "expected": "",
+  "tokens": {
+    "input": 291,
+    "output": 61
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "This function splits an iterable into two iterators based on a predicate: the first contains elements where the predicate returns `True`, and the second contains elements where it returns `False`. It uses `itertools.tee` to duplicate the iterable so both filters can independently traverse the same data without consuming it twice.",
+  "score": 5,
+  "cost": 0.009,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 97
+  }
+}

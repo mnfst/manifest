@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 11,
+  "response": "Is there a specific topic you\u2019d like to explore with this all-question format? Would you prefer to chat about a lighthearted hypothetical, a nagging real-world curiosity, or something personal that\u2019s been on your mind lately? Could you share a little more about what made you want to have a conversation that only uses questions? Would this kind of back-and-forth even fit the tone you were hoping for our chat today?",
+  "score": 5,
+  "cost": 0.000562,
+  "expected": "",
+  "tokens": {
+    "input": 56,
+    "output": 548
+  }
+}

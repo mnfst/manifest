@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Imagine a special notebook that everyone can see and write in, but no one can erase anything. When you write something in it, like a fun game you played, everyone else can see it too, and they all agree it's true. This way, everyone knows what happened, and it helps us trust each other!",
+  "score": 5,
+  "cost": 4.1099999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 63
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "The Ops team\u2019s quarterly OKR review email shares past-quarter departmental performance scores, revealing that Engineering hit its 0.7 target exactly, Sales and Support outperformed their shared 0.7 target with scores of 0.9 and 0.8 respectively, and Product missed its 0.7 target to score 0.6 due to a delayed AI feature. Ops recommends carrying forward Product\u2019s uncompleted AI-related OKR with increased allocation to resolve the delays that impacted this quarter\u2019s performance, and reminds all teams that planning for the next quarter\u2019s OKRs will officially start the following Monday.",
+  "score": 5,
+  "cost": 0.0008815,
+  "expected": "",
+  "tokens": {
+    "input": 166,
+    "output": 840
+  }
+}

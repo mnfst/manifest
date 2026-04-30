@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 27,
+  "response": "Newton's First Law of Motion.",
+  "score": 5,
+  "cost": 0.0018986,
+  "expected": "Newton's First",
+  "tokens": {
+    "input": 294,
+    "output": 358
+  }
+}

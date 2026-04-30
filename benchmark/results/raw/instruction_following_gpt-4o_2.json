@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "Lines of code unfold,  \nLogic dances through the night\u2014  \nDreams in binary.",
+  "score": 5,
+  "cost": 0.000215,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 18
+  }
+}

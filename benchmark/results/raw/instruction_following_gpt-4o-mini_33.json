@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "1. The Moon is Earth's only natural satellite and is about 1/6th the size of Earth, with a diameter of approximately 3,474 kilometers (2,159 miles).\n\n2. The Moon has a synchronous rotation, meaning it rotates on its axis in the same amount of time it takes to orbit Earth (about 27.3 days), which is why we always see the same side of the Moon from Earth.\n\n3. The Moon has no atmosphere, which means it cannot support life as we know it, and its surface experiences extreme temperature fluctuations, ranging from about -173\u00b0C (-280\u00b0F) at night to 127\u00b0C (260\u00b0F) during the day.",
+  "score": 5,
+  "cost": 8.685e-05,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 138
+  }
+}

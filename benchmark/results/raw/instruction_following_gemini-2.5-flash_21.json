@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "Since I don't know the specific park or library you're referring to, I'll give you a **hypothetical example** using only left and right turns. You'll need to substitute these generic street names and landmarks with your actual surroundings.\n\n---\n\n**Hypothetical Directions:**\n\n1.  From the main entrance of the park, turn **right** onto Parkside Avenue.\n2.  Continue on Parkside Avenue for approximately three blocks.\n3.  At the third intersection, turn **left** onto Elm Street.\n4.  Walk/drive down Elm Street for about two blocks.\n5.  You'll see a large grocery store on your right. At the intersection immediately after the grocery store, turn **right** onto Main Street.\n6.  The library will be on your **left** within the next block.\n\n---\n\n**Remember to replace:**\n*   \"Parkside Avenue,\" \"Elm Street,\" and \"Main Street\" with the actual street names.\n*   \"Grocery store\" with any prominent landmark you might pass.\n*   The number of blocks with the actual distances.",
+  "score": 4,
+  "cost": 0.0001461,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 239
+  }
+}

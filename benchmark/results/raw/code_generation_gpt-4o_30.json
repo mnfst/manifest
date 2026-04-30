@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_generation",
+  "case": 30,
+  "response": "```python\n    def is_prime(num):\n        if num <= 1:\n            return False\n        if num <= 3:\n            return True\n        if num % 2 == 0 or num % 3 == 0:\n            return False\n        i = 5\n        while i * i <= num:\n            if num % i == 0 or num % (i + 2) == 0:\n                return False\n            i += 6\n        return True\n\n    def fibonacci_generator():\n        a, b = 0, 1\n        while True:\n            yield b\n            a, b = b, a + b\n\n    count = 0\n    fib_gen = fibonacci_generator()\n    while True:\n        fib_num = next(fib_gen)\n        if is_prime(fib_num):\n            count += 1\n            if count == n:\n                return fib_num\n```",
+  "score": 5,
+  "cost": 0.00221,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 189
+  }
+}

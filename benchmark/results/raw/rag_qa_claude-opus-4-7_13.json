@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "rag_qa",
+  "case": 13,
+  "response": "The Victorian Government owns V/Line.",
+  "score": 5,
+  "cost": 0.00537,
+  "expected": "Victorian Government",
+  "tokens": {
+    "input": 268,
+    "output": 18
+  }
+}

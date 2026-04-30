@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 19,
+  "response": "The **Datadog contract** expires on **June 30**, with a current cost of **$180K/year**, but they\u2019re offering a **3-year deal at $155K/year (14% discount)**. Finance requires a decision by **May 15**, and an alternative like **Grafana Cloud ($95K/year)** would require a **3-month migration**.\n\n**Action:** Decide by **May 15**\u2014choose between the **Datadog discount** or **Grafana Cloud migration**.",
+  "score": 5,
+  "cost": 9.16e-06,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 119
+  }
+}

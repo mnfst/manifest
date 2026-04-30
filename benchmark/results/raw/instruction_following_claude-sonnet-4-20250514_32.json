@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "# The Copper Kettle Bistro \u2b50\u2b50\u2b50\u2b50\u2606\n\n**Location:** Downtown Arts District  \n**Cuisine:** Modern American with French influences  \n**Price Range:** $$-$$$\n\nI finally made it to The Copper Kettle Bistro after hearing rave reviews from friends, and I'm pleased to report it largely lives up to the hype. Tucked into a charming brick building with exposed beams and warm Edison bulb lighting, the atmosphere strikes the perfect balance between cozy and sophisticated.\n\nThe standout dish was undoubtedly the pan-seared duck breast with cherry gastrique \u2013 perfectly cooked with crispy skin and tender, pink meat that practically melted off the fork. My dining companion's wild mushroom risotto was equally impressive, creamy and earthy with a generous shaving of truffle that elevated the entire dish.\n\nService was attentive without being intrusive, though our appetizers took a bit longer than expected to arrive. The wine list is thoughtfully curated with some excellent mid-range options that pair beautifully with the menu.\n\nThe only minor disappointment was the chocolate tart for dessert, which felt a touch too sweet and lacked the finesse of the main courses. At $28 for an entr\u00e9e, it's not cheap, but the quality justifies the price point.\n\nThe Copper Kettle Bistro is perfect for date nights or special occasions when you want reliably excellent food in an inviting atmosphere. I'll definitely be back to try their weekend brunch menu.\n\n**Rating: 4/5 stars**",
+  "score": 4,
+  "cost": 0.00546,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 359
+  }
+}

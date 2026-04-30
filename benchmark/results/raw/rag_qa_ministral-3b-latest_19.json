@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 19,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 6.560000000000001e-06,
+  "expected": "communication",
+  "tokens": {
+    "input": 158,
+    "output": 6
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "rag_qa",
+  "case": 0,
+  "response": "A small fraction of the cold water flow from Lake Constance goes to **Lake \u00dcberlingen**.",
+  "score": 2,
+  "cost": 0.000578,
+  "expected": "Lake \u00dcberlingen",
+  "tokens": {
+    "input": 229,
+    "output": 20
+  }
+}

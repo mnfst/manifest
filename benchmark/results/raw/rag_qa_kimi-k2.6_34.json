@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "rag_qa",
+  "case": 34,
+  "response": "Infinitely many.",
+  "score": 2,
+  "cost": 0.000822,
+  "expected": "infinitely many prime numbers",
+  "tokens": {
+    "input": 246,
+    "output": 281
+  }
+}

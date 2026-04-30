@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "rag_qa",
+  "case": 41,
+  "response": "500",
+  "score": 2,
+  "cost": 0.0002725,
+  "expected": "Contrec\u0153ur led 500 men south from Fort Venango on April 5, 1754",
+  "tokens": {
+    "input": 194,
+    "output": 3
+  }
+}

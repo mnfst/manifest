@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "email_summary_v2",
+  "case": 49,
+  "response": "The product launch is delayed by two weeks due to PCI compliance failures, requiring a decision between launching without payments or postponing the full launch to May 15. The team must attend a meeting tomorrow at 10 AM to finalize the approach, noting that a payment-free launch will require updated terms and conditions.",
+  "score": 5,
+  "cost": 0.001633,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 1606
+  }
+}

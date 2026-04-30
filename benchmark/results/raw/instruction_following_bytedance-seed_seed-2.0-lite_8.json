@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Imagine you and all your playground friends each draw a sticky note with who shared their cookie that day, then stick all your notes in a chain that every single one of you carries an identical copy of. No one can scribble out or change a sticky note secretly, because every friend has the exact same chain to check and make sure everyone\u2019s being honest. That\u2019s a tiny, fun version of blockchain: a super big, shared list that everyone can check but no one can sneakily alter.",
+  "score": 5,
+  "cost": 0.000368,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 352
+  }
+}

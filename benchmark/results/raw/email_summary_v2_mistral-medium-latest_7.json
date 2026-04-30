@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "email_summary_v2",
+  "case": 7,
+  "response": "The office will relocate to **500 Market St** on **June 1**, with the move taking place **June 7-8**, while IT requires **June 4-6** for network setup. **Each team must assign a move coordinator by Friday**, and professional movers have been approved for the transition.",
+  "score": 5,
+  "cost": 0.00017240000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 68
+  }
+}

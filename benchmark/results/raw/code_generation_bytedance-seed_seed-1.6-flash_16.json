@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_generation",
+  "case": 16,
+  "response": "import heapq\n\ndef minPath(grid, k):\n    n = len(grid)\n    heap = []\n    for i in range(n):\n        for j in range(n):\n            heapq.heappush(heap, ([grid[i][j]], i, j, 1))\n    while heap:\n        path, i, j, t = heapq.heappop(heap)\n        if t == k:\n            return path\n        for di, dj in [(-1, 0), (1, 0), (0, -1), (0, 1)]:\n            ni, nj = i + di, j + dj\n            if 0 <= ni < n and 0 <= nj < n:\n                new_path = path.copy()\n                new_path.append(grid[ni][nj])\n                heapq.heappush(heap, (new_path, ni, nj, t + 1))\n    return []",
+  "score": 4,
+  "cost": 0.0015593999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 520,
+    "output": 5068
+  }
+}

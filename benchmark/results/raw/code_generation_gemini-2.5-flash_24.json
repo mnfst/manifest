@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 24,
+  "response": "```python\n    import math\n\n    # Check for valid triangle\n    # The sum of any two sides must be greater than the third side\n    if not (a + b > c and a + c > b and b + c > a):\n        return -1\n\n    # Calculate the semi-perimeter\n    s = (a + b + c) / 2\n\n    # Calculate the area using Heron's formula\n    # Area = sqrt(s * (s - a) * (s - b) * (s - c))\n    area = math.sqrt(s * (s - a) * (s - b) * (s - c))\n\n    # Round the area to 2 decimal points\n    return round(area, 2)\n```",
+  "score": 5,
+  "cost": 0.00012375,
+  "expected": "",
+  "tokens": {
+    "input": 161,
+    "output": 166
+  }
+}

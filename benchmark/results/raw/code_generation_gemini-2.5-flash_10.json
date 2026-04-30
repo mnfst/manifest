@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 10,
+  "response": "```python\n    count = 0\n    for num in arr:\n        s = str(num)\n        current_sum = 0\n        if s[0] == '-':\n            # The first digit after the sign is negative\n            current_sum += -int(s[1])\n            # Sum the rest of the digits as positive\n            for digit_char in s[2:]:\n                current_sum += int(digit_char)\n        else:\n            # All digits are positive\n            for digit_char in s:\n                current_sum += int(digit_char)\n        \n        if current_sum > 0:\n            count += 1\n    return count\n```",
+  "score": 3,
+  "cost": 0.00011745,
+  "expected": "",
+  "tokens": {
+    "input": 167,
+    "output": 154
+  }
+}

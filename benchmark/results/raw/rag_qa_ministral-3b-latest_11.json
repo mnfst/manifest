@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 11,
+  "response": "Not found in context. (The context provides the proportion of global carbon stores in the Amazonian forests as **10% of the world's terrestrial primary productivity and 10% of the carbon stores in ecosystems**, but it does not specify the exact amount of carbon stored globally.)",
+  "score": 5,
+  "cost": 9.32e-06,
+  "expected": "10% of the carbon stores",
+  "tokens": {
+    "input": 175,
+    "output": 58
+  }
+}

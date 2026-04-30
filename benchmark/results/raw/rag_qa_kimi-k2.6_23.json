@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "rag_qa",
+  "case": 23,
+  "response": "The mortgage banker",
+  "score": 5,
+  "cost": 0.000519,
+  "expected": "the mortgage banker",
+  "tokens": {
+    "input": 197,
+    "output": 167
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_generation",
+  "case": 3,
+  "response": "return [i * xs[i] for i in range(1, len(xs))]",
+  "score": 4,
+  "cost": 0.011326899999999999,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 2140
+  }
+}

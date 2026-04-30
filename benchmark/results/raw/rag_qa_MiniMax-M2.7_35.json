@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 35,
+  "response": "They clap their lobes, expelling water to create a jet that drives them backward quickly.",
+  "score": 2,
+  "cost": 0.0009845,
+  "expected": "by clapping their lobes",
+  "tokens": {
+    "input": 299,
+    "output": 149
+  }
+}

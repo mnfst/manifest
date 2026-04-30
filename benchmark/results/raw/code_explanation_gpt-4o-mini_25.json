@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "The `EventEmitter` class implements an observer pattern that allows functions (listeners) to be registered for specific events, triggered when those events are emitted. It provides methods to add listeners (`on`), emit events to call all registered listeners with optional arguments (`emit`), and remove specific listeners (`off`).",
+  "score": 5,
+  "cost": 5.415000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 61
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "rag_qa",
+  "case": 18,
+  "response": "Allan Bloom wrote \"The Closing of the American Mind.\"",
+  "score": 5,
+  "cost": 0.00666,
+  "expected": "Allan Bloom",
+  "tokens": {
+    "input": 314,
+    "output": 26
+  }
+}

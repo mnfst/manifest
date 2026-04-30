@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 3,
+  "response": "1. FRANCE\n2. GERMANY\n3. SPAIN\n4. ITALY\n5. PORTUGAL",
+  "score": 5,
+  "cost": 0.0039,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 45
+  }
+}

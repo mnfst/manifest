@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "The old lighthouse keeper, Silas, watched the storm gather on the horizon. For decades, he had guided ships through these treacherous waters with his steady beam. Tonight, however, the generator sputtered, threatening to plunge the tower into darkness. With a grim determination, Silas descended the winding stairs to the engine room. He wrestled with the ancient machinery, his calloused hands working against time and rust. Just as the first ship's horn wailed in the fog, the light flared back to life, a beacon against the raging night.",
+  "score": 5,
+  "cost": 6.585000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 11,
+    "output": 107
+  }
+}

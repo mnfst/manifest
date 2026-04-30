@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "There once was a coder named Dave,  \nWhose skills in the tech world were brave.  \nWith a click and a clack,  \nHe\u2019d debug the stack,  \nAnd his software would always behave!",
+  "score": 5,
+  "cost": 2.85e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 43
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "rag_qa",
+  "case": 32,
+  "response": "The **world's economy** grew significantly and became much more interconnected.",
+  "score": 2,
+  "cost": 0.0001232,
+  "expected": "the world's economy",
+  "tokens": {
+    "input": 233,
+    "output": 15
+  }
+}

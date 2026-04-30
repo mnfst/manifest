@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 39,
+  "response": "circuit switching",
+  "score": 5,
+  "cost": 5.84e-06,
+  "expected": "circuit switching",
+  "tokens": {
+    "input": 142,
+    "output": 4
+  }
+}

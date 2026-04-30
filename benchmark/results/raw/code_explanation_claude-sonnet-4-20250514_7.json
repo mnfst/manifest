@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "This code implements a **Least Recently Used (LRU) cache decorator** that stores function results and automatically evicts the least recently accessed items when the cache exceeds the specified maximum size. It uses Python's `OrderedDict` to maintain access order, moving accessed items to the end and removing items from the front when the cache is full, ensuring O(1) cache operations.",
+  "score": 5,
+  "cost": 0.00168,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 83
+  }
+}

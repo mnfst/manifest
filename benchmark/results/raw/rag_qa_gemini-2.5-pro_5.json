@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "rag_qa",
+  "case": 5,
+  "response": "At Arnhem.",
+  "score": 5,
+  "cost": 0.0003125,
+  "expected": "Arnhem",
+  "tokens": {
+    "input": 226,
+    "output": 3
+  }
+}

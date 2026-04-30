@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 23,
+  "response": "The email announces the deprecation of the v1 API, with removal scheduled for September 30, and urges migration before the June 30 deadline, as 340 integrations and 12 enterprise customers remain on v1. Action items include personal outreach to the top 20 customers and a webinar for the remaining users, with a migration guide already available.",
+  "score": 5,
+  "cost": 3.55e-05,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 81
+  }
+}

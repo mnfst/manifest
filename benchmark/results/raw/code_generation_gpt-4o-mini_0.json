@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_generation",
+  "case": 0,
+  "response": "```python\n    return ''.join(strings)\n```",
+  "score": 5,
+  "cost": 1.9350000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 89,
+    "output": 10
+  }
+}

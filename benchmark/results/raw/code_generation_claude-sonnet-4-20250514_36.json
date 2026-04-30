@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_generation",
+  "case": 36,
+  "response": "for i in range(n - 1, 0, -1):\n        if n % i == 0:\n            return i",
+  "score": 5,
+  "cost": 0.000771,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 33
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "This code finds all connected components in an undirected graph using a breadth-first search (BFS) algorithm. It iterates through each unvisited node, performs BFS to discover all nodes reachable from that starting node (forming one connected component), and collects all such components into a list.",
+  "score": 5,
+  "cost": 0.001509,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 68
+  }
+}

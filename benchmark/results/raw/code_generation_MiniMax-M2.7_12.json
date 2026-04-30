@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_generation",
+  "case": 12,
+  "response": "return [s for s in strings if substring in s]",
+  "score": 4,
+  "cost": 0.0018172000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 378
+  }
+}

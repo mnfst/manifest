@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "structured_output",
+  "case": 30,
+  "response": "{\"name\": \"Bitcoin\", \"symbol\": \"BTC\", \"price\": 43250.80, \"change_24h_percent\": -1.2, \"market_cap\": \"$847B\", \"volume_24h\": \"$18.5B\", \"circulating_supply\": \"19.6M BTC\"}",
+  "score": 5,
+  "cost": 0.000311,
+  "expected": "",
+  "tokens": {
+    "input": 176,
+    "output": 267
+  }
+}

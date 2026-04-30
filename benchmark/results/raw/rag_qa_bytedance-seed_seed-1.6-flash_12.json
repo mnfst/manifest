@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "rag_qa",
+  "case": 12,
+  "response": "J. F. D. Shrewsbury\nThe context states that \"The plague theory was first significantly challenged by the work of British bacteriologist J. F. D. Shrewsbury in 1970,\" and later mentions Graham Twigg's 1984 work as the first major direct challenge. Thus, Shrewsbury is identified as the first to challenge the plague theory.",
+  "score": 4,
+  "cost": 8.2875e-05,
+  "expected": "British bacteriologist J. F. D. Shrewsbury",
+  "tokens": {
+    "input": 277,
+    "output": 207
+  }
+}

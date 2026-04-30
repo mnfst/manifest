@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "rag_qa",
+  "case": 1,
+  "response": "1665",
+  "score": 1,
+  "cost": 0.00558,
+  "expected": "1665",
+  "tokens": {
+    "input": 337,
+    "output": 7
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "There once was a coder named Dave,\nWhose syntax was often quite grave.\nA bracket misplaced,\nLeft his project disgraced,\nSo he'd debug 'til his sanity gave.",
+  "score": 5,
+  "cost": 2.58e-05,
+  "expected": "",
+  "tokens": {
+    "input": 12,
+    "output": 40
+  }
+}

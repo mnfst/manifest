@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "*   **Incident Overview:** This section establishes the basic facts, including the date, time, and specific location of the accident, as well as the identifying information for all drivers, passengers, and vehicles involved (names, licenses, insurance, vehicle make/model).\n\n*   **Accident Narrative and Diagram:** A detailed description outlines the sequence of events leading to the collision, including the actions of each driver, road and weather conditions, and any contributing factors. This is often accompanied by a hand-drawn diagram illustrating the positions and paths of the vehicles.\n\n*   **Damage, Injuries, and Citations:** This part documents the aftermath, detailing the extent of damage to each vehicle, a list of any injuries sustained by the occupants, and a summary of witness statements. It concludes with the responding officer's assessment and notes any traffic citations that were issued.",
+  "score": 2,
+  "cost": 0.00175625,
+  "expected": "",
+  "tokens": {
+    "input": 13,
+    "output": 174
+  }
+}

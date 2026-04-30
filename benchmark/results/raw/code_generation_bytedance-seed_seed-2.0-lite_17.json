@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_generation",
+  "case": 17,
+  "response": "if not text:\n    return None\nimport hashlib\nreturn hashlib.md5(text.encode()).hexdigest()",
+  "score": 5,
+  "cost": 0.000794,
+  "expected": "",
+  "tokens": {
+    "input": 168,
+    "output": 752
+  }
+}

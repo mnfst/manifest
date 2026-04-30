@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "The lighthouse keeper had not seen another soul in thirty-seven years, not since the storm that swallowed his brother whole. Every night he lit the lamp, and every night he whispered the same apology into the wind. On the morning of his eighty-second birthday, a bottle washed ashore with a note inside, written in handwriting he knew better than his own. *I forgive you, and I always have*, it read, though the paper looked freshly folded. He stood on the rocks for a long time, salt stinging his eyes, before he finally laughed\u2014a sound the gulls had never heard from him. That night, for the first time in nearly four decades, he let the lamp go dark.",
+  "score": 5,
+  "cost": 0.016455,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 214
+  }
+}

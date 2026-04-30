@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "Debugging\u2019s a dance\u2014\nkeys hum like a ghost\u2019s tune,\ncode sings in the dark.",
+  "score": 5,
+  "cost": 1.28e-06,
+  "expected": "",
+  "tokens": {
+    "input": 10,
+    "output": 22
+  }
+}

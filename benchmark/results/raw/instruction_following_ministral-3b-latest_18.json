@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "One of my favorite books is a story that weaves together deep emotional resonance, rich historical detail, and a hauntingly beautiful prose style. It follows a protagonist whose life is deeply intertwined with the past\u2014whether through family secrets, cultural legacies, or the quiet, enduring weight of memory. The narrative unfolds with a sense of quiet intensity, exploring themes of identity, belonging, and the ways in which we are shaped by the people who come before us.\n\nThe writing is lush and evocative, painting vivid scenes that linger in the mind long after the last page. There\u2019s a balance between introspection and world-building, where the personal and the universal collide in a way that feels both deeply personal and universally relatable. The characters are complex, flawed, and deeply human, their struggles and triumphs unfolding with a quiet, almost meditative rhythm.\n\nWhat makes this book particularly compelling is how it doesn\u2019t shy away from the complexities of human experience\u2014love, loss, betrayal, and resilience\u2014while still offering moments of profound warmth and hope. It\u2019s a story that lingers in the heart, challenging the reader to reflect on their own journey and the stories that have shaped them. The ending, though bittersweet, leaves a lasting impression, leaving the reader to ponder the threads of fate and choice that weave through our lives.",
+  "score": 5,
+  "cost": 1.168e-05,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 277
+  }
+}

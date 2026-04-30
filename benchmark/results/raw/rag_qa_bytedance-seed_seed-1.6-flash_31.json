@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "rag_qa",
+  "case": 31,
+  "response": "Sharia\nThe context states: \"Maududi also believed that Muslim society could not be Islamic without Sharia...\" Thus, the answer is Sharia.",
+  "score": 5,
+  "cost": 5.865e-05,
+  "expected": "Sharia",
+  "tokens": {
+    "input": 254,
+    "output": 132
+  }
+}

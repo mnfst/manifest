@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_explanation",
+  "case": 15,
+  "response": "This implements the **merge sort** algorithm, a divide-and-conquer sorting technique that recursively splits the array in half until subarrays have one element, then merges them back together in sorted order via the `merge` helper, which interleaves two sorted lists by repeatedly picking the smaller front element. It runs in O(n log n) time.",
+  "score": 5,
+  "cost": 0.01179,
+  "expected": "",
+  "tokens": {
+    "input": 236,
+    "output": 110
+  }
+}

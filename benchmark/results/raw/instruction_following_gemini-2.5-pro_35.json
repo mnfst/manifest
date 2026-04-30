@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "The old lighthouse keeper polished the great lens, his cloth wiping away a century of salt and fog. He\u2019d inherited the post from his father, who had inherited it from his. Tonight, however, a powerful new automated beacon was being switched on across the bay. With a final, loving pat, he descended the winding stairs for the last time. The foghorn gave a low, mournful cry as if in farewell. He stepped outside, pulled his collar tight against the wind, and watched his light go out forever.",
+  "score": 5,
+  "cost": 0.00107375,
+  "expected": "",
+  "tokens": {
+    "input": 11,
+    "output": 106
+  }
+}

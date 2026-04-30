@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 31,
+  "response": "```python\n    filtered = [word for word in lst if len(word) % 2 == 0]\n    filtered.sort(key=lambda x: (len(x), x))\n    return filtered\n```",
+  "score": 4,
+  "cost": 1.0359999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 217,
+    "output": 42
+  }
+}

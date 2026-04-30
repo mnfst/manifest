@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are incredibly loyal companions, offering unwavering devotion to their human families. Their loyal hearts beat with an unconditional love that is truly remarkable, making them cherished members of any household. A dog's loyal gaze can melt away the stresses of the day, reminding us of the simple joys in life and the steadfastness of their affection. Through thick and thin, their loyal presence provides comfort and security, always there to greet us with enthusiasm. Indeed, the bond with a dog is a testament to their profoundly loyal nature, enriching our lives in countless, irreplaceable ways.",
+  "score": 5,
+  "cost": 6.975e-05,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 112
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "Chocolate is a velvet curtain drawn slowly across the tongue\u2014dark and hushed at first, then unfolding into a warm, bittersweet hum that lingers like the last note of a cello.",
+  "score": 5,
+  "cost": 0.005625,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 68
+  }
+}

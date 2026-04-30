@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "email_summary_v2",
+  "case": 31,
+  "response": "The proposal introduces a $29/month \u201cStarter\u201d tier (5 users, 10K API calls, email support) aimed at the 40% of churned users who cite price, projected to recover 15% of those users and generate $180K ARR. Next steps are to secure approval for the tier and develop a launch plan.",
+  "score": 5,
+  "cost": 0.0028655,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 616
+  }
+}

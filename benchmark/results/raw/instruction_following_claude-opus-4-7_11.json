@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 11,
+  "response": "Are you sure you want me to respond only with questions? What kind of topic did you have in mind? Is there something specific I can help you explore?",
+  "score": 5,
+  "cost": 0.00378,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 46
+  }
+}

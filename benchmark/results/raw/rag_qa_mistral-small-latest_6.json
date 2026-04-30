@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "rag_qa",
+  "case": 6,
+  "response": "TFEU article 294",
+  "score": 5,
+  "cost": 4.3100000000000004e-05,
+  "expected": "TFEU article 294",
+  "tokens": {
+    "input": 407,
+    "output": 8
+  }
+}

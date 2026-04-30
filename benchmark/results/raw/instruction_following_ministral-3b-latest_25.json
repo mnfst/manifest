@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "**\"Team Meeting: Strategy & Next Steps \u2013 Let\u2019s Connect!\"**\n\n*(Short, clear, and engaging!)*",
+  "score": 4,
+  "cost": 1.72e-06,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 24
+  }
+}

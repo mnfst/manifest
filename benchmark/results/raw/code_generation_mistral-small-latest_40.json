@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "code_generation",
+  "case": 40,
+  "response": "```python\n    if a == 0:\n        return True\n    abs_a = abs(a)\n    cube_root = round(abs_a ** (1/3))\n    return cube_root ** 3 == abs_a\n```",
+  "score": 4,
+  "cost": 3.0799999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 167,
+    "output": 47
+  }
+}

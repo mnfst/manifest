@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "# The Gilded Spoon: A Culinary Disappointment\n\n**\u2605\u2605\u2606\u2606\u2606 (2/5 Stars)**\n\nI had high hopes for The Gilded Spoon after seeing their Instagram-worthy plating and reading glowing reviews online. Unfortunately, my experience fell far short of expectations.\n\nThe ambiance is undeniably beautiful\u2014exposed brick, soft lighting, and attentive staff created an inviting atmosphere. However, beauty alone cannot carry a restaurant.\n\nMy appetizer of seared scallops arrived lukewarm and oversalted, making them rubbery and unpalatable. My dining companion's burrata salad was fresh, but the portion was laughably small for the $18 price tag. The main courses were where things truly unraveled: my pan-seared halibut was dry, and the accompanying risotto tasted like it had been sitting under a heat lamp for hours.\n\nThe only highlight was dessert\u2014a chocolate torte that was genuinely delicious and inventive.\n\n**The Verdict:** The Gilded Spoon prioritizes presentation over substance. With a kitchen that seems more focused on Instagram appeal than actual flavor, and prices that don't justify the mediocre execution, I cannot recommend this restaurant. There are far better options in the neighborhood for the same price point.\n\n*The Gilded Spoon is located at 247 Maple Street. Dinner entrees range from $28-$42.*",
+  "score": 4,
+  "cost": 0.00132,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 325
+  }
+}

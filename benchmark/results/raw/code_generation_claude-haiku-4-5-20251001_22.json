@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 22,
+  "response": "```python\n    count = 0\n    for bracket in brackets:\n        if bracket == \"<\":\n            count += 1\n        elif bracket == \">\":\n            count -= 1\n        if count < 0:\n            return False\n    return count == 0\n```",
+  "score": 5,
+  "cost": 0.0003728,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 66
+  }
+}

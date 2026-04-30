@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_generation",
+  "case": 34,
+  "response": "if n <= 1:\n    return y\nif n == 2:\n    return x\nif n % 2 == 0:\n    return y\nmax_div = int(n**0.5) + 1\nfor i in range(3, max_div, 2):\n    if n % i == 0:\n        return y\nreturn x",
+  "score": 5,
+  "cost": 0.000876,
+  "expected": "",
+  "tokens": {
+    "input": 168,
+    "output": 834
+  }
+}

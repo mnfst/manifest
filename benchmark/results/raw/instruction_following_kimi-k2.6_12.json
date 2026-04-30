@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "Imagine you're at a restaurant. You don't walk into the kitchen to cook your own meal. Instead, you tell the waiter what you want. The waiter goes to the kitchen, tells the cooks, and brings your food back to you.\n\nAn API is like that waiter, but for things you use on your phone or computer. It's a messenger.\n\nWhen one app or website needs something from another\u2014like when a weather app needs today's forecast, or when you order a rideshare and the map shows up\u2014the API carries that ask over and brings back the answer. \n\nYou don't need to know how the other company's \"kitchen\" works. You don't need to talk to their \"cooks.\" The API handles all the back-and-forth so you get exactly what you need, when you need it.",
+  "score": 5,
+  "cost": 0.0034991999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 1453
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "It is a chronicle of a family and a town that seem to exist in a fold of time, where the mythical and the historical are inseparable. The story begins with a founding figure so consumed by memory and scientific curiosity that he establishes a settlement in a lush, remote paradise, bringing the world into being through sheer act of will. Over several generations, his descendants repeat his name and his fates\u2014soldiers, priests, revolutionaries, and artisans\u2014each carrying the family\u2019s singular brand of solitude like an inherited trait.\n\nHistory arrives in waves: civil wars, a foreign banana company that brings both prosperity and a massacre the world refuses to remember, and a rain that lasts four years, eleven months, and two days. The narrative treats the extraordinary as perfectly ordinary. A trail of blood can climb stairs and travel around corners to find its source. A woman so beautiful she is dangerous ascends bodily into the sky while folding sheets. Ghosts linger so long that laundry is hung out to dry for the dead.\n\nAt its center is the sense that time is not linear but a spiral, and that the story of one family can contain the entire enchantment and disillusionment of a continent. It ends with the deciphering of prophecies written in Sanskrit, revealing that the reader has been holding the last moments of a world already being wiped from memory by a great wind.",
+  "score": 4,
+  "cost": 0.002874,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 1193
+  }
+}

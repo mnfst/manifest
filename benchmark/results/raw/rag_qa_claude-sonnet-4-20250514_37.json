@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "rag_qa",
+  "case": 37,
+  "response": "Not found in context.\n\nThe context mentions that Kublai secured the northeast border in 1259 by installing Wonjong as the ruler of Korea, but it does not specify where Korea bordered Kublai's territory.",
+  "score": 4,
+  "cost": 0.001524,
+  "expected": "northeast",
+  "tokens": {
+    "input": 243,
+    "output": 53
+  }
+}

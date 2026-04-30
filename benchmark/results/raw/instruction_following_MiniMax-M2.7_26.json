@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle, also known as the hydrologic cycle, describes the continuous movement of water on, above, and below the surface of the Earth. Powered mainly by solar energy, this global system transfers water between the atmosphere, land, and oceans in a never\u2011ending loop that shapes weather patterns, sustains ecosystems, and replenishes freshwater resources.  \n\nIt begins with evaporation, where heat from the Sun turns liquid water on oceans, lakes, and rivers into water vapor that rises into the atmosphere. In parallel, plants release water vapor through transpiration, adding to the atmospheric moisture. This combined flux of vapor is crucial for cloud formation.  \n\nAs the moist air rises and cools, water vapor condenses onto tiny particles to form clouds\u2014a process called condensation. When the cloud droplets combine and grow heavy enough, they fall as precipitation in the form of rain, snow, hail, or sleet, returning water to the Earth's surface.  \n\nOnce on the ground, precipitation can follow several pathways: it may flow overland as surface runoff into rivers and eventually back to the oceans, soak into the soil to become groundwater, or be stored in lakes and glaciers. Over time, groundwater seepage and surface water flow complete the cycle by feeding back into rivers, lakes, and oceans, where the process begins anew.",
+  "score": 4,
+  "cost": 0.0065472,
+  "expected": "",
+  "tokens": {
+    "input": 32,
+    "output": 1480
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "DNA, or deoxyribonucleic acid, is a double\u2011helix molecule that carries the genetic instructions for the development, functioning, growth, and reproduction of all known organisms. It consists of two strands of nucleotides, each composed of a sugar\u2011phosphate backbone and one of four nitrogenous bases (adenine, thymine, cytosine, and guanine) that pair in specific ways to encode information.",
+  "score": 1,
+  "cost": 0.0012353000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 55,
+    "output": 267
+  }
+}

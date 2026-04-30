@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 39,
+  "response": "The finance department issued a year-end audit preparation email notifying stakeholders that the company\u2019s annual audit will commence on January 15, and outlining four mandatory pre-audit tasks: finalize Q4 revenue recognition, reconcile all bank accounts, verify stock option records, and prepare related-party transaction disclosures. A controller meeting scheduled for next Tuesday will be held to assign specific responsibilities for each of the pre-audit checklist items, ensuring all required work is completed ahead of the audit\u2019s launch.",
+  "score": 5,
+  "cost": 0.0007085,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 673
+  }
+}

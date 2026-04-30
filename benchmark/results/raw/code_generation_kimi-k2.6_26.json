@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_generation",
+  "case": 26,
+  "response": "",
+  "score": 1,
+  "cost": 0.0049188,
+  "expected": "",
+  "tokens": {
+    "input": 198,
+    "output": 2000
+  }
+}

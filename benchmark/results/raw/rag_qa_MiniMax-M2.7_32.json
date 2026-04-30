@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 32,
+  "response": "The world economy grew significantly and became more globally interconnected as a result of imperialism.",
+  "score": 3,
+  "cost": 0.0018689000000000002,
+  "expected": "the world's economy",
+  "tokens": {
+    "input": 251,
+    "output": 362
+  }
+}

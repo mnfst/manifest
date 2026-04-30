@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "The customer workshop with 15 enterprise clients revealed top requests for **better bulk import functionality** (8/15) and **SSO as a critical blocker** (5 accounts), while the new analytics dashboard received positive feedback, and **three customers expressed interest in the internal tool as a standalone product**.\n\n**Action item:** Review the **attached follow-up report** to address priorities and explore the standalone product opportunity.",
+  "score": 5,
+  "cost": 0.0002176,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 87
+  }
+}

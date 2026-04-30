@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_generation",
+  "case": 32,
+  "response": "words = s.split(' ')\nordered_words = []\nfor word in words:\n    ordered_word = ''.join(sorted(word))\n    ordered_words.append(ordered_word)\nreturn ' '.join(ordered_words)",
+  "score": 5,
+  "cost": 8.735e-05,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 41
+  }
+}

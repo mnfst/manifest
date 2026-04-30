@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 22,
+  "response": "The South African Schools Act of 1996.",
+  "score": 5,
+  "cost": 0.0005643000000000001,
+  "expected": "South African Schools Act",
+  "tokens": {
+    "input": 173,
+    "output": 85
+  }
+}

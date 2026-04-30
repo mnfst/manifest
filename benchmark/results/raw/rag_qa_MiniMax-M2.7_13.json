@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 13,
+  "response": "V/Line is owned by the Victorian Government.",
+  "score": 5,
+  "cost": 0.0005808,
+  "expected": "Victorian Government",
+  "tokens": {
+    "input": 192,
+    "output": 84
+  }
+}

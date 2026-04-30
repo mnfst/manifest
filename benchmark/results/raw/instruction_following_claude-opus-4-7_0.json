@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "Here are 3 benefits of exercise:\n\n- **Improves cardiovascular health** \u2013 Regular exercise strengthens the heart, improves circulation, and helps lower blood pressure.\n- **Boosts mental well-being** \u2013 Physical activity releases endorphins, which can reduce stress, anxiety, and symptoms of depression.\n- **Enhances strength and energy** \u2013 Exercise builds muscle, increases stamina, and improves overall energy levels for daily activities.",
+  "score": 5,
+  "cost": 0.01227,
+  "expected": "",
+  "tokens": {
+    "input": 33,
+    "output": 157
+  }
+}

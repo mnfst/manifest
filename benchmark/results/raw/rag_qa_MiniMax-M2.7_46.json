@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 46,
+  "response": "Los Angeles Kings",
+  "score": 5,
+  "cost": 0.00040040000000000003,
+  "expected": "Los Angeles Kings",
+  "tokens": {
+    "input": 136,
+    "output": 57
+  }
+}

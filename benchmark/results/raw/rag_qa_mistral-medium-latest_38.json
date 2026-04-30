@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "rag_qa",
+  "case": 38,
+  "response": "The nine residential houses are located **along or near the Charles River**.",
+  "score": 2,
+  "cost": 0.00013319999999999999,
+  "expected": "Charles River",
+  "tokens": {
+    "input": 258,
+    "output": 15
+  }
+}

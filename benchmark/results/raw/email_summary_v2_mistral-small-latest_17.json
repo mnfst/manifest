@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 17,
+  "response": "The email announces a rollback of v4.2 due to a data corruption bug in the sync engine affecting 23 accounts, with a recovery plan involving restoring from backup, re-running transactions, and notifying customers. A hotfix branch has been created to address the issue.",
+  "score": 5,
+  "cost": 2.85e-05,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 58
+  }
+}

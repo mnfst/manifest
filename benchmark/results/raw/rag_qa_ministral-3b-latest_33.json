@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 33,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 1.1400000000000001e-05,
+  "expected": "In response to American aid to Israel",
+  "tokens": {
+    "input": 279,
+    "output": 6
+  }
+}

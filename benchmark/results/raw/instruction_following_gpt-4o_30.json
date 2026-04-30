@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Cheesy, savory crust, tangy tomato sauce, melted mozzarella, spicy pepperoni, fresh basil, vibrant bell peppers, earthy mushrooms, crispy edges, aromatic herbs, golden-brown surface, rich flavor, delightful aroma.",
+  "score": 5,
+  "cost": 0.0004975,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 45
+  }
+}

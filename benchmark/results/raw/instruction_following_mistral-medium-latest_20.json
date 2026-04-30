@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Sure! Here\u2019s photosynthesis explained using only **S** and **P** words:\n\n---\n**Sun** shines **strong**, sending **sunlight** **speedily** **spreading** **sparks**.\n**Plants** **position** **parts** (pretty **pale** **panels**) **pointing** **properly** **past** **shade**.\n**Sun\u2019s** **power** **pushes** **process**\u2014**splitting** **simple** **substances** (sips **sweet** **sap**, **soaking** **sun\u2019s** **spirit**).\n**Plants** **pull** **pure** **pieces**: **parts** **pass** **pipes**, **pumping** **precious** **products**.\n**Sugar** **spawns**, **storing** **sun\u2019s** **strength**; **plants** **spend** **some**, **saving** **surplus** **safely**.\n**Side** **product?** **Sweet** **pure** **puffs** (**soft** **silent** **spirits**) **spill** **slowly**\u2014**supplying** **sky\u2019s** **space**.\n\n**Summary**: **Sun** + **sap** + **skill** = **sugar** + **spare** **spirits** (**super** **simple** **system**!).\n---",
+  "score": 5,
+  "cost": 0.0006092000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 301
+  }
+}

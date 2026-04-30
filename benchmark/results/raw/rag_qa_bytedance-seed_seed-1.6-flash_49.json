@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "rag_qa",
+  "case": 49,
+  "response": "patient care rounds drug product selection\n(Note: The context may have a typo, but the direct information is \"patient care rounds drug product selection\".)",
+  "score": 1,
+  "cost": 9.405e-05,
+  "expected": "patient care rounds drug product selection",
+  "tokens": {
+    "input": 218,
+    "output": 259
+  }
+}

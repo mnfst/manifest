@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "Lines of thought take form,\nLogic weaves a complex path,\nNew worlds come to life.",
+  "score": 5,
+  "cost": 1.3199999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 8,
+    "output": 20
+  }
+}

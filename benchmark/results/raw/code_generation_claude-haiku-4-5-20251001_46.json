@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 46,
+  "response": "```python\n    if not arr:\n        return []\n    \n    smallest_even = None\n    smallest_index = -1\n    \n    for i, num in enumerate(arr):\n        if num % 2 == 0:  # Check if even\n            if smallest_even is None or num < smallest_even:\n                smallest_even = num\n                smallest_index = i\n    \n    if smallest_even is None:\n        return []\n    \n    return [smallest_even, smallest_index]\n```",
+  "score": 4,
+  "cost": 0.0008,
+  "expected": "",
+  "tokens": {
+    "input": 390,
+    "output": 122
+  }
+}

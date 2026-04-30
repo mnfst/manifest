@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "Crack 2\u20113 eggs into a bowl, whisk with a splash of milk, salt, and pepper. Melt butter in a pan over medium\u2011low heat. Add eggs, stir gently until just set. Remove while still slightly wet; they\u2019ll finish cooking from residual heat.",
+  "score": 5,
+  "cost": 0.0036927,
+  "expected": "",
+  "tokens": {
+    "input": 37,
+    "output": 830
+  }
+}

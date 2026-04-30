@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 9,
+  "response": "April, June, September, November.",
+  "score": 5,
+  "cost": 1.1600000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 9
+  }
+}

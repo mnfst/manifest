@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Golden crispy crust. Rich tangy sauce. Melted gooey mozzarella. Spicy pepperoni. Crumbled savory sausage. Earthy mushroom slices. Sweet green peppers. Sharp red onions. Briny black olives. Fresh fragrant basil. Hot delicious masterpiece.",
+  "score": 5,
+  "cost": 3.0149999999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 13,
+    "output": 47
+  }
+}

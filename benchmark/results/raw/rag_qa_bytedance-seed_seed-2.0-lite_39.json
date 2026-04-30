@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "rag_qa",
+  "case": 39,
+  "response": "Circuit switching, which is the other principal networking paradigm that packet switching contrasts with. Specifically, circuit switching is the networking paradigm that pre-allocates dedicated network bandwidth specifically for each communication session.",
+  "score": 5,
+  "cost": 0.000652,
+  "expected": "circuit switching",
+  "tokens": {
+    "input": 188,
+    "output": 605
+  }
+}

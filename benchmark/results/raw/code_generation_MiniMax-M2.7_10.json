@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_generation",
+  "case": 10,
+  "response": "```python\n    count = 0\n    for num in arr:\n        s = str(num)\n        total = 0\n        if num < 0:\n            # First signed digit is negative, the rest are positive\n            total = -int(s[1])\n            for ch in s[2:]:\n                total += int(ch)\n        else:\n            for ch in s:\n                total += int(ch)\n        if total > 0:\n            count += 1\n    return count\n```",
+  "score": 4,
+  "cost": 0.005764,
+  "expected": "",
+  "tokens": {
+    "input": 192,
+    "output": 1262
+  }
+}

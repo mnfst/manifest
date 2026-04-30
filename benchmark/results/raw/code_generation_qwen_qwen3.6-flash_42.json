@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_generation",
+  "case": 42,
+  "response": "if n > m:\n        return -1\n    return bin(round((n + m) / 2))",
+  "score": 3,
+  "cost": 0.00250725,
+  "expected": "",
+  "tokens": {
+    "input": 193,
+    "output": 2459
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "Chocolate is like a velvet symphony melting on the tongue\u2014rich and deep as a moonless night, yet bright with whispers of caramel, fruit, or spice that dance like fireflies in the dark. At first, it\u2019s a shy embrace, cool and firm, but as it yields, it unfurls into waves of warmth: bitter as espresso\u2019s edge, sweet as a stolen kiss, and as complex as a love letter written in a language you almost understand. The aftertaste lingers like the echo of a favorite song, haunting and comforting all at once.",
+  "score": 5,
+  "cost": 0.00024880000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 121
+  }
+}

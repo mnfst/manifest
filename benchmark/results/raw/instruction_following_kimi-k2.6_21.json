@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "Here are directions from the park to the library using only left and right turns:\n\nBegin at the park\u2019s main gate, facing the street.\n\n1. Turn right onto Oak Street.\n2. At the first intersection, turn left onto Maple Avenue.\n3. At the second intersection, turn left onto Pine Street.\n4. At the next intersection, turn right onto Cedar Boulevard.\n5. Turn right into the library entrance.\n\nYou have arrived.",
+  "score": 5,
+  "cost": 0.003828,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 1589
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 36,
+  "response": "```python\n    import math\n    for i in range(2, int(math.sqrt(n)) + 1):\n        if n % i == 0:\n            return n // i\n    return 1\n```",
+  "score": 3,
+  "cost": 4.245e-05,
+  "expected": "",
+  "tokens": {
+    "input": 83,
+    "output": 50
+  }
+}

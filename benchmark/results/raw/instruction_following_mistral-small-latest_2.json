@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "Silent lines of code,\nLogic dances in the dark,\nBugs hide in the light.",
+  "score": 5,
+  "cost": 8.2e-06,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 20
+  }
+}

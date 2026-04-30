@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "# Hydration Bottle\n\nStay refreshed all day with our durable stainless steel water bottle, featuring double-wall insulation that keeps drinks cold for 24 hours or hot for 12 hours. The leak-proof design and ergonomic grip make it perfect for workouts, commutes, or everyday adventures. Available in 10 vibrant colors, it's the eco-friendly choice for anyone serious about staying hydrated.",
+  "score": 4,
+  "cost": 0.00040560000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 97
+  }
+}

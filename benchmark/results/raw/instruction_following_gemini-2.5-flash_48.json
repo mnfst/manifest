@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "In Verona, the Montague and Capulet families are bitter enemies. Romeo Montague crashes a Capulet party, where he meets and instantly falls in love with Juliet Capulet. They secretly marry. However, tragedy strikes when Romeo kills Juliet's cousin Tybalt in a duel, leading to Romeo's banishment. To avoid marrying Paris, Juliet fakes her death with a potion from Friar Laurence. Romeo, unaware of the plan, believes she is truly dead and takes his own life at her tomb. Juliet awakens to find Romeo dead and stabs herself. Their deaths finally end the family feud.",
+  "score": 5,
+  "cost": 7.65e-05,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 122
+  }
+}

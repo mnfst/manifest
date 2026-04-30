@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "rag_qa",
+  "case": 42,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 0.00063575,
+  "expected": "Moselle",
+  "tokens": {
+    "input": 263,
+    "output": 570
+  }
+}

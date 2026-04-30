@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_generation",
+  "case": 16,
+  "response": "n = len(grid)\nres = []\nstart_x = start_y = 0\nfor i in range(n):\n    for j in range(n):\n        if grid[i][j] == 1:\n            start_x, start_y = i, j\nres.append(1)\nif k == 1:\n    return res\ncurr_x, curr_y = start_x, start_y\nfor _ in range(k - 1):\n    min_val = float('inf')\n    next_x = next_y = 0\n    # Check up\n    if curr_x > 0:\n        if grid[curr_x - 1][curr_y] < min_val:\n            min_val = grid[curr_x - 1][curr_y]\n            next_x, next_y = curr_x - 1, curr_y\n    # Check down\n    if curr_x < n - 1:\n        if grid[curr_x + 1][curr_y] < min_val:\n            min_val = grid[curr_x + 1][curr_y]\n            next_x, next_y = curr_x + 1, curr_y\n    # Check left\n    if curr_y > 0:\n        if grid[curr_x][curr_y - 1] < min_val:\n            min_val = grid[curr_x][curr_y - 1]\n            next_x, next_y = curr_x, curr_y - 1\n    # Check right\n    if curr_y < n - 1:\n        if grid[curr_x][curr_y + 1] < min_val:\n            min_val = grid[curr_x][curr_y + 1]\n            next_x, next_y = curr_x, curr_y + 1\n    res.append(min_val)\n    curr_x, curr_y = next_x, next_y\nreturn res",
+  "score": 3,
+  "cost": 0.0044785,
+  "expected": "",
+  "tokens": {
+    "input": 486,
+    "output": 4357
+  }
+}

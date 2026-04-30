@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_generation",
+  "case": 27,
+  "response": "strongest = max(extensions, key=lambda ext: sum(c.isupper() for c in ext) - sum(c.islower() for c in ext))\n    return f\"{class_name}.{strongest}\"",
+  "score": 4,
+  "cost": 0.0136604,
+  "expected": "",
+  "tokens": {
+    "input": 320,
+    "output": 2547
+  }
+}

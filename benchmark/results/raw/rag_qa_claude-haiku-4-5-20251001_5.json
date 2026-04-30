@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "rag_qa",
+  "case": 5,
+  "response": "Based on the context provided, the Rhine Bridge is located at **Arnhem**. The context states: \"The Rhine bridge at Arnhem, immortalized in the book, A Bridge Too Far and the film, was a central focus of the battle for Arnhem, during the failed Operation Market Garden of September 1944.\"\n\nHowever, it's worth noting that the context mentions multiple bridges crossing the Rhine at different locations, including bridges at Nijmegen and the Ludendorff Bridge at Remagen.",
+  "score": 4,
+  "cost": 0.0006464,
+  "expected": "Arnhem",
+  "tokens": {
+    "input": 248,
+    "output": 112
+  }
+}

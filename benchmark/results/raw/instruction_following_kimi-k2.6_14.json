@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Stay hydrated on the go with this double-wall vacuum-insulated stainless steel water bottle, designed to keep drinks ice-cold for 24 hours or piping hot for 12 hours without any condensation. Crafted from premium BPA-free materials with a leakproof lid and ergonomic carry handle, it fits seamlessly into cup holders and backpack pockets for ultimate portability. Durable, eco-friendly, and sleekly designed, this reusable bottle is the perfect everyday companion for workouts, commutes, and outdoor adventures.",
+  "score": 2,
+  "cost": 0.0010661999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 439
+  }
+}

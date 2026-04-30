@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 38,
+  "response": "The email reports strong results from the first month of the Bug Bounty Program, with 47 reports received, 12 valid, and 3 critical findings totaling $15K in payouts, all of which were patched within 24 hours. The program's ROI is deemed strong, and the team recommends continuing it.",
+  "score": 5,
+  "cost": 3.43e-05,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 72
+  }
+}

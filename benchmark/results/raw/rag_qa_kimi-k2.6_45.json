@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "rag_qa",
+  "case": 45,
+  "response": "The show globe",
+  "score": 5,
+  "cost": 0.0005466000000000001,
+  "expected": "The show globe",
+  "tokens": {
+    "input": 223,
+    "output": 172
+  }
+}

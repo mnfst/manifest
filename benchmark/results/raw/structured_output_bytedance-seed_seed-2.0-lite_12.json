@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "structured_output",
+  "case": 12,
+  "response": "{\n  \"title\": \"Senior DevOps Engineer\",\n  \"company\": \"Stripe\",\n  \"location\": \"US\",\n  \"remote\": true,\n  \"salary_range\": {\"min\": 180000, \"max\": 220000},\n  \"requirements\": {\"min_years\": 5, \"skills\": [\"Kubernetes\", \"AWS\", \"Terraform\"]},\n  \"benefits\": [\"unlimited PTO\", \"401k match\"]\n}",
+  "score": 5,
+  "cost": 0.0006345,
+  "expected": "",
+  "tokens": {
+    "input": 182,
+    "output": 589
+  }
+}

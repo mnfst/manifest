@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_generation",
+  "case": 2,
+  "response": "sorted_lst = sorted(lst)\n    res = []\n    left, right = 0, len(sorted_lst) - 1\n    while left <= right:\n        res.append(sorted_lst[left])\n        left += 1\n        if left <= right:\n            res.append(sorted_lst[right])\n            right -= 1\n    return res",
+  "score": 4,
+  "cost": 0.00214925,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 2107
+  }
+}

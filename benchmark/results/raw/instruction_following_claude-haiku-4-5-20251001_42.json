@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "# A Thunderstorm\n\nThe sky darkens to a bruised purple as towering clouds roll in, swallowing the sun. The air grows thick and electric, raising the hair on your arms with an invisible charge.\n\n**What you hear:** Thunder cracks like a whip overhead, so loud it rattles windows and reverberates through your chest. The sound builds from a distant rumble to a deafening boom that makes you flinch.\n\n**What you feel:** Wind whips around you in violent gusts, nearly stealing your breath. Rain begins as scattered drops, then transforms into a downpour that stings your face and soaks through clothes in seconds. The temperature plummets, raising goosebumps on your skin.\n\n**What you smell:** The air carries the sharp, metallic scent of ozone\u2014that distinctive smell that comes with lightning strikes. There's also the earthy petrichor of rain hitting dry ground.\n\nLightning illuminates everything in a blinding white flash, followed immediately by thunder that shakes the ground beneath your feet. The storm is raw power, both terrifying and magnificent, a reminder of nature's overwhelming force.",
+  "score": 4,
+  "cost": 0.0010272,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 252
+  }
+}

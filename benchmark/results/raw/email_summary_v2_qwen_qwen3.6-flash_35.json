@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "email_summary_v2",
+  "case": 35,
+  "response": "The Trust & Safety team is updating the content moderation policy to regulate AI-generated content by requiring labels for AI images, banning deepfakes, and mandating disclosure for AI-assisted text. These new rules will take effect on June 1, and training materials are currently being prepared to support the transition.",
+  "score": 5,
+  "cost": 0.000868,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 842
+  }
+}

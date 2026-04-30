@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "structured_output",
+  "case": 17,
+  "response": "Here is the extracted information in valid JSON matching the provided schema:\n\n```json\n{\n  \"message\": \"fix(auth): resolve session timeout on mobile browsers\",\n  \"type\": \"fix\",\n  \"scope\": \"auth\",\n  \"author\": \"@jdoe\",\n  \"branch\": \"fix/session-timeout\",\n  \"files_changed\": 3,\n  \"insertions\": 47,\n  \"deletions\": 12,\n  \"pr_number\": 892\n}\n```",
+  "score": 5,
+  "cost": 9.280000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 106
+  }
+}

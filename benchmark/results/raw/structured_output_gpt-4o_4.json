@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "structured_output",
+  "case": 4,
+  "response": "```json\n{\n  \"error_code\": 503,\n  \"message\": \"Service Unavailable\",\n  \"timestamp\": \"2024-01-15T14:30:00Z\",\n  \"endpoint\": \"/api/v2/users\",\n  \"server\": \"prod-west-2\",\n  \"retry_after_seconds\": 30\n}\n```",
+  "score": 5,
+  "cost": 0.0009675,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 71
+  }
+}

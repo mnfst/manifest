@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "structured_output",
+  "case": 38,
+  "response": "{\"version\": 42, \"name\": \"AddUserPreferences\", \"created\": \"2024-03-15\", \"status\": \"applied\", \"duration_ms\": 340, \"sql\": \"ALTER TABLE users ADD COLUMN preferences JSONB DEFAULT '{}'\"}",
+  "score": 5,
+  "cost": 0.009315,
+  "expected": "",
+  "tokens": {
+    "input": 156,
+    "output": 93
+  }
+}

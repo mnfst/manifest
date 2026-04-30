@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "rag_qa",
+  "case": 15,
+  "response": "Prussia",
+  "score": 5,
+  "cost": 0.0007109999999999999,
+  "expected": "Prussia",
+  "tokens": {
+    "input": 213,
+    "output": 243
+  }
+}

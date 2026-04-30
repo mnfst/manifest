@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "rag_qa",
+  "case": 36,
+  "response": "Gaseous oxygen",
+  "score": 1,
+  "cost": 2.6249999999999998e-05,
+  "expected": "gaseous oxygen.",
+  "tokens": {
+    "input": 159,
+    "output": 4
+  }
+}

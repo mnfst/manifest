@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 6,
+  "response": "\"Waves crash endlessly forever.\"",
+  "score": 5,
+  "cost": 5.199999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 9
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_generation",
+  "case": 49,
+  "response": "```python\n    if is_palindrome(string):\n        return string\n    for i in range(len(string)):\n        if is_palindrome(string[i:]):\n            return string + string[:i][::-1]\n    return string\n```",
+  "score": 4,
+  "cost": 0.0009,
+  "expected": "",
+  "tokens": {
+    "input": 172,
+    "output": 47
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Stay refreshed wherever life takes you with our durable, leak-proof stainless steel water bottle, designed to keep drinks cold for 24 hours or hot for 12. Its sleek, ergonomic design fits perfectly in cup holders, backpacks, and gym bags, while the easy-grip finish ensures a secure hold. Made from BPA-free materials and built to last, it's the eco-friendly hydration companion you'll reach for every day.",
+  "score": 3,
+  "cost": 0.01191,
+  "expected": "",
+  "tokens": {
+    "input": 34,
+    "output": 152
+  }
+}

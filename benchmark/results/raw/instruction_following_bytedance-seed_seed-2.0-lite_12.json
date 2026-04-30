@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "Think of APIs like the waiter at your favorite restaurant\u2014this analogy covers everything they do, no fancy tech terms required.\n\nFirst, the restaurant setup: You\u2019re a customer sitting at your table with a menu, you know exactly what you want to order. But the food is made in the kitchen, which is completely off-limits to customers. You can\u2019t go back there to grab your own meal, mess with the stoves, or sneak extra ingredients you didn\u2019t pay for. The only way to get your food is to send your order to the kitchen and have someone bring your finished meal back to you. That someone is the waiter.\n\nAn API does that exact waiter job for the apps and websites you use every day. Any time you want something from one service that lives on another service\u2019s private \u201ckitchen\u201d (their internal store of data or tools), the API is the middleman that shuttles your request back and forth. It never lets you (or any app) access private, behind-the-scenes stuff you shouldn\u2019t touch\u2014it only passes along the specific things that are allowed to be shared.\n\nA common example you\u2019ve almost certainly used: When you log into a fitness app or food delivery app using your Google account instead of making a whole new account. The delivery app can\u2019t just walk into Google\u2019s \u201ckitchen\u201d to check your password or sift through your private emails. Instead, the API (waiter) takes the delivery app\u2019s request to confirm you are who you say you are, brings that request to Google, Google verifies your identity, and the API brings back only the \u201cthis person is clear to log in\u201d confirmation to the delivery app. No extra private data is shared, you don\u2019t do any extra work, and everyone gets what they need.\n\nAnother everyday example: When your ride-sharing app shows you the current local temperature before you request a car. The ride-sharing company doesn\u2019t track weather on their own\u2014their API sends a request to a weather service\u2019s kitchen, asks for the temperature for your location, and the API brings that number back to show you on your screen, all in a split second.\n\nThat\u2019s all an API is: a rule-following middleman that lets different apps and services share only what they need to, while keeping everyone\u2019s private, important stuff safe and locked away where it belongs.",
+  "score": 5,
+  "cost": 0.00188175,
+  "expected": "",
+  "tokens": {
+    "input": 63,
+    "output": 1866
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "email_summary_v2",
+  "case": 32,
+  "response": "The SSL certificate for api.company.com expires in 7 days (May 4) and auto-renewal failed because the CNAME record was removed during a recent DNS migration. The DevOps team will re-add the _acme-challenge.api.company.com CNAME record today to resolve the validation issue.",
+  "score": 5,
+  "cost": 0.0015521,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 319
+  }
+}

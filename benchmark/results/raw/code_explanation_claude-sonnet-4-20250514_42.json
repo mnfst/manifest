@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "This code implements an asynchronous queue using a **producer-consumer pattern with cooperative multitasking**. When the queue is full, `put()` operations create futures and suspend until space is available, while `get()` operations create futures and suspend when the queue is empty, with each operation waking up the appropriate waiting coroutines when conditions change.",
+  "score": 4,
+  "cost": 0.001944,
+  "expected": "",
+  "tokens": {
+    "input": 258,
+    "output": 78
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 6,
+  "response": "```python\n    count = {}\n    for num in numbers:\n        count[num] = count.get(num, 0) + 1\n    \n    return [num for num in numbers if count[num] == 1]\n```",
+  "score": 4,
+  "cost": 0.000336,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 58
+  }
+}

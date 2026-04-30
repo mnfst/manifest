@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "instruction_following",
+  "case": 23,
+  "response": "Apple; Banana; Cherry; Date; Elderberry",
+  "score": 5,
+  "cost": 3.16e-05,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 12
+  }
+}

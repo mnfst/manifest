@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_generation",
+  "case": 24,
+  "response": "```python\n    if a + b > c and a + c > b and b + c > a:\n        s = (a + b + c) / 2\n        area = (s * (s - a) * (s - b) * (s - c)) ** 0.5\n        return round(area, 2)\n    return -1\n```",
+  "score": 5,
+  "cost": 7.095e-05,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 80
+  }
+}

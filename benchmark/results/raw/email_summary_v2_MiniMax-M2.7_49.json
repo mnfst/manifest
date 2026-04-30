@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "email_summary_v2",
+  "case": 49,
+  "response": "The product launch is delayed due to payment integration failing PCI compliance, requiring either a May 15 full launch or a payment-free launch with updated Terms & Conditions. An urgent meeting is scheduled tomorrow at 10am to decide the next steps.",
+  "score": 5,
+  "cost": 0.0007579,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 144
+  }
+}

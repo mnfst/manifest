@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_generation",
+  "case": 10,
+  "response": "```python\n    return sum(1 for num in arr if sum(int(digit) if num >= 0 else -int(digit) for digit in str(abs(num))) > 0)\n```",
+  "score": 3,
+  "cost": 4.8e-05,
+  "expected": "",
+  "tokens": {
+    "input": 156,
+    "output": 41
+  }
+}

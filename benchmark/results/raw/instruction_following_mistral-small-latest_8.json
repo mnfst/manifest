@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Imagine a magical notebook that everyone can see, but no one can erase or change what\u2019s written in it. When someone writes something new in the notebook, all the other notebooks around the world copy it at the same time, so everyone agrees on what\u2019s true! That\u2019s how blockchain keeps things fair and safe.",
+  "score": 5,
+  "cost": 2.26e-05,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 65
+  }
+}

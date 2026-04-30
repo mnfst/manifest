@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "An API is like a waiter at a restaurant.\n\nWhen you go to a restaurant, you don't march into the kitchen and start cooking your own food. Instead, you tell the waiter what you want, the waiter takes your order to the kitchen, the kitchen prepares your meal, and then the waiter brings it back to you.\n\nAn API works the same way between different computer programs or apps. Let's say you're using a weather app on your phone. When you ask for today's weather, your app doesn't actually know the weather itself. Instead:\n\n1. Your app asks the weather company's API: \"What's the weather like today?\"\n2. The API goes and gets that information from the weather company's computers\n3. The API brings the weather information back to your app\n4. Your app shows you the weather\n\nThe API is the \"waiter\" that helps your app talk to other services and get the information it needs. It's a messenger that lets different programs work together without you having to worry about how they actually communicate behind the scenes.\n\nYou see APIs everywhere - when you log into a website using your Google account, when a shopping app shows you shipping options, or when a map app gives you directions. They're the invisible helpers that make different services play nicely together.",
+  "score": 5,
+  "cost": 0.004224,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 277
+  }
+}

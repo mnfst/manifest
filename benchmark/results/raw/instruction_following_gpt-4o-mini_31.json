@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 31,
+  "response": "The first 10 prime numbers are: 2, 3, 5, 7, 11, 13, 17, 19, 23, 29.",
+  "score": 4,
+  "cost": 2.55e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 38
+  }
+}

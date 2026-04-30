@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "I'd be happy to give you directions using only left and right turns! However, I need to know which specific park and library you're traveling between, since I don't have your location.\n\nHere's an example of how the directions would look once you provide the locations:\n\n**Example format:**\n1. Head right out of the park onto Main Street\n2. Turn left onto Oak Avenue\n3. Turn right onto Library Lane\n4. The library will be on your right\n\nCould you please tell me:\n- Which park you're starting from\n- Which library you're going to\n- What city/area this is in\n\nThen I can give you the specific left/right turn directions you need!",
+  "score": 2,
+  "cost": 0.002322,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 150
+  }
+}

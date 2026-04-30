@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 29,
+  "response": "```python\n    if not nums:\n        return []\n\n    def get_points(n):\n        \"\"\"\n        Calculates the sum of the digits of a number.\n        For negative numbers, it uses the absolute value.\n        \"\"\"\n        s = str(abs(n))\n        points = 0\n        for digit_char in s:\n            points += int(digit_char)\n        return points\n\n    # Create a list of tuples where each tuple contains:\n    # (sum_of_digits, original_index, number)\n    # This allows sorting based on multiple criteria.\n    decorated_list = []\n    for i, num in enumerate(nums):\n        points = get_points(num)\n        decorated_list.append((points, i, num))\n\n    # Sort the decorated list.\n    # Python's default tuple sorting works as follows:\n    # 1. It sorts primarily by the first element (points) in ascending order.\n    # 2. If the first elements are equal, it then sorts by the second element\n    #    (original_index) in ascending order, which serves as the tie-breaker.\n    decorated_list.sort()\n\n    # Extract the original numbers from the sorted list of tuples\n    result = [item[2] for item in decorated_list]\n\n    return result\n```",
+  "score": 4,
+  "cost": 0.00020324999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 298
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "Of course. Here is a description of the taste of chocolate, using a metaphor:\n\nThe taste of chocolate is like a slow, unfolding melody played on the tongue.\n\nIt begins with a bright, sweet overture, a clear note of sugar and cream that announces its arrival. But as it melts, the deeper, more resonant bass notes of pure cacao emerge\u2014a rich, slightly bitter foundation that provides complexity and depth. The creaminess from the cocoa butter is the legato, a smooth, sustained connection that coats the palate and carries the other flavors. In fine dark chocolates, you might even find surprising grace notes of fruit, coffee, or earth. The experience ends with a long, fading finish, a final, warm note that hums pleasantly long after the melody is over.",
+  "score": 5,
+  "cost": 0.0015975,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 158
+  }
+}

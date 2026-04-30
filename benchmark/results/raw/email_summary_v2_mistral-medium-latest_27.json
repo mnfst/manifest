@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "The sprint successfully delivered the auth redesign on time with strong cross-team collaboration, but faced challenges like excessive context switching and lengthy standups. **Action items** include limiting work-in-progress (WIP) to two tasks per developer and enforcing timeboxed standups with a parking lot for off-topic discussions.",
+  "score": 5,
+  "cost": 0.0001704,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 64
+  }
+}

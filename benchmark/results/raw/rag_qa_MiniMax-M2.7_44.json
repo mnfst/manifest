@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 44,
+  "response": "Based on the provided context, the British government gave land to the **Ohio Company of Virginia** in 1749 for the purpose of developing trade and settlements in the Ohio Country.",
+  "score": 5,
+  "cost": 0.0007711000000000001,
+  "expected": "Ohio Company of Virginia",
+  "tokens": {
+    "input": 289,
+    "output": 103
+  }
+}

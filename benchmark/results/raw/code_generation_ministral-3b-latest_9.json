@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 9,
+  "response": "```python\n    result = 0\n    for num in lst:\n        if isinstance(num, int) and num >= 0 and num % 2 != 0:\n            result += num ** 2\n    return result\n```",
+  "score": 5,
+  "cost": 9.12e-06,
+  "expected": "",
+  "tokens": {
+    "input": 178,
+    "output": 50
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 1,
+  "response": "1665",
+  "score": 1,
+  "cost": 1.2559999999999998e-05,
+  "expected": "1665",
+  "tokens": {
+    "input": 309,
+    "output": 5
+  }
+}

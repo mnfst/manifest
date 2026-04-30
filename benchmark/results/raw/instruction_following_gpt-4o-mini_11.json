@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 11,
+  "response": "What would you like to discuss? How can I assist you today? Are there any specific topics on your mind?",
+  "score": 3,
+  "cost": 1.6049999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 23
+  }
+}

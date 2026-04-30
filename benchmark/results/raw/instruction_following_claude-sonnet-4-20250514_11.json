@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 11,
+  "response": "What message would you like me to respond to? Are you referring to your instruction itself, or is there another message you'd like me to address using only questions?",
+  "score": 5,
+  "cost": 0.000588,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 36
+  }
+}

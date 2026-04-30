@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 25,
+  "response": "The April investor update from the company\u2019s founders shares key recent wins, milestones, and financial metrics, including crossing the 10,000 monthly active user milestone, closing an $8M Series A term sheet at a $40M pre-money valuation, hiring a VP of Sales, and posting $85K in monthly recurring revenue with 12% month-over-month growth, a $120K monthly burn rate, and 11 months of operational runway following the completion of the Series A raise. The core action item for all investors and internal stakeholders involved in the fundraising is to align with the May 10 closing date for the Series A round, the only key upcoming deadline outlined in the brief update.",
+  "score": 5,
+  "cost": 0.0009125,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 873
+  }
+}

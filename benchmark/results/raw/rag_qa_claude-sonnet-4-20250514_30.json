@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "rag_qa",
+  "case": 30,
+  "response": "Melbourne is called the \"sporting capital of Australia.\"",
+  "score": 1,
+  "cost": 0.000963,
+  "expected": "Melbourne",
+  "tokens": {
+    "input": 256,
+    "output": 13
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_generation",
+  "case": 23,
+  "response": "cur_min = nums[0]\n    min_so_far = nums[0]\n    for num in nums[1:]:\n        cur_min = min(num, cur_min + num)\n        min_so_far = min(min_so_far, cur_min)\n    return min_so_far",
+  "score": 5,
+  "cost": 0.00010275,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 65
+  }
+}

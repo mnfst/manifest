@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "rag_qa",
+  "case": 47,
+  "response": "The Urarina.",
+  "score": 5,
+  "cost": 2.565e-05,
+  "expected": "Urarina",
+  "tokens": {
+    "input": 155,
+    "output": 4
+  }
+}

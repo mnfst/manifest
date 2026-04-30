@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "The code defines an `AsyncQueue` class that implements an asynchronous FIFO queue using Python's `collections.deque` for storage and `asyncio` for handling concurrency. The `put` method allows items to be added to the queue, blocking if the queue reaches its `maxsize`, while the `get` method retrieves items, blocking if the queue is empty; both methods use futures to manage waiting tasks efficiently.",
+  "score": 5,
+  "cost": 0.00137,
+  "expected": "",
+  "tokens": {
+    "input": 212,
+    "output": 84
+  }
+}

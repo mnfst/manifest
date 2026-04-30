@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_generation",
+  "case": 11,
+  "response": "total = 0\n    product = 1\n    for num in numbers:\n        total += num\n        product *= num\n    return (total, product)",
+  "score": 4,
+  "cost": 0.0019646,
+  "expected": "",
+  "tokens": {
+    "input": 174,
+    "output": 403
+  }
+}

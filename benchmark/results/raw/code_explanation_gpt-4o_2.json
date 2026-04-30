@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_explanation",
+  "case": 2,
+  "response": "This code implements the QuickSort algorithm, which is a recursive, divide-and-conquer sorting technique. It selects a pivot element (in this case, the middle element of the array), partitions the array into three sub-arrays (elements less than the pivot, equal to the pivot, and greater than the pivot), and recursively sorts the sub-arrays before combining them to produce the sorted array.",
+  "score": 5,
+  "cost": 0.0010775,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 79
+  }
+}

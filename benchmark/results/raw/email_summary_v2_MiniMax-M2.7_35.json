@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "email_summary_v2",
+  "case": 35,
+  "response": "The email announces a new content\u2011moderation policy for AI\u2011generated content, requiring AI images to be labeled, prohibiting deepfakes, and mandating disclosure of AI\u2011assisted text. Enforcement begins June\u202f1, and training materials are being prepared.",
+  "score": 5,
+  "cost": 0.0015741000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 131,
+    "output": 325
+  }
+}

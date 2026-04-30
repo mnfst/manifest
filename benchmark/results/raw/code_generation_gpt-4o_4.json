@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_generation",
+  "case": 4,
+  "response": "```python\nif all(l[i] <= l[i + 1] for i in range(len(l) - 1)):\n    return True\nif all(l[i] >= l[i + 1] for i in range(len(l) - 1)):\n    return True\nreturn False\n```",
+  "score": 5,
+  "cost": 0.000905,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 61
+  }
+}

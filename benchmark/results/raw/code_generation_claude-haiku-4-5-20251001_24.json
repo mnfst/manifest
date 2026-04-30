@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 24,
+  "response": "```python\n    # Check if the three sides form a valid triangle\n    if a + b <= c or a + c <= b or b + c <= a:\n        return -1\n    \n    # Calculate area using Heron's formula\n    s = (a + b + c) / 2  # semi-perimeter\n    area = (s * (s - a) * (s - b) * (s - c)) ** 0.5\n    \n    return round(area, 2)\n```",
+  "score": 5,
+  "cost": 0.0006087999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 166,
+    "output": 119
+  }
+}

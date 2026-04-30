@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "rag_qa",
+  "case": 48,
+  "response": "Strictly contained in P or equal to P.",
+  "score": 4,
+  "cost": 4.8525e-05,
+  "expected": "strictly contained in P or equal to P",
+  "tokens": {
+    "input": 199,
+    "output": 112
+  }
+}

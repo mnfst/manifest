@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "Imagine you're at a restaurant.\n\nYou, the customer, want to order food.\nThe kitchen is where all the food is made.\n\nYou don't go into the kitchen yourself to tell the cooks what you want or how to make it. Instead, you talk to a **waiter**.\n\nYou tell the waiter what you want (e.g., \"I'd like a cheeseburger, please\").\nThe waiter takes your order to the kitchen.\nThe kitchen prepares the food.\nThe waiter brings the food back to you.\n\nIn this analogy:\n\n*   **You (the customer)** are like one piece of software or an app.\n*   **The kitchen** is like another piece of software or a service that has something useful to offer (like weather data, payment processing, or social media posts).\n*   **The waiter** is the **API**.\n\nThe API (waiter) is a messenger that takes your request, tells the other service what you want, and then brings back the response. It defines *how* you should ask for things and *what* kind of response you can expect.\n\nIt lets different \"places\" (software, apps, websites) talk to each other in a structured way, without needing to know all the complicated details of how the other \"place\" works internally.",
+  "score": 5,
+  "cost": 0.00016829999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 277
+  }
+}

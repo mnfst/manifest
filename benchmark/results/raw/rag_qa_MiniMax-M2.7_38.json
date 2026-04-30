@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 38,
+  "response": "The nine residential houses are located along the Charles River.",
+  "score": 2,
+  "cost": 0.0009130000000000001,
+  "expected": "Charles River",
+  "tokens": {
+    "input": 282,
+    "output": 137
+  }
+}

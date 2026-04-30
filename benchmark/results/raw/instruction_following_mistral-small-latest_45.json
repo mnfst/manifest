@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "instruction_following",
+  "case": 45,
+  "response": "Here\u2019s a clear comparison between **TCP (Transmission Control Protocol)** and **UDP (User Datagram Protocol)** in a table format:\n\n| **Feature**               | **TCP (Transmission Control Protocol)**                          | **UDP (User Datagram Protocol)**                          |\n|---------------------------|----------------------------------------------------------------|----------------------------------------------------------|\n| **Type**                  | Connection-oriented (requires handshake)                       | Connectionless (no handshake)                            |\n| **Reliability**           | Reliable (guarantees delivery, ordered packets)                | Unreliable (no guarantee of delivery or order)           |\n| **Error Checking**        | Yes (checksum + acknowledgments + retransmissions)             | Yes (checksum only, no retransmissions)                  |\n| **Flow Control**          | Yes (adjusts transmission speed to avoid congestion)           | No (sends data at full speed)                            |\n| **Congestion Control**    | Yes (adjusts transmission rate to network conditions)          | No (no congestion control)                               |\n| **Packet Ordering**       | Guaranteed (packets arrive in the same order they were sent)   | Not guaranteed (packets may arrive out of order)          |\n| **Speed**                 | Slower (due to overhead from reliability mechanisms)           | Faster (minimal overhead)                                |\n| **Header Size**           | 20\u201360 bytes (larger due to control flags)                      | 8 bytes (smaller, simpler structure)                     |\n| **Use Cases**             | Web browsing (HTTP/HTTPS), email (SMTP), file transfers (FTP), databases | Video streaming (YouTube, Netflix), VoIP (Zoom, Skype), online gaming, DNS |\n| **Overhead**              | High (due to connection setup, acknowledgments, retransmissions)| Low (no connection setup or teardown)                     |\n| **Connection Establishment** | Requires **3-way handshake** (SYN, SYN-ACK, ACK)            | No handshake (just sends data)                           |\n| **Connection Termination** | Requires **4-way handshake** (FIN, ACK, FIN, ACK)             | No termination (connectionless)                          |\n| **Multiplexing**          | Supports multiple applications via **ports**                  | Also supports ports (but no connection tracking)",
+  "score": 4,
+  "cost": 0.0001526,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 500
+  }
+}

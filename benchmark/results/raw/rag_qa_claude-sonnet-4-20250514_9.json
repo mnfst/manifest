@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "rag_qa",
+  "case": 9,
+  "response": "Based on the provided context, the high end of the temperature range in winter is 70 degrees (as stated \"winters are 70-50's\").",
+  "score": 5,
+  "cost": 0.000981,
+  "expected": "70",
+  "tokens": {
+    "input": 152,
+    "output": 35
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "email_summary_v2",
+  "case": 21,
+  "response": "The Platform Team proposes a cleanup sprint to remove **15 fully rolled-out feature flags** and archive **8 dead-code flags** (out of 47 active) to reduce configuration complexity and improve test suite speed by **~12%**. **Action required:** Review and approve the cleanup plan for the 23 flags older than 6 months.",
+  "score": 5,
+  "cost": 0.0001872,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 73
+  }
+}

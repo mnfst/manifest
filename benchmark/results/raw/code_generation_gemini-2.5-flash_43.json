@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 43,
+  "response": "```python\n    if not numbers:\n        return []\n\n    result = [numbers[0]]\n    for i in range(1, len(numbers)):\n        result.append(delimeter)\n        result.append(numbers[i])\n    return result\n```",
+  "score": 5,
+  "cost": 5.52e-05,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 59
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "Whisk 2-3 eggs with a splash of milk, salt, and pepper.\n\nMelt butter in a non-stick skillet over medium-low heat. Pour in the eggs. Gently push and fold with a spatula until softly set. Remove from heat just before they\u2019re done, as they will continue to cook.",
+  "score": 2,
+  "cost": 0.0006925,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 67
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "instruction_following",
+  "case": 4,
+  "response": "Here are the translations for \"hello world\":\n\n1.  **French:** Bonjour le monde\n2.  **Spanish:** Hola mundo\n3.  **German:** Hallo Welt",
+  "score": 5,
+  "cost": 0.000395,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 37
+  }
+}

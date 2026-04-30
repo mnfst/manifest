@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "rag_qa",
+  "case": 30,
+  "response": "Based on the provided context, **Melbourne** is described as the \"sporting capital of Australia.\"",
+  "score": 1,
+  "cost": 0.0002928,
+  "expected": "Melbourne",
+  "tokens": {
+    "input": 256,
+    "output": 22
+  }
+}

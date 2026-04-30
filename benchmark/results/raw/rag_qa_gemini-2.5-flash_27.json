@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "rag_qa",
+  "case": 27,
+  "response": "Newton's First Law directly connects inertia with the concept of relative velocities.",
+  "score": 4,
+  "cost": 4.935e-05,
+  "expected": "Newton's First",
+  "tokens": {
+    "input": 269,
+    "output": 15
+  }
+}

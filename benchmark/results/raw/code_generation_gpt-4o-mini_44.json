@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_generation",
+  "case": 44,
+  "response": "```python\n    vowels = 'aeiouAEIOU'\n    encoded_message = []\n    \n    for char in message:\n        if char.isalpha():\n            # Swap case\n            if char in vowels:\n                # Replace vowel with the letter 2 places ahead\n                if char.islower():\n                    new_char = chr((ord(char) - ord('a') + 2) % 26 + ord('a'))\n                else:\n                    new_char = chr((ord(char) - ord('A') + 2) % 26 + ord('A'))\n                encoded_message.append(new_char)\n            else:\n                encoded_message.append(char.swapcase())\n        else:\n            encoded_message.append(char)\n    \n    return ''.join(encoded_message)\n```",
+  "score": 3,
+  "cost": 0.00011175,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 151
+  }
+}

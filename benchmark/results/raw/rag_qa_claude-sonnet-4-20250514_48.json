@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "rag_qa",
+  "case": 48,
+  "response": "Not found in context.\n\nThe provided context only states that it is not known whether L is strictly contained in P or equal to P, but it does not mention what attributes are most commonly ascribed to L in relation to P.",
+  "score": 5,
+  "cost": 0.001134,
+  "expected": "strictly contained in P or equal to P",
+  "tokens": {
+    "input": 128,
+    "output": 50
+  }
+}

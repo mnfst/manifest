@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 9,
+  "response": "total_sum = 0\n    for num in lst:\n        if isinstance(num, int) and num > 0 and num % 2 != 0:\n            total_sum += num * num\n    return total_sum",
+  "score": 4,
+  "cost": 5.8349999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 185,
+    "output": 51
+  }
+}

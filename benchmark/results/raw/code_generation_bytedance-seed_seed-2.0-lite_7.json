@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_generation",
+  "case": 7,
+  "response": "result = 1\ncurrent_fact = 1\nfor i in range(1, n + 1):\n    current_fact *= i\n    result *= current_fact\nreturn result",
+  "score": 5,
+  "cost": 0.00077,
+  "expected": "",
+  "tokens": {
+    "input": 184,
+    "output": 724
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 27,
+  "response": "Here are 3 mammals, 3 birds, and 3 fish, grouped with headers:\n\n### Mammals\n1.  Dog\n2.  Elephant\n3.  Human\n\n### Birds\n1.  Sparrow\n2.  Eagle\n3.  Penguin\n\n### Fish\n1.  Salmon\n2.  Goldfish\n3.  Shark",
+  "score": 5,
+  "cost": 4.9199999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 77
+  }
+}

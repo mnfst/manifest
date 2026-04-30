@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_generation",
+  "case": 15,
+  "response": "largest = 1\n    while n % 2 == 0:\n        largest = 2\n        n //= 2\n    i = 3\n    while i * i <= n:\n        while n % i == 0:\n            largest = i\n            n //= i\n        i += 2\n    return n if n > 1 else largest",
+  "score": 4,
+  "cost": 0.021596900000000002,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 4126
+  }
+}

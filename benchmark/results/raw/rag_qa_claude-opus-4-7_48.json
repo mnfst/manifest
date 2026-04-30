@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "rag_qa",
+  "case": 48,
+  "response": "Based on the context, it is not known whether L is strictly contained in P or equal to P. These are the two attributes ascribed to L in relation to P.",
+  "score": 4,
+  "cost": 0.006315,
+  "expected": "strictly contained in P or equal to P",
+  "tokens": {
+    "input": 171,
+    "output": 50
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_generation",
+  "case": 22,
+  "response": "```\n    count = 0\n    for ch in brackets:\n        if ch == \"<\":\n            count += 1\n        else:\n            count -= 1\n        if count < 0:\n            return False\n    return count == 0\n```",
+  "score": 4,
+  "cost": 0.008085,
+  "expected": "",
+  "tokens": {
+    "input": 194,
+    "output": 69
+  }
+}

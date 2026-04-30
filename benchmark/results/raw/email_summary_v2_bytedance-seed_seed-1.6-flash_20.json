@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "email_summary_v2",
+  "case": 20,
+  "response": "On Saturday at 2 AM, a disk space alert occurred on prod-db-01; automated cleanup freed 40GB but failed to resize, and manual intervention at 8 AM restored service, with the root cause being misconfigured log rotation after the last migration. There was no customer impact due to the maintenance window.",
+  "score": 5,
+  "cost": 0.000132075,
+  "expected": "",
+  "tokens": {
+    "input": 177,
+    "output": 396
+  }
+}

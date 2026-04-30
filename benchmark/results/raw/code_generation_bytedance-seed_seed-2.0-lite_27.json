@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_generation",
+  "case": 27,
+  "response": "max_strength = float('-inf')\nbest_ext = \"\"\nfor ext in extensions:\n    cap = sum(c.isupper() for c in ext)\n    sm = sum(c.islower() for c in ext)\n    current_strength = cap - sm\n    if current_strength > max_strength:\n        max_strength = current_strength\n        best_ext = ext\nreturn f\"{class_name}.{best_ext}\"",
+  "score": 5,
+  "cost": 0.00108825,
+  "expected": "",
+  "tokens": {
+    "input": 357,
+    "output": 999
+  }
+}

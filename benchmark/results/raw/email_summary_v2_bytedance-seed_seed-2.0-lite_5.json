@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 5,
+  "response": "The Product Team sent an urgent email alerting stakeholders to a required two-week product launch delay triggered by a payment integration that cannot pass PCI compliance, outlining two potential paths forward: launch the product without payment functionality (a route Legal confirmed requires updated terms of service) or push the full launch back to the new date of May 15. To discuss and finalize the chosen approach to the launch setback, the Product Team has called a mandatory meeting for all relevant stakeholders to attend at 10am the following day.",
+  "score": 5,
+  "cost": 0.0007255,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 689
+  }
+}

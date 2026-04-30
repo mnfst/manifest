@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 39,
+  "response": "The year-end audit will begin on January 15, requiring the completion of a pre-audit checklist that includes finalizing Q4 revenue recognition, reconciling bank accounts, verifying stock option records, and preparing related-party transaction disclosures. A controller meeting will be held next Tuesday to assign responsibilities for these preparation tasks.",
+  "score": 5,
+  "cost": 0.0008586,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 334
+  }
+}

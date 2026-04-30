@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_generation",
+  "case": 11,
+  "response": "```python\n    total_sum = 0\n    total_product = 1\n    for num in numbers:\n        total_sum += num\n        total_product *= num\n    return (total_sum, total_product)\n```",
+  "score": 4,
+  "cost": 5.475e-05,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 53
+  }
+}

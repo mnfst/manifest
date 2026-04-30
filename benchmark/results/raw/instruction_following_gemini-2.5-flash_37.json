@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "The taste of chocolate is like a **rich, unfolding symphony**. It begins with a sweet, inviting overture, often a creamy melody that melts on the tongue. Then, deeper, more complex notes emerge \u2013 a subtle bitterness, an earthy bass, perhaps a hint of fruit or nut as the composition develops. It builds to a satisfying crescendo, leaving a warm, lingering aftertaste that resonates long after the final note.",
+  "score": 5,
+  "cost": 5.25e-05,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 84
+  }
+}

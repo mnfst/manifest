@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "email_summary_v2",
+  "case": 25,
+  "response": "The April investor update highlights crossing 10K MAU, closing an $8M Series A term sheet (valued at $40M pre), hiring a VP of Sales, and metrics including $85K MRR (+12% MoM), a $120K monthly burn rate, and 11 months of runway post-raise. Fundraising is set to close on May 10.",
+  "score": 5,
+  "cost": 0.0001251,
+  "expected": "",
+  "tokens": {
+    "input": 192,
+    "output": 369
+  }
+}

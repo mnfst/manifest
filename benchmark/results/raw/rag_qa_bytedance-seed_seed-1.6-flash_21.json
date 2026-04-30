@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "rag_qa",
+  "case": 21,
+  "response": "anaerobic bacteria\nThe context states: \"Oxygen gas is poisonous to the anaerobic bacteria that cause gas gangrene, so increasing its partial pressure helps kill them.\" Thus, the pathogen is anaerobic bacteria.",
+  "score": 5,
+  "cost": 7.395e-05,
+  "expected": "anaerobic bacteria",
+  "tokens": {
+    "input": 282,
+    "output": 176
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "This code implements a stack that can retrieve its minimum element in constant time using a two-stack approach. The main stack stores all values, while a synchronized auxiliary stack tracks the running minimum value at each level, making the current minimum instantly accessible at its top.",
+  "score": 5,
+  "cost": 0.00071125,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 52
+  }
+}

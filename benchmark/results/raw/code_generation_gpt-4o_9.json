@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_generation",
+  "case": 9,
+  "response": "```python\n    return sum(x**2 for x in lst if isinstance(x, int) and x > 0 and x % 2 != 0)\n```",
+  "score": 4,
+  "cost": 0.0007625,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 34
+  }
+}

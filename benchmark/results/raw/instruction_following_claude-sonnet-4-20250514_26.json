@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle is the continuous movement of water throughout Earth's atmosphere, land, and oceans. This natural process has been occurring for billions of years and is driven primarily by energy from the sun. Water constantly changes between its three states\u2014liquid, gas, and solid\u2014as it moves through different reservoirs including oceans, rivers, lakes, groundwater, ice caps, and the atmosphere. This cycle is essential for sustaining all life on Earth and regulating our planet's climate and weather patterns.\n\nThe cycle begins with evaporation, where solar energy heats water in oceans, lakes, and rivers, transforming it from liquid to water vapor that rises into the atmosphere. Plants also contribute through transpiration, releasing water vapor through their leaves as part of their biological processes. As this warm, moist air rises higher into the atmosphere, it cools and undergoes condensation, forming tiny water droplets around particles of dust and pollen. These droplets cluster together to create clouds and fog.\n\nWhen water droplets in clouds become too heavy to remain suspended in the air, precipitation occurs in the form of rain, snow, sleet, or hail. The type of precipitation depends on atmospheric temperature and conditions. Once water reaches the Earth's surface, it follows several pathways: some flows over the ground as surface runoff into streams and rivers, eventually reaching the ocean; some infiltrates into the soil to become groundwater; and some is absorbed by plants or evaporates directly back into the atmosphere.\n\nThe water cycle is a closed system, meaning the total amount of water on Earth remains relatively constant\u2014it simply changes location and form. This process helps distribute heat around the globe, influences weather patterns, replenishes freshwater supplies, and supports ecosystems worldwide. Human activities such as deforestation, urbanization, and climate change can affect local and regional water cycles, making understanding and protecting this natural process crucial for environmental sustainability and water resource management.",
+  "score": 0,
+  "cost": 0.006156,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 406
+  }
+}

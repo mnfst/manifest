@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "rag_qa",
+  "case": 8,
+  "response": "36%\nThe context states that BSkyB confirmed reaching its target, and \"its reach into 36% of households in the UK represented an audience of more than 25m people,\" indicating the target percentage was 36%.",
+  "score": 5,
+  "cost": 0.000103125,
+  "expected": "36%",
+  "tokens": {
+    "input": 259,
+    "output": 279
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 45,
+  "response": "# TCP vs UDP Comparison\n\nTCP (Transmission Control Protocol) and UDP (User Datagram Protocol) are two core transport layer protocols in the Internet Protocol Suite. Here's a detailed comparison:\n\n## Comparison Table\n\n| Feature | TCP | UDP |\n|---------|-----|-----|\n| **Connection Type** | Connection-oriented | Connectionless |\n| **Reliability** | Reliable (guaranteed delivery) | Unreliable (best-effort delivery) |\n| **Data Integrity** | Error checking and correction | Basic error checking only |\n| **Ordering** | Maintains packet order | No ordering guarantee |\n| **Speed** | Slower due to overhead | Faster with minimal overhead |\n| **Header Size** | 20-60 bytes | 8 bytes |\n| **Flow Control** | Yes (prevents overwhelming receiver) | No |\n| **Congestion Control** | Yes (adapts to network conditions) | No |\n| **Acknowledgment** | ACK packets confirm receipt | No acknowledgments |\n| **Retransmission** | Automatic retransmission of lost packets | No retransmission |\n| **Handshake** | 3-way handshake required | No handshake |\n| **Data Stream** | Stream-oriented (continuous flow) | Message-oriented (discrete packets) |\n| **Bandwidth Usage** | Higher (due to control mechanisms) | Lower (minimal overhead) |\n| **Use Cases** | Web browsing, email, file transfer, databases | Gaming, streaming, DNS, DHCP |\n\n## When to Use Each Protocol\n\n### Use TCP when you need:\n- **Guaranteed delivery** (web pages, emails, file downloads)\n- **Data integrity** (financial transactions, databases)\n- **Ordered data** (text communications, API calls)\n\n### Use UDP when you need:\n- **Speed over reliability** (online gaming, live streaming)\n- **Low latency** (DNS lookups, real-time applications)\n- **Broadcast/multicast** (network discovery, live video)\n\nBoth protocols serve different purposes and are chosen based on the specific requirements of the application.",
+  "score": 4,
+  "cost": 0.007284,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 482
+  }
+}

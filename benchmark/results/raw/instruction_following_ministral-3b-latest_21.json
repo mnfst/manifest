@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "Here\u2019s a simple route from a park to a library using only **left and right turns** (assuming you\u2019re in a typical urban area):\n\n1. **Start at the park** \u2013 Exit the park entrance.\n2. **Turn right** onto the main road.\n3. **Turn left** onto a side street.\n4. **Turn right** onto a wider avenue.\n5. **Turn left** onto a final street leading to the library.\n\n*Note:* Directions may vary based on your exact location. If you provide the park and library names, I can refine the path!",
+  "score": 5,
+  "cost": 5.559999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 119
+  }
+}

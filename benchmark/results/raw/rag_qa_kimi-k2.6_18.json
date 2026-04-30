@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "rag_qa",
+  "case": 18,
+  "response": "Allan Bloom",
+  "score": 0,
+  "cost": 0.0004908,
+  "expected": "Allan Bloom",
+  "tokens": {
+    "input": 174,
+    "output": 161
+  }
+}

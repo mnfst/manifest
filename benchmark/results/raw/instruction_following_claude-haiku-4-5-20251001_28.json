@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "# Your potential is limitless when you believe in yourself and take action today.",
+  "score": 3,
+  "cost": 9.68e-05,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 19
+  }
+}

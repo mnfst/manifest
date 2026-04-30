@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "email_summary_v2",
+  "case": 37,
+  "response": "The CEO recommends countering or declining BigCo's $15M offer for the ML team, as they believe the team is worth more, and suggests discussing this before responding while informing the board. The main action items are to discuss the counteroffer/decline with the team and notify the board.",
+  "score": 5,
+  "cost": 2.96e-05,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 61
+  }
+}

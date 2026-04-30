@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_generation",
+  "case": 49,
+  "response": "if not string:\n    return ''\nfor i in range(len(string)):\n    if is_palindrome(string[i:]):\n        return string + string[:i][::-1]",
+  "score": 4,
+  "cost": 0.003842,
+  "expected": "",
+  "tokens": {
+    "input": 248,
+    "output": 3780
+  }
+}

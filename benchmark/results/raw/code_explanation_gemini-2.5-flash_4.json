@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_explanation",
+  "case": 4,
+  "response": "This code implements **memoization**, a dynamic programming technique that caches the results of expensive function calls. It acts as a **decorator factory**, returning a new function that, when called, stores and retrieves results based on its arguments, thereby avoiding redundant computations for the same inputs.",
+  "score": 5,
+  "cost": 4.47e-05,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 55
+  }
+}

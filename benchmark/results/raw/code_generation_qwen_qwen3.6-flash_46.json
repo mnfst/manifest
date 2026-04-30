@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_generation",
+  "case": 46,
+  "response": "res = []\n    for i, v in enumerate(arr):\n        if v % 2 == 0:\n            if not res or v < res[0]:\n                res = [v, i]\n    return res",
+  "score": 3,
+  "cost": 0.00325225,
+  "expected": "",
+  "tokens": {
+    "input": 373,
+    "output": 3159
+  }
+}

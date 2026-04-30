@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "rag_qa",
+  "case": 13,
+  "response": "Based on the provided context, the Victorian Government owns V/Line.",
+  "score": 5,
+  "cost": 0.0002016,
+  "expected": "Victorian Government",
+  "tokens": {
+    "input": 167,
+    "output": 17
+  }
+}

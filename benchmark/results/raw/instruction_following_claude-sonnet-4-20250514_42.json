@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "The thunderstorm rolled in like nature's own symphony of chaos. Dark, towering clouds swallowed the afternoon sun, casting an ominous shadow across the landscape. The first fat raindrops began to fall, releasing the rich, earthy scent of petrichor as they struck the dry pavement\u2014that distinctive smell of rain meeting earth that filled the air with an almost metallic freshness.\n\nLightning split the sky in brilliant, jagged veins of white-hot electricity, followed by the deep, rumbling growl of thunder that seemed to shake the very ground beneath your feet. The sound rolled across the heavens like a massive boulder tumbling down an endless mountain. \n\nAs the storm intensified, the rain transformed from scattered drops into a torrential downpour, drumming against windows and rooftops with an urgent, rhythmic percussion. The air grew thick and humid, carrying the cool dampness that made your skin feel sticky and charged with electricity, as if the very atmosphere was alive and crackling with energy.",
+  "score": 5,
+  "cost": 0.003372,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 220
+  }
+}

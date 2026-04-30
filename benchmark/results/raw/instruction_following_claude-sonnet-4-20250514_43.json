@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 43,
+  "response": "Did you know that one day on Venus is longer than one year on Venus? Venus rotates so slowly on its axis that it takes about 243 Earth days to complete one full rotation, but it only takes about 225 Earth days to orbit around the Sun!",
+  "score": 5,
+  "cost": 0.000945,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 58
+  }
+}

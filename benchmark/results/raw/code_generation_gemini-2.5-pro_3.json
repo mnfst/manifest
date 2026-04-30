@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_generation",
+  "case": 3,
+  "response": "```python\n    return [xs[i] * i for i in range(1, len(xs))]\n```",
+  "score": 5,
+  "cost": 0.0004325,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 25
+  }
+}

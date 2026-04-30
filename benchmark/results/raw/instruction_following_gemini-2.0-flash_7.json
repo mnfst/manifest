@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "Whisk 2 eggs with a splash of milk, salt, and pepper. Melt butter in a non-stick pan over medium heat. Pour in egg mixture and cook, gently pushing cooked egg towards the center, allowing uncooked egg to flow underneath. Cook until softly set. Serve immediately.",
+  "score": 2,
+  "cost": 2.5300000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 59
+  }
+}

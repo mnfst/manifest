@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "instruction_following",
+  "case": 27,
+  "response": "**Mammals**\n- Lion  \n- Elephant  \n- Whale  \n\n**Birds**\n- Eagle  \n- Penguin  \n- Parrot  \n\n**Fish**\n- Salmon  \n- Shark  \n- Goldfish",
+  "score": 5,
+  "cost": 0.0011044000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 40,
+    "output": 241
+  }
+}

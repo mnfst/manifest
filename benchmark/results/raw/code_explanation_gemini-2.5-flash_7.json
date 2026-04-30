@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "This code implements an LRU (Least Recently Used) cache decorator that stores the results of a function call, evicting the least recently accessed item when the cache exceeds its `maxsize` limit. It uses an `OrderedDict` to efficiently track access order and remove the oldest entry.",
+  "score": 5,
+  "cost": 5.565e-05,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 59
+  }
+}

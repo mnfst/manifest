@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 39,
+  "response": "# What Does a VPN Do? \u2014 Q&A\n\n**Q: What does VPN stand for?**\nA: VPN stands for **Virtual Private Network**.\n\n**Q: What does a VPN actually do?**\nA: A VPN creates a secure, encrypted \"tunnel\" between your device and a remote server. All your internet traffic is routed through this tunnel, hiding your real IP address and protecting your data from outside observers.\n\n**Q: How does it protect my privacy?**\nA: It masks your real IP address by replacing it with the IP address of the VPN server. This makes it harder for websites, advertisers, and third parties to track your location and online activity.\n\n**Q: How does it secure my data?**\nA: A VPN encrypts your internet traffic, meaning that even if someone intercepts it (e.g., on public Wi-Fi), they can't read what you're sending or receiving.\n\n**Q: Can a VPN bypass geographic restrictions?**\nA: Yes. By connecting to a server in another country, you can access content or websites that may be blocked or unavailable in your region (e.g., streaming libraries, news sites).\n\n**Q: Does a VPN make me completely anonymous?**\nA: No. A VPN improves privacy but doesn't make you fully anonymous. The VPN provider can potentially see your activity, and websites can still track you via cookies, accounts, or browser fingerprinting.\n\n**Q: Does a VPN slow down my internet?**\nA: Usually a little, yes. Encryption and routing through a remote server add some overhead, though premium VPNs minimize the impact.\n\n**Q: Who commonly uses VPNs?**\nA: \n- **Remote workers** accessing company networks securely\n- **Travelers** using public Wi-Fi\n- **Privacy-conscious users** avoiding tracking\n- **Streamers/gamers** accessing geo-restricted content\n- **Journalists/activists** in restrictive regions\n\n**Q: Are VPNs legal?**\nA: In most countries, yes. However, some nations (e.g., China, Russia, Iran) restrict or ban VPN use. Using a VPN for illegal activity remains illegal regardless.\n\n**Q: What a VPN does *not* do?**\nA: It doesn't protect you from malware, phishing, weak passwords, or data you voluntarily share with apps and websites.",
+  "score": 5,
+  "cost": 0.058155,
+  "expected": "",
+  "tokens": {
+    "input": 32,
+    "output": 769
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "structured_output",
+  "case": 18,
+  "response": "{\"plan\": \"Pro Plan\", \"price_monthly\": 29.00, \"price_annual\": 348.00, \"start_date\": \"2024-01-01\", \"renewal_date\": \"2025-01-01\", \"payment_method\": \"Visa\", \"card_last4\": \"4242\", \"status\": \"active\"}",
+  "score": 5,
+  "cost": 0.009765,
+  "expected": "",
+  "tokens": {
+    "input": 171,
+    "output": 96
+  }
+}

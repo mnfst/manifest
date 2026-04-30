@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "This code solves the **0/1 Knapsack Problem** using dynamic programming, building a 2D table where each cell `dp[i][w]` represents the maximum value achievable using the first `i` items with a weight limit of `w`. For each item, it decides whether to include it (if it fits) by taking the maximum of either excluding it or including it with the remaining capacity.",
+  "score": 5,
+  "cost": 0.0005103999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 178,
+    "output": 92
+  }
+}

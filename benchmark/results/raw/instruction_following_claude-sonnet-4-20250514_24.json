@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "\u2022 **Incident Details**: Two-vehicle collision occurred at 3:45 PM on Main Street and Oak Avenue intersection when Vehicle A (2019 Honda Civic) failed to yield at a stop sign and struck Vehicle B (2021 Ford Explorer) on the passenger side.\n\n\u2022 **Injuries and Damages**: Driver of Vehicle A sustained minor lacerations and was transported to General Hospital; Vehicle B driver reported neck pain but declined medical transport; both vehicles sustained significant damage and required towing.\n\n\u2022 **Contributing Factors**: Clear weather conditions with dry pavement; Vehicle A driver cited for failure to yield right-of-way; no evidence of impairment or mechanical failure; traffic signal was functioning properly at time of accident.",
+  "score": 2,
+  "cost": 0.002418,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 157
+  }
+}

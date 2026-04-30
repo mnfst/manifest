@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_generation",
+  "case": 17,
+  "response": "```python\n    if not text:\n        return None\n    import hashlib\n    return hashlib.md5(text.encode()).hexdigest()\n```",
+  "score": 5,
+  "cost": 3.3e-05,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 28
+  }
+}

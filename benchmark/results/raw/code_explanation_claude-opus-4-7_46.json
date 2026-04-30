@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_explanation",
+  "case": 46,
+  "response": "This code performs the fix-up procedure after inserting a node into a red-black tree, restoring the red-black properties by recoloring nodes and performing left/right rotations based on the uncle's color (Case 1: red uncle triggers recoloring; Cases 2/3: black uncle triggers rotations). It handles only the left-side cases shown here (where the parent is a left child), and finally ensures the root is black.",
+  "score": 4,
+  "cost": 0.01449,
+  "expected": "",
+  "tokens": {
+    "input": 291,
+    "output": 135
+  }
+}

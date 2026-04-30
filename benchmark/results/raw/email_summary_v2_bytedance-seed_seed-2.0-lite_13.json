@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "The Customer Success team shared their Q1 quarterly results in an update noting positive performance across core metrics: an NPS rise from 58 to 62, a 4.3/5 support CSAT score, and a churn rate drop from 1.8% to 1.2%, along with the top three customer feature requests and three enterprise expansion opportunities in the pipeline worth a combined $800K.\nRequired action items stemming from this update include prioritizing work to deliver the most requested customer features\u2014SSO, custom dashboards, and an API rate limit increase\u2014and advancing the three pipeline enterprise expansions to secure the full $800K in projected additional revenue.",
+  "score": 5,
+  "cost": 0.001114,
+  "expected": "",
+  "tokens": {
+    "input": 164,
+    "output": 1073
+  }
+}

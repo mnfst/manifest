@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_generation",
+  "case": 2,
+  "response": "s = sorted(lst)\n    res = []\n    l, r = 0, len(s) - 1\n    while l <= r:\n        res.append(s[l])\n        l += 1\n        if l <= r:\n            res.append(s[r])\n            r -= 1\n    return res",
+  "score": 4,
+  "cost": 0.0184249,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 3501
+  }
+}

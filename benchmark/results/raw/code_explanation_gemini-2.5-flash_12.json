@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "This code performs a topological sort on a directed acyclic graph (DAG) using a Depth-First Search (DFS) algorithm. It works by recursively visiting all neighbors of a node and only pushing the node onto a stack *after* all its descendants have been fully explored, then reversing the final stack to produce a valid topological ordering.",
+  "score": 5,
+  "cost": 5.8349999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 67
+  }
+}

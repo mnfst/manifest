@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_generation",
+  "case": 24,
+  "response": "```python\nimport math\n\n# Check if the three sides form a valid triangle\nif a + b <= c or a + c <= b or b + c <= a:\n    return -1\n\n# Calculate area using Heron's formula\ns = (a + b + c) / 2\narea = math.sqrt(s * (s - a) * (s - b) * (s - c))\n\nreturn round(area, 2)\n```",
+  "score": 4,
+  "cost": 0.0021637,
+  "expected": "",
+  "tokens": {
+    "input": 167,
+    "output": 450
+  }
+}

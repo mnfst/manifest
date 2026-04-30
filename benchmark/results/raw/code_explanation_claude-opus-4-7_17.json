@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "code_explanation",
+  "case": 17,
+  "response": "This implements the **Chain of Responsibility** design pattern as a higher-order function: it takes a sequence of handler functions and returns a single dispatcher that passes a request to each handler in order, returning the first non-`None` result (or `None` if no handler processes it).",
+  "score": 5,
+  "cost": 0.008295,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 88
+  }
+}

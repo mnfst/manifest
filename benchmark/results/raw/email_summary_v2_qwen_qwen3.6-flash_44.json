@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "email_summary_v2",
+  "case": 44,
+  "response": "Sarah proposes reallocating $50,000 from engineering\u2019s budget surplus to cover marketing\u2019s 15% overspend from an August campaign. The team is asked to review and discuss this adjustment during a meeting on Thursday.",
+  "score": 5,
+  "cost": 0.0010135,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 988
+  }
+}

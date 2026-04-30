@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "email_summary_v2",
+  "case": 11,
+  "response": "The SOC 2 Type II audit was completed with no critical findings but identified three observations, including insufficient access reviews, an untested incident response plan, and incomplete vendor risk assessments for two vendors. **Action is required to address these issues within the next 30 days.**",
+  "score": 5,
+  "cost": 0.0001536,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 57
+  }
+}

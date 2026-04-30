@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 30,
+  "response": "Competitor X recently launched AI features with auto-categorization at twice our price, though market reaction has been neutral and we maintain an advantage in API and integrations. Product recommends fast-tracking our AI roadmap item to close the feature gap.",
+  "score": 5,
+  "cost": 0.0013854,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 554
+  }
+}

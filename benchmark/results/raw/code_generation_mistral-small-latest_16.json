@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "code_generation",
+  "case": 16,
+  "response": "```python\n    n = len(grid)\n    result = None\n    min_lex = None\n\n    def dfs(x, y, path, visited):\n        nonlocal result, min_lex\n        if len(path) == k:\n            if min_lex is None or path < min_lex:\n                min_lex = path.copy()\n                result = path.copy()\n            return\n        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:\n            nx, ny = x + dx, y + dy\n            if 0 <= nx < n and 0 <= ny < n:\n                path.append(grid[nx][ny])\n                dfs(nx, ny, path, visited)\n                path.pop()\n\n    for i in range(n):\n        for j in range(n):\n            dfs(i, j, [grid[i][j]], set())\n\n    return result\n```",
+  "score": 4,
+  "cost": 0.0001034,
+  "expected": "",
+  "tokens": {
+    "input": 437,
+    "output": 199
+  }
+}

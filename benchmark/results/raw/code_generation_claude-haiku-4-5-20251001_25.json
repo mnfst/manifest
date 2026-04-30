@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 25,
+  "response": "```python\n    result = []\n    current_group = \"\"\n    depth = 0\n    \n    for char in paren_string:\n        if char == ' ':\n            continue\n        \n        if char == '(':\n            current_group += char\n            depth += 1\n        elif char == ')':\n            current_group += char\n            depth -= 1\n            if depth == 0:\n                result.append(current_group)\n                current_group = \"\"\n    \n    return result\n```",
+  "score": 4,
+  "cost": 0.00062,
+  "expected": "",
+  "tokens": {
+    "input": 175,
+    "output": 120
+  }
+}

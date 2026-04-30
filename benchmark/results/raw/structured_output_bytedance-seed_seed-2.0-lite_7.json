@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "structured_output",
+  "case": 7,
+  "response": "{\"symbol\": \"AAPL\", \"price\": 185.50, \"change_percent\": 2.3, \"volume\": \"45M shares\", \"high_52w\": 198.0, \"low_52w\": 155.0, \"market_cap\": \"$2.87T\"}",
+  "score": 5,
+  "cost": 0.00040575,
+  "expected": "",
+  "tokens": {
+    "input": 171,
+    "output": 363
+  }
+}

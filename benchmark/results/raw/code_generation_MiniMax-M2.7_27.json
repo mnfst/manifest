@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_generation",
+  "case": 27,
+  "response": "```python\nstrongest = extensions[0]\nmax_strength = sum(1 for c in extensions[0] if c.isupper()) - sum(1 for c in extensions[0] if c.islower())\n\nfor ext in extensions[1:]:\n    current_strength = sum(1 for c in ext if c.isupper()) - sum(1 for c in ext if c.islower())\n    if current_strength > max_strength:\n        strongest = ext\n        max_strength = current_strength\n\nreturn f\"{class_name}.{strongest}\"\n```",
+  "score": 4,
+  "cost": 0.0040799,
+  "expected": "",
+  "tokens": {
+    "input": 321,
+    "output": 847
+  }
+}

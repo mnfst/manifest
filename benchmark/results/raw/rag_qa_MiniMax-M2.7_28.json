@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 28,
+  "response": "C\u00e9loron handled \u201cbusiness\u201d on the expedition by publicly asserting French authority \u2013 he buried lead plates engraved with the French claim to the Ohio Country and, whenever he met British merchants or fur\u2011traders, he informed them of the French claim and ordered them to leave the area.",
+  "score": 5,
+  "cost": 0.0026983000000000003,
+  "expected": "British merchants or fur-traders, C\u00e9loron informed them of the French claims on the territory and told them to leave.",
+  "tokens": {
+    "input": 241,
+    "output": 553
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_generation",
+  "case": 27,
+  "response": "max_strength = float('-inf')\nstrongest_ext = \"\"\n\nfor ext in extensions:\n    cap_count = sum(1 for c in ext if c.isupper())\n    sm_count = sum(1 for c in ext if c.islower())\n    strength = cap_count - sm_count\n    \n    if strength > max_strength:\n        max_strength = strength\n        strongest_ext = ext\n\nreturn f\"{class_name}.{strongest_ext}\"",
+  "score": 5,
+  "cost": 0.002733,
+  "expected": "",
+  "tokens": {
+    "input": 346,
+    "output": 113
+  }
+}

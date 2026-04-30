@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "The quarterly OKR review shows mixed results, with **Engineering (0.7/0.7) and Product (0.6/0.7) needing improvement**, while **Sales (0.9/0.7) and Support (0.8/0.7) met targets. Operations recommends adjusting the **AI OKR** due to delays and initiating next-quarter planning on Monday.",
+  "score": 4,
+  "cost": 8.2e-06,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 85
+  }
+}

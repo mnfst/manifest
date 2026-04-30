@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_generation",
+  "case": 9,
+  "response": "```python\nif not lst:\n    return 0\n    \ntotal = 0\nfor num in lst:\n    if isinstance(num, (int, float)) and num == int(num) and num >= 0 and int(num) % 2 == 1:\n        total += int(num) ** 2\n    \nreturn total\n```",
+  "score": 3,
+  "cost": 0.001845,
+  "expected": "",
+  "tokens": {
+    "input": 195,
+    "output": 84
+  }
+}

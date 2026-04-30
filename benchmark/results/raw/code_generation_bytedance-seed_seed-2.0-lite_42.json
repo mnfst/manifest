@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_generation",
+  "case": 42,
+  "response": "if n > m:\n    return -1\ncount = m - n + 1\ntotal = sum(range(n, m + 1))\nrounded = round(total / count)\nreturn bin(rounded)",
+  "score": 5,
+  "cost": 0.001138,
+  "expected": "",
+  "tokens": {
+    "input": 232,
+    "output": 1080
+  }
+}

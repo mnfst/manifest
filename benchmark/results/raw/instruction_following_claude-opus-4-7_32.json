@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "# Review: The Gilded Onion\n\n**Rating: \u2605\u2605\u2605\u2605\u2606 (4 out of 5 stars)**\n\nTucked away on a cobblestone side street in the warehouse district, The Gilded Onion has quietly become one of the most talked-about dining destinations in the city\u2014and after my visit last Saturday, I understand why.\n\n## Atmosphere\n\nWalking through the unassuming brass-handled door, you're greeted by an interior that feels like a love letter to old-world bistros. Edison bulbs cast a warm amber glow across exposed brick walls, while the soft murmur of conversation mingles with vintage French jazz. The seating is intimate\u2014perhaps a touch too intimate, as I could practically hear my neighbor debating wine pairings with his date\u2014but the velvet banquettes are blissfully comfortable.\n\n## The Food\n\nThe menu, helmed by Chef Marisol Vega, leans into rustic European fare with unexpected twists. We started with the **caramelized onion tart**, the restaurant's namesake dish, which arrived golden and glistening atop a flaky gruy\u00e8re crust. It was, in a word, transcendent.\n\nFor mains, my dining companion ordered the **braised short rib with parsnip pur\u00e9e** ($34), which fell apart at the gentle prodding of a fork. I opted for the **pan-seared duck breast with cherry gastrique** ($38)\u2014perfectly cooked, though the sauce skewed slightly too sweet for my taste.\n\nThe real surprise was dessert: a **lavender cr\u00e8me br\u00fbl\u00e9e** that managed to be floral without veering into soap territory. I'd return just for that.\n\n## Service\n\nOur server, Daniel, was knowledgeable and charming, though service slowed noticeably between courses. A 20-minute gap before our entr\u00e9es arrived was the only real blemish on an otherwise lovely evening.\n\n## The Verdict\n\nThe Gilded Onion isn't perfect, but it's something better\u2014it's *interesting*. With slightly tighter service and a touch more restraint in the saucework, this place could easily earn a fifth star. As it stands, it's a wonderful spot for a date night or a celebratory meal.\n\n**Price:** $$$ (Entr\u00e9es $28\u2013$42)\n**Reservations:** Strongly recommended\n**Don't miss:** The onion tart, the cr\u00e8me br\u00fbl\u00e9e, the natural wine list",
+  "score": 4,
+  "cost": 0.05802,
+  "expected": "",
+  "tokens": {
+    "input": 38,
+    "output": 766
+  }
+}

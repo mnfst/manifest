@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "Here are three key benefits of exercise:\n\n- **Improves physical health** \u2013 Strengthens the heart, boosts circulation, lowers blood pressure, and reduces the risk of chronic diseases (e.g., diabetes, obesity, and certain cancers).\n- **Enhances mental well-being** \u2013 Reduces stress, anxiety, and depression by releasing endorphins (natural mood lifters) and improving brain function.\n- **Supports weight management & longevity** \u2013 Helps maintain a healthy weight, increases muscle mass, and may extend lifespan by improving overall fitness and metabolic health.",
+  "score": 3,
+  "cost": 5.279999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 117
+  }
+}

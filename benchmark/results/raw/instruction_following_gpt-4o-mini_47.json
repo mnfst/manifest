@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "Creating a good password is essential for maintaining security and protecting personal information. Here are some key steps to consider when creating a strong password:\n\n1. **Length**: Aim for a password that is at least 12-16 characters long. Longer passwords are generally more secure.\n\n2. **Complexity**: Use a mix of uppercase letters, lowercase letters, numbers, and special characters (e.g., !, @, #, $, etc.). This increases the number of possible combinations.\n\n3. **Avoid Common Words**: Do not use easily guessable information such as common words, phrases, or personal information (like your name, birthday, or username).\n\n4. **Use Passphrases**: Consider using a passphrase made up of random words or a sentence that is easy for you to remember but hard for others to guess. For example, \"BlueSky!Dances@Night\".\n\n5. **Substitutions**: Incorporate character substitutions (e.g., replacing 'a' with '@', 's' with '$', etc.) to add complexity.\n\n6. **Unique Passwords**: Use different passwords for different accounts. This way, if one password is compromised, your other accounts remain secure.\n\n7. **Password Manager**: Consider using a password manager to generate and store complex passwords securely. This can help you manage multiple passwords without needing to remember each one.\n\n8. **Regular Updates**: Change your passwords regularly, especially for sensitive accounts, and immediately update them if you suspect a breach.\n\n9. **Two-Factor Authentication (2FA)**: Whenever possible, enable two-factor authentication for an extra layer of security. This requires a second form of verification in addition to your password.\n\n10. **Test Your Password**: Use online tools (from reputable sources) to check the strength of your password and ensure it meets security standards.\n\nBy following these steps, you can create strong passwords that significantly enhance your online security.",
+  "score": 4,
+  "cost": 0.00023849999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 393
+  }
+}

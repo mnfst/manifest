@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_generation",
+  "case": 40,
+  "response": "a = abs(a)\n    return round(a ** (1/3)) ** 3 == a",
+  "score": 4,
+  "cost": 0.018577,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 3534
+  }
+}

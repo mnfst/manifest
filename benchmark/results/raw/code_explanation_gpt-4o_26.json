@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "This code implements the dynamic programming solution to the 0/1 Knapsack problem, where it calculates the maximum total value that can be accommodated in a knapsack with a given capacity. It uses a 2D list `dp` to store the maximum value achievable with the first `i` items and a knapsack capacity `w`, iteratively updating this table based on whether each item is included or excluded.",
+  "score": 5,
+  "cost": 0.0012075,
+  "expected": "",
+  "tokens": {
+    "input": 151,
+    "output": 83
+  }
+}

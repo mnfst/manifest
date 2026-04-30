@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "instruction_following",
+  "case": 15,
+  "response": "bat, hat, mat, rat",
+  "score": 5,
+  "cost": 0.00028979999999999994,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 116
+  }
+}

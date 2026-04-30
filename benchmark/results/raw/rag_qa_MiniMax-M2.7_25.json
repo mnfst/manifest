@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 25,
+  "response": "Infrastructure in Warsaw suffered considerably during its time as an Eastern Bloc economy.",
+  "score": 5,
+  "cost": 0.0005038000000000001,
+  "expected": "infrastructure",
+  "tokens": {
+    "input": 174,
+    "output": 71
+  }
+}

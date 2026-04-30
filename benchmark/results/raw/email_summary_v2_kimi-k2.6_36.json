@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 36,
+  "response": "P99 latency on /api/v2/search increased from 200ms to 800ms after Thursday's deploy because a new full-text search query was not using an index. The team will deploy a fix tonight during the maintenance window to add a GIN index on the content column.",
+  "score": 5,
+  "cost": 0.0014292,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 572
+  }
+}

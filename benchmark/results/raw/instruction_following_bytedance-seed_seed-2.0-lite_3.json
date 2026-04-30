@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 3,
+  "response": "UNITED KINGDOM, FRANCE, GERMANY, SPAIN, POLAND",
+  "score": 5,
+  "cost": 0.00023525,
+  "expected": "",
+  "tokens": {
+    "input": 61,
+    "output": 220
+  }
+}

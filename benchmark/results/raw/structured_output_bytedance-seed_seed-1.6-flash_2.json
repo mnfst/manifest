@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "structured_output",
+  "case": 2,
+  "response": "{\n  \"product\": \"iPhone 15 Pro\",\n  \"price\": 999.0,\n  \"colors\": [\n    \"black titanium\",\n    \"white titanium\",\n    \"blue titanium\"\n  ],\n  \"storage_options\": [\n    \"128GB\",\n    \"256GB\",\n    \"512GB\",\n    \"1TB\"\n  ]\n}",
+  "score": 5,
+  "cost": 0.00010477500000000001,
+  "expected": "",
+  "tokens": {
+    "input": 177,
+    "output": 305
+  }
+}

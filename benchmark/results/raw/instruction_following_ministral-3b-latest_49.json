@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "Here are three different greetings for a chatbot, each tailored to a distinct tone:\n\n### **Formal**\n*\"Good day, how may I assist you today? I\u2019m here to provide information, support, and solutions with professionalism and precision.\"*\n\n---\n\n### **Casual**\n*\"Hey there! What\u2019s up? I\u2019m your friendly chatbot\u2014let\u2019s chat!\"*\n\n---\n\n### **Humorous**\n*\"Oh, hi! You\u2019ve found the world\u2019s most enthusiastic (and slightly sarcastic) virtual assistant. What\u2019s on your mind? Or should I just keep making small talk?\"*",
+  "score": 5,
+  "cost": 5.7999999999999995e-06,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 122
+  }
+}

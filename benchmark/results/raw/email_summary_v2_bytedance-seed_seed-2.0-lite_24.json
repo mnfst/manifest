@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "email_summary_v2",
+  "case": 24,
+  "response": "The Design Team announced that Design System version 3 (DS v3) is ready for adoption, featuring key updates including new dark mode color tokens, a revised 4px base spacing scale, updated Button and Modal components, and a migration tool to help teams transition to the new system. To implement the updated design system in an organized way, the Design Team recommends a team-by-team rollout that begins with the product's Settings page.",
+  "score": 5,
+  "cost": 0.0008655,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 833
+  }
+}

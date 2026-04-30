@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "rag_qa",
+  "case": 37,
+  "response": "The northeast border.",
+  "score": 5,
+  "cost": 0.00030375,
+  "expected": "northeast",
+  "tokens": {
+    "input": 211,
+    "output": 4
+  }
+}

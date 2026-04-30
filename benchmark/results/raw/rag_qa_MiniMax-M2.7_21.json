@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 21,
+  "response": "Based on the provided context, the answer is: **anaerobic bacteria**\n\nThe context states: \"Oxygen gas is poisonous to the anaerobic bacteria that cause gas gangrene, so increasing its partial pressure helps kill them.\"\n\nThe context does not provide the specific name of the bacteria (such as *Clostridium perfringens*), only that it is the anaerobic bacteria that cause gas gangrene.",
+  "score": 4,
+  "cost": 0.0012584,
+  "expected": "anaerobic bacteria",
+  "tokens": {
+    "input": 216,
+    "output": 232
+  }
+}

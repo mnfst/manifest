@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "rag_qa",
+  "case": 30,
+  "response": "Melbourne",
+  "score": 0,
+  "cost": 0.0004176,
+  "expected": "Melbourne",
+  "tokens": {
+    "input": 248,
+    "output": 112
+  }
+}

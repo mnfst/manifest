@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "code_generation",
+  "case": 49,
+  "response": "```python\n    if not string:\n        return string\n    \n    # Find the longest palindromic suffix\n    for i in range(len(string)):\n        # Check if substring from index i to end is a palindrome\n        if is_palindrome(string[i:]):\n            # If found, prepend the reverse of the prefix before this palindrome\n            prefix = string[:i]\n            return prefix[::-1] + string\n    \n    return string\n```",
+  "score": 4,
+  "cost": 0.000596,
+  "expected": "",
+  "tokens": {
+    "input": 200,
+    "output": 109
+  }
+}

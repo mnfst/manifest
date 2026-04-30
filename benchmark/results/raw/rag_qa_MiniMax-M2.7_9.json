@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "rag_qa",
+  "case": 9,
+  "response": "70",
+  "score": 1,
+  "cost": 0.0005412,
+  "expected": "70",
+  "tokens": {
+    "input": 156,
+    "output": 84
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "rag_qa",
+  "case": 45,
+  "response": "The show globe.",
+  "score": 5,
+  "cost": 0.00573,
+  "expected": "The show globe",
+  "tokens": {
+    "input": 337,
+    "output": 9
+  }
+}

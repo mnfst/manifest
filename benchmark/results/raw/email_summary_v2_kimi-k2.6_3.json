@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "email_summary_v2",
+  "case": 3,
+  "response": "March cohort satisfaction fell to 7.2/10 from 8.1, with members praising the buddy system but citing delayed tools access, benefits deadline confusion, and missing culture handbooks as key problems. Lisa prioritized fixing the tools access delay, which currently takes 3-5 days against a 1-day target.",
+  "score": 5,
+  "cost": 0.0041735999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 1711
+  }
+}

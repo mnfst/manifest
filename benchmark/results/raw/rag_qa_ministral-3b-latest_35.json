@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "rag_qa",
+  "case": 35,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 1.0880000000000001e-05,
+  "expected": "by clapping their lobes",
+  "tokens": {
+    "input": 266,
+    "output": 6
+  }
+}

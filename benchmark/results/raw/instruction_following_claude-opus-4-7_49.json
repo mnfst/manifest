@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "Here are three different greetings for a chatbot:\n\n**Formal:**\n\"Good day, and welcome. I am here to assist you. Please let me know how I may be of service.\"\n\n**Casual:**\n\"Hey there! \ud83d\udc4b What's up? I'm here to help with whatever you need.\"\n\n**Humorous:**\n\"Beep boop! \ud83e\udd16 Your friendly neighborhood chatbot has arrived\u2014now 100% less likely to plot world domination than yesterday. How can I help?\"",
+  "score": 5,
+  "cost": 0.01239,
+  "expected": "",
+  "tokens": {
+    "input": 41,
+    "output": 157
+  }
+}

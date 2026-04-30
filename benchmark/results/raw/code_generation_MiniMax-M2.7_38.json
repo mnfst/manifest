@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_generation",
+  "case": 38,
+  "response": "negatives = [x for x in lst if x < 0]\n    positives = [x for x in lst if x > 0]\n    a = max(negatives) if negatives else None\n    b = min(positives) if positives else None\n    return (a, b)",
+  "score": 5,
+  "cost": 0.0022946,
+  "expected": "",
+  "tokens": {
+    "input": 202,
+    "output": 471
+  }
+}

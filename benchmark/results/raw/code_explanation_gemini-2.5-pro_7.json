@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "This code defines a decorator that implements a Least Recently Used (LRU) cache to memoize function results. It uses an `OrderedDict` to store a limited number of recent function calls, evicting the least-recently-used item when the cache is full to make space for a new one.",
+  "score": 5,
+  "cost": 0.00078875,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 62
+  }
+}

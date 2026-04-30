@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_generation",
+  "case": 42,
+  "response": "```python\n    if n > m:\n        return -1\n    total = sum(range(n, m + 1))\n    average = total / (m - n + 1)\n    rounded_avg = round(average)\n    return bin(rounded_avg)[2:]\n```",
+  "score": 5,
+  "cost": 9.48e-06,
+  "expected": "",
+  "tokens": {
+    "input": 179,
+    "output": 58
+  }
+}

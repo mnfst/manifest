@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "rag_qa",
+  "case": 45,
+  "response": "the show globe\n(Note: The context uses \"show globe,\" which may be a typo, but that is the term provided.)",
+  "score": 5,
+  "cost": 8.4375e-05,
+  "expected": "The show globe",
+  "tokens": {
+    "input": 301,
+    "output": 206
+  }
+}

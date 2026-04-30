@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "rag_qa",
+  "case": 23,
+  "response": "The mortgage banker.",
+  "score": 5,
+  "cost": 0.00546,
+  "expected": "the mortgage banker",
+  "tokens": {
+    "input": 304,
+    "output": 12
+  }
+}

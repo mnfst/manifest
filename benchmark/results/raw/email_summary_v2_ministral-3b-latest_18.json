@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "email_summary_v2",
+  "case": 18,
+  "response": "The VP Engineering proposes restructuring the **Platform team** into two focused teams\u2014**Infrastructure** (networking, compute, storage) and **Developer Experience** (CI/CD, tooling, onboarding)\u2014to resolve delays caused by prioritizing infra incidents over DX work. Review the attached org chart and provide feedback by **Friday, May 10**, to discuss next steps.",
+  "score": 5,
+  "cost": 6.720000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 78
+  }
+}

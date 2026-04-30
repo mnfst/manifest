@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "rag_qa",
+  "case": 31,
+  "response": "Sharia",
+  "score": 5,
+  "cost": 0.00022875,
+  "expected": "Sharia",
+  "tokens": {
+    "input": 167,
+    "output": 2
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_generation",
+  "case": 25,
+  "response": "s = paren_string.replace(' ', '')\n    result = []\n    start = 0\n    balance = 0\n    for i, c in enumerate(s):\n        if c == '(':\n            balance += 1\n        else:\n            balance -= 1\n        if balance == 0:\n            result.append(s[start:i+1])\n            start = i + 1\n    return result",
+  "score": 4,
+  "cost": 0.0007372499999999998,
+  "expected": "",
+  "tokens": {
+    "input": 234,
+    "output": 2399
+  }
+}

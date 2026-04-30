@@ -2,12 +2,12 @@
   "model": "MiniMax-M2.7",
   "task": "email_summary_v2",
   "case": 21,
-  "response": "Platform Team proposes a feature\u2011flag cleanup sprint to remove 15 fully\u2011rolled\u2011out flags and archive 8 dead flags, which will cut config complexity and speed up the test suite by roughly 12\u202fpercent. Stakeholders should review and approve the plan so the team can schedule and execute the cleanup.",
+  "response": "The Platform Team proposes a feature flag cleanup sprint to remove 15 fully rolled-out flags and archive 8 dead code flags from the current 47 active flags. This cleanup would reduce configuration complexity and speed up the test suite by approximately 12%.",
   "score": 5,
-  "cost": 0.0018623000000000001,
+  "cost": 0.0008195,
   "expected": "",
   "tokens": {
-    "input": 133,
-    "output": 390
+    "input": 113,
+    "output": 158
   }
 }

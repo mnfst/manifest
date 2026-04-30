@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "email_summary_v2",
+  "case": 31,
+  "response": "To address price-related customer churn, the email proposes introducing a $29/month \"Starter\" pricing tier projected to recover $180K in annual recurring revenue. Stakeholders should review the proposal and provide approval or feedback to proceed with implementation.",
+  "score": 5,
+  "cost": 0.008141899999999999,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 1535
+  }
+}

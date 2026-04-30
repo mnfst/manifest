@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "structured_output",
+  "case": 33,
+  "response": "```json\n{\n  \"username\": \"techguru42\",\n  \"joined_year\": 2020,\n  \"followers\": \"1.2K\",\n  \"following\": 890,\n  \"posts\": 342,\n  \"verified\": true,\n  \"bio\": \"Building the future of AI\"\n}\n```",
+  "score": 5,
+  "cost": 0.004338400000000001,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 952
+  }
+}

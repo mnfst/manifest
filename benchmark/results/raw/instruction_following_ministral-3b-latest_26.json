@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The **water cycle**, also known as the hydrologic cycle, is the continuous process by which water moves through Earth\u2019s atmosphere, surface, and underground. It begins with **evaporation**, where the sun heats water from oceans, lakes, rivers, and even soil, turning liquid water into water vapor and rising into the air. This vapor then cools and condenses into tiny droplets around specks of dust or pollution, forming **clouds**. As these clouds grow heavier, they release water through **precipitation**\u2014rain, snow, sleet, or hail\u2014falling back to the Earth\u2019s surface.\n\nOnce precipitation reaches the ground, it can follow several paths. Some water **infiltrates** the soil, replenishing underground aquifers and feeding plant roots, while others flow overland as **surface runoff**, collecting in rivers, lakes, and eventually making its way back to the ocean. Some water also **sublimates** directly from ice or snow into vapor without passing through a liquid state. This cycle is driven primarily by solar energy, but it also involves atmospheric circulation and gravity, ensuring water is constantly redistributed across Earth\u2019s systems.\n\nThe water cycle is essential for sustaining life and shaping Earth\u2019s climate. It regulates temperatures by releasing heat through evaporation and provides freshwater for ecosystems and human use. Changes in the cycle\u2014such as global warming\u2014can disrupt this balance, leading to droughts, floods, or altered weather patterns. Scientists study the water cycle to understand its role in climate change and to manage resources like water for agriculture, drinking, and energy production.\n\nUltimately, the water cycle is a dynamic, self-sustaining process that connects all parts of the planet. From the highest mountains to the deepest oceans, water moves in a never-ending loop, ensuring that life\u2019s most vital resource remains in constant circulation. By understanding this cycle, we gain insight into Earth\u2019s delicate equilibrium and the importance of protecting its water systems for future generations.",
+  "score": 0,
+  "cost": 1.6680000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 402
+  }
+}

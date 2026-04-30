@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "The code implements an LRU (Least Recently Used) Cache using an `OrderedDict` to maintain the order of access, where the most recently accessed items are moved to the end. The `get` method retrieves a value by key and updates its position to indicate recent use, while the `put` method adds a new key-value pair or updates an existing key, evicting the least recently used item when the cache exceeds its capacity.",
+  "score": 5,
+  "cost": 7.47e-05,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 89
+  }
+}

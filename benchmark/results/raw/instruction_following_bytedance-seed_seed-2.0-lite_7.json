@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "Crack 2 large eggs, add a splash of milk, pinch of salt and pepper, whisk lightly. Melt 1 tbsp butter in a low-heat pan, stir constantly to form soft curds, serve immediately.",
+  "score": 4,
+  "cost": 0.00054225,
+  "expected": "",
+  "tokens": {
+    "input": 65,
+    "output": 526
+  }
+}

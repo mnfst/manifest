@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "rag_qa",
+  "case": 40,
+  "response": "Full citizenship rights \u2013 \"assimilation\".",
+  "score": 3,
+  "cost": 0.000505,
+  "expected": "assimilation",
+  "tokens": {
+    "input": 170,
+    "output": 8
+  }
+}

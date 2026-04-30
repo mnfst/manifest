@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is the invisible force that pulls objects toward one another. Anything with mass\u2014whether a pebble, a person, or a planet\u2014creates a gravitational pull, and the more massive the object, the stronger that pull becomes. This is why apples fall from trees, why we stay anchored to the ground instead of floating into space, and why the Moon orbits Earth while Earth and the other planets orbit the Sun. You can think of it as the universe\u2019s way of bringing things together; it shapes galaxies, keeps our atmosphere wrapped around our planet, and governs the motion of every celestial body. Without gravity, the cosmos would be a chaotic, drifting mess rather than the structured, interconnected system we see today. That is gravity.",
+  "score": 5,
+  "cost": 0.001185,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 487
+  }
+}

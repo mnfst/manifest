@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "code_generation",
+  "case": 32,
+  "response": "```python\n    return ' '.join(''.join(sorted(word)) for word in s.split(' '))\n```",
+  "score": 5,
+  "cost": 0.00062,
+  "expected": "",
+  "tokens": {
+    "input": 160,
+    "output": 22
+  }
+}

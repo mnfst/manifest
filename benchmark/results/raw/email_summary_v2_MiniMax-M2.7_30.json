@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "email_summary_v2",
+  "case": 30,
+  "response": "Competitor X recently launched AI features with auto-categorization at double our price, but the market response has been neutral while we maintain an advantage with better API and integrations. The Product team recommends fast-tracking our AI roadmap to address this competitive threat.",
+  "score": 5,
+  "cost": 0.0015433,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 320
+  }
+}

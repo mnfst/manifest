@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "structured_output",
+  "case": 3,
+  "response": "{\n  \"flight_number\": \"AA123\",\n  \"origin\": \"JFK\",\n  \"destination\": \"LAX\",\n  \"departure\": \"3:45pm\",\n  \"arrival\": \"6:30pm\",\n  \"date\": \"March 5\",\n  \"class\": \"Economy\",\n  \"stops\": 1,\n  \"stop_cities\": [\"Dallas\"]\n}",
+  "score": 5,
+  "cost": 0.001096,
+  "expected": "",
+  "tokens": {
+    "input": 228,
+    "output": 80
+  }
+}

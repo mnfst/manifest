@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_generation",
+  "case": 7,
+  "response": "result = 1\n    current_factorial = 1\n    for i in range(1, n + 1):\n        current_factorial *= i\n        result *= current_factorial\n    return result",
+  "score": 4,
+  "cost": 0.0025296,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 1022
+  }
+}

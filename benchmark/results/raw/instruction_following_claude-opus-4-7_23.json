@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "instruction_following",
+  "case": 23,
+  "response": "Apple; Banana; Cherry; Date; Elderberry",
+  "score": 5,
+  "cost": 0.0024,
+  "expected": "",
+  "tokens": {
+    "input": 35,
+    "output": 25
+  }
+}

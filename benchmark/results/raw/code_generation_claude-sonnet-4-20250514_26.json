@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "code_generation",
+  "case": 26,
+  "response": "```python\nif len(l) < 3:\n    return False\n    \nfor i in range(len(l)):\n    for j in range(i + 1, len(l)):\n        for k in range(j + 1, len(l)):\n            if l[i] + l[j] + l[k] == 0:\n                return True\nreturn False\n```",
+  "score": 5,
+  "cost": 0.002088,
+  "expected": "",
+  "tokens": {
+    "input": 231,
+    "output": 93
+  }
+}

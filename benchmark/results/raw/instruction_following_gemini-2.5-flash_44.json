@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "Here are the ingredients for a basic salad, in a checkbox format:\n\n**Greens:**\n*   [x] Mixed greens or your favorite lettuce (e.g., Romaine, Iceberg, Butter Lettuce)\n\n**Vegetables:**\n*   [x] Cherry tomatoes or chopped large tomatoes\n*   [x] Cucumber (sliced or diced)\n*   [x] Red onion (thinly sliced or finely diced)\n*   [x] Shredded carrots\n*   [x] Bell pepper (any color, diced)\n\n**Dressing (Basic Vinaigrette):**\n*   [x] Olive oil\n*   [x] Vinegar (e.g., balsamic, red wine, apple cider)\n*   [x] Salt\n*   [x] Black pepper\n\n**Optional Add-ins for Texture/Flavor:**\n*   [x] Croutons\n*   [x] A sprinkle of your favorite herbs (e.g., parsley, dill)",
+  "score": 5,
+  "cost": 0.0001266,
+  "expected": "",
+  "tokens": {
+    "input": 12,
+    "output": 208
+  }
+}

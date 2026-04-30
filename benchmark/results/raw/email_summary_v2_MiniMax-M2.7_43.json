@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "email_summary_v2",
+  "case": 43,
+  "response": "Completed OSS audit of 234 packages found 2 issues: an AGPL-licensed charting library incompatible with our SaaS model and a package with no license. Legal and Engineering recommend removing both packages before the next release and switching to Apache-licensed Chart.js.",
+  "score": 5,
+  "cost": 0.0017479000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 363
+  }
+}
