@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "data_to_text",
+  "case": 18,
+  "response": "Stockholm, Sweden\u2019s vibrant capital, is a bustling city with a population of over **1.6 million** people spread across an area of **188 square kilometers**. Known for its rich history\u2014founded in **1252**\u2014the city boasts a high standard of living, with a **GDP per capita of $62,000** and Swedish as its official language. The weather varies dramatically, averaging **-3\u00b0C in January** and a warm **18\u00b0C in July**, reflecting its Nordic climate.",
+  "score": 5,
+  "cost": 8.52e-06,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 114
+  }
+}

@@ -2,7 +2,7 @@
   "model": "mistral-medium-latest",
   "task": "function_calling",
   "case": 14,
-  "response": "```json\n{\n  \"name\": \"create_reminder\",\n  \"arguments\": {\n    \"message\": \"Call the dentist\",\n    \"time\": \"15:00\",\n    \"date\": \"wednesday\"\n  }\n}\n```",
+  "response": "```json\n{\n  \"name\": \"create_reminder\",\n  \"arguments\": {\n    \"message\": \"Call the dentist\",\n    \"time\": \"15:00\",\n    \"date\": \"next Wednesday\"\n  }\n}\n```",
   "score": 4,
   "cost": 0.0001408,
   "expected": "",

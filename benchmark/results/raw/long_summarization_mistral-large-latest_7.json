@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "The 2020s are a transformative decade for space exploration, marked by major advancements such as **SpaceX\u2019s Starship** development, **NASA\u2019s Artemis program** (aiming to return humans to the Moon by 2026), and the **James Webb Space Telescope\u2019s** groundbreaking cosmic discoveries. **China** is expanding its presence with a **space station** and **lunar ambitions**, while **India\u2019s Chandrayaan missions** have bolstered its space capabilities. The rise of **satellite internet constellations** (like Starlink and OneWeb), **space tourism** (Blue Origin, Virgin Galactic), and **asteroid mining** highlights growing commercialization, though challenges like **space debris** and the **Outer Space Treaty\u2019s limitations** remain key concerns. These efforts reflect a shift toward both scientific progress and private-sector competition in space.",
+  "score": 5,
+  "cost": 0.001386,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 186
+  }
+}

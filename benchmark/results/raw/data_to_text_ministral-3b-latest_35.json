@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "data_to_text",
+  "case": 35,
+  "response": "The **iPhone 15 Pro** is a premium smartphone priced at **$999**, offering a sleek **6.1-inch OLED display** paired with a powerful **A17 Pro chip** for seamless performance. Featuring a high-resolution **48MP main camera**, it also packs a **3274mAh battery** for long-lasting use, available in storage options of **128GB, 256GB, 512GB, or 1TB**, and weighs just **187g** for portability. With a strong **4.6/5 rating**, it delivers exceptional quality and innovation.",
+  "score": 5,
+  "cost": 1.032e-05,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 140
+  }
+}

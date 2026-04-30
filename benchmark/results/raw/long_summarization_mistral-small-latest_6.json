@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Remote work surged from a niche perk (pre-pandemic: <5% fully remote) to a global norm during the 2020 forced experiment, enabled by tools like Zoom, Slack, and cloud infrastructure. Research, including Stanford\u2019s Nick Bloom\u2019s studies, showed mixed productivity results, while the post-pandemic era sparked debates over return-to-office policies, hybrid models, and the decline of commercial real estate. Workers leveraged geographic arbitrage by relocating to lower-cost areas, and companies grappled with cultural shifts and challenges in training junior employees. Meanwhile, digital nomad visas emerged to accommodate the growing trend of location-independent work.",
+  "score": 5,
+  "cost": 5.6699999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 136
+  }
+}

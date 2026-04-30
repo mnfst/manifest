@@ -2,7 +2,7 @@
   "model": "mistral-medium-latest",
   "task": "ner_extraction",
   "case": 43,
-  "response": "```json\n{\n    \"persons\": [\"Satya Nadella\"],\n    \"organizations\": [\"Microsoft\", \"OpenAI\", \"Office 365\"],\n    \"locations\": []\n}\n```",
+  "response": "```json\n{\n  \"persons\": [\"Satya Nadella\"],\n  \"organizations\": [\"Microsoft\", \"OpenAI\", \"Office 365\"],\n  \"locations\": []\n}\n```",
   "score": 5,
   "cost": 0.0001132,
   "expected": "",

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "long_summarization",
+  "case": 2,
+  "response": "The global food system faces significant challenges as the world population is expected to reach 9.7 billion by 2050, necessitating a 60% increase in food production. Climate change is exacerbating the situation by reducing crop yields due to extreme weather, while agriculture contributes about 25% of greenhouse gas emissions. Water scarcity and soil degradation further threaten food security, with one-third of food produced being wasted. Potential solutions include precision agriculture, vertical farming, alternative proteins, and policy reforms, but the key challenge remains implementing these strategies at scale while keeping food affordable for the poorest populations.",
+  "score": 4,
+  "cost": 0.00011475,
+  "expected": "",
+  "tokens": {
+    "input": 293,
+    "output": 118
+  }
+}

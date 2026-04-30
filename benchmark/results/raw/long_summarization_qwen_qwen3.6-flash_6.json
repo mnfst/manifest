@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Remote work has rapidly evolved from a niche perk, with less than 5% of workers fully remote pre-pandemic, into a mainstream practice that is fundamentally reshaping the modern workplace. Driven by the 2020 pandemic and enabled by digital collaboration tools, this shift has produced mixed productivity findings, fueled a return-to-office backlash, and accelerated the widespread adoption of hybrid models. Consequently, organizations are navigating major disruptions to commercial real estate, geographic arbitrage as employees relocate to lower-cost regions, and ongoing debates over corporate culture and junior employee development. These structural changes have even spurred policy innovations like digital nomad visas, underscoring a permanent transformation in how and where work occurs.",
+  "score": 5,
+  "cost": 0.0021245,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 2086
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "long_summarization",
+  "case": 29,
+  "response": "Quantum computers leverage qubits, superposition, and entanglement to solve specific problems exponentially faster than classical machines, with major tech firms and startups actively developing diverse hardware approaches. Although Google claimed a breakthrough in quantum supremacy in 2019 by completing a task in 200 seconds that would take a supercomputer 10,000 years, the field still faces significant technical hurdles. Current devices contain only 100 to 1,000 qubits and suffer from high error rates and extreme cooling requirements, whereas millions of stable qubits are likely needed for practical applications. Nevertheless, quantum computing remains highly promising for revolutionizing complex fields like drug discovery, cryptography, and financial optimization.",
+  "score": 5,
+  "cost": 0.0016645,
+  "expected": "",
+  "tokens": {
+    "input": 294,
+    "output": 1591
+  }
+}

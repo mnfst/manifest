@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "data_to_text",
+  "case": 41,
+  "response": "Japan, a leading advanced global economy home to 125 million people, boasts a $4.2 trillion total GDP that expands at a 1.1% annual growth rate, while recording a very low 2.6% unemployment rate and a 3.2% inflation rate. The nation also carries a substantial fiscal burden with a 263% debt-to-GDP ratio, ranks among the highest in the world for its 84.6 year life expectancy, and relies on $756 billion in annual exports to power its world-renowned industrial and technology sectors.",
+  "score": 5,
+  "cost": 0.00079825,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 760
+  }
+}

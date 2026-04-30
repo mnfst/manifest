@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "data_to_text",
+  "case": 6,
+  "response": "The server prod-web-01 in region us-east-1 is currently operating with CPU usage at 78%, 12.4 GB of 16 GB memory used, and 234 GB of 500 GB disk space consumed. It has been online for 45 days and is handling 127 connections with a P99 latency of 145ms and an error rate of 3 per hour.",
+  "score": 5,
+  "cost": 0.00109,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 95
+  }
+}

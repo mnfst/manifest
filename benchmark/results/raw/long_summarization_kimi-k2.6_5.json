@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "long_summarization",
+  "case": 5,
+  "response": "Alexander Fleming's 1928 discovery of penicillin launched antibiotics that transformed modern medicine, particularly surgery and disease treatment, followed by a golden age of discovery in the 1950s and 1960s. However, pharmaceutical investment in new antibiotics has declined sharply due to poor financial returns, while widespread agricultural use in livestock has accelerated the rise of resistant pathogens like MRSA. This combination has created a severe antimicrobial resistance crisis that threatens to undo decades of medical progress. In response, researchers are now pursuing novel solutions through phage therapy, CRISPR-based approaches, and AI-driven drug discovery.",
+  "score": 5,
+  "cost": 0.0019902,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 795
+  }
+}

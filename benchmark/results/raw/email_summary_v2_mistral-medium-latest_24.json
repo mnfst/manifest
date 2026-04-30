@@ -2,7 +2,7 @@
   "model": "mistral-medium-latest",
   "task": "email_summary_v2",
   "case": 24,
-  "response": "The Design Team has released **DS v3** with updates including dark mode color tokens, a 4px-based spacing scale, and revised **Button** and **Modal** components, along with a migration tool. They advise a phased rollout starting with the **Settings page**, suggesting teams adopt the changes incrementally.",
+  "response": "The Design Team has released **DS v3** with updates including dark mode color tokens, a 4px-based spacing scale, and revised **Button** and **Modal** components, along with a migration tool. They advise a phased rollout beginning with the **Settings page**, so teams should plan their adoption accordingly.",
   "score": 5,
   "cost": 0.00016319999999999998,
   "expected": "",

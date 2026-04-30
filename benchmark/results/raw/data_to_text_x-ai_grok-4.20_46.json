@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "data_to_text",
+  "case": 46,
+  "response": "Team Alpha completed Sprint #23, which ran from January 15 to 26. The team had planned 42 points but successfully delivered 38 points, maintaining an average velocity of 36. They completed 8 stories, fixed 5 bugs, resolved 2 blockers, and reported a team satisfaction score of 4.1 out of 5.",
+  "score": 5,
+  "cost": 0.00099,
+  "expected": "",
+  "tokens": {
+    "input": 211,
+    "output": 71
+  }
+}

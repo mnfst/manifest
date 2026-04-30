@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "data_to_text",
+  "case": 25,
+  "response": "Japan, a leading advanced global economy with a population of 125 million people, has a total gross domestic product of $4.2 trillion, with $756 billion in annual exports fueling its most recent 1.1% GDP growth rate. Its labor market remains remarkably strong, with an unemployment rate of just 2.6%, though the country faces ongoing economic headwinds including 3.2% inflation and a debt-to-GDP ratio that reaches 263%, one of the highest in the world. Beyond its core economic metrics, Japan also boasts one of the highest life expectancies globally, at 84.6 years, a testament to its long-standing investments in public health and social welfare systems.",
+  "score": 5,
+  "cost": 0.00066925,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 631
+  }
+}

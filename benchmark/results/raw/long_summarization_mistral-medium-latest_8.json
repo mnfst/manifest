@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "long_summarization",
+  "case": 8,
+  "response": "Artificial intelligence has evolved from Alan Turing\u2019s foundational questions to today\u2019s **transformer-based revolution**, enduring setbacks during the **AI winters of the 1970s\u201380s** before resurging in the **2010s with deep learning**. The **2017 transformer architecture** (e.g., Google\u2019s paper) and **scaling hypothesis** (exemplified by OpenAI\u2019s GPT models) sparked a competitive race among tech giants like **OpenAI, Google, Anthropic, and Meta**, while fueling debates over **open- vs. closed-source AI**. Growing concerns\u2014including **AI safety (alignment, misuse), job displacement**, and **economic disruption to knowledge work**\u2014have prompted regulatory efforts like the **EU AI Act and U.S. executive orders**. The field now grapples with balancing innovation, ethics, and governance amid rapid advancement.",
+  "score": 5,
+  "cost": 0.0004392,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 189
+  }
+}

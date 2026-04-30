@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "data_to_text",
+  "case": 38,
+  "response": "The server prod-web-01 in the us-east-1 region has been up for 45 days and is currently under moderate load, with CPU at 78%, memory usage at 12.4 out of 16 GB, and disk space at 234 out of 500 GB. It is handling 127 active connections with a P99 latency of 145ms and a low error rate of 3 per hour.",
+  "score": 5,
+  "cost": 0.00011910000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 86
+  }
+}

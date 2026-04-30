@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "reasoning_gsm8k",
   "case": 46,
-  "response": "Let's solve the problem step by step.\n\n### Step 1: Calculate Anakin's total catch\nAnakin caught:\n- 10 starfish\n- 6 sea horses\n- 3 clownfish\n\nTotal for Anakin:\n\\[ 10 + 6 + 3 = 19 \\]\n\n### Step 2: Calculate Locsin's catch\nLocsin caught:\n- 5 fewer starfish than Anakin: \\( 10 - 5 = 5 \\) starfish\n- 3 fewer sea horses than Anakin: \\( 6 - 3 = 3 \\) sea horses\n- 2 more clownfish than Anakin: \\( 3 + 2 = 5 \\) clownfish\n\nTotal for Locsin:\n\\[ 5 + 3 + 5 = 13 \\]\n\n### Step 3: Calculate the combined total\nAdd Anakin's and Locsin's catches:\n\\[ 19 + 13 = 32 \\]\n\nANSWER: 32",
+  "response": "Let's solve the problem step by step.\n\n### Step 1: Calculate Anakin's total catch\nAnakin caught:\n- 10 starfish\n- 6 sea horses\n- 3 clownfish\n\nTotal for Anakin:\n10 + 6 + 3 = 19 fish\n\n### Step 2: Calculate Locsin's catch\nLocsin caught:\n- 5 fewer starfish than Anakin: 10 - 5 = 5 starfish\n- 3 fewer sea horses than Anakin: 6 - 3 = 3 sea horses\n- 2 more clownfish than Anakin: 3 + 2 = 5 clownfish\n\nTotal for Locsin:\n5 + 3 + 5 = 13 fish\n\n### Step 3: Calculate the combined total\nTotal fish caught by Anakin and Locsin:\n19 (Anakin) + 13 (Locsin) = 32 fish\n\nANSWER: 32",
   "score": 5,
-  "cost": 0.0004776,
+  "cost": 0.0004716,
   "expected": "32",
   "tokens": {
     "input": 114,
-    "output": 216
+    "output": 213
   }
 }

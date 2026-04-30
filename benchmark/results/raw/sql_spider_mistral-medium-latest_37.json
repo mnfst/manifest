@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "sql_spider",
+  "case": 37,
+  "response": "```sql\nSELECT s.name AS song_name, s.release_year\nFROM songs s\nJOIN singers sg ON s.singer_id = sg.id\nWHERE sg.birth_date = (SELECT MAX(birth_date) FROM singers);\n```",
+  "score": 4,
+  "cost": 0.0001264,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 49
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "data_to_text",
+  "case": 8,
+  "response": "The patient is a 45-year-old female with a BMI of 27.3, indicating she is slightly overweight. Her blood pressure is measured at 138/88, and her cholesterol level is 225 mg/dL, both of which are slightly elevated. Her fasting glucose level is 110 mg/dL, and she exercises twice a week. Although she does not smoke, she has a family history of diabetes, as her mother was diagnosed with the condition.",
+  "score": 5,
+  "cost": 0.00118,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 94
+  }
+}

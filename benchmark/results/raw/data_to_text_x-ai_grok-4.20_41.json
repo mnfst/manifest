@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "data_to_text",
+  "case": 41,
+  "response": "Japan is a country with a population of 125 million people and a GDP of $4.2 trillion. Its economy is experiencing 1.1% GDP growth, with low unemployment at 2.6%, inflation at 3.2%, and a very high debt-to-GDP ratio of 263%. The nation also boasts a life expectancy of 84.6 years and generates $756 billion in exports.",
+  "score": 5,
+  "cost": 0.001104,
+  "expected": "",
+  "tokens": {
+    "input": 216,
+    "output": 84
+  }
+}

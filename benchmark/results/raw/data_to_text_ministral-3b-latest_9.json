@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "data_to_text",
+  "case": 9,
+  "response": "Japan stands as a global economic powerhouse with a population of **125 million**, boasting a robust **GDP of $4.2 trillion** and steady growth of **1.1%**. While its unemployment rate remains low at **2.6%**, inflation has risen to **3.2%**, reflecting recent economic pressures. Despite a high **debt-to-GDP ratio of 263%**, Japan maintains exceptional longevity, with a life expectancy of **84.6 years**, and remains a key player in global trade, exporting **$756 billion** annually.",
+  "score": 5,
+  "cost": 9.32e-06,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 124
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "rag_qa",
+  "case": 47,
+  "response": "The **Urarina** is another group struggling in the Amazon.",
+  "score": 5,
+  "cost": 9.120000000000001e-05,
+  "expected": "Urarina",
+  "tokens": {
+    "input": 153,
+    "output": 15
+  }
+}

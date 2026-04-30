@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "data_to_text",
+  "case": 10,
+  "response": "This Medium difficulty Thai Pad Thai recipe takes only 15 minutes to prep and 10 minutes to cook. It yields 4 servings, with each serving containing 380 calories, 22g of protein, 45g of carbohydrates, and 12g of fat.",
+  "score": 5,
+  "cost": 5.085e-05,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 61
+  }
+}

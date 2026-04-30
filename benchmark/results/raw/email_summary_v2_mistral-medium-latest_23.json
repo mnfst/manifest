@@ -2,7 +2,7 @@
   "model": "mistral-medium-latest",
   "task": "email_summary_v2",
   "case": 23,
-  "response": "The **v1 API will be deprecated on June 30 and fully removed by September 30**, with **340 integrations\u2014including 12 enterprise customers\u2014still needing migration**, despite a published guide. The team will **personally contact the top 20 users and host a webinar** to accelerate adoption before the deadline.",
+  "response": "The **v1 API will be deprecated on June 30 and fully removed by September 30**, with **340 integrations (including 12 enterprise customers) still needing migration**, despite a published guide. The team will **personally contact the top 20 users and host a webinar** to accelerate adoption before the deadline.",
   "score": 5,
   "cost": 0.000186,
   "expected": "",

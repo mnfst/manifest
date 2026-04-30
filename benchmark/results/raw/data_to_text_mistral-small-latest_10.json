@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "data_to_text",
+  "case": 10,
+  "response": "This **Pad Thai** recipe serves four people and takes just **15 minutes to prepare** and **10 minutes to cook**, making it a quick yet satisfying meal. Each serving contains **380 calories**, with **22g of protein**, **45g of carbs**, and **12g of fat**, offering a balanced mix of nutrients. With a **medium difficulty level**, this classic **Thai dish** is perfect for those looking to enjoy an authentic flavor without a lengthy cooking process.",
+  "score": 5,
+  "cost": 4.31e-05,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 106
+  }
+}

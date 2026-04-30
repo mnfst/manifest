@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "translation_enfr",
   "case": 15,
-  "response": "Voici une traduction fid\u00e8le qui conserve le ton et le sens de l'original :\n\n**\"Sector Source est un site ressource con\u00e7u pour aider les responsables d\u2019organismes de bienfaisance et d\u2019organisations \u00e0 but non lucratif \u00e0 rester inform\u00e9s sur...\"**\n\n*Variantes possibles selon le contexte :*\n- *\"Sector Source est une plateforme d\u00e9di\u00e9e aux gestionnaires d\u2019\u0152uvres caritatives et d\u2019associations sans but lucratif, pour les aider \u00e0...\"*\n- *\"Sector Source est un site de r\u00e9f\u00e9rence qui accompagne les dirigeants d\u2019organismes \u00e0 vocation sociale et non lucrative dans leur veille...\"*\n\nSi vous souhaitez adapter le ton (plus formel, plus dynamique, etc.) ou pr\u00e9ciser le domaine d'information (financement, r\u00e9glementation, bonnes pratiques, etc.), je peux affiner la traduction !",
-  "score": 5,
-  "cost": 0.00036760000000000004,
+  "response": "**Sector Source** est un site ressource con\u00e7u pour aider les responsables d\u2019organismes de bienfaisance et d\u2019organisations \u00e0 but non lucratif \u00e0 **rester inform\u00e9s** sur...\n\n*(Alternative plus fluide si le contexte le permet :)*\n**Sector Source** est une plateforme d\u00e9di\u00e9e aux professionnels des organismes caritatifs et des associations, leur offrant les outils et informations n\u00e9cessaires pour **se tenir \u00e0 jour** sur...\n\n---\n**Notes :**\n- *\"Dedicated to help\"* \u2192 *\"con\u00e7u pour aider\"* ou *\"d\u00e9di\u00e9(e) \u00e0\"* (plus naturel en fran\u00e7ais).\n- *\"Run charities\"* \u2192 *\"responsables d\u2019organismes de bienfaisance\"* (\u00e9vite la lourdeur de *\"dirigent\"*).\n- *\"Stay informed on\"* \u2192 *\"rester inform\u00e9s sur\"* (litt\u00e9ral) ou *\"se tenir \u00e0 jour\"* (plus courant \u00e0 l\u2019oral).\n- *\"Nonprofits\"* \u2192 *\"organisations \u00e0 but non lucratif\"* (terme officiel) ou *\"associations\"* (si contexte fran\u00e7ais/m\u00e9tropolitain).\n\nAdaptez selon le public cible (Canada/France) et le ton souhait\u00e9 (formel ou accessible).",
+  "score": 4,
+  "cost": 0.0005216,
   "expected": "",
   "tokens": {
     "input": 44,
-    "output": 175
+    "output": 252
   }
 }

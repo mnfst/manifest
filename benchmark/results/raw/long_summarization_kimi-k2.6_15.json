@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "long_summarization",
+  "case": 15,
+  "response": "The EU's General Data Protection Regulation, which took effect in May 2018, applies to any company processing EU residents' data and mandates strict requirements including the right to erasure, data portability, breach reporting within 72 hours, and fines of up to 4% of global annual revenue or \u20ac20 million. Major tech companies have faced substantial penalties, including Meta (\u20ac1.2 billion), Amazon (\u20ac746 million), and Google (over \u20ac200 million), while the regulation has inspired similar data privacy laws worldwide, such as California's CCPA and Brazil's LGPD. Critics argue that GDPR creates heavy compliance burdens for small businesses, stifles innovation, and frustrates users with ubiquitous cookie consent banners, alongside inconsistent enforcement across member states. Despite these challenges, GDPR established data privacy as a fundamental right and set the global standard for data protection legislation.",
+  "score": 5,
+  "cost": 0.0016385999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 307,
+    "output": 606
+  }
+}

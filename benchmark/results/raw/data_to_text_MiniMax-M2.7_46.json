@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "data_to_text",
+  "case": 46,
+  "response": "In Sprint #23 (January\u202f15\u201126), Team\u202fAlpha planned 42 points but finished with 38, delivering 8 stories and fixing 5 bugs while facing 2 blockers. The sprint\u2019s average velocity was 36 points, and the team earned a stakeholder satisfaction rating of 4.1 out of\u202f5.",
+  "score": 5,
+  "cost": 0.0025156999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 540
+  }
+}

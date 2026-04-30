@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Before the pandemic fewer than\u202f5\u202f% of workers were fully remote, but COVID\u201119 turned remote work into a massive, unplanned experiment powered by tools like Zoom, Slack and cloud infrastructure; Stanford\u2019s Nick\u202fBloom has shown that productivity impacts are mixed. As the crisis eased, a return\u2011to\u2011office push clashed with employee preferences, prompting many firms to adopt hybrid schedules, while the drop in office demand hit commercial real\u2011estate markets and allowed workers to move to lower\u2011cost regions\u2014geographic arbitrage. The shift also strained company culture and junior\u2011employee mentorship, yet it sparked the rise of digital\u2011nomad visas as governments seek to attract location\u2011independent talent.",
+  "score": 5,
+  "cost": 0.0028468,
+  "expected": "",
+  "tokens": {
+    "input": 172,
+    "output": 604
+  }
+}

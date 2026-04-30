@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "function_calling",
   "case": 37,
-  "response": "```json\n{\n  \"name\": \"invalidate_cache\",\n  \"arguments\": {\n    \"pattern\": \"*.(css|js)$\"\n  }\n}\n```",
+  "response": "```json\n{\"name\": \"invalidate_cache\", \"arguments\": {\"pattern\": \"(.*\\\\.css$)|(.*\\\\.js$)\"}}\n```",
   "score": 5,
-  "cost": 9.88e-05,
+  "cost": 9.68e-05,
   "expected": "",
   "tokens": {
     "input": 72,
-    "output": 35
+    "output": 34
   }
 }

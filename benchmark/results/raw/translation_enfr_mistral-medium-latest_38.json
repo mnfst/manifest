@@ -2,7 +2,7 @@
   "model": "mistral-medium-latest",
   "task": "translation_enfr",
   "case": 38,
-  "response": "Voici la traduction en fran\u00e7ais qui conserve le ton et le sens de la phrase originale :\n\n**\"Cela ne peut mener qu\u2019au chaos et \u00e0 la terreur.\"**\n\n*(Variante l\u00e9g\u00e8rement plus fluide, si le contexte le permet :*\n**\"Cela ne peut que semer le chaos et la terreur.\"** *\u2013 plus dynamique, mais un peu moins litt\u00e9rale.)*\n\nLa premi\u00e8re option reste la plus fid\u00e8le \u00e0 la structure et \u00e0 l'intensit\u00e9 de l'anglais.",
+  "response": "Voici la traduction en fran\u00e7ais qui conserve le ton et le sens de la phrase originale :\n\n**\"Cela ne peut mener qu\u2019au chaos et \u00e0 la terreur.\"**\n\n*(Variante l\u00e9g\u00e8rement plus fluide, si le contexte le permet :*\n**\"Cela ne peut que semer le chaos et la terreur.\"** *\u2013 plus dynamique, mais un peu moins litt\u00e9rale.)*\n\nLa premi\u00e8re version reste la plus fid\u00e8le \u00e0 la structure et \u00e0 l'intensit\u00e9 de l'anglais.",
   "score": 5,
   "cost": 0.00021040000000000002,
   "expected": "",

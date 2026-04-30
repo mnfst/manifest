@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "reasoning_gsm8k",
+  "case": 33,
+  "response": "1. Let's find the cost of one candy.\n   - Manolo bought 5 lollipops at $0.40 each, so the total cost for lollipops is:\n     5 * $0.40 = $2.00\n   - The total cost for lollipops and candies is $3.20.\n   - Therefore, the cost for 4 candies is:\n     $3.20 - $2.00 = $1.20\n   - The cost of one candy is:\n     $1.20 / 4 = $0.30\n\n2. Now, let's find the cost of 10 lollipops and 10 candies.\n   - The cost of 10 lollipops at $0.40 each is:\n     10 * $0.40 = $4.00\n   - The cost of 10 candies at $0.30 each is:\n     10 * $0.30 = $3.00\n   - The total cost for 10 lollipops and 10 candies is:\n     $4.00 + $3.00 = $7.00\n\nANSWER: 7.00",
+  "score": 5,
+  "cost": 0.001876,
+  "expected": "7",
+  "tokens": {
+    "input": 92,
+    "output": 282
+  }
+}

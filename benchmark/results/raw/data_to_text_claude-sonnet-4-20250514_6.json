@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "data_to_text",
+  "case": 6,
+  "response": "The production web server prod-web-01 in the us-east-1 region is currently running at 78% CPU utilization with 12.4 GB of its 16 GB memory capacity used and 234 GB of 500 GB disk space consumed. The server has maintained 45 days of uptime while handling 127 active connections with a P99 latency of 145ms and experiencing only 3 errors per hour, indicating stable performance overall.",
+  "score": 5,
+  "cost": 0.001941,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 106
+  }
+}

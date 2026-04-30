@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "data_to_text",
+  "case": 45,
+  "response": "At 14:23 UTC on March 15, 2024, a magnitude 7.2 earthquake occurred at a depth of 15 km near coordinates 35.6\u00b0N 139.7\u00b0E, just outside Tokyo, triggering an immediate tsunami warning. The event affected approximately 2.3 million people, caused an estimated $4.5 billion in damages, and left 12 confirmed casualties.",
+  "score": 5,
+  "cost": 0.0024263999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 982
+  }
+}

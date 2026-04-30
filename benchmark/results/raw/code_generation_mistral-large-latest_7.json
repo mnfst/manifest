@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "code_generation",
+  "case": 7,
+  "response": "```python\n    if n <= 0:\n        return 1\n    result = 1\n    for i in range(1, n + 1):\n        current_fact = 1\n        for j in range(1, i + 1):\n            current_fact *= j\n        result *= current_fact\n    return result\n```",
+  "score": 4,
+  "cost": 0.000706,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 75
+  }
+}

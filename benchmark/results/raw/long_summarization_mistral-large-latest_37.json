@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "long_summarization",
+  "case": 37,
+  "response": "Quantum computing leverages qubits, which can exist in multiple states at once through superposition and entanglement, enabling it to solve certain problems exponentially faster than classical computers\u2014such as Google\u2019s 2019 claim of completing a task in 200 seconds that would take a supercomputer 10,000 years. Major players like IBM, Google, IonQ, and Rigetti are developing quantum hardware using different technologies, but challenges like qubit fragility, high error rates, and the need for extreme cooling persist. Current machines have 100\u20131,000 qubits, though millions may be required for practical applications in fields like drug discovery, cryptography, and optimization. Despite these hurdles, companies are already testing quantum algorithms for real-world uses in finance and logistics.",
+  "score": 5,
+  "cost": 0.00159,
+  "expected": "",
+  "tokens": {
+    "input": 285,
+    "output": 170
+  }
+}

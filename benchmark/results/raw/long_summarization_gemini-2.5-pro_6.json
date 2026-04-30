@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "The COVID-19 pandemic transformed remote work from a rare perk for less than 5% of the workforce into a mainstream practice. This massive shift, enabled by tools like Zoom and Slack, has produced mixed results on productivity according to major studies. Consequently, a struggle has emerged between companies pushing for a return to the office and the popularity of hybrid models. This new landscape is profoundly impacting commercial real estate, allowing workers to relocate for lower costs, and creating new challenges for company culture and junior employee development.",
+  "score": 5,
+  "cost": 0.00120125,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 102
+  }
+}

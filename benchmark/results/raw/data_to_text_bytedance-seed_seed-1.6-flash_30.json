@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "data_to_text",
+  "case": 30,
+  "response": "Team Alpha #23's sprint, which took place from January 15 to 26, planned 42 points but completed 38, with an average velocity of 36, 8 stories done, 5 bugs fixed, and 2 blockers. The team reported a satisfaction score of 4.1 out of 5 for the sprint.",
+  "score": 5,
+  "cost": 0.00015659999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 180,
+    "output": 477
+  }
+}

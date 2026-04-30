@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "data_to_text",
+  "case": 34,
+  "response": "Founded in 1252, Stockholm is a Swedish city with a population of 1.6 million people spread across an area of 188 km2. Residents speak Swedish and benefit from a GDP per capita of $62,000, while the climate features average temperatures of -3\u00b0C in January and 18\u00b0C in July.",
+  "score": 5,
+  "cost": 0.0008115,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 785
+  }
+}

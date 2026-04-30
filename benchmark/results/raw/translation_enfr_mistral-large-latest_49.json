@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "translation_enfr",
+  "case": 49,
+  "response": "Here\u2019s the French translation while maintaining the tone and meaning:\n\n**\"J\u2019ai des \u00e9clairs \u00e0 la cr\u00e8me, des friandises, des harengs marin\u00e9s et des dattes confites.\"**\n\n*Alternative (if you prefer a more literal or poetic touch for certain terms):*\n- *\"J\u2019ai des g\u00e2teaux \u00e0 la cr\u00e8me, des douceurs, des harengs saurs et des dattes cristallis\u00e9es.\"*\n\nThe first version is more natural in everyday French, while the second keeps closer to the original phrasing (e.g., \"crystallized dates\" \u2192 *dattes cristallis\u00e9es*).",
+  "score": 4,
+  "cost": 0.000852,
+  "expected": "",
+  "tokens": {
+    "input": 42,
+    "output": 128
+  }
+}

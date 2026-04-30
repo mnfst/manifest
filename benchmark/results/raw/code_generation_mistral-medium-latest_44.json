@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "code_generation",
+  "case": 44,
+  "response": "vowels = {'a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'}\n    vowel_map = {'a': 'c', 'e': 'g', 'i': 'k', 'o': 'q', 'u': 'w',\n                 'A': 'C', 'E': 'G', 'I': 'K', 'O': 'Q', 'U': 'W'}\n    encoded = []\n\n    for char in message:\n        if char in vowels:\n            encoded_char = vowel_map[char]\n        else:\n            if char.islower():\n                encoded_char = char.upper()\n            elif char.isupper():\n                encoded_char = char.lower()\n            else:\n                encoded_char = char\n        encoded.append(encoded_char)\n\n    return ''.join(encoded)",
+  "score": 4,
+  "cost": 0.00041160000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 177
+  }
+}

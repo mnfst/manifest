@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "data_to_text",
+  "case": 6,
+  "response": "The production server prod-web-01, located in the us-east-1 region, is currently running at 78% CPU utilization with 12.4 GB of its 16 GB memory in use and 234 GB of its 500 GB disk consumed. It has been up for 45 days, handling 127 active connections with a P99 latency of 145ms and averaging just 3 errors per hour.",
+  "score": 5,
+  "cost": 0.01131,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 121
+  }
+}

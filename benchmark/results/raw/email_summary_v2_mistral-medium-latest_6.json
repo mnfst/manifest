@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "email_summary_v2",
   "case": 6,
-  "response": "Acme Corp ($450K ARR) is at risk of churning due to unresolved API latency issues and a **5-day support delay**, prompting their CTO to escalate directly. **James (CS Lead)** has assigned an engineer but requests an **executive sponsor** to join a call this week to address the crisis.",
+  "response": "Acme Corp ($450K ARR) is at risk of churning due to unresolved API latency issues and a **5-day support delay**, prompting their CTO to escalate directly. **Action required:** James (CS Lead) has assigned an engineer but needs an **executive sponsor** to join a call with the customer **this week**.",
   "score": 5,
-  "cost": 0.00018319999999999998,
+  "cost": 0.0001892,
   "expected": "",
   "tokens": {
     "input": 103,
-    "output": 71
+    "output": 74
   }
 }

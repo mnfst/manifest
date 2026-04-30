@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "data_to_text",
+  "case": 36,
+  "response": "Flight AA 1234 is a 5h 15m journey from JFK to LAX aboard a Boeing 787, departing at 08:30 and arriving at 11:45. Economy class tickets are priced at $289, and the flight has an on-time performance rate of 82%.",
+  "score": 5,
+  "cost": 0.0017837999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 719
+  }
+}

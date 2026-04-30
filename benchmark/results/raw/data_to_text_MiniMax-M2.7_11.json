@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "data_to_text",
+  "case": 11,
+  "response": "DataFlow\u202fAI, a data\u2011infrastructure startup founded in 2022, closed a Series\u202fA round of $8.5\u202fmillion, lifting its valuation to $42\u202fmillion. Backed by Sequoia and Y\u202fCombinator, the 18\u2011person team now generates $120\u202fK in monthly recurring revenue and is expanding at a 25\u202f% month\u2011over\u2011month growth rate.",
+  "score": 5,
+  "cost": 0.0024771999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 530
+  }
+}

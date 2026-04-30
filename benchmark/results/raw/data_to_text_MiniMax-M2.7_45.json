@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "data_to_text",
+  "case": 45,
+  "response": "A magnitude\u202f7.2 earthquake struck near Tokyo at coordinates\u202f35.6\u00b0\u202fN,\u202f139.7\u00b0\u202fE on\u202f15\u202fMarch\u202f2024 at\u202f14:23\u202fUTC, at a shallow depth of\u202f15\u202fkm, prompting a tsunami warning. The quake impacted an estimated\u202f2.3\u202fmillion people, resulting in\u202f12\u202fconfirmed fatalities and causing an estimated\u202f$4.5\u202fbillion in damage.",
+  "score": 5,
+  "cost": 0.0023232,
+  "expected": "",
+  "tokens": {
+    "input": 148,
+    "output": 491
+  }
+}

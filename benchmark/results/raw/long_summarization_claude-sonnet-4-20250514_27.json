@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "long_summarization",
+  "case": 27,
+  "response": "The European Union's General Data Protection Regulation (GDPR), effective since May 2018, applies to any company processing EU residents' data and includes key rights like data access, erasure, and portability, along with requirements for explicit consent and 72-hour breach reporting. Violations can result in fines up to 4% of global revenue or \u20ac20 million, with major penalties already imposed on tech companies including Meta (\u20ac1.2 billion), Amazon (\u20ac746 million), and Google (over \u20ac200 million). GDPR has inspired similar privacy laws worldwide, including California's CCPA and Brazil's LGPD, establishing data privacy as a fundamental right. However, critics argue it creates disproportionate compliance burdens for small businesses, causes user frustration through cookie banners, and faces inconsistent enforcement across EU member states.",
+  "score": 5,
+  "cost": 0.003834,
+  "expected": "",
+  "tokens": {
+    "input": 353,
+    "output": 185
+  }
+}

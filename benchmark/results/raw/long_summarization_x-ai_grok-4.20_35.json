@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "long_summarization",
+  "case": 35,
+  "response": "**Summary:**\n\nThe EU's General Data Protection Regulation (GDPR), effective since May 2018, applies to any organization processing EU residents' data worldwide. It introduced key rights such as access, erasure (\"right to be forgotten\"), data portability, and explicit consent, while requiring Data Protection Officers for large-scale processing and mandating data breach reporting within 72 hours. Violations can result in fines up to 4% of global annual revenue or \u20ac20 million, whichever is higher; major penalties have included \u20ac1.2 billion against Meta (2023), \u20ac746 million against Amazon, and over \u20ac200 million against Google. Although GDPR has inspired similar laws globally (including California's CCPA, Brazil's LGPD, and India's DPDP Act) and established data privacy as a fundamental right, critics argue it imposes heavy compliance burdens on small businesses, stifles innovation, and suffers from inconsistent enforcement.",
+  "score": 5,
+  "cost": 0.002282,
+  "expected": "",
+  "tokens": {
+    "input": 417,
+    "output": 181
+  }
+}

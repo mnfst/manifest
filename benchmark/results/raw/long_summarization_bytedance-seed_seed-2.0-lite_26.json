@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "long_summarization",
+  "case": 26,
+  "response": "The global food system is confronting unprecedented interconnected pressures, starting with the requirement to raise global food production by 60% to sustain a projected 9.7 billion global population by 2050, a goal made far more difficult by overlapping environmental and systemic challenges. Those barriers include climate change-driven reductions in crop yields across many regions, agriculture\u2019s own contribution of roughly 25% of global greenhouse gas emissions, the depletion of critical aquifers (including the U.S. Great Plains\u2019 Ogallala Aquifer) in major farming regions across the globe, widespread soil degradation that has cut the productivity of 33% of the world\u2019s arable land, and the loss or waste of one-third of all food produced globally between farm and fork. A range of technical, land-management, and policy fixes have been proposed to address these gaps, including AI-powered precision agriculture, vertical urban farming, alternative and lab-grown proteins, drought-resistant genetically modified crops, soil-boosting regenerative farming, and shifts to agricultural subsidies, trade rules, and carbon pricing to drive widespread transformation. The central hurdle to resolving the global food system\u2019s cascading crises is rolling out these solutions at the necessary global scale while keeping food affordable and accessible for the world\u2019s poorest, most vulnerable populations.",
+  "score": 5,
+  "cost": 0.001429,
+  "expected": "",
+  "tokens": {
+    "input": 348,
+    "output": 1342
+  }
+}

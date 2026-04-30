@@ -3,7 +3,7 @@
   "task": "code_generation",
   "case": 16,
   "response": "```python\n    n = len(grid)\n    min_path = None\n\n    from heapq import heappop, heappush\n\n    heap = []\n    for i in range(n):\n        for j in range(n):\n            heappush(heap, (grid[i][j], i, j, [grid[i][j]]))\n\n    while heap:\n        current_val, x, y, path = heappop(heap)\n        if len(path) == k:\n            return path\n        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:\n            nx, ny = x + dx, y + dy\n            if 0 <= nx < n and 0 <= ny < n:\n                new_path = path + [grid[nx][ny]]\n                heappush(heap, (new_path, nx, ny, new_path))\n```",
-  "score": 2,
+  "score": 3,
   "cost": 0.000562,
   "expected": "",
   "tokens": {

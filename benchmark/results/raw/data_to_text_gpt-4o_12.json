@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "data_to_text",
+  "case": 12,
+  "response": "Founded in 1861, the Massachusetts Institute of Technology (MIT) is ranked as the number one university in the world. With an acceptance rate of just 3.9%, it is highly selective, catering to a student body of approximately 11,500. The university boasts an impressive endowment of $24.6 billion and charges an annual tuition of $57,590. MIT's faculty includes 1,069 members, and its community has produced 98 Nobel laureates, underscoring its reputation for excellence in education and research.",
+  "score": 5,
+  "cost": 0.0013475,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 110
+  }
+}

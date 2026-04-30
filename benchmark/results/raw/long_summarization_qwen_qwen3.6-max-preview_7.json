@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "The 2020s mark a transformative era in space exploration, defined by a rapid convergence of scientific breakthroughs and commercial expansion. Key developments include NASA's Artemis lunar program, SpaceX's Starship, the James Webb Space Telescope's discoveries, and rising orbital and lunar ambitions from China and India. Simultaneously, the private sector is scaling satellite internet constellations, advancing space tourism, and exploring asteroid mining, fundamentally reshaping the global space economy. However, this accelerated growth is increasingly constrained by the outdated Outer Space Treaty and the escalating threat of orbital debris, highlighting an urgent need for modernized international governance. *(Note: The original text outlines topics rather than providing specific data, so no numerical figures were included.)*",
+  "score": 4,
+  "cost": 0.0079898,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 1501
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "The 2020s have seen rapid advancements in space exploration, with key developments including SpaceX\u2019s Starship testing, NASA\u2019s Artemis program aiming to return humans to the Moon by 2025, and the James Webb Space Telescope\u2019s groundbreaking discoveries. China has expanded its space presence with a completed space station and lunar ambitions, while India\u2019s Chandrayaan missions have achieved significant milestones, such as a successful soft landing on the Moon. Private companies like SpaceX (Starlink) and OneWeb are deploying large satellite internet constellations, and space tourism has resumed with Blue Origin and Virgin Galactic. However, challenges like space debris, outdated international treaties (e.g., the Outer Space Treaty), and the uncertain feasibility of asteroid mining remain unresolved.",
+  "score": 5,
+  "cost": 6.27e-05,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 160
+  }
+}

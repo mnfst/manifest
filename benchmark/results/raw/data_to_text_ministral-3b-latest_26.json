@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "data_to_text",
+  "case": 26,
+  "response": "This **Pad Thai** recipe is a flavorful and balanced dish perfect for a medium-level cook, taking a total of **25 minutes** (15 minutes of prep and 10 minutes of cooking) to prepare for **four servings**. Each serving packs **380 calories**, with **22 grams of protein**, **45 grams of carbs**, and **12 grams of fat**, making it a nutritious choice for a quick yet satisfying meal. Originating from **Thai cuisine**, this classic dish offers a perfect blend of sweet, savory, and tangy flavors.",
+  "score": 4,
+  "cost": 9.04e-06,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 125
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "long_summarization",
+  "case": 8,
+  "response": "**Summary:**\n\nThe history of AI traces from Alan Turing's foundational question in the 1950s through two major \"AI winters\" in the 1970s and 1980s, followed by a powerful resurgence driven by deep learning in the 2010s. The pivotal 2017 paper introducing the transformer architecture revolutionized the field, leading to the development of GPT models and the scaling hypothesis, which posits that larger models trained on more data yield increasingly capable systems. This sparked an intense race among leading organizations\u2014OpenAI, Google, Anthropic, and Meta\u2014while igniting a heated debate between open-source and closed-source approaches. \n\nToday, AI raises critical concerns around alignment, misuse, and massive job displacement in knowledge work, prompting regulatory responses such as the EU AI Act and US executive orders, even as its economic impact continues to transform industries.",
+  "score": 5,
+  "cost": 0.001906,
+  "expected": "",
+  "tokens": {
+    "input": 261,
+    "output": 173
+  }
+}

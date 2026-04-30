@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "reasoning_gsm8k",
+  "case": 27,
+  "response": "Let's solve the problem step by step.\n\nLet \\( x \\) be the number of vacuum cleaners Melanie started with.\n\n1. **Sold at the green house:**\n   Melanie sold a third of her vacuum cleaners at the green house.\n   \\[\n   \\text{Sold} = \\frac{1}{3}x\n   \\]\n   \\[\n   \\text{Remaining} = x - \\frac{1}{3}x = \\frac{2}{3}x\n   \\]\n\n2. **Sold to the red house:**\n   She sold 2 more vacuum cleaners to the red house.\n   \\[\n   \\text{Remaining} = \\frac{2}{3}x - 2\n   \\]\n\n3. **Sold at the orange house:**\n   She sold half of what was left at the orange house.\n   \\[\n   \\text{Sold} = \\frac{1}{2} \\left( \\frac{2}{3}x - 2 \\right)\n   \\]\n   \\[\n   \\text{Remaining} = \\frac{1}{2} \\left( \\frac{2}{3}x - 2 \\right)\n   \\]\n\n4. **Final remaining vacuum cleaners:**\n   According to the problem, Melanie has 5 vacuum cleaners left.\n   \\[\n   \\frac{1}{2} \\left( \\frac{2}{3}x - 2 \\right) = 5\n   \\]\n\n5. **Solve for \\( x \\):**\n   Multiply both sides by 2 to eliminate the fraction:\n   \\[\n   \\frac{2}{3}x - 2 = 10\n   \\]\n   Add 2 to both sides:\n   \\[\n   \\frac{2}{3}x = 12\n   \\]\n   Multiply both sides by \\( \\frac{3}{2} \\):\n   \\[\n   x = 12 \\times \\frac{3}{2} = 18\n   \\]\n\n**Verification:**\n- Start with 18.\n- Sold at green house: \\( \\frac{1}{3} \\times 18 = 6 \\), remaining \\( 18 - 6 = 12 \\).\n- Sold to red house: 2, remaining \\( 12 - 2 = 10 \\).\n- Sold at orange house: \\( \\frac{1}{2} \\times 10 = 5 \\), remaining \\( 10 - 5 = 5 \\).\n\nThe verification matches the problem statement.\n\nANSWER: 18",
+  "score": 4,
+  "cost": 0.003372,
+  "expected": "18",
+  "tokens": {
+    "input": 99,
+    "output": 529
+  }
+}

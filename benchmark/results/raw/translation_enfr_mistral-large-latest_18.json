@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "translation_enfr",
+  "case": 18,
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens de l'original :\n\n**\"La plage la plus proche se trouve \u00e0 une courte distance en voiture, situ\u00e9e \u00e0 environ 6...\"**\n\n*(Si vous souhaitez compl\u00e9ter la phrase avec une unit\u00e9 de mesure, par exemple \"6 kilom\u00e8tres\" ou \"6 minutes\", vous pouvez pr\u00e9ciser.)*",
+  "score": 5,
+  "cost": 0.000516,
+  "expected": "",
+  "tokens": {
+    "input": 36,
+    "output": 74
+  }
+}

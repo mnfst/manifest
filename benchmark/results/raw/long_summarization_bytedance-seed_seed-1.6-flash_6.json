@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Remote work has transformed from a rare perk to a mainstream practice, with pre-pandemic levels at less than 5% of workers fully remote. The 2020 pandemic forced a large-scale experiment, enabled by tools like Zoom, Slack, and cloud infrastructure, though Stanford's Nick Bloom's research showed mixed productivity results. This shift has led to a return-to-office backlash, the rise of hybrid models, impacts on commercial real estate, geographic arbitrage (workers moving to lower-cost areas), effects on company culture and junior employee development, and the emergence of digital nomad visas.",
+  "score": 4,
+  "cost": 0.00016154999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 226,
+    "output": 482
+  }
+}

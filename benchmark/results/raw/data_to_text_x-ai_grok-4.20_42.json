@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "data_to_text",
+  "case": 42,
+  "response": "Pad Thai is a popular Thai dish that takes 15 minutes to prepare and 10 minutes to cook, making it a medium-difficulty recipe that serves 4 people. Each serving contains 380 calories, along with 22 grams of protein, 45 grams of carbohydrates, and 12 grams of fat. This classic Thai noodle stir-fry is a flavorful and satisfying meal that's perfect for a quick weeknight dinner.",
+  "score": 5,
+  "cost": 0.001076,
+  "expected": "",
+  "tokens": {
+    "input": 206,
+    "output": 83
+  }
+}

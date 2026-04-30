@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "data_to_text",
+  "case": 46,
+  "response": "# Sprint Summary\n\nTeam Alpha completed Sprint #23 from January 15-26, delivering 38 of 42 planned story points with an average velocity of 36 points, finishing 8 stories and fixing 5 bugs despite encountering 2 blockers. The team achieved a satisfaction rating of 4.1 out of 5, indicating strong overall performance despite falling slightly short of the planned point total.",
+  "score": 5,
+  "cost": 0.0004616,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 93
+  }
+}

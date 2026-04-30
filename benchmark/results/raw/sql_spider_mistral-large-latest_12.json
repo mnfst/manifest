@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "sql_spider",
+  "case": 12,
+  "response": "```sql\nSELECT\n    p.professional_id,\n    p.role,\n    p.first_name\nFROM\n    professionals p\nJOIN\n    treatments t ON p.professional_id = t.professional_id\nGROUP BY\n    p.professional_id, p.role, p.first_name\nHAVING\n    COUNT(t.treatment_id) >= 2;\n```",
+  "score": 5,
+  "cost": 0.000636,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 80
+  }
+}

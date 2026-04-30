@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "json_transform_v2",
+  "case": 25,
+  "response": "```json\n{\n  \"items\": 4,\n  \"subtotal\": 1186,\n  \"discount_code\": \"SAVE20\",\n  \"member_discount\": true,\n  \"estimated_total\": 1186\n}\n```",
+  "score": 4,
+  "cost": 0.00016680000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 55
+  }
+}

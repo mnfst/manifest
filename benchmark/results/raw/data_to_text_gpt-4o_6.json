@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "data_to_text",
+  "case": 6,
+  "response": "The server prod-web-01, located in the us-east-1 region, has been running smoothly with an uptime of 45 days. It is currently utilizing 78% of its CPU and 12.4 out of 16 GB of memory, while its disk usage stands at 234 out of 500 GB. The server handles 127 connections with a P99 latency of 145 milliseconds and experiences an average of 3 errors per hour.",
+  "score": 5,
+  "cost": 0.00116,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 91
+  }
+}

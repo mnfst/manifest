@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "long_summarization",
+  "case": 9,
+  "response": "Quantum computing uses qubits, which can be in multiple states at once, to potentially solve certain problems exponentially faster than classical computers. In 2019, Google demonstrated this \"quantum supremacy\" by completing a task in 200 seconds that would take a supercomputer 10,000 years. However, practical use faces significant hurdles, including the fragility of qubits, high error rates, and the need to scale from current machines with hundreds of qubits to millions for useful applications. Despite these challenges, the field shows promise for areas like cryptography and drug discovery, with companies already exploring early algorithms.",
+  "score": 5,
+  "cost": 0.00019985000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 267,
+    "output": 121
+  }
+}

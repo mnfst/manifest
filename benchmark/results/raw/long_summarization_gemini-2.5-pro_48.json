@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "long_summarization",
+  "case": 48,
+  "response": "Originating as a US military project in the 1960s, the internet's modern foundation was built upon the adoption of TCP/IP in 1983 and the invention of the World Wide Web in 1989. The 1993 launch of the Mosaic web browser made the internet publicly accessible, leading to a commercial boom, the rise of social media, and mobile access. This evolution has resulted in a global network that now connects over 5 billion people and underpins nearly every aspect of modern life.",
+  "score": 4,
+  "cost": 0.001535,
+  "expected": "",
+  "tokens": {
+    "input": 332,
+    "output": 112
+  }
+}

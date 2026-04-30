@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "reasoning_gsm8k",
+  "case": 48,
+  "response": "Let's solve the problem step by step.\n\n1. **Initial Weight**: Jamaal starts with an 8-pound weight.\n\n2. **Increase by 50%**:\n   - To increase the weight by 50%, calculate 50% of 8 pounds.\n   - 50% of 8 = 0.5 * 8 = 4 pounds.\n   - Add this to the original weight: 8 + 4 = 12 pounds.\n\n3. **Find a Lighter Weight**:\n   - The 12-pound weight is too heavy, so he uses a weight that is 2 pounds lighter.\n   - 12 - 2 = 10 pounds.\n\n**Final Weight**: Jamaal now uses a 10-pound weight.\n\nANSWER: 10",
+  "score": 5,
+  "cost": 0.001236,
+  "expected": "10",
+  "tokens": {
+    "input": 102,
+    "output": 172
+  }
+}

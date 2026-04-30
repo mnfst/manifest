@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "data_to_text",
+  "case": 47,
+  "response": "# Midnights by Taylor Swift\n\nTaylor Swift's album \"Midnights,\" released in October 2022, is a pop and synth-pop record featuring 13 tracks with a total duration of 44 minutes that achieved remarkable commercial success with 1.58 million first-week sales and accumulated 3.4 billion Spotify streams. The album's critical acclaim was further validated when it won the Grammy Award for Album of the Year, cementing its status as one of Swift's most successful projects.",
+  "score": 5,
+  "cost": 0.0005384,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 113
+  }
+}

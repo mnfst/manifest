@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "long_summarization",
+  "case": 32,
+  "response": "**Summary:**\n\nThe modern internet originated from ARPANET, a U.S. Department of Defense-funded project first demonstrated in 1969. Key milestones include the 1983 adoption of TCP/IP protocols, Tim Berners-Lee\u2019s invention of the World Wide Web in 1989 (introducing HTML, URLs, and HTTP), and the 1993 release of the Mosaic browser, which brought the internet to the general public. The late 1990s dot-com boom and bust was followed by the rise of dominant companies like Amazon and Google, while the mid-2000s saw the explosion of social media (Facebook, YouTube, Twitter) and mobile internet after the iPhone\u2019s 2007 launch. Today, the internet connects more than 5 billion people and serves as the foundation for global commerce, communication, and entertainment.",
+  "score": 4,
+  "cost": 0.002214,
+  "expected": "",
+  "tokens": {
+    "input": 427,
+    "output": 170
+  }
+}

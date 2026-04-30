@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "data_to_text",
+  "case": 5,
+  "response": "*Oppenheimer*, directed by Christopher Nolan, is a gripping 2023 drama-historical film that explores the life of J. Robert Oppenheimer, the father of the atomic bomb. With a runtime of 180 minutes, a $100 million budget, and a staggering $952 million in global box office earnings, the critically acclaimed movie\u2014boasting an 8.3 on IMDb and a 93% on Rotten Tomatoes\u2014won the Oscar for Best Picture. Nolan\u2019s meticulous storytelling and the film\u2019s intense narrative have cemented it as one of the most impactful cinematic releases in recent years.",
+  "score": 5,
+  "cost": 0.0003124,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 136
+  }
+}

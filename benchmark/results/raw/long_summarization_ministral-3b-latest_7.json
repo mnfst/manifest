@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "In the **2020s**, space exploration is dominated by major private and government initiatives, with **SpaceX\u2019s Starship** leading next-gen rocket development, aiming for Mars missions and lunar landings. **NASA\u2019s Artemis program** targets a **2025 crewed Moon landing**, while **China\u2019s Tiangong space station** and its aggressive lunar ambitions (including a potential crewed Moon mission by **2030**) rival Western efforts. Meanwhile, **James Webb Telescope** reveals groundbreaking discoveries about the universe, and **India\u2019s Chandrayaan missions** (e.g., Chandrayaan-3\u2019s 2023 success) expand lunar exploration.\n\nThe sector also sees growth in **satellite internet constellations** (Starlink, OneWeb), **space tourism** (Blue Origin, Virgin Galactic), and **asteroid mining**, though **space debris** and the **Outer Space Treaty\u2019s limitations** pose critical challenges for sustainable space use.",
+  "score": 5,
+  "cost": 1.356e-05,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 204
+  }
+}

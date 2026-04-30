@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "code_generation",
+  "case": 24,
+  "response": "```python\n    if a <= 0 or b <= 0 or c <= 0:\n        return -1\n    if a + b <= c or a + c <= b or b + c <= a:\n        return -1\n    s = (a + b + c) / 2\n    area = (s * (s - a) * (s - b) * (s - c)) ** 0.5\n    return round(area, 2)\n```",
+  "score": 5,
+  "cost": 0.0002692,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 104
+  }
+}

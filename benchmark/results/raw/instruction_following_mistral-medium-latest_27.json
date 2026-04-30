@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "instruction_following",
   "case": 27,
-  "response": "Here\u2019s your grouped list:\n\n### **Mammals**\n1. Lion\n2. Dolphin\n3. Kangaroo\n\n### **Birds**\n1. Bald Eagle\n2. Penguin\n3. Hummingbird\n\n### **Fish**\n1. Clownfish\n2. Great White Shark\n3. Salmon",
+  "response": "Here\u2019s a grouped list for you:\n\n### **Mammals**\n1. Lion\n2. Dolphin\n3. Kangaroo\n\n### **Birds**\n1. Bald Eagle\n2. Penguin\n3. Hummingbird\n\n### **Fish**\n1. Clownfish\n2. Great White Shark\n3. Salmon",
   "score": 4,
-  "cost": 0.00014480000000000002,
+  "cost": 0.0001488,
   "expected": "",
   "tokens": {
     "input": 22,
-    "output": 68
+    "output": 70
   }
 }

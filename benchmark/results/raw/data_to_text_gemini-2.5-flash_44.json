@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "data_to_text",
+  "case": 44,
+  "response": "Founded in 1861, MIT is a top-ranked institution (#1) with 11,500 students and 1,069 faculty members. It maintains an extremely competitive 3.9% acceptance rate, charges $57,590 annually for tuition, and is supported by a $24.6 billion endowment, having produced 98 Nobel laureates.",
+  "score": 5,
+  "cost": 6.615000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 84
+  }
+}

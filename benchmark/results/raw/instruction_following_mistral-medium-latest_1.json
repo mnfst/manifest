@@ -3,7 +3,7 @@
   "task": "instruction_following",
   "case": 1,
   "response": "A **CPU (Central Processing Unit)** executes instructions by performing arithmetic, logical, and control operations to process data and manage tasks in a computer.",
-  "score": 4,
+  "score": 5,
   "cost": 6.56e-05,
   "expected": "",
   "tokens": {

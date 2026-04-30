@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "instruction_following",
   "case": 7,
-  "response": "**Simple Scrambled Eggs**\n\nWhisk 2 eggs with 1 tbsp milk, salt, and pepper. Heat a nonstick pan on medium-low, add 1 tbsp butter. Pour in eggs, stirring gently with a spatula until softly set (2\u20133 mins). Remove before fully firm\u2014they\u2019ll keep cooking. Serve warm. Optional: add cheese or herbs. Enjoy!",
+  "response": "**Simple Scrambled Eggs**\n\nWhisk 2 eggs with 1 tbsp milk, salt, and pepper. Heat a nonstick pan on medium-low, add 1 tbsp butter. Pour in eggs, stirring gently with a spatula until softly set (2\u20133 mins). Remove just before fully cooked\u2014they\u2019ll finish off the heat. Serve warm!",
   "score": 2,
-  "cost": 0.000178,
+  "cost": 0.000166,
   "expected": "",
   "tokens": {
     "input": 20,
-    "output": 85
+    "output": 79
   }
 }

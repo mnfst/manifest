@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "email_summary_v2",
+  "case": 18,
+  "response": "The VP of Engineering proposes splitting the Platform team into **Infrastructure** and **Developer Experience (DX)** to prioritize both critical incidents and tooling/onboarding work. **Review the attached draft org chart** and provide feedback on the restructuring.",
+  "score": 5,
+  "cost": 0.000486,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 51
+  }
+}

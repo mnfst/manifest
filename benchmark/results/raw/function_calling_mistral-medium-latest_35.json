@@ -3,7 +3,7 @@
   "task": "function_calling",
   "case": 35,
   "response": "```json\n{\"name\": \"get_order\", \"arguments\": {\"order_id\": \"12345\"}}\n```",
-  "score": 2,
+  "score": 3,
   "cost": 9.080000000000001e-05,
   "expected": "",
   "tokens": {

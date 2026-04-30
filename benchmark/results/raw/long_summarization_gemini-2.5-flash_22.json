@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "long_summarization",
+  "case": 22,
+  "response": "The global food system faces unprecedented pressure, needing a 60% increase in food production by 2050 to feed a projected 9.7 billion people. This challenge is compounded by climate change reducing crop yields, agriculture's 25% contribution to greenhouse gas emissions, widespread water scarcity, soil degradation affecting 33% of arable land, and one-third of all food being wasted. A range of solutions, from precision agriculture and alternative proteins to regenerative farming and policy changes, are being explored. The critical challenge lies in implementing these at scale while ensuring food remains affordable and accessible, especially for the world's poorest populations.",
+  "score": 5,
+  "cost": 0.0001239,
+  "expected": "",
+  "tokens": {
+    "input": 298,
+    "output": 132
+  }
+}

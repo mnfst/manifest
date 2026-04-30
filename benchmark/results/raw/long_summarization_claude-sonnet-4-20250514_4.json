@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "long_summarization",
+  "case": 4,
+  "response": "Electric vehicles have evolved from 1830s experiments to modern market disruption led by Tesla, overcoming technical challenges in battery technology and charging infrastructure with support from government incentives. Legacy automakers including Ford, GM, and Volkswagen are now transitioning their fleets to compete in the EV market, while China has emerged as the world's largest EV market and manufacturer. However, the industry faces ongoing challenges including consumer range anxiety, lengthy charging times, grid capacity limitations, and environmental concerns over lithium and cobalt mining for batteries. The development of solid-state batteries represents a potential breakthrough technology that could address many of these current limitations.",
+  "score": 5,
+  "cost": 0.002475,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 135
+  }
+}

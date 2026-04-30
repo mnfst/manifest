@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "data_to_text",
+  "case": 34,
+  "response": "# Stockholm\n\nStockholm, the capital of Sweden, was founded in 1252 and is home to approximately 1.6 million people spread across an area of 188 square kilometers. The city boasts a strong economy with a GDP per capita of $62,000, and Swedish is the primary language spoken by residents. Stockholm experiences a temperate climate with average temperatures of -3\u00b0C in January and 18\u00b0C in July, creating distinct seasonal variations throughout the year.",
+  "score": 5,
+  "cost": 0.0004936000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 103
+  }
+}

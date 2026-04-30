@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "data_to_text",
+  "case": 22,
+  "response": "The server prod-web-01, located in the us-east-1 region, is operating with 78% CPU usage, 12.4 GB of memory out of 16 GB, and 234 GB of disk space out of 500 GB, and has been up for 45 days. It handles 127 connections, has a P99 latency of 145ms, and experiences 3 errors per hour.",
+  "score": 5,
+  "cost": 0.00023212499999999996,
+  "expected": "",
+  "tokens": {
+    "input": 191,
+    "output": 726
+  }
+}

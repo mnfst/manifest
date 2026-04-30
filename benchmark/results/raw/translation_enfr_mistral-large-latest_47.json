@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "translation_enfr",
+  "case": 47,
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens du texte original :\n\n**\"Ce type de r\u00e9pression, ainsi que les arrestations survenues ces derni\u00e8res semaines de repr\u00e9sentants d\u2019institutions humanitaires, de syndicats et de journalistes accus\u00e9s de propager de pr\u00e9tendues fausses informations, ont l\u00e9gitimement suscit\u00e9 l\u2019inqui\u00e9tude de la communaut\u00e9 internationale.\"**\n\n*Variante alternative (plus fluide) :*\n**\"La r\u00e9pression de ce genre, tout comme les arrestations r\u00e9centes de repr\u00e9sentants d\u2019organisations humanitaires, de syndicats et de journalistes accus\u00e9s de diffuser de pr\u00e9tendues fausses informations, ont \u00e0 juste titre alarm\u00e9 la communaut\u00e9 internationale.\"**\n\nSelon le contexte, vous pouvez ajuster l\u00e9g\u00e8rement le style (ex. *\"\u00e0 juste titre\"* au lieu de *\"l\u00e9gitimement\"*). Les deux versions restent fid\u00e8les \u00e0 l'original.",
+  "score": 5,
+  "cost": 0.001218,
+  "expected": "",
+  "tokens": {
+    "input": 63,
+    "output": 182
+  }
+}

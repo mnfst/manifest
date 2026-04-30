@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "translation_enfr",
+  "case": 16,
+  "response": "Here\u2019s a natural and respectful French translation that maintains the tone and meaning:\n\n**\"J\u2019ai l\u2019impression que ma bite n\u2019est pas assez grosse pour toi.\"**\n\nIf you'd like a slightly more formal or softened version, you could also say:\n- **\"Je me demande si je suis assez bien dot\u00e9 pour toi.\"** (more indirect)\n- **\"J\u2019ai peur de ne pas \u00eatre \u00e0 la hauteur pour toi.\"** (more emotional)",
+  "score": 4,
+  "cost": 0.000614,
+  "expected": "",
+  "tokens": {
+    "input": 34,
+    "output": 91
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "data_to_text",
+  "case": 2,
+  "response": "Stockholm, the capital of Sweden, was founded in 1252, spans 188 square kilometers, and is home to 1.6 million primarily Swedish-speaking residents, with a strong GDP per capita of $62,000 that reflects its prosperity as a leading Scandinavian city. It sees mild, predictable seasonal temperature shifts, with an average January temperature of -3\u00b0C and an average July temperature of 18\u00b0C, creating comfortable, distinct conditions for locals and visitors alike year-round.",
+  "score": 5,
+  "cost": 0.0009195,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 883
+  }
+}

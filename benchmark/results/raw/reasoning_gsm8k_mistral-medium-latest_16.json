@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "reasoning_gsm8k",
   "case": 16,
-  "response": "Let's solve the problem step by step.\n\n1. **Determine the total number of books Sarah bought:**\n\n   Sarah spent a total of $300 on books, and each book costs $15. To find the total number of books, divide the total amount spent by the cost per book:\n\n   \\[\n   \\text{Total number of books} = \\frac{\\text{Total amount spent}}{\\text{Cost per book}} = \\frac{300}{15} = 20\n   \\]\n\n2. **Calculate the number of books each child received:**\n\n   Sarah has 4 kids, and she distributed the books equally among them. To find out how many books each child got, divide the total number of books by the number of kids:\n\n   \\[\n   \\text{Books per child} = \\frac{\\text{Total number of books}}{\\text{Number of kids}} = \\frac{20}{4} = 5\n   \\]\n\nANSWER: 5",
+  "response": "Let's solve the problem step by step.\n\n1. **Determine the total number of books Sarah bought:**\n   - Total amount spent: $300\n   - Cost per book: $15\n   - Number of books = Total amount spent / Cost per book\n   - Number of books = $300 / $15 = 20 books\n\n2. **Calculate the number of books each child received:**\n   - Number of kids: 4\n   - Books per child = Total number of books / Number of kids\n   - Books per child = 20 books / 4 = 5 books\n\nANSWER: 5",
   "score": 5,
-  "cost": 0.0004508,
+  "cost": 0.0003108,
   "expected": "5",
   "tokens": {
     "input": 87,
-    "output": 208
+    "output": 138
   }
 }

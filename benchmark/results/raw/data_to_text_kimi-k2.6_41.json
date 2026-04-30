@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "data_to_text",
+  "case": 41,
+  "response": "Japan, a nation of 125 million people, maintains a GDP of $4.2 trillion with a growth rate of 1.1% and generates $756 billion in exports. Despite a low unemployment rate of 2.6%, the country faces significant economic headwinds, including inflation at 3.2% and a towering debt-to-GDP ratio of 263%. The population also enjoys one of the longest life expectancies globally, averaging 84.6 years.",
+  "score": 5,
+  "cost": 0.0011447999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 451
+  }
+}

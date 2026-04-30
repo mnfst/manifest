@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "long_summarization",
+  "case": 8,
+  "response": "The history of artificial intelligence (AI) spans from Alan Turing\u2019s foundational questions to today\u2019s transformer-based models, marked by setbacks like the \"AI winters\" of the 1970s and 1980s and a resurgence in the 2010s driven by deep learning. A pivotal moment came in 2017 with the transformer architecture, leading to breakthroughs like GPT and the *scaling hypothesis*, fueling competition among tech giants (OpenAI, Google, Anthropic, Meta) and debates over open vs. closed-source AI. Key concerns include AI safety (alignment, misuse, job displacement), prompting regulatory efforts like the EU AI Act and U.S. executive orders. The economic impact on knowledge work remains a major focus as AI continues to advance.",
+  "score": 5,
+  "cost": 0.001308,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 167
+  }
+}

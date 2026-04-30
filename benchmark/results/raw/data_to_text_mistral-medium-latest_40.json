@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "data_to_text",
+  "case": 40,
+  "response": "A 45-year-old non-smoking woman with a BMI of 27.3\u2014classified as slightly overweight\u2014has a blood pressure reading of 138/88 mmHg, placing her in the elevated range. Her cholesterol level is 225 mg/dL, and her fasting glucose measures 110 mg/dL, both of which are higher than ideal, while her family history includes diabetes (her mother had the condition), though she currently exercises twice a week. These factors suggest she may be at increased risk for metabolic and cardiovascular issues.",
+  "score": 5,
+  "cost": 0.0002768,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 118
+  }
+}

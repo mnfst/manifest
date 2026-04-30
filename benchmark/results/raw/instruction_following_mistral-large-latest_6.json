@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "instruction_following",
+  "case": 6,
+  "response": "\"Waves whisper ancient secrets.\"",
+  "score": 5,
+  "cost": 7.4e-05,
+  "expected": "",
+  "tokens": {
+    "input": 13,
+    "output": 8
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "intent_clinc150",
+  "case": 43,
+  "response": "book_flight",
+  "score": 5,
+  "cost": 0.00116,
+  "expected": "book_flight",
+  "tokens": {
+    "input": 568,
+    "output": 4
+  }
+}

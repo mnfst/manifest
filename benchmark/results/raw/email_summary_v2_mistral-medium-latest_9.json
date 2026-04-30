@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "email_summary_v2",
   "case": 9,
-  "response": "The nightly ETL job failed due to an upstream **Salesforce schema change**, causing dashboards to display stale data since yesterday, but a fix has been deployed. A backfill is in progress, with full recovery expected by **4 PM today**\u2014no further action is required.",
+  "response": "The nightly ETL job failed due to a Salesforce schema change, causing dashboards to display stale data since yesterday, but a fix has been deployed. Full data recovery is expected by **4 PM today**, with a backfill currently in progress.",
   "score": 5,
-  "cost": 0.00015480000000000002,
+  "cost": 0.0001408,
   "expected": "",
   "tokens": {
     "input": 92,
-    "output": 59
+    "output": 52
   }
 }

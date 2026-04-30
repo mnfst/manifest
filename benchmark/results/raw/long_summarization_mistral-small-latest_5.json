@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "long_summarization",
+  "case": 5,
+  "response": "Antibiotics, beginning with Alexander Fleming\u2019s 1928 discovery of penicillin, revolutionized medicine by enabling effective treatment of bacterial infections and transforming surgery. The mid-20th century\u2019s \"golden age\" of antibiotic discovery (1950s\u201360s) led to numerous life-saving drugs, but financial disincentives have since stifled new development, while resistant strains like MRSA and agricultural antibiotic overuse have worsened the global antimicrobial resistance crisis. Current research explores alternative therapies such as phage therapy, CRISPR-based solutions, and AI-driven drug discovery to combat superbugs. Without urgent action, the WHO warns that resistant infections could cause 10 million annual deaths by 2050.",
+  "score": 5,
+  "cost": 5.93e-05,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 149
+  }
+}

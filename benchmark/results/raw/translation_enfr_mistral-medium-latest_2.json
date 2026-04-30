@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "translation_enfr",
   "case": 2,
-  "response": "Voici une traduction fid\u00e8le qui conserve le ton et le sens du texte original :\n\n**French :**\n*J\u00e9sus s\u2019approcha et parla distinctement, avec douceur : \u00ab C\u2019est moi. \u00bb Ces paroles devinrent le fondement de la foi des ap\u00f4tres.*\n\n---\n**Variantes possibles (selon le contexte) :**\n- *\"J\u00e9sus vint et s\u2019adressa \u00e0 eux d\u2019une voix claire et bienveillante : \u00ab C\u2019est moi. \u00bb Cette d\u00e9claration posa les bases de la foi des ap\u00f4tres.\"* (plus litt\u00e9raire)\n- *\"J\u00e9sus s\u2019avan\u00e7a et leur dit avec clart\u00e9 et douceur : \u00ab C\u2019est moi. \u00bb Ces mots furent le socle de la foi des disciples.\"* (alternative pour \"ap\u00f4tres\")\n\n---\n**Notes :**\n- *\"Distinctement et kindly\"* est rendu par *\"distinctement, avec douceur\"* pour garder la nuance de clart\u00e9 et de bienveillance.\n- *\"Basis of the faith\"* devient *\"fondement/socle/base\"* selon le registre souhait\u00e9 (tous sont corrects).\n- *\"The apostles\u2019* peut aussi se traduire par *\"des disciples\"* si le contexte l\u2019exige (les ap\u00f4tres \u00e9tant un sous-groupe des disciples dans les \u00c9vangiles).\n\nSi vous avez un contexte sp\u00e9cifique (ex. : citation biblique pr\u00e9cise), je peux affiner davantage.",
+  "response": "Voici une traduction fid\u00e8le qui conserve le ton et le sens du texte original :\n\n**J\u00e9sus s\u2019approcha et leur parla d\u2019une voix claire et bienveillante : *\u00ab C\u2019est moi. \u00bb* Ces paroles devinrent le fondement de la foi des ap\u00f4tres.**\n\n---\n*Variantes possibles selon le contexte (si n\u00e9cessaire) :*\n- *\u00ab Il leur adressa la parole avec douceur et clart\u00e9 : \u00bb* (pour insister sur la tendresse)\n- *\u00ab Cette d\u00e9claration \u00bb* au lieu de *\u00ab Ces paroles \u00bb* (si l\u2019accent est mis sur l\u2019acte solennel).\n\nLa version propos\u00e9e reste naturelle en fran\u00e7ais tout en gardant la simplicit\u00e9 et la profondeur du texte source.",
   "score": 5,
-  "cost": 0.0005947999999999999,
+  "cost": 0.0003208,
   "expected": "",
   "tokens": {
     "input": 47,
-    "output": 288
+    "output": 151
   }
 }

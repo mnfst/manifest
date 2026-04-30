@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "data_to_text",
+  "case": 33,
+  "response": "LeBron James, 40\u202fyears old, turned in another stellar season for the Lakers in 2024\u201125, averaging 28.4 points, 7.2 rebounds, and 8.1 assists while appearing in 71 games. His consistent excellence earned him an All\u2011Star selection, underscoring his enduring impact on the court.",
+  "score": 5,
+  "cost": 0.0023221000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 497
+  }
+}

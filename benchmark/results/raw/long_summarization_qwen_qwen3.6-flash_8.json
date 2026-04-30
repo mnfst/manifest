@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "long_summarization",
+  "case": 8,
+  "response": "Artificial intelligence has evolved from Alan Turing\u2019s foundational questions through two major stagnation periods in the 1970s and 1980s before experiencing a deep learning resurgence in the 2010s. The field was fundamentally transformed by the 2017 transformer architecture and the scaling of models like GPT, igniting a fierce corporate race among OpenAI, Google, Anthropic, and Meta. This rapid advancement has intensified debates over open versus closed-source development while raising critical safety concerns about alignment, misuse, and widespread job displacement. In response, governments are implementing regulatory frameworks like the EU AI Act and US executive orders to manage AI\u2019s profound economic impact on knowledge work and ensure responsible deployment.",
+  "score": 5,
+  "cost": 0.0019015,
+  "expected": "",
+  "tokens": {
+    "input": 162,
+    "output": 1861
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "long_summarization",
+  "case": 4,
+  "response": "Electric vehicles have evolved from 1830s experiments to a transformative industry force, with Tesla disrupting traditional markets and legacy automakers like Ford, GM, and VW now transitioning their fleets to electrification. Widespread adoption still faces significant hurdles, however, including battery technical limitations, insufficient charging infrastructure, range anxiety, lengthy charging times, and grid capacity concerns, compounded by environmental debates over lithium and cobalt mining. China currently dominates as the world\u2019s largest EV market and manufacturer, supported by government incentives that continue to drive global uptake. Looking ahead, the industry is pinning hopes on emerging solid-state battery technology to overcome current performance barriers and accelerate the shift away from internal combustion engines.",
+  "score": 5,
+  "cost": 0.00186,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 742
+  }
+}

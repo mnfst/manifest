@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "data_to_text",
+  "case": 7,
+  "response": "Apple Inc.\u2019s stock, listed under the ticker AAPL, trades at $185.50 as of the latest trading session, notching a strong 2.3% daily gain with total trading volume hitting 45 million shares. The stock carries a $2.87 trillion market capitalization, a price-to-earnings ratio of 28.4, and a 0.55% dividend yield, and it currently sits well within its 52-week trading range, which spans a low of $155 to a high of $198.",
+  "score": 5,
+  "cost": 0.0006685,
+  "expected": "",
+  "tokens": {
+    "input": 162,
+    "output": 628
+  }
+}

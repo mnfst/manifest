@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "# Summary\n\nRemote work evolved from a rare benefit affecting less than 5% of workers pre-pandemic to a mainstream practice following the forced experiment of 2020, enabled by tools like Zoom, Slack, and cloud infrastructure. Research from Stanford's Nick Bloom revealed mixed productivity results, while the shift has triggered significant consequences including return-to-office backlash, the rise of hybrid models, disruption to commercial real estate, and geographic arbitrage as workers relocated to lower-cost areas. The transformation has also raised concerns about company culture and junior employee development, while simultaneously spurring governments to introduce digital nomad visas to attract remote workers.",
+  "score": 5,
+  "cost": 0.0006752,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 137
+  }
+}

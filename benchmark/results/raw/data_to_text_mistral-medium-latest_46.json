@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "data_to_text",
+  "case": 46,
+  "response": "During **Sprint #23 (Jan 15\u201326)**, **Team Alpha** planned **42 story points** but completed **38**, slightly exceeding their average velocity of **36**. The team delivered **8 user stories**, fixed **5 bugs**, and faced **2 blockers**, while reporting a high satisfaction rating of **4.1 out of 5** for the sprint.",
+  "score": 5,
+  "cost": 0.0002068,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 83
+  }
+}

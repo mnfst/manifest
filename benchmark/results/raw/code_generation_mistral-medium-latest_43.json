@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "code_generation",
+  "case": 43,
+  "response": "if not numbers:\n    return []\nresult = []\nfor i, num in enumerate(numbers):\n    if i > 0:\n        result.append(delimeter)\n    result.append(num)\nreturn result",
+  "score": 5,
+  "cost": 0.00013319999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 41
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "data_to_text",
+  "case": 23,
+  "response": "Apple (AAPL) shares are currently trading at $185.50, reflecting a 2.3% daily gain on a trading volume of 45 million shares, with the company's market capitalization standing at $2.87 trillion. The stock features a price-to-earnings ratio of 28.4 and a dividend yield of 0.55%, while its 52-week trading range spans from a low of $155 to a high of $198.",
+  "score": 5,
+  "cost": 0.00149875,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 1468
+  }
+}

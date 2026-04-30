@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "code_generation",
+  "case": 29,
+  "response": "return sorted(nums, key=lambda x: (sum(int(d) for d in str(abs(x))), nums.index(x)))",
+  "score": 5,
+  "cost": 0.00011159999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 26
+  }
+}

@@ -3,7 +3,7 @@
   "task": "ner_extraction",
   "case": 30,
   "response": "```json\n{\n  \"persons\": [\"Justin Trudeau\"],\n  \"organizations\": [\"General Assembly\", \"United Nations\"],\n  \"locations\": [\"Canada\", \"New York\"]\n}\n```",
-  "score": 4,
+  "score": 3,
   "cost": 0.00011,
   "expected": "",
   "tokens": {

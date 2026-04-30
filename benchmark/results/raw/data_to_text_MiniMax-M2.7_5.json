@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "data_to_text",
+  "case": 5,
+  "response": "Christopher Nolan\u2019s Oppenheimer, released in 2023, is a 180\u2011minute drama\u2011history film produced on a $100\u202fmillion budget. The movie earned $952\u202fmillion at the box office, boasts an IMDB rating of 8.3 and a Rotten Tomatoes score of 93%, and won the Academy Award for Best Picture.",
+  "score": 5,
+  "cost": 0.0015730000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 325
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "data_to_text",
+  "case": 7,
+  "response": "Apple (AAPL) recently traded at **$185.50 per share**, reflecting a **2.3% increase** from the previous day, with trading volume reaching **45 million shares**. The company\u2019s market capitalization stands at an impressive **$2.87 trillion**, though its **price-to-earnings ratio of 28.4** suggests investors are valuing its growth potential. With a modest **dividend yield of 0.55%**, Apple\u2019s stock has fluctuated between a **52-week high of $198** and a **low of $155**, indicating recent volatility in its share price.",
+  "score": 5,
+  "cost": 1.032e-05,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 141
+  }
+}

@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "rag_qa",
   "case": 23,
-  "response": "The presence of the **mortgage banker** is highly likely, even in relatively small projects.",
+  "response": "The presence of the **mortgage banker** is highly likely even in relatively small projects.",
   "score": 5,
-  "cost": 0.0001228,
+  "cost": 0.00012080000000000001,
   "expected": "the mortgage banker",
   "tokens": {
     "input": 202,
-    "output": 21
+    "output": 20
   }
 }

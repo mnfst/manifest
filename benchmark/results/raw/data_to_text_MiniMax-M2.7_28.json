@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "data_to_text",
+  "case": 28,
+  "response": "Massachusetts Institute of Technology (MIT), founded in\u202f1861, is currently ranked #1 among universities. It boasts a highly selective admissions process with a 3.9\u202f% acceptance rate, serves about\u202f11,500 students, and employs\u202f1,069 faculty members, including 98 Nobel laureates. With an annual tuition of\u202f$57,590 and an endowment of\u202f$24.6\u202fbillion, MIT stands as one of the world\u2019s most prestigious and well\u2011funded institutions.",
+  "score": 5,
+  "cost": 0.0020163000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 426
+  }
+}

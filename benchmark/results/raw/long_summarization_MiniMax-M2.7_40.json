@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "long_summarization",
+  "case": 40,
+  "response": "**Summary:**\nThe internet originated from US Department of Defense-funded research in the 1960s, with ARPANET demonstrating the first network message in 1969. Key developments including the adoption of TCP/IP protocols in 1983, Tim Berners-Lee's invention of the World Wide Web in 1989, and the release of the Mosaic browser in 1993 transformed the internet from a research tool into a accessible platform. The dot-com boom of the late 1990s led to a crash in 2001, but companies like Amazon and Google emerged dominant. The proliferation of smartphones after the iPhone's 2007 launch and cloud computing services like AWS (2006) drove explosive growth, connecting over 5 billion people today.",
+  "score": 5,
+  "cost": 0.0017105,
+  "expected": "",
+  "tokens": {
+    "input": 343,
+    "output": 303
+  }
+}

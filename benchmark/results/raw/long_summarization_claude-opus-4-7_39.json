@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "long_summarization",
+  "case": 39,
+  "response": "The EU's GDPR, effective May 2018, transformed global data privacy by granting EU residents rights such as data access, erasure, and portability, while requiring explicit consent, 72-hour breach reporting, and fines up to 4% of global revenue or \u20ac20 million. Enforcement has produced major penalties, including Meta's \u20ac1.2 billion fine in 2023, Amazon's \u20ac746 million fine, and over \u20ac200 million in fines against Google. The regulation has inspired similar laws worldwide, including California's CCPA, Brazil's LGPD, and India's DPDP Act. Although critics cite compliance burdens on small businesses, inconsistent enforcement, and consent-banner fatigue, GDPR has established data privacy as a fundamental right and become the global standard for data protection.",
+  "score": 5,
+  "cost": 0.027135,
+  "expected": "",
+  "tokens": {
+    "input": 514,
+    "output": 259
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "long_summarization",
+  "case": 1,
+  "response": "Quantum computing uses qubits that exist in superposition of states, combined with entanglement and interference, allowing certain problems to be solved exponentially faster than classical computers. Major companies and startups are developing various hardware approaches, including superconducting circuits, trapped ions, and photonics, with Google claiming quantum supremacy in 2019 by performing a calculation in 200 seconds that would take a classical supercomputer 10,000 years. However, practical applications face significant challenges: qubits require near absolute zero cooling, error rates are high, and millions of qubits may be needed despite current machines having only 100-1,000. Despite these hurdles, quantum computing shows promise for drug discovery, materials science, cryptography, and optimization problems.",
+  "score": 5,
+  "cost": 0.0017402000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 278,
+    "output": 326
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "long_summarization",
+  "case": 48,
+  "response": "The internet originated in the 1960s with U.S. Department of Defense-funded ARPANET, which was first demonstrated in 1969, and grew through the 1970s; it was formalized in 1983 with TCP/IP, and the World Wide Web, invented by Tim Berners-Lee in 1989, became accessible to ordinary users with the 1993 launch of the Mosaic browser. The 1990s saw a dot-com boom (with many companies failing in the 2001 crash) and survivors like Amazon and Google, while the 2000s brought social media (Facebook, Twitter, YouTube) and mobile internet (spurred by 2007's iPhone), alongside cloud computing (AWS, 2006). Today, over 5 billion people use the internet, which underpins nearly all aspects of modern life, from commerce to communication to entertainment.",
+  "score": 5,
+  "cost": 0.00025905000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 414,
+    "output": 760
+  }
+}

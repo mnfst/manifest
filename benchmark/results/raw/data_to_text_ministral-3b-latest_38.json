@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "data_to_text",
+  "case": 38,
+  "response": "The production web server, **prod-web-01**, is currently operating in the **us-east-1** region with high resource utilization\u2014its **CPU usage stands at 78%**, while **memory is at 12.4 out of 16 GB**, and the **disk storage is 234 GB of 500 GB available**. The system has been running for **45 days** with **127 active connections**, maintaining a **P99 latency of 145 milliseconds**, though it logs just **3 errors per hour**. Overall, the server appears stable but may require attention to optimize performance and resource allocation.",
+  "score": 5,
+  "cost": 9.960000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 137
+  }
+}

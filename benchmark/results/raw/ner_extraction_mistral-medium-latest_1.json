@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "ner_extraction",
   "case": 1,
-  "response": "```json\n{\n  \"persons\": [\"President Biden\", \"French President Macron\"],\n  \"organizations\": [\"NATO\"],\n  \"locations\": [\"White House\"]\n}\n```",
-  "score": 5,
-  "cost": 0.0001036,
+  "response": "```json\n{\n  \"persons\": [\"President Biden\", \"French President Macron\", \"Biden\", \"Macron\"],\n  \"organizations\": [\"NATO\"],\n  \"locations\": [\"White House\"]\n}\n```",
+  "score": 4,
+  "cost": 0.0001196,
   "expected": "",
   "tokens": {
     "input": 69,
-    "output": 38
+    "output": 46
   }
 }

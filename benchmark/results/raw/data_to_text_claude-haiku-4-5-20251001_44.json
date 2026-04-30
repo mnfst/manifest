@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "data_to_text",
+  "case": 44,
+  "response": "# MIT Overview\n\nMIT, founded in 1861, stands as the #1 ranked university in the world with an enrollment of 11,500 students and an exceptionally competitive acceptance rate of just 3.9%. The institution boasts an impressive faculty of 1,069 members, including 98 Nobel laureates, supported by a substantial endowment of $24.6 billion. With an annual tuition of $57,590, MIT remains one of the most prestigious and well-resourced educational institutions globally.",
+  "score": 5,
+  "cost": 0.0005488,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 115
+  }
+}

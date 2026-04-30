@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "long_summarization",
+  "case": 8,
+  "response": "Artificial intelligence has progressed from early theoretical concepts, through \"AI winters\" in the 1970s and 1980s, to a resurgence in the 2010s driven by deep learning and the pivotal 2017 transformer architecture. This innovation led to models like GPT and the scaling hypothesis, igniting a competitive race among companies such as OpenAI, Google, Anthropic, and Meta, alongside debates on open versus closed-source development. Significant concerns about AI safety, including alignment, misuse, and job displacement, have emerged. These challenges have prompted regulatory attempts like the EU AI Act and US executive orders, while also profoundly impacting knowledge work economically.",
+  "score": 4,
+  "cost": 0.00010604999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 151,
+    "output": 139
+  }
+}

@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "translation_enfr",
   "case": 35,
-  "response": "**[Journaliste masculin #1 \u00e0 la t\u00e9l\u00e9vision]**\n*L'accident s'est produit peu apr\u00e8s 10 heures ce matin.*\n\n*(Alternative l\u00e9g\u00e8rement plus naturelle pour un JT :)*\n**[Journaliste #1 \u00e0 l'\u00e9cran]**\n*L'accident a eu lieu vers 10 heures ce matin.*\n\n---\n**Notes :**\n- *\"Just after\"* \u2192 *\"peu apr\u00e8s\"* ou *\"vers\"* (plus fluide en fran\u00e7ais m\u00e9diatique).\n- *\"10:00 a.m.\"* \u2192 *\"10 heures [ce matin]\"* (le \"ce matin\" est souvent ajout\u00e9 en fran\u00e7ais pour clarifier, surtout si le contexte n'est pas \u00e9vident).\n- Ton neutre et professionnel, comme dans un journal t\u00e9l\u00e9vis\u00e9. Si le style est plus urgent (breaking news), on pourrait dire : *\"Un accident vient de se produire vers 10 heures ce matin.\"*",
+  "response": "**[Journaliste masculin #1 \u00e0 la t\u00e9l\u00e9vision]**\n*L'accident s'est produit peu apr\u00e8s 10 heures ce matin.*\n\n*(Alternative l\u00e9g\u00e8rement plus naturelle pour un JT :)*\n**[Journaliste #1]**\n*L'accident a eu lieu vers 10 heures ce matin.*\n\n---\n**Notes :**\n- *\"Just after\"* \u2192 *\"peu apr\u00e8s\"* ou *\"vers\"* (plus fluide \u00e0 l'oral).\n- *\"10:00 a.m.\"* \u2192 *\"10 heures [ce matin]\"* (le \"ce matin\" est souvent ajout\u00e9 en fran\u00e7ais pour clarifier, surtout dans un contexte d'actualit\u00e9).\n- Ton maintenu : neutre et professionnel, comme dans un journal t\u00e9l\u00e9vis\u00e9.",
   "score": 5,
-  "cost": 0.0003752,
+  "cost": 0.00031319999999999997,
   "expected": "",
   "tokens": {
     "input": 43,
-    "output": 179
+    "output": 148
   }
 }

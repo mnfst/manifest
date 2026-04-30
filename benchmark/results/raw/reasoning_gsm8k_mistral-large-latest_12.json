@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "reasoning_gsm8k",
+  "case": 12,
+  "response": "Let's break down the problem step by step.\n\n1. **Daily Activities:**\n   - Jim spends 2 hours watching TV.\n   - He then reads for half as long as he watches TV.\n     - Reading time = 2 hours / 2 = 1 hour.\n\n2. **Total Time per Day:**\n   - TV + Reading = 2 hours + 1 hour = 3 hours per day.\n\n3. **Weekly Activities:**\n   - Jim does this 3 times a week.\n     - Total time per week = 3 hours/day * 3 days/week = 9 hours/week.\n\n4. **Total Time in 4 Weeks:**\n   - Total time = 9 hours/week * 4 weeks = 36 hours.\n\nANSWER: 36",
+  "score": 5,
+  "cost": 0.001164,
+  "expected": "36",
+  "tokens": {
+    "input": 87,
+    "output": 165
+  }
+}

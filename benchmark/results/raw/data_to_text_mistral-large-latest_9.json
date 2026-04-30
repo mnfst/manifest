@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "data_to_text",
+  "case": 9,
+  "response": "Japan, a nation of approximately 125 million people, boasts the world\u2019s third-largest economy with a GDP of $4.2 trillion, though its growth remains modest at 1.1%. Despite a low unemployment rate of 2.6%, the country faces economic challenges, including an inflation rate of 3.2% and an exceptionally high debt-to-GDP ratio of 263%. With a life expectancy of 84.6 years and exports totaling $756 billion, Japan remains a global leader in both economic influence and public health.",
+  "score": 5,
+  "cost": 0.000938,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 120
+  }
+}

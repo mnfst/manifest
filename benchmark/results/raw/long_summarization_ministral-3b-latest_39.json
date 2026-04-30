@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "long_summarization",
+  "case": 39,
+  "response": "The **GDPR**, enacted in **May 2018**, overhauled data protection rules for organizations processing EU residents' personal data\u2014regardless of their location. Key requirements include **user rights** (access, erasure, portability), **strict consent rules**, mandatory **Data Protection Officers (DPOs)**, and **72-hour breach reporting**, with fines up to **4% of global revenue or \u20ac20 million**. Major penalties include **Meta\u2019s \u20ac1.2B fine (2023)** for US data transfers and **Amazon\u2019s \u20ac746M fine** for advertising practices, while Google faced over **\u20ac200M in fines**. Though criticized for burdening small businesses and inconsistent enforcement, GDPR set a **global standard** for privacy laws, inspiring similar regulations like **CCPA (US), LGPD (Brazil), and India\u2019s DPA**.",
+  "score": 5,
+  "cost": 2.0560000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 326,
+    "output": 188
+  }
+}

@@ -2,12 +2,12 @@
   "model": "mistral-large-latest",
   "task": "instruction_following",
   "case": 0,
-  "response": "Here are three key benefits of exercise:\n\n- **Improves Physical Health** \u2013 Strengthens the heart, boosts immunity, and helps maintain a healthy weight.\n- **Enhances Mental Well-being** \u2013 Reduces stress, anxiety, and depression while improving mood and cognitive function.\n- **Increases Energy & Longevity** \u2013 Boosts stamina, promotes better sleep, and lowers the risk of chronic diseases.",
-  "score": 5,
-  "cost": 0.000558,
+  "response": "Here are three key benefits of exercise:\n\n- **Improves Physical Health**: Regular exercise strengthens the heart, boosts immunity, and helps maintain a healthy weight. It also reduces the risk of chronic diseases like diabetes, heart disease, and certain cancers.\n\n- **Enhances Mental Well-being**: Exercise releases endorphins, which reduce stress, anxiety, and symptoms of depression. It also improves mood, cognitive function, and sleep quality.\n\n- **Increases Energy and Stamina**: Physical activity improves muscle strength and endurance, making daily tasks easier. It also enhances circulation and oxygen flow, leading to higher energy levels throughout the day.",
+  "score": 3,
+  "cost": 0.000816,
   "expected": "",
   "tokens": {
     "input": 15,
-    "output": 88
+    "output": 131
   }
 }

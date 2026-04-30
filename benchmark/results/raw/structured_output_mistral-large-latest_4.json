@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "structured_output",
+  "case": 4,
+  "response": "Here is the extracted information in valid JSON format matching the provided schema:\n\n```json\n{\n  \"error_code\": 503,\n  \"message\": \"Service Unavailable\",\n  \"timestamp\": \"2024-01-15T14:30:00Z\",\n  \"endpoint\": \"/api/v2/users\",\n  \"server\": \"prod-west-2\",\n  \"retry_after_seconds\": 30\n}\n```",
+  "score": 5,
+  "cost": 0.000804,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 97
+  }
+}

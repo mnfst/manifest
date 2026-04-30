@@ -2,12 +2,12 @@
   "model": "mistral-large-latest",
   "task": "reasoning_gsm8k",
   "case": 3,
-  "response": "1. Determine the age of the second son:\n   The first son is 12 years old, and the second son is 4 years younger.\n   So, the second son's age = 12 - 4 = 8 years.\n\n2. Calculate the total number of candles needed:\n   James needs candles for both sons.\n   Total candles = 12 (for the first son) + 8 (for the second son) = 20 candles.\n\n3. Determine the number of packs James needs to buy:\n   Each pack contains 5 candles.\n   Number of packs = Total candles / Candles per pack = 20 / 5 = 4 packs.\n\n4. Calculate the total cost:\n   Each pack costs $3.\n   Total cost = Number of packs * Cost per pack = 4 * 3 = $12.\n\nANSWER: 12",
+  "response": "1. Determine the age of the second son:\n   The first son is 12 years old, and the second son is 4 years younger.\n   Age of second son = 12 - 4 = 8 years old.\n\n2. Calculate the total number of candles needed:\n   James needs candles for both sons.\n   Total candles = 12 (for the first son) + 8 (for the second son) = 20 candles.\n\n3. Determine the number of packs needed:\n   Each pack contains 5 candles.\n   Number of packs = Total candles / Candles per pack = 20 / 5 = 4 packs.\n\n4. Calculate the total cost:\n   Each pack costs $3.\n   Total cost = Number of packs * Cost per pack = 4 * 3 = $12.\n\nANSWER: 12",
   "score": 5,
-  "cost": 0.001288,
+  "cost": 0.001258,
   "expected": "12",
   "tokens": {
     "input": 89,
-    "output": 185
+    "output": 180
   }
 }

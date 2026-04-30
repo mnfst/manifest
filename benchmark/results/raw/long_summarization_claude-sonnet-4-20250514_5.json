@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "long_summarization",
+  "case": 5,
+  "response": "Alexander Fleming's discovery of penicillin in 1928 launched the antibiotic era, revolutionizing surgery and disease treatment, with a golden age of discovery occurring in the 1950s-60s. However, antibiotic development has since declined due to poor financial returns for pharmaceutical companies, while the widespread use of antibiotics in agriculture and medicine has led to the emergence of dangerous resistant bacteria like MRSA. This has created a current antimicrobial resistance crisis that threatens to undermine decades of medical progress. Researchers are now exploring alternative approaches including phage therapy, CRISPR-based treatments, and AI-driven drug discovery to combat resistant infections.",
+  "score": 5,
+  "cost": 0.002637,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 144
+  }
+}

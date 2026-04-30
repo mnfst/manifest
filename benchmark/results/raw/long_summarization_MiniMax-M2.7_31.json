@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "long_summarization",
+  "case": 31,
+  "response": "**Summary:**\n\nThe EU's GDPR, which took effect in May 2018, fundamentally transformed data privacy by requiring organizations handling EU residents' data to obtain explicit consent, honor rights to access and erasure, report breaches within 72 hours, and potentially appoint Data Protection Officers\u2014with fines reaching up to 4% of global annual revenue or \u20ac20 million for violations. Major tech companies have faced substantial penalties, including Meta's \u20ac1.2 billion fine in 2023, Amazon's \u20ac746 million fine, and Google receiving over \u20ac200 million in fines. The regulation has influenced similar laws worldwide, such as California's CCPA, Brazil's LGPD, and India's Digital Personal Data Protection Act. While critics argue GDPR creates compliance burdens that disproportionately affect small businesses, it established data privacy as a fundamental right and set the global standard for data protection.",
+  "score": 5,
+  "cost": 0.0020174000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 334,
+    "output": 375
+  }
+}

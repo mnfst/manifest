@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "translation_enfr",
+  "case": 15,
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens du texte original :\n\n**\"Sector Source est un site web de ressources d\u00e9di\u00e9 \u00e0 aider les personnes qui g\u00e8rent des organismes de bienfaisance et des associations \u00e0 but non lucratif \u00e0 rester inform\u00e9es sur\u2026\"**\n\nSi vous souhaitez ajouter la suite de la phrase ou ajuster certains termes (par exemple, *\"organismes caritatifs\"* au lieu de *\"organismes de bienfaisance\"*), n'h\u00e9sitez pas \u00e0 me le pr\u00e9ciser !",
+  "score": 5,
+  "cost": 0.00076,
+  "expected": "",
+  "tokens": {
+    "input": 44,
+    "output": 112
+  }
+}

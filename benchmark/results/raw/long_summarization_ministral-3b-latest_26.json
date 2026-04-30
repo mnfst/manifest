@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "long_summarization",
+  "case": 26,
+  "response": "The global food system faces severe challenges due to a projected **60% increase in food production** by 2050 to feed **9.7 billion people**, amid worsening climate pressures like droughts, floods, and extreme temperatures that threaten crop yields. Agriculture drives **25% of global greenhouse gas emissions** (from deforestation, livestock methane, and fertilizer nitrous oxide) while **33% of arable land is degraded**, and critical water sources like the **depleting Ogallala Aquifer** strain resources. Food waste accounts for **one-third of all produced food**, exacerbating shortages, and solutions\u2014such as **AI-driven precision farming, vertical farming, alternative proteins, and regenerative agriculture**\u2014must be scaled while balancing affordability and equity for the world\u2019s poorest. Policy reforms in subsidies, trade, and carbon pricing are also key to systemic change.",
+  "score": 5,
+  "cost": 1.932e-05,
+  "expected": "",
+  "tokens": {
+    "input": 300,
+    "output": 183
+  }
+}

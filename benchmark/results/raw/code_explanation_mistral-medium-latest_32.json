@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "code_explanation",
+  "case": 32,
+  "response": "This code implements the **Union-Find (Disjoint Set Union, DSU) data structure** with **path compression** (in `find`) and **union by rank** optimizations. It efficiently manages and queries disjoint sets by tracking parent pointers and tree ranks to keep operations nearly constant-time (inverse Ackermann complexity). The `find` function locates the root of an element while flattening the path, and `union` merges two sets by attaching the shorter tree to the taller one.",
+  "score": 5,
+  "cost": 0.00026839999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 156,
+    "output": 103
+  }
+}

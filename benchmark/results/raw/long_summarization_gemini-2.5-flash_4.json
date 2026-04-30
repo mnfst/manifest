@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "long_summarization",
+  "case": 4,
+  "response": "Electric vehicles have evolved significantly from early 1830s experiments to Tesla's modern disruption of the automotive industry. This transition faces key challenges including advancing battery technology, building robust charging infrastructure, and addressing range anxiety, alongside environmental concerns about lithium and cobalt mining. Legacy automakers like Ford and GM are transitioning their fleets, with China emerging as the world's largest EV market and manufacturer, while future innovations like solid-state batteries aim to overcome current limitations such as charging times and grid capacity.",
+  "score": 4,
+  "cost": 8.01e-05,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 100
+  }
+}

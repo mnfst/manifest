@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "data_to_text",
+  "case": 12,
+  "response": "The **Massachusetts Institute of Technology (MIT)**, founded in **1861**, stands as the **#1-ranked** university globally, renowned for its academic excellence and innovation. With a highly selective **3.9% acceptance rate**, it enrolls around **11,500 students** and employs **1,069 faculty members**, including **98 Nobel laureates**, while boasting a staggering **$24.6 billion endowment** and an annual tuition of **$57,590**. Its rigorous programs and groundbreaking research continue to solidify MIT\u2019s reputation as a leader in science, technology, and education.",
+  "score": 5,
+  "cost": 0.000318,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 137
+  }
+}

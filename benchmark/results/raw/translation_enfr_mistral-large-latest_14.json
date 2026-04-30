@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "translation_enfr",
+  "case": 14,
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton formel et le sens original :\n\n**\"Le Comit\u00e9 accueille avec satisfaction la pr\u00e9sentation du rapport initial de l\u2019\u00c9tat partie et se f\u00e9licite du dialogue constructif et fructueux engag\u00e9 avec une d\u00e9l\u00e9gation comp\u00e9tente de haut niveau.\"**\n\n*Variante alternative (selon le contexte institutionnel) :*\n**\"Le Comit\u00e9 prend acte avec satisfaction de la soumission du rapport initial de l\u2019\u00c9tat partie et se r\u00e9jouit du dialogue constructif et productif instaur\u00e9 avec une d\u00e9l\u00e9gation de haut niveau, comp\u00e9tente et repr\u00e9sentative.\"**\n\nCes formulations respectent le registre diplomatique et technique des rapports internationaux. Si le texte s'inscrit dans un cadre sp\u00e9cifique (ONU, trait\u00e9, etc.), des ajustements mineurs pourraient \u00eatre apport\u00e9s.",
+  "score": 5,
+  "cost": 0.001068,
+  "expected": "",
+  "tokens": {
+    "input": 54,
+    "output": 160
+  }
+}

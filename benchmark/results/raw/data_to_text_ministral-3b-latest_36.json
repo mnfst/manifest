@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "data_to_text",
+  "case": 36,
+  "response": "Here\u2019s a natural language version of your flight details:\n\nThis flight, operated by American Airlines (AA) as **1234**, departs from **John F. Kennedy International Airport (JFK)** to **Los Angeles International Airport (LAX)** at **8:30 AM**, with an expected arrival at **11:45 AM**, covering a **5-hour 15-minute duration**. The aircraft is a **Boeing 787**, and passengers will travel in **economy class** for a fare of **$289**, with an on-time performance rate of **82%**.",
+  "score": 5,
+  "cost": 9.4e-06,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 130
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "long_summarization",
+  "case": 35,
+  "response": "The European Union's General Data Protection Regulation (GDPR), effective since May 2018, transformed personal data handling for organizations processing data of EU residents, regardless of their location. Key provisions include rights to access and erase personal data, data portability, and the necessity for explicit consent, with organizations processing data at scale required to appoint Data Protection Officers. Violations can incur fines up to 4% of global annual revenue or 20 million euros, with notable penalties issued to companies like Meta (1.2 billion euros) and Amazon (746 million euros). While GDPR has inspired similar laws globally, critics argue it imposes heavy compliance burdens on small businesses and has led to user frustration with cookie consent banners, highlighting inconsistent enforcement across member states.",
+  "score": 5,
+  "cost": 0.00013544999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 307,
+    "output": 149
+  }
+}

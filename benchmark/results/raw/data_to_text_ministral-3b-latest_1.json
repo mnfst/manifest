@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "data_to_text",
+  "case": 1,
+  "response": "In the 2024-25 NBA season, LeBron James, now 40 years old, has been a dominant force for the Los Angeles Lakers, playing in 71 games. The All-Star guard averaged 28.4 points, 7.2 rebounds, and 8.1 assists per game, showcasing his versatility and leadership on the court.",
+  "score": 5,
+  "cost": 7e-06,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 81
+  }
+}

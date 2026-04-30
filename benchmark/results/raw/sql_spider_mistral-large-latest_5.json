@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "sql_spider",
+  "case": 5,
+  "response": "```sql\nSELECT a.airport_code, a.airport_name\nFROM airports a\nLEFT JOIN flights f_departure ON a.airport_code = f_departure.departure_airport\nLEFT JOIN flights f_arrival ON a.airport_code = f_arrival.arrival_airport\nWHERE f_departure.departure_airport IS NULL\n  AND f_arrival.arrival_airport IS NULL;\n```",
+  "score": 5,
+  "cost": 0.00072,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 98
+  }
+}

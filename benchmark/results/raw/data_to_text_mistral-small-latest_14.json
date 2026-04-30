@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "data_to_text",
+  "case": 14,
+  "response": "Team Alpha completed Sprint #23, running from January 15th to 26th, successfully delivering 38 out of 42 planned story points. The team resolved 8 user stories, fixed 5 bugs, and overcame 2 blockers, maintaining an average velocity of 36 points and achieving a team satisfaction score of 4.1 out of 5.",
+  "score": 5,
+  "cost": 3.57e-05,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 81
+  }
+}

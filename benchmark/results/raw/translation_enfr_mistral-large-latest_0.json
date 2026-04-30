@@ -2,12 +2,12 @@
   "model": "mistral-large-latest",
   "task": "translation_enfr",
   "case": 0,
-  "response": "Here\u2019s the French translation while maintaining the tone and meaning:\n\n**\"Je sais comment aider, et je veux le faire.\"**\n\nAlternatively, for a slightly more natural flow in conversation:\n**\"Je sais comment t'aider, et je veux le faire.\"** *(if addressing someone directly, using \"t'aider\" for \"help you\")*\n\nOr, if the context is more general:\n**\"Je sais comment aider, et j\u2019en ai envie.\"** *(using \"en avoir envie\" for \"want to\")*",
+  "response": "Here\u2019s the French translation while maintaining the tone and meaning:\n\n**\"Je sais comment aider, et je veux le faire.\"**\n\nAlternatively, for a slightly more natural flow in conversation:\n**\"Je sais comment t'aider, et je veux le faire.\"** *(if addressing someone directly, using \"t'aider\" for \"help you\")*\n\nOr, if the context is more general:\n**\"Je sais comment aider, et j\u2019en ai envie.\"** *(I know how to help, and I want to.)*",
   "score": 5,
-  "cost": 0.000702,
+  "cost": 0.000696,
   "expected": "",
   "tokens": {
     "input": 33,
-    "output": 106
+    "output": 105
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "data_to_text",
+  "case": 10,
+  "response": "This medium-difficulty Pad Thai recipe, a staple of Thai cuisine, requires just 15 minutes of prep time and 10 minutes of cook time to create 4 full servings of the beloved stir-fry dish. Every serving of this homemade Pad Thai clocks in at 380 calories, with a balanced nutritional breakdown of 22 grams of protein, 45 grams of carbohydrates, and 12 grams of fat, making it a quick, flavorful, reasonably portioned option for weeknight dinners or small casual gatherings.",
+  "score": 5,
+  "cost": 0.00053325,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 497
+  }
+}

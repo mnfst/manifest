@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "long_summarization",
+  "case": 9,
+  "response": "Quantum computing uses qubits, superposition, and entanglement to solve specific problems exponentially faster than classical machines, a potential highlighted by Google\u2019s 2019 demonstration of a 200-second calculation that would take a traditional supercomputer 10,000 years. Despite rapid hardware development by major tech firms and startups, practical deployment remains limited by extreme qubit fragility, high error rates, and the requirement for near-absolute-zero cooling. While today\u2019s processors contain only 100 to 1,000 qubits, millions will likely be needed to reliably power transformative applications in drug discovery, cryptography, and complex optimization. Nevertheless, ongoing research and early industry experiments suggest that quantum computing will eventually overcome these technical barriers to revolutionize multiple sectors.",
+  "score": 5,
+  "cost": 0.0056966000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 294,
+    "output": 1022
+  }
+}

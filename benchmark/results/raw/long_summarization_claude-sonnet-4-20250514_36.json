@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "long_summarization",
+  "case": 36,
+  "response": "The internet originated from US Department of Defense research in the 1960s, with ARPANET first demonstrated in 1969 through a message sent between UCLA and Stanford. Key milestones included the 1983 adoption of TCP/IP protocols and Tim Berners-Lee's invention of the World Wide Web in 1989, which became accessible to ordinary users with the Mosaic browser in 1993. The internet evolved through the dot-com boom and crash of the late 1990s-2001, the rise of social media in the mid-2000s, and the mobile revolution following the iPhone's 2007 launch. Today, the internet connects over 5 billion people and has become fundamental to modern commerce, communication, and entertainment.",
+  "score": 5,
+  "cost": 0.00348,
+  "expected": "",
+  "tokens": {
+    "input": 335,
+    "output": 165
+  }
+}

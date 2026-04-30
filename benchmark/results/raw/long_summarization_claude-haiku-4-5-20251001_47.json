@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "long_summarization",
+  "case": 47,
+  "response": "# Summary\n\nThe European Union's General Data Protection Regulation (GDPR), enacted in May 2018, established comprehensive rules for handling personal data, requiring explicit consent, granting users rights to access and delete their data, and mandating breach reporting within 72 hours. Violations can result in fines up to 4% of global annual revenue or 20 million euros, with major tech companies like Meta, Amazon, and Google facing billions in penalties. GDPR has inspired similar privacy laws globally, including California's CCPA and Brazil's LGPD, though critics argue it creates compliance burdens for small businesses and has led to user frustration with cookie consent banners. Despite implementation challenges and inconsistent enforcement, GDPR successfully established data privacy as a fundamental right and set the international standard for data protection legislation.",
+  "score": 5,
+  "cost": 0.0009904,
+  "expected": "",
+  "tokens": {
+    "input": 353,
+    "output": 177
+  }
+}

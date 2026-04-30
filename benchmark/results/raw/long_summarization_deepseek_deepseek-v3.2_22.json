@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "long_summarization",
+  "case": 22,
+  "response": "The global food system faces mounting challenges from a growing population, which will require a 60% increase in production by 2050, and climate change, which is reducing crop yields. Agriculture also contributes about 25% of greenhouse gas emissions, while resource depletion\u2014such as the draining of the Ogallala Aquifer and degradation of 33% of arable land\u2014and food waste, where one-third of food is lost, worsen the strain. Proposed solutions range from technological innovations like precision agriculture and alternative proteins to policy reforms, but scaling these while maintaining affordability and access remains a critical hurdle.",
+  "score": 5,
+  "cost": 0.00020710000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 296,
+    "output": 121
+  }
+}

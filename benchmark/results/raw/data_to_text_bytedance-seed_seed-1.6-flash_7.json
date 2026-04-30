@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "data_to_text",
+  "case": 7,
+  "response": "Apple (AAPL) is trading at $185.50, with a day change of +2.3% and a volume of 45 million shares, while its market cap is $2.87 trillion, its PE ratio is 28.4, and its dividend yield is 0.55%. The stock's 52-week high is $198 and its 52-week low is $155.",
+  "score": 5,
+  "cost": 0.0001227,
+  "expected": "",
+  "tokens": {
+    "input": 196,
+    "output": 360
+  }
+}

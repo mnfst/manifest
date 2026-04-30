@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "translation_enfr",
+  "case": 11,
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens du texte original :\n\n**Fran\u00e7ais :**\nUn large \u00e9ventail d\u2019attractions et de produits touristiques (th\u00e9, itin\u00e9raires culturels, centres de sant\u00e9 et de bien-\u00eatre, spas, gastronomie, activit\u00e9s nautiques, etc.) a \u00e9t\u00e9 identifi\u00e9 dans cette destination. Leur d\u00e9veloppement n\u00e9cessite une approche interd\u00e9pendante en raison de leur isolement, de leurs compl\u00e9mentarit\u00e9s et de leur profil relativement homog\u00e8ne.\n\n*Remarques :*\n- *\"A wide number\"* \u2192 *\"Un large \u00e9ventail\"* (plus naturel en fran\u00e7ais pour \u00e9voquer une diversit\u00e9).\n- *\"Inter-dependent development\"* \u2192 *\"Une approche interd\u00e9pendante\"* (pour insister sur la n\u00e9cessit\u00e9 de coordination).\n- *\"Homogenous profile\"* \u2192 *\"Profil relativement homog\u00e8ne\"* (ajout de *\"relativement\"* pour nuancer, comme dans l'original).\n\nSi vous souhaitez une version plus concise ou plus technique, n'h\u00e9sitez pas \u00e0 pr\u00e9ciser !",
+  "score": 5,
+  "cost": 0.001416,
+  "expected": "",
+  "tokens": {
+    "input": 78,
+    "output": 210
+  }
+}

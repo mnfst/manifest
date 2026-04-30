@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "data_to_text",
+  "case": 36,
+  "response": "American Airlines flight 1234 operates as an economy class service from John F. Kennedy International Airport (JFK) to Los Angeles International Airport (LAX), departing at 8:30 AM and arriving at 11:45 AM for a total flight duration of 5 hours and 15 minutes aboard a Boeing 787 aircraft. The flight is priced at $289 for economy class seating and maintains an 82% on-time performance record.",
+  "score": 5,
+  "cost": 0.001863,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 103
+  }
+}

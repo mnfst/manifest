@@ -3,7 +3,7 @@
   "task": "code_generation",
   "case": 22,
   "response": "```python\n    balance = 0\n    for char in brackets:\n        if char == '<':\n            balance += 1\n        else:\n            balance -= 1\n        if balance < 0:\n            return False\n    return balance == 0\n```",
-  "score": 4,
+  "score": 5,
   "cost": 0.0001608,
   "expected": "",
   "tokens": {

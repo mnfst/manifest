@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "email_summary_v2",
   "case": 25,
-  "response": "The April update highlights key milestones, including surpassing **10K monthly active users (MAU)**, securing an **$8M Series A term sheet at a $40M pre-money valuation**, and hiring a **VP of Sales**, with current metrics showing **$85K MRR (+12% MoM)** and an **11-month runway** post-funding. **Action item:** The fundraising round will close on **May 10**, so final commitments must be confirmed by then.",
+  "response": "The April update highlights key achievements\u2014hitting 10K monthly active users, securing an $8M Series A term sheet at a $40M pre-money valuation, and hiring a VP of Sales\u2014alongside strong metrics ($85K MRR, +12% MoM growth) but a high burn rate ($120K/month), leaving 11 months of runway post-raise. **Action item:** The fundraising round will close on **May 10**, so final commitments must be confirmed by then.",
   "score": 5,
-  "cost": 0.0002592,
+  "cost": 0.0002712,
   "expected": "",
   "tokens": {
     "input": 113,
-    "output": 107
+    "output": 113
   }
 }

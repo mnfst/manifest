@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "code_generation",
+  "case": 31,
+  "response": "```python\n    return sorted([word for word in lst if len(word) % 2 == 0], key=lambda x: (len(x), x))\n```",
+  "score": 4,
+  "cost": 0.00015680000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 217,
+    "output": 35
+  }
+}

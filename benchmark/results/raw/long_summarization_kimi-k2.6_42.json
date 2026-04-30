@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "long_summarization",
+  "case": 42,
+  "response": "The global food system is squeezed by the need to increase production by 60% for a projected 9.7 billion people by 2050, even as agriculture generates about 25% of greenhouse gas emissions and climate change diminishes yields. Mounting water scarcity, rapid depletion of aquifers like the Ogallala, soil degradation affecting 33% of arable land, and the loss of one-third of all food produced further strain capacity. Proposed solutions include precision agriculture, vertical farming, alternative proteins, drought-resistant GMOs, and regenerative practices, supported by policy shifts in subsidies and carbon pricing. Yet the core obstacle is implementing these innovations at scale without sacrificing affordability and access for the world's poorest.",
+  "score": 5,
+  "cost": 0.001854,
+  "expected": "",
+  "tokens": {
+    "input": 294,
+    "output": 699
+  }
+}

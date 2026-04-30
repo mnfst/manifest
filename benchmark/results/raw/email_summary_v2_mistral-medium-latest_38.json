@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "email_summary_v2",
+  "case": 38,
+  "response": "The Security team reported that the first month of the Bug Bounty Program yielded **47 submissions (12 valid, 3 critical)**, including high-impact vulnerabilities like **IDOR, SSRF, and exposed JWT secrets**, all of which were patched within 24 hours with a total payout of **$15K**. They **recommend continuing the program** due to its strong ROI, with no additional action items specified.",
+  "score": 5,
+  "cost": 0.00023,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 92
+  }
+}

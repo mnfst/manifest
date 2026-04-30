@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "long_summarization",
+  "case": 21,
+  "response": "Quantum computing harnesses qubits\u2014enabled by superposition, entanglement, and interference\u2014to process information fundamentally differently from classical binary bits, allowing exponential speedups for certain problems. Major players including IBM, Google, IonQ, and Rigetti are pursuing diverse hardware approaches, with Google claiming quantum supremacy in 2019 by completing a task in 200 seconds that it estimated would take a classical supercomputer 10,000 years. However, the field faces severe engineering challenges: qubits are fragile, require near-absolute-zero cooling, and suffer high error rates, meaning current systems of 100\u20131000 qubits remain far from the millions of logical qubits likely needed for useful applications. Despite these hurdles, quantum computing is already being explored for drug discovery, materials science, cryptography, and practical business uses like financial modeling and logistics optimization.",
+  "score": 5,
+  "cost": 0.0017058,
+  "expected": "",
+  "tokens": {
+    "input": 275,
+    "output": 642
+  }
+}

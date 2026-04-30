@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "data_to_text",
+  "case": 46,
+  "response": "Team Alpha's 23rd sprint ran from January 15th to the 26th, completing 38 of the 42 planned story points. The team delivered 8 stories and fixed 5 bugs, though they encountered 2 blockers during the cycle. Their average velocity is 36 points, and the team reported a satisfaction score of 4.1 out of 5.",
+  "score": 5,
+  "cost": 0.00011055000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 78
+  }
+}

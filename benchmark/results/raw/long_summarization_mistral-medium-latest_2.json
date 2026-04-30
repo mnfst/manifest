@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "long_summarization",
+  "case": 2,
+  "response": "The global food system faces severe pressure due to a projected **60% increase in food demand by 2050** (with a population of **9.7 billion**) and **climate change**, which is reducing crop yields through extreme weather while agriculture itself contributes **25% of greenhouse gas emissions**. **Water scarcity** (e.g., the depleting Ogallala Aquifer) and **soil degradation** (affecting **33% of arable land**) further threaten production, while **one-third of all food is wasted**. Solutions like **AI-driven precision agriculture, vertical farming, alternative proteins, and regenerative practices** show promise, but scaling them\u2014alongside policy reforms\u2014remains critical to balancing sustainability, affordability, and global food security.",
+  "score": 4,
+  "cost": 0.000442,
+  "expected": "",
+  "tokens": {
+    "input": 300,
+    "output": 161
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "reasoning_gsm8k",
+  "case": 42,
+  "response": "Let's break down the problem step by step to find the total number of children in the drill.\n\n1. **Children per row**: Each row has 8 children.\n2. **Rows per school**: Each school has 7 rows.\n3. **Number of schools**: There are 5 different schools.\n\nFirst, calculate the number of children per school:\n- Children per school = number of rows per school \u00d7 children per row\n- Children per school = 7 rows \u00d7 8 children/row = 56 children\n\nNext, calculate the total number of children for all schools:\n- Total children = number of schools \u00d7 children per school\n- Total children = 5 schools \u00d7 56 children/school = 280 children\n\nANSWER: 280",
+  "score": 5,
+  "cost": 0.001154,
+  "expected": "280",
+  "tokens": {
+    "input": 94,
+    "output": 161
+  }
+}

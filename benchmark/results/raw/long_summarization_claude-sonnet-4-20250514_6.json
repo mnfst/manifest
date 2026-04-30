@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Remote work evolved from a rare benefit for less than 5% of workers to a mainstream practice following the forced pandemic experiment of 2020, enabled by tools like Zoom, Slack, and cloud infrastructure. Stanford researcher Nick Bloom's studies revealed mixed productivity results, leading to return-to-office pushback and the adoption of hybrid work models as a compromise. This shift significantly impacted commercial real estate markets and enabled geographic arbitrage, with workers relocating to lower-cost areas while maintaining their salaries. However, companies have grappled with challenges around maintaining company culture and developing junior employees, while governments have responded by creating digital nomad visas to attract remote workers.",
+  "score": 5,
+  "cost": 0.002607,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 142
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "The sky softens as the day surrenders, painting itself in layers of molten gold and smoldering amber. The horizon glows like a forge cooling, its edges blurred by the last embers of light. Shadows stretch long and lazy, swallowing the land in a slow, creeping dusk. Above, wisps of lavender and peach drift like smoke, thinning as the sun dips below the rim of the world. The air hums with warmth, thick with the scent of dry grass and distant earth, while the first stars prick through the fading canvas like pinpricks in a curtain. The world holds its breath\u2014just for a moment\u2014before the dark settles in.",
+  "score": 5,
+  "cost": 0.000898,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 143
+  }
+}

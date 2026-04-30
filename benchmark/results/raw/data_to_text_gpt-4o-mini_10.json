@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "data_to_text",
+  "case": 10,
+  "response": "This Pad Thai recipe serves four and is perfect for a quick meal, requiring just 15 minutes of preparation and 10 minutes of cooking time. Each serving contains 380 calories, with 22 grams of protein, 45 grams of carbohydrates, and 12 grams of fat, making it a balanced option for those seeking a medium-difficulty dish in Thai cuisine.",
+  "score": 5,
+  "cost": 5.79e-05,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 73
+  }
+}

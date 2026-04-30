@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "long_summarization",
+  "case": 35,
+  "response": "The **European Union\u2019s General Data Protection Regulation (GDPR)**, enacted in **May 2018**, revolutionized data privacy by imposing strict rules on any organization processing **EU residents\u2019 data**, regardless of location. Key provisions include **user rights** (access, erasure, portability), **explicit consent requirements**, mandatory **Data Protection Officers** for large-scale processing, and **72-hour breach notifications**, with fines up to **4% of global revenue or \u20ac20 million**\u2014leading to major penalties like **Meta\u2019s \u20ac1.2 billion fine (2023)** and **Amazon\u2019s \u20ac746 million fine**. While GDPR inspired global laws (e.g., **California\u2019s CCPA, Brazil\u2019s LGPD**), critics highlight **compliance burdens for small businesses**, **inconsistent enforcement**, and **user frustration** (e.g., cookie banners). Nonetheless, it established **data privacy as a fundamental right** and became the **global benchmark for data protection**.",
+  "score": 5,
+  "cost": 0.0005463999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 326,
+    "output": 208
+  }
+}

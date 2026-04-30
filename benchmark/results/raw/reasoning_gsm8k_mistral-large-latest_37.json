@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "reasoning_gsm8k",
+  "case": 37,
+  "response": "Let's solve the problem step by step.\n\n1. **Total number of voters**: 100\n\n2. **Votes for candidate A**:\n   - Candidate A got 20% of the votes.\n   - Calculation: \\( 20\\% \\times 100 = 0.20 \\times 100 = 20 \\) votes.\n\n3. **Votes for candidate B**:\n   - Candidate B got 50% more than candidate A's votes.\n   - 50% of A's votes: \\( 50\\% \\times 20 = 0.50 \\times 20 = 10 \\) votes.\n   - Total votes for B: \\( 20 + 10 = 30 \\) votes.\n\n4. **Votes for candidate C**:\n   - The rest of the votes went to candidate C.\n   - Total votes for A and B: \\( 20 + 30 = 50 \\) votes.\n   - Votes for C: \\( 100 - 50 = 50 \\) votes.\n\nANSWER: 50",
+  "score": 5,
+  "cost": 0.001668,
+  "expected": "50",
+  "tokens": {
+    "input": 99,
+    "output": 245
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "data_to_text",
+  "case": 22,
+  "response": "The server prod-web-01 in the us-east-1 region is currently running with a CPU utilization of 78%, using 12.4 out of 16 GB of memory and 234 out of 500 GB of disk space. It has been up for 45 days, handling 127 active connections with a P99 latency of 145ms and an error rate of 3 per hour.",
+  "score": 5,
+  "cost": 0.0001162,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 82
+  }
+}

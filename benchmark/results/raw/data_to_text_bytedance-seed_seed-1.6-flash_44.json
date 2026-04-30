@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "data_to_text",
+  "case": 44,
+  "response": "MIT, ranked #1, is a prestigious university with 11,500 students, a highly competitive 3.9% acceptance rate, and annual tuition of $57,590. It boasts a substantial $24.6 billion endowment, 1,069 faculty members, 98 Nobel laureates, and was founded in 1861.",
+  "score": 5,
+  "cost": 0.00020107500000000002,
+  "expected": "",
+  "tokens": {
+    "input": 189,
+    "output": 623
+  }
+}

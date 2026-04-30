@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "data_to_text",
+  "case": 5,
+  "response": "\"Christopher Nolan\u2019s gripping 2023 biographical drama *Oppenheimer* captivated audiences with its 180-minute runtime, earning a staggering $952 million at the global box office against a $100 million budget. The film, which blends drama and history, received widespread acclaim, boasting an 8.3/10 on IMDb and a 93% approval rating on Rotten Tomatoes, ultimately winning the Oscar for Best Picture.\"",
+  "score": 5,
+  "cost": 4.1299999999999994e-05,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 100
+  }
+}

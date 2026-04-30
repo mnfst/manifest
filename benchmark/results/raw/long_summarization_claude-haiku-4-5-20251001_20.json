@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "long_summarization",
+  "case": 20,
+  "response": "# Summary\n\nThe internet originated from 1960s Department of Defense research, with ARPANET's first message sent between UCLA and Stanford in 1969. Key technological breakthroughs\u2014including TCP/IP protocols (1983), the World Wide Web (1989), and the Mosaic browser (1993)\u2014transformed the internet from a research network into a public utility. Despite the dot-com crash of 2001, surviving companies like Amazon and Google became industry giants, while subsequent innovations in social media, mobile technology (iPhone 2007), and cloud computing (AWS 2006) made the internet ubiquitous. Today, the internet connects over 5 billion people and is fundamental to modern commerce, communication, and entertainment.",
+  "score": 5,
+  "cost": 0.000908,
+  "expected": "",
+  "tokens": {
+    "input": 335,
+    "output": 160
+  }
+}

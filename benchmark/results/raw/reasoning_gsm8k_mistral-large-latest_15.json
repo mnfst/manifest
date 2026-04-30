@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "reasoning_gsm8k",
+  "case": 15,
+  "response": "Let's solve the problem step by step.\n\n1. **Joey's initial points**: 214\n2. **Joey's points after scoring 26**: 214 + 26 = 240\n3. **Marcy's initial points**: 225\n4. **Marcy's points after scoring 10**: 225 + 10 = 235\n5. **Difference between Joey and Marcy**: 240 - 235 = 5\n\nJoey is now winning by 5 points.\n\nANSWER: 5",
+  "score": 5,
+  "cost": 0.000964,
+  "expected": "5",
+  "tokens": {
+    "input": 89,
+    "output": 131
+  }
+}

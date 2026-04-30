@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "data_to_text",
+  "case": 12,
+  "response": "MIT, ranked #1 in the world, is a prestigious university founded in 1861 with an enrollment of 11,500 students and a highly selective 3.9% acceptance rate. The school charges $57,590 in annual tuition and boasts a massive $24.6 billion endowment that supports its 1,069 faculty members. MIT has produced an impressive 98 Nobel laureates throughout its history.",
+  "score": 5,
+  "cost": 0.001088,
+  "expected": "",
+  "tokens": {
+    "input": 212,
+    "output": 83
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "long_summarization",
+  "case": 5,
+  "response": "Alexander Fleming\u2019s 1928 discovery of penicillin revolutionized medicine, enabling life-saving surgeries and treatments for infectious diseases, with a surge in antibiotic development during the 1950s\u201360s. However, the decline in new antibiotics\u2014driven by low financial incentives\u2014alongside overuse in agriculture and healthcare has fueled antimicrobial resistance, including threats like MRSA. Today, rising resistant bacteria pose a global crisis, prompting innovative research into alternatives such as phage therapy, CRISPR-based solutions, and AI-driven drug discovery. Without urgent action, the effectiveness of antibiotics may continue to erode, jeopardizing modern medicine.",
+  "score": 5,
+  "cost": 0.001042,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 129
+  }
+}

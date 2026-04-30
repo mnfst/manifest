@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "code_generation",
+  "case": 6,
+  "response": "```python\n    seen = set()\n    duplicates = set()\n    for num in numbers:\n        if num in seen:\n            duplicates.add(num)\n        seen.add(num)\n    return [num for num in numbers if num not in duplicates]\n```",
+  "score": 5,
+  "cost": 0.00054,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 51
+  }
+}

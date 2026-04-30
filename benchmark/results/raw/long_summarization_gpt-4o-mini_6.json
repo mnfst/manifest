@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Remote work has shifted from a niche benefit to a widespread practice, with less than 5% of workers fully remote before the pandemic. The forced transition in 2020, facilitated by tools like Zoom and Slack, led to mixed productivity outcomes according to Stanford's Nick Bloom. As companies face backlash against returning to the office, hybrid models have emerged, impacting commercial real estate and allowing workers to relocate to lower-cost areas. This shift also affects company culture and the development of junior employees, alongside the rise of digital nomad visas.",
+  "score": 5,
+  "cost": 8.535e-05,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 106
+  }
+}

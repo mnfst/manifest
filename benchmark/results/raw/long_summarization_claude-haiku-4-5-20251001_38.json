@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "long_summarization",
+  "case": 38,
+  "response": "# Summary\n\nThe global food system faces critical challenges as the world population is projected to reach 9.7 billion by 2050, requiring a 60% increase in food production while simultaneously dealing with climate change, water scarcity, and soil degradation\u2014with agriculture itself contributing 25% of greenhouse gas emissions. Key problems include the depletion of major aquifers like the Ogallala, degradation of 33% of arable land, and the waste of roughly one-third of all food produced. Solutions being pursued include precision agriculture, vertical farming, alternative proteins, drought-resistant crops, and regenerative farming practices, though success depends on implementing these innovations at scale while keeping food affordable for the world's poorest populations.",
+  "score": 4,
+  "cost": 0.0008887999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 321,
+    "output": 158
+  }
+}

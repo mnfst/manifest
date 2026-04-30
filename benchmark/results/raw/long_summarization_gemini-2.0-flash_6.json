@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Remote work has exploded from a niche benefit enjoyed by less than 5% of workers pre-pandemic to a widespread practice enabled by tools like Zoom and cloud infrastructure. While productivity research, such as Stanford's Nick Bloom's studies, shows mixed results, the shift has led to return-to-office resistance, the rise of hybrid models, and a significant impact on commercial real estate. Geographic arbitrage and the emergence of digital nomad visas are further consequences, raising concerns about company culture and junior employee development.",
+  "score": 4,
+  "cost": 5.56e-05,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 103
+  }
+}

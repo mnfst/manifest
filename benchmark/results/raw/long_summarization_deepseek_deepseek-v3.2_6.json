@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Remote work shifted from a niche practice (under 5% fully remote pre-pandemic) to a mainstream model due to the forced experiment of 2020, enabled by tools like Zoom and Slack. Research, such as Stanford\u2019s Nick Bloom studies, shows mixed productivity results, leading to debates over return-to-office policies and the rise of hybrid arrangements. This shift has significantly impacted commercial real estate, spurred geographic arbitrage as workers relocate, and raised concerns about company culture and junior employee development, while also prompting some countries to introduce digital nomad visas.",
+  "score": 5,
+  "cost": 0.00015835000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 111
+  }
+}

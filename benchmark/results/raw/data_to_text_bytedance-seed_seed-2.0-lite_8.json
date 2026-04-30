@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "data_to_text",
+  "case": 8,
+  "response": "The patient is a 45-year-old non-smoking female who exercises twice per week, with a confirmed family history of diabetes affecting her mother. During her recent health evaluation, she recorded a BMI of 27.3, a blood pressure reading of 138/88, a total cholesterol level of 225 mg/dL, and a fasting glucose level of 110 mg/dL. These metrics mark multiple borderline elevated readings that warrant further monitoring to reduce her long-term health risks, particularly given her pre-existing family history of diabetes.",
+  "score": 5,
+  "cost": 0.00060025,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 563
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "sql_spider",
+  "case": 27,
+  "response": "```sql\nSELECT DISTINCT c.name\nFROM country c\nJOIN countrylanguage cl1 ON c.code = cl1.countrycode\nJOIN countrylanguage cl2 ON c.code = cl2.countrycode\nWHERE cl1.language = 'English' AND cl2.language = 'French';\n```",
+  "score": 5,
+  "cost": 0.00015319999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 63
+  }
+}

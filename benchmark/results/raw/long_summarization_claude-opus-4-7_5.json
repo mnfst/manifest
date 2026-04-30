@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "long_summarization",
+  "case": 5,
+  "response": "Since Alexander Fleming's 1928 discovery of penicillin, antibiotics have revolutionized medicine by enabling safer surgeries and curing once-deadly diseases, with a golden age of discovery during the 1950s-60s producing many of the drugs still used today. However, new antibiotic development has stalled due to poor financial returns for pharmaceutical companies, while overuse in medicine and livestock agriculture has fueled the rise of resistant pathogens like MRSA, creating a global health crisis. In response, researchers are exploring innovative alternatives, including bacteriophage therapy, CRISPR-based antimicrobials, and AI-driven drug discovery to identify novel compounds. These emerging approaches offer hope for staying ahead of antimicrobial resistance, though the threat continues to grow faster than solutions are being developed.",
+  "score": 5,
+  "cost": 0.024825,
+  "expected": "",
+  "tokens": {
+    "input": 240,
+    "output": 283
+  }
+}

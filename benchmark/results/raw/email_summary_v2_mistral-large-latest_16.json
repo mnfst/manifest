@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "email_summary_v2",
+  "case": 16,
+  "response": "The April marketing campaign achieved 45K impressions and 187 signups with a CAC of $64, showing a higher CTR but lower conversion than March. The team recommends A/B testing the landing page CTA to improve results.",
+  "score": 5,
+  "cost": 0.00056,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 53
+  }
+}

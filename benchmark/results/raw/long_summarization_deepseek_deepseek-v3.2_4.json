@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "long_summarization",
+  "case": 4,
+  "response": "Electric vehicles have evolved from early 19th-century experiments to a major industry, significantly disrupted by Tesla. Key challenges include improving battery technology, expanding charging infrastructure, and addressing environmental concerns over mining lithium and cobalt. Legacy automakers like Ford and Volkswagen are now transitioning their fleets to electric, while China has become the world's largest EV market and manufacturer. Future advancements, such as solid-state batteries, aim to solve persistent issues like range anxiety and long charging times.",
+  "score": 5,
+  "cost": 0.00013790000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 138,
+    "output": 94
+  }
+}

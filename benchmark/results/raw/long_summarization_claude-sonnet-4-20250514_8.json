@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "long_summarization",
+  "case": 8,
+  "response": "Artificial intelligence has evolved from Turing's foundational concepts through periods of decline known as \"AI winters\" in the 1970s and 1980s, before experiencing a major resurgence in the 2010s with deep learning breakthroughs. The 2017 transformer architecture paper revolutionized the field, leading to GPT models and the scaling hypothesis that larger models yield better performance. This sparked intense competition between major tech companies like OpenAI, Google, Anthropic, and Meta, while raising debates about open versus closed-source AI development. The rapid advancement has prompted significant concerns about AI safety, alignment, and job displacement, leading to regulatory responses like the EU AI Act and US executive orders, with profound implications for knowledge work and the broader economy.",
+  "score": 5,
+  "cost": 0.002955,
+  "expected": "",
+  "tokens": {
+    "input": 160,
+    "output": 165
+  }
+}

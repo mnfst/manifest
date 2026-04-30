@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "long_summarization",
+  "case": 5,
+  "response": "Starting with Alexander Fleming\u2019s 1928 discovery of penicillin, antibiotics reshaped modern medicine, transforming the safety and scope of surgery and routine disease treatment, while the 1950s to 1960s golden age of antibiotic discovery expanded the global arsenal of life-saving drugs available to clinicians. This period of rapid progress collapsed into today\u2019s pressing antimicrobial resistance crisis, fueled by interconnected systemic gaps: poor financial returns that disincentivized pharmaceutical firms from developing new antibiotics, widespread overuse of antibiotics in livestock farming that drove bacterial adaptation, and the emergence of highly drug-resistant superbugs like MRSA that render many existing treatments ineffective. To reverse this growing public health threat, researchers are now pursuing a suite of innovative solutions to combat resistant infections, including phage therapy, CRISPR-based bacterial targeting tools, and AI-driven pipelines to discover next-generation antibiotic drugs.",
+  "score": 5,
+  "cost": 0.0010165,
+  "expected": "",
+  "tokens": {
+    "input": 186,
+    "output": 970
+  }
+}

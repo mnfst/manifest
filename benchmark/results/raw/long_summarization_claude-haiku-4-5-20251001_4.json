@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "long_summarization",
+  "case": 4,
+  "response": "# Summary\n\nElectric vehicles have evolved from 1830s experiments to modern disruption led by Tesla, with battery technology and charging infrastructure remaining critical challenges. Legacy automakers (Ford, GM, VW) are transitioning their fleets while China dominates as the world's largest EV market and manufacturer. Key obstacles include range anxiety, long charging times, grid capacity concerns, and environmental impacts from lithium and cobalt mining, though solid-state batteries offer future promise. Government incentives continue to drive adoption despite ongoing debates about the true environmental benefits of EVs.",
+  "score": 5,
+  "cost": 0.000596,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 119
+  }
+}

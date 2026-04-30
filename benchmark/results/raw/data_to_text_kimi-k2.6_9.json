@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "data_to_text",
+  "case": 9,
+  "response": "Japan, home to 125 million people, generated a GDP of $4.2 trillion with growth of 1.1% and exported $756 billion in goods, while also facing a debt-to-GDP ratio of 263%, inflation at 3.2%, and unemployment at 2.6%. Despite these economic indicators, Japan maintains a high life expectancy of 84.6 years.",
+  "score": 5,
+  "cost": 0.0023568,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 956
+  }
+}

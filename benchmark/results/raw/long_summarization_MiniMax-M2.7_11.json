@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "long_summarization",
+  "case": 11,
+  "response": "The EU's GDPR, effective since May 2018, transformed global data privacy by requiring any company handling EU residents' data to comply, regardless of location. Key provisions include data access rights, the right to be forgotten, data portability, and explicit consent, with organizations needing Data Protection Officers and reporting breaches within 72 hours. Violation fines reach up to 4% of global annual revenue or 20 million euros, resulting in major penalties like Meta's 1.2 billion euro fine (2023) and Amazon's 746 million euro fine. While GDPR has inspired similar laws worldwide and established data privacy as a fundamental right, critics argue it disproportionately burdens small businesses and frustrates users with consent requirements.",
+  "score": 5,
+  "cost": 0.0019943,
+  "expected": "",
+  "tokens": {
+    "input": 317,
+    "output": 374
+  }
+}

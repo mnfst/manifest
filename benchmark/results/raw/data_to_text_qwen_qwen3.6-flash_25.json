@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "data_to_text",
+  "case": 25,
+  "response": "Japan, with a population of 125 million, supports a $4.2 trillion economy that has grown by 1.1% and generated $756 billion in exports. The country enjoys a low unemployment rate of 2.6% and an impressive life expectancy of 84.6 years, though it contends with 3.2% inflation and a high debt-to-GDP ratio of 263%.",
+  "score": 4,
+  "cost": 0.00128275,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 1254
+  }
+}

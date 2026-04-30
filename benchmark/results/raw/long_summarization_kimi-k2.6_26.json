@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "long_summarization",
+  "case": 26,
+  "response": "The global food system faces mounting pressure from a projected population of 9.7 billion by 2050\u2014which demands a 60% increase in production\u2014while agriculture contributes roughly 25% of greenhouse gas emissions and climate change simultaneously reduces crop yields. These challenges are compounded by water scarcity in major farming regions, soil degradation affecting 33% of arable land, and the loss of roughly one-third of all food to waste. In response, solutions such as AI-driven precision agriculture, vertical farming, alternative proteins, genetic modification, and regenerative farming are being explored, alongside policy reforms around subsidies and carbon pricing. However, the central challenge remains scaling these innovations while ensuring food stays affordable and accessible to the world\u2019s poorest populations.",
+  "score": 5,
+  "cost": 0.0016764000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 294,
+    "output": 625
+  }
+}

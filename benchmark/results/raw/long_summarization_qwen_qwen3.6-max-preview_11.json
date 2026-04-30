@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "long_summarization",
+  "case": 11,
+  "response": "Enacted in May 2018, the EU\u2019s GDPR fundamentally reshaped data privacy by requiring explicit consent, 72-hour breach reporting, and robust user rights for any organization worldwide that processes EU residents' data. Violations carry penalties of up to 4% of global annual revenue or \u20ac20 million, resulting in landmark fines against tech giants like Meta (\u20ac1.2 billion), Amazon (\u20ac746 million), and Google (over \u20ac200 million). While critics point to heavy compliance burdens for small businesses, user frustration with cookie banners, and uneven enforcement across member states, the regulation has successfully established data privacy as a fundamental right. Ultimately, the GDPR set the global benchmark for digital privacy, directly inspiring similar legislation in California, Brazil, and India.",
+  "score": 5,
+  "cost": 0.0083525,
+  "expected": "",
+  "tokens": {
+    "input": 325,
+    "output": 1525
+  }
+}

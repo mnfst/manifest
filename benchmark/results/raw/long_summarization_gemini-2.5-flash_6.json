@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Remote work rapidly evolved from a niche perk, practiced by less than 5% of workers pre-2020, into a mainstream model following the pandemic's forced experiment. This transformation was enabled by tools like Zoom and Slack, though productivity research, such as Stanford's Nick Bloom's studies, yielded mixed results. The shift has led to a return-to-office backlash, the widespread adoption of hybrid models, significant impacts on commercial real estate, and trends like geographic arbitrage and the emergence of digital nomad visas, while also raising concerns about company culture and junior employee development.",
+  "score": 5,
+  "cost": 9.314999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 119
+  }
+}

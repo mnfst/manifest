@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "**Summary:**\n\nBefore the pandemic, fewer than 5% of workers were fully remote, but the 2020 crisis forced a rapid, large-scale experiment enabled by tools like Zoom, Slack, and cloud infrastructure. Stanford economist Nick Bloom\u2019s research revealed mixed productivity results, while the subsequent push to return to offices triggered significant employee backlash, leading most companies to adopt hybrid models. The shift has disrupted commercial real estate, enabled geographic arbitrage as workers moved to lower-cost areas, and raised concerns about weakened company culture and the development of junior employees. In response, many countries have introduced digital nomad visas to capture the economic benefits of this mobile workforce.",
+  "score": 5,
+  "cost": 0.001544,
+  "expected": "",
+  "tokens": {
+    "input": 256,
+    "output": 129
+  }
+}

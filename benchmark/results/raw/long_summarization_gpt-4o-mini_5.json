@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "long_summarization",
+  "case": 5,
+  "response": "The text outlines the significant journey of antibiotics, beginning with Alexander Fleming's discovery of penicillin in 1928, which revolutionized surgery and disease treatment. It highlights the golden age of antibiotic discovery during the 1950s and 60s, followed by a decline in new antibiotic development due to inadequate financial incentives. The rise of antimicrobial resistance, particularly with MRSA and other resistant bacteria, is noted, alongside the agricultural use of antibiotics in livestock. Current research efforts are focusing on innovative solutions such as phage therapy, CRISPR-based methods, and AI-driven drug discovery to combat this growing crisis.",
+  "score": 5,
+  "cost": 9.375e-05,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 122
+  }
+}

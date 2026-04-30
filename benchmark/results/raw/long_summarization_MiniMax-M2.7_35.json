@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "long_summarization",
+  "case": 35,
+  "response": "**Summary:**\nThe EU's GDPR, effective since May 2018, fundamentally reshaped data privacy by requiring organizations to obtain explicit consent, honor data access and erasure requests, and report breaches within 72 hours, with fines reaching up to 4% of global annual revenue or 20 million euros. Major tech companies have faced significant penalties, including Meta's record 1.2 billion euro fine in 2023 and Amazon's 746 million euro fine. The regulation has inspired similar legislation globally, such as California's CCPA, Brazil's LGPD, and India's Digital Personal Data Protection Act. Despite criticisms that GDPR imposes compliance burdens and creates user frustration with cookie banners, it established data privacy as a fundamental right and set the global standard for data protection.",
+  "score": 5,
+  "cost": 0.0020515,
+  "expected": "",
+  "tokens": {
+    "input": 317,
+    "output": 387
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "rag_qa",
+  "case": 40,
+  "response": "France offered **\"full citizenship rights\" (assimilation)** to its colonial subjects, which was rare by imperial standards.",
+  "score": 5,
+  "cost": 0.000118,
+  "expected": "assimilation",
+  "tokens": {
+    "input": 170,
+    "output": 25
+  }
+}

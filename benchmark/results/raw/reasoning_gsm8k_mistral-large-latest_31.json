@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "reasoning_gsm8k",
+  "case": 31,
+  "response": "Let's break down the problem step by step.\n\n1. Number of boys:\n   The problem states that there are 30 boys in the classroom.\n   Boys = 30\n\n2. Number of girls:\n   The classroom has 3 times as many girls as boys.\n   Girls = 3 \u00d7 Boys = 3 \u00d7 30 = 90\n\n3. Number of nongendered children:\n   The classroom has 1/10 as many nongendered children as boys.\n   Nongendered = (1/10) \u00d7 Boys = (1/10) \u00d7 30 = 3\n\n4. Total number of children:\n   Total = Boys + Girls + Nongendered = 30 + 90 + 3 = 123\n\nANSWER: 123",
+  "score": 2,
+  "cost": 0.00125,
+  "expected": "123",
+  "tokens": {
+    "input": 91,
+    "output": 178
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "data_to_text",
+  "case": 22,
+  "response": "Server prod-web-01 in the us-east-1 region has maintained 45 days of uptime and is currently utilizing 78% CPU, 12.4 GB of 16 GB memory, and 234 GB of 500 GB disk storage. The server is actively handling 127 connections with a P99 latency of 145ms while recording 3 errors per hour.",
+  "score": 5,
+  "cost": 0.0022757999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 923
+  }
+}

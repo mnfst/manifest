@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "rag_qa",
   "case": 0,
-  "response": "A small fraction of the cold water flow from Lake Constance goes to **Lake \u00dcberlingen**.",
-  "score": 2,
-  "cost": 0.00013160000000000003,
+  "response": "A small fraction of the cold water flow is diverted into **Lake \u00dcberlingen**.",
+  "score": 1,
+  "cost": 0.0001276,
   "expected": "Lake \u00dcberlingen",
   "tokens": {
     "input": 229,
-    "output": 20
+    "output": 18
   }
 }

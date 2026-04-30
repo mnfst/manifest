@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "moderation_toxigen",
+  "case": 3,
+  "response": "toxic",
+  "score": 5,
+  "cost": 5.1200000000000004e-05,
+  "expected": "toxic",
+  "tokens": {
+    "input": 113,
+    "output": 3
+  }
+}

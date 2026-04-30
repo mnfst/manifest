@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "translation_enfr",
   "case": 6,
-  "response": "En ce moment m\u00eame, ce d\u00e9mon est en train de d\u00e9valer la Wangan.\n\n*(Alternative, slightly more natural phrasing: \"L\u00e0, tout de suite, ce d\u00e9mon est en train de descendre la Wangan \u00e0 fond.\" \u2013 depending on the intended emphasis.)*",
+  "response": "En ce moment m\u00eame, c'est ce d\u00e9mon qui descend la Wangan. *(familier, dynamique)*\n\nOu, si tu veux une version un peu plus naturelle en fran\u00e7ais tout en gardant le ton punchy :\n**\"L\u00e0, c\u2019est ce d\u00e9mon qui d\u00e9vale la Wangan !\"**\n\n*(Note : \"Wangan\" est laiss\u00e9 tel quel, car c\u2019est un nom propre li\u00e9 \u00e0 la c\u00e9l\u00e8bre route japonaise \u2013 comme dans *Initial D*. En fran\u00e7ais, on ne le traduit pas.)*",
   "score": 4,
-  "cost": 0.0001268,
+  "cost": 0.0002168,
   "expected": "",
   "tokens": {
     "input": 32,
-    "output": 57
+    "output": 102
   }
 }

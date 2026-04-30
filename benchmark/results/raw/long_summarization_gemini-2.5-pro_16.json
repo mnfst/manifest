@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "long_summarization",
+  "case": 16,
+  "response": "The internet began as a US Department of Defense project in the 1960s, with the first ARPANET message sent in 1969. Key technical milestones, such as the adoption of TCP/IP in 1983 and the invention of the World Wide Web in 1989, created its modern foundation. The launch of the first web browser in 1993 sparked massive public adoption, leading to the dot-com boom, social media, and mobile access. Today, the internet connects over 5 billion people and is integral to virtually every aspect of modern society.",
+  "score": 5,
+  "cost": 0.001675,
+  "expected": "",
+  "tokens": {
+    "input": 332,
+    "output": 126
+  }
+}

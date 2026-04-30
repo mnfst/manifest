@@ -2,7 +2,7 @@
   "model": "mistral-medium-latest",
   "task": "code_generation",
   "case": 10,
-  "response": "```python\n    count = 0\n    for num in arr:\n        if num == 0:\n            continue\n        num_str = str(num)\n        total = 0\n        for i, ch in enumerate(num_str):\n            if i == 0 and ch == '-':\n                continue\n            digit = int(ch)\n            if i == 0 and num_str[0] == '-':\n                digit = -digit\n            total += digit\n        if total > 0:\n            count += 1\n    return count\n```",
+  "response": "```python\n    count = 0\n    for num in arr:\n        if num == 0:\n            continue\n        num_str = str(num)\n        total = 0\n        for i, ch in enumerate(num_str):\n            if i == 0 and ch == '-':\n                continue\n            digit = int(ch)\n            if i == 1 and num_str[0] == '-':\n                digit = -digit\n            total += digit\n        if total > 0:\n            count += 1\n    return count\n```",
   "score": 4,
   "cost": 0.0002908,
   "expected": "",

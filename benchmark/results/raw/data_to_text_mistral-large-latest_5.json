@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "data_to_text",
+  "case": 5,
+  "response": "Christopher Nolan\u2019s *Oppenheimer*, a gripping 2023 drama and historical epic, chronicles the life of J. Robert Oppenheimer with a runtime of 180 minutes. Made on a $100 million budget, the film became a massive success, grossing $952 million worldwide and earning critical acclaim with an 8.3 on IMDb and a 93% rating on Rotten Tomatoes. Its powerful storytelling also secured the prestigious Oscar for Best Picture.",
+  "score": 5,
+  "cost": 0.000814,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 102
+  }
+}

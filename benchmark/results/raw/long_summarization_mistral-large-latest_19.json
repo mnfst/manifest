@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "long_summarization",
+  "case": 19,
+  "response": "The **General Data Protection Regulation (GDPR)**, implemented in May 2018, revolutionized data privacy by imposing strict rules on organizations handling EU residents' data, regardless of location. Key provisions include the **right to access, erase, and transfer personal data**, **explicit consent requirements**, and **mandatory breach reporting within 72 hours**, with fines up to **4% of global revenue or \u20ac20 million**. Major tech companies like **Meta (\u20ac1.2B), Amazon (\u20ac746M), and Google (over \u20ac200M combined)** have faced significant penalties. While GDPR has inspired global laws (e.g., **California\u2019s CCPA, Brazil\u2019s LGPD**) and framed data privacy as a fundamental right, critics argue it burdens small businesses, frustrates users with cookie banners, and suffers from inconsistent enforcement.",
+  "score": 5,
+  "cost": 0.001732,
+  "expected": "",
+  "tokens": {
+    "input": 326,
+    "output": 180
+  }
+}

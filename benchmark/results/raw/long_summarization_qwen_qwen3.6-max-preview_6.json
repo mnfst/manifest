@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Once a rare perk adopted by fewer than 5% of workers, remote work rapidly became mainstream during the 2020 pandemic, sustained by digital collaboration tools and cloud infrastructure. Although productivity research shows mixed results and some employers have pushed return-to-office mandates, hybrid models have largely prevailed, disrupting commercial real estate and enabling geographic arbitrage as workers relocate to lower-cost areas. This structural shift has complicated traditional company culture and junior employee mentorship, while also prompting governments to introduce digital nomad visas. Ultimately, remote work has permanently transformed the modern workplace, balancing unprecedented flexibility with ongoing economic and organizational challenges.",
+  "score": 5,
+  "cost": 0.008255,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 1549
+  }
+}

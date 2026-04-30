@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Before the pandemic, fewer than 5% of workers were fully remote, but the 2020 crisis forced a mass shift enabled by tools like Zoom, Slack, and cloud infrastructure. Research, including studies by Stanford\u2019s Nick Bloom, has shown mixed productivity results, fueling ongoing tension between return-to-office mandates and worker preferences for hybrid models. The transformation has significantly impacted commercial real estate, driven geographic arbitrage as employees relocated to lower-cost areas, and created new challenges for company culture and junior employee development. In response to this new mobility, many countries have introduced digital nomad visas to attract location-independent workers.",
+  "score": 5,
+  "cost": 0.0012342,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 478
+  }
+}

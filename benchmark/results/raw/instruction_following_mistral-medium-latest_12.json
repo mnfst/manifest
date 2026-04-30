@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "instruction_following",
   "case": 12,
-  "response": "An **API** (Application Programming Interface) is like a waiter in a restaurant.\n\nImagine you\u2019re at a restaurant:\n- You (the customer) don\u2019t go into the kitchen to cook your food.\n- Instead, you tell the **waiter** what you want (e.g., a burger).\n- The waiter takes your order to the kitchen, where the chefs prepare it.\n- Then, the waiter brings your food back to you.\n\nAn **API works the same way**:\n- You ask for something (like weather info, a map, or a payment).\n- The API takes your request, gets the answer from the right place (like a database or service).\n- Then, it brings the answer back to you in a simple way.\n\nIt\u2019s just a middleman that helps different apps or services talk to each other without you needing to know how they work behind the scenes.",
-  "score": 4,
-  "cost": 0.0003652,
+  "response": "An **API** (Application Programming Interface) is like a waiter in a restaurant.\n\nImagine you\u2019re at a restaurant:\n- You (the customer) don\u2019t go into the kitchen to cook your food.\n- Instead, you tell the waiter what you want (your order).\n- The waiter takes your request to the kitchen, where the chefs prepare the food.\n- The waiter then brings your meal back to you.\n\nAn **API works the same way**\u2014it\u2019s a middleman that takes your request, gets the information or service you need from somewhere else, and delivers it back to you.\n\nFor example:\n- When you check the weather on your phone, the app uses an API to ask a weather service for the latest forecast.\n- When you pay with PayPal on a website, the site uses an API to securely process your payment.\n\nThe API makes sure you get what you need without having to deal with the complicated behind-the-scenes work.",
+  "score": 3,
+  "cost": 0.0003952,
   "expected": "",
   "tokens": {
     "input": 18,
-    "output": 179
+    "output": 194
   }
 }

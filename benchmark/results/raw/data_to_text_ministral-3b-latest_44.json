@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "data_to_text",
+  "case": 44,
+  "response": "Massachusetts Institute of Technology (MIT), consistently ranked as the world\u2019s top university at **#1**, is a prestigious institution with a rigorous academic environment. Home to **11,500 students**, MIT boasts an exceptionally competitive **3.9% acceptance rate**, reflecting its elite status. Annual tuition stands at **$57,590**, yet the school\u2019s vast **$24.6 billion endowment** underscores its financial strength and resources. With **1,069 faculty members** and a legacy of innovation, MIT has produced **98 Nobel laureates**, solidifying its reputation as a global leader in research and education since its founding in **1861**.",
+  "score": 5,
+  "cost": 1.024e-05,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 146
+  }
+}

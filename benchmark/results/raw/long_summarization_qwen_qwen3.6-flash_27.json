@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "long_summarization",
+  "case": 27,
+  "response": "Implemented in May 2018, the EU\u2019s GDPR mandates strict data protection standards for any organization handling EU residents\u2019 personal data, requiring explicit consent, data portability, and 72-hour breach reporting. Violations can trigger fines up to 4% of global annual revenue or \u20ac20 million, with recent major penalties including \u20ac1.2 billion against Meta, \u20ac746 million against Amazon, and over \u20ac200 million against Google. Although critics argue the regulation burdens small businesses and frustrates users with cookie banners, GDPR has successfully established data privacy as a fundamental right and set a global standard that has inspired similar legislation in California, Brazil, and India.",
+  "score": 5,
+  "cost": 0.00196925,
+  "expected": "",
+  "tokens": {
+    "input": 325,
+    "output": 1888
+  }
+}

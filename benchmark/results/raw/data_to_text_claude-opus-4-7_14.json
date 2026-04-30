@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "data_to_text",
+  "case": 14,
+  "response": "Team Alpha wrapped up Sprint #23 from January 15-26, completing 38 of the 42 planned points\u2014exceeding their average velocity of 36. The team delivered 8 stories and fixed 5 bugs despite encountering 2 blockers, finishing with a team satisfaction score of 4.1 out of 5.",
+  "score": 5,
+  "cost": 0.010695,
+  "expected": "",
+  "tokens": {
+    "input": 158,
+    "output": 111
+  }
+}

@@ -2,8 +2,8 @@
   "model": "mistral-medium-latest",
   "task": "code_generation",
   "case": 1,
-  "response": "max_depths = []\n    for group in paren_string.split():\n        current_depth = 0\n        max_depth = 0\n        for char in group:\n            if char == '(':\n                current_depth += 1\n                if current_depth > max_depth:\n                    max_depth = current_depth\n            elif char == ')':\n                current_depth -= 1\n        max_depths.append(max_depth)\n    return max_depths",
-  "score": 5,
+  "response": "```python\n    result = []\n    for group in paren_string.split():\n        max_depth = 0\n        current_depth = 0\n        for char in group:\n            if char == '(':\n                current_depth += 1\n                if current_depth > max_depth:\n                    max_depth = current_depth\n            elif char == ')':\n                current_depth -= 1\n        result.append(max_depth)\n    return result\n```",
+  "score": 4,
   "cost": 0.000238,
   "expected": "",
   "tokens": {

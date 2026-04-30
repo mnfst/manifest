@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "translation_enfr",
+  "case": 10,
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens de l'original :\n\n**\"Peut-\u00eatre g\u00e9n\u00e9rer quelques indices pour nous rapprocher de l'animal qui a fait \u00e7a.\"**\n\n*Variante l\u00e9g\u00e8rement plus naturelle (selon le contexte) :*\n**\"Peut-\u00eatre qu\u2019on pourrait trouver des indices pour identifier l\u2019animal responsable.\"**\n\nSi le texte s'inscrit dans un contexte plus informel ou oral, on pourrait aussi dire :\n**\"Et si on cherchait des indices pour savoir quel animal a fait \u00e7a ?\"**",
+  "score": 4,
+  "cost": 0.000746,
+  "expected": "",
+  "tokens": {
+    "input": 37,
+    "output": 112
+  }
+}

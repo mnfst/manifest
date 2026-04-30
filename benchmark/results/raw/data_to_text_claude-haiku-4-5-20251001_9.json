@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "data_to_text",
+  "case": 9,
+  "response": "# Japan's Economic Profile\n\nJapan, with a population of 125 million people, maintains the world's third-largest economy with a GDP of $4.2 trillion, though it is experiencing modest growth at 1.1% annually with an unemployment rate of just 2.6% and inflation at 3.2%. The country boasts impressive social indicators, including a life expectancy of 84.6 years, while its export sector contributes $756 billion to the economy. However, Japan faces a significant fiscal challenge with a debt-to-GDP ratio of 263%, one of the highest among developed nations.",
+  "score": 5,
+  "cost": 0.0006272000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 135
+  }
+}

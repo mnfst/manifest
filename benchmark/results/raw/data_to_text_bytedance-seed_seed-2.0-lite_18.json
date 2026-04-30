@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "data_to_text",
+  "case": 18,
+  "response": "Stockholm, the major city of Sweden, was founded in 1252, spans 188 square kilometers, is home to 1.6 million residents, and counts Swedish as its primary local language. This prosperous northern European hub boasts a GDP per capita of $62,000, and experiences a distinct seasonal climate, with an average January temperature of -3\u00b0C and a mild average July temperature of 18\u00b0C that suits year-round activity.",
+  "score": 5,
+  "cost": 0.0008745,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 838
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "long_summarization",
+  "case": 47,
+  "response": "Enacted in May 2018, the EU's GDPR fundamentally reshaped data privacy by applying strict consent, user rights, and 72-hour breach reporting requirements to any organization processing EU residents' data, regardless of location. The regulation enforces compliance through penalties of up to 4% of global annual revenue or \u20ac20 million, which have already resulted in massive fines for tech giants like Meta (\u20ac1.2 billion), Amazon (\u20ac746 million), and Google (over \u20ac200 million). While critics highlight heavy compliance burdens, inconsistent enforcement, and user frustration with consent banners, the GDPR has successfully established data privacy as a fundamental right. Ultimately, it set the global benchmark for data protection, directly inspiring similar privacy legislation worldwide.",
+  "score": 5,
+  "cost": 0.007775300000000001,
+  "expected": "",
+  "tokens": {
+    "input": 325,
+    "output": 1414
+  }
+}

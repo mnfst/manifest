@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "# Summary\n\nThe 2020s represent a transformative decade for space exploration, marked by ambitious programs like SpaceX's Starship development, NASA's Artemis Moon return initiative, and the James Webb Space Telescope's groundbreaking discoveries. Major spacefaring nations including China and India are advancing their own capabilities through space stations and lunar missions, while commercial ventures are expanding into satellite internet constellations (Starlink, OneWeb), space tourism, and asteroid mining. However, these rapid developments are straining the existing regulatory framework\u2014the Outer Space Treaty\u2014and creating urgent challenges around space debris management that threaten the sustainability of orbital activities.",
+  "score": 4,
+  "cost": 0.000676,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 139
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "instruction_following",
+  "case": 11,
+  "response": "Why do you want me to do that?\n\nWhat kind of response are you hoping for?\n\nIs there a specific reason you prefer questions over statements?\n\nHow would you feel if I kept asking instead of answering?\n\nWhat\u2019s the most interesting question I could ask you right now?\n\nDo you think this approach changes the way we communicate?\n\nWould you like me to keep going?",
+  "score": 5,
+  "cost": 0.000468,
+  "expected": "",
+  "tokens": {
+    "input": 12,
+    "output": 74
+  }
+}

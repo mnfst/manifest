@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "long_summarization",
+  "case": 5,
+  "response": "The discovery of **penicillin in 1928** by **Alexander Fleming** revolutionized medicine, enabling safer surgeries and treating previously fatal infections. The **1950s\u201360s** marked the **\"golden age\"** of antibiotic development, with breakthroughs like **tetracycline and streptomycin**, but declining interest led to a **sharp drop in new drug research** due to low financial returns.\n\nBy the late 20th century, **MRSA (methicillin-resistant *Staphylococcus aureus*)** and other **superbugs** emerged, accelerating **antimicrobial resistance (AMR)**, while **agricultural antibiotic use in livestock** worsened bacterial adaptation. Today, researchers explore **phage therapy, CRISPR gene editing, and AI-driven drug discovery** to combat resistance, but urgent action is needed to reverse the crisis.",
+  "score": 5,
+  "cost": 1.232e-05,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 174
+  }
+}

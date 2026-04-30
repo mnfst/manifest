@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "code_generation",
+  "case": 28,
+  "response": "```python\n    result = []\n    for i in range(len(lst)):\n        row = lst[i]\n        indices = [j for j in range(len(row)) if row[j] == x]\n        indices.sort(reverse=True)\n        for j in indices:\n            result.append((i, j))\n    return result\n```",
+  "score": 4,
+  "cost": 0.000252,
+  "expected": "",
+  "tokens": {
+    "input": 290,
+    "output": 68
+  }
+}

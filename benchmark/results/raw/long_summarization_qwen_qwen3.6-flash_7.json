@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "The 2020s have rapidly transformed space exploration into a dynamic blend of scientific discovery and commercial enterprise, driven by major initiatives like NASA\u2019s Artemis program, SpaceX\u2019s Starship development, and ambitious lunar and orbital projects from China and India. This era is marked by significant technological and scientific milestones, including the James Webb Space Telescope\u2019s groundbreaking observations, the proliferation of satellite internet constellations, and the emergence of commercial space tourism and asteroid mining ventures. Despite this unprecedented expansion, the industry confronts critical regulatory and environmental challenges, notably the outdated provisions of the Outer Space Treaty and the escalating crisis of orbital space debris.",
+  "score": 4,
+  "cost": 0.0014225,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 1387
+  }
+}

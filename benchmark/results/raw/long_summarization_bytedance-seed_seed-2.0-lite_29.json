@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "long_summarization",
+  "case": 29,
+  "response": "Quantum computing, which leverages qubits that can exist in a superposition of 0 and 1, alongside the quantum properties of entanglement and interference, to solve certain problems exponentially faster than classical computers that use only fixed 0 or 1 bits, is being developed by major tech firms IBM and Google as well as startups IonQ and Rigetti, which use diverse hardware approaches including superconducting circuits, trapped ions, and topological qubits. A major early milestone came in 2019, when Google claimed quantum supremacy after its quantum system completed a calculation in 200 seconds, a task the company estimated would take a leading classical supercomputer 10,000 years to finish. Despite this progress, widespread practical quantum computing faces significant hurdles, including extreme qubit fragility, high error rates, and a major gap between the 100 to 1,000 qubits available on current machines and the millions of qubits needed to run error-corrected, useful applications. Even with these barriers, organizations are already testing early quantum algorithms for use cases spanning financial modeling and logistics to long-term promising fields like drug discovery, materials science, and cryptography.",
+  "score": 5,
+  "cost": 0.00111675,
+  "expected": "",
+  "tokens": {
+    "input": 323,
+    "output": 1036
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "long_summarization",
+  "case": 5,
+  "response": "Since Alexander Fleming\u2019s 1928 discovery of penicillin, antibiotics have revolutionized modern medicine and surgery, peaking during a prolific discovery era in the 1950s and 1960s. However, the field now confronts a severe antimicrobial resistance crisis driven by the rise of superbugs like MRSA, widespread agricultural use in livestock, and a sharp decline in new drug development due to poor financial returns. To combat this growing threat, researchers are pivoting toward innovative alternatives, including phage therapy, CRISPR-based techniques, and AI-driven drug discovery.",
+  "score": 5,
+  "cost": 0.0010875,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 1050
+  }
+}

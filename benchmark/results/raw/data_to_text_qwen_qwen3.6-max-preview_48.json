@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "data_to_text",
+  "case": 48,
+  "response": "Headquartered in Austin, Texas, Acme Corp employs 342 people and generated $54.4 million in total annual revenue, marking an 18% year-over-year increase. This full-year performance was driven by quarterly revenues of $12.3 million in Q1, $14.1 million in Q2, $11.8 million in Q3, and $16.2 million in Q4.",
+  "score": 5,
+  "cost": 0.0066144,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 1242
+  }
+}

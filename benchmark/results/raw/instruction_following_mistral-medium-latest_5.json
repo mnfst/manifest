@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "instruction_following",
   "case": 5,
-  "response": "The sky unfurls in layers of warmth, shifting from golden hues to deeper, molten tones as the day softens. The sun dips low, stretching its light across the horizon like liquid fire, painting the clouds in gradients of amber and violet. Shadows grow long and cool, while the air hums with a quiet stillness. The edges of the world seem to glow, as if lit from within, before fading into the gentle embrace of twilight. The last sliver of light lingers, a fleeting promise, before surrendering to the deepening blues of the evening.",
+  "response": "The sky unfurls in slow, molten layers\u2014amber bleeding into soft violet, then fading to the pale gray of a well-worn linen. The sun, no longer sharp, dissolves like a coin dipped in warm honey, its edges blurred by the haze of distance. Shadows stretch long and lazy across the land, pulling the day into quiet submission.\n\nThe air hums with a quiet warmth, thick with the scent of earth and distant salt, as if the world itself is holding its breath. Clouds, thin as brushed silk, catch the light and glow from within, their undersides stained the color of ripe peaches left too long in the sun. The horizon swallows the last sliver of gold whole, leaving behind a lingering ember-glow that clings to the edges of everything\u2014rooftops, treetops, the curve of a shoulder turned toward the fading light.\n\nThen, almost imperceptibly, the colors cool. The violet deepens, the amber dims, and the sky becomes a vast, soft bruise, tender and fleeting. The first stars prick through like pins in dark fabric, hesitant at first, then bolder. The day doesn\u2019t end so much as unravel, thread by thread, until only the memory of light remains.",
   "score": 5,
-  "cost": 0.000246,
+  "cost": 0.00053,
   "expected": "",
   "tokens": {
     "input": 20,
-    "output": 119
+    "output": 261
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "data_to_text",
+  "case": 48,
+  "response": "Acme Corp reported strong financial performance over the past year, with total revenue reaching **$54.4 million**, including a notable **18% year-over-year growth**. The company\u2019s quarterly revenue fluctuated, peaking at **$16.2 million in Q4** after a dip in Q3, which saw earnings of **$11.8 million**. Headquartered in **Austin, Texas**, Acme operates with **342 employees** across its operations.",
+  "score": 5,
+  "cost": 8.48e-06,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 100
+  }
+}

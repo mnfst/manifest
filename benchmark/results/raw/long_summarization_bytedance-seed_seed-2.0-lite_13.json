@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "long_summarization",
+  "case": 13,
+  "response": "Unlike classical computers that use binary bits limited to only 0 or 1, quantum computers rely on qubits that can leverage superposition, entanglement, and interference to solve certain categories of problems exponentially faster than classical systems, with major industry players including IBM, Google, and startups IonQ and Rigetti developing quantum hardware across diverse designs such as superconducting circuits and trapped ions. In 2019, Google claimed a landmark early milestone for the field by achieving quantum supremacy, performing a complex calculation in 200 seconds that the company estimated would take a leading classical supercomputer 10,000 years to complete. Practical, large-scale quantum computing still faces steep barriers, however: qubits are extremely fragile, error rates remain far too high for most real-world use cases, and current quantum machines only hold 100 to 1000 qubits, a fraction of the millions needed to run stable, error-corrected applications. Despite these challenges, organizations are already exploring quantum computing\u2019s transformative potential across sectors ranging from drug discovery and cryptography to financial modeling and logistics, running early experiments to test quantum algorithms for commercial and research use cases.",
+  "score": 5,
+  "cost": 0.00117875,
+  "expected": "",
+  "tokens": {
+    "input": 323,
+    "output": 1098
+  }
+}

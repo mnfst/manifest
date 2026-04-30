@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "data_to_text",
+  "case": 40,
+  "response": "A 45-year-old female patient has several key health indicators that warrant attention. She currently has a BMI of 27.3, indicating a borderline overweight status, with blood pressure readings of 138/88 mmHg and elevated cholesterol levels at 225 mg/dL. Her fasting glucose is slightly above normal at 110 mg/dL, and she has a family history of diabetes, particularly from her mother. Despite not smoking and engaging in exercise twice a week, these findings suggest a need for lifestyle adjustments and potential monitoring to mitigate potential risks.",
+  "score": 5,
+  "cost": 8.88e-06,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 120
+  }
+}

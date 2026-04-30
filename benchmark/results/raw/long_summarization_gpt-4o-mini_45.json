@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "long_summarization",
+  "case": 45,
+  "response": "Quantum computing fundamentally differs from classical computing by utilizing qubits, which can exist in superposition and become entangled, allowing for exponentially faster problem-solving. Major players like IBM, Google, IonQ, and Rigetti are developing quantum hardware through various methods, with Google claiming quantum supremacy in 2019 by completing a calculation in 200 seconds that would take a classical supercomputer 10,000 years. However, practical applications face significant challenges, including the fragility of qubits, high error rates, and the need for error correction, with current machines housing 100-1000 qubits while millions may be necessary for effective use. Despite these hurdles, quantum computing holds potential in fields such as drug discovery, materials science, cryptography, and optimization, with companies already testing quantum algorithms for financial modeling and logistics.",
+  "score": 5,
+  "cost": 0.00013995,
+  "expected": "",
+  "tokens": {
+    "input": 277,
+    "output": 164
+  }
+}

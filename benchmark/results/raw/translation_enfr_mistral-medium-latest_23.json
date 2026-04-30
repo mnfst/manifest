@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "translation_enfr",
   "case": 23,
-  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton technique et le sens pr\u00e9cis du texte original :\n\n**\"Des \u00e9vacuateurs de crues capables de g\u00e9rer les \u00e9v\u00e9nements d\u2019inondation postul\u00e9s sont int\u00e9gr\u00e9s soit dans les structures des barrages, soit construits sous forme d\u2019ouvrages distincts.\"**\n\n*Explications des choix :*\n- **\"Spillways\"** \u2192 **\"\u00c9vacuateurs de crues\"** (terme technique standard en g\u00e9nie hydraulique).\n- **\"Postulated flood events\"** \u2192 **\"\u00c9v\u00e9nements d\u2019inondation postul\u00e9s\"** (traduction litt\u00e9rale pour conserver la nuance de *sc\u00e9nario hypoth\u00e9tique* en ing\u00e9nierie).\n- **\"Incorporated into\"** \u2192 **\"Int\u00e9gr\u00e9s dans\"** (plus naturel en fran\u00e7ais technique que *\"incorpor\u00e9s \u00e0\"*).\n- **\"Separate structures\"** \u2192 **\"Ouvrages distincts\"** (*\"structures\"* seul serait correct, mais *\"ouvrages\"* est plus pr\u00e9cis pour des infrastructures hydrauliques).\n\nSi le contexte est tr\u00e8s formel (rapport technique, norme), cette version est adapt\u00e9e. Pour un public moins sp\u00e9cialis\u00e9, on pourrait simplifier l\u00e9g\u00e8rement (ex. *\"crue estim\u00e9e\"* au lieu de *\"postul\u00e9e\"*), mais cela d\u00e9pend de l'usage.",
-  "score": 5,
-  "cost": 0.0005407999999999999,
+  "response": "Les \u00e9vacuateurs de crues, con\u00e7us pour g\u00e9rer les crues hypoth\u00e9tiques, sont int\u00e9gr\u00e9s soit dans la structure du barrage, soit construits comme des ouvrages distincts.",
+  "score": 4,
+  "cost": 9.279999999999999e-05,
   "expected": "",
   "tokens": {
     "input": 47,
-    "output": 261
+    "output": 37
   }
 }

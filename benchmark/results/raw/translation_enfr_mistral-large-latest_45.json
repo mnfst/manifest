@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "translation_enfr",
+  "case": 45,
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens du texte original :\n\n**Fran\u00e7ais :**\n*\u00ab La fraude fiscale s\u2019est accentu\u00e9e en Tunisie, entra\u00eenant un manque important en termes de ressources publiques \u00bb, a d\u00e9clar\u00e9 l\u2019ancien chef du gouvernement de transition Ali Larayedh en juin 2013, cit\u00e9 par le journal Business Flood.*\n\n**Explications des choix :**\n- *\"Tax evasion\"* \u2192 *\"fraude fiscale\"* (terme juridique pr\u00e9cis en fran\u00e7ais).\n- *\"Grown\"* \u2192 *\"s\u2019est accentu\u00e9e\"* (pour \u00e9viter une traduction litt\u00e9rale comme *\"a augment\u00e9\"* et garder un ton formel).\n- *\"Significant shortfall\"* \u2192 *\"manque important\"* (plus naturel que *\"d\u00e9ficit significatif\"* dans ce contexte).\n- *\"Public resources\"* \u2192 *\"ressources publiques\"* (terme standard en \u00e9conomie).\n- *\"Quoted by\"* \u2192 *\"cit\u00e9 par\"* (formulation journalistique courante).\n\nSi vous souhaitez une version plus concise ou plus technique, je peux l\u2019adapter !",
+  "score": 5,
+  "cost": 0.001454,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 220
+  }
+}

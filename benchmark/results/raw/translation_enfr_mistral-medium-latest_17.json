@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "translation_enfr",
   "case": 17,
-  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens de l'original :\n\n**Source : examplereferenceletter.com**\n\n*(Note : Si le texte \u00e0 traduire \u00e9tait plus long ou plus complexe, je pourrais ajuster le style pour refl\u00e9ter davantage le ton formel, informel ou technique du contenu original. N'h\u00e9sitez pas \u00e0 pr\u00e9ciser si vous souhaitez une adaptation plus sp\u00e9cifique !)*",
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens de l'original :\n\n**Source : examplereferenceletter.com**\n\n*(Note : Si le texte \u00e0 traduire \u00e9tait plus long ou plus complexe, je pourrais adapter davantage le style. Ici, il s'agit simplement d'une mention de source, donc la traduction est directe.)*\n\nSi vous avez un texte plus complet \u00e0 traduire, n'h\u00e9sitez pas \u00e0 le partager !",
   "score": 5,
-  "cost": 0.0001908,
+  "cost": 0.0002008,
   "expected": "",
   "tokens": {
     "input": 32,
-    "output": 89
+    "output": 94
   }
 }

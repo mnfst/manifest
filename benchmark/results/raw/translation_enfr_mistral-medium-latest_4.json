@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "translation_enfr",
   "case": 4,
-  "response": "Voici une traduction fid\u00e8le qui conserve le ton et le sens de la phrase originale :\n\n**\"Votre mari avait-il invit\u00e9 le lieutenant Gilbert chez vous ?\"**\n\n*Variantes possibles selon le contexte (plus naturel ou formel) :*\n- **\"Est-ce que votre mari avait invit\u00e9 le lieutenant Gilbert \u00e0 la maison ?\"** (plus oral)\n- **\"Votre \u00e9poux avait-il convi\u00e9 le lieutenant Gilbert chez vous ?\"** (plus soutenu, si le contexte est formel ou historique).\n\nLa premi\u00e8re option est la plus neutre et proche de l'anglais. Dites-moi si vous souhaitez ajuster le registre !",
+  "response": "Voici une traduction fid\u00e8le qui conserve le ton et le sens de la phrase originale :\n\n**\"Votre mari avait-il invit\u00e9 le lieutenant Gilbert chez vous ?\"**\n\n*(Variante l\u00e9g\u00e8rement plus naturelle en fran\u00e7ais courant, selon le contexte :)*\n**\"Est-ce que votre mari avait invit\u00e9 le lieutenant Gilbert \u00e0 la maison ?\"**\n\n---\n**Remarques :**\n1. **\"Had... invited\"** \u2192 **\"avait-il invit\u00e9\"** (pass\u00e9 ant\u00e9rieur ou plus-que-parfait, selon le contexte temporel).\n2. **\"Lieutenant Gilbert\"** reste inchang\u00e9 (les grades militaires s\u2019emploient g\u00e9n\u00e9ralement sans traduction en fran\u00e7ais).\n3. **\"Your house\"** \u2192 **\"chez vous\"** (plus naturel en fran\u00e7ais pour une invitation) ou **\"\u00e0 la maison\"** (familier/neutre).\n\nSi le contexte est formel (enqu\u00eate, proc\u00e8s, etc.), la premi\u00e8re version est pr\u00e9f\u00e9rable. Pour une conversation courante, la seconde peut convenir.",
   "score": 5,
-  "cost": 0.00026680000000000003,
+  "cost": 0.0003988,
   "expected": "",
   "tokens": {
     "input": 32,
-    "output": 127
+    "output": 193
   }
 }

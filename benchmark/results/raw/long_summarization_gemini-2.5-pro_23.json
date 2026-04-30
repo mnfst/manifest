@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "long_summarization",
+  "case": 23,
+  "response": "The EU's General Data Protection Regulation (GDPR), effective since May 2018, established strict rules for handling the personal data of EU residents, granting them rights like data access and erasure. Non-compliance carries severe penalties of up to 4% of global revenue, leading to major fines such as \u20ac1.2 billion for Meta and \u20ac746 million for Amazon. Despite criticisms regarding compliance burdens and inconsistent enforcement, GDPR has become the global standard for data protection. It has inspired similar laws worldwide and successfully established data privacy as a fundamental right.",
+  "score": 5,
+  "cost": 0.00154625,
+  "expected": "",
+  "tokens": {
+    "input": 317,
+    "output": 115
+  }
+}

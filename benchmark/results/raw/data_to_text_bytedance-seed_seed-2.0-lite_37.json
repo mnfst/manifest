@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "data_to_text",
+  "case": 37,
+  "response": "Released in 2023, Christopher Nolan\u2019s drama and history film Oppenheimer was built on a $100 million production budget, runs 180 minutes long, and earned a massive $952 million at the global box office. The universally celebrated blockbuster earned rave critical ratings, including an 8.3/10 score on IMDB and a 93% fresh rating on Rotten Tomatoes, and capped its landmark year in film by taking home the most prestigious honor in the industry: the Oscar for Best Picture.",
+  "score": 5,
+  "cost": 0.000587,
+  "expected": "",
+  "tokens": {
+    "input": 148,
+    "output": 550
+  }
+}

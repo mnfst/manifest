@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "The Customer Success team reported strong Q1 performance with improved NPS (62), CSAT (4.3/5), and reduced churn (1.2%), while highlighting top feature requests (SSO, custom dashboards, API rate limits) and $800K in pending enterprise expansions. No immediate action items were specified.",
+  "score": 4,
+  "cost": 0.000656,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 70
+  }
+}

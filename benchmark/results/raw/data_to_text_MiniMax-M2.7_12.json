@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "data_to_text",
+  "case": 12,
+  "response": "Massachusetts Institute of Technology (MIT) consistently ranks #1 among universities, enrolling roughly 11,500 students with an extremely low acceptance rate of 3.9\u202fpercent. The institution charges $57,590 per year in tuition, supports a $24.6\u202fbillion endowment, and employs 1,069 faculty members who have produced 98 Nobel laureates. Founded in 1861, MIT remains a leading hub for science, engineering, and innovation.",
+  "score": 5,
+  "cost": 0.0024948,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 534
+  }
+}

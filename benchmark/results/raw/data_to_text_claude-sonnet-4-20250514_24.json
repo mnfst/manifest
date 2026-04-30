@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "data_to_text",
+  "case": 24,
+  "response": "A 45-year-old female patient presents with a BMI of 27.3, indicating she is overweight, along with elevated blood pressure of 138/88 mmHg and high cholesterol levels at 225 mg/dL. Her fasting glucose is 110 mg/dL, which is at the upper limit of normal, and she has a family history of diabetes from her mother's side. The patient is a non-smoker who exercises twice per week.",
+  "score": 5,
+  "cost": 0.001941,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 107
+  }
+}

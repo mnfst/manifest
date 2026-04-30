@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "data_to_text",
+  "case": 8,
+  "response": "A 45-year-old female presents with a BMI of 27.3, blood pressure of 138/88, cholesterol at 225 mg/dL, and a fasting glucose of 110 mg/dL. She is a non-smoker who exercises twice a week, and has a family history of diabetes through her mother.",
+  "score": 5,
+  "cost": 6.195e-05,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 78
+  }
+}

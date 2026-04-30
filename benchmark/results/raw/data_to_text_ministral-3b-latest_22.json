@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "data_to_text",
+  "case": 22,
+  "response": "The production web server, **prod-web-01**, is currently operating with **78% CPU utilization**, consuming **12.4 out of 16 GB of memory** and utilizing **234 GB of disk space** out of a total **500 GB**. The system has been running for **45 days without interruption**, maintaining **127 active connections**, though it experiences **3 errors per hour** and delivers **99th-percentile latency of 145 milliseconds** in **us-east-1**.",
+  "score": 5,
+  "cost": 9.040000000000002e-06,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 114
+  }
+}

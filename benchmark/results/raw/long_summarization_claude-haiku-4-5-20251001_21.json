@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "long_summarization",
+  "case": 21,
+  "response": "# Summary\n\nQuantum computers use qubits that can exist in superposition, allowing them to solve certain problems exponentially faster than classical computers through properties like entanglement and interference. Major tech companies and startups are developing quantum hardware using various approaches, with Google claiming quantum supremacy in 2019 by completing a calculation in 200 seconds that would take classical supercomputers 10,000 years. However, significant obstacles remain, including qubit fragility, high error rates, and the need for millions of qubits for practical applications, though current machines only have 100-1,000 qubits. Despite these challenges, quantum computing shows promise for applications in drug discovery, materials science, cryptography, and optimization, with companies already exploring its use in financial modeling and logistics.",
+  "score": 5,
+  "cost": 0.0009232,
+  "expected": "",
+  "tokens": {
+    "input": 309,
+    "output": 169
+  }
+}

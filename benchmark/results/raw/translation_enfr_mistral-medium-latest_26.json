@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "translation_enfr",
   "case": 26,
-  "response": "Voici une traduction qui conserve le ton et le sens de la phrase originale :\n\n*\u00ab Cela sugg\u00e9rait, en revanche, que l\u2019arm\u00e9e devrait jouer un r\u00f4le secondaire dans les op\u00e9rations antiterroristes. \u00bb*\n\n**Variantes possibles selon le contexte :**\n- *\u00ab Il a plut\u00f4t \u00e9t\u00e9 sugg\u00e9r\u00e9 que l\u2019arm\u00e9e doive occuper une place secondaire dans la lutte antiterroriste. \u00bb* (plus formel)\n- *\u00ab L\u2019id\u00e9e propos\u00e9e \u00e9tait plut\u00f4t que l\u2019arm\u00e9e intervienne en appui dans les op\u00e9rations contre le terrorisme. \u00bb* (plus explicite sur le r\u00f4le d'appui)\n\nSi le texte est extrait d'un document officiel ou analytique, la premi\u00e8re version est la plus neutre et fid\u00e8le. Dites-moi si vous souhaitez des ajustements !",
-  "score": 5,
-  "cost": 0.0003308,
+  "response": "Voici une traduction qui conserve le ton et le sens de la phrase originale :\n\n*\u00ab Il sugg\u00e9rait, en revanche, que l\u2019arm\u00e9e doive jouer un r\u00f4le secondaire dans les op\u00e9rations antiterroristes. \u00bb*\n\n**Variantes possibles selon le contexte :**\n- *\u00ab Cela sugg\u00e9rait plut\u00f4t que l\u2019arm\u00e9e ait un r\u00f4le secondaire dans la lutte antiterroriste. \u00bb* (plus neutre)\n- *\u00ab La proposition \u00e9tait, au contraire, que l\u2019arm\u00e9e intervienne en appui dans les op\u00e9rations de contre-terrorisme. \u00bb* (si le texte est plus technique)\n\n**Notes :**\n- *\"Instead\"* est rendu par *\u00ab en revanche \u00bb* ou *\u00ab plut\u00f4t \u00bb* pour garder la nuance d\u2019opposition ou de correction.\n- *\u00ab Should \u00bb* (recommandation) est traduit par *\u00ab doive \u00bb* (subjonctif) ou *\u00ab ait \u00bb* pour marquer la suggestion.\n- *\u00ab Anti-terrorist operations \u00bb* peut aussi \u00eatre *\u00ab lutte antiterroriste \u00bb* (plus courant en fran\u00e7ais) ou *\u00ab op\u00e9rations de contre-terrorisme \u00bb* (terme militaire/policier).\n\nBesoin d\u2019ajuster le registre (formel, technique, m\u00e9diatique) ? Dites-le-moi !",
+  "score": 4,
+  "cost": 0.0005147999999999999,
   "expected": "",
   "tokens": {
     "input": 42,
-    "output": 157
+    "output": 249
   }
 }

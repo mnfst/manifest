@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "sql_spider",
+  "case": 45,
+  "response": "```sql\nSELECT\n    p.first_name,\n    t.description\nFROM\n    professionals p\nJOIN\n    treatments tr ON p.professional_id = tr.professional_id\nJOIN\n    treatment_types t ON tr.treatment_type_id = t.treatment_type_id;\n```",
+  "score": 4,
+  "cost": 0.0001512,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 61
+  }
+}

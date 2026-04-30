@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "reasoning_gsm8k",
   "case": 23,
-  "response": "Let's solve the problem step by step.\n\n1. **Determine the original cost per balloon:**\n   - Total cost for 20 balloons = $900\n   - Cost per balloon = $900 / 20 = $45\n\n2. **Calculate the new cost per balloon after the price increase:**\n   - Price increase per balloon = $20\n   - New cost per balloon = $45 + $20 = $65\n\n3. **Compute the total cost for 170 balloons at the new price:**\n   - Total cost = 170 balloons * $65 per balloon = $11,050\n\nANSWER: 11050",
+  "response": "Let's solve the problem step by step.\n\n1. **Determine the original cost per balloon:**\n   - Total cost for 20 balloons = $900\n   - Cost per balloon = Total cost / Number of balloons\n   - Cost per balloon = $900 / 20 = $45\n\n2. **Calculate the new cost per balloon after the price increase:**\n   - Price increase per balloon = $20\n   - New cost per balloon = Original cost + Price increase\n   - New cost per balloon = $45 + $20 = $65\n\n3. **Calculate the total cost for 170 balloons at the new price:**\n   - Total cost = Number of balloons \u00d7 New cost per balloon\n   - Total cost = 170 \u00d7 $65\n   - Total cost = $11,050\n\nANSWER: 11050",
   "score": 5,
-  "cost": 0.00035160000000000004,
+  "cost": 0.0004376,
   "expected": "11050",
   "tokens": {
     "input": 104,
-    "output": 155
+    "output": 198
   }
 }

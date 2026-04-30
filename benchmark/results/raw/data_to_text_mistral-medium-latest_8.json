@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "data_to_text",
+  "case": 8,
+  "response": "A 45-year-old non-smoking woman with a BMI of 27.3 presents with slightly elevated health markers, including a blood pressure of 138/88, cholesterol at 225 mg/dL, and fasting glucose of 110 mg/dL. She exercises twice a week but has a family history of diabetes, as her mother was diagnosed with the condition. These factors suggest a need for monitoring potential risks for metabolic and cardiovascular issues.",
+  "score": 5,
+  "cost": 0.0002388,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 99
+  }
+}

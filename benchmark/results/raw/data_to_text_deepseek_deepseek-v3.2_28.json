@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "data_to_text",
+  "case": 28,
+  "response": "The Massachusetts Institute of Technology (MIT), founded in 1861, is the top-ranked university in the world. With an exceptionally low acceptance rate of 3.9%, it educates 11,500 students with a faculty of 1,069, including 98 Nobel laureates. The school's annual tuition is $57,590, supported by a substantial $24.6 billion endowment.",
+  "score": 5,
+  "cost": 0.00011310000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 81
+  }
+}

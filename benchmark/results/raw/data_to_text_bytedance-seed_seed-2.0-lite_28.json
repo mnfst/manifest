@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "data_to_text",
+  "case": 28,
+  "response": "The Massachusetts Institute of Technology, better known as MIT, was founded in 1861 and holds the #1 spot among global universities, currently enrolling 11,500 students with a faculty of 1,069, while posting an extremely competitive 3.9% acceptance rate and charging an annual tuition of $57,590. It also boasts a massive $24.6 billion endowment and counts an impressive 98 Nobel laureates among its affiliated alumni, faculty, and researchers, cementing its status as one of the most prestigious and impactful higher education institutions in the world.",
+  "score": 5,
+  "cost": 0.00098175,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 943
+  }
+}

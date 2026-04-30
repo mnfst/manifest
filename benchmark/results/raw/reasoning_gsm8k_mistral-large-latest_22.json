@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "reasoning_gsm8k",
+  "case": 22,
+  "response": "Let's solve the problem step by step.\n\n1. **Calculate Rafaela's total tips:**\n\n   - Number of customers: 40\n   - Tip per customer: $20\n\n   Rafaela's total tips = Number of customers \u00d7 Tip per customer\n   Rafaela's total tips = 40 \u00d7 $20 = $800\n\n2. **Calculate Julieta's total tips:**\n\n   - Julieta received 10% less than Rafaela.\n\n   10% of Rafaela's tips = 10% \u00d7 $800 = 0.10 \u00d7 $800 = $80\n\n   Julieta's total tips = Rafaela's total tips - 10% of Rafaela's tips\n   Julieta's total tips = $800 - $80 = $720\n\n3. **Calculate the total tips received by Julieta and Rafaela together:**\n\n   Total tips = Rafaela's total tips + Julieta's total tips\n   Total tips = $800 + $720 = $1520\n\nANSWER: 1520",
+  "score": 5,
+  "cost": 0.001688,
+  "expected": "1520",
+  "tokens": {
+    "input": 97,
+    "output": 249
+  }
+}

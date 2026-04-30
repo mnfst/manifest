@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "data_to_text",
+  "case": 17,
+  "response": "In the 2024-25 season, LeBron James, at the age of 40, has been a standout player for the Los Angeles Lakers, averaging an impressive 28.4 points, 7.2 rebounds, and 8.1 assists over 71 games. His exceptional performance earned him a spot in the All-Star game, further solidifying his legacy in the league.",
+  "score": 5,
+  "cost": 6.12e-05,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 79
+  }
+}

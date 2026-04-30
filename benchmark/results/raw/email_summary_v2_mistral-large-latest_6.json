@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "email_summary_v2",
+  "case": 6,
+  "response": "Acme Corp, a high-value customer ($450K ARR), is at risk of churning due to unresolved API latency issues and poor support response. A dedicated engineer has been assigned, and an executive sponsor is needed for a call this week to address their concerns.",
+  "score": 5,
+  "cost": 0.000548,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 57
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "email_summary_v2",
+  "case": 47,
+  "response": "The March onboarding cohort scored **7.2/10** in satisfaction (down from 8.1), with strong praise for the **buddy system (9.1/10)** and timely IT setup, but concerns included **confusion over benefits deadlines**, delayed **tool access (3\u20135 days vs. 1-day target)**, and missing **culture handbooks**.\n\n**Action item:** Prioritize **fixing tool access delays** (per Lisa), and address benefits clarity and handbook distribution.",
+  "score": 5,
+  "cost": 0.0002628,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 109
+  }
+}

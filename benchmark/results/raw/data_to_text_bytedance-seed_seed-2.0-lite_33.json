@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "data_to_text",
+  "case": 33,
+  "response": "During the 2024-25 NBA season, 40-year-old Los Angeles Lakers star LeBron James appeared in 71 total games and earned a selection to that year\u2019s NBA All-Star Game. Over that stretch, the future Hall of Famer posted elite per-game averages of 28.4 points, 7.2 rebounds, and 8.1 assists, turning in a remarkably consistent high-level campaign that defies typical expectations for veteran players of his age.",
+  "score": 5,
+  "cost": 0.000719,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 684
+  }
+}

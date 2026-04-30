@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "data_to_text",
+  "case": 35,
+  "response": "Apple\u2019s premium iPhone 15 Pro, which retails for $999, packs a standout set of hardware including a 6.1-inch OLED display, the powerful A17 Pro chip, a 48MP main camera, a 3274mAh battery, and flexible storage options spanning 128GB, 256GB, 512GB, and 1TB, all wrapped in a lightweight 187-gram frame that is easy to handle for daily use. This popular flagship earns an impressive 4.6 out of 5 star rating, a testament to its reliable performance and well-received features that resonate with the vast majority of its users.",
+  "score": 5,
+  "cost": 0.00083825,
+  "expected": "",
+  "tokens": {
+    "input": 161,
+    "output": 798
+  }
+}

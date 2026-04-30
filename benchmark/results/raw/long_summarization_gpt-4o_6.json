@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Before the pandemic, less than 5% of workers were fully remote, but the forced experiment of 2020 transformed remote work into a mainstream practice. This shift was enabled by tools like Zoom, Slack, and cloud infrastructure, although productivity research, such as studies by Stanford's Nick Bloom, showed mixed results. The transition has led to a backlash against return-to-office mandates, the adoption of hybrid work models, and significant impacts on commercial real estate and geographic arbitrage, with workers relocating to lower-cost areas. Additionally, remote work has affected company culture and the development of junior employees, while digital nomad visas have emerged to accommodate the new lifestyle.",
+  "score": 5,
+  "cost": 0.0016725,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 131
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "long_summarization",
+  "case": 8,
+  "response": "The field of artificial intelligence has traced a long trajectory from Alan Turing\u2019s foundational theoretical question about machine intelligence through decades of major shifts, including two industry downturns known as AI winters in the 1970s and 1980s, before a 2010s resurgence driven by deep learning set the stage for today\u2019s cutting-edge AI ecosystem. The 2017 release of the seminal transformer architecture paper catalyzed the current transformer-driven AI revolution, enabling the development of models like OpenAI\u2019s GPT series that aligned with the \"scaling hypothesis\" (the idea that larger models deliver greater capabilities), and sparking a high-stakes development race between leading organizations including OpenAI, Google, Anthropic, and Meta. This rapid pace of AI advancement has sparked a slate of urgent debates, ranging from the open-source versus closed-source development model divide to core safety concerns around AI-human value alignment, intentional malicious misuse, and mass job displacement. Policymakers have moved to mitigate these risks with landmark regulatory efforts such as the European Union\u2019s AI Act and U.S. executive orders governing AI use, while analysts continue to assess AI\u2019s transformative, disruptive economic impact on knowledge work, a sector long thought to be safe from widespread automation.",
+  "score": 4,
+  "cost": 0.00111825,
+  "expected": "",
+  "tokens": {
+    "input": 201,
+    "output": 1068
+  }
+}

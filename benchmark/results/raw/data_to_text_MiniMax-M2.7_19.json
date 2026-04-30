@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "data_to_text",
+  "case": 19,
+  "response": "The iPhone\u202f15\u202fPro, priced at $999, features a 6.1\u2011inch OLED display and is powered by the A17\u202fPro chip, while its 48\u202fMP main camera delivers high\u2011resolution photos. The device packs a 3,274\u202fmAh battery, offers storage options from 128\u202fGB up to 1\u202fTB, and weighs just 187\u202fg, earning a rating of 4.6\u202fout of\u202f5.",
+  "score": 5,
+  "cost": 0.0019459000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 408
+  }
+}

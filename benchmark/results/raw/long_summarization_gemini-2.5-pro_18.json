@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "long_summarization",
+  "case": 18,
+  "response": "The global food system is under severe pressure, needing to increase production by 60% to feed a projected 9.7 billion people by 2050 while facing reduced yields from climate change and resource depletion. The system itself is a major environmental problem, contributing roughly 25% of greenhouse gas emissions, while about one-third of all food produced is wasted. While solutions like precision agriculture, alternative proteins, and regenerative farming exist, the primary challenge is implementing them at scale while ensuring food remains affordable and accessible to all.",
+  "score": 4,
+  "cost": 0.0014625,
+  "expected": "",
+  "tokens": {
+    "input": 298,
+    "output": 109
+  }
+}

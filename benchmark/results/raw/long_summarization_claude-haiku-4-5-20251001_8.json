@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "long_summarization",
+  "case": 8,
+  "response": "# Summary\n\nArtificial intelligence has evolved dramatically from Turing's foundational question through periods of stagnation (the AI winters of the 1970s-1980s) to the current transformer revolution, which accelerated after the landmark 2017 transformer architecture paper and subsequent development of large language models like GPT. Major tech companies including OpenAI, Google, Anthropic, and Meta are now competing intensely in AI development, while the field grapples with critical debates over open versus closed-source models, safety concerns (alignment, misuse, and job displacement), and regulatory responses like the EU AI Act and US executive orders. The economic implications are substantial, with AI poised to significantly impact knowledge work and the broader economy.",
+  "score": 5,
+  "cost": 0.00076,
+  "expected": "",
+  "tokens": {
+    "input": 160,
+    "output": 158
+  }
+}

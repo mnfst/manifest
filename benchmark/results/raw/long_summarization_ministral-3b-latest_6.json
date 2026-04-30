@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "The shift from remote work as a niche benefit (pre-pandemic, less than **5% of workers** were fully remote) to a widespread practice accelerated during the **2020 pandemic**, driven by digital tools like **Zoom, Slack, and cloud infrastructure**. Research from **Stanford\u2019s Nick Bloom** revealed mixed productivity outcomes, while companies faced backlash over **return-to-office mandates**, leading to hybrid work models. This transformation reshaped **commercial real estate**, spurred **geographic arbitrage** (workers relocating to lower-cost areas), and altered **company culture**, particularly for junior employees, while also giving rise to **digital nomad visas**.",
+  "score": 5,
+  "cost": 1.152e-05,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 141
+  }
+}

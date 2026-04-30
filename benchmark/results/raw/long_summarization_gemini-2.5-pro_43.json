@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "long_summarization",
+  "case": 43,
+  "response": "The EU's General Data Protection Regulation (GDPR), effective since 2018, is a landmark privacy law that applies globally to any company processing data of EU residents, granting them rights like data access and erasure. The regulation enforces strict rules and carries severe penalties for non-compliance, with fines reaching up to 4% of global revenue, exemplified by Meta's record \u20ac1.2 billion fine. Despite criticisms about compliance burdens, GDPR has successfully established data privacy as a fundamental right and set a new global standard, inspiring similar legislation worldwide.",
+  "score": 5,
+  "cost": 0.00152625,
+  "expected": "",
+  "tokens": {
+    "input": 317,
+    "output": 113
+  }
+}

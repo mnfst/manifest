@@ -173,6 +173,22 @@ TASK_DEFS = {
         "judge_prompt": "Rate the answer on a 1-5 scale. 5=completely correct final answer with sound reasoning. 4=correct answer with minor reasoning gaps. 3=partially correct. 2=wrong answer but some correct steps. 1=completely wrong. Respond with ONLY a number 1-5.",
         "native_metric": "exact_answer",  # extract number after ANSWER: and compare to expected
     },
+    "long_summarization": {
+        "dataset": "datasets/long_summarization.jsonl",
+        "prompt_template": "Summarize the following text in 3-4 sentences. Capture the key facts, main argument, and any important numbers.\n\nText:\n{input}\n\nSummary:",
+        "eval_type": "llm_judge",
+        "max_output_tokens": 300,
+        "judge_prompt": "Rate this summary on a 1-5 scale. 5=captures all key points concisely. 4=good but misses one detail. 3=gets the topic but misses important facts. 2=vaguely related. 1=wrong or empty. Respond with ONLY a number 1-5.",
+        "native_metric": None,
+    },
+    "data_to_text": {
+        "dataset": "datasets/data_to_text.jsonl",
+        "prompt_template": "Convert the following structured data into a natural language paragraph. Include all the key data points. Write 2-3 sentences.\n\nData: {input}\n\nText:",
+        "eval_type": "llm_judge",
+        "max_output_tokens": 300,
+        "judge_prompt": "Rate this data-to-text conversion on a 1-5 scale. 5=all data points included in natural flowing prose. 4=most data included with good readability. 3=some data missing or awkward phrasing. 2=major data omissions. 1=wrong or empty. Respond with ONLY a number 1-5.",
+        "native_metric": None,
+    },
     "json_transform_v2": {
         "dataset": "datasets/json_transform_v2.jsonl",
         "prompt_template": "Transform the following JSON from the input format to the output format as specified.\nReturn ONLY the transformed JSON, no explanation.\n\nInput JSON:\n{input}\n\nTarget format: {target}",

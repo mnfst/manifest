@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "data_to_text",
+  "case": 7,
+  "response": "Apple (AAPL) is currently trading at $185.50, up 2.3% on the day with a volume of 45 million shares, giving the company a market capitalization of $2.87 trillion. Valued at a P/E ratio of 28.4 and offering a 0.55% dividend yield, the stock has traded between a 52-week low of $155 and a high of $198 over the past year.",
+  "score": 5,
+  "cost": 0.0078039,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 1470
+  }
+}

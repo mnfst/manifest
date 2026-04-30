@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "long_summarization",
+  "case": 11,
+  "response": "The EU's General Data Protection Regulation (GDPR), effective since 2018, established strict rules for processing the data of EU residents, requiring explicit consent and mandating 72-hour breach notifications. Non-compliance can result in massive fines, such as 4% of global revenue, with Meta receiving a record 1.2 billion euro penalty. While GDPR has set a global standard for data protection and inspired similar laws worldwide, it also faces criticism for creating compliance burdens and inconsistent enforcement. Despite these issues, the regulation has successfully framed data privacy as a fundamental right.",
+  "score": 5,
+  "cost": 0.00159625,
+  "expected": "",
+  "tokens": {
+    "input": 317,
+    "output": 120
+  }
+}

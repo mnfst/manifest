@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "long_summarization",
+  "case": 40,
+  "response": "The internet originated in the 1960s with U.S. Department of Defense-funded research, leading to ARPANET\u2019s first message in 1969 and the adoption of TCP/IP protocols in 1983 as its foundation. Tim Berners-Lee\u2019s invention of the World Wide Web in 1989, along with the 1993 launch of the Mosaic browser, made the internet accessible to the public, fueling the late-1990s dot-com boom\u2014though many companies collapsed in 2001. Key advancements like social media, smartphones (post-2007), and cloud computing (e.g., AWS in 2006) further transformed its use. Today, the internet connects over **5 billion people** and is integral to global commerce, communication, and entertainment.",
+  "score": 5,
+  "cost": 0.001754,
+  "expected": "",
+  "tokens": {
+    "input": 334,
+    "output": 181
+  }
+}

@@ -3,7 +3,7 @@
   "task": "code_generation",
   "case": 11,
   "response": "if not numbers:\n        return (0, 1)\n\n    total_sum = sum(numbers)\n    total_product = 1\n    for num in numbers:\n        total_product *= num\n\n    return (total_sum, total_product)",
-  "score": 5,
+  "score": 4,
   "cost": 0.0001564,
   "expected": "",
   "tokens": {

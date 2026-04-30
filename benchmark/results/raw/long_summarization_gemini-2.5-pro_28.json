@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "long_summarization",
+  "case": 28,
+  "response": "The internet began as a US military research project in the 1960s, with its precursor ARPANET sending its first message in 1969. Foundational developments like the TCP/IP protocol in 1983 and the World Wide Web in 1989 paved the way for public access. The launch of the first web browser in 1993, followed by the dot-com boom, social media, and mobile devices, drove its massive expansion. Today, the internet is a global force connecting over 5 billion people and is integral to nearly every aspect of modern life.",
+  "score": 5,
+  "cost": 0.001685,
+  "expected": "",
+  "tokens": {
+    "input": 332,
+    "output": 127
+  }
+}

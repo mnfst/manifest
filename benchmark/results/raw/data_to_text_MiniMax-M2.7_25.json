@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "data_to_text",
+  "case": 25,
+  "response": "Japan, a nation of about 125\u202fmillion people, has a gross domestic product of $4.2\u202ftrillion, growing at an annual rate of 1.1\u202fpercent. Unemployment is low at 2.6\u202fpercent, while inflation stands at 3.2\u202fpercent and the country\u2019s debt is a substantial 263\u202fpercent of GDP. Despite these fiscal challenges, the Japanese enjoy a life expectancy of 84.6\u202fyears and the nation exports $756\u202fbillion worth of goods and services, underscoring its role as a major global economic player.",
+  "score": 5,
+  "cost": 0.004158,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 912
+  }
+}

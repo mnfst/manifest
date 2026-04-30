@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "The 2020s have ushered in a new era of space exploration driven by both government agencies and private companies. SpaceX is developing its Starship rocket while expanding its Starlink satellite internet constellation, NASA's Artemis program aims to return humans to the Moon, and the James Webb Space Telescope is delivering groundbreaking discoveries; meanwhile, China is operating its own space station and pursuing lunar ambitions, and India has achieved success with its Chandrayaan missions. The commercial sector is also booming, with Blue Origin and Virgin Galactic pioneering space tourism, OneWeb expanding broadband coverage, and companies eyeing asteroid mining as a future frontier. However, this rapid expansion raises serious challenges, including the growing threat of space debris and the limitations of the decades-old Outer Space Treaty, which struggles to govern modern commercial and geopolitical activities beyond Earth.",
+  "score": 5,
+  "cost": 0.02649,
+  "expected": "",
+  "tokens": {
+    "input": 226,
+    "output": 308
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "long_summarization",
+  "case": 19,
+  "response": "The EU's General Data Protection Regulation (GDPR), effective since 2018, governs how companies worldwide handle the personal data of EU residents. The regulation grants individuals rights like data erasure and requires explicit consent, with non-compliance fines reaching up to 4% of global revenue or \u20ac20 million. Major fines have been levied against tech giants, including a \u20ac1.2 billion fine for Meta and a \u20ac746 million fine for Amazon. Despite criticisms over compliance burdens, GDPR has established data privacy as a fundamental right and set a global standard for similar legislation.",
+  "score": 5,
+  "cost": 0.00158625,
+  "expected": "",
+  "tokens": {
+    "input": 317,
+    "output": 119
+  }
+}

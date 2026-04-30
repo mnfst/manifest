@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "data_to_text",
+  "case": 33,
+  "response": "# LeBron James 2024-25 Season Summary\n\nDuring the 2024-25 season, 40-year-old LeBron James continued to perform at an elite level for the Lakers, averaging 28.4 points, 7.2 rebounds, and 8.1 assists across 71 games while earning his selection to the All-Star team. His scoring output of 28.4 points per game demonstrated his sustained offensive prowess, complemented by solid contributions in playmaking and rebounding that showcased his all-around impact on the court. Despite his age, LeBron's All-Star selection and consistent statistical performance underscored his enduring status as one of the NBA's premier players.",
+  "score": 5,
+  "cost": 0.0007208,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 160
+  }
+}

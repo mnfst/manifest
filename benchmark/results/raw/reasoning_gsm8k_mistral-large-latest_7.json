@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "reasoning_gsm8k",
+  "case": 7,
+  "response": "Let's solve the problem step by step.\n\n**Given:**\n- Half a dozen plates = 6 plates (since 1 dozen = 12)\n- Cost of each plate = $6000\n- Twenty dozen cups = 20 \u00d7 12 = 240 cups\n- The total cost of 240 cups is $1200 less than the total cost of 6 plates.\n\n**Step 1: Calculate the total cost of the plates.**\n\\[\n\\text{Total cost of plates} = \\text{Number of plates} \\times \\text{Cost per plate} = 6 \\times 6000 = 36000 \\text{ dollars}\n\\]\n\n**Step 2: Express the total cost of the cups in terms of the plates' cost.**\n\\[\n\\text{Total cost of cups} = \\text{Total cost of plates} - 1200 = 36000 - 1200 = 34800 \\text{ dollars}\n\\]\n\n**Step 3: Calculate the cost per cup.**\n\\[\n\\text{Cost per cup} = \\frac{\\text{Total cost of cups}}{\\text{Number of cups}} = \\frac{34800}{240}\n\\]\n\\[\n\\text{Cost per cup} = 145 \\text{ dollars}\n\\]\n\n**Final Answer:**\nANSWER: 145",
+  "score": 5,
+  "cost": 0.001978,
+  "expected": "145",
+  "tokens": {
+    "input": 77,
+    "output": 304
+  }
+}

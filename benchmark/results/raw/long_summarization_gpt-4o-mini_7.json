@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "In the 2020s, space exploration has seen significant advancements and initiatives from various countries and private companies. Key developments include SpaceX's Starship, NASA's Artemis program aimed at returning humans to the Moon, and the discoveries made by the James Webb Space Telescope. Additionally, China is advancing its space station and lunar ambitions, while India has successfully launched its Chandrayaan missions. The rise of satellite internet constellations like Starlink and OneWeb, along with the emergence of space tourism through companies like Blue Origin and Virgin Galactic, highlights the growing commercial interest in space, despite challenges such as the limitations of the Outer Space Treaty and the increasing problem of space debris.",
+  "score": 5,
+  "cost": 0.0001008,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 135
+  }
+}

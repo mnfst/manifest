@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "long_summarization",
+  "case": 31,
+  "response": "Since May 2018, the EU's General Data Protection Regulation (GDPR) has required any company processing EU residents' data to uphold rights like data access and erasure, report breaches within 72 hours, and face fines of up to 4% of global annual revenue or \u20ac20 million, whichever is higher. Major penalties have been levied against tech giants, including Meta (\u20ac1.2 billion), Amazon (\u20ac746 million), and Google (over \u20ac200 million). Although critics argue it creates heavy compliance burdens for small businesses and suffers from inconsistent enforcement, the regulation has inspired similar laws worldwide, such as California's CCPA, Brazil's LGPD, and India's Digital Personal Data Protection Act. Ultimately, GDPR established data privacy as a fundamental right and remains the global standard for data protection legislation.",
+  "score": 5,
+  "cost": 0.0023369999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 307,
+    "output": 897
+  }
+}

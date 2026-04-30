@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "long_summarization",
+  "case": 25,
+  "response": "Quantum computing leverages qubits that exploit superposition, entanglement, and interference to solve specific problems exponentially faster than classical computers, as demonstrated by Google's 2019 claim of achieving quantum supremacy with a calculation in 200 seconds that would take a classical supercomputer 10,000 years. Major tech firms and startups\u2014including IBM, Google, IonQ, and Rigetti\u2014are pursuing diverse hardware approaches, but the field faces significant hurdles because qubits are fragile, require temperatures near absolute zero, and suffer from high error rates that necessitate extensive error correction. While current machines operate with only 100\u20131,000 qubits\u2014far short of the millions potentially required for practical use\u2014quantum computing is already being explored for applications in drug discovery, cryptography, financial modeling, and logistics.",
+  "score": 5,
+  "cost": 0.0014922,
+  "expected": "",
+  "tokens": {
+    "input": 275,
+    "output": 553
+  }
+}

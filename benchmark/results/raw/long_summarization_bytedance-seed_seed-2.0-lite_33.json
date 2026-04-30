@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "long_summarization",
+  "case": 33,
+  "response": "Quantum computing is a fundamentally distinct computational framework that uses qubits\u2014units that can exist in a superposition of 0 and 1 simultaneously, unlike classical computers\u2019 binary bits that only hold one state at a time\u2014and additional quantum properties of entanglement and interference to solve specific problems exponentially faster than classical machines; IBM, Google, and startups IonQ and Rigetti are leading the development of quantum hardware built via varied approaches including superconducting circuits and trapped ions. In 2019, Google claimed the landmark milestone of quantum supremacy after completing a calculation in 200 seconds that would take a leading classical supercomputer 10,000 years to finish. Despite this early breakthrough, practical real-world quantum computing faces steep barriers: qubits are extremely fragile, error rates remain high, and current devices only hold 100 to 1,000 qubits, while millions are required to power effective error correction and run useful, complex applications. Even with these unresolved challenges, quantum computing holds major transformative promise for fields ranging from drug discovery and materials science to cryptography, with companies already testing early quantum algorithms for commercial use cases like financial modeling and logistics optimization.",
+  "score": 5,
+  "cost": 0.00150375,
+  "expected": "",
+  "tokens": {
+    "input": 323,
+    "output": 1423
+  }
+}

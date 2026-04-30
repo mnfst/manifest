@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "data_to_text",
+  "case": 1,
+  "response": "LeBron James, a 40-year-old All-Star with the Lakers, is in the 2024-25 season, appearing in 71 games. He is averaging 28.4 points, 7.2 rebounds, and 8.1 assists per game this season.",
+  "score": 5,
+  "cost": 0.00019095,
+  "expected": "",
+  "tokens": {
+    "input": 174,
+    "output": 593
+  }
+}

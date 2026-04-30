@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Remote work has shifted from a niche arrangement\u2014fewer than 5% of workers were fully remote pre-pandemic\u2014into a mainstream practice after the 2020 forced experiment, enabled by tools like Zoom, Slack, and cloud infrastructure. Research, including Stanford economist Nick Bloom's studies, has shown mixed productivity results, fueling a return-to-office backlash and the rise of hybrid models as a compromise. The shift has hollowed out commercial real estate, enabled geographic arbitrage as workers relocate to lower-cost areas, and raised concerns about eroding company culture and stunted development for junior employees. In response, dozens of countries have introduced digital nomad visas to attract this newly mobile workforce.",
+  "score": 5,
+  "cost": 0.02235,
+  "expected": "",
+  "tokens": {
+    "input": 245,
+    "output": 249
+  }
+}

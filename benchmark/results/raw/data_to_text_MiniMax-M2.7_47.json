@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "data_to_text",
+  "case": 47,
+  "response": "Taylor\u202fSwift\u2019s album **Midnights**, released in October\u202f2022, is a pop/synth\u2011pop record that contains 13 tracks and runs for about 44\u202fminutes. The set earned 1.58\u202fmillion copies in its first week, has surpassed 3.4\u202fbillion streams on Spotify, and went on to win the Grammy for Album of the Year.",
+  "score": 5,
+  "cost": 0.0018216,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 382
+  }
+}

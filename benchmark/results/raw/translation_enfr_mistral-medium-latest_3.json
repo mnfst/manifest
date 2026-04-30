@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "translation_enfr",
   "case": 3,
-  "response": "Voici une traduction fid\u00e8le qui conserve le ton et le sens du texte original :\n\n*\u00ab Il n\u2019existe aucune autre explication \u00e0 l\u2019allocation mesquine de 10 ou 12 millions d\u2019ECU, somme que nous savons tous insuffisante pour financer ne serait-ce que la construction d\u2019un seul navire \u00e9quip\u00e9 des moyens modernes n\u00e9cessaires \u00e0 l\u2019exercice d\u2019une fonction de contr\u00f4le dans le secteur de la p\u00eache. \u00bb*\n\n**Variantes possibles selon le contexte :**\n- *\"octroi chiche\"* (plus formel que *\"mesquine\"*)\n- *\"subvention d\u00e9risoire\"* (si l'accent est mis sur l'insuffisance plut\u00f4t que sur l'avarice)\n- *\"comme chacun le sait\"* (alternative \u00e0 *\"que nous savons tous\"* pour un registre l\u00e9g\u00e8rement plus neutre).\n\nCette traduction garde la critique implicite du montant allou\u00e9 tout en restant naturelle en fran\u00e7ais. Vous souhaitez des ajustements pour un ton plus technique, diplomatique ou percutant ?",
+  "response": "Voici une traduction fid\u00e8le qui conserve le ton et le sens du texte original :\n\n*\u00ab Il n\u2019existe aucune autre explication \u00e0 l\u2019allocation parcimonieuse de 10 ou 12 millions d\u2019ECU, somme que nous savons tous insuffisante, ne serait-ce que pour construire un seul navire \u00e9quip\u00e9 des moyens modernes n\u00e9cessaires \u00e0 l\u2019exercice d\u2019une fonction de surveillance dans le secteur de la p\u00eache. \u00bb*\n\n**Variante l\u00e9g\u00e8rement plus fluide (si le contexte le permet) :**\n*\u00ab Rien ne justifie l\u2019octroi mesquin de 10 ou 12 millions d\u2019ECU, une enveloppe que nous savons tous insuffisante pour financer ne f\u00fbt-ce qu\u2019un seul navire dot\u00e9 des \u00e9quipements modernes indispensables \u00e0 une surveillance efficace du secteur halieutique. \u00bb*\n\n---\n**Notes :**\n- *\"Parsimonious grant\"* est rendu par *\u00ab allocation parcimonieuse \u00bb* (litt\u00e9raire) ou *\u00ab octroi mesquin \u00bb* (plus critique, selon l\u2019intention).\n- *\u00ab Do not even suffice \u00bb* \u2192 *\u00ab insuffisante, ne serait-ce que pour \u00bb* (structure fran\u00e7aise classique pour insister sur l\u2019insuffisance).\n- *\u00ab Fisheries sector \u00bb* \u2192 *\u00ab secteur de la p\u00eache \u00bb* (terme courant) ou *\u00ab secteur halieutique \u00bb* (plus technique, utilis\u00e9 dans les textes officiels).\n- *\u00ab Monitoring function \u00bb* \u2192 *\u00ab fonction de surveillance \u00bb* (pr\u00e9cis) ou *\u00ab surveillance efficace \u00bb* (si on veut souligner le r\u00e9sultat attendu.\n\nAdaptez selon le registre souhait\u00e9 (juridique, politique, technique).",
   "score": 5,
-  "cost": 0.00044239999999999997,
+  "cost": 0.0007023999999999999,
   "expected": "",
   "tokens": {
     "input": 76,
-    "output": 206
+    "output": 336
   }
 }

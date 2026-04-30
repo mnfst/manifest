@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "data_to_text",
+  "case": 36,
+  "response": "American Airlines flight\u202fAA\u202f1234 departs from New\u202fYork\u202fJFK at 8:30\u202fa.m. and lands at Los\u202fAngeles\u202fLAX at 11:45\u202fa.m., taking 5\u202fhours\u202f15\u202fminutes aboard a Boeing\u202f787. This economy\u2011class flight is available for $289 and has an on\u2011time performance rating of 82\u202fpercent.",
+  "score": 5,
+  "cost": 0.0017413,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 364
+  }
+}

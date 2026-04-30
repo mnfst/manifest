@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "data_to_text",
+  "case": 14,
+  "response": "Team Alpha completed Sprint #23 from January 15 to 26, finishing 38 of 42 planned points with an average velocity of 36. During the sprint, the team delivered 8 stories, resolved 5 bugs, and encountered 2 blockers. Overall team satisfaction for the period was rated 4.1 out of 5.",
+  "score": 5,
+  "cost": 0.0010176,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 400
+  }
+}

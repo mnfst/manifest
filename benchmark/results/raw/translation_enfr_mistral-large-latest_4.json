@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "translation_enfr",
+  "case": 4,
+  "response": "Here\u2019s the French translation while maintaining the tone and meaning:\n\n**\"Votre mari avait-il invit\u00e9 le lieutenant Gilbert chez vous ?\"**\n\nAlternatively, for a slightly more formal or literary tone:\n**\"Votre \u00e9poux avait-il convi\u00e9 le lieutenant Gilbert \u00e0 votre domicile ?\"**",
+  "score": 5,
+  "cost": 0.0004,
+  "expected": "",
+  "tokens": {
+    "input": 32,
+    "output": 56
+  }
+}

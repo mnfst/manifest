@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "data_to_text",
+  "case": 8,
+  "response": "A 45-year-old female patient has several key health indicators that warrant attention, including a BMI of 27.3, suggesting she falls into the overweight category. Her blood pressure is slightly elevated at 138/88 mmHg, and her cholesterol levels are moderately high at 225 mg/dL, while her fasting glucose is just above the normal range at 110 mg/dL. Despite a family history of diabetes in her mother, she currently does not smoke and engages in light physical activity, exercising twice a week.",
+  "score": 5,
+  "cost": 8.68e-06,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 115
+  }
+}

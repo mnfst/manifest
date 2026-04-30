@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "long_summarization",
+  "case": 16,
+  "response": "The internet originated from US defense-funded research in the 1960s, leading to ARPANET's first message in 1969. Key developments include the adoption of TCP/IP in 1983, Tim Berners-Lee's invention of the World Wide Web in 1989, and the launch of the Mosaic browser in 1993, which popularized web access. Following the dot-com boom and bust, the rise of social media, smartphones, and cloud computing expanded the internet's reach, which now connects over 5 billion people and is essential to modern life.",
+  "score": 5,
+  "cost": 0.00020855,
+  "expected": "",
+  "tokens": {
+    "input": 315,
+    "output": 118
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "sql_spider",
+  "case": 35,
+  "response": "```sql\nSELECT c.name\nFROM conductors c\nJOIN orchestra_conductors oc ON c.id = oc.conductor_id\nGROUP BY c.id, c.name\nORDER BY COUNT(oc.orchestra_id) DESC\nLIMIT 1;\n```",
+  "score": 5,
+  "cost": 0.000136,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 54
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "long_summarization",
+  "case": 8,
+  "response": "Artificial intelligence has evolved from Turing's foundational questions to the current transformer revolution, marked by AI winters in the 1970s and 1980s, a resurgence through deep learning in the 2010s, the 2017 transformer architecture paper, GPT, and the scaling hypothesis. The field is defined by intense competition among OpenAI, Google, Anthropic, and Meta, alongside an ongoing open vs. closed source debate. AI safety concerns\u2014including alignment, misuse, and job displacement\u2014have driven regulatory efforts like the EU AI Act and US executive orders, while also significantly impacting knowledge work economically.",
+  "score": 5,
+  "cost": 0.000170625,
+  "expected": "",
+  "tokens": {
+    "input": 235,
+    "output": 510
+  }
+}

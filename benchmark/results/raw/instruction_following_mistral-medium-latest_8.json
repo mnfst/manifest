@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "instruction_following",
   "case": 8,
-  "response": "Imagine you and your friends have a magic notebook where everyone writes down who gave what toy to whom. No one can erase or change what\u2019s written\u2014it\u2019s always fair and everyone can see it! That\u2019s like a blockchain\u2014a special list that keeps track of things safely and honestly. \ud83c\udfae\u2728",
+  "response": "Imagine you and your friends have a magic notebook where everyone writes down who gave what toy to whom. No one can erase or change what\u2019s written\u2014it\u2019s *always* fair and true! That\u2019s like a **blockchain**\u2014a special list everyone can see but no one can cheat. \ud83c\udfae\u2728",
   "score": 5,
-  "cost": 0.0001356,
+  "cost": 0.0001436,
   "expected": "",
   "tokens": {
     "input": 19,
-    "output": 64
+    "output": 68
   }
 }

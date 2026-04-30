@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "long_summarization",
+  "case": 8,
+  "response": "Artificial intelligence has progressed from Alan Turing\u2019s foundational questions through research stagnation in the 1970s and 1980s to a modern breakthrough era fueled by 2010s deep learning and the pivotal 2017 transformer architecture. A fierce competition among OpenAI, Google, Anthropic, and Meta is now rapidly scaling model capabilities, intensifying debates over open versus closed development and raising urgent safety concerns around alignment, misuse, and workforce disruption. As AI increasingly transforms knowledge-based economies, policymakers are responding with regulatory frameworks like the EU AI Act and U.S. executive orders. Ultimately, this trajectory underscores the critical need to balance accelerated innovation with robust governance, safety measures, and economic adaptation.",
+  "score": 5,
+  "cost": 0.007823400000000001,
+  "expected": "",
+  "tokens": {
+    "input": 162,
+    "output": 1464
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "data_to_text",
+  "case": 26,
+  "response": "The Pad\u202fThai recipe is a medium\u2011difficulty Thai dish that requires 15\u202fminutes of prep and 10\u202fminutes of cooking, yielding four servings. Each serving provides roughly 380\u202fcalories, 22\u202fg of protein, 45\u202fg of carbs, and 12\u202fg of fat.",
+  "score": 5,
+  "cost": 0.0022968000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 491
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "data_to_text",
+  "case": 32,
+  "response": "In the most recent fiscal year, Acme\u202fCorp generated $12.3\u202fmillion in Q1, $14.1\u202fmillion in Q2, $11.8\u202fmillion in Q3 and $16.2\u202fmillion in Q4, for a total revenue of $54.4\u202fmillion\u2014an 18\u202f% year\u2011over\u2011year increase. The company employs 342 people and is headquartered in Austin, Texas.",
+  "score": 5,
+  "cost": 0.0021945,
+  "expected": "",
+  "tokens": {
+    "input": 139,
+    "output": 464
+  }
+}

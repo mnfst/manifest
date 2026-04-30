@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "Sure!\n\nAn **API** (short for *Application Programming Interface*) is like a **waiter in a restaurant**.\n\nHere\u2019s how it works:\n- You (the customer) sit at a table and look at a menu of options (like ordering food).\n- The kitchen (the system or service) is where the food is made, but you can\u2019t go back there yourself.\n- The **waiter (the API)** takes your order, brings it to the kitchen, and then delivers the food back to you\u2014without you ever needing to know how the kitchen works.\n\nIn the same way, an API lets different apps or services **talk to each other** without you having to understand the complicated stuff happening behind the scenes. It just delivers what you asked for in a simple way.\n\nFor example:\n- When you check the weather on your phone, the app uses an API to ask a weather service for the latest data and then shows it to you.\n- When you log in to a website using your Google or Facebook account, an API helps the two services share just the right info\u2014without exposing your password.\n\nIt\u2019s a **middleman** that makes things work smoothly!",
+  "score": 4,
+  "cost": 0.00147,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 239
+  }
+}

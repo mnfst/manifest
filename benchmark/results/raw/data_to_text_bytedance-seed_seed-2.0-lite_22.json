@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "data_to_text",
+  "case": 22,
+  "response": "The production web server prod-web-01, hosted in the us-east-1 cloud region, has maintained an uninterrupted uptime of 45 consecutive days, and currently utilizes 78% of its available CPU, 12.4 of its total 16 GB of memory, and 234 of its 500 GB of allocated disk space. It actively manages 127 concurrent connections, delivers a reliable P99 latency of 145ms, and logs an average of only 3 errors per hour, reflecting consistent, stable real-world performance for its end users.",
+  "score": 5,
+  "cost": 0.00079225,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 753
+  }
+}

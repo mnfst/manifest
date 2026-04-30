@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "long_summarization",
+  "case": 48,
+  "response": "Originating from 1960s U.S. defense research and the 1969 debut of ARPANET, the internet evolved through foundational milestones like the 1983 adoption of TCP/IP and Tim Berners-Lee\u2019s 1989 invention of the World Wide Web. The 1990s launch of accessible browsers and the volatile dot-com era established enduring tech giants, while later innovations like cloud computing and the 2007 iPhone shifted the network toward mobile, mainstream use. What began as a limited academic and military project has ultimately transformed into a ubiquitous global infrastructure. Today, it connects over 5 billion people and fundamentally underpins nearly every aspect of modern commerce, communication, and daily life.",
+  "score": 5,
+  "cost": 0.010167299999999999,
+  "expected": "",
+  "tokens": {
+    "input": 341,
+    "output": 1870
+  }
+}

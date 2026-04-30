@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "data_to_text",
+  "case": 18,
+  "response": "Stockholm, the capital of Sweden, has a population of 1.6 million, spans 188 square kilometers, was founded in 1252, uses Swedish as its primary language, and has a GDP per capita of $62,000. The average temperature in January is -3\u00b0C, while in July it reaches 18\u00b0C.",
+  "score": 5,
+  "cost": 0.00013319999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 180,
+    "output": 399
+  }
+}

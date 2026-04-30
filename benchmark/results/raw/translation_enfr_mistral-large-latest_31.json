@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "translation_enfr",
+  "case": 31,
+  "response": "Here\u2019s the French translation while maintaining the tone and meaning:\n\n**\"Nous pourrions vous inculper pour sollicitation.\"**\n\nAlternatively, depending on the context (e.g., legal vs. informal), you could also say:\n- **\"On pourrait vous arr\u00eater pour racolage.\"** (more informal, often used for street solicitation)\n- **\"Vous risquez des poursuites pour sollicitation.\"** (softer, implying potential legal consequences)",
+  "score": 3,
+  "cost": 0.000612,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 92
+  }
+}

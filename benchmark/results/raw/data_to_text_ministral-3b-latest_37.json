@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "data_to_text",
+  "case": 37,
+  "response": "*\"Christopher Nolan\u2019s *Oppenheimer* (2023) is a gripping drama and historical epic that reimagines the life of J. Robert Oppenheimer, the scientist behind the atomic bomb, through a meticulously crafted narrative. With an 180-minute runtime and a $100 million budget, the film delivered an unprecedented $952 million at the box office, cementing its status as a modern blockbuster while earning widespread acclaim\u2014earning an 8.3 IMDb rating and a perfect 93% on Rotten Tomatoes. It also won the prestigious Oscar for Best Picture, showcasing its critical and commercial success.\"*",
+  "score": 5,
+  "cost": 9.52e-06,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 137
+  }
+}

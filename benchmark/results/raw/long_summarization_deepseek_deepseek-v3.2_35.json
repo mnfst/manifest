@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "long_summarization",
+  "case": 35,
+  "response": "The GDPR is a European Union regulation that fundamentally reshaped data privacy laws when it took effect in 2018, applying to any organization handling EU residents' data. Its key provisions include rights like data access and erasure, mandatory data breach reporting within 72 hours, and severe fines up to 4% of global revenue or \u20ac20 million. Major fines have been levied against tech giants like Meta (\u20ac1.2 billion) and Amazon (\u20ac746 million), and the law has inspired similar regulations worldwide. Critics cite compliance burdens and inconsistent enforcement, but GDPR established data privacy as a fundamental right and set a global standard.",
+  "score": 5,
+  "cost": 0.00021485000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 305,
+    "output": 126
+  }
+}

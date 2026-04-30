@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "long_summarization",
+  "case": 27,
+  "response": "Enacted in May 2018, the European Union\u2019s General Data Protection Regulation (GDPR) revolutionized global personal data handling by applying to any company processing EU residents\u2019 data regardless of its base location, with mandatory provisions including user rights to access or erase their data, 72-hour breach reporting to authorities, and maximum penalties of the higher of 4% of global annual revenue or \u20ac20 million for violations. Since its launch, GDPR has handed down major fines to big tech firms, including a 2023 \u20ac1.2 billion fine to Meta for transferring EU user data to the U.S., a \u20ac746 million fine to Amazon for improper advertising targeting, and over \u20ac200 million in cumulative fines to Google, while its framework has inspired similar data privacy laws across the world, such as California\u2019s CCPA, Brazil\u2019s LGPD, and India\u2019s Digital Personal Data Protection Act. The regulation has faced notable criticism, with detractors arguing it imposes unmanageable compliance burdens on small businesses that stifle innovation, creates widespread user frustration from mandatory cookie consent banners, and suffers from inconsistent enforcement across EU member states. Despite these flaws, GDPR\u2019s central legacy is establishing data privacy as a fundamental right, cementing its status as the global standard for modern data protection legislation.",
+  "score": 5,
+  "cost": 0.00139175,
+  "expected": "",
+  "tokens": {
+    "input": 363,
+    "output": 1301
+  }
+}

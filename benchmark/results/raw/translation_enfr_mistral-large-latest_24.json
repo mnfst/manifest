@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "translation_enfr",
+  "case": 24,
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens du texte original :\n\n**\"Le programme de nutrition urbaine de l'UNICEF \u00e0 Nairobi est dirig\u00e9 par une femme et encourage l'octroi de cr\u00e9dits aux groupes de femmes qui commercialisent des denr\u00e9es alimentaires.\"**\n\n*Variante alternative (plus fluide) :*\n**\"Le programme de nutrition urbaine de l\u2019UNICEF \u00e0 Nairobi, dirig\u00e9 par une femme, soutient l\u2019acc\u00e8s au cr\u00e9dit pour les groupes de femmes actives dans la commercialisation de produits alimentaires.\"**\n\nSelon le contexte, vous pouvez ajuster l\u00e9g\u00e8rement la formulation. \ud83d\ude0a",
+  "score": 5,
+  "cost": 0.000862,
+  "expected": "",
+  "tokens": {
+    "input": 47,
+    "output": 128
+  }
+}

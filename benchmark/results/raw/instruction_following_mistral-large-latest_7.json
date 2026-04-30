@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "**Simple Scrambled Eggs**\n\nWhisk 2 eggs with a pinch of salt and pepper. Melt 1 tsp butter in a non-stick pan over low heat. Pour in eggs, stirring gently with a spatula until softly set (2-3 mins). Remove from heat, let rest 1 min. Serve warm. Enjoy!",
+  "score": 3,
+  "cost": 0.00049,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 75
+  }
+}

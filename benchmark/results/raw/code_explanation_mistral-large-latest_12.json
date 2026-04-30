@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "This code implements a **topological sort** using **depth-first search (DFS)**. It processes each node by recursively visiting all its unvisited neighbors first, then adds the node to a stack, resulting in a reverse topological order that's corrected by returning the reversed stack.",
+  "score": 5,
+  "cost": 0.000556,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 57
+  }
+}

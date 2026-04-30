@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "instruction_following",
   "case": 17,
-  "response": "Here\u2019s a table outlining **3 pros and 3 cons of remote work**:\n\n| **Pros of Remote Work**               | **Cons of Remote Work**               |\n|---------------------------------------|---------------------------------------|\n| **1. Flexibility & Work-Life Balance** \u2013 Employees can set their own schedules, reducing commute stress and allowing more time for personal life. | **1. Isolation & Loneliness** \u2013 Lack of in-person interaction can lead to feelings of disconnection from colleagues and company culture. |\n| **2. Increased Productivity** \u2013 Many workers report fewer distractions (e.g., office noise) and higher efficiency in a personalized workspace. | **2. Communication Challenges** \u2013 Miscommunication can occur due to reliance on digital tools (e.g., emails, chats), leading to delays or misunderstandings. |\n| **3. Cost Savings** \u2013 Employees save on commuting, work attire, and meals, while employers reduce overhead (office space, utilities). | **3. Blurred Work-Life Boundaries** \u2013 Without clear separation, employees may overwork, leading to burnout or difficulty \"unplugging.\" |\n\nWould you like me to expand on any of these points?",
-  "score": 4,
-  "cost": 0.0005016,
+  "response": "Here\u2019s a table listing **3 pros and 3 cons of remote work**:\n\n| **Pros of Remote Work**                          | **Cons of Remote Work**                          |\n|--------------------------------------------------|--------------------------------------------------|\n| **Flexibility** \u2013 Work from anywhere, set your own schedule, and balance personal/professional life more easily. | **Isolation** \u2013 Lack of in-person interaction can lead to loneliness and reduced team bonding. |\n| **Cost Savings** \u2013 No commuting costs, reduced spending on work attire, and potential savings on meals/office expenses. | **Distractions** \u2013 Home environments (family, chores, noise) may reduce productivity for some. |\n| **Increased Productivity** \u2013 Many report fewer office interruptions and better focus in a personalized workspace. | **Blurred Work-Life Boundaries** \u2013 Difficulty \"unplugging\" can lead to overworking and burnout. |\n\nWould you like me to expand on any of these points?",
+  "score": 5,
+  "cost": 0.00041160000000000003,
   "expected": "",
   "tokens": {
     "input": 19,
-    "output": 247
+    "output": 202
   }
 }

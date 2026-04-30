@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "instruction_following",
   "case": 10,
-  "response": "There once was a coder named Dave,\nWhose loops would misbehave.\nHe debugged all night,\nBy the morning light\u2014\nNow his code works (we hope) in a cave!",
+  "response": "There once was a coder named Dave,\nWhose loops would misbehave.\nHe debugged all night,\nBy the morning light\u2014\nNow his code works (but he\u2019s in his grave). \ud83d\ude04",
   "score": 5,
-  "cost": 8.96e-05,
+  "cost": 9.559999999999999e-05,
   "expected": "",
   "tokens": {
     "input": 14,
-    "output": 42
+    "output": 45
   }
 }

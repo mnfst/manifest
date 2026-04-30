@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "email_summary_v2",
+  "case": 17,
+  "response": "The team is rolling back release v4.2 due to a data corruption bug affecting 23 accounts and has outlined a recovery plan involving backup restoration, transaction reprocessing, and customer notifications. A hotfix branch has been created to address the issue.",
+  "score": 5,
+  "cost": 0.000516,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 53
+  }
+}

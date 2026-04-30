@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "data_to_text",
+  "case": 19,
+  "response": "# iPhone 15 Pro Overview\n\nThe iPhone 15 Pro is priced at $999 and features a 6.1-inch OLED display powered by the advanced A17 Pro chip, making it a premium smartphone option. It boasts a 48MP main camera, a 3274mAh battery, and comes in multiple storage configurations ranging from 128GB to 1TB, all while maintaining a lightweight design at just 187 grams. With an impressive 4.6 out of 5-star rating, the iPhone 15 Pro delivers excellent performance and user satisfaction.",
+  "score": 5,
+  "cost": 0.00062,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 132
+  }
+}

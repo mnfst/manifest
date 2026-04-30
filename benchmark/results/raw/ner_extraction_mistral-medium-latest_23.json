@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "ner_extraction",
+  "case": 23,
+  "response": "```json\n{\n    \"persons\": [\"Taylor Swift\"],\n    \"organizations\": [\"Eras Tour\"],\n    \"locations\": [\"Wembley Stadium\", \"London\"]\n}\n```",
+  "score": 4,
+  "cost": 0.0001036,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 38
+  }
+}

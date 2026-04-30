@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "sql_spider",
+  "case": 14,
+  "response": "```sql\nSELECT\n    m.maker_id,\n    m.maker_name AS maker_full_name,\n    COUNT(DISTINCT mo.model_id) AS number_of_models\nFROM\n    makers m\nJOIN\n    models mo ON m.maker_id = mo.maker_id\nGROUP BY\n    m.maker_id, m.maker_name;\n```",
+  "score": 5,
+  "cost": 0.000588,
+  "expected": "",
+  "tokens": {
+    "input": 75,
+    "output": 73
+  }
+}

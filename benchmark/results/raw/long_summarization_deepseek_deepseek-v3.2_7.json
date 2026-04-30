@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "The 2020s are defined by a new era of space exploration driven by both government programs and private companies. Key government goals include NASA's Artemis program to return humans to the Moon and China's establishment of its own space station with lunar ambitions, while private ventures are advancing satellite internet (like SpaceX's Starlink), space tourism, and reusable rocket technology with SpaceX's Starship. This rapid expansion is accompanied by significant challenges, including the outdated Outer Space Treaty, the growing threat of space debris, and the need for sustainable practices as activities like asteroid mining are considered.",
+  "score": 4,
+  "cost": 0.00015960000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 116
+  }
+}

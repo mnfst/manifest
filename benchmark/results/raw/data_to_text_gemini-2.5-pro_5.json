@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "data_to_text",
+  "case": 5,
+  "response": "Christopher Nolan's 2023 historical drama, *Oppenheimer*, won the Oscar for Best Picture and was a major critical and commercial success. The 180-minute film, made on a $100 million budget, grossed $952 million at the box office and earned high ratings with an 8.3 on IMDB and 93% on Rotten Tomatoes.",
+  "score": 5,
+  "cost": 0.000965,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 84
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "data_to_text",
+  "case": 13,
+  "response": "A powerful **7.2-magnitude earthquake** struck near **Tokyo, Japan**, at **35.6\u00b0N, 139.7\u00b0E** on **March 15, 2024, at 14:23 UTC**, originating at a shallow depth of **15 km** and triggering a **tsunami warning**. The disaster affected an estimated **2.3 million people**, causing roughly **$4.5 billion in damages** and resulting in **12 confirmed casualties**. Authorities urged coastal residents to seek higher ground as assessments of the impact continued.",
+  "score": 5,
+  "cost": 0.000298,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 124
+  }
+}

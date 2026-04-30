@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "translation_enfr",
+  "case": 9,
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton formel et le sens original :\n\n**\"De son c\u00f4t\u00e9, le deuxi\u00e8me atelier a port\u00e9 sur la mise en \u0153uvre des recommandations formul\u00e9es par les organes de surveillance des organes conventionnels \u00e0 l\u2019\u00c9tat du Cameroun, conform\u00e9ment aux trait\u00e9s internationaux et r\u00e9gionaux, concernant ses obligations envers les populations autochtones.\"**\n\n*Variante alternative (plus fluide) :*\n**\"Le deuxi\u00e8me atelier, quant \u00e0 lui, s\u2019est concentr\u00e9 sur la mise en \u0153uvre des recommandations \u00e9mises par les organes de suivi des trait\u00e9s \u00e0 l\u2019intention de l\u2019\u00c9tat camerounais, en accord avec les instruments internationaux et r\u00e9gionaux, au regard de ses obligations envers les populations autochtones.\"**\n\nSelon le contexte (document officiel, rapport, etc.), vous pouvez ajuster l\u00e9g\u00e8rement la formulation. \ud83d\ude0a",
+  "score": 5,
+  "cost": 0.001178,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 175
+  }
+}

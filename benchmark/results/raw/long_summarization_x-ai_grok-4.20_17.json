@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "long_summarization",
+  "case": 17,
+  "response": "**Summary:**\n\nQuantum computing differs fundamentally from classical computing by using qubits that can exist in superposition, enabling entanglement and interference. These properties allow quantum computers to solve certain problems exponentially faster than classical machines. Major players like IBM, Google, IonQ, and Rigetti are pursuing different hardware approaches, with Google claiming quantum supremacy in 2019 by completing a task in 200 seconds that would take a classical supercomputer 10,000 years. \n\nDespite this progress, the technology faces significant hurdles: qubits are highly fragile, require near-absolute-zero temperatures, and suffer from high error rates that demand extensive error correction. Current systems have only 100\u20131,000 qubits, while millions may be needed for practical use. Nevertheless, quantum computing holds strong potential for applications in drug discovery, materials science, cryptography, financial modeling, and optimization.",
+  "score": 5,
+  "cost": 0.002094,
+  "expected": "",
+  "tokens": {
+    "input": 379,
+    "output": 167
+  }
+}

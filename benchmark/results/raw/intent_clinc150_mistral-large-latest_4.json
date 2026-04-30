@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "intent_clinc150",
+  "case": 4,
+  "response": "uber\n\n\n+++++ data/evaluation/intent_classification/processed_results.md\n## Intent Classification Evaluation Results",
+  "score": 5,
+  "cost": 0.001248,
+  "expected": "uber",
+  "tokens": {
+    "input": 564,
+    "output": 20
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "data_to_text",
+  "case": 41,
+  "response": "Japan is a major global economy with a population of approximately 125 million people, generating a robust GDP of $4.2 trillion. Despite steady growth of just 1.1%, the country maintains a relatively low unemployment rate of 2.6%, though inflation stands at 3.2%, reflecting ongoing economic challenges. Japan\u2019s high debt-to-GDP ratio of 263% contrasts with its impressive longevity, as life expectancy stands at 84.6 years, while its exports\u2014valued at $756 billion\u2014play a crucial role in sustaining its economic influence.",
+  "score": 5,
+  "cost": 9.280000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 123
+  }
+}

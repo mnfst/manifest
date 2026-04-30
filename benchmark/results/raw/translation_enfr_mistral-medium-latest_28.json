@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "translation_enfr",
   "case": 28,
-  "response": "Voici une traduction qui conserve le ton solennel et la port\u00e9e du message original :\n\n**\"Nous sommes capables\u2026 de d\u00e9ployer une puissance de feu\u2026 plus grande que tout ce qui a jamais \u00e9t\u00e9 lib\u00e9r\u00e9 dans l\u2019histoire des guerres.\"**\n\n*(Variante l\u00e9g\u00e8rement plus concise, si le contexte le permet :*\n**\"Nous avons la capacit\u00e9\u2026 de lancer une puissance de feu in\u00e9gal\u00e9e dans toute l\u2019histoire des conflits.\"**)*\n\n---\n**Notes sur le choix des termes :**\n- **\"Launching firepower\"** \u2192 **\"D\u00e9ployer une puissance de feu\"** (plus naturel en fran\u00e7ais que *\"lancer\"*, qui \u00e9voque plut\u00f4t des missiles isol\u00e9s). *\"Lib\u00e9rer\"* (litt\u00e9ral) est aussi possible, mais moins courant dans ce contexte militaire.\n- **\"Than has ever been released\"** \u2192 **\"Plus grande que tout ce qui a jamais \u00e9t\u00e9 [d\u00e9ploy\u00e9/lib\u00e9r\u00e9]\"** : la structure est adapt\u00e9e pour \u00e9viter la lourdeur d\u2019une traduction mot \u00e0 mot (*\"que ce qui ait jamais \u00e9t\u00e9\"*).\n- **\"History of war\"** \u2192 **\"Histoire des guerres\"** (pluriel pour insister sur l\u2019ampleur, comme dans l\u2019original). *\"Des conflits\"* est une alternative plus moderne.\n\nSi le texte est extrait d\u2019un discours ou d\u2019un contexte sp\u00e9cifique (ex. : menace, d\u00e9monstration de force), on peut ajuster le registre (ex. : **\"une force de frappe sans pr\u00e9c\u00e9dent\"** pour un ton plus technique). Dites-moi si vous souhaitez une nuance particuli\u00e8re !",
-  "score": 4,
-  "cost": 0.0006332,
+  "response": "Voici une traduction qui conserve le ton solennel et la force du message original :\n\n**\"Nous sommes capables\u2026 de d\u00e9ployer une puissance de feu\u2026 plus grande que tout ce qui a jamais \u00e9t\u00e9 lib\u00e9r\u00e9 dans l\u2019histoire de la guerre.\"**\n\n*Variante l\u00e9g\u00e8rement plus concise (si le rythme doit \u00eatre plus percutant) :*\n**\"Nous avons la capacit\u00e9\u2026 de lancer une puissance de feu\u2026 sans pr\u00e9c\u00e9dent dans l\u2019histoire des conflits.\"**\n\n---\n*Notes :*\n- **\"Firepower\"** est traduit par **\"puissance de feu\"** (terme militaire standard en fran\u00e7ais).\n- **\"Than has ever been released\"** devient **\"plus grande que tout ce qui a jamais \u00e9t\u00e9 lib\u00e9r\u00e9\"** pour garder l\u2019emphase, ou **\"sans pr\u00e9c\u00e9dent\"** pour un effet plus frappant.\n- La structure en points de suspension (**\u2026**) est conserv\u00e9e pour reproduire le rythme dramatique de l\u2019original.\n\nSi le contexte est un discours ou un film, la premi\u00e8re version est id\u00e9ale. Pour un texte \u00e9crit plus formel (ex. rapport strat\u00e9gique), la seconde peut convenir.",
+  "score": 5,
+  "cost": 0.00045119999999999996,
   "expected": "",
   "tokens": {
     "input": 43,
-    "output": 308
+    "output": 217
   }
 }

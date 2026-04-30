@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "data_to_text",
+  "case": 14,
+  "response": "During **Team Alpha\u2019s Sprint #23**, held from **January 15 to January 26**, the team completed **38 out of the planned 42 points**, averaging **36 points per sprint** in velocity. They delivered **8 user stories** and resolved **5 bugs**, though they faced **two significant blockers** during the process. Overall, team satisfaction stood at a strong **4.1 out of 5**, reflecting a productive yet slightly challenged week.",
+  "score": 5,
+  "cost": 8.08e-06,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 100
+  }
+}

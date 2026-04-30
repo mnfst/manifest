@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "data_to_text",
+  "case": 38,
+  "response": "The prod-web-01 server in the us-east-1 region has maintained 45 days of uptime while handling 127 active connections with a P99 latency of 145ms. Current resource utilization stands at 78% CPU, 12.4 GB of 16 GB memory, and 234 GB of 500 GB disk space, with an error rate of 3 per hour.",
+  "score": 5,
+  "cost": 0.0007895,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 760
+  }
+}

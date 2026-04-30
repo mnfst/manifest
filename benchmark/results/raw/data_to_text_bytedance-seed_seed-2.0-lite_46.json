@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "data_to_text",
+  "case": 46,
+  "response": "Team Alpha\u2019s 23rd sprint, designated Sprint Team Alpha #23, ran for the two-week period spanning January 15 to January 26, with the team planning 42 story points of work at the cycle\u2019s start, ultimately completing 38 total points, checking off 8 full user stories, and resolving 5 tracked bugs throughout the sprint. The team encountered 2 blockers that disrupted progress at points over the course of the cycle, their overall average velocity landed at 36, and internal team satisfaction with the sprint\u2019s outcomes scored a solid 4.1 out of 5.",
+  "score": 5,
+  "cost": 0.0006485,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 612
+  }
+}

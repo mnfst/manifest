@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "long_summarization",
+  "case": 43,
+  "response": "The EU's GDPR, effective since May 2018, fundamentally reshaped global data protection by applying to any organization processing EU residents' data. Key provisions include the right to access, right to erasure, data portability, and explicit consent requirements, with organizations required to report data breaches within 72 hours. Violation fines can reach 4% of global annual revenue or \u20ac20 million, with major penalties issued to Meta (\u20ac1.2 billion), Amazon (\u20ac746 million), and Google (over \u20ac200 million). While GDPR has inspired similar legislation worldwide and established data privacy as a fundamental right, critics argue it disproportionately burdens small businesses and creates user frustration with ubiquitous cookie consent banners.",
+  "score": 5,
+  "cost": 0.0017699,
+  "expected": "",
+  "tokens": {
+    "input": 317,
+    "output": 323
+  }
+}

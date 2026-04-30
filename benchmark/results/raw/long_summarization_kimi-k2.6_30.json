@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "long_summarization",
+  "case": 30,
+  "response": "The global food system faces unprecedented strain as the population heads toward 9.7 billion by 2050, requiring 60% more food even as climate change, water scarcity in regions from the American Great Plains to India and China, and soil degradation on 33% of arable land diminish productivity. Complicating matters further, agriculture generates about 25% of greenhouse gas emissions while roughly one-third of all food produced is lost or wasted. Researchers and policymakers are exploring solutions ranging from precision agriculture and vertical farming to alternative proteins, genetic modification, regenerative practices, and subsidy reforms to transform food production. The critical obstacle is scaling these innovations globally while ensuring food remains affordable and accessible to the world's poorest populations.",
+  "score": 5,
+  "cost": 0.001986,
+  "expected": "",
+  "tokens": {
+    "input": 294,
+    "output": 754
+  }
+}

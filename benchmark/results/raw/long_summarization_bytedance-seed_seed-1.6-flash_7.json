@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "The 2020s have seen a dynamic era in space exploration, with diverse advancements spanning multiple sectors. These include SpaceX's Starship development, NASA's Artemis program aiming to return humans to the Moon, the James Webb Space Telescope's groundbreaking discoveries, China's operational space station and lunar ambitions, India's successful Chandrayaan missions, the growth of satellite internet constellations (such as Starlink and OneWeb), and the rise of space tourism (led by Blue Origin and Virgin Galactic). Concurrently, challenges like the Outer Space Treaty's limitations and the increasing issue of space debris remain prominent.",
+  "score": 5,
+  "cost": 0.00026984999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 214,
+    "output": 846
+  }
+}

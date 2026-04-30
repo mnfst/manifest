@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Imagine a magic notebook where all your friends can write down who gave what toy to whom. Every time someone writes something, *everyone* gets a copy, so no one can cheat or erase it\u2014it\u2019s always fair and true! That\u2019s like a blockchain, but for grown-up things like money or games. \ud83c\udf1f",
+  "score": 5,
+  "cost": 0.000452,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 69
+  }
+}

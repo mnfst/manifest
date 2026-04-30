@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "data_to_text",
+  "case": 15,
+  "response": "Taylor Swift\u2019s pop and synth-pop studio album Midnights, released in October 2022, features 13 tracks and a total runtime of 44 minutes, quickly emerging as one of the most successful music releases of the 2020s. The record moved an impressive 1.58 million copies in its first week of release, and has since racked up a staggering 3.4 billion streams on Spotify, reflecting its enduring global popularity among listeners. Midnights capped off its landmark run by taking home the coveted Grammy Award for Album of the Year, cementing its both its critical and commercial legacy.",
+  "score": 5,
+  "cost": 0.000839,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 803
+  }
+}

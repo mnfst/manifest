@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "data_to_text",
+  "case": 12,
+  "response": "Founded in 1861, MIT holds the #1 ranking and enrolls 11,500 students while maintaining a highly selective 3.9% acceptance rate. Supported by a $24.6 billion endowment and charging $57,590 in annual tuition, the institution employs 1,069 faculty members and claims 98 Nobel laureates among its ranks.",
+  "score": 5,
+  "cost": 0.0088257,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 1668
+  }
+}

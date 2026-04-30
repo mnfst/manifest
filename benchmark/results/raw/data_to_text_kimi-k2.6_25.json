@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "data_to_text",
+  "case": 25,
+  "response": "Japan is home to 125 million people and maintains a $4.2 trillion economy fueled by $756 billion in exports. The nation recorded 1.1% GDP growth alongside 2.6% unemployment and 3.2% inflation, while carrying a debt-to-GDP ratio of 263%. Life expectancy in Japan stands at 84.6 years.",
+  "score": 5,
+  "cost": 0.00198,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 799
+  }
+}

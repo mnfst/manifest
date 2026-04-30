@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "translation_enfr",
   "case": 46,
-  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens :\n\n*\u00ab J\u2019ai re\u00e7u sept propositions de r\u00e9solution conform\u00e9ment \u00e0 l\u2019article 37 du r\u00e8glement int\u00e9rieur. \u00bb*\n\n**Remarques :**\n- *\"Motions for resolutions\"* est traduit par *\"propositions de r\u00e9solution\"*, terme couramment utilis\u00e9 dans les contextes parlementaires ou institutionnels francophones.\n- *\"Pursuant to\"* devient *\"conform\u00e9ment \u00e0\"*, qui est l\u2019\u00e9quivalent formel en fran\u00e7ais juridique/administratif.\n- *\"Rules of Procedure\"* est rendu par *\"r\u00e8glement int\u00e9rieur\"* (ou *\"r\u00e8glement\"* seul selon le contexte), plus naturel en fran\u00e7ais que *\"r\u00e8gles de proc\u00e9dure\"* (qui peut sonner comme un calque).\n\nSi le contexte est celui d\u2019une organisation internationale (comme l\u2019ONU), on pourrait aussi dire :\n*\u00ab J\u2019ai re\u00e7u sept projets de r\u00e9solution en application de l\u2019article 37 du r\u00e8glement. \u00bb*\n\nDites-moi si vous souhaitez une nuance particuli\u00e8re !",
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens :\n\n*\u00ab J\u2019ai re\u00e7u sept propositions de r\u00e9solution conform\u00e9ment \u00e0 l\u2019article 37 du r\u00e8glement int\u00e9rieur. \u00bb*\n\n**Remarques :**\n- *\"Motions for resolutions\"* est traduit par *\"propositions de r\u00e9solution\"*, terme couramment utilis\u00e9 dans les contextes parlementaires ou institutionnels.\n- *\"Pursuant to\"* devient *\"conform\u00e9ment \u00e0\"*, qui est l\u2019\u00e9quivalent formel en fran\u00e7ais.\n- *\"Rules of Procedure\"* est rendu par *\"r\u00e8glement int\u00e9rieur\"* (ou *\"r\u00e8glement\"* selon le contexte), plus naturel en fran\u00e7ais que *\"r\u00e8gles de proc\u00e9dure\"* (bien que ce dernier soit aussi correct).\n\nSi le contexte est strictement juridique ou parlementaire, on pourrait aussi dire :\n*\u00ab J\u2019ai re\u00e7u sept projets de r\u00e9solution en application de l\u2019article 37 du r\u00e8glement. \u00bb*\n\nDites-moi si vous souhaitez une nuance particuli\u00e8re !",
   "score": 5,
-  "cost": 0.0004348,
+  "cost": 0.0004088,
   "expected": "",
   "tokens": {
     "input": 42,
-    "output": 209
+    "output": 196
   }
 }

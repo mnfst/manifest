@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "long_summarization",
+  "case": 18,
+  "response": "The global food system faces immense strain from a projected 60% increase in food demand by 2050 for a population of 9.7 billion, while climate change and agriculture's own 25% share of greenhouse gas emissions threaten production. Key pressures include severe water scarcity, like the depletion of the Ogallala Aquifer, soil degradation affecting 33% of arable land, and one-third of all food being wasted. Proposed solutions range from technological innovations like precision agriculture and alternative proteins to policy reforms, but scaling these while maintaining affordability for the poor remains the central challenge.",
+  "score": 5,
+  "cost": 0.00020380000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 296,
+    "output": 118
+  }
+}

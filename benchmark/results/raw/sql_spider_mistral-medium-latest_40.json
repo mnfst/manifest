@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "sql_spider",
+  "case": 40,
+  "response": "```sql\nWITH min_horsepower AS (\n    SELECT MIN(horsepower) AS min_hp\n    FROM cars\n)\nSELECT c.makeid, m.name AS make_name\nFROM cars c\nJOIN makes m ON c.makeid = m.makeid\nWHERE c.horsepower > (SELECT min_hp FROM min_horsepower)\n  AND c.cylinders <= 3;\n```",
+  "score": 5,
+  "cost": 0.0002044,
+  "expected": "",
+  "tokens": {
+    "input": 86,
+    "output": 85
+  }
+}

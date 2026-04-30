@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "data_to_text",
+  "case": 20,
+  "response": "American Airlines flight AA 1234 departs from JFK at 8:30 AM and arrives in Los Angeles at 11:45 AM, with a total flight time of 5 hours and 15 minutes. The flight operates on a Boeing 787 aircraft in economy class with an average on-time performance of 82%, and current fares start at $289.",
+  "score": 5,
+  "cost": 0.0009394000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 186
+  }
+}

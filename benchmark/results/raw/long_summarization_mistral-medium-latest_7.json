@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "The 2020s mark a dynamic era in space exploration, driven by **SpaceX\u2019s Starship development** (aiming for Mars), **NASA\u2019s Artemis program** (planning a **2025 Moon landing**), and **China\u2019s expanding space station** and lunar missions, alongside **India\u2019s successful Chandrayaan-3 Moon landing**. Breakthroughs like the **James Webb Space Telescope\u2019s cosmic discoveries** and the rise of **satellite internet constellations** (e.g., **Starlink\u2019s 5,000+ satellites**) highlight commercial growth, while **space tourism** (Blue Origin, Virgin Galactic) and **asteroid mining** emerge as nascent industries. However, challenges persist, including **space debris** (over **30,000 tracked objects**) and the **Outer Space Treaty\u2019s outdated regulations**, which struggle to address modern competition and resource exploitation. The decade reflects both **scientific advancement** and **geopolitical/commercial rivalry** in the new space race.",
+  "score": 5,
+  "cost": 0.000484,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 215
+  }
+}

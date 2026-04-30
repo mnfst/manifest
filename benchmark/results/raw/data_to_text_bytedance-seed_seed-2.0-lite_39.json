@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "data_to_text",
+  "case": 39,
+  "response": "Shares of Apple, which trades under the ticker symbol AAPL, are currently priced at $185.50 per share, posting a 2.3% daily gain with a total trading volume of 45 million shares. The large-cap stock boasts a $2.87 trillion market capitalization, a price-to-earnings ratio of 28.4, and a 0.55% dividend yield, and over the past 52 weeks it has traded between a low of $155 and a high of $198.",
+  "score": 5,
+  "cost": 0.0009005,
+  "expected": "",
+  "tokens": {
+    "input": 162,
+    "output": 860
+  }
+}

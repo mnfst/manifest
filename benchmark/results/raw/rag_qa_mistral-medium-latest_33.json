@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "rag_qa",
   "case": 33,
-  "response": "OPEC raised the posted price of oil by **70% to $5.11 a barrel** in response to **American aid to Israel**, specifically as a reaction to U.S. support during the 1973 conflict. The price increase was part of a broader strategy to pressure countries supporting Israel, alongside the subsequent **oil embargo** and production cuts.",
+  "response": "OPEC raised the posted price of oil by **70% to $5.11 a barrel** in response to **American aid to Israel**, specifically as a reaction to U.S. support during the 1973 conflict (the Yom Kippur War). The price increase was part of a broader strategy to pressure countries supporting Israel, alongside the subsequent oil embargo.",
   "score": 5,
-  "cost": 0.0002656,
+  "cost": 0.00026960000000000005,
   "expected": "In response to American aid to Israel",
   "tokens": {
     "input": 279,
-    "output": 77
+    "output": 79
   }
 }

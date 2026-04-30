@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "long_summarization",
+  "case": 42,
+  "response": "The global food system is under severe pressure, needing to increase production by 60% to feed a projected 9.7 billion people by 2050 while facing reduced yields from climate change. Agriculture itself is a major environmental driver, causing 25% of greenhouse gas emissions, depleting water and soil resources, and wasting roughly one-third of all food produced. While solutions like precision agriculture, alternative proteins, and regenerative farming exist, the core challenge is implementing them at a global scale. This transformation must be achieved while ensuring food remains affordable and accessible to the world's most vulnerable populations.",
+  "score": 4,
+  "cost": 0.0016125,
+  "expected": "",
+  "tokens": {
+    "input": 298,
+    "output": 124
+  }
+}

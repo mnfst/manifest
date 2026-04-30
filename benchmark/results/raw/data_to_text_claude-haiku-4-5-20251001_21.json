@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "data_to_text",
+  "case": 21,
+  "response": "# Oppenheimer\n\nChristopher Nolan's 2023 epic drama \"Oppenheimer\" is a sweeping historical film with a runtime of 180 minutes that was made on a $100 million budget and went on to earn an impressive $952 million at the global box office. The film received critical acclaim with an 8.3 rating on IMDb and a 93% score on Rotten Tomatoes, cementing its status as one of the year's most celebrated movies. \"Oppenheimer\" achieved the ultimate recognition by winning the Academy Award for Best Picture, solidifying its place as a landmark achievement in contemporary cinema.",
+  "score": 5,
+  "cost": 0.0006527999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 142
+  }
+}

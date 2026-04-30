@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "data_to_text",
+  "case": 41,
+  "response": "Japan, with a population of about 125\u202fmillion, has a Gross Domestic Product of $4.2\u202ftrillion and posted a modest GDP growth of 1.1% last year. Unemployment remains low at 2.6%, while inflation rose to 3.2% and the country\u2019s debt stands at a high 263% of GDP. The nation\u2019s life expectancy is an impressive 84.6\u202fyears and its exports total $756\u202fbillion.",
+  "score": 5,
+  "cost": 0.0025564,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 548
+  }
+}

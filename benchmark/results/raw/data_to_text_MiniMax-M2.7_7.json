@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "data_to_text",
+  "case": 7,
+  "response": "Apple Inc. (AAPL) shares are trading at $185.50, up 2.3% for the day on volume of about 45\u202fmillion shares. The company has a market capitalization of $2.87\u202ftrillion, a PE ratio of 28.4 and a dividend yield of 0.55%. Over the past 52\u202fweeks the stock has ranged from a low of $155 to a high of $198.",
+  "score": 5,
+  "cost": 0.0028996,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 625
+  }
+}

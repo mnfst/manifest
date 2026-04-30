@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "**Summary:**\n\nIn the 2020s, space exploration has accelerated dramatically, driven by both government agencies and private companies. SpaceX\u2019s Starship development, NASA\u2019s Artemis program aiming to return humans to the Moon, and the James Webb Space Telescope\u2019s groundbreaking astronomical discoveries represent major milestones. Meanwhile, China is rapidly advancing with its own space station and lunar ambitions, while India has achieved success with its Chandrayaan lunar missions.\n\nThe growing deployment of satellite internet constellations such as Starlink and OneWeb, along with the rise of commercial space tourism by Blue Origin and Virgin Galactic, highlight the increasing commercialization of space. However, the era also faces serious challenges, including the limitations of the 1967 Outer Space Treaty, the emerging prospects (and hurdles) of asteroid mining, and the growing problem of space debris.",
+  "score": 5,
+  "cost": 0.00179,
+  "expected": "",
+  "tokens": {
+    "input": 243,
+    "output": 163
+  }
+}

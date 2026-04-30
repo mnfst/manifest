@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "code_generation",
+  "case": 48,
+  "response": "```python\n    text = text.lower()\n    left, right = 0, len(text) - 1\n    while left < right:\n        if not text[left].isalnum():\n            left += 1\n        elif not text[right].isalnum():\n            right -= 1\n        elif text[left] != text[right]:\n            return False\n        else:\n            left += 1\n            right -= 1\n    return True\n```",
+  "score": 5,
+  "cost": 0.000242,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 100
+  }
+}

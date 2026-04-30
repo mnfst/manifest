@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "email_summary_v2",
+  "case": 34,
+  "response": "The **Database Team** plans to migrate from **MySQL 5.7 to PostgreSQL 16** over **May\u2013July**, with schema conversion/testing in May, a dual-write phase in June, and a zero-downtime cutover in July using blue-green deployment. **Action required:** Rewrite **three stored procedures** (a key risk), while the testing environment is already available for validation.",
+  "score": 5,
+  "cost": 0.0002092,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 85
+  }
+}

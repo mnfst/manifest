@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "data_to_text",
+  "case": 8,
+  "response": "# Patient Health Summary\n\nA 45-year-old female presents with a BMI of 27.3 and elevated blood pressure of 138/88 mmHg, along with a cholesterol level of 225 mg/dL and fasting glucose of 110 mg/dL, all of which are above normal ranges. She is a non-smoker who exercises twice weekly, which are positive lifestyle factors. However, her family history of diabetes in her mother, combined with her elevated fasting glucose and other metabolic markers, suggests she should be monitored closely for prediabetes and cardiovascular risk.",
+  "score": 5,
+  "cost": 0.0006296,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 135
+  }
+}

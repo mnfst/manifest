@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "code_generation",
+  "case": 40,
+  "response": "if a < 0:\n        a = -a\n        root = round(a ** (1/3))\n        return root ** 3 == a\n    else:\n        root = round(a ** (1/3))\n        return root ** 3 == a",
+  "score": 4,
+  "cost": 0.000174,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 56
+  }
+}

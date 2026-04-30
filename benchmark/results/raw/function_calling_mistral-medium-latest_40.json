@@ -3,7 +3,7 @@
   "task": "function_calling",
   "case": 40,
   "response": "```json\n{\n  \"name\": \"search_messages\",\n  \"arguments\": {\n    \"channel\": \"announcements\",\n    \"query\": \"release\"\n  }\n}\n```",
-  "score": 2,
+  "score": 1,
   "cost": 0.00011280000000000002,
   "expected": "",
   "tokens": {

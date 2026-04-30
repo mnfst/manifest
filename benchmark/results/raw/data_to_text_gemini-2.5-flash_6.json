@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "data_to_text",
+  "case": 6,
+  "response": "The prod-web-01 server in us-east-1 is currently utilizing 78% CPU, 12.4 out of 16 GB of memory, and 234 out of 500 GB of disk space. It has been online for 45 days, handling 127 connections with a P99 latency of 145ms and only 3 errors per hour.",
+  "score": 5,
+  "cost": 7.02e-05,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 89
+  }
+}

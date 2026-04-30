@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "long_summarization",
+  "case": 4,
+  "response": "The evolution of electric vehicles, which began in the 1830s, has accelerated into a major industry shift led by companies like Tesla, prompting legacy automakers to transition their own fleets. This transition faces significant hurdles, including technical challenges with battery technology, range anxiety, the environmental impact of mining lithium, and the need for widespread charging infrastructure. China currently dominates as the world's largest EV market and manufacturer, while the industry looks to future solutions like solid-state batteries to address remaining concerns.",
+  "score": 4,
+  "cost": 0.0011775,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 101
+  }
+}

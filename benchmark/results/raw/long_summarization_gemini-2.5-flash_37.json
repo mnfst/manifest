@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "long_summarization",
+  "case": 37,
+  "response": "Quantum computing utilizes qubits, which leverage superposition and entanglement, to solve certain problems exponentially faster than classical computers. For example, Google claimed quantum supremacy in 2019 by performing a calculation in 200 seconds that would take a classical supercomputer 10,000 years. However, practical quantum computing faces significant challenges, including qubit fragility requiring near absolute zero temperatures, high error rates, and the need for millions of qubits compared to current machines with 100-1000. Despite these hurdles, it holds immense promise for applications in drug discovery, materials science, cryptography, and optimization problems.",
+  "score": 5,
+  "cost": 0.000117,
+  "expected": "",
+  "tokens": {
+    "input": 272,
+    "output": 127
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "email_summary_v2",
+  "case": 36,
+  "response": "The **/api/v2/search** endpoint\u2019s P99 latency spiked from **200ms to 800ms** after Thursday\u2019s deploy due to a **non-indexed full-text search query**, and the fix involves **adding a GIN index on the content column**. The team will deploy the fix **tonight during the maintenance window**.",
+  "score": 5,
+  "cost": 0.0001892,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 75
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "reasoning_gsm8k",
+  "case": 26,
+  "response": "Let's break down the problem step by step to find out how many more dollars Mitchell made than Liam.\n\n1. **Calculate Mitchell's total earnings:**\n   - Mitchell sold 21 lemonades.\n   - Each lemonade was sold for $4.\n   - Total earnings = Number of lemonades \u00d7 Price per lemonade\n   - Total earnings = 21 \u00d7 $4 = $84\n\n2. **Identify Liam's total earnings:**\n   - Liam made $63 that weekend.\n\n3. **Find the difference in earnings:**\n   - Difference = Mitchell's earnings - Liam's earnings\n   - Difference = $84 - $63 = $21\n\nSo, Mitchell made $21 more than Liam that weekend.\n\nANSWER: 21",
+  "score": 5,
+  "cost": 0.001172,
+  "expected": "21",
+  "tokens": {
+    "input": 106,
+    "output": 160
+  }
+}

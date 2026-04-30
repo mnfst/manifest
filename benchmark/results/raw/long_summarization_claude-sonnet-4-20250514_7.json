@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "The 2020s have marked a transformative era in space exploration, driven by both government programs and private industry initiatives. Major developments include SpaceX's Starship development and Starlink satellite constellation, NASA's Artemis program aimed at lunar return, groundbreaking discoveries from the James Webb Space Telescope, and significant achievements by China and India in lunar exploration and space station construction. The decade has also witnessed the emergence of commercial space tourism through companies like Blue Origin and Virgin Galactic, alongside growing interest in asteroid mining opportunities. However, this rapid expansion faces challenges including the limitations of the existing Outer Space Treaty framework and the increasing problem of space debris from proliferating satellite networks.",
+  "score": 4,
+  "cost": 0.00264,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 146
+  }
+}

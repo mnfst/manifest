@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "rag_qa",
   "case": 18,
-  "response": "Allan Bloom",
-  "score": 0,
-  "cost": 7.6e-05,
+  "response": "Allan Bloom wrote *\"The Closing of the American Mind.\"*",
+  "score": 5,
+  "cost": 9.6e-05,
   "expected": "Allan Bloom",
   "tokens": {
     "input": 170,
-    "output": 4
+    "output": 14
   }
 }

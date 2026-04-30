@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "long_summarization",
+  "case": 47,
+  "response": "The EU's General Data Protection Regulation (GDPR), enacted in May 2018, sets strict global rules for handling EU residents' personal data, including rights to access and erasure, mandatory breach reporting within 72 hours, and potential fines of up to 4% of global revenue. Major tech companies like Meta, Amazon, and Google have faced fines exceeding 1 billion, 746 million, and 200 million euros respectively for violations. While critics cite compliance burdens and inconsistent enforcement, GDPR has become a global benchmark, inspiring similar privacy laws in California, Brazil, and India.",
+  "score": 5,
+  "cost": 0.00020865,
+  "expected": "",
+  "tokens": {
+    "input": 311,
+    "output": 119
+  }
+}

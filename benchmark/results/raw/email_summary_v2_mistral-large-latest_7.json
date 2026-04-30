@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "email_summary_v2",
+  "case": 7,
+  "response": "The new office at 500 Market St will be ready by June 1, with the move scheduled for June 7\u20138 and IT network setup from June 4\u20136. Each team must designate a move coordinator by Friday, as professional movers have been approved.",
+  "score": 5,
+  "cost": 0.00053,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 58
+  }
+}

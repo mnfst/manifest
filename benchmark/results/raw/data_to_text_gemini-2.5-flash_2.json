@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "data_to_text",
+  "case": 2,
+  "response": "Stockholm, the capital of Sweden, was founded in 1252 and has a population of 1.6 million people spread across an area of 188 km\u00b2. Its residents speak Swedish and boast a GDP per capita of $62,000, experiencing average temperatures of -3\u00b0C in January and 18\u00b0C in July.",
+  "score": 5,
+  "cost": 6.015e-05,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 76
+  }
+}

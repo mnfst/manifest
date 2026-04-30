@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "code_explanation",
   "case": 2,
-  "response": "This code implements the **quicksort algorithm**, a divide-and-conquer sorting method that recursively partitions an array around a chosen **pivot** (here, the middle element). It splits the array into three subarrays\u2014elements **less than**, **equal to**, and **greater than** the pivot\u2014then sorts and combines them to produce a fully sorted result.",
+  "response": "This code implements the **quicksort algorithm** to sort an array by recursively partitioning it around a **pivot** (the middle element). It splits the array into three subarrays: elements less than the pivot (`left`), equal to the pivot (`mid`), and greater than the pivot (`right`), then combines the sorted subarrays (`quicksort(left) + mid + quicksort(right)`) to produce the final sorted result.",
   "score": 5,
-  "cost": 0.00019480000000000002,
+  "cost": 0.00022280000000000002,
   "expected": "",
   "tokens": {
     "input": 112,
-    "output": 75
+    "output": 89
   }
 }

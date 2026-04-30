@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "reasoning_gsm8k",
+  "case": 20,
+  "response": "1. Jen has 3 fish.\n2. Each fish requires $1 worth of food per day.\n3. First, calculate the daily cost for all fish: 3 fish * $1/fish/day = $3/day.\n4. May has 31 days.\n5. Calculate the total cost for May: $3/day * 31 days = $93.\n\nANSWER: 93",
+  "score": 5,
+  "cost": 0.00066,
+  "expected": "93",
+  "tokens": {
+    "input": 72,
+    "output": 86
+  }
+}

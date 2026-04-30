@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "instruction_following",
   "case": 46,
-  "response": "**Subject:** Thank You & Farewell\n\nDear Team,\n\nAs my time here comes to an end, I want to thank each of you for the support, collaboration, and memories we\u2019ve shared. Working alongside such talented and kind people has made this experience truly special. I\u2019ll miss our teamwork and camaraderie but look forward to staying in touch. Please don\u2019t hesitate to reach out\u2014I\u2019d love to hear how everyone is doing. Wishing you all continued success and happiness!\n\nBest,\n[Your Name]",
-  "score": 5,
-  "cost": 0.0002164,
+  "response": "**Subject:** Thank You & Farewell\n\nDear Team,\n\nAs my time here comes to an end, I want to thank each of you for the support, collaboration, and memories we\u2019ve shared. Working alongside such talented and kind people has made this experience truly special. I\u2019ll miss our teamwork and the positive energy you all bring every day. Please stay in touch\u2014I\u2019d love to keep our connections strong.\n\nWishing you all continued success and happiness ahead!\n\nBest,\n[Your Name]",
+  "score": 4,
+  "cost": 0.0002064,
   "expected": "",
   "tokens": {
     "input": 16,
-    "output": 105
+    "output": 100
   }
 }

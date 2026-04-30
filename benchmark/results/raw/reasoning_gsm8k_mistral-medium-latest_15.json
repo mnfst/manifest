@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "reasoning_gsm8k",
   "case": 15,
-  "response": "Let's solve the problem step by step.\n\n1. **Joey's initial points**: 214\n2. **Joey scores 26 points**:\n   \\( 214 + 26 = 240 \\)\n   Joey now has 240 points.\n\n3. **Marcy's initial points**: 225\n4. **Marcy scores 10 points**:\n   \\( 225 + 10 = 235 \\)\n   Marcy now has 235 points.\n\n5. **Calculate the difference**:\n   \\( 240 - 235 = 5 \\)\n   Joey is winning by 5 points.\n\nANSWER: 5",
+  "response": "Let's solve the problem step by step.\n\n1. Joey's initial points: 214\n2. Joey scores 26 points on his turn:\n   214 + 26 = 240\n   Joey now has 240 points.\n\n3. Marcy's initial points: 225\n4. Marcy scores 10 points on her turn:\n   225 + 10 = 235\n   Marcy now has 235 points.\n\n5. To find out by how many points Joey is winning, subtract Marcy's total from Joey's total:\n   240 - 235 = 5\n\nANSWER: 5",
   "score": 5,
-  "cost": 0.0003416,
+  "cost": 0.0003436,
   "expected": "5",
   "tokens": {
     "input": 89,
-    "output": 153
+    "output": 154
   }
 }

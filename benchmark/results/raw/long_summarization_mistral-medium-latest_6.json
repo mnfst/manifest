@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Before the pandemic, fewer than **5% of workers** were fully remote, but the **2020 lockdowns forced a rapid shift**, accelerated by tools like **Zoom, Slack, and cloud infrastructure**. Research, including **Stanford\u2019s Nick Bloom\u2019s studies**, found mixed productivity effects, while debates over **return-to-office mandates** led to **hybrid models** becoming dominant, disrupting **commercial real estate** and enabling **geographic arbitrage** as workers relocated to cheaper areas. The shift also raised concerns about **company culture and junior employee development**, while governments responded with **digital nomad visas** to attract remote workers. The experiment reshaped work norms, blending flexibility with new challenges.",
+  "score": 5,
+  "cost": 0.0003528,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 147
+  }
+}

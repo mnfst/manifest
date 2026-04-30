@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "data_to_text",
+  "case": 37,
+  "response": "Christopher Nolan directed the 2023 drama/history film Oppenheimer, which won the Oscar for Best Picture. The movie, with a runtime of 180 minutes, had a budget of $100 million and grossed $952 million at the box office, achieving an IMDB rating of 8.3 and a Rotten Tomatoes score of 93%.",
+  "score": 5,
+  "cost": 4.1899999999999995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 80
+  }
+}

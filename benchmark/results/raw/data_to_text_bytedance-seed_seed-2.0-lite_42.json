@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "data_to_text",
+  "case": 42,
+  "response": "This medium-difficulty Thai Pad Thai recipe comes together quickly, with only 15 minutes of prep time and 10 minutes of cook time required to make a full batch that serves four people. Each serving of this beloved classic clocks in at 380 calories, with a balanced macro breakdown of 22 grams of protein, 45 grams of carbohydrates, and 12 grams of fat, making it a satisfying homemade alternative to restaurant takeout.",
+  "score": 5,
+  "cost": 0.00059525,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 559
+  }
+}

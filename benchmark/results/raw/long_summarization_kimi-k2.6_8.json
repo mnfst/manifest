@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "long_summarization",
+  "case": 8,
+  "response": "Artificial intelligence has progressed from Turing's foundational questions through the AI winters of the 1970s and 1980s to a deep learning resurgence in the 2010s. The field was transformed by the 2017 transformer architecture paper, which gave rise to GPT and the scaling hypothesis that now powers large language models. An intense competitive race has emerged between OpenAI, Google, Anthropic, and Meta, paralleled by a vigorous open- versus closed-source debate. This rapid advancement has raised urgent AI safety concerns\u2014including alignment, misuse, and job displacement\u2014spurring regulatory efforts such as the EU AI Act and US executive orders while fundamentally reshaping the economics of knowledge work.",
+  "score": 5,
+  "cost": 0.0025193999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 1013
+  }
+}

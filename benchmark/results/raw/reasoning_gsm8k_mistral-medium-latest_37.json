@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "reasoning_gsm8k",
   "case": 37,
-  "response": "Let's solve the problem step by step.\n\n1. **Total number of voters**: 100.\n\n2. **Votes for candidate A**:\n   Candidate A got 20% of the votes.\n   \\( 20\\% \\) of 100 = \\( 0.20 \\times 100 = 20 \\) votes.\n\n3. **Votes for candidate B**:\n   Candidate B got 50% more votes than candidate A.\n   \\( 50\\% \\) of 20 = \\( 0.50 \\times 20 = 10 \\) votes.\n   So, candidate B got \\( 20 + 10 = 30 \\) votes.\n\n4. **Votes for candidate C**:\n   The rest of the votes went to candidate C.\n   Total votes = Votes for A + Votes for B + Votes for C\n   \\( 100 = 20 + 30 + \\text{Votes for C} \\)\n   \\( \\text{Votes for C} = 100 - 20 - 30 = 50 \\) votes.\n\nANSWER: 50",
-  "score": 5,
-  "cost": 0.0005436,
+  "response": "Let's solve the problem step by step.\n\n1. **Total number of voters**: 100.\n\n2. **Votes for candidate A**:\n   - Candidate A got 20% of the votes.\n   - Number of votes for A = 20% of 100 = 0.20 * 100 = 20 votes.\n\n3. **Votes for candidate B**:\n   - Candidate B got 50% more votes than candidate A.\n   - 50% of A's votes = 0.50 * 20 = 10 votes.\n   - Total votes for B = A's votes + 50% of A's votes = 20 + 10 = 30 votes.\n\n4. **Votes for candidate C**:\n   - The rest of the votes went to candidate C.\n   - Total votes for A and B = 20 + 30 = 50 votes.\n   - Votes for C = Total votes - Votes for A and B = 100 - 50 = 50 votes.\n\nANSWER: 50",
+  "score": 4,
+  "cost": 0.0005216,
   "expected": "50",
   "tokens": {
     "input": 99,
-    "output": 252
+    "output": 241
   }
 }

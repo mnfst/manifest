@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "long_summarization",
+  "case": 19,
+  "response": "Implemented in May 2018, the EU's GDPR applies globally to any company processing EU residents' data, mandating rights like data access and erasure, requiring breach reports within 72 hours, and imposing fines of up to 4% of global revenue or \u20ac20 million. Major tech firms have faced severe penalties under the law, including a \u20ac1.2 billion fine for Meta, a \u20ac746 million fine for Amazon, and over \u20ac200 million in fines for Google. Although critics argue it creates compliance burdens for small businesses and stifles innovation, the regulation has firmly established data privacy as a fundamental right and inspired similar data protection laws worldwide, including in California, Brazil, and India.",
+  "score": 5,
+  "cost": 0.0028289999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 307,
+    "output": 1102
+  }
+}

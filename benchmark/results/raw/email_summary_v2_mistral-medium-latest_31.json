@@ -2,7 +2,7 @@
   "model": "mistral-medium-latest",
   "task": "email_summary_v2",
   "case": 31,
-  "response": "The email proposes adding a new **\"Starter\" tier at $29/month** (between Free and Pro) to reduce churn, offering limited features (5 users, 10K API calls, email support) and projecting a **15% recovery of price-sensitive users**, boosting ARR by **$180K**.\n\n**Action required:** Review and approve the pricing tier proposal to address churn and revenue growth.",
+  "response": "The email proposes adding a new **\"Starter\" tier at $29/month** (between Free and Pro) to reduce churn, offering limited features (5 users, 10K API calls, email support) and projecting a **15% recovery of price-sensitive users**, boosting ARR by **$180K**.\n\n**Action item:** Review and approve the pricing tier proposal to address churn and revenue growth.",
   "score": 5,
   "cost": 0.0002236,
   "expected": "",

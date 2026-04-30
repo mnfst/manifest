@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "email_summary_v2",
   "case": 44,
-  "response": "Sarah highlighted that marketing overspent by **15%** in Q3 due to the August campaign, while engineering is **8% under budget** because of delayed hiring, and she proposes **reallocating $50K** from engineering to cover the shortfall. A **discussion is requested for Thursday** to review the proposal.",
+  "response": "Sarah highlighted that marketing overspent by **15%** in Q3 due to the August campaign, while engineering is **8% under budget** because of delayed hiring, and she proposes **reallocating $50K** from engineering to cover the shortfall. A **discussion is requested for Thursday** to review and approve the adjustment.",
   "score": 5,
-  "cost": 0.00017559999999999999,
+  "cost": 0.0001796,
   "expected": "",
   "tokens": {
     "input": 94,
-    "output": 69
+    "output": 71
   }
 }

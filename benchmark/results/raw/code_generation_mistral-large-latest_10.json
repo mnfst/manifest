@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "code_generation",
+  "case": 10,
+  "response": "```python\n    count = 0\n    for num in arr:\n        n = abs(num)\n        digit_sum = 0\n        if num < 0:\n            digit_sum = -int(str(n)[0]) + sum(int(d) for d in str(n)[1:])\n        else:\n            digit_sum = sum(int(d) for d in str(n))\n        if digit_sum > 0:\n            count += 1\n    return count\n```",
+  "score": 4,
+  "cost": 0.000906,
+  "expected": "",
+  "tokens": {
+    "input": 162,
+    "output": 97
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "long_summarization",
+  "case": 46,
+  "response": "The global food system faces a critical dual challenge: it must increase production by 60% to feed a projected 9.7 billion people by 2050 while simultaneously reducing its severe environmental footprint. Climate change, water scarcity, and intensive farming have already degraded 33% of arable land, while agriculture itself generates roughly 25% of global greenhouse gas emissions and sees one-third of all food wasted. Innovations like precision agriculture, alternative proteins, regenerative farming, and targeted policy reforms offer viable pathways to transform the system. The central hurdle, however, is scaling these solutions globally without compromising food affordability and accessibility for the world's poorest populations.",
+  "score": 4,
+  "cost": 0.006230899999999999,
+  "expected": "",
+  "tokens": {
+    "input": 309,
+    "output": 1121
+  }
+}

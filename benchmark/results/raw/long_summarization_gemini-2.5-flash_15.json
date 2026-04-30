@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "long_summarization",
+  "case": 15,
+  "response": "The EU's General Data Protection Regulation (GDPR), effective May 2018, fundamentally changed how organizations worldwide handle personal data of EU residents, establishing rights like data access and erasure, and requiring explicit consent. It mandates data breach reporting within 72 hours and imposes severe penalties, up to 4% of global annual revenue or \u20ac20 million, with major tech firms like Meta (\u20ac1.2 billion) and Amazon (\u20ac746 million) receiving significant fines. While criticized for compliance burdens and inconsistent enforcement, GDPR has inspired similar laws worldwide and set the global standard for data privacy as a fundamental right.",
+  "score": 5,
+  "cost": 0.00012375,
+  "expected": "",
+  "tokens": {
+    "input": 317,
+    "output": 127
+  }
+}

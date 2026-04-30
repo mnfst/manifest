@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "data_to_text",
+  "case": 24,
+  "response": "The patient is a 45-year-old female with a BMI of 27.3, a blood pressure reading of 138/88, a cholesterol level of 225 mg/dL, and a fasting glucose of 110 mg/dL. She is a non-smoker who exercises twice per week and has a family history of diabetes on her mother's side. These findings suggest borderline elevations across several cardiometabolic markers that warrant monitoring and lifestyle intervention.",
+  "score": 5,
+  "cost": 0.01356,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 150
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "sql_spider",
+  "case": 41,
+  "response": "```sql\nSELECT SUM(population)\nFROM city\nWHERE district = 'Gelderland';\n```",
+  "score": 4,
+  "cost": 7.240000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 66,
+    "output": 23
+  }
+}

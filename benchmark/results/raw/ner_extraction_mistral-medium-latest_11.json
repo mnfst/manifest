@@ -2,7 +2,7 @@
   "model": "mistral-medium-latest",
   "task": "ner_extraction",
   "case": 11,
-  "response": "```json\n{\n  \"persons\": [],\n  \"organizations\": [\n    \"United Nations Security Council\",\n    \"United Nations\"\n  ],\n  \"locations\": [\n    \"North Korea\",\n    \"New York\"\n  ]\n}\n```",
+  "response": "```json\n{\n    \"persons\": [],\n    \"organizations\": [\n        \"United Nations Security Council\",\n        \"United Nations\"\n    ],\n    \"locations\": [\n        \"North Korea\",\n        \"New York\"\n    ]\n}\n```",
   "score": 4,
   "cost": 0.000128,
   "expected": "",

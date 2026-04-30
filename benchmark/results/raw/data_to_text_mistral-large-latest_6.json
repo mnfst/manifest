@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "data_to_text",
+  "case": 6,
+  "response": "Here\u2019s a natural language paragraph incorporating all the key data points:\n\n*The production server **prod-web-01**, located in the **us-east-1** region, is currently operating at **78% CPU usage** with **12.4 GB of its 16 GB memory** in use. It has **234 GB of its 500 GB disk** consumed, an uptime of **45 days**, and is handling **127 active connections** with a **P99 latency of 145ms**. Over the past hour, the server has logged **3 errors**.*",
+  "score": 5,
+  "cost": 0.000998,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 129
+  }
+}

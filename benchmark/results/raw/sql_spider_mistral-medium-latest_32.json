@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "sql_spider",
+  "case": 32,
+  "response": "```sql\nSELECT\n    p.first_name,\n    AVG(r.ranking) AS average_ranking\nFROM\n    players p\nJOIN\n    rankings r ON p.player_id = r.player_id\nGROUP BY\n    p.player_id, p.first_name\nORDER BY\n    p.first_name;\n```",
+  "score": 5,
+  "cost": 0.0001604,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 66
+  }
+}

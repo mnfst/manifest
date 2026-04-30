@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "data_to_text",
+  "case": 14,
+  "response": "Team Alpha\u2019s 23rd sprint ran from January 15 to January 26, where the team planned for 42 total story points of work and ultimately completed 38 points, outperforming their average sprint velocity of 36 points. Across the sprint timeline, the team delivered 8 full user stories, resolved 5 open bugs, encountered 2 blockers that disrupted portions of their workflow, and earned an overall team satisfaction score of 4.1 out of 5 for the full sprint period.",
+  "score": 5,
+  "cost": 0.0007025,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 666
+  }
+}

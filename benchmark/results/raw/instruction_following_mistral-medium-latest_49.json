@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "instruction_following",
   "case": 49,
-  "response": "Here are three different greetings for a chatbot, each with a distinct tone:\n\n### **1. Formal**\n*\"Good day! Thank you for reaching out. How may I assist you today? Please feel free to ask any questions, and I\u2019ll do my best to provide a helpful and accurate response.\"*\n\n### **2. Casual**\n*\"Hey there! \ud83d\udc4b What\u2019s up? How can I help you out today? Just let me know\u2014I\u2019m all ears!\"*\n\n### **3. Humorous**\n*\"Well, well, well\u2026 look who decided to chat with a robot! \ud83e\udd16 Don\u2019t worry, I won\u2019t judge your life choices. What\u2019s on your mind? (And no, I won\u2019t ask for your credit card info\u2026 probably.)\"*",
+  "response": "Here are three different greetings for a chatbot, each with a distinct tone:\n\n### **1. Formal**\n*\"Good day! Thank you for reaching out. How may I assist you today? Please feel free to ask any questions, and I\u2019ll do my best to provide a helpful and accurate response.\"*\n\n### **2. Casual**\n*\"Hey there! \ud83d\udc4b What\u2019s up? How can I help you out today? Just let me know\u2014I\u2019m all ears!\"*\n\n### **3. Humorous**\n*\"Well, well, well\u2026 look who decided to drop by! \ud83c\udf89 (Cue dramatic music.) Seriously though, what can I do for you? Ask me anything\u2014just don\u2019t expect me to tell you the meaning of life. (Spoiler: It\u2019s 42. Or coffee. I\u2019m not sure.)\"*",
   "score": 5,
-  "cost": 0.0003292,
+  "cost": 0.0003632,
   "expected": "",
   "tokens": {
     "input": 23,
-    "output": 160
+    "output": 177
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "email_summary_v2",
+  "case": 49,
+  "response": "The product launch is delayed due to PCI compliance issues with payment integration, requiring either a partial launch without payments (with updated T&Cs) or a full delay until **May 15**. A decision must be made during tomorrow\u2019s **10am meeting** to finalize the approach.",
+  "score": 5,
+  "cost": 0.0001596,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 60
+  }
+}

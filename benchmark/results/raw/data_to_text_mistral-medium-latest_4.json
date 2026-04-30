@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "data_to_text",
+  "case": 4,
+  "response": "American Airlines flight **AA 1234** operates a **5-hour, 15-minute** route from **New York\u2019s JFK to Los Angeles (LAX)**, departing at **8:30 AM** and arriving at **11:45 AM** aboard a **Boeing 787**. The **Economy class** ticket is priced at **$289**, and the flight maintains an **82% on-time performance rate**, offering a reliable travel option.",
+  "score": 5,
+  "cost": 0.000252,
+  "expected": "",
+  "tokens": {
+    "input": 105,
+    "output": 105
+  }
+}

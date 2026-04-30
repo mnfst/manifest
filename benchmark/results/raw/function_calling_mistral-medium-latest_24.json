@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "function_calling",
   "case": 24,
-  "response": "```json\n{\n  \"name\": \"rotate_api_key\",\n  \"arguments\": {\n    \"service\": \"production\",\n    \"environment\": \"production\"\n  }\n}\n```---\n```json\n{\n  \"name\": \"notify_team\",\n  \"arguments\": {\n    \"message\": \"API keys for the production service have been rotated.\",\n    \"channel\": \"general\"\n  }\n}\n```",
-  "score": 5,
-  "cost": 0.0001976,
+  "response": "```json\n{\n  \"name\": \"rotate_api_key\",\n  \"arguments\": {\n    \"service\": \"production\",\n    \"environment\": \"production\"\n  }\n}\n``` (followed by)\n```json\n{\n  \"name\": \"notify_team\",\n  \"arguments\": {\n    \"message\": \"API keys for the production service have been rotated.\",\n    \"channel\": \"general\"\n  }\n}\n```",
+  "score": 4,
+  "cost": 0.00020559999999999998,
   "expected": "",
   "tokens": {
     "input": 89,
-    "output": 81
+    "output": 85
   }
 }

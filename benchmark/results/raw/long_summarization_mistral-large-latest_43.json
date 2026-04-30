@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "long_summarization",
+  "case": 43,
+  "response": "The **EU\u2019s General Data Protection Regulation (GDPR)**, effective since May 2018, mandates strict rules for handling personal data of EU residents, including rights like access, erasure, and consent, as well as mandatory breach reporting within **72 hours**. Violations can result in fines of up to **4% of global revenue or \u20ac20 million**, with major tech companies like **Meta (\u20ac1.2B), Amazon (\u20ac746M), and Google (over \u20ac200M)** facing penalties. While GDPR has inspired similar laws worldwide (e.g., **California\u2019s CCPA, Brazil\u2019s LGPD**), critics argue it burdens small businesses and creates user frustration, though it has cemented data privacy as a **fundamental right** and a global standard.",
+  "score": 5,
+  "cost": 0.001654,
+  "expected": "",
+  "tokens": {
+    "input": 326,
+    "output": 167
+  }
+}

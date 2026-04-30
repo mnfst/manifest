@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "email_summary_v2",
   "case": 35,
-  "response": "The updated **Content Moderation Policy** now requires labeling AI-generated images, bans deepfakes, and mandates disclosure of AI-assisted text, with enforcement beginning **June 1**. Teams should review the upcoming training materials to ensure compliance with the new rules.",
+  "response": "The updated **Content Moderation Policy** now requires labeling AI-generated images, bans deepfakes, and mandates disclosure of AI-assisted text, with enforcement beginning **June 1**. Teams should review the upcoming training materials and ensure compliance by the deadline.",
   "score": 5,
-  "cost": 0.000146,
+  "cost": 0.000144,
   "expected": "",
   "tokens": {
     "input": 95,
-    "output": 54
+    "output": 53
   }
 }

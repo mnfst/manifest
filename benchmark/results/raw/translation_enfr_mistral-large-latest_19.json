@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "translation_enfr",
+  "case": 19,
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton formel et pr\u00e9cis de l'original :\n\n**FTI \u2014 Privil\u00e8ges et conditions**\n\nSi vous souhaitez une version plus d\u00e9taill\u00e9e ou adapt\u00e9e \u00e0 un contexte sp\u00e9cifique (contrat, site web, etc.), n'h\u00e9sitez pas \u00e0 pr\u00e9ciser !",
+  "score": 5,
+  "cost": 0.000458,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 66
+  }
+}

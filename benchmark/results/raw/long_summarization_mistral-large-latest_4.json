@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "long_summarization",
+  "case": 4,
+  "response": "Electric vehicles (EVs) have evolved from 19th-century experiments to a modern industry led by Tesla, facing key challenges like battery technology, charging infrastructure, and raw material sourcing (e.g., lithium and cobalt). Legacy automakers such as Ford, GM, and Volkswagen are shifting toward EVs, while China dominates as the largest market and manufacturer. Concerns like range anxiety, slow charging times, and grid capacity persist, though advancements like solid-state batteries could address these issues. Government incentives and environmental debates over mining further shape the industry\u2019s growth.",
+  "score": 5,
+  "cost": 0.000958,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 114
+  }
+}

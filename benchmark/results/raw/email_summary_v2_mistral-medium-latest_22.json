@@ -2,7 +2,7 @@
   "model": "mistral-medium-latest",
   "task": "email_summary_v2",
   "case": 22,
-  "response": "The **Japan expansion** is planned for **May\u2013August**, covering legal setup, localization, beta testing, and general availability, with a **$200K budget** allocated across key areas. **CEO approval is required** to move forward with the proposed timeline and funding.",
+  "response": "The **Japan expansion plan** outlines a phased launch from May (legal setup) to August (general availability), with a **$200K budget** allocated across legal, localization, and hiring. **CEO approval is required** to move forward with the proposed timeline and funding.",
   "score": 5,
   "cost": 0.00015519999999999998,
   "expected": "",

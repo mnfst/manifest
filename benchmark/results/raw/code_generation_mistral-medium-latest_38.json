@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "code_generation",
+  "case": 38,
+  "response": "if not lst:\n        return (None, None)\n\n    negatives = [x for x in lst if x < 0]\n    positives = [x for x in lst if x > 0]\n\n    a = max(negatives) if negatives else None\n    b = min(positives) if positives else None\n\n    return (a, b)",
+  "score": 5,
+  "cost": 0.0002184,
+  "expected": "",
+  "tokens": {
+    "input": 171,
+    "output": 75
+  }
+}

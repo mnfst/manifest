@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "sql_spider",
+  "case": 49,
+  "response": "```sql\nSELECT t1.hometown\nFROM teachers t1\nJOIN teachers t2 ON t1.hometown = t2.hometown\nWHERE t1.teacher_id < t2.teacher_id\nGROUP BY t1.hometown\nHAVING COUNT(*) >= 1;\n```",
+  "score": 3,
+  "cost": 0.0001572,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 65
+  }
+}

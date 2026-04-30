@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "data_to_text",
+  "case": 3,
+  "response": "Apple\u2019s flagship iPhone 15 Pro, which starts at $999, features a 6.1-inch OLED display, the cutting-edge A17 Pro chip, a 48MP main camera, a 3274mAh battery, storage configurations spanning 128GB, 256GB, 512GB, and 1TB, and a svelte 187g body that makes it easy to handle for daily use. This premium smartphone has earned an average user rating of 4.6 out of 5, a score that underscores its strong reputation for balancing powerful internal performance, high-quality display and camera tools, and a portable, lightweight design that appeals to both casual users and power users alike.",
+  "score": 5,
+  "cost": 0.00071725,
+  "expected": "",
+  "tokens": {
+    "input": 161,
+    "output": 677
+  }
+}

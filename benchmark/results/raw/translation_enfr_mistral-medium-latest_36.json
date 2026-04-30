@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "translation_enfr",
   "case": 36,
-  "response": "Voici une traduction qui conserve le ton et le sens de la phrase originale :\n\n**\"Plus tu r\u00e9sistes, plus ce sera g\u00eanant pour tout le monde.\"**\n\n*(Variante l\u00e9g\u00e8rement plus naturelle \u00e0 l'oral : \"Plus tu te d\u00e9battes, plus \u00e7a va \u00eatre bizarre pour tout le monde.\")*\n\nSelon le contexte (formel, familier, mena\u00e7ante, etc.), on peut ajuster :\n- **\"Plus tu t\u2019opposes, plus la situation sera inconfortable pour tous.\"** (plus neutre)\n- **\"Plus tu fais des histoires, plus \u00e7a va \u00eatre p\u00e9nible pour tout le monde.\"** (plus familier/colloquial)\n\nDites-moi si vous souhaitez une nuance particuli\u00e8re !",
+  "response": "Voici une traduction qui conserve le ton et le sens de la phrase originale :\n\n**\"Plus tu r\u00e9sistes, plus \u00e7a va \u00eatre g\u00eanant pour tout le monde.\"**\n\n*(Variante l\u00e9g\u00e8rement plus naturelle \u00e0 l'oral : \"Plus tu te d\u00e9battes, plus ce sera bizarre pour tout le monde.\")*\n\nSelon le contexte, on pourrait aussi utiliser :\n- *\"Plus tu fais d\u2019histoires, plus ce sera embarrassant pour tout le monde.\"* (si l\u2019id\u00e9e de \"faire des difficult\u00e9s\" est forte).\n- *\"Plus tu t\u2019obstines, plus \u00e7a va \u00eatre malais\u00e9 pour tout le monde.\"* (registre un peu plus soutenu).\n\nLa premi\u00e8re version reste la plus fid\u00e8le \u00e0 l\u2019anglais (ton direct et familier). \ud83d\ude0a",
   "score": 5,
-  "cost": 0.0003148,
+  "cost": 0.00032680000000000003,
   "expected": "",
   "tokens": {
     "input": 37,
-    "output": 150
+    "output": 156
   }
 }

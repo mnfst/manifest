@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "The 2020s mark a transformative era in space exploration, defined by NASA's Artemis program to return humans to the Moon, SpaceX's development of Starship, and groundbreaking discoveries from the James Webb Space Telescope, alongside international efforts such as China's space station and India's successful Chandrayaan missions. Commercial activity has also expanded rapidly through satellite internet constellations like Starlink and OneWeb, the emergence of space tourism via Blue Origin and Virgin Galactic, and growing prospects for asteroid mining. However, this surge in activity underscores critical challenges, including the limitations of the Outer Space Treaty and the escalating problem of orbital debris.",
+  "score": 4,
+  "cost": 0.0021246,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 852
+  }
+}

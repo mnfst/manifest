@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "data_to_text",
+  "case": 24,
+  "response": "The patient is a 45\u2011year\u2011old woman with a BMI of 27.3. Her blood pressure is 138/88\u202fmm\u202fHg, total cholesterol 225\u202fmg/dL, and fasting glucose 110\u202fmg/dL. She does not smoke, exercises twice a week, and has a family history of diabetes on her mother\u2019s side.",
+  "score": 5,
+  "cost": 0.0020163000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 427
+  }
+}

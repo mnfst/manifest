@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "data_to_text",
+  "case": 6,
+  "response": "The production web server **prod-web-01**, located in the **us-east-1** region, is currently running at **78% CPU usage**, with **12.4 GB of memory consumed out of 16 GB** and **234 GB of disk space used from 500 GB available**. Operating smoothly for **45 days straight**, it handles **127 active connections**, maintains a **P99 latency of 145ms**, and reports just **3 errors per hour**, indicating stable performance.",
+  "score": 5,
+  "cost": 0.0002728,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 114
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "data_to_text",
+  "case": 5,
+  "response": "*\"Christopher Nolan\u2019s *Oppenheimer* (2023), a gripping drama blending history and scientific ambition, premiered with an 180-minute runtime and a $100 million budget before dominating global box office earnings, grossing over $952 million worldwide. The critically acclaimed film earned widespread praise, securing an 8.3 IMDb rating and a perfect 93% on Rotten Tomatoes, while also winning the prestigious Oscar for Best Picture.\"*",
+  "score": 5,
+  "cost": 7.92e-06,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 97
+  }
+}

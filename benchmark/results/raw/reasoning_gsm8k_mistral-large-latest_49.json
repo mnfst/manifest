@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "reasoning_gsm8k",
+  "case": 49,
+  "response": "Let's break down the problem step by step to find the total age of all the siblings.\n\n1. **Number of Siblings:**\n   - Brothers: 2\n   - Sisters: 3\n   - Total siblings: 2 + 3 = 5\n\n2. **Ages of the Sisters:**\n   - All 3 sisters are the same age: 16 years each.\n   - Total age of the sisters: 3 \u00d7 16 = 48 years\n\n3. **Ages of the Brothers:**\n   - One brother is 12 years old.\n   - This brother's age is half the age of the older brother.\n   - Let the older brother's age be \\( x \\).\n   - According to the problem: \\( 12 = \\frac{1}{2}x \\)\n   - Solving for \\( x \\): \\( x = 12 \\times 2 = 24 \\) years\n   - Total age of the brothers: 12 + 24 = 36 years\n\n4. **Total Age of All Siblings:**\n   - Total age of sisters: 48 years\n   - Total age of brothers: 36 years\n   - Combined total age: 48 + 36 = 84 years\n\nANSWER: 84",
+  "score": 5,
+  "cost": 0.00187,
+  "expected": "84",
+  "tokens": {
+    "input": 98,
+    "output": 279
+  }
+}

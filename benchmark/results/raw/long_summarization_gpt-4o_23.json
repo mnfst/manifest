@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "long_summarization",
+  "case": 23,
+  "response": "The European Union's General Data Protection Regulation (GDPR), effective since May 2018, revolutionized data handling by mandating strict rules for organizations processing EU residents' data, regardless of the company's location. Key provisions include rights to data access, erasure, portability, and the necessity for explicit consent, with breaches requiring reporting within 72 hours. Violations can incur fines up to 4% of global revenue or 20 million euros, with major fines issued to companies like Meta (1.2 billion euros), Amazon (746 million euros), and Google (over 200 million euros). While GDPR has inspired similar laws globally, such as California's CCPA and Brazil's LGPD, it faces criticism for imposing compliance burdens on small businesses and causing user frustration with cookie consent banners, though it firmly established data privacy as a fundamental right.",
+  "score": 5,
+  "cost": 0.0024675,
+  "expected": "",
+  "tokens": {
+    "input": 307,
+    "output": 170
+  }
+}

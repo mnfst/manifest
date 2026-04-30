@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "long_summarization",
+  "case": 13,
+  "response": "Quantum computing uses qubits in superposition to solve certain problems exponentially faster than classical computers. In a 2019 milestone, Google performed a calculation in 200 seconds that would take a supercomputer 10,000 years. However, the technology faces major challenges, as current machines have only 100-1000 qubits while millions are needed for practical applications like drug discovery and cryptography. Despite these hurdles, companies are actively developing quantum hardware and algorithms for future use.",
+  "score": 5,
+  "cost": 0.00136,
+  "expected": "",
+  "tokens": {
+    "input": 272,
+    "output": 102
+  }
+}

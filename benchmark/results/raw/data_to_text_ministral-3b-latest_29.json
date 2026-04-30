@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "data_to_text",
+  "case": 29,
+  "response": "A devastating **magnitude 7.2 earthquake** struck near **Tokyo** on **March 15, 2024**, at **14:23 UTC** with a depth of **15 kilometers**, triggering a **tsunami warning**. The quake affected **over 2.3 million people**, caused **estimated economic damage of $4.5 billion**, and resulted in **12 confirmed fatalities**.",
+  "score": 5,
+  "cost": 8.560000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 89
+  }
+}

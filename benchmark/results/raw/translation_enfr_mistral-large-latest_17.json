@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "translation_enfr",
+  "case": 17,
+  "response": "Voici la traduction en fran\u00e7ais tout en conservant le ton et le sens du texte original :\n\n**Anglais :** *Source: examplereferenceletter.com*\n**Fran\u00e7ais :** *Source : examplereferenceletter.com*\n\nSi vous souhaitez que je traduise un contenu sp\u00e9cifique de ce site (comme une lettre de recommandation, un exemple, etc.), n'h\u00e9sitez pas \u00e0 me le pr\u00e9ciser !",
+  "score": 5,
+  "cost": 0.000592,
+  "expected": "",
+  "tokens": {
+    "input": 32,
+    "output": 88
+  }
+}

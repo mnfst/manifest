@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "long_summarization",
+  "case": 2,
+  "response": "The global food system faces mounting pressures, with the population expected to reach 9.7 billion by 2050 and food production needing to rise 60% to keep pace. Yet agriculture both suffers from and drives climate change, contributing about 25% of greenhouse gas emissions, while water depletion, soil degradation affecting 33% of arable land, and the waste of one-third of all food further strain the system. Potential solutions include precision agriculture, vertical farming, alternative proteins, drought-resistant GMOs, regenerative practices, and policy reforms on subsidies and carbon pricing. The central challenge is scaling these innovations while keeping food affordable and accessible to the world's poorest.",
+  "score": 5,
+  "cost": 0.02457,
+  "expected": "",
+  "tokens": {
+    "input": 498,
+    "output": 228
+  }
+}

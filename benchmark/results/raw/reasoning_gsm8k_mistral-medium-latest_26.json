@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "reasoning_gsm8k",
   "case": 26,
-  "response": "Let's solve the problem step by step.\n\n1. **Calculate Mitchell's total earnings:**\n   - Mitchell sold 21 lemonades at $4 each.\n   - Total earnings = Number of lemonades \u00d7 Price per lemonade\n   - Total earnings = 21 \u00d7 $4 = $84\n\n2. **Determine how much more Mitchell made than Liam:**\n   - Liam made $63.\n   - Difference = Mitchell's earnings - Liam's earnings\n   - Difference = $84 - $63 = $21\n\nANSWER: 21",
+  "response": "Let's solve the problem step by step.\n\n1. **Determine Mitchell's total earnings:**\n   - Mitchell sold 21 lemonades at $4 each.\n   - Total earnings = Number of lemonades \u00d7 Price per lemonade\n   - Total earnings = 21 \u00d7 $4 = $84\n\n2. **Determine Liam's total earnings:**\n   - Liam made $63.\n\n3. **Calculate the difference in earnings:**\n   - Difference = Mitchell's earnings - Liam's earnings\n   - Difference = $84 - $63 = $21\n\nANSWER: 21",
   "score": 5,
-  "cost": 0.0002824,
+  "cost": 0.0002964,
   "expected": "21",
   "tokens": {
     "input": 106,
-    "output": 120
+    "output": 127
   }
 }

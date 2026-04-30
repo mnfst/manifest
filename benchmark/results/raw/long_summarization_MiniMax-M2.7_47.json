@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "long_summarization",
+  "case": 47,
+  "response": "The EU's General Data Protection Regulation (GDPR), effective May 2018, fundamentally changed data handling by requiring any company processing EU residents' data to comply with strict privacy standards. Key provisions include the right to access and erasure of personal data, data portability, and explicit consent requirements, with organizations required to report data breaches within 72 hours and appoint Data Protection Officers if processing at scale. Violations can incur fines of up to 4% of global annual revenue or 20 million euros, with major penalties issued to tech giants such as Meta (1.2 billion euros), Amazon (746 million euros), and Google (over 200 million euros). The regulation has inspired similar laws worldwide, including California's CCPA and Brazil's LGPD, and while critics argue it creates compliance burdens for small businesses, GDPR established data privacy as a fundamental right and set the global standard for data protection legislation.",
+  "score": 5,
+  "cost": 0.0019899,
+  "expected": "",
+  "tokens": {
+    "input": 317,
+    "output": 373
+  }
+}

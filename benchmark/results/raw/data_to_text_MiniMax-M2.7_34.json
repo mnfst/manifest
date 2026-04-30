@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "data_to_text",
+  "case": 34,
+  "response": "Stockholm, the capital of Sweden, was founded in\u202f1252 and today houses about\u202f1.6\u202fmillion people within its 188\u202fkm\u00b2 area. The city\u2019s official language is Swedish, it enjoys a GDP per capita of roughly\u202f$62,000, and its climate is marked by an average January temperature of \u20133\u202f\u00b0C and a July average of\u202f18\u202f\u00b0C.",
+  "score": 5,
+  "cost": 0.0018436000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 387
+  }
+}

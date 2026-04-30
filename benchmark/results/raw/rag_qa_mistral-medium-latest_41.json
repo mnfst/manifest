@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "rag_qa",
+  "case": 41,
+  "response": "Governor Duquesne sent **additional French forces under Claude-Pierre Pecaudy de Contrec\u0153ur**, who led **500 men** to relieve Saint-Pierre.",
+  "score": 5,
+  "cost": 0.000146,
+  "expected": "Contrec\u0153ur led 500 men south from Fort Venango on April 5, 1754",
+  "tokens": {
+    "input": 190,
+    "output": 35
+  }
+}

@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "function_calling",
   "case": 42,
-  "response": "```json\n{\n  \"name\": \"create_bucket\",\n  \"arguments\": {\n    \"name\": \"data-lake-prod\",\n    \"region\": \"us-east-1\"\n  }\n}\n```",
+  "response": "```json\n{\"name\": \"create_bucket\", \"arguments\": {\"name\": \"data-lake-prod\", \"region\": \"us-east-1\"}}\n```",
   "score": 5,
-  "cost": 0.0001224,
+  "cost": 0.00010640000000000001,
   "expected": "",
   "tokens": {
     "input": 91,
-    "output": 43
+    "output": 35
   }
 }

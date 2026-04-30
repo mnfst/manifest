@@ -2,7 +2,7 @@
   "model": "mistral-medium-latest",
   "task": "code_explanation",
   "case": 17,
-  "response": "This code implements the **Chain of Responsibility design pattern**, where a sequence of handler functions (`*handlers`) processes a `request` in order. Each handler attempts to handle the request, and if it returns a non-`None` result, the chain stops and returns that result; otherwise, the request passes to the next handler, defaulting to `None` if no handler succeeds.",
+  "response": "This code implements the **Chain of Responsibility design pattern**, where a sequence of handler functions (`*handlers`) are chained together to process a `request`. Each handler in the chain attempts to handle the request in order, and the first handler that returns a non-`None` result terminates the chain and returns that result; if all handlers return `None`, the function returns `None`.",
   "score": 5,
   "cost": 0.00019240000000000001,
   "expected": "",

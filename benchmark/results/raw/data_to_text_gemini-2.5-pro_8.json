@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "data_to_text",
+  "case": 8,
+  "response": "The patient is a 45-year-old female with an overweight BMI of 27.3, elevated blood pressure of 138/88, and high cholesterol at 225 mg/dL. Her fasting glucose is 110 mg/dL, and she has a maternal history of diabetes. The patient is a non-smoker who currently exercises twice per week.",
+  "score": 5,
+  "cost": 0.00095625,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 83
+  }
+}

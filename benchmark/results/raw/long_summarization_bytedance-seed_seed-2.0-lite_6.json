@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "long_summarization",
+  "case": 6,
+  "response": "Remote work has undergone a dramatic transformation from a rare workplace perk to a mainstream global practice, starting from a pre-pandemic baseline where less than 5% of workers operated fully remotely, before the 2020 COVID-19 crisis forced a mass, unplanned work-from-home experiment powered by widely adopted collaboration tools including Zoom, Slack, and cloud infrastructure. Stanford researcher Nick Bloom\u2019s landmark studies of this unprecedented shift found mixed productivity results, laying the groundwork for widespread corporate pushes to bring workers back to physical offices, which in turn sparked fierce employee backlash that led hybrid work models to emerge as the dominant compromise for most modern workplaces. Beyond in-office dynamics, the rise of widespread remote work has triggered far-reaching economic and social ripple effects, including plummeting demand for central business district commercial real estate, a trend of geographic arbitrage as workers relocate to lower-cost areas to stretch their salaries, and unforeseen long-term challenges for company culture and junior employee development that rely on the organic, in-person connection of traditional office spaces. To accommodate the fast-growing population of fully location-independent workers, dozens of countries have rolled out new digital nomad visas that allow remote workers to live and work in foreign nations for extended periods without local employment sponsorship.",
+  "score": 5,
+  "cost": 0.001276,
+  "expected": "",
+  "tokens": {
+    "input": 192,
+    "output": 1228
+  }
+}

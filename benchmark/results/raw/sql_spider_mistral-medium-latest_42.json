@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "sql_spider",
+  "case": 42,
+  "response": "```sql\nSELECT id\nFROM templates\nWHERE description = 'Presentation';\n```",
+  "score": 5,
+  "cost": 6.28e-05,
+  "expected": "",
+  "tokens": {
+    "input": 72,
+    "output": 17
+  }
+}

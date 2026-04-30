@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "function_calling",
   "case": 47,
-  "response": "```json\n{\n  \"name\": \"create_cron\",\n  \"arguments\": {\n    \"schedule\": \"0 0 * * *\",\n    \"command\": \"cleanup\",\n    \"name\": \"daily_cleanup\"\n  }\n}\n```",
-  "score": 4,
-  "cost": 0.0001408,
+  "response": "```json\n{\n  \"name\": \"create_cron\",\n  \"arguments\": {\n    \"schedule\": \"0 0 * * *\",\n    \"command\": \"cleanup_script\",\n    \"name\": \"daily_cleanup\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 0.0001428,
   "expected": "",
   "tokens": {
     "input": 87,
-    "output": 53
+    "output": 54
   }
 }

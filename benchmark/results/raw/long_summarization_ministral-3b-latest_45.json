@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "long_summarization",
+  "case": 45,
+  "response": "Quantum computing leverages **qubits**\u2014quantum bits that can exist in a **superposition** of states (0 and 1 simultaneously)\u2014alongside **entanglement** and **interference**, enabling exponential speedups for specific problems over classical computers. Leading companies like **IBM, Google, IonQ, and Rigetti** develop quantum hardware using methods like **superconducting circuits, trapped ions, photonics, and topological qubits**, though **error rates remain high** and qubits must be cooled near **absolute zero** for stability.\n\nIn **2019**, Google demonstrated **quantum supremacy** by solving a task in **200 seconds** that would take a classical supercomputer **10,000 years**, but **practical applications require millions of qubits** (current systems have **100\u20131,000**). Despite challenges, quantum computing holds promise for **drug discovery, cryptography, optimization, and advanced fields**, with early industry experiments in **financial modeling and logistics**.",
+  "score": 5,
+  "cost": 1.9960000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 285,
+    "output": 214
+  }
+}

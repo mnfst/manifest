@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "long_summarization",
+  "case": 33,
+  "response": "Quantum computers utilize qubits, superposition, and entanglement to solve specific problems exponentially faster than classical machines, prompting major tech companies and startups to develop diverse hardware platforms. While Google demonstrated this potential in 2019 by completing a calculation in 200 seconds that would take a supercomputer 10,000 years, current devices only contain 100 to 1,000 qubits. Overcoming significant challenges like extreme cooling needs, high error rates, and the requirement for millions of qubits remains critical. Nevertheless, the technology holds transformative promise for advancing drug discovery, cryptography, and complex optimization.",
+  "score": 5,
+  "cost": 0.0022945,
+  "expected": "",
+  "tokens": {
+    "input": 294,
+    "output": 2221
+  }
+}

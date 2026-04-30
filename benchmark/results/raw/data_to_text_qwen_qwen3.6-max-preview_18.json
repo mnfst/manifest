@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "data_to_text",
+  "case": 18,
+  "response": "Founded in 1252, Stockholm, Sweden, is a Swedish-speaking city home to 1.6 million residents spread across an area of 188 square kilometers. It features a prosperous economy with a GDP per capita of $62,000 and a distinct seasonal climate, averaging -3\u00b0C in January and 18\u00b0C in July.",
+  "score": 5,
+  "cost": 0.0089726,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 1699
+  }
+}

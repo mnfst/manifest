@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "reasoning_gsm8k",
   "case": 11,
-  "response": "Let's solve the problem step by step.\n\n1. **Total burritos ordered**: George ordered 600 burritos.\n\n2. **Burritos given to students**:\n   - There are 50 students.\n   - Each student was given 10 burritos.\n   - Total burritos given to students = 50 students * 10 burritos/student = 500 burritos.\n\n3. **Burritos eaten by Mr. George**: Mr. George ate 20 burritos.\n\n4. **Total burritos consumed**:\n   - Burritos given to students + burritos eaten by Mr. George = 500 + 20 = 520 burritos.\n\n5. **Leftover burritos**:\n   - Total burritos ordered - total burritos consumed = 600 - 520 = 80 burritos.\n\nANSWER: 80",
-  "score": 5,
-  "cost": 0.00042439999999999996,
+  "response": "Let's solve the problem step by step.\n\n1. **Total burritos ordered**: 600 burritos.\n2. **Number of students**: 50 students.\n3. **Burritos given to each student**: 10 burritos per student.\n4. **Burritos eaten by Mr. George**: 20 burritos.\n\nFirst, calculate the total number of burritos given to the students:\n\\[ 50 \\text{ students} \\times 10 \\text{ burritos per student} = 500 \\text{ burritos} \\]\n\nNext, add the burritos eaten by Mr. George:\n\\[ 500 \\text{ burritos} + 20 \\text{ burritos} = 520 \\text{ burritos} \\]\n\nNow, subtract the total burritos consumed from the total burritos ordered to find the leftover burritos:\n\\[ 600 \\text{ burritos} - 520 \\text{ burritos} = 80 \\text{ burritos} \\]\n\nANSWER: 80",
+  "score": 0,
+  "cost": 0.0004984,
   "expected": "80",
   "tokens": {
     "input": 106,
-    "output": 191
+    "output": 228
   }
 }

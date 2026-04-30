@@ -2,8 +2,8 @@
   "model": "mistral-medium-latest",
   "task": "rag_qa",
   "case": 35,
-  "response": "Members of the lobate genera *Bathocyroe* and *Ocyropsis* escape from danger by **clapping their lobes**, which expels a jet of water that drives them backward very quickly.",
-  "score": 5,
+  "response": "Members of the lobate genera **Bathocyroe** and **Ocyropsis** escape from danger by **clapping their lobes**, which expels a jet of water that drives them backward very quickly.",
+  "score": 2,
   "cost": 0.0001944,
   "expected": "by clapping their lobes",
   "tokens": {

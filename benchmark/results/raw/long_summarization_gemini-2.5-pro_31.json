@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "long_summarization",
+  "case": 31,
+  "response": "The European Union's General Data Protection Regulation (GDPR), effective since 2018, established data privacy as a fundamental right for EU residents and applies to companies worldwide. The regulation requires explicit consent for data processing and mandates that data breaches be reported within 72 hours. Violations can result in massive fines, such as Meta's \u20ac1.2 billion penalty, with the maximum being 4% of global revenue or \u20ac20 million. Despite criticisms regarding compliance burdens, GDPR has set the global standard for data protection and inspired similar legislation in other countries.",
+  "score": 5,
+  "cost": 0.00156625,
+  "expected": "",
+  "tokens": {
+    "input": 317,
+    "output": 117
+  }
+}

@@ -2,7 +2,7 @@
   "model": "mistral-medium-latest",
   "task": "intent_clinc150",
   "case": 17,
-  "response": "todo_list",
+  "response": "remind",
   "score": 0,
   "cost": 0.0002284,
   "expected": "reminder",

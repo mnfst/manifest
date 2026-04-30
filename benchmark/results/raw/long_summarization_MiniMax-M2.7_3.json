@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "long_summarization",
+  "case": 3,
+  "response": "The EU's GDPR, effective May 2018, transformed data protection by requiring any organization processing EU residents' data to implement strict consent, access, and erasure rights, with Data Protection Officers and mandatory 72-hour breach reporting. Fines reach up to 4% of global annual revenue or 20 million euros, with major penalties issued to Meta (1.2 billion euros), Amazon (746 million euros), and Google (200+ million euros). While the regulation has inspired similar legislation worldwide\u2014including California's CCPA, Brazil's LGPD, and India's Digital Personal Data Protection Act\u2014critics argue it burdens small businesses and frustrates users with consent requirements. Despite enforcement inconsistencies, GDPR established data privacy as a fundamental right and set the global standard for data protection.",
+  "score": 5,
+  "cost": 0.0027026999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 317,
+    "output": 535
+  }
+}

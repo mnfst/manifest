@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "data_to_text",
+  "case": 38,
+  "response": "The production web server prod-web-01 has been running in the us-east-1 region for 45 days. It is currently serving 127 connections with a P99 latency of 145ms and experiencing 3 errors per hour. System resources are at 78% CPU utilization, 12.4 GB of memory used out of 16 GB, and 234 GB of disk used out of 500 GB.",
+  "score": 5,
+  "cost": 0.0017309999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 696
+  }
+}

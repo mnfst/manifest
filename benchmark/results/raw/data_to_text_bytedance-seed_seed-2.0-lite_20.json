@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "data_to_text",
+  "case": 20,
+  "response": "American Airlines flight AA 1234 operates the cross-country route from New York\u2019s JFK Airport to Los Angeles\u2019 LAX Airport, departing at 08:30 and arriving at 11:45 for a total flight duration of 5 hours and 15 minutes, and it uses a Boeing 787 aircraft to complete the trip. This flight offers economy class seating for a fare of $289, and it maintains an 82% on-time performance track record, making it an affordable, reliably scheduled option for travelers journeying between the two major U.S. hubs.",
+  "score": 5,
+  "cost": 0.000802,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 764
+  }
+}

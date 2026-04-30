@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "translation_enfr",
+  "case": 36,
+  "response": "Here\u2019s a natural and tone-appropriate French translation:\n\n**\"Plus tu r\u00e9sistes, plus \u00e7a va \u00eatre g\u00eanant pour tout le monde.\"**\n\nAlternatively, if you want to emphasize the struggle more explicitly (e.g., physical resistance):\n**\"Plus tu te d\u00e9bats, plus \u00e7a va \u00eatre embarrassant pour tout le monde.\"**\n\nBoth versions keep the casual, slightly exasperated tone of the original.",
+  "score": 5,
+  "cost": 0.00056,
+  "expected": "",
+  "tokens": {
+    "input": 37,
+    "output": 81
+  }
+}

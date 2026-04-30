@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "long_summarization",
+  "case": 38,
+  "response": "The global food system faces mounting pressure as the population is projected to reach 9.7 billion by 2050, requiring a 60% increase in production amid intensifying climate impacts and resource depletion. Agriculture currently accounts for 25% of greenhouse gas emissions, while soil degradation has compromised 33% of arable land and roughly one-third of all food is lost or wasted. Addressing these interconnected crises demands the large-scale adoption of innovations like precision farming, alternative proteins, and regenerative practices, supported by targeted policy reforms. Ultimately, the central challenge is implementing these solutions globally while ensuring food remains affordable and accessible to the world\u2019s most vulnerable populations.",
+  "score": 5,
+  "cost": 0.00160325,
+  "expected": "",
+  "tokens": {
+    "input": 309,
+    "output": 1526
+  }
+}

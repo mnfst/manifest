@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "json_transform_v2",
+  "case": 7,
+  "response": "```json\n{\n  \"company\": \"Acme Corp\",\n  \"age_years\": 9,\n  \"size\": \"101-200\",\n  \"total_funding\": 25000000,\n  \"latest_round\": {\n    \"series\": \"B\",\n    \"amount\": 20000000\n  }\n}\n```",
+  "score": 4,
+  "cost": 0.00085,
+  "expected": "",
+  "tokens": {
+    "input": 170,
+    "output": 85
+  }
+}

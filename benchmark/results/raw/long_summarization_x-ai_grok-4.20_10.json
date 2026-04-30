@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "long_summarization",
+  "case": 10,
+  "response": "**Summary:**\n\nThe global food system faces severe strain as the world\u2019s population is projected to reach 9.7 billion by 2050, requiring a 60% increase in food production. Climate change is already reducing crop yields through extreme weather, while agriculture itself accounts for roughly 25% of global greenhouse gas emissions. Critical resources are under threat: the Ogallala Aquifer and similar major groundwater systems in India, China, and the Middle East are being depleted faster than they can recharge, and intensive farming has degraded the productivity of 33% of the world\u2019s arable land. Compounding the crisis is the fact that roughly one-third of all food produced is lost or wasted. Promising solutions include precision agriculture with AI, vertical farming, alternative proteins, drought-resistant GM crops, and regenerative farming, alongside needed policy reforms on subsidies and carbon pricing. The central challenge is scaling these innovations while keeping food affordable for the world\u2019s poorest populations.",
+  "score": 5,
+  "cost": 0.002328,
+  "expected": "",
+  "tokens": {
+    "input": 404,
+    "output": 190
+  }
+}

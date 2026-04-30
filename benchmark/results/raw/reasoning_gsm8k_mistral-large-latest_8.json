@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "reasoning_gsm8k",
+  "case": 8,
+  "response": "1. Identify the initial number of students: 50 students were enrolled last year.\n2. Calculate the increase in students: A 20% increase means we find 20% of 50.\n   20% of 50 = 0.20 * 50 = 10 students.\n3. Add the increase to the initial number of students: 50 + 10 = 60 students.\n\nANSWER: 60",
+  "score": 5,
+  "cost": 0.000782,
+  "expected": "60",
+  "tokens": {
+    "input": 82,
+    "output": 103
+  }
+}

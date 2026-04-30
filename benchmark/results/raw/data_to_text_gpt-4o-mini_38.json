@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "data_to_text",
+  "case": 38,
+  "response": "The server named prod-web-01, located in the us-east-1 region, is currently operating with a CPU usage of 78% and has utilized 12.4 GB of its 16 GB memory capacity. With a disk usage of 234 GB out of 500 GB, the server has been up for 45 days, handling 127 connections and experiencing a P99 latency of 145 milliseconds, while recording an average of 3 errors per hour.",
+  "score": 5,
+  "cost": 7.14e-05,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 94
+  }
+}

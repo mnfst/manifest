@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "data_to_text",
+  "case": 22,
+  "response": "Located in the us-east-1 region, the prod-web-01 server has been running continuously for 45 days and is currently handling 127 active connections with a P99 latency of 145ms. System resources are moderately utilized, with CPU usage at 78%, memory consumption at 12.4 out of 16 GB, and disk space at 234 out of 500 GB, while maintaining a low error rate of just 3 per hour.",
+  "score": 5,
+  "cost": 0.0012065,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 1177
+  }
+}

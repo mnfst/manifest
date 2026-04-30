@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "data_to_text",
+  "case": 22,
+  "response": "# Server Status Report\n\nThe production web server prod-web-01 in the us-east-1 region is currently operating at 78% CPU utilization with 12.4 GB of 16 GB memory in use and 234 GB of 500 GB disk space consumed, while maintaining a stable uptime of 45 days. The server is handling 127 active connections with a P99 latency of 145ms and experiencing only 3 errors per hour, indicating healthy overall performance. These metrics suggest the server is operating within acceptable parameters, though CPU usage should be monitored as it approaches higher threshold levels.",
+  "score": 5,
+  "cost": 0.0006456,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 138
+  }
+}

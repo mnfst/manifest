@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "json_transform_v2",
+  "case": 36,
+  "response": "```json\n{\n  \"order_id\": \"ORD-001\",\n  \"subtotal\": 89.97,\n  \"discount\": 8.997,\n  \"shipping\": 5.99,\n  \"total\": 86.973,\n  \"item_count\": 3\n}\n```",
+  "score": 4,
+  "cost": 0.00020240000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 72
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "long_summarization",
+  "case": 4,
+  "response": "Electric vehicles have a long history, originating from early experiments in the 1830s, and their modern mainstream rise is defined first by Tesla\u2019s seismic disruption of the global automotive industry that upended long-standing market dynamics. The global mass transition to EVs faces a host of interconnected hurdles, including limitations in current battery technology, gaps in public charging infrastructure, consumer range anxiety, strains on electric grid capacity, and ethical and environmental debates around the mining of core battery materials lithium and cobalt, while emerging solid-state batteries are poised to resolve many of these long-standing technical roadblocks. Government incentives have been a core policy tool to drive consumer and corporate EV uptake, while legacy automakers including Ford, GM, and Volkswagen are racing to transition their fleets to electric models to compete in the rapidly shifting industry. China stands as the world\u2019s largest EV market and manufacturer, leading global production and consumer adoption of the technology to outpace most other major economies.",
+  "score": 5,
+  "cost": 0.0012385,
+  "expected": "",
+  "tokens": {
+    "input": 182,
+    "output": 1193
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "data_to_text",
+  "case": 49,
+  "response": "LeBron\u202fJames, now 40\u202fyears old, continues to anchor the Los\u202fAngeles\u202fLakers in the 2024\u201125 season. Across 71 games he averaged 28.4 points, 7.2 rebounds and 8.1 assists per contest, earning another All\u2011Star selection.",
+  "score": 5,
+  "cost": 0.0019217000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 406
+  }
+}

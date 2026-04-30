@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "data_to_text",
+  "case": 15,
+  "response": "Taylor Swift's album *Midnights*, released in October 2022, is a 44-minute pop and synth-pop record featuring 13 tracks. It achieved massive commercial success with 1.58 million copies sold in its first week and has amassed over 3.4 billion streams on Spotify. The album also earned Swift the Grammy Award for Album of the Year.",
+  "score": 5,
+  "cost": 0.000106,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 75
+  }
+}

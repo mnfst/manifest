@@ -2,7 +2,7 @@
   "model": "mistral-medium-latest",
   "task": "email_summary_v2",
   "case": 39,
-  "response": "The year-end audit begins **January 15**, and key prep tasks include finalizing Q4 revenue, reconciling bank accounts, verifying stock options, and preparing related-party disclosures. A **controller meeting next Tuesday** will assign responsibilities\u2014ensure all checklist items are addressed beforehand.",
+  "response": "The year-end audit begins on **January 15**, and key prep tasks include finalizing Q4 revenue recognition, reconciling bank accounts, verifying stock option records, and preparing related-party transaction disclosures. A **controller meeting on Tuesday** will assign responsibilities for these checklist items.",
   "score": 5,
   "cost": 0.000156,
   "expected": "",

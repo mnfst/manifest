@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "data_to_text",
+  "case": 25,
+  "response": "Japan, home to 125 million people, maintains a $4.2 trillion economy with 1.1% GDP growth and $756 billion in exports. While benefiting from a low 2.6% unemployment rate and a high life expectancy of 84.6 years, the nation also navigates 3.2% inflation and a substantial debt-to-GDP ratio of 263%.",
+  "score": 5,
+  "cost": 0.0075491,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 1423
+  }
+}

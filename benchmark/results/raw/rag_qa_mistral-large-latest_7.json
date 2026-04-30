@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "rag_qa",
+  "case": 7,
+  "response": "The magnitude of the external force is divided by **the mass of the system** when determining the acceleration of the center of mass.",
+  "score": 2,
+  "cost": 0.000484,
+  "expected": "mass of the system",
+  "tokens": {
+    "input": 161,
+    "output": 27
+  }
+}

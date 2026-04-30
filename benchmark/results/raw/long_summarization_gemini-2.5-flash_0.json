@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "long_summarization",
+  "case": 0,
+  "response": "The internet originated in the 1960s with US Department of Defense funding, evolving from ARPANET's 1969 demonstration to the adoption of TCP/IP protocols by 1983. Tim Berners-Lee invented the World Wide Web in 1989, introducing HTML and URLs, with the 1993 launch of the Mosaic browser making it widely accessible. Subsequent decades saw the dot-com boom, the rise of social media, mobile internet after the 2007 iPhone launch, and cloud computing, transforming it into a ubiquitous force that now connects over 5 billion people and underpins modern life.",
+  "score": 5,
+  "cost": 0.00013139999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 332,
+    "output": 136
+  }
+}

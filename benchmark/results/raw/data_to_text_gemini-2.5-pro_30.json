@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "data_to_text",
+  "case": 30,
+  "response": "In Sprint #23, which ran from January 15-26, Team Alpha completed 38 out of 42 planned points, exceeding their average velocity of 36. Throughout the sprint, the team finished 8 stories and fixed 5 bugs, and despite encountering 2 blockers, they reported a high satisfaction score of 4.1 out of 5.",
+  "score": 5,
+  "cost": 0.00091125,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 79
+  }
+}

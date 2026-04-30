@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "long_summarization",
+  "case": 20,
+  "response": "The internet originated in the 1960s as a U.S. Department of Defense-funded project, with **ARPANET** debuting in 1969 and evolving into the modern internet after the 1983 adoption of **TCP/IP protocols**. Key milestones include **Tim Berners-Lee\u2019s 1989 invention of the World Wide Web** (HTML, URLs, HTTP), the 1993 launch of the **Mosaic browser**, and the late-1990s **dot-com boom**, which saw survivors like **Amazon and Google** dominate. The **2000s brought social media (Facebook, YouTube), smartphones (iPhone, 2007), and cloud computing (AWS, 2006)**, making the internet central to daily life. Today, it connects **over 5 billion people**, revolutionizing communication, commerce, and entertainment globally.",
+  "score": 5,
+  "cost": 0.0005276,
+  "expected": "",
+  "tokens": {
+    "input": 334,
+    "output": 197
+  }
+}

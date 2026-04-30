@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "data_to_text",
+  "case": 44,
+  "response": "Founded in 1861, MIT ranks #1 with a student population of 11,500 and a highly competitive acceptance rate of 3.9%. The institution features a $24.6 billion endowment, 1,069 faculty members, and 98 Nobel laureates, alongside an annual tuition of $57,590.",
+  "score": 5,
+  "cost": 0.00099425,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 965
+  }
+}

@@ -2,7 +2,7 @@
   "model": "mistral-medium-latest",
   "task": "translation_enfr",
   "case": 44,
-  "response": "Les analyses de sensibilit\u00e9 indiquent que l'**\u00e9tendue de la longueur non soutenue** r\u00e9sultant de l'**affouillement** exerce une **influence significative** sur la **r\u00e9ponse en flexion du syst\u00e8me tuyau-sol**.",
+  "response": "Les analyses de sensibilit\u00e9 indiquent que l'**\u00e9tendue de la longueur non soutenue** g\u00e9n\u00e9r\u00e9e par l'**affouillement** exerce une **influence significative** sur la **r\u00e9ponse en flexion du syst\u00e8me tuyau-sol**.",
   "score": 4,
   "cost": 0.0001212,
   "expected": "",

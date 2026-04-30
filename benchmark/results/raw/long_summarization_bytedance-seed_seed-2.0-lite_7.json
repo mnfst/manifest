@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "long_summarization",
+  "case": 7,
+  "response": "The text analyzes the dual scientific and commercial ecosystems that define 2020s space exploration, bringing together major government-led initiatives and private sector projects across the global space industry. Key public programs covered include NASA\u2019s Artemis program to return humans to the Moon, the James Webb Space Telescope\u2019s transformative astronomical discoveries, China\u2019s active space station and lunar exploration ambitions, and India\u2019s successful Chandrayaan lunar missions, alongside private SpaceX\u2019s next-generation Starship development. Additional large-scale private projects outlined include Starlink and OneWeb\u2019s satellite internet constellations, Blue Origin and Virgin Galactic\u2019s commercial space tourism offerings, and prospective asteroid mining operations that highlight the space sector\u2019s rapid commercial expansion. The text also flags critical unaddressed risks and regulatory gaps threatening this growth, including outdated limitations in the Outer Space Treaty and the urgent, worsening problem of orbital space debris.",
+  "score": 4,
+  "cost": 0.000987,
+  "expected": "",
+  "tokens": {
+    "input": 180,
+    "output": 942
+  }
+}

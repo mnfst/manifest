@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "long_summarization",
+  "case": 32,
+  "response": "Born from U.S. Defense Department research in the 1960s, the internet began with ARPANET's first message in 1969 and transitioned to modern TCP/IP protocols in 1983. Tim Berners-Lee's invention of the World Wide Web in 1989 and the launch of the Mosaic browser in 1993 opened the network to ordinary users, while the late-1990s dot-com boom\u2014despite the 2001 crash\u2014spawned giants like Amazon and Google. The mid-2000s brought social media, cloud computing, and the mobile revolution sparked by the 2007 iPhone, making internet access ubiquitous. Today, the internet connects over 5 billion people and underpins virtually every aspect of modern life, from commerce and communication to entertainment.",
+  "score": 5,
+  "cost": 0.0031758000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 313,
+    "output": 1245
+  }
+}

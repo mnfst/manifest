@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "function_calling",
   "case": 38,
-  "response": "```json\n{\"name\": \"get_page_views\", \"arguments\": {\"period\": \"7d\", \"limit\": 10}}\n```",
+  "response": "```json\n{\n  \"name\": \"get_page_views\",\n  \"arguments\": {\n    \"period\": \"7d\",\n    \"limit\": 10\n  }\n}\n```",
   "score": 5,
-  "cost": 0.0001028,
+  "cost": 0.00012080000000000001,
   "expected": "",
   "tokens": {
     "input": 102,
-    "output": 31
+    "output": 40
   }
 }

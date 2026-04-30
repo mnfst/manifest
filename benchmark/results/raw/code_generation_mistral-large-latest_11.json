@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "code_generation",
+  "case": 11,
+  "response": "```python\n    total_sum = 0\n    total_product = 1\n\n    for num in numbers:\n        total_sum += num\n        total_product *= num\n\n    return (total_sum, total_product)\n```",
+  "score": 4,
+  "cost": 0.000558,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 46
+  }
+}

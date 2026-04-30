@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "data_to_text",
+  "case": 13,
+  "response": "On March 15, 2024, at 14:23 UTC, a powerful magnitude 7.2 earthquake struck near Tokyo (35.6N 139.7E) at a shallow depth of 15 km. The event triggered a tsunami warning, affecting 2.3 million people and causing an estimated $4.5 billion in damages with 12 confirmed casualties.",
+  "score": 5,
+  "cost": 0.00102875,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 88
+  }
+}

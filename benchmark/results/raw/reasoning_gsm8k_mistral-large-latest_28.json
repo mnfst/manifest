@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "reasoning_gsm8k",
+  "case": 28,
+  "response": "Let's solve the problem step by step.\n\n1. Let\u2019s denote the number of people who got on the bus at the terminal as \\( x \\).\n\n2. At the first bus stop, 5 more people got in. So, the number of people on the bus after the first stop is:\n   \\[\n   x + 5\n   \\]\n\n3. At the second bus stop, 7 people got down and 8 more got in. So, the number of people on the bus after the second stop is:\n   \\[\n   (x + 5) - 7 + 8\n   \\]\n   Simplifying this:\n   \\[\n   x + 5 - 7 + 8 = x + 6\n   \\]\n\n4. We know that there are 20 people heading to the third stop. Therefore:\n   \\[\n   x + 6 = 20\n   \\]\n\n5. Solving for \\( x \\):\n   \\[\n   x = 20 - 6 = 14\n   \\]\n\nANSWER: 14",
+  "score": 5,
+  "cost": 0.001562,
+  "expected": "14",
+  "tokens": {
+    "input": 109,
+    "output": 224
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "data_to_text",
+  "case": 10,
+  "response": "Here\u2019s a natural-sounding paragraph incorporating all the key details:\n\nThis flavorful Thai dish, Pad Thai, comes together in just 25 minutes\u201415 minutes of prep and 10 minutes of cooking\u2014making it a great weeknight meal for four. Each serving packs 380 calories, with 22 grams of protein, 45 grams of carbs, and 12 grams of fat, offering a balanced mix of nutrients. Though it has a medium difficulty level, the quick cooking time and bold flavors make it well worth the effort.",
+  "score": 5,
+  "cost": 0.000904,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 117
+  }
+}

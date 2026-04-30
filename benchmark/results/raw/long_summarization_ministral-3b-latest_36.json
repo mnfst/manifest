@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "long_summarization",
+  "case": 36,
+  "response": "The internet originated in the **1960s** as part of U.S. defense research, with **ARPANET** first transmitting a message in **1969** between UCLA and Stanford. Key milestones included the adoption of **TCP/IP protocols in 1983**, Tim Berners-Lee\u2019s invention of the **World Wide Web in 1989**, and the launch of the first web browser (**Mosaic in 1993**), which democratized internet access. The **dot-com boom (late 1990s)** led to massive investments, though many failed after the **2001 crash**, while survivors like **Amazon and Google** became global giants. Today, the internet connects **over 5 billion people**, reshaping commerce, communication, and entertainment through advancements like **social media, mobile internet (post-2007 smartphones), and cloud computing (AWS launched in 2006)**.",
+  "score": 5,
+  "cost": 2.156e-05,
+  "expected": "",
+  "tokens": {
+    "input": 334,
+    "output": 205
+  }
+}

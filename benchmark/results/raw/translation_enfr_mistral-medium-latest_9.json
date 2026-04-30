@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "translation_enfr",
   "case": 9,
-  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens du texte original :\n\n**\u00ab** De son c\u00f4t\u00e9, le deuxi\u00e8me atelier s\u2019est concentr\u00e9 sur la mise en \u0153uvre des recommandations formul\u00e9es par les organes de suivi des trait\u00e9s \u00e0 l\u2019intention de l\u2019\u00c9tat du Cameroun, conform\u00e9ment aux instruments internationaux et r\u00e9gionaux, concernant ses obligations envers les populations autochtones. **\u00bb**\n\n*Variante l\u00e9g\u00e8rement plus fluide (si le contexte le permet) :*\n*\u00ab* Pour sa part, le second atelier a port\u00e9 sur l\u2019application des recommandations adress\u00e9es par les organes de contr\u00f4le des trait\u00e9s \u00e0 l\u2019\u00c9tat camerounais, au regard des engagements internationaux et r\u00e9gionaux, relatifs \u00e0 ses obligations envers les peuples autochtones. *\u00bb*",
-  "score": 5,
-  "cost": 0.0003416,
+  "response": "Voici la traduction en fran\u00e7ais, en conservant le ton et le sens du texte original :\n\n**\u00ab** De son c\u00f4t\u00e9, le deuxi\u00e8me atelier s\u2019est concentr\u00e9 sur la mise en \u0153uvre des recommandations formul\u00e9es par les organes de suivi des trait\u00e9s \u00e0 l\u2019intention de l\u2019\u00c9tat du Cameroun, conform\u00e9ment aux instruments internationaux et r\u00e9gionaux, concernant ses obligations envers les populations autochtones. **\u00bb**\n\n*Explications des choix :*\n- **\u00ab** *On its part* **\u00bb** \u2192 **\u00ab** *De son c\u00f4t\u00e9* **\u00bb** (plus naturel en fran\u00e7ais que *\"Pour sa part\"* dans ce contexte).\n- **\u00ab** *Workshop* **\u00bb** \u2192 **\u00ab** *atelier* **\u00bb** (terme couramment utilis\u00e9 en fran\u00e7ais pour ce type d\u2019\u00e9v\u00e9nement).\n- **\u00ab** *Implementation* **\u00bb** \u2192 **\u00ab** *mise en \u0153uvre* **\u00bb** (traduction standard en droit et coop\u00e9ration internationale).\n- **\u00ab** *Supervisory organs of treaty bodies* **\u00bb** \u2192 **\u00ab** *organes de suivi des trait\u00e9s* **\u00bb** (terme technique pr\u00e9cis, utilis\u00e9 par les Nations Unies et les organisations r\u00e9gionales comme l\u2019UA).\n- **\u00ab** *In accordance with* **\u00bb** \u2192 **\u00ab** *conform\u00e9ment aux* **\u00bb** (formulation juridique ad\u00e9quate).\n- **\u00ab** *Indigenous populations* **\u00bb** \u2192 **\u00ab** *populations autochtones* **\u00bb** (terme officiel en fran\u00e7ais, notamment dans les textes de l\u2019ONU et de l\u2019OIF).\n\nSi le contexte est tr\u00e8s formel (ex. : rapport officiel), on pourrait aussi dire :\n*\u00ab Quant au second atelier, il a port\u00e9 sur l\u2019application des recommandations adress\u00e9es par les organes de contr\u00f4le des trait\u00e9s \u00e0 l\u2019\u00c9tat camerounais, au regard des engagements internationaux et r\u00e9gionaux, s\u2019agissant de ses obligations vis-\u00e0-vis des peuples autochtones. \u00bb*\n\nMais la premi\u00e8re version est plus fluide tout en restant pr\u00e9cise. Dites-moi si vous souhaitez des ajustements !",
+  "score": 4,
+  "cost": 0.0008416000000000001,
   "expected": "",
   "tokens": {
     "input": 64,
-    "output": 158
+    "output": 408
   }
 }

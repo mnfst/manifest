@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "translation_enfr",
   "case": 10,
-  "response": "Voici une traduction qui conserve le ton et le sens de la phrase originale :\n\n**\"Peut-\u00eatre qu\u2019on pourrait g\u00e9n\u00e9rer quelques indices, nous rapprocher de l\u2019animal qui a fait \u00e7a.\"**\n\n*Variante plus naturelle (selon le contexte) :*\n**\"On pourrait essayer de trouver des indices, se rapprocher de la b\u00eate qui a fait \u00e7a.\"**\n\n*(Si le ton est plus informel ou urgent, on pourrait aussi dire :)*\n**\"Faut qu\u2019on trouve des pistes, qu\u2019on remonte jusqu\u2019\u00e0 la cr\u00e9ature qui a fait \u00e7a.\"**\n\nSelon le contexte (enqu\u00eate, film, discussion), on peut ajuster le vocabulaire (*\"animal\"*, *\"b\u00eate\"* ou *\"cr\u00e9ature\"*). Dites-moi si vous souhaitez une nuance particuli\u00e8re !",
+  "response": "Voici une traduction qui conserve le ton et le sens de la phrase originale :\n\n**\"Peut-\u00eatre qu\u2019on pourrait g\u00e9n\u00e9rer quelques indices, pour se rapprocher de l\u2019animal qui a fait \u00e7a.\"**\n\n*Variante plus naturelle (selon le contexte) :*\n**\"On pourrait essayer de trouver des indices, pour remonter jusqu\u2019\u00e0 la b\u00eate responsable.\"**\n\nSi le contexte est plus informel ou urgent, on pourrait aussi dire :\n**\"Faut qu\u2019on trouve des pistes, pour identifier l\u2019animal qui a fait le coup.\"**\n\nDites-moi si vous souhaitez une nuance particuli\u00e8re (plus technique, plus litt\u00e9raire, etc.) !",
   "score": 5,
-  "cost": 0.0003348,
+  "cost": 0.0002768,
   "expected": "",
   "tokens": {
     "input": 37,
-    "output": 160
+    "output": 131
   }
 }

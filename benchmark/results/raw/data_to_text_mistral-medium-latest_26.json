@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "data_to_text",
+  "case": 26,
+  "response": "Pad Thai is a flavorful Thai dish that takes just **15 minutes to prep** and **10 minutes to cook**, making it a quick yet satisfying meal for **4 servings**. Each serving packs **380 calories**, with a balanced mix of **22g of protein**, **45g of carbs**, and **12g of fat**, and is rated as **medium difficulty**\u2014perfect for home cooks looking to explore authentic Thai cuisine.",
+  "score": 5,
+  "cost": 0.0002384,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 99
+  }
+}

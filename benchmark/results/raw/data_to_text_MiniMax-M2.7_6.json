@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "data_to_text",
+  "case": 6,
+  "response": "The prod-web-01 server in the us-east-1 region has been running for 45 days with CPU usage at 78% and 12.4 GB of its 16 GB memory in use. Currently handling 127 connections, the server has 234 GB of its 500 GB disk space consumed, a P99 latency of 145ms, and is experiencing approximately 3 errors per hour.",
+  "score": 5,
+  "cost": 0.0010538000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 211
+  }
+}

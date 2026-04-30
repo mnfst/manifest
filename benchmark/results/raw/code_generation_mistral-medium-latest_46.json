@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "code_generation",
+  "case": 46,
+  "response": "if not arr:\n        return []\n\n    min_even = None\n    min_index = -1\n\n    for index, num in enumerate(arr):\n        if num % 2 == 0:\n            if min_even is None or num < min_even or (num == min_even and index < min_index):\n                min_even = num\n                min_index = index\n\n    if min_even is not None:\n        return [min_even, min_index]\n    else:\n        return []",
+  "score": 4,
+  "cost": 0.0003508,
+  "expected": "",
+  "tokens": {
+    "input": 347,
+    "output": 106
+  }
+}

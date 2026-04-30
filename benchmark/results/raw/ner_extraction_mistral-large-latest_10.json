@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "ner_extraction",
+  "case": 10,
+  "response": "```json\n{\n  \"persons\": [\"Jennifer Lopez\", \"Ben Affleck\"],\n  \"organizations\": [],\n  \"locations\": [\"Beverly Hills\"]\n}\n```",
+  "score": 5,
+  "cost": 0.00037,
+  "expected": "",
+  "tokens": {
+    "input": 71,
+    "output": 38
+  }
+}

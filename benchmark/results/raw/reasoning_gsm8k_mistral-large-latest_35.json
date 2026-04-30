@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "reasoning_gsm8k",
+  "case": 35,
+  "response": "Let's break down the cost of each type of fruit Winston picked and then sum them up to find the total amount he spent.\n\n1. **Peaches:**\n   - Price per pound: $2.00\n   - Pounds picked: 6\n   - Cost for peaches: 6 pounds \u00d7 $2.00/pound = $12.00\n\n2. **Plums:**\n   - Price per pound: $1.00\n   - Pounds picked: 8\n   - Cost for plums: 8 pounds \u00d7 $1.00/pound = $8.00\n\n3. **Apricots:**\n   - Price per pound: $3.00\n   - Pounds picked: 6\n   - Cost for apricots: 6 pounds \u00d7 $3.00/pound = $18.00\n\n4. **Total Cost:**\n   - Sum of all costs: $12.00 (peaches) + $8.00 (plums) + $18.00 (apricots) = $38.00\n\nANSWER: 38",
+  "score": 5,
+  "cost": 0.001728,
+  "expected": "38",
+  "tokens": {
+    "input": 123,
+    "output": 247
+  }
+}

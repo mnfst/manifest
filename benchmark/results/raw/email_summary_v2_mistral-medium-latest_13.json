@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "email_summary_v2",
   "case": 13,
-  "response": "The **Q1 Customer Success metrics** show improved performance with **NPS rising to 62**, **CSAT at 4.3/5**, and **churn dropping to 1.2%**, while key feature requests include **SSO, custom dashboards, and higher API rate limits**. Additionally, **three enterprise expansions worth $800K** are in the pipeline, requiring follow-up on prioritizing requested features and advancing deal closures.",
+  "response": "The **Q1 Customer Success metrics** show improved performance with **NPS rising to 62**, **CSAT at 4.3/5**, and **churn dropping to 1.2%**, while top feature requests include **SSO, custom dashboards, and higher API rate limits**. Three **enterprise expansions worth $800K** are in progress, requiring prioritization of these requests to sustain growth.",
   "score": 5,
-  "cost": 0.0002392,
+  "cost": 0.0002272,
   "expected": "",
   "tokens": {
     "input": 118,
-    "output": 96
+    "output": 90
   }
 }

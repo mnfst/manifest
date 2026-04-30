@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "long_summarization",
+  "case": 45,
+  "response": "Quantum computing operates on a fundamentally different framework than classical computing: instead of binary bits limited to 0 or 1, it uses qubits that can exist in a superposition of both states, plus leverages quantum properties of entanglement and interference to solve specific problems exponentially faster than classical machines, with leading tech firms IBM, Google and startups IonQ, Rigetti building quantum hardware using varied approaches like superconducting circuits, trapped ions, and photonics. In 2019, Google claimed quantum supremacy after running a calculation in 200 seconds that it estimated would take a top classical supercomputer 10,000 years to complete, though widespread practical quantum computing faces significant, unresolved barriers. Qubits are extremely fragile, require cooling to near absolute zero, have high error rates that demand large numbers of physical qubits to create a single reliable logical qubit for computation, and while current quantum machines only hold 100 to 1,000 qubits, millions are needed to run most real-world useful applications. Despite these hurdles, quantum computing holds enormous promise for fields including drug discovery, materials science, cryptography, and supply chain optimization, with companies already testing early quantum algorithms for use cases like financial modeling and logistics.",
+  "score": 5,
+  "cost": 0.00111275,
+  "expected": "",
+  "tokens": {
+    "input": 323,
+    "output": 1032
+  }
+}

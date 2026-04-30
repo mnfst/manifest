@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "long_summarization",
+  "case": 29,
+  "response": "Quantum computing uses qubits\u2014exploiting superposition, entanglement, and interference\u2014to solve certain problems exponentially faster than classical computers. Tech giants like IBM and Google, along with startups such as IonQ and Rigetti, are developing varied hardware approaches; in 2019, Google claimed quantum supremacy by completing a task in 200 seconds that it said would take a classical supercomputer 10,000 years. However, practical use remains distant due to extreme qubit fragility, high error rates, and limited scale, as current machines operate with only 100\u20131,000 qubits while useful applications may require millions. Despite these hurdles, the technology shows significant promise for drug discovery, cryptography, optimization, and other fields, with firms already experimenting with quantum algorithms for finance and logistics.",
+  "score": 5,
+  "cost": 0.0015186,
+  "expected": "",
+  "tokens": {
+    "input": 275,
+    "output": 564
+  }
+}

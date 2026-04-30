@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "data_to_text",
+  "case": 10,
+  "response": "# Pad Thai Recipe\n\nPad Thai is a medium-difficulty Thai dish that can be prepared in just 15 minutes of prep time and 10 minutes of cooking, making it perfect for a quick weeknight meal that serves 4 people. Each serving contains 380 calories with 22g of protein, 45g of carbohydrates, and 12g of fat, providing a well-balanced nutritional profile. This classic Thai cuisine offers a delicious and relatively healthy option for those looking to enjoy authentic flavors without spending excessive time in the kitchen.",
+  "score": 5,
+  "cost": 0.0005767999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 123
+  }
+}

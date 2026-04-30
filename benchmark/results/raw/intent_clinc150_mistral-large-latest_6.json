@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "intent_clinc150",
+  "case": 6,
+  "response": "confirm_reservation",
+  "score": 5,
+  "cost": 0.001148,
+  "expected": "confirm_reservation",
+  "tokens": {
+    "input": 562,
+    "output": 4
+  }
+}

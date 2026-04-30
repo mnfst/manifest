@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "translation_enfr",
   "case": 21,
-  "response": "Voici une traduction qui conserve le ton naturel et poli de la phrase originale :\n\n**\"Pourriez-vous lire ceci, s\u2019il vous pla\u00eet ?\"**\n\n*Variantes possibles selon le contexte :*\n- *\"Est-ce que vous pourriez jeter un coup d\u2019\u0153il \u00e0 ceci, s\u2019il vous pla\u00eet ?\"* (plus informel, si le ton est d\u00e9tendu)\n- *\"Pourriez-vous parcourir ce document, je vous prie ?\"* (un peu plus formel, pour un contexte professionnel)\n\nLa premi\u00e8re option est la plus neutre et la plus proche de l'anglais. \ud83d\ude0a",
+  "response": "Voici une traduction qui conserve le ton naturel et poli de la phrase originale :\n\n**\"Pourriez-vous lire ceci, s\u2019il vous pla\u00eet ?\"**\n\n*(Variante l\u00e9g\u00e8rement plus informelle, si le contexte le permet :*\n**\"Est-ce que vous pourriez lire \u00e7a, s\u2019il vous pla\u00eet ?\"*)*\n\n---\n**Explications :**\n- **\"Would you\"** \u2192 **\"Pourriez-vous\"** (formel et courtois, comme dans la version anglaise).\n- **\"Have a read of this\"** \u2192 **\"Lire ceci/\u00e7a\"** (l\u2019anglais utilise une tournure idiomatique, tandis qu\u2019en fran\u00e7ais, le verbe seul suffit avec un pronom d\u00e9monstratif).\n- **\"Please\"** \u2192 **\"S\u2019il vous pla\u00eet\"** (m\u00eame niveau de politesse).\n\nSi le contexte est tr\u00e8s informel (entre coll\u00e8gues proches, par exemple), on pourrait aussi dire :\n*\"Tu peux lire \u00e7a, stp ?\"* \u2013 mais cela d\u00e9pend du registre souhait\u00e9.",
   "score": 4,
-  "cost": 0.0002556,
+  "cost": 0.00040560000000000005,
   "expected": "",
   "tokens": {
     "input": 34,
-    "output": 121
+    "output": 196
   }
 }

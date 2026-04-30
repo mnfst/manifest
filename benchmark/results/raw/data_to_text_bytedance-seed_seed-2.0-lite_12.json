@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "data_to_text",
+  "case": 12,
+  "response": "Founded in 1861, the Massachusetts Institute of Technology, better known as MIT, ranks as the #1 university globally, managing a massive $24.6 billion endowment that supports its 1,069 full-time faculty members and 11,500 enrolled students. MIT\u2019s elite standing is reflected in its extremely competitive 3.9% acceptance rate and $57,590 annual tuition, with the institution\u2019s long history of groundbreaking scholarship earning it an affiliation with 98 Nobel laureates, cementing its reputation as one of the most prestigious academic centers in the world.",
+  "score": 5,
+  "cost": 0.00067375,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 635
+  }
+}

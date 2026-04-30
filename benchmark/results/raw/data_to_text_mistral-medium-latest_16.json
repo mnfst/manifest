@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "data_to_text",
+  "case": 16,
+  "response": "Acme Corp, headquartered in Austin, Texas, reported strong financial performance in the past year, with quarterly revenues of **$12.3M (Q1)**, **$14.1M (Q2)**, **$11.8M (Q3)**, and **$16.2M (Q4)**, totaling **$54.4M**\u2014an **18% year-over-year growth**. The company currently employs **342 people**, reflecting its steady expansion and market presence.",
+  "score": 5,
+  "cost": 0.0002648,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 110
+  }
+}

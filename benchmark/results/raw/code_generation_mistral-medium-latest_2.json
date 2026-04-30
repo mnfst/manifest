@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "code_generation",
   "case": 2,
-  "response": "result = []\n    sorted_lst = sorted(lst)\n    left = 0\n    right = len(sorted_lst) - 1\n    toggle = True\n\n    while left <= right:\n        if toggle:\n            result.append(sorted_lst[left])\n            left += 1\n        else:\n            result.append(sorted_lst[right])\n            right -= 1\n        toggle = not toggle\n\n    return result",
-  "score": 5,
-  "cost": 0.0002372,
+  "response": "```python\n    result = []\n    sorted_lst = sorted(lst)\n    left = 0\n    right = len(sorted_lst) - 1\n    toggle = True\n\n    while left <= right:\n        if toggle:\n            result.append(sorted_lst[left])\n            left += 1\n        else:\n            result.append(sorted_lst[right])\n            right -= 1\n        toggle = not toggle\n\n    return result\n```",
+  "score": 4,
+  "cost": 0.0002472,
   "expected": "",
   "tokens": {
     "input": 153,
-    "output": 88
+    "output": 93
   }
 }

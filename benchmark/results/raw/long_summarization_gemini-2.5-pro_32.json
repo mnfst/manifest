@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "long_summarization",
+  "case": 32,
+  "response": "The internet began as a US military research project in the 1960s, with its precursor ARPANET sending its first message in 1969. Key developments like the adoption of TCP/IP in 1983 and the invention of the World Wide Web in 1989 created the foundation for public use. The launch of the first web browser in 1993 and the subsequent dot-com boom, rise of social media, and mobile access transformed society. Today, the internet is a ubiquitous force connecting over 5 billion people and underpinning modern commerce and communication.",
+  "score": 5,
+  "cost": 0.001655,
+  "expected": "",
+  "tokens": {
+    "input": 332,
+    "output": 124
+  }
+}

@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "reasoning_gsm8k",
   "case": 29,
-  "response": "Let's solve the problem step by step.\n\n1. **Red Cars**: The rink has 12 red cars.\n   - Red cars = 12\n\n2. **Green Cars**: They have 2 fewer green cars than red cars.\n   - Green cars = Red cars - 2\n   - Green cars = 12 - 2 = 10\n\n3. **Blue Cars**: They have 3 times the number of blue cars as green cars.\n   - Blue cars = 3 \u00d7 Green cars\n   - Blue cars = 3 \u00d7 10 = 30\n\n4. **Total Cars**: The rink has 75 cars in total. The total number of cars is the sum of red, green, blue, and yellow cars.\n   - Total cars = Red cars + Green cars + Blue cars + Yellow cars\n   - 75 = 12 + 10 + 30 + Yellow cars\n\n5. **Yellow Cars**: Solve for the number of yellow cars.\n   - Yellow cars = 75 - (12 + 10 + 30)\n   - Yellow cars = 75 - 52\n   - Yellow cars = 23\n\nANSWER: 23",
+  "response": "Let's solve the problem step by step.\n\n1. **Red Cars**: The rink has 12 red cars.\n   \\[\n   \\text{Red} = 12\n   \\]\n\n2. **Green Cars**: There are 2 fewer green cars than red cars.\n   \\[\n   \\text{Green} = \\text{Red} - 2 = 12 - 2 = 10\n   \\]\n\n3. **Blue Cars**: There are 3 times as many blue cars as green cars.\n   \\[\n   \\text{Blue} = 3 \\times \\text{Green} = 3 \\times 10 = 30\n   \\]\n\n4. **Total Cars**: The rink has a total of 75 cars. Let \\( Y \\) be the number of yellow cars. The sum of all cars is:\n   \\[\n   \\text{Red} + \\text{Green} + \\text{Blue} + Y = 75\n   \\]\n   Substituting the known values:\n   \\[\n   12 + 10 + 30 + Y = 75\n   \\]\n   \\[\n   52 + Y = 75\n   \\]\n\n5. **Solve for \\( Y \\)**:\n   \\[\n   Y = 75 - 52 = 23\n   \\]\n\nANSWER: 23",
   "score": 5,
-  "cost": 0.0005688,
+  "cost": 0.0006328,
   "expected": "23",
   "tokens": {
     "input": 107,
-    "output": 263
+    "output": 295
   }
 }

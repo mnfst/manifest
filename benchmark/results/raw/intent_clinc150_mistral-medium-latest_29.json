@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "intent_clinc150",
+  "case": 29,
+  "response": "recipe",
+  "score": 5,
+  "cost": 0.00022560000000000004,
+  "expected": "recipe",
+  "tokens": {
+    "input": 554,
+    "output": 2
+  }
+}

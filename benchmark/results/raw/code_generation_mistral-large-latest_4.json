@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "code_generation",
+  "case": 4,
+  "response": "```python\n    if len(l) <= 1:\n        return True\n\n    increasing = decreasing = True\n\n    for i in range(len(l) - 1):\n        if l[i] > l[i+1]:\n            increasing = False\n        if l[i] < l[i+1]:\n            decreasing = False\n        if not increasing and not decreasing:\n            return False\n\n    return increasing or decreasing\n```",
+  "score": 5,
+  "cost": 0.000758,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 87
+  }
+}

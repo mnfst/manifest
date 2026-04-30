@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "data_to_text",
+  "case": 11,
+  "response": "DataFlow AI, a data infrastructure startup founded in 2022, has rapidly gained momentum since its launch. The company recently secured $8.5 million in Series A funding at a $42 million valuation, backed by prominent investors like Sequoia and Y Combinator. With a lean team of 18, DataFlow AI is already generating $120K in monthly recurring revenue and boasts an impressive 25% month-over-month growth.",
+  "score": 5,
+  "cost": 0.000806,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 98
+  }
+}

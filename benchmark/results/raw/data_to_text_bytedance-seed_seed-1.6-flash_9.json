@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "data_to_text",
+  "case": 9,
+  "response": "Japan, with a population of 125 million, has a GDP of $4.2 trillion, growing at 1.1% and exporting $756 billion. It also features a low unemployment rate of 2.6%, 3.2% inflation, a high debt-to-GDP ratio of 263%, and a life expectancy of 84.6 years.",
+  "score": 5,
+  "cost": 0.00018442500000000002,
+  "expected": "",
+  "tokens": {
+    "input": 187,
+    "output": 568
+  }
+}

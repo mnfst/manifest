@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "translation_enfr",
   "case": 39,
-  "response": "Voici une traduction qui conserve le ton et le sens de la phrase originale :\n\n**\"Tu sais d\u2019o\u00f9 vient l\u2019argent ?\"**\n\nSi tu veux une version plus formelle (pour un contexte professionnel, par exemple) :\n**\"Savez-vous d\u2019o\u00f9 provient cet argent ?\"**\n\nSelon le contexte, on pourrait aussi dire :\n- *\"Tu sais d\u2019o\u00f9 sort le fric ?\"* (familier, voire un peu vulgaire)\n- *\"Tu sais d\u2019o\u00f9 \u00e7a vient, ce pognon ?\"* (tr\u00e8s familier, argotique)\n\nTu cherches un registre particulier ?",
+  "response": "Voici une traduction qui conserve le ton et le sens de la phrase originale :\n\n**\"Tu sais d\u2019o\u00f9 vient l\u2019argent ?\"**\n\nSi tu veux une version plus formelle (pour un contexte professionnel, par exemple) :\n**\"Savez-vous d\u2019o\u00f9 provient cet argent ?\"**\n\nSelon le contexte, on pourrait aussi dire :\n- *\"Tu sais d\u2019o\u00f9 sort le fric ?\"* (familier, voire un peu vulgaire avec *\"fric\"*)\n- *\"Tu sais d\u2019o\u00f9 \u00e7a vient, ce pognon ?\"* (tr\u00e8s familier, argotique)\n\nTu cherches un registre particulier ?",
   "score": 5,
-  "cost": 0.0002564,
+  "cost": 0.00026639999999999997,
   "expected": "",
   "tokens": {
     "input": 31,
-    "output": 122
+    "output": 127
   }
 }

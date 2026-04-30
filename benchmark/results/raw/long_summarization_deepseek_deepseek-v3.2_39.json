@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "long_summarization",
+  "case": 39,
+  "response": "The EU's General Data Protection Regulation (GDPR), enacted in May 2018, sets strict rules for handling EU residents' data globally, with key rights for individuals and a requirement to report data breaches within 72 hours. It imposes severe fines of up to 4% of global revenue, as seen with major penalties against Meta (\u20ac1.2 billion) and Amazon (\u20ac746 million). While critics cite compliance burdens and inconsistent enforcement, GDPR has established data privacy as a fundamental right and inspired similar laws worldwide.",
+  "score": 5,
+  "cost": 0.00019285000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 305,
+    "output": 106
+  }
+}

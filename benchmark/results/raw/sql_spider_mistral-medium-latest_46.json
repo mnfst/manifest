@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "sql_spider",
+  "case": 46,
+  "response": "```sql\nSELECT\n    governmentform,\n    SUM(population) AS total_population\nFROM\n    country\nWHERE\n    governmentform IN (\n        SELECT governmentform\n        FROM country\n        GROUP BY governmentform\n        HAVING AVG(lifeexpectancy) > 72\n    )\nGROUP BY\n    governmentform\nORDER BY\n    total_population DESC;\n```",
+  "score": 4,
+  "cost": 0.0002,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 83
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "data_to_text",
+  "case": 2,
+  "response": "Stockholm, the capital of Sweden, is a historic city founded in 1252 that spans 188 km\u00b2 and is home to around 1.6 million people. With a thriving economy boasting a GDP per capita of $62,000, the city experiences chilly winters averaging -3\u00b0C in January and mild summers with July temperatures around 18\u00b0C. Swedish is the primary language spoken in this vibrant Scandinavian metropolis.",
+  "score": 5,
+  "cost": 0.00023359999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 97
+  }
+}

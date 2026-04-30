@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "long_summarization",
+  "case": 8,
+  "response": "The evolution of AI spans decades, from **Alan Turing\u2019s 1950s challenge**\u2014testing machine intelligence\u2014through **AI winters** in the 1970s and 1980s, when progress stalled due to technical limitations and overhyped expectations. A **resurgence began in the 2010s**, driven by **deep learning**, culminating in the **2017 transformer architecture** (e.g., Google\u2019s BERT) and later **GPT models**, which adopted the **scaling hypothesis**\u2014showing that larger datasets and computational power improve performance. Today, major tech firms like **OpenAI, Google, Anthropic, and Meta** compete, while debates rage over **open vs. closed-source models**, **AI safety risks** (alignment, misuse, job displacement), and **regulatory efforts** (e.g., the **EU AI Act**, U.S. executive orders), alongside **economic disruptions** in knowledge-based work.",
+  "score": 5,
+  "cost": 1.432e-05,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 205
+  }
+}

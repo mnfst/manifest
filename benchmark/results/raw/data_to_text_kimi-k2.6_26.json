@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "data_to_text",
+  "case": 26,
+  "response": "Pad Thai is a medium-difficulty Thai dish that serves four and requires 15 minutes of preparation and 10 minutes of cooking. Each serving contains 380 calories, including 22 grams of protein, 45 grams of carbohydrates, and 12 grams of fat.",
+  "score": 5,
+  "cost": 0.0016884,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 680
+  }
+}

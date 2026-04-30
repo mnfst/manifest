@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "long_summarization",
+  "case": 46,
+  "response": "The global food system faces mounting challenges from a projected 60% increase in food demand by 2050, climate change reducing crop yields, and agriculture contributing about 25% of greenhouse gas emissions. Key pressures include water scarcity\u2014like the depletion of the Ogallala Aquifer\u2014soil degradation affecting 33% of arable land, and roughly one-third of all food being wasted. Proposed solutions range from technological innovations like precision agriculture and alternative proteins to policy reforms, but scaling these while maintaining affordability for the poorest remains a critical hurdle.",
+  "score": 5,
+  "cost": 0.0001939,
+  "expected": "",
+  "tokens": {
+    "input": 296,
+    "output": 109
+  }
+}
