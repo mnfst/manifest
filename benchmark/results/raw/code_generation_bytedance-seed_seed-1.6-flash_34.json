@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-1.6-flash",
   "task": "code_generation",
   "case": 34,
-  "response": "if n <= 1:\n        return y\n    if n == 2:\n        return x\n    if n % 2 == 0:\n        return y\n    for i in range(3, int(n**0.5) + 1, 2):\n        if n % i == 0:\n            return y\n    return x",
+  "response": "if n <= 1:\n        return y\n    if n == 2:\n        return x\n    if n % 2 == 0:\n        return y\n    max_divisor = int(n ** 0.5) + 1\n    for i in range(3, max_divisor, 2):\n        if n % i == 0:\n            return y\n    return x",
   "score": 5,
-  "cost": 0.00030645,
+  "cost": 0.00030795,
   "expected": "",
   "tokens": {
     "input": 202,
-    "output": 971
+    "output": 976
   }
 }

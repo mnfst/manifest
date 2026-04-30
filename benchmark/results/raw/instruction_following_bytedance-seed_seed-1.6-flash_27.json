@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 27,
+  "response": "Here\u2019s a grouped list of 3 mammals, 3 birds, and 3 fish, with clear headers:  \n\n\n### **Mammals** (Warm-blooded, have hair/fur, produce milk for young)  \n1. **Dog** \u2013 A domesticated carnivorous mammal known for its loyalty and varied breeds.  \n2. **Human** \u2013 The species of bipedal primates characterized by advanced cognitive abilities.  \n3. **Cow** \u2013 A domesticated ruminant mammal raised for milk, meat, and leather.  \n\n\n### **Birds** (Warm-blooded, have feathers, lay hard-shelled eggs)  \n1. **Eagle** \u2013 A large, powerful bird of prey with keen eyesight and broad wings for soaring.  \n2. **Penguin** \u2013 A flightless bird adapted to cold aquatic environments, with black-and-white plumage.  \n3. **Parrot** \u2013 A colorful bird known for its ability to mimic sounds and speech, with strong, curved beaks.  \n\n\n### **Fish** (Cold-blooded, aquatic, use gills to breathe)  \n1. **Salmon** \u2013 A migratory fish known for its journey from freshwater to saltwater to spawn.  \n2. **Goldfish** \u2013 A popular freshwater fish with vibrant orange scales, often kept in aquariums.  \n3. **Shark** \u2013 A cartilaginous fish with streamlined bodies, multiple rows of teeth, and excellent predatory skills.  \n\n\nEach group is defined by key biological traits, and the examples are common and recognizable.",
+  "score": 4,
+  "cost": 0.00021337499999999997,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 686
+  }
+}

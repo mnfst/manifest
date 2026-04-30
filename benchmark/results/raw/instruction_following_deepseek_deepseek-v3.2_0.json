@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "- **Improved cardiovascular health:** Regular exercise strengthens the heart and improves circulation, reducing the risk of heart disease, stroke, and high blood pressure.\n- **Enhanced mental well-being:** Physical activity releases endorphins, reduces stress hormones, and can alleviate symptoms of anxiety and depression, boosting mood and cognitive function.\n- **Better weight management and metabolic function:** Exercise helps burn calories, builds muscle (which increases metabolic rate), and improves insulin sensitivity, aiding in maintaining a healthy weight and preventing type 2 diabetes.",
+  "score": 2,
+  "cost": 0.0001162,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 102
+  }
+}

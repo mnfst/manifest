@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 40,
+  "response": "**This code implements a Circuit Breaker pattern.**\n\nIt protects a system from repeatedly calling a failing service by \"tripping\" (opening the circuit) after a configurable number of consecutive failures (`threshold`). \n\nWhile **open**, it fast-fails calls with an exception for a cooldown period (`timeout`). After the timeout, it enters **half-open** state, allowing a test call: success resets the breaker to **closed**; failure reopens it. This prevents cascading failures and enables automatic recovery.",
+  "score": 5,
+  "cost": 0.001418,
+  "expected": "",
+  "tokens": {
+    "input": 313,
+    "output": 99
+  }
+}

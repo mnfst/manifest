@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "email_summary_v2",
+  "case": 17,
+  "response": "**Summary:**  \nThe team is rolling back release v4.2 due to a data corruption bug in the new sync engine that affected 23 accounts.  \n\n**Action items:** Restore from pre-release backup, re-run affected transactions, notify impacted customers, and use the newly created hotfix branch.",
+  "score": 5,
+  "cost": 0.000912,
+  "expected": "",
+  "tokens": {
+    "input": 216,
+    "output": 60
+  }
+}

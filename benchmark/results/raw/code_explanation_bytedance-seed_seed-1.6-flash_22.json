@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "This code implements an LRU (Least Recently Used) Cache using an `OrderedDict` to track access order. The `get` method moves a key to the end (marking it as recently used) if it exists, returning its value; otherwise, it returns -1. The `put` method updates an existing key (moving it to the end) or adds a new key, then removes the least recently used key (first element of the `OrderedDict`) if the cache exceeds capacity. The algorithm uses an ordered structure to track usage and enforce LRU eviction.",
+  "score": 5,
+  "cost": 0.0001548,
+  "expected": "",
+  "tokens": {
+    "input": 228,
+    "output": 459
+  }
+}

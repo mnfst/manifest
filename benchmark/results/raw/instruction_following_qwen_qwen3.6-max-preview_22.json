@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs have earned their reputation as man's best friend through their unwavering loyal devotion to their human families. Whether waiting by the door or standing guard during a walk, a loyal dog demonstrates its commitment through consistent and affectionate behavior. This loyal bond transcends mere obedience, as these animals often sense their owner's emotions and offer comfort with a loyal presence that never wavers. From playful puppies to gentle seniors, every stage of a dog's life is marked by a loyal spirit that enriches the lives of those lucky enough to share their home. Ultimately, the enduring legacy of dogs is defined by their loyal hearts, which remind us daily of the beauty of unconditional love and faithful companionship.",
+  "score": 5,
+  "cost": 0.006981,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 1336
+  }
+}

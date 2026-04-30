@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-1.6-flash",
   "task": "email_summary_v2",
   "case": 15,
-  "response": "Legal has approved the updated terms, which include adding an arbitration clause for the enterprise tier and revising data retention to 90 days from 180 days. These changes must go live before the EU launch on May 1, and Legal will prepare the final version today.",
+  "response": "Legal has approved the updated terms, which include two changes: adding an arbitration clause for the enterprise tier and revising data retention to 90 days from 180. These changes must go live before the EU launch on May 1, and Legal will prepare the final version today.",
   "score": 5,
-  "cost": 7.935e-05,
+  "cost": 9.735000000000001e-05,
   "expected": "",
   "tokens": {
     "input": 182,
-    "output": 219
+    "output": 279
   }
 }

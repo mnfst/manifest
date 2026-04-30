@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "**A Thunderstorm: A Symphony of Senses**  \n\n\nThe sky had been holding its breath all afternoon, the sun bled out by a tide of gray clouds that swelled like a bruise across the horizon. By late afternoon, the light dimmed to a sickly yellow, as if the world had been smudged with a finger. Then, without warning, a *crack* split the air\u2014sharp, white, and searing. Lightning, jagged as a broken branch, split the clouds, and for a heartbeat, the world was lit in neon: the crumpled leaves of the oak tree, the wet sheen of the neighbor\u2019s roof, the way my dog flattened herself against the couch, ears pinned.  \n\nThe thunder followed, a low, rolling growl that vibrated in my bones, making the windows rattle like a child\u2019s maracas. It was not a single sound but a chorus\u2014first a rumble, then a *boom* that shook the floor, then a distant *crackle*, as if the sky were tearing itself apart. The air thickened, too, heavy with the weight of rain, and I felt it on my cheeks before I saw it: a single, fat drop that splashed onto my palm, warm and metallic, like a drop of liquid silver. Then the floodgates opened.  \n\nRain lashed the roof in a staccato rhythm, *pitter-patter* at first, then a roar that drowned out the world. I could hear the rain on the fire escape, a wild, drumming beat, and the way it hit the puddles below, sending up plumes of mist. The air cooled instantly, the heat of the day dissolving into a cool, damp kiss that clung to my skin. And then there was the smell\u2014*petrichor*, sharp and earthy, rising from the cracked pavement, from the flower beds where the soil had been baked hard for weeks. It was a scent of renewal, of release, like the world was exhaling after a long, hot sigh.  \n\nThunder clapped again, closer this time, so loud I jumped, my heart racing. The rain fell harder, blurring the edges of the yard, turning the grass into a sea of green. I watched a sparrow dart under the eaves, its feathers plastered to its body, and a drop of water fell from the gutter, a",
+  "score": 5,
+  "cost": 0.00043702499999999996,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 1433
+  }
+}

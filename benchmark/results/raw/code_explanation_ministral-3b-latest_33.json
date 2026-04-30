@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_explanation",
+  "case": 33,
+  "response": "This code implements **reservoir sampling with replacement**, specifically **Algorithm R** (for sampling `k` items from a stream of unknown size). It maintains a fixed-size reservoir of `k` items by probabilistically replacing older samples as new items arrive, ensuring each item in the stream has an equal chance (`1/n` for the `n`-th item) of being included in the final sample.",
+  "score": 5,
+  "cost": 6.960000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 91,
+    "output": 83
+  }
+}

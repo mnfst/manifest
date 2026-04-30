@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 26,
+  "response": "A GDPR data export request has been received for user ID 45892, with a May 25 deadline requiring all personal data, processing purposes, and third-party sharing logs. The Privacy Team notes that analytics data must also be included in the response.",
+  "score": 5,
+  "cost": 8.185e-05,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 51
+  }
+}

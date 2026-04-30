@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 4,
+  "response": "1. French: Bonjour le monde (or Salut le monde, depending on formality; \"Bonjour le monde\" is the standard translation).  \n2. Spanish: Hola mundo (the most common and informal translation; \"Buenos d\u00edas mundo\" is also used, but less common).  \n3. German: Hallo Welt (or Guten Tag Welt, though \"Hallo Welt\" is the direct equivalent).  \n\n\nAll translations follow the structure of \"hello\" + \"world\" in their respective languages.",
+  "score": 4,
+  "cost": 0.00014287499999999996,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 451
+  }
+}

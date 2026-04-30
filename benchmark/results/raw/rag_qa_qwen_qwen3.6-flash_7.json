@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-flash",
   "task": "rag_qa",
   "case": 7,
-  "response": "the mass of the system.",
-  "score": 1,
-  "cost": 0.0008845,
+  "response": "the mass of the system",
+  "score": 0,
+  "cost": 0.0007385,
   "expected": "mass of the system",
   "tokens": {
     "input": 170,
-    "output": 842
+    "output": 696
   }
 }

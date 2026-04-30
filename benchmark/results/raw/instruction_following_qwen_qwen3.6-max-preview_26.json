@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle, also known as the hydrologic cycle, describes the continuous movement of water on, above, and below the surface of the Earth. This endless loop is driven primarily by energy from the sun, which heats liquid water in oceans, lakes, and rivers, causing it to change state from a liquid to a gas through a process called evaporation. Additionally, plants release water vapor into the atmosphere through their leaves in a process known as transpiration, while ice and snow can transform directly into vapor via sublimation, collectively adding significant moisture to the air.\n\nAs water vapor rises into the atmosphere, it encounters cooler temperatures and begins to lose heat. This cooling causes the vapor to condense back into tiny liquid water droplets or ice crystals, a process called condensation. These microscopic particles cluster around dust and other aerosols in the air, eventually forming visible clouds. Wind currents then transport these clouds across the globe, distributing moisture far from its original source and setting the stage for the water's return to the surface.\n\nWhen the water droplets or ice crystals within clouds grow too heavy to remain suspended in the air, gravity pulls them back to Earth as precipitation. Depending on atmospheric conditions, this water falls as rain, snow, sleet, or hail, replenishing freshwater sources and delivering essential moisture to ecosystems. Precipitation is the primary mechanism by which atmospheric water returns to the land and oceans, ensuring that terrestrial environments receive the water necessary to sustain life and maintain river flows.\n\nOnce precipitation reaches the ground, the water follows various paths through collection and storage. Some water flows over the land as surface runoff, eventually draining into streams, rivers, and lakes that empty back into the oceans, while other water infiltrates the soil to recharge underground aquifers as groundwater. Plants may absorb some of this moisture, and the rest remains stored in ice caps or bodies of water until solar energy triggers evaporation once again, perpetuating the cycle that regulates Earth's climate and sustains all living organisms.",
+  "score": 4,
+  "cost": 0.010231,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 1962
+  }
+}

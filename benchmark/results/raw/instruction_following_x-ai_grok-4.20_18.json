@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "My favorite book is a sprawling, multi-generational saga that follows one family's journey through love, loss, betrayal, and quiet redemption across decades of American history. It's written with such luminous, almost biblical prose that every sentence feels like it carries the weight of myth, yet it's grounded in the most intimate, heartbreakingly human moments. The story moves between rural poverty, big-city ambition, and the vast open spaces of the West, weaving in themes of inheritance (both literal and emotional), the stories we tell ourselves to survive, and the way time erodes everything except the things we choose to remember. \n\nWhat I love most is how it refuses to give you easy heroes or villains. Every character is flawed in ways that feel achingly real, and by the end you realize the book isn't really about any one person; it's about the invisible threads that bind us to the people who came before us and the ones who will come after. It's the kind of novel that stays with you for years; you find yourself thinking about certain scenes or lines of dialogue at the strangest moments, like they're part of your own memory now.",
+  "score": 5,
+  "cost": 0.002066,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 225
+  }
+}

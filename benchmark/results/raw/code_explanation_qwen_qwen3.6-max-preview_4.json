@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_explanation",
+  "case": 4,
+  "response": "This code implements a **memoization decorator** that stores a function's previously computed results in a dictionary keyed by its input arguments, instantly returning cached values on repeated calls. It uses the **decorator pattern** combined with a **hash-based lookup table** to trade memory for faster execution by eliminating redundant computations.",
+  "score": 5,
+  "cost": 0.0039065,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 730
+  }
+}

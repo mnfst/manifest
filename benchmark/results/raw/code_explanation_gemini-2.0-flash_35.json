@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "The code implements the Knuth-Morris-Pratt (KMP) algorithm to efficiently find the first occurrence of a `pattern` within a `text`. It precomputes a \"longest proper prefix suffix\" (LPS) array for the pattern to avoid unnecessary comparisons during the search, allowing it to shift the pattern based on the LPS values when a mismatch occurs.",
+  "score": 5,
+  "cost": 5.060000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 202,
+    "output": 76
+  }
+}

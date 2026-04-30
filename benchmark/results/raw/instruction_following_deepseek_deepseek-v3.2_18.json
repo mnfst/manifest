@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "Of course. Here is a description of my favorite book:\n\nThe story is an epic, multi-generational saga that follows the rise and fall of a single family. It begins with a patriarch who, through a combination of ambition, ruthlessness, and a strange, almost mystical luck, builds an empire in a remote, swampy region. This empire is founded on a single, intoxicating resource that becomes both a blessing and a curse.\n\nThe narrative is a profound exploration of time, memory, and the inescapable cycles of history and violence. It is told in a unique, non-linear style, where past, present, and future bleed into one another. The prose is famously dense, lyrical, and challenging, often using long, flowing sentences that mirror the relentless, muddy river at the heart of the setting.\n\nCentral themes include the corrosive nature of slavery and greed, the complex legacy of the American South, and the idea that the past is never truly dead\u2014it's not even past. The family's story is haunted by ghosts, both literal and metaphorical, and is punctuated by acts of incredible endurance, shocking brutality, and a deep, tragic sense of fate.\n\nThe book is structurally daring, divided into sections narrated by different members of the family\u2014including one by a character with a severely limited, yet profoundly poetic, understanding of the world. It is a novel that demands much from the reader but offers an unparalleled, mythic, and heartbreaking vision of human frailty and persistence.",
+  "score": 5,
+  "cost": 0.00033485000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 301
+  }
+}

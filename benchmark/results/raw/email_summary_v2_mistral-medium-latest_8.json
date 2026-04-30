@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "email_summary_v2",
   "case": 8,
-  "response": "The **annual performance review cycle** begins **May 1**, with key deadlines for **self-reviews (May 15)**, **manager reviews (May 22)**, **calibration (May 28)**, and final delivery **(June 5)**, now using a **new competency framework**. **Managers must attend a training session on April 30**, and all employees should adhere to the outlined timeline.",
+  "response": "The **annual performance review cycle** begins **May 1**, with key deadlines for **self-reviews (May 15)**, **manager reviews (May 22)**, **calibration (May 28)**, and final delivery **(June 5)**, using a **new competency framework**. **Managers must attend a training session on April 30**, and all employees should adhere to the outlined timeline.",
   "score": 5,
-  "cost": 0.00021480000000000002,
+  "cost": 0.00021280000000000002,
   "expected": "",
   "tokens": {
     "input": 92,
-    "output": 89
+    "output": 88
   }
 }

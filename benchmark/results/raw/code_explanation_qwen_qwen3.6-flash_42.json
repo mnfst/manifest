@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "This code implements an asynchronous producer-consumer queue using a **future-based signaling pattern**, where producers and consumers suspend execution by awaiting `asyncio.Future` objects stored in separate wait queues until the opposite side signals availability. It manually replicates `asyncio.Queue`'s core synchronization logic by cooperatively blocking full producers and empty consumers via future resolution.",
+  "score": 5,
+  "cost": 0.0015395,
+  "expected": "",
+  "tokens": {
+    "input": 234,
+    "output": 1481
+  }
+}

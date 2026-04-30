@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "The old lighthouse keeper found a message in a bottle washed up on the rocks one stormy night.  \nInside was a single sentence written in his own handwriting: \"Don't light the lamp tonight.\"  \nHe laughed at the impossible coincidence until he noticed the date on the faded paper was tomorrow's.  \nAs midnight approached, the beam began to flicker on its own, sweeping across the treacherous waves.  \nA massive ship suddenly appeared from the fog, heading straight for the cliffs below.  \nWith trembling hands he smashed the mechanism, plunging the coast into darkness and saving the vessel from certain doom.",
+  "score": 5,
+  "cost": 0.0012,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 117
+  }
+}

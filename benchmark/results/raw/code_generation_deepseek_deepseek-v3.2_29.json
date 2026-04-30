@@ -2,12 +2,12 @@
   "model": "deepseek/deepseek-v3.2",
   "task": "code_generation",
   "case": 29,
-  "response": "```python\n    def digit_sum(num):\n        return sum(int(d) for d in str(abs(num)))\n    \n    return [num for num in sorted(nums, key=lambda x: (digit_sum(x), nums.index(x)))]\n```",
-  "score": 4,
-  "cost": 8.880000000000002e-05,
+  "response": "```python\n    def digit_sum(n):\n        return sum(int(d) for d in str(abs(n)))\n    \n    indexed = [(digit_sum(num), i, num) for i, num in enumerate(nums)]\n    indexed.sort(key=lambda x: (x[0], x[1]))\n    return [num for _, _, num in indexed]\n```",
+  "score": 5,
+  "cost": 0.00011520000000000001,
   "expected": "",
   "tokens": {
     "input": 144,
-    "output": 48
+    "output": 72
   }
 }

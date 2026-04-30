@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is the invisible force that pulls objects with mass toward each other. On Earth, it's what keeps your feet planted on the ground, makes dropped items fall downward, and holds the Moon in orbit around our planet. The more mass an object has, the stronger its gravitational pull, which is why Earth keeps us and our atmosphere in place while the Moon's pull is noticeably weaker. Even the Sun's gravity is strong enough to keep all the planets in our solar system circling around it. While Isaac Newton first described how gravity behaves, Albert Einstein later showed that it actually works by warping the fabric of space and time around massive objects. But at its most basic level, gravity is just nature's way of drawing things together. That is gravity.",
+  "score": 5,
+  "cost": 0.00063375,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 626
+  }
+}

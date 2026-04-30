@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "The day exhales, releasing its grip as the sun descends, a heavy medallion of molten gold pressing against the horizon. Clouds, scattered like torn silk, ignite in vibrant shades of tangerine, apricot, and saffron, their edges fringed with blinding brilliance. The light transforms the world below, bathing fields and streets in a thick, honeyed glow that makes every leaf and stone appear gilded.\n\nAs the solar disk slips lower, the sky deepens. The fierce brightness mellows into a rich amber, then surrenders to sweeping bands of violet and indigo that climb from the east. Shadows stretch long and lean, merging into pools of cool gray that creep across the ground. The air grows crisp, carrying the scent of settling dust and evening dew.\n\nFinally, the sun vanishes, leaving behind a lingering afterglow. A smear of magenta and bruised purple lingers where the light departed, fading slowly like watercolor on damp paper. The first star pierces the deepening azure, a sharp point of silver, signaling the quiet transition as twilight wraps the world in its soft, velvet embrace.",
+  "score": 3,
+  "cost": 0.0098124,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 1881
+  }
+}

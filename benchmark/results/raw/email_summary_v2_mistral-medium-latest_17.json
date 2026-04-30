@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "email_summary_v2",
   "case": 17,
-  "response": "The **v4.2 release is being rolled back** due to a data corruption bug in the sync engine that impacted **23 accounts**, with recovery involving backup restoration, transaction reprocessing, and customer notifications. A **hotfix branch has been created**, and the team will execute the recovery plan as outlined.",
+  "response": "The **v4.2 release is being rolled back** due to a data corruption bug in the sync engine that impacted **23 accounts**. The team will **restore from backup, reprocess transactions, and notify affected customers**, while a hotfix branch has already been created.",
   "score": 5,
-  "cost": 0.0001696,
+  "cost": 0.0001556,
   "expected": "",
   "tokens": {
     "input": 99,
-    "output": 65
+    "output": 58
   }
 }

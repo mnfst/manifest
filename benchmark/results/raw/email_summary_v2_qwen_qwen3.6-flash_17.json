@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-flash",
   "task": "email_summary_v2",
   "case": 17,
-  "response": "Release v4.2 is being rolled back due to a data corruption bug in the sync engine that has affected 23 accounts. The recovery plan requires restoring from a pre-release backup, re-running affected transactions, notifying impacted customers, and addressing the issue via the newly created hotfix branch.",
+  "response": "Release v4.2 is being rolled back due to a data corruption bug in the sync engine that affected 23 accounts. The recovery plan requires restoring from a pre-release backup, re-running affected transactions, notifying impacted customers, and addressing the issue via the newly created hotfix branch.",
   "score": 5,
-  "cost": 0.00165425,
+  "cost": 0.00129325,
   "expected": "",
   "tokens": {
     "input": 109,
-    "output": 1627
+    "output": 1266
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_explanation",
+  "case": 9,
+  "response": "This code defines a retry decorator that retries a function call up to `max_attempts` times (default 3) with exponential backoff: if the function fails, it waits `delay * (2 ** i)` seconds (where `i` is the attempt number) before retrying, and only raises the exception if all attempts fail.\n\n\n**Key points**: Exponential backoff (delays double each retry) and bounded retries.",
+  "score": 5,
+  "cost": 9.997499999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 205,
+    "output": 282
+  }
+}

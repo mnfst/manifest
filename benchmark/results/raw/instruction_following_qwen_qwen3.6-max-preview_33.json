@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "1. The Moon is tidally locked to Earth, meaning it rotates on its axis at the same rate it orbits us, so the same side always faces Earth.\n2. The Moon's surface gravity is about one-sixth of Earth's, so a person who weighs 180 pounds on Earth would weigh only about 30 pounds on the Moon.\n3. The Moon is slowly drifting away from Earth at a rate of approximately 3.8 centimeters (1.5 inches) per year, a measurement confirmed by laser reflectors left by Apollo astronauts.",
+  "score": 5,
+  "cost": 0.0046462,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 886
+  }
+}

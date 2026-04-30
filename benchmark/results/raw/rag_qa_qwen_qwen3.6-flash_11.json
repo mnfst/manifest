@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-flash",
   "task": "rag_qa",
   "case": 11,
-  "response": "Based on the provided context, the Amazon forest stores **10% of the carbon stores in ecosystems**, which amounts to **of the order of 1.1 \u00d7 10^11 metric tonnes of carbon**.",
+  "response": "Based on the context, the Amazon forest stores **10% of the carbon stores in ecosystems** (of the order of **1.1 \u00d7 10^11 metric tonnes of carbon**).",
   "score": 4,
-  "cost": 0.00203325,
+  "cost": 0.00111325,
   "expected": "10% of the carbon stores",
   "tokens": {
     "input": 185,
-    "output": 1987
+    "output": 1067
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_generation",
+  "case": 47,
+  "response": "```python\n    return ' '.join(str(i) for i in range(n + 1))\n```",
+  "score": 5,
+  "cost": 0.000598,
+  "expected": "",
+  "tokens": {
+    "input": 215,
+    "output": 21
+  }
+}

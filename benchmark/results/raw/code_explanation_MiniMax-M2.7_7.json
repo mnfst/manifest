@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "This code implements a **Least Recently Used (LRU) cache decorator** using an `OrderedDict` to track access order. When the cache reaches `maxsize` entries, the oldest item (from the front) is evicted, while accessed items are moved to the end to mark them as recently used.",
+  "score": 5,
+  "cost": 0.0015389000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 151,
+    "output": 312
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "The function finds all **connected components** of a graph by iterating over each node, and for every unvisited node it launches a **breadth\u2011first search (BFS)** to visit every reachable node, adding them to a component list. A global `visited` set prevents revisiting nodes, so the algorithm returns a list of all disjoint node groups.",
+  "score": 5,
+  "cost": 0.0015818000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 162,
+    "output": 319
+  }
+}

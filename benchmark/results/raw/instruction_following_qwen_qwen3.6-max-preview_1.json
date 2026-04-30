@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 1,
+  "response": "A CPU executes program instructions by performing arithmetic, logical, and control operations to process data and coordinate all other computer hardware.",
+  "score": 5,
+  "cost": 0.0055185,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 1056
+  }
+}

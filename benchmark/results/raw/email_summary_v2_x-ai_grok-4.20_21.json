@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "email_summary_v2",
+  "case": 21,
+  "response": "**Summary:**  \nThe Platform Team reports 47 active feature flags, with 23 from releases over 6 months old, and proposes a cleanup sprint to remove 15 fully rolled-out flags and archive 8 dead-code flags. This initiative will reduce configuration complexity and speed up the test suite by approximately 12%.",
+  "score": 5,
+  "cost": 0.000932,
+  "expected": "",
+  "tokens": {
+    "input": 214,
+    "output": 63
+  }
+}

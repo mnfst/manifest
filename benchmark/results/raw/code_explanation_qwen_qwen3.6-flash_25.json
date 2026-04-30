@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "This code implements the **Observer (Pub/Sub) pattern** by using a dictionary to map event names to lists of callback functions, enabling decoupled event-driven communication. The `on` method registers listeners, `emit` triggers all registered callbacks for a given event with provided arguments, and `off` removes a specific listener.",
+  "score": 5,
+  "cost": 0.0014325,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 1400
+  }
+}

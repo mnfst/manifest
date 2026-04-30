@@ -2,12 +2,12 @@
   "model": "deepseek/deepseek-v3.2",
   "task": "code_generation",
   "case": 11,
-  "response": "if not numbers:\n        return (0, 1)\n    sum_val = 0\n    product_val = 1\n    for num in numbers:\n        sum_val += num\n        product_val *= num\n    return (sum_val, product_val)",
+  "response": "```python\n    if not numbers:\n        return (0, 1)\n    \n    total_sum = 0\n    total_product = 1\n    \n    for num in numbers:\n        total_sum += num\n        total_product *= num\n    \n    return (total_sum, total_product)\n```",
   "score": 4,
-  "cost": 9.44e-05,
+  "cost": 9.99e-05,
   "expected": "",
   "tokens": {
     "input": 140,
-    "output": 54
+    "output": 59
   }
 }

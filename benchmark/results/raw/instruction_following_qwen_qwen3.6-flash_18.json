@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "It is a haunting meditation on obsession, illusion, and the relentless pursuit of a dream that may never have been real to begin with.\n\nThrough the eyes of a young man who moves to a coastal enclave of immense wealth, we witness the spectacle of a mysterious millionaire who throws extravagant parties every weekend, hoping to attract the attention of a woman he lost years ago. The narrative is steeped in the glamour and excess of a bygone era, yet beneath the jazz and champagne lies a profound sadness.\n\nThe story asks whether we can ever truly escape our past or recapture lost time, and it paints a portrait of a society glittering on the surface but rotting within. It is anchored by a symbol of hope that glows across the water, representing the unattainable future we all chase, only to find that the past is always just out of reach. It is a beautiful, melancholic critique of reinvention, reminding us that we beat on, boats against the current, borne back ceaselessly into yesterday.",
+  "score": 5,
+  "cost": 0.00215025,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 2145
+  }
+}

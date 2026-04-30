@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_explanation",
+  "case": 40,
+  "response": "This Python class implements the Circuit Breaker resilience pattern, which stops cascading failures by preventing repeated calls to an unhealthy underlying function. It tracks consecutive failures to cycle through three operational states: it runs normally in a \"closed\" state until failures hit a default threshold of 5, switches to an \"open\" state that blocks all calls for a default 30-second cooldown, then enters a \"half-open\" state to test if the function has recovered, resetting to closed on a successful test call or re-opening on another failure.",
+  "score": 5,
+  "cost": 0.00075025,
+  "expected": "",
+  "tokens": {
+    "input": 265,
+    "output": 684
+  }
+}

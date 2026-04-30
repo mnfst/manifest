@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "email_summary_v2",
+  "case": 34,
+  "response": "**Summary:**  \nThe Database Team plans to migrate from MySQL 5.7 to PostgreSQL 16, with schema conversion and testing in May, a dual-write period in June, and cutover in July using blue-green deployment to avoid downtime. The only notable risk is that three stored procedures will need to be rewritten; the testing environment is already ready.",
+  "score": 5,
+  "cost": 0.001008,
+  "expected": "",
+  "tokens": {
+    "input": 212,
+    "output": 73
+  }
+}

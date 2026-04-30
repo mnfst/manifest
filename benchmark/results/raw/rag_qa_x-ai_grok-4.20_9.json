@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "rag_qa",
+  "case": 9,
+  "response": "70's\n\nThe context states: \"Summers are hot and dry, while winters are a bit warm or mild and wet. ... In the summers, temperature ranges are 90-60's while as winters are 70-50's\". The high end of the winter range is therefore the 70's.",
+  "score": 5,
+  "cost": 0.001018,
+  "expected": "70",
+  "tokens": {
+    "input": 257,
+    "output": 63
+  }
+}

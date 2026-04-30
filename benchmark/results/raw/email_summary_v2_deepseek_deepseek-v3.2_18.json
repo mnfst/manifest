@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 18,
+  "response": "The email proposes splitting the Platform team into separate Infrastructure and Developer Experience teams to resolve prioritization conflicts. A draft organizational chart is attached for review.",
+  "score": 5,
+  "cost": 5.625e-05,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 30
+  }
+}

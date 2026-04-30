@@ -2,12 +2,12 @@
   "model": "kimi-k2.6",
   "task": "instruction_following",
   "case": 47,
-  "response": "1. **Make it long.** Aim for at least 12\u201316 characters. Each additional character exponentially increases the time it takes for an attacker to crack it.\n\n2. **Mix character types.** Combine uppercase letters, lowercase letters, numbers, and special symbols (e.g., `!`, `@`, `#`) to expand the pool of possible combinations.\n\n3. **Avoid the obvious.** Do not use dictionary words, keyboard patterns (like `qwerty` or `123456`), names, birthdays, or any publicly available personal information.\n\n4. **Use a passphrase.** Consider chaining together four or more random, unrelated words (e.g., `Correct-Horse-Battery-Staple!`) and adding numbers or symbols; this creates length and memorability while remaining hard to guess.\n\n5. **Make every password unique.** Never reuse passwords across different websites or accounts. If one service is breached, a unique password prevents attackers from accessing your other accounts.\n\n6. **Let a password manager do the work.** Use a reputable password manager to generate and store long, random, unique passwords for every account so you do not have to memorize them.\n\n7. **Enable multi-factor authentication (MFA).** Add an extra layer of security\u2014such as an authenticator app or hardware key\u2014so that even if your password is compromised, your account remains protected.\n\n8. **Change it only when necessary.** Do not rotate passwords on a rigid schedule unless required by policy. Instead, update a password immediately if you learn of a breach, suspect unauthorized access, or used it on a compromised device.",
-  "score": 4,
-  "cost": 0.001374,
+  "response": "1. **Make it long.** Aim for at least 12\u201316 characters. Each additional character exponentially increases the time and computing power required to crack it.\n\n2. **Mix character types.** Combine uppercase and lowercase letters, numbers, and special symbols (e.g., `!`, `@`, `#`). This expands the pool of possible combinations a hacker must try.\n\n3. **Avoid predictable information.** Do not use names, birthdays, pet names, keyboard patterns (like `qwerty` or `123456`), or common dictionary words.\n\n4. **Use a passphrase.** Consider stringing together four or more random, unrelated words (e.g., `Correct-Horse-Battery-Staple!`) or a memorable sentence. This creates length and complexity while remaining easier to recall than random gibberish.\n\n5. **Skip simple substitutions.** Replacing letters with look-alike numbers (like `P@ssw0rd`) is a common pattern that modern cracking tools recognize easily.\n\n6. **Make it unique.** Never reuse a password across multiple accounts. If one service is breached, a unique password prevents attackers from accessing your other accounts.\n\n7. **Use a password manager.** Generate and store complex, unique passwords automatically so you are not relying on memory or tempted to reuse credentials.\n\n8. **Enable multi-factor authentication (MFA).** While not part of the password itself, MFA adds a critical second layer of defense that keeps your account secure even if the password is compromised.",
+  "score": 5,
+  "cost": 0.0023196,
   "expected": "",
   "tokens": {
     "input": 18,
-    "output": 568
+    "output": 962
   }
 }

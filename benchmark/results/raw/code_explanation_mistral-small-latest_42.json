@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "This code implements an asynchronous bounded queue using the **producer-consumer pattern** with **futures-based synchronization**. The `put()` method blocks when the queue is full by waiting on a future added to `_putters`, while `get()` blocks when the queue is empty by waiting on a future added to `_getters`. When items are added or removed, the queue resolves the oldest pending future to wake up waiting coroutines.",
+  "score": 4,
+  "cost": 4.91e-05,
+  "expected": "",
+  "tokens": {
+    "input": 227,
+    "output": 88
+  }
+}

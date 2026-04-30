@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_explanation",
+  "case": 32,
+  "response": "This code implements the optimized Union-Find (Disjoint Set Union, DSU) data structure for managing a collection of n disjoint elements, returning core find and union methods to operate on the sets. The find method uses path compression to speed up repeated root lookups, while the union method uses union by rank to merge sets by attaching shorter trees to the root of taller trees, keeping the overall structure shallow to deliver nearly constant-time set operations.",
+  "score": 5,
+  "cost": 0.00071125,
+  "expected": "",
+  "tokens": {
+    "input": 209,
+    "output": 659
+  }
+}

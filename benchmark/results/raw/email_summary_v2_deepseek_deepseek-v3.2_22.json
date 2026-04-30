@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The international expansion plan for Japan outlines a timeline from May to August for legal setup, localization, beta, and general availability, with a $200K budget. The main action item is obtaining CEO approval to proceed.",
+  "score": 5,
+  "cost": 7.14e-05,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 44
+  }
+}

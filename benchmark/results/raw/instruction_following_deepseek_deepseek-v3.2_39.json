@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 39,
+  "response": "**Q: What is a VPN?**  \n**A:** A VPN, or Virtual Private Network, is a service that creates a secure, encrypted connection between your device (like a computer or phone) and the internet. It acts as a private tunnel for your online data.\n\n**Q: What does a VPN actually do?**  \n**A:** It primarily does two things:\n\n1.  **Encrypts Your Data:** It scrambles the information you send and receive (like browsing activity, messages, or passwords) so that anyone who intercepts it (such as hackers on public Wi-Fi or your internet provider) cannot read it.\n2.  \u200b**Hides Your IP Address:** It masks your real IP address (which reveals your approximate location and identity) and replaces it with the IP address of the VPN server you connect to. This makes it appear as if you are browsing from the server's location.\n\n**Q: What are the main reasons people use a VPN?**  \n**A:** The most common uses are:\n*   **Enhanced Security on Public Networks:** To protect sensitive data when using public Wi-Fi (at cafes, airports, etc.).\n*   **Privacy from Your ISP & Advertisers:** To prevent your internet service provider from tracking and logging your browsing history.\n*   **Accessing Geo-Restricted Content:** To bypass regional blocks and access streaming services, websites, or news that may be limited to certain countries.\n*   **Bypassing Censorship:** To access the open internet in regions with government-controlled restrictions.\n\n**Q: What does a VPN *not* do?**  \n**A:** It's important to know its limitations:\n*   **It does not make you completely anonymous.** Your VPN provider can still see your activity if they choose to log it.\n*   **It does not stop all tracking.** Websites can still track you via cookies and other methods.\n*   **It is not a substitute for comprehensive antivirus or anti-malware software.** It protects data in transit but does not remove viruses from your device.\n*   **It does not always guarantee faster internet speeds.** In many cases, it can actually slow your connection due to the encryption overhead and server distance.",
+  "score": 4,
+  "cost": 0.00050365,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 454
+  }
+}

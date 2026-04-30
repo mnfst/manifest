@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "Here\u2019s what makes a good password, presented in clear numbered steps:\n\n1. **Make it long** \u2013 The single most important factor is length. Aim for **at least 16 characters**, ideally 20+.\n\n2. **Use high entropy (unpredictability)** \u2013 Avoid anything that could be guessed or found in a dictionary. Do not use:\n   - Common words or phrases\n   - Names, birthdays, pet names, or sports teams\n   - Keyboard patterns (qwerty, asdf, 123456)\n   - Repeated characters (aaaaaa, 111111)\n\n3. **Include a mix of character types** (when possible):\n   - Uppercase letters\n   - Lowercase letters\n   - Numbers\n   - Symbols (!@#$%^&*)\n\n4. **Make it unique** \u2013 Never reuse the same password across multiple accounts. A breach on one site should not compromise your other accounts.\n\n5. **Avoid personal information** \u2013 Do not include anything that could be discovered from your social media (birth year, children\u2019s names, favorite sports team, etc.).\n\n6. **Prefer passphrases over single words** \u2013 A great approach is to use a long, random-looking passphrase made of multiple unrelated words (e.g., `correct-horse-battery-staple` or `purple-elephant-dances- loudly-47`).\n\n7. **Use a password manager** \u2013 The only practical way to follow all the above rules is to generate and store truly random, unique passwords with a reputable password manager (Bitwarden, 1Password, KeePass, etc.).\n\n**Bonus modern tip**:  \nWherever supported, enable **passkeys** or **hardware security keys** (YubiKey) instead of traditional passwords \u2014 they are significantly more secure and convenient.\n\n**Summary of a strong password**:  \n**Long + Random + Unique + Stored in a password manager**",
+  "score": 4,
+  "cost": 0.003338,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 384
+  }
+}

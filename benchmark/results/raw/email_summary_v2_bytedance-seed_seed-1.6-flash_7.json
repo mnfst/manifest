@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-1.6-flash",
   "task": "email_summary_v2",
   "case": 7,
-  "response": "The new office at 500 Market St is ready June 1, with moving weekend scheduled for June 7-8 and IT needing 3 days (June 4-6) for network setup. Each team must designate a move coordinator by Friday, and the budget for professional movers has been approved.",
+  "response": "The new office at 500 Market St is ready June 1, with the moving weekend set for June 7-8 and IT requiring 3 days (June 4-6) for network setup. Each team must designate a move coordinator by Friday, and the budget for professional movers has been approved.",
   "score": 5,
-  "cost": 0.00010965,
+  "cost": 0.00010875,
   "expected": "",
   "tokens": {
     "input": 170,
-    "output": 323
+    "output": 320
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Golden, crispy crust. Chewy, floury dough. Charred, blistered rim.\n\nRich, red tomato sauce. Tangy, sweet base. Fragrant basil leaves. Savory oregano dust.\n\nCreamy, white mozzarella. Gooey, stretchy cheese. Salty, bubbly surface.\n\nSpicy pepperoni cups. Crispy edges. Earthy mushroom slices. Briny black olives. Sweet bell pepper strips.\n\nHot, greasy shine. Aromatic steam clouds. Circular, savory feast. Delicious, triangular slice. Ultimate comfort food.",
+  "score": 5,
+  "cost": 0.013934700000000001,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 2674
+  }
+}

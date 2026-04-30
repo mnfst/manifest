@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-2.0-lite",
   "task": "instruction_following",
   "case": 7,
-  "response": "Crack 2 large eggs, add a splash of milk, pinch of salt and pepper, whisk lightly. Melt 1 tbsp butter in a low-heat pan, stir constantly to form soft curds, serve immediately.",
+  "response": "Crack 2 large eggs, add a splash of milk and pinch of salt, then whisk. Melt butter in a nonstick pan, stir gently over low heat; pull before fully set for creamy, fluffy scrambled eggs.",
   "score": 4,
-  "cost": 0.00054225,
+  "cost": 0.00072725,
   "expected": "",
   "tokens": {
     "input": 65,
-    "output": 526
+    "output": 711
   }
 }

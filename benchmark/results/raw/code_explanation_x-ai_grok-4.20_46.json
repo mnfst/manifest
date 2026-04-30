@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 46,
+  "response": "**This function implements the RB-INSERT-FIXUP procedure from the Red-Black Tree insertion algorithm (CLRS).**\n\nIt restores the red-black properties (no two reds in a row, uniform black-height) after a new red node has been inserted, using the standard **3-case recoloring + rotation** strategy:\n\n* While the node\u2019s parent is red:\n  * If the uncle is red \u2192 **recolor** (parent and uncle black, grandparent red) and move up.\n  * If the uncle is black:\n    * Perform a **left rotation** if we\u2019re in the right-child/right-parent \u201czig-zag\u201d case.\n    * Then do a **recolor + right rotation** (or symmetric left rotation) on the grandparent to fix the violation.\n* Finally, the root is always painted black.\n\nThis is the classic **bottom-up, case-driven fixup** used in all standard red-black tree implementations.",
+  "score": 4,
+  "cost": 0.002096,
+  "expected": "",
+  "tokens": {
+    "input": 288,
+    "output": 190
+  }
+}

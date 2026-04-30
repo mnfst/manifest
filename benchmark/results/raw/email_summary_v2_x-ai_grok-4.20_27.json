@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "**Summary:**  \nThe sprint successfully shipped the auth redesign on time with strong cross-team collaboration, but suffered from too many context switches across three projects and standups that ran over time.  \n\n**Action items:** limit WIP to 2 items per developer and timebox standups (with a parking lot for overflow topics).",
+  "score": 5,
+  "cost": 0.000944,
+  "expected": "",
+  "tokens": {
+    "input": 216,
+    "output": 64
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "A thunderstorm begins as a heavy stillness, the air itself feeling thick and charged. The first sign is a distant, low grumble of thunder that you feel in your chest more than hear with your ears.\n\nThen the sky cracks open. A brilliant, jagged fork of lightning splits the darkness, followed seconds later by a deafening **CRACK** that shakes the windowpanes. The rain arrives not in drops but in a solid sheet, drumming on the roof with a relentless, roaring rhythm. The air is suddenly cool and carries the crisp, clean scent of **ozone**\u2014a sharp, metallic smell like struck matches\u2014mixed with the rich, **petrichor** aroma of wet earth and pavement. Every surface glistens under the sporadic flashes, and the wind drives the rain sideways, stinging your skin with a cold, insistent spray if you dare to stand near it.",
+  "score": 5,
+  "cost": 0.00020665,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 184
+  }
+}

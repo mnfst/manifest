@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_explanation",
+  "case": 32,
+  "response": "This code implements the **Union-Find (Disjoint Set Union, DSU) data structure with path compression and union by rank optimizations**. It efficiently tracks connected components by allowing quick `find` operations (determining which set an element belongs to) and `union` operations (merging two sets while keeping the tree flat and balanced).",
+  "score": 5,
+  "cost": 9.040000000000002e-06,
+  "expected": "",
+  "tokens": {
+    "input": 156,
+    "output": 70
+  }
+}

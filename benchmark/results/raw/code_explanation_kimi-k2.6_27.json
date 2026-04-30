@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_explanation",
+  "case": 27,
+  "response": "This code solves the **sliding window maximum** problem, returning the maximum value for every contiguous subarray of size `k` in `O(n)` time. It uses a **monotonically decreasing deque** to store indices, popping expired elements from the front and smaller elements from the back so that the front of the deque always holds the current window's maximum.",
+  "score": 5,
+  "cost": 0.0018047999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 721
+  }
+}

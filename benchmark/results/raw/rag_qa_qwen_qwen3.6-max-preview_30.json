@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "rag_qa",
+  "case": 30,
+  "response": "Melbourne",
+  "score": 0,
+  "cost": 0.0029692,
+  "expected": "Melbourne",
+  "tokens": {
+    "input": 264,
+    "output": 505
+  }
+}

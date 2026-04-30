@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 34,
+  "response": "A database index is a data structure that improves the speed of data retrieval operations on a table by allowing the database to quickly locate rows without scanning the entire table. It works like a book's index, storing sorted references to data based on specific columns, though it adds some overhead for write operations since the index must be updated whenever data changes.",
+  "score": 4,
+  "cost": 0.000804,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 67
+  }
+}

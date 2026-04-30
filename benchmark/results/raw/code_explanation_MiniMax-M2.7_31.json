@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_explanation",
+  "case": 31,
+  "response": "This is an implementation of the **A* pathfinding algorithm** using a min-heap priority queue. It explores nodes in order of increasing total cost (f = g + h), where g is the actual cost from the start and h is the heuristic estimate to the goal, tracking the cheapest path to each node and returning the full path upon reaching the goal.",
+  "score": 5,
+  "cost": 0.0016071000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 185,
+    "output": 319
+  }
+}

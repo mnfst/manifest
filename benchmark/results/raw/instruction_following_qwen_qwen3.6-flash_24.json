@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "*   **Parties, Vehicles, and Context:** Lists all involved drivers, passengers, and vehicles with their contact and insurance information, along with the precise date, time, and location of the incident.\n*   **Narrative and Diagram:** Details the sequence of events leading to the collision through a written description and a diagram showing vehicle positions, traffic controls, and the point of impact.\n*   **Findings and Consequences:** Records the responding officer's determination of fault, any citations or charges issued, a list of injuries, and an assessment of property damage.",
+  "score": 2,
+  "cost": 0.0010225,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 1017
+  }
+}

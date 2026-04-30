@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 47,
+  "response": "The March onboarding cohort's satisfaction score declined, with praise for the buddy system but issues regarding benefits confusion, slow tools access, and a missing culture handbook. The priority action item is to fix the delayed tools access process.",
+  "score": 5,
+  "cost": 7.565000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 44
+  }
+}

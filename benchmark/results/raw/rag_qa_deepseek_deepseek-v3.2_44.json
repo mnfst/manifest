@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "rag_qa",
+  "case": 44,
+  "response": "The Ohio Company of Virginia was given land by the British government for the purpose of developing trade and settlements in the Ohio Country.",
+  "score": 5,
+  "cost": 9.15e-05,
+  "expected": "Ohio Company of Virginia",
+  "tokens": {
+    "input": 256,
+    "output": 25
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "Start at the park entrance facing the main road.\n\n1. Turn right onto the main road.\n2. Turn left at the first intersection.\n3. Turn right at the next intersection.\n4. Turn left onto Library Lane.\n5. The library will be on your right after the turn.",
+  "score": 5,
+  "cost": 0.000742,
+  "expected": "",
+  "tokens": {
+    "input": 139,
+    "output": 58
+  }
+}

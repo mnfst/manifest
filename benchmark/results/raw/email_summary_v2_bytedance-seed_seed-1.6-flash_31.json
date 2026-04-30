@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-1.6-flash",
   "task": "email_summary_v2",
   "case": 31,
-  "response": "The email proposes a 'Starter' pricing tier at $29/month between Free and Pro ($79), including 5 users, 10K API calls, and email support. Analysis indicates 40% of churned users cite price as a reason, and the tier is projected to recover 15% of these users, generating $180K in additional annual revenue.",
+  "response": "The email proposes a 'Starter' pricing tier at $29/month between Free and Pro ($79), including 5 users, 10K API calls, and email support, aiming to recover 15% of price-churned users ($180K ARR). This tier is framed as a revenue opportunity to address churn driven by price concerns.",
   "score": 5,
-  "cost": 0.00011190000000000001,
+  "cost": 0.00016199999999999998,
   "expected": "",
   "tokens": {
     "input": 196,
-    "output": 324
+    "output": 491
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_explanation",
+  "case": 33,
+  "response": "The function performs classic **reservoir sampling** (Algorithm\u202fR). It builds a `reservoir` of size\u202fk, initially filling it with the first\u202fk items, then for every subsequent item `i` it randomly chooses an index `j`; if `j < k` it replaces `reservoir[j]`, ensuring the final array is a uniformly random sample of\u202fk elements from the entire stream.",
+  "score": 5,
+  "cost": 0.0023683000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 507
+  }
+}

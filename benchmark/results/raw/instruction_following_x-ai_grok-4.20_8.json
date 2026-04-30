@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Imagine a magic toy box where every kid writes down what toys they traded, and everyone can see it. Once something is written and all the kids agree, you can't erase or change it\u2014it's locked forever! That's like a blockchain: a super honest, shared list that no one can cheat.",
+  "score": 5,
+  "cost": 0.000746,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 59
+  }
+}

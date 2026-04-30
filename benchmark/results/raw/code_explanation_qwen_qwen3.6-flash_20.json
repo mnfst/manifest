@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "This function implements a **lazy partition pattern** by using `itertools.tee` to duplicate the input iterable into two independent iterators, then applies `filter` and `filterfalse` to return separate streams for elements that satisfy or fail the predicate. This approach efficiently splits the data without consuming the original iterable twice, preserving lazy evaluation.",
+  "score": 5,
+  "cost": 0.00122825,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 1209
+  }
+}

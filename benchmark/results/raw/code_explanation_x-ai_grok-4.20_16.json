@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 16,
+  "response": "**This function runs a list of coroutines with a concurrency limit.**\n\nIt uses an `asyncio.Semaphore(limit)` to ensure that no more than `limit` coroutines run at the same time. For each coroutine, it wraps it in an async `limited()` function that acquires the semaphore before running it (and automatically releases it afterward), then passes all these wrapped coroutines to `asyncio.gather()`.\n\nThis is a common **semaphore-based concurrency limiting** pattern in Python asyncio.",
+  "score": 5,
+  "cost": 0.001192,
+  "expected": "",
+  "tokens": {
+    "input": 200,
+    "output": 99
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "rag_qa",
+  "case": 42,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 0.00074225,
+  "expected": "Moselle",
+  "tokens": {
+    "input": 225,
+    "output": 686
+  }
+}

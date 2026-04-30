@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "rag_qa",
+  "case": 14,
+  "response": "marine waters worldwide",
+  "score": 5,
+  "cost": 0.000848,
+  "expected": "marine waters",
+  "tokens": {
+    "input": 412,
+    "output": 3
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_explanation",
+  "case": 33,
+  "response": "This function implements the **reservoir sampling algorithm** to uniformly select `k` random elements from a data stream of unknown or infinite length. It initially fills a buffer with the first `k` items, then iteratively replaces a randomly chosen element in the buffer with each subsequent item with a probability of `k/(i+1)`, guaranteeing that every element in the stream has an equal chance of being included in the final sample.",
+  "score": 5,
+  "cost": 0.001444,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 1418
+  }
+}

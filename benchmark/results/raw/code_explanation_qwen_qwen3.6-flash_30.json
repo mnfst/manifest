@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_explanation",
+  "case": 30,
+  "response": "This code implements a **Bloom filter**, a probabilistic data structure that efficiently tests set membership using a fixed-size bit array and multiple independent hash functions. It marks bits as `True` when adding items and returns `True` for membership checks only if all corresponding hash positions are set, guaranteeing no false negatives but allowing for false positives.",
+  "score": 5,
+  "cost": 0.0006825,
+  "expected": "",
+  "tokens": {
+    "input": 166,
+    "output": 641
+  }
+}

@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-flash",
   "task": "rag_qa",
   "case": 9,
-  "response": "70's",
-  "score": 2,
-  "cost": 0.00093625,
+  "response": "70",
+  "score": 1,
+  "cost": 0.00119025,
   "expected": "70",
   "tokens": {
     "input": 153,
-    "output": 898
+    "output": 1152
   }
 }

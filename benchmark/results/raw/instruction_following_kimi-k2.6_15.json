@@ -2,12 +2,12 @@
   "model": "kimi-k2.6",
   "task": "instruction_following",
   "case": 15,
-  "response": "bat, hat, mat, rat",
+  "response": "Here are 4 words that rhyme with **cat**:\n\n1. **Bat**\n2. **Hat**\n3. **Mat**\n4. **Rat**",
   "score": 5,
-  "cost": 0.00028979999999999994,
+  "cost": 0.00041459999999999994,
   "expected": "",
   "tokens": {
     "input": 19,
-    "output": 116
+    "output": 168
   }
 }

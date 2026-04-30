@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "Below are 5 capital cities, each from a distinct, separate continent:\n1. Asia: Tokyo, Japan \u2013 The bustling capital of Japan, located on the country\u2019s largest island Honshu, it is one of the world\u2019s most populous metropolitan areas and a leading global economic and cultural hub.\n2. Africa: Nairobi, Kenya \u2013 The capital of East Africa\u2019s Kenya, Nairobi is a major regional diplomatic hub that hosts the United Nations Environment Programme (UNEP) headquarters, and sits in close proximity to iconic wild spaces like the Maasai Mara.\n3. Europe: Paris, France \u2013 The historic cultural and political capital of France, Paris is famous for landmarks including the Eiffel Tower and the Louvre, and has been a central European artistic and intellectual hub for centuries.\n4. North America: Ottawa, Canada \u2013 Canada\u2019s federal capital, Ottawa was strategically chosen as a neutral cross-border city (sitting between the provinces of Ontario and Quebec) to serve as the country\u2019s seat of government in the 19th century.\n5. South America: Bras\u00edlia, Brazil \u2013 A purpose-built capital of Brazil, Bras\u00edlia was inaugurated in 1960 to shift the country\u2019s administrative center inland from coastal Rio de Janeiro, and its iconic modernist urban planning earned it UNESCO World Heritage Site status.",
+  "score": 4,
+  "cost": 0.0014455,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 1430
+  }
+}

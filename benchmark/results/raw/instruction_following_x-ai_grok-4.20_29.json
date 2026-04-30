@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "DNA is a molecule that carries the genetic instructions for the development, functioning, growth, and reproduction of all known living organisms. It consists of two long strands forming a double helix, made up of nucleotides containing adenine, thymine, cytosine, and guanine.",
+  "score": 1,
+  "cost": 0.000688,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 52
+  }
+}

@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-max-preview",
   "task": "email_summary_v2",
   "case": 1,
-  "response": "A misconfigured load balancer caused a 47-minute service degradation that impacted 12,000 users. To prevent recurrence, the team will add load balancer configuration validation to the CI pipeline, update the operational runbook, and implement traffic distribution alerts.",
+  "response": "A misconfigured load balancer caused a 47-minute service degradation that impacted 12,000 users. To prevent recurrence, the team will add load balancer configuration validation to CI, update the operational runbook, and implement traffic distribution alerts.",
   "score": 5,
-  "cost": 0.0058838,
+  "cost": 0.005410600000000001,
   "expected": "",
   "tokens": {
     "input": 114,
-    "output": 1103
+    "output": 1012
   }
 }

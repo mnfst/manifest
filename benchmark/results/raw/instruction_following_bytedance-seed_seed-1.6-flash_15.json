@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 15,
+  "response": "Here are 4 rhyming words for \"cat,\" all sharing the short \"a\" vowel sound and ending with /k\u00e6t/ (or similar):  \n\n\n1. **Hat** (a covering for the head)  \n2. **Bat** (a flying mammal or a sports tool)  \n3. **Mat** (a flat, soft surface)  \n4. **Sat** (past tense of \"sit,\" meaning to rest on one's bottom)  \n\n\nBonus: **Rat** (a small rodent) also rhymes, if you'd like a fifth! \ud83d\ude0a",
+  "score": 5,
+  "cost": 0.00012764999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 402
+  }
+}

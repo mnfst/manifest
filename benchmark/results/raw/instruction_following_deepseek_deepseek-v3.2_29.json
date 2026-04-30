@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "DNA is the molecule that carries the genetic instructions for the development, functioning, and reproduction of all known living organisms. It is composed of a double helix structure made from two long strands that form a twisted ladder.",
+  "score": 2,
+  "cost": 5.1800000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 43
+  }
+}

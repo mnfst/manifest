@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Sunlight sparks special process.  \nPlants possess photosynthetic pigments.  \nPhotosystems produce powerful particles.  \nSplitting supplies supercharged particles.  \nPlants synthesize sugar substances.  \nPhotosynthesis sustains planet's species.  \nSupplies precious sustenance.  \nSimply, sunshine supports survival.",
+  "score": 5,
+  "cost": 6.610000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 56
+  }
+}

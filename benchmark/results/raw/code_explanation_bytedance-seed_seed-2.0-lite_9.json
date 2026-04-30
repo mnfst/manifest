@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_explanation",
+  "case": 9,
+  "response": "This is a Python decorator factory that implements the retry pattern with exponential backoff to wrap target functions. It re-runs any function that throws an exception up to `max_attempts` total times, waits an exponentially increasing delay between retries (starting at the input `delay` value, doubling each wait period), and only re-raises the final exception if all allowed attempts fail.",
+  "score": 5,
+  "cost": 0.00060275,
+  "expected": "",
+  "tokens": {
+    "input": 171,
+    "output": 560
+  }
+}

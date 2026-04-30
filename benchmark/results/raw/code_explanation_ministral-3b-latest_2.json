@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_explanation",
+  "case": 2,
+  "response": "This code implements **quicksort**, a divide-and-conquer sorting algorithm that recursively partitions an array around a **pivot element** (here, the middle element of the current subarray). It splits the array into three parts\u2014elements smaller than the pivot (`left`), equal to the pivot (`mid`), and larger than the pivot (`right`), then sorts each part and combines them.",
+  "score": 5,
+  "cost": 7.640000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 79
+  }
+}

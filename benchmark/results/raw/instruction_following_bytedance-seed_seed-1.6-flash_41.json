@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "Here's a Google style docstring for a sort function that sorts a list of comparable elements, with optional key and reverse parameters, following best practices:\n\n\n```python\ndef sort_list(input_list, key=None, reverse=False):\n    \"\"\"Sorts a list of elements in ascending or descending order.\n\n    Performs a stable sort using the Timsort algorithm (similar to Python's built-in `sorted()`). \n    Elements are compared based on their natural ordering unless a `key` function is provided, \n    which transforms elements before comparison. The original list remains unmodified, and a new \n    sorted list is returned.\n\n    Args:\n        input_list (list): The list of elements to be sorted. All elements must be of the same \n            type and comparable (e.g., numbers, strings, tuples).\n        key (callable, optional): A function that takes a single element from `input_list` and \n            returns a value to use for sorting. For example, `key=lambda x: x[2]` would sort \n            tuples by their third element. Defaults to `None`, meaning elements are compared directly.\n        reverse (bool, optional): If `True`, the sorted list is in descending order; if `False`, \n            ascending order. Defaults to `False`.\n\n    Returns:\n        list: A new list containing the sorted elements. The original `input_list` is not modified.\n\n    Raises:\n        TypeError: If `input_list` is not a list, or `key` is not a callable (e.g., a non-function).\n        ValueError: If elements in `input_list` are not comparable (e.g., mixing numbers and strings).\n\n    Examples:\n        >>> sort_list([3, 1, 4, 1, 5])\n        [1, 1, 3, 4, 5]\n\n        >>> sort_list(['banana', 'apple', 'cherry'], key=lambda x: x.lower())\n        ['apple', 'banana', 'cherry']\n\n        >>> sort_list([(1, 'b'), (2, 'a')], key=lambda x: x[1])\n        [(2, 'a'), (1, 'b')]\n\n        >>> sort_list([5, 2, 7], reverse=True)",
+  "score": 4,
+  "cost": 0.00040829999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 1337
+  }
+}

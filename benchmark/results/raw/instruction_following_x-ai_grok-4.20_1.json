@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 1,
+  "response": "A CPU (Central Processing Unit) is the brain of a computer that fetches, decodes, and executes instructions from programs while performing arithmetic, logic, control, and input/output operations.",
+  "score": 2,
+  "cost": 0.00056,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 37
+  }
+}

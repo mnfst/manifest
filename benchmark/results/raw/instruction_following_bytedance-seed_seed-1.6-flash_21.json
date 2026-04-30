@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "Here's a clear, step-by-step route from a park to a library using only left and right turns, with landmarks to guide you:\n\n\n### **Start: Greenwood Park Main Entrance**  \nYou\u2019re standing at the park\u2019s main entrance, facing **north** (a sign reads \"Greenwood Park,\" with a large oak tree to your left [west] as you exit).  \n\n\n### **Step 1: Head south through the park**  \nWalk **straight (south)** for 100 yards along the gravel path. You\u2019ll pass a playground on your right (east) and a bench under a maple tree at the halfway point.  \n\n\n### **Step 2: Turn right onto Oak Street**  \nAt the end of 100 yards, you\u2019ll reach a crosswalk at the intersection of **Oak Street** (east-west) and **Pine Lane** (north-south). Turn **right (west)** onto Oak Street.  \n\n\n### **Step 3: Walk west on Oak Street**  \nContinue **straight (west)** for 2 blocks.  \n- After 1 block: Pass a red house with a white picket fence on your left (north).  \n- After 2 blocks: You\u2019ll reach a stop sign at the intersection of Oak Street and **Maple Road**.  \n\n\n### **Step 4: Turn left onto Maple Road**  \nAt the stop sign, turn **left (south)** onto Maple Road.  \n\n\n### **Step 5: Walk south on Maple Road**  \nContinue **straight (south)** for 1 block. You\u2019ll see a blue mailbox on your right (east) and a white church with a steeple on your left (north) at the end of the block.  \n\n\n### **Step 6: Turn right onto Cedar Avenue**  \nAt the intersection of Maple Road and **Cedar Avenue** (a four-way stop), turn **right (east)** onto Cedar Avenue.  \n\n\n### **Step 7: Arrive at the library**  \nWalk **straight (east)** for 1 block. The library will be on your left (north): a two-story brick building with a green roof, a \"Public Library\" sign, and a small parking lot in front.  \n\n\n**Total distance**: ~0.7 miles.  \n**Turns used**: Straight, right, straight, left, straight, right, straight.  \n\n\nThis route",
+  "score": 3,
+  "cost": 0.000761025,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 2512
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 34,
+  "response": "A database index is a purpose-built data structure that stores sorted copies of selected values from a table\u2019s columns, paired with pointers to the full original rows those values reference, enabling the database to locate requested data far faster than it could by scanning an entire table\u2019s contents line-by-line. While indexes drastically accelerate read operations and complex query execution, they introduce incremental overhead: every time a table\u2019s data is inserted, updated, or deleted, all linked indexes must also be adjusted to remain accurate, and they consume extra disk or memory storage to maintain their separate, organized structures.",
+  "score": 1,
+  "cost": 0.00062625,
+  "expected": "",
+  "tokens": {
+    "input": 61,
+    "output": 611
+  }
+}

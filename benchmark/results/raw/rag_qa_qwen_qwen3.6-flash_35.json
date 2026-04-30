@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "rag_qa",
+  "case": 35,
+  "response": "They escape danger by clapping their lobes, so that the jet of expelled water drives them backwards very quickly.",
+  "score": 2,
+  "cost": 0.0009705,
+  "expected": "by clapping their lobes",
+  "tokens": {
+    "input": 278,
+    "output": 901
+  }
+}

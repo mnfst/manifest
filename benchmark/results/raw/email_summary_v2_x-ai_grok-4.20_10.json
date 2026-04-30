@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "email_summary_v2",
+  "case": 10,
+  "response": "**Summary:**  \nThe Q1 board deck draft is attached, highlighting strong performance with 127% of revenue target and 115% NRR, though CAC has increased 22%. The CEO requests your product roadmap section by Wednesday ahead of the board meeting next Tuesday.",
+  "score": 5,
+  "cost": 0.000832,
+  "expected": "",
+  "tokens": {
+    "input": 200,
+    "output": 54
+  }
+}

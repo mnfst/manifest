@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "The customer workshop revealed key feedback on bulk import and SSO needs, and a surprising interest in the internal tool as a standalone product. A detailed follow-up report is attached for review.",
+  "score": 4,
+  "cost": 6.83e-05,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 38
+  }
+}

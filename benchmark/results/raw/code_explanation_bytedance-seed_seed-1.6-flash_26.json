@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "This code implements the **0/1 knapsack dynamic programming algorithm**, using a 2D table `dp` where `dp[i][w]` represents the maximum value achievable with the first `i` items and a knapsack capacity of `w`. It iterates over each item and each possible weight, updating the table by either including the item (if its weight fits) or excluding it, taking the maximum value of the two. The final result is `dp[n][capacity]`, the maximum value for all items and the full capacity.",
+  "score": 5,
+  "cost": 0.00015202499999999997,
+  "expected": "",
+  "tokens": {
+    "input": 243,
+    "output": 446
+  }
+}

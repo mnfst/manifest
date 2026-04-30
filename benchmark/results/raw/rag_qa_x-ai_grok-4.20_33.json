@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "rag_qa",
+  "case": 33,
+  "response": "OPEC raised the posted price of oil by 70% to $5.11 a barrel in response to American aid to Israel.",
+  "score": 5,
+  "cost": 0.000976,
+  "expected": "In response to American aid to Israel",
+  "tokens": {
+    "input": 380,
+    "output": 27
+  }
+}

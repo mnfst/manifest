@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "rag_qa",
+  "case": 27,
+  "response": "Based on the provided context, **Newton's First Law** (or Newton's First Law of Motion) directly connects inertia with the concept of relative velocities.",
+  "score": 4,
+  "cost": 0.0022346999999999996,
+  "expected": "Newton's First",
+  "tokens": {
+    "input": 279,
+    "output": 360
+  }
+}

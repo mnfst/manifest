@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-max-preview",
   "task": "email_summary_v2",
   "case": 0,
-  "response": "Marketing exceeded its Q3 budget by 15% while engineering remains 8% under, prompting a proposal to reallocate $50K from engineering to cover the marketing shortfall. The team is asked to meet on Thursday to discuss and approve this budget adjustment.",
+  "response": "Marketing exceeded its Q3 budget by 15% while engineering remains 8% under, prompting a proposal to reallocate $50K from engineering to cover the shortfall. The team is asked to meet on Thursday to discuss this budget adjustment.",
   "score": 5,
-  "cost": 0.005504200000000001,
+  "cost": 0.0056238,
   "expected": "",
   "tokens": {
     "input": 102,
-    "output": 1033
+    "output": 1056
   }
 }

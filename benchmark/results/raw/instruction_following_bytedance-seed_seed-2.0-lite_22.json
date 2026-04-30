@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "From sun-baked suburban backyards to cozy city apartment couches, loyal dogs weave themselves into the fabric of every household they join, showing up with unfiltered joy no matter what each day brings. Even on days when their humans are too busy to toss a favorite tennis ball or sit through a long walk, loyal dogs curl up at their feet without a single complaint, content just to be near the person they love most. When a human is sad, sick, or reeling from loss, loyal dogs pick up on subtle shifts in mood before anyone else utters a word, nuzzling wet noses into palms and resting warm heads on laps to offer silent, unwavering comfort. Throughout history, loyal dogs have guarded remote sheep flocks from hungry predators, pulled loaded sleds through Alaskan blizzards to deliver life-saving medicine, and served alongside soldiers in combat zones, risking their own lives to protect the people and communities that count on them. As wiggly puppies grow into gray-muzzled seniors who struggle to climb stairs, loyal dogs never outgrow their eagerness to greet their humans at the front door after a long day, turning a regular commute home into a small, glowing celebration every single evening. It is this endless, uncomplicated devotion that makes loyal dogs more than just pets, turning them into beloved core family members whose gentle, steady impact lingers long after their time with us comes to an end.",
+  "score": 3,
+  "cost": 0.00116,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 1144
+  }
+}

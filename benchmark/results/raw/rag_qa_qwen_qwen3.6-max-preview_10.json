@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "rag_qa",
+  "case": 10,
+  "response": "Based on the provided context, the answer is: **The Saxon Garden**.",
+  "score": 5,
+  "cost": 0.0040833,
+  "expected": "The Saxon Garden",
+  "tokens": {
+    "input": 437,
+    "output": 676
+  }
+}

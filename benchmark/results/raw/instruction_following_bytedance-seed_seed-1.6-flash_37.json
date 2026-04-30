@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "Chocolate is a lullaby\u2014warm, layered, and alive, unfolding in verses that hum rather than shout. The first note is honey, golden and slow, melting on the tongue like a sigh exhaled through a cup of tea, sweet but not cloying, as if the sun itself has been condensed into a drop. Then comes a soft *countermelody*: a whisper of dark, earthy depth, the kind of richness that feels like walking through a forest floor in autumn, where moss and fallen leaves have steeped in rain. It lingers, a pause, as if the song is taking a breath, and then\u2014*a trill*\u2014a burst of red berry, bright as a child\u2019s giggle, cutting through the warmth like sunlight through fog, sharp but fleeting, a reminder that sweetness and depth are not opposites, but partners. By the final measure, it\u2019s a duet: the honey and the earth, the berry and the shadow, waltzing until they dissolve into a residue of warmth, thick as cream, that settles in your chest like a memory you didn\u2019t know you needed. It doesn\u2019t just taste\u2014it *sings*, a melody that stays, not in your mouth, but in the quiet part of your bones, where comfort lives.  \n\n\nThis metaphor weaves the progression of chocolate\u2019s flavors (sweet, earthy, fruity, balanced) into a narrative of music, emphasizing its layered, emotional resonance. The lullaby structure mirrors how chocolate unfolds\u2014slowly, tenderly\u2014while the \"duet\" of flavors captures its ability to balance contrast into harmony.",
+  "score": 5,
+  "cost": 0.000310425,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 1011
+  }
+}

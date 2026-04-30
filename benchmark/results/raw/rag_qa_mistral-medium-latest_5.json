@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "rag_qa",
   "case": 5,
-  "response": "The Rhine bridges mentioned in the context are located at:\n1. **Arnhem** (Netherlands) \u2013 the bridge immortalized in *A Bridge Too Far*.\n2. **Nijmegen** (Netherlands) \u2013 over the **Waal distributary** of the Rhine.\n3. **Remagen** (Germany) \u2013 the **Ludendorff Bridge**.",
-  "score": 4,
-  "cost": 0.00024319999999999998,
+  "response": "The Rhine bridges mentioned in the context are located at:\n\n1. **Arnhem** (Netherlands) \u2013 immortalized in *A Bridge Too Far*.\n2. **Nijmegen** (Netherlands) \u2013 over the **Waal distributary** of the Rhine.\n3. **Remagen** (Germany) \u2013 the **Ludendorff Bridge**.",
+  "score": 2,
+  "cost": 0.0002392,
   "expected": "Arnhem",
   "tokens": {
     "input": 228,
-    "output": 76
+    "output": 74
   }
 }

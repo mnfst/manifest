@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "rag_qa",
+  "case": 2,
+  "response": "Based on the provided context, colonialism refers to the process of a country **taking physical control of another**.",
+  "score": 5,
+  "cost": 0.005021899999999999,
+  "expected": "taking physical control of another",
+  "tokens": {
+    "input": 319,
+    "output": 886
+  }
+}

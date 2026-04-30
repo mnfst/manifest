@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 38,
+  "response": "Login failed. Please check your credentials and try again.",
+  "score": 4,
+  "cost": 0.000364,
+  "expected": "",
+  "tokens": {
+    "input": 138,
+    "output": 11
+  }
+}

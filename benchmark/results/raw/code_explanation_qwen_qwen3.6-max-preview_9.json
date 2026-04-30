@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_explanation",
+  "case": 9,
+  "response": "This code defines a Python **decorator** that implements a **retry mechanism with exponential backoff**, automatically re-executing a failed function up to `max_attempts` times while doubling the sleep delay after each caught exception. If all attempts fail, it re-raises the final exception.",
+  "score": 5,
+  "cost": 0.0037647999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 124,
+    "output": 693
+  }
+}

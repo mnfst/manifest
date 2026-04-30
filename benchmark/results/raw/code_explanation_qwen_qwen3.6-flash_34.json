@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "This code implements a min-stack using a **parallel auxiliary stack pattern**, where each pushed value is paired with the current minimum, enabling O(1) time complexity for push, pop, and get_min operations.",
+  "score": 5,
+  "cost": 0.00108125,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 1047
+  }
+}

@@ -173,6 +173,14 @@ TASK_DEFS = {
         "judge_prompt": "Rate the answer on a 1-5 scale. 5=completely correct final answer with sound reasoning. 4=correct answer with minor reasoning gaps. 3=partially correct. 2=wrong answer but some correct steps. 1=completely wrong. Respond with ONLY a number 1-5.",
         "native_metric": "exact_answer",  # extract number after ANSWER: and compare to expected
     },
+    "json_transform_v2": {
+        "dataset": "datasets/json_transform_v2.jsonl",
+        "prompt_template": "Transform the following JSON from the input format to the output format as specified.\nReturn ONLY the transformed JSON, no explanation.\n\nInput JSON:\n{input}\n\nTarget format: {target}",
+        "eval_type": "llm_judge",
+        "max_output_tokens": 500,
+        "judge_prompt": "Rate this JSON transformation on a 1-5 scale. 5=valid JSON matching target format with all data correctly mapped. 4=valid JSON with minor data mapping issues. 3=valid JSON but significant mapping errors. 2=invalid JSON or mostly wrong. 1=not JSON or completely wrong. Respond with ONLY a number 1-5.",
+        "native_metric": None,
+    },
     "code_generation": {
         "dataset": "datasets/humaneval_codegen.jsonl",
         "prompt_template": "Complete the following Python function. Return ONLY the function body (the code that goes after the function signature). Do not include the function signature or any explanation.\n\n{input}",

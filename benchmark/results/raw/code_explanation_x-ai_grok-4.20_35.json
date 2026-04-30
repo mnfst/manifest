@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "**This function implements the Knuth-Morris-Pratt (KMP) string searching algorithm.**\n\nIt efficiently finds the **first occurrence** of `pattern` inside `text` (returning the starting index, or -1 if not found). \n\nThe algorithm works in two phases:\n\n1. **Preprocessing**: It builds the **Longest Proper Prefix which is also Suffix (LPS)** array for the pattern. This array tells the algorithm how far it can \"slide\" the pattern forward when a mismatch occurs, avoiding unnecessary re-comparisons.\n2. **Searching**: It scans the text once, using the LPS array to skip redundant checks when characters don't match.\n\nThis gives the function **O(n + m)** time complexity, where `n` is the length of the text and `m` is the length of the pattern.",
+  "score": 5,
+  "cost": 0.001934,
+  "expected": "",
+  "tokens": {
+    "input": 299,
+    "output": 167
+  }
+}

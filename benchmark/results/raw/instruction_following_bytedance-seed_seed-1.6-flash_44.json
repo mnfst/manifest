@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "Here\u2019s a list of **basic salad ingredients** in a checkboxes format, including core components, optional add-ins, and dressing essentials:  \n\n\n- [ ] **Leafy Greens** (base): Romaine lettuce, iceberg lettuce, baby spinach, mixed greens, or arugula.  \n- [ ] **Vegetables** (color, crunch, and flavor):  \n  - Cherry or grape tomatoes (halved)  \n  - Cucumber (sliced or diced)  \n  - Bell pepper (red, yellow, or green, sliced)  \n  - Red onion (thinly sliced or diced, optional)  \n  - Carrots (shredded or julienned, optional)  \n- [ ] **Crunchy Add-Ins** (texture):  \n  - Croutons (store-bought or homemade)  \n  - Shredded cheese (Parmesan, cheddar, or mozzarella)  \n  - Nuts (almonds, walnuts, or pine nuts, toasted)  \n  - Seeds (sunflower, pumpkin, or sesame seeds)  \n- [ ] **Optional Protein** (for heartiness):  \n  - Chickpeas (canned, rinsed)  \n  - Hard-boiled egg (sliced)  \n  - Grilled chicken (shredded or cubed)  \n  - Tuna (canned, drained)  \n- [ ] **Dressing** (flavor foundation):  \n  - Olive oil (extra-virgin)  \n  - Balsamic vinegar (reduced or regular)  \n  - Lemon or lime juice  \n  - Dijon mustard (optional, for emulsification)  \n  - Salt and black pepper (to taste)  \n\n\nThis list balances simplicity with versatility\u2014adjust based on taste or dietary preferences! \ud83e\udd57",
+  "score": 4,
+  "cost": 0.00023025,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 744
+  }
+}

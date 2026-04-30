@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "This function partitions an iterable into two iterators based on a predicate by using `itertools.tee` to create two independent copies of the input stream. It returns one iterator containing elements where the predicate is true (via `filter`) and another where the predicate is false (via `itertools.filterfalse`).",
+  "score": 5,
+  "cost": 0.0013206000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 533
+  }
+}

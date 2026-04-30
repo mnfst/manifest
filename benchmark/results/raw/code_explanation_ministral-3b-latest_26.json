@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "This code implements the **0/1 Knapsack problem** using **dynamic programming (bottom-up approach)**, where it calculates the **maximum value** that can be packed into a knapsack of given capacity without exceeding it. The algorithm efficiently computes the solution by building a 2D table (`dp`) where each entry `dp[i][w]` represents the best value achievable with the first `i` items and a knapsack capacity of `w`.",
+  "score": 5,
+  "cost": 9.960000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 94
+  }
+}

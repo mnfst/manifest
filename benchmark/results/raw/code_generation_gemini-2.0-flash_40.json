@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "code_generation",
+  "case": 40,
+  "response": "if a == 0:\n        return True\n    \n    cube_root = round(a**(1/3))\n    \n    if cube_root**3 == a:\n        return True\n    else:\n        return False",
+  "score": 4,
+  "cost": 3.5900000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 53
+  }
+}

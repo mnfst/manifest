@@ -4,10 +4,10 @@
   "case": 10,
   "response": "The Saxon Garden.",
   "score": 5,
-  "cost": 0.00081925,
+  "cost": 0.00079025,
   "expected": "The Saxon Garden",
   "tokens": {
     "input": 437,
-    "output": 710
+    "output": 681
   }
 }

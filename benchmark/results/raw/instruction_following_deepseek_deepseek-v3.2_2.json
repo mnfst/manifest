@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "Logic flows through code,\nA silent bug hides in spring\u2014\nScreen glows in the dark.",
+  "score": 5,
+  "cost": 2.475e-05,
+  "expected": "",
+  "tokens": {
+    "input": 11,
+    "output": 20
+  }
+}

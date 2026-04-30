@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "rag_qa",
+  "case": 19,
+  "response": "Based on the provided context, Europe achieved **advancements in communication**.",
+  "score": 4,
+  "cost": 0.0039975,
+  "expected": "communication",
+  "tokens": {
+    "input": 167,
+    "output": 727
+  }
+}

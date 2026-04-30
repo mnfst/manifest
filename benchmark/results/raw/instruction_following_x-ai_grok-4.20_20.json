@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Sunlight strikes plant stomata. Sugar synthesized. Stomata seal. Sugar stored. Plants prosper.",
+  "score": 5,
+  "cost": 0.000432,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 20
+  }
+}

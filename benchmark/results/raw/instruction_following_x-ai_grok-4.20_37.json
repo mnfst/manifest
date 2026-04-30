@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "Chocolate tastes like a velvet symphony of bitter and sweet, where each bite is a warm embrace from a long-lost lover\u2014rich, indulgent, and slightly dangerous to your willpower.",
+  "score": 5,
+  "cost": 0.000566,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 37
+  }
+}

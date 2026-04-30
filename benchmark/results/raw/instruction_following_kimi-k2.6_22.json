@@ -2,12 +2,12 @@
   "model": "kimi-k2.6",
   "task": "instruction_following",
   "case": 22,
-  "response": "Dogs are widely cherished as mankind's best friends because they are naturally loyal companions who seem to understand our deepest emotions. A truly loyal dog will remain by its owner's side through every season of life, offering comfort without asking for anything in return. Many breeds demonstrate their loyal instincts by eagerly greeting family members at the door or vigilantly watching over the home. Even when separated for long periods, a loyal dog remembers its beloved human and celebrates their reunion with boundless joy. Scientists believe that loyal canines developed this devotion over thousands of years of coexisting alongside people. Ultimately, no other pet is quite as reliably loyal as the faithful dog, whose love remains steadfast until the very end.",
-  "score": 5,
-  "cost": 0.0009473999999999998,
+  "response": "Dogs are widely known as loyal companions who bring joy to millions of households around the world. The loyal nature of these animals makes them excellent pets for families with children of all ages. Whether guarding the home or cuddling on the couch, a loyal dog always stays by your side through every season of life. Even in difficult circumstances, a loyal canine friend will never abandon the people they love and trust. Scientists believe that the loyal behavior of dogs stems from thousands of years of domestication alongside humans. No matter the breed or size, every loyal dog has the capacity to form deep, lasting bonds with its owners.",
+  "score": 4,
+  "cost": 0.0007985999999999999,
   "expected": "",
   "tokens": {
     "input": 23,
-    "output": 389
+    "output": 327
   }
 }

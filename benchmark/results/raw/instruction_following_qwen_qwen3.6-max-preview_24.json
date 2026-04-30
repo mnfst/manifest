@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "*   A car accident report is an official document that records the fundamental details of a collision, including the date, time, and precise location of the incident, along with the identifying information for all involved drivers, vehicles, passengers, and witnesses.\n*   It contains a factual narrative and visual diagram reconstructing the event, noting road and weather conditions, vehicle damage, injuries sustained, and any traffic violations or citations issued by the responding officer.\n*   The report serves as a critical evidentiary tool for insurance claims and legal proceedings, providing an objective account used to determine liability, verify damages, and resolve disputes regarding fault.",
+  "score": 1,
+  "cost": 0.005332600000000001,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 1020
+  }
+}

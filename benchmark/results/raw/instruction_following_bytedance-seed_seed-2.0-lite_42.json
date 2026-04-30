@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "The thunderstorm rolls in slow over a July suburban valley, swallowing the soft golden hour before most neighbors have wrapped up their evening cookouts. It arrives first as a smell: sharp, electric ozone that tugs at the back of your throat, cutting through the lingering scents of charcoal smoke and fresh-clover lawn clippings, a wordless warning the thick air can\u2019t contain.\n\nWithin ten minutes, the wind shifts, turning from sticky and warm to crisp enough to raise goosebumps on your bare arms as it whips oak leaves into a frenzy, their rustle rising to a roar that drowns out the distant hum of the highway. The first fat raindrop hits you square on the cheek, cold and heavy, then another splatters on your lip, carrying that same faint metallic tang as the pre-storm ozone, before the sky splits open entirely.\n\nLightning bleaches the whole neighborhood stark white for a single heartbeat, turning the sheets of rain into a curtain of shattered glass, and half a second later thunder cracks\u2014low, rolling, so deep it vibrates in the wooden porch slats under your bare feet and settles heavy in your sternum, like the sky is knocking to come inside. Rain drums so loud on the garden shed\u2019s tin roof you can barely hear your roommate yell from the back door to come in out of the wet, and the air soon reeks of turned soil and damp pine, clean enough to make you breathe deep even as your t-shirt sticks to your shoulders. By the time the worst of the storm passes overhead, all that\u2019s left is the steady lull of rain, the cool damp air clinging to every surface, and the faint, distant rumble of thunder retreating toward the next town over.",
+  "score": 5,
+  "cost": 0.00133725,
+  "expected": "",
+  "tokens": {
+    "input": 61,
+    "output": 1322
+  }
+}

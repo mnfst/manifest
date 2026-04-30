@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "code_generation",
+  "case": 6,
+  "response": "```python\n    counts = {}\n    result = []\n    for number in numbers:\n        if number in counts:\n            counts[number] += 1\n        else:\n            counts[number] = 1\n    for number in numbers:\n        if counts[number] == 1:\n            result.append(number)\n    return result\n```",
+  "score": 5,
+  "cost": 4.41e-05,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 80
+  }
+}

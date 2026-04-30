@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "This code solves the **0/1 Knapsack problem** using **bottom-up dynamic programming** to compute the maximum total value of items that can fit within a given weight capacity. It iteratively fills a 2D DP table where each cell `dp[i][w]` stores the optimal value for the first `i` items and capacity `w`, making a binary include-or-exclude decision at each step.",
+  "score": 5,
+  "cost": 0.0061958000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 166,
+    "output": 1150
+  }
+}

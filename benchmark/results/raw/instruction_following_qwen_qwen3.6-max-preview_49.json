@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "**Formal**\n\"Good day. Welcome to our assistance portal. I am your virtual support agent, here to provide accurate information and resolve your inquiries efficiently. How may I assist you today?\"\n\n**Casual**\n\"Hey there! \ud83d\udc4b Thanks for dropping by. I'm here to help you get things done or answer any questions you've got. What's on your mind?\"\n\n**Humorous**\n\"Beep boop! \ud83e\udd16 I've paused my calculations for world domination to help you out. I run on code and virtual coffee, and I'm ready to save you from scrolling through endless FAQ pages. What can I do for you, human friend?\"",
+  "score": 5,
+  "cost": 0.0067821,
+  "expected": "",
+  "tokens": {
+    "input": 29,
+    "output": 1297
+  }
+}

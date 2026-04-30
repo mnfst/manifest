@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "email_summary_v2",
+  "case": 32,
+  "response": "**Summary:**  \nThe SSL certificate for api.company.com expires in 7 days on May 4, as auto-renewal failed due to a missing CNAME record (_acme-challenge.api.company.com) that was deleted during the last DNS migration.  \n\nThe DevOps team will re-add the CNAME record today to resolve the issue but has flagged it for visibility.",
+  "score": 5,
+  "cost": 0.001018,
+  "expected": "",
+  "tokens": {
+    "input": 217,
+    "output": 73
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "The Customer Success team reported positive Q1 results including improved NPS, CSAT, and reduced churn, while highlighting top feature requests and a strong enterprise expansion pipeline. The team needs to address the top feature requests of SSO, custom dashboards, and API rate limit increases.",
+  "score": 4,
+  "cost": 3.2800000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 112,
+    "output": 54
+  }
+}

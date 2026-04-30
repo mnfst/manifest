@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "rag_qa",
+  "case": 46,
+  "response": "Los Angeles Kings",
+  "score": 5,
+  "cost": 3.4049999999999994e-05,
+  "expected": "Los Angeles Kings",
+  "tokens": {
+    "input": 123,
+    "output": 3
+  }
+}

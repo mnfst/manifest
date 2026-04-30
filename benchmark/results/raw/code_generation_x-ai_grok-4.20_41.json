@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_generation",
+  "case": 41,
+  "response": "```python\n    third = sorted([l[i] for i in range(len(l)) if i % 3 == 0])\n    res = l[:]\n    for i, v in enumerate(third):\n        res[i*3] = v\n    return res\n```",
+  "score": 4,
+  "cost": 0.001056,
+  "expected": "",
+  "tokens": {
+    "input": 300,
+    "output": 57
+  }
+}

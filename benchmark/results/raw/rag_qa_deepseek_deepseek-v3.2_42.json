@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "rag_qa",
+  "case": 42,
+  "response": "Based ONLY on the provided context, the answer is: Not found in context.\n\nThe context mentions the Moselle contributes an average discharge of more than 300 m\u00b3/s, but it does not compare this to the contributions of the Neckar or the Main to determine which contributes the most.",
+  "score": 5,
+  "cost": 0.00011565,
+  "expected": "Moselle",
+  "tokens": {
+    "input": 203,
+    "output": 59
+  }
+}

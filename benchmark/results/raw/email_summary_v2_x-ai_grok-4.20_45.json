@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "email_summary_v2",
+  "case": 45,
+  "response": "**Summary:**  \nA server outage from 2:14 PM was caused by a misconfigured load balancer, resulting in 47 minutes of degraded service for 12K users. Jen requests completing three action items\u2014adding LB config validation to CI, updating the runbook, and implementing traffic distribution alerts\u2014and has attached the full post-mortem document.",
+  "score": 5,
+  "cost": 0.00099,
+  "expected": "",
+  "tokens": {
+    "input": 219,
+    "output": 69
+  }
+}

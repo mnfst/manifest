@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 30,
+  "response": "**This code implements a Bloom Filter**, a space-efficient probabilistic data structure used to test whether an element is in a set.\n\n- `add(item)` inserts an element by setting `num_hashes` bits to `True` at positions computed by multiple hash functions.\n- `__contains__(item)` (i.e. `item in bf`) checks whether *all* of those same bit positions are `True`.\n\nIt uses the **multiple independent hash functions** pattern (here simulated by `hash(str(item) + str(i)) % size` for `i in 0..num_hashes-1`). The filter can produce **false positives** but never false negatives.",
+  "score": 5,
+  "cost": 0.001618,
+  "expected": "",
+  "tokens": {
+    "input": 273,
+    "output": 134
+  }
+}

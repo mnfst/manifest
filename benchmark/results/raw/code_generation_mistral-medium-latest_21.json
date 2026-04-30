@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "code_generation",
   "case": 21,
-  "response": "```python\n    even_count = 0\n    odd_count = 0\n    for num in range(1, n + 1):\n        str_num = str(num)\n        if str_num == str_num[::-1]:\n            if num % 2 == 0:\n                even_count += 1\n            else:\n                odd_count += 1\n    return (even_count, odd_count)\n```",
+  "response": "```python\n    even = 0\n    odd = 0\n    for num in range(1, n + 1):\n        s = str(num)\n        if s == s[::-1]:\n            if num % 2 == 0:\n                even += 1\n            else:\n                odd += 1\n    return (even, odd)\n```",
   "score": 5,
-  "cost": 0.00027239999999999995,
+  "cost": 0.0002544,
   "expected": "",
   "tokens": {
     "input": 246,
-    "output": 87
+    "output": 78
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_explanation",
+  "case": 47,
+  "response": "The function implements Dijkstra\u2019s shunting\u2011yard algorithm, converting an infix token list (where each token is a `(type, value)` tuple) into a postfix (Reverse Polish) list by pushing operators onto a stack according to their precedence and popping them when lower\u2011 or equal\u2011precedence operators are encountered, while respecting parentheses.",
+  "score": 5,
+  "cost": 0.0016181000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 219,
+    "output": 313
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "rag_qa",
+  "case": 1,
+  "response": "The Great Plague of London was in 1665.",
+  "score": 0,
+  "cost": 8.28e-05,
+  "expected": "1665",
+  "tokens": {
+    "input": 274,
+    "output": 13
+  }
+}

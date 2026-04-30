@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_explanation",
+  "case": 0,
+  "response": "The function computes the *n*\u2011th Fibonacci number by directly applying the Fibonacci recurrence: for\u202f*n\u202f>\u202f1* it returns the sum of the two preceding values (`fibonacci(n\u20111) + fibonacci(n\u20112)`). This naive top\u2011down recursive implementation follows the classic recursion pattern, resulting in exponential time complexity because the same sub\u2011problems are solved many times.",
+  "score": 5,
+  "cost": 0.0019932,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 429
+  }
+}

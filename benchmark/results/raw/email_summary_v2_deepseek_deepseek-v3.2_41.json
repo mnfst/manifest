@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "The network team recommends upgrading to 10Gbps links for $45K plus $2K monthly to address high current usage and projected growth, as the cheaper traffic shaping alternative would likely require another upgrade within six months. The main action is to approve the 10Gbps upgrade to ensure long-term capacity.",
+  "score": 5,
+  "cost": 9.495e-05,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 62
+  }
+}

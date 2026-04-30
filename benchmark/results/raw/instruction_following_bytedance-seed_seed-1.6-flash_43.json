@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 43,
+  "response": "Did you know there's a planet so rich in carbon that it's likely covered in a layer of liquid diamond? It's called 55 Cancri e, a \"super-Earth\" orbiting a star 40 light-years from Earth. Its extreme proximity to its host star\u2014just 2 million miles (3.2 million km) away\u2014cooks the planet to a toasty 2,400\u00b0F (1,300\u00b0C) and squashes carbon into diamond, creating a surface that's more \"sparkle\" than rock. Bonus: The planet's day is just 18 hours long, but don't set your alarm\u2014its year is only 18 Earth days, and it's tidally locked, so one side is always baked and the other is frozen solid. Talk about a rough commute!",
+  "score": 5,
+  "cost": 0.000142425,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 450
+  }
+}

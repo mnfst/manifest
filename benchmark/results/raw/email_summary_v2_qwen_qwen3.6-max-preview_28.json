@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-max-preview",
   "task": "email_summary_v2",
   "case": 28,
-  "response": "The annual disaster recovery test missed its 4-hour recovery target, taking over six hours due to a slower-than-expected database restore caused by a larger dataset. To address this gap before the October retest, the SRE team recommends increasing backup frequency and pre-provisioning a standby database.",
+  "response": "The annual disaster recovery test missed its 4-hour recovery target, taking over six hours due to an unexpectedly slow database restore caused by dataset growth. To address this gap, the team must increase backup frequency and pre-provision a standby database before the next scheduled test in October.",
   "score": 5,
-  "cost": 0.0063726,
+  "cost": 0.002899,
   "expected": "",
   "tokens": {
     "input": 114,
-    "output": 1197
+    "output": 529
   }
 }

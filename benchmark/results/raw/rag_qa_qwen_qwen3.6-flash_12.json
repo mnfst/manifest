@@ -4,10 +4,10 @@
   "case": 12,
   "response": "J. F. D. Shrewsbury",
   "score": 5,
-  "cost": 0.0012145,
+  "cost": 0.0009455,
   "expected": "British bacteriologist J. F. D. Shrewsbury",
   "tokens": {
     "input": 206,
-    "output": 1163
+    "output": 894
   }
 }

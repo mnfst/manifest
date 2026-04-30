@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_explanation",
+  "case": 30,
+  "response": "This code implements a **Bloom filter**, a probabilistic data structure for efficient membership testing. It uses a bit array (`self.bits`) and multiple hash functions to map items to bit positions: when an item is added, it sets all corresponding bits to `True`; to check membership, it verifies if all mapped bits are `True` (indicating the item is likely present, with possible false positives). The `_hashes` method generates `num_hashes` positions by hashing the item with appended indices and taking modulo the filter size.\n\n\n**Key points**: Probabilistic, space-efficient, uses multiple hash functions, supports add and membership check operations.",
+  "score": 5,
+  "cost": 0.000139125,
+  "expected": "",
+  "tokens": {
+    "input": 247,
+    "output": 402
+  }
+}

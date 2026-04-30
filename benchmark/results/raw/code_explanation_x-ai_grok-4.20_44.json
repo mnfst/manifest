@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "**This function finds all connected components in an undirected graph using BFS.**\n\nIt performs a **Breadth-First Search** starting from each unvisited node, collecting all reachable nodes into a component. The outer loop ensures every disconnected part of the graph is visited exactly once, returning a list of lists where each inner list represents one connected component.",
+  "score": 5,
+  "cost": 0.001026,
+  "expected": "",
+  "tokens": {
+    "input": 245,
+    "output": 67
+  }
+}

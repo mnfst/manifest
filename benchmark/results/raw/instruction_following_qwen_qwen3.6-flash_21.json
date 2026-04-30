@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "From the park entrance:\n1. Turn left.\n2. Turn right.\n3. Turn left.\n4. Turn right.\n5. Turn left.\n\nThe library is now directly ahead.\n\n*(Note: Forward movement is implied between each turn, as required for real-world navigation. All directional commands are exclusively left or right.)*",
+  "score": 5,
+  "cost": 0.00295175,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 2945
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_generation",
+  "case": 16,
+  "response": "```python\n    n = len(grid)\n    pos = [0] * (n*n + 1)\n    for i in range(n):\n        for j in range(n):\n            pos[grid[i][j]] = (i, j)\n    \n    dirs = [(-1,0),(1,0),(0,-1),(0,1)]\n    \n    def get_neighbors(val):\n        i, j = pos[val]\n        nei = []\n        for di, dj in dirs:\n            ni, nj = i + di, j + dj\n            if 0 <= ni < n and 0 <= nj < n:\n                nei.append(grid[ni][nj])\n        return nei\n    \n    path = [1]\n    cur = 1\n    for _ in range(1, k):\n        cands = get_neighbors(cur)\n        nxt = min(cands)\n        path.append(nxt)\n        cur = nxt\n    return path\n```",
+  "score": 4,
+  "cost": 0.002642,
+  "expected": "",
+  "tokens": {
+    "input": 541,
+    "output": 195
+  }
+}

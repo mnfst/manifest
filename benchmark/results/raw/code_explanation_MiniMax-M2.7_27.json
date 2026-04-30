@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_explanation",
+  "case": 27,
+  "response": "The function computes the maximum value of every contiguous sub\u2011array of length\u202f`k` in `nums` using a **monotonic decreasing deque**. The deque stores indices of elements in decreasing order, discarding indices that fall out of the current window and any indices whose values are smaller than the new element, so the front of the deque always holds the index of the current window\u2019s maximum.",
+  "score": 5,
+  "cost": 0.0016742000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 162,
+    "output": 340
+  }
+}

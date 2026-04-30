@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "rag_qa",
   "case": 11,
-  "response": "The Amazonian evergreen forests store about **10% of the carbon in ecosystems** worldwide, which is approximately **1.1 \u00d7 10\u00b9\u00b9 metric tonnes of carbon**.",
+  "response": "The Amazonian evergreen forests store about **10% of the carbon in the world's ecosystems**, which is approximately **1.1 \u00d7 10\u00b9\u00b9 metric tonnes of carbon**.",
   "score": 4,
-  "cost": 0.000148,
+  "cost": 0.00015,
   "expected": "10% of the carbon stores",
   "tokens": {
     "input": 175,
-    "output": 39
+    "output": 40
   }
 }

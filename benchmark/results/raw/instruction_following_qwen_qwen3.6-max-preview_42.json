@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "The sky curdled into a deep, bruised purple as the storm front muscled overhead, swallowing the afternoon light. A jagged vein of lightning fractured the darkness, illuminating the thrashing trees in a stark, strobe-light flash. Moments later, the thunder arrived as a physical force; a low, guttural rumble that **vibrated through the floorboards and rattled the windowpanes** in their frames. Then the rain broke, hammering against the roof with a **deafening, continuous roar**, while the wind carried the **sharp, metallic scent of ozone and damp soil** through the cracked window.",
+  "score": 5,
+  "cost": 0.0067379,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 1290
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "It begins with a man standing before a firing squad, yet his mind drifts not to fear, but to a distant afternoon when his father first showed him ice. From that opening breath, the story pulls you into a settlement carved out of swamp and ambition, where the laws of physics and the weight of history bend to the rhythm of memory.\n\nGenerations of a single family rise, fracture, and return, their names repeating like a refrain you can't quite shake. Wars are fought and forgotten, inventions arrive like miracles, love affairs bloom in secret rooms, and quiet madness settles over certain bloodlines like dust. Time here doesn't march forward; it spirals. Mistakes echo. Prophecies wait patiently in coded manuscripts. The narrative treats the extraordinary as everyday and the everyday as extraordinary: a trail of yellow butterflies heralds a lover's approach, a town loses the ability to sleep and then to remember, and rain falls for years without pause.\n\nBeneath the lush imagery and sweeping scope lies a steady meditation on isolation, the seduction of power, the fragility of memory, and the way families unknowingly pass down both their gifts and their wounds. The prose is patient but relentless, weaving humor, tragedy, and myth into a single braid that feels less like reading and more like inhaling a world.\n\nWhat makes it linger isn't just its ambition or its beauty, but the quiet realization it leaves behind: that every community, every lineage, every human heart carries its own version of this cycle. You close it feeling as though you've lived a dozen lifetimes, carrying the faint scent of old paper, tropical rain, and the stubborn hope that storytelling itself might be the only thing that outlasts us.",
+  "score": 4,
+  "cost": 0.009148100000000001,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 1754
+  }
+}

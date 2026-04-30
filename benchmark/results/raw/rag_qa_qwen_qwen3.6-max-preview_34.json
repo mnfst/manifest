@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "rag_qa",
+  "case": 34,
+  "response": "Based on the provided context, there would be **infinitely many prime numbers** in those progressions.",
+  "score": 5,
+  "cost": 0.0049777,
+  "expected": "infinitely many prime numbers",
+  "tokens": {
+    "input": 253,
+    "output": 894
+  }
+}

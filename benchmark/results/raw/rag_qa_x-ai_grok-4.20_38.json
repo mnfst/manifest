@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "rag_qa",
+  "case": 38,
+  "response": "Along or near the Charles River.",
+  "score": 2,
+  "cost": 0.000778,
+  "expected": "Charles River",
+  "tokens": {
+    "input": 361,
+    "output": 7
+  }
+}

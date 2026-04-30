@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "This code implements a memoization decorator that creates an **LRU (Least Recently Used) cache** with a fixed capacity using an `OrderedDict`. It stores function results up to `maxsize`, moves recently accessed arguments to the end to mark them as used, and evicts the oldest item from the front whenever the cache exceeds its limit.",
+  "score": 5,
+  "cost": 0.001452,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 575
+  }
+}

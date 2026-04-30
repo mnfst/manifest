@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 36,
+  "response": "Here are 4 widely used programming languages that exclude Python and JavaScript, each with distinct core use cases:\n1. **Rust**: A systems-focused language stewarded by the Rust Foundation, designed to deliver C/C++-level performance while guaranteeing memory and thread safety without a garbage collector. It eliminates entire classes of common low-level bugs (like null pointer dereferences or buffer overflows) and is used to build Linux kernel components, high-performance web services, embedded systems, and WebAssembly modules.\n2. **Swift**: Apple\u2019s open-source, modern language launched in 2014 to replace Objective-C for its software ecosystem. It prioritizes speed, readability, and type safety, with automatic memory management via ARC (Automatic Reference Counting). It\u2019s the primary language for building iOS, macOS, watchOS, and tvOS apps, and is also used for cross-platform and server-side backend development.\n3. **Go (Golang)**: Created by Google engineers to address the complexity of scaling large distributed systems, Go features a minimalist syntax, built-in concurrency primitives (goroutines and channels), and a lightweight garbage collector. It is the foundational language for major DevOps and cloud tools including Docker, Kubernetes, and Terraform, and is widely adopted for high-throughput backend services that need to handle thousands of concurrent requests.\n4. **Kotlin**: A statically typed JVM-first language developed by JetBrains, fully interoperable with Java. Google named it the preferred language for Android app development in 2019, and it is also widely used for server-side JVM backends, cross-platform mobile apps, and data pipeline tools. It cuts down on Java\u2019s verbose boilerplate, adds built-in null safety, and supports modern concurrency features like coroutines to simplify asynchronous development.",
+  "score": 5,
+  "cost": 0.00167625,
+  "expected": "",
+  "tokens": {
+    "input": 61,
+    "output": 1661
+  }
+}

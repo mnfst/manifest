@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "From the park, turn right. Then turn left. Then turn right. Then turn left. You will arrive at the library.",
+  "score": 4,
+  "cost": 3.6450000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 27
+  }
+}

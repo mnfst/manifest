@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_explanation",
+  "case": 10,
+  "response": "This function implements the **Sieve of Eratosthenes** to find all prime numbers up to `n` using a boolean array where indices represent numbers. It iterates from 2 to \u221an, and for each prime `i` it encounters, it marks all multiples of `i` starting from `i\u00b2` as non-prime (False), ultimately returning the list of indices that remain marked as prime (True).",
+  "score": 5,
+  "cost": 0.0016644000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 660
+  }
+}

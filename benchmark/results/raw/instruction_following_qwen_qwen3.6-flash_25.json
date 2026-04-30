@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "Meeting Invitation: Team Sync and Updates",
+  "score": 4,
+  "cost": 0.0009515,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 945
+  }
+}

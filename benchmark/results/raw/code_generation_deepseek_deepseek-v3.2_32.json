@@ -2,12 +2,12 @@
   "model": "deepseek/deepseek-v3.2",
   "task": "code_generation",
   "case": 32,
-  "response": "words = s.split(' ')\nordered_words = []\nfor word in words:\n    ordered_word = ''.join(sorted(word))\n    ordered_words.append(ordered_word)\nreturn ' '.join(ordered_words)",
+  "response": "```python\n    words = s.split(' ')\n    ordered_words = []\n    for word in words:\n        sorted_chars = sorted(word)\n        ordered_word = ''.join(sorted_chars)\n        ordered_words.append(ordered_word)\n    return ' '.join(ordered_words)\n```",
   "score": 5,
-  "cost": 8.735e-05,
+  "cost": 0.00010455000000000001,
   "expected": "",
   "tokens": {
-    "input": 169,
-    "output": 41
+    "input": 163,
+    "output": 58
   }
 }

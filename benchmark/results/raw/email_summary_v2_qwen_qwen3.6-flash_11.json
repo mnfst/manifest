@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-flash",
   "task": "email_summary_v2",
   "case": 11,
-  "response": "The SOC 2 Type II audit was completed with no critical findings, though three observations were identified regarding insufficient access review frequency, untested incident response plans, and incomplete vendor risk assessments. The Compliance Team requires all three issues to be remediated within 30 days.",
+  "response": "The SOC 2 Type II audit was completed with no critical findings, but three observations were identified regarding insufficient access review frequency, untested incident response procedures, and incomplete vendor risk assessments. The Compliance Team requires all noted issues to be remediated within 30 days.",
   "score": 5,
-  "cost": 0.00076725,
+  "cost": 0.00111425,
   "expected": "",
   "tokens": {
     "input": 105,
-    "output": 741
+    "output": 1088
   }
 }

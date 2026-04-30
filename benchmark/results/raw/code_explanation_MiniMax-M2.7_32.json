@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_explanation",
+  "case": 32,
+  "response": "The code builds a **Union\u2011Find (Disjoint\u2011Set)** data structure for `n` elements, using *path compression* in the `find` operation and *union by rank* to keep the resulting trees nearly flat. It returns the `find` and `union` functions so you can merge sets and check whether two elements belong to the same component in (almost) constant time.",
+  "score": 5,
+  "cost": 0.0017974,
+  "expected": "",
+  "tokens": {
+    "input": 190,
+    "output": 361
+  }
+}

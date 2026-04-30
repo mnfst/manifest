@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_generation",
+  "case": 38,
+  "response": "```python\n    if not lst:\n        return (None, None)\n    neg = [x for x in lst if x < 0]\n    pos = [x for x in lst if x > 0]\n    a = max(neg) if neg else None\n    b = min(pos) if pos else None\n    return (a, b)\n```",
+  "score": 5,
+  "cost": 0.001186,
+  "expected": "",
+  "tokens": {
+    "input": 289,
+    "output": 76
+  }
+}

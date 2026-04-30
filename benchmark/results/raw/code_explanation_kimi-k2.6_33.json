@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_explanation",
+  "case": 33,
+  "response": "This function implements **reservoir sampling**, a randomized algorithm that selects *k* items uniformly at random from a stream of unknown length in a single pass. It fills a reservoir with the first *k* elements, then for each subsequent item at index *i*, it generates a random integer *j* from 0 to *i* and replaces `reservoir[j]` with the current item if *j* < *k*, ensuring every element has an equal probability of appearing in the final sample.",
+  "score": 5,
+  "cost": 0.0018318,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 740
+  }
+}

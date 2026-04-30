@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "Subject: Farewell and Thank You\n\nI am writing to let you know that my last day with the company will be [Date]. It has been an absolute pleasure working alongside such a talented and supportive team over the past few years. I am incredibly grateful for the opportunities I've had to grow and for the friendships I've made along the way. Please feel free to stay in touch via LinkedIn or my personal email at [Email Address]. I wish you all continued success and happiness in everything you do.",
+  "score": 5,
+  "cost": 0.0032474,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 619
+  }
+}

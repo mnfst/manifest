@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "code_explanation",
+  "case": 8,
+  "response": "This code implements a **debounce decorator** that ensures a function (`fn`) is only executed after a specified delay (`wait`) has elapsed since its last invocation, using a **timer cancellation pattern**. Each time the debounced function is called, any pending execution is canceled and a new timer is started, preventing rapid successive calls from triggering multiple executions (commonly used for optimizing events like window resizing or search-as-you-type).",
+  "score": 5,
+  "cost": 0.00021559999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 87
+  }
+}

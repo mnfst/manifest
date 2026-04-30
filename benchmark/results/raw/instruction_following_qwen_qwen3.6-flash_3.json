@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 3,
+  "response": "FRANCE, GERMANY, ITALY, SPAIN, POLAND",
+  "score": 5,
+  "cost": 0.00055275,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 547
+  }
+}

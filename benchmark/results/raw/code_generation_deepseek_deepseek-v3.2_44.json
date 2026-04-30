@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_generation",
+  "case": 44,
+  "response": "```python\n    vowels = set('aeiouAEIOU')\n    result = []\n    \n    for char in message:\n        if char.isalpha():\n            if char.lower() in vowels:\n                # Get ASCII value, add 2, wrap around if needed\n                base = ord('a') if char.islower() else ord('A')\n                offset = (ord(char.lower()) - ord('a') + 2) % 26\n                new_char = chr(base + offset)\n                # Swap case\n                new_char = new_char.swapcase()\n            else:\n                # Just swap case for consonants\n                new_char = char.swapcase()\n            result.append(new_char)\n        else:\n            # Non-alphabetic characters remain unchanged\n            result.append(char)\n    \n    return ''.join(result)\n```",
+  "score": 3,
+  "cost": 0.0002219,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 169
+  }
+}

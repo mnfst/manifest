@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "- Improves cardiovascular health\n- Enhances mental well-being and reduces stress\n- Strengthens muscles and bones",
+  "score": 5,
+  "cost": 0.0003905,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 385
+  }
+}

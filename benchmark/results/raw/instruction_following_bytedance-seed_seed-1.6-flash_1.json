@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 1,
+  "response": "The CPU, or central processing unit, is the component of a computer that executes instructions, processes data, and manages information flow by performing arithmetic, logic, control, and input/output operations.",
+  "score": 2,
+  "cost": 0.00010507499999999999,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 327
+  }
+}

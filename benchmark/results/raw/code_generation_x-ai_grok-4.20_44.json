@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_generation",
+  "case": 44,
+  "response": "vowels = 'aeiouAEIOU'\n    result = []\n    for char in message:\n        if char.lower() in 'aeiou':\n            if char.islower():\n                idx = (ord(char) - ord('a') + 2) % 26 + ord('a')\n                result.append(chr(idx))\n            else:\n                idx = (ord(char) - ord('A') + 2) % 26 + ord('A')\n                result.append(chr(idx))\n        else:\n            result.append(char.swapcase())\n    return ''.join(result)",
+  "score": 3,
+  "cost": 0.001428,
+  "expected": "",
+  "tokens": {
+    "input": 254,
+    "output": 115
+  }
+}

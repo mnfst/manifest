@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "This code performs a topological sort of a directed graph using a depth-first search (DFS) approach. It processes each node, recursively visiting its neighbors, and pushes nodes onto a stack after all their neighbors are processed (post-order traversal). Reversing the stack gives a topological order where every directed edge \\( u \\rightarrow v \\) ensures \\( u \\) comes before \\( v \\).\n\n\n**Key points**: DFS post-order traversal, stack accumulation, and reversal to produce the topological order.",
+  "score": 5,
+  "cost": 0.00012907499999999998,
+  "expected": "",
+  "tokens": {
+    "input": 197,
+    "output": 381
+  }
+}

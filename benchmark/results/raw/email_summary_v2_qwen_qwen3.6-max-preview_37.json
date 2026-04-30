@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-max-preview",
   "task": "email_summary_v2",
   "case": 37,
-  "response": "BigCo has offered $15M to acqui-hire the five-person ML team, but the CEO considers the valuation too low. Leadership must discuss the proposal and notify the board before deciding whether to counteroffer or politely decline.",
+  "response": "BigCo has offered $15M to acqui-hire our five-person ML team, but the CEO considers the valuation too low. We need to discuss whether to counter or politely decline before responding, and the board must be informed of the offer.",
   "score": 5,
-  "cost": 0.0061373,
+  "cost": 0.0031785,
   "expected": "",
   "tokens": {
     "input": 109,
-    "output": 1153
+    "output": 584
   }
 }

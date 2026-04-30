@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "Here are 5 capital cities, each from a different continent:\n\n- **Europe**: Paris (France)\n- **Africa**: Cairo (Egypt)\n- **Asia**: Tokyo (Japan)\n- **North America**: Ottawa (Canada)\n- **South America**: Bras\u00edlia (Brazil)\n\n(If you're counting Australia as its own continent, I can swap one out for Canberra!)",
+  "score": 5,
+  "cost": 0.000856,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 73
+  }
+}

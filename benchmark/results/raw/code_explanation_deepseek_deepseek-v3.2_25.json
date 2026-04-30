@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "This code implements the **observer pattern** (also known as the pub\u2011sub pattern) for event handling. It allows functions to subscribe to named events with `on`, trigger all subscribed functions with `emit`, and unsubscribe specific functions with `off`.",
+  "score": 5,
+  "cost": 8.585e-05,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 51
+  }
+}

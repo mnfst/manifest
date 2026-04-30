@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "rag_qa",
+  "case": 22,
+  "response": "Based on the provided context, the law is **The South African Schools Act of 1996**.",
+  "score": 5,
+  "cost": 0.0029068,
+  "expected": "South African Schools Act",
+  "tokens": {
+    "input": 152,
+    "output": 521
+  }
+}

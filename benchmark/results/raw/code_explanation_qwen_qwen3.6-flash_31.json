@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_explanation",
+  "case": 31,
+  "response": "This function implements the **A* search algorithm** to find the shortest path between a start and goal node in a weighted graph. It uses a **min-heap priority queue** that orders nodes by the sum of their actual traversal cost and a heuristic estimate, systematically expanding the most promising paths until the goal is reached or the search space is exhausted.",
+  "score": 5,
+  "cost": 0.00131425,
+  "expected": "",
+  "tokens": {
+    "input": 181,
+    "output": 1269
+  }
+}

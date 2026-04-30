@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "This code performs a **topological sort** on a directed acyclic graph (DAG) using a **depth-first search (DFS)** algorithm. It recursively visits all nodes, adding them to a stack only after all their neighbors have been processed, then returns the stack in reverse order to produce the topological ordering.",
+  "score": 5,
+  "cost": 3.14e-05,
+  "expected": "",
+  "tokens": {
+    "input": 119,
+    "output": 65
+  }
+}

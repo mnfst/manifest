@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "1. The Moon is Earth's only natural satellite and is about one-quarter the size of Earth in diameter, making it the fifth-largest moon in the solar system relative to its planet.\n\n2. It is in synchronous rotation with Earth, meaning the same side (the near side) always faces our planet, while the far side remained unseen by humans until the Soviet Luna 3 probe photographed it in 1959.\n\n3. The Moon's surface is covered in a layer of fine, dusty soil called regolith, which was formed by billions of years of meteorite impacts pulverizing the underlying rock.",
+  "score": 5,
+  "cost": 0.00013910000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 121
+  }
+}

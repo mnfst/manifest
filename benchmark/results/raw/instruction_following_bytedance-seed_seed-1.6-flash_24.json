@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "- **Incident Overview**: On October 15, 2023, at 3:47 p.m., a three-vehicle collision occurred at the intersection of Pine Street and Maple Avenue, involving a 2021 Honda Civic, a 2019 Ford F-150, and a 2022 Toyota Prius; all drivers and passengers were uninjured, and the scene was cleared by 4:15 p.m.  \n- **Sequence of Events**: The Honda Civic, traveling east on Pine Street, failed to stop at the red light, colliding with the Ford F-150 (northbound on Maple Avenue) at the intersection; the impact pushed the F-150 into the Toyota Prius, which was stopped at the light waiting to turn south, causing minor front-end damage to all vehicles.  \n- **Response & Investigation**: Local police, fire, and EMS units responded immediately, confirming no injuries and documenting damage; the Ford F-150 driver reported the Honda Civic driver appeared distracted by a mobile device; the incident is under investigation by the Traffic Division, with a citation possible for failure to obey traffic signals, and damage estimates totaling $12,500.",
+  "score": 2,
+  "cost": 0.00019905000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 640
+  }
+}

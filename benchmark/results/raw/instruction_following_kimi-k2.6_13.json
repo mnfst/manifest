@@ -2,12 +2,12 @@
   "model": "kimi-k2.6",
   "task": "instruction_following",
   "case": 13,
-  "response": "The 7 colors of the rainbow in order are:\n\n1. Red\n2. Orange\n3. Yellow\n4. Green\n5. Blue\n6. Indigo\n7. Violet",
+  "response": "Red, Orange, Yellow, Green, Blue, Indigo, Violet",
   "score": 5,
-  "cost": 0.00032760000000000005,
+  "cost": 0.0001644,
   "expected": "",
   "tokens": {
     "input": 18,
-    "output": 132
+    "output": 64
   }
 }

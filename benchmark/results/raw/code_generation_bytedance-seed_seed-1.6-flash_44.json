@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-1.6-flash",
   "task": "code_generation",
   "case": 44,
-  "response": "vowels = {'a', 'e', 'i', 'o', 'u'}\n    encoded = []\n    for c in message:\n        if c.lower() in vowels:\n            lower_c = c.lower()\n            pos = ord(lower_c) - ord('a')\n            new_pos = pos + 2\n            new_lower = chr(ord('a') + new_pos)\n            temp = new_lower.upper() if c.isupper() else new_lower\n            swapped = temp.lower() if temp.isupper() else temp.upper()\n            encoded.append(swapped)\n        else:\n            swapped = c.lower() if c.isupper() else c.upper()\n            encoded.append(swapped)\n    return ''.join(encoded)",
-  "score": 3,
-  "cost": 0.0017636999999999998,
+  "response": "def encode(message):\n    vowels = {'a', 'e', 'i', 'o', 'u'}\n    result = []\n    for c in message:\n        s_char = c.swapcase()\n        if s_char.lower() in vowels:\n            v = s_char.lower()\n            pos = ord(v) - ord('a')\n            new_pos = (pos + 2) % 26\n            new_v = chr(new_pos + ord('a'))\n            new_char = new_v if s_char.islower() else new_v.upper()\n        else:\n            new_char = s_char\n        result.append(new_char)\n    return ''.join(result)\nTo solve this problem, we need to encode a given message by swapping the case of all letters and replacing each vowel with the letter that appears two places ahead in the English alphabet. \n\n### Approach\nThe approach to solve this problem involves two main steps for each character in the message:\n1. **Swap Case**: Convert each character to its opposite case (lowercase to uppercase and vice versa).\n2. **Replace Vowels**: If the swapped character is a vowel (a, e, i, o, u, regardless of case), replace it with the letter that appears two places ahead in the alphabet. This involves converting the vowel to its position in the alphabet, adding 2, and then converting it back to a character. The case of the resulting character is matched to the swapped character.\n\n### Solution Code\n```python\ndef encode(message):\n    vowels = {'a', 'e', 'i', 'o', 'u'}\n    result = []\n    for c in message:\n        s_char = c.swapcase()\n        if s_char.lower() in vowels:\n            v = s_char.lower()\n            pos = ord(v) - ord('a')\n            new_pos = (pos + 2) % 26\n            new_v = chr(new_pos + ord('a'))\n            new_char = new_v if s_char.islower() else new_v.upper()\n        else:\n            new_char = s_char\n        result.append(new_char)\n    return ''.join(result)\n```\n\n### Explanation\n1. **Swapping Case**: For each character in the",
+  "score": 4,
+  "cost": 0.0014006999999999997,
   "expected": "",
   "tokens": {
     "input": 228,
-    "output": 5822
+    "output": 4612
   }
 }

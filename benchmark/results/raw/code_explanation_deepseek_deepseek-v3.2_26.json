@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "This code solves the **0/1 knapsack problem** using **dynamic programming**. It builds a 2D table where `dp[i][w]` stores the maximum value achievable using the first `i` items with a weight capacity `w`, selecting each item at most once.",
+  "score": 5,
+  "cost": 0.00010290000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 59
+  }
+}

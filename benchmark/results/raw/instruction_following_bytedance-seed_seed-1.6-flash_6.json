@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 6,
+  "response": "Ocean breathes, tides rise.  \n\nThis 4-word sentence captures the ocean's dynamic, living essence\u2014\"breathes\" evokes its rhythmic movement, and \"tides rise\" reflects its constant, powerful flow, all tied to the ocean itself.",
+  "score": 3,
+  "cost": 0.0004974,
+  "expected": "",
+  "tokens": {
+    "input": 92,
+    "output": 1635
+  }
+}

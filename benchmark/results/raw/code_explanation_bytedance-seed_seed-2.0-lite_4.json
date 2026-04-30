@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_explanation",
+  "case": 4,
+  "response": "This Python code defines a memoization decorator, a higher-order function that implements the caching memoization pattern to eliminate redundant function computations. It creates a persistent private cache to store results of the input function `f`; when the wrapped function is called with the same arguments again, it returns the precomputed cached value instead of re-running the original function.",
+  "score": 5,
+  "cost": 0.00046725,
+  "expected": "",
+  "tokens": {
+    "input": 125,
+    "output": 436
+  }
+}

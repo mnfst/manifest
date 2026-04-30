@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "rag_qa",
+  "case": 37,
+  "response": "Based on the provided context, Korea bordered Kublai's territory on the **northeast border**.",
+  "score": 5,
+  "cost": 0.004771,
+  "expected": "northeast",
+  "tokens": {
+    "input": 218,
+    "output": 863
+  }
+}

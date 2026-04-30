@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_explanation",
+  "case": 39,
+  "response": "This code defines helper functions for a producer-consumer pattern using a queue. Producers add all items to the queue followed by a `None` sentinel to signal completion. Consumers repeatedly take items from the queue; upon receiving `None`, they put a `None` back (to coordinate termination) and exit, indicating they've finished processing all items.\n\n\n**Key details**: Uses a queue to pass items between producers and consumers, with `None` as a sentinel to signal end-of-production and end-of-consumption.",
+  "score": 5,
+  "cost": 0.000164625,
+  "expected": "",
+  "tokens": {
+    "input": 195,
+    "output": 500
+  }
+}

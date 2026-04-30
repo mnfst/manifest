@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 13,
+  "response": "The 7 colors of the rainbow in order are:\n\n1. Red  \n2. Orange  \n3. Yellow  \n4. Green  \n5. Blue  \n6. Indigo  \n7. Violet  \n\nThis sequence is often remembered by the acronym **ROYGBIV**.",
+  "score": 5,
+  "cost": 6.575e-05,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 55
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "```python\ndef sort(items: list) -> list:\n    \"\"\"Sorts a list of items in ascending order.\n\n    This function returns a new sorted list without modifying the original\n    input list.\n\n    Args:\n        items: A list of comparable items to be sorted. The items must\n            support comparison operations (e.g., numbers, strings).\n\n    Returns:\n        A new list containing all items from the input list in ascending order.\n\n    Raises:\n        TypeError: If the items in the list are not comparable with each other.\n    \"\"\"\n```",
+  "score": 5,
+  "cost": 0.001176,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 113
+  }
+}

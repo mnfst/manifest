@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "Meeting Invitation: Project Review and Next Steps",
+  "score": 4,
+  "cost": 0.004849,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 926
+  }
+}

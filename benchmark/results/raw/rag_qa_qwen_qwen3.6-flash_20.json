@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "rag_qa",
+  "case": 20,
+  "response": "They are funded in whole by charging their students tuition fees.",
+  "score": 4,
+  "cost": 0.00071375,
+  "expected": "tuition",
+  "tokens": {
+    "input": 151,
+    "output": 676
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "DNA, or deoxyribonucleic acid, is the self-replicating hereditary molecule present in nearly all living organisms, consisting of a double helix of nucleotide base pairs that carries the genetic instructions needed to build cellular structures, regulate core biological functions, and pass inheritable traits from parent organisms to their offspring.",
+  "score": 1,
+  "cost": 0.00028275,
+  "expected": "",
+  "tokens": {
+    "input": 63,
+    "output": 267
+  }
+}

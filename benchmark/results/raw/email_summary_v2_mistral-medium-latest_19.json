@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "email_summary_v2",
   "case": 19,
-  "response": "The **Datadog contract expires June 30**, with a renewal offer of **$155K/year (14% discount) for 3 years**, or a cheaper alternative (**Grafana Cloud at $95K/year**) that requires a **3-month migration**. **Finance must decide by May 15** between the two options.",
+  "response": "The **Datadog contract expires June 30**, with a renewal offer of **$155K/year (14% discount) for 3 years**, while **Grafana Cloud** is a cheaper alternative at **$95K/year** but requires a **3-month migration**. **Finance must decide by May 15** between renewing Datadog or switching to Grafana.",
   "score": 5,
-  "cost": 0.0002,
+  "cost": 0.00022,
   "expected": "",
   "tokens": {
     "input": 110,
-    "output": 78
+    "output": 88
   }
 }

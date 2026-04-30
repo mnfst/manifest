@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "Here\u2019s a checklist of ingredients for a basic, versatile salad:\n\n**Base Greens**\n- [ ] Mixed greens, romaine, or iceberg lettuce\n- [ ] Fresh spinach or arugula\n\n**Fresh Vegetables**\n- [ ] Cucumber, sliced or diced\n- [ ] Cherry or grape tomatoes, halved\n- [ ] Red onion, thinly sliced\n- [ ] Bell pepper, chopped\n- [ ] Carrots, shredded or ribboned\n\n**Protein (Optional)**\n- [ ] Grilled or shredded chicken\n- [ ] Hard-boiled eggs, quartered\n- [ ] Canned chickpeas or white beans, rinsed\n- [ ] Crumbled feta, goat cheese, or shaved parmesan\n\n**Crunch & Toppings**\n- [ ] Croutons\n- [ ] Sunflower or pumpkin seeds\n- [ ] Sliced almonds, walnuts, or pecans\n\n**Dressing & Seasoning**\n- [ ] Extra virgin olive oil\n- [ ] Balsamic vinegar, red wine vinegar, or fresh lemon juice\n- [ ] Dijon mustard (for emulsifying)\n- [ ] Salt\n- [ ] Freshly ground black pepper\n- [ ] Fresh herbs (parsley, basil, or chives)\n\nTip: Check off what you have on hand, toss everything in a large bowl, and whisk the dressing ingredients separately before drizzling over the top.",
+  "score": 5,
+  "cost": 0.005913700000000001,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 1132
+  }
+}

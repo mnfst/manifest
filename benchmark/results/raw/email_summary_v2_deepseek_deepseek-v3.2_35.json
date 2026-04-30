@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 35,
+  "response": "The email announces new content moderation rules requiring labeling of AI-generated images, prohibiting deepfakes, and mandating disclosure for AI-assisted text, with enforcement beginning June 1. The Trust & Safety team is also preparing training materials for these updates.",
+  "score": 5,
+  "cost": 8.025e-05,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 50
+  }
+}

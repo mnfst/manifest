@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 45,
+  "response": "# TCP vs UDP Comparison\n\n| **Aspect** | **TCP (Transmission Control Protocol)** | **UDP (User Datagram Protocol)** |\n|------------|----------------------------------------|----------------------------------|\n| **Connection** | Connection-oriented (establishes connection before data transfer) | Connectionless (no connection establishment) |\n| **Reliability** | Reliable (guarantees delivery, no data loss) | Unreliable (no delivery guarantees, possible data loss) |\n| **Ordering** | Maintains packet order (sequencing) | No ordering (packets may arrive out of order) |\n| **Error Checking** | Extensive error checking and recovery | Basic error checking (checksum only) |\n| **Speed** | Slower due to overhead and reliability features | Faster due to minimal overhead |\n| **Header Size** | Larger header (20-60 bytes) | Smaller header (8 bytes) |\n| **Flow Control** | Yes (prevents sender from overwhelming receiver) | No flow control |\n| **Congestion Control** | Yes (adjusts transmission rate based on network) | No congestion control |\n| **Data Flow** | Stream-oriented (data as continuous stream) | Message-oriented (discrete packets) |\n| **Retransmission** | Automatic retransmission of lost packets | No retransmission |\n| **Acknowledgments** | Uses ACK packets to confirm receipt | No acknowledgments |\n| **Use Cases** | Web browsing (HTTP/HTTPS), email, file transfers | Video streaming, VoIP, DNS, gaming |\n| **Protocol Examples** | HTTP, HTTPS, FTP, SMTP, SSH | DNS, DHCP, VoIP, SNMP, QUIC |\n\n## Key Differences in Simple Terms:\n\n**TCP** is like sending a registered letter with tracking - you know it arrived, in the right order, and can be resent if lost. It's reliable but slower.\n\n**UDP** is like sending postcards - faster and cheaper, but some might get lost or arrive out of order. It's efficient for real-time applications where speed matters more than perfect delivery.\n\n**Rule of thumb**: Use TCP when you need reliability, use UDP when you need speed and can tolerate some data loss.",
+  "score": 4,
+  "cost": 0.0005051,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 456
+  }
+}

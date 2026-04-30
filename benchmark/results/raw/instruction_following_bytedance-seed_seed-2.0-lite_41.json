@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "```python\nfrom collections.abc import Callable, Iterable\nfrom typing import TypeVar, Any\n\nT = TypeVar('T')\ndef custom_sort(iterable: Iterable[T], *, key: Callable[[T], Any] | None = None, reverse: bool = False) -> list[T]:\n    \"\"\"Sorts an iterable using a stable, O(n log n) merge sort algorithm.\n\n    Implements a production-ready stable merge sort that preserves the original relative order \n    of elements with equal sort keys. Mirrors the interface of Python's built-in `sorted()` function \n    for familiarity, with full support for custom sort keys and reverse ordering.\n\n    Args:\n        iterable: Iterable of elements to sort. Elements must support native comparison operators \n            if no `key` function is provided.\n        key: Optional callable that transforms each element into a value used for sorting. Defaults\n            to None, which compares elements directly.\n        reverse: If True, sort elements in descending order. Defaults to False.\n\n    Returns:\n        list[T] A new list containing all elements from the input iterable, sorted per the specified\n            parameters. The original input iterable is never modified.\n\n    Raises:\n        TypeError: If elements in the input cannot be compared (e.g. mixing uncomparable types like\n            strings and integers without a key function), or if the provided `key` is not callable.\n\n    Examples:\n        Basic integer sort:\n        >>> custom_sort([3, 1, 4, 1, 5, 9])\n        [1, 1, 3, 4, 5, 9]\n\n        Sort strings by length in reverse order:\n        >>> fruits = [\"apple\", \"banana\", \"cherry\", \"date\"]\n        >>> custom_sort(fruits, key=len, reverse=True)\n        ['banana', 'cherry', 'apple', 'date']\n\n        Sort a list of dictionaries by a shared key:\n        >>> users = [{\"name\": \"Alice\", \"age\": 30}, {\"name\": \"Bob\", \"age\": 25}, {\"name\": \"Charlie\", \"age\": 35}]\n        >>> custom_sort(users, key=lambda x: x[\"age\"])\n        [{'",
+  "score": 4,
+  "cost": 0.0018915,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 1876
+  }
+}

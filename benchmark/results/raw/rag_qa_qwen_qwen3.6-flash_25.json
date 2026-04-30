@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "rag_qa",
+  "case": 25,
+  "response": "Infrastructure",
+  "score": 0,
+  "cost": 0.00028875,
+  "expected": "infrastructure",
+  "tokens": {
+    "input": 167,
+    "output": 247
+  }
+}

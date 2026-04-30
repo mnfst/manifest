@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "This code performs a **topological sort using Depth-First Search (DFS) with post-order traversal**. It recursively explores each node's neighbors, adds nodes to a stack after all their dependencies are visited, then reverses the final stack to produce a valid ordering where dependencies come before dependent nodes.",
+  "score": 5,
+  "cost": 0.0007095000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 131
+  }
+}

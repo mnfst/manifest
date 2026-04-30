@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "rag_qa",
+  "case": 23,
+  "response": "Mortgage banker",
+  "score": 5,
+  "cost": 0.0006945,
+  "expected": "the mortgage banker",
+  "tokens": {
+    "input": 206,
+    "output": 643
+  }
+}

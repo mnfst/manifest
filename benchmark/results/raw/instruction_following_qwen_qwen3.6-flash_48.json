@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "Romeo Montague and Juliet Capulet, heirs to feuding Verona families, meet at a party and fall instantly in love. Secretly married by Friar Laurence, their union hopes to end the feud. However, Romeo kills Juliet's cousin Tybalt in a duel and is banished. To avoid a forced marriage to Paris, Juliet fakes her death with Friar Laurence's help. Romeo, unaware of the plan, finds her \"dead\" body, drinks poison, and dies. Juliet wakes, sees Romeo dead, and stabs herself. The grieving families discover the lovers' bodies and reconcile, ending their bitter rivalry.",
+  "score": 5,
+  "cost": 0.001449,
+  "expected": "",
+  "tokens": {
+    "input": 32,
+    "output": 1441
+  }
+}

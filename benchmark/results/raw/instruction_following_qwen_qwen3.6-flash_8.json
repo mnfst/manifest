@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Imagine a special notebook that everyone in your class shares, where you write down who gave what to whom. Once a page is filled, it\u2019s glued shut and linked to the next one, so nobody can cheat or erase anything. That\u2019s how blockchain keeps track of things safely without needing one grown-up to watch over it.",
+  "score": 5,
+  "cost": 0.0011305,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 1124
+  }
+}

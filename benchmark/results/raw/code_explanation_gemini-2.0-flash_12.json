@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "The code performs a topological sort on a directed acyclic graph (DAG) represented as a dictionary (adjacency list). It uses Depth-First Search (DFS) to traverse the graph, marking nodes as visited and appending them to a stack *after* all their descendants have been visited; the reversed stack then provides the topologically sorted order.",
+  "score": 5,
+  "cost": 3.9200000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 68
+  }
+}

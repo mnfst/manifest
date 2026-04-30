@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "This function splits an iterable into two separate iterators: one containing elements that satisfy the predicate and another containing those that don't. It uses `itertools.tee` to duplicate the original iterable, then applies `filter` and `filterfalse` to each copy for the partition.",
+  "score": 5,
+  "cost": 8.340000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 74,
+    "output": 59
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_generation",
+  "case": 27,
+  "response": "```python\n    strongest = extensions[0]\n    max_strength = sum(1 if c.isupper() else -1 if c.islower() else 0 for c in strongest)\n    for ext in extensions[1:]:\n        strength = sum(1 if c.isupper() else -1 if c.islower() else 0 for c in ext)\n        if strength > max_strength:\n            max_strength = strength\n            strongest = ext\n    return f\"{class_name}.{strongest}\"\n```",
+  "score": 4,
+  "cost": 0.001662,
+  "expected": "",
+  "tokens": {
+    "input": 419,
+    "output": 103
+  }
+}

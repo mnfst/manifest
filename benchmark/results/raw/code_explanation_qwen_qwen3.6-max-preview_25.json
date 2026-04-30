@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "This code implements the **Observer (Pub/Sub) pattern** using a dictionary that maps event names to lists of callback functions, enabling O(1) handler registration and O(n) batch execution. The `on`, `emit`, and `off` methods respectively subscribe callbacks to events, linearly iterate through and invoke all registered handlers with provided arguments, and remove specific listeners from the registry.",
+  "score": 5,
+  "cost": 0.008634600000000001,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 1628
+  }
+}

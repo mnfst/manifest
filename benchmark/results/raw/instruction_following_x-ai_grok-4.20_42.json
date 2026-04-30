@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "A thunderstorm is a powerful atmospheric event characterized by dark, towering cumulonimbus clouds that blot out the sun, turning day into an eerie twilight. \n\n**Sensory details:**\n- The deep, rumbling **thunder** that you feel in your chest like a bass drum vibrating through the air.\n- The sharp, metallic **smell** of ozone and wet earth as lightning splits the sky and rain begins to fall.\n- The sudden, heavy **downpour** that sounds like thousands of tiny drums beating on roofs, leaves, and pavement, while cool raindrops sting your skin with their intensity. \n\nLightning flashes in brilliant, jagged bursts, briefly illuminating the world in stark white light before plunging it back into shadow.",
+  "score": 5,
+  "cost": 0.00142,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 144
+  }
+}

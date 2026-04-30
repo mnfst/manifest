@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-1.6-flash",
   "task": "email_summary_v2",
   "case": 6,
-  "response": "Acme Corp, with $450K ARR, is threatening to churn due to API latency spikes over the last three weeks and a five-day lack of support response, and James, the CS Lead, has assigned a dedicated engineer. An executive sponsor is needed for a call this week.",
+  "response": "Acme Corp, with $450K ARR, is threatening to churn due to API latency spikes over the last three weeks and a five-day lack of support response, and CS Lead James has assigned a dedicated engineer to address the issues. An executive sponsor is needed for a call with Acme Corp this week.",
   "score": 5,
-  "cost": 9.562499999999998e-05,
+  "cost": 0.00010312499999999999,
   "expected": "",
   "tokens": {
     "input": 183,
-    "output": 273
+    "output": 298
   }
 }

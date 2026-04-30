@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "1. The Moon is Earth's only natural satellite and orbits at an average distance of about 238,855 miles (384,400 kilometers).\n2. It is tidally locked to Earth, meaning it rotates on its axis at the exact same rate it orbits, so the same side always faces us.\n3. The Moon has virtually no atmosphere, which leads to extreme temperature swings (from roughly 260\u00b0F/127\u00b0C in direct sunlight to -280\u00b0F/-173\u00b0C in shadow) and makes the sky appear black even during the lunar day.",
+  "score": 5,
+  "cost": 0.0007755,
+  "expected": "",
+  "tokens": {
+    "input": 30,
+    "output": 768
+  }
+}

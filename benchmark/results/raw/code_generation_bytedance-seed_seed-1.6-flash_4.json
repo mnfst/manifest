@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-1.6-flash",
   "task": "code_generation",
   "case": 4,
-  "response": "is_increasing = True\n    is_decreasing = True\n    for i in range(1, len(l)):\n        if l[i] < l[i-1]:\n            is_increasing = False\n        if l[i] > l[i-1]:\n            is_decreasing = False\n    return is_increasing or is_decreasing",
+  "response": "increasing = True\n    for i in range(1, len(l)):\n        if l[i] < l[i-1]:\n            increasing = False\n            break\n    decreasing = True\n    for i in range(1, len(l)):\n        if l[i] > l[i-1]:\n            decreasing = False\n            break\n    return increasing or decreasing",
   "score": 4,
-  "cost": 0.00046469999999999997,
+  "cost": 0.0003081,
   "expected": "",
   "tokens": {
     "input": 204,
-    "output": 1498
+    "output": 976
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are loyal companions that bring joy to many households with their loyal affection and playful energy. Their loyal nature makes them excellent protectors who watch over families with unwavering loyalty. Training a dog requires patience but rewards owners with a loyal friend who learns commands through consistent loyal guidance. Whether small or large breeds, all dogs demonstrate loyal devotion that strengthens the bond between pet and human in truly loyal ways.",
+  "score": 5,
+  "cost": 0.00089,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 77
+  }
+}

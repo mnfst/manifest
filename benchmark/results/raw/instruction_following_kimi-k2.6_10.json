@@ -2,12 +2,12 @@
   "model": "kimi-k2.6",
   "task": "instruction_following",
   "case": 10,
-  "response": "There once was a programmer named Dave,\nWhose functions refused to behave.\nHe debugged all night,\nBy the screen's pale light,\nThen found he'd forgotten to `.save()`.",
-  "score": 5,
-  "cost": 0.0032292,
+  "response": "",
+  "score": 1,
+  "cost": 0.0048108000000000005,
   "expected": "",
   "tokens": {
     "input": 18,
-    "output": 1341
+    "output": 2000
   }
 }

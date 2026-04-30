@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 2,
+  "response": "**This code implements the QuickSort algorithm using a functional, list-comprehension style.**\n\nIt recursively sorts an array by:\n1. Choosing the middle element as the pivot,\n2. Partitioning the array into three lists \u2014 elements less than the pivot (`left`), equal to the pivot (`mid`), and greater than the pivot (`right`),\n3. Recursively sorting the `left` and `right` partitions, then concatenating `quicksort(left) + mid + quicksort(right)`.\n\nThis is a **three-way partition** variant of QuickSort, which efficiently handles duplicate values.",
+  "score": 5,
+  "cost": 0.001404,
+  "expected": "",
+  "tokens": {
+    "input": 230,
+    "output": 118
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "**Formal:**  \nHello! Welcome to our service. How may I assist you today?\n\n**Casual:**  \nHey there! What can I help you with?\n\n**Humorous:**  \nGreetings, human! I am but a humble bot of ones and zeros, ready to serve. What's the mission?",
+  "score": 5,
+  "cost": 7.7e-05,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 65
+  }
+}

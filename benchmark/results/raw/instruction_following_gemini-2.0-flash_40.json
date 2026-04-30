@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "Okay, here are 5 capital cities, each from a different continent:\n\n1.  **Ottawa** (North America - Canada)\n2.  **Bras\u00edlia** (South America - Brazil)\n3.  **Cairo** (Africa - Egypt)\n4.  **Tokyo** (Asia - Japan)\n5.  **Canberra** (Australia - Australia)",
+  "score": 5,
+  "cost": 3.34e-05,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 80
+  }
+}

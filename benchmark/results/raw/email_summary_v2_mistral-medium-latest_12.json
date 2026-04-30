@@ -2,7 +2,7 @@
   "model": "mistral-medium-latest",
   "task": "email_summary_v2",
   "case": 12,
-  "response": "The engineering team has four open roles (two backend, one frontend, and one ML), with 23 candidates in progress and five in final rounds, but the frontend position has remained unfilled for 60 days due to a lack of strong applicants. **Action items:** Recruiting suggests expanding the search to remote candidates or adjusting the compensation band to address the hiring challenge.",
+  "response": "The engineering team has four open roles (two backend, one frontend, and one ML), with 23 candidates in the pipeline and five in final rounds, but the frontend position has remained unfilled for 60 days due to a lack of strong applicants. **Action items:** Recruiting recommends expanding the search to remote candidates or adjusting the compensation band to attract better talent.",
   "score": 5,
   "cost": 0.0001952,
   "expected": "",

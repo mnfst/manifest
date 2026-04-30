@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 39,
+  "response": "**This code implements a classic multi-producer, multi-consumer pattern with a sentinel-based shutdown protocol.**\n\nIt defines two nested worker functions that coordinate through a shared thread-safe queue:\n\n- **Producers** (there will be `num_producers` of them) each put their items into the queue, then send a `None` sentinel to signal they are done.\n- **Consumers** (there will be `num_consumers` of them) repeatedly pull items from the queue. When a consumer sees a `None`, it re-inserts the sentinel for the next consumer and exits. All other items are passed to `process(item)`.\n\nThis is the **\"poison pill\" / sentinel pattern** for cleanly terminating a pool of consumer threads when all work is finished.",
+  "score": 5,
+  "cost": 0.00167,
+  "expected": "",
+  "tokens": {
+    "input": 219,
+    "output": 154
+  }
+}

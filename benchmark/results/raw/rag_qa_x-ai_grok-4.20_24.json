@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "rag_qa",
+  "case": 24,
+  "response": "5,500,000 square kilometres\n\nThe context directly states: \"This basin encompasses 7,000,000 square kilometres (2,700,000 sq mi), of which 5,500,000 square kilometres (2,100,000 sq mi) are covered by the rainforest.\" This provides the exact figure requested.",
+  "score": 5,
+  "cost": 0.001334,
+  "expected": "5,500,000 square kilometres (2,100,000 sq mi) are covered by the rainforest.",
+  "tokens": {
+    "input": 403,
+    "output": 66
+  }
+}

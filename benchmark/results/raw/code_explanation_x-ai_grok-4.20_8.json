@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 8,
+  "response": "**This code implements a debounce decorator.**\n\nIt returns a decorator that, when applied to a function, ensures that function is only executed after `wait` seconds have passed *since the last time it was called*. If the debounced function is called again before the timer expires, the previous timer is cancelled and a new one is started. \n\nThis is the classic **debounce pattern** (specifically, a \"trailing edge\" debounce), commonly used to throttle rapid user input, API calls, or event handlers. It uses a mutable list (`timer = [None]`) as a closure to share the timer state across calls.",
+  "score": 5,
+  "cost": 0.001444,
+  "expected": "",
+  "tokens": {
+    "input": 218,
+    "output": 126
+  }
+}

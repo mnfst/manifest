@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "Hot take: AI\u2019s superpower isn\u2019t writing viral novels or coding entire apps. It\u2019s drafting the awkward client follow-up email I\u2019d spiral over for 3 hours, so I have time to write the messy, heartfelt birthday card only I can. Tools lift the boring, never the human. \u2728 #AI",
+  "score": 5,
+  "cost": 0.0007265,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 711
+  }
+}

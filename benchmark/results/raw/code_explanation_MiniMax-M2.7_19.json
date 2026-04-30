@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_explanation",
+  "case": 19,
+  "response": "This is a **sliding window rate limiter** that limits function calls. It maintains a list of timestamps, removes any older than `period`, and only allows a new call if the count of remaining timestamps is below `calls`. Each invocation of the returned `allow()` function checks and updates the window dynamically.",
+  "score": 5,
+  "cost": 0.0013805,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 285
+  }
+}

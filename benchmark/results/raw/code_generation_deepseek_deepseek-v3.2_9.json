@@ -2,12 +2,12 @@
   "model": "deepseek/deepseek-v3.2",
   "task": "code_generation",
   "case": 9,
-  "response": "```python\n    total = 0\n    for num in lst:\n        if isinstance(num, int) and num > 0 and num % 2 != 0:\n            total += num * num\n    return total\n```",
+  "response": "```python\n    total = 0\n    for num in lst:\n        if isinstance(num, int) and num > 0 and num % 2 == 1:\n            total += num * num\n    return total\n```",
   "score": 4,
-  "cost": 9.865e-05,
+  "cost": 9.605000000000002e-05,
   "expected": "",
   "tokens": {
-    "input": 179,
-    "output": 49
+    "input": 173,
+    "output": 48
   }
 }

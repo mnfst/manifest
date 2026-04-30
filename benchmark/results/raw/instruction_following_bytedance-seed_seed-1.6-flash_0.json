@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "- **Enhances Cardiovascular Health**: Regular exercise strengthens the heart, improving its ability to pump blood efficiently. This lowers resting heart rate, reduces blood pressure, and decreases the risk of heart disease, stroke, and other cardiovascular conditions.  \n- **Boosts Mental Well-being**: Physical activity stimulates the release of endorphins, which act as natural mood lifters, reducing symptoms of anxiety, depression, and stress. It also improves sleep quality and enhances cognitive function, including memory and focus.  \n- **Supports Metabolic and Weight Management**: Exercise increases calorie burn and promotes the growth of lean muscle mass, which raises resting metabolic rate (helping the body burn more calories at rest). This aids in maintaining a healthy weight and reduces the risk of metabolic disorders like type 2 diabetes.",
+  "score": 1,
+  "cost": 0.00012555,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 395
+  }
+}

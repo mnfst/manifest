@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "This code implements a MinStack, a specialized stack data structure that retrieves the current minimum value in constant O(1) time, using the standard dual-stack pattern for this use case: a main primary stack stores all pushed elements, while a parallel secondary min-stack tracks the minimum value encountered up to each matching position of the main stack, syncing its push and pop operations to the main stack. All core operations (push, pop, get_min) run in constant time, with `get_min` simply returning the top value of the min-stack to fetch the current overall minimum of the stack.",
+  "score": 5,
+  "cost": 0.00063175,
+  "expected": "",
+  "tokens": {
+    "input": 175,
+    "output": 588
+  }
+}

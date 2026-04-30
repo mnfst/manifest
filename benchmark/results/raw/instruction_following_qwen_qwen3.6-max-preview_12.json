@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "Imagine you\u2019re at a restaurant. You\u2019re sitting at your table, and the kitchen is in the back. You don\u2019t walk into the kitchen to tell the cook what you want, and the cook doesn\u2019t come out to take your order. Instead, there\u2019s a waiter. You tell the waiter what you\u2019d like, the waiter passes that along to the kitchen, and later brings your meal back to you. The waiter also knows exactly how to phrase your order so the kitchen understands it, and handles all the back-and-forth without you needing to know how the stove works or where the ingredients are stored.\n\nAn API is like that waiter. It\u2019s a helpful go-between that lets two separate things work together without either one needing to understand how the other operates. You ask for something, the API carries your message to the right place, and brings back exactly what you need. It keeps everything smooth, organized, and secure, so you never have to deal with the complicated steps happening behind the scenes.",
+  "score": 5,
+  "cost": 0.0072293,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 1384
+  }
+}

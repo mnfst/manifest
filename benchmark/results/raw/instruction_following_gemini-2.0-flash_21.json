@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "Okay, here are some general directions from a park to a library, assuming they are in a typical town layout.  I'll need more specific information to give you truly accurate directions.\n\n**Starting at the main entrance of the park:**\n\n1.  **Exit the park and turn LEFT** onto the street.\n2.  Walk to the next intersection and **turn RIGHT**.\n3.  Continue straight for two blocks and **turn LEFT**.\n4.  Walk one block and **turn RIGHT**.\n5.  The library will be on your **RIGHT**.\n\n**Important Considerations:**\n\n*   **Street Names:**  I can give you much better directions if you tell me the names of the streets around the park and the library.\n*   **Distance:**  These directions assume the library is within a reasonable walking distance.\n*   **One-Way Streets:**  I'm assuming two-way streets. One-way streets would change the directions.\n*   **Complex Intersections:**  If there are roundabouts or very complex intersections, I'll need more detail.\n\n**To get the best directions, please tell me:**\n\n*   The name of the park.\n*   The name of the library.\n*   The nearest major intersection to each location.\n\nThen I can give you much more precise and helpful directions!",
+  "score": 3,
+  "cost": 0.00011450000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 282
+  }
+}

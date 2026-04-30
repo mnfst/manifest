@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "code_explanation",
+  "case": 27,
+  "response": "This code implements the **sliding window maximum** algorithm using a **monotonic deque** (double-ended queue) to efficiently track the maximum value in each sliding window of size `k`. The deque maintains indices of elements in decreasing order, ensuring the front always holds the current window's maximum, which is added to the result once the window reaches size `k`.",
+  "score": 5,
+  "cost": 3.65e-05,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 75
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "rag_qa",
+  "case": 18,
+  "response": "Allan Bloom",
+  "score": 0,
+  "cost": 0.000592,
+  "expected": "Allan Bloom",
+  "tokens": {
+    "input": 284,
+    "output": 3
+  }
+}

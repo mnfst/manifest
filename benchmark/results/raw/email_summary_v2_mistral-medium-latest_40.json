@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "The **Q2 OKR results** showed mixed performance, with **Sales (0.9) and Support (0.8) exceeding targets**, while **Product (0.6) fell short due to delays in the AI feature**, prompting a recommendation to **carry it forward with more resources**. **Next quarter\u2019s planning begins Monday**, so teams should prepare accordingly.",
+  "score": 5,
+  "cost": 0.0002,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 76
+  }
+}

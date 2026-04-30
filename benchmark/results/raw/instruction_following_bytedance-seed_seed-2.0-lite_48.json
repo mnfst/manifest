@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "In Verona, feuding Montague and Capulet families\u2019 heirs, Romeo and Juliet, fall madly in love after meeting by chance at a Capulet masquerade. Married secretly by Friar Laurence, their union unravels when a violent feud clash kills Romeo\u2019s friend Mercutio, forcing Romeo into exile. To escape a forced marriage, Juliet fakes her death; misinformed, Romeo kills himself, the waking Juliet follows, their tragic deaths ending the families\u2019 generations-long hatred.",
+  "score": 5,
+  "cost": 0.0011255,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 1108
+  }
+}

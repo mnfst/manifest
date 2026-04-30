@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 14,
+  "response": "AWS costs have surged 40% due to expensive ML training jobs. A decision is required by Friday on whether to use spot or reserved instances to reduce these costs.",
+  "score": 5,
+  "cost": 6.465e-05,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 34
+  }
+}

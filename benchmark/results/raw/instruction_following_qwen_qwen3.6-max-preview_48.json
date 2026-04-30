@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "In Verona, feuding Montagues and Capulets clash. Romeo Montague and Juliet Capulet fall instantly in love at a party and marry secretly, hoping to end the strife. After Romeo kills Juliet's cousin Tybalt and is banished, Juliet fakes her death to escape an arranged marriage. Misinformed, Romeo believes she is truly dead and poisons himself by her side. Juliet awakens, finds Romeo dead, and stabs herself. Their tragic suicides finally reconcile the grieving families, ending the ancient feud.",
+  "score": 5,
+  "cost": 0.0051948,
+  "expected": "",
+  "tokens": {
+    "input": 32,
+    "output": 991
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "The email reports quarterly OKR results, noting that Product missed its target due to a delayed AI feature while other teams met or exceeded theirs. It recommends carrying the AI objective forward with more resources and announces that next quarter's planning begins Monday.",
+  "score": 5,
+  "cost": 8.280000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 48
+  }
+}

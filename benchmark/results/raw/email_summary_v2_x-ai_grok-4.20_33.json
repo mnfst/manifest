@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "email_summary_v2",
+  "case": 33,
+  "response": "**Summary:**  \nThe Q1 Employee Engagement Survey shows an overall score of 7.8/10, above the industry average, with team collaboration scoring highest (8.9/10) and career growth clarity scoring lowest (6.1/10). The People Team proposes three actions\u2014quarterly career conversations, an internal mobility program, and mentorship matching\u2014and will discuss them at a town hall on Friday.",
+  "score": 5,
+  "cost": 0.001122,
+  "expected": "",
+  "tokens": {
+    "input": 229,
+    "output": 83
+  }
+}

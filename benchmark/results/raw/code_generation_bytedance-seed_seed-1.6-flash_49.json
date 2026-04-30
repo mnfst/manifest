@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-1.6-flash",
   "task": "code_generation",
   "case": 49,
-  "response": "n = len(string)\n    for l in range(n, 0, -1):\n        if string[-l:] == string[-l:][::-1]:\n            break\n    return string + string[:n-l][::-1]",
+  "response": "if not string:\n    return ''\nn = len(string)\nfor l in range(n, 0, -1):\n    if string[-l:] == string[-l:][::-1]:\n        return string + string[:-l][::-1]\nreturn string",
   "score": 5,
-  "cost": 0.00060135,
+  "cost": 0.00065115,
   "expected": "",
   "tokens": {
     "input": 282,
-    "output": 1934
+    "output": 2100
   }
 }

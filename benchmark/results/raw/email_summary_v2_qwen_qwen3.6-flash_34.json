@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "email_summary_v2",
+  "case": 34,
+  "response": "The Database Team will execute a zero-downtime migration from MySQL 5.7 to PostgreSQL 16 between May and July using a blue-green deployment strategy. Key actions include rewriting three stored procedures, completing schema conversion and testing in May, implementing a dual-write period in June, and finalizing the production cutover in July.",
+  "score": 5,
+  "cost": 0.001623,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 1597
+  }
+}

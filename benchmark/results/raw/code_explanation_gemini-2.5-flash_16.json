@@ -2,12 +2,12 @@
   "model": "gemini-2.5-flash",
   "task": "code_explanation",
   "case": 16,
-  "response": "This code executes a collection of asynchronous coroutines concurrently, but limits the number of simultaneously running coroutines to `limit`. It achieves this using an `asyncio.Semaphore` to control concurrency, effectively wrapping each original coroutine to acquire a permit before execution, a pattern known as **concurrency control** or **rate limiting**.",
+  "response": "This code executes a collection of asynchronous coroutines concurrently, but limits the number of simultaneously active coroutines to a specified `limit`. It achieves this by using an `asyncio.Semaphore` as a **concurrency limiter**, ensuring that no more than `limit` tasks are executing at any given time.",
   "score": 5,
-  "cost": 5.295e-05,
+  "cost": 4.995e-05,
   "expected": "",
   "tokens": {
     "input": 89,
-    "output": 66
+    "output": 61
   }
 }

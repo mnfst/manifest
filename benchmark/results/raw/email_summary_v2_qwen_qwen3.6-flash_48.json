@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-flash",
   "task": "email_summary_v2",
   "case": 48,
-  "response": "DataSync CEO Maria Chen is proposing a revenue-sharing partnership in which her company manages the data sync infrastructure while your organization integrates their SDK, promising a 60% reduction in customer latency and an estimated $2 million in additional annual revenue for both parties. To advance this proposal, she is requesting a technical discussion next week.",
+  "response": "DataSync CEO Maria Chen is proposing a revenue-sharing partnership in which her company manages the data sync infrastructure while your team integrates their SDK, promising a 60% reduction in customer latency and an estimated $2 million in additional annual revenue for each business. To advance this proposal, she is requesting a technical discussion next week.",
   "score": 5,
-  "cost": 0.00102025,
+  "cost": 0.00125425,
   "expected": "",
   "tokens": {
     "input": 97,
-    "output": 996
+    "output": 1230
   }
 }

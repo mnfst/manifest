@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "AI won't replace you. A human using AI will. \ud83e\udd16\u2728\n\nThe magic happens when creativity meets computation. Embrace the tool, keep the human touch, and level up. \ud83d\ude80\n\nWhat's the best way you've used AI lately? \ud83d\udc47\n\n#AI #FutureOfWork #Tech",
+  "score": 5,
+  "cost": 0.0060631999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 1160
+  }
+}

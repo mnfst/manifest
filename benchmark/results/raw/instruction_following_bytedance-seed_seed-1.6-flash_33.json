@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "1. The Moon is tidally locked to Earth, meaning it rotates on its axis in the same time it takes to orbit our planet\u2014approximately 27.3 days. This results in the same side of the Moon (the \"near side\") always facing Earth, while the \"far side\" was first fully imaged by the Soviet spacecraft *Luna 3* in 1959.  \n\n2. Composed mostly of silicate rocks (similar to Earth's mantle), the Moon has a small, dense core (about 240\u2013480 km wide) thought to be primarily iron and nickel. Its surface features include ancient, cratered highlands and dark, volcanic plains called maria, formed by massive asteroid impacts billions of years ago.  \n\n3. The leading theory for the Moon's formation is the \"giant impact hypothesis,\" which suggests it formed 4.5 billion years ago when a Mars-sized object (dubbed \"Theia\") collided with a young, molten Earth. Debris from the impact coalesced to form the Moon. Additionally, the Moon is slowly moving away from Earth at about 3.8 cm per year due to tidal interactions.  \n\n\nEach fact highlights a unique aspect of the Moon's science, history, and dynamics!",
+  "score": 4,
+  "cost": 0.00025515,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 825
+  }
+}

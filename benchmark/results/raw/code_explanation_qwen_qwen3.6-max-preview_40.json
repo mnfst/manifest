@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_explanation",
+  "case": 40,
+  "response": "This code implements the **Circuit Breaker pattern** to prevent cascading failures by monitoring function executions and temporarily blocking them after a configurable number of consecutive exceptions. It cycles through closed (normal operation), open (rejecting calls until a timeout elapses), and half-open (allowing a single test call) states, automatically resetting the failure count on success or tripping back to open when the failure threshold is exceeded.",
+  "score": 5,
+  "cost": 0.006422,
+  "expected": "",
+  "tokens": {
+    "input": 220,
+    "output": 1180
+  }
+}

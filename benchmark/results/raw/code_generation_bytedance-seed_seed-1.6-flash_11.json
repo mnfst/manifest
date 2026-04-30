@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-1.6-flash",
   "task": "code_generation",
   "case": 11,
-  "response": "sum_total = sum(numbers)\n    product = 1\n    for num in numbers:\n        product *= num\n    return (sum_total, product)",
+  "response": "sum_total = sum(numbers)\n    product_total = 1\n    for num in numbers:\n        product_total *= num\n    return (sum_total, product_total)",
   "score": 4,
-  "cost": 0.00020835,
+  "cost": 0.00017565000000000001,
   "expected": "",
   "tokens": {
     "input": 230,
-    "output": 637
+    "output": 528
   }
 }

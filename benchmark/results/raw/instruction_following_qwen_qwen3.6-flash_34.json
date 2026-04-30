@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 34,
+  "response": "A database index is a specialized data structure that enables the database engine to rapidly locate specific rows without scanning the entire table. While this dramatically accelerates read queries, it requires extra storage space and can slow down data modification operations like inserts and updates.",
+  "score": 3,
+  "cost": 0.00042475,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 419
+  }
+}

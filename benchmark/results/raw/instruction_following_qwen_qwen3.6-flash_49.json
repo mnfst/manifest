@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "**Formal**\n\"Greetings! How may I assist you today?\"\n\n**Casual**\n\"Hey there! \ud83d\udc4b What's on your mind? I'm here to help!\"\n\n**Humorous**\n\"Hi! I promise I don't judge your typos. \ud83e\udd13 How can I help you today?\"",
+  "score": 5,
+  "cost": 0.00154625,
+  "expected": "",
+  "tokens": {
+    "input": 29,
+    "output": 1539
+  }
+}

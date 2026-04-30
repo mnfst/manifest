@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 38,
+  "response": "Login failed. Please check your username or password and try again.",
+  "score": 2,
+  "cost": 0.00058025,
+  "expected": "",
+  "tokens": {
+    "input": 65,
+    "output": 564
+  }
+}

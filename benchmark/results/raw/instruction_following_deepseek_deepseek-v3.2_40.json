@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "Here are five capital cities, each from a different continent:\n\n1. **Ottawa** \u2013 North America (Canada)\n2. **Bras\u00edlia** \u2013 South America (Brazil)\n3. **Nairobi** \u2013 Africa (Kenya)\n4. **Tokyo** \u2013 Asia (Japan)\n5. **Canberra** \u2013 Australia (Australia)\n\n*(Note: A European capital like **Paris** (France) or **Berlin** (Germany) could be added for a sixth continent, but the list above covers five distinct continents as requested.)*",
+  "score": 5,
+  "cost": 0.00012550000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 110
+  }
+}

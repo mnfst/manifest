@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 13,
+  "response": "Red, Orange, Yellow, Green, Blue, Indigo, Violet.",
+  "score": 5,
+  "cost": 0.0016393,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 310
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_generation",
+  "case": 42,
+  "response": "if n > m:\n        return -1\n    avg = (n + m) / 2\n    rounded = round(avg)\n    return bin(rounded)",
+  "score": 4,
+  "cost": 8.46e-05,
+  "expected": "",
+  "tokens": {
+    "input": 180,
+    "output": 36
+  }
+}

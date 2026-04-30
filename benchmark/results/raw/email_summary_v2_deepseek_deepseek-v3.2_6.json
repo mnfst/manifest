@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 6,
+  "response": "Acme Corp is threatening to leave due to unresolved API latency and support issues. A dedicated engineer has been assigned, and an executive sponsor is needed for a call this week.",
+  "score": 5,
+  "cost": 6.375e-05,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 35
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "email_summary_v2",
+  "case": 47,
+  "response": "**Summary:**  \nThe March onboarding cohort reported a satisfaction score of 7.2/10 (down from 8.1), praising the buddy system and timely IT setup but highlighting confusion around benefits deadlines, tools access delays (3-5 days vs. 1-day target), and missing culture handbooks.  \n\n**Action items:** Prioritize fixing the tools access process.",
+  "score": 5,
+  "cost": 0.001062,
+  "expected": "",
+  "tokens": {
+    "input": 227,
+    "output": 76
+  }
+}

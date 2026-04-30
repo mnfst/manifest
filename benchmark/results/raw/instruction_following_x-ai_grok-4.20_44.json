@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "- [ ] Lettuce (or mixed greens)\n- [ ] Tomato\n- [ ] Cucumber\n- [ ] Carrot\n- [ ] Red onion\n- [ ] Olive oil\n- [ ] Vinegar or lemon juice\n- [ ] Salt & pepper",
+  "score": 5,
+  "cost": 0.000674,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 51
+  }
+}

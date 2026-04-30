@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "rag_qa",
+  "case": 13,
+  "response": "The Victorian Government.",
+  "score": 1,
+  "cost": 4.315e-05,
+  "expected": "Victorian Government",
+  "tokens": {
+    "input": 155,
+    "output": 4
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "In Verona, feuding Montagues and Capulets clash. Romeo, smitten with Rosaline, meets Juliet at a ball, falling instantly. They marry secretly, but Tybalt kills Mercutio, leading Romeo to slay Tybalt; he\u2019s banished. Juliet, pressured to marry Paris, takes a potion to fake death. Romeo, unaware, returns, kills Paris, then Juliet, who awakes to find him dead, stabs herself. The families, grief-stricken, end their feud.",
+  "score": 5,
+  "cost": 0.0001164,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 362
+  }
+}

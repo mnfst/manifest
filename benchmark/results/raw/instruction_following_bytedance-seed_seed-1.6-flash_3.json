@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 3,
+  "response": "FRANCE, GERMANY, SPAIN, ITALY, UNITED KINGDOM.",
+  "score": 5,
+  "cost": 7.6425e-05,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 231
+  }
+}

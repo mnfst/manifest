@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 36,
+  "response": "1. **C**  \n2. **Java**  \n3. **Ruby**  \n4. **Rust**",
+  "score": 3,
+  "cost": 3.065e-05,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 24
+  }
+}

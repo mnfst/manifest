@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-flash",
   "task": "email_summary_v2",
   "case": 43,
-  "response": "The open-source license audit identified two compliance issues among 234 scanned packages: a charting library using an incompatible AGPL license and a package with no license. To proceed with the next release, Legal and Engineering recommend replacing the AGPL library with Apache-licensed Chart.js and removing the unlicensed package.",
+  "response": "An open-source license audit of 234 packages identified two compliance issues: a charting library using an incompatible AGPL license and a package with no license. Legal and Engineering recommend replacing the AGPL library with Apache-licensed Chart.js and removing the unlicensed package before the next release.",
   "score": 5,
-  "cost": 0.00104275,
+  "cost": 0.00093375,
   "expected": "",
   "tokens": {
     "input": 115,
-    "output": 1014
+    "output": 905
   }
 }

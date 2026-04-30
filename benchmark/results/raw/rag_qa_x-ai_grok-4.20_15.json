@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "rag_qa",
+  "case": 15,
+  "response": "Prussia",
+  "score": 5,
+  "cost": 0.000666,
+  "expected": "Prussia",
+  "tokens": {
+    "input": 325,
+    "output": 2
+  }
+}

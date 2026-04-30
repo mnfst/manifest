@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "In Verona, two feuding families, the Montagues and Capulets, have long been at war. Their teenage children, Romeo and Juliet, meet at a ball and instantly fall in love. Defying their families, they secretly marry with the help of Friar Laurence. When Romeo is banished for killing Juliet\u2019s cousin in a duel, the lovers face separation. Desperate to reunite, Juliet takes a potion to fake her death. Romeo, believing she is truly dead, kills himself; upon waking, Juliet stabs herself. Their deaths finally end the families\u2019 bitter feud.",
+  "score": 5,
+  "cost": 0.001218,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 117
+  }
+}

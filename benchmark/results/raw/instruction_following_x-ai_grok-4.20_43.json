@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 43,
+  "response": "Did you know that a day on Venus is longer than a year on Venus?",
+  "score": 5,
+  "cost": 0.000406,
+  "expected": "",
+  "tokens": {
+    "input": 139,
+    "output": 16
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "I wanted to let you all know that my last day with the company will be this Friday. It has been an absolute pleasure working with such a talented and supportive team over the past few years. I am incredibly grateful for the opportunities I've had to grow and for the memories we've shared along the way. Please stay in touch via LinkedIn or at my personal email address, which is listed below. I wish you all the very best in your future endeavors and hope our paths cross again soon.",
+  "score": 5,
+  "cost": 0.0010125,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 1007
+  }
+}

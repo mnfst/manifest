@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 39,
+  "response": "### Q&A: What a VPN Does, Explained\n---\n**Q: What is a VPN in plain language?**  \nA: VPN stands for Virtual Private Network, a tool that creates a secure, encrypted \"tunnel\" between your personal device (phone, laptop, tablet) and a remote server run by the VPN provider. All your internet traffic travels through this protected private pipeline, instead of over the open, unsecure public internet.\n---\n**Q: What is the core difference between browsing normally and using a VPN?**  \nA: Two key changes set VPN use apart from standard browsing: First, your real IP address (the unique tag that identifies your device and physical location online) is hidden. Websites and third parties only see the IP address of the VPN server you connected to, which can be located in a different city, country, or region. Second, your data is unreadable to anyone who intercepts it\u2014even your internet service provider (ISP), a hacker on public Wi-Fi, or your local network admin can only tell you\u2019re connected to a VPN, not what you\u2019re viewing, sending, or downloading.\n---\n**Q: What are the most common reasons people use VPNs?**  \nA: VPNs serve four widespread, practical needs:\n1. Securing sensitive data (passwords, credit card info) on unencrypted public Wi-Fi (in coffee shops, airports, or hotels)\n2. Protecting privacy from ISPs, advertisers, and data brokers that would otherwise log and sell your browsing history\n3. Bypassing geo-restrictions to access region-locked streaming libraries, local news sites, or social media platforms that are blocked in your physical location\n4. Enabling secure remote work for employees, who use company-provided VPNs to access sensitive internal business tools off-site without risking data leaks.\n---\n**Q: Can a VPN make me completely anonymous online? What are its limits?**  \nA: No, VPNs are not a silver bullet for full anonymity. While they hide your activity from ISPs and local snoopers, they can\u2019t erase your identity if you log into personal accounts (Google, Facebook, your bank) while connected, as those platforms identify you via your login credentials. Reputable no-logs VPNs won\u2019t track your activity, but low-quality providers may log and sell user data. VPNs also can\u2019t protect you from phishing",
+  "score": 4,
+  "cost": 0.0014715,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 1456
+  }
+}

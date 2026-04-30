@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_explanation",
+  "case": 9,
+  "response": "This code defines a **retry decorator** that automatically retries a function up to `max_attempts` times (default: 3) with exponentially increasing delays (1s, 2s, 4s, etc.) between attempts, using backoff strategy. It wraps any function to handle transient errors gracefully while progressively waiting longer before retrying.",
+  "score": 5,
+  "cost": 7.64e-06,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 75
+  }
+}

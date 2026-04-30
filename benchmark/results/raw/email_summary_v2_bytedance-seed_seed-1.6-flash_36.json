@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-1.6-flash",
   "task": "email_summary_v2",
   "case": 36,
-  "response": "The email states that P99 latency on the /api/v2/search endpoint increased from 200ms to 800ms after Thursday's deploy, with the root cause being a new full-text search query not using the index. The fix is to add a GIN index on the content column, and deployment is scheduled for tonight during the maintenance window.",
+  "response": "The email states that P99 latency on the /api/v2/search endpoint increased from 200ms to 800ms following Thursday's deploy, with the root cause being a new full-text search query not using the index. The fix is to add a GIN index on the content column, and deployment is scheduled for tonight during the maintenance window.",
   "score": 5,
-  "cost": 0.000108525,
+  "cost": 0.00011032499999999998,
   "expected": "",
   "tokens": {
     "input": 179,
-    "output": 317
+    "output": 323
   }
 }

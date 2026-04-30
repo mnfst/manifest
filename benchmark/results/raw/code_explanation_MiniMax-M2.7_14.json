@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_explanation",
+  "case": 14,
+  "response": "The function implements Dijkstra\u2019s shortest\u2011path algorithm using a min\u2011heap priority queue to repeatedly select the vertex with the smallest known distance and relax its outgoing edges. It updates the distance map whenever a shorter path to a neighbor is found and pushes the improved (distance, vertex) pair onto the heap, ultimately returning the shortest distance from the start vertex to every reachable vertex.",
+  "score": 5,
+  "cost": 0.0020262,
+  "expected": "",
+  "tokens": {
+    "input": 174,
+    "output": 417
+  }
+}

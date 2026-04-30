@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Sun sends solar power. Plants pick up power. Plants split sap. Plants make sugar. Plants make starch. Plants puff spirits. Plants store power. Plants sustain life. Photosynthesis starts. Plants produce. Plants prosper.",
+  "score": 5,
+  "cost": 0.0072285,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 7222
+  }
+}

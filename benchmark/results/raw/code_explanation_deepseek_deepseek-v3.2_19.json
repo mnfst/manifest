@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_explanation",
+  "case": 19,
+  "response": "This code implements a **sliding window rate limiter** that tracks timestamps of recent calls. It allows a new call only if the number of calls within the last `period` seconds is less than `calls`, otherwise it returns `False`.",
+  "score": 5,
+  "cost": 8.495e-05,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 52
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "The implementation keeps an auxiliary stack (`min_stack`) that stores the running minimum so that `get_min()` can return the current minimum in O(1) time. On each `push`, it records the smaller of the new value and the previous minimum, and on `pop` it discards the corresponding entry from both stacks.",
+  "score": 5,
+  "cost": 0.0013541,
+  "expected": "",
+  "tokens": {
+    "input": 151,
+    "output": 270
+  }
+}

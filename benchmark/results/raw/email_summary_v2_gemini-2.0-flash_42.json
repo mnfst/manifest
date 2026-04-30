@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "A customer workshop revealed a strong need for improved bulk import functionality and SSO support, while the new analytics dashboard was well-received. Sales will provide a follow-up report and explore the unexpected interest in offering their internal tool as a separate product.",
+  "score": 5,
+  "cost": 3.0399999999999997e-05,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 50
+  }
+}

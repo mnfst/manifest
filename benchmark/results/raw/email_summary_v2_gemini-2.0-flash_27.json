@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "The sprint retrospective highlighted successful auth redesign delivery and cross-team collaboration, but also identified issues with context switching and lengthy standups. Action items include limiting work in progress to two items per developer and implementing timeboxed standups with a parking lot.",
+  "score": 5,
+  "cost": 2.99e-05,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 50
+  }
+}

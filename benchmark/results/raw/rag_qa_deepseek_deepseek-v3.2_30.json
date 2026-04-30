@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "rag_qa",
+  "case": 30,
+  "response": "Melbourne is called the sporting capital of Australia.",
+  "score": 1,
+  "cost": 7.51e-05,
+  "expected": "Melbourne",
+  "tokens": {
+    "input": 252,
+    "output": 11
+  }
+}

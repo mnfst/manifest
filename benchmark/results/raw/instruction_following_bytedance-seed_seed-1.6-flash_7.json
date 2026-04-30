@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "Whisk 2 eggs with a splash of milk. Melt butter in a pan. Pour eggs, stir gently over low heat until soft. Season with salt/pepper. Serve.",
+  "score": 5,
+  "cost": 0.00012472499999999998,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 391
+  }
+}

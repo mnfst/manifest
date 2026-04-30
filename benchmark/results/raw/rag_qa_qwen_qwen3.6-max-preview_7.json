@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "rag_qa",
+  "case": 7,
+  "response": "Based on the provided context, the magnitude of the external force is divided by **the mass of the system**.",
+  "score": 2,
+  "cost": 0.0026026,
+  "expected": "mass of the system",
+  "tokens": {
+    "input": 170,
+    "output": 458
+  }
+}

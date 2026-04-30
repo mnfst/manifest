@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 33,
+  "response": "The email summarizes employee survey results, noting strong team collaboration but low scores on career growth clarity. The People Team proposes three actions to address this and will discuss them at a Friday town hall.",
+  "score": 5,
+  "cost": 6.955000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 38
+  }
+}

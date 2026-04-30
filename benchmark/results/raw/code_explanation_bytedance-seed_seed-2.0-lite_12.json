@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "This code implements a depth-first search (DFS)-based topological sort for directed acyclic graphs (DAGs), producing a linear node ordering that follows the core rule that for every directed edge u\u2192v, node u comes before v in the final output. It uses post-order DFS to process all of a node's neighbors first before adding the node to a stack, then reverses the stack to return the valid topological sequence.",
+  "score": 5,
+  "cost": 0.00063275,
+  "expected": "",
+  "tokens": {
+    "input": 163,
+    "output": 592
+  }
+}

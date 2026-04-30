@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The Japan launch plan includes a timeline from May (legal entity setup) to August (general availability, with June for localization completion and July for beta with 10 customers) and a $200K budget (split into $50K for legal, $80K for localization, and $70K for local hire). The plan requires CEO approval to proceed.",
+  "score": 5,
+  "cost": 0.00011722499999999999,
+  "expected": "",
+  "tokens": {
+    "input": 179,
+    "output": 346
+  }
+}

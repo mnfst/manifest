@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-max-preview",
   "task": "email_summary_v2",
   "case": 39,
-  "response": "The year-end audit begins on January 15, requiring completion of a pre-audit checklist covering Q4 revenue recognition, bank reconciliations, stock option records, and related-party transaction disclosures. Team members must attend next Tuesday\u2019s controller meeting to assign responsibilities for these tasks.",
+  "response": "The year-end audit begins on January 15, requiring completion of a pre-audit checklist covering Q4 revenue recognition, bank reconciliations, stock option verification, and related-party disclosures. Team members should prepare these financial materials and attend next Tuesday\u2019s controller meeting to receive specific task assignments.",
   "score": 5,
-  "cost": 0.0059215,
+  "cost": 0.0059683,
   "expected": "",
   "tokens": {
     "input": 103,
-    "output": 1113
+    "output": 1122
   }
 }

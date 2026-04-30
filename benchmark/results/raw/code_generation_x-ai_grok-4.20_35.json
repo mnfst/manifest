@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_generation",
+  "case": 35,
+  "response": "```python\n    return int(str(a)[-1]) * int(str(b)[-1])\n```",
+  "score": 4,
+  "cost": 0.000642,
+  "expected": "",
+  "tokens": {
+    "input": 245,
+    "output": 19
+  }
+}

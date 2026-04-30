@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 0,
+  "response": "- Improves cardiovascular health and reduces the risk of chronic heart conditions\n- Enhances mental well-being by lowering stress, anxiety, and symptoms of depression\n- Strengthens muscles and bones, supporting long-term mobility and joint function",
+  "score": 5,
+  "cost": 0.002613,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 497
+  }
+}

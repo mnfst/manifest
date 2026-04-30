@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-max-preview",
   "task": "email_summary_v2",
   "case": 3,
-  "response": "March onboarding satisfaction dropped to 7.2/10 due to delayed tools access, benefits deadline confusion, and missing culture handbooks, despite strong feedback on the buddy system. The immediate priority is to resolve the tools access delays to meet the one-day target.",
+  "response": "March onboarding satisfaction dropped to 7.2/10 due to delayed tools access, benefits deadline confusion, and missing culture handbooks, despite strong ratings for the buddy system. The immediate priority is to fix the tools access process to meet the one-day target, while also clarifying benefits deadlines and distributing the culture handbook to new hires.",
   "score": 5,
-  "cost": 0.0075088,
+  "cost": 0.0074048000000000004,
   "expected": "",
   "tokens": {
     "input": 120,
-    "output": 1414
+    "output": 1394
   }
 }

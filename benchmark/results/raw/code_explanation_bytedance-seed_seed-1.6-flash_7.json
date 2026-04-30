@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "This code implements an LRU (Least Recently Used) caching decorator. It uses an `OrderedDict` to track function call arguments and their results, moving recently used entries to the end (marking them as \"most recently used\") and evicting the least recently used entry (from the front) when the cache exceeds `maxsize`.\n\n\n**Key details**:  \n- Caches results of function calls based on arguments.  \n- Maintains access order with `OrderedDict`.  \n- Evicts the oldest (least recently used) entry when cache is full.  \n- Returns cached results for previously seen arguments, updating their \"recently used\" status.",
+  "score": 5,
+  "cost": 0.00013305,
+  "expected": "",
+  "tokens": {
+    "input": 210,
+    "output": 391
+  }
+}

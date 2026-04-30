@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "code_generation",
   "case": 5,
-  "response": "```python\n    if not l:\n        return None\n    max_val = l[0]\n    for num in l:\n        if num > max_val:\n            max_val = num\n    return max_val\n```",
+  "response": "```python\n    if not l:\n        return None\n    max_val = l[0]\n    for num in l[1:]:\n        if num > max_val:\n            max_val = num\n    return max_val\n```",
   "score": 5,
-  "cost": 0.000138,
+  "cost": 0.000144,
   "expected": "",
   "tokens": {
     "input": 115,
-    "output": 46
+    "output": 49
   }
 }

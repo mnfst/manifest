@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "The day\u2019s final light softens, spilling across the horizon in layers of apricot and lavender. Clouds catch fire in muted gold, their edges glowing like embers cooling in a vast, quiet hearth. Shadows stretch long and thin, while the sky deepens from a pale, dusty blue into shades of indigo and violet. A gentle stillness settles over the land, as if the world is pausing to watch the sun slip silently below the edge of the earth. The air cools, carrying the faint scent of evening, and the first hint of stars begins to pierce the gathering dusk.",
+  "score": 5,
+  "cost": 0.00014045000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 122
+  }
+}

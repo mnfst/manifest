@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "This implements the **Knuth-Morris-Pratt (KMP)** string-searching algorithm, which first preprocesses the pattern to build a **longest-prefix-suffix (LPS)** array that determines how far to shift the pattern when a mismatch occurs. It then scans the text using this LPS table to avoid redundant comparisons, efficiently finding the starting index of the first pattern match in linear time.",
+  "score": 5,
+  "cost": 0.001245,
+  "expected": "",
+  "tokens": {
+    "input": 183,
+    "output": 473
+  }
+}

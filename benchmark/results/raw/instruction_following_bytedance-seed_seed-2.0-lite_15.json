@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 15,
+  "response": "All of these are perfect rhymes for \"cat\" (pronounced /k\u00e6t/), sharing the same short \"a\" vowel and final hard \"t\" ending to match perfectly:\n1. Bat \u2013 can refer to the flying nocturnal mammal, or a solid piece of sports equipment for baseball or cricket\n2. Hat \u2013 a piece of headwear worn for warmth, sun protection, fashion, or ceremony\n3. Mat \u2013 a small, flat piece of fabric or rigid material placed on floors, under dishes, or to protect surfaces\n4. Rat \u2013 a common small rodent, or an informal term for a sneaky, untrustworthy person\n\nTo test how well they rhyme, you could string them into a silly line: \"The chonky cat sat on a frayed mat, wore a floppy hat, chased a flapping bat, and cornered a scurrying rat!\"",
+  "score": 5,
+  "cost": 0.000799,
+  "expected": "",
+  "tokens": {
+    "input": 60,
+    "output": 784
+  }
+}

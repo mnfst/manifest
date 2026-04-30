@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Golden, crispy crust. Fresh, melted mozzarella. Tangy, vibrant tomato sauce. Savory, crumbled Italian sausage. Sweet, caramelized onions. Spicy, sliced jalape\u00f1os. Earthy, saut\u00e9ed mushrooms. Fragrant, chopped basil. Gooey, bubbling cheese. Perfect, piping-hot pizza.",
+  "score": 5,
+  "cost": 0.000772,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 63
+  }
+}

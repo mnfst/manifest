@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_explanation",
+  "case": 37,
+  "response": "The class implements a **trie (prefix tree)** where each node is a dictionary that maps a character to its child dictionary, using a sentinel `'#'` to mark the end of a word. `insert` adds a word by walking/creating the necessary character nodes, and `starts_with` navigates to the node for a given prefix then performs a depth\u2011first search to collect and return every word stored under that prefix.",
+  "score": 5,
+  "cost": 0.0020515000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 205,
+    "output": 415
+  }
+}

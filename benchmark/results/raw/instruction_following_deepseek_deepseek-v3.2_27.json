@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 27,
+  "response": "**Mammals**\n1. Lion\n2. Dolphin\n3. Bat\n\n**Birds**\n1. Eagle\n2. Penguin\n3. Hummingbird\n\n**Fish**\n1. Salmon\n2. Clownfish\n3. Great White Shark",
+  "score": 4,
+  "cost": 6.625e-05,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 55
+  }
+}

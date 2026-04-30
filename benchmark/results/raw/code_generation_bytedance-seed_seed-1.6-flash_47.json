@@ -4,10 +4,10 @@
   "case": 47,
   "response": "return ' '.join(str(i) for i in range(n + 1))",
   "score": 5,
-  "cost": 0.0001908,
+  "cost": 0.0001941,
   "expected": "",
   "tokens": {
     "input": 184,
-    "output": 590
+    "output": 601
   }
 }

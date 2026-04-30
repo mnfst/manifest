@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Stay refreshed on the go with the [AquaFlow] 20-oz stainless steel water bottle, where double-wall insulation locks in icy coldness for 24 hours or steams hot drinks for 12, all in a sleek, lightweight frame. Its leak-proof flip lid and compact design fit seamlessly into cup holders, making it ideal for workouts, commutes, or hikes. Durable, BPA-free, and available in 6 bold hues, it blends practicality with modern style to keep you hydrated in comfort.",
+  "score": 3,
+  "cost": 0.0001215,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 381
+  }
+}

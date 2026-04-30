@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 38,
+  "response": "**This function implements Consistent Hashing with a virtual nodes technique.**\n\nIt creates a hash ring by generating `replicas` (default 100) virtual positions for each node using `hash(f'{node}:{i}')`. These positions are stored in a dictionary and sorted. The returned `get_node(item)` function hashes the input item, uses binary search (`bisect`) to find the first virtual node with a higher hash value on the ring, and returns the corresponding real node (with wrap-around via modulo). This is the standard **consistent hashing algorithm** used in distributed systems like Cassandra or DynamoDB.",
+  "score": 5,
+  "cost": 0.001456,
+  "expected": "",
+  "tokens": {
+    "input": 244,
+    "output": 121
+  }
+}

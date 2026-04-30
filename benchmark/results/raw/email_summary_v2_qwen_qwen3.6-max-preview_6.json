@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-max-preview",
   "task": "email_summary_v2",
   "case": 6,
-  "response": "Acme Corp, a $450K ARR customer, is threatening to churn due to persistent API latency spikes and a five-day support delay. While a dedicated engineer has been assigned to resolve the technical issues, an executive sponsor is urgently needed to join a customer call this week.",
+  "response": "Acme Corp, a $450K ARR customer, is threatening to churn due to three weeks of API latency spikes and five days of unresponsive support. A dedicated engineer has been assigned to fix the technical issues, but an executive sponsor is urgently needed to join a customer call this week.",
   "score": 5,
-  "cost": 0.005796700000000001,
+  "cost": 0.005099900000000001,
   "expected": "",
   "tokens": {
     "input": 111,
-    "output": 1087
+    "output": 953
   }
 }

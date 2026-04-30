@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "This code implements an **LRU (Least Recently Used) Cache** using an `OrderedDict` to track key-value pairs, where the most recently accessed items are moved to the end. When the cache exceeds its capacity (`cap`), the least recently used item (at the front) is evicted via `popitem(last=False)`, ensuring O(1) average time complexity for both `get` and `put` operations.",
+  "score": 4,
+  "cost": 0.00023359999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 139,
+    "output": 89
+  }
+}

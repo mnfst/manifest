@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "**This code solves the 0/1 Knapsack Problem using dynamic programming.**\n\nIt computes the maximum total value that can be achieved without exceeding the given `capacity`, where each item (with its `weight` and `value`) can be used at most once. The algorithm builds a 2D DP table `dp[i][w]` representing the best value using the first `i` items with weight limit `w`, applying the standard recurrence: for each item, either skip it (`dp[i-1][w]`) or take it if it fits (`dp[i-1][w - weight] + value`), choosing the maximum of the two.",
+  "score": 5,
+  "cost": 0.001588,
+  "expected": "",
+  "tokens": {
+    "input": 266,
+    "output": 132
+  }
+}

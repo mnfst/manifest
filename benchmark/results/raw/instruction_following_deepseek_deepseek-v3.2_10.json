@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "A programmer named Dave had a scheme,\nTo build a perfect, bug-free dream.\nBut a semicolon missed,\nCaused his code to desist,\nNow his loop is an infinite scream.",
+  "score": 5,
+  "cost": 4.75e-05,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 40
+  }
+}

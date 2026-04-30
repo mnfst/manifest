@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "rag_qa",
+  "case": 4,
+  "response": "Based on the provided context, **North America** uses the term to refer to educational institutions at the tertiary (university) level.",
+  "score": 2,
+  "cost": 0.0024595999999999997,
+  "expected": "North America",
+  "tokens": {
+    "input": 164,
+    "output": 432
+  }
+}

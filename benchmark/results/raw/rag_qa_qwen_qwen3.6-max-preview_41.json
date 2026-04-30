@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "rag_qa",
+  "case": 41,
+  "response": "Based on the provided context, Duquesne sent **500 men** (led by Contrec\u0153ur) to relieve Saint-Pierre.",
+  "score": 5,
+  "cost": 0.0059462000000000004,
+  "expected": "Contrec\u0153ur led 500 men south from Fort Venango on April 5, 1754",
+  "tokens": {
+    "input": 202,
+    "output": 1093
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 15,
+  "response": "**This code implements the Merge Sort algorithm.**\n\nIt recursively divides the input array into two halves until each subarray contains a single element (the base case), then merges the sorted halves back together using a two-pointer technique that always picks the smaller element from the fronts of the left and right subarrays. The `merge()` helper efficiently combines two already-sorted arrays into one sorted array in linear time.",
+  "score": 5,
+  "cost": 0.001192,
+  "expected": "",
+  "tokens": {
+    "input": 276,
+    "output": 80
+  }
+}

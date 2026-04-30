@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-max-preview",
   "task": "email_summary_v2",
   "case": 30,
-  "response": "Competitor X recently launched AI features with auto-categorization at double our price, but neutral market feedback and our superior API and integrations keep us competitively positioned. To capitalize on this landscape, the product team recommends fast-tracking our planned AI roadmap item.",
+  "response": "Competitor X recently launched AI features with auto-categorization at double our price, but the market response remains neutral while we retain advantages in API and integrations. Consequently, the product team recommends fast-tracking our AI roadmap item to maintain our competitive edge.",
   "score": 5,
-  "cost": 0.0056732,
+  "cost": 0.0056264,
   "expected": "",
   "tokens": {
     "input": 100,
-    "output": 1066
+    "output": 1057
   }
 }

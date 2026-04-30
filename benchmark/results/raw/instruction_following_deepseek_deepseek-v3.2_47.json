@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "Here are the key characteristics of a good password, broken down into numbered steps:\n\n**1. Length is the Most Important Factor**\n*   Aim for **at least 12-16 characters**. Longer passwords are exponentially harder for computers to crack through brute-force attacks.\n\n**2. Use High Complexity**\n*   Combine **four different character types**:\n    *   **Uppercase letters** (A, B, C)\n    *   **Lowercase letters** (a, b, c)\n    *   **Numbers** (1, 2, 3)\n    *   **Symbols** (!, @, #, $, %, etc.)\n\n**3. Create Unpredictability**\n*   Avoid obvious personal information (names, birthdays, pet names, addresses).\n*   Don't use common dictionary words, phrases, or sequential keyboard patterns (e.g., \"password123\", \"qwerty\", \"abcdef\").\n\n**4. Make it Unique for Every Account**\n*   **Never reuse passwords** across different websites or services. A breach on one site would then compromise all your other accounts.\n\n**5. Use a Passphrase Strategy (Recommended)**\n*   Create a long, memorable **passphrase** by stringing together 4-6 random, unrelated words.\n*   Example: `CactusTangoBatteryPaperclip!` is long, complex, and easier to remember than a short, jumbled password.\n\n**6. Manage with a Password Manager**\n*   Use a reputable **password manager** to generate, store, and autofill strong, unique passwords for all your accounts. This solves the problem of having to remember them all.\n\n**7. Enable Two-Factor Authentication (2FA)**\n*   Always add **2FA** (like an app code, security key, or text message) where available. This adds a critical second layer of security, even if your password is compromised.\n\n**8. Update Strategically**\n*   Change passwords **immediately** if you suspect a breach.\n*   Otherwise, focus more on using unique, strong passwords rather than changing them arbitrarily on a schedule, as this can lead to weaker, predictable patterns.\n\n**Summary of a Good Password:** It should be a **long, complex, and completely unique** secret that is practically impossible to guess and difficult for computers to crack, ideally managed by a tool and protected with 2FA.",
+  "score": 5,
+  "cost": 0.00054495,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 492
+  }
+}

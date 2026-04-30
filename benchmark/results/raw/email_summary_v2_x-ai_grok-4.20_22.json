@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "email_summary_v2",
+  "case": 22,
+  "response": "The International team has outlined a Japan market launch plan starting in May with legal entity setup, followed by localization in June, beta testing with 10 customers in July, and full general availability in August, supported by a $200K budget. They are requesting CEO approval to proceed with the expansion.",
+  "score": 5,
+  "cost": 0.000892,
+  "expected": "",
+  "tokens": {
+    "input": 210,
+    "output": 59
+  }
+}

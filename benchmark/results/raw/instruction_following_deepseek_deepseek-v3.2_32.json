@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "**Restaurant Review: The Gilded Truffle**\n\n**Rating: \u2605\u2605\u2605\u2605\u2606 (4/5)**\n\nNestled in a cobblestone alley in the heart of the city, The Gilded Truffle promises an evening of \"rustic elegance.\" From the moment you push open the heavy oak door, you're enveloped in an atmosphere of warm, flickering candlelight, exposed brick, and the gentle hum of conversation. It\u2019s a place that feels both timeless and meticulously curated.\n\n**The Experience:**\nService is attentive and knowledgeable without being overbearing. Our server, Marco, guided us through the seasonal menu with genuine passion, highlighting the evening\u2019s foraged specialties. The pacing of the meal was thoughtful, allowing time to savor each course.\n\n**The Food (The Star of the Show):**\n*   **Starter:** The **Hand-Cut Beef Tartare** (\u2605\u2605\u2605\u2605\u2605) was sublime. Served with a quail egg yolk, tiny pickled mushrooms, and crispy sourdough chips, it was a perfect balance of rich, acidic, and textural delight.\n*   **Main:** The **Pan-Seared Halibut** (\u2605\u2605\u2605\u2605\u2606) rested on a bed of saffron-infused risotto with blistered cherry tomatoes. The fish was cooked flawlessly\u2014crisp skin giving way to moist, pearlescent flesh. The risotto, however, was slightly underseasoned, needing just a pinch more salt to truly sing.\n*   **Dessert:** The **Dark Chocolate & Sea Salt Torte** (\u2605\u2605\u2605\u2605\u2605) was a decadent masterpiece. Dense, fudgy, and beautifully bitter, it was cut by a surprising hint of orange zest and a dollop of cr\u00e8me fra\u00eeche.\n\n**The Quibbles:**\nThe only reason this isn't a perfect five-star review is the value. While the quality is high, the prices are steep even for a fine-dining establishment. The wine list, though excellent, has few options under $70 a bottle. Additionally, the tables are charmingly close together, which can make for an intimate feel, but on a busy night, privacy is minimal.\n\n**Final Verdict:**\nThe Gilded Truffle delivers a memorable and delicious culinary experience. It\u2019s an ideal spot for a special celebration or a treat-yourself evening where the focus is squarely on inventive, high-quality food in a romantic setting",
+  "score": 4,
+  "cost": 0.00055675,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 500
+  }
+}

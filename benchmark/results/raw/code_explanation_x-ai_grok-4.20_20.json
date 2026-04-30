@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "**This function splits an iterable into two separate iterators: one containing all elements that match the predicate, and one containing those that don't.**\n\nIt uses `itertools.tee()` to create two independent copies of the input iterable, then applies `filter()` to one and `itertools.filterfalse()` to the other. This is a common functional programming pattern for partitioning data based on a boolean condition without consuming the original iterable more than once.",
+  "score": 5,
+  "cost": 0.001064,
+  "expected": "",
+  "tokens": {
+    "input": 184,
+    "output": 87
+  }
+}

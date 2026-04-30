@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "Think of an API as a helpful middleman that lets two different things work together without either having to understand how the other works.\n\nImagine you're at a restaurant. You don't walk into the kitchen to cook your own meal. Instead, you look at a menu, pick what you want, and tell a waiter. The waiter takes your order to the kitchen, waits while the cooks prepare it, and brings your food back to you. You never need to know how the kitchen is organized, what tools they use, or how many people are working there. You just need to know what's available and how to ask for it.\n\nThat waiter is like an API. It's a simple, reliable way to ask for something from a service or tool, get an answer, and move on\u2014without needing to know the complicated details behind the scenes. Everyday apps, websites, and devices use these \"waiters\" all the time to share information and get things done together.",
+  "score": 5,
+  "cost": 0.00111425,
+  "expected": "",
+  "tokens": {
+    "input": 25,
+    "output": 1108
+  }
+}

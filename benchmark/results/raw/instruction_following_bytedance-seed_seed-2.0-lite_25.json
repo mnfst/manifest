@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "### Subject Line: Meeting Invite: Nov 8 Q3 Strategy Alignment Check-In\n(Word count: 8, well under the 10-word limit) It leads with clear context, includes a timemarking date, and states the meeting\u2019s core focus to help recipients prioritize and prepare.",
+  "score": 5,
+  "cost": 0.00147,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 1454
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "As I wrap up my final day at the company this Friday, I\u2019m writing to say goodbye and share that I\u2019m moving on to a small creative studio role to pursue my longtime passion for independent brand design, a path I never would have had the courage to take without the skills and trust this team gave me over the past four years. I\u2019ll cherish the memories we made, from pulling all-nighters to launch our flagship 2024 product line to impromptu desk potlucks and weekend hiking trips that turned casual coworkers into some of my closest friends. I\u2019ve included my personal email (mia.carter.23@gmail.com) and LinkedIn profile in my email signature, and I hope you\u2019ll reach out anytime to catch up, share work updates, or even just send along a cat meme that made you think of me. Thank you for the endless patience when I messed up my first big client presentation, the mentorship that pushed me to grow beyond what I thought I was capable of, and the consistent kindness that made every hard day at the office feel manageable. I\u2019m cheering louder than anyone for every win this team will chase in the future, and I can\u2019t wait to see all the amazing, world-changing work you\u2019ll create long after I\u2019ve logged off for the last time.",
+  "score": 2,
+  "cost": 0.001115,
+  "expected": "",
+  "tokens": {
+    "input": 60,
+    "output": 1100
+  }
+}

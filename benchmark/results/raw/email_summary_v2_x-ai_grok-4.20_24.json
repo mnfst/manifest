@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "email_summary_v2",
+  "case": 24,
+  "response": "**Summary:**  \nDS v3 is now ready for adoption, featuring new dark mode color tokens, a revised 4px-based spacing scale, and updated Button and Modal components, with a migration tool available to assist the transition. The Design Team recommends a team-by-team rollout, starting with the Settings page.",
+  "score": 5,
+  "cost": 0.000896,
+  "expected": "",
+  "tokens": {
+    "input": 200,
+    "output": 62
+  }
+}

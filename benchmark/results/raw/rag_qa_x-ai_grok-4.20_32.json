@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "rag_qa",
+  "case": 32,
+  "response": "**The world's economy grew significantly and became much more interconnected.**\n\nThis is directly supported by the context, which states: \"Because of the resources made available by imperialism, the world's economy grew significantly and became much more interconnected in the decades before World War I, making the many imperial powers rich and prosperous.\"",
+  "score": 5,
+  "cost": 0.00115,
+  "expected": "the world's economy",
+  "tokens": {
+    "input": 335,
+    "output": 60
+  }
+}

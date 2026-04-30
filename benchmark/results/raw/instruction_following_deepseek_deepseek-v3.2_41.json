@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "```python\ndef sort_list(arr, reverse=False, key=None):\n    \"\"\"\n    Sort a list in-place using the Timsort algorithm (hybrid of merge sort and insertion sort).\n\n    This function provides a flexible interface for sorting lists with optional\n    reverse ordering and custom key functions, similar to the built-in list.sort().\n\n    Args:\n        arr (list): The list to be sorted. Will be modified in-place.\n        reverse (bool, optional): If True, sort in descending order. \n            Defaults to False (ascending order).\n        key (callable, optional): A function that takes one argument and returns\n            a key to use for sorting comparisons. If None, elements are compared\n            directly. Defaults to None.\n\n    Returns:\n        None: The function modifies the list in-place and returns None.\n\n    Raises:\n        TypeError: If `arr` is not a list or `key` is not callable (when provided).\n\n    Notes:\n        - Time complexity: O(n log n) in the worst and average cases\n        - Space complexity: O(n) for temporary storage\n        - The sort is stable: equal elements maintain their original order\n        - For large datasets, this is more efficient than pure quicksort or merge sort\n\n    Examples:\n        >>> numbers = [3, 1, 4, 1, 5, 9, 2]\n        >>> sort_list(numbers)\n        >>> numbers\n        [1, 1, 2, 3, 4, 5, 9]\n\n        >>> sort_list(numbers, reverse=True)\n        >>> numbers\n        [9, 5, 4, 3, 2, 1, 1]\n\n        >>> words = ['apple', 'banana', 'cherry', 'date']\n        >>> sort_list(words, key=len)\n        >>> words\n        ['date', 'apple', 'banana', 'cherry']\n    \"\"\"\n    # Implementation would go here\n    pass\n```",
+  "score": 4,
+  "cost": 0.00046540000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 419
+  }
+}

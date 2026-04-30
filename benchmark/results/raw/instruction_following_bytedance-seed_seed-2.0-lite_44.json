@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "Below are ingredients for a versatile, customizable basic green salad, organized by category with checkboxes to track what you need or have on hand:\n### Base Greens (salad foundation)\n- [ ] Romaine lettuce hearts\n- [ ] Baby spinach\n- [ ] Iceberg lettuce\n- [ ] Pre-washed spring mix\n### Core Fresh Veggies\n- [ ] Cherry tomatoes (or sliced beefsteak tomatoes)\n- [ ] English cucumber\n- [ ] Shredded carrots\n- [ ] Thinly sliced red onion\n- [ ] Diced bell pepper (green, red, or orange)\n- [ ] Sliced celery stalks\n### Essential Seasonings\n- [ ] Kosher salt\n- [ ] Freshly ground black pepper\n### Popular Basic Add-Ins (protein, cheese, etc.)\n- [ ] Sliced hard-boiled eggs\n- [ ] Drained canned tuna\n- [ ] Rinsed canned chickpeas\n- [ ] Diced cooked chicken breast\n- [ ] Feta cheese crumbles\n- [ ] Shredded cheddar or mozzarella cheese\n- [ ] Sliced ripe avocado\n### Crunch Toppings\n- [ ] Homemade or store-bought croutons\n- [ ] Toasted sunflower seeds\n- [ ] Dried cranberries (for mild sweetness)\n### Simple Basic Dressings\n- [ ] Olive oil + balsamic vinegar (classic vinaigrette)\n- [ ] Lemon-olive oil vinaigrette (olive oil, lemon juice, salt, pepper)\n- [ ] Ranch dressing\n- [ ] Pre-made Italian dressing",
+  "score": 4,
+  "cost": 0.001548,
+  "expected": "",
+  "tokens": {
+    "input": 60,
+    "output": 1533
+  }
+}

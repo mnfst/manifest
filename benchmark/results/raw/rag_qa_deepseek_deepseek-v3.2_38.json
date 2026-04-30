@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "rag_qa",
+  "case": 38,
+  "response": "Nine residential houses are located along or near the Charles River.",
+  "score": 2,
+  "cost": 7.545e-05,
+  "expected": "Charles River",
+  "tokens": {
+    "input": 249,
+    "output": 12
+  }
+}

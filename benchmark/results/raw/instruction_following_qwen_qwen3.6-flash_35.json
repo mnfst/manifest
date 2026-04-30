@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "The last transmission from Earth crackled through the static, carrying a voice I hadn't heard in decades. My hands trembled as I decoded the fragmented audio, hoping for coordinates or a warning. Instead, the message contained only a lullaby my mother used to sing, followed by a soft whisper of \"We made it.\" Tears blurred the console lights as I realized the colony ships had succeeded while I remained behind. I powered down the receiver and looked out at the barren landscape that was once my home. Though I was the last soul on the planet, the song gave me the courage to plant the first seed of tomorrow.",
+  "score": 5,
+  "cost": 0.001249,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 1244
+  }
+}

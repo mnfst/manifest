@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_explanation",
+  "case": 4,
+  "response": "This is a **memoization decorator** that caches function results to avoid redundant computations. It uses a closure to store a dictionary that maps argument tuples to their computed values, returning cached results for previously seen inputs.",
+  "score": 5,
+  "cost": 0.0008250000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 165
+  }
+}

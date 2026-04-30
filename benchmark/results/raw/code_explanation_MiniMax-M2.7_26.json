@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "The function solves the classic **0/1 knapsack** problem using a bottom\u2011up dynamic\u2011programming table `dp`. It iterates over items (`i`) and possible capacities (`w`), storing in `dp[i][w]` the maximum total value that can be achieved with the first `i` items within capacity `w`, and finally returns `dp[n][capacity]` \u2013 the optimal value for all items.",
+  "score": 5,
+  "cost": 0.0017182000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 186,
+    "output": 344
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 15,
+  "response": "Here are 4 rhyming words for **cat**:\n\n1. Hat\n2. Bat\n3. Mat\n4. Rat",
+  "score": 5,
+  "cost": 0.0019265999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 365
+  }
+}

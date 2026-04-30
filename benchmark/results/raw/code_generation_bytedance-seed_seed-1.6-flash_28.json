@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-1.6-flash",
   "task": "code_generation",
   "case": 28,
-  "response": "result = []\n    for i in range(len(lst)):\n        j_list = [j for j, val in enumerate(lst[i]) if val == x]\n        for j in sorted(j_list, reverse=True):\n            result.append((i, j))\n    return result",
-  "score": 4,
-  "cost": 0.0005495249999999999,
+  "response": "result = []\n    for i, row in enumerate(lst):\n        for j, val in enumerate(row):\n            if val == x:\n                result.append((i, j))\n    result.sort(key=lambda t: (t[0], -t[1]))\n    return result",
+  "score": 5,
+  "cost": 0.000742725,
   "expected": "",
   "tokens": {
     "input": 387,
-    "output": 1735
+    "output": 2379
   }
 }

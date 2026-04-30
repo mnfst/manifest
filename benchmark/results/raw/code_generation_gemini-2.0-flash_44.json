@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "code_generation",
+  "case": 44,
+  "response": "```python\n    new_message = ''\n    vowels = 'aeiouAEIOU'\n    for char in message:\n        if char.isalpha():\n            if char.isupper():\n                new_char = char.lower()\n            else:\n                new_char = char.upper()\n            if new_char in 'aeiou':\n                vowel_index = 'aeiou'.index(new_char)\n                new_char = 'cglpu'[vowel_index]\n            elif new_char in 'AEIOU':\n                vowel_index = 'AEIOU'.index(new_char)\n                new_char = 'CGLPU'[vowel_index]\n            new_message += new_char\n        else:\n            new_message += char\n    return new_message\n```",
+  "score": 3,
+  "cost": 8.91e-05,
+  "expected": "",
+  "tokens": {
+    "input": 151,
+    "output": 185
+  }
+}

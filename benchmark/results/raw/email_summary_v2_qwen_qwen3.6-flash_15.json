@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-flash",
   "task": "email_summary_v2",
   "case": 15,
-  "response": "Legal has approved the updated terms with two modifications: adding an arbitration clause for the enterprise tier and reducing data retention to 90 days, both of which must go live before the May 1 EU launch. To meet this deadline, Legal will prepare the final version today.",
+  "response": "Legal approved the updated terms with two changes: adding an arbitration clause for the enterprise tier and reducing data retention to 90 days, both of which must go live before the May 1 EU launch. To meet this deadline, the legal team will prepare the final version today.",
   "score": 5,
-  "cost": 0.0014965,
+  "cost": 0.0012545,
   "expected": "",
   "tokens": {
     "input": 110,
-    "output": 1469
+    "output": 1227
   }
 }

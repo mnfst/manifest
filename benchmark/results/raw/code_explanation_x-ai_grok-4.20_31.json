@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 31,
+  "response": "**This code implements the A* (A-star) search algorithm** to find the shortest path from `start` to `goal` in a weighted graph.\n\nIt uses a **priority queue** (`open_set`) ordered by `f = g + h`, where:\n- `g` is the exact cost from the start to the current node,\n- `h` is the heuristic estimate from the current node to the goal.\n\nThe algorithm expands the most promising node (lowest f-score) at each step, tracks the path, and returns the first time it reaches the goal (guaranteeing optimality if the heuristic is admissible). It also uses a `visited` set to avoid reprocessing nodes.",
+  "score": 5,
+  "cost": 0.001688,
+  "expected": "",
+  "tokens": {
+    "input": 284,
+    "output": 140
+  }
+}

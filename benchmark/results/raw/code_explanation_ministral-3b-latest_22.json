@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "This code implements an **LRU (Least Recently Used) Cache** using Python's `OrderedDict`, which maintains insertion order. The algorithm evicts the **oldest entry** (least recently accessed) when the cache exceeds its capacity by moving recently accessed items to the end and removing the first item when necessary.",
+  "score": 4,
+  "cost": 8.24e-06,
+  "expected": "",
+  "tokens": {
+    "input": 139,
+    "output": 67
+  }
+}

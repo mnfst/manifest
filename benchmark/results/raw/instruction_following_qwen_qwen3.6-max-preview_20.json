@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "Sun shines. Solar spectrum sparks synthesis.\n\nPlants possess special pigments. Pigments soak photons. Subterranean parts sip soil solutions. Pores pull sky particles.\n\nPhotosynthesis proceeds. Solar power splits substances. Synthesis produces sweet sugar. Plants store starch. Pores pass pure puffs.\n\nSugar sustains stems. Power promotes sprouting. Plants prosper. Photosynthesis supports survival.",
+  "score": 5,
+  "cost": 0.0135798,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 2605
+  }
+}

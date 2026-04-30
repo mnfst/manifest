@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "Code lines take their form,\nLogic flows, a digital stream,\nBugs hide in the dark.",
+  "score": 5,
+  "cost": 9.9e-06,
+  "expected": "",
+  "tokens": {
+    "input": 7,
+    "output": 23
+  }
+}

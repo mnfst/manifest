@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "Whisk 2 eggs with salt and pepper. Melt butter in a pan over medium-low heat. Pour in eggs. Stir gently until soft curds form. Remove from heat while slightly runny. Serve immediately.",
+  "score": 5,
+  "cost": 0.0033423000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 636
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "email_summary_v2",
+  "case": 42,
+  "response": "**Summary:**  \nThe customer workshop with 15 enterprise clients highlighted strong demand for improved bulk import functionality, SSO integration (a blocker for 5 accounts), and praise for the new analytics dashboard, while surprisingly revealing that 3 customers are interested in purchasing our internal tool as a standalone product.  \n\nA follow-up report is attached for review.",
+  "score": 5,
+  "cost": 0.000986,
+  "expected": "",
+  "tokens": {
+    "input": 221,
+    "output": 68
+  }
+}

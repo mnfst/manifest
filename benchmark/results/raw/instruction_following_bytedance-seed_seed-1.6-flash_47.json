@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "Here\u2019s a structured, numbered breakdown of what makes a good password, focusing on security, memorability, and best practices:\n\n\n### **1. Prioritize Length**  \nA longer password significantly increases its complexity. Aim for **12+ characters**; 16+ is even stronger. Brute-force attacks (which guess combinations) struggle with longer strings because the number of possible permutations grows exponentially. For example, a 12-character password has ~340 trillion combinations, while an 8-character one has ~15 billion\u2014making the shorter one far easier to crack.  \n\n\n### **2. Include a Mix of Character Types**  \nCombine uppercase letters (A-Z), lowercase letters (a-z), numbers (0-9), and special symbols (!@#$%^&*()_+-=). This \"complexity\" thwarts automated tools that target single character types. For instance, \"P@ssw0rd\" is better than \"Password123\" because it adds a symbol and swaps \"o\" for \"0\" (though avoid over-reliance on substitutions\u2014see Step 7).  \n\n\n### **3. Avoid Common Words, Phrases, or Patterns**  \nSteer clear of dictionary words (\"password,\" \"qwerty\"), sequential patterns (\"123456,\" \"abcdef\"), or repetitive sequences (\"aaaaa,\" \"11111\"). Attackers use tools to scan these \"weak\" combinations first. Even \"iloveyou\" or \"baseball\" is predictable\u2014hackers often test these before moving to more complex strings.  \n\n\n### **4. Skip Personal Information**  \nNever include details tied to you or your life, such as birthdays, addresses, pet names, phone numbers, or usernames. Attackers can easily gather this data from social media, public records, or past breaches. For example, \"JohnDoe1985\" or \"NYC2020!\" is vulnerable because \"JohnDoe\" and \"NYC\" are personal.  \n\n\n### **5. Use a Unique Password per Account**  \nReusing passwords across accounts is risky: if one account is hacked, attackers can use that password to access *all* your other accounts. Even \"Password123\" for email and \"Password123\" for banking is a critical flaw. Use a different password for",
+  "score": 4,
+  "cost": 0.000422775,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 1386
+  }
+}

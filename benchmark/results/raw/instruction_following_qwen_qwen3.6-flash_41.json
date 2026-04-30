@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "Here's a Google-style docstring for a sort function:\n\n```python\ndef sort_list(iterable, key=None, reverse=False):\n    \"\"\"Sorts an iterable and returns a new list with elements in ascending or descending order.\n\n    Args:\n        iterable (Iterable): An iterable containing comparable elements to be sorted.\n        key (Callable): A function to extract a comparison key from each element.\n            If None, elements are compared directly. Defaults to None.\n        reverse (bool): A boolean indicating whether to sort in descending order.\n            Defaults to False.\n\n    Returns:\n        list: A new list containing all elements from the iterable in sorted order.\n\n    Raises:\n        TypeError: If elements are not comparable or if the key function returns incompatible types.\n\n    Example:\n        >>> sort_list([3, 1, 4, 1, 5])\n        [1, 1, 3, 4, 5]\n        >>> sort_list(['banana', 'apple', 'cherry'], key=len)\n        ['apple', 'banana', 'cherry']\n        >>> sort_list([3, 1, 4], reverse=True)\n        [4, 3, 1]\n    \"\"\"\n```\n\n**Key Google Style conventions applied:**\n- One-line summary followed by a blank line\n- `Args:`, `Returns:`, `Raises:`, and `Example:` sections capitalized with trailing colons\n- Types in parentheses immediately after parameter names\n- Default values noted in the description\n- Consistent 4-space indentation for section content\n- Doctest-formatted examples with expected output",
+  "score": 4,
+  "cost": 0.002799,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 2793
+  }
+}

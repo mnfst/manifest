@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-max-preview",
   "task": "email_summary_v2",
   "case": 19,
-  "response": "IT Procurement is evaluating whether to renew the expiring Datadog contract at a discounted annual rate or switch to the significantly cheaper Grafana Cloud alternative, which requires a three-month migration. A final vendor selection must be communicated to Finance by May 15 to ensure uninterrupted service before the June 30 deadline.",
+  "response": "IT Procurement is evaluating whether to renew the Datadog contract at a discounted $155K/year or switch to Grafana Cloud for $95K/year, which requires a three-month migration. A final vendor decision must be submitted to Finance by May 15 to ensure service continuity before the June 30 expiration.",
   "score": 5,
-  "cost": 0.0061334,
+  "cost": 0.0071422,
   "expected": "",
   "tokens": {
     "input": 114,
-    "output": 1151
+    "output": 1345
   }
 }

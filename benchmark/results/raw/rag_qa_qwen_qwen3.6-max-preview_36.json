@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "rag_qa",
+  "case": 36,
+  "response": "Based on the provided context, oxygen therapy promotes the body to take up **gaseous oxygen** (O2).",
+  "score": 5,
+  "cost": 0.0060398000000000006,
+  "expected": "gaseous oxygen.",
+  "tokens": {
+    "input": 174,
+    "output": 1118
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "email_summary_v2",
+  "case": 26,
+  "response": "**Summary:**  \nThe Privacy Team received a GDPR data export request for user ID 45892 with a deadline of May 25, requiring a complete export of all personal data (including analytics), processing purposes, and third-party sharing logs.  \n\nPlease compile the requested information across all services to ensure compliance by the deadline.",
+  "score": 5,
+  "cost": 0.000942,
+  "expected": "",
+  "tokens": {
+    "input": 215,
+    "output": 64
+  }
+}

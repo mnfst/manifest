@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "rag_qa",
+  "case": 32,
+  "response": "The world's economy.",
+  "score": 1,
+  "cost": 0.00101925,
+  "expected": "the world's economy",
+  "tokens": {
+    "input": 237,
+    "output": 960
+  }
+}

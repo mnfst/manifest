@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "email_summary_v2",
+  "case": 40,
+  "response": "The quarterly OKR review shows Engineering, Sales, and Support met or exceeded targets, while Product scored 0.6 against a 0.7 target due to the delayed AI feature. Ops recommends carrying forward the AI OKR with increased allocation, and notes that next quarter planning begins on Monday.",
+  "score": 5,
+  "cost": 0.000954,
+  "expected": "",
+  "tokens": {
+    "input": 237,
+    "output": 60
+  }
+}

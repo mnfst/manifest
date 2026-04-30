@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "### Review: Sunflower Nook (Maple Leaf, Seattle) | 4.5/5 stars  \nI\u2019d written off this tiny family-run Filipino-American brunch spot as just another overhyped TikTok plant-based fusion trend\u2014until my best friend dragged me there last Saturday, and I left already booking my next visit.\n\nTucked into a 500-square-foot storefront off 85th Street, Sunflower Nook only seats 18 people, strung with warm capiz shell lights, lined with potted basil and monstera, and spinning a low playlist of 90s OPM and modern Filipino indie tracks. Lola Mila, the 72-year-old co-owner who opened the spot with her granddaughter in 2023, floated between tables refilling water, teasing regulars, and pressing free mini buko pandan popsicles on anyone waiting for their order. The vibe feels less like a restaurant and more like brunch at your most talented, warmest aunt\u2019s home\u2014if your aunt served mind-blowing, flavor-forward food.\n\nWe ordered ube lattes first, and I was shocked they weren\u2019t cloyingly sweet like every other ube latte I\u2019ve tried in the city; Lola Mila\u2019s nephew grows their ube up in Skagit Valley, and the only added sugar is a splash of coconut condensed milk. For mains, I got the adobo jackfruit waffle: a chewy, golden ube waffle loaded with braised jackfruit that soaked up every bit of tangy, soy-vinegary adobo, drizzled with atsuete honey that cut through the richness perfectly. My carnivorous best friend got the pork sisig hash, and she\u2019s still texting me about the crispy pork belly and bright calamansi aioli that made the dish far better than the watered-down sisig she\u2019s had at larger local Filipino spots. We even snagged the second-to-last slice of mango sticky rice cake that morning, a creamy, sweet finish that felt like a treat.\n\nThe only flaws that keep this from a full 5 stars: Sunflower Nook doesn\u2019t take reservations for parties under 4, so we waited 45 minutes for a table, and our food took another 25 minutes to arrive (they only have one line cook, a choice that keeps their food homemade but slows service for weekend crowds). Seating",
+  "score": 5,
+  "cost": 0.00224825,
+  "expected": "",
+  "tokens": {
+    "input": 65,
+    "output": 2232
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "**This code implements a MinStack that supports push, pop, and get_min operations in O(1) time.**\n\nIt uses **two stacks** (an auxiliary stack pattern):\n\n- `self.stack` stores all values in LIFO order.\n- `self.min_stack` stores the **current minimum** at each level. When pushing a value, it appends the smaller of the new value and the previous minimum.\n\nThis ensures that `get_min()` can always return the minimum element in constant time by simply looking at the top of `min_stack`, even after multiple push/pop operations.",
+  "score": 5,
+  "cost": 0.001414,
+  "expected": "",
+  "tokens": {
+    "input": 235,
+    "output": 118
+  }
+}

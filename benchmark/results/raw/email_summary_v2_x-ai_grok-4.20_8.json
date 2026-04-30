@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "email_summary_v2",
+  "case": 8,
+  "response": "**Summary:**  \nThe annual performance review cycle begins on May 1 and follows a tight timeline with self-reviews due May 15, manager reviews by May 22, calibration on May 28, and final delivery on June 5. This year introduces a new competency framework, and managers are required to attend a training session on April 30.",
+  "score": 5,
+  "cost": 0.000978,
+  "expected": "",
+  "tokens": {
+    "input": 205,
+    "output": 71
+  }
+}

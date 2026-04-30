@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-flash",
   "task": "email_summary_v2",
   "case": 13,
-  "response": "Q1 customer success metrics demonstrate strong performance with an improved NPS of 62, high support satisfaction, and reduced churn, supported by a $800K enterprise expansion pipeline. To maintain this momentum, the team should prioritize developing the top requested features (SSO, custom dashboards, and API rate limits) and actively advance the three enterprise deals.",
+  "response": "The Customer Success team reports strong Q1 performance with an improved NPS of 62, high support satisfaction, and reduced churn, alongside three enterprise expansions in the pipeline worth $800K. To sustain this momentum, stakeholders should prioritize developing the top requested features and actively advance the enterprise expansion opportunities.",
   "score": 5,
-  "cost": 0.0014045,
+  "cost": 0.0017975,
   "expected": "",
   "tokens": {
     "input": 126,
-    "output": 1373
+    "output": 1766
   }
 }

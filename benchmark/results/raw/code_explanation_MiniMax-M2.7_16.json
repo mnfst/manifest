@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_explanation",
+  "case": 16,
+  "response": "It runs the given coroutines concurrently, but limits the number that can be executing at the same time to `limit` by acquiring an `asyncio.Semaphore` before each one; `asyncio.gather` then collects all results. This is a semaphore\u2011based bounded\u2011concurrency pattern.",
+  "score": 5,
+  "cost": 0.0019338000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 118,
+    "output": 410
+  }
+}

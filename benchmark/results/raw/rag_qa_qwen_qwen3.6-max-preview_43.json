@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "rag_qa",
+  "case": 43,
+  "response": "Based on the provided context, the book is *Amazonia: Man and Culture in a Counterfeit Paradise*.",
+  "score": 5,
+  "cost": 0.0036296,
+  "expected": "Amazonia: Man and Culture in a Counterfeit Paradise",
+  "tokens": {
+    "input": 268,
+    "output": 631
+  }
+}

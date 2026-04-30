@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "rag_qa",
+  "case": 34,
+  "response": "Infinitely many.",
+  "score": 2,
+  "cost": 0.00106125,
+  "expected": "infinitely many prime numbers",
+  "tokens": {
+    "input": 253,
+    "output": 998
+  }
+}

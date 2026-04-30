@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_generation",
+  "case": 24,
+  "response": "```python\n    if a + b <= c or a + c <= b or b + c <= a:\n        return -1\n    s = (a + b + c) / 2\n    area = (s * (s - a) * (s - b) * (s - c)) ** 0.5\n    return round(area, 2)\n```",
+  "score": 5,
+  "cost": 0.001176,
+  "expected": "",
+  "tokens": {
+    "input": 268,
+    "output": 80
+  }
+}

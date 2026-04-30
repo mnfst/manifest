@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_explanation",
+  "case": 31,
+  "response": "This code implements the **A* search algorithm** to find the lowest-cost path from a start node to a goal node in a weighted graph. It uses a min-heap priority queue to expand nodes in order of `f(n) = g(n) + h(n)` (actual path cost plus heuristic estimate) while maintaining a visited set to prevent redundant exploration and ensure optimality.",
+  "score": 5,
+  "cost": 0.0042133000000000006,
+  "expected": "",
+  "tokens": {
+    "input": 181,
+    "output": 765
+  }
+}

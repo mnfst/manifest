@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 29,
+  "response": "DNA is the molecule that carries genetic instructions for the development, functioning, growth, and reproduction of living organisms. It is structured as a double helix and contains the code for building and maintaining an organism.",
+  "score": 2,
+  "cost": 6.3075e-05,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 186
+  }
+}

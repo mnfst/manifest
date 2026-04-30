@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "This code implements a stack data structure with the added functionality of retrieving the minimum element in O(1) time. It uses an auxiliary stack `min_stack` to keep track of the minimum element at each stage of the main stack, ensuring that the top of `min_stack` always holds the current minimum.",
+  "score": 5,
+  "cost": 4.1200000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 152,
+    "output": 65
+  }
+}

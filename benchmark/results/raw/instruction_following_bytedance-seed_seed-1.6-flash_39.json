@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 39,
+  "response": "### **Q: What is a VPN?**  \nA: A VPN (Virtual Private Network) is a technology that creates a secure, encrypted \"tunnel\" between a device (like a phone, laptop, or tablet) and a remote network or the internet. It allows users to send and receive data as if their device is directly connected to the target network, while protecting their privacy and security.  \n\n\n### **Q: How does a VPN work?**  \nA: When you connect to a VPN, your device first establishes a secure connection to a VPN server (operated by the VPN provider). All your internet traffic is then encrypted and routed through this server instead of your local internet service provider (ISP). The server decrypts the traffic and forwards it to its destination (e.g., a website or network). This process hides your real IP address and encrypts your data, making it unreadable to third parties (like hackers or ISPs).  \n\n\n### **Q: What does a VPN encrypt?**  \nA: A VPN encrypts *all data in transit* between your device and the VPN server, including web browsing history, emails, messages, and downloads. It may also encrypt metadata (e.g., the websites you visit, the time of your activity) to prevent tracking. Strong VPNs use industry-standard encryption protocols (like AES-256) to protect data from interception.  \n\n\n### **Q: Why would someone use a VPN?**  \nA: Common reasons include:  \n- **Privacy**: Hides your IP address and online activity from ISPs, advertisers, and hackers, preventing tracking.  \n- **Security**: Secures public Wi-Fi networks (e.g., coffee shops, airports) by encrypting data, reducing the risk of being hacked.  \n- **Geo-restriction bypassing**: Accesses content blocked in your region (e.g., streaming services, websites) by connecting to a server in a different country.  \n- **Secure remote work**: Allows employees to access company networks safely from outside the office.  \n\n\n### **Q: Does a VPN hide my IP address?**  \nA: Yes. When you connect to a VPN, your device uses the VPN server's IP address instead of your real one. This makes it appear as if you're browsing from the server's location, not your actual one.  \n\n\n### **Q: What are the main types of VPNs?**  \nA:",
+  "score": 5,
+  "cost": 0.0003105,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 1011
+  }
+}

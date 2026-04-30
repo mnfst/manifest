@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_explanation",
+  "case": 33,
+  "response": "This code implements Algorithm R, the foundational reservoir sampling algorithm, which produces a uniformly random k-element subset from an input stream of arbitrary (even unknown) length, ensuring every item in the full stream has an equal probability of being included in the returned sample. It first fills an initial \"reservoir\" list with the first k stream items, then for every subsequent stream item, it randomly replaces an element in the reservoir with a tuned probability that preserves equal selection odds for all items across the entire stream.",
+  "score": 5,
+  "cost": 0.000654,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 618
+  }
+}

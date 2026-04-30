@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 32,
+  "response": "**This code implements the Union-Find (Disjoint Set Union - DSU) data structure with two key optimizations.**\n\nIt returns two functions (`find` and `union`) that together efficiently manage partitioning `n` elements into disjoint sets:\n\n- **`find(x)`** uses **path compression** (`parent[x] = find(parent[x])`) to flatten the tree during searches, making future queries nearly O(1).\n- **`union(x, y)`** uses **union by rank** to always attach the shorter tree under the root of the taller one, keeping the tree balanced.\n\nTogether, these optimizations give nearly constant time per operation, making it the standard efficient algorithm for connectivity problems (like Kruskal\u2019s MST algorithm).",
+  "score": 5,
+  "cost": 0.0017,
+  "expected": "",
+  "tokens": {
+    "input": 274,
+    "output": 144
+  }
+}

@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-max-preview",
   "task": "email_summary_v2",
   "case": 13,
-  "response": "The Customer Success team reported strong Q1 performance with improved NPS and CSAT scores, reduced churn, and $800K in pending enterprise expansions. To capitalize on this momentum, the team should prioritize implementing the top customer feature requests (SSO, custom dashboards, and increased API limits) and actively pursuing the three expansion deals.",
+  "response": "The Customer Success team reported strong Q1 performance with improved NPS, CSAT, and churn metrics, alongside $800K in potential enterprise expansions. Product and sales teams should prioritize implementing the top requested features (SSO, custom dashboards, and higher API rate limits) while advancing the three pending expansion deals.",
   "score": 5,
-  "cost": 0.0070382000000000005,
+  "cost": 0.006955,
   "expected": "",
   "tokens": {
     "input": 126,
-    "output": 1322
+    "output": 1306
   }
 }

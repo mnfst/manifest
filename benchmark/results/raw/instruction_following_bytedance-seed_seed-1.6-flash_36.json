@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 36,
+  "response": "Here are 4 programming languages, excluding Python and JavaScript:  \n\n\n### 1. **Java**  \nA versatile, object-oriented language known for its \"write once, run anywhere\" (WORA) capability. It is widely used in enterprise software, Android app development, and large-scale systems.  \n\n\n### 2. **C++**  \nA high-performance, general-purpose language that extends the C language with object-oriented features. It is used in systems programming, game development (e.g., Unreal Engine), and embedded systems.  \n\n\n### 3. **C**  \nA foundational, procedural language known for its low-level memory access and efficiency. It is the basis for many modern languages and is still used in operating systems, compilers, and embedded systems.  \n\n\n### 4. **Ruby**  \nA dynamic, reflective language designed for simplicity and readability. It is popular for web development (via frameworks like Ruby on Rails) and scripting, with a focus on developer happiness.  \n\n\nEach of these languages has distinct use cases and ecosystems, making them essential in different areas of software development.",
+  "score": 4,
+  "cost": 0.000139725,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 442
+  }
+}

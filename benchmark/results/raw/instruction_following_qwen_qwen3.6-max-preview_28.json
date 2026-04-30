@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "Your potential is endless; take the first step and watch your dreams unfold.",
+  "score": 3,
+  "cost": 0.0045812,
+  "expected": "",
+  "tokens": {
+    "input": 28,
+    "output": 874
+  }
+}

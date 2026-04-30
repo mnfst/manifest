@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "Think of an API like a waiter in a restaurant.\n\nYou are the customer sitting at the table with a menu. The kitchen is the part of a company or service that has what you want\u2014like your meal.\n\nYou can\u2019t go into the kitchen yourself to place your order or prepare the food. Instead, you tell the waiter what you\u2019d like from the menu. The waiter takes your request to the kitchen, and then brings your food back to your table.\n\nIn this example, the waiter is the API. It\u2019s a messenger that takes your request, tells the system what you want, and then delivers the response back to you\u2014without you needing to know how the kitchen actually works.",
+  "score": 5,
+  "cost": 0.00016305,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 143
+  }
+}

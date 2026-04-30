@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 13,
+  "response": "The Customer Success team reported positive Q1 metrics, including improved NPS and reduced churn, and identified top feature requests. Key action items are to pursue three enterprise expansions worth $800K and to prioritize development of SSO, custom dashboards, and an API rate limit increase.",
+  "score": 5,
+  "cost": 9.120000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 57
+  }
+}

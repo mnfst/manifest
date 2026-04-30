@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "The class implements a bounded asynchronous FIFO queue: `put` blocks the caller when the queue is full and `get` blocks when it\u2019s empty, using asyncio futures as lightweight condition variables to suspend and later wake waiting coroutines. In other words, it\u2019s a classic producer\u2011consumer pattern for async code, using deque for storage and separate waiting lists for putters and getters.",
+  "score": 5,
+  "cost": 0.0019943,
+  "expected": "",
+  "tokens": {
+    "input": 245,
+    "output": 392
+  }
+}

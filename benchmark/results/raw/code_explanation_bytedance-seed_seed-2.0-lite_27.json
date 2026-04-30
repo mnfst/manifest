@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_explanation",
+  "case": 27,
+  "response": "This Python function implements the monotonic deque sliding window maximum algorithm, which efficiently calculates the maximum value of every contiguous k-length subarray (sliding window) in the input list `nums`. It maintains a double-ended queue that stores indices of current window elements sorted in decreasing order, ejecting out-of-window indices from the front and smaller new elements from the back to always keep the current window's maximum index at the deque's front, appending each full window's maximum to the output list.",
+  "score": 5,
+  "cost": 0.000779,
+  "expected": "",
+  "tokens": {
+    "input": 184,
+    "output": 733
+  }
+}

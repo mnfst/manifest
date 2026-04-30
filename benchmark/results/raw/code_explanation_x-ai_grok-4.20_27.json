@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 27,
+  "response": "**This function computes the maximum value in every sliding window of size `k` over the array `nums` using a monotonic deque.**\n\n### How it works:\n- It maintains a **deque** that stores indices in **decreasing order of their corresponding values** (a decreasing monotonic queue).\n- For each index `i`:\n  - Removes indices from the front that are outside the current window `[i-k+1, i]`.\n  - Removes indices from the back whose values are smaller than `nums[i]` (they can never be the maximum while `nums[i]` is in the window).\n  - Adds the current index to the deque.\n  - Once the window is full (`i >= k-1`), the front of the deque (`dq[0]`) always holds the index of the **maximum** element in the current window, which is appended to the result.\n\nThis achieves O(n) time complexity, as each element is added and removed from the deque at most once.",
+  "score": 5,
+  "cost": 0.002076,
+  "expected": "",
+  "tokens": {
+    "input": 238,
+    "output": 200
+  }
+}

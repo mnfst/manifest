@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-flash",
   "task": "email_summary_v2",
   "case": 27,
-  "response": "The sprint retrospective highlighted the successful on-time delivery of the auth redesign and strong cross-team collaboration, while identifying excessive context switching and lengthy standups as key areas for improvement. To address these issues, the team will limit each developer's work-in-progress to two items and enforce timeboxed standups with a dedicated parking lot for off-topic discussions.",
+  "response": "The sprint retrospective celebrated the on-time delivery of the auth redesign and strong cross-team collaboration, but flagged excessive context switching and lengthy standups as key improvement areas. Accordingly, the team will limit each developer to two work-in-progress items and implement timeboxed standups with a parking lot for off-topic discussions.",
   "score": 5,
-  "cost": 0.0014755,
+  "cost": 0.0009985,
   "expected": "",
   "tokens": {
     "input": 114,
-    "output": 1447
+    "output": 970
   }
 }

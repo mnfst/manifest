@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_generation",
+  "case": 2,
+  "response": "```python\n    if not lst:\n        return []\n    sorted_lst = sorted(lst)\n    result = []\n    left, right = 0, len(sorted_lst) - 1\n    while left <= right:\n        if left == right:\n            result.append(sorted_lst[left])\n            break\n        result.append(sorted_lst[left])\n        result.append(sorted_lst[right])\n        left += 1\n        right -= 1\n    return result\n```",
+  "score": 4,
+  "cost": 0.00127,
+  "expected": "",
+  "tokens": {
+    "input": 271,
+    "output": 91
+  }
+}

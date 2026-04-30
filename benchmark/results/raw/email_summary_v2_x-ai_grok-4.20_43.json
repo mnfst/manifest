@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "email_summary_v2",
+  "case": 43,
+  "response": "**Summary:** An open source license audit of 234 packages identified two issues: a charting library using the incompatible AGPL viral license and one package with no license at all. The recommendation is to replace the charting library with Apache-licensed Chart.js, remove the unlicensed package, and address both before the next release.",
+  "score": 5,
+  "cost": 0.000944,
+  "expected": "",
+  "tokens": {
+    "input": 220,
+    "output": 63
+  }
+}

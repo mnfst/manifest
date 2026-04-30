@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "Code whispers softly  \nBugs dance in the moonlight glow  \nSilence births the fix",
+  "score": 5,
+  "cost": 0.000386,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 16
+  }
+}

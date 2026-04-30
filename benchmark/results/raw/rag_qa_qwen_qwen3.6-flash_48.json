@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "rag_qa",
+  "case": 48,
+  "response": "Based on the provided context, it is not known whether L is strictly contained in P or equal to P.",
+  "score": 5,
+  "cost": 0.00107375,
+  "expected": "strictly contained in P or equal to P",
+  "tokens": {
+    "input": 127,
+    "output": 1042
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 37,
+  "response": "BigCo has offered $15M to acqui-hire our ML team, but the CEO believes this undervalues the team. We need to discuss a counter-offer or polite decline and inform the board before responding.",
+  "score": 5,
+  "cost": 7.659999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 46
+  }
+}

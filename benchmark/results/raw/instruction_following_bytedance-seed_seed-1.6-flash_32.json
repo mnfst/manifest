@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "**Hearth & Honey: A Love Letter to Slow, Intentional Cooking**  \n*Rating: \u2605\u2605\u2605\u2605\u2605 (5/5)*  \n\n\nNestled between a bookstore and a vintage record shop on a tree-lined stretch of Maple Street, *Hearth & Honey* feels less like a restaurant and more like a friend\u2019s meticulously curated living room\u2014if that friend happened to be a world-class chef. From the moment I stepped through the door, I was wrapped in the scent of warm rosemary, buttery pastry, and something sweet: local wildflower honey, drizzled over a display of fresh-baked focaccia. The space is a masterclass in \"cozy luxury\": exposed brick walls, mismatched wooden tables polished to a soft glow, and string lights that hum like fireflies. A jazz trio played Billie Holiday covers in the corner, their notes weaving through the room without overpowering the murmur of conversation. This wasn\u2019t just a meal\u2014it was an *experience*.  \n\n\n### **The Food: Simple, Bold, and Unapologetically Local**  \nChef Lila Marquez, a former prot\u00e9g\u00e9 of a Tuscan nonna, has crafted a menu that honors tradition while celebrating the bounty of the Pacific Northwest. I started with the *Hearth & Honey Charcuterie* ($18), a wooden board piled high with house-cured prosciutto (made with honey from a family farm 45 minutes away), tangy goat cheese from a dairy in Snoqualmie, and pickled cherries that popped with brightness. The star? A wedge of *fig & honey burrata*\u2014creamy, milky, and balanced by the earthy sweetness of roasted figs and a drizzle of the restaurant\u2019s namesake honey. I moaned. *Out loud.*  \n\nFor my main, I chose the *Lavender-Herb Pasta* ($24), a hand-rolled tagliatelle tossed in a light, lemony pesto made with foraged sage and pine nuts, finished with a whisper of dried lavender (from a farm in Sequim) and a sprinkle of flaky sea salt. The pasta was al dente perfection, and the lavender added a subtle, floral depth that elevated the dish without overpowering it. My dining companion, a self-proclaimed \"meat snob,\" raved about the *Herb-Crusted Salmon",
+  "score": 5,
+  "cost": 0.00030922500000000005,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 1006
+  }
+}

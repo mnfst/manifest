@@ -4,10 +4,10 @@
   "case": 17,
   "response": "if not text:\n        return None\n    import hashlib\n    return hashlib.md5(text.encode('utf-8')).hexdigest()",
   "score": 5,
-  "cost": 0.00050565,
+  "cost": 0.00021885,
   "expected": "",
   "tokens": {
     "input": 202,
-    "output": 1635
+    "output": 679
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_explanation",
+  "case": 4,
+  "response": "This code implements the **memoization** technique\u2014a form of **dynamic programming**\u2014by caching the results of expensive function calls to avoid redundant computations. The `memoize` decorator stores the output of each unique input tuple (`args`) in a dictionary (`cache`) and returns the cached result instead of recomputing it on subsequent calls.",
+  "score": 5,
+  "cost": 5.76e-06,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 71
+  }
+}

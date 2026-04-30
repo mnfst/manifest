@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "- [ ] Mixed salad greens (e.g., lettuce, spinach, arugula)\n- [ ] Ripe tomatoes, chopped or cherry tomatoes halved\n- [ ] Cucumber, sliced or diced\n- [ ] Red onion, thinly sliced\n- [ ] Bell pepper (any color), sliced or diced\n- [ ] Carrot, grated or julienned\n\n**Optional Additions & Dressing:**\n- [ ] Croutons\n- [ ] Grated cheese (e.g., cheddar, parmesan)\n- [ ] Protein (e.g., grilled chicken, chickpeas, hard-boiled egg)\n- [ ] Basic vinaigrette (oil, vinegar, salt, pepper)",
+  "score": 4,
+  "cost": 0.00016460000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 146
+  }
+}

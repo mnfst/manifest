@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "This function topologically sorts a directed graph by running depth-first search (DFS) with post-order traversal: it appends each node to a stack only after recursively visiting all of its outgoing neighbors. Reversing this stack yields a valid linear ordering where every node appears before all nodes reachable from it along outgoing edges.",
+  "score": 5,
+  "cost": 0.0023706,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 961
+  }
+}

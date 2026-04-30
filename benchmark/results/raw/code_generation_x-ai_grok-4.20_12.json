@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_generation",
+  "case": 12,
+  "response": "```python\n    return [s for s in strings if substring in s]\n```",
+  "score": 4,
+  "cost": 0.000614,
+  "expected": "",
+  "tokens": {
+    "input": 239,
+    "output": 17
+  }
+}

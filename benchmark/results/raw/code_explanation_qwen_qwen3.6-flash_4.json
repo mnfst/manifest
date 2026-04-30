@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_explanation",
+  "case": 4,
+  "response": "This code implements a memoization decorator that caches function results in a dictionary keyed by their input arguments, returning the stored value for repeated calls instead of recomputing. It applies the memoization pattern to optimize performance by trading memory for time through dictionary-based lookup.",
+  "score": 5,
+  "cost": 0.00123125,
+  "expected": "",
+  "tokens": {
+    "input": 85,
+    "output": 1210
+  }
+}

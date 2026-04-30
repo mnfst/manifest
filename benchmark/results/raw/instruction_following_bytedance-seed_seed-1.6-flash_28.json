@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "Every small step today builds the strong future you dream of.",
+  "score": 4,
+  "cost": 7.53e-05,
+  "expected": "",
+  "tokens": {
+    "input": 100,
+    "output": 226
+  }
+}

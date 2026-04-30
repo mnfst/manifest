@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_explanation",
+  "case": 5,
+  "response": "This implements the classic **Singleton** pattern: it stores the created instance in the class variable `_instance` and, by overriding `__new__`, returns that same instance on every subsequent instantiation, guaranteeing a single, shared instance of the class.",
+  "score": 5,
+  "cost": 0.001551,
+  "expected": "",
+  "tokens": {
+    "input": 106,
+    "output": 326
+  }
+}

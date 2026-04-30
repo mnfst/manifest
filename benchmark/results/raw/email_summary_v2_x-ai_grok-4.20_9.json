@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "email_summary_v2",
+  "case": 9,
+  "response": "**Summary:**  \nThe nightly ETL job failed at 3 AM due to an upstream Salesforce schema change that broke the connector, causing dashboards to show stale data since yesterday. The fix has been deployed, a backfill is running, and full recovery is expected by 4 PM today.",
+  "score": 5,
+  "cost": 0.000866,
+  "expected": "",
+  "tokens": {
+    "input": 205,
+    "output": 57
+  }
+}

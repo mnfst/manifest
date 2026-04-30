@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-max-preview",
   "task": "email_summary_v2",
   "case": 33,
-  "response": "The Q1 employee engagement survey shows above-average overall engagement but highlights career growth clarity as the lowest-scoring area. To address this gap, the People Team will implement quarterly career conversations, an internal mobility program, and mentorship matching, with full details to be discussed at Friday\u2019s town hall.",
+  "response": "The Q1 employee engagement survey reveals above-average overall scores but identifies career growth clarity as the primary area needing improvement. To address this gap, the People Team has proposed quarterly career conversations, an internal mobility program, and mentorship matching, which will be discussed at Friday\u2019s town hall.",
   "score": 5,
-  "cost": 0.0060631999999999995,
+  "cost": 0.0060944,
   "expected": "",
   "tokens": {
     "input": 124,
-    "output": 1135
+    "output": 1141
   }
 }

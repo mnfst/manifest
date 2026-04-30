@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-1.6-flash",
   "task": "email_summary_v2",
   "case": 42,
-  "response": "A customer workshop with 15 enterprise clients was held yesterday, with key feedback including a need for better bulk import (mentioned by 8/15), SSO as a blocker for 5 accounts, and positive reception of the new analytics dashboard, along with 3 customers expressing interest in our internal tool as a standalone product. A follow-up report is attached.",
+  "response": "A customer workshop with 15 enterprise clients was held yesterday, with key feedback including a need for better bulk import (mentioned by 8/15), SSO as a blocker for 5 accounts, and positive reception of the new analytics dashboard, plus 3 customers expressing interest in our internal tool as a standalone product. A follow-up report is attached, as noted by Sales.",
   "score": 5,
-  "cost": 0.00011895,
+  "cost": 0.00017475,
   "expected": "",
   "tokens": {
     "input": 190,
-    "output": 349
+    "output": 535
   }
 }

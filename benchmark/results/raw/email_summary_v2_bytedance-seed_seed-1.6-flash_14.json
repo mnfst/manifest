@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-1.6-flash",
   "task": "email_summary_v2",
   "case": 14,
-  "response": "The AWS bill has increased by 40% month-over-month, primarily due to new ML training jobs using p4d instances ($32/hr), leading to an estimated $45K monthly impact. DevOps has proposed two options\u2014spot instances (70% savings, interruption risk) and reserved instances (30% savings, commitment)\u2014and requires a decision by Friday.",
+  "response": "The AWS bill has increased by 40% month-over-month, primarily due to new ML training jobs using p4d instances ($32/hr), with an estimated monthly impact of $45K. Options include spot instances (70% savings, interruption risk) or reserved instances (30% savings, commitment), and a decision is needed by Friday.",
   "score": 5,
-  "cost": 0.000116925,
+  "cost": 0.00011272499999999999,
   "expected": "",
   "tokens": {
     "input": 191,
-    "output": 342
+    "output": 328
   }
 }

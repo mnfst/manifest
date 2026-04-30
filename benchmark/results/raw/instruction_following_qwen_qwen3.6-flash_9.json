@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 9,
+  "response": "April\nJune\nSeptember\nNovember",
+  "score": 5,
+  "cost": 0.00073775,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 731
+  }
+}

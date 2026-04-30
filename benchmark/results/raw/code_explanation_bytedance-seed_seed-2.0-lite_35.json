@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "This code implements the Knuth-Morris-Pratt (KMP) efficient string matching algorithm, which first preprocesses the input pattern to build a Longest Prefix Suffix (LPS) array\u2014storing lengths of the longest proper prefix of the pattern that is also a suffix\u2014to eliminate redundant character comparisons during search. It then uses this precomputed LPS array to scan the input text, returning the first starting index of a full match of the pattern in the text, or -1 if the pattern never appears.",
+  "score": 5,
+  "cost": 0.0004695,
+  "expected": "",
+  "tokens": {
+    "input": 238,
+    "output": 410
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "The sun slanted through the smudged front window of Maple Street\u2019s only used bookstore, gilding the stack of tattered children\u2019s picture books I\u2019d dug out from a back closet that morning. Tucked between the pages of a water-stained copy of *Where the Wild Things Are* was a crumpled receipt dated 1998, scrawled on the back in purple crayon: \u201cThis is for Lila, who roars louder than Max ever could.\u201d I\u2019d been eight when my dad bought that book for me, the same year we lost our apartment and I left half my toy box and favorite stories on the curb in a panic. A gray-haired man hovering by the poetry shelf cleared his throat, and when I turned he held up a matching water-stained copy of *Charlotte\u2019s Web*, the same one I\u2019d remembered leaving beside the Wild Things book that same day. He\u2019d spent three years scouring every used bookstore within 50 miles, he said, after he\u2019d saved enough to rent a house with a bookshelf for all the things we\u2019d left behind. I left the store that afternoon with both books tucked under my arm, and for the first time since I was eight, I got to roar for Max all over again at the dinner table we shared that night.",
+  "score": 2,
+  "cost": 0.0012105,
+  "expected": "",
+  "tokens": {
+    "input": 58,
+    "output": 1196
+  }
+}

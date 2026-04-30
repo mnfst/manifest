@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "email_summary_v2",
+  "case": 34,
+  "response": "The Database Team is migrating from MySQL 5.7 to PostgreSQL 16 between May and July using a blue-green deployment for zero downtime. They will rewrite 3 stored procedures and are ready to begin testing in the prepared environment.",
+  "score": 5,
+  "cost": 2.89e-05,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 49
+  }
+}

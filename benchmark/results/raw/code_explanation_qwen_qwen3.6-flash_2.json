@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_explanation",
+  "case": 2,
+  "response": "This function implements the **Quicksort algorithm** using a **divide-and-conquer pattern**, recursively partitioning the input around a middle pivot into less-than, equal-to, and greater-than sublists, then concatenating the recursively sorted results. It returns a newly created sorted list rather than modifying the original array in-place.",
+  "score": 5,
+  "cost": 0.0011215,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 1090
+  }
+}

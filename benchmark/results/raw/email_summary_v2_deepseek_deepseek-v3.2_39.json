@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 39,
+  "response": "The year-end audit begins on January 15, and the pre-audit checklist includes finalizing Q4 revenue, reconciling bank accounts, verifying stock options, and preparing related-party disclosures. A meeting with the Controller next Tuesday will be held to assign these responsibilities.",
+  "score": 5,
+  "cost": 8.575e-05,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 55
+  }
+}

@@ -2,12 +2,12 @@
   "model": "kimi-k2.6",
   "task": "instruction_following",
   "case": 37,
-  "response": "Chocolate tastes like a cello solo in a dark room\u2014beginning with a deep, resonant bitterness that seems to vibrate through the tongue, then dissolving into a smooth, creamy sweetness that lingers like the warm, fading echo of the final note.",
+  "response": "Chocolate is a velvet symphony in the mouth\u2014an opening chord of deep, earthy shadow that resolves into creamy warmth, each bite melting like a dark sun dissolving into honeyed twilight, leaving a richness that lingers long after the final note has faded.",
   "score": 5,
-  "cost": 0.003636,
+  "cost": 0.0026496,
   "expected": "",
   "tokens": {
     "input": 20,
-    "output": 1510
+    "output": 1099
   }
 }

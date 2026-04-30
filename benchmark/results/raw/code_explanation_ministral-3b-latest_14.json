@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_explanation",
+  "case": 14,
+  "response": "This code implements **Dijkstra's algorithm**, a greedy shortest-path algorithm that efficiently finds the shortest paths from a single source node to all other nodes in a **weighted graph with non-negative edge weights**. It uses a **priority queue (min-heap)** to always expand the least-cost node first, updating distances dynamically by relaxing edges.",
+  "score": 5,
+  "cost": 8.599999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 70
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 13,
+  "response": "The seven colors of the rainbow in order, from longest to shortest wavelength, are:  \n\n1. Red  \n2. Orange  \n3. Yellow  \n4. Green  \n5. Blue  \n6. Indigo  \n7. Violet  \n\nThis sequence is commonly remembered by the mnemonic \"ROYGBIV.\"",
+  "score": 5,
+  "cost": 9.787499999999998e-05,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 303
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_generation",
+  "case": 15,
+  "response": "factor = 2\n    while factor * factor <= n:\n        if n % factor == 0:\n            n //= factor\n        else:\n            factor += 1 if factor == 2 else 2\n    return n",
+  "score": 4,
+  "cost": 0.000812,
+  "expected": "",
+  "tokens": {
+    "input": 210,
+    "output": 49
+  }
+}

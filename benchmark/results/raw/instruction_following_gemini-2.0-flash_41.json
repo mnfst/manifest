@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "```python\ndef sort_list(data, reverse=False):\n  \"\"\"Sorts a list of comparable elements.\n\n  Args:\n    data: A list of elements to be sorted.  All elements must be\n      comparable (e.g., all numbers, all strings).\n    reverse: Optional. If True, sort in descending order. Defaults to False\n      (ascending order).\n\n  Returns:\n    A new list containing the sorted elements from the input list.\n    Returns an empty list if the input list is empty.\n\n  Raises:\n    TypeError: If the input `data` is not a list.\n    TypeError: If the elements in the list are not comparable.\n\n  Examples:\n    >>> sort_list([3, 1, 4, 1, 5, 9, 2, 6])\n    [1, 1, 2, 3, 4, 5, 6, 9]\n\n    >>> sort_list([3, 1, 4, 1, 5, 9, 2, 6], reverse=True)\n    [9, 6, 5, 4, 3, 2, 1, 1]\n\n    >>> sort_list(['apple', 'banana', 'cherry'])\n    ['apple', 'banana', 'cherry']\n\n    >>> sort_list([])\n    []\n  \"\"\"\n  if not isinstance(data, list):\n    raise TypeError(\"Input 'data' must be a list.\")\n\n  if not data:\n    return []\n\n  try:\n    sorted_data = sorted(data, reverse=reverse)\n  except TypeError:\n    raise TypeError(\"Elements in the list must be comparable.\")\n\n  return sorted_data\n```",
+  "score": 4,
+  "cost": 0.00015580000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 386
+  }
+}

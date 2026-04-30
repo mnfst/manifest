@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_explanation",
+  "case": 27,
+  "response": "This code implements the **sliding window maximum** algorithm using a **monotonic decreasing deque**. It maintains indices of elements in the deque such that the front always holds the index of the current window's maximum, and efficiently removes out-of-window indices and smaller elements as it slides through the array.",
+  "score": 5,
+  "cost": 9.910000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 128,
+    "output": 61
+  }
+}

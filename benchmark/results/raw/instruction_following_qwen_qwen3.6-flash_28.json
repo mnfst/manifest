@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "Your potential is endless, so go do what you were created to do.",
+  "score": 3,
+  "cost": 0.001312,
+  "expected": "",
+  "tokens": {
+    "input": 28,
+    "output": 1305
+  }
+}

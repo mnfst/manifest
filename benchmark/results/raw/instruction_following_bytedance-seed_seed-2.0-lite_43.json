@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 43,
+  "response": "Did you know that 10,000 light-years away near the center of the Milky Way, there\u2019s a cloud of cosmic gas so massive it could theoretically brew 400 trillion trillion pints of beer? This sprawling cloud, part of the giant star-forming region Sagittarius B2, is made mostly of methyl alcohol\u2014the same kind of toxic alcohol used in antifreeze and cleaning supplies, so sadly you could never actually sip this interstellar batch. It stretches across nearly 300 trillion miles of space, wide enough to fit more than 3 million solar systems side-by-side inside it, and astronomers first spotted its unusual chemical makeup in 1995, making it one of the weirdest, most delightfully absurd cosmic structures we\u2019ve ever detected.",
+  "score": 5,
+  "cost": 0.00063525,
+  "expected": "",
+  "tokens": {
+    "input": 65,
+    "output": 619
+  }
+}

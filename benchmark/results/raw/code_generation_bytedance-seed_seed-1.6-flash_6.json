@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-1.6-flash",
   "task": "code_generation",
   "case": 6,
-  "response": "from collections import Counter\n\ndef remove_duplicates(numbers: List[int]) -> List[int]:\n    counts = Counter(numbers)\n    return [num for num in numbers if counts[num] == 1]",
+  "response": "counts = {}\n    for num in numbers:\n        counts[num] = counts.get(num, 0) + 1\n    return [num for num in numbers if counts[num] == 1]",
   "score": 5,
-  "cost": 0.000381525,
+  "cost": 0.000331125,
   "expected": "",
   "tokens": {
     "input": 203,
-    "output": 1221
+    "output": 1053
   }
 }

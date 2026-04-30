@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_explanation",
+  "case": 10,
+  "response": "The function implements the **Sieve of Eratosthenes** to generate all prime numbers \u2264\u202fn. It starts with a Boolean list assuming every number is prime, then for each prime\u202fi up to \u221an marks all multiples of\u202fi (starting at\u202fi\u00b2) as composite, finally returning the indices that remain marked as prime.",
+  "score": 5,
+  "cost": 0.0023947000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 165,
+    "output": 503
+  }
+}

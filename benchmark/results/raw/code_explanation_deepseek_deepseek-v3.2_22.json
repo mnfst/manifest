@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "This code implements an **LRU (Least Recently Used) cache** using Python's `OrderedDict`. It maintains a fixed capacity by automatically evicting the least recently accessed item when the cache is full, using `move_to_end()` to track recent usage and `popitem(last=False)` to remove the oldest entry.",
+  "score": 4,
+  "cost": 0.0001127,
+  "expected": "",
+  "tokens": {
+    "input": 156,
+    "output": 67
+  }
+}

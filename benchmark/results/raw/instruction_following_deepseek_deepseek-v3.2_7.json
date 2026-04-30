@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 7,
+  "response": "Beat 2 eggs. Season with salt. Heat butter in a non-stick pan over medium heat. Pour in eggs. Stir gently with a spatula until softly set. Serve immediately. Optional: add a splash of milk for creaminess.",
+  "score": 5,
+  "cost": 5.890000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 49
+  }
+}

@@ -2,12 +2,12 @@
   "model": "kimi-k2.6",
   "task": "instruction_following",
   "case": 40,
-  "response": "Here are five capital cities from five different continents:\n\n1. **Tokyo** \u2013 Japan *(Asia)*\n2. **Cairo** \u2013 Egypt *(Africa)*\n3. **Paris** \u2013 France *(Europe)*\n4. **Bras\u00edlia** \u2013 Brazil *(South America)*\n5. **Canberra** \u2013 Australia *(Oceania/Australia)*",
+  "response": "Here are five capital cities from five different continents:\n\n1. **Tokyo** \u2013 Japan *(Asia)*\n2. **Nairobi** \u2013 Kenya *(Africa)*\n3. **Paris** \u2013 France *(Europe)*\n4. **Ottawa** \u2013 Canada *(North America)*\n5. **Canberra** \u2013 Australia *(Oceania)*",
   "score": 5,
-  "cost": 0.0016158,
+  "cost": 0.0026238,
   "expected": "",
   "tokens": {
     "input": 21,
-    "output": 668
+    "output": 1088
   }
 }

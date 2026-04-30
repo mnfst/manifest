@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_explanation",
+  "case": 46,
+  "response": "This is the rebalancing procedure for a red-black tree after insertion. It iteratively fixes violations of the red-black property\u2014specifically when a red node has a red child\u2014by recoloring nodes and performing left or right rotations depending on the uncle's color, and finally ensures the tree root is black.",
+  "score": 4,
+  "cost": 0.0016968,
+  "expected": "",
+  "tokens": {
+    "input": 172,
+    "output": 664
+  }
+}

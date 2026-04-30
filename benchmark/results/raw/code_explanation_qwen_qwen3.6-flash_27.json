@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_explanation",
+  "case": 27,
+  "response": "This function computes the maximum value in every sliding window of size `k` using a **monotonic decreasing deque** algorithm. It maintains a queue of indices with values in descending order, efficiently discarding out-of-window indices and smaller elements so that the front always holds the current window's maximum in O(n) time.",
+  "score": 5,
+  "cost": 0.00129875,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 1265
+  }
+}

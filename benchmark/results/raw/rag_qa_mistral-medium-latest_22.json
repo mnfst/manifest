@@ -2,7 +2,7 @@
   "model": "mistral-medium-latest",
   "task": "rag_qa",
   "case": 22,
-  "response": "The **South African Schools Act of 1996** recognized two categories of schools: \"public\" (state-controlled) and \"independent.\"",
+  "response": "The **South African Schools Act of 1996** recognized two types of schools: \"public\" (state-controlled) and \"independent.\"",
   "score": 5,
   "cost": 0.00012080000000000001,
   "expected": "South African Schools Act",

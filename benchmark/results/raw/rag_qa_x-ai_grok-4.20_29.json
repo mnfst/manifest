@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "rag_qa",
+  "case": 29,
+  "response": "Istanbul",
+  "score": 5,
+  "cost": 0.000596,
+  "expected": "Istanbul",
+  "tokens": {
+    "input": 290,
+    "output": 2
+  }
+}

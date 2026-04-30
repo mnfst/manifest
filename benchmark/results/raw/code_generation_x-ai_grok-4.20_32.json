@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_generation",
+  "case": 32,
+  "response": "```python\n    words = s.split(' ')\n    ordered = []\n    for word in words:\n        if word:\n            ordered.append(''.join(sorted(word)))\n        else:\n            ordered.append('')\n    return ' '.join(ordered)\n```",
+  "score": 5,
+  "cost": 0.00094,
+  "expected": "",
+  "tokens": {
+    "input": 274,
+    "output": 49
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "rag_qa",
+  "case": 45,
+  "response": "The show globe was employed until the early 20th century.",
+  "score": 5,
+  "cost": 7.14e-05,
+  "expected": "The show globe",
+  "tokens": {
+    "input": 224,
+    "output": 14
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_generation",
+  "case": 39,
+  "response": "```python\n    if x == 0:\n        return '0'\n    digits = []\n    while x > 0:\n        digits.append(str(x % base))\n        x //= base\n    return ''.join(reversed(digits))\n```",
+  "score": 5,
+  "cost": 0.000876,
+  "expected": "",
+  "tokens": {
+    "input": 238,
+    "output": 50
+  }
+}

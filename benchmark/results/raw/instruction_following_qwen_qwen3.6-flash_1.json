@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 1,
+  "response": "The CPU is the computer's primary processing component that continuously fetches, decodes, and executes program instructions while performing calculations and coordinating data flow across system components.",
+  "score": 2,
+  "cost": 0.00099425,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 989
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 7,
+  "response": "The new office will be ready on June 1, with the move scheduled for June 7-8 and IT requiring network setup from June 4-6. Each team must designate a move coordinator by Friday, and professional movers have been budgeted for.",
+  "score": 5,
+  "cost": 8.030000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 53
+  }
+}

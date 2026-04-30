@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "A pizza with thick, chewy, golden-brown crust; tangy, smooth marinara sauce; creamy, stringy, melty mozzarella cheese; crispy, spicy, oily pepperoni; sliced, earthy mushrooms; red, crunchy bell peppers; black, briny olives; fresh, green basil; dried, fragrant oregano.  \n\n\nThis description uses only adjectives (thick, chewy, tangy, etc.) and nouns (crust, sauce, mozzarella, etc.), avoiding verbs entirely. It layers sensory details\u2014texture (crunchy, stringy), flavor (tangy, briny), and color (golden-brown, red)\u2014to evoke the pizza\u2019s character.",
+  "score": 5,
+  "cost": 0.00026302499999999996,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 853
+  }
+}

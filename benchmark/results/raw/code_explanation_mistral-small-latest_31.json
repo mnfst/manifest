@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "code_explanation",
+  "case": 31,
+  "response": "This code implements the **A* search algorithm**, a best-first search that finds the shortest path from `start` to `goal` in a graph. It uses a priority queue (`open_set`) to explore nodes with the lowest estimated total cost (`f = g + h`), where `g` is the actual cost from the start (`cost`), and `h` is a heuristic estimate to the goal (`heuristic(neighbor, goal)`). The algorithm expands the most promising node first, ensuring optimality if the heuristic is admissible.",
+  "score": 5,
+  "cost": 5.17e-05,
+  "expected": "",
+  "tokens": {
+    "input": 184,
+    "output": 111
+  }
+}

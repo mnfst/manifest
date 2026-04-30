@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "email_summary_v2",
+  "case": 2,
+  "response": "A critical SQL injection vulnerability has been discovered in the login API, affecting versions v3.2.0-v3.4.1. David recommends applying the provided patch, which parameterizes the query in auth_controller.py:142, as a hotfix within 24 hours.",
+  "score": 5,
+  "cost": 3.540000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 63
+  }
+}

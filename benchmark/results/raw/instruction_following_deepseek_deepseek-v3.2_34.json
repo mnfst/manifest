@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 34,
+  "response": "A database index speeds up data retrieval by creating a sorted reference to the data, similar to a book's index. It allows the database to find rows quickly without scanning the entire table, though it slightly slows down data insertion and updates.",
+  "score": 3,
+  "cost": 5.830000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 48
+  }
+}

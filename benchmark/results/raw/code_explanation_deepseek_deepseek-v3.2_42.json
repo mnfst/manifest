@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "This code implements an asynchronous queue for coordinating producers and consumers in asyncio, using a **future-based signaling pattern** to suspend coroutines when the queue is full or empty. It maintains separate deques for waiting `put` and `get` operations, waking them up when space becomes available or items are added.",
+  "score": 5,
+  "cost": 0.0001285,
+  "expected": "",
+  "tokens": {
+    "input": 228,
+    "output": 65
+  }
+}

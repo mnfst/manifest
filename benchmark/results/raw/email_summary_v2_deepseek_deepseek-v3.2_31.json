@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 31,
+  "response": "A new 'Starter' pricing tier at $29/month is proposed to address customer churn due to cost, aiming to recover 15% of lost users and generate $180K in annual revenue. This tier would include features for 5 users, 10K API calls, and email support.",
+  "score": 5,
+  "cost": 9.645e-05,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 62
+  }
+}

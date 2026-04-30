@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 38,
+  "response": "Invalid credentials. Please check your username and password, then try again.",
+  "score": 3,
+  "cost": 0.00088075,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 874
+  }
+}

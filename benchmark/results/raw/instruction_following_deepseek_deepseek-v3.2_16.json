@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is the invisible force that pulls objects with mass towards each other. It's why an apple falls to the ground, why planets orbit stars, and why we don't float off the Earth. The more mass an object has, the stronger its gravitational pull. That is gravity.",
+  "score": 5,
+  "cost": 7.2e-05,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 60
+  }
+}

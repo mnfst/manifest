@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "This class implements the **Least Recently Used (LRU) caching algorithm**, using Python's `OrderedDict` to maintain key access order. When a key is retrieved or updated, it is moved to the end as the most recently used, and if the cache exceeds its capacity, the least recently used item at the front is automatically evicted.",
+  "score": 5,
+  "cost": 0.00116275,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 1124
+  }
+}

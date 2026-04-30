@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "1. **Make it sufficiently long** \u2013 Aim for at least 12\u201316 characters. Length exponentially increases the number of possible combinations, making brute-force and automated cracking attacks impractical.\n\n2. **Incorporate varied character types** \u2013 Use a mix of uppercase letters, lowercase letters, numbers, and symbols. While modern guidelines prioritize length, character diversity still raises entropy and thwarts dictionary-based attacks.\n\n3. **Eliminate predictable patterns** \u2013 Avoid common words, keyboard walks (e.g., \"qwerty\" or \"1qaz2wsx\"), repeated/sequential characters, and any personal information (names, birthdays, addresses) that could be guessed or found online.\n\n4. **Ensure absolute uniqueness** \u2013 Create a completely different password for every account. Reuse turns a single breached site into a master key for your email, banking, and work logins.\n\n5. **Favor randomness or structured passphrases** \u2013 Use a cryptographically secure generator for truly random strings, or build a passphrase from four or more unrelated words with separators and minor modifications (e.g., `Taco#Orbit!Fence9River`). This balances high security with human memorability.\n\n6. **Store it in a reputable password manager** \u2013 A good password is only effective if it remains confidential. Encrypted password managers eliminate the need to memorize or insecurely record complex credentials.\n\n7. **Verify it against known breaches** \u2013 Before adopting a password, check it against compromised credential databases (using privacy-safe tools like Have I Been Pwned or built-in manager alerts) to ensure it hasn't already been exposed.\n\n8. **Pair it with multi-factor authentication and smart rotation** \u2013 Treat your password as the first layer of defense, not the only one. Enable MFA wherever possible, and change the password only if you suspect compromise or receive a breach notification, rather than on a forced schedule that often leads to weaker, predictable variations.",
+  "score": 4,
+  "cost": 0.0093405,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 1791
+  }
+}

@@ -4,10 +4,10 @@
   "case": 8,
   "response": "36%",
   "score": 5,
-  "cost": 0.00095575,
+  "cost": 0.00098075,
   "expected": "36%",
   "tokens": {
     "input": 187,
-    "output": 909
+    "output": 934
   }
 }

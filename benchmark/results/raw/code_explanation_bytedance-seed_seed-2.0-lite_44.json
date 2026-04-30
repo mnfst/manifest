@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "This code computes all connected components (groups of mutually reachable nodes) of an input graph stored as an adjacency list, using Breadth-First Search (BFS) as its core traversal algorithm. It maintains a set of visited nodes to avoid reprocessing, iterating over every graph node to launch a BFS that explores all reachable unvisited nodes to build a new connected component, collecting all components into a list to return.",
+  "score": 5,
+  "cost": 0.00063,
+  "expected": "",
+  "tokens": {
+    "input": 188,
+    "output": 583
+  }
+}

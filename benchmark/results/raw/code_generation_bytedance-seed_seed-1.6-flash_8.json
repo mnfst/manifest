@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-1.6-flash",
   "task": "code_generation",
   "case": 8,
-  "response": "return [v for v in values if isinstance(v, int)]",
+  "response": "return [x for x in values if isinstance(x, int)]",
   "score": 5,
-  "cost": 0.00021675,
+  "cost": 0.0005599499999999999,
   "expected": "",
   "tokens": {
     "input": 210,
-    "output": 670
+    "output": 1814
   }
 }

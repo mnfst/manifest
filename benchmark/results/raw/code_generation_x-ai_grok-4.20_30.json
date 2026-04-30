@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_generation",
+  "case": 30,
+  "response": "```python\n    fib = [0, 1]\n    while len(fib) < 100:\n        fib.append(fib[-1] + fib[-2])\n    primes = []\n    for f in fib:\n        if f > 1:\n            is_prime = True\n            for i in range(2, int(f**0.5) + 1):\n                if f % i == 0:\n                    is_prime = False\n                    break\n            if is_prime:\n                primes.append(f)\n                if len(primes) >= n:\n                    return primes[-1]\n    return primes[-1]\n```",
+  "score": 4,
+  "cost": 0.001502,
+  "expected": "",
+  "tokens": {
+    "input": 243,
+    "output": 127
+  }
+}

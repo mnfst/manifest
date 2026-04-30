@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 9,
+  "response": "April, June, September, November",
+  "score": 5,
+  "cost": 0.000332,
+  "expected": "",
+  "tokens": {
+    "input": 138,
+    "output": 7
+  }
+}

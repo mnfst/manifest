@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "There once was a programmer Dave,\nWhose code made the server misbehave.\nHe typed in a loop,\nThat would never stop,\nAnd now he's a slave to the cave.",
+  "score": 5,
+  "cost": 0.00289125,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 2886
+  }
+}

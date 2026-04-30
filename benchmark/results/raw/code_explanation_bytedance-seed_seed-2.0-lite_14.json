@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_explanation",
+  "case": 14,
+  "response": "This code implements Dijkstra's shortest path algorithm, using a min-heap (priority queue from Python's `heapq` module) to efficiently compute the shortest distance from a given start node to all other nodes in a weighted graph that only has non-negative edge weights. It leverages edge relaxation to update the shortest known distance to every neighboring node, and skips stale, longer path entries in the heap that cannot improve on already confirmed shortest distances.",
+  "score": 5,
+  "cost": 0.00059825,
+  "expected": "",
+  "tokens": {
+    "input": 197,
+    "output": 549
+  }
+}

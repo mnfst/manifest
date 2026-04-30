@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "rag_qa",
+  "case": 33,
+  "response": "Based on the provided context, OPEC raised the price of oil to $5.11 in response to American aid to Israel.",
+  "score": 5,
+  "cost": 0.0023101000000000003,
+  "expected": "In response to American aid to Israel",
+  "tokens": {
+    "input": 285,
+    "output": 373
+  }
+}

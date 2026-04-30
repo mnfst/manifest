@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "Turn right out of the park's main gate.\nTurn left at the first intersection.\nTurn right onto Elm Street.\nTurn left at the second crosswalk.\nTurn right onto Maple Avenue.\nTurn left at the traffic signal.\nTurn right onto Library Lane.\nTurn left into the library driveway.\nTurn right toward the building entrance.\nTurn left through the front doors to arrive at the library.",
+  "score": 4,
+  "cost": 0.008739900000000002,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 1674
+  }
+}

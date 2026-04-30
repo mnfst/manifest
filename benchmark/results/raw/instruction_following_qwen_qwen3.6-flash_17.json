@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 17,
+  "response": "| Pros | Cons |\n|------|------|\n| **Flexibility & Autonomy:** Employees can often choose their work hours and location, which can boost productivity, job satisfaction, and access to a wider range of opportunities. | **Social Isolation:** Reduced face-to-face interaction can lead to feelings of loneliness, weaken team bonds, and make it harder to build company culture. |\n| **No Commute:** Eliminates daily travel time and expenses, reducing stress, lowering carbon footprint, and freeing up hours for personal or professional use. | **Blurred Work-Life Boundaries:** Without a physical office to leave, employees may struggle to mentally \"clock out,\" increasing the risk of overwork and burnout. |\n| **Improved Work-Life Balance:** Greater control over daily routines makes it easier to manage personal responsibilities, health, and leisure without sacrificing work commitments. | **Communication & Collaboration Challenges:** Remote setups can delay feedback, complicate project coordination across time zones, and hinder spontaneous brainstorming or mentorship. |",
+  "score": 4,
+  "cost": 0.0007775,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 771
+  }
+}

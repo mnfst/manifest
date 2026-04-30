@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "email_summary_v2",
+  "case": 18,
+  "response": "**Summary:**  \nThe VP of Engineering proposes splitting the Platform team into two separate teams\u2014Infrastructure (networking, compute, storage) and Developer Experience (CI/CD, tooling, onboarding)\u2014to eliminate the current bottleneck where DX work is constantly deprioritized due to infrastructure incidents.  \n\nPlease review the attached draft org chart and provide feedback.",
+  "score": 5,
+  "cost": 0.00096,
+  "expected": "",
+  "tokens": {
+    "input": 204,
+    "output": 69
+  }
+}

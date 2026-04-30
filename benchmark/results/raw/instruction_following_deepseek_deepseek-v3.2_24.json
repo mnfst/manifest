@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "- **Incident Overview:** A two-vehicle collision occurred at the intersection of Maple Avenue and 5th Street on October 26, 2023, at approximately 3:15 PM, involving a 2020 blue sedan and a 2018 red SUV.\n- **Damage & Injuries:** The sedan sustained significant front-end damage, and the SUV had major side-impact damage; both drivers reported minor injuries and were treated at the scene by emergency medical services.\n- **Cause & Action:** Preliminary investigation indicates the sedan failed to stop at a red light, leading to the collision; a police report was filed, and both vehicles were towed from the scene.",
+  "score": 5,
+  "cost": 0.000154,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 135
+  }
+}

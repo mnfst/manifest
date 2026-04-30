@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-max-preview",
   "task": "email_summary_v2",
   "case": 44,
-  "response": "Sarah proposes reallocating $50K from engineering's underspend to cover marketing's 15% Q3 budget overrun. The team should meet on Thursday to discuss and approve this adjustment.",
+  "response": "Marketing exceeded its Q3 budget by 15% while engineering remains 8% under budget, prompting a proposal to reallocate $50K from engineering to cover the marketing overspend. The team is asked to meet on Thursday to discuss this budget adjustment.",
   "score": 5,
-  "cost": 0.0062426,
+  "cost": 0.006045000000000001,
   "expected": "",
   "tokens": {
     "input": 102,
-    "output": 1175
+    "output": 1137
   }
 }

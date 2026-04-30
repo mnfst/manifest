@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 45,
+  "response": "### TCP vs UDP: Overview\n**TCP (Transmission Control Protocol)** and **UDP (User Datagram Protocol)** are the two primary transport-layer protocols in the TCP/IP suite. They dictate how data moves between devices across a network, but they optimize for different goals:\n- **TCP** prioritizes **reliability, order, and error recovery**.\n- **UDP** prioritizes **speed, low latency, and minimal overhead**.\n\n---\n\n### \ud83d\udd0d Comparison Table\n\n| Feature                  | TCP (Transmission Control Protocol)                          | UDP (User Datagram Protocol)                          |\n|--------------------------|--------------------------------------------------------------|-------------------------------------------------------|\n| **Connection Type**      | Connection-oriented (3-way handshake before data transfer)   | Connectionless (no handshake; sends immediately)      |\n| **Reliability**          | Guaranteed delivery via acknowledgments & retransmissions    | No delivery guarantees; packets may be dropped        |\n| **Packet Ordering**      | Strictly ordered; reassembled sequentially at receiver       | No ordering guarantee; may arrive out of sequence     |\n| **Speed & Overhead**     | Slower; higher overhead due to control mechanisms            | Faster; minimal overhead                              |\n| **Flow/Congestion Control** | Yes; dynamically adjusts send rate to avoid network/receiver overload | None; sends at constant rate regardless of conditions |\n| **Error Handling**       | Checksum + automatic retransmission of lost/corrupted data   | Checksum only (optional in IPv4); no retransmission   |\n| **Header Size**          | 20\u201360 bytes (variable due to options)                        | Fixed 8 bytes                                         |\n| **Statefulness**         | Stateful (tracks connection state, sequence numbers, windows) | Stateless (each datagram is independent)              |\n| **Typical Use Cases**    | Web browsing, email, file transfers, remote access           | Live video/audio, gaming, VoIP, DNS, IoT telemetry    |\n| **Common Protocols**     | HTTP/HTTPS, FTP, SMTP, SSH, IMAP/POP3                        | DNS, DHCP, RTP, TFTP, SNMP, QUIC*                     |\n\n*\\*QUIC runs over UDP but adds reliability/congestion control at the application layer.*\n\n---\n\n### \ud83d\udcd6 Key Differences Explained\n\n1. **Connection Setup**  \n   TCP requires a `",
+  "score": 4,
+  "cost": 0.0096993,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 1860
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "rag_qa",
+  "case": 8,
+  "response": "Based on the provided context, the target percentage was **36%**.",
+  "score": 5,
+  "cost": 0.0063011000000000005,
+  "expected": "36%",
+  "tokens": {
+    "input": 187,
+    "output": 1165
+  }
+}

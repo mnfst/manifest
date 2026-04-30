@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "rag_qa",
+  "case": 40,
+  "response": "Based on the provided context, France offered **full citizenship rights (assimilation)**.",
+  "score": 5,
+  "cost": 0.0073008000000000005,
+  "expected": "assimilation",
+  "tokens": {
+    "input": 180,
+    "output": 1359
+  }
+}

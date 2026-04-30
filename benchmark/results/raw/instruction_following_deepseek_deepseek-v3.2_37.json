@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "Chocolate tastes like a velvet midnight, rich and smooth, dissolving into a sweet, smoky warmth that lingers like a whispered secret.",
+  "score": 5,
+  "cost": 3.5050000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 28
+  }
+}

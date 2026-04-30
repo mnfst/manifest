@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_explanation",
+  "case": 10,
+  "response": "This Python function implements the classic Sieve of Eratosthenes algorithm, an efficient number-theoretic method to find all prime numbers less than or equal to a given input integer n. It initializes a boolean array to track primality, iterates only up to the square root of n to mark all multiples of each confirmed prime (starting from the prime's square to avoid redundant calculations) as non-prime, then returns a list of all indices that remain flagged as prime.",
+  "score": 5,
+  "cost": 0.0007335,
+  "expected": "",
+  "tokens": {
+    "input": 190,
+    "output": 686
+  }
+}

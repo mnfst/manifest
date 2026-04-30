@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 23,
+  "response": "Apple; banana; cherry; date; fig  \n\nThis list follows alphabetical order (A to F) and includes 5 distinct fruits, separated by semicolons.",
+  "score": 5,
+  "cost": 0.00010694999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 332
+  }
+}

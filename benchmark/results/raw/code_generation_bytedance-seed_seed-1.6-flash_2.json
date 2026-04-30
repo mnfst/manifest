@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_generation",
+  "case": 2,
+  "response": "lst_copy = list(lst)\nresult = []\ntake_min = True\nwhile lst_copy:\n    if take_min:\n        current = min(lst_copy)\n    else:\n        current = max(lst_copy)\n    result.append(current)\n    lst_copy.remove(current)\n    take_min = not take_min\nreturn result",
+  "score": 5,
+  "cost": 0.0006305249999999999,
+  "expected": "",
+  "tokens": {
+    "input": 243,
+    "output": 2041
+  }
+}

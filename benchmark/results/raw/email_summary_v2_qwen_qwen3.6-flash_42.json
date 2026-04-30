@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-flash",
   "task": "email_summary_v2",
   "case": 42,
-  "response": "Yesterday's workshop with 15 enterprise customers revealed strong appreciation for the new analytics dashboard while highlighting critical needs for improved bulk import and SSO functionality, alongside unexpected interest in commercializing an internal tool. Please review the attached follow-up report to address these feature requests and evaluate the standalone product opportunity.",
+  "response": "Yesterday's workshop with 15 enterprise customers highlighted strong appreciation for the new analytics dashboard while revealing critical needs for improved bulk import and SSO functionality, alongside unexpected interest in commercializing an internal tool. Please review the attached follow-up report to address these feature requests and evaluate the standalone product opportunity.",
   "score": 5,
-  "cost": 0.001449,
+  "cost": 0.001224,
   "expected": "",
   "tokens": {
     "input": 116,
-    "output": 1420
+    "output": 1195
   }
 }

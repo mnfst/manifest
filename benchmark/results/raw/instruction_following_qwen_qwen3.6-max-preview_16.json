@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is the invisible pull that objects with mass exert on each other. The more massive something is, the stronger its pull, which is why Earth keeps you firmly on the ground, why dropped items fall downward, and why planets stay in orbit around the Sun. This pull also weakens with distance, so the farther apart two objects are, the less they tug on each other. Scientists have described it in different ways over time\u2014Newton treated it as a universal force, while Einstein showed it as the curvature of space and time caused by mass\u2014but the everyday result is always the same: it draws matter together and governs how things move across the cosmos. That is gravity.",
+  "score": 5,
+  "cost": 0.004137900000000001,
+  "expected": "",
+  "tokens": {
+    "input": 31,
+    "output": 788
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "This implements an **LRU (Least Recently Used) cache** using Python's `OrderedDict`. The `get` method moves accessed keys to the end to mark them as recently used, and the `put` method evicts the oldest item from the front (least recently used) when capacity is exceeded.",
+  "score": 4,
+  "cost": 0.0011572000000000004,
+  "expected": "",
+  "tokens": {
+    "input": 156,
+    "output": 224
+  }
+}

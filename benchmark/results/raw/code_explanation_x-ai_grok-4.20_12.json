@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "**This code performs a topological sort on a directed acyclic graph (DAG) using Depth-First Search (DFS).**\n\n### Explanation:\n\nIt uses the classic **DFS-based topological sorting algorithm** (also known as Kahn\u2019s algorithm variant via finishing times):\n\n- It traverses the graph using DFS, and **adds each node to the stack only after all its descendants (neighbors) have been visited** \u2014 i.e., at the \"finish\" time of the node.\n- This ensures that if there is an edge `u \u2192 v`, then `v` will appear before `u` in the final ordering.\n- Finally, it reverses the stack (`stack[::-1]`) to produce the correct topological order (from sources to sinks).\n\nThe result is a linear ordering of vertices such that for every directed edge `u \u2192 v`, vertex `u` comes before `v` in the ordering.",
+  "score": 5,
+  "cost": 0.001858,
+  "expected": "",
+  "tokens": {
+    "input": 221,
+    "output": 177
+  }
+}

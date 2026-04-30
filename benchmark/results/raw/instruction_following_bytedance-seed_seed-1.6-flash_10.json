@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "There once was a programmer Dave,  \nWho debugged with a steady hand, save.  \nHis code, though complex, ran like a dream,  \nNo bugs, no glitches, just pure gleam\u2014  \nSo the team cheered, \"Well done, Dave!\"  \n\n\nThis limerick follows the AABBA rhyme scheme, with a bouncy rhythm that fits the form. It highlights Dave's skill (debugging, clean code) and the positive impact of his work (team approval), all while keeping the tone light and playful.",
+  "score": 5,
+  "cost": 0.00039277500000000005,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 1286
+  }
+}

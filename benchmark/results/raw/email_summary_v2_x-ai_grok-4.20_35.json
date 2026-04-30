@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "email_summary_v2",
+  "case": 35,
+  "response": "**Summary:** The company is updating its content moderation policy to require labeling of AI-generated images, prohibit deepfakes, and mandate disclosure for AI-assisted text, with enforcement beginning June 1. Trust & Safety is preparing training materials, and no specific action is requested from the recipient in this update.",
+  "score": 4,
+  "cost": 0.000904,
+  "expected": "",
+  "tokens": {
+    "input": 212,
+    "output": 60
+  }
+}

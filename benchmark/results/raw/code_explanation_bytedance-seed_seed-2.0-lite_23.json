@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_explanation",
+  "case": 23,
+  "response": "This code is a standard iterative binary search implementation of the `bisect_left` algorithm, which operates on a pre-sorted ascending input list `a` to return the leftmost valid insertion index for target value `x` that maintains the list's sorted order. If `x` already exists in `a`, the returned index points to the first occurrence of `x`, as it narrows its search window by comparing the window's middle element to `x` to adjust bounds and converge on the correct position.",
+  "score": 5,
+  "cost": 0.00054525,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 510
+  }
+}

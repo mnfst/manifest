@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_explanation",
+  "case": 8,
+  "response": "This code implements a **debounce decorator** that delays the execution of a function until after a specified `wait` period has passed without it being called again. When the decorated function is invoked, it cancels any pending timer and schedules the function to run only after the delay expires, effectively ignoring rapid successive calls.",
+  "score": 5,
+  "cost": 6.720000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 104,
+    "output": 64
+  }
+}

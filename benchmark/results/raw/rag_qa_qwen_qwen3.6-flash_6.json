@@ -4,10 +4,10 @@
   "case": 6,
   "response": "TFEU article 294",
   "score": 5,
-  "cost": 0.00093925,
+  "cost": 0.00075725,
   "expected": "TFEU article 294",
   "tokens": {
     "input": 405,
-    "output": 838
+    "output": 656
   }
 }

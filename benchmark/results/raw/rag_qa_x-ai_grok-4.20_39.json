@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "rag_qa",
+  "case": 39,
+  "response": "Packet switching contrasts with circuit switching.",
+  "score": 5,
+  "cost": 0.000574,
+  "expected": "circuit switching",
+  "tokens": {
+    "input": 259,
+    "output": 7
+  }
+}

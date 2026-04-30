@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "rag_qa",
+  "case": 5,
+  "response": "Based on the provided context, Rhine bridges are located at **Arnhem**, **Nijmegen**, and **Remagen**. (The context specifically mentions \"The Rhine bridge at Arnhem,\" bridges at Nijmegen, and the Ludendorff Bridge at Remagen.)",
+  "score": 4,
+  "cost": 0.0077233,
+  "expected": "Arnhem",
+  "tokens": {
+    "input": 245,
+    "output": 1424
+  }
+}

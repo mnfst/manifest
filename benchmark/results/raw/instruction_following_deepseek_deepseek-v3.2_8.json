@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Imagine a special coloring book where everyone has the same copy. When you color a page, everyone sees it and can't change it. That way, we all know for sure what the picture looks like, and no one can cheat.",
+  "score": 5,
+  "cost": 5.755e-05,
+  "expected": "",
+  "tokens": {
+    "input": 19,
+    "output": 48
+  }
+}

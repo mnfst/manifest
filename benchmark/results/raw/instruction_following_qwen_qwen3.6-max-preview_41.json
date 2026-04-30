@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 41,
+  "response": "Here's a Google-style docstring for a generic `sort` function. I've included a typical function signature for context:\n\n```python\ndef sort(iterable, key=None, reverse=False):\n    \"\"\"Sorts an iterable and returns a new list containing all items in sorted order.\n\n    Creates a new list from the provided iterable and returns it sorted. The sort\n    is guaranteed to be stable, meaning that when multiple elements have equal\n    comparison keys, their original relative order is preserved.\n\n    Args:\n        iterable (Iterable): The collection of items to be sorted.\n        key (Callable, optional): A function of one argument used to extract a\n            comparison key from each element. Defaults to None, which means\n            elements are compared directly.\n        reverse (bool, optional): If True, the sorted list is returned in\n            descending order. Defaults to False.\n\n    Returns:\n        list: A new list containing all items from the iterable in sorted order.\n\n    Raises:\n        TypeError: If elements in the iterable are not comparable, or if the key\n            function returns values that cannot be compared.\n\n    Examples:\n        >>> sort([3, 1, 4, 1, 5])\n        [1, 1, 3, 4, 5]\n        >>> sort([\"apple\", \"fig\", \"banana\"], key=len)\n        ['fig', 'apple', 'banana']\n        >>> sort([1, 2, 3], reverse=True)\n        [3, 2, 1]\n    \"\"\"\n    # Implementation goes here\n    pass\n```\n\n**Key Google-style conventions used:**\n- One-line summary followed by a blank line and optional extended description\n- `Args:`, `Returns:`, `Raises:`, and `Examples:` section headers\n- Parameter types in parentheses: `param_name (type): description`\n- Return type formatted as `type: description`\n- 4-space indentation for section contents\n- Doctest-compatible examples (optional but recommended)\n\nAdjust the types or behavior notes if your specific implementation differs (e.g., in-place sorting, custom comparators, or different default arguments).",
+  "score": 4,
+  "cost": 0.009926800000000001,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 1903
+  }
+}

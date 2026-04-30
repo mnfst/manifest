@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "code_explanation",
+  "case": 26,
+  "response": "This code implements the **0/1 Knapsack problem** using **dynamic programming**. It builds a 2D table `dp` where `dp[i][w]` represents the maximum value achievable with the first `i` items and a knapsack capacity of `w`, iteratively filling the table by either including or excluding each item.",
+  "score": 5,
+  "cost": 3.8e-05,
+  "expected": "",
+  "tokens": {
+    "input": 167,
+    "output": 71
+  }
+}

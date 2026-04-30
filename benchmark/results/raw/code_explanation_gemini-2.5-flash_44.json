@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "This code identifies all connected components within a given graph. It achieves this by iterating through each node and, for every unvisited node, initiating a Breadth-First Search (BFS) to discover and collect all nodes belonging to that specific component.",
+  "score": 4,
+  "cost": 5.234999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 49
+  }
+}

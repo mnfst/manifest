@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-flash",
   "task": "email_summary_v2",
   "case": 38,
-  "response": "The security team's first-month bug bounty program successfully identified and patched three critical vulnerabilities out of 12 valid reports, demonstrating a strong return on investment. Based on these results, the team recommends continuing the program to maintain ongoing security improvements.",
+  "response": "The first-month bug bounty program successfully identified and rapidly patched three critical vulnerabilities, resulting in $15K in payouts and a strong return on investment. Based on these results, the security team recommends continuing the program to sustain ongoing security improvements.",
   "score": 5,
-  "cost": 0.00124775,
+  "cost": 0.00185275,
   "expected": "",
   "tokens": {
     "input": 119,
-    "output": 1218
+    "output": 1823
   }
 }

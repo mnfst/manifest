@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "This code implements a stack that supports constant-time retrieval of the minimum element using a two-stack pattern, where an auxiliary `min_stack` mirrors the main stack to store the running minimum at each depth. On every `push`, it appends the smaller of the new value and the current minimum to `min_stack`, so `get_min()` always returns the top of that auxiliary stack in O(1) time.",
+  "score": 5,
+  "cost": 0.0016632,
+  "expected": "",
+  "tokens": {
+    "input": 120,
+    "output": 663
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "This implements a classic **Observer/Event Emitter pattern**. It maintains a dictionary mapping event names to lists of callback functions, allowing users to subscribe (`on`), trigger all callbacks for an event (`emit`), and unsubscribe (`off`). When `emit` is called, all registered functions for that event are invoked with the provided arguments.",
+  "score": 5,
+  "cost": 0.0011550000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 229
+  }
+}

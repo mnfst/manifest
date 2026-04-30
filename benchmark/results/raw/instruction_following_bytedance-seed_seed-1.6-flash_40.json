@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 40,
+  "response": "Here are 5 capital cities, each from a distinct continent:  \n\n\n### 1. **Nairobi** (Africa) \u2013 Capital of Kenya, a vibrant city at the base of the Kenyan Highlands.  \n### 2. **Tokyo** (Asia) \u2013 Capital of Japan, a global financial and cultural hub on the island of Honshu.  \n### 3. **Berlin** (Europe) \u2013 Capital of Germany, a historic city where modernity and post-war reconstruction coexist.  \n### 4. **Washington D.C.** (North America) \u2013 Capital of the United States, a federal district along the Potomac River.  \n### 5. **Buenos Aires** (South America) \u2013 Capital of Argentina, known for its European-style architecture and tango culture.  \n\n\nEach represents a unique continent, showcasing diverse geography, history, and culture.",
+  "score": 5,
+  "cost": 0.00015689999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 499
+  }
+}

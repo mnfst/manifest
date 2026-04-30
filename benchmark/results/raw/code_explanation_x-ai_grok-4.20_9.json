@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 9,
+  "response": "**This code implements an exponential backoff retry decorator.**\n\nIt wraps a function so that if it raises any exception, it will automatically retry up to `max_attempts` times (default 3). Between retries it sleeps for an exponentially increasing delay: `delay * 2^i` seconds (i.e. 1s, 2s, 4s, \u2026), a classic exponential backoff pattern. If all attempts fail, the last exception is re-raised.",
+  "score": 5,
+  "cost": 0.001214,
+  "expected": "",
+  "tokens": {
+    "input": 227,
+    "output": 95
+  }
+}

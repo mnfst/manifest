@@ -2,12 +2,12 @@
   "model": "gemini-2.5-flash",
   "task": "code_explanation",
   "case": 30,
-  "response": "This code implements a **Bloom Filter**, a probabilistic set data structure used for efficiently testing if an element is a member of a set. It works by using multiple hash functions to map items to several bits in an array, setting them to `True` on addition and checking if all corresponding bits are `True` for membership testing, which can result in false positives but never false negatives.",
+  "response": "This code implements a **Bloom filter**, a space-efficient probabilistic data structure used to test for set membership. It adds items by setting multiple bits in an array based on several hash functions, and checks for an item's presence by verifying if all its corresponding bits are set, which can yield false positives but never false negatives.",
   "score": 5,
-  "cost": 7.244999999999999e-05,
+  "cost": 6.584999999999999e-05,
   "expected": "",
   "tokens": {
     "input": 175,
-    "output": 77
+    "output": 66
   }
 }

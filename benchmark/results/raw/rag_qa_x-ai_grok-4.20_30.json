@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "rag_qa",
+  "case": 30,
+  "response": "Melbourne",
+  "score": 0,
+  "cost": 0.000732,
+  "expected": "Melbourne",
+  "tokens": {
+    "input": 362,
+    "output": 1
+  }
+}

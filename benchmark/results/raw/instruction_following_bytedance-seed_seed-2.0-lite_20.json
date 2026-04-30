@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "This fun linguistic challenge requires only a handful of essential grammatical articles/pronouns to keep the explanation coherent, and every core scientific term and key descriptor strictly starts with S or P, as you requested:\nPhotosynthesis, the primary plant process, proceeds as solar photons strike plant pigments, which seize these particles to power sequential physiological steps. These steps separate simple sap-held substances, produce sugar particles, pack stored power, push plant propagation, and sustain planetwide supporting systems. Photosynthesis supplies surplus stored power that permits plants to persist, spread, and support pivotal planetary processes. This singular sun-powered sequence serves as the primary source of stored power for several surface planetary systems.\n\nTo unpack this constrained explanation into full, clear scientific context:\nIn standard biology terms, this translates to photosynthesis being the core process plants use to turn sunlight into usable energy. Light particles (photons) from the sun are absorbed by plant pigments (like chlorophyll) to power a chain of chemical reactions. These reactions split water (carried in a plant\u2019s sap) into simple components, produce glucose (sugar) that stores energy, fuel the plant\u2019s growth and reproduction (propagation), and underpin nearly all global ecosystems. The surplus energy created by photosynthesis supports not just plant survival, but the entire planetary food web, making it the foundational energy source for almost all life on Earth\u2019s surface.",
+  "score": 3,
+  "cost": 0.002816,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 2800
+  }
+}

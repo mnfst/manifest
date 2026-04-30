@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "rag_qa",
+  "case": 1,
+  "response": "1665\n\n**Explanation:** The context explicitly states that the listed outbreaks \"ended with the Great Plague of London in 1665,\" directly answering the question. No external knowledge or inference is required.",
+  "score": 2,
+  "cost": 0.001084,
+  "expected": "1665",
+  "tokens": {
+    "input": 382,
+    "output": 40
+  }
+}

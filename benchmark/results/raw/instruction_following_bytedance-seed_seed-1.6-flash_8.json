@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Imagine building blocks that stick together, and each block has a picture of your toy or a cookie. Everyone can see all the blocks, so no one can say, \"I ate the cookie!\" That's blockchain\u2014it's a super safe way to remember things!  \n\n\nThis uses familiar \"building blocks\" and relatable items (toys, cookies) to explain transparency and security, keeping it simple and engaging for a 5-year-old.",
+  "score": 5,
+  "cost": 0.00014355,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 454
+  }
+}

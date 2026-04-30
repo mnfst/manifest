@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "**Formal:**  \n\"Hello! Welcome to our service. How may I assist you today?\"\n\n**Casual:**  \n\"Hey there! What's up? How can I help you?\"\n\n**Humorous:**  \n\"Greetings, fellow human (or possibly a very sophisticated toaster). What can I do for you today?\"",
+  "score": 5,
+  "cost": 0.000768,
+  "expected": "",
+  "tokens": {
+    "input": 140,
+    "output": 61
+  }
+}

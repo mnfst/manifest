@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "Network Ops recommends upgrading to 10Gbps links for $45K + $2K/month to address current network capacity issues and future growth, as opposed to a cheaper, short-term solution. The action item is to consider and approve the 10Gbps upgrade proposal.",
+  "score": 5,
+  "cost": 3.5300000000000004e-05,
+  "expected": "",
+  "tokens": {
+    "input": 109,
+    "output": 61
+  }
+}

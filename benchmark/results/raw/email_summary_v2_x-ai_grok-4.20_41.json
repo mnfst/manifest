@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "email_summary_v2",
+  "case": 41,
+  "response": "**Summary:**  \nThe network team reports that current 1Gbps links are running at 78% capacity during peak hours and recommends upgrading to 10Gbps for a one-time cost of $45K plus $2K/month, as growth projections indicate the alternative traffic-shaping/CDN solution would only provide temporary relief.  \n\n**Action items:** Approve the 10Gbps upgrade to avoid having to address the issue again in approximately six months.",
+  "score": 5,
+  "cost": 0.001174,
+  "expected": "",
+  "tokens": {
+    "input": 223,
+    "output": 91
+  }
+}

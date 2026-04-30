@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "rag_qa",
+  "case": 36,
+  "response": "Oxygen therapy promotes the body to take up gaseous oxygen from the air.\n\nAnswer is based on the context: \"any disease that impairs the body's ability to take up and use gaseous oxygen.\"",
+  "score": 4,
+  "cost": 8.659999999999999e-05,
+  "expected": "gaseous oxygen.",
+  "tokens": {
+    "input": 166,
+    "output": 41
+  }
+}

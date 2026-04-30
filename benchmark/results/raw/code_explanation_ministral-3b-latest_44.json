@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "This code **finds all connected components in an undirected graph using BFS (Breadth-First Search)**. It groups nodes into separate components where nodes are connected via edges, ensuring each component is returned as a distinct list of nodes.",
+  "score": 4,
+  "cost": 7.2000000000000005e-06,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 51
+  }
+}

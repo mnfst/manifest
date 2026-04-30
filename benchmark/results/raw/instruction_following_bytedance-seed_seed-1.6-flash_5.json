@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "The sun dips low, a molten orb that has spent the day burning bright, now softening at the edges. The horizon blurs, as if the world has leaned in to watch, and the sky above it unfolds in layers\u2014first a deep, honeyed gold that bleeds into amber, then a blush that deepens to rose, then a violet so pale it almost glows like a memory.  \n\nThe light, once sharp and clear, has softened into something warm and diffused, as if the sun has wrapped the air in a thin, gilded veil. It clings to the tops of trees, turning their leaves into translucent sheets that filter the glow, casting dappled patterns on the grass below. A field of wildflowers, their petals still crumpled from the day, catches the light and blooms again, each petal a burnished edge of amber or rose, as if the sun has kissed them awake one last time.  \n\nIf there\u2019s water\u2014 a lake, a river, the sea\u2014it shatters the light into a thousand shards, each a tiny star that winks out as the current ripples, then reforms, as if the sky itself is spilling its contents into the earth. The water, once a mirror, now holds the sky\u2019s colors like a liquid tapestry, fraying at the edges where the light fades into the dark.  \n\nThe air cools, but not sharply; it softens, like a hand brushing your cheek. Somewhere, a bird calls\u2014a final, lazy trill before the night\u2014and the world holds its breath, as if afraid to break the moment. Shadows stretch long, thin fingers, stretching toward the sun, as if trying to hold on.  \n\nIt is a slow, quiet ending, not grand or loud, but tender. The sun sinks lower, its edges blurring into the sky, and the colors deepen, merging into a soft, indigo-pink that feels like a sigh. The day fades not with a bang, but a whisper, leaving the world bathed in a glow that lingers, a reminder that even endings can be gentle, even fleeting moments can feel like a kind of magic.  \n\n\nThis description leans into sensory details\u2014texture, light, sound, and touch\u2014to evoke the sunset\u2019s quiet power, avoiding direct praise while painting a vivid, emotional picture.",
+  "score": 3,
+  "cost": 0.00038909999999999997,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 1273
+  }
+}

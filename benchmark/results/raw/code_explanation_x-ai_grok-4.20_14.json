@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 14,
+  "response": "**This code implements Dijkstra's algorithm** to find the shortest paths from a `start` node to all other nodes in a weighted graph.\n\nIt uses a **priority queue** (binary heap via `heapq`) to always expand the node with the current smallest known distance. The algorithm lazily handles duplicate entries by skipping outdated distances (`if d > dist.get(u, float('inf'))`), which is a common efficient implementation of the \"decrease-key\" operation without using a Fibonacci heap. \n\nThe result is a dictionary mapping each reachable node to its shortest distance from the start.",
+  "score": 5,
+  "cost": 0.001436,
+  "expected": "",
+  "tokens": {
+    "input": 258,
+    "output": 115
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "email_summary_v2",
+  "case": 43,
+  "response": "An open source license audit found two issues: an AGPL-licensed charting library incompatible with the SaaS model and one package with no license. Legal and Engineering recommend switching to Apache-licensed Chart.js and removing the unlicensed package before the next release.",
+  "score": 5,
+  "cost": 3.06e-05,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 51
+  }
+}

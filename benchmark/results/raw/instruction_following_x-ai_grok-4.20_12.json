@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "An API is like a menu at a restaurant. \n\nImagine you go to a restaurant and you want to order food. You don't need to know how the kitchen works, what ingredients they have, or how the chef cooks everything. You just look at the menu, pick what you want, and tell the waiter. The waiter then brings you exactly what you asked for.\n\nAn API works the same way. It's a simple list of things one piece of software can ask another piece of software to do for it. You don't need to know how the other software works inside - you just ask for what you want, and it gives you the result.\n\nFor example, when a weather app on your phone shows you today's temperature, it's using an API to politely ask another computer \"Can you please tell me what the temperature is right now?\" and that other computer sends back the answer.",
+  "score": 5,
+  "cost": 0.00167,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 175
+  }
+}

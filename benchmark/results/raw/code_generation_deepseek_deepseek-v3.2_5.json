@@ -2,12 +2,12 @@
   "model": "deepseek/deepseek-v3.2",
   "task": "code_generation",
   "case": 5,
-  "response": "```python\n    if not l:\n        return None\n    max_val = l[0]\n    for item in l:\n        if item > max_val:\n            max_val = item\n    return max_val\n```",
+  "response": "if not l:\n        return None\n    max_val = l[0]\n    for item in l[1:]:\n        if item > max_val:\n            max_val = item\n    return max_val",
   "score": 5,
-  "cost": 7.675e-05,
+  "cost": 7.455000000000001e-05,
   "expected": "",
   "tokens": {
     "input": 109,
-    "output": 45
+    "output": 43
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle, a continuous process that sustains Earth\u2019s water, begins with **evaporation**. The sun\u2019s energy heats surface water\u2014from oceans, lakes, rivers, and even moist soil\u2014causing it to transform into water vapor, a gas. This vapor rises into the atmosphere, driven by wind and temperature differences. Oceans are the primary source, contributing about 90% of the water vapor, as their vast surface area and heat absorption fuel this stage. Evaporation is the first step in moving water from Earth\u2019s surface to the sky, setting the cycle in motion.  \n\n\nNext, **condensation** occurs as the rising water vapor cools. Cooler air cannot hold as much moisture, so the vapor molecules slow down and cluster together, forming tiny liquid droplets or ice crystals. These clusters make up clouds. Condensation is critical because it transforms invisible vapor into visible water, which eventually falls back to the surface. The type of cloud (e.g., cumulus, stratus) and its altitude depend on temperature, but all clouds are products of this process, bridging evaporation and the next stage.  \n\n\n**Precipitation** follows when condensed water droplets or ice crystals grow too heavy for the atmosphere to support. They fall to Earth as rain, snow, sleet, or hail\u2014collectively called precipitation. This water replenishes surface reservoirs: rain fills lakes and rivers, snow accumulates as ice caps, and sleet or hail feeds streams. Some precipitation infiltrates the ground, becoming groundwater that may later seep into oceans or be used by plants. Additionally, plants release water vapor through **transpiration**, adding to the atmosphere and completing the cycle\u2019s loop.  \n\n\nThe water cycle is a dynamic, closed system driven by the sun\u2019s energy and gravity, with no \u201cstart\u201d or \u201cend.\u201d While the total amount of water on Earth remains constant, it continuously shifts between liquid, vapor, and ice. This process distributes water globally, nourishes ecosystems, and regulates climate. From the deepest ocean trenches to the highest mountain peaks, the water cycle ensures that life has access to the water it needs, making it one of Earth\u2019s most vital natural processes.",
+  "score": 3,
+  "cost": 0.00030705,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 1000
+  }
+}

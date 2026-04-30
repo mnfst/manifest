@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_explanation",
+  "case": 1,
+  "response": "This code implements **binary search** on a sorted array. It repeatedly halves the search interval, comparing the middle element to the target and narrowing the range until the target is found or the interval is empty.",
+  "score": 5,
+  "cost": 0.0005269000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 89
+  }
+}

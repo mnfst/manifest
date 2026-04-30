@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 4,
+  "response": "**This code implements a basic memoization decorator.**\n\nIt defines a `memoize` higher-order function that takes another function `f` and returns a `wrapper` that caches the results of `f` using a dictionary. The cache key is the tuple of arguments (`*args`), so that subsequent calls with the same arguments return the cached result instead of recomputing it. This is a classic **top-down dynamic programming** / **memoization** pattern used to optimize expensive recursive functions (like Fibonacci).",
+  "score": 5,
+  "cost": 0.00119,
+  "expected": "",
+  "tokens": {
+    "input": 191,
+    "output": 101
+  }
+}

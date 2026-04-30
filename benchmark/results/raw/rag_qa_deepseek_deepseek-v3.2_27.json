@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "rag_qa",
+  "case": 27,
+  "response": "Newton's First Law of Motion connects relative velocities with inertia.",
+  "score": 3,
+  "cost": 8.13e-05,
+  "expected": "Newton's First",
+  "tokens": {
+    "input": 268,
+    "output": 13
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "instruction_following",
+  "case": 6,
+  "response": "Ocean's waves crash and roar.",
+  "score": 1,
+  "cost": 4.7e-06,
+  "expected": "",
+  "tokens": {
+    "input": 11,
+    "output": 9
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "rag_qa",
+  "case": 9,
+  "response": "Based on the context, the high end of the temperature range in winter is 70.",
+  "score": 5,
+  "cost": 5.48e-05,
+  "expected": "70",
+  "tokens": {
+    "input": 140,
+    "output": 18
+  }
+}

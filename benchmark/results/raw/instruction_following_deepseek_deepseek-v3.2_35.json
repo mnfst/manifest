@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "The antique compass didn\u2019t point north, but toward the old oak on the hill. Eli, digging where its needle trembled, found a rusted lockbox holding a single, sepia photograph. The woman in the picture was his mirror image, though her clothes were a century out of style. That night, the compass needle spun wildly before settling, pointing directly at Eli\u2019s own heart. He understood then that some treasures are not found, but awakened. In the morning, a new, uncharted road stretched from his doorstep into the mist.",
+  "score": 5,
+  "cost": 0.00012670000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 112
+  }
+}

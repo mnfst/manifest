@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "rag_qa",
+  "case": 25,
+  "response": "Based on the provided context, **infrastructure** suffered considerably.",
+  "score": 5,
+  "cost": 0.004782700000000001,
+  "expected": "infrastructure",
+  "tokens": {
+    "input": 167,
+    "output": 878
+  }
+}

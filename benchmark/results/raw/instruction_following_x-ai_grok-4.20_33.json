@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "1. The Moon is Earth's only natural satellite and is the fifth-largest moon in the Solar System.\n2. It is tidally locked to Earth, meaning the same side always faces our planet.\n3. The Moon's surface is covered in a fine, powdery dust called regolith, formed by billions of years of meteorite impacts.",
+  "score": 5,
+  "cost": 0.000828,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 68
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Quench your thirst in style with our ultra-durable stainless steel water bottle, engineered to keep beverages ice-cold for 24 hours or steaming hot for 12. Featuring a leak-proof lid and a sleek, sweat-proof design, it's the perfect travel companion for gym sessions, office days, and outdoor adventures. Make hydration effortless and eco-friendly with the bottle that's built to last a lifetime.",
+  "score": 2,
+  "cost": 0.0031407999999999996,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 598
+  }
+}

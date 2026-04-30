@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "There once was a coder named Dave,\nWho lived in a digital cave.\nHe typed with great flair,\nThen pulled out his hair,\nWhen his code simply refused to behave.",
+  "score": 5,
+  "cost": 0.005835700000000001,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 1117
+  }
+}

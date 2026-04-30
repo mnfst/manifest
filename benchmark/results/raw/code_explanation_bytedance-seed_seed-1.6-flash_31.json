@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_explanation",
+  "case": 31,
+  "response": "This code implements the A* search algorithm, which finds the shortest path in a weighted graph by maintaining a priority queue (min-heap) of nodes sorted by their estimated total cost (f(n) = g(n) + h(n), where g(n) is the actual cost from the start to node n, and h(n) is a heuristic estimate of the cost from n to the goal). It explores nodes by popping the lowest-cost node from the heap, checks if it's the goal, and if not, adds its unvisited neighbors to the heap with updated costs and paths.\n\n\n**Key points**: Priority queue (A*), heuristic-based ordering, visited set to avoid cycles, returns the first optimal path (if heuristic is admissible).",
+  "score": 5,
+  "cost": 0.00015817499999999998,
+  "expected": "",
+  "tokens": {
+    "input": 261,
+    "output": 462
+  }
+}

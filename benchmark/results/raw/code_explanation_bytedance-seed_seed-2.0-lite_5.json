@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_explanation",
+  "case": 5,
+  "response": "This code implements the Singleton design pattern, which restricts a class to ever have only one single instance shared across an entire program. It overrides Python\u2019s `__new__` instance-creation method to check for an existing class-level `_instance` attribute: if no instance exists, it creates the sole instance via the parent class\u2019s `__new__` method, and returns that same single instance for every future instantiation attempt of the Singleton class.",
+  "score": 5,
+  "cost": 0.00042075,
+  "expected": "",
+  "tokens": {
+    "input": 123,
+    "output": 390
+  }
+}

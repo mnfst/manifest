@@ -2,12 +2,12 @@
   "model": "deepseek/deepseek-v3.2",
   "task": "code_generation",
   "case": 33,
-  "response": "sides = sorted([a, b, c])\n    return sides[0] ** 2 + sides[1] ** 2 == sides[2] ** 2",
+  "response": "```python\n    # Sort sides so that c is the largest\n    sides = sorted([a, b, c])\n    # Check Pythagorean theorem\n    return sides[0] ** 2 + sides[1] ** 2 == sides[2] ** 2\n```",
   "score": 5,
-  "cost": 7.77e-05,
+  "cost": 0.0001004,
   "expected": "",
   "tokens": {
-    "input": 148,
-    "output": 37
+    "input": 142,
+    "output": 59
   }
 }

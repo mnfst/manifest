@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-max-preview",
   "task": "email_summary_v2",
   "case": 34,
-  "response": "The Database Team is executing a zero-downtime migration from MySQL 5.7 to PostgreSQL 16 between May and July using a blue-green deployment strategy. The team must rewrite three incompatible stored procedures and proceed with the scheduled schema conversion, dual-write testing, and final cutover.",
+  "response": "The Database Team is executing a zero-downtime migration from MySQL 5.7 to PostgreSQL 16 through a phased May-to-July rollout. The team must rewrite three stored procedures and proceed with the scheduled schema conversion, dual-write period, and final cutover using the prepared testing environment.",
   "score": 4,
-  "cost": 0.005501600000000001,
+  "cost": 0.009058400000000001,
   "expected": "",
   "tokens": {
     "input": 104,
-    "output": 1032
+    "output": 1716
   }
 }

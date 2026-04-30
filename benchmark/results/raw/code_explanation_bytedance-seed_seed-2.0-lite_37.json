@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_explanation",
+  "case": 37,
+  "response": "This code implements a trie (prefix tree) data structure that stores inserted words character-by-character in a nested dictionary hierarchy, using a `#` key to mark the end of full valid words. The class's `starts_with` method first locates the trie node matching the end of a given input prefix, then executes a depth-first search (DFS) to collect and return all complete words stored in the trie that begin with that prefix.",
+  "score": 4,
+  "cost": 0.00058525,
+  "expected": "",
+  "tokens": {
+    "input": 237,
+    "output": 526
+  }
+}

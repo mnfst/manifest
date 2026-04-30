@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "This code implements a bounded asynchronous queue that uses `asyncio.Future` objects to suspend producer coroutines in `put` when the deque reaches `maxsize` and consumer coroutines in `get` when it is empty, resuming them as items are added or removed. It follows the producer-consumer pattern with cooperative scheduling to provide backpressure and synchronization between concurrent tasks.",
+  "score": 5,
+  "cost": 0.004131,
+  "expected": "",
+  "tokens": {
+    "input": 213,
+    "output": 1668
+  }
+}

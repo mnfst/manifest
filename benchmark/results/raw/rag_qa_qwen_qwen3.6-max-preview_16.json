@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "rag_qa",
+  "case": 16,
+  "response": "Approximately fifty percent.",
+  "score": 4,
+  "cost": 0.0039936,
+  "expected": "approximately fifty percent",
+  "tokens": {
+    "input": 224,
+    "output": 712
+  }
+}

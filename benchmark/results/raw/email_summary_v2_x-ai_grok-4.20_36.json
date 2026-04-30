@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "email_summary_v2",
+  "case": 36,
+  "response": "**Summary:**  \nP99 latency for the /api/v2/search endpoint has regressed from 200ms to 800ms due to a new full-text search query that isn't using an index. The backend team will add a GIN index on the content column and deploy the fix tonight during the maintenance window.",
+  "score": 5,
+  "cost": 0.000922,
+  "expected": "",
+  "tokens": {
+    "input": 209,
+    "output": 63
+  }
+}

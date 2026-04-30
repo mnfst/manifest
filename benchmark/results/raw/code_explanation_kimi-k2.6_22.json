@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "This code implements an **LRU (Least Recently Used) cache** using Python's `OrderedDict` to track item usage order and achieve O(1) retrieval and insertion. On every `get` or `put`, it moves the accessed key to the end to mark it as recently used, and when the cache exceeds its capacity, it evicts the least recently used item by removing from the front.",
+  "score": 5,
+  "cost": 0.0011861999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 459
+  }
+}

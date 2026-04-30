@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "email_summary_v2",
+  "case": 17,
+  "response": "Release v4.2 is being rolled back due to a data corruption bug affecting 23 accounts. The recovery plan involves restoring from backup, re-running transactions, and notifying impacted customers; a hotfix branch has been created to address the issue.",
+  "score": 5,
+  "cost": 3.07e-05,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 52
+  }
+}

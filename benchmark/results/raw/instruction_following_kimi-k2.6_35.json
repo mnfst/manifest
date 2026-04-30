@@ -2,12 +2,12 @@
   "model": "kimi-k2.6",
   "task": "instruction_following",
   "case": 35,
-  "response": "The old lighthouse keeper woke to find the door swinging open in the wind. Outside, the storm had washed a wooden chest onto the rocks below. He descended the spiral stairs, his lantern flickering against walls that hadn't seen repair in decades. The chest contained letters dated fifty years into the future, all addressed to him by name. As he read the first line, the lighthouse beam swept across the horizon and illuminated a ship that shouldn't exist. He smiled, finally understanding why the sea had called him here all these lonely years.",
+  "response": "The old lighthouse keeper woke to find the sea had turned silver overnight. He descended the spiral stairs, boots echoing against stone, and unbolted the heavy oak door. A vessel unlike any ship sat upon the shimmering water, its sails made of woven starlight. The keeper approached the shore, heart hammering a rhythm of fear and wonder. A figure emerged, extending a hand that glowed with the warmth of forgotten summers. He took it, and the lighthouse went dark for the first time in eighty years.",
   "score": 5,
-  "cost": 0.0009678,
+  "cost": 0.0009846,
   "expected": "",
   "tokens": {
     "input": 17,
-    "output": 399
+    "output": 406
   }
 }

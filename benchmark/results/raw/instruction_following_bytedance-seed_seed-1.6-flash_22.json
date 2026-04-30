@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are among the most loyal creatures on Earth, their devotion to humans spanning generations and transcending even the toughest of circumstances. Loyal dogs stand guard over their families, alerting to danger with a bark that blends courage and care, ensuring no harm befalls those they love. Even in times of hardship, loyal dogs remain steadfast, offering quiet comfort through shared silence or playful energy that turns despair into hope. Loyal dogs remember their owners\u2019 voices, faces, and routines, making them feel seen and cherished every day, as if they hold a piece of your heart in their own. Loyalty in dogs is not just a trait but a choice, a daily commitment to stay by your side through joy and sorrow, never wavering in their affection. In a world that often feels chaotic, loyal dogs remind us of the power of simple, boundless affection\u2014proof that love, in its truest form, is unshakable and unwavering.",
+  "score": 4,
+  "cost": 0.00015314999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 486
+  }
+}

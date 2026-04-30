@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "My favorite book is a quiet, luminous work that unfolds like a slow breath, set in a place that feels both timeless and achingly specific: a coastal village where the sea is not just a backdrop but a character\u2014wild, unforgiving, and tender, its tides ebbing and flowing with the rhythm of human loss. The story centers on a woman who has retreated from the world, taking up a solitary role as a caretaker of a weathered lighthouse perched on a cliff. She is a woman of few words, her days measured by the creak of floorboards, the flash of the lighthouse beam, and the weight of a grief that has settled on her like a second skin.  \n\n\nWhat makes the book extraordinary is how it weaves her quiet life with the lives of others\u2014ghosts, strangers, and the occasional child who stumbles into the village, curious about the \"lady who lives in the light.\" Through fragments of a tattered logbook she finds in the lighthouse, she begins to piece together the stories of those who came before: a fisherman who lost his crew, a mother who buried a child, a sailor who wrote of a love that outlived distance. These stories are not grand; they are small, intimate, and raw, and as she reads them, she realizes grief is not a private storm but a shared current, one that connects her to every person who has ever loved and lost.  \n\n\nThe child, a sharp-witted girl with a knack for finding lost things, becomes her unlikely bridge to the world. She teases the caretaker about her \"sad eyes\" but also shares her own pain\u2014of a father who left, of a home that no longer feels like home. Their relationship is not sentimental; it is a slow, awkward dance of vulnerability, where they learn to say \"I see you\" without words. Together, they begin to mend the lighthouse, replacing broken glass, repainting the beam, and in doing so, mend something in themselves.  \n\n\nThe prose is spare, almost poetic, with a way of making the ordinary feel sacred: the way rain beads on a windowpane, the sound of a seagull\u2019s cry at dawn, the taste of a cup of tea left to cool. There are no dramatic twists or grand resolutions, but the ending lingers like a memory\u2014soft, not sad. The caretaker leaves the lighthouse,",
+  "score": 5,
+  "cost": 0.000320175,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 1044
+  }
+}

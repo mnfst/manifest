@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "rag_qa",
+  "case": 22,
+  "response": "The South African Schools Act of 1996 recognised two categories of schools: public and independent.",
+  "score": 5,
+  "cost": 5.5650000000000004e-05,
+  "expected": "South African Schools Act",
+  "tokens": {
+    "input": 139,
+    "output": 19
+  }
+}

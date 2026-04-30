@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 49,
+  "response": "The product launch is delayed due to a PCI compliance issue with the payment integration, offering the options to launch without payments or delay until May 15. The team must decide at a meeting tomorrow at 10am, where launching without payments will require updated legal terms.",
+  "score": 5,
+  "cost": 8.255000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 53
+  }
+}

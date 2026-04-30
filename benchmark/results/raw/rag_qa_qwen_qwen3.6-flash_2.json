@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-flash",
   "task": "rag_qa",
   "case": 2,
-  "response": "Taking physical control of another.",
-  "score": 3,
-  "cost": 0.00153475,
+  "response": "taking physical control of another",
+  "score": 4,
+  "cost": 0.00101775,
   "expected": "taking physical control of another",
   "tokens": {
     "input": 319,
-    "output": 1455
+    "output": 938
   }
 }

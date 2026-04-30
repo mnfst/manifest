@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "rag_qa",
+  "case": 13,
+  "response": "Based on the provided context, V/Line is owned by the **Victorian Government**.",
+  "score": 5,
+  "cost": 0.0026793000000000003,
+  "expected": "Victorian Government",
+  "tokens": {
+    "input": 165,
+    "output": 474
+  }
+}

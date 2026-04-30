@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 27,
+  "response": "### Mammals\n1. African Bush Elephant: The largest living land mammal, a warm-blooded placental mammal native to sub-Saharan Africa.\n2. Platypus: A unique egg-laying monotreme mammal from eastern Australia, one of the few venomous mammals on Earth.\n3. Eastern Gray Squirrel: A common arboreal placental mammal widespread across North America and introduced to parts of western Europe.\n\n---\n\n### Birds\n1. Bald Eagle: A large raptor and the national bird of the United States, a feathered, egg-laying bird found across most of North America.\n2. Emperor Penguin: The tallest and heaviest living penguin, a flightless seabird native to Antarctica that breeds in extreme sub-zero winter conditions.\n3. Ruby-throated Hummingbird: A tiny migratory bird common to eastern North America, capable of hovering mid-flight thanks to its specialized wing structure.\n\n---\n\n### Fish\n1. Clownfish: A small, colorful saltwater ray-finned fish famous for its symbiotic relationship with sea anemones, native to the Indo-Pacific.\n2. Great White Shark: The largest predatory fish on Earth, a cartilaginous fish found in coastal waters of all major oceans.\n3. Rainbow Trout: A popular freshwater game fish, a cold-water ray-finned fish native to North American streams and introduced globally for recreational fishing.",
+  "score": 4,
+  "cost": 0.00111475,
+  "expected": "",
+  "tokens": {
+    "input": 67,
+    "output": 1098
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 47,
+  "response": "Here is a description of what makes a good password, broken down into numbered steps:\n\n1.  **Prioritize Length**\n    Aim for a password that is at least **12 to 16 characters long**. Length is the most critical factor in password security because it exponentially increases the time and computing power required for an attacker to crack it. A long password is generally more secure than a short, complex one.\n\n2.  **Incorporate Complexity**\n    Use a diverse mix of character types to increase the \"entropy\" (randomness) of the password. A strong password should include:\n    *   Uppercase letters (A\u2013Z)\n    *   Lowercase letters (a\u2013z)\n    *   Numbers (0\u20139)\n    *   Special symbols (!, @, #, $, %, etc.)\n    *   *Note: While complexity is important, it should complement length, not replace it.*\n\n3.  **Eliminate Predictability**\n    Avoid patterns that are easy to guess or susceptible to dictionary attacks. Ensure your password does not contain:\n    *   Common dictionary words or phrases.\n    *   Personal information (names, birthdays, pet names, addresses).\n    *   Sequential or keyboard patterns (e.g., \"123456\", \"qwerty\", \"abcdef\").\n    *   Simple substitutions (e.g., \"P@ssw0rd\" is easily cracked; attackers expect these replacements).\n\n4.  **Ensure Uniqueness**\n    Create a **distinct password for every account**. Reusing passwords across multiple sites is a major security risk. If one website suffers a data breach, attackers will try those credentials on your other accounts (a technique called \"credential stuffing\"). A unique password isolates a breach to only that specific service.\n\n5.  **Use Tools for Generation and Management**\n    It is nearly impossible for humans to create and remember dozens of unique, complex passwords. To maintain good password hygiene:\n    *   **Use a Password Manager:** Tools like Bitwarden, 1Password, or KeePass can generate random, high-entropy passwords and store them securely. You only need to remember one strong \"master password.\"\n    *   **Consider Passphrases:** If you must memorize a password, use a passphrase consisting of 4 to 6 random, unrelated words (e.g.,",
+  "score": 4,
+  "cost": 0.00191525,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 1910
+  }
+}

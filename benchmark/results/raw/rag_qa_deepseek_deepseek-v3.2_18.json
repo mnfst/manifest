@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "rag_qa",
+  "case": 18,
+  "response": "Allan Bloom wrote \"The Closing of the American Mind.\"",
+  "score": 5,
+  "cost": 5.8049999999999995e-05,
+  "expected": "Allan Bloom",
+  "tokens": {
+    "input": 175,
+    "output": 13
+  }
+}

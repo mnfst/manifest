@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "rag_qa",
+  "case": 18,
+  "response": "Allan Bloom",
+  "score": 0,
+  "cost": 0.0039156,
+  "expected": "Allan Bloom",
+  "tokens": {
+    "input": 180,
+    "output": 708
+  }
+}

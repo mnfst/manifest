@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 6,
+  "response": "The vast blue expanse.",
+  "score": 4,
+  "cost": 1.0100000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 14,
+    "output": 6
+  }
+}

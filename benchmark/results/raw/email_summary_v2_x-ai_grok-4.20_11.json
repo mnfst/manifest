@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "email_summary_v2",
+  "case": 11,
+  "response": "**Summary:**  \nThe SOC 2 Type II audit is complete with no critical findings, but three observations were noted regarding insufficient access review frequency, an untested incident response plan, and incomplete vendor risk assessments for two vendors.  \n\nThe Compliance Team requires remediation of these items within 30 days.",
+  "score": 5,
+  "cost": 0.000898,
+  "expected": "",
+  "tokens": {
+    "input": 213,
+    "output": 59
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "**This code implements an LRU (Least Recently Used) Cache.**\n\nIt uses Python's `OrderedDict` to maintain insertion/access order. \n\n- `get(key)`: Returns the value if the key exists (and moves it to the end, marking it as most recently used), otherwise returns -1.\n- `put(key, val)`: Inserts or updates the key-value pair, moving it to the end. If the cache exceeds capacity, it removes the least recently used item using `popitem(last=False)`, which removes the first item (oldest).\n\nThis is the classic **O(1)** LRU cache pattern using an ordered dictionary.",
+  "score": 5,
+  "cost": 0.00157,
+  "expected": "",
+  "tokens": {
+    "input": 257,
+    "output": 132
+  }
+}

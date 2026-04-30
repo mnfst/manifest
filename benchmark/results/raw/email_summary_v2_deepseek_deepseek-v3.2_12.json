@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 12,
+  "response": "We have four open engineering positions, but the frontend role has been open for 60 days with no strong candidates. The recruiting team recommends expanding the search to remote candidates or adjusting the compensation band to address this.",
+  "score": 5,
+  "cost": 7.240000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 96,
+    "output": 44
+  }
+}

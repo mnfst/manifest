@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 42,
+  "response": "The sky darkened rapidly as towering anvils of charcoal-gray clouds swallowed the sun, their undersides occasionally illuminated by the jagged, electric violet pulse of distant lightning. A heavy stillness settled over the landscape, broken only by the rising wind that tugged at the branches, carrying the sharp, metallic tang of ozone and the rich, earthy aroma of petrichor rising from the parched ground. Suddenly, the heavens opened; a blinding flash split the air, followed instantly by a guttural roar that shook the earth and rattled the windowpanes, while cool, heavy raindrops began to slap against the skin with the force of tiny pebbles.",
+  "score": 5,
+  "cost": 0.00118175,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 1176
+  }
+}

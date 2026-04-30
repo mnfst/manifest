@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "rag_qa",
+  "case": 47,
+  "response": "The Urarina.",
+  "score": 5,
+  "cost": 4.225e-05,
+  "expected": "Urarina",
+  "tokens": {
+    "input": 147,
+    "output": 5
+  }
+}

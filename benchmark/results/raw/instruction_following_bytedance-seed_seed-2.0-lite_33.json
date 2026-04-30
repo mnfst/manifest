@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 33,
+  "response": "1. The Moon is tidally locked to Earth, meaning its rotation period matches the time it takes to complete one orbit around our planet, so only one side (the near side) routinely faces us. A small orbital wobble called libration means we can actually observe roughly 59% of the Moon\u2019s total surface from Earth over several years, rather than just 50%.\n2. The Moon has no substantial global atmosphere to regulate temperatures or drive erosion, leading to extreme conditions: sunlit lunar surfaces reach 127\u00b0C (260\u00b0F), while permanently shadowed craters near the lunar south pole drop as low as -232\u00b0C (-387\u00b0F) \u2014 one of the coldest locations in the solar system. Apollo mission footprints left on the Moon could remain intact for millions of years, as there is no wind to wear them away.\n3. The Moon is slowly drifting away from Earth at a rate of ~3.8 centimeters (1.5 inches) per year, a shift caused by tidal friction that transfers small amounts of Earth\u2019s rotational energy to the Moon\u2019s orbit. This drift also lengthens Earth\u2019s days by roughly 1.7 milliseconds every century, a tiny but measurable change that has built up over the Moon\u2019s 4.5-billion-year history.",
+  "score": 3,
+  "cost": 0.001013,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 996
+  }
+}

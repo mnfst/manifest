@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "AI is reshaping our world\u2014from creative tools to smarter solutions. It\u2019s not about replacing us, but amplifying human potential. Let\u2019s build it thoughtfully. \ud83e\udd16\u2728 #AI #FutureTech #Innovation",
+  "score": 5,
+  "cost": 5.500000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 45
+  }
+}

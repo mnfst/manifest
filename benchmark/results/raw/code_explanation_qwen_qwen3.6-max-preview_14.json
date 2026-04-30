@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_explanation",
+  "case": 14,
+  "response": "This code implements **Dijkstra's shortest-path algorithm** using a min-heap priority queue to compute the minimum distance from a starting node to all other reachable nodes in a weighted graph. It employs a **lazy deletion pattern** to efficiently skip outdated queue entries and only updates distances when a shorter path is discovered through edge relaxation.",
+  "score": 5,
+  "cost": 0.0034554,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 626
+  }
+}

@@ -4,10 +4,10 @@
   "case": 14,
   "response": "Marine waters worldwide.",
   "score": 5,
-  "cost": 0.00067875,
+  "cost": 0.00067675,
   "expected": "marine waters",
   "tokens": {
     "input": 323,
-    "output": 598
+    "output": 596
   }
 }

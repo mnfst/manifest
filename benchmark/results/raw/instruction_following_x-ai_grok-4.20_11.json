@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 11,
+  "response": "Why would I do that? \n\nWhat makes you think that's a good idea? \n\nDo you really expect me to follow such an odd instruction? \n\nWouldn't that make our conversation rather difficult? \n\nHow long do you think I could keep that up?",
+  "score": 5,
+  "cost": 0.000668,
+  "expected": "",
+  "tokens": {
+    "input": 130,
+    "output": 51
+  }
+}

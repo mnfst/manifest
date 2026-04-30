@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "email_summary_v2",
+  "case": 5,
+  "response": "**Summary:**  \nThe product team reports that payment integration has failed PCI compliance, requiring a two-week delay and presenting two options: launch without payments (with updated T&Cs) or postpone the full launch until May 15.  \n\nA decision meeting is scheduled for tomorrow at 10am.",
+  "score": 5,
+  "cost": 0.000898,
+  "expected": "",
+  "tokens": {
+    "input": 213,
+    "output": 59
+  }
+}

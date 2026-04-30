@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "This code implements a **MinStack** using an **auxiliary stack (min_stack)** to track the minimum element efficiently in **O(1) time** for all operations. The algorithm maintains the current minimum at each level by comparing new values with the previous minimum during `push`, ensuring `get_min()` always returns the smallest element in constant time.",
+  "score": 5,
+  "cost": 7.56e-06,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 72
+  }
+}

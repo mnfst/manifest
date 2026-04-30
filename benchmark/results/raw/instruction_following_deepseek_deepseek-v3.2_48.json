@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 48,
+  "response": "Two noble families in Verona, the Montagues and Capulets, are feuding. Romeo Montague and Juliet Capulet meet at a ball and fall instantly in love. They marry secretly, but after Romeo kills Juliet's cousin in a duel, he is banished. To avoid a forced marriage, Juliet fakes her death with a sleeping potion. Romeo, believing her truly dead, returns and kills himself. Juliet awakens, finds Romeo dead, and takes her own life. Their tragic deaths ultimately reconcile their families.",
+  "score": 5,
+  "cost": 0.00012455000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 108
+  }
+}

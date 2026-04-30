@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_explanation",
+  "case": 41,
+  "response": "This function computes a CRC-32 checksum using a bitwise algorithm, initializing a running value to `0xFFFFFFFF` and XORing each input byte into it. For every bit, it right-shifts the value and conditionally XORs with the reversed polynomial `0xEDB88320` if the shifted-out bit was 1, finally returning the inverted result.",
+  "score": 5,
+  "cost": 0.0013194,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 523
+  }
+}

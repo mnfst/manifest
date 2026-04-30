@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "rag_qa",
+  "case": 33,
+  "response": "In response to American aid to Israel.",
+  "score": 5,
+  "cost": 0.00111725,
+  "expected": "In response to American aid to Israel",
+  "tokens": {
+    "input": 285,
+    "output": 1046
+  }
+}

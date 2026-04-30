@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "rag_qa",
+  "case": 24,
+  "response": "Based on the provided context, the rainforest covers **5,500,000 square kilometres** of the Amazon basin.",
+  "score": 2,
+  "cost": 9.68e-05,
+  "expected": "5,500,000 square kilometres (2,100,000 sq mi) are covered by the rainforest.",
+  "tokens": {
+    "input": 286,
+    "output": 23
+  }
+}

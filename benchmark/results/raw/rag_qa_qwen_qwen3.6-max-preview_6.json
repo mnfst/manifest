@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "rag_qa",
+  "case": 6,
+  "response": "Based on the provided context, the ordinary legislative procedure is defined by **TFEU article 294**.",
+  "score": 5,
+  "cost": 0.0035321,
+  "expected": "TFEU article 294",
+  "tokens": {
+    "input": 405,
+    "output": 578
+  }
+}

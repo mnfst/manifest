@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "It has been a true pleasure working alongside each of you. I will deeply miss our collaboration and the camaraderie we've shared. Thank you for all your support and for making my time here so rewarding. I wish you all the very best in your future projects and endeavors. Please stay in touch via [LinkedIn/Personal Email].",
+  "score": 5,
+  "cost": 7.77e-05,
+  "expected": "",
+  "tokens": {
+    "input": 16,
+    "output": 67
+  }
+}

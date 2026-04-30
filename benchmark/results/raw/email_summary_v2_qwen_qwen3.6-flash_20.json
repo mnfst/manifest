@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-flash",
   "task": "email_summary_v2",
   "case": 20,
-  "response": "A Saturday disk space alert on the production database was resolved through manual intervention after automated cleanup failed, with the root cause identified as a misconfigured log rotation following a recent migration. The on-call team must correct the log rotation settings to prevent recurrence, though the incident occurred during a maintenance window and caused no customer impact.",
+  "response": "A Saturday disk space alert on the production database was resolved through manual intervention by 8 AM, with the root cause identified as a misconfigured log rotation. No customer impact occurred during the maintenance window, and no further action items are required.",
   "score": 5,
-  "cost": 0.0012155,
+  "cost": 0.0020125,
   "expected": "",
   "tokens": {
     "input": 102,
-    "output": 1190
+    "output": 1987
   }
 }

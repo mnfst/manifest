@@ -2,12 +2,12 @@
   "model": "deepseek/deepseek-v3.2",
   "task": "code_generation",
   "case": 2,
-  "response": "```python\n    result = []\n    lst = sorted(lst)\n    while lst:\n        result.append(lst.pop(0))\n        if lst:\n            result.append(lst.pop())\n    return result\n```",
+  "response": "```python\n    if not lst:\n        return []\n    result = []\n    lst.sort()\n    while lst:\n        result.append(lst.pop(0))\n        if lst:\n            result.append(lst.pop())\n    return result\n```",
   "score": 4,
-  "cost": 8.225e-05,
+  "cost": 8.995e-05,
   "expected": "",
   "tokens": {
     "input": 153,
-    "output": 40
+    "output": 47
   }
 }

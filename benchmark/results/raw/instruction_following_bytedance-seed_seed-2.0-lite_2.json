@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-2.0-lite",
   "task": "instruction_following",
   "case": 2,
-  "response": "### Programming Haiku (follows traditional 5-7-5 syllable structure)\nScreen glows, half past two (5)  \nOff-by-one haunts my tight loop (7)  \nAll counts now align (5)\n\nThe haiku captures a universal developer experience: pulling a late coding session, grappling with the ubiquitous off-by-one loop bug, and the quiet satisfaction of finally squashing the issue to get clean, accurate results.",
-  "score": 5,
-  "cost": 0.00254675,
+  "response": "Red errors flash bright (5)\nOff-by-one halts all my code (7)\nGreen checks bloom at last (5)",
+  "score": 2,
+  "cost": 0.00183175,
   "expected": "",
   "tokens": {
     "input": 55,
-    "output": 2533
+    "output": 1818
   }
 }

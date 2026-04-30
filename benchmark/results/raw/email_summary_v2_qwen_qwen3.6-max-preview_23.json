@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-max-preview",
   "task": "email_summary_v2",
   "case": 23,
-  "response": "The v1 API will be deprecated on June 30 and permanently removed by September 30, with 340 integrations still requiring migration. To drive completion, the Platform team will conduct personal outreach to the top 20 integrations and host a migration webinar for all remaining users.",
+  "response": "The v1 API will be deprecated on June 30 and fully removed by September 30, leaving 340 integrations that still need to migrate. To drive the transition, the Platform team will conduct personal outreach to the top 20 accounts and host a webinar for all remaining users.",
   "score": 5,
-  "cost": 0.006151599999999999,
+  "cost": 0.0068952,
   "expected": "",
   "tokens": {
     "input": 108,
-    "output": 1156
+    "output": 1299
   }
 }

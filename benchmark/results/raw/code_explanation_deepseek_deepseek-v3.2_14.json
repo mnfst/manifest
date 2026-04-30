@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_explanation",
+  "case": 14,
+  "response": "This code implements **Dijkstra's algorithm** to find the shortest paths from a starting node to all other nodes in a weighted graph. It uses a **priority queue (min-heap)** to efficiently select the next node with the smallest known distance, updating distances when a shorter path is found.",
+  "score": 5,
+  "cost": 0.00010310000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 61
+  }
+}

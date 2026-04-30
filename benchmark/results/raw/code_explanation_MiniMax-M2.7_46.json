@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_explanation",
+  "case": 46,
+  "response": "This code implements the **Red-Black Tree insertion fixup** algorithm, which restores the red-black tree properties (balancing) after inserting a new node by performing rotations and recoloring. It handles two main cases: when the uncle is red (recoloring and climbing up), and when the uncle is black (rotation-based restructuring via left/right rotations).",
+  "score": 4,
+  "cost": 0.0012683000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 189,
+    "output": 241
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_explanation",
+  "case": 19,
+  "response": "This code implements a **sliding window algorithm** (specifically a **fixed-size sliding window rate limiter**) that restricts how many calls can be made within a given time period (`period`). The `allow()` function checks if the most recent `calls` timestamps are older than `period` seconds, discarding outdated ones, and only allows a new call if fewer than `calls` timestamps remain.",
+  "score": 5,
+  "cost": 7.32e-06,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 84
+  }
+}

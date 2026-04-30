@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "rag_qa",
+  "case": 37,
+  "response": "Northeast",
+  "score": 2,
+  "cost": 0.0012375,
+  "expected": "northeast",
+  "tokens": {
+    "input": 218,
+    "output": 1183
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is the fundamental attractive influence that draws all things with mass or energy toward one another. In your daily life, you experience it every time you set down a coffee mug that stays on your table instead of floating off, or every time you trip and stumble toward the ground rather than drifting upward\u2014Earth\u2019s huge mass generates a strong enough pull to keep nearly everything on its surface anchored close. Gravity also operates across the entire universe, holding the Moon in its orbit around Earth, keeping Earth and all the other planets circling the Sun, and even binding entire galaxies together to stop their stars from scattering into empty space. While Isaac Newton first formalized the predictable, measurable nature of this pull between masses, Albert Einstein later deepened that understanding by showing gravity arises from the way mass warps the fabric of spacetime, creating a curved path that all moving objects naturally follow. That is gravity.",
+  "score": 5,
+  "cost": 0.00072825,
+  "expected": "",
+  "tokens": {
+    "input": 69,
+    "output": 711
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "AI isn't here to replace us; it's here to amplify us. \ud83d\ude80\u2728 From sparking creativity to solving complex problems, the future is about collaboration between human ingenuity and machine intelligence. How are you leveraging AI today? \ud83d\udc47\ud83d\udca1 #AI #FutureTech #Innovation",
+  "score": 5,
+  "cost": 0.000907,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 901
+  }
+}

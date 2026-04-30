@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_explanation",
+  "case": 27,
+  "response": "This code computes the maximum value for every contiguous subarray of size `k` using a **monotonic decreasing deque** pattern to achieve O(n) time complexity. It stores indices in the deque so the front always points to the current window's maximum, efficiently discarding out-of-bounds indices from the front and smaller values from the back.",
+  "score": 5,
+  "cost": 0.006784699999999999,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 1271
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "An API is like a **helpful middleman** that lets different tools or services talk to each other smoothly\u2014without either needing to know all the messy details of how the other works.  \n\n\nLet\u2019s use a simple example: Imagine you want to order a pizza using your phone app. You pick your toppings, hit \"order,\" and *boom*\u2014it says \"Your pizza is on the way!\" But your app didn\u2019t make the pizza, find a driver, or check if your card works. Instead, it asks its \"assistant\" (the API) to handle those parts.  \n\nThe API talks to the restaurant\u2019s kitchen system to confirm your order, to the delivery service to find a driver, and to your bank to make sure your payment goes through. Then it brings back the good news (\"Your pizza is on the way!\") to your app. You never have to deal with the kitchen, the driver, or the bank directly\u2014*the API does that for you*.  \n\n\nYou use APIs all the time without realizing it. When your weather app shows today\u2019s temperature, it\u2019s using an API to ask a weather service for the data. When you post a photo on social media and it automatically resizes it, that\u2019s an API handling the resizing. When your smart speaker tells you the news, it\u2019s using an API to fetch the latest headlines.  \n\n\nIn short, an API is the \"how\" two tools or services work together so you can just focus on what you want to do\u2014like order a pizza, check the weather, or post a photo\u2014without worrying about the details behind the scenes.",
+  "score": 5,
+  "cost": 0.00042847499999999994,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 1404
+  }
+}

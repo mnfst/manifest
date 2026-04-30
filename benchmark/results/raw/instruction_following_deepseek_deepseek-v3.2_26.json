@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle, also known as the hydrological cycle, describes the continuous movement of water on, above, and below the surface of the Earth. This complex system is powered primarily by solar energy, which drives the key processes of evaporation and transpiration. Water exists in various states\u2014liquid, gas, and solid\u2014as it travels through this endless loop, sustaining all terrestrial life. The cycle has no true starting point, but it is often conceptualized as beginning with the world\u2019s vast reservoirs, such as oceans, lakes, and rivers.\n\nThe cycle commences with evaporation, where the sun\u2019s heat turns liquid water from these surfaces into water vapor, an invisible gas. Additionally, plants release water vapor through their leaves in a process called transpiration. This combined moisture rises into the cooler atmosphere, where it eventually condenses to form clouds. Condensation occurs when water vapor molecules lose energy, cool down, and cluster around tiny particles in the air, creating visible droplets or ice crystals.\n\nOnce these water droplets within clouds coalesce and become too heavy to remain aloft, they fall back to Earth as precipitation. This can take the form of rain, snow, sleet, or hail depending on atmospheric conditions. Precipitation replenishes freshwater sources on land, including glaciers, lakes, rivers, and groundwater aquifers. A significant portion also falls directly back into the oceans, completing a shorter loop within the larger cycle.\n\nThe final phase involves the return of water to the major reservoirs. Precipitation that falls on land may flow over the surface as runoff, eventually making its way into streams and rivers that channel it back to the oceans. Alternatively, water may infiltrate the soil, becoming groundwater that slowly moves through porous rock. This groundwater can resurface through springs or be taken up again by plants, continuing the cycle. Thus, the Earth\u2019s water is constantly recycled and redistributed, maintaining a dynamic balance essential for our planet\u2019s climate and ecosystems.",
+  "score": 4,
+  "cost": 0.00043495000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 15,
+    "output": 392
+  }
+}

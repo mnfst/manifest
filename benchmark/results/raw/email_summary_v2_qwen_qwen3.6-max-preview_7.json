@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-max-preview",
   "task": "email_summary_v2",
   "case": 7,
-  "response": "The office will relocate to 500 Market St with the new space ready June 1, IT network setup running June 4\u20136, and the physical move scheduled for June 7\u20138 using approved professional movers. Each team must designate a move coordinator by Friday to help manage the transition.",
+  "response": "The office is relocating to 500 Market St, with the new space ready June 1, IT network setup June 4\u20136, and the physical move scheduled for June 7\u20138 using approved professional movers. Each team must designate a move coordinator by Friday.",
   "score": 5,
-  "cost": 0.0055978,
+  "cost": 0.007215,
   "expected": "",
   "tokens": {
     "input": 98,
-    "output": 1052
+    "output": 1363
   }
 }

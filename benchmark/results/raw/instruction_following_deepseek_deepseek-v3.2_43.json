@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 43,
+  "response": "Did you know that a day on Venus is longer than a year on Venus? It takes Venus about 243 Earth days to rotate once on its axis, while it only takes about 225 Earth days to orbit the Sun.",
+  "score": 5,
+  "cost": 5.735e-05,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 46
+  }
+}

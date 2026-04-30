@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 44,
+  "response": "Marketing overspent its budget by 15% due to a campaign, while engineering is under budget. Sarah proposes reallocating $50,000 from engineering to marketing and wants to discuss this on Thursday.",
+  "score": 5,
+  "cost": 7.07e-05,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 42
+  }
+}

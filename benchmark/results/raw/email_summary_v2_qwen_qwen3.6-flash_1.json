@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-flash",
   "task": "email_summary_v2",
   "case": 1,
-  "response": "A misconfigured load balancer caused a 47-minute server outage that impacted 12,000 users, with the full post-mortem report attached for review. To prevent future incidents, the team must add load balancer configuration validation to the CI pipeline, update the incident runbook, and implement traffic distribution alerts.",
+  "response": "A misconfigured load balancer caused a 47-minute server outage that impacted 12,000 users, with the complete post-mortem report attached for review. To prevent recurrence, the team must add load balancer configuration validation to the CI pipeline, update the incident runbook, and implement traffic distribution alerts.",
   "score": 5,
-  "cost": 0.0006145,
+  "cost": 0.0006255,
   "expected": "",
   "tokens": {
     "input": 114,
-    "output": 586
+    "output": 597
   }
 }

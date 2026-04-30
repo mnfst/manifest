@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle, also known as the hydrologic cycle, is the continuous movement of water on, above, and below the surface of the Earth, driven primarily by solar energy. This process begins with evaporation, where the sun heats liquid water in oceans, lakes, and rivers, transforming it into invisible water vapor that rises into the atmosphere. Simultaneously, plants contribute to this phase through transpiration, releasing moisture from their leaves into the air. Together, these processes move vast amounts of water from the Earth's surface into the atmosphere, setting the stage for the next phase of the cycle.\n\nAs the water vapor ascends, it encounters cooler temperatures at higher altitudes, causing the gas to lose energy and change back into liquid droplets through a process called condensation. These microscopic droplets cluster around tiny particles like dust or salt, forming visible clouds. The amount of condensation depends on atmospheric conditions, such as temperature and humidity. Once enough droplets accumulate and combine, they grow heavier, preparing the atmosphere for the return of water to the ground.\n\nWhen cloud droplets become too heavy to remain suspended in the air, they fall back to Earth as precipitation. This can take various forms depending on the temperature of the atmosphere and the ground, including rain, snow, sleet, or hail. Precipitation is the primary mechanism by which freshwater is distributed across the planet, replenishing rivers, lakes, and reservoirs while also nourishing ecosystems and agriculture. The type and intensity of precipitation vary widely based on geographic location and seasonal weather patterns.\n\nAfter precipitation reaches the surface, the water enters a phase known as collection or accumulation. Some of it flows over the land as runoff, eventually making its way into streams, rivers, and oceans, while other portions infiltrate the soil to become groundwater, stored in aquifers for long periods. This collected water is then available to be heated by the sun once again, restarting the cycle. Through this endless loop of evaporation, condensation, precipitation, and collection, the water cycle regulates the Earth's climate, sustains life, and maintains the balance of freshwater resources globally.",
+  "score": 3,
+  "cost": 0.0019845,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 1979
+  }
+}

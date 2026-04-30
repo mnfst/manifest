@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 22,
+  "response": "Dogs are widely celebrated as loyal companions who bring joy and comfort to their owners. Their loyal nature ensures that they greet their humans with unwavering enthusiasm every time they return home. Through both happy and difficult times, a loyal dog remains steadfast by your side, offering silent support and affection. Building a bond with a loyal canine often involves mutual trust, where the animal's devotion is rewarded with care and attention. Ultimately, the loyal dog earns a permanent place in our hearts as one of humanity's most faithful friends.",
+  "score": 5,
+  "cost": 0.0011835,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 1177
+  }
+}

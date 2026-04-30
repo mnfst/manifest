@@ -2,12 +2,12 @@
   "model": "deepseek/deepseek-v3.2",
   "task": "code_generation",
   "case": 35,
-  "response": "```python\n    return (abs(a) % 10) * (abs(b) % 10)\n```",
+  "response": "return (abs(a) % 10) * (abs(b) % 10)",
   "score": 5,
-  "cost": 5.8150000000000004e-05,
+  "cost": 5.415000000000001e-05,
   "expected": "",
   "tokens": {
-    "input": 127,
-    "output": 24
+    "input": 133,
+    "output": 19
   }
 }

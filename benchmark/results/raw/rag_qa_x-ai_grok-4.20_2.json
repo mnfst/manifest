@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "rag_qa",
+  "case": 2,
+  "response": "**Colonialism often means a country taking physical control of another.**\n\nThis is based on the context, which states: \"if colonialism refers to the process of a country taking physical control of another.\" It also describes colonialism as the \"architect deciding how to start dominating areas,\" beginning a \"conquest over an area,\" and ruling over previously controlled lands while exploiting assets.",
+  "score": 5,
+  "cost": 0.001428,
+  "expected": "taking physical control of another",
+  "tokens": {
+    "input": 418,
+    "output": 74
+  }
+}

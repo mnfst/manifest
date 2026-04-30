@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-flash",
   "task": "email_summary_v2",
   "case": 14,
-  "response": "AWS costs have surged 40% month-over-month, adding an estimated $45,000 monthly due to new ML training jobs running on expensive p4d instances. The DevOps team requires a decision by Friday on whether to mitigate these costs by switching to spot instances for 70% savings with interruption risks or reserved instances for 30% savings with a commitment.",
+  "response": "AWS costs have increased 40% month-over-month, adding an estimated $45,000 monthly due to new ML training jobs running on p4d instances. DevOps requires a decision by Friday on whether to switch to spot instances for 70% savings or reserved instances for a 30% discount.",
   "score": 5,
-  "cost": 0.0009045,
+  "cost": 0.0012315,
   "expected": "",
   "tokens": {
     "input": 118,
-    "output": 875
+    "output": 1202
   }
 }

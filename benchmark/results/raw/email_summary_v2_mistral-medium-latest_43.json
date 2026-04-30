@@ -2,7 +2,7 @@
   "model": "mistral-medium-latest",
   "task": "email_summary_v2",
   "case": 43,
-  "response": "The open-source dependency audit identified two critical issues: a charting library using the AGPL license (incompatible with the SaaS model) and an unlicensed package, both requiring removal before the next release. **Action items:** Replace the AGPL library with Apache-licensed *Chart.js* and remove the unlicensed package, as advised by Legal and Engineering.",
+  "response": "The open-source dependency audit identified two critical issues: a charting library with an AGPL license (incompatible with the SaaS model) and an unlicensed package, both requiring removal before the next release. **Action items:** Replace the AGPL library with Apache-licensed *Chart.js* and remove the unlicensed package, as advised by Legal and Engineering.",
   "score": 5,
   "cost": 0.000202,
   "expected": "",

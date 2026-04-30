@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 44,
+  "response": "Here are the ingredients for a basic salad:\n\n- [ ] Fresh greens (e.g., lettuce, spinach, or mixed greens)\n- [ ] Cucumber\n- [ ] Tomatoes\n- [ ] Red onion\n- [ ] Olive oil\n- [ ] Vinegar or lemon juice\n- [ ] Salt\n- [ ] Black pepper",
+  "score": 5,
+  "cost": 0.00085125,
+  "expected": "",
+  "tokens": {
+    "input": 21,
+    "output": 846
+  }
+}

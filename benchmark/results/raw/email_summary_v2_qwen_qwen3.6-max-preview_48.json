@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "email_summary_v2",
+  "case": 48,
+  "response": "DataSync is proposing a revenue-sharing partnership where they manage the data sync infrastructure and you integrate their SDK, potentially reducing customer latency by 60% and generating $2M in additional annual revenue for both companies. Please respond to Maria Chen with your availability for a technical discussion next week to review the proposal.",
+  "score": 5,
+  "cost": 0.006438900000000001,
+  "expected": "",
+  "tokens": {
+    "input": 97,
+    "output": 1214
+  }
+}

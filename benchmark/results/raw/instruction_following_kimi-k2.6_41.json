@@ -2,12 +2,12 @@
   "model": "kimi-k2.6",
   "task": "instruction_following",
   "case": 41,
-  "response": "Here is a complete Google-style docstring for a generic sort function:\n\n```python\ndef sort_data(data, key=None, reverse=False):\n    \"\"\"Sorts a list of items in ascending or descending order.\n\n    Uses a stable, iterative merge sort to order elements. If a key function\n    is provided, it is used to extract a comparison key from each element.\n\n    Args:\n        data (list): The list of items to sort.\n        key (callable, optional): A function of one argument used to extract\n            a comparison key from each element. Defaults to None.\n        reverse (bool, optional): If True, the list elements are sorted as if\n            each comparison were reversed. Defaults to False.\n\n    Returns:\n        list: A new list containing all items from the input in ascending\n            or descending order.\n\n    Raises:\n        TypeError: If `data` is not iterable or `key` is not callable.\n        ValueError: If `data` contains elements that are not mutually\n            comparable.\n\n    Examples:\n        >>> sort_data([3, 1, 4, 1, 5])\n        [1, 1, 3, 4, 5]\n\n        >>> sort_data(['banana', 'pie', 'Washington'], key=str.lower)\n        ['banana', 'pie', 'Washington']\n\n        >>> sort_data([3, 1, 4], reverse=True)\n        [4, 3, 1]\n    \"\"\"\n```\n\n### Key Google Style Elements Used\n| Section | Format |\n|---------|--------|\n| **One-line summary** | Imperative verb, ends with a period |\n| **Extended description** | Blank line, then extra context |\n| **Args** | `name (type): description` \u2014 optional params note `(optional)` |\n| **Returns** | `type: description` |\n| **Raises** | `ExceptionType: condition` |\n| **Examples** | `>>>` prompts with expected output |",
-  "score": 4,
-  "cost": 0.002415,
+  "response": "Here is a complete example of a Google-style docstring for a generic sort function, including type annotations in the signature:\n\n```python\nfrom typing import Sequence, Callable, Any, List\n\ndef sort_items",
+  "score": 3,
+  "cost": 0.0048126,
   "expected": "",
   "tokens": {
     "input": 21,
-    "output": 1001
+    "output": 2000
   }
 }

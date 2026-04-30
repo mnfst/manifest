@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "instruction_following",
+  "case": 12,
+  "response": "Imagine you're at a restaurant. You, the customer, want to order food. The menu is like a list of things you can ask for. The waiter is like an API.\n\nYou tell the waiter (the API) what you want from the menu (the list of things the API can do). The waiter then goes to the kitchen (the system providing the service) and gets your order. Finally, the waiter brings the food back to you.\n\nSo, an API is like a waiter that allows different computer programs to talk to each other and exchange information or services. It's a way for one program to ask another program to do something for it, without needing to know all the complicated details of how the other program works.",
+  "score": 5,
+  "cost": 6.21e-05,
+  "expected": "",
+  "tokens": {
+    "input": 13,
+    "output": 152
+  }
+}

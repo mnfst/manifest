@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-2.0-lite",
   "task": "instruction_following",
   "case": 10,
-  "response": "There once was a programmer named Dave,\nWho swore his GitHub would behave,\nHe force-pushed main, made a grave blunder,\nThat took his whole repo down under,\nNow he begs cloud backups to save.\n\nThis follows the classic limerick structure of an AABBA rhyme scheme, with playful inside jokes familiar to programmers (the nightmare of misusing force push on the main branch, lost code, and reliance on cloud backups) that still land as lighthearted fun for general audiences.",
+  "response": "There once was a programmer named Dave,\nWho laughed at warnings to behave.\nMerged a glitch that wiped his whole drive,\nAll his late-night builds didn\u2019t survive,\nNow he backs every line up to save.\n\nThis limerick follows the classic AABBA rhyme scheme, leans into relatable programmer chaos (ignoring pre-merge warnings, lost work from bad code, the universal lesson of backing up files) and wraps up with a light, lesson-driven punchline that fits the whimsical tone of the form.",
   "score": 5,
-  "cost": 0.00309175,
+  "cost": 0.00283775,
   "expected": "",
   "tokens": {
     "input": 59,
-    "output": 3077
+    "output": 2823
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Stay refreshed all day with our double-walled, vacuum-insulated water bottle that keeps drinks ice-cold for 24 hours or piping hot for 12. Built from durable, BPA-free stainless steel, this leak-proof companion features an ergonomic design perfect for the gym, office, or outdoor adventures. Make the sustainable switch to reusable hydration without compromising on style or performance.",
+  "score": 3,
+  "cost": 0.000708,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 702
+  }
+}

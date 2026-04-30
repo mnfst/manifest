@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 21,
+  "response": "You start standing at the park\u2019s main public exit, stepping out onto the paved road that runs along the park\u2019s front edge, facing that road. This route uses only left and right turns, per your request:\n1. Turn right onto the park\u2019s front road, and travel straight until you reach the first full 4-way intersection (roughly 2 blocks from the park exit).\n2. Turn left at that 4-way intersection, travel 3 more blocks until you reach the next intersection with a large, bright grocery store anchored on the right-hand corner.\n3. Turn right at that grocery store intersection, travel 1 block until you hit a T-intersection (the road you\u2019re on ends here, with a cross street running left to right in front of you).\n4. Turn left at the T-intersection, travel 500 feet, and turn right into the clearly marked main entrance drive of the neighborhood public library.",
+  "score": 5,
+  "cost": 0.00110825,
+  "expected": "",
+  "tokens": {
+    "input": 65,
+    "output": 1092
+  }
+}

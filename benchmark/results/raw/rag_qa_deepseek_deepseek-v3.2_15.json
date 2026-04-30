@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "rag_qa",
+  "case": 15,
+  "response": "Prussia.",
+  "score": 5,
+  "cost": 5.5549999999999995e-05,
+  "expected": "Prussia",
+  "tokens": {
+    "input": 209,
+    "output": 3
+  }
+}

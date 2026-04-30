@@ -2,12 +2,12 @@
   "model": "gemini-2.5-flash",
   "task": "code_explanation",
   "case": 2,
-  "response": "This code implements the **Quicksort algorithm** using a **divide and conquer** strategy. It selects a pivot (the middle element), partitions the array into elements less than, equal to, and greater than the pivot, then recursively sorts the \"less than\" and \"greater than\" partitions before concatenating them with the \"equal to\" elements.",
+  "response": "This code implements the **Quicksort** algorithm, a **divide and conquer** sorting method. It recursively sorts an array by selecting a pivot (the middle element), partitioning elements into those less than, equal to, or greater than the pivot, and then concatenating the recursively sorted 'less than' and 'greater than' partitions around the 'equal to' elements.",
   "score": 5,
-  "cost": 6.09e-05,
+  "cost": 6.33e-05,
   "expected": "",
   "tokens": {
     "input": 122,
-    "output": 71
+    "output": 75
   }
 }

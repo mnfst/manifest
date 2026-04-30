@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_explanation",
+  "case": 39,
+  "response": "The function defines a **producer\u2011consumer pattern** in which each producer puts its items onto a thread\u2011safe queue and then inserts a sentinel (`None`) to signal the end of its work, while each consumer repeatedly removes items from the queue, processes them, and upon receiving the sentinel re\u2011queues it for any remaining consumers before exiting. This uses a classic \u201cpoison\u2011pill\u201d (sentinel) approach to coordinate shutdown among multiple producers and consumers.",
+  "score": 5,
+  "cost": 0.0026697,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 573
+  }
+}

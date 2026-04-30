@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 38,
+  "response": "Incorrect username or password. Please try again.",
+  "score": 5,
+  "cost": 0.0027963000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 531
+  }
+}

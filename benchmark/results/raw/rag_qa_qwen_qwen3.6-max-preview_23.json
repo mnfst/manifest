@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "rag_qa",
+  "case": 23,
+  "response": "Based on the provided context, the answer is: **the mortgage banker**.",
+  "score": 5,
+  "cost": 0.0034866000000000003,
+  "expected": "the mortgage banker",
+  "tokens": {
+    "input": 206,
+    "output": 619
+  }
+}

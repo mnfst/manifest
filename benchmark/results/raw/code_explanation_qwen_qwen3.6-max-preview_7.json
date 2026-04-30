@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "This code implements a decorator that applies a **Least Recently Used (LRU) caching** strategy to a function, using an `OrderedDict` to store up to `maxsize` argument-result pairs while maintaining access order. It returns cached results for previously seen arguments and automatically evicts the oldest unused entry when the cache exceeds its size limit.",
+  "score": 5,
+  "cost": 0.0035152,
+  "expected": "",
+  "tokens": {
+    "input": 132,
+    "output": 643
+  }
+}

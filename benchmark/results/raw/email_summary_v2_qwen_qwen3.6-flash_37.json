@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-flash",
   "task": "email_summary_v2",
   "case": 37,
-  "response": "BigCo has offered $15M to acquire our ML team, but the CEO considers this undervaluation and recommends countering or politely declining. Before responding, we must discuss our strategy internally and inform the board.",
+  "response": "BigCo has offered $15M to acquire our five-person ML team, but the CEO considers this undervalued and recommends either countering or politely declining. Before responding, we must discuss the proposal internally and notify the board.",
   "score": 5,
-  "cost": 0.00106725,
+  "cost": 0.00082225,
   "expected": "",
   "tokens": {
     "input": 109,
-    "output": 1040
+    "output": 795
   }
 }

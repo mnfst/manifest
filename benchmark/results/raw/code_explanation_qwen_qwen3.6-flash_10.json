@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_explanation",
+  "case": 10,
+  "response": "This function implements the **Sieve of Eratosthenes** algorithm to efficiently find all prime numbers up to `n` by iteratively marking the multiples of each prime starting from its square. It then returns a list of all array indices that remain unmarked as prime.",
+  "score": 5,
+  "cost": 0.00112325,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 1087
+  }
+}

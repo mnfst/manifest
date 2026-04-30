@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_explanation",
+  "case": 40,
+  "response": "This code implements the **Circuit Breaker design pattern** using a **finite state machine** to prevent cascading failures by temporarily blocking calls to a failing function. It transitions from `closed` to `open` after a threshold of consecutive errors, enforces a timeout period, and briefly switches to `half-open` to test recovery before resetting to `closed` on success.",
+  "score": 5,
+  "cost": 0.001439,
+  "expected": "",
+  "tokens": {
+    "input": 220,
+    "output": 1384
+  }
+}

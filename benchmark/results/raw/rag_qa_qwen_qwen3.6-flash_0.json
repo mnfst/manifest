@@ -4,10 +4,10 @@
   "case": 0,
   "response": "Lake \u00dcberlingen",
   "score": 0,
-  "cost": 0.00080175,
+  "cost": 0.00111675,
   "expected": "Lake \u00dcberlingen",
   "tokens": {
     "input": 243,
-    "output": 741
+    "output": 1056
   }
 }

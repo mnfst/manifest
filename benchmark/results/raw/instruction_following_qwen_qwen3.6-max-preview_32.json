@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "**Restaurant Review: The Brass Gear Bistro**\n**Location:** 42 Cobblestone Alley, The Iron District\n**Cuisine:** Steampunk Fusion / Molecular Gastropub\n**Rating:** \u2605\u2605\u2605\u2605\u00bd (4.5/5 Stars)\n\n**The Vibe:**\nTucked behind a nondescript steam vent in the Iron District, The Brass Gear Bistro doesn't just ask for your patronage; it demands your curiosity. You know you've arrived when you hear the rhythmic *hiss-clank* of the entrance mechanism. The door is a repurposed boiler hatch that requires you to turn a heavy iron wheel to enter.\n\nInside, the ambiance is a horologist's fever dream. The ceiling is a mesmerizing lattice of rotating copper gears and glowing vacuum tubes. Tables are crafted from polished boiler plates, and the lighting is provided by floating Edison bulbs suspended on magnetic tracks. It's loud, it's industrial, and it's utterly magical. Just be warned: when the Grand Clock on the west wall strikes the hour, the entire restaurant erupts in a symphony of whistles and chimes. Earplugs are provided in a small brass dish at every table, and you'll want them.\n\n**The Service:**\nThe staff, dubbed \"Engineers,\" wear leather aprons, goggles, and tool belts. Our server, \"Cogsworth\" (according to his name tag), was charming and deeply committed to the bit. Water is poured from pressurized copper kettles that whistle a cheerful tune, and bread is delivered via a miniature pneumatic tube system that shoots the basket onto your table with a satisfying *thwump*.\n\nService was generally attentive, though the theatrics can slow things down. Watching Cogsworth wind up the antique pepper mill for a full forty-five seconds before grinding was entertaining the first time, but by the third course, I just wanted my pepper.\n\n**The Food & Drink:**\nHere is where The Brass Gear Bistro truly shines. Too often, themed restaurants rely on gimmicks over gastronomy, but Executive Chef Elara Vance ensures the food stands on its own merits.\n\n*   **Appetizer: The Piston Poppers.** Jalape\u00f1o poppers stuffed with smoked gouda and pulled pork, served in a miniature engine block. When you pull a lever on the side, the block splits open, releasing a cloud of hickory smoke. Cheesy,",
+  "score": 4,
+  "cost": 0.009660300000000002,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 1851
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "code_explanation",
+  "case": 0,
+  "response": "This Python function implements the **Fibonacci sequence** using a **recursive algorithm**, where each number is the sum of the two preceding ones (e.g., 0, 1, 1, 2, 3, 5...). For a given integer `n`, it returns the `n`-th Fibonacci number by recursively calling itself for `n-1` and `n-2`, with base cases `0` and `1` returning `n` directly.",
+  "score": 5,
+  "cost": 0.0002288,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 102
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "rag_qa",
+  "case": 29,
+  "response": "Istanbul",
+  "score": 5,
+  "cost": 0.00059475,
+  "expected": "Istanbul",
+  "tokens": {
+    "input": 183,
+    "output": 549
+  }
+}

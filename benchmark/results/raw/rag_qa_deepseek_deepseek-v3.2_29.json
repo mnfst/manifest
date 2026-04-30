@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "rag_qa",
+  "case": 29,
+  "response": "Istanbul",
+  "score": 5,
+  "cost": 4.7799999999999996e-05,
+  "expected": "Istanbul",
+  "tokens": {
+    "input": 178,
+    "output": 3
+  }
+}

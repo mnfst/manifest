@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "Here are three distinct greetings, each tailored to a different tone:  \n\n\n### **Formal**  \n\"Good [morning/afternoon/evening]. I am here to assist you with any inquiries or tasks you may have. Please feel free to share your needs, and I will strive to provide a thorough and professional response. How may I help you today?\"  \n\n\n### **Casual**  \n\"Hey! What\u2019s up? I\u2019m all set to chat\u2014whether you need a quick answer, a brainstorm, or just someone to vent to. Hit me with whatever\u2019s on your mind, and I\u2019ll keep it laid-back. No pressure, just good vibes (and maybe a few dad jokes). Let\u2019s go!\"  \n\n\n### **Humorous**  \n\"Greetings, human! I\u2019m your friendly neighborhood chatbot\u2014here to save the day (or at least answer that burning question about why toast always lands butter-side down). Pro tip: I *definitely* don\u2019t judge if you ask for life advice\u2026 or cat facts. Either way, let\u2019s make today less \u2018meh\u2019 and more \u2018*cha-ching*\u2019 (or, y\u2019know, \u2018*meow*\u2019). What\u2019s first on your agenda?\"  \n\n\nEach greeting balances clarity with tone, fitting its label while feeling natural to a chatbot\u2019s voice.",
+  "score": 5,
+  "cost": 0.00024015,
+  "expected": "",
+  "tokens": {
+    "input": 102,
+    "output": 775
+  }
+}

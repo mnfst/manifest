@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-2.0-lite",
   "task": "instruction_following",
   "case": 0,
-  "response": "- Supports long-term cardiovascular and metabolic health by lowering resting blood pressure, regulating blood sugar levels, and reducing harmful LDL cholesterol, cutting the risk of common chronic conditions like type 2 diabetes, heart disease, and stroke by up to 35% per World Health Organization (WHO) research.\n- Boosts mood and long-term cognitive function by triggering the release of endorphins (the body\u2019s natural mood regulators) that reduce acute symptoms of anxiety and depression, while increasing cerebral blood flow to support the growth of new neural connections, lowering age-related risk of cognitive decline and dementia.\n- Enhances long-term functional independence and quality of life by building and preserving lean muscle mass, bone density, and flexibility, which reduces fall and injury risk across all age groups, and supports the ability to complete routine daily tasks (from carrying groceries to climbing stairs) independently well into older adulthood.",
-  "score": 1,
-  "cost": 0.000808,
+  "response": "- Supports long-term cardiovascular and metabolic health: Regular moderate exercise lowers resting blood pressure, reduces harmful LDL cholesterol levels, and improves insulin sensitivity, cutting the risk of developing type 2 diabetes, heart disease, and stroke by up to 35% per World Health Organization data.\n- Boosts mental health and long-term cognitive function: Exercise stimulates the release of endorphins to reduce acute symptoms of anxiety and depression, while consistent aerobic activity increases blood flow to the brain, supporting memory retention and lowering the risk of age-related cognitive decline including dementia.\n- Enhances musculoskeletal health and functional independence: Weight-bearing and resistance exercise builds bone density and preserves lean muscle mass, reducing the risk of osteoporosis and falls in older adults, while improving the ability to complete routine daily tasks (like carrying groceries or climbing stairs) across all age groups.",
+  "score": 2,
+  "cost": 0.000497,
   "expected": "",
   "tokens": {
     "input": 60,
-    "output": 793
+    "output": 482
   }
 }

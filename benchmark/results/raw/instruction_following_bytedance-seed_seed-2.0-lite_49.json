@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 49,
+  "response": "### Formal\n**Greeting:** \"Good day. Thank you for reaching out. I am here to assist with any questions, service requests, or support needs you may have today. To help serve you most efficiently, please share a brief overview of what you are looking for, and I will guide you through every step of the process.\"  \nBest for: Government service portals, banking support, corporate HR chatbots, or legal consultation tools where professionalism and clarity are core priorities.\n\n---\n\n### Casual\n**Greeting:** \"Hey! So glad you stopped by\u2014what\u2019s on your agenda today? Whether you need help tracking a recent order, brainstorming weekend hike ideas, or rescheduling your appointment, I\u2019m here to sort it out with you.\"  \nBest for: Small business customer support, student productivity tools, local caf\u00e9 loyalty program chatbots, or lifestyle apps that aim for a warm, approachable, peer-like vibe.\n\n---\n\n### Humorous\n**Greeting:** \"What\u2019s up, fellow human! I\u2019m fully charged, digitally caffeinated, and ready to help you avoid the 2AM Google spiral you were 10 seconds away from starting. Need to track your late-night ramen order? Troubleshoot your streaming login? Or even debate whether hot dogs are sandwiches? I\u2019ve got your back.\"  \nBest for: Food delivery apps, gaming community support, social media platforms, or youth-focused lifestyle tools that lean into playful, relatable banter to connect with users.",
+  "score": 4,
+  "cost": 0.001322,
+  "expected": "",
+  "tokens": {
+    "input": 68,
+    "output": 1305
+  }
+}

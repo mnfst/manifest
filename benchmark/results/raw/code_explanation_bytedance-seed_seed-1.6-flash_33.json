@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_explanation",
+  "case": 33,
+  "response": "This code implements the **reservoir sampling** algorithm, which randomly selects `k` elements from a large or infinite stream of items. It maintains a reservoir of size `k`, initially filling it with the first `k` items. For subsequent items, it replaces a random element in the reservoir with the new item (with probability `k/i` for the `i-th` item), ensuring every item has an equal chance of being included in the final reservoir.\n\n\n**Key points**:  \n- Uses a random index `j` (0 to `i`) for elements after the first `k`.  \n- Replaces `reservoir[j]` with the current item if `j < k`, maintaining a reservoir of size `k`.  \n- Guarantees each item in the stream has an equal probability of being selected into the reservoir.",
+  "score": 5,
+  "cost": 0.00023444999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 178,
+    "output": 737
+  }
+}

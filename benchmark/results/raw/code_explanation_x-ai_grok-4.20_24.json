@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 24,
+  "response": "**This function implements `itertools.zip_longest`.**\n\nIt consumes multiple iterables in parallel by turning them into iterators, then repeatedly calls `next()` on each one inside a loop. When an iterator is exhausted it catches `StopIteration` and yields the `fillvalue` instead. The loop continues until *all* iterators have been exhausted (detected by the `all_done` flag), at which point it returns. The result is a sequence of tuples, one for each \u201ccolumn,\u201d padded with `fillvalue` where necessary.",
+  "score": 5,
+  "cost": 0.00134,
+  "expected": "",
+  "tokens": {
+    "input": 234,
+    "output": 109
+  }
+}

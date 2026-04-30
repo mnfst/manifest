@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_generation",
+  "case": 11,
+  "response": "sum_val = 0\n    prod_val = 1\n    for n in numbers:\n        sum_val += n\n        prod_val *= n\n    return (sum_val, prod_val)",
+  "score": 3,
+  "cost": 0.000842,
+  "expected": "",
+  "tokens": {
+    "input": 257,
+    "output": 41
+  }
+}

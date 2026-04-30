@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "rag_qa",
+  "case": 8,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 4.935e-05,
+  "expected": "36%",
+  "tokens": {
+    "input": 171,
+    "output": 6
+  }
+}

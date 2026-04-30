@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 18,
+  "response": "This book, which I reread once every few years as I move through different stages of my life, follows a fiercely stubborn, unloved orphan girl in 1840s England who refuses to shrink to fit the small, cruel boxes the world tries to stuff her into. It opens on a rainy, gray day, where the 10-year-old narrator hides behind a heavy curtain in her aunt\u2019s cold nursery, clinging to a book of British bird biographies to escape the taunts of her spoiled cousins and the cold disregard of the only family she\u2019s ever known.\n\nSent first to a nightmarish charity school for orphaned girls, where she survives freezing winters, rationed bread, and the death of her only soft, kind friend, she claws her way to an education, then takes a job as a governess at a remote, wind-scoured northern manor. There she falls for the manor\u2019s brooding, secret-keeping master, a man who carries a decades-old weight of grief and mistake, locked away in his attic: a violent, unwell first wife, whose existence he\u2019s hidden from almost everyone. When the narrator discovers this secret, she faces an impossible choice: stay with the only person who\u2019s ever loved her, but sacrifice her own self-respect as a secret, second-class partner, or run away from the life she\u2019s ached for to stay true to the belief that her soul is just as worthy of dignity and equality as any man\u2019s.\n\nWhat I love most about it, the reason I come back to it again and again, is that it\u2019s not just a sharp, spooky gothic romance. It\u2019s a love story centered first on the narrator\u2019s love for herself\u2014she turns down two very different marriage proposals not because they\u2019re bad, but because they would require her to give up parts of herself that she refuses to surrender. It was the first book I read as a preteen that made me see that wanting to be seen as whole, not just a helpful, gentle supporting character in someone else\u2019s life, wasn\u2019t selfish\u2014it was the only way to live.",
+  "score": 4,
+  "cost": 0.00154575,
+  "expected": "",
+  "tokens": {
+    "input": 59,
+    "output": 1531
+  }
+}

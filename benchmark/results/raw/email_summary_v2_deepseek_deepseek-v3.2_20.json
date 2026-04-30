@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 20,
+  "response": "A weekend disk space alert on production database server prod-db-01 was resolved through manual intervention after an automated cleanup failed. The root cause was a misconfigured log rotation, and there was no customer impact due to a maintenance window.",
+  "score": 5,
+  "cost": 7.630000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 48
+  }
+}

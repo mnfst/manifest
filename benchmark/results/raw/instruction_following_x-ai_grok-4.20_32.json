@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 32,
+  "response": "**La Petite Fantaisie \u2013 A Whimsical Culinary Dream (4.8/5 stars)**\n\nTucked away on a quiet cobblestone street that somehow doesn\u2019t appear on any map, La Petite Fantaisie is the restaurant you didn\u2019t know you needed in your life. From the moment you step through the velvet curtained doorway, you\u2019re transported into a softly glowing wonderland where the chandeliers appear to be made of captured starlight and the tables gently float two inches above the floor.\n\nThe menu is a work of edible poetry. I started with the \u201cWhispering Forest Soup,\u201d a velvety mushroom bisque that literally whispered compliments to me between spoonfuls. The house specialty, \u201cMidnight Garden Risotto,\u201d features rice grains that shimmer like polished obsidian and vegetables that taste like they were harvested from a garden tended by very flirtatious fairies. My main course, the \u201cDragon\u2019s Regret,\u201d was a perfectly seared duck breast served with a sauce that somehow tasted like both revenge and forgiveness at the same time.\n\nDessert was unforgettable. The \u201cCloud Nine Souffl\u00e9\u201d arrived floating above the plate on a tiny updraft of vanilla-scented air. When I finally coaxed it down with my spoon, it dissolved into pure happiness and a faint memory of my best childhood birthday.\n\nService is impeccable, if slightly peculiar. Our server, a charming gentleman named Maurice who may or may not have been a raccoon in a very convincing tuxedo, anticipated every need before we realized we had it. When my dining companion mentioned she was cold, a gentle breeze of warm cinnamon air immediately enveloped our table.\n\nThe only reason I\u2019m not giving a full five stars is that after the meal, I spent three days speaking exclusively in iambic pentameter and smelling faintly of lavender. While delightful, it made board meetings somewhat confusing.\n\n**Final Verdict: 4.8/5 stars**  \nGo hungry. Go curious. Just don\u2019t be surprised if you leave a slightly different, slightly more magical version of yourself. Reservations recommended\u2014possibly by a talking owl.",
+  "score": 4,
+  "cost": 0.003662,
+  "expected": "",
+  "tokens": {
+    "input": 139,
+    "output": 423
+  }
+}

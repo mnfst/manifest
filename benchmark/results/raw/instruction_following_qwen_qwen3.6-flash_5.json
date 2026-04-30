@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "The sun dips low, a heavy orb of molten amber sinking behind the horizon. Its final rays ignite the clouds, painting them in broad strokes of tangerine, apricot, and bruised violet. The harsh white of the day softens into a warm, honeyed glow that stretches across the landscape, turning the grass to gold and the water to a sheet of shimmering copper.\n\nShadows lengthen and merge, creeping silently across the ground as the air cools. Birds return to their roosts, their calls fading into the quiet. Slowly, the fiery hues deepen into indigo and deep purple, until the last ember of light vanishes, surrendering the sky to the velvet darkness of night.",
+  "score": 5,
+  "cost": 0.001777,
+  "expected": "",
+  "tokens": {
+    "input": 24,
+    "output": 1771
+  }
+}

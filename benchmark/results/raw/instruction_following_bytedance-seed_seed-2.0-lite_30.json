@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 30,
+  "response": "Golden, thin, buttery wheat crust, flaky, char-kissed edge. Tangy, slow-simmered tomato puree, basil-laced, herby base. Stretchy, melted buffalo-milk mozzarella, salty pecorino dusting, creamy, stringy strands. Earthy cremini mushroom slices, spicy soppressata crumbles, sweet roasted bell pepper chunks. Briny kalamata olive halves, bright fresh oregano flakes, zesty red pepper specks. Steamy, aromatic, savory, cheesy, warm, oozing, vibrant, rich, irresistible pie.",
+  "score": 5,
+  "cost": 0.00057825,
+  "expected": "",
+  "tokens": {
+    "input": 61,
+    "output": 563
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_explanation",
+  "case": 9,
+  "response": "This code implements a **retry decorator factory** that wraps any function to automatically retry on failure up to `max_attempts` times. It uses **exponential backoff**, doubling the delay between each retry attempt (`delay * 2^i`) to avoid overwhelming a failing service.",
+  "score": 5,
+  "cost": 0.0014333000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 147,
+    "output": 289
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "This function performs a topological sort on a directed acyclic graph using a depth-first search (DFS) algorithm. It recursively visits each node, appends it to a stack after processing all its descendants (post-order traversal), and returns the reversed stack to produce a valid linear ordering where every directed edge points from an earlier to a later node.",
+  "score": 5,
+  "cost": 0.00135325,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 1323
+  }
+}

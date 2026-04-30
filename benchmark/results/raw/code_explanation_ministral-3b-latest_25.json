@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "This code implements a **delegation-based event system** (a common pattern in event-driven programming) where an object (`EventEmitter`) maintains a dictionary of event handlers. The `on` method registers a function to be called when a specific event occurs, `emit` triggers all registered handlers for an event with provided arguments, and `off` removes a specific handler from an event. The algorithm uses a **dictionary of lists** to store and manage event callbacks efficiently.",
+  "score": 5,
+  "cost": 8.56e-06,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 97
+  }
+}

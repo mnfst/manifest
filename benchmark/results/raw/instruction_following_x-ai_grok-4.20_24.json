@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "- A red sedan ran a red light at the intersection of Main and Oak Streets at approximately 2:15 PM.\n- It collided with a blue SUV, causing both vehicles to sustain moderate front-end damage and minor injuries to the SUV driver.\n- Police cited the sedan driver for failure to obey traffic signals; no fatalities occurred.",
+  "score": 5,
+  "cost": 0.000796,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 66
+  }
+}

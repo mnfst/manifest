@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 15,
+  "response": "Here are 4 rhyming words for **cat**:\n\n1.  **bat**\n2.  **hat**\n3.  **mat**\n4.  **rat**",
+  "score": 5,
+  "cost": 0.0007225,
+  "expected": "",
+  "tokens": {
+    "input": 22,
+    "output": 717
+  }
+}

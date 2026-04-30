@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "rag_qa",
+  "case": 21,
+  "response": "Based on the provided context, the answer is: anaerobic bacteria.",
+  "score": 2,
+  "cost": 6.455e-05,
+  "expected": "anaerobic bacteria",
+  "tokens": {
+    "input": 201,
+    "output": 13
+  }
+}

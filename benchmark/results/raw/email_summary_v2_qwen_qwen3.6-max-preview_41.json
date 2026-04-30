@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-max-preview",
   "task": "email_summary_v2",
   "case": 41,
-  "response": "Network Ops recommends upgrading to 10Gbps links for $45K upfront plus $2K monthly to resolve near-capacity peak usage and support projected growth, rather than pursuing a cheaper $15K optimization alternative. Please review the proposal and provide approval or a final decision so the team can proceed with the recommended upgrade.",
+  "response": "Network Ops recommends upgrading to 10Gbps links for a $45K one-time fee plus $2K monthly to address current peak capacity constraints and accommodate projected growth, rather than pursuing a cheaper $15K traffic-shaping alternative. Please approve the recommended upgrade or specify if you prefer the lower-cost option so the team can proceed with implementation.",
   "score": 5,
-  "cost": 0.009020700000000001,
+  "cost": 0.0080015,
   "expected": "",
   "tokens": {
     "input": 119,
-    "output": 1705
+    "output": 1509
   }
 }

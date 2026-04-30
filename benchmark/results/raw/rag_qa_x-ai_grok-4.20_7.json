@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "rag_qa",
+  "case": 7,
+  "response": "**mass of the system**\n\nFrom the context: \"...the center of mass will experience an acceleration proportional to the magnitude of the external force divided by the mass of the system.\"",
+  "score": 5,
+  "cost": 0.000832,
+  "expected": "mass of the system",
+  "tokens": {
+    "input": 276,
+    "output": 35
+  }
+}

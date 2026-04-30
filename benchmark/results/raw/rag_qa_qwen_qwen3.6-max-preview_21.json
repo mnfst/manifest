@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "rag_qa",
+  "case": 21,
+  "response": "Based on the provided context, oxygen is poisonous to **anaerobic bacteria**.",
+  "score": 2,
+  "cost": 0.004253600000000001,
+  "expected": "anaerobic bacteria",
+  "tokens": {
+    "input": 216,
+    "output": 764
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "This is the **Knuth-Morris-Pratt (KMP) string matching algorithm**. It first builds an LPS (Longest Proper Prefix which is also Suffix) table from the pattern to determine how far to \"fall back\" on mismatches, then searches the text in O(n+m) time by using this table to skip characters instead of backtracking the text pointer.",
+  "score": 5,
+  "cost": 0.0012606000000000002,
+  "expected": "",
+  "tokens": {
+    "input": 198,
+    "output": 237
+  }
+}

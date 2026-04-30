@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 28,
+  "response": "Success blooms when you water your dreams with daily action and belief.",
+  "score": 4,
+  "cost": 0.00038,
+  "expected": "",
+  "tokens": {
+    "input": 138,
+    "output": 13
+  }
+}

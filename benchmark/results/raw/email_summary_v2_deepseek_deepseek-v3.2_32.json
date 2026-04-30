@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 32,
+  "response": "The SSL certificate for api.company.com is expiring in a week because an auto-renewal failed due to a missing DNS record. The action item is to re-add the CNAME record `_acme-challenge.api.company.com`, which the DevOps team will handle.",
+  "score": 5,
+  "cost": 8.575e-05,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 55
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 8,
+  "response": "Imagine a magic notebook that all your friends share, where everyone writes down who has which toys so no one can lie. Once something is written, it turns to stone and can never be changed or erased!",
+  "score": 5,
+  "cost": 0.0042978,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 820
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 33,
+  "response": "**This code implements Reservoir Sampling (Algorithm R) to randomly select `k` items from a stream of unknown or very large length.**\n\nIt works by:\n\n- First filling the reservoir with the first `k` items.\n- For each subsequent item at position `i` (where `i \u2265 k`), it randomly chooses an index `j` uniformly from `0` to `i`. If `j < k`, it replaces the item at `reservoir[j]` with the new item.\n\nThis ensures that at the end, each item in the stream has an equal probability (`k/n`) of being in the final reservoir, using only O(k) space.",
+  "score": 5,
+  "cost": 0.00148,
+  "expected": "",
+  "tokens": {
+    "input": 208,
+    "output": 133
+  }
+}

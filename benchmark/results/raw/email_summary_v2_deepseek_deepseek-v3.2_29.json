@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 29,
+  "response": "The mobile app's crash rate has spiked significantly due to a null pointer bug on Android 12+, while iOS remains unaffected. The fix has been merged and an emergency release has been requested for the Play Store.",
+  "score": 5,
+  "cost": 7.055000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 93,
+    "output": 43
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_generation",
+  "case": 49,
+  "response": "# Find the longest palindromic suffix\n    for i in range(len(string)):\n        if is_palindrome(string[i:]):\n            # Prefix that needs to be reversed and appended\n            prefix_to_reverse = string[:i]\n            return string + prefix_to_reverse[::-1]\n    return string",
+  "score": 5,
+  "cost": 0.00011305000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 175,
+    "output": 63
+  }
+}

@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-2.0-lite",
   "task": "instruction_following",
   "case": 11,
-  "response": "Is there a specific topic you\u2019d like to explore with this all-question format? Would you prefer to chat about a lighthearted hypothetical, a nagging real-world curiosity, or something personal that\u2019s been on your mind lately? Could you share a little more about what made you want to have a conversation that only uses questions? Would this kind of back-and-forth even fit the tone you were hoping for our chat today?",
+  "response": "Could you share what prompted you to ask for a response made up entirely of questions? Are there any specific topics you\u2019ve been wanting to explore through this conversational prompt? What made you curious to test out this kind of back-and-forth in the first place? Would you want to keep this string of questions going for as long as it feels fun?",
   "score": 5,
-  "cost": 0.000562,
+  "cost": 0.000405,
   "expected": "",
   "tokens": {
     "input": 56,
-    "output": 548
+    "output": 391
   }
 }

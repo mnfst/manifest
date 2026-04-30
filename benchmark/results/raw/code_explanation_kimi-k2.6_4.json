@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_explanation",
+  "case": 4,
+  "response": "This code implements a **memoization** decorator that caches a function\u2019s return values in a dictionary using the input arguments as keys, so subsequent calls with identical arguments retrieve the stored result instead of re-executing the function.",
+  "score": 5,
+  "cost": 0.0015336,
+  "expected": "",
+  "tokens": {
+    "input": 76,
+    "output": 620
+  }
+}

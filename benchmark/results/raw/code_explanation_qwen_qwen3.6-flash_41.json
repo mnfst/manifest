@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_explanation",
+  "case": 41,
+  "response": "This function computes the standard IEEE 802.3 CRC-32 checksum by processing each byte through a reflected (LSB-first) bitwise polynomial division using the polynomial `0xEDB88320`, with initial and final XOR masks of `0xFFFFFFFF`.",
+  "score": 5,
+  "cost": 0.001394,
+  "expected": "",
+  "tokens": {
+    "input": 116,
+    "output": 1365
+  }
+}

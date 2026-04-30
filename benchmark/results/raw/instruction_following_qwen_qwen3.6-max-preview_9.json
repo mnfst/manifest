@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 9,
+  "response": "April\nJune\nSeptember\nNovember",
+  "score": 5,
+  "cost": 0.0022399,
+  "expected": "",
+  "tokens": {
+    "input": 27,
+    "output": 424
+  }
+}

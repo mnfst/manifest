@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "code_explanation",
+  "case": 30,
+  "response": "This code implements a Bloom filter, a probabilistic data structure used to test whether an element is a member of a set. It uses multiple hash functions to map each element to multiple bit positions in a bit array; an element is considered present if all its corresponding bit positions are set to True.",
+  "score": 5,
+  "cost": 4.1e-05,
+  "expected": "",
+  "tokens": {
+    "input": 174,
+    "output": 59
+  }
+}

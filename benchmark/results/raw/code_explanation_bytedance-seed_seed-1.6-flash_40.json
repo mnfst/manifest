@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_explanation",
+  "case": 40,
+  "response": "This code implements the **circuit breaker pattern**, which monitors failures of a function call. It starts in a 'closed' state, allowing calls; if failures exceed the `threshold` (default 5), it switches to 'open' (blocking calls) after a failure. After a `timeout` (default 30s), it enters 'half-open' to test if the function recovers; if the test call succeeds, it resets to 'closed'; otherwise, it reopens.\n\n\n**Key points**:  \n- Tracks failures and last failure time.  \n- Transitions between 'closed' (allow calls), 'open' (block calls until timeout), and 'half-open' (test recovery) states.  \n- Resets failures and state to 'closed' on successful calls.",
+  "score": 5,
+  "cost": 0.000136725,
+  "expected": "",
+  "tokens": {
+    "input": 299,
+    "output": 381
+  }
+}

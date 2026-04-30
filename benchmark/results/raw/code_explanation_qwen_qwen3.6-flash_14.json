@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_explanation",
+  "case": 14,
+  "response": "This function implements Dijkstra\u2019s algorithm using a min-heap priority queue to compute the shortest path distances from a starting node to all reachable nodes in a weighted graph with non-negative edge weights. It employs a lazy deletion pattern by skipping outdated heap entries that exceed the node's current known shortest distance.",
+  "score": 5,
+  "cost": 0.0011135,
+  "expected": "",
+  "tokens": {
+    "input": 154,
+    "output": 1075
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 20,
+  "response": "**Photosynthesis (P)** is plants (P) using sunlight (S) to make sugars (S) and starch (S), storing energy. Stomata (S) help plants (P) get parts (P) to process (P). Sunlight (S) powers the process (P), splitting particles (P) to make sugars (S).  \n\n\nThis uses only words starting with *S* or *P*, simplifying the process while capturing key ideas: light energy, sugar production, and plant involvement.",
+  "score": 5,
+  "cost": 0.0007684500000000001,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 2537
+  }
+}

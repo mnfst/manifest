@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-flash",
   "task": "email_summary_v2",
   "case": 12,
-  "response": "The engineering team has four open positions with a strong overall pipeline, but the frontend role has been unfilled for 60 days due to a lack of qualified applicants. To resolve this bottleneck, recruiting recommends either expanding the search to remote candidates or adjusting the compensation band.",
+  "response": "The engineering team currently has four open positions with a robust candidate pipeline, but the frontend role has been unfilled for 60 days due to a lack of strong applicants. To address this bottleneck, recruiting recommends either expanding the search to remote candidates or adjusting the compensation band to improve candidate quality.",
   "score": 5,
-  "cost": 0.00053525,
+  "cost": 0.00133025,
   "expected": "",
   "tokens": {
     "input": 105,
-    "output": 509
+    "output": 1304
   }
 }

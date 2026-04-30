@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "This function uses Breadth-First Search (BFS) to identify all connected components in a graph by iteratively starting a queue-based traversal from each unvisited node and collecting its reachable vertices into separate lists. It effectively partitions the graph into disjoint sets of mutually reachable nodes.",
+  "score": 4,
+  "cost": 0.00115825,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 1121
+  }
+}

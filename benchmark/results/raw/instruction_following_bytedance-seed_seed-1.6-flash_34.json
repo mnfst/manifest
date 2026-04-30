@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 34,
+  "response": "A database index is a data structure that accelerates data retrieval by allowing the database to locate specific records without scanning the entire table. By storing pointers or references to the actual data, indexes enable the database to quickly navigate to relevant rows, reducing query time complexity from linear to logarithmic or better.",
+  "score": 3,
+  "cost": 9.1125e-05,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 280
+  }
+}

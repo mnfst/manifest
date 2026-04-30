@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "Endless loops of code\nOne missing semicolon\nHours lost to bugs",
+  "score": 5,
+  "cost": 0.00167325,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 1669
+  }
+}

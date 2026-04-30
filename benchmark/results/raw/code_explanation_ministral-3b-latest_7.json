@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "This code implements the **Least Recently Used (LRU) cache decorator**, using Python's `OrderedDict` to track usage order. When a function is called, it checks if the arguments are in the cache; if so, it moves them to the end (marking them as recently used) and returns the cached result. If the cache exceeds `maxsize`, it removes the **least recently used** item (the first item in the `OrderedDict`) before storing the new result.",
+  "score": 5,
+  "cost": 8.759999999999999e-06,
+  "expected": "",
+  "tokens": {
+    "input": 117,
+    "output": 102
+  }
+}

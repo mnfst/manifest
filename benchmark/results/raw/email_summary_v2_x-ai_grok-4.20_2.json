@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "email_summary_v2",
+  "case": 2,
+  "response": "**Summary:** A critical SQL injection vulnerability (CVSS 9.8) was discovered in the login endpoint affecting versions v3.2.0 through v3.4.1. David recommends applying the prepared patch that parameterizes the query in auth_controller.py:142 as a hotfix within 24 hours.",
+  "score": 5,
+  "cost": 0.000936,
+  "expected": "",
+  "tokens": {
+    "input": 212,
+    "output": 64
+  }
+}

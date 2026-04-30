@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "rag_qa",
+  "case": 40,
+  "response": "Full citizenship rights \u2013 \u2018\u2019assimilation\u2019\u2019.",
+  "score": 3,
+  "cost": 0.00066,
+  "expected": "assimilation",
+  "tokens": {
+    "input": 286,
+    "output": 11
+  }
+}

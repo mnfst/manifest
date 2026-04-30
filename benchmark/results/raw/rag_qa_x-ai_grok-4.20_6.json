@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "rag_qa",
+  "case": 6,
+  "response": "**TFEU article 294**\n\nThis is directly stated in the first sentence of the provided context: \"To make new legislation, TFEU article 294 defines the 'ordinary legislative procedure' that applies for most EU acts.\"",
+  "score": 5,
+  "cost": 0.001398,
+  "expected": "TFEU article 294",
+  "tokens": {
+    "input": 511,
+    "output": 47
+  }
+}

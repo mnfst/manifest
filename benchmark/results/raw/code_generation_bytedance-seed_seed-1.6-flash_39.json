@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-1.6-flash",
   "task": "code_generation",
   "case": 39,
-  "response": "if x == 0:\n        return '0'\n    digits = []\n    while x > 0:\n        rem = x % base\n        digits.append(str(rem))\n        x = x // base\n    return ''.join(reversed(digits))",
+  "response": "digits = []\n    if x == 0:\n        return '0'\n    while x > 0:\n        digits.append(str(x % base))\n        x = x // base\n    return ''.join(reversed(digits))",
   "score": 5,
-  "cost": 0.00047579999999999996,
+  "cost": 0.0004035,
   "expected": "",
   "tokens": {
     "input": 216,
-    "output": 1532
+    "output": 1291
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "This code finds all connected components in an undirected graph using a BFS (Breadth-First Search) algorithm. It iterates over each node, and for unvisited nodes, it uses BFS to explore all reachable nodes (forming a component), marking them as visited to avoid reprocessing. The result is a list of lists, where each sublist contains the nodes of a connected component.",
+  "score": 4,
+  "cost": 0.00010604999999999999,
+  "expected": "",
+  "tokens": {
+    "input": 222,
+    "output": 298
+  }
+}

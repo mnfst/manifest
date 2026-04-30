@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 43,
+  "response": "The audit identified two problematic open-source packages: an AGPL-licensed charting library that conflicts with the SaaS model and a package with no license. Both should be replaced or removed before the next release.",
+  "score": 5,
+  "cost": 7.37e-05,
+  "expected": "",
+  "tokens": {
+    "input": 110,
+    "output": 42
+  }
+}

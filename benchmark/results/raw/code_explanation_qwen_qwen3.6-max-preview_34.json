@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_explanation",
+  "case": 34,
+  "response": "This code implements a stack that supports O(1) minimum retrieval using an **auxiliary stack pattern**, where a parallel `min_stack` tracks the running minimum at each depth. By pushing the smaller of the new value and the current minimum onto `min_stack` and popping both stacks in sync, it guarantees constant-time `push`, `pop`, and `get_min` operations.",
+  "score": 5,
+  "cost": 0.0036100999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 137,
+    "output": 660
+  }
+}

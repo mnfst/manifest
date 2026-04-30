@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_explanation",
+  "case": 12,
+  "response": "This code implements **Kahn's algorithm for topological sorting** (via a depth-first search variant) on a **directed acyclic graph (DAG)**. It processes nodes in reverse post-order, ensuring dependencies are respected by first visiting all neighbors before the node itself, then reversing the result to produce a valid topological order.",
+  "score": 4,
+  "cost": 6.960000000000001e-06,
+  "expected": "",
+  "tokens": {
+    "input": 107,
+    "output": 67
+  }
+}

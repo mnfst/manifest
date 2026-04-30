@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_generation",
+  "case": 9,
+  "response": "if not lst:\n        return 0\n    return sum(x**2 for x in lst if x > 0 and isinstance(x, int) and x % 2 == 1)",
+  "score": 4,
+  "cost": 0.000888,
+  "expected": "",
+  "tokens": {
+    "input": 284,
+    "output": 40
+  }
+}

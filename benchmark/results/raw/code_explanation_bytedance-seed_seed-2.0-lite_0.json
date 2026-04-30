@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_explanation",
+  "case": 0,
+  "response": "This naive recursive Python function calculates the nth number in the standard Fibonacci sequence. It uses basic recursion with base cases that return n directly for inputs n \u2264 1 (correctly returning the first two Fibonacci values 0 for n=0 and 1 for n=1), and for all larger n it recursively computes and sums the two preceding Fibonacci numbers to generate the target value.",
+  "score": 5,
+  "cost": 0.00041075,
+  "expected": "",
+  "tokens": {
+    "input": 111,
+    "output": 383
+  }
+}

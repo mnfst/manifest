@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_explanation",
+  "case": 41,
+  "response": "This code computes a 32-bit Cyclic Redundancy Check (CRC32) by processing each byte of input data. It initializes a 32-bit checksum to `0xFFFFFFFF`, then for each byte, XORs the checksum with the byte and processes each of the byte's 8 bits (LSB first) by shifting the checksum right and XORing with the polynomial `0xEDB88320` if the bit is set. Finally, it inverts the result by XORing with `0xFFFFFFFF` to produce the standard CRC32 value.\n\n\n**Key pattern**: Bitwise processing of each byte with polynomial division (via shifts and XORs) to generate a checksum for error detection.",
+  "score": 5,
+  "cost": 0.000210225,
+  "expected": "",
+  "tokens": {
+    "input": 199,
+    "output": 651
+  }
+}

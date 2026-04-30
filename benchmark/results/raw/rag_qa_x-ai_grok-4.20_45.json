@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "rag_qa",
+  "case": 45,
+  "response": "The show globe.",
+  "score": 5,
+  "cost": 0.0007,
+  "expected": "The show globe",
+  "tokens": {
+    "input": 334,
+    "output": 4
+  }
+}

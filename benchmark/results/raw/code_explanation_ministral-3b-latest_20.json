@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "This function **splits an iterable into two groups** using a **predicate (filtering condition)** while preserving the original order: one list contains elements that **match** the predicate, and the other contains elements that **do not match**. It achieves this by first duplicating the input iterable (using `itertools.tee`) and then applying the predicate separately to each copy via `filter` and `filterfalse`.",
+  "score": 5,
+  "cost": 6.36e-06,
+  "expected": "",
+  "tokens": {
+    "input": 70,
+    "output": 89
+  }
+}

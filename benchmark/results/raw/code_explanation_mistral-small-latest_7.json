@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "This code implements an **LRU (Least Recently Used) cache** using a decorator pattern. It uses an `OrderedDict` to store cached results, where the most recently accessed items are moved to the end. When the cache exceeds `maxsize`, the least recently used item (at the front) is evicted.",
+  "score": 5,
+  "cost": 3.3299999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 68
+  }
+}

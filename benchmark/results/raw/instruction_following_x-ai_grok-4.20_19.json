@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 19,
+  "response": "AI isn't coming for your job\u2014it's already here, quietly making some obsolete while creating new ones we haven't even imagined yet. The real question isn't \"Will AI replace us?\" but \"How will we evolve alongside it?\" \ud83d\ude80 #FutureOfWork",
+  "score": 5,
+  "cost": 0.000668,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 50
+  }
+}

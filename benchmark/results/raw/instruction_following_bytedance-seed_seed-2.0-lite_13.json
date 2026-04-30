@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 13,
+  "response": "The exactly 7 colors of the rainbow in the traditional widely accepted order (from the longest wavelength at the outer edge of a primary rainbow to the shortest at its inner edge, forming the acronym ROYGBIV) are:\n1. Red\n2. Orange\n3. Yellow\n4. Green\n5. Blue\n6. Indigo\n7. Violet",
+  "score": 5,
+  "cost": 0.00038275,
+  "expected": "",
+  "tokens": {
+    "input": 59,
+    "output": 368
+  }
+}

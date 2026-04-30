@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_explanation",
+  "case": 32,
+  "response": "This code implements a **union-find (disjoint-set) data structure** using a union-by-rank and path-compression strategy. It provides `find` and `union` operations to efficiently manage and merge sets, supporting operations like detecting connectivity in dynamic graphs.",
+  "score": 5,
+  "cost": 9.755000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 157,
+    "output": 53
+  }
+}

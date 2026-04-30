@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-max-preview",
   "task": "email_summary_v2",
   "case": 21,
-  "response": "The Platform Team proposes a cleanup sprint to address 23 outdated feature flags, which will reduce configuration complexity and accelerate the test suite by approximately 12%. The required actions are to remove 15 fully rolled-out flags and archive 8 flags associated with dead code.",
+  "response": "The Platform Team proposes a cleanup sprint to address 23 outdated feature flags, which will reduce configuration complexity and speed up the test suite by approximately 12%. To execute this, the team will remove 15 fully rolled-out flags and archive 8 flags tied to dead code.",
   "score": 5,
-  "cost": 0.0050531000000000005,
+  "cost": 0.0057811,
   "expected": "",
   "tokens": {
     "input": 111,
-    "output": 944
+    "output": 1084
   }
 }

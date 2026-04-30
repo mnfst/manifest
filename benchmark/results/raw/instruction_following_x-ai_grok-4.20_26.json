@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 26,
+  "response": "The water cycle, also known as the hydrologic cycle, is a continuous process that circulates water throughout the Earth's systems. It begins with evaporation, where heat from the sun causes water from oceans, lakes, rivers, and even soil and plants to transform into water vapor and rise into the atmosphere. Transpiration from plants also contributes to this vapor. As the warm, moist air ascends, it cools and condenses around tiny particles to form clouds, a stage known as condensation. This sets the foundation for the movement of water from the surface back into the sky.\n\nOnce clouds become saturated with moisture, precipitation occurs in various forms such as rain, snow, sleet, or hail, depending on the temperature. This water falls back to the Earth's surface, replenishing bodies of water and soaking into the ground. Some of the precipitation is absorbed by plants and soil, while excess water flows over the land as runoff, eventually making its way into streams, rivers, and oceans. This phase highlights the redistribution of water across different ecosystems and terrains.\n\nInfiltration plays a crucial role as water seeps into the ground to become groundwater, which can be stored in aquifers for long periods or slowly released back into surface water sources. During this underground phase, water may also be taken up by plant roots and returned to the atmosphere through transpiration. The cycle is sustained by the balance of these processes, influenced by factors like temperature, wind, and topography, ensuring that water is neither created nor destroyed but constantly recycled.\n\nOverall, the water cycle is essential for regulating climate, supporting life, and maintaining freshwater supplies. It connects the atmosphere, land, and oceans in a dynamic loop that has been operating for billions of years. Disruptions to this cycle, such as those caused by climate change or pollution, can lead to severe environmental consequences like droughts, floods, and reduced water quality. Understanding this process helps us appreciate the delicate balance that sustains our planet.",
+  "score": 4,
+  "cost": 0.003354,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 386
+  }
+}

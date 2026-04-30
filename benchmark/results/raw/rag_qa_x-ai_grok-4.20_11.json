@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "rag_qa",
+  "case": 11,
+  "response": "**1.1 \u00d7 10^11 metric tonnes of carbon (10% of global ecosystem carbon stores).**\n\nThis is directly stated in the provided context: \"Amazonian evergreen forests account for about 10% of the world's terrestrial primary productivity and 10% of the carbon stores in ecosystems\u2014of the order of 1.1 \u00d7 10^11 metric tonnes of carbon.\" The accumulation rate (0.62 \u00b1 0.37 tons/ha/yr) is not asked for and is therefore not included.",
+  "score": 5,
+  "cost": 0.001384,
+  "expected": "10% of the carbon stores",
+  "tokens": {
+    "input": 280,
+    "output": 103
+  }
+}

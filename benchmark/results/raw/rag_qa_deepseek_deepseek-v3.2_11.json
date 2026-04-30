@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "rag_qa",
+  "case": 11,
+  "response": "About 10% of the world's carbon stores in ecosystems are in the Amazon forest.",
+  "score": 5,
+  "cost": 6.0799999999999994e-05,
+  "expected": "10% of the carbon stores",
+  "tokens": {
+    "input": 164,
+    "output": 18
+  }
+}

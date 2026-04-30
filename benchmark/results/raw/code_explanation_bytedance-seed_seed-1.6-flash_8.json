@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_explanation",
+  "case": 8,
+  "response": "This code defines a **debounce decorator** that delays the execution of a function `fn` until `wait` seconds have elapsed without the decorated function being called again. If the decorated function is invoked multiple times within the `wait` period, only the last invocation triggers `fn` after the full `wait` duration (the previous invocations' timers are canceled).\n\n\n### Key Details:\n- Uses `threading.Timer` to schedule `fn` execution after `wait` seconds.\n- Resets the timer on each call to the decorated function, canceling any pending execution of the original `fn`.\n- Ensures `fn` runs **once** after the final call within the `wait` window.",
+  "score": 5,
+  "cost": 0.00017947499999999999,
+  "expected": "",
+  "tokens": {
+    "input": 193,
+    "output": 550
+  }
+}

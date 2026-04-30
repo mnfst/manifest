@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "code_explanation",
+  "case": 30,
+  "response": "This code implements a standard Bloom filter, a space-efficient probabilistic data structure used to test set membership. It uses `num_hashes` simple hash functions to map items to positions in a bit array: adding an item marks all its mapped bit positions as True, while membership checks return True only if all of an item's mapped bits are set, allowing for rare false positives but never false negatives.",
+  "score": 5,
+  "cost": 0.00053525,
+  "expected": "",
+  "tokens": {
+    "input": 213,
+    "output": 482
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 2,
+  "response": "Lost semicolon\nHours lost to find the bug\nCode compiles at last",
+  "score": 5,
+  "cost": 0.007276100000000001,
+  "expected": "",
+  "tokens": {
+    "input": 17,
+    "output": 1395
+  }
+}

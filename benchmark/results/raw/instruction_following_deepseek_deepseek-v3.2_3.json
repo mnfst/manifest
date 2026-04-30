@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 3,
+  "response": "FRANCE, GERMANY, ITALY, SPAIN, POLAND.",
+  "score": 5,
+  "cost": 2.665e-05,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 19
+  }
+}

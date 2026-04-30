@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "**This code implements a Least Recently Used (LRU) cache decorator.**\n\nIt returns a decorator that, when applied to a function, memoizes its results using an `OrderedDict`. On each call:\n\n- If the arguments are already in the cache, it moves them to the end (marking them as most recently used) and returns the cached result.\n- Otherwise, it computes the result, stores it, and if the cache exceeds `maxsize`, it removes the least recently used item (`popitem(last=False)`).\n\nThis is the classic **LRU eviction policy** implemented via an ordered dictionary that maintains insertion/access order.",
+  "score": 5,
+  "cost": 0.001486,
+  "expected": "",
+  "tokens": {
+    "input": 235,
+    "output": 127
+  }
+}

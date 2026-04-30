@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 9,
+  "response": "The nightly data pipeline failed due to a Salesforce schema change, causing dashboards to display stale data. A fix has been deployed and a backfill is running, with full recovery expected by 4 PM today.",
+  "score": 5,
+  "cost": 6.87e-05,
+  "expected": "",
+  "tokens": {
+    "input": 90,
+    "output": 42
+  }
+}

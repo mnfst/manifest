@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "rag_qa",
+  "case": 35,
+  "response": "They clap their lobes, expelling water to drive themselves backwards very quickly.",
+  "score": 2,
+  "cost": 8.434999999999999e-05,
+  "expected": "by clapping their lobes",
+  "tokens": {
+    "input": 267,
+    "output": 16
+  }
+}

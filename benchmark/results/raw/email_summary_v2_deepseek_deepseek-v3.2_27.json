@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 27,
+  "response": "The sprint successfully delivered the authentication redesign on schedule with strong cross-team collaboration, but issues included excessive context switching and lengthy standups. Action items are to limit work in progress to two items per developer and enforce timeboxed standups with a parking lot for off-topic discussions.",
+  "score": 5,
+  "cost": 8.97e-05,
+  "expected": "",
+  "tokens": {
+    "input": 108,
+    "output": 57
+  }
+}

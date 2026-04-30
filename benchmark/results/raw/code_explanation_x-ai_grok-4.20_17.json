@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 17,
+  "response": "**This code implements the Chain of Responsibility pattern.**\n\nIt returns a `handle` function that takes a request and passes it sequentially through a list of handler functions. Each handler is called in order; if a handler returns a non-`None` value, that result is immediately returned (the chain stops). If no handler handles the request, it returns `None`.",
+  "score": 5,
+  "cost": 0.00097,
+  "expected": "",
+  "tokens": {
+    "input": 193,
+    "output": 73
+  }
+}

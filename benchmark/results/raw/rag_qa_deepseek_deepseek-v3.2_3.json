@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "rag_qa",
+  "case": 3,
+  "response": "Hassan al-Turabi",
+  "score": 0,
+  "cost": 4.7799999999999996e-05,
+  "expected": "Hassan al-Turabi",
+  "tokens": {
+    "input": 156,
+    "output": 8
+  }
+}

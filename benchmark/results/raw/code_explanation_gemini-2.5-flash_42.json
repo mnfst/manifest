@@ -2,12 +2,12 @@
   "model": "gemini-2.5-flash",
   "task": "code_explanation",
   "case": 42,
-  "response": "This code implements an asynchronous, bounded producer-consumer queue. It uses `asyncio.Future` objects to manage non-blocking waits: `put` operations pause if the queue is full, and `get` operations pause if the queue is empty, with items being added or removed only when space or data is available, respectively.",
+  "response": "This code implements an asynchronous **bounded buffer** (producer-consumer queue) that allows multiple tasks to safely `put` and `get` items. It uses an **asynchronous wait/notify pattern** with `asyncio.Future` objects to pause tasks when the queue is full (for `put`) or empty (for `get`), and unblock them when conditions change.",
   "score": 5,
-  "cost": 7.664999999999999e-05,
+  "cost": 8.264999999999999e-05,
   "expected": "",
   "tokens": {
     "input": 243,
-    "output": 67
+    "output": 77
   }
 }

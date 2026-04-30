@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_explanation",
+  "case": 4,
+  "response": "This code implements a **memoization decorator** that caches function results to avoid redundant computations. It stores results in a dictionary (`cache`) keyed by function arguments, returning cached results when the same inputs are repeated.",
+  "score": 5,
+  "cost": 6.995e-05,
+  "expected": "",
+  "tokens": {
+    "input": 73,
+    "output": 47
+  }
+}

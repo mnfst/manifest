@@ -2,12 +2,12 @@
   "model": "deepseek/deepseek-v3.2",
   "task": "code_generation",
   "case": 20,
-  "response": "```python\n    if not 1 <= number <= 1000:\n        return \"\"\n    \n    val = [\n        1000, 900, 500, 400,\n        100, 90, 50, 40,\n        10, 9, 5, 4,\n        1\n    ]\n    syb = [\n        \"M\", \"CM\", \"D\", \"CD\",\n        \"C\", \"XC\", \"L\", \"XL\",\n        \"X\", \"IX\", \"V\", \"IV\",\n        \"I\"\n    ]\n    \n    roman_numeral = []\n    i = 0\n    while number > 0:\n        for _ in range(number // val[i]):\n            roman_numeral.append(syb[i])\n            number -= val[i]\n        i += 1\n    \n    return ''.join(roman_numeral).lower()\n```",
+  "response": "```python\n    if not 1 <= number <= 1000:\n        return \"\"\n    \n    roman_numerals = [\n        (1000, 'm'), (900, 'cm'), (500, 'd'), (400, 'cd'),\n        (100, 'c'), (90, 'xc'), (50, 'l'), (40, 'xl'),\n        (10, 'x'), (9, 'ix'), (5, 'v'), (4, 'iv'), (1, 'i')\n    ]\n    \n    result = []\n    for value, numeral in roman_numerals:\n        while number >= value:\n            result.append(numeral)\n            number -= value\n    return ''.join(result)\n```",
   "score": 5,
-  "cost": 0.00023040000000000002,
+  "cost": 0.00019960000000000003,
   "expected": "",
   "tokens": {
     "input": 134,
-    "output": 179
+    "output": 151
   }
 }

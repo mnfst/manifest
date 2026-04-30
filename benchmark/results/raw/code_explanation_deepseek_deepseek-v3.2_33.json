@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_explanation",
+  "case": 33,
+  "response": "This code implements **reservoir sampling**, specifically **Algorithm R**, to randomly select `k` items from a data stream of unknown length. It maintains a reservoir of size `k`, where each new item from the stream has a decreasing probability of replacing an existing item in the reservoir, ensuring every item has an equal chance of being selected.",
+  "score": 5,
+  "cost": 0.00010175,
+  "expected": "",
+  "tokens": {
+    "input": 99,
+    "output": 70
+  }
+}

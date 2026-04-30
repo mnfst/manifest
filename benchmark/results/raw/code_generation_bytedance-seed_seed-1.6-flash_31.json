@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-1.6-flash",
   "task": "code_generation",
   "case": 31,
-  "response": "filtered = [s for s in lst if len(s) % 2 == 0]\n    filtered.sort(key=lambda x: (len(x), x))\n    return filtered",
+  "response": "filtered = [word for word in lst if len(word) % 2 == 0]\n    return sorted(filtered, key=lambda x: (len(x), x))",
   "score": 4,
-  "cost": 0.00039742499999999997,
+  "cost": 0.000229725,
   "expected": "",
   "tokens": {
     "input": 311,
-    "output": 1247
+    "output": 688
   }
 }

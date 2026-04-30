@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-flash",
   "task": "email_summary_v2",
   "case": 9,
-  "response": "A Salesforce schema change disrupted the nightly ETL job, causing dashboards to display stale data since yesterday. Data Engineering has deployed a fix and is currently running a data backfill, with full system recovery expected by 4 PM today.",
+  "response": "A Salesforce schema change disrupted the nightly ETL job, causing dashboards to display stale data since yesterday. Data Engineering has deployed a fix and is currently running a data backfill, with full recovery expected by 4 PM today.",
   "score": 5,
-  "cost": 0.0011115,
+  "cost": 0.0014015,
   "expected": "",
   "tokens": {
     "input": 98,
-    "output": 1087
+    "output": 1377
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "instruction_following",
+  "case": 35,
+  "response": "The radio crackled to life after fifty years of silence, startling the old man from his sleep.\nHe fumbled for the receiver, his arthritic fingers trembling as he pressed the transmit button.\n\"Is anyone there?\" a young voice whispered, cutting through the static with impossible clarity.\nTears streamed down his weathered cheeks as he recognized the call sign of the colony ship everyone believed had burned up on launch.\n\"We made it, Grandpa,\" the voice continued, warm and steady, \"and we're finally coming back for you.\"\nHe looked out the viewport at the endless red dunes of Mars and smiled, knowing he would not die alone.",
+  "score": 5,
+  "cost": 0.0067964,
+  "expected": "",
+  "tokens": {
+    "input": 20,
+    "output": 1302
+  }
+}

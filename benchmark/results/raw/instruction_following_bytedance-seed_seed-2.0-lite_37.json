@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "Chocolate\u2019s taste unfolds in layered, warming waves, and at its core it is a small, well-tended bonfire lit on a cool autumn dusk\u2014equal parts sharp, comforting, and lingering, with notes that wrap around your tongue the way the fire\u2019s heat wraps around your shoulders. High-cacao dark chocolate leads with a bright, earthy bitterness, the first crisp crackle of birch kindling catching flame, that quickly softens into rich undercurrents of molasses, wild blackberry, and a faint smoky depth, as the fire swells to chase the last of the day\u2019s chill from your bones. Milk chocolate, sweeter and creamier, is that same bonfire laced with melted marshmallow: the sharp bite of raw cacao softens into a cloud of buttery sugar, gentle enough to feel like a casual hug, while white chocolate leans into the vanilla and silky cacao butter that anchor all chocolate\u2019s complexity, the warm, sweet smoke that sticks to your scarf and lingers for hours after the main flames have dimmed. Even the faint, lush aftertaste of the darkest 100% cacao bars feels like the faint glow of embers left to burn overnight: a quiet, satisfying reminder of the quiet warmth you got to experience, long after the last bite has melted away.",
+  "score": 4,
+  "cost": 0.00150425,
+  "expected": "",
+  "tokens": {
+    "input": 61,
+    "output": 1489
+  }
+}

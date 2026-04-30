@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 47,
+  "response": "**This function implements the Shunting-yard algorithm** to convert an infix token stream into **Reverse Polish Notation (RPN)** (postfix).\n\nIt uses an output queue and an operator stack. Numbers are sent directly to the output. Operators are pushed onto the stack after popping any higher- or equal-precedence operators (respecting left-associativity). Parentheses are handled by pushing '(' and popping operators until the matching '(' is found. At the end, any remaining operators are flushed to the output.\n\nThe result is a list of tokens in postfix order that can be evaluated without parentheses or operator precedence rules.",
+  "score": 5,
+  "cost": 0.001616,
+  "expected": "",
+  "tokens": {
+    "input": 316,
+    "output": 123
+  }
+}

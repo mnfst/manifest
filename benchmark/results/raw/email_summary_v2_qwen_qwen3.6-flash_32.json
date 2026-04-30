@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-flash",
   "task": "email_summary_v2",
   "case": 32,
-  "response": "The SSL certificate for api.company.com expires in seven days because auto-renewal failed after a required DNS CNAME record was removed during a recent migration. DevOps will resolve the issue today by re-adding the missing CNAME record.",
+  "response": "The SSL certificate for api.company.com expires in seven days because auto-renewal failed after a required DNS CNAME record was removed during a recent migration. DevOps will resolve the issue today by re-adding the missing record.",
   "score": 5,
-  "cost": 0.000957,
+  "cost": 0.001136,
   "expected": "",
   "tokens": {
     "input": 112,
-    "output": 929
+    "output": 1108
   }
 }

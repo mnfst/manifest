@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "**This code implements an asynchronous bounded queue using the classic \"two-waiter-lists\" pattern (similar to `asyncio.Queue` but with a simplified, more explicit waiter management).**\n\n### What it does:\n\n- **`put(item)`** asynchronously adds an item to the queue. If the queue is full (`maxsize > 0` and already at capacity), the caller is suspended by appending a `Future` to `_putters`. When space becomes available (i.e., a `get()` is performed), one waiting putter is woken up via `set_result(None)`.\n\n- **`get()`** asynchronously removes and returns an item from the front of the queue. If the queue is empty, the caller is suspended by appending a `Future` to `_getters`. When an item is later added via `put()`, one waiting getter is woken up.\n\n### Key pattern:\nIt uses two deques (`_getters` and `_putters`) to hold pending `Future` objects representing waiting",
+  "score": 4,
+  "cost": 0.002254,
+  "expected": "",
+  "tokens": {
+    "input": 327,
+    "output": 200
+  }
+}

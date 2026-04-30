@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 3,
+  "response": "FRANCE, GERMANY, ITALY, SPAIN, SWEDEN.",
+  "score": 5,
+  "cost": 0.000406,
+  "expected": "",
+  "tokens": {
+    "input": 135,
+    "output": 17
+  }
+}

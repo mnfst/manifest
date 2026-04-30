@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_generation",
+  "case": 43,
+  "response": "```python\n    if not numbers:\n        return []\n    result = [numbers[0]]\n    for num in numbers[1:]:\n        result.extend([delimeter, num])\n    return result\n```",
+  "score": 4,
+  "cost": 0.000826,
+  "expected": "",
+  "tokens": {
+    "input": 245,
+    "output": 42
+  }
+}

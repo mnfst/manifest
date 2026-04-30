@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 15,
+  "response": "Here are 4 words that rhyme with \"cat\":\n\n- Hat\n- Bat\n- Mat\n- Rat",
+  "score": 5,
+  "cost": 0.000442,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 22
+  }
+}

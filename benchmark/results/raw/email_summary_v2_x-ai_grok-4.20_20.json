@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "email_summary_v2",
+  "case": 20,
+  "response": "**Summary:**  \nA disk space alert on prod-db-01 at 2 AM Saturday was partially resolved by automated cleanup but required manual intervention at 8 AM due to a misconfigured log rotation following a recent migration; service was restored with no customer impact. Action items: review and correct the log rotation configuration to prevent recurrence.",
+  "score": 5,
+  "cost": 0.000946,
+  "expected": "",
+  "tokens": {
+    "input": 209,
+    "output": 66
+  }
+}

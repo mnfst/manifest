@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 48,
+  "response": "DataSync is proposing a revenue-sharing partnership where they provide data sync infrastructure to reduce latency and generate an estimated $2M in additional annual revenue. The email requests a technical discussion next week to explore the partnership further.",
+  "score": 5,
+  "cost": 6.930000000000002e-05,
+  "expected": "",
+  "tokens": {
+    "input": 88,
+    "output": 43
+  }
+}

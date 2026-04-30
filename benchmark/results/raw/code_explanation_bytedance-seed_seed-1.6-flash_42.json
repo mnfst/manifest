@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "This code implements an asynchronous bounded/unbounded queue using `asyncio` and `collections.deque`. It manages waiting `put` and `get` operations: when the queue is full, `put` waits by storing a future in `_putters` and resuming when an item is removed; when empty, `get` waits by storing a future in `_getters` and resuming when an item is added.",
+  "score": 5,
+  "cost": 0.000148875,
+  "expected": "",
+  "tokens": {
+    "input": 313,
+    "output": 418
+  }
+}

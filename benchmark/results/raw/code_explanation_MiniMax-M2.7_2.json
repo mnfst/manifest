@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "code_explanation",
+  "case": 2,
+  "response": "The function implements **quicksort** with a **three\u2011way (Lomuto) partition** using the middle element as the pivot. It splits the input list into three sub\u2011lists (values less than, equal to, and greater than the pivot) via list comprehensions, recursively sorts the left and right partitions, and concatenates the results.",
+  "score": 4,
+  "cost": 0.0015279,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 310
+  }
+}

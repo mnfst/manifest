@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_explanation",
+  "case": 7,
+  "response": "This code implements a **Least Recently Used (LRU) cache decorator** that memoizes function results. It uses an `OrderedDict` to track access order, moving items to the end on cache hits and evicting the least recently used item from the front when the cache exceeds `maxsize`.",
+  "score": 5,
+  "cost": 9.955000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 63
+  }
+}

@@ -2,12 +2,12 @@
   "model": "kimi-k2.6",
   "task": "instruction_following",
   "case": 49,
-  "response": "**Formal:**  \n\"Good day! Welcome to our service. I am your virtual assistant, and I am here to provide you with support. How may I assist you today?\"\n\n**Casual:**  \n\"Hey there! \ud83d\udc4b Nice to see you. What can I help you out with today?\"\n\n**Humorous:**  \n\"Greetings, human! I come in peace, armed with endless FAQs and a questionable sense of humor. What digital emergency can I pretend to be an expert about today?\"",
+  "response": "**Formal:**  \nGood day. Welcome! I am your virtual assistant, and I am here to provide you with courteous and efficient support. How may I be of service to you today?\n\n**Casual:**  \nHey there! Nice to see you. I'm here to help answer questions, brainstorm ideas, or just chat. What's on your mind?\n\n**Humorous:**  \nGreetings, human! I come in peace\u2014and with a surprisingly large vocabulary. Ready to solve problems, tell bad jokes, or help you win arguments against your houseplants. What can I do for you?",
   "score": 5,
-  "cost": 0.0006372000000000001,
+  "cost": 0.0009012,
   "expected": "",
   "tokens": {
     "input": 26,
-    "output": 259
+    "output": 369
   }
 }

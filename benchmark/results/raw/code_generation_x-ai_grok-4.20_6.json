@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_generation",
+  "case": 6,
+  "response": "seen = set()\nresult = []\nfor num in numbers:\n    if num not in seen:\n        seen.add(num)\n        result.append(num)\nreturn result",
+  "score": 4,
+  "cost": 0.00071,
+  "expected": "",
+  "tokens": {
+    "input": 231,
+    "output": 31
+  }
+}

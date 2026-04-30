@@ -2,7 +2,7 @@
   "model": "mistral-medium-latest",
   "task": "email_summary_v2",
   "case": 2,
-  "response": "A critical SQL injection vulnerability (CVSS 9.8) was discovered in the `/api/v2/auth/login` endpoint, impacting versions **v3.2.0\u2013v3.4.1**, and requires parameterizing the query in **auth_controller.py (line 142)**.\n\nA patch is ready for review, and David recommends deploying a **hotfix within 24 hours**.",
+  "response": "A critical SQL injection vulnerability (CVSS 9.8) was discovered in the `/api/v2/auth/login` endpoint, impacting versions **v3.2.0\u2013v3.4.1**, and requires parameterizing the query in **auth_controller.py (line 142)**.\n\nDavid has prepared a patch for review and urges deploying a **hotfix within 24 hours**.",
   "score": 5,
   "cost": 0.000208,
   "expected": "",

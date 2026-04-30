@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_explanation",
+  "case": 37,
+  "response": "This code implements a **trie (prefix tree)** using nested dictionaries to store words as paths of characters, marking word endings with `'#'`. The `starts_with` method locates the node corresponding to a given prefix and then performs a **depth-first search (DFS)** to collect and return all complete words in that subtree.",
+  "score": 4,
+  "cost": 0.0015216,
+  "expected": "",
+  "tokens": {
+    "input": 172,
+    "output": 591
+  }
+}

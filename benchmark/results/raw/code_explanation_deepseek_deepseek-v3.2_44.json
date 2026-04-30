@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "code_explanation",
+  "case": 44,
+  "response": "This code finds all connected components in a graph using **breadth-first search (BFS)**, starting from each unvisited node and grouping all nodes reachable from it into a single component.",
+  "score": 4,
+  "cost": 7.515000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 39
+  }
+}

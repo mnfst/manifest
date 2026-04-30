@@ -2,12 +2,12 @@
   "model": "mistral-medium-latest",
   "task": "code_generation",
   "case": 10,
-  "response": "```python\n    count = 0\n    for num in arr:\n        if num == 0:\n            continue\n        total = 0\n        is_negative = num < 0\n        num_str = str(abs(num))\n        for i, digit_char in enumerate(num_str):\n            digit = int(digit_char)\n            if i == 0 and is_negative:\n                digit *= -1\n            total += digit\n        if total > 0:\n            count += 1\n    return count\n```",
+  "response": "```python\n    count = 0\n    for num in arr:\n        if num == 0:\n            continue\n        num_str = str(num)\n        total = 0\n        for i, ch in enumerate(num_str):\n            if i == 0 and ch == '-':\n                continue\n            digit = int(ch)\n            if i == 0 and num_str[0] == '-':\n                digit = -digit\n            total += digit\n        if total > 0:\n            count += 1\n    return count\n```",
   "score": 4,
-  "cost": 0.0002828,
+  "cost": 0.0002908,
   "expected": "",
   "tokens": {
     "input": 162,
-    "output": 109
+    "output": 113
   }
 }

@@ -2,12 +2,12 @@
   "model": "kimi-k2.6",
   "task": "instruction_following",
   "case": 28,
-  "response": "You are stronger than the storm and braver than you believe.",
-  "score": 3,
-  "cost": 0.0030642000000000004,
+  "response": "The courage to begin again is the spark that ignites every dream.",
+  "score": 4,
+  "cost": 0.0031362000000000004,
   "expected": "",
   "tokens": {
     "input": 23,
-    "output": 1271
+    "output": 1301
   }
 }

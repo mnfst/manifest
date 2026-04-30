@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "rag_qa",
+  "case": 48,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 0.0049803,
+  "expected": "strictly contained in P or equal to P",
+  "tokens": {
+    "input": 127,
+    "output": 926
+  }
+}

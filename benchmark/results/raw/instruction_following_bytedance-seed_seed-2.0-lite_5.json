@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 5,
+  "response": "The day\u2019s sharp edge blunts first: the midday glare that turned asphalt wobbly and forced you to squint even through polarized lenses bleeds into something soft enough to hold. The sun dips low enough to stare at unflinching, a molten amber orb nesting in the treeline, gilding the frayed edges of oak leaves and turning the undersides of streaky cloud banks to apricot and bruised plum. Long shadows stretch across lawns, swallowing chipped garden gnomes and half-buried basketballs, their edges blurry as wet watercolor. Down at the community lake, the surface smooths into liquid honey, ripples from a lone kayaker\u2019s paddle gilding his wake until it looks like he\u2019s dragging a stream of loose stardust behind him.\n\nLaundry flapping on a line down the block glows: a child\u2019s sunfaded cotton hoodie turns warm gold, a linen bedsheet deepens to cream, and the indigo jeans hanging beside them bleed into the darkening grass at their feet. A group of teens on skateboards pause at the intersection, their laughter carrying soft over the hum of first crickets, the metal of their boards catching the last of the light so each frame glows like it\u2019s been charged with the day\u2019s residual warmth. When the sun slips fully below the horizon, the sky doesn\u2019t go dark all at once. It bleeds first into rose-tinged lavender, then ash blue, streaks of tangerine clinging to the far horizon long enough for fireflies to blink awake in the hedgerows, their tiny pulses answering the sky\u2019s slow fade. Neighbors turn on porch lights one by one, small warm beads that pick up where the sun left off, and the air cools just enough to pull a sweater over your shoulders, the last of the day\u2019s heat seeping out of the wooden porch planks under your bare feet.",
+  "score": 4,
+  "cost": 0.0017265,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 1711
+  }
+}

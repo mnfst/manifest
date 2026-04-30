@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Stay hydrated in style with our sleek, double-walled stainless steel water bottle. Its vacuum insulation keeps drinks icy cold for 24 hours or piping hot for 12. The leak-proof lid and wide mouth make it the perfect, reliable companion for any adventure.",
+  "score": 4,
+  "cost": 6.170000000000001e-05,
+  "expected": "",
+  "tokens": {
+    "input": 18,
+    "output": 52
+  }
+}

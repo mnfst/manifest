@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_explanation",
+  "case": 35,
+  "response": "This code implements the **Knuth-Morris-Pratt (KMP) string matching algorithm** to find the starting index of the first occurrence of a pattern within a text. It preprocesses the pattern into a **Longest Prefix Suffix (LPS) array**, enabling a linear-time O(n + m) search by using the LPS values to skip redundant character comparisons and intelligently shift the pattern on mismatches.",
+  "score": 5,
+  "cost": 0.0045175,
+  "expected": "",
+  "tokens": {
+    "input": 195,
+    "output": 820
+  }
+}

@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-1.6-flash",
   "task": "code_generation",
   "case": 36,
-  "response": "for i in range(n//2, 0, -1):\n        if n % i == 0:\n            return i\n    return 1",
+  "response": "for i in range(n-1, 1, -1):\n        if n % i == 0:\n            return i\n    return 1",
   "score": 5,
-  "cost": 0.0006738,
+  "cost": 0.00044189999999999995,
   "expected": "",
   "tokens": {
     "input": 164,
-    "output": 2205
+    "output": 1432
   }
 }

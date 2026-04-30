@@ -2,12 +2,12 @@
   "model": "kimi-k2.6",
   "task": "instruction_following",
   "case": 36,
-  "response": "Here are 4 programming languages:\n\n1. **Java**\n2. **C++**\n3. **Go**\n4. **Rust**",
+  "response": "Here are 4 programming languages:\n\n1. **Java**\n2. **C++**\n3. **Rust**\n4. **Go**",
   "score": 5,
-  "cost": 0.0005046,
+  "cost": 0.0004302,
   "expected": "",
   "tokens": {
     "input": 21,
-    "output": 205
+    "output": 174
   }
 }

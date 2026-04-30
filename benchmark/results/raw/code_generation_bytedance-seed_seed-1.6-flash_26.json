@@ -2,12 +2,12 @@
   "model": "bytedance-seed/seed-1.6-flash",
   "task": "code_generation",
   "case": 26,
-  "response": "n = len(l)\n    if n < 3:\n        return False\n    set_after = [set() for _ in range(n)]\n    for j in range(n-2, -1, -1):\n        set_after[j] = set_after[j+1].copy()\n        set_after[j].add(l[j+1])\n    for j in range(n):\n        for i in range(j):\n            target = -(l[i] + l[j])\n            if target in set_after[j]:\n                return True\n    return False",
-  "score": 3,
-  "cost": 0.001797975,
+  "response": "if len(l) < 3:\n    return False\nl_sorted = sorted(l)\nfor i in range(len(l_sorted) - 2):\n    left = i + 1\n    right = len(l_sorted) - 1\n    while left < right:\n        current_sum = l_sorted[i] + l_sorted[left] + l_sorted[right]\n        if current_sum == 0:\n            return True\n        elif current_sum < 0:\n            left += 1\n        else:\n            right -= 1\nreturn False",
+  "score": 5,
+  "cost": 0.001066575,
   "expected": "",
   "tokens": {
     "input": 277,
-    "output": 5924
+    "output": 3486
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "rag_qa",
+  "case": 19,
+  "response": "Not found in context.",
+  "score": 5,
+  "cost": 0.00058,
+  "expected": "communication",
+  "tokens": {
+    "input": 270,
+    "output": 5
+  }
+}

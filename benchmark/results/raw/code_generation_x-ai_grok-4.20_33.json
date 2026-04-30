@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_generation",
+  "case": 33,
+  "response": "return a**2 + b**2 == c**2 or a**2 + c**2 == b**2 or b**2 + c**2 == a**2",
+  "score": 5,
+  "cost": 0.000806,
+  "expected": "",
+  "tokens": {
+    "input": 255,
+    "output": 37
+  }
+}

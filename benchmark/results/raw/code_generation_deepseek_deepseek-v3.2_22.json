@@ -2,12 +2,12 @@
   "model": "deepseek/deepseek-v3.2",
   "task": "code_generation",
   "case": 22,
-  "response": "```python\n    count = 0\n    for ch in brackets:\n        if ch == '<':\n            count += 1\n        elif ch == '>':\n            count -= 1\n        if count < 0:\n            return False\n    return count == 0\n```",
-  "score": 4,
-  "cost": 9.85e-05,
+  "response": "```python\n    count = 0\n    for ch in brackets:\n        if ch == \"<\":\n            count += 1\n        elif ch == \">\":\n            count -= 1\n        if count < 0:\n            return False\n    return count == 0\n```",
+  "score": 5,
+  "cost": 9.59e-05,
   "expected": "",
   "tokens": {
-    "input": 130,
-    "output": 60
+    "input": 124,
+    "output": 59
   }
 }

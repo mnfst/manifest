@@ -2,7 +2,7 @@
   "model": "bytedance-seed/seed-1.6-flash",
   "task": "email_summary_v2",
   "case": 39,
-  "response": "The year-end audit begins on January 15, with a pre-audit checklist including finalizing Q4 revenue recognition, reconciling all bank accounts, verifying stock option records, and preparing related-party transaction disclosures. A controller meeting is scheduled for next Tuesday to assign responsibilities for these tasks.",
+  "response": "The year-end audit starts on January 15, with a pre-audit checklist including finalizing Q4 revenue recognition, reconciling all bank accounts, verifying stock option records, and preparing related-party transaction disclosure. A controller meeting is set for next Tuesday to assign responsibilities for the audit preparation.",
   "score": 5,
   "cost": 9.209999999999999e-05,
   "expected": "",

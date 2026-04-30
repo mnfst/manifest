@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_explanation",
+  "case": 6,
+  "response": "**This code defines a recursive generator that performs a depth-first flattening of a nested list.**\n\nIt iterates through each element in the input list `lst`. If the element is itself a list, it recursively calls `flatten()` on that sublist and yields all its items using `yield from`; otherwise, it yields the item directly. This produces a flat sequence of all non-list elements in the order they appear (left-to-right, depth-first).",
+  "score": 5,
+  "cost": 0.00107,
+  "expected": "",
+  "tokens": {
+    "input": 179,
+    "output": 89
+  }
+}

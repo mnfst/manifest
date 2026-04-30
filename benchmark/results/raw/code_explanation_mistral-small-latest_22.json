@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "This code implements an **LRU (Least Recently Used) Cache** using an `OrderedDict` from Python's `collections` module. The algorithm maintains a fixed-size cache where the least recently accessed item is evicted when the capacity is exceeded. The `get` method retrieves a value and marks it as recently used by moving it to the end of the `OrderedDict`, while the `put` method updates or inserts a value and evicts the oldest item (front of the `OrderedDict`) if the capacity is exceeded.",
+  "score": 5,
+  "cost": 4.8700000000000005e-05,
+  "expected": "",
+  "tokens": {
+    "input": 151,
+    "output": 112
+  }
+}

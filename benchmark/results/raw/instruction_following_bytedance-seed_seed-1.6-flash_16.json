@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 16,
+  "response": "In simple terms, gravity is the invisible force that pulls every object in the universe toward every other object. The more mass an object has, the stronger its gravity\u2014so big, heavy things like planets, stars, or even Earth pull more strongly than small ones. That's why when you drop a ball, it falls to the ground instead of floating up: Earth's mass creates a strong gravitational pull that tugs the ball downward. Similarly, Earth is pulled by the sun's gravity, which keeps our planet orbiting the sun instead of floating off into space. Even you have gravity, but it's so weak that it can't pull other small objects toward you\u2014only something as massive as Earth has enough gravity to feel like a big force in your daily life. That is gravity.",
+  "score": 5,
+  "cost": 0.000155625,
+  "expected": "",
+  "tokens": {
+    "input": 103,
+    "output": 493
+  }
+}

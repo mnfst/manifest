@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 14,
+  "response": "Crafted from 100% BPA-free, food-grade stainless steel, this 24oz insulated water bottle keeps iced drinks cold for 24 hours and hot coffee or tea steamy for 12, with a 100% leakproof flip-top lid that never spills in your backpack, gym bag, or work tote, no matter how jostled it gets. Its scratch-resistant, powder-coated exterior comes in 8 muted, earthy hues that resist fingerprints and smudges, while its slim, ergonomic shape fits perfectly in car cup holders, bike bottle cages, and backpack side pockets for easy access on hikes, work commutes, and busy errand runs. Fully dishwasher-safe for low-fuss cleanup and compatible with most standard water filters, it replaces hundreds of disposable plastic bottles over its lifetime, making it a practical, planet-friendly staple for every part of your daily routine.",
+  "score": 1,
+  "cost": 0.0008305,
+  "expected": "",
+  "tokens": {
+    "input": 62,
+    "output": 815
+  }
+}

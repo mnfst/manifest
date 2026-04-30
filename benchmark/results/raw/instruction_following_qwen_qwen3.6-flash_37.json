@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "instruction_following",
+  "case": 37,
+  "response": "The taste of chocolate is a **velvet river of midnight** flowing across the palate. It begins with a smooth, cool embrace that quickly warms, revealing a complex current of flavors. Shimmering on the surface is the bright sweetness of sugar, but as the flavor deepens, it exposes dark, rich undercurrents of roasted earth, faint spice, and a bitter depth that grounds the indulgence. It is a lingering sensation, coating the senses like a warm shadow that refuses to fade, leaving a comforting resonance long after the treat is gone.",
+  "score": 5,
+  "cost": 0.00141575,
+  "expected": "",
+  "tokens": {
+    "input": 23,
+    "output": 1410
+  }
+}

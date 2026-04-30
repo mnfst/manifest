@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "It is with mixed emotions that I share I\u2019ll be leaving the team next week to pursue a new opportunity. Working alongside you has been the highlight of my time here\u2014your creativity, collaboration, and kindness have made even the busiest days feel rewarding. I\u2019ll carry the lessons from our late-night brainstorming sessions and the laughter over too many coffee runs with me always. Please don\u2019t hesitate to reach out if I can assist in wrapping up projects or introducing my replacement\u2014my door (or inbox) will stay open for a little while longer. Thank you for making this such a special place to grow. I\u2019ll miss you all, but I\u2019m excited to see where the next chapter takes us\u2014both professionally and personally.",
+  "score": 3,
+  "cost": 0.00012644999999999998,
+  "expected": "",
+  "tokens": {
+    "input": 94,
+    "output": 398
+  }
+}

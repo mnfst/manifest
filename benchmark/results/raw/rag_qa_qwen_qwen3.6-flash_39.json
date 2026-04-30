@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "rag_qa",
+  "case": 39,
+  "response": "circuit switching",
+  "score": 5,
+  "cost": 0.0002765,
+  "expected": "circuit switching",
+  "tokens": {
+    "input": 150,
+    "output": 239
+  }
+}

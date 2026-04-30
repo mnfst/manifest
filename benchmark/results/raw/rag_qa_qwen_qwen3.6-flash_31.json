@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "rag_qa",
+  "case": 31,
+  "response": "Sharia",
+  "score": 5,
+  "cost": 0.000402,
+  "expected": "Sharia",
+  "tokens": {
+    "input": 180,
+    "output": 357
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_explanation",
+  "case": 22,
+  "response": "This code implements a **Least Recently Used (LRU) cache eviction policy** using Python's `OrderedDict` to track key access order. It moves accessed or updated keys to the end (marking them most recently used) and automatically removes the front key (least recently used) whenever the cache exceeds its fixed capacity.",
+  "score": 5,
+  "cost": 0.0058799,
+  "expected": "",
+  "tokens": {
+    "input": 155,
+    "output": 1092
+  }
+}

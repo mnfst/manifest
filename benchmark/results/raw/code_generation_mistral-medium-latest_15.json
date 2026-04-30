@@ -2,7 +2,7 @@
   "model": "mistral-medium-latest",
   "task": "code_generation",
   "case": 15,
-  "response": "```python\n    largest_prime = -1\n    divisor = 2\n    while n > 1:\n        while n % divisor == 0:\n            largest_prime = divisor\n            n = n // divisor\n        divisor += 1\n    return largest_prime\n```",
+  "response": "```python\n    largest_prime = -1\n    divisor = 2\n\n    while n > 1:\n        while n % divisor == 0:\n            largest_prime = divisor\n            n = n // divisor\n        divisor += 1\n\n    return largest_prime\n```",
   "score": 5,
   "cost": 0.000162,
   "expected": "",

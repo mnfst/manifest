@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "code_explanation",
+  "case": 8,
+  "response": "This code implements a **debounce pattern** that delays the execution of a wrapped function until a specified time interval has passed without further invocations. It uses `threading.Timer` to schedule the function, automatically canceling any pending execution each time the decorated function is called before the timer expires.",
+  "score": 5,
+  "cost": 0.00064675,
+  "expected": "",
+  "tokens": {
+    "input": 115,
+    "output": 618
+  }
+}

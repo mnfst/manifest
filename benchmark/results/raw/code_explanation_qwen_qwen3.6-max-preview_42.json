@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_explanation",
+  "case": 42,
+  "response": "This code implements an asynchronous FIFO queue that suspends producers when full and consumers when empty using a **future-based waiter-queue synchronization pattern**. It coordinates async tasks by maintaining separate deques of unresolved `Future` objects that are awaited and explicitly resolved to signal when queue capacity or items become available.",
+  "score": 5,
+  "cost": 0.0071526,
+  "expected": "",
+  "tokens": {
+    "input": 234,
+    "output": 1317
+  }
+}

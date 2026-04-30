@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 16,
+  "response": "The April marketing campaign saw improved click-through rates but a slight drop in conversion, resulting in a customer acquisition cost of $64 per signup. The marketing team recommends A/B testing the landing page call-to-action to improve performance.",
+  "score": 5,
+  "cost": 7.91e-05,
+  "expected": "",
+  "tokens": {
+    "input": 114,
+    "output": 46
+  }
+}

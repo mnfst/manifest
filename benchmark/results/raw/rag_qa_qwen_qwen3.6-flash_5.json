@@ -4,10 +4,10 @@
   "case": 5,
   "response": "Arnhem",
   "score": 5,
-  "cost": 0.00099225,
+  "cost": 0.00098825,
   "expected": "Arnhem",
   "tokens": {
     "input": 245,
-    "output": 931
+    "output": 927
   }
 }

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "code_explanation",
+  "case": 25,
+  "response": "This code implements an **EventEmitter** class following the **observer pattern**, where it manages a collection of event handlers and allows emitting events to trigger those handlers. The `on` method registers a function (`fn`) to an event, `emit` triggers all registered functions for an event with provided arguments, and `off` removes a specific function from an event's handler list.",
+  "score": 5,
+  "cost": 9.525e-05,
+  "expected": "",
+  "tokens": {
+    "input": 206,
+    "output": 266
+  }
+}

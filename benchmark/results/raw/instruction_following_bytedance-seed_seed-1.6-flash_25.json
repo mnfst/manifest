@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 25,
+  "response": "\"Meeting Invite: Project Update This Afternoon\"  \n\n(7 words, clear, concise, and informative.)  \n\n\nOther strong options:  \n- \"Reminder: Weekly Team Check-In Tomorrow\" (7 words)  \n- \"Invitation: Q3 Goals Review Friday\" (6 words)  \n- \"Team Meeting: Client Feedback Update Thursday\" (8 words)  \n\nAll prioritize brevity and key details (purpose/time) within 10 words.",
+  "score": 5,
+  "cost": 0.00019905,
+  "expected": "",
+  "tokens": {
+    "input": 98,
+    "output": 639
+  }
+}

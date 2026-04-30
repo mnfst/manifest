@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 10,
+  "response": "There once was a programmer Dave,  \nWhose code had a bug it would crave.  \nIt looped without end,  \nDrove teammates 'round the bend,  \nTill he fixed it and shouted, \"I'm saved!\"",
+  "score": 5,
+  "cost": 0.000618,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 44
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "instruction_following",
+  "case": 38,
+  "response": "Login failed. Please check your username and password.",
+  "score": 4,
+  "cost": 1.86e-05,
+  "expected": "",
+  "tokens": {
+    "input": 26,
+    "output": 11
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "code_explanation",
+  "case": 14,
+  "response": "This implements **Dijkstra's algorithm** to find the shortest path distances from a starting node to all other reachable nodes in a weighted graph. It uses a **min-heap priority queue** to greedily extract the unvisited node with the smallest known distance and performs **edge relaxation** (updating distances when a shorter path is found) until all reachable nodes are processed.",
+  "score": 5,
+  "cost": 0.001041,
+  "expected": "",
+  "tokens": {
+    "input": 143,
+    "output": 398
+  }
+}

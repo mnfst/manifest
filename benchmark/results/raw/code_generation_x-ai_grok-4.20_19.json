@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_generation",
+  "case": 19,
+  "response": "```python\n    return \"\".join([chr(((ord(ch) - 5 - ord(\"a\")) % 26) + ord(\"a\")) for ch in s])\n```",
+  "score": 3,
+  "cost": 0.000762,
+  "expected": "",
+  "tokens": {
+    "input": 237,
+    "output": 36
+  }
+}

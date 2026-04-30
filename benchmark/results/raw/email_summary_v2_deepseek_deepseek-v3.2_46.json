@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "email_summary_v2",
+  "case": 46,
+  "response": "A critical SQL injection vulnerability has been discovered in a specific API endpoint, affecting several software versions. The required fix is ready for review, with a recommendation to deploy a patch within 24 hours.",
+  "score": 5,
+  "cost": 6.925e-05,
+  "expected": "",
+  "tokens": {
+    "input": 101,
+    "output": 40
+  }
+}

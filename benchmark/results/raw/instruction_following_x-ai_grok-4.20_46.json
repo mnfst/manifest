@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "instruction_following",
+  "case": 46,
+  "response": "Dear team, as I prepare to embark on a new chapter in my career, I wanted to take a moment to express my deepest gratitude for the support, collaboration, and camaraderie we've shared over the years. Working alongside each of you has been an incredible privilege, and I've learned so much from your expertise and kindness. I'll truly miss our daily interactions, brainstorming sessions, and the positive energy that made coming to work something I looked forward to. Please stay in touch, as I value the friendships we've built and hope our paths cross again in the future. Wishing you all continued success and fulfillment in everything you do.",
+  "score": 2,
+  "cost": 0.001252,
+  "expected": "",
+  "tokens": {
+    "input": 134,
+    "output": 123
+  }
+}

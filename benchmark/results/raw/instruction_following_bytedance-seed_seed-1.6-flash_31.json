@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "instruction_following",
+  "case": 31,
+  "response": "The first 10 prime numbers are 2, 3, 5, 7, 11, 13, 17, 19, 23, and 29. \n\n**Answer:** 2, 3, 5, 7, 11, 13, 17, 19, 23, 29",
+  "score": 4,
+  "cost": 0.000361425,
+  "expected": "",
+  "tokens": {
+    "input": 95,
+    "output": 1181
+  }
+}

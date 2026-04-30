@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 24,
+  "response": "- At 4:17 PM on October 12, 2024, a two-vehicle collision occurred at the intersection of Maple Avenue and 3rd Street in suburban Portland, OR, during clear, dry weather conditions; the involved vehicles were a 2022 Honda CR-V operated by Maria Gonzalez, 38, of Beaverton, and a 2019 Toyota Corolla operated by Liam Tan, 22, of Portland. A nearby caf\u00e9 worker placed the initial 911 call, and the first responding patrol officer arrived 11 minutes later to secure the scene and interview witnesses.\n- Preliminary investigation confirmed Gonzalez was eastbound on Maple with a green light when Tan, northbound on 3rd, ran a red light to turn left across her path, striking the CR-V\u2019s driver-side panel. Both drivers were transported to a local hospital: Gonzalez sustained a fractured wrist and mild concussion, while Tan suffered a broken rib and forehead lacerations; Tan was issued a citation for failure to obey a traffic control device, and field sobriety tests ruled out impairment for both parties.\n- Both vehicles were towed to a local impound, with the CR-V declared a total loss and the Corolla sustaining an estimated $11,000 in structural damage; public works crews cleared all crash debris by 5:45 PM, restoring full traffic flow to the intersection. The responding officer\u2019s final report, including corroborating witness statements and city traffic camera footage of the collision, will be submitted to both drivers\u2019 insurance providers within 3 business days to process claims.",
+  "score": 1,
+  "cost": 0.000976,
+  "expected": "",
+  "tokens": {
+    "input": 60,
+    "output": 961
+  }
+}

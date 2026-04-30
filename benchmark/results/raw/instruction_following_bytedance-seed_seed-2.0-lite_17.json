@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "instruction_following",
+  "case": 17,
+  "response": "| Category | Key Point | Detailed Description |\n|----------|-----------|----------------------|\n| Pro | Eliminated commute costs and time savings | Removes daily work-related travel, which averages 54 minutes round-trip for U.S. workers (U.S. Department of Transportation). Most remote workers save $4,000+ annually on gas, parking, public transit, and work attire (per FlexJobs), while gaining ~225 hours a year to allocate to personal or professional priorities. |\n| Pro | Flexible location and expanded access to opportunities | Frees employees from being tied to expensive metro office hubs, allowing them to live in low-cost regions, near family, or in areas that suit their lifestyle. This expands job access for workers in rural communities, people with disabilities that limit travel, and full-time caregivers who cannot relocate. |\n| Pro | Customizable work environments for individual needs | Lets employees tailor their workspace to their unique requirements, such as quiet setups for neurodivergent workers, flexible break schedules to care for children or pets, or ergonomic furniture that aligns with their physical health needs. A landmark Stanford study found this customization boosted remote worker productivity by 22% compared to in-office peers. |\n| Con | Heightened risk of social isolation and missed mentorship | Limited in-person interaction weakens informal team bonding and creates barriers to unplanned, organic mentorship that often occurs in office settings. Buffer\u2019s 2024 State of Remote Work report found 39% of remote workers experience regular loneliness, compared to just 16% of fully in-office staff. |\n| Con | Blurred work-life boundaries and increased burnout risk | The lack of a physical separation between home and work leads to consistent overworking: U.S. Bureau of Labor Statistics data shows 45% of remote employees log 2+ extra work hours per day, far more than their in-office counterparts, raising long-term risks of chronic stress and burnout. |\n| Con | Proximity bias and unequal career advancement | Remote workers often face \"proximity bias,\" a preference for in-office staff even when performance is equal. Harvard Business Review research found managers are 20% more likely to promote in-office workers over equally qualified remote peers. Low-income remote workers may also face barriers to reliable high-speed internet or a dedicated workspace, widening systemic equity gaps. |",
+  "score": 4,
+  "cost": 0.001928,
+  "expected": "",
+  "tokens": {
+    "input": 64,
+    "output": 1912
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "code_explanation",
+  "case": 20,
+  "response": "This function implements the **partition pattern**, splitting an iterable into two lazy iterators: one yielding elements that satisfy the given predicate and another yielding those that do not. It uses `itertools.tee` to duplicate the input stream efficiently, enabling memory-safe, single-pass evaluation without materializing the entire dataset in memory.",
+  "score": 5,
+  "cost": 0.0033033000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 77,
+    "output": 616
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "rag_qa",
+  "case": 26,
+  "response": "KMJ-TV",
+  "score": 5,
+  "cost": 0.000708,
+  "expected": "KMJ-TV",
+  "tokens": {
+    "input": 212,
+    "output": 655
+  }
+}

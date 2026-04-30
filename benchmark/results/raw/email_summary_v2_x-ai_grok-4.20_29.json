@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "email_summary_v2",
+  "case": 29,
+  "response": "**Summary:**  \nThe mobile app's crash rate has spiked to 2.3% (above the 0.5% threshold) since yesterday\u2019s release, primarily due to a null pointer exception in the notification handler on Android 12+.  \n\nThe fix has been merged to main, an emergency release has been submitted to the Play Store, and iOS is unaffected.",
+  "score": 5,
+  "cost": 0.00102,
+  "expected": "",
+  "tokens": {
+    "input": 210,
+    "output": 75
+  }
+}

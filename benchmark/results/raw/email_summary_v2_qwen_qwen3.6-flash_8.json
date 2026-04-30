@@ -2,12 +2,12 @@
   "model": "qwen/qwen3.6-flash",
   "task": "email_summary_v2",
   "case": 8,
-  "response": "The annual performance review cycle begins May 1 and will follow a strict timeline through June 5 using a new competency framework. Managers must attend a training session on April 30, and all employees are required to submit their self-reviews by May 15.",
-  "score": 5,
-  "cost": 0.001373,
+  "response": "The annual performance review cycle begins May 1 and concludes June 5, introducing a new competency framework for all evaluations. Managers must attend training on April 30, and all participants are required to meet strict deadlines for self-reviews (May 15), manager reviews (May 22), and final delivery (June 5).",
+  "score": 4,
+  "cost": 0.00183,
   "expected": "",
   "tokens": {
     "input": 100,
-    "output": 1348
+    "output": 1805
   }
 }

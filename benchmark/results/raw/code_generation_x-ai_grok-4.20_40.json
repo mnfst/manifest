@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "code_generation",
+  "case": 40,
+  "response": "```python\n    if a == 0:\n        return True\n    x = round(abs(a) ** (1/3))\n    return x**3 == abs(a) and (a > 0 or x**3 == -abs(a))\n```",
+  "score": 4,
+  "cost": 0.00093,
+  "expected": "",
+  "tokens": {
+    "input": 257,
+    "output": 52
+  }
+}
