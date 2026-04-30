@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "json_transform_v2",
+  "case": 19,
+  "response": "{\"event_type\": \"signup\", \"date\": \"2024-03-15\", \"time\": \"14:30\", \"user_id\": \"u_123\", \"attribution\": {\"source\": \"google_ads\", \"platform\": \"mobile\"}}",
+  "score": 4,
+  "cost": 0.0027214,
+  "expected": "",
+  "tokens": {
+    "input": 166,
+    "output": 577
+  }
+}

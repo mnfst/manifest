@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "json_transform_v2",
+  "case": 8,
+  "response": "{\"rankings\":[{\"name\":\"Ben\",\"average\":91,\"rank\":1},{\"name\":\"Ali\",\"average\":85,\"rank\":2},{\"name\":\"Cat\",\"average\":73.33,\"rank\":3}],\"class_average\":83.11}",
+  "score": 4,
+  "cost": 0.00861,
+  "expected": "",
+  "tokens": {
+    "input": 174,
+    "output": 80
+  }
+}

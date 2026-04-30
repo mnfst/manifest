@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "json_transform_v2",
+  "case": 25,
+  "response": "```json\n{\"items\": 4, \"subtotal\": 1136, \"discount_code\": \"SAVE20\", \"member_discount\": true, \"estimated_total\": 817.92}\n```",
+  "score": 4,
+  "cost": 5.175e-05,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 51
+  }
+}

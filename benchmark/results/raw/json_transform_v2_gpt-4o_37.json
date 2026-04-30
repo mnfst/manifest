@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "json_transform_v2",
+  "case": 37,
+  "response": "```json\n{\"company\": \"Acme Corp\", \"age_years\": 8, \"size\": \"medium\", \"total_funding\": 25000000, \"latest_round\": {\"series\": \"B\", \"amount\": 20000000}}\n```",
+  "score": 4,
+  "cost": 0.0009175,
+  "expected": "",
+  "tokens": {
+    "input": 151,
+    "output": 54
+  }
+}

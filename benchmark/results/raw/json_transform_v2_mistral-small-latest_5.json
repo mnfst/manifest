@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "json_transform_v2",
+  "case": 5,
+  "response": "```json\n{\"departments\": {\"eng\": {\"headcount\": 2, \"avg_salary\": 115000, \"employees\": [\"Alice\", \"Bob\"]}, \"sales\": {\"headcount\": 2, \"avg_salary\": 100000, \"employees\": [\"Carol\", \"Dave\"]}}}\n```",
+  "score": 5,
+  "cost": 4.14e-05,
+  "expected": "",
+  "tokens": {
+    "input": 180,
+    "output": 78
+  }
+}

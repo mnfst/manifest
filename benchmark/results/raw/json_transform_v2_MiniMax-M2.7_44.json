@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "json_transform_v2",
+  "case": 44,
+  "response": "{\"services\":[{\"name\":\"myapp\",\"host\":\"db.prod.internal\",\"port\":5432},{\"name\":\"cache\",\"host\":\"redis.prod.internal\",\"port\":6379}],\"app_settings\":{\"debug\":false,\"log_level\":\"warn\",\"workers\":4}}",
+  "score": 4,
+  "cost": 0.0049478000000000005,
+  "expected": "",
+  "tokens": {
+    "input": 174,
+    "output": 1081
+  }
+}

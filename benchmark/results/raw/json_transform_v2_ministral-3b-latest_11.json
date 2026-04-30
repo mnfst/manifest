@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "json_transform_v2",
+  "case": 11,
+  "response": "```json\n{\n  \"sensors\": [\n    {\n      \"id\": \"temp_1\",\n      \"avg\": 22.2,\n      \"min\": 22.0,\n      \"max\": 23.5,\n      \"anomalies\": 0\n    },\n    {\n      \"id\": \"temp_2\",\n      \"avg\": 22.3,\n      \"min\": 21.0,\n      \"max\": 28.5,\n      \"anomalies\": 1\n    }\n  ]\n}\n```",
+  "score": 3,
+  "cost": 1.1e-05,
+  "expected": "",
+  "tokens": {
+    "input": 156,
+    "output": 119
+  }
+}

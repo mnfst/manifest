@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "json_transform_v2",
+  "case": 10,
+  "response": "```json\n{\n  \"items\": 4,\n  \"subtotal\": 1136,\n  \"discount_code\": \"SAVE20\",\n  \"member_discount\": true,\n  \"estimated_total\": 908.8\n}\n```",
+  "score": 4,
+  "cost": 0.00079625,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 62
+  }
+}

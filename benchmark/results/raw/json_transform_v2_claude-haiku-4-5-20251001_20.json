@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "json_transform_v2",
+  "case": 20,
+  "response": "```json\n{\n  \"departments\": {\n    \"eng\": {\n      \"headcount\": 2,\n      \"avg_salary\": 115000,\n      \"employees\": [\"Alice\", \"Bob\"]\n    },\n    \"sales\": {\n      \"headcount\": 2,\n      \"avg_salary\": 100000,\n      \"employees\": [\"Carol\", \"Dave\"]\n    }\n  }\n}\n```",
+  "score": 4,
+  "cost": 0.0005208,
+  "expected": "",
+  "tokens": {
+    "input": 151,
+    "output": 100
+  }
+}

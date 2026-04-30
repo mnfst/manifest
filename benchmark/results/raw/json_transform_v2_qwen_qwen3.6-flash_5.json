@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "json_transform_v2",
+  "case": 5,
+  "response": "{\"departments\":{\"eng\":{\"headcount\":2,\"avg_salary\":115000,\"employees\":[\"Alice\",\"Bob\"]},\"sales\":{\"headcount\":2,\"avg_salary\":100000,\"employees\":[\"Carol\",\"Dave\"]}}}",
+  "score": 5,
+  "cost": 0.00062325,
+  "expected": "",
+  "tokens": {
+    "input": 165,
+    "output": 582
+  }
+}

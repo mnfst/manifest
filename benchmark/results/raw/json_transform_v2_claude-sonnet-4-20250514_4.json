@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "json_transform_v2",
+  "case": 4,
+  "response": "```json\n{\"event_type\": \"signup\", \"date\": \"2024-03-15\", \"time\": \"14:30\", \"user_id\": \"u_123\", \"attribution\": {\"source\": \"google_ads\", \"platform\": \"mobile\"}}\n```",
+  "score": 4,
+  "cost": 0.001383,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 63
+  }
+}

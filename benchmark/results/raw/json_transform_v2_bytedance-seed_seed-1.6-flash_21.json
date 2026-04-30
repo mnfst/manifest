@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "json_transform_v2",
+  "case": 21,
+  "response": "{\"order_id\": \"ORD-001\", \"subtotal\": 109.97, \"discount\": 11.00, \"shipping\": 5.99, \"total\": 104.96, \"item_count\": 2}",
+  "score": 3,
+  "cost": 0.00064815,
+  "expected": "",
+  "tokens": {
+    "input": 230,
+    "output": 2103
+  }
+}

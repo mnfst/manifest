@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "json_transform_v2",
+  "case": 36,
+  "response": "```json\n{\n  \"order_id\": \"ORD-001\",\n  \"subtotal\": 119.96,\n  \"discount\": 11.996,\n  \"shipping\": 5.99,\n  \"total\": 135.946,\n  \"item_count\": 2\n}\n```",
+  "score": 3,
+  "cost": 8.84e-06,
+  "expected": "",
+  "tokens": {
+    "input": 146,
+    "output": 75
+  }
+}

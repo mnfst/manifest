@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "json_transform_v2",
+  "case": 46,
+  "response": "{\n  \"by_date\": {\n    \"2024-01-15\": {\n      \"total\": 165.5,\n      \"categories\": {\n        \"food\": 120.5,\n        \"transport\": 45.0\n      }\n    },\n    \"2024-01-16\": {\n      \"total\": 230.0,\n      \"categories\": {\n        \"food\": 200.0,\n        \"transport\": 30.0\n      }\n    }\n  }\n}",
+  "score": 4,
+  "cost": 0.000392025,
+  "expected": "",
+  "tokens": {
+    "input": 267,
+    "output": 1240
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "json_transform_v2",
+  "case": 42,
+  "response": "```json\n{\n  \"total_duration_min\": 15.416666666666666,\n  \"track_count\": 4,\n  \"artists\": {\n    \"Band X\": 2,\n    \"Band Y\": 1,\n    \"Band Z\": 1\n  },\n  \"longest_track\": \"Song C\"\n}\n```",
+  "score": 3,
+  "cost": 8.054999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 165,
+    "output": 93
+  }
+}

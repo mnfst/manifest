@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "json_transform_v2",
+  "case": 34,
+  "response": "{\"event_type\":\"signup\",\"date\":\"2024-03-15\",\"time\":\"14:30\",\"user_id\":\"u_123\",\"attribution\":{\"source\":\"google_ads\",\"platform\":\"mobile\"}}",
+  "score": 4,
+  "cost": 0.0004005,
+  "expected": "",
+  "tokens": {
+    "input": 190,
+    "output": 353
+  }
+}

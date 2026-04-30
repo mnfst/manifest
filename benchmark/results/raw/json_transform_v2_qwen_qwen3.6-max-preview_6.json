@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "json_transform_v2",
+  "case": 6,
+  "response": "{\"order_id\":\"ORD-001\",\"subtotal\":109.97,\"discount\":11.0,\"shipping\":5.99,\"total\":104.96,\"item_count\":3}",
+  "score": 4,
+  "cost": 0.017993300000000004,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 3422
+  }
+}

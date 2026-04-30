@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "json_transform_v2",
+  "case": 8,
+  "response": "```json\n{\n  \"rankings\": [\n    {\"name\": \"Ali\", \"average\": 84.66666666666667, \"rank\": 2},\n    {\"name\": \"Ben\", \"average\": 90.66666666666667, \"rank\": 1},\n    {\"name\": \"Cat\", \"average\": 74.66666666666667, \"rank\": 3}\n  ],\n  \"class_average\": 82.33333333333333\n}\n```",
+  "score": 4,
+  "cost": 1.096e-05,
+  "expected": "",
+  "tokens": {
+    "input": 129,
+    "output": 145
+  }
+}

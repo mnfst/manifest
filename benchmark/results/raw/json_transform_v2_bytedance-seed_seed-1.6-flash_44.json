@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "json_transform_v2",
+  "case": 44,
+  "response": "{\n  \"services\": [\n    {\n      \"name\": \"myapp\",\n      \"host\": \"db.prod.internal\",\n      \"port\": 5432\n    },\n    {\n      \"name\": \"cache\",\n      \"host\": \"redis.prod.internal\",\n      \"port\": 6379\n    }\n  ],\n  \"app_settings\": {\n    \"debug\": false,\n    \"log_level\": \"warn\",\n    \"workers\": 4\n  }\n}",
+  "score": 5,
+  "cost": 0.0003078,
+  "expected": "",
+  "tokens": {
+    "input": 228,
+    "output": 969
+  }
+}

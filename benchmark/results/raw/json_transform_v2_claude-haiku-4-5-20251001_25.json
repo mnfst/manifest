@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "json_transform_v2",
+  "case": 25,
+  "response": "```json\n{\n  \"items\": 4,\n  \"subtotal\": 1136,\n  \"discount_code\": \"SAVE20\",\n  \"member_discount\": true,\n  \"estimated_total\": 1136\n}\n```",
+  "score": 4,
+  "cost": 0.0003592,
+  "expected": "",
+  "tokens": {
+    "input": 149,
+    "output": 60
+  }
+}

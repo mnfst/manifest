@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "json_transform_v2",
+  "case": 20,
+  "response": "```json\n{\n    \"departments\": {\n        \"eng\": {\n            \"headcount\": 2,\n            \"avg_salary\": 115000,\n            \"employees\": [\n                \"Alice\",\n                \"Bob\"\n            ]\n        },\n        \"sales\": {\n            \"headcount\": 2,\n            \"avg_salary\": 100000,\n            \"employees\": [\n                \"Carol\",\n                \"Dave\"\n            ]\n        }\n    }\n}\n```",
+  "score": 4,
+  "cost": 0.0012825,
+  "expected": "",
+  "tokens": {
+    "input": 145,
+    "output": 92
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "json_transform_v2",
+  "case": 43,
+  "response": "```json\n{\n  \"total_credits\": 8000,\n  \"total_debits\": 4500,\n  \"net\": 3500,\n  \"transaction_count\": 5\n}\n```",
+  "score": 5,
+  "cost": 0.0007275,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 55
+  }
+}

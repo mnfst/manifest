@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "json_transform_v2",
+  "case": 22,
+  "response": "```json\n{\n  \"company\": \"Acme Corp\",\n  \"age_years\": 9,\n  \"size\": \"Medium\",\n  \"total_funding\": 25000000,\n  \"latest_round\": {\n    \"series\": \"B\",\n    \"amount\": 20000000\n  }\n}\n```",
+  "score": 5,
+  "cost": 0.0010675,
+  "expected": "",
+  "tokens": {
+    "input": 166,
+    "output": 86
+  }
+}

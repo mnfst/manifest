@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "json_transform_v2",
+  "case": 40,
+  "response": "{\"items\":4,\"subtotal\":1136,\"discount_code\":\"SAVE20\",\"member_discount\":true,\"estimated_total\":908.8}",
+  "score": 4,
+  "cost": 0.006765,
+  "expected": "",
+  "tokens": {
+    "input": 201,
+    "output": 50
+  }
+}

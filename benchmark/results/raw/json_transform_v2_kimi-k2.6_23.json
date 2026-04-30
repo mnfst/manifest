@@ -1,0 +1,13 @@
+{
+  "model": "kimi-k2.6",
+  "task": "json_transform_v2",
+  "case": 23,
+  "response": "{\"rankings\": [{\"name\": \"Ben\", \"average\": 91.0, \"rank\": 1}, {\"name\": \"Ali\", \"average\": 85.0, \"rank\": 2}, {\"name\": \"Cat\", \"average\": 73.33, \"rank\": 3}], \"class_average\": 83.11}",
+  "score": 4,
+  "cost": 0.0043638,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 1788
+  }
+}

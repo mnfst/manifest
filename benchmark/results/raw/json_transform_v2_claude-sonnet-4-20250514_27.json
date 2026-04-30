@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "json_transform_v2",
+  "case": 27,
+  "response": "{\"total_duration_min\": 15.42, \"track_count\": 4, \"artists\": {\"Band X\": 2, \"Band Y\": 1, \"Band Z\": 1}, \"longest_track\": \"Song C\"}",
+  "score": 3,
+  "cost": 0.001338,
+  "expected": "",
+  "tokens": {
+    "input": 166,
+    "output": 56
+  }
+}

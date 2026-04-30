@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "json_transform_v2",
+  "case": 38,
+  "response": "{\n  \"rankings\": [\n    {\n      \"name\": \"Ben\",\n      \"average\": 91,\n      \"rank\": 1\n    },\n    {\n      \"name\": \"Ali\",\n      \"average\": 85,\n      \"rank\": 2\n    },\n    {\n      \"name\": \"Cat\",\n      \"average\": 73.33333333333333,\n      \"rank\": 3\n    }\n  ],\n  \"class_average\": 83.11111111111111\n}",
+  "score": 4,
+  "cost": 0.000418275,
+  "expected": "",
+  "tokens": {
+    "input": 213,
+    "output": 1341
+  }
+}

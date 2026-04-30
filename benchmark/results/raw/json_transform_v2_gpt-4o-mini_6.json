@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "json_transform_v2",
+  "case": 6,
+  "response": "{\"order_id\":\"ORD-001\",\"subtotal\":69.97,\"discount\":6.997,\"shipping\":5.99,\"total\":68.963,\"item_count\":3}",
+  "score": 4,
+  "cost": 4.29e-05,
+  "expected": "",
+  "tokens": {
+    "input": 138,
+    "output": 37
+  }
+}

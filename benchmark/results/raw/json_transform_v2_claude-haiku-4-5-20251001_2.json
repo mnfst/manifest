@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "json_transform_v2",
+  "case": 2,
+  "response": "```json\n{\n  \"admins\": [\"Alice\", \"Charlie\"],\n  \"users\": [\"Bob\"],\n  \"inactive_count\": 1\n}\n```",
+  "score": 5,
+  "cost": 0.00026880000000000003,
+  "expected": "",
+  "tokens": {
+    "input": 136,
+    "output": 40
+  }
+}

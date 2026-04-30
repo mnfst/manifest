@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "json_transform_v2",
+  "case": 47,
+  "response": "```json\n{\n  \"admins\": [\"Alice\", \"Charlie\"],\n  \"users\": [\"Bob\"],\n  \"inactive_count\": 1\n}\n```",
+  "score": 5,
+  "cost": 6.44e-06,
+  "expected": "",
+  "tokens": {
+    "input": 127,
+    "output": 34
+  }
+}

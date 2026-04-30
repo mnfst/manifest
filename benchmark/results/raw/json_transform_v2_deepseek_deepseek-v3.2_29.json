@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "json_transform_v2",
+  "case": 29,
+  "response": "{\n  \"services\": [\n    {\"name\": \"database\", \"host\": \"db.prod.internal\", \"port\": 5432},\n    {\"name\": \"cache\", \"host\": \"redis.prod.internal\", \"port\": 6379}\n  ],\n  \"app_settings\": {\"debug\": false, \"log_level\": \"warn\", \"workers\": 4}\n}",
+  "score": 5,
+  "cost": 0.000124,
+  "expected": "",
+  "tokens": {
+    "input": 144,
+    "output": 80
+  }
+}

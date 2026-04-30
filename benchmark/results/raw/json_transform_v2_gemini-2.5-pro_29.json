@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "json_transform_v2",
+  "case": 29,
+  "response": "```json\n{\n  \"services\": [\n    {\n      \"name\": \"database\",\n      \"host\": \"db.prod.internal\",\n      \"port\": 5432\n    },\n    {\n      \"name\": \"cache\",\n      \"host\": \"redis.prod.internal\",\n      \"port\": 6379\n    }\n  ],\n  \"app_settings\": {\n    \"debug\": false,\n    \"log_level\": \"warn\",\n    \"workers\": 4\n  }\n}\n```",
+  "score": 5,
+  "cost": 0.0014275,
+  "expected": "",
+  "tokens": {
+    "input": 150,
+    "output": 124
+  }
+}

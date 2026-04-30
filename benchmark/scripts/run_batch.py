@@ -302,8 +302,11 @@ def call_openai(model, messages, max_tokens):
     url = "https://api.openai.com/v1/chat/completions"
     headers = {"Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}", "Content-Type": "application/json"}
     body = {"model": model, "messages": messages, "max_tokens": max_tokens, "temperature": 0}
-    resp = req.post(url, json=body, headers=headers, timeout=120)
-    return resp.json()
+    try:
+        resp = req.post(url, json=body, headers=headers, timeout=120)
+        return resp.json()
+    except Exception as e:
+        return {"error": str(e)}
 
 
 def call_anthropic(model, messages, max_tokens):

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "json_transform_v2",
+  "case": 1,
+  "response": "{\"by_date\":{\"2024-01-15\":{\"total\":165.5,\"categories\":{\"food\":120.5,\"transport\":45}},\"2024-01-16\":{\"total\":230,\"categories\":{\"food\":200,\"transport\":30}}}}",
+  "score": 4,
+  "cost": 0.0088335,
+  "expected": "",
+  "tokens": {
+    "input": 195,
+    "output": 1650
+  }
+}

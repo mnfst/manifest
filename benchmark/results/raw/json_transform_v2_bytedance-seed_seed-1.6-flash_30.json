@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "json_transform_v2",
+  "case": 30,
+  "response": "{\n  \"full_name\": \"Jane Doe\",\n  \"contact\": {\n    \"email\": \"jane.doe@email.com\",\n    \"phone\": \"+1-555-0123\"\n  },\n  \"metadata\": {\n    \"age\": 32\n  }\n}",
+  "score": 5,
+  "cost": 0.000103725,
+  "expected": "",
+  "tokens": {
+    "input": 191,
+    "output": 298
+  }
+}

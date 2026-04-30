@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "json_transform_v2",
+  "case": 12,
+  "response": "{\"total_duration_min\": 16.25, \"track_count\": 4, \"artists\": {\"Band X\": 2, \"Band Y\": 1, \"Band Z\": 1}, \"longest_track\": \"Song C\"}",
+  "score": 4,
+  "cost": 3.3299999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 171,
+    "output": 54
+  }
+}

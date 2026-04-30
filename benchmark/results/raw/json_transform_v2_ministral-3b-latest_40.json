@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "json_transform_v2",
+  "case": 40,
+  "response": "```json\n{\n  \"items\": 3,\n  \"subtotal\": 1107,\n  \"discount_code\": \"SAVE20\",\n  \"member_discount\": true,\n  \"estimated_total\": 885.6\n}\n```",
+  "score": 4,
+  "cost": 7.92e-06,
+  "expected": "",
+  "tokens": {
+    "input": 142,
+    "output": 56
+  }
+}

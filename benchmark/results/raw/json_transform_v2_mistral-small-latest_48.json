@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "json_transform_v2",
+  "case": 48,
+  "response": "```json\n{\"product\": \"Widget Pro\", \"avg_rating\": 3.8, \"review_count\": 5, \"rating_distribution\": {\"1\": 0, \"2\": 1, \"3\": 1, \"4\": 1, \"5\": 2}}\n```",
+  "score": 5,
+  "cost": 3.5799999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 63
+  }
+}

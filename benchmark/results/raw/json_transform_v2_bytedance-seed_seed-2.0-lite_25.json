@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "json_transform_v2",
+  "case": 25,
+  "response": "{\"items\":4,\"subtotal\":1136,\"discount_code\":\"SAVE20\",\"member_discount\":true,\"estimated_total\":1116}",
+  "score": 4,
+  "cost": 0.00231625,
+  "expected": "",
+  "tokens": {
+    "input": 193,
+    "output": 2268
+  }
+}

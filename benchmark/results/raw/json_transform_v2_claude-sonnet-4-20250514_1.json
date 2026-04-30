@@ -1,0 +1,13 @@
+{
+  "model": "claude-sonnet-4-20250514",
+  "task": "json_transform_v2",
+  "case": 1,
+  "response": "```json\n{\n  \"by_date\": {\n    \"2024-01-15\": {\n      \"total\": 165.50,\n      \"categories\": {\n        \"food\": 120.50,\n        \"transport\": 45.00\n      }\n    },\n    \"2024-01-16\": {\n      \"total\": 230.00,\n      \"categories\": {\n        \"food\": 200.00,\n        \"transport\": 30.00\n      }\n    }\n  }\n}\n```",
+  "score": 5,
+  "cost": 0.002412,
+  "expected": "",
+  "tokens": {
+    "input": 174,
+    "output": 126
+  }
+}

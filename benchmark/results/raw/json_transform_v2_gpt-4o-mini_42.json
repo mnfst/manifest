@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "json_transform_v2",
+  "case": 42,
+  "response": "{\n  \"total_duration_min\": 19,\n  \"track_count\": 4,\n  \"artists\": {\n    \"Band X\": 2,\n    \"Band Y\": 1,\n    \"Band Z\": 1\n  },\n  \"longest_track\": \"Song C\"\n}",
+  "score": 4,
+  "cost": 5.895e-05,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 60
+  }
+}

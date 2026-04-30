@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "json_transform_v2",
+  "case": 27,
+  "response": "{\n  \"total_duration_min\": 15.416666666666666,\n  \"track_count\": 4,\n  \"artists\": {\n    \"Band X\": 2,\n    \"Band Y\": 1,\n    \"Band Z\": 1\n  },\n  \"longest_track\": \"Song C\"\n}",
+  "score": 4,
+  "cost": 0.00029354999999999995,
+  "expected": "",
+  "tokens": {
+    "input": 242,
+    "output": 918
+  }
+}

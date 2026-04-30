@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "json_transform_v2",
+  "case": 30,
+  "response": "```json\n{\n  \"full_name\": \"Jane Doe\",\n  \"contact\": {\n    \"email\": \"jane.doe@email.com\",\n    \"phone\": \"+1-555-0123\"\n  },\n  \"metadata\": {\n    \"age\": 32\n  }\n}\n```",
+  "score": 5,
+  "cost": 6.255e-05,
+  "expected": "",
+  "tokens": {
+    "input": 113,
+    "output": 76
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "json_transform_v2",
+  "case": 32,
+  "response": "```json\n{\"admins\": [\"Alice\", \"Charlie\"], \"users\": [\"Bob\"], \"inactive_count\": 1}\n```",
+  "score": 5,
+  "cost": 3.57e-05,
+  "expected": "",
+  "tokens": {
+    "input": 126,
+    "output": 28
+  }
+}

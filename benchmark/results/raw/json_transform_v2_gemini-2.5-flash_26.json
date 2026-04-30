@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "json_transform_v2",
+  "case": 26,
+  "response": "```json\n{\"sensors\": [{\"id\": \"temp_1\", \"avg\": 22.42, \"min\": 22.0, \"max\": 23.5, \"anomalies\": 0}, {\"id\": \"temp_2\", \"avg\": 22.56, \"min\": 21.0, \"max\": 28.5, \"anomalies\": 1}]}\n```",
+  "score": 3,
+  "cost": 8.054999999999999e-05,
+  "expected": "",
+  "tokens": {
+    "input": 153,
+    "output": 96
+  }
+}

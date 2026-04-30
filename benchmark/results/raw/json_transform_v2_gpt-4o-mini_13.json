@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o-mini",
+  "task": "json_transform_v2",
+  "case": 13,
+  "response": "{\"total_credits\": 8000, \"total_debits\": 4000, \"net\": 4000, \"transaction_count\": 5}",
+  "score": 5,
+  "cost": 3.9149999999999996e-05,
+  "expected": "",
+  "tokens": {
+    "input": 133,
+    "output": 32
+  }
+}

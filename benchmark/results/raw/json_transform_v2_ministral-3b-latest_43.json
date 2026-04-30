@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "json_transform_v2",
+  "case": 43,
+  "response": "```json\n{\n  \"total_credits\": 8000,\n  \"total_debits\": 3800,\n  \"net\": 4200,\n  \"transaction_count\": 5\n}\n```",
+  "score": 5,
+  "cost": 7.64e-06,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 50
+  }
+}

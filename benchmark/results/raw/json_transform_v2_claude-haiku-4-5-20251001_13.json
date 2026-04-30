@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "json_transform_v2",
+  "case": 13,
+  "response": "```json\n{\n  \"total_credits\": 8000,\n  \"total_debits\": 4500,\n  \"net\": 3500,\n  \"transaction_count\": 5\n}\n```",
+  "score": 5,
+  "cost": 0.0003208,
+  "expected": "",
+  "tokens": {
+    "input": 141,
+    "output": 52
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "json_transform_v2",
+  "case": 6,
+  "response": "```json\n{\n    \"order_id\": \"ORD-001\",\n    \"subtotal\": 109.97,\n    \"discount\": 10.997,\n    \"shipping\": 5.99,\n    \"total\": 104.963,\n    \"item_count\": 3\n}\n```",
+  "score": 4,
+  "cost": 0.000945,
+  "expected": "",
+  "tokens": {
+    "input": 138,
+    "output": 60
+  }
+}

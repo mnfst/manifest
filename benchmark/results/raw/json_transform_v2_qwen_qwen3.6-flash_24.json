@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "json_transform_v2",
+  "case": 24,
+  "response": "{\"summary\": {\"total\": 5, \"by_level\": {\"ERROR\": 3, \"WARN\": 1, \"INFO\": 1}}, \"errors\": [{\"msg\": \"timeout\", \"count\": 2, \"first_seen\": \"10:00\"}, {\"msg\": \"disk full\", \"count\": 1, \"first_seen\": \"10:05\"}]}",
+  "score": 4,
+  "cost": 0.00138425,
+  "expected": "",
+  "tokens": {
+    "input": 209,
+    "output": 1332
+  }
+}

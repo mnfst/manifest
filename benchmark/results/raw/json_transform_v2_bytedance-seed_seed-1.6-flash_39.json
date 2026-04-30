@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "json_transform_v2",
+  "case": 39,
+  "response": "{\n  \"summary\": {\n    \"total\": 5,\n    \"by_level\": {\n      \"ERROR\": 3,\n      \"WARN\": 1,\n      \"INFO\": 1\n    }\n  },\n  \"errors\": [\n    {\n      \"msg\": \"timeout\",\n      \"count\": 2,\n      \"first_seen\": \"10:00\"\n    },\n    {\n      \"msg\": \"disk full\",\n      \"count\": 1,\n      \"first_seen\": \"10:05\"\n    }\n  ]\n}",
+  "score": 4,
+  "cost": 0.000197625,
+  "expected": "",
+  "tokens": {
+    "input": 283,
+    "output": 588
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "json_transform_v2",
+  "case": 12,
+  "response": "```json\n{\n  \"total_duration_min\": 1015,\n  \"track_count\": 4,\n  \"artists\": {\n    \"name\": 3\n  },\n  \"longest_track\": \"Song C\"\n}\n```",
+  "score": 2,
+  "cost": 8.44e-06,
+  "expected": "",
+  "tokens": {
+    "input": 159,
+    "output": 52
+  }
+}

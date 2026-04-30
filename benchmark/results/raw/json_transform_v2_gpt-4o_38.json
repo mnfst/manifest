@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "json_transform_v2",
+  "case": 38,
+  "response": "```json\n{\n    \"rankings\": [\n        {\n            \"name\": \"Ben\",\n            \"average\": 91.0,\n            \"rank\": 1\n        },\n        {\n            \"name\": \"Ali\",\n            \"average\": 85.0,\n            \"rank\": 2\n        },\n        {\n            \"name\": \"Cat\",\n            \"average\": 73.33333333333333,\n            \"rank\": 3\n        }\n    ],\n    \"class_average\": 83.11111111111111\n}\n```",
+  "score": 4,
+  "cost": 0.0014325,
+  "expected": "",
+  "tokens": {
+    "input": 121,
+    "output": 113
+  }
+}
