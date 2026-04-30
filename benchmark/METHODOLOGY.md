@@ -1,10 +1,12 @@
 # TaskBench Methodology
 
-Last updated: 2026-04-28
+Last updated: 2026-04-29
 
 This document records every methodological decision made during the TaskBench benchmark.
-It serves two purposes: (1) reproducibility for the arXiv paper, and (2) continuity
-across work sessions so the methodology stays consistent even with different operators.
+It serves three purposes: (1) reproducibility for the arXiv paper, (2) continuity
+across work sessions so the methodology stays consistent even with different operators,
+and (3) answering "why" questions about any decision made during the project. If you
+are a future session agent, read this document to answer methodology questions.
 
 ## 1. Objective
 
@@ -433,3 +435,126 @@ To reproduce the exact benchmark:
 4. Use the exact prompt templates in TASK_DEFS
 5. Use gpt-4o-mini as the LLM judge with the exact rubric prompts
 6. Run with `--skip-azure` if Azure is unavailable (Azure models are supplementary)
+
+## 12. Decisions We Made and Why (FAQ)
+
+This section captures the reasoning behind every major decision, written so a future
+session or collaborator can answer "why did you do X?" without access to the original
+conversation.
+
+### Q: Why not score on 1-100 instead of 1-5?
+
+LLMs are unreliable scorers on fine-grained scales. On 1-100, they cluster around
+round numbers (70, 80, 90) giving fake precision. The 1-5 scale has clear qualitative
+anchors (1=fail, 2=poor, 3=acceptable, 4=good, 5=perfect) that the judge can
+distinguish reliably. Our question is "is $0.15/M good enough vs $15/M?" not "is
+model A 87.3 vs 87.1?" The coarse scale answers our question better.
+
+If rescoring is ever needed: all 14,000+ raw responses are saved in `results/raw/`.
+We can re-score with any scale without re-calling any API. The $36 of API calls is
+a one-time cost, the scoring is free to redo.
+
+### Q: Why GPT-4o-mini as judge and not something stronger?
+
+Cost. ~$0.0001/call vs $0.0016 for GPT-4o. With 14,000+ judge calls that would be
+$22 vs $1.40. The dual metric validation shows GPT-4o-mini judgments correlate with
+native accuracy on the 4 tasks where both are available. Potential bias: may favor
+GPT-family output style. Documented as a limitation.
+
+### Q: Is the judge-accuracy divergence a problem?
+
+No, it is a finding. On GSM8K, Claude Opus 4.7 gets 98% exact answers but 3.5/5 from
+the judge. The judge evaluates "usable quality" (format, concision, clarity) while
+accuracy evaluates "pure correctness." A model that gives the right answer buried in
+1000 words of reasoning is correct but not usable. Both metrics together tell a richer
+story than either alone. The paper reports both.
+
+### Q: Why these specific tasks and not others?
+
+Selection criterion: "tasks that real people connect to LLM APIs and put in production
+today." Not academic benchmarks, not theoretical tasks. Sentiment = classifying
+customer reviews (marketing, support). Intent = chatbot routing. SQL = analytics tools.
+Function calling = AI agents. Content moderation = UGC sites. Translation = i18n.
+Email summary = everyone with an inbox. RAG QA = knowledge bases.
+
+The tasks are cross-functional, not dev-only. Only 6 of 16+ tasks are developer-specific
+(code gen, code review, test gen, code explanation, SQL, function calling). The rest
+serve marketing, ops, support, legal, and general business users.
+
+### Q: What tasks were considered but excluded, and why?
+
+| Excluded | Reason |
+|----------|--------|
+| Paraphrase / rewriting | Too subjective to evaluate automatically |
+| Multi-turn dialogue | Runner only supports single-turn; would need architecture change |
+| Multi-label classification | Already have 3 classification tasks (sentiment, intent, moderation) |
+| Vision tasks (VQA, OCR) | Many models don't support image input; would reduce comparable set from 30 to ~10 |
+| Audio / speech | No models in our set support audio |
+
+### Q: Why 50 cases per task?
+
+Statistical power vs cost. 50 cases gives 95% CI of +/-0.2 on the 1-5 scale. Enough
+to confirm "Economy tier (4.5/5) matches Premium tier (4.7/5)" but not to rank two
+models 0.1 apart. 100 cases would halve the CI to +/-0.14 for double the cost
+(diminishing returns). 500 cases would 10x the cost without changing structural findings.
+
+### Q: Why temperature=0?
+
+Reproducibility. Same prompt, same output, no run-to-run variance. Exception: reasoning
+models that reject temperature=0 (DeepSeek-R1, Kimi-K2.6, Claude Opus 4.7). Their
+outputs are non-deterministic. We document this as a limitation rather than running
+3x repetitions (which would triple cost for a subset of models).
+
+### Q: Why not use promptfoo or LiteLLM?
+
+Promptfoo: no native support for Azure AI, Gemini, MiniMax, Moonshot, or OpenRouter.
+Cannot strip `<think>` tags. No budget tracking. No resume after crash.
+
+LiteLLM: abstracts away provider-specific quirks that we NEED to handle explicitly.
+Gemini needs `max_completion_tokens: 8192` (thinking tokens). Kimi needs no temperature.
+MiniMax embeds `<think>` tags in content. OpenRouter model IDs have slashes.
+
+A custom 500-line Python runner handles all of this with zero dependencies beyond
+`requests`.
+
+### Q: Why did the benchmark switch from Azure to direct APIs?
+
+Azure AI went down (HTTP 500 on all models) mid-benchmark and never recovered during
+the session. Rather than wait, we added direct integrations for each provider. This
+made the benchmark more resilient (7 independent API endpoints vs 1 Azure endpoint)
+but added complexity (7 provider-specific callers).
+
+### Q: Who are the benchmark users? Just developers?
+
+No. The tasks cover business functions beyond development: marketing (sentiment),
+support (intent, RAG QA), international teams (translation), trust & safety
+(moderation), ops/data (structured output, NER), and everyone (email summary,
+instruction following). The paper should frame this as "production LLM tasks across
+business functions."
+
+### Q: Can we rescore everything if we change our mind?
+
+Yes. All raw model responses (the actual text each model returned) are saved as JSON
+files in `results/raw/`. The API call cost ($36) is sunk. Rescoring with a different
+judge, scale, or rubric costs only the judge calls (~$1-2) and can be done in minutes.
+
+## 13. Glossary
+
+- **Data point**: One row in the CSV. One prompt sent to one model, scored once.
+- **Case**: One test example in a task. A specific prompt with (optionally) an expected
+  answer. Each case is tested on every model.
+- **Task**: A category of work (e.g., "sentiment classification"). Has a prompt
+  template, a dataset of cases, and an evaluation method.
+- **V1 / V2**: V1 = exploratory run (5-10 cases, hardcoded). V2 = production run
+  (50 cases from JSONL datasets). Only V2 data goes in the paper.
+- **Lot**: A batch execution of one task across all models. "Lot 7" = running
+  moderation_toxigen on all 20 models.
+- **LLM-judge**: Using GPT-4o-mini to score a model's output on a 1-5 scale.
+- **Native metric**: The standard evaluation metric for a public dataset (accuracy
+  for SST-2, exact match for GSM8K, etc.).
+- **Dual metric**: Reporting both the LLM-judge score and the native metric for the
+  same data point.
+- **Adversarial cases**: Test inputs designed to be tricky (subtle sarcasm, coded
+  language) rather than obvious (ALL CAPS HATE). More discriminative.
+- **Pareto frontier**: The set of models where no other model is both cheaper AND
+  higher quality. The optimal cost-quality tradeoff line.
