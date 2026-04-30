@@ -2,6 +2,23 @@ import { Injectable, ConflictException, NotFoundException } from '@nestjs/common
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { Agent } from '../../entities/agent.entity';
+import { ResolveAgentService } from '../../routing/routing-core/resolve-agent.service';
+import { RoutingCacheService } from '../../routing/routing-core/routing-cache.service';
+
+const TENANT_NAME_SCOPED_TABLES = ['agent_messages', 'agent_logs'] as const;
+
+// Snapshot tables exist in production migrations but have no TypeORM entity,
+// so the e2e synchronize path doesn't create them. Skip silently when absent.
+const OPTIONAL_TENANT_NAME_SCOPED_TABLES = ['cost_snapshots', 'token_usage_snapshots'] as const;
+
+const AGENT_ID_SCOPED_TABLES = [
+  'tier_assignments',
+  'specificity_assignments',
+  'header_tiers',
+  'user_providers',
+  'llm_calls',
+  'tool_executions',
+] as const;
 
 @Injectable()
 export class AgentLifecycleService {
@@ -9,6 +26,8 @@ export class AgentLifecycleService {
     @InjectRepository(Agent)
     private readonly agentRepo: Repository<Agent>,
     private readonly dataSource: DataSource,
+    private readonly resolveAgent: ResolveAgentService,
+    private readonly routingCache: RoutingCacheService,
   ) {}
 
   async findAgentInfo(
@@ -41,7 +60,63 @@ export class AgentLifecycleService {
     if (!agent) {
       throw new NotFoundException(`Agent "${agentName}" not found`);
     }
-    await this.agentRepo.delete(agent.id);
+
+    const { id: agentId, tenant_id: tenantId } = agent;
+
+    await this.dataSource.transaction(async (manager) => {
+      // notification_logs has no tenant_id; scope via rule_id of rules that
+      // belong to this tenant + agent_name BEFORE deleting the rules.
+      await manager.query(
+        `DELETE FROM notification_logs
+         WHERE rule_id IN (
+           SELECT id FROM notification_rules
+           WHERE tenant_id = $1 AND agent_name = $2
+         )`,
+        [tenantId, agentName],
+      );
+
+      for (const table of TENANT_NAME_SCOPED_TABLES) {
+        await manager
+          .createQueryBuilder()
+          .delete()
+          .from(table)
+          .where('tenant_id = :tenantId AND agent_name = :agentName', { tenantId, agentName })
+          .execute();
+      }
+
+      for (const table of OPTIONAL_TENANT_NAME_SCOPED_TABLES) {
+        const present = await manager.query(`SELECT to_regclass($1) AS reg`, [table]);
+        if (!present[0]?.reg) continue;
+        await manager
+          .createQueryBuilder()
+          .delete()
+          .from(table)
+          .where('tenant_id = :tenantId AND agent_name = :agentName', { tenantId, agentName })
+          .execute();
+      }
+
+      await manager
+        .createQueryBuilder()
+        .delete()
+        .from('notification_rules')
+        .where('tenant_id = :tenantId AND agent_name = :agentName', { tenantId, agentName })
+        .execute();
+
+      for (const table of AGENT_ID_SCOPED_TABLES) {
+        await manager
+          .createQueryBuilder()
+          .delete()
+          .from(table)
+          .where('agent_id = :agentId', { agentId })
+          .execute();
+      }
+
+      // agent_api_keys and custom_providers cascade via FK.
+      await manager.getRepository(Agent).delete(agentId);
+    });
+
+    this.resolveAgent.invalidate(tenantId, agentName);
+    this.routingCache.invalidateAgent(agentId);
   }
 
   private async findAgentByUser(userId: string, agentName: string) {

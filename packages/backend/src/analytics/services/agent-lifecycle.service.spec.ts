@@ -4,13 +4,16 @@ import { ConflictException, NotFoundException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { AgentLifecycleService } from './agent-lifecycle.service';
 import { Agent } from '../../entities/agent.entity';
+import { ResolveAgentService } from '../../routing/routing-core/resolve-agent.service';
+import { RoutingCacheService } from '../../routing/routing-core/routing-cache.service';
 
 describe('AgentLifecycleService', () => {
   let service: AgentLifecycleService;
   let mockAgentGetOne: jest.Mock;
-  let mockAgentDelete: jest.Mock;
   let mockTransaction: jest.Mock;
   let mockAgentCreateQueryBuilder: jest.Mock;
+  let mockResolveAgentInvalidate: jest.Mock;
+  let mockRoutingCacheInvalidate: jest.Mock;
 
   beforeEach(async () => {
     mockTransaction = jest
@@ -18,7 +21,8 @@ describe('AgentLifecycleService', () => {
       .mockImplementation(async (cb: (...args: unknown[]) => unknown) => cb());
 
     mockAgentGetOne = jest.fn().mockResolvedValue(null);
-    mockAgentDelete = jest.fn().mockResolvedValue({});
+    mockResolveAgentInvalidate = jest.fn();
+    mockRoutingCacheInvalidate = jest.fn();
 
     const mockAgentQb = {
       select: jest.fn().mockReturnThis(),
@@ -39,12 +43,19 @@ describe('AgentLifecycleService', () => {
           provide: getRepositoryToken(Agent),
           useValue: {
             createQueryBuilder: mockAgentCreateQueryBuilder,
-            delete: mockAgentDelete,
           },
         },
         {
           provide: DataSource,
           useValue: { transaction: mockTransaction },
+        },
+        {
+          provide: ResolveAgentService,
+          useValue: { invalidate: mockResolveAgentInvalidate },
+        },
+        {
+          provide: RoutingCacheService,
+          useValue: { invalidateAgent: mockRoutingCacheInvalidate },
         },
       ],
     }).compile();
@@ -94,19 +105,122 @@ describe('AgentLifecycleService', () => {
   });
 
   describe('deleteAgent', () => {
-    it('should delete agent when found', async () => {
-      mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-1', name: 'my-agent' });
+    function setupTransactionMocks(options: { snapshotTablesPresent?: boolean } = {}) {
+      const snapshotTablesPresent = options.snapshotTablesPresent ?? true;
+      const mockExecute = jest.fn().mockResolvedValue({});
+      const mockManagerQb = {
+        delete: jest.fn().mockReturnThis(),
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        execute: mockExecute,
+      };
+      const mockManagerQuery = jest
+        .fn()
+        .mockImplementation(async (sql: string, params?: unknown[]) => {
+          if (sql.includes('to_regclass')) {
+            const table = params?.[0] as string;
+            return [{ reg: snapshotTablesPresent ? table : null }];
+          }
+          return [];
+        });
+      const mockManagerAgentDelete = jest.fn().mockResolvedValue({});
+
+      mockTransaction.mockImplementation(async (cb: (...args: unknown[]) => unknown) => {
+        const manager = {
+          createQueryBuilder: jest.fn().mockReturnValue(mockManagerQb),
+          query: mockManagerQuery,
+          getRepository: jest.fn().mockReturnValue({ delete: mockManagerAgentDelete }),
+        };
+        return cb(manager);
+      });
+
+      return { mockManagerQb, mockManagerQuery, mockManagerAgentDelete };
+    }
+
+    it('cleans denormalised tables, agent_id-keyed tables, and invalidates caches', async () => {
+      mockAgentGetOne.mockResolvedValueOnce({
+        id: 'agent-id-1',
+        name: 'my-agent',
+        tenant_id: 'tenant-1',
+      });
+      const { mockManagerQb, mockManagerQuery, mockManagerAgentDelete } = setupTransactionMocks();
 
       await service.deleteAgent('test-user', 'my-agent');
-      expect(mockAgentDelete).toHaveBeenCalledWith('agent-id-1');
+
+      expect(mockTransaction).toHaveBeenCalledTimes(1);
+
+      const fromCalls = mockManagerQb.from.mock.calls.map((c: unknown[]) => c[0]);
+      expect(fromCalls).toEqual(
+        expect.arrayContaining([
+          'agent_messages',
+          'agent_logs',
+          'cost_snapshots',
+          'token_usage_snapshots',
+          'notification_rules',
+          'tier_assignments',
+          'specificity_assignments',
+          'header_tiers',
+          'user_providers',
+          'llm_calls',
+          'tool_executions',
+        ]),
+      );
+
+      const tenantNameWhereCalls = mockManagerQb.where.mock.calls.filter(
+        (c: unknown[]) => typeof c[0] === 'string' && (c[0] as string).includes('agent_name'),
+      );
+      for (const call of tenantNameWhereCalls) {
+        expect(call[1]).toEqual({ tenantId: 'tenant-1', agentName: 'my-agent' });
+      }
+
+      const agentIdWhereCalls = mockManagerQb.where.mock.calls.filter(
+        (c: unknown[]) => typeof c[0] === 'string' && (c[0] as string).includes('agent_id'),
+      );
+      for (const call of agentIdWhereCalls) {
+        expect(call[1]).toEqual({ agentId: 'agent-id-1' });
+      }
+
+      const logsCall = mockManagerQuery.mock.calls.find(
+        (c) =>
+          typeof c[0] === 'string' && (c[0] as string).includes('DELETE FROM notification_logs'),
+      );
+      expect(logsCall).toBeDefined();
+      expect(logsCall?.[0]).toContain('notification_rules');
+      expect(logsCall?.[1]).toEqual(['tenant-1', 'my-agent']);
+
+      expect(mockManagerAgentDelete).toHaveBeenCalledWith('agent-id-1');
+      expect(mockResolveAgentInvalidate).toHaveBeenCalledWith('tenant-1', 'my-agent');
+      expect(mockRoutingCacheInvalidate).toHaveBeenCalledWith('agent-id-1');
     });
 
-    it('should throw NotFoundException when agent not found', async () => {
+    it('skips snapshot tables when they do not exist in the schema', async () => {
+      mockAgentGetOne.mockResolvedValueOnce({
+        id: 'agent-id-1',
+        name: 'my-agent',
+        tenant_id: 'tenant-1',
+      });
+      const { mockManagerQb } = setupTransactionMocks({ snapshotTablesPresent: false });
+
+      await service.deleteAgent('test-user', 'my-agent');
+
+      const fromCalls = mockManagerQb.from.mock.calls.map((c: unknown[]) => c[0]);
+      expect(fromCalls).not.toContain('cost_snapshots');
+      expect(fromCalls).not.toContain('token_usage_snapshots');
+      // Mandatory tables still run.
+      expect(fromCalls).toEqual(
+        expect.arrayContaining(['agent_messages', 'agent_logs', 'tier_assignments']),
+      );
+    });
+
+    it('throws NotFoundException when agent not found and skips cache invalidation', async () => {
       mockAgentGetOne.mockResolvedValueOnce(null);
 
       await expect(service.deleteAgent('test-user', 'nonexistent')).rejects.toThrow(
         NotFoundException,
       );
+      expect(mockTransaction).not.toHaveBeenCalled();
+      expect(mockResolveAgentInvalidate).not.toHaveBeenCalled();
+      expect(mockRoutingCacheInvalidate).not.toHaveBeenCalled();
     });
   });
 

@@ -85,6 +85,7 @@ import { ReAddComplexityRoutingFlag1781000000000 } from './migrations/1781000000
 import { AddSavingsBaselineModel1782000000000 } from './migrations/1782000000000-AddSavingsBaselineModel';
 import { AddBaselineCostColumns1782100000000 } from './migrations/1782100000000-AddBaselineCostColumns';
 import { RetuneSpecificityMiscategorizedIndex1782000000000 } from './migrations/1782000000000-RetuneSpecificityMiscategorizedIndex';
+import { CleanupOrphanedAgentRows1782200000000 } from './migrations/1782200000000-CleanupOrphanedAgentRows';
 
 const entities = [
   AgentMessage,
@@ -171,6 +172,7 @@ const migrations = [
   AddSavingsBaselineModel1782000000000,
   AddBaselineCostColumns1782100000000,
   RetuneSpecificityMiscategorizedIndex1782000000000,
+  CleanupOrphanedAgentRows1782200000000,
 ];
 
 @Module({
