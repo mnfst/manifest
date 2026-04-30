@@ -1,7 +1,7 @@
 # TaskBench Findings
 
-Last updated: 2026-04-29
-Status: PRELIMINARY (benchmark incomplete, 16 of ~21 tasks done, some models partial)
+Last updated: 2026-04-30
+Status: NEAR-COMPLETE (19 of ~21 v2 tasks done, 2 remaining)
 
 **Rule: every finding below must be revalidated against final data before
 publication. Findings marked [STABLE] survived multiple lots without changing.
@@ -9,11 +9,12 @@ Findings marked [PRELIMINARY] are based on partial data and may shift.**
 
 ## Data Snapshot
 
-- 14,321 unique data points
-- 30 models across 7 providers
-- 16 v2 tasks (50 cases each), 13 v1 tasks (5-10 cases, exploratory only)
-- $36 spent of $250 budget
-- Commit: 4b0708992 on branch taskbench-data
+- 18,678 unique data points
+- 30 models across 7 providers (Anthropic, OpenAI, Google, Mistral, MiniMax, Moonshot, OpenRouter)
+- 19 v2 tasks (50 cases each), 13 v1 tasks (5-10 cases, exploratory only)
+- $51 spent of $250 budget (20%)
+- Commit: a1da9e1b8 on branch taskbench-data
+- Remaining: extraction_hard_v2, multistep_reasoning (datasets not yet created)
 
 ---
 
@@ -204,6 +205,45 @@ findings. Provider diversity is essential for benchmark credibility.
 
 **Risk of invalidation:** Low for the structural point. Specific model
 rankings may shift with more data.
+
+---
+
+## Finding 11: RAG QA is the hardest generative task [STABLE]
+
+RAG QA (SQuAD v2, answer from provided context only) is the most discriminative
+generative task. Models that score 4.5+ on everything else drop to 3.0/5 here.
+
+**Evidence:**
+- Mistral Large: 3.0/5 on RAG QA vs 5.0/5 on sentiment, 4.8/5 on code gen
+- Qwen 3.6 Flash: 3.0/5 on RAG QA vs 5.0/5 on data-to-text
+- Gemini 2.0 Flash: 5.0/5 (only model to ace it with sufficient data)
+
+**Implication:** RAG QA tests whether models follow the constraint "answer
+ONLY from the provided context." Most models hallucinate additional information.
+This is the task where model selection matters most for production quality.
+
+**Risk of invalidation:** Low. The discriminative power is structural.
+
+---
+
+## Finding 12: Three task categories by discriminative power [STABLE]
+
+Tasks fall into three categories based on how much they differentiate models:
+
+**High discrimination (10+ point spread):** ToxiGen moderation (66-96%),
+RAG QA (3.0-5.0), CLINC-150 intent (72-100%), GSM8K reasoning (86-98%)
+
+**Medium discrimination (0.5-1.0 point spread on 1-5):** instruction following,
+code review, test generation, function calling, translation, SQL, JSON transform
+
+**Low discrimination (all models >4.5/5):** sentiment, email summary,
+code explanation, data-to-text, NER extraction
+
+**Implication:** The high-discrimination tasks are where model routing adds
+the most value. The low-discrimination tasks confirm that all modern models
+handle basic generation well, but they do not justify paying more for premium.
+
+**Risk of invalidation:** None. This is an observed property of the benchmark.
 
 ---
 
