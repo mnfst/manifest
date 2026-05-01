@@ -1,0 +1,33 @@
+packages/frontend/src/pages/RoutingTierCard.tsx
+  2d9a0877828cbf38 21-22,28-36
+.changeset/route-provider-attribution.md
+  2d9a0877828cbf38 1-27
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  2d9a0877828cbf38 2108,2127-2204
+packages/backend/src/model-discovery/model-discovery.service.ts
+  2d9a0877828cbf38 293-309,325
+packages/backend/src/model-discovery/known-model-prices.ts
+  2d9a0877828cbf38 2,4-17
+packages/frontend/tests/pages/RoutingTierCard.test.tsx
+  2d9a0877828cbf38 1074-1134
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "de89d3b38c498e177a8ebe4e05b5111720016111",
+  "prompts": {
+    "2d9a0877828cbf38": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6959824a-a408-4272-be14-2cd8f7c33357",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "messages": [],
+      "total_additions": 213,
+      "total_deletions": 20,
+      "accepted_lines": 211,
+      "overriden_lines": 0
+    }
+  }
+}
