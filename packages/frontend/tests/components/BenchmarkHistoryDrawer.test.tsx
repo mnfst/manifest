@@ -85,6 +85,144 @@ describe('BenchmarkHistoryDrawer', () => {
     expect(onSelect).toHaveBeenCalledWith('r-42');
   });
 
+  it('truncates long prompts with an ellipsis', () => {
+    const longPrompt = 'q'.repeat(100);
+    const { container } = render(() => (
+      <BenchmarkHistoryDrawer
+        open={true}
+        loading={false}
+        runs={[run({ id: 'r-long', prompt: longPrompt })]}
+        activeRunId={null}
+        onClose={() => {}}
+        onSelect={() => {}}
+      />
+    ));
+    expect(container.textContent).toContain('…');
+  });
+
+  it('uses the singular "model" label for a single-model run', () => {
+    const { container } = render(() => (
+      <BenchmarkHistoryDrawer
+        open={true}
+        loading={false}
+        runs={[run({ id: 'r-1', modelCount: 1, models: ['One'] })]}
+        activeRunId={null}
+        onClose={() => {}}
+        onSelect={() => {}}
+      />
+    ));
+    expect(container.textContent).toContain('1 model');
+    expect(container.textContent).not.toContain('1 models');
+  });
+
+  it('shows the +N suffix when there are more than two models', () => {
+    const { container } = render(() => (
+      <BenchmarkHistoryDrawer
+        open={true}
+        loading={false}
+        runs={[run({ id: 'r-1', modelCount: 4, models: ['A', 'B', 'C', 'D'] })]}
+        activeRunId={null}
+        onClose={() => {}}
+        onSelect={() => {}}
+      />
+    ));
+    expect(container.textContent).toContain('+2');
+  });
+
+  it('shows a "Loading…" indicator while loading is true', () => {
+    const { container } = render(() => (
+      <BenchmarkHistoryDrawer
+        open={true}
+        loading={true}
+        runs={[]}
+        activeRunId={null}
+        onClose={() => {}}
+        onSelect={() => {}}
+      />
+    ));
+    expect(container.textContent).toContain('Loading');
+  });
+
+  it('fires onClose when Escape is pressed at the window', () => {
+    const onClose = vi.fn();
+    render(() => (
+      <BenchmarkHistoryDrawer
+        open={true}
+        loading={false}
+        runs={[]}
+        activeRunId={null}
+        onClose={onClose}
+        onSelect={() => {}}
+      />
+    ));
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('fires onClose when the close button is clicked', () => {
+    const onClose = vi.fn();
+    const { container } = render(() => (
+      <BenchmarkHistoryDrawer
+        open={true}
+        loading={false}
+        runs={[]}
+        activeRunId={null}
+        onClose={onClose}
+        onSelect={() => {}}
+      />
+    ));
+    const close = container.querySelector('[aria-label="Close history"]') as HTMLElement;
+    fireEvent.click(close);
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('fires onClose when the backdrop is clicked', () => {
+    const onClose = vi.fn();
+    const { container } = render(() => (
+      <BenchmarkHistoryDrawer
+        open={true}
+        loading={false}
+        runs={[]}
+        activeRunId={null}
+        onClose={onClose}
+        onSelect={() => {}}
+      />
+    ));
+    const backdrop = container.querySelector('.benchmark-history__backdrop') as HTMLElement;
+    fireEvent.click(backdrop);
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('renders nothing when closed', () => {
+    const { container } = render(() => (
+      <BenchmarkHistoryDrawer
+        open={false}
+        loading={false}
+        runs={[]}
+        activeRunId={null}
+        onClose={() => {}}
+        onSelect={() => {}}
+      />
+    ));
+    expect(container.querySelector('[role="dialog"]')).toBeNull();
+  });
+
+  it('renders the dialog with role="dialog" and aria-modal="true" so screen readers announce the trap', () => {
+    const { container } = render(() => (
+      <BenchmarkHistoryDrawer
+        open={true}
+        loading={false}
+        runs={[]}
+        activeRunId={null}
+        onClose={() => {}}
+        onSelect={() => {}}
+      />
+    ));
+    const dialog = container.querySelector('[role="dialog"]');
+    expect(dialog).toBeDefined();
+    expect(dialog?.getAttribute('aria-modal')).toBe('true');
+  });
+
   it('highlights the active run id with the --active class', () => {
     const { container } = render(() => (
       <BenchmarkHistoryDrawer

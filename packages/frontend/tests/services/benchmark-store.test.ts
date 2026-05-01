@@ -374,6 +374,237 @@ describe('createBenchmarkStore', () => {
     });
   });
 
+  describe('cancellation', () => {
+    it('cancelColumn aborts the in-flight signal and resets status to idle', async () => {
+      const store = createBenchmarkStore('demo');
+      store.addColumn('openai/gpt-4o-mini', 'openai', 'api_key', 'A');
+      store.setPrompt('hi');
+
+      // Resolve only when the signal fires AbortError; if signal is already
+      // aborted at call time, we reject immediately.
+      let capturedSignal: AbortSignal | undefined;
+      runBenchmarkMock.mockImplementation(
+        (_req: unknown, init: { signal?: AbortSignal } | undefined) => {
+          capturedSignal = init?.signal;
+          return new Promise((_, reject) => {
+            const onAbort = () => reject(new DOMException('aborted', 'AbortError'));
+            if (init?.signal?.aborted) onAbort();
+            else init?.signal?.addEventListener('abort', onAbort);
+          });
+        },
+      );
+
+      const colId = store.columns[0]!.id;
+      const runPromise = store.runAll();
+      // Let the synchronous setup land, then cancel.
+      await Promise.resolve();
+      store.cancelColumn(colId);
+
+      await runPromise;
+      expect(capturedSignal?.aborted).toBe(true);
+      expect(store.columns[0]!.status).toBe('idle');
+      // AbortError must NOT paint an error message.
+      expect(store.columns[0]!.error).toBeUndefined();
+    });
+
+    it('cancelAll aborts every in-flight column at once', async () => {
+      const store = createBenchmarkStore('demo');
+      store.addColumn('a', 'openai', 'api_key', 'A');
+      store.addColumn('b', 'anthropic', 'api_key', 'B');
+      store.setPrompt('hi');
+
+      const signals: AbortSignal[] = [];
+      runBenchmarkMock.mockImplementation(
+        (_req: unknown, init: { signal?: AbortSignal } | undefined) => {
+          if (init?.signal) signals.push(init.signal);
+          return new Promise((_, reject) => {
+            init?.signal?.addEventListener('abort', () =>
+              reject(new DOMException('aborted', 'AbortError')),
+            );
+          });
+        },
+      );
+
+      const runPromise = store.runAll();
+      await Promise.resolve();
+      store.cancelAll();
+      await runPromise;
+
+      expect(signals.length).toBe(2);
+      expect(signals.every((s) => s.aborted)).toBe(true);
+      expect(store.columns.every((c) => c.status === 'idle')).toBe(true);
+    });
+
+    it('removeColumn aborts any in-flight request for that column without painting an error', async () => {
+      const store = createBenchmarkStore('demo');
+      store.addColumn('openai/gpt-4o-mini', 'openai', 'api_key', 'A');
+      store.setPrompt('hi');
+
+      let captured: AbortSignal | undefined;
+      runBenchmarkMock.mockImplementation(
+        (_req: unknown, init: { signal?: AbortSignal } | undefined) => {
+          captured = init?.signal;
+          return new Promise((_, reject) => {
+            init?.signal?.addEventListener('abort', () =>
+              reject(new DOMException('aborted', 'AbortError')),
+            );
+          });
+        },
+      );
+
+      const colId = store.columns[0]!.id;
+      const runPromise = store.runAll();
+      await Promise.resolve();
+      store.removeColumn(colId);
+      await runPromise;
+
+      expect(captured?.aborted).toBe(true);
+      // Column is gone — there is no error to paint.
+      expect(store.columns).toHaveLength(0);
+    });
+
+    it('replaceColumnModel aborts any in-flight request for that column', async () => {
+      const store = createBenchmarkStore('demo');
+      store.addColumn('openai/gpt-4o-mini', 'openai', 'api_key', 'A');
+      store.setPrompt('hi');
+
+      let captured: AbortSignal | undefined;
+      runBenchmarkMock.mockImplementation(
+        (_req: unknown, init: { signal?: AbortSignal } | undefined) => {
+          captured = init?.signal;
+          return new Promise((_, reject) => {
+            init?.signal?.addEventListener('abort', () =>
+              reject(new DOMException('aborted', 'AbortError')),
+            );
+          });
+        },
+      );
+
+      const colId = store.columns[0]!.id;
+      const runPromise = store.runAll();
+      await Promise.resolve();
+      store.replaceColumnModel(colId, 'anthropic/claude-3', 'anthropic', 'api_key', 'C');
+      await runPromise;
+
+      expect(captured?.aborted).toBe(true);
+      expect(store.columns[0]!.model).toBe('anthropic/claude-3');
+      expect(store.columns[0]!.status).toBe('idle');
+      expect(store.columns[0]!.error).toBeUndefined();
+    });
+
+    it('does not paint a stale success after the column was replaced', async () => {
+      // Run #1 resolves (slowly) AFTER the column has been replaced. The
+      // inflight-controller guard inside runSingle must reject the late
+      // result so we don't paint over the new column state.
+      const store = createBenchmarkStore('demo');
+      store.addColumn('openai/gpt-4o-mini', 'openai', 'api_key', 'A');
+      store.setPrompt('hi');
+
+      let resolveFirst: ((v: unknown) => void) | null = null;
+      runBenchmarkMock.mockImplementationOnce(
+        () => new Promise((res) => (resolveFirst = res)),
+      );
+      runBenchmarkMock.mockImplementationOnce(() =>
+        Promise.resolve({
+          content: 'second',
+          metrics: { cost: 0.001, inputTokens: 1, outputTokens: 1, durationMs: 10 },
+          headers: {},
+        }),
+      );
+
+      const colId = store.columns[0]!.id;
+      const firstRun = store.runAll();
+      await Promise.resolve();
+      // Replace the column — this aborts the first call and resets state.
+      store.replaceColumnModel(colId, 'anthropic/claude-3', 'anthropic', 'api_key', 'C');
+      // Now resolve the first request as if the upstream finally responded.
+      resolveFirst!({
+        content: 'STALE',
+        metrics: { cost: 0.999, inputTokens: 99, outputTokens: 99, durationMs: 999 },
+        headers: { 'x-stale': 'yes' },
+      });
+      await firstRun;
+
+      // Stale result must NOT have been applied.
+      expect(store.columns[0]!.response).not.toBe('STALE');
+      expect(store.columns[0]!.status).toBe('idle');
+    });
+
+    it('does not paint a stale error after the column was cancelled', async () => {
+      const store = createBenchmarkStore('demo');
+      store.addColumn('openai/gpt-4o-mini', 'openai', 'api_key', 'A');
+      store.setPrompt('hi');
+
+      let rejectFirst: ((reason: unknown) => void) | null = null;
+      runBenchmarkMock.mockImplementationOnce(
+        () => new Promise((_, rej) => (rejectFirst = rej)),
+      );
+
+      const colId = store.columns[0]!.id;
+      const firstRun = store.runAll();
+      await Promise.resolve();
+      store.cancelColumn(colId);
+      rejectFirst!(new Error('NETWORK'));
+      await firstRun;
+
+      // The cancellation guard early-returns before painting an error state.
+      expect(store.columns[0]!.error).toBeUndefined();
+      expect(store.columns[0]!.status).toBe('idle');
+    });
+
+    it('loadHistoryRun cancels any in-flight requests before swapping in the loaded columns', async () => {
+      const store = createBenchmarkStore('demo');
+      store.addColumn('openai/gpt-4o-mini', 'openai', 'api_key', 'A');
+      store.setPrompt('hi');
+
+      let captured: AbortSignal | undefined;
+      runBenchmarkMock.mockImplementation(
+        (_req: unknown, init: { signal?: AbortSignal } | undefined) => {
+          captured = init?.signal;
+          return new Promise((_, reject) => {
+            init?.signal?.addEventListener('abort', () =>
+              reject(new DOMException('aborted', 'AbortError')),
+            );
+          });
+        },
+      );
+
+      const runPromise = store.runAll();
+      await Promise.resolve();
+
+      store.loadHistoryRun({
+        id: 'r1',
+        prompt: 'historical',
+        createdAt: new Date().toISOString(),
+        modelCount: 1,
+        models: ['Loaded'],
+        columns: [
+          {
+            id: 'c1',
+            model: 'loaded/model',
+            provider: 'openai',
+            authType: 'api_key',
+            displayName: 'Loaded',
+            status: 'success',
+            content: 'loaded-content',
+            headers: null,
+            errorMessage: null,
+            metrics: { cost: 0, inputTokens: 1, outputTokens: 1, durationMs: 1 },
+            position: 0,
+          },
+        ],
+      });
+
+      await runPromise;
+
+      expect(captured?.aborted).toBe(true);
+      // The history columns were applied AFTER the abort; the original
+      // column's stale resolution can't paint over them.
+      expect(store.columns).toHaveLength(1);
+      expect(store.columns[0]!.response).toBe('loaded-content');
+    });
+  });
+
   describe('loadHistoryRun', () => {
     it('replaces columns and prompt with the historical run data', () => {
       const store = createBenchmarkStore('demo');

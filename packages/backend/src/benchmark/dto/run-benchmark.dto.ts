@@ -62,6 +62,13 @@ export class RunBenchmarkDto {
   @IsString()
   @IsNotEmpty()
   @Matches(/^[a-zA-Z0-9_-]+$/, { message: 'Invalid agent name' })
+  // The XOR shape check is attached here (a non-optional field) rather than
+  // to `messages` or `rawRequestBody`, because @IsOptional() on those fields
+  // short-circuits @Validate when the field is undefined — letting a payload
+  // with neither set (or both set) slip past the DTO. Agent name is always
+  // present, so the validator always runs. The message text makes it clear
+  // the violation is about the payload shape, not the agent name.
+  @Validate(BenchmarkPayloadShapeConstraint)
   agentName!: string;
 
   @IsString()
@@ -82,7 +89,6 @@ export class RunBenchmarkDto {
   @ArrayMaxSize(50)
   @ValidateNested({ each: true })
   @Type(() => BenchmarkMessageDto)
-  @Validate(BenchmarkPayloadShapeConstraint)
   messages?: BenchmarkMessageDto[];
 
   /**
