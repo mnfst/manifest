@@ -1,0 +1,13 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "extraction_hard_v2",
+  "case": 39,
+  "response": "```json\n{\n    \"date\": \"March 15, 2024\",\n    \"time\": \"2:00-4:30 PM EST\",\n    \"location\": \"Conference Room A + Zoom\",\n    \"attendees\": [\"J. Smith\", \"M. Johnson\", \"L. Chen\", \"R. Patel\", \"K. Williams\"],\n    \"absent\": [\"D. Brown\"],\n    \"secretary\": \"A. Taylor\",\n    \"agenda_items\": [\n        {\"topic\": \"Q4 Financial Review\", \"summary\": \"Revenue $12.3M (108% of target). EBITDA margin improved to 18%. Cash: $8.2M.\"},\n        {\"topic\": \"Series B Update\", \"summary\": \"Term sheet from Sequoia at $80M pre-money. Board voted 4-1 to proceed (Williams dissenting, preferred higher valuation).\"},\n        {\"topic\": \"Hiring Plan\", \"summary\": \"Approved 15 new hires in Q2 (8 eng, 4 sales, 3 ops). Budget: $1.8M.\"}\n    ],\n    \"motions\": [\n        {\"description\": \"Motion to approve Q4 financials\", \"result\": \"Passed\", \"vote\": \"unanimously\"},\n        {\"description\": \"Motion to authorize Series B negotiation\", \"result\": \"Passed\", \"vote\": \"4-1\"},\n        {\"description\": \"Motion to approve Q2 hiring budget\", \"result\": \"Passed\", \"vote\": \"unanimously\"}\n    ],\n    \"next_meeting\": \"June 14, 2024\"\n}\n```",
+  "score": 0,
+  "cost": 0.0004781,
+  "expected": "",
+  "tokens": {
+    "input": 347,
+    "output": 340
+  }
+}

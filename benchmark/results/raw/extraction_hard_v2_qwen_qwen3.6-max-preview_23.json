@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "extraction_hard_v2",
+  "case": 23,
+  "response": "{\n  \"severity\": \"critical\",\n  \"component\": \"checkout page\",\n  \"summary\": \"Checkout page crashes with a white screen and console errors after submitting payment information.\",\n  \"steps_to_reproduce\": [\n    \"Add items to cart\",\n    \"Navigate to checkout page\",\n    \"Enter card information\",\n    \"Click the pay button\"\n  ],\n  \"expected_behavior\": \"Payment processes successfully and the user is redirected to an order confirmation page.\",\n  \"actual_behavior\": \"A loading spinner appears for 30 seconds, followed by a white screen with no error message. Browser console shows a CORS error and 'undefined is not a function' in checkout.bundle.js:847.\",\n  \"environment\": {\n    \"os\": \"Windows 11\",\n    \"browser\": \"Chrome 121\"\n  }\n}",
+  "score": 0,
+  "cost": 0.008634600000000001,
+  "expected": "",
+  "tokens": {
+    "input": 174,
+    "output": 1617
+  }
+}

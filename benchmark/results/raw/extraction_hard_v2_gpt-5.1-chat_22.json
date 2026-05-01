@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "extraction_hard_v2",
+  "case": 22,
+  "response": "{\n  \"meeting_title\": \"Product sync\",\n  \"date\": \"2026-04-10\",\n  \"attendees\": [\"Jamie\", \"Priya\", \"Marcus\", \"Lin\"],\n  \"decisions\": [\n    \"Push the recommendation engine to Q3 since the data pipeline won't be ready until June\",\n    \"Allocate 20% of sprint capacity to tech debt\"\n  ],\n  \"action_items\": [\n    {\n      \"owner\": \"Marcus\",\n      \"task\": \"Deliver onboarding mockups\",\n      \"deadline\": \"2026-04-18\"\n    },\n    {\n      \"owner\": \"Jamie\",\n      \"task\": \"Send updated roadmap\",\n      \"deadline\": \"2026-04-13\"\n    },\n    {\n      \"owner\": \"Lin\",\n      \"task\": \"Prepare analytics dashboard\",\n      \"deadline\": \"2026-05-01\"\n    }\n  ]\n}",
+  "score": 0,
+  "cost": 0.00293,
+  "expected": "",
+  "tokens": {
+    "input": 169,
+    "output": 324
+  }
+}

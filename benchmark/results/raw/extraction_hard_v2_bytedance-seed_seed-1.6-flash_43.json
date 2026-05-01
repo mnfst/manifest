@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "extraction_hard_v2",
+  "case": 43,
+  "response": "{\n  \"severity\": \"critical\",\n  \"component\": \"checkout page\",\n  \"summary\": \"Checkout page breaks when paying, showing a 30-second spinner followed by a white screen with no error message.\",\n  \"steps_to_reproduce\": [\n    \"add stuff to cart\",\n    \"go to checkout\",\n    \"enter card info\",\n    \"hit pay\"\n  ],\n  \"expected_behavior\": \"Payment processes successfully without a spinner or white screen.\",\n  \"actual_behavior\": \"Spinner for 30 seconds, then white screen with no error message. Console shows CORS error and 'undefined is not a function' in checkout.bundle.js:847.\",\n  \"environment\": {\n    \"os\": \"Windows 11\",\n    \"browser\": \"Chrome 121\"\n  }\n}",
+  "score": 0,
+  "cost": 0.000237825,
+  "expected": "",
+  "tokens": {
+    "input": 251,
+    "output": 730
+  }
+}

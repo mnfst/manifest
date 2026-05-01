@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "extraction_hard_v2",
+  "case": 49,
+  "response": "{\"restaurant\":\"Chez Marcel\",\"reviewer\":\"@foodie_jane\",\"date\":\"March 2024\",\"wait_time_min\":40,\"dishes\":[{\"name\":\"duck confit\",\"rating\":\"incredible\"},{\"name\":\"creme brulee\",\"rating\":\"just ok\"}],\"wine\":{\"name\":\"Chateau Margaux\",\"year\":2019},\"bill_total\":247,\"party_size\":2,\"ratings\":{\"food\":4.5,\"service\":3.5,\"ambiance\":4,\"value\":3,\"overall\":3.75},\"would_return\":true}",
+  "score": 0,
+  "cost": 0.002072,
+  "expected": "",
+  "tokens": {
+    "input": 280,
+    "output": 189
+  }
+}

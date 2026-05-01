@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "extraction_hard_v2",
+  "case": 3,
+  "response": "{\n  \"severity\": \"critical\",\n  \"component\": \"checkout\",\n  \"summary\": \"Checkout payment fails with white screen, CORS error and JS exception on Chrome\",\n  \"steps_to_reproduce\": [\n    \"Add items to shopping cart\",\n    \"Proceed to checkout page\",\n    \"Enter card details\",\n    \"Click the pay button\"\n  ],\n  \"expected_behavior\": \"Payment processes successfully and order is completed without errors or blank screen.\",\n  \"actual_behavior\": \"Spinner runs for 30 seconds then page turns white with no error message. Console logs CORS error and \\\"undefined is not a function\\\" at checkout.bundle.js:847. Issue reproduces consistently on Chrome but works on Firefox.\",\n  \"environment\": {\n    \"os\": \"Windows 11\",\n    \"browser\": \"Chrome 121\"\n  }\n}",
+  "score": 0,
+  "cost": 0.001664,
+  "expected": "",
+  "tokens": {
+    "input": 156,
+    "output": 169
+  }
+}

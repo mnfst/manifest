@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "extraction_hard_v2",
+  "case": 35,
+  "response": "```json\n{\n  \"show\": \"The Changelog\",\n  \"episode_number\": 587,\n  \"title\": \"Why SQLite is taking over the world\",\n  \"guest\": {\n    \"name\": \"Dr. Richard Hipp\",\n    \"role\": \"SQLite creator\"\n  },\n  \"recorded\": \"March 12, 2024\",\n  \"duration_minutes\": 83,\n  \"downloads_first_week\": 47291,\n  \"chapters\": [\n    {\n      \"timestamp\": \"00:00\",\n      \"title\": \"Intro\"\n    },\n    {\n      \"timestamp\": \"03:45\",\n      \"title\": \"How SQLite started as a Tcl extension\"\n    },\n    {\n      \"timestamp\": \"12:30\",\n      \"title\": \"The testing philosophy (100% MC/DC coverage)\"\n    },\n    {\n      \"timestamp\": \"28:15\",\n      \"title\": \"SQLite in unexpected places (phones, browsers, aircraft)\"\n    },\n    {\n      \"timestamp\": \"45:00\",\n      \"title\": \"WASM compilation and running in the browser\"\n    },\n    {\n      \"timestamp\": \"58:30\",\n      \"title\": \"Competing with PostgreSQL?\"\n    },\n    {\n      \"timestamp\": \"1:12:00\",\n      \"title\": \"Future plans and the SQLite consortium\"\n    },\n    {\n      \"timestamp\": \"1:20:00\",\n      \"title\": \"Outro\"\n    }\n  ],\n  \"sponsors\": [\n    \"Fly.io\",\n    \"Sentry\",\n    \"Retool\"\n  ]\n}\n```",
+  "score": 3,
+  "cost": 0.00184,
+  "expected": "",
+  "tokens": {
+    "input": 305,
+    "output": 399
+  }
+}

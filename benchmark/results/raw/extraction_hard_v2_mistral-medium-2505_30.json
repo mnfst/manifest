@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-2505",
+  "task": "extraction_hard_v2",
+  "case": 30,
+  "response": "```json\n{\n  \"incident_id\": \"SI-2024-0089\",\n  \"detected\": \"2024-03-15 02:14 UTC\",\n  \"severity\": \"P1 Critical\",\n  \"status\": \"Contained\",\n  \"attack_vector\": {\n    \"compromised_account\": \"svc-analytics@corp.local\",\n    \"vulnerability\": \"CVE-2024-1234\"\n  },\n  \"impact\": {\n    \"records_exposed\": 12847,\n    \"data_types\": [\"name\", \"email\", \"hashed passwords\"]\n  },\n  \"timeline\": [\n    {\n      \"time\": \"02:14\",\n      \"action\": \"IDS alert fired\"\n    },\n    {\n      \"time\": \"02:18\",\n      \"action\": \"On-call paged\"\n    },\n    {\n      \"time\": \"02:32\",\n      \"action\": \"Service account disabled\"\n    },\n    {\n      \"time\": \"02:45\",\n      \"action\": \"API gateway patched\"\n    },\n    {\n      \"time\": \"03:15\",\n      \"action\": \"Forensic investigation started\"\n    },\n    {\n      \"time\": \"04:00\",\n      \"action\": \"Incident contained\"\n    }\n  ],\n  \"action_items\": [\n    \"rotate all service account creds\",\n    \"notify affected users within 72h\",\n    \"engage external forensics firm\"\n  ]\n}\n```",
+  "score": 0,
+  "cost": 0.000818,
+  "expected": "",
+  "tokens": {
+    "input": 325,
+    "output": 344
+  }
+}

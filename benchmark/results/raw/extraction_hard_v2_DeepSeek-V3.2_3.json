@@ -1,0 +1,13 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "extraction_hard_v2",
+  "case": 3,
+  "response": "```json\n{\n    \"severity\": \"critical\",\n    \"component\": \"checkout page\",\n    \"summary\": \"Checkout page fails with white screen after payment attempt\",\n    \"steps_to_reproduce\": [\"Add items to cart\", \"Go to checkout\", \"Enter card information\", \"Hit pay button\"],\n    \"expected_behavior\": \"Payment processes successfully and order is confirmed\",\n    \"actual_behavior\": \"Spinner appears for 30 seconds, then white screen with no error message\",\n    \"environment\": {\n        \"os\": \"windows 11\",\n        \"browser\": \"chrome 121\"\n    }\n}\n```",
+  "score": 0,
+  "cost": 0.0001973,
+  "expected": "",
+  "tokens": {
+    "input": 170,
+    "output": 133
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "Llama-4-Scout-17B-16E-Instruct",
+  "task": "extraction_hard_v2",
+  "case": 34,
+  "response": "```json\n{\n  \"event_id\": \"us7000jk2q\",\n  \"magnitude\": 6.4,\n  \"magnitude_type\": \"Mw\",\n  \"time_utc\": \"2024-03-15 08:23:15\",\n  \"location\": {\n    \"lat\": 37.42,\n    \"lon\": 141.03,\n    \"description\": \"off coast of Fukushima, Japan\"\n  },\n  \"depth_km\": 32,\n  \"tsunami\": {\n    \"advisory\": true,\n    \"status\": \"cancelled\"\n  },\n  \"intensity\": [\n    {\n      \"location\": \"Iwaki\",\n      \"mmi\": \"VI\",\n      \"description\": \"Strong\"\n    },\n    {\n      \"location\": \"Sendai\",\n      \"mmi\": \"V\",\n      \"description\": \"Moderate\"\n    }\n  ],\n  \"felt_reports\": 2847,\n  \"nearby_cities\": [\n    {\n      \"name\": \"Iwaki\",\n      \"distance_km\": 68\n    },\n    {\n      \"name\": \"Sendai\",\n      \"distance_km\": 142\n    },\n    {\n      \"name\": \"Tokyo\",\n      \"distance_km\": 287\n    }\n  ]\n}\n```",
+  "score": 0,
+  "cost": 9.537e-05,
+  "expected": "",
+  "tokens": {
+    "input": 293,
+    "output": 268
+  }
+}

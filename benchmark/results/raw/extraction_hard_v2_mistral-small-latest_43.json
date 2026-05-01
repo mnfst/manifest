@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "extraction_hard_v2",
+  "case": 43,
+  "response": "```json\n{\n  \"severity\": \"critical\",\n  \"component\": \"checkout\",\n  \"summary\": \"Checkout page crashes with white screen after payment attempt on Chrome\",\n  \"steps_to_reproduce\": [\n    \"Add item to cart\",\n    \"Go to checkout page\",\n    \"Enter card information\",\n    \"Click pay button\",\n    \"Observe spinner for 30 seconds then white screen\"\n  ],\n  \"expected_behavior\": \"Payment should process successfully and redirect to confirmation page\",\n  \"actual_behavior\": \"Page crashes with white screen after payment attempt, no error message displayed\",\n  \"environment\": {\n    \"os\": \"Windows 11\",\n    \"browser\": \"Chrome 121\"\n  }\n}\n```",
+  "score": 0,
+  "cost": 6.53e-05,
+  "expected": "",
+  "tokens": {
+    "input": 185,
+    "output": 156
+  }
+}

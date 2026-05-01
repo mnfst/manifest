@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "extraction_hard_v2",
+  "case": 23,
+  "response": "{\"severity\":\"critical\",\"component\":\"Checkout Page\",\"summary\":\"Checkout page is completely broken, failing to process payments and leading to a white screen after attempting payment on Chrome\",\"steps_to_reproduce\":[\"Add items to cart\",\"Navigate to the checkout page\",\"Enter card information\",\"Click the pay button\"],\"expected_behavior\":\"Payment should process successfully to complete the checkout flow without errors\",\"actual_behavior\":\"A spinner loads for 30 seconds after clicking pay, then a white screen appears with no user-facing error message; the browser console logs a CORS error and 'undefined is not a function' in checkout.bundle.js:847, the issue reproduces 3 times while checkout works correctly on Firefox\",\"environment\":{\"os\":\"Windows 11\",\"browser\":\"Chrome 121\"}}",
+  "score": 0,
+  "cost": 0.00099325,
+  "expected": "",
+  "tokens": {
+    "input": 217,
+    "output": 939
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "extraction_hard_v2",
+  "case": 10,
+  "response": "```json\n{\n  \"incident_id\": \"SI-2024-0089\",\n  \"detected\": \"2024-03-15 02:14 UTC\",\n  \"severity\": \"P1 Critical\",\n  \"status\": \"Contained\",\n  \"attack_vector\": {\n    \"compromised_account\": \"svc-analytics@corp.local\",\n    \"vulnerability\": \"CVE-2024-1234\"\n  },\n  \"impact\": {\n    \"records_exposed\": 12847,\n    \"data_types\": [\"name\", \"email\", \"hashed passwords\"]\n  },\n  \"timeline\": [\n    {\"time\": \"02:14\", \"action\": \"IDS alert fired\"},\n    {\"time\": \"02:18\", \"action\": \"On-call paged\"},\n    {\"time\": \"02:32\", \"action\": \"Service account disabled\"},\n    {\"time\": \"02:45\", \"action\": \"API gateway patched\"},\n    {\"time\": \"03:15\", \"action\": \"Forensic investigation started\"},\n    {\"time\": \"04:00\", \"action\": \"Incident contained\"}\n  ],\n  \"action_items\": [\n    \"rotate all service account creds\",\n    \"notify affected users within 72h\",\n    \"engage external forensics firm\"\n  ]\n}\n```",
+  "score": 0,
+  "cost": 2.5560000000000003e-05,
+  "expected": "",
+  "tokens": {
+    "input": 325,
+    "output": 314
+  }
+}

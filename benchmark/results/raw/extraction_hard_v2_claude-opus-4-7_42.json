@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "extraction_hard_v2",
+  "case": 42,
+  "response": "{\"meeting_title\":\"Product sync\",\"date\":\"2026-04-10\",\"attendees\":[\"Jamie (PM)\",\"Priya (eng lead)\",\"Marcus (design)\",\"Lin (data)\"],\"decisions\":[\"Push the recommendation engine to Q3 since data pipeline won't be ready until June\",\"Allocate 20% of sprint capacity to tech debt\"],\"action_items\":[{\"owner\":\"Marcus\",\"task\":\"Deliver onboarding mockups\",\"deadline\":\"2026-04-18\"},{\"owner\":\"Jamie\",\"task\":\"Send updated roadmap\",\"deadline\":\"Monday\"},{\"owner\":\"Lin\",\"task\":\"Deliver analytics dashboard\",\"deadline\":\"Before May board meeting\"}]}",
+  "score": 3,
+  "cost": 0.02232,
+  "expected": "",
+  "tokens": {
+    "input": 278,
+    "output": 242
+  }
+}

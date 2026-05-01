@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "extraction_hard_v2",
+  "case": 11,
+  "response": "```json\n{\n  \"tenant\": {\n    \"company\": \"TechStart Inc.\",\n    \"ceo\": \"Alex Rivera\"\n  },\n  \"landlord\": \"Downtown Properties LLC\",\n  \"property\": {\n    \"suite\": \"Suite 400\",\n    \"address\": \"200 Innovation Drive, Austin TX 78701\"\n  },\n  \"term\": {\n    \"months\": 36,\n    \"start\": \"2024-07-01\",\n    \"end\": \"2027-06-30\"\n  },\n  \"rent\": {\n    \"monthly\": 8500,\n    \"escalation_pct\": 3\n  },\n  \"deposit\": 25500,\n  \"parking_spots\": 8,\n  \"build_out_allowance\": 45000,\n  \"termination\": {\n    \"notice_months\": 6,\n    \"penalty_months\": 3\n  },\n  \"renewal\": \"2-year extension at market rate\"\n}\n```",
+  "score": 3,
+  "cost": 0.0011824000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 298,
+    "output": 236
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "extraction_hard_v2",
+  "case": 42,
+  "response": "{\n  \"meeting_title\": \"Product sync\",\n  \"date\": \"2026-04-10\",\n  \"attendees\": [\"Jamie\", \"Priya\", \"Marcus\", \"Lin\"],\n  \"decisions\": [\n    \"Push the recommendation engine to Q3 since data pipeline won't be ready until June\",\n    \"Allocate 20% of sprint capacity to tech debt\"\n  ],\n  \"action_items\": [\n    {\n      \"owner\": \"Marcus\",\n      \"task\": \"onboarding mockups\",\n      \"deadline\": \"2026-04-18\"\n    },\n    {\n      \"owner\": \"Jamie\",\n      \"task\": \"send updated roadmap\",\n      \"deadline\": \"Monday\"\n    },\n    {\n      \"owner\": \"Lin\",\n      \"task\": \"analytics dashboard\",\n      \"deadline\": \"before May board meeting\"\n    }\n  ]\n}",
+  "score": 0,
+  "cost": 0.00174,
+  "expected": "",
+  "tokens": {
+    "input": 162,
+    "output": 177
+  }
+}

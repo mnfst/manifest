@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "extraction_hard_v2",
+  "case": 31,
+  "response": "```json\n{\"tenant\": {\"company\": \"TechStart Inc.\", \"ceo\": \"Alex Rivera\"}, \"landlord\": \"Downtown Properties LLC\", \"property\": {\"suite\": \"400\", \"address\": \"200 Innovation Drive, Austin TX 78701\"}, \"term\": {\"months\": 36, \"start\": \"July 1 2024\", \"end\": \"June 30 2027\"}, \"rent\": {\"monthly\": 8500, \"escalation_pct\": 3}, \"deposit\": 25500, \"parking_spots\": 8, \"build_out_allowance\": 45000, \"termination\": {\"notice_months\": 6, \"penalty_months\": 3}, \"renewal\": \"2-year extension at market rate\"}\n```",
+  "score": 0,
+  "cost": 0.00010260000000000001,
+  "expected": "",
+  "tokens": {
+    "input": 290,
+    "output": 184
+  }
+}

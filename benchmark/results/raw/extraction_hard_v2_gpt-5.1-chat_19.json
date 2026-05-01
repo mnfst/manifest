@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "extraction_hard_v2",
+  "case": 19,
+  "response": "{\"date\":\"March 15, 2024\",\"time\":\"2:00-4:30 PM EST\",\"location\":\"Conference Room A + Zoom\",\"attendees\":[\"J. Smith\",\"M. Johnson\",\"L. Chen\",\"R. Patel\",\"K. Williams\"],\"absent\":[\"D. Brown\"],\"secretary\":\"A. Taylor\",\"agenda_items\":[{\"topic\":\"Q4 Financial Review\",\"summary\":\"Revenue $12.3M (108% of target), EBITDA margin 18%, cash $8.2M.\"},{\"topic\":\"Series B Update\",\"summary\":\"Term sheet from Sequoia at $80M pre-money; board voted 4-1 to proceed with Williams dissenting.\"},{\"topic\":\"Hiring Plan\",\"summary\":\"Approved 15 new hires in Q2 with a $1.8M budget.\"}],\"motions\":[{\"description\":\"Approve Q4 financials\",\"result\":\"Passed\",\"vote\":\"Unanimous\"},{\"description\":\"Authorize Series B negotiation\",\"result\":\"Passed\",\"vote\":\"4-1\"},{\"description\":\"Approve Q2 hiring budget\",\"result\":\"Passed\",\"vote\":\"Unanimous\"}],\"next_meeting\":\"June 14, 2024\"}",
+  "score": 0,
+  "cost": 0.002654,
+  "expected": "",
+  "tokens": {
+    "input": 335,
+    "output": 248
+  }
+}

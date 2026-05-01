@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "extraction_hard_v2",
+  "case": 23,
+  "response": "{\"severity\":\"critical\",\"component\":\"checkout\",\"summary\":\"Checkout page displays white screen after clicking pay with CORS error and undefined function error in checkout.bundle.js\",\"steps_to_reproduce\":[\"Add items to cart\",\"Navigate to checkout page\",\"Enter card information\",\"Click pay button\",\"Wait for spinner\"],\"expected_behavior\":\"Payment should process successfully and display confirmation, or display a proper error message if payment fails\",\"actual_behavior\":\"Spinner displays for 30 seconds followed by white screen. Console shows CORS error and 'undefined is not a function' in checkout.bundle.js:847. Issue occurs consistently.\",\"environment\":{\"os\":\"Windows 11\",\"browser\":\"Chrome 121\"}}",
+  "score": 0,
+  "cost": 0.0018117,
+  "expected": "",
+  "tokens": {
+    "input": 183,
+    "output": 366
+  }
+}

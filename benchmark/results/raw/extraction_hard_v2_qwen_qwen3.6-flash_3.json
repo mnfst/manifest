@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "extraction_hard_v2",
+  "case": 3,
+  "response": "{\"severity\":\"critical\",\"component\":\"checkout page\",\"summary\":\"Checkout page breaks after payment attempt, showing a spinner then a white screen with console errors.\",\"steps_to_reproduce\":[\"Add items to cart\",\"Go to checkout\",\"Enter card info\",\"Hit pay\"],\"expected_behavior\":\"Payment processes successfully and page proceeds to confirmation.\",\"actual_behavior\":\"Spinner loads for 30 seconds then displays a white screen with no error message. Console shows CORS error and undefined is not a function in checkout.bundle.js:847.\",\"environment\":{\"os\":\"Windows 11\",\"browser\":\"Chrome 121\"}}",
+  "score": 0,
+  "cost": 0.0017365,
+  "expected": "",
+  "tokens": {
+    "input": 174,
+    "output": 1693
+  }
+}

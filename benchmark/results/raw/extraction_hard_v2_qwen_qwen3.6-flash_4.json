@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "extraction_hard_v2",
+  "case": 4,
+  "response": "{\"title\":\"Senior Backend Engineer\",\"company\":\"CloudMatrix\",\"location\":{\"city\":\"Austin\",\"remote\":true},\"salary\":{\"min\":165000,\"max\":195000},\"requirements\":{\"min_years\":5,\"skills\":[\"distributed systems\",\"Go\",\"Rust\",\"Kubernetes\",\"event-driven architectures\"]},\"benefits\":[\"unlimited PTO\",\"health/dental/vision\",\"401k match\",\"$3K learning budget\"]}",
+  "score": 0,
+  "cost": 0.00170225,
+  "expected": "",
+  "tokens": {
+    "input": 177,
+    "output": 1658
+  }
+}

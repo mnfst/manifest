@@ -176,6 +176,14 @@ TASK_DEFS = {
         "judge_prompt": "Rate the answer on a 1-5 scale. 5=completely correct final answer with sound reasoning. 4=correct answer with minor reasoning gaps. 3=partially correct. 2=wrong answer but some correct steps. 1=completely wrong. Respond with ONLY a number 1-5.",
         "native_metric": "exact_answer",  # extract number after ANSWER: and compare to expected
     },
+    "extraction_hard_v2": {
+        "dataset": "datasets/extraction_hard_v2.jsonl",
+        "prompt_template": "Extract structured data from the following text. Return ONLY valid JSON matching the specified schema. No explanation.\n\nSchema: {schema}\n\nText: {input}",
+        "eval_type": "llm_judge",
+        "max_output_tokens": 800,
+        "judge_prompt": "Rate this JSON extraction on a 1-5 scale. 5=valid JSON with all fields correctly extracted from the text. 4=valid JSON with 1 minor error. 3=valid JSON but 2+ errors or missing fields. 2=invalid JSON but right idea. 1=not JSON or completely wrong. Respond with ONLY a number 1-5.",
+        "native_metric": None,
+    },
     "multistep_reasoning": {
         "dataset": "datasets/arc_reasoning.jsonl",
         "prompt_template": 'Answer the following multiple-choice question. Think step by step, then give your final answer as ONLY the letter (A, B, C, or D).\n\n{input}\n\nAnswer:',

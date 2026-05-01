@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "extraction_hard_v2",
+  "case": 42,
+  "response": "{\n  \"meeting_title\": \"Product sync\",\n  \"date\": \"2026-04-10\",\n  \"attendees\": [\"Jamie\", \"Priya\", \"Marcus\", \"Lin\"],\n  \"decisions\": [\n    \"Push the recommendation engine to Q3 since data pipeline won't be ready until June\",\n    \"Allocate 20% of sprint capacity to tech debt\"\n  ],\n  \"action_items\": [\n    {\n      \"owner\": \"Marcus\",\n      \"task\": \"Prepare onboarding mockups\",\n      \"deadline\": \"April 18\"\n    },\n    {\n      \"owner\": \"Jamie\",\n      \"task\": \"Send updated roadmap\",\n      \"deadline\": \"Monday\"\n    },\n    {\n      \"owner\": \"Lin\",\n      \"task\": \"Prepare analytics dashboard\",\n      \"deadline\": \"Before May board meeting\"\n    }\n  ]\n}",
+  "score": 0,
+  "cost": 0.0146939,
+  "expected": "",
+  "tokens": {
+    "input": 183,
+    "output": 2780
+  }
+}

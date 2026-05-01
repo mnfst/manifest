@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "extraction_hard_v2",
+  "case": 43,
+  "response": "```json\n{\n  \"severity\": \"critical\",\n  \"component\": \"checkout page\",\n  \"summary\": \"Checkout page displays white screen after payment submission on Chrome\",\n  \"steps_to_reproduce\": [\n    \"Add items to cart\",\n    \"Navigate to checkout\",\n    \"Enter card information\",\n    \"Click pay button\"\n  ],\n  \"expected_behavior\": \"Payment should process and display confirmation or success page\",\n  \"actual_behavior\": \"Loading spinner displays for 30 seconds followed by white screen with no error message. Console shows CORS error and 'undefined is not a function' error in checkout.bundle.js:847\",\n  \"environment\": {\n    \"os\": \"Windows 11\",\n    \"browser\": \"Chrome 121\"\n  }\n}\n```",
+  "score": 5,
+  "cost": 0.0008768,
+  "expected": "",
+  "tokens": {
+    "input": 176,
+    "output": 184
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "extraction_hard_v2",
+  "case": 3,
+  "response": "{\"severity\":\"critical\",\"component\":\"checkout\",\"summary\":\"Checkout page fails after payment submission - white screen with CORS and JS errors on Chrome\",\"steps_to_reproduce\":[\"Add items to cart\",\"Navigate to checkout page\",\"Enter card information\",\"Click pay button\"],\"expected_behavior\":\"Payment is processed and user is redirected to confirmation page\",\"actual_behavior\":\"Spinner displays for 30 seconds, then white screen appears with no error message; console shows CORS error and 'undefined is not a function' in checkout.bundle.js:847\",\"environment\":{\"os\":\"Windows 11\",\"browser\":\"Chrome 121\"}}",
+  "score": 5,
+  "cost": 0.01986,
+  "expected": "",
+  "tokens": {
+    "input": 249,
+    "output": 215
+  }
+}

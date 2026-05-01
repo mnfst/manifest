@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "extraction_hard_v2",
+  "case": 10,
+  "response": "{\"incident_id\":\"SI-2024-0089\",\"detected\":\"2024-03-15 02:14 UTC\",\"severity\":\"P1 Critical\",\"status\":\"Contained\",\"attack_vector\":{\"compromised_account\":\"svc-analytics@corp.local\",\"vulnerability\":\"CVE-2024-1234\"},\"impact\":{\"records_exposed\":12847,\"data_types\":[\"name\",\"email\",\"hashed passwords\"]},\"timeline\":[{\"time\":\"2024-03-15 02:14 UTC\",\"action\":\"IDS alert fired\"},{\"time\":\"2024-03-15 02:18 UTC\",\"action\":\"On-call paged\"},{\"time\":\"2024-03-15 02:32 UTC\",\"action\":\"Service account disabled\"},{\"time\":\"2024-03-15 02:45 UTC\",\"action\":\"API gateway patched\"},{\"time\":\"2024-03-15 03:15 UTC\",\"action\":\"Forensic investigation started\"},{\"time\":\"2024-03-15 04:00 UTC\",\"action\":\"Incident contained\"}],\"action_items\":[\"rotate all service account creds\",\"notify affected users within 72h\",\"engage external forensics firm\"]}",
+  "score": 0,
+  "cost": 0.001408,
+  "expected": "",
+  "tokens": {
+    "input": 372,
+    "output": 1315
+  }
+}

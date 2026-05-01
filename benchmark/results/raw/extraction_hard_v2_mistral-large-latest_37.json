@@ -1,0 +1,13 @@
+{
+  "model": "mistral-large-latest",
+  "task": "extraction_hard_v2",
+  "case": 37,
+  "response": "```json\n{\n  \"requester\": {\n    \"name\": \"Tom Zhang\",\n    \"email\": \"tom.z@company.com\",\n    \"team\": \"Platform Engineering\",\n    \"manager\": \"Sarah Kim\"\n  },\n  \"date\": \"2024-03-15\",\n  \"servers\": [\n    {\n      \"hostname\": \"prod-db-master\",\n      \"ip\": \"10.0.1.50\",\n      \"access_level\": \"READ ONLY\",\n      \"purpose\": \"for debugging query performance\"\n    },\n    {\n      \"hostname\": \"staging-api-01\",\n      \"ip\": \"10.0.2.10\",\n      \"access_level\": \"SSH + sudo\",\n      \"purpose\": \"for deployment testing\"\n    },\n    {\n      \"hostname\": \"monitoring-grafana\",\n      \"ip\": \"grafana.internal\",\n      \"access_level\": \"Admin role\",\n      \"purpose\": \"for dashboard creation\"\n    }\n  ],\n  \"justification\": \"Investigating P1 latency issue (INC-2024-0342). Need to analyze slow queries on production and test fix on staging.\",\n  \"related_incident\": \"INC-2024-0342\",\n  \"duration_days\": 14,\n  \"approval_status\": \"Pending manager + security review\"\n}\n```",
+  "score": 0,
+  "cost": 0.002344,
+  "expected": "",
+  "tokens": {
+    "input": 278,
+    "output": 298
+  }
+}

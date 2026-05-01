@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "extraction_hard_v2",
+  "case": 42,
+  "response": "```json\n{\n  \"meeting_title\": \"Product sync\",\n  \"date\": \"2026-04-10\",\n  \"attendees\": [\"Jamie (PM)\", \"Priya (eng lead)\", \"Marcus (design)\", \"Lin (data)\"],\n  \"decisions\": [\n    \"Push the recommendation engine to Q3 due to data pipeline readiness in June\",\n    \"Allocate 20% of sprint capacity to tech debt\"\n  ],\n  \"action_items\": [\n    {\n      \"owner\": \"Marcus\",\n      \"task\": \"Prepare onboarding mockups\",\n      \"deadline\": \"2026-04-18\"\n    },\n    {\n      \"owner\": \"Jamie\",\n      \"task\": \"Send updated roadmap\",\n      \"deadline\": \"Monday\"\n    },\n    {\n      \"owner\": \"Lin\",\n      \"task\": \"Develop analytics dashboard\",\n      \"deadline\": \"May board meeting\"\n    }\n  ]\n}\n```",
+  "score": 0,
+  "cost": 1.568e-05,
+  "expected": "",
+  "tokens": {
+    "input": 180,
+    "output": 212
+  }
+}

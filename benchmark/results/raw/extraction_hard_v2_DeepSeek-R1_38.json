@@ -1,0 +1,13 @@
+{
+  "model": "DeepSeek-R1",
+  "task": "extraction_hard_v2",
+  "case": 38,
+  "response": "",
+  "score": 0,
+  "cost": 0.00454995,
+  "expected": "",
+  "tokens": {
+    "input": 309,
+    "output": 2000
+  }
+}

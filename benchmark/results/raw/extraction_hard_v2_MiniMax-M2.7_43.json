@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "extraction_hard_v2",
+  "case": 43,
+  "response": "```json\n{\n  \"severity\": \"critical\",\n  \"component\": \"checkout\",\n  \"summary\": \"Checkout page fails with white screen after payment submission, showing CORS error and undefined function in checkout.bundle.js\",\n  \"steps_to_reproduce\": [\n    \"Add items to cart\",\n    \"Navigate to checkout page\",\n    \"Enter card information\",\n    \"Click pay button\",\n    \"Wait for response\"\n  ],\n  \"expected_behavior\": \"Payment should process successfully and display confirmation or appropriate error message\",\n  \"actual_behavior\": \"Spinner displays for 30 seconds then white screen appears with no error message, while console shows CORS error and 'undefined is not a function' in checkout.bundle.js:847\",\n  \"environment\": {\n    \"os\": \"Windows 11\",\n    \"browser\": \"Chrome 121\"\n  }\n}\n```",
+  "score": 0,
+  "cost": 0.0017457,
+  "expected": "",
+  "tokens": {
+    "input": 183,
+    "output": 351
+  }
+}

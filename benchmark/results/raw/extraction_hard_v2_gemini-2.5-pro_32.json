@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "extraction_hard_v2",
+  "case": 32,
+  "response": "```json\n{\n  \"tracking_number\": \"1Z999AA10123456784\",\n  \"carrier\": \"UPS\",\n  \"service\": \"Ground\",\n  \"origin\": \"Warehouse #7, Memphis TN\",\n  \"weight_lbs\": 4.2,\n  \"dimensions\": \"12x8x6 in\",\n  \"events\": [\n    {\n      \"timestamp\": \"2026-04-25T18:30:00\",\n      \"status\": \"Picked up\",\n      \"location\": \"Memphis TN\"\n    },\n    {\n      \"timestamp\": \"2026-04-26T03:15:00\",\n      \"status\": \"Departed facility\",\n      \"location\": \"Memphis TN\"\n    },\n    {\n      \"timestamp\": \"2026-04-26T14:22:00\",\n      \"status\": \"In transit\",\n      \"location\": \"Nashville TN\"\n    },\n    {\n      \"timestamp\": \"2026-04-27T06:00:00\",\n      \"status\": \"Arrived at facility\",\n      \"location\": \"Louisville KY\"\n    },\n    {\n      \"timestamp\": \"2026-04-27T09:45:00\",\n      \"status\": \"Out for delivery\",\n      \"location\": \"Louisville KY\"\n    },\n    {\n      \"timestamp\": \"2026-04-27T14:12:00\",\n      \"status\": \"Delivered, left at front door\",\n      \"location\": \"Lexington KY\"\n    }\n  ],\n  \"delivery\": {\n    \"address\": \"456 Oak Street, Lexington KY 40502\",\n    \"signed_by\": \"FRONT DOOR\",\n    \"on_time\": true\n  }\n}\n```",
+  "score": 0,
+  "cost": 0.00500375,
+  "expected": "",
+  "tokens": {
+    "input": 315,
+    "output": 461
+  }
+}

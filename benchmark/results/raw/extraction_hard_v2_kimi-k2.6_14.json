@@ -1,0 +1,13 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "extraction_hard_v2",
+  "case": 14,
+  "response": "{\"event_id\": \"us7000jk2q\", \"magnitude\": 6.4, \"magnitude_type\": \"Mw\", \"time_utc\": \"2024-03-15 08:23:15 UTC\", \"location\": {\"lat\": 37.42, \"lon\": 141.03, \"description\": \"off coast of Fukushima, Japan\"}, \"depth_km\": 32, \"tsunami\": {\"advisory\": true, \"status\": \"cancelled\"}, \"intensity\": [{\"location\": \"Iwaki\", \"mmi\": \"VI\", \"description\": \"Strong\"}, {\"location\": \"Sendai\", \"mmi\": \"V\", \"description\": \"Moderate\"}], \"felt_reports\": 2847, \"nearby_cities\": [{\"name\": \"Iwaki\", \"distance_km\": 68}, {\"name\": \"Sendai\", \"distance_km\": 142}, {\"name\": \"Tokyo\", \"distance_km\": 287}]}",
+  "score": 0,
+  "cost": 0.004168799999999999,
+  "expected": "",
+  "tokens": {
+    "input": 300,
+    "output": 1662
+  }
+}

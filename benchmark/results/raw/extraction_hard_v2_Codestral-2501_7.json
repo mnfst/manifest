@@ -1,0 +1,13 @@
+{
+  "model": "Codestral-2501",
+  "task": "extraction_hard_v2",
+  "case": 7,
+  "response": "```json\n{\n  \"mls_number\": \"24-08847\",\n  \"property\": {\n    \"bedrooms\": 3,\n    \"bathrooms\": 2.5,\n    \"type\": \"Colonial\",\n    \"sqft\": 2400,\n    \"lot_acres\": 0.35,\n    \"year_built\": 1987,\n    \"renovated\": 2021\n  },\n  \"price\": {\n    \"asking\": 675000,\n    \"original\": 699000\n  },\n  \"taxes_annual\": 12450,\n  \"hoa\": \"None\",\n  \"agent\": {\n    \"name\": \"Lisa Torres\",\n    \"company\": \"Coldwell Banker\",\n    \"phone\": \"908-555-0147\"\n  },\n  \"features\": [\n    \"updated kitchen w/ quartz counters\",\n    \"hardwood floors throughout\",\n    \"finished basement\",\n    \"2-car garage\",\n    \"central AC\",\n    \"new roof 2023\"\n  ]\n}\n```",
+  "score": 0,
+  "cost": 0.0003144,
+  "expected": "",
+  "tokens": {
+    "input": 298,
+    "output": 250
+  }
+}

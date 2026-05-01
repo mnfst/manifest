@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "extraction_hard_v2",
+  "case": 16,
+  "response": "```json\n{\n  \"product\": \"TaskFlow Pro\",\n  \"price_per_user\": 29,\n  \"competitors\": [\n    {\n      \"name\": \"WorkStream\",\n      \"price_per_user\": 19,\n      \"strengths\": [\"cheaper\", \"good mobile app\", \"500+ integrations\"],\n      \"weaknesses\": [\"no custom workflows\", \"limited reporting\", \"slow support\"],\n      \"market_share_pct\": 15,\n      \"recent_moves\": [\"raised Series C ($45M)\", \"launched AI features\"]\n    },\n    {\n      \"name\": \"FlowMaster\",\n      \"price_per_user\": 45,\n      \"strengths\": [\"enterprise features\", \"SOC2\", \"dedicated CSM\"],\n      \"weaknesses\": [\"expensive\", \"complex UI\", \"6-month implementation\"],\n      \"market_share_pct\": 8,\n      \"recent_moves\": [\"acquired DataPipe for $12M\", \"lost 3 enterprise deals to us\"]\n    }\n  ],\n  \"market_position\": \"mid-market segment #1\"\n}\n```",
+  "score": 0,
+  "cost": 2.104e-05,
+  "expected": "",
+  "tokens": {
+    "input": 279,
+    "output": 247
+  }
+}
