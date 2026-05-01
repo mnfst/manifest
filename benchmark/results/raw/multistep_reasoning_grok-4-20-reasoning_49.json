@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "multistep_reasoning",
+  "case": 49,
+  "response": "A\n\n\nThe question focuses on the direct outcome of regulating vehicle emissions (a common urban policy via standards like catalytic converters or smog checks). This is done specifically to limit release of particulates, NOx, CO, and other pollutants into the atmosphere. The immediate, intended benefit is reduced overall air pollution, which improves public health, decreases respiratory issues, and keeps the urban environment cleaner. Options B\u2013D have no causal link to emission controls: speed limits, driver training, and road safety are governed by separate traffic laws, not pollution rules. Thus A is the only logical match.",
+  "score": 5,
+  "cost": 0.00111,
+  "expected": "A",
+  "tokens": {
+    "input": 91,
+    "output": 116
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "multistep_reasoning",
+  "case": 9,
+  "response": "D\n\nThe work done is the same for both students because they lift the same total mass (same weight) over the same vertical distance (to the third floor). Work = mgh, and m, g, and h are identical.\n\nPower is the rate of doing work: Power = Work / time.\n\nMary takes less time (30 s vs. 45 s) for the same amount of work, so she has greater power output.\n\n- A and B are incorrect because total work is equal.\n- C is incorrect because Roberta takes longer, so her power is lower.\n- D is correct.",
+  "score": 5,
+  "cost": 0.00123,
+  "expected": "D",
+  "tokens": {
+    "input": 131,
+    "output": 121
+  }
+}

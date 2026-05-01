@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "multistep_reasoning",
+  "case": 43,
+  "response": "Coal is formed from ancient plant material that accumulated in swampy environments. Over millions of years, layers of sediment covered the plant matter, subjecting it to heat and pressure, which transformed it into coal through a process called carbonization.  \n\nThis matches option **D**: plant remains decomposed under pressure.  \n\nFinal answer: **D**",
+  "score": 5,
+  "cost": 9.615e-05,
+  "expected": "D",
+  "tokens": {
+    "input": 81,
+    "output": 69
+  }
+}

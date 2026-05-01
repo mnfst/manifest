@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "multistep_reasoning",
+  "case": 17,
+  "response": "Let's break down this question step by step:\n1.  First, identify the two wave types in question: A person's voice produces sound waves, and earthquakes produce seismic waves. Both are mechanical waves that require a medium to travel.\n2.  Evaluate Option A: All mechanical waves originate from physical vibrations. Sound waves form when vocal cords vibrate to displace air particles, and seismic waves form when tectonic plates shift (a physical disturbance) that vibrates rock and earth in the crust. This is correct.\n3.  Evaluate Option B: Neither sound waves nor seismic waves are moved by gravity. They propagate through the vibration of particles in their medium, so this is false.\n4.  Evaluate Option C: Both waves are mechanical, not electromagnetic. Electromagnetic waves (like light or radio waves) do not need a medium to travel, which does not describe sound or seismic waves. This is false.\n5.  Evaluate Option D: Human voice frequencies fall within the ~80-250 Hz range for typical speech, while earthquake waves have far lower, sub-audible frequencies. They are not the same, so this is false.\n\nAnswer: A",
+  "score": 5,
+  "cost": 0.00058475,
+  "expected": "A",
+  "tokens": {
+    "input": 139,
+    "output": 550
+  }
+}

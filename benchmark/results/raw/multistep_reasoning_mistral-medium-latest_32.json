@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "multistep_reasoning",
+  "case": 32,
+  "response": "B) Water changes to a gas as it boils.",
+  "score": 5,
+  "cost": 6.04e-05,
+  "expected": "B",
+  "tokens": {
+    "input": 86,
+    "output": 13
+  }
+}

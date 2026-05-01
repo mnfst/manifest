@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "multistep_reasoning",
+  "case": 5,
+  "response": "C) Cells break down nutrients into usable forms.",
+  "score": 5,
+  "cost": 6.0400000000000004e-05,
+  "expected": "C",
+  "tokens": {
+    "input": 96,
+    "output": 11
+  }
+}

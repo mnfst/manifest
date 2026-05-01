@@ -1,0 +1,13 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "multistep_reasoning",
+  "case": 25,
+  "response": "D",
+  "score": 5,
+  "cost": 0.0006138000000000001,
+  "expected": "D",
+  "tokens": {
+    "input": 87,
+    "output": 234
+  }
+}

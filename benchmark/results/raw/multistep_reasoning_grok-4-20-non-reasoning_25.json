@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "multistep_reasoning",
+  "case": 25,
+  "response": "D\n\nThe correct step in the apple tree life cycle is that flowers are pollinated (fertilized), which leads to the development of fruit containing seeds. This matches standard plant reproductive biology: flower \u2192 pollination/fertilization \u2192 fruit formation \u2192 seed dispersal \u2192 new seedling. The other options reverse or confuse the actual sequence (e.g., seedlings come from seeds, not eggs or leaves; flowers produce fruit, not the reverse).",
+  "score": 5,
+  "cost": 0.000836,
+  "expected": "D",
+  "tokens": {
+    "input": 78,
+    "output": 85
+  }
+}

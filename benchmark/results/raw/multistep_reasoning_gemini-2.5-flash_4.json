@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "multistep_reasoning",
+  "case": 4,
+  "response": "A) common forces",
+  "score": 5,
+  "cost": 1.2e-05,
+  "expected": "A",
+  "tokens": {
+    "input": 64,
+    "output": 4
+  }
+}

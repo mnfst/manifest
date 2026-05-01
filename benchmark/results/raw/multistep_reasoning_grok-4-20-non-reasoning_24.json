@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "multistep_reasoning",
+  "case": 24,
+  "response": "D\n\nThe rock is categorized as extrusive igneous, which means it formed from lava that cooled quickly on the Earth's surface. Extrusive igneous rocks are also known as volcanic rocks because they are produced by volcanic activity. Therefore, another scientist could accurately categorize the same rock as volcanic (option D).\n\nOptions A, B, and C are incorrect because:\n- Intrusive igneous rocks form from magma cooling slowly beneath the surface.\n- Clastic sedimentary rocks form from accumulated sediments.\n- Metamorphic rocks form from existing rocks altered by heat and pressure.",
+  "score": 5,
+  "cost": 0.001012,
+  "expected": "D",
+  "tokens": {
+    "input": 74,
+    "output": 108
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "multistep_reasoning",
+  "case": 23,
+  "response": "To determine the correct order of steps in a scientific investigation, let's analyze each option based on the scientific method:\n\n1. **C) Make a table for recording data:** This is a preparatory step. Before starting the experiment, you need a system in place to organize and record the information you will collect.\n2. **D) Make daily observations of the light bulbs:** This is the data collection phase. You can only effectively record these observations if you have already prepared your data table.\n3. **A) Repeat the investigation:** This happens after the initial experiment is finished to ensure the results are reliable and consistent.\n4. **B) Write a report of the results:** This is the final step, where you communicate your findings after all data has been collected, analyzed, and verified.\n\nSince preparation must happen before data collection, verification, and reporting, making a table for recording data is the first step among the choices provided.\n\nAnswer: C",
+  "score": 5,
+  "cost": 0.0038571,
+  "expected": "C",
+  "tokens": {
+    "input": 107,
+    "output": 715
+  }
+}

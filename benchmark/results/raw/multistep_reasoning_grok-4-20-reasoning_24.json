@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "multistep_reasoning",
+  "case": 24,
+  "response": "D \n\nThe question involves rock classification in geology. Igneous rocks form from cooled magma/lava and are subdivided into extrusive (cooled rapidly on the surface from erupted lava, e.g., basalt or rhyolite) versus intrusive (cooled slowly underground from magma, e.g., granite). These are mutually exclusive categories, so option A cannot apply to the same rock. Sedimentary rocks (option B) form via deposition and lithification of sediments or precipitates, which is a fundamentally different process unrelated to igneous formation. Metamorphic rocks (option C) form via heat/pressure alteration of preexisting rocks (igneous or otherwise), again a different category that the rock would no longer qualify as. This leaves option D: extrusive igneous rocks are formed by volcanic processes and are accurately synonymous with (or subclassified as) volcanic rocks. The same sample could thus be validly described either way without contradiction.",
+  "score": 5,
+  "cost": 0.001604,
+  "expected": "D",
+  "tokens": {
+    "input": 74,
+    "output": 182
+  }
+}

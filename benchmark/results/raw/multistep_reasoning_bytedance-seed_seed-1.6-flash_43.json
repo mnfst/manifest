@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "multistep_reasoning",
+  "case": 43,
+  "response": "To determine how coal is formed, we analyze the options:\n\n\n### Option A: Seas that have evaporated  \nEvaporated seas leave behind evaporite minerals like rock salt, not coal. This is incorrect.  \n\n\n### Option B: Natural gas subjected to heat  \nNatural gas is a separate fossil fuel formed from marine organic matter, not coal. Subjecting natural gas to heat would not create coal. This is incorrect.  \n\n\n### Option C: Melted and cooled metamorphic rock  \nMetamorphic rocks form from the transformation of existing rocks (igneous, sedimentary, or metamorphic) under heat and pressure. Coal is a sedimentary rock, not a metamorphic one. This is incorrect.  \n\n\n### Option D: Plant remains decomposed under pressure  \nCoal forms from the remains of ancient plants (e.g., trees, ferns) that accumulated in swamps. Over time, these plant materials were buried under sediment, which reduced oxygen and subjected them to increasing pressure and heat. This process transformed the plant material into peat, then lignite, bituminous, and anthracite coal. This matches the known formation of coal.  \n\n\nAnswer: D",
+  "score": 5,
+  "cost": 0.00017625,
+  "expected": "D",
+  "tokens": {
+    "input": 158,
+    "output": 548
+  }
+}

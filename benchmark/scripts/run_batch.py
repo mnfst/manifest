@@ -129,6 +129,9 @@ MODELS = {
     "deepseek/deepseek-v3.2": {
         "provider": "openrouter", "input_price": 0.25, "output_price": 1.10,
     },
+    "deepseek/deepseek-v4-flash": {
+        "provider": "openrouter", "input_price": 0.14, "output_price": 0.56,
+    },
     "x-ai/grok-4.20": {
         "provider": "openrouter", "input_price": 2.00, "output_price": 8.00,
     },
@@ -172,6 +175,14 @@ TASK_DEFS = {
         "max_output_tokens": 800,
         "judge_prompt": "Rate the answer on a 1-5 scale. 5=completely correct final answer with sound reasoning. 4=correct answer with minor reasoning gaps. 3=partially correct. 2=wrong answer but some correct steps. 1=completely wrong. Respond with ONLY a number 1-5.",
         "native_metric": "exact_answer",  # extract number after ANSWER: and compare to expected
+    },
+    "multistep_reasoning": {
+        "dataset": "datasets/arc_reasoning.jsonl",
+        "prompt_template": 'Answer the following multiple-choice question. Think step by step, then give your final answer as ONLY the letter (A, B, C, or D).\n\n{input}\n\nAnswer:',
+        "eval_type": "exact",
+        "max_output_tokens": 500,
+        "judge_prompt": None,
+        "native_metric": "accuracy",
     },
     "long_summarization": {
         "dataset": "datasets/long_summarization.jsonl",
@@ -532,6 +543,7 @@ def main():
     parser.add_argument("--task", required=True, help="Task ID (e.g., sentiment_sst2)")
     parser.add_argument("--models", help="Comma-separated model list (default: all available)")
     parser.add_argument("--skip-azure", action="store_true", help="Skip Azure models (when Azure is down)")
+    parser.add_argument("--delay", type=float, default=0.5, help="Delay in seconds between models (default 0.5)")
     parser.add_argument("--dry-run", action="store_true", help="Show what would run without calling APIs")
     args = parser.parse_args()
 
@@ -707,7 +719,7 @@ def main():
         else:
             print(f"  {model_name:<42} NO RESULTS")
 
-        time.sleep(0.5)
+        time.sleep(args.delay)
 
     # Summary
     print(f"\n{'='*70}")

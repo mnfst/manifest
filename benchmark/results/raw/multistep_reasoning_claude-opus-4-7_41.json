@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-7",
+  "task": "multistep_reasoning",
+  "case": 41,
+  "response": "A",
+  "score": 5,
+  "cost": 0.0036,
+  "expected": "A",
+  "tokens": {
+    "input": 215,
+    "output": 5
+  }
+}

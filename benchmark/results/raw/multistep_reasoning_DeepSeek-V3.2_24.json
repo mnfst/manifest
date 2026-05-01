@@ -1,0 +1,13 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "multistep_reasoning",
+  "case": 24,
+  "response": "Let\u2019s think through this step by step.  \n\n1. **Extrusive igneous rock** forms from lava cooling quickly on Earth\u2019s surface.  \n2. Another term for extrusive igneous rock is **volcanic rock** (because volcanoes are the typical source of extrusive igneous material).  \n3. It cannot be intrusive igneous (that\u2019s slow cooling underground), clastic sedimentary (made from fragments), or metamorphic (changed by heat/pressure without melting).  \n\nSo the only accurate alternative categorization is **volcanic**.  \n\n**Final answer:** D",
+  "score": 5,
+  "cost": 0.0001577,
+  "expected": "D",
+  "tokens": {
+    "input": 82,
+    "output": 121
+  }
+}

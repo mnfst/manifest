@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "multistep_reasoning",
+  "case": 16,
+  "response": "B\n\nThe distinctive linear cracks (lineae) visible in Voyager and Galileo imagery of Europa's ice shell show evidence of lateral displacement, rotation of ice rafts, and cycloidal patterns consistent with tidal stress and plate-like motion of the crust. These features imply the ice is decoupled from the rocky interior by a liquid water layer that permits such movement, ruling out the other options: volcanic (cryovolcanic) resurfacing produces domes or flows rather than systematic cracking; impact craters are sparse on Europa and do not generate the observed global network; solar flares have no mechanical effect on surface morphology. Thus the cracking patterns are diagnostic of Europa's ice-shell tectonics.",
+  "score": 5,
+  "cost": 0.00125,
+  "expected": "C",
+  "tokens": {
+    "input": 89,
+    "output": 134
+  }
+}

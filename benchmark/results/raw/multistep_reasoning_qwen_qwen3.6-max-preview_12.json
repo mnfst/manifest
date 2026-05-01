@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "multistep_reasoning",
+  "case": 12,
+  "response": "The hydrosphere (Earth's water) interacts with the lithosphere (Earth's rocky outer layer) in several ways. The most direct and common surface interaction is the movement of water over land, which physically wears away and transports rock and soil. This process is known as **erosion**. \n\n- Option B (evaporation) is a process between the hydrosphere and atmosphere.\n- Option C (heating of the core) is driven by internal radioactive decay and residual planetary formation heat, not surface water.\n- Option D (melting of the crust) primarily occurs due to extreme internal heat and tectonic activity, not directly by the hydrosphere in a general context.\n\nTherefore, the erosion of rocks is a primary effect of the hydrosphere on the lithosphere.\n\nA",
+  "score": 5,
+  "cost": 0.004563,
+  "expected": "A",
+  "tokens": {
+    "input": 86,
+    "output": 856
+  }
+}

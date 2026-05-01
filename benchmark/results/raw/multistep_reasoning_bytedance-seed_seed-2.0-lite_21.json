@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "multistep_reasoning",
+  "case": 21,
+  "response": "To solve this question, we analyze each option against the experiment setup and basic ecological logic:\n1.  **Eliminate Option A**: This is factually incorrect. Many specialized desert plants thrive in desert conditions; the statement incorrectly claims *all* plants cannot grow in deserts.\n2.  **Eliminate Option C**: There is no evidence that Maryland-native plants are unsuitable for scientific research. This claim is irrelevant to the question of why the plants died.\n3.  **Eliminate Option D**: The extreme absolute claim that these plants \"only able to survive in Maryland\" is false. They could survive in any location with a climate matching Maryland's, not just the state's political borders.\n4.  **Confirm Option B**: The Maryland-native plants experienced a severe environmental change: moving from their native temperate climate to a hot, dry desert environment. Only a small number of the 20 total plants survived this extreme shift, which aligns perfectly with the statement that few plants survive severe changes to their environment.\n\nAnswer: B",
+  "score": 5,
+  "cost": 0.00072075,
+  "expected": "B",
+  "tokens": {
+    "input": 255,
+    "output": 657
+  }
+}

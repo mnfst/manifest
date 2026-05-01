@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "multistep_reasoning",
+  "case": 43,
+  "response": "D\n\nThe correct answer is D) plant remains decomposed under pressure.\n\nCoal is a fossil fuel formed from the remains of ancient land plants (such as ferns, trees, and other vegetation) that accumulated in swampy environments millions of years ago. Over time, these plant materials were buried under layers of sediment, subjected to increasing heat and pressure, which caused chemical changes and transformed the organic matter into coal through a process called coalification. This is distinct from the formation of other fossil fuels like petroleum and natural gas, which typically originate from marine organisms.",
+  "score": 5,
+  "cost": 0.001018,
+  "expected": "D",
+  "tokens": {
+    "input": 69,
+    "output": 110
+  }
+}

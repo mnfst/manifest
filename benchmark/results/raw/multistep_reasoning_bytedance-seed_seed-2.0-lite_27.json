@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "multistep_reasoning",
+  "case": 27,
+  "response": "To determine which substance retains the largest amount of solar energy, we analyze two key properties for each option: albedo (the share of incoming solar radiation reflected, rather than absorbed) and specific heat capacity (the ability to store heat once absorbed):\n\n1.  **Option A (snow):** Snow has an extremely high albedo (~0.9, meaning 90% of incoming sunlight is reflected back into space). It absorbs very little solar energy in the first place, so it cannot retain large amounts. This eliminates A.\n2.  **Option B (sand):** Sand has a very low specific heat capacity. It heats up quickly when exposed to sunlight but loses that heat just as rapidly (this is why deserts turn cold at night). It cannot store retained heat long-term, eliminating B.\n3.  **Option C (grass):** Grass absorbs most incoming sunlight, but it forms a thin layer with a low specific heat capacity. It cannot store significant amounts of heat and cools rapidly after sunset, eliminating C.\n4.  **Option D (water):** Water has the highest specific heat capacity of all the options, meaning it requires far more energy to raise its temperature and releases that heat very slowly. It also has a low albedo (~0.1 for overhead sun, absorbing 90% of incoming radiation) and can distribute heat through deep layers, allowing it to store and retain massive amounts of solar energy.\n\nAnswer: D",
+  "score": 5,
+  "cost": 0.000951,
+  "expected": "B",
+  "tokens": {
+    "input": 112,
+    "output": 923
+  }
+}

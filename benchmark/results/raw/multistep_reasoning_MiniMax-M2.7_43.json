@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "multistep_reasoning",
+  "case": 43,
+  "response": "Coal forms from plant material that has been buried, decomposed, and subjected to high pressures over geological time, turning it into peat and then coal. The other options describe processes unrelated to coal formation.\n\nAnswer: D",
+  "score": 5,
+  "cost": 0.0027676000000000003,
+  "expected": "D",
+  "tokens": {
+    "input": 108,
+    "output": 602
+  }
+}

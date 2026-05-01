@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "multistep_reasoning",
+  "case": 2,
+  "response": "A\n\nThe presence of fossils from warm-water marine organisms (like coral reefs and fish) in what is now a cold, mountainous inland area like New England is a classic example of how Earth's systems change over deep time. Plate tectonics has moved the landmasses, and global climate has fluctuated dramatically (e.g., during periods when much of the region was covered by a shallow tropical sea or during warmer intervals in the geologic past). The fossils are found in sedimentary rocks that were later uplifted by tectonic forces into mountains. This directly supports option A.\n\nOption B is incorrect because these are clearly warm-water specialists (corals, etc.); they weren't adapted to cold.  \nOption C is wrong because fossilization preserves the fact that they were warm-water creatures; it doesn't \"change\" them into something else.  \nOption D is implausible; scavengers could not transport massive coral reef structures or explain the widespread, in-situ nature of these marine fossil deposits.\n\nFinal answer: A",
+  "score": 5,
+  "cost": 0.001826,
+  "expected": "A",
+  "tokens": {
+    "input": 125,
+    "output": 197
+  }
+}

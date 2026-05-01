@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "multistep_reasoning",
+  "case": 11,
+  "response": "Step by step:\n\u2022 Forest floors are shaded, so sunlight is limited.\n\u2022 Trees compete for light by growing leaves where sunlight is strongest.\n\u2022 The top of the tree receives the most direct sunlight.\n\nFinal answer: B",
+  "score": 5,
+  "cost": 0.000594,
+  "expected": "B",
+  "tokens": {
+    "input": 81,
+    "output": 54
+  }
+}

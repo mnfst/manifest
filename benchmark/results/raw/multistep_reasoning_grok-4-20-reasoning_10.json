@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "multistep_reasoning",
+  "case": 10,
+  "response": "A\n\n\nThe core distinction is that asexual reproduction involves a single parent producing genetically identical offspring (clones, aside from rare mutations), while sexual reproduction requires two parents whose gametes (produced via meiosis, which includes crossing over and independent assortment) fuse during fertilization. This inherently mixes alleles from distinct genomes, creating novel combinations in each offspring and thus far higher genetic variation across the population. Option A directly captures this mechanism. B is irrelevant, as population size or prevalence does not dictate per-offspring diversity. C addresses phenotypic plasticity due to environment, not heritable genetic differences produced by the reproductive process itself. D is factually inverted, as asexual reproduction (not sexual) produces offspring from a single, genetically identical parent.",
+  "score": 5,
+  "cost": 0.001306,
+  "expected": "A",
+  "tokens": {
+    "input": 81,
+    "output": 143
+  }
+}

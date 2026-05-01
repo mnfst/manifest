@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "multistep_reasoning",
+  "case": 35,
+  "response": "C\n\nThe universal systems model (input-process-output-feedback) follows a logical sequence for problem-solving: gather data/feedback first (input), involve stakeholders (more input), implement a solution (process), and then evaluate with more data (feedback).\n\nOption C follows this order correctly: gather parking data \u2192 receive input from meetings \u2192 build parking lot (the actual solution) \u2192 gather more data to evaluate.\n\nThe other options either start with solutions before gathering input or put steps in an illogical order.",
+  "score": 5,
+  "cost": 0.001398,
+  "expected": "C",
+  "tokens": {
+    "input": 307,
+    "output": 98
+  }
+}

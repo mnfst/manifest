@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "multistep_reasoning",
+  "case": 39,
+  "response": "D \n\nThe mass of an atom is overwhelmingly concentrated in its nucleus (protons + neutrons), each of which has a mass of ~1 u. An electron's mass is only ~1/1836 u, so removing one subtracts a negligible fraction of the atom's total mass. Removing a proton or neutron subtracts ~1 u (far more), and removing the entire nucleus subtracts essentially all the atom's mass. Thus the smallest mass loss occurs when an electron is removed.",
+  "score": 5,
+  "cost": 0.000916,
+  "expected": "D",
+  "tokens": {
+    "input": 66,
+    "output": 98
+  }
+}

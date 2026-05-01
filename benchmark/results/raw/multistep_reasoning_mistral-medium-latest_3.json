@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "multistep_reasoning",
+  "case": 3,
+  "response": "B) the outdoor temperature in November",
+  "score": 5,
+  "cost": 7.280000000000001e-05,
+  "expected": "B",
+  "tokens": {
+    "input": 142,
+    "output": 8
+  }
+}

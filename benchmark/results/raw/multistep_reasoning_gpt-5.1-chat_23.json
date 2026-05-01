@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.1-chat",
+  "task": "multistep_reasoning",
+  "case": 23,
+  "response": "C",
+  "score": 5,
+  "cost": 0.000282,
+  "expected": "C",
+  "tokens": {
+    "input": 97,
+    "output": 11
+  }
+}

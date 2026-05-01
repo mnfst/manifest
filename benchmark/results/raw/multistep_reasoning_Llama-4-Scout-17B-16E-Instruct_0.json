@@ -1,0 +1,13 @@
+{
+  "model": "Llama-4-Scout-17B-16E-Instruct",
+  "task": "multistep_reasoning",
+  "case": 0,
+  "response": "B",
+  "score": 5,
+  "cost": 1.7170000000000003e-05,
+  "expected": "B",
+  "tokens": {
+    "input": 99,
+    "output": 2
+  }
+}

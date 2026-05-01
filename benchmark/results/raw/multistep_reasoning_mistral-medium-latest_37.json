@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "multistep_reasoning",
+  "case": 37,
+  "response": "A) copper wire",
+  "score": 5,
+  "cost": 4.72e-05,
+  "expected": "A",
+  "tokens": {
+    "input": 93,
+    "output": 5
+  }
+}

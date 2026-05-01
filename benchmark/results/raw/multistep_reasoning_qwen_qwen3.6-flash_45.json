@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "multistep_reasoning",
+  "case": 45,
+  "response": "Fertilizers are rich in nutrients like nitrogen and phosphorus. When these chemicals wash off farmland and enter bodies of water, they significantly increase the nutrient levels in the aquatic environment. These excess nutrients act as a powerful food source for microscopic aquatic plants, causing them to grow and multiply rapidly. This phenomenon is known as an algal bloom or eutrophication. Therefore, the direct result of fertilizer runoff is a surge in algae growth.\n\nC",
+  "score": 5,
+  "cost": 0.00068725,
+  "expected": "C",
+  "tokens": {
+    "input": 89,
+    "output": 665
+  }
+}

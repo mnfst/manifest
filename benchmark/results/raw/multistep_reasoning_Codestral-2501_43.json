@@ -1,0 +1,13 @@
+{
+  "model": "Codestral-2501",
+  "task": "multistep_reasoning",
+  "case": 43,
+  "response": "To determine how coal is formed, let's think through the options step by step:\n\nA) Seas that have evaporated: This process does not typically result in the formation of coal.\nB) Natural gas subjected to heat: This process is more likely to result in the formation of oil or other hydrocarbons, not coal.\nC) Melted and cooled metamorphic rock: This process describes the formation of igneous rocks, not coal.\nD) Plant remains decomposed under pressure: This is the correct process for coal formation. Over millions of years, plant material is subjected to high pressure and heat, transforming it into coal.\n\nTherefore, the correct answer is:\n\nD",
+  "score": 5,
+  "cost": 0.0001437,
+  "expected": "D",
+  "tokens": {
+    "input": 74,
+    "output": 135
+  }
+}

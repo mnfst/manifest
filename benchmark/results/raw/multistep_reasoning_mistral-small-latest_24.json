@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "multistep_reasoning",
+  "case": 24,
+  "response": "Step 1: Extrusive igneous rocks form from lava cooling quickly on Earth\u2019s surface.\nStep 2: Intrusive igneous rocks form from magma cooling slowly below the surface, so they cannot be the same rock.\nStep 3: Clastic sedimentary rocks form from fragments of other rocks, not from lava cooling.\nStep 4: Metamorphic rocks form under heat and pressure, altering existing rocks, not from lava cooling.\nStep 5: Volcanic rocks are another term for extrusive igneous rocks, formed from lava cooling on the surface.\n\nFinal Answer: D",
+  "score": 5,
+  "cost": 4.69e-05,
+  "expected": "D",
+  "tokens": {
+    "input": 97,
+    "output": 124
+  }
+}

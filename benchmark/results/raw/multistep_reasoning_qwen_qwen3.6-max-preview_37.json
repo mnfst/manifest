@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "multistep_reasoning",
+  "case": 37,
+  "response": "A",
+  "score": 5,
+  "cost": 0.002379,
+  "expected": "A",
+  "tokens": {
+    "input": 102,
+    "output": 432
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "multistep_reasoning",
+  "case": 36,
+  "response": "Step 1: Identify the given values\n- Mass of baseball (m) = 0.15 kg\n- Velocity of baseball (v) = 40 m/s\n\nStep 2: Recall the formula for momentum\n- Momentum (p) = mass \u00d7 velocity\n- p = m \u00d7 v\n\nStep 3: Substitute the values into the formula\n- p = 0.15 kg \u00d7 40 m/s\n- p = 6.0 kg \u00d7 m/s\n\nStep 4: Compare with the given options\n- The calculated momentum matches option C\n\nFinal Answer: C",
+  "score": 5,
+  "cost": 1.0160000000000001e-05,
+  "expected": "C",
+  "tokens": {
+    "input": 123,
+    "output": 131
+  }
+}

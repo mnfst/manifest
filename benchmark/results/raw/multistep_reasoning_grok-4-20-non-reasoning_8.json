@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "multistep_reasoning",
+  "case": 8,
+  "response": "C\n\nThe question refers to the opening chant in the traditional African folktale \"How Leopard Got His Spots\" (or a similar Anansi/Leopard story). In these tales, Leopard's chant is boastful and self-assured (\"I am Leopard... sleek and strong...\"), which directly indicates confidence. This matches option C.",
+  "score": 5,
+  "cost": 0.000654,
+  "expected": "C",
+  "tokens": {
+    "input": 59,
+    "output": 67
+  }
+}

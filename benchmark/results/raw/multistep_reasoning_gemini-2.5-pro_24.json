@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-pro",
+  "task": "multistep_reasoning",
+  "case": 24,
+  "response": "*   **Step 1: Analyze the initial classification.** The rock is identified as an \"extrusive igneous rock\".\n*   **Step 2: Define \"extrusive igneous rock\".** \"Igneous\" means the rock formed from cooled magma or lava. \"Extrusive\" means it formed from lava that cooled *outside* of the Earth's crust, on the surface. This process is directly associated with volcanic eruptions.\n*   **Step 3: Evaluate the options based on this definition.**\n    *   **A) intrusive igneous:** This describes igneous rock that cooled *inside* the Earth's crust. This is the opposite of extrusive. So, this is incorrect.\n    *   **B) clastic sedimentary:** This is a completely different type of rock, formed from cemented fragments (clasts) of other rocks. So, this is incorrect.\n    *   **C) metamorphic:** This is another different type of rock, formed when an existing rock is changed by heat and pressure. So, this is incorrect.\n    *   **D) volcanic:** Volcanic rocks are, by definition, rocks formed from volcanic activity, specifically from lava that has erupted onto the surface and cooled. This is the exact same definition as an extrusive igneous rock. Therefore, \"volcanic\" is an accurate alternative categorization.\n\nD",
+  "score": 5,
+  "cost": 0.00292125,
+  "expected": "D",
+  "tokens": {
+    "input": 81,
+    "output": 282
+  }
+}

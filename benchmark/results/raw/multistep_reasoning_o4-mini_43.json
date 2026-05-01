@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "multistep_reasoning",
+  "case": 43,
+  "response": "Step 1: Coal is an organic sedimentary rock  \nStep 2: It originates from the accumulation of plant material (peat) in ancient swampy environments  \nStep 3: Over time, burial, heat, and pressure transform the plant remains into lignite, then bituminous coal, and finally anthracite  \nStep 4: The other options describe evaporated seas (evaporites), natural gas, and metamorphic rocks, which do not form coal  \n\nD",
+  "score": 5,
+  "cost": 0.0017182,
+  "expected": "D",
+  "tokens": {
+    "input": 78,
+    "output": 371
+  }
+}

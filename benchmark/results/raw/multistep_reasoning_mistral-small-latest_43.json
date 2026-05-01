@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "multistep_reasoning",
+  "case": 43,
+  "response": "D) plant remains decomposed under pressure.",
+  "score": 5,
+  "cost": 1.1299999999999999e-05,
+  "expected": "D",
+  "tokens": {
+    "input": 86,
+    "output": 9
+  }
+}

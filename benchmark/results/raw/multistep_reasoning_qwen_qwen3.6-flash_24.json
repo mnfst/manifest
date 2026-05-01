@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "multistep_reasoning",
+  "case": 24,
+  "response": "Igneous rocks are classified based on where and how quickly they cool. **Extrusive** igneous rocks form when magma reaches the Earth's surface as lava and cools rapidly. Because this process occurs during volcanic eruptions, extrusive igneous rocks are also standardly referred to as **volcanic** rocks. \n\n- Option A (intrusive) describes rocks that cool slowly beneath the surface.\n- Options B (clastic sedimentary) and C (metamorphic) describe entirely different rock types formed by different geological processes.\n- Option D (volcanic) is a direct synonym for extrusive in the context of igneous rock classification.\n\nD",
+  "score": 5,
+  "cost": 0.0016585,
+  "expected": "D",
+  "tokens": {
+    "input": 94,
+    "output": 1635
+  }
+}

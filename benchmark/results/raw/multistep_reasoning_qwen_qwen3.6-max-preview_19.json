@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "multistep_reasoning",
+  "case": 19,
+  "response": "Step-by-step reasoning:\n1. The motion of planets orbiting a central body is governed by the force of gravity.\n2. Gravitational force is directly proportional to mass. The object with the greatest mass in a system exerts the strongest gravitational pull and dictates the orbits of smaller objects.\n3. The Sun contains approximately 99.8% of the total mass of the solar system, making its gravitational field by far the strongest.\n4. While the Sun's composition (A), age (B), and energy output (C) are true characteristics, none of them are the physical cause of planetary orbits. Only its massive gravitational pull (D) provides the necessary centripetal force to keep planets revolving around it.\n\nD",
+  "score": 5,
+  "cost": 0.005306600000000001,
+  "expected": "D",
+  "tokens": {
+    "input": 106,
+    "output": 994
+  }
+}

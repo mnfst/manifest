@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "multistep_reasoning",
+  "case": 38,
+  "response": "B\n\nNewton's second law states that the acceleration \\(a\\) of an object is directly proportional to the net force \\(F\\) applied to it and inversely proportional to its mass \\(m\\): \\(a = F/m\\).\n\nIn this experiment, the student is changing only the force while keeping the mass of the object constant. Therefore, acceleration is directly proportional to force: if \\(F\\) increases by a factor of 4, \\(a\\) must also increase by a factor of 4.\n\nThe correct answer is B) 4 times.",
+  "score": 5,
+  "cost": 0.001078,
+  "expected": "B",
+  "tokens": {
+    "input": 99,
+    "output": 110
+  }
+}

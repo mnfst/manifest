@@ -1,0 +1,13 @@
+{
+  "model": "Codestral-2501",
+  "task": "multistep_reasoning",
+  "case": 33,
+  "response": "To determine the composition of an unknown substance, the most informative question would be one that provides direct evidence about the substance's properties. Among the given options, the question that directly relates to the substance's composition is:\n\nD) Does the sample conduct electricity?\n\nThis question can help identify whether the substance is a metal, which conducts electricity, or a non-metal, which typically does not. Therefore, the answer is:\n\nD",
+  "score": 5,
+  "cost": 0.00010290000000000001,
+  "expected": "D",
+  "tokens": {
+    "input": 85,
+    "output": 86
+  }
+}

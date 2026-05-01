@@ -1,0 +1,13 @@
+{
+  "model": "Codestral-2501",
+  "task": "multistep_reasoning",
+  "case": 6,
+  "response": "To determine what happens to a wooden log when it is burned, we need to consider the fundamental processes involved in combustion.\n\n1. **Combustion Process**: When a wooden log is burned, it undergoes a chemical reaction with oxygen from the air. This reaction converts the chemical energy stored in the wood into heat and light energy.\n2. **Products of Combustion**: The primary products of combustion are carbon dioxide (CO\u2082), water vapor (H\u2082O), and a small amount of other gases and particles.\n3. **Energy Transformation**: The wood is not just destroyed; it is transformed into other forms of matter and energy.\n\nGiven these points, the correct answer is:\n\nC) It changes into other types of matter and energy.",
+  "score": 5,
+  "cost": 0.0001608,
+  "expected": "C",
+  "tokens": {
+    "input": 86,
+    "output": 150
+  }
+}

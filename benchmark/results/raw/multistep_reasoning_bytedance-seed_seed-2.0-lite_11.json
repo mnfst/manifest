@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "multistep_reasoning",
+  "case": 11,
+  "response": "Let's break down each option to find the correct answer:\n1.  Eliminate Option A: Leaves do not play a role in scattering seeds. Seed dispersal is handled by seeds, fruits, cones, or other specialized structures, so this is incorrect.\n2.  Eliminate Option C: Shading the trunk serves no critical biological purpose for a tree. There is no evolutionary advantage to concentrating leaves at the top solely to shade the tree's own trunk, so this is wrong.\n3.  Eliminate Option D: Roots collect most of the water a tree needs from soil. While leaves may absorb small amounts of rainwater, concentrating leaves at the top to collect water is not a primary function, so this is incorrect.\n4.  Confirm Option B: Leaves rely on sunlight for photosynthesis, the process that produces energy for the tree. In dense forests, sunlight is a limited resource. Growing leaves at the very top of the tree lets them capture unblocked sunlight, outcompeting shorter neighboring plants for this critical resource. This is the core reason forest trees grow most of their leaves at the top.\n\nAnswer: B",
+  "score": 5,
+  "cost": 0.00050425,
+  "expected": "B",
+  "tokens": {
+    "input": 125,
+    "output": 473
+  }
+}

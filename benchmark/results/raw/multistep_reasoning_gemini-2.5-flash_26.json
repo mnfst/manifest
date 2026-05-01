@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "multistep_reasoning",
+  "case": 26,
+  "response": "C",
+  "score": 5,
+  "cost": 1.035e-05,
+  "expected": "C",
+  "tokens": {
+    "input": 65,
+    "output": 1
+  }
+}

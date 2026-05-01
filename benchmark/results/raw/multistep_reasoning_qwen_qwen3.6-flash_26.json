@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "multistep_reasoning",
+  "case": 26,
+  "response": "The process of liquid water changing into water vapor (a gas) is known as **evaporation**. \n\n- **Condensation** is the reverse process (gas to liquid).\n- **Transportation** refers to the movement of water.\n- **Accumulation** refers to water collecting in reservoirs like oceans or lakes.\n\nTherefore, the correct choice is **C**.\n\nC",
+  "score": 5,
+  "cost": 0.00037775,
+  "expected": "C",
+  "tokens": {
+    "input": 75,
+    "output": 359
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "multistep_reasoning",
+  "case": 47,
+  "response": "A\n\n\nThe question focuses on ensuring stability (floating without tipping) for a repeated design of paper sailboats. This is best addressed via the engineering design process: build and iteratively test a prototype in water to directly observe and refine balance, center of gravity, and buoyancy before scaling to 20 boats. Option B only addresses aggregate weight (irrelevant to per-boat stability). Option C measures load capacity but does not test dynamic tipping in motion. Option D verifies material integrity but has no bearing on flotation dynamics. Thus, A is the only option that empirically validates the exact success criteria.",
+  "score": 5,
+  "cost": 0.001228,
+  "expected": "A",
+  "tokens": {
+    "input": 146,
+    "output": 117
+  }
+}

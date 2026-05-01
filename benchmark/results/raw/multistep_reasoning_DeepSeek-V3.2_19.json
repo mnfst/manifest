@@ -1,0 +1,13 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "multistep_reasoning",
+  "case": 19,
+  "response": "Let\u2019s think through each option:  \n\n- **A)** Made of hydrogen and helium \u2192 This is true, but composition alone doesn\u2019t explain why planets revolve around the Sun.  \n- **B)** Older than other objects in the solar system \u2192 Age isn\u2019t the reason for orbital motion.  \n- **C)** Source of most heat and light energy \u2192 This is true, but not the reason for revolution; that\u2019s about energy output, not orbital mechanics.  \n- **D)** Strongest source of gravity in the solar system \u2192 This is correct; the Sun\u2019s mass is so large compared to everything else that its gravitational pull keeps planets in orbit.  \n\nThe key physics principle is that gravity is what causes orbits.  \n\n**Final answer:** D",
+  "score": 5,
+  "cost": 0.0001998,
+  "expected": "D",
+  "tokens": {
+    "input": 94,
+    "output": 156
+  }
+}

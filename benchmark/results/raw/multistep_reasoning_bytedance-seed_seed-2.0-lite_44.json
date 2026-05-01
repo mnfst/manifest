@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "multistep_reasoning",
+  "case": 44,
+  "response": "To solve this question, we evaluate each adaptation to identify which one reduces a plant\u2019s survival ability:\n1.  **Option A (large number of seeds):** Producing many seeds increases the chance that at least some seeds will germinate, establish, and pass on the plant\u2019s genes. This improves survival, so this is not the correct answer.\n2.  **Option B (herbicide resistance):** Resistance to herbicides allows a plant to survive common weed management treatments, which is a major survival advantage. This is not the correct answer.\n3.  **Option C (rapid root development):** Fast-growing roots help a plant anchor itself, absorb water and nutrients quickly, and outcompete neighboring plants for resources. This improves survival, so this is not the correct answer.\n4.  **Option D (slow leaf formation):** Leaves are the primary site of photosynthesis, the process that produces the energy a plant needs to grow and survive. Slow leaf formation limits a plant\u2019s ability to generate energy early in its life cycle, putting it at a major disadvantage against competing plants. This adaptation decreases survival ability.\n\nAnswer: D",
+  "score": 5,
+  "cost": 0.000614,
+  "expected": "D",
+  "tokens": {
+    "input": 152,
+    "output": 576
+  }
+}

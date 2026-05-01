@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "multistep_reasoning",
+  "case": 23,
+  "response": "The first step in any investigation should be planning and preparation. Making a table for recording data is part of that preparation. Repeating the investigation, writing a report, and making daily observations all come later.\n\nTherefore, the answer is C.\nFINAL ANSWER: C",
+  "score": 5,
+  "cost": 3.1400000000000004e-05,
+  "expected": "C",
+  "tokens": {
+    "input": 98,
+    "output": 54
+  }
+}

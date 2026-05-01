@@ -1,0 +1,13 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "multistep_reasoning",
+  "case": 6,
+  "response": "**Step-by-step reasoning:**\n\n1. **Analyze Option A:** \"It is completely destroyed.\"  \n   This violates the law of conservation of mass. Matter cannot be completely destroyed in a chemical reaction; it only changes form. So, A is incorrect.\n\n2. **Analyze Option B:** \"It is completely changed into heat energy.\"  \n   This is also incorrect. While burning releases heat (and light) energy, the matter itself does not turn entirely into energy. Combustion is a chemical reaction, not a nuclear one, and solid residues (ash) and gases are also produced.\n\n3. **Analyze Option D:** \"It physically changes into the gaseous phase.\"  \n   Burning is a *chemical* change, not merely a physical phase change. The wood reacts with oxygen to form new substances (like carbon dioxide, water vapor, and ash). It does not just physically become gas. So, D is incorrect.\n\n4. **Analyze Option C:** \"It changes into other types of matter and energy.\"  \n   This is correct. During combustion, the chemical compounds in wood react with oxygen to produce new matter\u2014such as carbon dioxide gas, water vapor, carbon particles (soot), and ash (minerals). At the same time, chemical potential energy is converted into heat and light energy. This aligns with the laws of conservation of mass and energy.\n\n**Final Answer:**\nC",
+  "score": 5,
+  "cost": 0.001779,
+  "expected": "C",
+  "tokens": {
+    "input": 93,
+    "output": 718
+  }
+}

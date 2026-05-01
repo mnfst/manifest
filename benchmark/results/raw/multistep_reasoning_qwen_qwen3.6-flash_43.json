@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "multistep_reasoning",
+  "case": 43,
+  "response": "Step-by-step reasoning:\n1. Coal is a fossil fuel classified as a sedimentary rock.\n2. It originates from the accumulation of ancient plant debris (like trees, ferns, and moss) in swampy, oxygen-poor environments.\n3. Over millions of years, these plant remains are buried under layers of sediment. The combination of heat, pressure, and microbial activity causes the organic material to decompose and chemically transform through stages (peat \u2192 lignite \u2192 bituminous coal \u2192 anthracite).\n4. Evaluating the options:\n   - A describes the formation of evaporite minerals (e.g., salt, gypsum).\n   - B is incorrect; natural gas is a separate fossil fuel and does not transform into coal.\n   - C describes the formation of igneous rock.\n   - D accurately describes the geological process of coalification.\n\nD",
+  "score": 5,
+  "cost": 0.00158375,
+  "expected": "D",
+  "tokens": {
+    "input": 87,
+    "output": 1562
+  }
+}

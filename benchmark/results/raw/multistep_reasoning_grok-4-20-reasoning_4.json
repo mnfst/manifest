@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "multistep_reasoning",
+  "case": 4,
+  "response": "A\n\nFinal Answer: A",
+  "score": 5,
+  "cost": 0.00017,
+  "expected": "A",
+  "tokens": {
+    "input": 61,
+    "output": 6
+  }
+}

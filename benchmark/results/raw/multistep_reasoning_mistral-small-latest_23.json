@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "multistep_reasoning",
+  "case": 23,
+  "response": "Let's think through this step by step:\n\n1. The goal is to determine which brand of light bulb lasts the longest.\n2. To do this, the class needs to first set up the investigation by making observations of the light bulbs over time.\n3. Only after making observations can they record data in a table (C).\n4. Repeating the investigation (A) would come after the initial observations and data collection.\n5. Writing a report of the results (B) would be one of the final steps, after all data has been collected and analyzed.\n\nThe first step should be to make daily observations of the light bulbs to start gathering data.\n\nAnswer: D",
+  "score": 5,
+  "cost": 5.1800000000000005e-05,
+  "expected": "C",
+  "tokens": {
+    "input": 107,
+    "output": 137
+  }
+}

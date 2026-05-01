@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "multistep_reasoning",
+  "case": 6,
+  "response": "C\n\n\nThe process of burning a wooden log is combustion, a chemical reaction between the wood's organic compounds (primarily cellulose) and oxygen. This reaction breaks chemical bonds in the wood and forms new ones, releasing stored chemical energy as heat and light while producing new substances: ash (solid residue like carbon and minerals), smoke, carbon dioxide gas, and water vapor. \n\nOption A is incorrect because matter is conserved per the law of conservation of mass; the log's atoms are rearranged but not \"destroyed.\" Option B is incorrect because the transformation is not solely into heat energy\u2014tangible matter (gases and ash) remains, and the energy released is not 100% heat (some is light). Option D is incorrect because burning is a chemical change (new molecular compounds form), not a physical phase change, and the products are not exclusively gaseous (ash is solid).\n\nThis leaves C as the only accurate description: the original matter is transformed into different forms of matter (e.g., CO\u2082, H\u2082O, ash), accompanied by an energy release. This aligns with basic principles of chemistry regarding chemical reactions and conservation laws.",
+  "score": 5,
+  "cost": 0.00199,
+  "expected": "C",
+  "tokens": {
+    "input": 83,
+    "output": 228
+  }
+}

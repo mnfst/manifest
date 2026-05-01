@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "multistep_reasoning",
+  "case": 19,
+  "response": "D \n\nThe planets orbit the Sun due to gravitational attraction, which acts as the centripetal force keeping them in curved paths (per Newton's law of universal gravitation, \\(F = G \\frac{m_1 m_2}{r^2}\\)). The Sun contains >99% of the solar system's total mass, making its gravity dominant by orders of magnitude over any planet or other body; this is the direct cause of revolution (as described by Kepler's laws and Newtonian mechanics). Option A is a fact about the Sun's composition but irrelevant to orbital mechanics. Option B is inaccurate (the Sun and planets formed together ~4.6 billion years ago from the same collapsing nebula). Option C describes the Sun's role in energy output but has no bearing on gravitational orbits (heat/light affect atmospheres or surfaces but not the reason for revolution). Thus, only D correctly identifies the causal factor.",
+  "score": 5,
+  "cost": 0.001604,
+  "expected": "D",
+  "tokens": {
+    "input": 90,
+    "output": 178
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "multistep_reasoning",
+  "case": 12,
+  "response": "A\n\n\nThe hydrosphere consists of all of Earth's water (oceans, rivers, lakes, groundwater, etc.). The lithosphere is the planet's rigid outer rocky layer (crust and upper mantle). These two spheres interact in multiple ways, but a primary and well-documented one is that liquid water (via mechanical abrasion, chemical dissolution/weathering, glacial movement, etc.) breaks down and transports rock material\u2014i.e., erosion. This is observable at all scales, from river canyons to coastal cliffs to soil loss.\n\nOption B is a phase change internal to the hydrosphere/atmosphere and does not act on the lithosphere. Option C is incorrect because the core's heat comes from radioactive decay and primordial formation heat, with no causal link to surface water. Option D is incorrect because crustal melting is driven by mantle heat, pressure release, or volatile flux in subduction zones; surface water does not directly melt the crust. Thus only A describes a genuine, direct effect of the hydrosphere on the lithosphere.",
+  "score": 5,
+  "cost": 0.00175,
+  "expected": "A",
+  "tokens": {
+    "input": 71,
+    "output": 201
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "o4-mini",
+  "task": "multistep_reasoning",
+  "case": 42,
+  "response": "C",
+  "score": 5,
+  "cost": 0.0010769,
+  "expected": "C",
+  "tokens": {
+    "input": 131,
+    "output": 212
+  }
+}

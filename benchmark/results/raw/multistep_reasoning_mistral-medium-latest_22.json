@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "multistep_reasoning",
+  "case": 22,
+  "response": "B) along a river",
+  "score": 5,
+  "cost": 4.28e-05,
+  "expected": "B",
+  "tokens": {
+    "input": 77,
+    "output": 6
+  }
+}

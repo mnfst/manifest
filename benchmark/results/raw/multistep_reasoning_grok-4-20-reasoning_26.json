@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "multistep_reasoning",
+  "case": 26,
+  "response": "C\n\n\nThe question asks for the name of the phase change process when liquid H\u2082O becomes gaseous H\u2082O (water vapor). This matches the definition of evaporation, the conversion of a liquid into a gas at temperatures below the boiling point. In the hydrologic cycle, solar energy supplies the latent heat that allows surface water molecules to overcome intermolecular forces and enter the atmosphere as vapor.  \n\nOption A (condensation) is the reverse process\u2014gas to liquid\u2014seen in cloud or dew formation. Option B (transportation) refers to the lateral movement of water (runoff, wind-driven vapor advection) after it has already changed phase. Option D (accumulation) describes the collection of liquid water in reservoirs such as oceans or lakes, not a phase change. Thus only C satisfies the exact description given in the stem.",
+  "score": 5,
+  "cost": 0.001434,
+  "expected": "C",
+  "tokens": {
+    "input": 61,
+    "output": 164
+  }
+}

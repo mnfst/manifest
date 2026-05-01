@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "multistep_reasoning",
+  "case": 0,
+  "response": "B\n\nThe question is: \"A small laundry room has several shelves above the washing machine. These shelves are an example of\"\n\nThis is clearly about practical use of space in a confined area. In a small room, installing shelves above the washer utilizes vertical wall space that would otherwise be wasted, allowing for storage of laundry supplies without taking up floor space.\n\n- A) making the wall stronger. Shelves don't inherently strengthen walls; they might require proper installation but that's not the point.\n- B) using storage space efficiently. This matches perfectly \u2013 maximizing unused vertical space for storage.\n- C) using a machine for more than one purpose. The shelves are separate from the washing machine's function.\n- D) solving the need for shelter in a creative way. This has nothing to do with shelter.\n\nThe correct answer is B.",
+  "score": 5,
+  "cost": 0.001506,
+  "expected": "B",
+  "tokens": {
+    "input": 89,
+    "output": 166
+  }
+}

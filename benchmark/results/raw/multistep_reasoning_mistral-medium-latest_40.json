@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "multistep_reasoning",
+  "case": 40,
+  "response": "B) graduated cylinder",
+  "score": 5,
+  "cost": 4.0400000000000006e-05,
+  "expected": "B",
+  "tokens": {
+    "input": 76,
+    "output": 5
+  }
+}

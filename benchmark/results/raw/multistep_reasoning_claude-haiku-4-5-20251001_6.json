@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "multistep_reasoning",
+  "case": 6,
+  "response": "Let me think through this step by step.\n\nWhen a wooden log is burned:\n\n1. **Chemical reaction occurs**: Burning is a combustion reaction where wood (composed of carbon, hydrogen, and oxygen) reacts with oxygen in the air.\n\n2. **What happens to the matter**:\n   - The wood doesn't completely disappear - it transforms\n   - Some becomes ash (solid residue)\n   - Some becomes gases (carbon dioxide, water vapor, etc.)\n   - Some becomes smoke and other byproducts\n\n3. **Energy release**: Chemical energy stored in the wood is converted to heat and light energy.\n\n4. **Evaluating each option**:\n   - A) \"Completely destroyed\" - No, matter is conserved; it transforms into other forms\n   - B) \"Completely changed into heat energy\" - No, not all of it becomes energy; some remains as ash and gases\n   - C) \"Changes into other types of matter and energy\" - Yes, this is correct. Wood transforms into ash, gases, and releases heat/light energy\n   - D) \"Physically changes into gaseous phase\" - No, this is incomplete; some becomes ash (solid) and some becomes gas, plus energy is released\n\n**Answer: C**",
+  "score": 5,
+  "cost": 0.0011912000000000001,
+  "expected": "C",
+  "tokens": {
+    "input": 99,
+    "output": 278
+  }
+}

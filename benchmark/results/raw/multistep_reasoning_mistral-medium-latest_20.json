@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "multistep_reasoning",
+  "case": 20,
+  "response": "A) A car's gas mileage is increased and the engine has less power.",
+  "score": 5,
+  "cost": 8.759999999999999e-05,
+  "expected": "A",
+  "tokens": {
+    "input": 129,
+    "output": 18
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "multistep_reasoning",
+  "case": 6,
+  "response": "Let's break down each option to determine the correct answer:\n1.  **Evaluate Option A**: The law of conservation of mass states matter cannot be created or destroyed, only rearranged. A burning log is not \"completely destroyed\"\u2014its atoms are just transformed into new substances. This option is incorrect.\n2.  **Evaluate Option B**: Burning a log releases heat energy, but not all of the log's matter is converted to heat. Solid ash, gaseous carbon dioxide, water vapor, and smoke are all leftover forms of matter after burning. This option is incorrect.\n3.  **Evaluate Option C**: Combustion (burning) is a chemical reaction that rearranges the log's original matter into new forms of matter (ash, carbon dioxide, water vapor, smoke) and releases energy (heat and light). This matches the observed outcome of burning wood. This option is correct.\n4.  **Evaluate Option D**: Burning is a chemical change, not a physical phase change. A physical change only alters the state of a substance without changing its chemical identity, which is not what happens when wood burns. Additionally, the log does not only turn into gas\u2014solid ash remains, so this description is wrong. This option is incorrect.\n\nAnswer: C",
+  "score": 5,
+  "cost": 0.00078925,
+  "expected": "C",
+  "tokens": {
+    "input": 137,
+    "output": 755
+  }
+}

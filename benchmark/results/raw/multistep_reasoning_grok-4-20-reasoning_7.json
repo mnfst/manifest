@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "multistep_reasoning",
+  "case": 7,
+  "response": "A\n\nThe term \"exothermic\" refers to any chemical reaction that releases net energy (typically as heat) to its surroundings. Among the given options, only a car engine relies on an internal combustion reaction (burning gasoline or diesel with oxygen) that is strongly exothermic; the released heat expands gases to perform mechanical work while also requiring a cooling system (radiator) precisely because excess thermal energy is produced. By contrast, a refrigerator moves heat from inside to outside via a refrigeration cycle whose indoor phase is endothermic (evaporative cooling), a frying pan is a passive heat-transfer tool whose source is an external burner or element, and a glass bottle has no inherent reaction or energy-releasing function. Thus the car engine is the only everyday device that visibly and continuously demonstrates the heat output characteristic of an exothermic process.",
+  "score": 5,
+  "cost": 0.001428,
+  "expected": "A",
+  "tokens": {
+    "input": 62,
+    "output": 163
+  }
+}

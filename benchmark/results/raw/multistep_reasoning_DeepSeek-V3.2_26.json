@@ -1,0 +1,13 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "multistep_reasoning",
+  "case": 26,
+  "response": "Let\u2019s think through the options:  \n\n- **Condensation** is when water vapor changes into liquid water (opposite of the question).  \n- **Transportation** is not a phase change process; it refers to movement of water in the environment.  \n- **Evaporation** is the process where liquid water changes into water vapor.  \n- **Accumulation** refers to water collecting, not changing phase.  \n\nThe correct answer is **C) evaporation**.  \n\nFinal answer: **C**",
+  "score": 5,
+  "cost": 0.0001328,
+  "expected": "C",
+  "tokens": {
+    "input": 65,
+    "output": 103
+  }
+}

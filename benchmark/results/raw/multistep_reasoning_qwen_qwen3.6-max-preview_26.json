@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "multistep_reasoning",
+  "case": 26,
+  "response": "The process where liquid water changes into water vapor (a gas) is called **evaporation**.\n\nHere is a breakdown of the options:\n*   **Condensation** is the opposite process, where water vapor turns back into liquid water.\n*   **Transportation** refers to the movement of water through the atmosphere.\n*   **Evaporation** is the phase change from liquid to gas.\n*   **Accumulation** refers to the collection of water in bodies like oceans or lakes.\n\nC",
+  "score": 5,
+  "cost": 0.0021099,
+  "expected": "C",
+  "tokens": {
+    "input": 75,
+    "output": 387
+  }
+}

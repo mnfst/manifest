@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "multistep_reasoning",
+  "case": 12,
+  "response": "The hydrosphere includes all of Earth's water, such as oceans, rivers, lakes, and groundwater. The lithosphere consists of Earth's crust and upper mantle (rocks and soil). When water moves across the land, it wears away and transports rock and soil particles. This process is known as erosion. Therefore, the movement of water directly shapes and changes the lithosphere through erosion.\n\nA) **erosion of rocks** - Correct. Water flows over land, breaking down and carrying away rock and soil.\nB) evaporation of water - Incorrect. This is a process involving the hydrosphere and atmosphere, not an effect on the lithosphere.\nC) heating of the core - Incorrect. The core's heat comes from internal planetary processes, not surface water.\nD) melting of the crust - Incorrect. Crustal melting is driven by internal heat from the mantle, not the hydrosphere.\n\nA",
+  "score": 5,
+  "cost": 0.0006685,
+  "expected": "A",
+  "tokens": {
+    "input": 86,
+    "output": 647
+  }
+}

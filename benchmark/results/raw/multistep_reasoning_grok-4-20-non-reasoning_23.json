@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "multistep_reasoning",
+  "case": 23,
+  "response": "C\n\nThe first step in any scientific investigation is to plan and set up the experiment properly. This includes preparing the tools needed to collect data, such as making a table or chart for recording observations. Only after the setup is ready can you begin making daily observations (D), repeat the investigation (A), or write a report (B).",
+  "score": 5,
+  "cost": 0.000726,
+  "expected": "C",
+  "tokens": {
+    "input": 91,
+    "output": 68
+  }
+}

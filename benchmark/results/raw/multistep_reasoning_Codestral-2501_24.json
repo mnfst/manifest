@@ -1,0 +1,13 @@
+{
+  "model": "Codestral-2501",
+  "task": "multistep_reasoning",
+  "case": 24,
+  "response": "To determine the correct answer, let's think through the process step by step:\n\n1. **Understanding Igneous Rocks**: Igneous rocks are formed from the cooling and solidification of molten rock (magma or lava).\n2. **Extrusive vs. Intrusive**: Extrusive igneous rocks form on the Earth's surface from lava, while intrusive igneous rocks form below the surface from magma.\n3. **Consistency of Classification**: The classification of a rock as extrusive igneous means it was formed from lava. This process is consistent with the definition of volcanic rocks.\n\nGiven this information, the correct answer is:\n\nD) volcanic.",
+  "score": 5,
+  "cost": 0.0001515,
+  "expected": "D",
+  "tokens": {
+    "input": 85,
+    "output": 140
+  }
+}

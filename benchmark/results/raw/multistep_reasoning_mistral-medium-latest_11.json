@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "multistep_reasoning",
+  "case": 11,
+  "response": "B) to capture sunlight",
+  "score": 5,
+  "cost": 4.32e-05,
+  "expected": "B",
+  "tokens": {
+    "input": 78,
+    "output": 6
+  }
+}

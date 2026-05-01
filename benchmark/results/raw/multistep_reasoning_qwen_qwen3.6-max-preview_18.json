@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-max-preview",
+  "task": "multistep_reasoning",
+  "case": 18,
+  "response": "The correct answer is **B) when there is a limited amount of water in their environment**.\n\n**Step-by-step reasoning:**\n1.  **Tadpole Biology:** Tadpoles are the aquatic larval stage of amphibians. They rely entirely on water for respiration (gills), movement, and to prevent their bodies from drying out.\n2.  **Metamorphosis:** This is the process where a tadpole transforms into a frog or toad, developing lungs and legs to live on land.\n3.  **Environmental Pressure:** If a tadpole lives in a temporary pond or puddle that is drying up (limited water), staying in the water too long will result in death.\n4.  **Adaptation:** An adaptation that speeds up metamorphosis allows the tadpole to transform into a terrestrial froglet quickly, enabling it to leave the drying water source and survive on land. This is a common survival strategy in species that breed in ephemeral pools.\n\nAnswer: B",
+  "score": 5,
+  "cost": 0.0045305,
+  "expected": "B",
+  "tokens": {
+    "input": 121,
+    "output": 841
+  }
+}

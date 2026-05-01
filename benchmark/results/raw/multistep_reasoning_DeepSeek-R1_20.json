@@ -1,0 +1,13 @@
+{
+  "model": "DeepSeek-R1",
+  "task": "multistep_reasoning",
+  "case": 20,
+  "response": "A trade-off occurs when improving one aspect of a design necessitates sacrificing another. \n\n- **Option A** describes a car with better gas mileage but reduced engine power. This directly illustrates a trade-off: solving the problem of fuel efficiency by sacrificing engine performance.  \n- **Option B** involves an airplane gaining both efficiency and performance, which is an improvement without sacrifice, not a trade-off.  \n- **Option C** improves taste without altering nutrition, showing enhancement without loss.  \n- **Option D** upgrades hardware while maintaining price, indicating optimization without compromise.  \n\nThe correct answer is **A**, as it clearly demonstrates the principle of a trade-off. \n\nAnswer: A",
+  "score": 5,
+  "cost": 0.00104167,
+  "expected": "A",
+  "tokens": {
+    "input": 130,
+    "output": 443
+  }
+}

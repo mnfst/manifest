@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "multistep_reasoning",
+  "case": 12,
+  "response": "A\n\nThe hydrosphere (Earth's water in all forms) interacts with the lithosphere (the rigid outer layer of rock) primarily through physical and chemical processes at their interface. Water, especially when moving (rivers, waves, glaciers, or even percolating groundwater), mechanically wears down and chemically weathers rocks. This breaks them apart and transports the sediment, which is the definition of erosion. Over geologic time, this is a major force shaping the lithosphere's surface features (canyons, coastlines, soil formation, etc.).\n\nOption B is a phase change within the hydrosphere itself and does not directly act on the lithosphere.  \nOption C refers to processes driven by radioactive decay and residual heat from Earth's formation, not by surface water.  \nOption D describes partial melting that occurs deep in the mantle or at subduction zones due to temperature/pressure changes, not a direct surface effect of the hydrosphere.\n\nThus, the only accurate direct effect among the choices is A.",
+  "score": 5,
+  "cost": 0.001702,
+  "expected": "A",
+  "tokens": {
+    "input": 71,
+    "output": 195
+  }
+}

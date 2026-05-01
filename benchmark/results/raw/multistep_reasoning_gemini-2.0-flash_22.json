@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.0-flash",
+  "task": "multistep_reasoning",
+  "case": 22,
+  "response": "Ferns thrive in moist environments. Deserts are dry, oceans are aquatic, and prairies are grasslands that can be dry. Riversides are moist.\n\nTherefore, the answer is B.\nFINAL ANSWER: B",
+  "score": 5,
+  "cost": 2.51e-05,
+  "expected": "B",
+  "tokens": {
+    "input": 75,
+    "output": 44
+  }
+}

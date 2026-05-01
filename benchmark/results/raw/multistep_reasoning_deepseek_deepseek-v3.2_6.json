@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "multistep_reasoning",
+  "case": 6,
+  "response": "Let\u2019s think through each option step by step.  \n\nWhen wood burns, it undergoes a chemical reaction (combustion).  \n- **A) It is completely destroyed.** \u2192 Incorrect. Matter isn\u2019t destroyed; it transforms.  \n- **B) It is completely changed into heat energy.** \u2192 Incorrect. Some mass becomes gases (CO\u2082, water vapor) and ash, not *only* heat energy.  \n- **C) It changes into other types of matter and energy.** \u2192 Correct. The log\u2019s mass turns into gases, ash (new matter), and releases heat/light energy.  \n- **D) It physically changes into the gaseous phase.** \u2192 Incorrect. This is a chemical change, not just a physical phase change.  \n\nSo the correct answer is **C**.  \n\nFinal answer: **C**",
+  "score": 5,
+  "cost": 0.00020985000000000003,
+  "expected": "C",
+  "tokens": {
+    "input": 87,
+    "output": 171
+  }
+}

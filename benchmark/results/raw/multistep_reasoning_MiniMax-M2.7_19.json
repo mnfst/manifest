@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "multistep_reasoning",
+  "case": 19,
+  "response": "The planets orbit the Sun due to gravitational attraction. The Sun contains approximately 99.86% of the total mass of the solar system, making it by far the most massive object. This immense mass creates a gravitational field that pulls the planets into orbital paths around it.\n\nWhile the Sun's composition (A), age (B), and energy output (C) are all true facts, they don't explain the orbital mechanics. The gravitational force (D) is what causes the planetary orbits.\n\nAnswer: D",
+  "score": 5,
+  "cost": 0.0015477,
+  "expected": "D",
+  "tokens": {
+    "input": 111,
+    "output": 324
+  }
+}

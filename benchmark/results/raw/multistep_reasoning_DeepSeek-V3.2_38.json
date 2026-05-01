@@ -1,0 +1,13 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "multistep_reasoning",
+  "case": 38,
+  "response": "Newton\u2019s second law states \\( F = ma \\), so acceleration \\( a = \\frac{F}{m} \\).  \nIf the mass \\( m \\) stays the same, then \\( a \\) is directly proportional to \\( F \\).  \nIf \\( F \\) is increased 4 times, then \\( a \\) also increases 4 times.  \n\n**Final answer:** B",
+  "score": 5,
+  "cost": 0.00011480000000000001,
+  "expected": "B",
+  "tokens": {
+    "input": 104,
+    "output": 76
+  }
+}

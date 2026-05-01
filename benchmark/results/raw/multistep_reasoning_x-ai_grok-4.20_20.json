@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "multistep_reasoning",
+  "case": 20,
+  "response": "A\n\nThe question defines a trade-off as solving one problem while sacrificing a feature (i.e., you gain in one area but lose in another).\n\n- **A**: Improving gas mileage (solving efficiency) but losing engine power is a classic trade-off. This matches the definition exactly.\n- **B**: Both efficiency and performance improve\u2014no sacrifice, so not a trade-off.\n- **C**: Taste improves with no change in nutrition\u2014pure gain, no trade-off.\n- **D**: Hardware upgrade with no price increase\u2014pure gain, no trade-off.\n\nOnly A involves a clear sacrifice.",
+  "score": 5,
+  "cost": 0.001452,
+  "expected": "A",
+  "tokens": {
+    "input": 246,
+    "output": 120
+  }
+}

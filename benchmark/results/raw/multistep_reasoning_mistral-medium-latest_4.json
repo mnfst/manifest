@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "multistep_reasoning",
+  "case": 4,
+  "response": "A) common forces",
+  "score": 5,
+  "cost": 3.6e-05,
+  "expected": "A",
+  "tokens": {
+    "input": 65,
+    "output": 5
+  }
+}

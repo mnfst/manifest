@@ -1,0 +1,13 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "multistep_reasoning",
+  "case": 38,
+  "response": "Newton\u2019s second law states that force equals mass times acceleration: \\(F = ma\\).  \nIf the mass of the object stays the same, acceleration is directly proportional to force (\\(a = F/m\\)).  \nTherefore, increasing the force by a factor of 4 will increase the acceleration by the same factor of 4.\n\nB",
+  "score": 5,
+  "cost": 0.0018143999999999999,
+  "expected": "B",
+  "tokens": {
+    "input": 108,
+    "output": 729
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "multistep_reasoning",
+  "case": 36,
+  "response": "Step by step:\n\nMomentum is calculated using the formula:\n**p = m \u00d7 v**\n\nWhere:\n- m = mass = 0.15 kg\n- v = velocity = 40 m/s\n\nCalculating:\np = 0.15 kg \u00d7 40 m/s\np = 6.0 kg\u00b7m/s\n\nThe answer is **C) 6.0 kg x m/s**",
+  "score": 5,
+  "cost": 0.0005168,
+  "expected": "C",
+  "tokens": {
+    "input": 136,
+    "output": 102
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "multistep_reasoning",
+  "case": 36,
+  "response": "B) 6.0 kg x m/s",
+  "score": 0,
+  "cost": 7.120000000000001e-05,
+  "expected": "C",
+  "tokens": {
+    "input": 123,
+    "output": 11
+  }
+}

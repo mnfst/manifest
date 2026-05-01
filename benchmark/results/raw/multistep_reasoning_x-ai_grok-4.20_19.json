@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "multistep_reasoning",
+  "case": 19,
+  "response": "D\n\nThe planets revolve around the Sun due to gravitational attraction. The Sun contains the vast majority of the mass in the solar system (approximately 99.8%), which makes its gravitational pull by far the strongest. This force keeps all the planets in their orbits. \n\nOption A is incorrect because the Sun's composition (mostly hydrogen and helium) does not explain orbital motion. Option B is irrelevant to the mechanics of revolution. Option C refers to the Sun's role as an energy source, which is important for life and weather but does not cause the planets to orbit. \n\nOnly gravitational force governs orbital paths, and the Sun is the dominant source of that force.",
+  "score": 5,
+  "cost": 0.001488,
+  "expected": "D",
+  "tokens": {
+    "input": 212,
+    "output": 133
+  }
+}

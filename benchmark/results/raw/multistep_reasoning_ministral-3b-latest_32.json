@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "multistep_reasoning",
+  "case": 32,
+  "response": "B",
+  "score": 5,
+  "cost": 3.52e-06,
+  "expected": "B",
+  "tokens": {
+    "input": 86,
+    "output": 2
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "multistep_reasoning",
+  "case": 38,
+  "response": "Step 1: Recall Newton\u2019s second law in the form \\( F = ma \\), where \\( F \\) is force, \\( m \\) is mass, and \\( a \\) is acceleration.\n\nStep 2: Rearrange to solve for acceleration: \\( a = \\frac{F}{m} \\). Since mass \\( m \\) is constant, acceleration depends directly on force.\n\nStep 3: If force increases by a factor of 4, the new acceleration is \\( a' = \\frac{4F}{m} = 4 \\cdot \\frac{F}{m} = 4a \\).\n\nFinal answer: **B**",
+  "score": 5,
+  "cost": 9.48e-06,
+  "expected": "B",
+  "tokens": {
+    "input": 104,
+    "output": 133
+  }
+}

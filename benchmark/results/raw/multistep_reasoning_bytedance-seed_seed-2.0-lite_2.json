@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "multistep_reasoning",
+  "case": 2,
+  "response": "Let\u2019s work through this question by evaluating each option to find the correct explanation:\n\nFirst, the core observation is that warm-water marine fossils (coral reefs, tropical fish, which only survive in warm, shallow ocean environments) are found in modern-day cold, mountainous New England. We need an explanation that accounts for how these ocean-dwelling organisms ended up in an inland mountain region.\n\n1.  Eliminate Option B: The creatures are explicitly defined as warm-water species, so they could never have adapted to cold climates. This directly contradicts their basic biological requirements, so B is incorrect.\n2.  Eliminate Option C: Fossilization only preserves (or mineralizes) an organism\u2019s remains; it does not explain how the organism\u2019s entire habitat moved from an ocean to a mountain range. This option is irrelevant to the location of the fossils, so C is wrong.\n3.  Eliminate Option D: Scavengers could never carry large, intact coral reef systems (or enough accumulated marine life to form widespread fossil deposits) miles up into mountainous regions. This is logistically impossible, so D is incorrect.\n4.  Confirm Option A: This explanation aligns with geological and climate science. Millions of years ago, the region that is now New England was covered by a warm, shallow ocean, where these marine creatures lived and fossilized. Over time, geological processes (plate tectonics) uplifted the ancient ocean floor to form mountains, and the region\u2019s climate also shifted to the colder, temperate conditions seen today. This perfectly accounts for the presence of the fossils.\n\nAnswer: A",
+  "score": 5,
+  "cost": 0.00081625,
+  "expected": "A",
+  "tokens": {
+    "input": 181,
+    "output": 771
+  }
+}

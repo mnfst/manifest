@@ -1,0 +1,13 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "multistep_reasoning",
+  "case": 43,
+  "response": "Coal is formed from ancient plant material that accumulated in swampy environments, was buried over time, and subjected to heat and pressure over millions of years.  \nThis matches the description in option **D**.  \n\nFinal answer: **D**",
+  "score": 5,
+  "cost": 7.64e-05,
+  "expected": "D",
+  "tokens": {
+    "input": 75,
+    "output": 49
+  }
+}

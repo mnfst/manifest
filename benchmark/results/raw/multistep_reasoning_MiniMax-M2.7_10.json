@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "multistep_reasoning",
+  "case": 10,
+  "response": "A\n\nSexual reproduction involves the combination of genetic material from two parents through meiosis and fertilization. During meiosis, crossing over and independent assortment create new combinations of alleles, and when sperm and egg unite, the offspring receive a unique mixture of genes from both parents. This mixing of genetic traits creates far more genetic diversity than asexual reproduction, where offspring are essentially clones of a single parent with identical genetic material.",
+  "score": 5,
+  "cost": 0.0016214,
+  "expected": "A",
+  "tokens": {
+    "input": 102,
+    "output": 343
+  }
+}

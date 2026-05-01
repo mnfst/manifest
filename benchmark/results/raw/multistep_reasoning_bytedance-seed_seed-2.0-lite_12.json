@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "multistep_reasoning",
+  "case": 12,
+  "response": "First, clarify the key definitions to frame the analysis:\n- The hydrosphere includes all of Earth's water (oceans, rivers, groundwater, etc.).\n- The lithosphere is Earth's rigid outer layer, consisting of the crust and upper mantle (rocky landmasses and bedrock).\nThe question asks for an effect of the hydrosphere (water) acting on the lithosphere (rocky Earth layer).\n\nEvaluate each option:\n1. Option A: Erosion of rocks. Flowing water in rivers, crashing ocean waves, and even rainfall all wear away and transport rock material over time. This is a direct, well-documented interaction where the hydrosphere modifies the lithosphere. This is a valid effect.\n2. Option B: Evaporation of water. Evaporation is water changing from liquid to vapor, which is an interaction between the hydrosphere and atmosphere, not the lithosphere. It does not impact the rocky lithosphere at all. This is incorrect.\n3. Option C: Heating of the core. Earth's core is heated by residual planetary formation heat and radioactive decay deep within the planet. The surface hydrosphere has no ability to influence the core's temperature. This is incorrect.\n4. Option D: Melting of the crust. Crust melting only occurs under extreme heat and pressure from tectonic activity, not from surface water in the hydrosphere. This is not a valid effect of the hydrosphere on the lithosphere. This is incorrect.\n\nAnswer: A",
+  "score": 5,
+  "cost": 0.0008285,
+  "expected": "A",
+  "tokens": {
+    "input": 122,
+    "output": 798
+  }
+}

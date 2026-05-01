@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "multistep_reasoning",
+  "case": 26,
+  "response": "C\n\nThe process where liquid water turns into water vapor (gas) is called evaporation. This is a fundamental phase change that occurs when water molecules gain enough energy (usually from heat) to break free from the liquid surface and enter the atmosphere as vapor. \n\n- A) Condensation is the opposite process (vapor turning back into liquid).\n- B) Transportation refers to the movement of water (as vapor, liquid, or solid) through the atmosphere or other parts of the water cycle.\n- D) Accumulation is when water collects in bodies like oceans, lakes, or groundwater.\n\nThis is a core concept in the water cycle.",
+  "score": 5,
+  "cost": 0.001382,
+  "expected": "C",
+  "tokens": {
+    "input": 183,
+    "output": 127
+  }
+}

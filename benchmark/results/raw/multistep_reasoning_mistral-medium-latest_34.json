@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "multistep_reasoning",
+  "case": 34,
+  "response": "B) incomplete dominance",
+  "score": 5,
+  "cost": 5.6e-05,
+  "expected": "B",
+  "tokens": {
+    "input": 115,
+    "output": 5
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-2505",
+  "task": "multistep_reasoning",
+  "case": 26,
+  "response": "Let's think step by step:\n\n1. The question asks about the process where liquid water changes into water vapor.\n2. **Condensation (A)** is the process where water vapor changes into liquid water, which is the opposite of what the question describes.\n3. **Transportation (B)** refers to the movement of substances, not a phase change.\n4. **Evaporation (C)** is the process where liquid water changes into water vapor, which matches the question.\n5. **Accumulation (D)** refers to the gathering or collection of substances, not a phase change.\n\nThe correct answer is:\n\nC",
+  "score": 5,
+  "cost": 0.0002776,
+  "expected": "C",
+  "tokens": {
+    "input": 64,
+    "output": 126
+  }
+}

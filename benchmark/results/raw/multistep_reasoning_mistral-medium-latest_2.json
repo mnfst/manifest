@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "multistep_reasoning",
+  "case": 2,
+  "response": "A) The climate and geology of this area have changed over time.",
+  "score": 5,
+  "cost": 8.480000000000001e-05,
+  "expected": "A",
+  "tokens": {
+    "input": 132,
+    "output": 16
+  }
+}

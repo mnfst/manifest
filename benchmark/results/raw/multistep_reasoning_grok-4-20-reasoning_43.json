@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "multistep_reasoning",
+  "case": 43,
+  "response": "D\n\n\nThe question asks for the origin of coal as a fossil fuel. Coal is an organic sedimentary rock created through carbonization: ancient land plants (from Carboniferous-era swamps) die and accumulate as peat, which is then buried, compressed, and heated over geological time (without full melting or metamorphism into rock). This matches option D exactly (\"plant remains decomposed under pressure\").\n\n- A is incorrect because evaporated seas form evaporite deposits such as halite or gypsum, not coal.\n- B is incorrect because natural gas is a separate hydrocarbon formed from kerogen (often marine organic matter) under higher heat; coal is not derived from it.\n- C is incorrect because melting followed by cooling describes the formation of igneous rocks; coal is never melted and is classified as an organic sedimentary (not metamorphic) material.\n\nThus only D is factually accurate based on standard geological formation processes.",
+  "score": 5,
+  "cost": 0.001546,
+  "expected": "D",
+  "tokens": {
+    "input": 69,
+    "output": 176
+  }
+}

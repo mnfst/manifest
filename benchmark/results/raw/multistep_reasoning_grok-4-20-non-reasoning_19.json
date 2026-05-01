@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "multistep_reasoning",
+  "case": 19,
+  "response": "D\n\nThe planets revolve around the Sun due to gravitational attraction. The Sun contains the vast majority of the mass in the solar system (approximately 99.8%), which makes its gravitational pull by far the strongest. This force keeps all the planets in their orbits. \n\nOption A is incorrect because the Sun's composition (mostly hydrogen and helium) does not explain orbital motion. Option B is incorrect because age has no bearing on gravitational force. Option C is incorrect because while the Sun does provide heat and light, those forms of energy do not cause the planets to revolve in their orbits.",
+  "score": 5,
+  "cost": 0.001116,
+  "expected": "D",
+  "tokens": {
+    "input": 90,
+    "output": 117
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-small-latest",
+  "task": "multistep_reasoning",
+  "case": 36,
+  "response": "Step 1: Recall the formula for momentum\np = m \u00d7 v\n\nStep 2: Identify the given values\nm = 0.15 kg\nv = 40 m/s\n\nStep 3: Substitute into the formula\np = 0.15 kg \u00d7 40 m/s\n\nStep 4: Calculate\np = 6.0 kg\u00b7m/s\n\nStep 5: Match with the choices\nChoice C is 6.0 kg x m/s\n\nAnswer: C",
+  "score": 5,
+  "cost": 4.65e-05,
+  "expected": "C",
+  "tokens": {
+    "input": 135,
+    "output": 110
+  }
+}

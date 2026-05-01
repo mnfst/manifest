@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "multistep_reasoning",
+  "case": 18,
+  "response": "B) when there is a limited amount of water in their environment",
+  "score": 5,
+  "cost": 7.240000000000001e-05,
+  "expected": "B",
+  "tokens": {
+    "input": 111,
+    "output": 14
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "multistep_reasoning",
+  "case": 29,
+  "response": "To answer this question, first recall the core inputs, purpose, and waste products of aerobic cellular respiration:\n1. The primary reactants (materials used) for respiration are glucose (sugar, a stored energy source) and oxygen.\n2. The process breaks down these reactants to produce ATP, the energy that powers all cellular functions.\n3. The waste products of this reaction are carbon dioxide and water, summarized by the equation:  \n   C\u2086H\u2081\u2082O\u2086 (sugar) + 6O\u2082 (oxygen) \u2192 6CO\u2082 (carbon dioxide) + 6H\u2082O (water) + ATP (cellular energy)\n\nNow evaluate each option against this framework:\n- Option A matches all details of respiration: it correctly identifies oxygen and sugar as inputs, energy production as the core purpose, and water and carbon dioxide as waste products.\n- Option B is incorrect: water and oxygen are not input and waste products as described.\n- Option C is incorrect: carbon dioxide is a waste product, not an input, and sugar is an input, not a waste.\n- Option D is incorrect: carbon dioxide is a waste product, not an input, and oxygen is an input, not a waste.\n\nAnswer: A",
+  "score": 5,
+  "cost": 0.00060525,
+  "expected": "A",
+  "tokens": {
+    "input": 197,
+    "output": 556
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "multistep_reasoning",
+  "case": 23,
+  "response": "C) Make a table for recording data.",
+  "score": 5,
+  "cost": 5.8e-05,
+  "expected": "C",
+  "tokens": {
+    "input": 95,
+    "output": 10
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "multistep_reasoning",
+  "case": 32,
+  "response": "Let's evaluate each option to identify the correct property of water:\n1.  **Option A**: Liquid water does not hold its own shape. Liquids take the shape of their container, so this statement is false.\n2.  **Option B**: When liquid water boils, it reaches its boiling point and undergoes a phase change from liquid to gaseous water vapor. This is a true, accurate property of water.\n3.  **Option C**: Freezing is the process of liquid water turning into solid ice, not the reverse. Solid ice becomes liquid when it melts, so this statement is false.\n4.  **Option D**: Ice is a solid, which has a fixed, rigid shape. It does not change shape to match its container (only liquids and gases do), so this statement is false.\n\nAnswer: B",
+  "score": 5,
+  "cost": 0.00051,
+  "expected": "B",
+  "tokens": {
+    "input": 136,
+    "output": 476
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "multistep_reasoning",
+  "case": 24,
+  "response": "Looking at this question, I need to understand the relationship between the terms.\n\n**Extrusive igneous rocks** form when lava cools on or near Earth's surface after a volcanic eruption.\n\nLet me analyze each option:\n\n- **A) Intrusive igneous**: These rocks form *below* Earth's surface from slowly cooling magma. This is the opposite of extrusive, so a rock cannot be accurately categorized as both.\n\n- **B) Clastic sedimentary**: These form from accumulated rock fragments/sediments, not from cooled lava. Incorrect classification.\n\n- **C) Metamorphic**: These form when existing rocks are changed by heat and pressure. Not applicable here.\n\n- **D) Volcanic**: This term specifically refers to rocks formed from volcanic activity, which includes all extrusive igneous rocks. \"Volcanic\" and \"extrusive igneous\" describe the same category of rocks - those that form from lava at the surface.\n\n**Key insight**: Volcanic rocks and extrusive igneous rocks are essentially synonymous terms. Both describe rocks that cool quickly at Earth's surface from lava flows.\n\nThe answer is **D**.",
+  "score": 5,
+  "cost": 0.0032230000000000006,
+  "expected": "D",
+  "tokens": {
+    "input": 98,
+    "output": 708
+  }
+}

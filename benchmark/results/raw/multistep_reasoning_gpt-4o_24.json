@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4o",
+  "task": "multistep_reasoning",
+  "case": 24,
+  "response": "To solve this question, we need to understand the terms used in the options:\n\n1. **Extrusive Igneous Rock**: This type of rock forms from the cooling and solidification of lava at the Earth's surface. It is also known as volcanic rock because it is associated with volcanic activity.\n\n2. **Intrusive Igneous Rock**: This type of rock forms from the cooling and solidification of magma beneath the Earth's surface. It is also known as plutonic rock.\n\n3. **Clastic Sedimentary Rock**: This type of rock is formed from the accumulation and lithification of mechanical weathering debris.\n\n4. **Metamorphic Rock**: This type of rock is formed from the transformation of existing rock types, in a process called metamorphism, which means \"change in form\".\n\n5. **Volcanic Rock**: This is another term for extrusive igneous rock, as it forms from lava that cools and solidifies on the Earth's surface, typically associated with volcanic activity.\n\nNow, let's analyze the options:\n\n- **Option A (Intrusive Igneous)**: This is incorrect because intrusive igneous rocks form below the Earth's surface, whereas extrusive igneous rocks form at the surface.\n\n- **Option B (Clastic Sedimentary)**: This is incorrect because clastic sedimentary rocks are formed from sediment, not from the cooling of lava or magma.\n\n- **Option C (Metamorphic)**: This is incorrect because metamorphic rocks are formed from the alteration of existing rocks under heat and pressure, not directly from lava or magma.\n\n- **Option D (Volcanic)**: This is correct because volcanic rock is another term for extrusive igneous rock. Both terms describe rocks that form from lava cooling at the Earth's surface.\n\nTherefore, the correct answer is D.",
+  "score": 5,
+  "cost": 0.0039375,
+  "expected": "D",
+  "tokens": {
+    "input": 87,
+    "output": 372
+  }
+}

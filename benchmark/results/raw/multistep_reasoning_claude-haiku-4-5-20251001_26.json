@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "multistep_reasoning",
+  "case": 26,
+  "response": "Let me think through this step by step.\n\nThe question asks about the process when liquid water changes into water vapor.\n\nLet me consider each option:\n\nA) Condensation - This is when water vapor changes into liquid water (the opposite of what's described)\n\nB) Transportation - This refers to the movement of water through the environment, not a phase change\n\nC) Evaporation - This is when liquid water changes into water vapor (gas). This is exactly what the question describes.\n\nD) Accumulation - This refers to water collecting or gathering in one place, not a phase change\n\nThe process of liquid water changing into water vapor is called evaporation.\n\n**C**",
+  "score": 5,
+  "cost": 0.0006527999999999999,
+  "expected": "C",
+  "tokens": {
+    "input": 76,
+    "output": 148
+  }
+}

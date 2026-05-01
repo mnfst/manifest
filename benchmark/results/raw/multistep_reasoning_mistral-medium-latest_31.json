@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "multistep_reasoning",
+  "case": 31,
+  "response": "B) begging for food",
+  "score": 5,
+  "cost": 4.16e-05,
+  "expected": "B",
+  "tokens": {
+    "input": 74,
+    "output": 6
+  }
+}

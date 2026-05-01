@@ -1,0 +1,13 @@
+{
+  "model": "qwen/qwen3.6-flash",
+  "task": "multistep_reasoning",
+  "case": 19,
+  "response": "The correct answer is **D**.\n\n**Step-by-step reasoning:**\n1. Planets remain in orbit around the Sun due to the force of **gravity**.\n2. The strength of a gravitational pull depends on **mass**. The more massive an object is, the stronger its gravitational pull.\n3. The Sun contains approximately 99.8% of the total mass of the entire solar system.\n4. Because of this immense mass, the Sun exerts the strongest gravitational force in the solar system, which keeps the planets bound to their orbital paths.\n5. While the Sun is indeed made of hydrogen and helium (A), is older (B), and provides heat and light (C), none of these factors are responsible for the gravitational force that causes orbital revolution.\n\nAnswer: D",
+  "score": 5,
+  "cost": 0.0006035,
+  "expected": "D",
+  "tokens": {
+    "input": 106,
+    "output": 577
+  }
+}

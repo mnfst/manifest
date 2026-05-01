@@ -1,0 +1,13 @@
+{
+  "model": "gemini-2.5-flash",
+  "task": "multistep_reasoning",
+  "case": 12,
+  "response": "A) erosion of rocks",
+  "score": 5,
+  "cost": 1.4400000000000001e-05,
+  "expected": "A",
+  "tokens": {
+    "input": 76,
+    "output": 5
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "DeepSeek-R1",
+  "task": "multistep_reasoning",
+  "case": 40,
+  "response": "",
+  "score": 0,
+  "cost": 0.0044218,
+  "expected": "B",
+  "tokens": {
+    "input": 76,
+    "output": 2000
+  }
+}

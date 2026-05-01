@@ -1,0 +1,13 @@
+{
+  "model": "Llama-4-Scout-17B-16E-Instruct",
+  "task": "multistep_reasoning",
+  "case": 24,
+  "response": "## Step 1: Understand the definition of extrusive igneous rock\nAn extrusive igneous rock is formed from lava that cools and solidifies on the Earth's surface. This process results in rocks that have a fine-grained texture due to the rapid cooling.\n\n## 2: Compare with intrusive igneous rock\nIntrusive igneous rocks, on the other hand, are formed from magma that cools and solidifies beneath the Earth's surface. This process takes longer than extrusive formation, resulting in rocks with a coarse-grained texture.\n\n## 3: Consider the characteristics of extrusive igneous rocks\nExtrusive igneous rocks are also known as volcanic rocks because they are formed from volcanic activity. This means any rock categorized as extrusive igneous could also be accurately described using terms related to volcanic activity.\n\n## 4: Evaluate the options given\n- Option A: intrusive igneous. This is incorrect because an extrusive igneous rock cannot be an intrusive igneous rock due to their different formation processes.\n- Option B: clastic sedimentary. This is incorrect because extrusive igneous rocks are formed from the cooling of lava, not from the accumulation or cementation of pre-existing rock or mineral fragments.\n- Option C: metamorphic. This is incorrect because metamorphic rocks are formed through the alteration of pre-existing rocks under high pressure and temperature conditions, not directly from the cooling of magma or lava.\n- Option D: volcanic. This is correct because extrusive igneous rocks are indeed volcanic rocks, formed from lava that has cooled on the Earth's surface.\n\nThe final answer is D.",
+  "score": 5,
+  "cost": 7.395000000000001e-05,
+  "expected": "D",
+  "tokens": {
+    "input": 91,
+    "output": 344
+  }
+}

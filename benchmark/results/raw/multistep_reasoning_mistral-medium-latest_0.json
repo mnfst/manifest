@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "multistep_reasoning",
+  "case": 0,
+  "response": "B) using storage space efficiently.",
+  "score": 5,
+  "cost": 5.28e-05,
+  "expected": "B",
+  "tokens": {
+    "input": 92,
+    "output": 8
+  }
+}

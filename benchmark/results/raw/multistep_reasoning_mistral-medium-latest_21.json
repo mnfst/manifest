@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "multistep_reasoning",
+  "case": 21,
+  "response": "B) Few plants survive severe changes to their environment.",
+  "score": 5,
+  "cost": 0.0001056,
+  "expected": "B",
+  "tokens": {
+    "input": 204,
+    "output": 12
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "multistep_reasoning",
+  "case": 43,
+  "response": "Let me think through this step by step.\n\nCoal formation involves understanding what coal is and how it forms:\n\nA) Seas that have evaporated - This would leave behind salt deposits and minerals, not coal. This is incorrect.\n\nB) Natural gas subjected to heat - Natural gas is already a fossil fuel formed from organic matter. While heat can affect natural gas, coal doesn't form this way. This is incorrect.\n\nC) Melted and cooled metamorphic rock - This describes the formation of igneous rock, not coal. Coal is not formed from melted rock. This is incorrect.\n\nD) Plant remains decomposed under pressure - Coal is a fossil fuel formed from ancient plant material (primarily from swamps and forests) that was buried and subjected to heat and pressure over millions of years. The organic matter decomposed and was compressed into coal. This is correct.\n\n**D**",
+  "score": 5,
+  "cost": 0.000836,
+  "expected": "D",
+  "tokens": {
+    "input": 90,
+    "output": 191
+  }
+}

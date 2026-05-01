@@ -1,0 +1,13 @@
+{
+  "model": "Codestral-2501",
+  "task": "multistep_reasoning",
+  "case": 19,
+  "response": "To determine why the planets in the solar system revolve around the Sun, we need to consider the forces at play. The primary force that keeps the planets in orbit is gravity. The Sun, being the most massive object in the solar system, has the strongest gravitational pull.\n\nTherefore, the correct answer is:\n\nD",
+  "score": 5,
+  "cost": 8.58e-05,
+  "expected": "D",
+  "tokens": {
+    "input": 94,
+    "output": 64
+  }
+}

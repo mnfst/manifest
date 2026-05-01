@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-1.6-flash",
+  "task": "multistep_reasoning",
+  "case": 24,
+  "response": "To determine the accurate categorization of an extrusive igneous rock, we analyze the options based on rock classification:\n\n\n### **Option A: Intrusive igneous**  \nExtrusive and intrusive igneous rocks are distinct categories. Extrusive rocks form from lava cooling *on the surface* (rapid cooling, fine-grained texture), while intrusive rocks form from magma cooling *beneath the surface* (slow cooling, coarse-grained texture). A rock cannot be both extrusive and intrusive. **This is incorrect.**  \n\n\n### **Option B: Clastic sedimentary**  \nClastic sedimentary rocks form from compacted and cemented sediments (e.g., sand, mud). Extrusive igneous rocks are formed from molten material, not sediments. They belong to a separate rock type. **This is incorrect.**  \n\n\n### **Option C: Metamorphic**  \nMetamorphic rocks form when existing rocks are altered by heat and pressure. Extrusive igneous rocks are formed by the cooling of magma/lava, not by metamorphism. They are unrelated to metamorphic rocks. **This is incorrect.**  \n\n\n### **Option D: Volcanic**  \nExtrusive igneous rocks are also called *volcanic* rocks because they form from volcanic eruptions (lava) that cool quickly on the Earth's surface. The terms \"extrusive\" and \"volcanic\" are synonymous in this context. **This is correct.**  \n\n\nAnswer: D",
+  "score": 5,
+  "cost": 0.00020947499999999998,
+  "expected": "D",
+  "tokens": {
+    "input": 169,
+    "output": 656
+  }
+}

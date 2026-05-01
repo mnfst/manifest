@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "multistep_reasoning",
+  "case": 12,
+  "response": "A\n\nThe hydrosphere (Earth's water in all forms) interacts with the lithosphere (the rigid outer layer of rock) primarily through physical and chemical processes at their interface. Water, especially when moving (as in rivers, waves, or glaciers), mechanically wears down and transports rock particles\u2014this is erosion. Additionally, water can chemically weather rocks through dissolution, hydrolysis, and other reactions, breaking them down over time. This directly alters the lithosphere's surface features, such as forming valleys, canyons, or soil.\n\nOption B (evaporation of water) is a phase change within the hydrosphere itself and does not act on the lithosphere. Option C (heating of the core) relates to internal Earth processes driven by radioactivity and residual heat, not surface water. Option D (melting of the crust) typically requires extreme heat from mantle plumes, subduction, or volcanic activity, not standard hydrospheric effects (though localized melting can occur under thick ice sheets due to pressure, this is not a primary or general effect).\n\nThus, erosion of rocks is a clear, direct, and well-established impact of the hydrosphere on the lithosphere.",
+  "score": 5,
+  "cost": 0.00221,
+  "expected": "A",
+  "tokens": {
+    "input": 193,
+    "output": 228
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "multistep_reasoning",
+  "case": 24,
+  "response": "Step-by-step reasoning:\n1. Extrusive igneous rocks form from lava that cools quickly on or near Earth\u2019s surface.\n2. The question asks how another scientist could categorize the same rock *accurately* besides \u201cextrusive igneous.\u201d\n3. The only option that is a valid alternative classification for the same rock is \u201cvolcanic,\u201d since extrusive igneous rocks are essentially volcanic in origin.\n\nFinal answer: D",
+  "score": 5,
+  "cost": 7.16e-06,
+  "expected": "D",
+  "tokens": {
+    "input": 85,
+    "output": 94
+  }
+}

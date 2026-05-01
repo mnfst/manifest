@@ -1,0 +1,13 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "multistep_reasoning",
+  "case": 43,
+  "response": "Coal is an organic sedimentary rock that originates from the accumulation of plant material in ancient swamp environments. Over millions of years, these plant remains are buried under layers of sediment and subjected to increasing heat and pressure, which transforms them into peat and eventually into coal.\n\n- Option A is incorrect because evaporated seas leave behind evaporite minerals like salt and gypsum, not coal.\n- Option B is incorrect because natural gas is a separate fossil fuel; coal is not formed from it.\n- Option C is incorrect because melted and cooled rock forms igneous rock, whereas coal is formed from organic matter.\n- Option D correctly describes the process of coal formation from plant remains under pressure.\n\nD",
+  "score": 5,
+  "cost": 0.0033821999999999997,
+  "expected": "D",
+  "tokens": {
+    "input": 81,
+    "output": 1389
+  }
+}

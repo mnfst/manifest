@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "multistep_reasoning",
+  "case": 36,
+  "response": "C",
+  "score": 5,
+  "cost": 0.0017479000000000004,
+  "expected": "C",
+  "tokens": {
+    "input": 149,
+    "output": 360
+  }
+}

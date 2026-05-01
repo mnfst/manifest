@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "multistep_reasoning",
+  "case": 20,
+  "response": "A\n\n\nThe definition given requires an explicit gain in one area (solving a problem) paired with an explicit loss in another area (sacrificing a feature). Option A meets this exactly: fuel efficiency improves (problem solved) while engine power decreases (feature sacrificed). All other options describe only gains or neutral outcomes with no counterbalancing loss, so they cannot qualify as trade-offs.",
+  "score": 5,
+  "cost": 0.000872,
+  "expected": "A",
+  "tokens": {
+    "input": 124,
+    "output": 78
+  }
+}

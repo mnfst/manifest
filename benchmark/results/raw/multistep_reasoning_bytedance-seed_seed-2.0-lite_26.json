@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "multistep_reasoning",
+  "case": 26,
+  "response": "To solve this question, we analyze the definition of each process to match it to the description of liquid water changing to water vapor:\n1.  **Option A (condensation):** Condensation is the reverse process, where water vapor (gas) cools and turns into liquid water (e.g., water droplets forming on a cold glass). This does not match the question's description, so A is incorrect.\n2.  **Option B (transportation):** In the water cycle, transportation refers to the movement of water (not a phase change from liquid to gas). This is unrelated to the process described, so B is incorrect.\n3.  **Option C (evaporation):** Evaporation occurs when liquid water gains enough energy to transition into gaseous water vapor. This exactly matches the process in the question.\n4.  **Option D (accumulation):** Accumulation describes the collection of water in large bodies like oceans or lakes, not a phase change from liquid to gas. D is incorrect.\n\nAnswer: C",
+  "score": 5,
+  "cost": 0.00053175,
+  "expected": "C",
+  "tokens": {
+    "input": 111,
+    "output": 504
+  }
+}

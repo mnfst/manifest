@@ -1,0 +1,13 @@
+{
+  "model": "Codestral-2501",
+  "task": "multistep_reasoning",
+  "case": 8,
+  "response": "To determine the answer, let's consider the typical connotations of a leopard's roar or chant. Leopards are known for their stealth and confidence in the wild. Their roars are often deep and resonant, indicating strength and dominance. Therefore, a leopard's opening chant is likely to suggest confidence.\n\nFinal answer: C",
+  "score": 5,
+  "cost": 7.98e-05,
+  "expected": "C",
+  "tokens": {
+    "input": 62,
+    "output": 68
+  }
+}

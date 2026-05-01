@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "multistep_reasoning",
+  "case": 24,
+  "response": "Let\u2019s think through this step by step.  \n\n1. **Extrusive igneous rock** means it formed from lava that cooled quickly on the Earth\u2019s surface.  \n2. Extrusive igneous rocks are also called **volcanic rocks** (because volcanoes are the typical extrusion point).  \n3. The other terms:  \n   - **Intrusive igneous** would be incorrect because that means it cooled slowly underground (e.g., granite).  \n   - **Clastic sedimentary** is wrong because that\u2019s made from fragments of other rocks, not from cooling lava.  \n   - **Metamorphic** is wrong because that requires heat and pressure altering an existing rock.  \n4. Therefore, the same rock could accurately be called **volcanic**, which is a synonym for extrusive igneous in geology.  \n\n**Final answer:** D",
+  "score": 5,
+  "cost": 0.00021520000000000003,
+  "expected": "D",
+  "tokens": {
+    "input": 82,
+    "output": 177
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "multistep_reasoning",
+  "case": 10,
+  "response": "A\n\nThe correct answer is A because sexual reproduction involves the fusion of gametes from two distinct parents, which combines and shuffles alleles through meiosis (crossing over and independent assortment) and fertilization. This generates novel genetic combinations in each offspring. In contrast, asexual reproduction typically produces clones that are genetically identical to a single parent (option D is therefore the opposite of the truth). Options B and C are irrelevant to the mechanism that creates diversity.",
+  "score": 5,
+  "cost": 0.00111,
+  "expected": "A",
+  "tokens": {
+    "input": 203,
+    "output": 88
+  }
+}

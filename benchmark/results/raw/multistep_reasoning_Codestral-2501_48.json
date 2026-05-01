@@ -1,0 +1,13 @@
+{
+  "model": "Codestral-2501",
+  "task": "multistep_reasoning",
+  "case": 48,
+  "response": "C) have accurate notes describing the location.",
+  "score": 5,
+  "cost": 4.68e-05,
+  "expected": "C",
+  "tokens": {
+    "input": 126,
+    "output": 10
+  }
+}

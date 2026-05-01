@@ -1,0 +1,13 @@
+{
+  "model": "MiniMax-M2.7",
+  "task": "multistep_reasoning",
+  "case": 39,
+  "response": "The mass of an electron is much smaller than that of a proton or neutron, and losing the entire nucleus would involve losing many protons and neutrons. Therefore, losing an electron results in the least mass loss.\n\nAnswer: D",
+  "score": 5,
+  "cost": 0.0052437,
+  "expected": "D",
+  "tokens": {
+    "input": 87,
+    "output": 1170
+  }
+}

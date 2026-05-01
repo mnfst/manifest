@@ -1,0 +1,13 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "multistep_reasoning",
+  "case": 6,
+  "response": "Let\u2019s think through each option:  \n\n- **A) It is completely destroyed.**  \n  This is incorrect because matter is not destroyed; it changes form.  \n\n- **B) It is completely changed into heat energy.**  \n  This is incorrect because the log doesn\u2019t turn *only* into heat energy; some mass becomes gases (CO\u2082, water vapor) and ash.  \n\n- **C) It changes into other types of matter and energy.**  \n  This is correct: the wood undergoes a chemical reaction (combustion) producing gases, ash, and releasing heat and light energy.  \n\n- **D) It physically changes into the gaseous phase.**  \n  This is incorrect because burning is a chemical change, not just a physical phase change.  \n\n**Final answer:** C",
+  "score": 5,
+  "cost": 0.0002032,
+  "expected": "C",
+  "tokens": {
+    "input": 87,
+    "output": 161
+  }
+}

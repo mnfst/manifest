@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-2505",
+  "task": "multistep_reasoning",
+  "case": 43,
+  "response": "Let's think step by step:\n\n1. **Option A: seas that have evaporated** - This process typically forms evaporite minerals like gypsum or halite, not coal. So, this is incorrect.\n\n2. **Option B: natural gas subjected to heat** - Natural gas is a hydrocarbon, but coal is formed from organic material, not directly from natural gas. This is also incorrect.\n\n3. **Option C: melted and cooled metamorphic rock** - Coal is a sedimentary rock, not an igneous or metamorphic rock. This process does not describe coal formation.\n\n4. **Option D: plant remains decomposed under pressure** - This is the correct process for coal formation. Coal is formed from the remains of plants that have been buried and subjected to high pressure and temperature over millions of years.\n\nFinal Answer: D",
+  "score": 5,
+  "cost": 0.00037160000000000003,
+  "expected": "D",
+  "tokens": {
+    "input": 74,
+    "output": 171
+  }
+}

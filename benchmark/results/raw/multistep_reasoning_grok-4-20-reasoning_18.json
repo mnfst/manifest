@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "multistep_reasoning",
+  "case": 18,
+  "response": "B \n\nThe tadpole stage is aquatic (with gills for breathing underwater). Metamorphosis transforms them into air-breathing adults with legs that can survive on land. Shortening this transition is an adaptation that would be selected for in environments where water is ephemeral or limited (e.g., temporary pools that can dry out rapidly). In such conditions, individuals that can complete the change to the terrestrial form faster are more likely to survive and reproduce before the habitat disappears. The other options do not create selective pressure for a faster transition out of the tadpole stage: swimming is already possible as a tadpole, fewer predators would relax pressure rather than intensify it for rapid change, and camouflage is unrelated to the duration of metamorphosis.",
+  "score": 5,
+  "cost": 0.001344,
+  "expected": "B",
+  "tokens": {
+    "input": 104,
+    "output": 142
+  }
+}

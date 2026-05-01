@@ -1,0 +1,13 @@
+{
+  "model": "mistral-medium-latest",
+  "task": "multistep_reasoning",
+  "case": 15,
+  "response": "B) Animals release CO_2, required for photosynthesis.",
+  "score": 5,
+  "cost": 6.32e-05,
+  "expected": "B",
+  "tokens": {
+    "input": 93,
+    "output": 13
+  }
+}

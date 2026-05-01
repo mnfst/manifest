@@ -1,0 +1,13 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "multistep_reasoning",
+  "case": 16,
+  "response": "The images show Europa\u2019s icy crust is fractured and shifted by stresses from Jupiter\u2019s gravity. These stresses cause the ice shell to crack and move in ways analogous to **tectonic movements** on Earth, producing the distinctive ridge and fracture patterns that suggest a subsurface ocean.\n\n**B**",
+  "score": 5,
+  "cost": 0.0009042,
+  "expected": "C",
+  "tokens": {
+    "input": 103,
+    "output": 351
+  }
+}

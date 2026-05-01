@@ -1,0 +1,13 @@
+{
+  "model": "deepseek/deepseek-v3.2",
+  "task": "multistep_reasoning",
+  "case": 23,
+  "response": "Let\u2019s think through the steps of an investigation.  \n\nThe question says the class *plans* an investigation, so they haven\u2019t started yet.  \nThe first step in planning is to decide how to collect and record data.  \nThat means setting up a structure for the experiment, which includes preparing a way to record observations \u2014 typically a data table.  \n\nSo the first step among the given choices is **C) Make a table for recording data**.  \n\n**Final answer:** C",
+  "score": 5,
+  "cost": 0.00013265,
+  "expected": "C",
+  "tokens": {
+    "input": 95,
+    "output": 99
+  }
+}

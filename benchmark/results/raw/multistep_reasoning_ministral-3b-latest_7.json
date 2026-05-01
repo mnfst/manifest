@@ -1,0 +1,13 @@
+{
+  "model": "ministral-3b-latest",
+  "task": "multistep_reasoning",
+  "case": 7,
+  "response": "Step-by-step reasoning:\n1. An exothermic reaction releases heat into the surroundings.\n2. A car engine converts chemical energy into mechanical energy and heat (exothermic).\n3. A refrigerator absorbs heat (endothermic).\n4. A frying pan heats up food (requires energy input, not exothermic).\n5. A glass bottle does not undergo a chemical reaction that releases heat.\n\nFinal answer: **A**",
+  "score": 5,
+  "cost": 6.3200000000000005e-06,
+  "expected": "A",
+  "tokens": {
+    "input": 68,
+    "output": 90
+  }
+}

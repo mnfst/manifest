@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "multistep_reasoning",
+  "case": 6,
+  "response": "C\n\nThe question is testing basic understanding of the law of conservation of matter/energy. When wood burns, it undergoes combustion: the cellulose and other organic compounds react with oxygen to produce carbon dioxide, water vapor, ash, smoke, and heat/light energy. The original atoms are not destroyed; they are rearranged into new molecules and forms of energy. This matches option C exactly.\n\n- A is wrong because matter is not \"destroyed\"; the atoms persist.\n- B is wrong because only a portion of the mass-energy is converted to heat; most becomes new chemical compounds (gases, ash).\n- D is wrong because burning is a chemical change, not a mere physical phase change (wood does not simply \"evaporate\" into gas; it reacts).\n\nThus the only accurate description is C.",
+  "score": 5,
+  "cost": 0.001446,
+  "expected": "C",
+  "tokens": {
+    "input": 83,
+    "output": 160
+  }
+}

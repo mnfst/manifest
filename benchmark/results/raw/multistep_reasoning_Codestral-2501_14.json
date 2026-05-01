@@ -1,0 +1,13 @@
+{
+  "model": "Codestral-2501",
+  "task": "multistep_reasoning",
+  "case": 14,
+  "response": "C",
+  "score": 5,
+  "cost": 2.97e-05,
+  "expected": "C",
+  "tokens": {
+    "input": 93,
+    "output": 2
+  }
+}

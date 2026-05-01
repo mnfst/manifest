@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "multistep_reasoning",
+  "case": 7,
+  "response": "First, start by defining an exothermic reaction: a chemical process that releases energy in the form of heat. We evaluate each option against this definition:\n1.  Eliminate option D (glass bottle): A glass bottle is an inert container, it cannot host or demonstrate any chemical reaction, so this is invalid.\n2.  Eliminate option B (refrigerator): A refrigerator operates as a heat pump, moving heat from its interior to the surrounding air via phase changes of a refrigerant. This is a physical thermodynamic cycle, not a chemical reaction that generates its own heat, so it cannot demonstrate an exothermic reaction.\n3.  Eliminate option C (frying pan): A frying pan is only a heat conductor. It absorbs heat from an external stove to cook food, it does not undergo or host an independent heat-releasing chemical reaction itself.\n4.  Confirm option A (car engine): A car engine runs on combustion of gasoline, a classic exothermic chemical reaction that releases large amounts of heat (which is converted to mechanical energy to power the car). This directly demonstrates an exothermic reaction.\n\nAnswer: A",
+  "score": 5,
+  "cost": 0.00092225,
+  "expected": "A",
+  "tokens": {
+    "input": 117,
+    "output": 893
+  }
+}

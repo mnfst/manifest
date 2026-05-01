@@ -1,0 +1,13 @@
+{
+  "model": "Codestral-2501",
+  "task": "multistep_reasoning",
+  "case": 22,
+  "response": "To determine where fern plants are most likely to grow, we need to consider the typical environmental conditions that ferns prefer. Ferns generally thrive in moist, shaded environments. They are often found in:\n\n- Forests\n- Wetlands\n- Shady areas along rivers or streams\n\nGiven these preferences, the most likely option is:\n\nB) along a river",
+  "score": 5,
+  "cost": 8.97e-05,
+  "expected": "B",
+  "tokens": {
+    "input": 77,
+    "output": 74
+  }
+}

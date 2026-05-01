@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "multistep_reasoning",
+  "case": 29,
+  "response": "A\n\n\nThe process described is cellular respiration (the opposite of photosynthesis). Its balanced chemical equation is C\u2086H\u2081\u2082O\u2086 + 6O\u2082 \u2192 6CO\u2082 + 6H\u2082O + energy (ATP). This directly shows that the inputs/reactants are sugar (glucose) and oxygen, while the outputs/waste products are CO\u2082 and H\u2082O. Option A is the only choice that matches these inputs and outputs exactly; all other options reverse or mix up the reactants and products.",
+  "score": 5,
+  "cost": 0.00111,
+  "expected": "A",
+  "tokens": {
+    "input": 143,
+    "output": 103
+  }
+}

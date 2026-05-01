@@ -1,0 +1,13 @@
+{
+  "model": "x-ai/grok-4.20",
+  "task": "multistep_reasoning",
+  "case": 23,
+  "response": "C\n\nThe first step in any scientific investigation is to plan how you will collect and organize your data. Making a table for recording data (C) is part of setting up the experimental procedure before you begin. The other options (repeating the investigation, writing a report, or making daily observations) all come after the experiment has started or after it has finished.",
+  "score": 5,
+  "cost": 0.00101,
+  "expected": "C",
+  "tokens": {
+    "input": 213,
+    "output": 73
+  }
+}

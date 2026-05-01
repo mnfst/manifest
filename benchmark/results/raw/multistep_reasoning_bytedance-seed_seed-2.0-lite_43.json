@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "multistep_reasoning",
+  "case": 43,
+  "response": "To solve this question, we analyze each option by reviewing the origin of coal and eliminating incorrect choices:\n\n### Step 1: Recall how coal forms\nCoal is an organic fossil fuel that forms over millions of years from dead plant matter that accumulates in swampy, waterlogged environments. This plant material is buried under sediment, where it is subjected to intense pressure and heat, gradually transforming into coal.\n\n### Step 2: Evaluate each option\n- **Option A**: Evaporated seas form minerals like rock salt, not coal. Oil and natural gas (not coal) originate from marine organisms, so this is incorrect.\n- **Option B**: Coal does not form from natural gas. Both coal and natural gas are independent fossil fuels, so this is backwards and incorrect.\n- **Option C**: Melted and cooled rock forms igneous rock, not coal. Coal is an organic sedimentary (or low-grade metamorphic) rock, not formed from inorganic melted rock, so this is incorrect.\n- **Option D**: Plant remains decomposed under pressure directly matches the accepted formation process of coal. This is correct.\n\nAnswer: D",
+  "score": 5,
+  "cost": 0.000614,
+  "expected": "D",
+  "tokens": {
+    "input": 124,
+    "output": 583
+  }
+}

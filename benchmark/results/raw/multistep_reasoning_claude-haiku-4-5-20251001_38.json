@@ -1,0 +1,13 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "task": "multistep_reasoning",
+  "case": 38,
+  "response": "Let me work through this step by step using Newton's second law.\n\nNewton's second law states: F = ma\n\nWhere:\n- F = force\n- m = mass\n- a = acceleration\n\nRearranging for acceleration: a = F/m\n\nNow, if the force is increased four times:\n- Original force: F\n- New force: 4F\n\nOriginal acceleration: a\u2081 = F/m\n\nNew acceleration: a\u2082 = 4F/m = 4(F/m) = 4a\u2081\n\nThis shows that the acceleration increases by a factor of 4.\n\nSince mass remains constant in this experiment, acceleration is directly proportional to force. When force increases by a factor of 4, acceleration also increases by a factor of 4.\n\n**B**",
+  "score": 5,
+  "cost": 0.0008087999999999999,
+  "expected": "B",
+  "tokens": {
+    "input": 116,
+    "output": 179
+  }
+}

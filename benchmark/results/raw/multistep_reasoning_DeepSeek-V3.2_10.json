@@ -1,0 +1,13 @@
+{
+  "model": "DeepSeek-V3.2",
+  "task": "multistep_reasoning",
+  "case": 10,
+  "response": "Sexual reproduction involves two parents contributing genetic material, so offspring inherit a unique combination of genes from both.  \nAsexual reproduction produces genetically identical offspring from one parent, so there is less genetic variation.  \nThe best choice from the options is the one that directly states traits from two parents are combined.  \n\n**Final answer: A**",
+  "score": 5,
+  "cost": 0.0001006,
+  "expected": "A",
+  "tokens": {
+    "input": 86,
+    "output": 68
+  }
+}

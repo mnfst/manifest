@@ -1,0 +1,13 @@
+{
+  "model": "Codestral-2501",
+  "task": "multistep_reasoning",
+  "case": 23,
+  "response": "To determine the first step in the investigation, let's think through the process:\n\n1. **Make a table for recording data**: Before you can record data, you need a place to record it. This step ensures that you have a structured way to collect and organize the information.\n2. **Make daily observations of the light bulbs**: This step involves actively monitoring the light bulbs, which is necessary for collecting data.\n3. **Repeat the investigation**: This step comes after you have completed the initial investigation and want to verify or extend your findings.\n4. **Write a report of the results**: This step comes after you have completed the investigation and analyzed the data.\n\nGiven this order, the first step should be:\n\nC) Make a table for recording data.",
+  "score": 5,
+  "cost": 0.000168,
+  "expected": "C",
+  "tokens": {
+    "input": 95,
+    "output": 155
+  }
+}

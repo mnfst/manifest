@@ -1,0 +1,13 @@
+{
+  "model": "bytedance-seed/seed-2.0-lite",
+  "task": "multistep_reasoning",
+  "case": 24,
+  "response": "To solve this question, we first review key definitions of rock types and eliminate incorrect options:\n1.  **Core definition of extrusive igneous rock**: Extrusive igneous rocks form when lava cools and solidifies *on Earth's surface*, directly from volcanic activity. They are also commonly referred to as volcanic rocks.\n\nNow evaluate each option:\n-   **Option A (intrusive igneous)**: Intrusive igneous rocks cool slowly *underground*, the opposite of extrusive (surface-cooled) rocks. A single rock cannot be both, so A is incorrect.\n-   **Option B (clastic sedimentary)**: Clastic sedimentary rocks form from compacted sediment (sand, silt, etc.). Igneous rocks form from cooled magma/lava, which is a completely different origin. A rock cannot be both, so B is incorrect.\n-   **Option C (metamorphic)**: Metamorphic rocks form when pre-existing rocks are altered by extreme heat and pressure. If a rock were categorized as unaltered extrusive igneous, it cannot also be classified as metamorphic, so C is incorrect.\n-   **Option D (volcanic)**: Extrusive igneous rocks are interchangeably called volcanic rocks, because they form directly from volcanic eruptions that release lava to the surface. This is an accurate alternate classification.\n\nAnswer: D",
+  "score": 5,
+  "cost": 0.00077375,
+  "expected": "D",
+  "tokens": {
+    "input": 135,
+    "output": 740
+  }
+}

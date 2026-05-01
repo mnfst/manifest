@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "multistep_reasoning",
+  "case": 7,
+  "response": "A\n\nThe question asks for the best demonstration of an exothermic reaction (one that releases heat/energy to surroundings).\n\n- A) Car engine: Combustion of fuel is highly exothermic, releasing significant heat (and mechanical energy). This is a clear, real-world example.\n- B) Refrigerator: This moves heat from inside to outside but is not a chemical reaction; it's a heat pump using endothermic evaporation and requires external energy input.\n- C) Frying pan: This is a tool that absorbs and transfers heat from an external source (stove). The pan itself isn't demonstrating a reaction releasing heat.\n- D) Glass bottle: No inherent reaction or heat release; it's inert.\n\nOnly A directly and best demonstrates an exothermic process.",
+  "score": 5,
+  "cost": 0.001284,
+  "expected": "A",
+  "tokens": {
+    "input": 62,
+    "output": 145
+  }
+}

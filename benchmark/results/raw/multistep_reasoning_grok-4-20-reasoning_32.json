@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-reasoning",
+  "task": "multistep_reasoning",
+  "case": 32,
+  "response": "B \n\nThe question asks for the statement that correctly describes a property of water (i.e., one that is factually accurate based on basic physical science). \n\n- A is incorrect because liquids (including water) take the shape of their container; only solids hold a fixed shape. \n- B is correct because boiling is the phase transition where liquid water turns into water vapor (gas) at or above 100\u00b0C at standard pressure; this is a standard physical property. \n- C is incorrect because freezing is the phase transition from liquid water to solid ice (the reverse of what the option states). \n- D is incorrect because solids (including ice) hold a fixed shape independent of their container; only liquids conform to a container's shape. \n\nThis leaves B as the only accurate description.",
+  "score": 5,
+  "cost": 0.001434,
+  "expected": "B",
+  "tokens": {
+    "input": 81,
+    "output": 159
+  }
+}

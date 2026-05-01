@@ -1,0 +1,13 @@
+{
+  "model": "Kimi-K2.6",
+  "task": "multistep_reasoning",
+  "case": 4,
+  "response": "Gravity is a force that pulls objects with mass toward each other. Magnetism is a force that attracts or repels magnetic materials. Therefore, both are forces. Option A (\u201ccommon forces\u201d) correctly describes them. Option B is incorrect because they are not cycles. Option C is incorrect because they are not states of matter. Option D is incorrect because they are forces, not forms of energy.\n\nA",
+  "score": 5,
+  "cost": 0.0028476,
+  "expected": "A",
+  "tokens": {
+    "input": 70,
+    "output": 1169
+  }
+}

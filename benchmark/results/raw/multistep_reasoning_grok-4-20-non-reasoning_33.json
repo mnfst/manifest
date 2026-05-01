@@ -1,0 +1,13 @@
+{
+  "model": "grok-4-20-non-reasoning",
+  "task": "multistep_reasoning",
+  "case": 33,
+  "response": "D\n\nThe question that best helps determine the composition of an unknown substance is one that reveals a characteristic physical or chemical property. Option D (Does the sample conduct electricity?) directly tests for electrical conductivity, which is a key distinguishing property between different types of materials (e.g., metals conduct well, while many non-metals and insulators do not). This can help classify the substance and narrow down its possible composition.\n\nThe other options are not useful for determining composition:\n- A) Temperature is not an intrinsic property related to composition.\n- B) Value is economic, not scientific.\n- C) Whether it has been melted before provides no information about what it is made of.",
+  "score": 5,
+  "cost": 0.001236,
+  "expected": "D",
+  "tokens": {
+    "input": 82,
+    "output": 134
+  }
+}
