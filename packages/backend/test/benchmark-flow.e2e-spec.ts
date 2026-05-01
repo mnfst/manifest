@@ -48,11 +48,24 @@ afterEach(() => {
 const api = () => request(app.getHttpServer());
 const auth = (r: request.Test) => r.set('x-api-key', TEST_API_KEY);
 
+function isOpenAiChatCompletionsUrl(url: string): boolean {
+  // Parse the URL so a malicious `api.openai.com.attacker.com` host can't slip
+  // past a substring check. CodeQL flags string.includes() on hostnames as
+  // "incomplete URL substring sanitization" for this reason.
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return false;
+  }
+  return parsed.hostname === 'api.openai.com' && parsed.pathname.endsWith('/chat/completions');
+}
+
 function stubOpenAiChat(body: Record<string, unknown>, init: ResponseInit = { status: 200 }): void {
   const prev = global.fetch;
   global.fetch = (async (input: Parameters<typeof fetch>[0], opts?: Parameters<typeof fetch>[1]) => {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
-    if (url.includes('api.openai.com') && url.includes('chat/completions')) {
+    if (isOpenAiChatCompletionsUrl(url)) {
       return new Response(JSON.stringify(body), {
         status: init.status ?? 200,
         headers: { 'content-type': 'application/json', 'x-ratelimit-remaining-requests': '49' },
