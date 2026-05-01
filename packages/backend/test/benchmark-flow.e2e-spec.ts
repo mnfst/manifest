@@ -185,7 +185,9 @@ describe('Benchmark history — GET /api/v1/benchmark/runs', () => {
     expect(target?.prompt).toBe('hello there');
     expect(target?.modelCount).toBe(2);
 
-    const detail = await auth(api().get(`/api/v1/benchmark/runs/${runId}`)).expect(200);
+    const detail = await auth(
+      api().get(`/api/v1/benchmark/runs/${runId}`).query({ agentName: 'test-agent' }),
+    ).expect(200);
     expect(detail.body.columns).toHaveLength(2);
     const contents = detail.body.columns.map((c: { content: string }) => c.content);
     expect(contents).toEqual(expect.arrayContaining(['one', 'two']));
@@ -193,10 +195,16 @@ describe('Benchmark history — GET /api/v1/benchmark/runs', () => {
   });
 
   it('returns 404 when the run id does not belong to the current user', async () => {
-    await auth(api().get('/api/v1/benchmark/runs/bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb')).expect(404);
+    await auth(
+      api()
+        .get('/api/v1/benchmark/runs/bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb')
+        .query({ agentName: 'test-agent' }),
+    ).expect(404);
   });
 
   it('returns 400 for a malformed run id', async () => {
-    await auth(api().get('/api/v1/benchmark/runs/not-a-uuid')).expect(400);
+    await auth(
+      api().get('/api/v1/benchmark/runs/not-a-uuid').query({ agentName: 'test-agent' }),
+    ).expect(400);
   });
 });
