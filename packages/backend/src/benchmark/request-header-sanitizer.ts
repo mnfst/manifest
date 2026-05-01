@@ -39,16 +39,21 @@ export function sanitizeRequestHeaders(
   raw: Record<string, string> | undefined,
 ): Record<string, string> | undefined {
   if (!raw) return undefined;
+  // HTTP header names are case-insensitive. Without this, `{'X-Title':'a','x-title':'b'}`
+  // forwards two distinct headers, lets a client fingerprint upstream caches,
+  // and burns two of MAX_HEADERS slots for one logical header.
   const out: Record<string, string> = {};
-  let count = 0;
+  const seenLower = new Set<string>();
   for (const [rawKey, rawValue] of Object.entries(raw)) {
-    if (count >= MAX_HEADERS) break;
+    if (Object.keys(out).length >= MAX_HEADERS) break;
     if (typeof rawKey !== 'string' || typeof rawValue !== 'string') continue;
     const key = rawKey.trim();
     if (!key) continue;
     if (isBlockedHeaderName(key)) continue;
+    const lower = key.toLowerCase();
+    if (seenLower.has(lower)) continue;
+    seenLower.add(lower);
     out[key] = rawValue.slice(0, MAX_VALUE_LENGTH);
-    count++;
   }
   return Object.keys(out).length > 0 ? out : undefined;
 }

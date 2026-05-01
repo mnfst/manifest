@@ -13,7 +13,8 @@ import { IngestEventBusService } from '../common/services/ingest-event-bus.servi
 import { whitelistResponseHeaders } from './benchmark-response-headers';
 import { sanitizeRequestHeaders } from './request-header-sanitizer';
 import { BenchmarkHistoryService } from './benchmark-history.service';
-import type { RunBenchmarkDto, BenchmarkMessageDto } from './dto/run-benchmark.dto';
+import { buildForwardBody, derivePromptForHistory } from './benchmark-payload';
+import type { RunBenchmarkDto } from './dto/run-benchmark.dto';
 
 interface OpenAiChoice {
   message?: { content?: unknown };
@@ -44,14 +45,6 @@ export class BenchmarkService {
     private readonly messageRepo: Repository<AgentMessage>,
   ) {}
 
-  private extractPrompt(messages: BenchmarkMessageDto[]): string {
-    for (let i = messages.length - 1; i >= 0; i--) {
-      const m = messages[i]!;
-      if (m.role === 'user' && typeof m.content === 'string') return m.content;
-    }
-    return messages[messages.length - 1]?.content ?? '';
-  }
-
   async run(userId: string, dto: RunBenchmarkDto): Promise<BenchmarkRunResult> {
     const agent = await this.resolveAgent.resolve(userId, dto.agentName);
 
@@ -81,7 +74,7 @@ export class BenchmarkService {
         provider: dto.provider,
         apiKey,
         model: dto.model,
-        body: { messages: dto.messages },
+        body: buildForwardBody(dto),
         stream: false,
         authType,
         extraHeaders,
@@ -116,7 +109,7 @@ export class BenchmarkService {
         userId,
         agent,
         runId: dto.runId,
-        prompt: this.extractPrompt(dto.messages),
+        prompt: derivePromptForHistory(dto),
         model: dto.model,
         provider: dto.provider,
         authType,
@@ -159,7 +152,7 @@ export class BenchmarkService {
       userId,
       agent,
       runId: dto.runId,
-      prompt: this.extractPrompt(dto.messages),
+      prompt: derivePromptForHistory(dto),
       model: dto.model,
       provider: dto.provider,
       authType,

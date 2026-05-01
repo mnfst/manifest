@@ -13,7 +13,11 @@ import {
   Max,
   MaxLength,
   Min,
+  Validate,
   ValidateNested,
+  ValidationArguments,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { AUTH_TYPES } from 'manifest-shared';
@@ -27,6 +31,31 @@ export class BenchmarkMessageDto {
   @IsNotEmpty()
   @MaxLength(50_000)
   content!: string;
+}
+
+/**
+ * Constraint asserting exactly one of `messages` / `rawRequestBody` is set.
+ *
+ * `messages` is the chat-completions shape Manifest builds itself; replay
+ * (future) ships `rawRequestBody`, the verbatim recorded payload. Allowing
+ * both at once is ambiguous (which one wins?); allowing neither is a
+ * silent no-op upstream. Exactly-one is the only safe contract.
+ */
+@ValidatorConstraint({ name: 'BenchmarkPayloadShape', async: false })
+export class BenchmarkPayloadShapeConstraint implements ValidatorConstraintInterface {
+  validate(_value: unknown, args: ValidationArguments): boolean {
+    const obj = args.object as { messages?: unknown; rawRequestBody?: unknown };
+    const hasMessages = Array.isArray(obj.messages) && obj.messages.length > 0;
+    const hasRaw =
+      obj.rawRequestBody != null &&
+      typeof obj.rawRequestBody === 'object' &&
+      !Array.isArray(obj.rawRequestBody);
+    return hasMessages !== hasRaw; // XOR
+  }
+
+  defaultMessage(): string {
+    return 'exactly one of `messages` or `rawRequestBody` must be provided';
+  }
 }
 
 export class RunBenchmarkDto {
@@ -45,14 +74,26 @@ export class RunBenchmarkDto {
 
   @IsOptional()
   @IsIn(AUTH_TYPES)
-  authType?: 'api_key' | 'subscription';
+  authType?: 'api_key' | 'subscription' | 'local';
 
+  @IsOptional()
   @IsArray()
   @ArrayMinSize(1)
   @ArrayMaxSize(50)
   @ValidateNested({ each: true })
   @Type(() => BenchmarkMessageDto)
-  messages!: BenchmarkMessageDto[];
+  @Validate(BenchmarkPayloadShapeConstraint)
+  messages?: BenchmarkMessageDto[];
+
+  /**
+   * Verbatim recorded request body, replayed as-is. Optional today —
+   * the future "replay a recorded query" flow will set this and leave
+   * `messages` empty. Validated only for size and basic shape; the
+   * provider client treats it as an opaque JSON object.
+   */
+  @IsOptional()
+  @IsObject()
+  rawRequestBody?: Record<string, unknown>;
 
   /**
    * Client-generated identifier linking every column of the same UI submit
@@ -65,7 +106,7 @@ export class RunBenchmarkDto {
 
   /**
    * 0-indexed position of this column within its run, used to preserve
-   * column order on replay.
+   * column order when rendering history.
    */
   @IsOptional()
   @IsInt()

@@ -1,6 +1,7 @@
-import { createEffect, For, onCleanup, Show, type Component } from 'solid-js';
+import { createEffect, createSignal, For, onCleanup, Show, type Component } from 'solid-js';
 import type { BenchmarkHistoryRunSummary } from '../../services/api.js';
 import { formatRelativeTime, formatTime } from '../../services/formatters.js';
+import { useFocusTrap } from '../../services/use-focus-trap.js';
 import { XIcon } from './icons.jsx';
 
 interface Props {
@@ -44,6 +45,8 @@ function truncate(text: string, max: number): string {
 }
 
 const BenchmarkHistoryDrawer: Component<Props> = (props) => {
+  const [panelRef, setPanelRef] = createSignal<HTMLElement | undefined>();
+
   createEffect(() => {
     if (!props.open) return;
     const onKey = (event: KeyboardEvent) => {
@@ -56,10 +59,16 @@ const BenchmarkHistoryDrawer: Component<Props> = (props) => {
     onCleanup(() => window.removeEventListener('keydown', onKey));
   });
 
+  useFocusTrap(
+    () => props.open,
+    () => panelRef(),
+  );
+
   return (
     <Show when={props.open}>
       <div class="benchmark-history__backdrop" role="presentation" onClick={props.onClose} />
       <aside
+        ref={setPanelRef}
         class="benchmark-history benchmark-history--open"
         aria-label="Benchmark history"
         role="dialog"

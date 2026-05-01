@@ -18,18 +18,28 @@ export interface RunBenchmarkRequest {
   model: string;
   provider: string;
   authType?: AuthType;
-  messages: { role: 'system' | 'user' | 'assistant'; content: string }[];
+  /** Standard chat-completions shape. Today this is always set. */
+  messages?: { role: 'system' | 'user' | 'assistant'; content: string }[];
+  /**
+   * Verbatim recorded request body, replayed as-is. Reserved for the future
+   * "replay a recorded query" flow; today the page never sets this.
+   */
+  rawRequestBody?: Record<string, unknown>;
   runId?: string;
   position?: number;
   requestHeaders?: Record<string, string>;
 }
 
-export async function runBenchmark(req: RunBenchmarkRequest): Promise<BenchmarkRunResult> {
+export async function runBenchmark(
+  req: RunBenchmarkRequest,
+  init?: { signal?: AbortSignal },
+): Promise<BenchmarkRunResult> {
   const res = await fetch(`${BASE_URL}/benchmark/run`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(req),
+    signal: init?.signal,
   });
   if (!res.ok) {
     throw new Error(await parseErrorMessage(res));
@@ -41,6 +51,11 @@ export function listBenchmarkRuns(agentName: string): Promise<BenchmarkHistoryRu
   return fetchJson<BenchmarkHistoryRunSummary[]>('/benchmark/runs', { agentName });
 }
 
-export function getBenchmarkRun(runId: string): Promise<BenchmarkHistoryRunDetail> {
-  return fetchJson<BenchmarkHistoryRunDetail>(`/benchmark/runs/${encodeURIComponent(runId)}`);
+export function getBenchmarkRun(
+  runId: string,
+  agentName: string,
+): Promise<BenchmarkHistoryRunDetail> {
+  return fetchJson<BenchmarkHistoryRunDetail>(`/benchmark/runs/${encodeURIComponent(runId)}`, {
+    agentName,
+  });
 }

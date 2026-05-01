@@ -34,6 +34,8 @@ export interface BenchmarkStore {
   ) => void;
   runAll: (options?: RunOptions) => Promise<void>;
   retryColumn: (id: string, options?: RunOptions) => Promise<void>;
+  cancelColumn: (id: string) => void;
+  cancelAll: () => void;
   recallPreviousPrompt: () => void;
   isAnyRunning: () => boolean;
   pickDefaults: (available: AvailableModel[], connected: RoutingProvider[]) => void;
@@ -103,6 +105,16 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
   const [columns, setColumns] = createStore<BenchmarkColumn[]>([]);
   const [prompt, setPrompt] = createSignal('');
   const [history, setHistory] = createSignal<string[]>([]);
+  // Per-column AbortController. Set when a column starts loading, cleared
+  // when it settles. Lives outside the store so it doesn't trigger reactivity.
+  const inflight = new Map<string, AbortController>();
+
+  const abortColumn = (id: string): void => {
+    const ctrl = inflight.get(id);
+    if (!ctrl) return;
+    ctrl.abort();
+    inflight.delete(id);
+  };
 
   const addColumn: BenchmarkStore['addColumn'] = (model, provider, authType, displayName) => {
     if (columns.length >= MAX_COLUMNS) return;
@@ -120,6 +132,7 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
   };
 
   const removeColumn: BenchmarkStore['removeColumn'] = (id) => {
+    abortColumn(id);
     setColumns((prev) => prev.filter((c) => c.id !== id));
   };
 
@@ -130,6 +143,7 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
     authType,
     displayName,
   ) => {
+    abortColumn(id);
     setColumns(
       produce((cols) => {
         const col = cols.find((c) => c.id === id);
@@ -156,6 +170,9 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
   ): Promise<void> => {
     const col = columns.find((c) => c.id === colId);
     if (!col) return;
+    abortColumn(colId);
+    const ctrl = new AbortController();
+    inflight.set(colId, ctrl);
     setColumns(
       (c) => c.id === colId,
       produce((c) => {
@@ -167,16 +184,22 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
       }),
     );
     try {
-      const result = await runBenchmark({
-        agentName,
-        model: col.model,
-        provider: col.provider,
-        authType: col.authType,
-        messages: [{ role: 'user', content: promptText }],
-        runId,
-        position,
-        ...(requestHeaders && Object.keys(requestHeaders).length > 0 ? { requestHeaders } : {}),
-      });
+      const result = await runBenchmark(
+        {
+          agentName,
+          model: col.model,
+          provider: col.provider,
+          authType: col.authType,
+          messages: [{ role: 'user', content: promptText }],
+          runId,
+          position,
+          ...(requestHeaders && Object.keys(requestHeaders).length > 0 ? { requestHeaders } : {}),
+        },
+        { signal: ctrl.signal },
+      );
+      // The user may have removed/replaced the column while we were waiting;
+      // drop the result silently rather than re-instate a column that's gone.
+      if (inflight.get(colId) !== ctrl) return;
       setColumns(
         (c) => c.id === colId,
         produce((c) => {
@@ -187,6 +210,10 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
         }),
       );
     } catch (err) {
+      if (inflight.get(colId) !== ctrl) return;
+      // AbortError is the user's intent (cancel/replace/remove) — don't paint
+      // an error state, just leave the column where the abort path put it.
+      if (err instanceof DOMException && err.name === 'AbortError') return;
       const message = err instanceof Error ? err.message : 'Request failed';
       setColumns(
         (c) => c.id === colId,
@@ -195,6 +222,8 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
           c.error = message;
         }),
       );
+    } finally {
+      if (inflight.get(colId) === ctrl) inflight.delete(colId);
     }
   };
 
@@ -215,7 +244,24 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
     await runSingle(id, promptText, newRunId(), Math.max(position, 0), options?.requestHeaders);
   };
 
+  const cancelColumn: BenchmarkStore['cancelColumn'] = (id) => {
+    abortColumn(id);
+    setColumns(
+      (c) => c.id === id,
+      produce((c) => {
+        if (c.status === 'loading') c.status = 'idle';
+      }),
+    );
+  };
+
+  const cancelAll: BenchmarkStore['cancelAll'] = () => {
+    for (const id of Array.from(inflight.keys())) cancelColumn(id);
+  };
+
   const loadHistoryRun: BenchmarkStore['loadHistoryRun'] = (detail) => {
+    // History replaces the entire column set; abort anything in flight first
+    // so stale results don't paint over the loaded columns.
+    cancelAll();
     const next: BenchmarkColumn[] = detail.columns.map((c) => ({
       id: nextColumnId(),
       model: c.model,
@@ -344,6 +390,8 @@ export function createBenchmarkStore(agentName: string): BenchmarkStore {
     replaceColumnModel,
     runAll,
     retryColumn,
+    cancelColumn,
+    cancelAll,
     recallPreviousPrompt,
     isAnyRunning,
     pickDefaults,

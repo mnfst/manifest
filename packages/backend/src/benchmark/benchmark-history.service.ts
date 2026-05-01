@@ -48,25 +48,11 @@ export class BenchmarkHistoryService {
   ) {}
 
   async saveColumn(input: SaveColumnInput): Promise<void> {
+    const runId = input.runId ?? uuid();
+
+    const insertedRun = await this.ensureRun(runId, input);
+
     try {
-      const runId = input.runId ?? uuid();
-      const existing = runId
-        ? await this.runRepo.findOne({ where: { id: runId, user_id: input.userId } })
-        : null;
-
-      if (!existing) {
-        await this.runRepo.insert({
-          id: runId,
-          tenant_id: input.agent.tenant_id,
-          user_id: input.userId,
-          agent_id: input.agent.id,
-          agent_name: input.agent.name,
-          prompt: input.prompt.slice(0, 10_000),
-          created_at: new Date().toISOString(),
-        });
-        await this.pruneOldRuns(input.userId, input.agent.id);
-      }
-
       await this.columnRepo.insert({
         id: uuid(),
         benchmark_run_id: runId,
@@ -89,6 +75,50 @@ export class BenchmarkHistoryService {
       this.logger.warn(
         `Failed to persist benchmark history column: ${err instanceof Error ? err.message : err}`,
       );
+      return;
+    }
+
+    if (insertedRun) {
+      try {
+        await this.pruneOldRuns(input.userId, input.agent.id);
+      } catch (err) {
+        this.logger.warn(
+          `Failed to prune old benchmark runs: ${err instanceof Error ? err.message : err}`,
+        );
+      }
+    }
+  }
+
+  /**
+   * Idempotent run-row creation. Multiple columns of the same UI submit fan
+   * out concurrently and share `runId`; without `ON CONFLICT DO NOTHING` the
+   * losers race-fail with a primary-key violation and we silently drop their
+   * column inserts. Returns whether *this* call inserted the row, so the
+   * caller knows when it owns the prune.
+   */
+  private async ensureRun(runId: string, input: SaveColumnInput): Promise<boolean> {
+    try {
+      const result = await this.runRepo
+        .createQueryBuilder()
+        .insert()
+        .into('benchmark_runs')
+        .values({
+          id: runId,
+          tenant_id: input.agent.tenant_id,
+          user_id: input.userId,
+          agent_id: input.agent.id,
+          agent_name: input.agent.name,
+          prompt: input.prompt.slice(0, 10_000),
+          created_at: new Date().toISOString(),
+        })
+        .orIgnore()
+        .execute();
+      return (result.identifiers ?? []).length > 0;
+    } catch (err) {
+      this.logger.warn(
+        `Failed to ensure benchmark run row: ${err instanceof Error ? err.message : err}`,
+      );
+      return false;
     }
   }
 
@@ -125,8 +155,17 @@ export class BenchmarkHistoryService {
     });
   }
 
-  async getRun(userId: string, runId: string): Promise<BenchmarkHistoryRunDetail> {
-    const run = await this.runRepo.findOne({ where: { id: runId, user_id: userId } });
+  async getRun(
+    userId: string,
+    runId: string,
+    agentId?: string,
+  ): Promise<BenchmarkHistoryRunDetail> {
+    const where: { id: string; user_id: string; agent_id?: string } = {
+      id: runId,
+      user_id: userId,
+    };
+    if (agentId) where.agent_id = agentId;
+    const run = await this.runRepo.findOne({ where });
     if (!run) throw new NotFoundException(`Benchmark run "${runId}" not found`);
 
     const columns = await this.columnRepo.find({

@@ -1,10 +1,8 @@
 const ALLOWED_EXACT = new Set<string>([
   'content-type',
   'date',
-  'server',
   'x-request-id',
   'request-id',
-  'cf-ray',
   'openai-model',
   'openai-organization',
   'openai-processing-ms',

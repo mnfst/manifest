@@ -1,4 +1,5 @@
-import { For, Show, createEffect, onCleanup, type Component } from 'solid-js';
+import { For, Show, createEffect, createSignal, onCleanup, type Component } from 'solid-js';
+import { useFocusTrap } from '../../services/use-focus-trap.js';
 import { PlusIcon, TrashIcon, XIcon } from './icons.jsx';
 
 export interface HeaderEntry {
@@ -53,6 +54,8 @@ export function blankEntry(): HeaderEntry {
 }
 
 const RequestHeadersPopover: Component<Props> = (props) => {
+  const [panelRef, setPanelRef] = createSignal<HTMLElement | undefined>();
+
   createEffect(() => {
     if (!props.open) return;
     const onKey = (event: KeyboardEvent) => {
@@ -64,6 +67,11 @@ const RequestHeadersPopover: Component<Props> = (props) => {
     window.addEventListener('keydown', onKey);
     onCleanup(() => window.removeEventListener('keydown', onKey));
   });
+
+  useFocusTrap(
+    () => props.open,
+    () => panelRef(),
+  );
 
   const update = (id: string, patch: Partial<HeaderEntry>) => {
     props.onChange(props.entries.map((e) => (e.id === id ? { ...e, ...patch } : e)));
@@ -79,7 +87,13 @@ const RequestHeadersPopover: Component<Props> = (props) => {
   return (
     <Show when={props.open}>
       <div class="benchmark-headers__backdrop" role="presentation" onClick={props.onClose} />
-      <div class="benchmark-headers" role="dialog" aria-label="Request headers">
+      <div
+        ref={setPanelRef}
+        class="benchmark-headers"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Request headers"
+      >
         <header class="benchmark-headers__header">
           <h3 class="benchmark-headers__title">Request headers</h3>
           <button

@@ -80,7 +80,7 @@ function activeHeaderCount(entries: HeaderEntry[]): number {
 }
 
 function findDisplayName(
-  available: ReturnType<typeof Array<{ model_name: string; display_name?: string }>>,
+  available: { model_name: string; display_name?: string }[],
   modelName: string,
 ): string {
   const match = available.find((m) => m.model_name === modelName);
@@ -217,8 +217,14 @@ const Benchmark: Component = () => {
   };
 
   const handlePickHistory = async (runId: string) => {
+    if (
+      store.isAnyRunning() &&
+      !confirm('A benchmark is still running. Loading this history will cancel it. Continue?')
+    ) {
+      return;
+    }
     try {
-      const detail = await getBenchmarkRun(runId);
+      const detail = await getBenchmarkRun(runId, params.agentName);
       store.loadHistoryRun(detail);
       setActiveRunId(runId);
       setHistoryOpen(false);

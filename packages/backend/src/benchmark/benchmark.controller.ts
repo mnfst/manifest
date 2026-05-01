@@ -41,7 +41,9 @@ export class BenchmarkController {
   async getRun(
     @CurrentUser() user: AuthUser,
     @Param() params: RunIdParamDto,
+    @Query() query: ListHistoryQueryDto,
   ): Promise<BenchmarkHistoryRunDetail> {
-    return this.historyService.getRun(user.id, params.runId);
+    const agent = await this.resolveAgent.resolve(user.id, query.agentName);
+    return this.historyService.getRun(user.id, params.runId, agent.id);
   }
 }
