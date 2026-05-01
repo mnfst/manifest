@@ -1,9 +1,10 @@
 import { IsNotEmpty, IsString, IsUUID, Matches } from 'class-validator';
+import { AGENT_NAME_MESSAGE, AGENT_NAME_PATTERN } from '../../common/constants/agent-name';
 
 export class ListHistoryQueryDto {
   @IsString()
   @IsNotEmpty()
-  @Matches(/^[a-zA-Z0-9_-]+$/, { message: 'Invalid agent name' })
+  @Matches(AGENT_NAME_PATTERN, { message: AGENT_NAME_MESSAGE })
   agentName!: string;
 }
 

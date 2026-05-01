@@ -11,13 +11,14 @@ import { Transform } from 'class-transformer';
 
 import { TIER_SLOTS, AUTH_TYPES } from 'manifest-shared';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
+import { AGENT_NAME_MESSAGE, AGENT_NAME_PATTERN } from '../../common/constants/agent-name';
 
 const KNOWN_PROVIDER_IDS: readonly string[] = Array.from(PROVIDER_BY_ID_OR_ALIAS.keys());
 
 export class AgentNameParamDto {
   @IsString()
   @IsNotEmpty()
-  @Matches(/^[a-zA-Z0-9_-]+$/, { message: 'Invalid agent name' })
+  @Matches(AGENT_NAME_PATTERN, { message: AGENT_NAME_MESSAGE })
   agentName!: string;
 }
 
@@ -57,7 +58,7 @@ export class ConnectProviderDto {
 export class AgentProviderParamDto {
   @IsString()
   @IsNotEmpty()
-  @Matches(/^[a-zA-Z0-9_-]+$/, { message: 'Invalid agent name' })
+  @Matches(AGENT_NAME_PATTERN, { message: AGENT_NAME_MESSAGE })
   agentName!: string;
 
   @IsString()

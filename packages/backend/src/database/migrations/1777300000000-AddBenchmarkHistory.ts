@@ -12,7 +12,15 @@ export class AddBenchmarkHistory1777300000000 implements MigrationInterface {
         "agent_id" varchar NOT NULL,
         "agent_name" varchar NOT NULL,
         "prompt" text NOT NULL,
-        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+        "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        CONSTRAINT "FK_benchmark_runs_tenant"
+          FOREIGN KEY ("tenant_id")
+          REFERENCES "tenants"("id")
+          ON DELETE CASCADE,
+        CONSTRAINT "FK_benchmark_runs_agent"
+          FOREIGN KEY ("agent_id")
+          REFERENCES "agents"("id")
+          ON DELETE CASCADE
       )
     `);
     await queryRunner.query(
@@ -29,7 +37,7 @@ export class AddBenchmarkHistory1777300000000 implements MigrationInterface {
         "display_name" varchar,
         "status" varchar NOT NULL,
         "content" text,
-        "headers" text,
+        "headers" jsonb,
         "error_message" text,
         "input_tokens" integer,
         "output_tokens" integer,

@@ -34,7 +34,7 @@ export class BenchmarkColumn {
   @Column('text', { nullable: true })
   content!: string | null;
 
-  @Column('simple-json', { nullable: true })
+  @Column('jsonb', { nullable: true })
   headers!: Record<string, string> | null;
 
   @Column('text', { nullable: true })

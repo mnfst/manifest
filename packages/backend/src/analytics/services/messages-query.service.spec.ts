@@ -1010,6 +1010,109 @@ describe('MessagesQueryService', () => {
     expect(result.items[0]).toHaveProperty('specificity_category', 'coding');
   });
 
+  describe('cursor encoding edge cases', () => {
+    it('encodes a null/undefined timestamp as an empty string in the cursor', async () => {
+      // The encodeCursor() ternary falls through `ts ?? ''` when the row
+      // somehow ships a null/undefined timestamp (defensive — shouldn't
+      // happen in real data, but the projection is wide and we don't want
+      // to crash the page if a legacy row is malformed).
+      const rows = [
+        { id: 'msg-0', timestamp: null, model: 'gpt-4o' },
+        { id: 'msg-1', timestamp: null, model: 'gpt-4o' },
+      ];
+      mockGetRawOne.mockResolvedValueOnce({ total: 5 });
+      mockGetRawMany.mockResolvedValueOnce(rows).mockResolvedValueOnce([]);
+
+      const result = await service.getMessages({ userId: 'u', limit: 1 });
+      expect(result.next_cursor).toMatch(/^\|msg-0$/);
+    });
+  });
+
+  describe('count cache key', () => {
+    it('treats include_benchmark=false as an unset flag in the cache key', async () => {
+      // The `typeof v === 'boolean' ? (v ? '1' : '')` ternary sends a false
+      // boolean to '', so include_benchmark=false should hit the same cache
+      // bucket as the default (omitted) case.
+      mockGetRawOne.mockResolvedValueOnce({ total: 10 });
+      mockGetRawMany
+        .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'x' }])
+        .mockResolvedValueOnce([{ model: 'x' }]);
+      await service.getMessages({ userId: 'u', limit: 20 });
+
+      // Second call with include_benchmark=false + cursor should pull from
+      // cache (no extra COUNT query) since the cache key collapses to the
+      // same string.
+      mockGetRawMany.mockResolvedValueOnce([
+        { id: 'msg-2', timestamp: '2026-02-16 09:00:00', model: 'x' },
+      ]);
+      const result = await service.getMessages({
+        userId: 'u',
+        limit: 20,
+        include_benchmark: false,
+        cursor: '2026-02-16 10:00:00|msg-1',
+      });
+      expect(result.total_count).toBe(10);
+      expect(mockGetRawOne).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('status filter', () => {
+    it('expands status="errors" into the IN(...) variant', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ total: 0 });
+      mockGetRawMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+
+      const repo = (service as unknown as { turnRepo: { createQueryBuilder: jest.Mock } }).turnRepo;
+      const qb = repo.createQueryBuilder();
+      const andWhereSpy = qb.andWhere as jest.Mock;
+      andWhereSpy.mockClear();
+
+      await service.getMessages({ userId: 'u', limit: 20, status: 'errors' });
+
+      // The "errors" alias fans out into status IN (error, fallback_error, rate_limited).
+      const errorsCall = andWhereSpy.mock.calls.find(
+        ([clause]) =>
+          typeof clause === 'string' && clause.includes('at.status IN (:...errorStatuses)'),
+      );
+      expect(errorsCall).toBeDefined();
+      expect(errorsCall?.[1]?.errorStatuses).toEqual(['error', 'fallback_error', 'rate_limited']);
+    });
+
+    it('passes any other status value through as a direct equality match', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ total: 0 });
+      mockGetRawMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+
+      const repo = (service as unknown as { turnRepo: { createQueryBuilder: jest.Mock } }).turnRepo;
+      const qb = repo.createQueryBuilder();
+      const andWhereSpy = qb.andWhere as jest.Mock;
+      andWhereSpy.mockClear();
+
+      await service.getMessages({ userId: 'u', limit: 20, status: 'ok' });
+
+      const eqCall = andWhereSpy.mock.calls.find(
+        ([clause]) => typeof clause === 'string' && clause.includes('at.status = :statusFilter'),
+      );
+      expect(eqCall).toBeDefined();
+      expect(eqCall?.[1]).toEqual({ statusFilter: 'ok' });
+    });
+
+    it('does not apply a status filter when none is set', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ total: 0 });
+      mockGetRawMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+
+      const repo = (service as unknown as { turnRepo: { createQueryBuilder: jest.Mock } }).turnRepo;
+      const qb = repo.createQueryBuilder();
+      const andWhereSpy = qb.andWhere as jest.Mock;
+      andWhereSpy.mockClear();
+
+      await service.getMessages({ userId: 'u', limit: 20 });
+
+      const anyStatus = andWhereSpy.mock.calls.find(
+        ([clause]) => typeof clause === 'string' && clause.startsWith('at.status'),
+      );
+      expect(anyStatus).toBeUndefined();
+    });
+  });
+
   describe('recorded filter', () => {
     it('adds a recorded = true where clause when the flag is set', async () => {
       const repo = (

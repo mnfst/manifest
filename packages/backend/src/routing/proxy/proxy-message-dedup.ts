@@ -16,6 +16,7 @@ export type DedupMatch = Pick<
   | 'cache_read_tokens'
   | 'cache_creation_tokens'
   | 'duration_ms'
+  | 'recorded'
 >;
 
 @Injectable()
@@ -46,6 +47,7 @@ export class ProxyMessageDedup {
           'cache_read_tokens',
           'cache_creation_tokens',
           'duration_ms',
+          'recorded',
         ],
         order: { timestamp: 'DESC' },
       });
@@ -70,6 +72,7 @@ export class ProxyMessageDedup {
         'cache_read_tokens',
         'cache_creation_tokens',
         'duration_ms',
+        'recorded',
       ],
       order: { timestamp: 'DESC' },
       take: 10,
